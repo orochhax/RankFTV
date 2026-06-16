@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/navbar/BottomNav";
 import { TopNav } from "@/components/navbar/TopNav";
+import { DemoBanner } from "@/components/DemoBanner";
+import { Footer } from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,9 +32,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
+        <DemoBanner />
         <TopNav />
-        {/* padding embaixo no mobile pra conteúdo não ficar atrás da pill flutuante */}
-        <main className="flex-1 pb-28 md:pb-10">{children}</main>
+        <main className="flex-1">{children}</main>
+        {/* Footer carrega o padding extra embaixo no mobile (pra não ficar atrás da pill flutuante) */}
+        <Footer />
         <BottomNav />
       </body>
     </html>
