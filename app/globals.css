@@ -12,15 +12,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+/* Sem modo escuro de propósito: o tema é fundo branco fixo, independente do
+   sistema de quem visita. (O bg-white/text-gray-900 do <body> já vem do
+   layout.tsx via Tailwind — não repetir aqui, isso foi o que causou o bug
+   do fundo preto: uma regra "solta", fora de @layer, vence a classe
+   utilitária do Tailwind, não importa a especificidade.) */
