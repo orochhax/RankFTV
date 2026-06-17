@@ -2,6 +2,34 @@
 // Recebe os ratings dos atletas e as categorias do campeonato,
 // devolve qual categoria é a certa e se há risco de sandbagging.
 
+// ── Questionário de nível ─────────────────────────────────────────────────────
+
+export type RespostasQuestionario = {
+  tempo:            "menos_1" | "1_3" | "3_6" | "mais_6";
+  nivel:            "recreativo" | "amador" | "competitivo" | "alto_nivel";
+  frequencia:       "1x" | "2_3x" | "4_5x" | "todo_dia";
+  melhor_resultado: "nunca" | "sem_podio" | "top4" | "campeao";
+  categoria_usual:  "nunca" | "D" | "C" | "B" | "A_elite";
+};
+
+const PESOS: Record<keyof RespostasQuestionario, Record<string, number>> = {
+  tempo:            { menos_1: 0, "1_3": 200, "3_6": 450, mais_6: 700 },
+  nivel:            { recreativo: 0, amador: 200, competitivo: 450, alto_nivel: 700 },
+  frequencia:       { "1x": 0, "2_3x": 100, "4_5x": 200, todo_dia: 300 },
+  melhor_resultado: { nunca: 0, sem_podio: 150, top4: 350, campeao: 600 },
+  categoria_usual:  { nunca: 0, D: 50, C: 200, B: 350, A_elite: 500 },
+};
+
+export function calcularRatingQuestionario(r: RespostasQuestionario): number {
+  const soma =
+    (PESOS.tempo[r.tempo]                       ?? 0) +
+    (PESOS.nivel[r.nivel]                       ?? 0) +
+    (PESOS.frequencia[r.frequencia]             ?? 0) +
+    (PESOS.melhor_resultado[r.melhor_resultado] ?? 0) +
+    (PESOS.categoria_usual[r.categoria_usual]   ?? 0);
+  return 100 + soma; // mínimo 100, máximo ~2900
+}
+
 export type Categoria = {
   id: string;
   nome: string;
