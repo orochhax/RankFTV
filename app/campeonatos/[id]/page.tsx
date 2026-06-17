@@ -116,7 +116,12 @@ export default async function CampeonatoDetalhePage({
               <div className="flex items-center gap-4">
                 <span className="font-semibold text-gray-900">{formatBRL(cat.valorInscricao)}</span>
                 <div className="w-56">
-                  <InscricaoButton categoriaNome={cat.nome} />
+                  <InscricaoButton
+                    categoriaNome={cat.nome}
+                    championshipId={championship.id}
+                    categoryId={cat.id}
+                    status={championship.status}
+                  />
                 </div>
               </div>
             </div>

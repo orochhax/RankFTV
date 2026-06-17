@@ -1,26 +1,38 @@
-"use client";
+import Link from "next/link";
 
-import { useState } from "react";
+type Props = {
+  categoriaNome: string;
+  championshipId?: string;
+  categoryId?: string;
+  status?: string;
+};
 
-// Único pedacinho interativo da página de detalhe — por isso é o único
-// Client Component aqui (convenção do ftv.md seção 9). Pagamento e convite
-// de dupla de verdade entram na Fase 1, junto com o Supabase/Asaas.
-export function InscricaoButton({ categoriaNome }: { categoriaNome: string }) {
-  const [avisoVisivel, setAvisoVisivel] = useState(false);
+// Botão de inscrição na página de detalhe do campeonato.
+// Campeonatos reais (UUID) → link para /inscrever.
+// Campeonatos mock ou com inscrições fechadas → estado visual.
+export function InscricaoButton({
+  categoriaNome,
+  championshipId,
+  categoryId,
+  status,
+}: Props) {
+  const isReal = !!championshipId && !!categoryId;
+  const aberto = status === "inscricoes_abertas";
 
-  return (
-    <div>
-      <button
-        onClick={() => setAvisoVisivel(true)}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+  if (isReal && aberto) {
+    return (
+      <Link
+        href={`/campeonatos/${championshipId}/inscrever?categoria=${categoryId}`}
+        className="block w-full rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700"
       >
         Inscrever dupla — {categoriaNome}
-      </button>
-      {avisoVisivel && (
-        <p className="mt-2 text-sm text-amber-700">
-          🚧 Convite de dupla e pagamento ainda não estão de pé — chegam numa próxima etapa.
-        </p>
-      )}
-    </div>
+      </Link>
+    );
+  }
+
+  return (
+    <span className="block w-full rounded-lg bg-gray-100 px-4 py-2.5 text-center text-sm text-gray-400">
+      {!aberto ? "Inscrições encerradas" : "Em breve"}
+    </span>
   );
 }
