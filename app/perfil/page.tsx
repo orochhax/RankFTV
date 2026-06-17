@@ -8,6 +8,40 @@ import { createClient } from "@/lib/supabase/server";
 import { SERIES } from "@/lib/mock/series";
 
 const COLOCACAO_EMOJI: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
+
+const Q_LABELS = {
+  tempo: {
+    menos_1: "Joga há menos de 1 ano",
+    "1_3":   "Joga há 1 a 3 anos",
+    "3_6":   "Joga há 3 a 6 anos",
+    mais_6:  "Joga há mais de 6 anos",
+  },
+  nivel: {
+    recreativo:  "Só recreativo",
+    amador:      "Nível amador (campeonatos locais)",
+    competitivo: "Nível competitivo (campeonatos estaduais)",
+    alto_nivel:  "Alto nível (regionais/nacionais)",
+  },
+  frequencia: {
+    "1x":      "Treina 1x por semana ou menos",
+    "2_3x":    "Treina 2 a 3x por semana",
+    "4_5x":    "Treina 4 a 5x por semana",
+    todo_dia:  "Treina todos os dias",
+  },
+  melhor_resultado: {
+    nunca:     "Nunca participou de campeonato",
+    sem_podio: "Já participou, sem pódio",
+    top4:      "Melhor resultado: top 4",
+    campeao:   "Já foi campeão ou vice",
+  },
+  categoria_usual: {
+    nunca:   "Nunca competiu em campeonato",
+    D:       "Compete na categoria D",
+    C:       "Compete na categoria C",
+    B:       "Compete na categoria B",
+    A_elite: "Compete na categoria A ou Elite",
+  },
+} as const;
 const TIER_LABEL: Record<string, string> = {
   nacional: "Nacional",
   regional: "Regional",
@@ -32,7 +66,7 @@ export default async function PerfilPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("nome, username, bio, foto_url")
+    .select("nome, username, bio, foto_url, questionario, rating")
     .eq("id", user.id)
     .single();
 
@@ -100,6 +134,45 @@ export default async function PerfilPage() {
           )}
         </div>
       </div>
+
+      {/* Nível / Questionário */}
+      {profile.questionario ? (
+        <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-500">Perfil de atleta</h2>
+            {profile.rating > 0 && (
+              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                {profile.rating} pts
+              </span>
+            )}
+          </div>
+          <ul className="mt-3 space-y-1.5">
+            {(["tempo", "nivel", "frequencia", "melhor_resultado", "categoria_usual"] as const).map((key) => {
+              const val = (profile.questionario as Record<string, string>)[key];
+              const label = val ? (Q_LABELS[key] as Record<string, string>)[val] : null;
+              return label ? (
+                <li key={key} className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="text-gray-300">·</span>
+                  {label}
+                </li>
+              ) : null;
+            })}
+          </ul>
+        </section>
+      ) : (
+        <Link
+          href="/perfil/questionario"
+          className="flex items-center justify-between rounded-2xl bg-blue-600 px-5 py-4 text-white hover:bg-blue-700"
+        >
+          <div>
+            <p className="text-sm font-semibold">Defina seu nível de atleta</p>
+            <p className="mt-0.5 text-xs text-blue-200">
+              5 perguntas · aparece no seu perfil público
+            </p>
+          </div>
+          <ChevronRight className="size-5 shrink-0" />
+        </Link>
+      )}
 
       {/* Organizador — logo abaixo do perfil */}
       <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">

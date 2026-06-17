@@ -28,7 +28,8 @@ export default async function PagamentoPage({
 
   if (!reg) notFound();
 
-  const categoria = (reg.championship_categories as { nome: string } | null)?.nome ?? "—";
+  const catRaw = reg.championship_categories;
+  const categoria = (Array.isArray(catRaw) ? catRaw[0] : catRaw as { nome: string } | null)?.nome ?? "—";
 
   if (reg.status_pagamento === "pago") {
     return (

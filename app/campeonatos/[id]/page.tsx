@@ -11,6 +11,8 @@ import { getAthleteById } from "@/lib/mock/athletes";
 import { getBracket } from "@/lib/mock/brackets";
 import { getBannerUrl } from "@/lib/mock/banners";
 import { formatBRL, formatDateRangeBR, generoLabel } from "@/lib/format";
+import { createClient } from "@/lib/supabase/server";
+import { recomendarCategoria } from "@/lib/motor-categoria";
 
 // Detalhe do campeonato — ver ftv.md seção 8.4: regulamento, categorias com
 // valor, localização e lista pública de duplas inscritas.
@@ -31,6 +33,29 @@ export default async function CampeonatoDetalhePage({
   const organizador = getAthleteById(championship.organizadorId);
   const duplas = resolveDuplas(championship);
   const bannerUrl = getBannerUrl(championship.id);
+
+  // Rating do usuário logado (opcional — visitante não tem)
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let meuRating = 0;
+  if (user) {
+    const { data: p } = await supabase
+      .from("profiles")
+      .select("rating")
+      .eq("id", user.id)
+      .single();
+    meuRating = p?.rating ?? 0;
+  }
+
+  const categoriasParaMotor = championship.categorias.map((c) => ({
+    id: c.id,
+    nome: c.nome,
+    corte_rating_min: c.corteRatingMin,
+    corte_rating_max: c.corteRatingMax,
+  }));
+  const catRecomendada = meuRating > 0
+    ? recomendarCategoria(meuRating, categoriasParaMotor)
+    : null;
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-8">
@@ -98,15 +123,24 @@ export default async function CampeonatoDetalhePage({
       <section>
         <h2 className="mb-3 text-lg font-semibold text-gray-900">Categorias e inscrição</h2>
         <div className="space-y-3">
-          {championship.categorias.map((cat) => (
+          {championship.categorias.map((cat) => {
+            const isRecomendada = catRecomendada?.id === cat.id;
+            return (
             <div
               key={cat.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5"
+              className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white p-4 ring-1 ${isRecomendada ? "ring-green-400 bg-green-50" : "ring-black/5"}`}
             >
               <div>
-                <p className="font-medium text-gray-900">
-                  Categoria {cat.nome} · {generoLabel(cat.genero)}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-gray-900">
+                    Categoria {cat.nome} · {generoLabel(cat.genero)}
+                  </p>
+                  {isRecomendada && (
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                      Recomendada para você
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-gray-500">
                   {cat.corteRatingMin > 0
                     ? `Rating mínimo ${cat.corteRatingMin}`
@@ -125,7 +159,8 @@ export default async function CampeonatoDetalhePage({
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

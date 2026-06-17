@@ -21,6 +21,8 @@ export async function inscreverDupla(
   const parceiroUsername  = ((formData.get("parceiro_username") as string) ?? "").trim().replace(/^@/, "");
   const cpfInput          = ((formData.get("cpf") as string) ?? "").replace(/\D/g, "");
   const metodo            = ((formData.get("metodo_pagamento") as string) ?? "pix") as MetodoPagamento;
+  const ratingDupla       = parseInt(formData.get("rating_dupla") as string) || 0;
+  const sandbaggingFlag   = formData.get("sandbagging") === "1";
 
   // ── Carrega perfil ────────────────────────────────────────────
   const { data: profile } = await supabase
@@ -84,12 +86,14 @@ export async function inscreverDupla(
   const { data: team, error: teamError } = await supabase
     .from("teams")
     .insert({
-      championship_id: championshipId,
-      category_id:     categoryId,
-      atleta1_id:      user.id,
-      atleta2_id:      atleta2Id,
+      championship_id:   championshipId,
+      category_id:       categoryId,
+      atleta1_id:        user.id,
+      atleta2_id:        atleta2Id,
       parceiro_username: parceiroUsername || null,
-      status:          atleta2Id ? "convite_pendente" : "convite_pendente",
+      status:            "convite_pendente",
+      sandbagging_flag:  sandbaggingFlag,
+      rating_dupla:      ratingDupla || null,
     })
     .select("id")
     .single();

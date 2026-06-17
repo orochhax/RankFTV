@@ -4,6 +4,11 @@ import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { InscricaoForm } from "@/components/campeonatos/InscricaoForm";
+import {
+  calcularRatingDupla,
+  recomendarCategoria,
+  detectarSandbagging,
+} from "@/lib/motor-categoria";
 
 export default async function InscreverPage({
   params,
@@ -38,11 +43,39 @@ export default async function InscreverPage({
   const category = championship.categorias.find((c) => c.id === categoryId);
   if (!category) notFound();
 
+  // Busca perfil com rating e CPF
   const { data: profile } = await supabase
     .from("profiles")
-    .select("cpf")
+    .select("cpf, rating, questionario")
     .eq("id", user.id)
     .single();
+
+  // Busca todas as categorias do campeonato para o motor
+  const { data: todasCategorias } = await supabase
+    .from("championship_categories")
+    .select("id, nome, corte_rating_min, corte_rating_max")
+    .eq("championship_id", id);
+
+  // ── Motor de categoria ──────────────────────────────────────
+  const meuRating = profile?.rating ?? 0;
+  const ratingDupla = calcularRatingDupla(meuRating, null); // parceiro ainda não informado
+  const categoriaRecomendada = todasCategorias
+    ? recomendarCategoria(ratingDupla, todasCategorias)
+    : null;
+
+  const categoriaSelecionada = {
+    id:               category.id,
+    nome:             category.nome,
+    corte_rating_min: (todasCategorias?.find((c) => c.id === category.id)?.corte_rating_min) ?? 0,
+    corte_rating_max: (todasCategorias?.find((c) => c.id === category.id)?.corte_rating_max) ?? 9999,
+  };
+
+  const isSandbagging = meuRating > 0
+    ? detectarSandbagging(ratingDupla, categoriaSelecionada)
+    : false;
+
+  const isRecomendada = categoriaRecomendada?.id === category.id;
+  const semQuestionario = !profile?.questionario;
 
   return (
     <div className="mx-auto max-w-lg space-y-5 px-6 py-8">
@@ -58,12 +91,47 @@ export default async function InscreverPage({
         <p className="text-sm text-gray-500">Inscrição de dupla</p>
       </div>
 
+      {/* Banner: sem questionário preenchido */}
+      {semQuestionario && (
+        <div className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">
+          <p className="font-semibold">Seu nível não está definido ainda</p>
+          <p className="mt-0.5 text-amber-700">
+            Responda o{" "}
+            <Link href="/perfil/questionario" className="underline font-medium">
+              questionário de nível
+            </Link>{" "}
+            para que a plataforma possa recomendar a categoria certa pra você.
+          </p>
+        </div>
+      )}
+
+      {/* Banner: sandbagging detectado */}
+      {isSandbagging && (
+        <div className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200">
+          <p className="font-semibold">Atenção: categoria abaixo do seu nível</p>
+          <p className="mt-0.5 text-red-700">
+            Com base no seu perfil, a categoria recomendada é{" "}
+            <strong>{categoriaRecomendada?.nome ?? "uma mais alta"}</strong>. Você
+            pode continuar, mas o organizador será alertado automaticamente.
+          </p>
+        </div>
+      )}
+
+      {/* Banner: categoria recomendada */}
+      {!semQuestionario && isRecomendada && (
+        <div className="rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-800 ring-1 ring-green-200">
+          Categoria recomendada para o seu nível ({meuRating} pts)
+        </div>
+      )}
+
       <InscricaoForm
         championshipId={id}
         categoryId={category.id}
         categoriaNome={category.nome}
         valorInscricao={category.valorInscricao}
         cpfSalvo={profile?.cpf ?? null}
+        ratingDupla={ratingDupla}
+        isSandbagging={isSandbagging}
       />
     </div>
   );
