@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, Users } from "lucide-react";
+import { MapPin, Users, Trophy } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { InscricaoButton } from "@/components/campeonatos/InscricaoButton";
 import { CHAMPIONSHIPS, getChampionshipById, resolveDuplas } from "@/lib/mock/championships";
 import { getAthleteById } from "@/lib/mock/athletes";
+import { getBracket } from "@/lib/mock/brackets";
 import { formatBRL, formatDateRangeBR, generoLabel } from "@/lib/format";
 
 // Detalhe do campeonato — ver ftv.md seção 8.4: regulamento, categorias com
@@ -54,6 +55,17 @@ export default async function CampeonatoDetalhePage({
             </span>
           )}
         </div>
+        {getBracket(championship.id) && (
+          <div className="mt-4">
+            <Link
+              href={`/campeonatos/${championship.id}/chaveamento`}
+              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            >
+              <Trophy className="size-4" />
+              Chaveamento
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* "Mapa" — placeholder visual até integrarmos um provedor de mapas de verdade */}

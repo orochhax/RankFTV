@@ -1,93 +1,151 @@
 import Link from "next/link";
-import { Avatar } from "@/components/ui/Avatar";
-import { ESTADOS_DISPONIVEIS, categoriaFromRating, rankAthletes } from "@/lib/mock/athletes";
-import type { Genero } from "@/lib/mock/types";
+import { getAvailableYears, getRanking } from "@/lib/supabase/ranking";
 
 const MEDALHA = ["🥇", "🥈", "🥉"];
+const TIER_LABEL: Record<string, string> = {
+  nacional: "Nacional",
+  regional: "Regional",
+  local: "Local",
+};
 
-// Rank — ver ftv.md seção 8.5: por atleta individual, filtros Brasil/estado x
-// Geral/Masculina/Feminina, clicar abre o perfil público.
 export default async function RankPage({
   searchParams,
 }: {
-  searchParams: Promise<{ estado?: string; genero?: Genero }>;
+  searchParams: Promise<{ genero?: string; ano?: string }>;
 }) {
-  const { estado, genero } = await searchParams;
-  const ranking = rankAthletes({ estado, genero });
+  const { genero: generoParam, ano: anoParam } = await searchParams;
+
+  const genero =
+    generoParam === "feminino" ? "feminino" : ("masculino" as const);
+  const anoRaw = anoParam === "all" ? "all" : parseInt(anoParam ?? "");
+  const anos = await getAvailableYears();
+  const anoAtual = new Date().getFullYear();
+  const ano: number | "all" = anoRaw === "all" ? "all" : isNaN(anoRaw as number) ? anoAtual : (anoRaw as number);
+
+  const ranking = await getRanking(genero, ano);
+
+  const labelAno =
+    ano === "all" ? "Todos os tempos" : String(ano);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-6 py-8">
-      <h1 className="text-2xl font-semibold text-gray-900">Rank</h1>
+      <h1 className="text-2xl font-semibold text-gray-900">Ranking</h1>
 
-      <form className="flex flex-wrap items-end gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5">
-        <div>
-          <label htmlFor="estado" className="block text-xs font-medium text-gray-500">
-            Região
-          </label>
-          <select
-            id="estado"
-            name="estado"
-            defaultValue={estado ?? ""}
-            className="mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm"
+      {/* Filtros */}
+      <div className="flex flex-wrap gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5">
+        {/* Gênero */}
+        <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm font-medium">
+          <Link
+            href={`/rank?genero=masculino&ano=${anoParam ?? anoAtual}`}
+            className={`px-4 py-2 transition-colors ${
+              genero === "masculino"
+                ? "bg-blue-600 text-white"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
           >
-            <option value="">Brasil todo</option>
-            {ESTADOS_DISPONIVEIS.map((uf) => (
-              <option key={uf} value={uf}>
-                {uf}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="genero" className="block text-xs font-medium text-gray-500">
-            Categoria
-          </label>
-          <select
-            id="genero"
-            name="genero"
-            defaultValue={genero ?? ""}
-            className="mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm"
-          >
-            <option value="">Geral</option>
-            <option value="masculino">Masculina</option>
-            <option value="feminino">Feminina</option>
-          </select>
-        </div>
-        <button
-          type="submit"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          Filtrar
-        </button>
-        {(estado || genero) && (
-          <Link href="/rank" className="text-sm text-gray-500 hover:underline">
-            Limpar filtros
+            Masculino
           </Link>
-        )}
-      </form>
+          <Link
+            href={`/rank?genero=feminino&ano=${anoParam ?? anoAtual}`}
+            className={`px-4 py-2 border-l border-gray-200 transition-colors ${
+              genero === "feminino"
+                ? "bg-blue-600 text-white"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Feminino
+          </Link>
+        </div>
 
-      <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-        {ranking.map((atleta, i) => (
-          <li key={atleta.id}>
+        {/* Ano */}
+        <div className="flex flex-wrap gap-1.5">
+          <Link
+            href={`/rank?genero=${genero}&ano=all`}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              ano === "all"
+                ? "bg-gray-900 text-white"
+                : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Todos os tempos
+          </Link>
+          {anos.map((a) => (
             <Link
-              href={`/atletas/${atleta.username}`}
-              className="flex items-center gap-4 p-3.5 hover:bg-gray-50"
+              key={a}
+              href={`/rank?genero=${genero}&ano=${a}`}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                ano === a
+                  ? "bg-gray-900 text-white"
+                  : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
             >
-              <span className="w-7 shrink-0 text-center text-sm font-semibold text-gray-500">
-                {MEDALHA[i] ?? i + 1}
-              </span>
-              <Avatar nome={atleta.nome} color={atleta.avatarColor} size="sm" />
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">{atleta.nome}</p>
-                <p className="text-xs text-gray-500">
-                  {atleta.cidade} - {atleta.estado} · Categoria {categoriaFromRating(atleta.rating)}
-                </p>
-              </div>
-              <span className="font-semibold text-gray-900">{atleta.rating}</span>
+              {a}
             </Link>
-          </li>
-        ))}
-      </ol>
+          ))}
+        </div>
+      </div>
+
+      {/* Cabeçalho do período */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          <span className="font-medium text-gray-700">
+            {genero === "masculino" ? "Masculino" : "Feminino"}
+          </span>{" "}
+          · {labelAno} · {ranking.length} atletas
+        </p>
+      </div>
+
+      {/* Tabela */}
+      {ranking.length === 0 ? (
+        <div className="rounded-2xl bg-white p-8 text-center ring-1 ring-black/5">
+          <p className="text-sm text-gray-400">
+            Nenhum resultado para esse período ainda.
+          </p>
+        </div>
+      ) : (
+        <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
+          {ranking.map((atleta, i) => (
+            <li key={atleta.athlete_id}>
+              <div className="flex items-center gap-4 p-3.5">
+                <span className="w-7 shrink-0 text-center text-sm font-semibold text-gray-500">
+                  {MEDALHA[i] ?? i + 1}
+                </span>
+
+                {/* Avatar inicial */}
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
+                  {atleta.nome.charAt(0).toUpperCase()}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 truncate">
+                    {atleta.nome}
+                  </p>
+                  {atleta.instagram && (
+                    <p className="text-xs text-gray-400">
+                      @{atleta.instagram}
+                    </p>
+                  )}
+                </div>
+
+                <div className="text-right shrink-0">
+                  <p className="font-semibold text-gray-900">
+                    {atleta.total_pontos.toLocaleString("pt-BR")} pts
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {atleta.total_torneios}{" "}
+                    {atleta.total_torneios === 1 ? "torneio" : "torneios"}
+                  </p>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      <p className="text-center text-xs text-gray-400">
+        Pontuação: torneio Nacional = 1º 300pts · 2º 180pts · 3º 105pts.
+        Dados de torneios verificados manualmente.
+      </p>
     </div>
   );
 }

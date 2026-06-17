@@ -5,6 +5,7 @@ import { BottomNav } from "@/components/navbar/BottomNav";
 import { TopNav } from "@/components/navbar/TopNav";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Footer } from "@/components/Footer";
+import { createClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,11 +22,24 @@ export const metadata: Metadata = {
   description: "Organize e participe de campeonatos de futevôlei.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let navUser: { id: string; nome: string; username: string } | null = null;
+  if (user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("nome, username")
+      .eq("id", user.id)
+      .single();
+    if (data) navUser = { id: user.id, ...data };
+  }
+
   return (
     <html
       lang="pt-BR"
@@ -33,9 +47,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-white text-gray-900">
         <DemoBanner />
-        <TopNav />
+        <TopNav user={navUser} />
         <main className="flex-1">{children}</main>
-        {/* Footer carrega o padding extra embaixo no mobile (pra não ficar atrás da pill flutuante) */}
         <Footer />
         <BottomNav />
       </body>

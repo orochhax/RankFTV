@@ -2,28 +2,43 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
-// Login — ver ftv.md seção 8.2: só e-mail/senha por enquanto (sem Google).
-// Ainda sem Supabase Auth de verdade — esse form só valida o fluxo visual.
 export default function LoginPage() {
+  const router = useRouter();
+  const supabase = createClient();
+
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [enviado, setEnviado] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setEnviado(true);
+    setLoading(true);
+    setErro(null);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password: senha,
+    });
+
+    if (error) {
+      setErro("E-mail ou senha incorretos.");
+      setLoading(false);
+    } else {
+      router.push("/");
+      router.refresh();
+    }
   }
 
   return (
     <div className="mx-auto max-w-md px-6 py-10">
       <h1 className="text-2xl font-semibold text-gray-900">Entrar</h1>
 
-      {enviado && (
-        <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-700">
-          🚧 Login ainda não está ligado ao Supabase de verdade — modo demo. A Home continua
-          mostrando o atleta fictício de exemplo.
-        </p>
+      {erro && (
+        <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{erro}</p>
       )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -36,7 +51,7 @@ export default function LoginPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
           />
         </div>
         <div>
@@ -48,14 +63,15 @@ export default function LoginPage() {
             type="password"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
           />
         </div>
         <button
           type="submit"
-          className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+          disabled={loading || !email || !senha}
+          className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Entrar
+          {loading ? "Entrando..." : "Entrar"}
         </button>
       </form>
 
