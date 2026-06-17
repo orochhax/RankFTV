@@ -25,6 +25,14 @@ const STATUS_STYLE: Record<ChampionshipStatus, { dot: string; block: string }> =
   rascunho:           { dot: "bg-gray-400",    block: "bg-gray-200 text-gray-600" },
 };
 
+// Cor do bloco de data por circuito (substitui o verde padrão de status).
+const CIRCUITO_BLOCK: Record<string, string> = {
+  "Brasil Open":                      "bg-gradient-to-b from-blue-600 via-yellow-400 to-green-500 text-white",
+  "Big WolfCup":                      "bg-gray-500 text-white",
+  "TAFC":                             "bg-gray-900 text-white",
+  "Circuito Brasileiro de Futevôlei": "bg-green-700 text-white",
+};
+
 // Quando um dia tem eventos de status diferentes, a cor do bloco de data segue
 // o mais "ativo" (em andamento > inscrições abertas > encerrado).
 const STATUS_PRIORITY: Record<ChampionshipStatus, number> = {
@@ -117,58 +125,62 @@ export function AgendaView({ events }: { events: AgendaEvent[] }) {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Cabeçalho: título, seletor de visão e o botão de finalizados */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Agenda</h1>
-          <div className="flex rounded-full bg-gray-100 p-1">
-            <button
-              type="button"
-              onClick={() => setView("lista")}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                view === "lista" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
-              }`}
-            >
-              <List className="size-4" /> Lista
-            </button>
-            <button
-              type="button"
-              onClick={() => setView("calendario")}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                view === "calendario" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
-              }`}
-            >
-              <CalendarDays className="size-4" /> Calendário
-            </button>
+    <div className="min-h-screen">
+      {/* ── Cabeçalho preto ── */}
+      <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
+        <div className="mx-auto max-w-3xl space-y-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold tracking-tight text-white">Agenda</h1>
+            <div className="flex rounded-full bg-white/10 p-1">
+              <button
+                type="button"
+                onClick={() => setView("lista")}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                  view === "lista" ? "bg-white text-gray-900 shadow-sm" : "text-white/60 hover:text-white/80"
+                }`}
+              >
+                <List className="size-4" /> Lista
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("calendario")}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                  view === "calendario" ? "bg-white text-gray-900 shadow-sm" : "text-white/60 hover:text-white/80"
+                }`}
+              >
+                <CalendarDays className="size-4" /> Calendário
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Só aparece quando há eventos já finalizados pra revelar */}
-        {finishedCount > 0 && (
-          <button
-            type="button"
-            onClick={() => setShowFinished((v) => !v)}
-            aria-pressed={showFinished}
-            className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-              showFinished
-                ? "bg-gray-900 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {showFinished ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-            {showFinished
-              ? "Ocultar finalizados"
-              : `Mostrar finalizados (${finishedCount})`}
-          </button>
-        )}
+          {finishedCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowFinished((v) => !v)}
+              aria-pressed={showFinished}
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                showFinished
+                  ? "bg-white text-gray-900"
+                  : "bg-white/10 text-white/70 hover:bg-white/15"
+              }`}
+            >
+              {showFinished ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+              {showFinished ? "Ocultar finalizados" : `Mostrar finalizados (${finishedCount})`}
+            </button>
+          )}
+        </div>
       </div>
 
-      {view === "lista" ? (
-        <ListView sortedDates={sortedDates} eventsByDate={eventsByDate} />
-      ) : (
-        <CalendarView eventsByDate={eventsByDate} />
-      )}
+      {/* ── Seção branca com curva ── */}
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
+        <div className="mx-auto max-w-3xl">
+          {view === "lista" ? (
+            <ListView sortedDates={sortedDates} eventsByDate={eventsByDate} />
+          ) : (
+            <CalendarView eventsByDate={eventsByDate} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -212,9 +224,9 @@ function ListView({
               </p>
             )}
             <div className="flex gap-4 rounded-2xl bg-white p-4 ring-1 ring-black/5">
-              {/* Bloco de data */}
+              {/* Bloco de data — cor do circuito dominante do dia */}
               <div
-                className={`flex w-14 shrink-0 flex-col items-center justify-center rounded-xl py-2 text-center ${STATUS_STYLE[status].block}`}
+                className={`flex w-14 shrink-0 flex-col items-center justify-center rounded-xl py-2 text-center ${CIRCUITO_BLOCK[dayEvents[0]?.nome] ?? STATUS_STYLE[status].block}`}
               >
                 <span className="text-[10px] font-semibold uppercase">
                   {WEEKDAYS_SHORT[date.getDay()]}

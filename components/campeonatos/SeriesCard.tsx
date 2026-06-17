@@ -79,15 +79,15 @@ export function SeriesCard({
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold text-gray-900">{series.nome}</p>
         <p className="truncate text-sm text-gray-500">{series.descricao}</p>
-        <div className="mt-1 flex items-center gap-3 text-xs text-gray-400">
-          <span className="flex items-center gap-1">
+        <div className="mt-1 flex items-center gap-3 overflow-hidden whitespace-nowrap text-xs text-gray-400">
+          <span className="flex shrink-0 items-center gap-1">
             <Users className="size-3" />
             {formatSeguidores(series.seguidores)} seguidores
           </span>
-          <span>·</span>
-          <span>{series.edicoes} edições</span>
-          <span>·</span>
-          <span>{series.estado}</span>
+          <span className="shrink-0">·</span>
+          <span className="shrink-0">{series.edicoes} edições</span>
+          <span className="shrink-0">·</span>
+          <span className="shrink-0">{series.estado}</span>
         </div>
       </div>
 
