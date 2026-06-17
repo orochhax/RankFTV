@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getTournamentsForAdmin } from "@/lib/supabase/ranking";
-
-const ADMIN_EMAIL = "carlosrocha0923@gmail.com";
+import { getUserRole, isAdminRole, isCeo } from "@/lib/supabase/roles";
 
 const COLOCACAO_LABEL: Record<number, string> = {
   1: "🥇 1º",
@@ -22,7 +23,8 @@ export default async function AdminPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user || user.email !== ADMIN_EMAIL) redirect("/");
+  const role = await getUserRole(supabase);
+  if (!user || !isAdminRole(role)) redirect("/");
 
   const tournaments = await getTournamentsForAdmin();
 
@@ -49,10 +51,32 @@ export default async function AdminPage() {
         <h1 className="text-2xl font-semibold text-gray-900">
           Painel Admin — RankFTV
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Acesso restrito · {user.email}
-        </p>
+        <div className="mt-1 flex items-center gap-2">
+          <p className="text-sm text-gray-500">{user.email}</p>
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${
+              isCeo(role)
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-blue-100 text-blue-800"
+            }`}
+          >
+            {role}
+          </span>
+        </div>
       </div>
+
+      {/* Atalhos — só CEO vê gestão de usuários */}
+      {isCeo(role) && (
+        <div className="flex gap-3">
+          <Link
+            href="/admin/usuarios"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-gray-700 ring-1 ring-black/5 hover:bg-gray-50"
+          >
+            <Users className="size-4 text-gray-400" />
+            Gerir usuários e roles
+          </Link>
+        </div>
+      )}
 
       {/* Cards resumo */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
