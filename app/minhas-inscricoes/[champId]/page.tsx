@@ -174,7 +174,7 @@ export default async function IngressoPage({
             <div className="bg-[#0f0f13] px-5 py-4">
               {/* Código curto — discreet, para digitação manual se o QR falhar */}
               {credential?.code && (
-                <p className="mb-2 text-center font-mono text-[10px] tracking-[0.25em] text-white/20">
+                <p className="mb-2 text-center font-mono text-[10px] tracking-[0.25em] text-white/50">
                   {credential.code}
                 </p>
               )}
