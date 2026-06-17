@@ -9,7 +9,7 @@ export type CheckinResult =
   | { error: string };
 
 export async function markCheckin(
-  qrToken: string,
+  input: string,
   championshipId: string,
 ): Promise<CheckinResult> {
   const supabase = await createClient();
@@ -29,19 +29,22 @@ export async function markCheckin(
     return { error: "Sem permissão para este campeonato" };
   }
 
-  // Busca credencial pelo token + campeonato.
+  const token = input.trim();
+  const tokenUpper = token.toUpperCase();
+
+  // Busca credencial pelo qr_token OU pelo code curto (case-insensitive).
   const { data: cred } = await supabase
     .from("credentials")
     .select("id, checked_in, user_id")
-    .eq("qr_token", qrToken.trim())
     .eq("championship_id", championshipId)
+    .or(`qr_token.eq.${token},code.eq.${tokenUpper}`)
     .maybeSingle();
 
   if (!cred) {
-    return { error: "QR code não encontrado neste campeonato" };
+    return { error: "Código não encontrado neste campeonato" };
   }
 
-  // Pega o nome do atleta na tabela profiles.
+  // Nome do atleta para o toast.
   const { data: profile } = await supabase
     .from("profiles")
     .select("nome")
@@ -54,9 +57,14 @@ export async function markCheckin(
     return { alreadyDone: true, nome };
   }
 
+  // Marca check-in e registra quem escaneou.
   await supabase
     .from("credentials")
-    .update({ checked_in: true, checkin_at: new Date().toISOString() })
+    .update({
+      checked_in: true,
+      checkin_at: new Date().toISOString(),
+      checked_in_by: user.id,
+    })
     .eq("id", cred.id);
 
   revalidatePath(`/painel/campeonatos/${championshipId}/checkin`);

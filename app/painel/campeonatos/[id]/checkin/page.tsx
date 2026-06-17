@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Clock, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CheckinClient } from "@/components/checkin/CheckinClient";
+import { PresenceItem } from "@/components/checkin/PresenceItem";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 
 type CredentialRow = {
@@ -10,8 +11,10 @@ type CredentialRow = {
   user_id: string;
   role: string;
   qr_token: string;
+  code: string | null;
   checked_in: boolean;
   checkin_at: string | null;
+  checked_in_by: string | null;
 };
 
 type ProfileRow = {
@@ -23,14 +26,8 @@ type ProfileRow = {
 type CredentialDisplay = CredentialRow & {
   nome: string;
   username: string;
+  scannerNome: string | null;
 };
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export default async function CheckinPage({
   params,
@@ -52,48 +49,51 @@ export default async function CheckinPage({
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
 
-  // Busca todas as credenciais do campeonato (sem ordenação — faremos em JS)
+  // Busca credenciais com as novas colunas
   const { data: rawCreds } = await supabase
     .from("credentials")
-    .select("id, user_id, role, qr_token, checked_in, checkin_at")
+    .select("id, user_id, role, qr_token, code, checked_in, checkin_at, checked_in_by")
     .eq("championship_id", id);
 
   const creds: CredentialRow[] = rawCreds ?? [];
 
-  // Busca nomes/usernames em lote
+  // IDs únicos: atletas + scanners
+  const athleteIds  = [...new Set(creds.map((c) => c.user_id))];
+  const scannerIds  = [...new Set(creds.map((c) => c.checked_in_by).filter(Boolean))] as string[];
+  const allIds      = [...new Set([...athleteIds, ...scannerIds])];
+
   let profiles: ProfileRow[] = [];
-  if (creds.length > 0) {
-    const userIds = [...new Set(creds.map((c) => c.user_id))];
+  if (allIds.length > 0) {
     const { data } = await supabase
       .from("profiles")
       .select("id, nome, username")
-      .in("id", userIds);
+      .in("id", allIds);
     profiles = (data ?? []) as ProfileRow[];
   }
 
   const profileMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
 
-  // Monta lista completa com nome, ordenada alfabeticamente
+  // Monta lista com nome + scanner + ordem alfabética
   const allList: CredentialDisplay[] = creds
     .map((c) => ({
       ...c,
-      nome: profileMap[c.user_id]?.nome ?? "Atleta",
-      username: profileMap[c.user_id]?.username ?? "",
+      nome:        profileMap[c.user_id]?.nome     ?? "Atleta",
+      username:    profileMap[c.user_id]?.username ?? "",
+      scannerNome: c.checked_in_by ? (profileMap[c.checked_in_by]?.nome ?? null) : null,
     }))
     .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 
-  const total = allList.length;
+  const total       = allList.length;
   const confirmados = allList.filter((c) => c.checked_in).length;
-  const pendentes = total - confirmados;
+  const pendentes   = total - confirmados;
 
-  // Filtro ativo
   const filtroAtivo =
     filtro === "presentes" ? "presentes" :
     filtro === "pendentes" ? "pendentes" :
     "todos";
 
   const lista =
-    filtroAtivo === "presentes" ? allList.filter((c) => c.checked_in) :
+    filtroAtivo === "presentes" ? allList.filter((c) =>  c.checked_in) :
     filtroAtivo === "pendentes" ? allList.filter((c) => !c.checked_in) :
     allList;
 
@@ -120,7 +120,6 @@ export default async function CheckinPage({
             <p className="mt-1 text-sm text-white/40">Portaria · credenciamento</p>
           </div>
 
-          {/* Contadores */}
           <div className="grid grid-cols-3 gap-3 pt-1">
             <div className="rounded-2xl bg-white/10 p-4">
               <div className="flex items-center gap-1.5 text-white/50">
@@ -151,20 +150,15 @@ export default async function CheckinPage({
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-2xl space-y-6">
 
-          {/* Scanner / campo manual */}
           <section>
             <CheckinClient championshipId={id} />
           </section>
 
-          {/* Lista de presença */}
           <section>
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                Lista de presença
-              </h2>
-            </div>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+              Lista de presença
+            </h2>
 
-            {/* Filtros */}
             {total > 0 && (
               <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
                 {FILTROS.map(({ key, label }) => (
@@ -198,59 +192,39 @@ export default async function CheckinPage({
             ) : lista.length === 0 ? (
               <div className="rounded-2xl bg-gray-50 p-6 text-center ring-1 ring-black/5">
                 <p className="text-sm text-gray-400">
-                  {filtroAtivo === "presentes"
-                    ? "Nenhum atleta confirmado ainda."
-                    : "Todos confirmados!"}
+                  {filtroAtivo === "presentes" ? "Nenhum atleta confirmado ainda." : "Todos confirmados!"}
                 </p>
               </div>
             ) : (
               <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-                {lista.map((c) => (
-                  <li
-                    key={c.id}
-                    className={`flex items-center gap-3 px-4 py-3 ${
-                      c.checked_in ? "bg-emerald-50/50" : ""
-                    }`}
-                  >
-                    <div
-                      className={`flex size-8 shrink-0 items-center justify-center rounded-full ${
-                        c.checked_in ? "bg-emerald-100" : "bg-gray-100"
-                      }`}
-                    >
-                      {c.checked_in ? (
-                        <CheckCircle2 className="size-4 text-emerald-600" />
-                      ) : (
+                {lista.map((c) =>
+                  c.checked_in && c.checkin_at ? (
+                    // Presente — clicável, mostra quem escaneou
+                    <PresenceItem
+                      key={c.id}
+                      nome={c.nome}
+                      username={c.username}
+                      checkinAt={c.checkin_at}
+                      scannerNome={c.scannerNome}
+                    />
+                  ) : (
+                    // Pendente — linha simples
+                    <li key={c.id} className="flex items-center gap-3 px-4 py-3">
+                      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
                         <Clock className="size-4 text-gray-400" />
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-gray-900">{c.nome}</p>
-                      {c.username && (
-                        <p className="text-xs text-gray-400">@{c.username}</p>
-                      )}
-                    </div>
-
-                    <div className="flex shrink-0 flex-col items-end gap-0.5">
-                      {c.checked_in ? (
-                        <>
-                          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                            Presente
-                          </span>
-                          {c.checkin_at && (
-                            <span className="text-xs text-gray-400">
-                              {formatTime(c.checkin_at)}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500">
-                          Pendente
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                ))}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-gray-900">{c.nome}</p>
+                        {c.username && (
+                          <p className="text-xs text-gray-400">@{c.username}</p>
+                        )}
+                      </div>
+                      <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500">
+                        Pendente
+                      </span>
+                    </li>
+                  )
+                )}
               </ol>
             )}
           </section>
