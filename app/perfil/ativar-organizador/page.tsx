@@ -11,7 +11,6 @@ export default async function AtivarOrganizadorPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Se já tem conta de organizador, manda pro painel.
   const { data: conta } = await supabase
     .from("organizer_accounts")
     .select("habilitado")
@@ -19,12 +18,6 @@ export default async function AtivarOrganizadorPage() {
     .single();
 
   if (conta?.habilitado) redirect("/painel");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("data_nascimento")
-    .eq("id", user.id)
-    .single();
 
   return (
     <div className="mx-auto max-w-lg space-y-6 px-6 py-8">
@@ -40,9 +33,8 @@ export default async function AtivarOrganizadorPage() {
           Ativar conta de organizador
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Preencha seus dados para receber os repasses dos campeonatos que você
-          organizar. A plataforma desconta a taxa automaticamente no momento do
-          pagamento — você não precisa fazer nada manual.
+          Informe sua chave Pix para receber os repasses das inscrições dos
+          seus campeonatos. A plataforma desconta a taxa automaticamente.
         </p>
       </div>
 
@@ -50,12 +42,13 @@ export default async function AtivarOrganizadorPage() {
         <p className="font-semibold">Como funciona o repasse</p>
         <ul className="mt-2 space-y-1 text-blue-700">
           <li>• Atleta paga a inscrição (Pix ou cartão)</li>
-          <li>• A plataforma retém a taxa (ex: 10%)</li>
-          <li>• O restante cai direto na sua conta em até 1 dia útil</li>
+          <li>• A plataforma retém a taxa</li>
+          <li>• <strong>Pix:</strong> você recebe no mesmo dia</li>
+          <li>• <strong>Cartão:</strong> você recebe em até 32 dias (prazo da operadora)</li>
         </ul>
       </div>
 
-      <AtivarOrganizadorForm dataNascimentoSalva={profile?.data_nascimento ?? null} />
+      <AtivarOrganizadorForm />
     </div>
   );
 }

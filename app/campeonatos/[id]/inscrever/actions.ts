@@ -55,13 +55,13 @@ export async function inscreverDupla(
     .single();
   if (!cat) return { error: "Categoria não encontrada." };
 
-  // ── Wallet do organizador ─────────────────────────────────────
+  // ── Chave Pix do organizador ──────────────────────────────────
   const { data: orgAccount } = await supabase
     .from("organizer_accounts")
-    .select("asaas_wallet_id")
+    .select("chave_pix")
     .eq("user_id", champ.organizador_id)
     .single();
-  if (!orgAccount?.asaas_wallet_id)
+  if (!orgAccount?.chave_pix)
     return { error: "O organizador ainda não ativou o recebimento de pagamentos." };
 
   // ── Parceiro (opcional) ───────────────────────────────────────
@@ -122,12 +122,11 @@ export async function inscreverDupla(
     });
 
     const cobranca = await criarCobranca({
-      customerId:          customer.id,
-      valorBase:           Number(cat.valor_inscricao),
+      customerId:        customer.id,
+      valorBase:         Number(cat.valor_inscricao),
       metodo,
-      descricao:           `Inscrição ${champ.nome} — ${cat.nome}`,
-      externalReference:   reg.id,
-      organizadorWalletId: orgAccount.asaas_wallet_id,
+      descricao:         `Inscrição ${champ.nome} — ${cat.nome}`,
+      externalReference: reg.id,
     });
 
     await supabase

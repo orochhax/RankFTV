@@ -26,40 +26,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-// ── Subcontas (Asaas Connect) ─────────────────────────────────────────────
-// Cria uma subconta para o organizador. O Asaas devolve um `walletId` que
-// identificamos nos splits de pagamento. Esse ID é salvo em
-// organizer_accounts.asaas_wallet_id.
-
-export type CriarSubcontaInput = {
-  name: string;
-  email: string;
-  cpfCnpj: string;    // só dígitos: "12345678901" ou "12345678000100"
-  mobilePhone: string; // só dígitos, com DDD: "11999998888"
-  birthDate?: string;  // YYYY-MM-DD — obrigatório para CPF (pessoa física)
-};
-
-export type SubcontaCriada = {
-  id: string;         // asaas_account_id
-  walletId: string;   // asaas_wallet_id — usar nos splits
-  name: string;
-  email: string;
-};
-
-export async function criarSubconta(
-  input: CriarSubcontaInput
-): Promise<SubcontaCriada> {
-  const personType = input.cpfCnpj.replace(/\D/g, "").length === 11
-    ? "FISICA"
-    : "JURIDICA";
-
-  return request<SubcontaCriada>("/accounts", {
-    method: "POST",
-    body: JSON.stringify({ ...input, personType }),
-  });
-}
-
-// ── Clientes (pagadores) ──────────────────────────────────────────────────
+// ── Clientes (pagadores) ──────────────────────────────────────────────────────
 // Cria o cliente no Asaas ou retorna o existente se o CPF já estiver cadastrado.
 
 export async function criarOuBuscarCliente(input: {
@@ -75,48 +42,43 @@ export async function criarOuBuscarCliente(input: {
   return request<{ id: string }>("/customers", {
     method: "POST",
     body: JSON.stringify({
-      name: input.name,
-      email: input.email,
+      name:     input.name,
+      email:    input.email,
       cpfCnpj: input.cpfCnpj,
     }),
   });
 }
 
-// ── Cobranças Pix com split ───────────────────────────────────────────────
-// Cria um Pix no Asaas com split automático entre plataforma e organizador.
-// Devolve o id do pagamento + QR code (imagem base64 e código copia-e-cola).
+// ── Cobranças (plataforma recebe tudo, sem split) ─────────────────────────────
+// A plataforma coleta o valor cheio. O repasse ao organizador é feito depois
+// via transferência Pix (ver transferirPix abaixo).
 
-// Taxas cobradas ao atleta por método (em cima do valor base da inscrição).
-// A plataforma repassa o valor base ao organizador via split e fica com a taxa.
 export const TAXAS_PAGAMENTO = {
-  pix:     { percentual: 3,  billingType: "PIX"         },
-  debito:  { percentual: 5,  billingType: "DEBIT_CARD"  },
-  credito: { percentual: 9,  billingType: "CREDIT_CARD" },
+  pix:     { percentual: 3, billingType: "PIX"         },
+  debito:  { percentual: 5, billingType: "DEBIT_CARD"  },
+  credito: { percentual: 9, billingType: "CREDIT_CARD" },
 } as const;
 
 export type MetodoPagamento = keyof typeof TAXAS_PAGAMENTO;
 
 export type CobrancaInput = {
-  customerId: string;
-  valorBase: number;        // valor da inscrição em BRL (sem taxa)
-  metodo: MetodoPagamento;
-  descricao: string;
-  externalReference: string; // registration.id — usado pelo webhook
-  organizadorWalletId: string;
+  customerId:        string;
+  valorBase:         number;   // valor da inscrição em BRL (sem taxa da plataforma)
+  metodo:            MetodoPagamento;
+  descricao:         string;
+  externalReference: string;   // registration.id — usado pelo webhook
 };
 
 export type CobrancaCriada = {
-  id: string;
-  invoiceUrl: string;       // link de pagamento (cartão)
+  id:          string;
+  invoiceUrl:  string;
   pixQrCode?: {
-    encodedImage: string;   // base64 PNG do QR
-    payload: string;        // código copia-e-cola
+    encodedImage: string;
+    payload:      string;
   };
 };
 
-export async function criarCobranca(
-  input: CobrancaInput
-): Promise<CobrancaCriada> {
+export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriada> {
   const { percentual, billingType } = TAXAS_PAGAMENTO[input.metodo];
   const valorTotal = parseFloat((input.valorBase * (1 + percentual / 100)).toFixed(2));
 
@@ -131,16 +93,8 @@ export async function criarCobranca(
     dueDate:           dueDateStr,
     description:       input.descricao,
     externalReference: input.externalReference,
-    // O organizador recebe exatamente o valor base (sem a taxa da plataforma).
-    split: [
-      {
-        walletId:   input.organizadorWalletId,
-        fixedValue: input.valorBase,
-      },
-    ],
   };
 
-  // Crédito: 6x sem juros
   if (input.metodo === "credito") {
     body.installmentCount = 6;
     body.installmentValue = parseFloat((valorTotal / 6).toFixed(2));
@@ -152,11 +106,10 @@ export async function criarCobranca(
   });
 
   const resultado: CobrancaCriada = {
-    id:         pagamento.id,
+    id:        pagamento.id,
     invoiceUrl: pagamento.invoiceUrl,
   };
 
-  // Pix: busca QR code separado
   if (input.metodo === "pix") {
     const qr = await request<{ encodedImage: string; payload: string }>(
       `/payments/${pagamento.id}/pixQrCode`
@@ -165,4 +118,38 @@ export async function criarCobranca(
   }
 
   return resultado;
+}
+
+// ── Transferência Pix ao organizador ─────────────────────────────────────────
+// Chamada após confirmação de pagamento (Pix/débito: imediato; crédito: D+32).
+
+export type TipoChavePix = "CPF" | "CNPJ" | "EMAIL" | "PHONE" | "EVP";
+
+/** Detecta automaticamente o tipo da chave Pix a partir do valor. */
+export function detectarTipoChavePix(chave: string): TipoChavePix {
+  const digits = chave.replace(/\D/g, "");
+  if (chave.includes("@"))     return "EMAIL";
+  if (digits.length === 11)    return "CPF";
+  if (digits.length === 14)    return "CNPJ";
+  if (/^\+?\d{10,13}$/.test(chave)) return "PHONE";
+  return "EVP"; // chave aleatória (UUID)
+}
+
+export async function transferirPix(input: {
+  valor:     number;
+  chavePix:  string;
+  descricao: string;
+}): Promise<{ id: string; status: string }> {
+  const tipo = detectarTipoChavePix(input.chavePix);
+
+  return request<{ id: string; status: string }>("/transfers", {
+    method: "POST",
+    body: JSON.stringify({
+      value:              input.valor,
+      operationType:      "PIX",
+      pixAddressKey:      input.chavePix,
+      pixAddressKeyType:  tipo,
+      description:        input.descricao,
+    }),
+  });
 }
