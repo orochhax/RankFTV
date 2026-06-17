@@ -1,14 +1,56 @@
 import { createClient } from "@/lib/supabase/server";
 
-export type RankedAthlete = {
-  athlete_id: string;
+export type Genero = "masculino" | "feminino";
+
+// ── Ranking da Liga Brasileira de Futevôlei ───────────────────────────────
+// São totais de temporada já fechados (não calculamos pontos aqui — só
+// exibimos). Vêm de duas tabelas independentes: uma por atleta, outra por
+// dupla. Ver supabase/seed_liga_ranking.sql.
+
+export type RankedIndividual = {
+  id: string;
   nome: string;
   instagram: string | null;
-  genero: "masculino" | "feminino";
-  total_pontos: number;
-  total_torneios: number;
-  melhor_colocacao: number;
+  genero: Genero;
+  pontos: number;
 };
+
+export type RankedDupla = {
+  id: string;
+  atleta1: string;
+  atleta2: string;
+  genero: Genero;
+  pontos: number;
+};
+
+export async function getRankingIndividual(
+  genero: Genero
+): Promise<RankedIndividual[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ranking_individual")
+    .select("id, nome, instagram, genero, pontos")
+    .eq("genero", genero)
+    .order("pontos", { ascending: false })
+    .order("nome", { ascending: true }); // desempate estável entre pontos iguais
+  if (error || !data) return [];
+  return data as RankedIndividual[];
+}
+
+export async function getRankingDupla(genero: Genero): Promise<RankedDupla[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ranking_dupla")
+    .select("id, atleta1, atleta2, genero, pontos")
+    .eq("genero", genero)
+    .order("pontos", { ascending: false });
+  if (error || !data) return [];
+  return data as RankedDupla[];
+}
+
+// ── Admin: torneios próprios (modelo external_*) ──────────────────────────
+// Continua valendo pro Painel admin e pro histórico do usuário na Home/Perfil
+// (essas telas consultam a view ranking_entries direto). Não mexer.
 
 export type TournamentAdmin = {
   id: string;
@@ -26,74 +68,6 @@ export type TournamentAdmin = {
     athlete_genero: string;
   }[];
 };
-
-export async function getAvailableYears(): Promise<number[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("external_tournaments")
-    .select("data")
-    .order("data", { ascending: false });
-
-  if (!data) return [];
-
-  const years = [
-    ...new Set(data.map((t) => new Date(t.data + "T12:00:00").getFullYear())),
-  ];
-  return years.sort((a, b) => b - a);
-}
-
-export async function getRanking(
-  genero: "masculino" | "feminino",
-  ano: number | "all"
-): Promise<RankedAthlete[]> {
-  const supabase = await createClient();
-
-  let query = supabase
-    .from("ranking_entries")
-    .select("athlete_id, nome, instagram, genero, pontos, colocacao")
-    .eq("genero", genero);
-
-  if (ano !== "all") {
-    query = query.eq("ano", ano);
-  }
-
-  const { data, error } = await query;
-  if (error || !data) return [];
-
-  const map = new Map<
-    string,
-    { nome: string; instagram: string | null; pontos: number; torneios: number; melhor: number }
-  >();
-
-  for (const row of data) {
-    const existing = map.get(row.athlete_id);
-    if (existing) {
-      existing.pontos += row.pontos;
-      existing.torneios += 1;
-      if (row.colocacao < existing.melhor) existing.melhor = row.colocacao;
-    } else {
-      map.set(row.athlete_id, {
-        nome: row.nome,
-        instagram: row.instagram,
-        pontos: row.pontos,
-        torneios: 1,
-        melhor: row.colocacao,
-      });
-    }
-  }
-
-  return Array.from(map.entries())
-    .map(([athlete_id, v]) => ({
-      athlete_id,
-      nome: v.nome,
-      instagram: v.instagram,
-      genero,
-      total_pontos: v.pontos,
-      total_torneios: v.torneios,
-      melhor_colocacao: v.melhor,
-    }))
-    .sort((a, b) => b.total_pontos - a.total_pontos);
-}
 
 export async function getTournamentsForAdmin(): Promise<TournamentAdmin[]> {
   const supabase = await createClient();
