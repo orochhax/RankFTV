@@ -149,34 +149,6 @@ export default async function PainelCampeonatoPage({
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-4xl space-y-8">
 
-          {/* Categorias */}
-          <section>
-            <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Categorias</h2>
-            <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-              {camp.categorias.map((cat) => {
-                const catExt = cat as typeof cat & { maxDuplas?: number };
-                return (
-                  <li key={cat.id} className="flex items-center justify-between px-4 py-3">
-                    <div>
-                      <p className="font-medium text-gray-900">{cat.nome}</p>
-                      <p className="text-xs text-gray-400 capitalize">{cat.genero}</p>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      {catExt.maxDuplas && (
-                        <span className="text-gray-400">
-                          0 / {catExt.maxDuplas} duplas
-                        </span>
-                      )}
-                      <span className="font-semibold text-gray-900">
-                        {formatBRL(cat.valorInscricao / 100)}
-                      </span>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
-
           {/* Ações de gestão */}
           <section>
             <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Gestão</h2>
@@ -221,6 +193,34 @@ export default async function PainelCampeonatoPage({
           </section>
 
           {/* Link público */}
+          {/* Categorias */}
+          <section>
+            <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Categorias</h2>
+            <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
+              {camp.categorias.map((cat) => {
+                const catExt = cat as typeof cat & { maxDuplas?: number };
+                return (
+                  <li key={cat.id} className="flex items-center justify-between px-4 py-3">
+                    <div>
+                      <p className="font-medium text-gray-900">{cat.nome}</p>
+                      <p className="text-xs text-gray-400 capitalize">{cat.genero}</p>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      {catExt.maxDuplas && (
+                        <span className="text-gray-400">
+                          0 / {catExt.maxDuplas} duplas
+                        </span>
+                      )}
+                      <span className="font-semibold text-gray-900">
+                        {formatBRL(cat.valorInscricao / 100)}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+
           <Link
             href={`/campeonatos/${id}`}
             className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700"
