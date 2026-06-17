@@ -43,6 +43,7 @@ export default async function PerfilPage() {
     { data: historico },
     { data: conquistas },
     { data: followedSeriesData },
+    { data: organizerAccount },
   ] = await Promise.all([
     supabase
       .from("championships")
@@ -66,6 +67,12 @@ export default async function PerfilPage() {
       .from("series_followers")
       .select("series_id")
       .eq("user_id", user.id),
+
+    supabase
+      .from("organizer_accounts")
+      .select("habilitado")
+      .eq("user_id", user.id)
+      .single(),
   ]);
 
   const total = campeonatosOrganizados?.length ?? 0;
@@ -97,10 +104,13 @@ export default async function PerfilPage() {
       {/* Organizador — logo abaixo do perfil */}
       <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
         <h2 className="text-sm font-semibold text-gray-500">Organizador</h2>
-        {total > 0 ? (
+        {organizerAccount?.habilitado ? (
+          /* Conta ativa → acesso ao painel */
           <>
             <p className="mt-2 text-sm text-gray-600">
-              Você organiza {total} {total === 1 ? "campeonato" : "campeonatos"}.
+              {total > 0
+                ? `Você organiza ${total} ${total === 1 ? "campeonato" : "campeonatos"}.`
+                : "Sua conta de organizador está ativa. Crie seu primeiro campeonato."}
             </p>
             <Link
               href="/painel"
@@ -109,17 +119,24 @@ export default async function PerfilPage() {
               Ir pro Painel do organizador <ChevronRight className="size-4" />
             </Link>
           </>
+        ) : organizerAccount && !organizerAccount.habilitado ? (
+          /* Conta criada mas pendente de aprovação */
+          <p className="mt-2 text-sm text-gray-500">
+            Conta de organizador em análise. Você receberá uma notificação quando
+            for aprovada.
+          </p>
         ) : (
+          /* Ainda não ativou */
           <>
             <p className="mt-2 text-sm text-gray-600">
-              Qualquer atleta pode criar um campeonato. Pra publicar o primeiro, falta
-              completar CPF/CNPJ e dados bancários (necessário pro split de pagamento).
+              Qualquer atleta pode criar campeonatos. Pra receber os repasses, falta
+              completar CPF/CNPJ e telefone (necessário pro split de pagamento).
             </p>
             <Link
-              href="/painel/novo-campeonato"
+              href="/perfil/ativar-organizador"
               className="mt-3 inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Quero criar um campeonato <ChevronRight className="size-4" />
+              Ativar conta de organizador <ChevronRight className="size-4" />
             </Link>
           </>
         )}
