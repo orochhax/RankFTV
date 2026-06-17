@@ -5,9 +5,12 @@ import { transferirPix } from "@/lib/asaas";
 const EVENTOS_CONFIRMADO = new Set(["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"]);
 const EVENTOS_ESTORNADO  = new Set(["PAYMENT_REFUNDED", "PAYMENT_DELETED"]);
 
-// billingTypes que liquidam imediatamente (Pix e débito).
-// Crédito tem prazo de 32 dias para a plataforma receber.
-const LIQUIDACAO_IMEDIATA = new Set(["PIX", "DEBIT_CARD"]);
+// Dias até a plataforma receber e poder repassar ao organizador.
+const DIAS_LIQUIDACAO: Record<string, number> = {
+  PIX:         0,
+  DEBIT_CARD:  3,
+  CREDIT_CARD: 32,
+};
 
 type AsaasPayment = {
   id: string;
@@ -101,10 +104,10 @@ export async function POST(req: NextRequest) {
     const champNome   = champ?.nome ?? "campeonato";
 
     if (chavePix && valorBase > 0) {
-      const isImediato = LIQUIDACAO_IMEDIATA.has(payment.billingType);
+      const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
 
-      if (isImediato) {
-        // Pix ou débito: transfere agora
+      if (dias === 0) {
+        // Pix: transfere agora
         try {
           const transferencia = await transferirPix({
             valor:     valorBase,
@@ -120,13 +123,12 @@ export async function POST(req: NextRequest) {
             })
             .eq("id", registrationId);
         } catch (err) {
-          // Loga mas não falha o webhook — o Asaas não vai retentar por isso
           console.error("[webhook] Erro ao transferir Pix:", err);
         }
       } else {
-        // Cartão de crédito: agenda para D+32
+        // Débito (D+3) ou crédito (D+32): agenda o repasse
         const dataRepasse = new Date();
-        dataRepasse.setDate(dataRepasse.getDate() + 32);
+        dataRepasse.setDate(dataRepasse.getDate() + dias);
 
         await supabase
           .from("registrations")
