@@ -115,12 +115,12 @@ export default async function PerfilPage() {
               Qualquer atleta pode criar um campeonato. Pra publicar o primeiro, falta
               completar CPF/CNPJ e dados bancários (necessário pro split de pagamento).
             </p>
-            <button
-              type="button"
-              className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            <Link
+              href="/painel/novo-campeonato"
+              className="mt-3 inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Quero criar um campeonato
-            </button>
+              Quero criar um campeonato <ChevronRight className="size-4" />
+            </Link>
           </>
         )}
       </section>

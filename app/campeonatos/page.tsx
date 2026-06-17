@@ -1,12 +1,8 @@
 import Link from "next/link";
 import { ChampionshipCard } from "@/components/campeonatos/ChampionshipCard";
 import { SeriesCard } from "@/components/campeonatos/SeriesCard";
-import {
-  CATEGORIAS_DISPONIVEIS,
-  CHAMPIONSHIPS,
-  ESTADOS_COM_CAMPEONATO,
-  sortedChampionships,
-} from "@/lib/mock/championships";
+import { CHAMPIONSHIPS, sortedChampionships } from "@/lib/mock/championships";
+import { getPublishedChampionships } from "@/lib/supabase/championships";
 import { SERIES } from "@/lib/mock/series";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,7 +32,17 @@ export default async function CampeonatosPage({
     followedSeriesIds = data?.map((f) => f.series_id) ?? [];
   }
 
-  const filtrados = sortedChampionships(CHAMPIONSHIPS).filter((c) => {
+  // Campeonatos reais criados na plataforma (publicados) + os de exemplo (mock).
+  const publicados = await getPublishedChampionships();
+  const todos = [...publicados, ...CHAMPIONSHIPS];
+
+  // Opções dos filtros derivam de tudo que aparece na lista.
+  const estadosDisponiveis = Array.from(new Set(todos.map((c) => c.estado))).sort();
+  const categoriasDisponiveis = Array.from(
+    new Set(todos.flatMap((c) => c.categorias.map((cat) => cat.nome))),
+  ).sort();
+
+  const filtrados = sortedChampionships(todos).filter((c) => {
     if (estado && c.estado !== estado) return false;
     if (categoria && !c.categorias.some((cat) => cat.nome === categoria)) return false;
     return true;
@@ -95,7 +101,7 @@ export default async function CampeonatosPage({
               className="mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm"
             >
               <option value="">Todos</option>
-              {ESTADOS_COM_CAMPEONATO.map((uf) => (
+              {estadosDisponiveis.map((uf) => (
                 <option key={uf} value={uf}>
                   {uf}
                 </option>
@@ -113,7 +119,7 @@ export default async function CampeonatosPage({
               className="mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm"
             >
               <option value="">Todas</option>
-              {CATEGORIAS_DISPONIVEIS.map((nome) => (
+              {categoriasDisponiveis.map((nome) => (
                 <option key={nome} value={nome}>
                   {nome}
                 </option>

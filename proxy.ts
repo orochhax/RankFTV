@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Rotas que exigem login (qualquer role)
-const AUTH_ROUTES = ["/perfil"];
+const AUTH_ROUTES = ["/perfil", "/painel"];
 
 // Rotas que exigem role admin ou ceo
 const ADMIN_ROUTES = ["/admin"];

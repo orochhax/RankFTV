@@ -1,11 +1,18 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Settings } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { ChampionshipCard } from "@/components/campeonatos/ChampionshipCard";
+import { MeuDesempenho } from "@/components/home/MeuDesempenho";
 import { sortedChampionships } from "@/lib/mock/championships";
 import { createClient } from "@/lib/supabase/server";
-
-const COLOCACAO_EMOJI: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
+import {
+  getConquistasDestaque,
+  getHistorico,
+  getRankPosicao,
+  type ConquistaDestaque,
+  type RankPosicao,
+} from "@/lib/supabase/desempenho";
+import { nivelLabel, nivelOrdem } from "@/lib/niveis";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -14,7 +21,11 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   let profile: { nome: string; username: string; foto_url: string | null } | null = null;
-  let rankStats: { total_pontos: number; total_torneios: number; melhor: number } | null = null;
+  let conquistas: ConquistaDestaque[] = [];
+  let rank: RankPosicao | null = null;
+  let nivel: string | null = null;
+  let evolucao: number[] = [];
+  let temDesempenho = false;
 
   if (user) {
     const { data } = await supabase
@@ -24,17 +35,31 @@ export default async function Home() {
       .single();
     profile = data;
 
-    const { data: entries } = await supabase
-      .from("ranking_entries")
-      .select("pontos, colocacao")
-      .eq("user_id", user.id);
+    if (profile) {
+      const [historico, rankPos, conquistasDestaque] = await Promise.all([
+        getHistorico(user.id),
+        getRankPosicao(profile.username),
+        getConquistasDestaque(user.id),
+      ]);
 
-    if (entries && entries.length > 0) {
-      rankStats = {
-        total_pontos: entries.reduce((s, r) => s + r.pontos, 0),
-        total_torneios: entries.length,
-        melhor: Math.min(...entries.map((r) => r.colocacao)),
-      };
+      conquistas = conquistasDestaque;
+      rank = rankPos;
+
+      // Categoria mais jogada = a que aparece mais vezes no histórico.
+      const catCount: Record<string, number> = {};
+      for (const h of historico) {
+        if (h.categoria) catCount[h.categoria] = (catCount[h.categoria] ?? 0) + 1;
+      }
+      const catMaisJogada = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0]?.[0];
+      nivel = catMaisJogada ? (nivelLabel(catMaisJogada) ?? null) : null;
+
+      // Evolução = a ordem do nível de cada campeonato, em ordem cronológica.
+      evolucao = historico
+        .map((h) => nivelOrdem(h.categoria))
+        .filter((o): o is number => o != null);
+
+      temDesempenho =
+        historico.length > 0 || rank != null || conquistas.length > 0;
     }
   }
 
@@ -55,53 +80,32 @@ export default async function Home() {
                   size="lg"
                   fotoUrl={profile.foto_url}
                 />
-                <div>
+                <div className="flex-1">
                   <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
                     Bem-vindo
                   </p>
                   <h1 className="text-2xl font-bold tracking-tight text-white">
                     {profile.nome.split(" ")[0]}
                   </h1>
+                  <p className="text-sm text-gray-400">@{profile.username}</p>
                 </div>
+                <Link
+                  href="/perfil"
+                  aria-label="Perfil e configurações"
+                  className="md:hidden rounded-full p-2 text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  <Settings className="size-6" />
+                </Link>
               </div>
 
-              {/* Card de desempenho */}
-              {rankStats ? (
-                <div className="rounded-2xl border border-white/10 bg-gray-800/50 p-5">
-                  <div className="mb-4 flex items-center justify-between">
-                    <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
-                      Meu desempenho
-                    </p>
-                    <Link
-                      href="/rank"
-                      className="flex items-center gap-0.5 text-xs font-medium text-blue-400 hover:text-blue-300"
-                    >
-                      Ver ranking <ChevronRight className="size-3.5" />
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="rounded-xl bg-white/5 p-3 text-center">
-                      <p className="text-xl font-bold text-white">
-                        {rankStats.total_pontos.toLocaleString("pt-BR")}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-gray-400">pontos</p>
-                    </div>
-                    <div className="rounded-xl bg-white/5 p-3 text-center">
-                      <p className="text-xl font-bold text-white">
-                        {rankStats.total_torneios}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-gray-400">
-                        {rankStats.total_torneios === 1 ? "torneio" : "torneios"}
-                      </p>
-                    </div>
-                    <div className="rounded-xl bg-white/5 p-3 text-center">
-                      <p className="text-xl font-bold text-white">
-                        {COLOCACAO_EMOJI[rankStats.melhor] ?? `${rankStats.melhor}º`}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-gray-400">melhor</p>
-                    </div>
-                  </div>
-                </div>
+              {/* Card de desempenho — Conquistas / Rank / Nível / Evolução */}
+              {temDesempenho ? (
+                <MeuDesempenho
+                  conquistas={conquistas}
+                  rank={rank}
+                  nivel={nivel}
+                  evolucao={evolucao}
+                />
               ) : (
                 /* Banner onboarding para quem ainda não jogou */
                 <div className="rounded-2xl border border-blue-500/30 bg-blue-600/15 p-5">

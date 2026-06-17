@@ -1,4 +1,4 @@
-import { BarChart3, CalendarDays, Home, Trophy, User } from "lucide-react";
+import { BarChart3, CalendarDays, Home, Trophy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -7,13 +7,13 @@ export type NavItem = {
   icon: LucideIcon;
 };
 
-// Estrutura do site: Home, Agenda, Campeonatos, Rank e Perfil (ver ftv.md, seção 8.1).
+// Estrutura do site: Home, Agenda, Campeonatos, Rank (ver ftv.md, seção 8.1).
+// Perfil é acessado via ícone de engrenagem no canto superior da Home.
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/campeonatos", label: "Campeonatos", icon: Trophy },
   { href: "/rank", label: "Rank", icon: BarChart3 },
-  { href: "/perfil", label: "Perfil", icon: User },
 ];
 
 // "/" só fica ativo na própria Home; os outros itens ficam ativos também

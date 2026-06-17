@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Settings } from "lucide-react";
 import { isNavItemActive, NAV_ITEMS } from "./nav-items";
 import { createClient } from "@/lib/supabase/client";
 
@@ -51,7 +52,14 @@ export function TopNav({ user }: { user: NavUser | null }) {
             })}
           </ul>
 
-          <div className="ml-2 border-l border-gray-200 pl-3">
+          <div className="ml-2 flex items-center gap-1 border-l border-gray-200 pl-3">
+            <Link
+              href="/perfil"
+              aria-label="Configurações / Perfil"
+              className="rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            >
+              <Settings className="size-5" />
+            </Link>
             {user ? (
               <button
                 onClick={handleLogout}

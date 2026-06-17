@@ -6,6 +6,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { InscricaoButton } from "@/components/campeonatos/InscricaoButton";
 import { CHAMPIONSHIPS, getChampionshipById, resolveDuplas } from "@/lib/mock/championships";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { getAthleteById } from "@/lib/mock/athletes";
 import { getBracket } from "@/lib/mock/brackets";
 import { getBannerUrl } from "@/lib/mock/banners";
@@ -23,7 +24,8 @@ export default async function CampeonatoDetalhePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const championship = getChampionshipById(id);
+  // Tenta os campeonatos de exemplo (mock); se não achar, busca no banco.
+  const championship = getChampionshipById(id) ?? (await getDbChampionshipById(id));
   if (!championship) notFound();
 
   const organizador = getAthleteById(championship.organizadorId);

@@ -1,21 +1,32 @@
 import Link from "next/link";
-import { Plus, Users } from "lucide-react";
+import { redirect } from "next/navigation";
+import { CalendarDays, MapPin, Plus, Tag } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { championshipFinance, getChampionshipsOrganizedBy } from "@/lib/mock/championships";
-import { getCurrentAthlete } from "@/lib/mock/current-user";
-import { formatBRL, formatDateRangeBR } from "@/lib/format";
+import { createClient } from "@/lib/supabase/server";
+import { getMyChampionships } from "@/lib/supabase/championships";
+import { formatDateRangeBR } from "@/lib/format";
 
-const AREAS_DE_GESTAO = ["Credenciamento/check-in", "Camisas/kit", "Comunicação", "Destaque pago"];
+// Áreas de gestão que ainda são só visuais (ficam funcionais na Fase 1).
+const AREAS_DE_GESTAO = [
+  "Inscrições",
+  "Credenciamento/check-in",
+  "Camisas/kit",
+  "Comunicação",
+  "Destaque pago",
+];
 
-// Painel do organizador — ver ftv.md seção 8.7. Visão geral de quanto cada
-// campeonato organizado já arrecadou, quantas duplas estão inscritas, e
-// atalhos pras outras áreas de gestão (ainda visuais — ficam funcionais
-// conforme o Supabase/Asaas forem ligados, na Fase 1).
-export default function PainelOrganizadorPage() {
-  const me = getCurrentAthlete();
-  const campeonatos = getChampionshipsOrganizedBy(me.id);
-  const totalArrecadado = campeonatos.reduce((s, c) => s + championshipFinance(c).totalArrecadado, 0);
-  const totalDuplas = campeonatos.reduce((s, c) => s + c.duplas.length, 0);
+// Painel do organizador — ver ftv.md seção 8.7. Lê os campeonatos REAIS criados
+// pelo usuário logado (Supabase). Financeiro/duplas entram na Fase 1.
+export default async function PainelOrganizadorPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const campeonatos = await getMyChampionships(user.id);
+  const publicados = campeonatos.filter((c) => c.status !== "rascunho").length;
+  const rascunhos = campeonatos.filter((c) => c.status === "rascunho").length;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-6 py-8">
@@ -31,70 +42,81 @@ export default function PainelOrganizadorPage() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
-          <p className="text-xs text-gray-500">Campeonatos organizados</p>
+          <p className="text-xs text-gray-500">Campeonatos</p>
           <p className="text-2xl font-bold text-gray-900">{campeonatos.length}</p>
         </div>
         <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
-          <p className="text-xs text-gray-500">Duplas inscritas (total)</p>
-          <p className="text-2xl font-bold text-gray-900">{totalDuplas}</p>
+          <p className="text-xs text-gray-500">Publicados</p>
+          <p className="text-2xl font-bold text-gray-900">{publicados}</p>
         </div>
         <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
-          <p className="text-xs text-gray-500">Arrecadado (total)</p>
-          <p className="text-2xl font-bold text-gray-900">{formatBRL(totalArrecadado)}</p>
+          <p className="text-xs text-gray-500">Rascunhos</p>
+          <p className="text-2xl font-bold text-gray-900">{rascunhos}</p>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {campeonatos.map((c) => {
-          const finance = championshipFinance(c);
-          return (
+      {campeonatos.length === 0 ? (
+        <div className="rounded-2xl bg-white p-8 text-center ring-1 ring-black/5">
+          <p className="text-sm text-gray-600">
+            Você ainda não criou nenhum campeonato.
+          </p>
+          <Link
+            href="/painel/novo-campeonato"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <Plus className="size-4" /> Criar o primeiro
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {campeonatos.map((c) => (
             <div key={c.id} className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <Link href={`/campeonatos/${c.id}`} className="font-semibold text-gray-900 hover:text-blue-600">
+                  <Link
+                    href={`/campeonatos/${c.id}`}
+                    className="font-semibold text-gray-900 hover:text-blue-600"
+                  >
                     {c.nome}
                   </Link>
-                  <p className="text-sm text-gray-500">
-                    {formatDateRangeBR(c.dataInicio, c.dataFim)} · {c.cidade}-{c.estado}
-                  </p>
+                  <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <CalendarDays className="size-4" />
+                      {formatDateRangeBR(c.dataInicio, c.dataFim)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="size-4" />
+                      {c.cidade}-{c.estado}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Tag className="size-4" />
+                      {c.categorias.length}{" "}
+                      {c.categorias.length === 1 ? "categoria" : "categorias"}
+                    </span>
+                  </div>
                 </div>
                 <StatusBadge status={c.status} />
               </div>
 
-              <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
-                <div>
-                  <p className="text-gray-500">Arrecadado</p>
-                  <p className="font-semibold text-gray-900">{formatBRL(finance.totalArrecadado)}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Taxa da plataforma ({c.taxaPlataforma}%)</p>
-                  <p className="font-semibold text-gray-900">{formatBRL(finance.taxa)}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Seu repasse</p>
-                  <p className="font-semibold text-emerald-700">{formatBRL(finance.repasse)}</p>
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center gap-1.5 text-sm text-gray-500">
-                <Users className="size-4" /> {c.duplas.length} duplas inscritas
-              </div>
-
               <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
                 {AREAS_DE_GESTAO.map((label) => (
-                  <span key={label} className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-500">
+                  <span
+                    key={label}
+                    className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-500"
+                  >
                     {label}
                   </span>
                 ))}
               </div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
       <p className="text-xs text-gray-400">
-        🚧 Credenciamento, camisas, comunicação e destaque pago ainda são só visuais — ficam
-        funcionais conforme o Supabase/Asaas forem ligados (Fase 1 do ftv.md).
+        🚧 Inscrições, pagamento, credenciamento, camisas e comunicação ficam
+        funcionais na Fase 1 (ftv.md). Por enquanto o campeonato é criado com 0
+        inscritos.
       </p>
     </div>
   );
