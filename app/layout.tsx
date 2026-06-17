@@ -1,19 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/navbar/BottomNav";
 import { TopNav } from "@/components/navbar/TopNav";
-import { DemoBanner } from "@/components/DemoBanner";
 import { Footer } from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -43,10 +37,9 @@ export default async function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-gray-900">
-        <DemoBanner />
         <TopNav user={navUser} />
         <main className="flex-1">{children}</main>
         <Footer />

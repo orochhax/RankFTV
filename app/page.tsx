@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Trophy, Star } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { ChampionshipCard } from "@/components/campeonatos/ChampionshipCard";
 import { sortedChampionships } from "@/lib/mock/championships";
@@ -24,7 +24,6 @@ export default async function Home() {
       .single();
     profile = data;
 
-    // Busca dados de ranking do usuário logado
     const { data: entries } = await supabase
       .from("ranking_entries")
       .select("pontos, colocacao")
@@ -42,122 +41,137 @@ export default async function Home() {
   const destaques = sortedChampionships().slice(0, 3);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 px-6 py-8">
-      {profile ? (
-        <>
-          {/* Saudação */}
-          <div className="flex items-center gap-3">
-            <Avatar
-              nome={profile.nome}
-              color="bg-blue-500"
-              size="lg"
-              fotoUrl={profile.foto_url}
-            />
-            <div>
-              <p className="text-sm text-gray-500">Bem-vindo,</p>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                {profile.nome.split(" ")[0]}
-              </h1>
-            </div>
-          </div>
+    <div className="min-h-screen">
+      {/* ── Seção escura ── */}
+      <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
+        <div className="mx-auto max-w-5xl">
+          {profile ? (
+            <div className="space-y-6">
+              {/* Saudação */}
+              <div className="flex items-center gap-4">
+                <Avatar
+                  nome={profile.nome}
+                  color="bg-blue-500"
+                  size="lg"
+                  fotoUrl={profile.foto_url}
+                />
+                <div>
+                  <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
+                    Bem-vindo
+                  </p>
+                  <h1 className="text-2xl font-bold tracking-tight text-white">
+                    {profile.nome.split(" ")[0]}
+                  </h1>
+                </div>
+              </div>
 
-          {/* Card de ranking — só aparece se o usuário já tem resultados */}
-          {rankStats ? (
-            <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-gray-500">Meu desempenho</h2>
-                <Link
-                  href="/rank"
-                  className="text-sm font-medium text-blue-600 hover:underline flex items-center gap-1"
-                >
-                  Ver ranking <ChevronRight className="size-4" />
-                </Link>
-              </div>
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                <div className="rounded-xl bg-gray-50 p-3 text-center">
-                  <p className="text-xl font-bold text-gray-900">
-                    {rankStats.total_pontos.toLocaleString("pt-BR")}
-                  </p>
-                  <p className="mt-0.5 text-xs text-gray-500">pontos</p>
+              {/* Card de desempenho */}
+              {rankStats ? (
+                <div className="rounded-2xl border border-white/10 bg-gray-800/50 p-5">
+                  <div className="mb-4 flex items-center justify-between">
+                    <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
+                      Meu desempenho
+                    </p>
+                    <Link
+                      href="/rank"
+                      className="flex items-center gap-0.5 text-xs font-medium text-blue-400 hover:text-blue-300"
+                    >
+                      Ver ranking <ChevronRight className="size-3.5" />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="rounded-xl bg-white/5 p-3 text-center">
+                      <p className="text-xl font-bold text-white">
+                        {rankStats.total_pontos.toLocaleString("pt-BR")}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-gray-400">pontos</p>
+                    </div>
+                    <div className="rounded-xl bg-white/5 p-3 text-center">
+                      <p className="text-xl font-bold text-white">
+                        {rankStats.total_torneios}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-gray-400">
+                        {rankStats.total_torneios === 1 ? "torneio" : "torneios"}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-white/5 p-3 text-center">
+                      <p className="text-xl font-bold text-white">
+                        {COLOCACAO_EMOJI[rankStats.melhor] ?? `${rankStats.melhor}º`}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-gray-400">melhor</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="rounded-xl bg-gray-50 p-3 text-center">
-                  <p className="text-xl font-bold text-gray-900">
-                    {rankStats.total_torneios}
+              ) : (
+                /* Banner onboarding para quem ainda não jogou */
+                <div className="rounded-2xl border border-blue-500/30 bg-blue-600/15 p-5">
+                  <p className="font-semibold text-white">Bem-vindo ao RankFTV!</p>
+                  <p className="mt-1 text-sm text-blue-200/80">
+                    Explore os campeonatos e faça sua primeira inscrição.
                   </p>
-                  <p className="mt-0.5 text-xs text-gray-500">
-                    {rankStats.total_torneios === 1 ? "torneio" : "torneios"}
-                  </p>
+                  <Link
+                    href="/campeonatos"
+                    className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-400 hover:text-blue-300"
+                  >
+                    Ver campeonatos <ChevronRight className="size-4" />
+                  </Link>
                 </div>
-                <div className="rounded-xl bg-gray-50 p-3 text-center">
-                  <p className="text-xl font-bold text-gray-900">
-                    {COLOCACAO_EMOJI[rankStats.melhor] ?? `${rankStats.melhor}º`}
-                  </p>
-                  <p className="mt-0.5 text-xs text-gray-500">melhor resultado</p>
-                </div>
-              </div>
+              )}
             </div>
           ) : (
-            /* Banner de onboarding — só aparece para quem não tem histórico */
-            <div className="rounded-2xl bg-blue-50 p-5 ring-1 ring-blue-100">
-              <p className="font-semibold text-blue-900">Bem-vindo ao RankFTV!</p>
-              <p className="mt-1 text-sm text-blue-700">
-                Explore os campeonatos disponíveis e faça sua primeira inscrição. O ranking e
-                o histórico aparecem aqui conforme você joga.
+            /* Visitante não logado */
+            <div className="space-y-5 py-8 text-center">
+              <p className="text-[11px] font-bold tracking-widest text-blue-400 uppercase">
+                RankFTV
               </p>
-              <Link
-                href="/campeonatos"
-                className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
-              >
-                Ver campeonatos <ChevronRight className="size-4" />
-              </Link>
+              <h1 className="text-4xl font-bold leading-tight tracking-tight text-white">
+                Futevôlei organizado,
+                <br />
+                do zero ao pódio.
+              </h1>
+              <p className="text-gray-400">
+                Encontre campeonatos, inscreva sua dupla e acompanhe o ranking nacional.
+              </p>
+              <div className="flex justify-center gap-3 pt-1">
+                <Link
+                  href="/cadastro"
+                  className="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                >
+                  Criar conta grátis
+                </Link>
+                <Link
+                  href="/campeonatos"
+                  className="rounded-2xl bg-white/10 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/15"
+                >
+                  Ver campeonatos
+                </Link>
+              </div>
             </div>
           )}
-        </>
-      ) : (
-        /* Visitante não logado */
-        <div className="py-6 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Futevôlei organizado,
-            <br />
-            do zero ao pódio.
-          </h1>
-          <p className="mt-3 text-gray-500">
-            Encontre campeonatos, inscreva sua dupla e acompanhe o ranking nacional.
-          </p>
-          <div className="mt-6 flex justify-center gap-3">
-            <Link
-              href="/cadastro"
-              className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              Criar conta grátis
-            </Link>
+        </div>
+      </div>
+
+      {/* ── Seção branca — card sobreposto com cantos arredondados ── */}
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className="text-base font-semibold text-gray-900">
+              Campeonatos em destaque
+            </h2>
             <Link
               href="/campeonatos"
-              className="rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200"
+              className="flex items-center gap-0.5 text-sm font-medium text-blue-600 hover:text-blue-700"
             >
-              Ver campeonatos
+              Ver todos <ChevronRight className="size-4" />
             </Link>
           </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {destaques.map((c) => (
+              <ChampionshipCard key={c.id} championship={c} />
+            ))}
+          </div>
         </div>
-      )}
-
-      {/* Campeonatos em destaque — visível pra todo mundo */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-500">Campeonatos em destaque</h2>
-          <Link
-            href="/campeonatos"
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            Ver todos
-          </Link>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {destaques.map((c) => (
-            <ChampionshipCard key={c.id} championship={c} />
-          ))}
-        </div>
-      </section>
+      </div>
     </div>
   );
 }

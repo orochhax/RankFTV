@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { MapPin, Users, Trophy } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
@@ -7,6 +8,7 @@ import { InscricaoButton } from "@/components/campeonatos/InscricaoButton";
 import { CHAMPIONSHIPS, getChampionshipById, resolveDuplas } from "@/lib/mock/championships";
 import { getAthleteById } from "@/lib/mock/athletes";
 import { getBracket } from "@/lib/mock/brackets";
+import { getBannerUrl } from "@/lib/mock/banners";
 import { formatBRL, formatDateRangeBR, generoLabel } from "@/lib/format";
 
 // Detalhe do campeonato — ver ftv.md seção 8.4: regulamento, categorias com
@@ -26,13 +28,26 @@ export default async function CampeonatoDetalhePage({
 
   const organizador = getAthleteById(championship.organizadorId);
   const duplas = resolveDuplas(championship);
+  const bannerUrl = getBannerUrl(championship.id);
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-8">
       <div>
-        <div
-          className={`flex h-32 items-center justify-center rounded-2xl bg-gradient-to-br ${championship.bannerFrom} ${championship.bannerTo}`}
-        />
+        {bannerUrl ? (
+          <div className="relative h-32 overflow-hidden rounded-2xl">
+            <Image
+              src={bannerUrl}
+              alt={championship.nome}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+            />
+          </div>
+        ) : (
+          <div
+            className={`flex h-32 items-center justify-center rounded-2xl bg-gradient-to-br ${championship.bannerFrom} ${championship.bannerTo}`}
+          />
+        )}
         <div className="mt-4 flex flex-wrap items-start justify-between gap-2">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">{championship.nome}</h1>

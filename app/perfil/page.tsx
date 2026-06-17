@@ -3,7 +3,9 @@ import Link from "next/link";
 import { ChevronRight, UserPen, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { SignOutButton } from "@/components/perfil/SignOutButton";
+import { SeriesCard } from "@/components/campeonatos/SeriesCard";
 import { createClient } from "@/lib/supabase/server";
+import { SERIES } from "@/lib/mock/series";
 
 const COLOCACAO_EMOJI: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 const TIER_LABEL: Record<string, string> = {
@@ -40,6 +42,7 @@ export default async function PerfilPage() {
     { data: campeonatosOrganizados },
     { data: historico },
     { data: conquistas },
+    { data: followedSeriesData },
   ] = await Promise.all([
     supabase
       .from("championships")
@@ -58,10 +61,18 @@ export default async function PerfilPage() {
       .select("id, titulo, descricao, icone, cor, data_conquistada")
       .eq("user_id", user.id)
       .order("data_conquistada", { ascending: false }),
+
+    supabase
+      .from("series_followers")
+      .select("series_id")
+      .eq("user_id", user.id),
   ]);
 
   const total = campeonatosOrganizados?.length ?? 0;
   const totalPontos = historico?.reduce((s, r) => s + r.pontos, 0) ?? 0;
+
+  const followedSeriesIds = followedSeriesData?.map((f) => f.series_id) ?? [];
+  const seriesSeguidas = SERIES.filter((s) => followedSeriesIds.includes(s.id));
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-8">
@@ -190,6 +201,36 @@ export default async function PerfilPage() {
           </ol>
         )}
       </section>
+
+      {/* Campeonatos que sigo */}
+      {seriesSeguidas.length > 0 && (
+        <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-500">
+              Campeonatos que sigo
+              <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-500">
+                {seriesSeguidas.length}
+              </span>
+            </h2>
+            <Link
+              href="/campeonatos"
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              Explorar mais
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {seriesSeguidas.map((s) => (
+              <SeriesCard
+                key={s.id}
+                series={s}
+                initialFollowing
+                userId={user.id}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Opções de conta */}
       <section className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
