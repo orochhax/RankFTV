@@ -10,7 +10,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { GeneroCategoria } from "@/lib/mock/types";
 
-type CatForm = { nome: string; genero: GeneroCategoria; valorInscricao: string };
+type CatForm = { nome: string; genero: GeneroCategoria; valorInscricao: string; maxDuplas: string };
 
 const GENEROS: { value: GeneroCategoria; label: string }[] = [
   { value: "masculino", label: "Masculino" },
@@ -40,14 +40,14 @@ export function NovoCampeonatoForm() {
   const [estado, setEstado] = useState("");
   const [local, setLocal] = useState("");
   const [categorias, setCategorias] = useState<CatForm[]>([
-    { nome: "", genero: "masculino", valorInscricao: "" },
+    { nome: "", genero: "masculino", valorInscricao: "", maxDuplas: "" },
   ]);
 
   function updateCat(i: number, patch: Partial<CatForm>) {
     setCategorias((cs) => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
   }
   function addCat() {
-    setCategorias((cs) => [...cs, { nome: "", genero: "masculino", valorInscricao: "" }]);
+    setCategorias((cs) => [...cs, { nome: "", genero: "masculino", valorInscricao: "", maxDuplas: "" }]);
   }
   function removeCat(i: number) {
     setCategorias((cs) => (cs.length === 1 ? cs : cs.filter((_, idx) => idx !== i)));
@@ -93,9 +93,10 @@ export function NovoCampeonatoForm() {
         categorias: categorias
           .filter((c) => c.nome.trim())
           .map<CategoriaInput>((c) => ({
-            nome: c.nome,
-            genero: c.genero,
+            nome:           c.nome,
+            genero:         c.genero,
             valorInscricao: Number(c.valorInscricao) || 0,
+            maxDuplas:      Number(c.maxDuplas) || undefined,
           })),
       };
 
@@ -317,52 +318,89 @@ export function NovoCampeonatoForm() {
           {categorias.map((cat, i) => (
             <div
               key={i}
-              className="grid grid-cols-1 gap-3 rounded-xl bg-gray-50 p-3 ring-1 ring-black/5 sm:grid-cols-[1fr_8rem_7rem_auto] sm:items-end"
+              className="rounded-xl bg-gray-50 p-3 ring-1 ring-black/5 space-y-3"
             >
-              <div>
-                <label className={labelClass}>Nome</label>
-                <input
-                  className={inputClass}
-                  value={cat.nome}
-                  onChange={(e) => updateCat(i, { nome: e.target.value })}
-                  placeholder="A, B, Mista…"
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Gênero</label>
-                <select
-                  className={inputClass}
-                  value={cat.genero}
-                  onChange={(e) => updateCat(i, { genero: e.target.value as GeneroCategoria })}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_8rem_7rem_6rem_auto] sm:items-end">
+                <div>
+                  <label className={labelClass}>Nome</label>
+                  <input
+                    className={inputClass}
+                    value={cat.nome}
+                    onChange={(e) => updateCat(i, { nome: e.target.value })}
+                    placeholder="A, B, Mista…"
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Gênero</label>
+                  <select
+                    className={inputClass}
+                    value={cat.genero}
+                    onChange={(e) => updateCat(i, { genero: e.target.value as GeneroCategoria })}
+                  >
+                    {GENEROS.map((g) => (
+                      <option key={g.value} value={g.value}>{g.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Valor (R$)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    className={inputClass}
+                    value={cat.valorInscricao}
+                    onChange={(e) => updateCat(i, { valorInscricao: e.target.value })}
+                    placeholder="100"
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Máx. duplas</label>
+                  <input
+                    type="number"
+                    min={1}
+                    className={inputClass}
+                    value={cat.maxDuplas}
+                    onChange={(e) => updateCat(i, { maxDuplas: e.target.value })}
+                    placeholder="∞"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeCat(i)}
+                  disabled={categorias.length === 1}
+                  aria-label="Remover categoria"
+                  className="mb-1 inline-flex size-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"
                 >
-                  {GENEROS.map((g) => (
-                    <option key={g.value} value={g.value}>{g.label}</option>
-                  ))}
-                </select>
+                  <Trash2 className="size-4" />
+                </button>
               </div>
-              <div>
-                <label className={labelClass}>Valor (R$)</label>
-                <input
-                  type="number"
-                  min={0}
-                  className={inputClass}
-                  value={cat.valorInscricao}
-                  onChange={(e) => updateCat(i, { valorInscricao: e.target.value })}
-                  placeholder="100"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => removeCat(i)}
-                disabled={categorias.length === 1}
-                aria-label="Remover categoria"
-                className="mb-1 inline-flex size-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                <Trash2 className="size-4" />
-              </button>
             </div>
           ))}
         </div>
+
+        {/* Totalizador */}
+        {(() => {
+          const totalDuplas = categorias.reduce((sum, c) => sum + (Number(c.maxDuplas) || 0), 0);
+          const totalJogadores = totalDuplas * 2;
+          const temLimite = categorias.some((c) => Number(c.maxDuplas) > 0);
+          if (!temLimite) return null;
+          return (
+            <div className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3 text-sm ring-1 ring-blue-100">
+              <span className="text-blue-700 font-medium">Total do evento</span>
+              <div className="flex gap-4 text-right">
+                <div>
+                  <p className="text-xs text-blue-500">Duplas</p>
+                  <p className="font-bold text-blue-800">{totalDuplas}</p>
+                </div>
+                <div className="w-px bg-blue-200" />
+                <div>
+                  <p className="text-xs text-blue-500">Jogadores</p>
+                  <p className="font-bold text-blue-800">{totalJogadores}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Ações */}
