@@ -6,7 +6,11 @@ import { ativarOrganizador } from "@/app/perfil/ativar-organizador/actions";
 
 const initialState = { error: undefined as string | undefined };
 
-export function AtivarOrganizadorForm() {
+export function AtivarOrganizadorForm({
+  dataNascimentoSalva,
+}: {
+  dataNascimentoSalva: string | null;
+}) {
   const [state, action, pending] = useActionState(
     async (_prev: typeof initialState, formData: FormData) => {
       const result = await ativarOrganizador(formData);
@@ -32,6 +36,20 @@ export function AtivarOrganizadorForm() {
           Pessoa física: CPF · Pessoa jurídica: CNPJ
         </p>
       </div>
+
+      {!dataNascimentoSalva && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Data de nascimento
+          </label>
+          <input
+            name="data_nascimento"
+            type="date"
+            required
+            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700">

@@ -21,23 +21,39 @@ export async function ativarOrganizador(formData: FormData) {
     return { error: "CPF deve ter 11 dígitos ou CNPJ 14 dígitos." };
   }
 
-  // Busca nome e e-mail do usuário para criar a subconta no Asaas.
+  const dataNascimentoInput = (formData.get("data_nascimento") as string | null) ?? "";
+
   const { data: profile } = await supabase
     .from("profiles")
-    .select("nome")
+    .select("nome, data_nascimento")
     .eq("id", user.id)
     .single();
 
   if (!profile) return { error: "Perfil não encontrado." };
 
+  const birthDate = dataNascimentoInput || profile.data_nascimento || "";
+  const isCPF = cpfCnpj.length === 11;
+  if (isCPF && !birthDate) {
+    return { error: "Informe sua data de nascimento para continuar." };
+  }
+
+  // Salva data de nascimento no perfil se ainda não tinha.
+  if (dataNascimentoInput && !profile.data_nascimento) {
+    await supabase
+      .from("profiles")
+      .update({ data_nascimento: dataNascimentoInput })
+      .eq("id", user.id);
+  }
+
   // Cria subconta no Asaas (sandbox ou produção, via ASAAS_BASE_URL).
   let subconta;
   try {
     subconta = await criarSubconta({
-      name: profile.nome,
-      email: user.email!,
+      name:        profile.nome,
+      email:       user.email!,
       cpfCnpj,
       mobilePhone: telefone,
+      ...(birthDate ? { birthDate } : {}),
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Erro desconhecido";

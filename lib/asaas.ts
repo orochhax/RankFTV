@@ -1,15 +1,19 @@
 // Cliente da API do Asaas. Todas as chamadas passam por aqui.
 // Chaves via process.env — nunca hardcoded (ver .env.local).
 
-const BASE_URL = process.env.ASAAS_BASE_URL!;
-const API_KEY  = process.env.ASAAS_API_KEY!;
-
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const baseUrl = process.env.ASAAS_BASE_URL;
+  const apiKey  = process.env.ASAAS_API_KEY;
+
+  if (!baseUrl || !apiKey) {
+    throw new Error("ASAAS_BASE_URL ou ASAAS_API_KEY não configurados no .env.local");
+  }
+
+  const res = await fetch(`${baseUrl}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      "access_token": API_KEY,
+      "access_token": apiKey,
       ...(options.headers ?? {}),
     },
   });
@@ -28,10 +32,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 // organizer_accounts.asaas_wallet_id.
 
 export type CriarSubcontaInput = {
-  name: string;       // nome completo ou razão social
+  name: string;
   email: string;
-  cpfCnpj: string;   // só dígitos: "12345678901" ou "12345678000100"
+  cpfCnpj: string;    // só dígitos: "12345678901" ou "12345678000100"
   mobilePhone: string; // só dígitos, com DDD: "11999998888"
+  birthDate?: string;  // YYYY-MM-DD — obrigatório para CPF (pessoa física)
 };
 
 export type SubcontaCriada = {

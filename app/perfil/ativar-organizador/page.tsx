@@ -20,6 +20,12 @@ export default async function AtivarOrganizadorPage() {
 
   if (conta?.habilitado) redirect("/painel");
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("data_nascimento")
+    .eq("id", user.id)
+    .single();
+
   return (
     <div className="mx-auto max-w-lg space-y-6 px-6 py-8">
       <Link
@@ -49,7 +55,7 @@ export default async function AtivarOrganizadorPage() {
         </ul>
       </div>
 
-      <AtivarOrganizadorForm />
+      <AtivarOrganizadorForm dataNascimentoSalva={profile?.data_nascimento ?? null} />
     </div>
   );
 }
