@@ -1,4 +1,4 @@
-import { BarChart3, Home, Trophy, User } from "lucide-react";
+import { BarChart3, CalendarDays, Home, Trophy, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -7,9 +7,10 @@ export type NavItem = {
   icon: LucideIcon;
 };
 
-// Estrutura fixa do site: Home, Campeonatos, Rank e Perfil (ver ftv.md, seção 8.1).
+// Estrutura do site: Home, Agenda, Campeonatos, Rank e Perfil (ver ftv.md, seção 8.1).
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/campeonatos", label: "Campeonatos", icon: Trophy },
   { href: "/rank", label: "Rank", icon: BarChart3 },
   { href: "/perfil", label: "Perfil", icon: User },
