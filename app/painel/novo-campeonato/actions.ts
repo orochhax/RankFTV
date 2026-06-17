@@ -14,8 +14,11 @@ export type CreateChampionshipInput = {
   nome: string;
   descricao: string;
   regulamento: string;
+  regulamentoPdfUrl?: string;
   dataInicio: string;
   dataFim: string;
+  inscricoesInicio?: string;
+  inscricoesFim?: string;
   cidade: string;
   estado: string;
   local: string;
@@ -70,10 +73,13 @@ export async function createChampionship(
     .insert({
       organizador_id: user.id,
       nome,
-      descricao: input.descricao?.trim() ?? "",
-      regulamento: input.regulamento?.trim() ?? "",
-      data_inicio: input.dataInicio,
-      data_fim: input.dataFim,
+      descricao:            input.descricao?.trim() ?? "",
+      regulamento:          input.regulamento?.trim() ?? "",
+      regulamento_pdf_url:  input.regulamentoPdfUrl ?? null,
+      data_inicio:          input.dataInicio,
+      data_fim:             input.dataFim,
+      inscricoes_inicio:    input.inscricoesInicio || null,
+      inscricoes_fim:       input.inscricoesFim || null,
       cidade: input.cidade.trim(),
       estado: input.estado.trim().toUpperCase().slice(0, 2),
       local: input.local?.trim() ?? "",
