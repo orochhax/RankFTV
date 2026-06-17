@@ -33,15 +33,25 @@ type ChampRow = {
   local: string;
   status: string;
   taxa_plataforma: number;
-  banner_from: string;
-  banner_to: string;
   championship_categories: CatRow[] | null;
 };
 
 const SELECT =
-  "id, organizador_id, nome, descricao, regulamento, data_inicio, data_fim, cidade, estado, local, status, taxa_plataforma, banner_from, banner_to, championship_categories(id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max)";
+  "id, organizador_id, nome, descricao, regulamento, data_inicio, data_fim, cidade, estado, local, status, taxa_plataforma, championship_categories(id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max)";
+
+const GRADIENTS: [string, string][] = [
+  ["from-blue-500", "to-cyan-400"],
+  ["from-emerald-500", "to-teal-400"],
+  ["from-orange-500", "to-amber-400"],
+  ["from-violet-500", "to-purple-400"],
+  ["from-rose-500", "to-pink-400"],
+  ["from-indigo-500", "to-blue-400"],
+];
 
 function mapChampionship(row: ChampRow): Championship {
+  const gradientIndex =
+    row.id.charCodeAt(0) % GRADIENTS.length;
+  const [bannerFrom, bannerTo] = GRADIENTS[gradientIndex];
   return {
     id: row.id,
     nome: row.nome,
@@ -55,8 +65,8 @@ function mapChampionship(row: ChampRow): Championship {
     status: row.status as ChampionshipStatus,
     organizadorId: row.organizador_id,
     taxaPlataforma: row.taxa_plataforma,
-    bannerFrom: row.banner_from,
-    bannerTo: row.banner_to,
+    bannerFrom,
+    bannerTo,
     categorias: (row.championship_categories ?? []).map(
       (c): Category => ({
         id: c.id,

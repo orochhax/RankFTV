@@ -1,4 +1,4 @@
-import { BarChart3, CalendarDays, Home, Trophy } from "lucide-react";
+import { BarChart3, CalendarDays, Home, LayoutDashboard, Trophy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -14,6 +14,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/campeonatos", label: "Campeonatos", icon: Trophy },
   { href: "/rank", label: "Rank", icon: BarChart3 },
+  { href: "/painel", label: "Painel", icon: LayoutDashboard },
 ];
 
 // "/" só fica ativo na própria Home; os outros itens ficam ativos também

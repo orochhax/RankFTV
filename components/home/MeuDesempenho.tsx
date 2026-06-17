@@ -21,10 +21,10 @@ export function MeuDesempenho({ conquistas, rank, nivel, evolucao }: Props) {
           Meu desempenho
         </p>
         <Link
-          href="/rank"
+          href="/minhas-inscricoes"
           className="flex items-center gap-0.5 text-xs font-medium text-blue-400 hover:text-blue-300"
         >
-          Ver ranking <ChevronRight className="size-3.5" />
+          Minhas inscrições <ChevronRight className="size-3.5" />
         </Link>
       </div>
 

@@ -1,0 +1,236 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import {
+  ArrowLeft,
+  CalendarDays,
+  CheckSquare,
+  DollarSign,
+  ExternalLink,
+  MapPin,
+  Megaphone,
+  Pencil,
+  QrCode,
+  Shirt,
+  Users,
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { formatBRL, formatDateRangeBR } from "@/lib/format";
+
+const ACOES = [
+  {
+    icon: Users,
+    label: "Inscrições",
+    desc: "Duplas inscritas e status de pagamento",
+    href: (id: string) => `/painel/campeonatos/${id}/inscricoes`,
+    disponivel: false,
+  },
+  {
+    icon: QrCode,
+    label: "Check-in",
+    desc: "Credenciamento e controle de presença",
+    href: (id: string) => `/painel/campeonatos/${id}/checkin`,
+    disponivel: true,
+  },
+  {
+    icon: DollarSign,
+    label: "Financeiro",
+    desc: "Entradas, taxas e repasses",
+    href: (id: string) => `/painel/campeonatos/${id}/financeiro`,
+    disponivel: false,
+  },
+  {
+    icon: Shirt,
+    label: "Camisas / Kit",
+    desc: "Painel de produção por tamanho",
+    href: (id: string) => `/painel/campeonatos/${id}/camisas`,
+    disponivel: false,
+  },
+  {
+    icon: CheckSquare,
+    label: "Chaveamento",
+    desc: "Grade e confrontos automáticos",
+    href: (id: string) => `/painel/campeonatos/${id}/chaveamento`,
+    disponivel: false,
+  },
+  {
+    icon: Megaphone,
+    label: "Comunicação",
+    desc: "Avisar todos os inscritos",
+    href: (id: string) => `/painel/campeonatos/${id}/comunicacao`,
+    disponivel: false,
+  },
+];
+
+export default async function PainelCampeonatoPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const camp = await getDbChampionshipById(id);
+  if (!camp) notFound();
+
+  // Só o organizador dono pode acessar o painel desse camp.
+  if (camp.organizadorId !== user.id) notFound();
+
+  const vagasTotais = camp.categorias.reduce(
+    (acc, c) => acc + ((c as { corteRatingMax?: number; maxDuplas?: number }).maxDuplas ?? 0),
+    0,
+  );
+
+  return (
+    <div className="min-h-screen">
+      {/* ── Cabeçalho preto ── */}
+      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
+        <div className="mx-auto max-w-4xl space-y-4">
+          {/* Voltar */}
+          <Link
+            href="/painel"
+            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
+          >
+            <ArrowLeft className="size-4" /> Painel
+          </Link>
+
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">{camp.nome}</h1>
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/50">
+                <span className="flex items-center gap-1">
+                  <CalendarDays className="size-4" />
+                  {formatDateRangeBR(camp.dataInicio, camp.dataFim)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <MapPin className="size-4" />
+                  {camp.cidade} — {camp.estado}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <StatusBadge status={camp.status} />
+              <Link
+                href={`/painel/campeonatos/${id}/editar`}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20 transition-colors"
+              >
+                <Pencil className="size-3.5" /> Editar
+              </Link>
+            </div>
+          </div>
+
+          {/* Cards de resumo */}
+          <div className="grid grid-cols-3 gap-3 pt-1">
+            <div className="rounded-2xl bg-white/10 p-4">
+              <p className="text-xs text-white/50">Duplas inscritas</p>
+              <p className="text-2xl font-bold text-white">0</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4">
+              <p className="text-xs text-white/50">Categorias</p>
+              <p className="text-2xl font-bold text-white">{camp.categorias.length}</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4">
+              <p className="text-xs text-white/50">Vagas totais</p>
+              <p className="text-2xl font-bold text-white">
+                {vagasTotais > 0 ? vagasTotais : "—"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Conteúdo branco ── */}
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
+        <div className="mx-auto max-w-4xl space-y-8">
+
+          {/* Categorias */}
+          <section>
+            <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Categorias</h2>
+            <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
+              {camp.categorias.map((cat) => {
+                const catExt = cat as typeof cat & { maxDuplas?: number };
+                return (
+                  <li key={cat.id} className="flex items-center justify-between px-4 py-3">
+                    <div>
+                      <p className="font-medium text-gray-900">{cat.nome}</p>
+                      <p className="text-xs text-gray-400 capitalize">{cat.genero}</p>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      {catExt.maxDuplas && (
+                        <span className="text-gray-400">
+                          0 / {catExt.maxDuplas} duplas
+                        </span>
+                      )}
+                      <span className="font-semibold text-gray-900">
+                        {formatBRL(cat.valorInscricao / 100)}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+
+          {/* Ações de gestão */}
+          <section>
+            <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Gestão</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {ACOES.map(({ icon: Icon, label, desc, href, disponivel }) => {
+                const inner = (
+                  <>
+                    <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${
+                      disponivel ? "bg-blue-600" : "bg-gray-200"
+                    }`}>
+                      <Icon className={`size-5 ${disponivel ? "text-white" : "text-gray-400"}`} strokeWidth={1.8} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`font-medium ${disponivel ? "text-gray-900" : "text-gray-400"}`}>{label}</p>
+                      <p className="text-xs text-gray-400">{desc}</p>
+                    </div>
+                    {!disponivel && (
+                      <span className="shrink-0 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-500">
+                        Em breve
+                      </span>
+                    )}
+                  </>
+                );
+                return disponivel ? (
+                  <Link
+                    key={label}
+                    href={href(id)}
+                    className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-colors hover:bg-gray-50"
+                  >
+                    {inner}
+                  </Link>
+                ) : (
+                  <div
+                    key={label}
+                    className="flex items-center gap-4 rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5"
+                  >
+                    {inner}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Link público */}
+          <Link
+            href={`/campeonatos/${id}`}
+            className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+          >
+            <ExternalLink className="size-4" />
+            Ver página pública do campeonato
+          </Link>
+
+        </div>
+      </div>
+    </div>
+  );
+}
