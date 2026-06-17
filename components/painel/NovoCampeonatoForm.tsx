@@ -18,6 +18,15 @@ const GENEROS: { value: GeneroCategoria; label: string }[] = [
   { value: "mista", label: "Mista" },
 ];
 
+const CATEGORIAS_PRESET = [
+  "Aprendiz",
+  "Iniciante",
+  "Intermediário",
+  "Amador",
+  "Qualify",
+  "Profissional",
+] as const;
+
 const inputClass =
   "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
 const labelClass = "block text-xs font-medium text-gray-600";
@@ -46,9 +55,11 @@ export function NovoCampeonatoForm() {
   function updateCat(i: number, patch: Partial<CatForm>) {
     setCategorias((cs) => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
   }
-  function addCat() {
-    setCategorias((cs) => [...cs, { nome: "", genero: "masculino", valorInscricao: "", maxDuplas: "" }]);
+  function addCat(nome = "") {
+    setCategorias((cs) => [...cs, { nome, genero: "masculino", valorInscricao: "", maxDuplas: "" }]);
   }
+
+  const nomesUsados = new Set(categorias.map((c) => c.nome));
   function removeCat(i: number) {
     setCategorias((cs) => (cs.length === 1 ? cs : cs.filter((_, idx) => idx !== i)));
   }
@@ -298,19 +309,42 @@ export function NovoCampeonatoForm() {
 
       {/* Categorias */}
       <div className="space-y-3 rounded-2xl bg-white p-5 ring-1 ring-black/5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-gray-800">Categorias *</h2>
-            <p className="text-xs text-gray-400">
-              Pelo menos uma. Cada uma tem gênero e valor de inscrição.
-            </p>
-          </div>
+        <div>
+          <h2 className="text-sm font-semibold text-gray-800">Categorias *</h2>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Clique para adicionar. Pelo menos uma categoria é obrigatória.
+          </p>
+        </div>
+
+        {/* Chips de categorias pré-prontas */}
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIAS_PRESET.map((preset) => {
+            const ativa = nomesUsados.has(preset);
+            return (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => {
+                  if (ativa) return;
+                  addCat(preset);
+                }}
+                disabled={ativa}
+                className={`rounded-full border px-3 py-1 text-sm font-medium transition-colors ${
+                  ativa
+                    ? "border-blue-300 bg-blue-100 text-blue-600 cursor-default"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+                }`}
+              >
+                {ativa ? "✓ " : "+ "}{preset}
+              </button>
+            );
+          })}
           <button
             type="button"
-            onClick={addCat}
-            className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200"
+            onClick={() => addCat("")}
+            className="rounded-full border border-dashed border-gray-300 px-3 py-1 text-sm font-medium text-gray-400 hover:border-gray-400 hover:text-gray-600"
           >
-            <Plus className="size-4" /> Adicionar
+            + Outros
           </button>
         </div>
 
