@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { criarOuBuscarCliente, criarCobranca, type MetodoPagamento } from "@/lib/asaas";
+import { enviarConviteDupla, enviarInscricaoConfirmada } from "@/lib/email/send";
 
 export type InscreverState = { error?: string };
 
@@ -27,7 +28,7 @@ export async function inscreverDupla(
 
   // ── Carrega perfil, campeonato e categoria em paralelo ────────
   const [{ data: profile }, { data: champ }, { data: cat }] = await Promise.all([
-    supabase.from("profiles").select("nome, cpf").eq("id", user.id).single(),
+    supabase.from("profiles").select("nome, cpf, username").eq("id", user.id).single(),
     supabase.from("championships").select("id, nome, taxa_plataforma, organizador_id, status").eq("id", championshipId).single(),
     supabase.from("championship_categories").select("id, nome, valor_inscricao").eq("id", categoryId).single(),
   ]);
@@ -74,15 +75,17 @@ export async function inscreverDupla(
 
   // ── Parceiro (opcional) ───────────────────────────────────────
   let atleta2Id: string | null = null;
+  let parceiroDados: { id: string; nome: string; email?: string } | null = null;
   if (parceiroUsername) {
     const { data: parceiro } = await supabase
       .from("profiles")
-      .select("id")
+      .select("id, nome, email")
       .eq("username", parceiroUsername)
       .single();
     if (!parceiro)
       return { error: `Usuário @${parceiroUsername} não encontrado.` };
     atleta2Id = parceiro.id;
+    parceiroDados = parceiro;
   }
 
   // ── Salva CPF e tamanho de camisa no perfil ──────────────────
@@ -133,12 +136,44 @@ export async function inscreverDupla(
       qr_token:        crypto.randomUUID(),
       checked_in:      false,
     });
+    // E-mail de confirmação para o atleta1
+    if (user.email) {
+      await enviarInscricaoConfirmada({
+        emailAtleta:    user.email,
+        nomeAtleta:     profile.nome,
+        nomeCampeonato: champ.nome,
+        nomeCategoria:  cat.nome,
+        championshipId,
+      });
+    }
     redirect(`/minhas-inscricoes/${championshipId}`);
   }
 
-  // ── Inscrição gratuita COM parceiro: redireciona sem pagamento ─
+  // ── Inscrição gratuita COM parceiro: envia convite e redireciona ─
   if (isGratis && atleta2Id) {
+    if (parceiroDados?.email) {
+      await enviarConviteDupla({
+        emailConvidado:  parceiroDados.email,
+        nomeConvidado:   parceiroDados.nome,
+        nomeAtleta1:     profile.nome,
+        usernameAtleta1: profile.username ?? "",
+        nomeCampeonato:  champ.nome,
+        nomeCategoria:   cat.nome,
+      });
+    }
     redirect(`/minhas-inscricoes/${championshipId}`);
+  }
+
+  // ── Convite por e-mail para inscrições pagas com parceiro ─────
+  if (atleta2Id && parceiroDados?.email) {
+    await enviarConviteDupla({
+      emailConvidado:  parceiroDados.email,
+      nomeConvidado:   parceiroDados.nome,
+      nomeAtleta1:     profile.nome,
+      usernameAtleta1: profile.username ?? "",
+      nomeCampeonato:  champ.nome,
+      nomeCategoria:   cat.nome,
+    });
   }
 
   // ── Inscrição paga: cria cobrança no Asaas ────────────────────

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { enviarConviteAceito, enviarInscricaoConfirmada } from "@/lib/email/send";
 
 export async function aceitarConvite(formData: FormData) {
   const supabase = await createClient();
@@ -24,12 +25,19 @@ export async function aceitarConvite(formData: FormData) {
     .update({ status: "confirmado" })
     .eq("id", teamId);
 
-  // Verifica se a inscrição é gratuita para gerar credenciais na hora
-  const { data: reg } = await supabase
-    .from("registrations")
-    .select("valor, status_pagamento")
-    .eq("team_id", teamId)
-    .maybeSingle();
+  // Busca inscrição, atleta1 e atleta2 em paralelo
+  const [{ data: reg }, { data: atleta1Profile }, { data: atleta2Profile }, { data: champ }] =
+    await Promise.all([
+      supabase.from("registrations").select("valor, category_id").eq("team_id", teamId).maybeSingle(),
+      supabase.from("profiles").select("nome, email, username").eq("id", team.atleta1_id).single(),
+      supabase.from("profiles").select("nome, email, username").eq("id", user.id).single(),
+      supabase.from("championships").select("nome").eq("id", team.championship_id).single(),
+    ]);
+
+  const categoryId = reg?.category_id ?? "";
+  const { data: categoria } = categoryId
+    ? await supabase.from("championship_categories").select("nome").eq("id", categoryId).single()
+    : { data: null };
 
   const isGratis = reg && Number(reg.valor) === 0;
 
@@ -59,6 +67,30 @@ export async function aceitarConvite(formData: FormData) {
       role:            "atleta",
       qr_token:        crypto.randomUUID(),
       checked_in:      false,
+    });
+
+    // E-mail de confirmação para atleta2 (quem aceitou)
+    if (atleta2Profile?.email && champ && categoria) {
+      await enviarInscricaoConfirmada({
+        emailAtleta:    atleta2Profile.email,
+        nomeAtleta:     atleta2Profile.nome,
+        nomeCampeonato: champ.nome,
+        nomeCategoria:  categoria.nome,
+        championshipId: team.championship_id,
+      });
+    }
+  }
+
+  // E-mail para atleta1 avisando que o convite foi aceito
+  if (atleta1Profile?.email && atleta2Profile && champ && categoria) {
+    await enviarConviteAceito({
+      emailAtleta1:    atleta1Profile.email,
+      nomeAtleta1:     atleta1Profile.nome,
+      nomeAtleta2:     atleta2Profile.nome,
+      usernameAtleta2: atleta2Profile.username ?? "",
+      nomeCampeonato:  champ.nome,
+      nomeCategoria:   categoria.nome,
+      championshipId:  team.championship_id,
     });
   }
 
