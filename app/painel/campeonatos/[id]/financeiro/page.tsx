@@ -98,7 +98,7 @@ export default async function FinanceiroPage({
             <div className="rounded-2xl bg-white/10 p-4">
               <div className="flex items-center gap-1.5 text-white/50">
                 <TrendingUp className="size-4" />
-                <p className="text-xs">Total recebido</p>
+                <p className="text-xs">Saldo Bruto</p>
               </div>
               <p className="mt-1 text-xl font-bold text-white">{formatBRL(totalPago)}</p>
             </div>

@@ -16,3 +16,12 @@
    layout.tsx via Tailwind — não repetir aqui, isso foi o que causou o bug
    do fundo preto: uma regra "solta", fora de @layer, vence a classe
    utilitária do Tailwind, não importa a especificidade.) */
+
+/* Protege imagens: desabilita salvar, arrastar, copiar e zoom por toque */
+img {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  user-drag: none;
+}

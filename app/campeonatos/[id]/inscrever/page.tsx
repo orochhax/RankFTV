@@ -75,7 +75,8 @@ export default async function InscreverPage({
     : false;
 
   const isRecomendada = categoriaRecomendada?.id === category.id;
-  const semQuestionario = !profile?.questionario;
+  // Considera respondido se tem questionario salvo OU rating > 0 (questão de migração)
+  const semQuestionario = !profile?.questionario && meuRating === 0;
 
   return (
     <div className="mx-auto max-w-lg space-y-5 px-6 py-8">
@@ -94,25 +95,26 @@ export default async function InscreverPage({
       {/* Banner: sem questionário preenchido */}
       {semQuestionario && (
         <div className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">
-          <p className="font-semibold">Seu nível não está definido ainda</p>
+          <p className="font-semibold">Seu nível ainda não foi definido</p>
           <p className="mt-0.5 text-amber-700">
             Responda o{" "}
             <Link href="/perfil/questionario" className="underline font-medium">
               questionário de nível
             </Link>{" "}
-            para que a plataforma possa recomendar a categoria certa pra você.
+            para que a plataforma possa indicar a melhor categoria pra você.
           </p>
         </div>
       )}
 
-      {/* Banner: sandbagging detectado */}
+      {/* Banner: nível acima da categoria escolhida */}
       {isSandbagging && (
         <div className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200">
-          <p className="font-semibold">Atenção: categoria abaixo do seu nível</p>
+          <p className="font-semibold">Atenção: sua pontuação é superior a esta categoria</p>
           <p className="mt-0.5 text-red-700">
-            Com base no seu perfil, a categoria recomendada é{" "}
+            Com base no seu perfil, a categoria indicada para você é{" "}
             <strong>{categoriaRecomendada?.nome ?? "uma mais alta"}</strong>. Você
-            pode continuar, mas o organizador será alertado automaticamente.
+            pode continuar mesmo assim — o organizador do evento será avisado e
+            decidirá como proceder.
           </p>
         </div>
       )}
@@ -120,7 +122,7 @@ export default async function InscreverPage({
       {/* Banner: categoria recomendada */}
       {!semQuestionario && isRecomendada && (
         <div className="rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-800 ring-1 ring-green-200">
-          Categoria recomendada para o seu nível ({meuRating} pts)
+          Categoria indicada para sua pontuação ({meuRating} pontos)
         </div>
       )}
 

@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ChevronRight, Settings } from "lucide-react";
+import { ChevronRight, Radio, Settings } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
-import { ChampionshipCard } from "@/components/campeonatos/ChampionshipCard";
+import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
 import { MeuDesempenho } from "@/components/home/MeuDesempenho";
 import { sortedChampionships } from "@/lib/mock/championships";
+import { getLivChampionships } from "@/lib/supabase/championships";
 import { createClient } from "@/lib/supabase/server";
 import {
   getConquistasDestaque,
@@ -13,6 +14,8 @@ import {
   type RankPosicao,
 } from "@/lib/supabase/desempenho";
 import { nivelLabel, nivelOrdem } from "@/lib/niveis";
+import { formatDateRangeBR } from "@/lib/format";
+import { MapPin } from "lucide-react";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -64,6 +67,7 @@ export default async function Home() {
   }
 
   const destaques = sortedChampionships().slice(0, 3);
+  const aoVivo = await getLivChampionships();
 
   return (
     <div className="min-h-screen">
@@ -157,23 +161,48 @@ export default async function Home() {
 
       {/* ── Seção branca — card sobreposto com cantos arredondados ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900">
-              Campeonatos em destaque
-            </h2>
-            <Link
-              href="/campeonatos"
-              className="flex items-center gap-0.5 text-sm font-medium text-blue-600 hover:text-blue-700"
-            >
-              Ver todos <ChevronRight className="size-4" />
-            </Link>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {destaques.map((c) => (
-              <ChampionshipCard key={c.id} championship={c} />
-            ))}
-          </div>
+        <div className="mx-auto max-w-5xl space-y-8">
+
+          {/* Carrossel de destaques */}
+          <DestaquesCarousel camps={destaques} />
+
+          {/* Campeonatos ao vivo */}
+          {aoVivo.length > 0 && (
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <Radio className="size-4 text-red-500 animate-pulse" />
+                <h2 className="text-base font-semibold text-gray-900">Ao vivo agora</h2>
+              </div>
+              <div className="space-y-3">
+                {aoVivo.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/campeonatos/${c.id}`}
+                    className="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 ring-1 ring-red-100 hover:bg-red-50 transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="size-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+                        <p className="truncate font-semibold text-gray-900">{c.nome}</p>
+                      </div>
+                      <p className="mt-0.5 text-xs text-gray-400">
+                        {formatDateRangeBR(c.dataInicio, c.dataFim)}
+                      </p>
+                      <p className="flex items-center gap-1 text-xs text-gray-400">
+                        <MapPin className="size-3" />
+                        {c.local}, {c.cidade} - {c.estado}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-400">
+                        {c.duplas.length} duplas inscritas
+                      </p>
+                    </div>
+                    <ChevronRight className="size-4 shrink-0 text-gray-300" />
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
         </div>
       </div>
     </div>

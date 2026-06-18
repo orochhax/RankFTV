@@ -43,6 +43,7 @@ export default async function CampeonatosPage({
   ).sort();
 
   const filtrados = sortedChampionships(todos).filter((c) => {
+    if (c.status !== "inscricoes_abertas") return false;
     if (estado && c.estado !== estado) return false;
     if (categoria && !c.categorias.some((cat) => cat.nome === categoria)) return false;
     return true;

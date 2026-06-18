@@ -10,9 +10,15 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
+    <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-1.5 pb-4 md:hidden">
+      {/* Logo discreta acima da pill de navegação */}
+      <Link href="/" className="text-[10px] font-bold tracking-widest text-gray-400/60 hover:text-gray-400 transition-colors select-none">
+        Rank<span className="text-blue-500/70">FTV</span>
+      </Link>
+
     <nav
       aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-4 z-50 flex justify-center md:hidden"
+      className="flex justify-center"
     >
       <ul className="flex items-center gap-1 rounded-full bg-white p-1.5 shadow-lg shadow-black/10 ring-1 ring-black/5">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
@@ -36,5 +42,6 @@ export function BottomNav() {
         })}
       </ul>
     </nav>
+    </div>
   );
 }

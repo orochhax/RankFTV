@@ -93,6 +93,18 @@ export async function getPublishedChampionships(): Promise<Championship[]> {
   return (data as ChampRow[]).map(mapChampionship);
 }
 
+// Campeonatos em andamento agora (para o card "Ao vivo" na Home).
+export async function getLivChampionships(): Promise<Championship[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("championships")
+    .select(SELECT)
+    .eq("status", "em_andamento")
+    .order("data_inicio", { ascending: false });
+  if (error || !data) return [];
+  return (data as ChampRow[]).map(mapChampionship);
+}
+
 // Para o Painel — todos os campeonatos do organizador logado (inclui rascunhos).
 export async function getMyChampionships(userId: string): Promise<Championship[]> {
   const supabase = await createClient();

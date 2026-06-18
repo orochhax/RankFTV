@@ -29,17 +29,17 @@ const ACOES = [
     disponivel: true,
   },
   {
-    icon: QrCode,
-    label: "Check-in",
-    desc: "Credenciamento e controle de presença",
-    href: (id: string) => `/painel/campeonatos/${id}/checkin`,
-    disponivel: true,
-  },
-  {
     icon: DollarSign,
     label: "Financeiro",
     desc: "Entradas, taxas e repasses",
     href: (id: string) => `/painel/campeonatos/${id}/financeiro`,
+    disponivel: true,
+  },
+  {
+    icon: QrCode,
+    label: "Check-in",
+    desc: "Credenciamento e controle de presença",
+    href: (id: string) => `/painel/campeonatos/${id}/checkin`,
     disponivel: true,
   },
   {
