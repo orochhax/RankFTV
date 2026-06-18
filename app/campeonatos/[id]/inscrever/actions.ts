@@ -38,6 +38,19 @@ export async function inscreverDupla(
   if (champ.status !== "inscricoes_abertas")
     return { error: "As inscrições não estão abertas para este campeonato." };
 
+  // ── Verifica se já está inscrito ──────────────────────────────
+  const { data: inscricaoExistente } = await supabase
+    .from("teams")
+    .select("id")
+    .eq("championship_id", championshipId)
+    .or(`atleta1_id.eq.${user.id},atleta2_id.eq.${user.id}`)
+    .limit(1)
+    .maybeSingle();
+
+  if (inscricaoExistente) {
+    return { error: "Você já está inscrito neste campeonato." };
+  }
+
   const valorInscricao = Number(cat.valor_inscricao);
   const isGratis       = valorInscricao === 0;
 

@@ -63,8 +63,8 @@ export default async function IngressoPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Busca a inscrição do usuário neste campeonato
-  const { data: rawTeam } = await supabase
+  // Busca a inscrição do usuário neste campeonato (pega a mais recente caso haja duplicatas)
+  const { data: teamsRes } = await supabase
     .from("teams")
     .select(`
       id, status, atleta1_id, atleta2_id,
@@ -74,8 +74,10 @@ export default async function IngressoPage({
     `)
     .eq("championship_id", champId)
     .or(`atleta1_id.eq.${user.id},atleta2_id.eq.${user.id}`)
-    .maybeSingle();
+    .order("created_at", { ascending: false })
+    .limit(1);
 
+  const rawTeam = teamsRes?.[0] ?? null;
   if (!rawTeam) notFound();
 
   const team = rawTeam as unknown as TeamRow;
