@@ -8,6 +8,7 @@ import {
   Info,
   RotateCcw,
   TrendingUp,
+  Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
