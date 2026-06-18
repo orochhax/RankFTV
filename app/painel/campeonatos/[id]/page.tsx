@@ -38,7 +38,7 @@ const ACOES = [
     label: "Financeiro",
     desc: "Entradas, taxas e repasses",
     href: (id: string) => `/painel/campeonatos/${id}/financeiro`,
-    disponivel: false,
+    disponivel: true,
   },
   {
     icon: Shirt,
