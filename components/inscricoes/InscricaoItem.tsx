@@ -35,13 +35,12 @@ export function InscricaoItem({ a1, a2, catNome }: Props) {
       {/* Nomes */}
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium text-gray-900">
-          {a1.nome}{a2 && <span className="text-gray-400"> &amp;</span>}
+          {a1.nome}
+          {a2
+            ? <span> <span className="text-gray-400">&amp;</span> {a2.nome}</span>
+            : <span className="ml-1 text-xs font-normal text-amber-500">· Aguardando parceiro</span>
+          }
         </p>
-        {a2 ? (
-          <p className="truncate font-medium text-gray-900">{a2.nome}</p>
-        ) : (
-          <p className="text-xs text-amber-500">Aguardando parceiro</p>
-        )}
         <p className="mt-0.5 text-xs text-gray-400">{catNome}</p>
       </div>
 

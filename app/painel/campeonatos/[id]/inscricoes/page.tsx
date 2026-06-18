@@ -147,6 +147,14 @@ export default async function InscricoesPage({
               <p className="mt-1 text-2xl font-bold text-white">{totalAtletas}</p>
             </div>
           </div>
+
+          {/* Aviso */}
+          <div className="flex items-start gap-2 rounded-xl bg-white/5 px-3 py-2.5">
+            <Info className="mt-0.5 size-3.5 shrink-0 text-white/30" />
+            <p className="text-xs leading-relaxed text-white/30">
+              Exibindo apenas duplas com pagamento confirmado.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -194,14 +202,6 @@ export default async function InscricoesPage({
                   })}
                 </div>
               )}
-
-              {/* Aviso */}
-              <div className="flex items-start gap-2 rounded-xl bg-blue-50 px-3 py-2.5 ring-1 ring-blue-100">
-                <Info className="mt-0.5 size-3.5 shrink-0 text-blue-400" />
-                <p className="text-xs leading-relaxed text-blue-500">
-                  Exibindo apenas duplas com pagamento confirmado.
-                </p>
-              </div>
 
               {/* Lista em ordem alfabética */}
               {lista.length === 0 ? (
