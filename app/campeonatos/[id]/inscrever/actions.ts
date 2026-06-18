@@ -90,6 +90,9 @@ export async function inscreverDupla(
   if (!profile.cpf && cpf) profileUpdates.cpf = cpf;
   await supabase.from("profiles").update(profileUpdates).eq("id", user.id);
 
+  // Se gratuito e sem parceiro → confirma direto. Com parceiro → ainda precisa do convite.
+  const teamStatus = isGratis && !atleta2Id ? "confirmado" : "convite_pendente";
+
   // ── Cria dupla ────────────────────────────────────────────────
   const { data: team, error: teamError } = await supabase
     .from("teams")
@@ -99,7 +102,7 @@ export async function inscreverDupla(
       atleta1_id:        user.id,
       atleta2_id:        atleta2Id,
       parceiro_username: parceiroUsername || null,
-      status:            isGratis ? "confirmado" : "convite_pendente",
+      status:            teamStatus,
       sandbagging_flag:  sandbaggingFlag,
       rating_dupla:      ratingDupla || null,
     })
@@ -121,8 +124,8 @@ export async function inscreverDupla(
     .single();
   if (regError || !reg) return { error: "Erro ao criar inscrição." };
 
-  // ── Inscrição gratuita: gera credencial e redireciona ─────────
-  if (isGratis) {
+  // ── Inscrição gratuita sem parceiro: credencial imediata ──────
+  if (isGratis && !atleta2Id) {
     await supabase.from("credentials").insert({
       user_id:         user.id,
       championship_id: championshipId,
@@ -130,6 +133,11 @@ export async function inscreverDupla(
       qr_token:        crypto.randomUUID(),
       checked_in:      false,
     });
+    redirect(`/minhas-inscricoes/${championshipId}`);
+  }
+
+  // ── Inscrição gratuita COM parceiro: redireciona sem pagamento ─
+  if (isGratis && atleta2Id) {
     redirect(`/minhas-inscricoes/${championshipId}`);
   }
 
