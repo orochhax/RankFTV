@@ -43,6 +43,15 @@ type Props = {
   };
 };
 
+const CATEGORIAS_PRESET = [
+  "Aprendiz",
+  "Iniciante",
+  "Intermediário",
+  "Amador",
+  "Qualify",
+  "Profissional",
+] as const;
+
 const GENEROS: { value: GeneroCategoria; label: string }[] = [
   { value: "masculino", label: "Masculino" },
   { value: "feminino", label: "Feminino" },
@@ -336,17 +345,43 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
 
       {/* Categorias */}
       <div className="space-y-3 rounded-2xl bg-white p-5 ring-1 ring-black/5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-gray-800">Categorias *</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Edite, remova ou adicione categorias.</p>
-          </div>
+        <div>
+          <h2 className="text-sm font-semibold text-gray-800">Categorias *</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Clique para adicionar. Pelo menos uma categoria é obrigatória.</p>
+        </div>
+
+        {/* Chips de preset */}
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIAS_PRESET.map((preset) => {
+            const ativa = visiveis.some((c) => c.nome === preset);
+            return (
+              <button
+                key={preset}
+                type="button"
+                disabled={ativa}
+                onClick={() => {
+                  if (!ativa)
+                    setCategorias((cs) => [
+                      ...cs,
+                      { nome: preset, genero: "masculino", valorInscricao: "", maxDuplas: "" },
+                    ]);
+                }}
+                className={`rounded-full border px-3 py-1 text-sm font-medium transition-colors ${
+                  ativa
+                    ? "border-blue-300 bg-blue-100 text-blue-600 cursor-default"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+                }`}
+              >
+                {ativa ? "✓ " : "+ "}{preset}
+              </button>
+            );
+          })}
           <button
             type="button"
             onClick={addCat}
-            className="flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+            className="rounded-full border border-dashed border-gray-300 px-3 py-1 text-sm font-medium text-gray-400 hover:border-gray-400 hover:text-gray-600"
           >
-            <Plus className="size-4" /> Adicionar
+            + Outros
           </button>
         </div>
 
