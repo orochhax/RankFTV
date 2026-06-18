@@ -23,6 +23,9 @@ export async function inscreverDupla(
   const metodo            = ((formData.get("metodo_pagamento") as string) ?? "pix") as MetodoPagamento;
   const ratingDupla       = parseInt(formData.get("rating_dupla") as string) || 0;
   const sandbaggingFlag   = formData.get("sandbagging") === "1";
+  const tamanhoCamisa     = ((formData.get("tamanho_camisa") as string) ?? "").trim();
+
+  if (!tamanhoCamisa) return { error: "Selecione o tamanho da camisa." };
 
   // ── Carrega perfil ────────────────────────────────────────────
   const { data: profile } = await supabase
@@ -77,10 +80,10 @@ export async function inscreverDupla(
     atleta2Id = parceiro.id;
   }
 
-  // ── Salva CPF no perfil se ainda não estava ───────────────────
-  if (!profile.cpf) {
-    await supabase.from("profiles").update({ cpf }).eq("id", user.id);
-  }
+  // ── Salva CPF e tamanho de camisa no perfil ──────────────────
+  const profileUpdates: Record<string, string> = { tamanho_camisa: tamanhoCamisa };
+  if (!profile.cpf && cpf) profileUpdates.cpf = cpf;
+  await supabase.from("profiles").update(profileUpdates).eq("id", user.id);
 
   // ── Cria dupla ────────────────────────────────────────────────
   const { data: team, error: teamError } = await supabase

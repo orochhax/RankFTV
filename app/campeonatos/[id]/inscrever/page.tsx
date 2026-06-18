@@ -43,10 +43,10 @@ export default async function InscreverPage({
   const category = championship.categorias.find((c) => c.id === categoryId);
   if (!category) notFound();
 
-  // Busca perfil com rating e CPF
+  // Busca perfil com rating, CPF e tamanho de camisa
   const { data: profile } = await supabase
     .from("profiles")
-    .select("cpf, rating, questionario")
+    .select("cpf, rating, questionario, tamanho_camisa")
     .eq("id", user.id)
     .single();
 
@@ -130,6 +130,7 @@ export default async function InscreverPage({
         categoriaNome={category.nome}
         valorInscricao={category.valorInscricao}
         cpfSalvo={profile?.cpf ?? null}
+        tamanhoSalvo={profile?.tamanho_camisa ?? null}
         ratingDupla={ratingDupla}
         isSandbagging={isSandbagging}
       />

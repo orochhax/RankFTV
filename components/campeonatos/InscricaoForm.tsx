@@ -5,12 +5,15 @@ import { Loader2 } from "lucide-react";
 import { inscreverDupla, type InscreverState } from "@/app/campeonatos/[id]/inscrever/actions";
 import { formatBRL } from "@/lib/format";
 
+const TAMANHOS = ["PP", "P", "M", "G", "GG", "XGG"] as const;
+
 type Props = {
   championshipId: string;
   categoryId: string;
   categoriaNome: string;
   valorInscricao: number;
   cpfSalvo: string | null;
+  tamanhoSalvo: string | null;
   ratingDupla: number;
   isSandbagging: boolean;
 };
@@ -32,6 +35,7 @@ export function InscricaoForm({
   categoriaNome,
   valorInscricao,
   cpfSalvo,
+  tamanhoSalvo,
   ratingDupla,
   isSandbagging,
 }: Props) {
@@ -96,6 +100,36 @@ export function InscricaoForm({
         <p className="mt-1 text-xs text-gray-400">
           Necessário para emitir a cobrança. Salvo no seu perfil para próximas inscrições.
         </p>
+      </div>
+
+      {/* Tamanho de camisa */}
+      <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+        <p className="text-sm font-semibold text-gray-700">
+          Tamanho da camisa
+          {!tamanhoSalvo && <span className="ml-1 text-red-500">*</span>}
+        </p>
+        <p className="mb-3 mt-0.5 text-xs text-gray-400">
+          {tamanhoSalvo
+            ? "Salvo no seu perfil — altere se quiser."
+            : "Necessário para produção do kit. Salvo no seu perfil para os próximos campeonatos."}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {TAMANHOS.map((sz) => (
+            <label key={sz} className="cursor-pointer">
+              <input
+                type="radio"
+                name="tamanho_camisa"
+                value={sz}
+                defaultChecked={tamanhoSalvo === sz}
+                required
+                className="peer sr-only"
+              />
+              <span className="flex h-10 w-12 items-center justify-center rounded-xl border border-gray-200 text-sm font-bold text-gray-600 transition-colors peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:text-white hover:border-blue-300">
+                {sz}
+              </span>
+            </label>
+          ))}
+        </div>
       </div>
 
       {/* Parceiro */}
