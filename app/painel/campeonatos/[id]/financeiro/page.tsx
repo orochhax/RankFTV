@@ -6,7 +6,6 @@ import {
   Clock,
   DollarSign,
   RotateCcw,
-  TrendingDown,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -126,7 +125,7 @@ export default async function FinanceiroPage({
           </div>
 
           {/* Cards de resumo */}
-          <div className="grid grid-cols-3 gap-3 pt-1">
+          <div className="grid grid-cols-2 gap-3 pt-1">
             <div className="rounded-2xl bg-white/10 p-4">
               <div className="flex items-center gap-1.5 text-white/50">
                 <TrendingUp className="size-4" />
@@ -134,22 +133,10 @@ export default async function FinanceiroPage({
               </div>
               <p className="mt-1 text-xl font-bold text-white">{formatBRL(totalPago)}</p>
             </div>
-            <div className="rounded-2xl bg-red-500/20 p-4">
-              <div className="flex items-center gap-1.5 text-red-400">
-                <TrendingDown className="size-4" />
-                <p className="text-xs">Taxa plataforma</p>
-              </div>
-              <p className="mt-1 text-xl font-bold text-red-300">
-                {taxaPercent > 0 ? `${taxaPercent}%` : "—"}
-                <span className="ml-1 text-sm font-medium opacity-70">
-                  {taxaPercent > 0 ? `(${formatBRL(taxaTotal)})` : ""}
-                </span>
-              </p>
-            </div>
             <div className="rounded-2xl bg-emerald-500/20 p-4">
               <div className="flex items-center gap-1.5 text-emerald-400">
                 <DollarSign className="size-4" />
-                <p className="text-xs">Repasse líquido</p>
+                <p className="text-xs">Seu saldo líquido</p>
               </div>
               <p className="mt-1 text-xl font-bold text-emerald-300">{formatBRL(repasseLiquido)}</p>
             </div>
