@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
-import { Plus, Trash2, FileText, X, ExternalLink } from "lucide-react";
+import { useState, useTransition, useRef, useCallback } from "react";
+import { Plus, Trash2, FileText, X, ExternalLink, AlertTriangle } from "lucide-react";
 import {
   updateChampionship,
   type CategoriaEditInput,
@@ -70,9 +70,11 @@ const inputClass =
 const labelClass = "block text-xs font-medium text-gray-600";
 
 export function EditarCampeonatoForm({ champId, initial }: Props) {
-  const [pending, startTransition] = useTransition();
-  const [error, setError]         = useState<string | null>(null);
-  const fileInputRef              = useRef<HTMLInputElement>(null);
+  const [pending, startTransition]   = useTransition();
+  const [error, setError]            = useState<string | null>(null);
+  const [mudancas, setMudancas]      = useState<string[]>([]);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const fileInputRef                 = useRef<HTMLInputElement>(null);
 
   const [nome, setNome]                       = useState(initial.nome);
   const [descricao, setDescricao]             = useState(initial.descricao);
@@ -121,10 +123,66 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
     }
   }
 
-  function handleSubmit() {
+  const STATUS_LABEL: Record<string, string> = {
+    rascunho:           "Rascunho",
+    inscricoes_abertas: "Inscrições abertas",
+    em_andamento:       "Em andamento",
+    encerrado:          "Encerrado",
+  };
+
+  function detectarMudancas(): string[] {
+    const lista: string[] = [];
+
+    if (nome.trim()       !== initial.nome.trim())       lista.push("Nome do campeonato alterado");
+    if (descricao.trim()  !== initial.descricao.trim())  lista.push("Descrição alterada");
+    if (regulamento.trim()!== initial.regulamento.trim())lista.push("Regulamento alterado");
+    if (status            !== initial.status)            lista.push(`Status alterado para "${STATUS_LABEL[status]}"`);
+    if (dataInicio        !== initial.dataInicio)        lista.push("Data de início do campeonato alterada");
+    if (dataFim           !== initial.dataFim)           lista.push("Data de fim do campeonato alterada");
+    if ((inscricoesInicio || "") !== (initial.inscricoesInicio || "")) lista.push("Abertura das inscrições alterada");
+    if ((inscricoesFim    || "") !== (initial.inscricoesFim    || "")) lista.push("Encerramento das inscrições alterado");
+    if (cidade.trim()     !== initial.cidade.trim())     lista.push("Cidade alterada");
+    if (estado.trim().toUpperCase() !== initial.estado.trim().toUpperCase()) lista.push("Estado (UF) alterado");
+    if (local.trim()      !== initial.local.trim())      lista.push("Local alterado");
+    if (pdfFile)                                         lista.push("PDF do regulamento substituído");
+    if (!pdfUrl && initial.regulamentoPdfUrl)            lista.push("PDF do regulamento removido");
+
+    // Categorias
+    const removidas = categorias.filter((c) => c._delete && c.id);
+    for (const c of removidas) lista.push(`Categoria removida: ${c.nome}`);
+
+    const adicionadas = categorias.filter((c) => !c._delete && !c.id && c.nome.trim());
+    for (const c of adicionadas) lista.push(`Nova categoria adicionada: ${c.nome}`);
+
+    const iniciais = initial.categorias;
+    for (const c of categorias.filter((c) => c.id && !c._delete)) {
+      const orig = iniciais.find((o) => o.id === c.id);
+      if (!orig) continue;
+      const mudou =
+        c.nome           !== orig.nome ||
+        c.genero         !== orig.genero ||
+        Number(c.valorInscricao) !== orig.valorInscricao ||
+        (Number(c.maxDuplas) || 0) !== (orig.maxDuplas ?? 0);
+      if (mudou) lista.push(`Categoria alterada: ${orig.nome}`);
+    }
+
+    return lista;
+  }
+
+  function handleClickSalvar() {
+    const lista = detectarMudancas();
+    if (lista.length === 0) {
+      setError("Nenhuma alteração detectada.");
+      return;
+    }
+    setMudancas(lista);
+    setShowConfirm(true);
+  }
+
+  const confirmarSalvar = useCallback(() => {
+    setShowConfirm(false);
     setError(null);
     startTransition(async () => {
-      // Upload do novo PDF se selecionado
       let regulamentoPdfUrl: string | null = pdfUrl;
       if (pdfFile) {
         const supabase = createClient();
@@ -165,11 +223,57 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
         setError(res.error ?? "Erro ao salvar.");
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
-      // se ok → redirect acontece no server action
     });
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nome, descricao, regulamento, pdfUrl, pdfFile, dataInicio, dataFim,
+      inscricoesInicio, inscricoesFim, cidade, estado, local, status, categorias]);
 
   return (
+    <>
+    {/* Modal de confirmação */}
+    {showConfirm && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="absolute inset-0 bg-black/50" onClick={() => setShowConfirm(false)} />
+        <div className="relative z-10 w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+              <AlertTriangle className="size-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900">Confirmar alterações</p>
+              <p className="text-xs text-gray-500">As seguintes informações serão atualizadas:</p>
+            </div>
+          </div>
+
+          <ul className="mb-5 space-y-1.5 rounded-2xl bg-gray-50 p-4">
+            {mudancas.map((m, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-blue-500 mt-2" />
+                {m}
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={confirmarSalvar}
+              disabled={pending}
+              className="w-full rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
+            >
+              {pending ? "Salvando…" : "Sim, salvar alterações"}
+            </button>
+            <button
+              onClick={() => setShowConfirm(false)}
+              disabled={pending}
+              className="w-full rounded-2xl bg-gray-100 py-3 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-60 transition-colors"
+            >
+              Não, continuar editando
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
     <div className="space-y-6">
       {error && (
         <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
@@ -454,7 +558,7 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
       <div className="flex flex-wrap items-center gap-3 pb-10">
         <button
           type="button"
-          onClick={handleSubmit}
+          onClick={handleClickSalvar}
           disabled={pending}
           className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
         >
@@ -463,5 +567,6 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
         <p className="text-xs text-gray-400">As alterações ficam visíveis na página pública imediatamente.</p>
       </div>
     </div>
+    </>
   );
 }
