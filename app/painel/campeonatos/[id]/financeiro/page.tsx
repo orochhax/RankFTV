@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   Clock,
   DollarSign,
+  Info,
   RotateCcw,
   TrendingUp,
   Users,
@@ -119,13 +120,10 @@ export default async function FinanceiroPage({
             <ArrowLeft className="size-4" /> {camp.nome}
           </Link>
 
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Financeiro</h1>
-            <p className="mt-1 text-sm text-white/40">Entradas, taxas e repasses</p>
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Financeiro</h1>
 
           {/* Cards de resumo */}
-          <div className="grid grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-white/10 p-4">
               <div className="flex items-center gap-1.5 text-white/50">
                 <TrendingUp className="size-4" />
@@ -140,6 +138,14 @@ export default async function FinanceiroPage({
               </div>
               <p className="mt-1 text-xl font-bold text-emerald-300">{formatBRL(repasseLiquido)}</p>
             </div>
+          </div>
+
+          {/* Aviso discreto */}
+          <div className="flex items-start gap-2 rounded-xl bg-white/5 px-3 py-2.5">
+            <Info className="mt-0.5 size-3.5 shrink-0 text-white/30" />
+            <p className="text-xs leading-relaxed text-white/30">
+              Valores pendentes e estornados não são contabilizados no total recebido nem no saldo líquido.
+            </p>
           </div>
         </div>
       </div>
@@ -192,6 +198,13 @@ export default async function FinanceiroPage({
                     borderColor="ring-red-200"
                     textColor="text-red-600"
                   />
+                </div>
+
+                {/* Método de pagamento */}
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <MetodoCard emoji="⚡" label="Pix" />
+                  <MetodoCard emoji="💳" label="Crédito" />
+                  <MetodoCard emoji="🏦" label="Débito" />
                 </div>
               </section>
 
@@ -361,6 +374,18 @@ function StatusCard({
       </div>
       <p className={`mt-2 text-2xl font-bold ${textColor}`}>{count}</p>
       <p className={`text-xs ${textColor} opacity-70`}>{formatBRL(valor)}</p>
+    </div>
+  );
+}
+
+function MetodoCard({ emoji, label }: { emoji: string; label: string }) {
+  return (
+    <div className="flex flex-col gap-1.5 rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
+      <div className="flex items-center gap-1.5">
+        <span className="text-sm leading-none">{emoji}</span>
+        <p className="text-xs font-medium text-gray-500">{label}</p>
+      </div>
+      <p className="text-sm font-semibold text-gray-300">—</p>
     </div>
   );
 }
