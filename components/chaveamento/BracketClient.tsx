@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Search, X, Trophy, RefreshCcw } from "lucide-react";
-import { assignTeam, saveScore, clearScore, resetBracket } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
+import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown } from "lucide-react";
+import { assignTeam, saveScore, clearScore, resetBracket, generateBracket } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
 import type { TeamDisplay, MatchDisplay, RoundDisplay } from "@/app/painel/campeonatos/[id]/chaveamento/page";
 
 /* ─── layout constants ─── */
@@ -56,6 +56,131 @@ function ScorePill({ setsA, setsB }: { setsA: number; setsB: number }) {
       <span className="text-[11px] font-semibold tabular-nums text-gray-500">
         {setsA} × {setsB}
       </span>
+    </div>
+  );
+}
+
+/* ─── sorteio ─── */
+
+function SorteioPanel({
+  availableTeams,
+  hasExistingBracket,
+  champId,
+  catId,
+}: {
+  availableTeams:    TeamDisplay[];
+  hasExistingBracket: boolean;
+  champId:           string;
+  catId:             string;
+}) {
+  const [open, setOpen]       = useState(!hasExistingBracket);
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(availableTeams.map((t) => t.id)),
+  );
+  const [confirm, setConfirm]     = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const allSelected  = selected.size === availableTeams.length;
+  const noneSelected = selected.size === 0;
+
+  function toggleAll() {
+    if (allSelected) setSelected(new Set());
+    else setSelected(new Set(availableTeams.map((t) => t.id)));
+  }
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function handleGenerate() {
+    if (hasExistingBracket && !confirm) { setConfirm(true); return; }
+    setConfirm(false);
+    startTransition(async () => {
+      await generateBracket(champId, catId, Array.from(selected));
+    });
+  }
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+      {/* cabeçalho clicável */}
+      <button
+        onClick={() => { setOpen((o) => !o); setConfirm(false); }}
+        className="flex w-full items-center justify-between px-5 py-4 text-left"
+      >
+        <div className="flex items-center gap-2">
+          <Shuffle className="size-4 text-gray-500" />
+          <span className="text-sm font-semibold text-gray-900">Sorteio do chaveamento</span>
+          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
+            {availableTeams.length} duplas
+          </span>
+        </div>
+        <ChevronDown
+          className={`size-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="space-y-4 border-t border-gray-100 px-5 pb-5 pt-4">
+          {/* selecionar todas */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-500">
+              {selected.size} de {availableTeams.length} selecionadas
+            </span>
+            <button
+              onClick={toggleAll}
+              className="text-xs font-medium text-blue-600 hover:text-blue-700"
+            >
+              {allSelected ? "Limpar seleção" : "Selecionar todas"}
+            </button>
+          </div>
+
+          {/* lista de duplas */}
+          <ul className="max-h-52 space-y-0.5 overflow-y-auto rounded-xl border border-gray-100 p-1">
+            {availableTeams.map((t) => (
+              <li key={t.id}>
+                <label className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(t.id)}
+                    onChange={() => toggle(t.id)}
+                    className="size-4 rounded accent-blue-600"
+                  />
+                  <span className="text-sm text-gray-800">{t.nome}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+
+          {/* aviso se já existe bracket */}
+          {hasExistingBracket && (
+            <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">
+              ⚠ Isso vai apagar o chaveamento atual e criar um novo com as duplas selecionadas.
+            </p>
+          )}
+
+          {/* botão gerar */}
+          <button
+            onClick={handleGenerate}
+            disabled={noneSelected || isPending}
+            className={`w-full rounded-2xl py-3 text-sm font-semibold text-white transition-colors disabled:opacity-30 ${
+              confirm
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-gray-900 hover:bg-gray-800"
+            }`}
+          >
+            {isPending
+              ? "Gerando…"
+              : confirm
+              ? "Confirmar? Isso apaga o chaveamento atual"
+              : `Gerar chaveamento aleatório (${selected.size} duplas)`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -316,10 +441,20 @@ export function BracketClient({
     });
   }
 
+  const hasExistingBracket = rounds.length > 0;
+
   return (
     <>
+      {/* sorteio */}
+      <SorteioPanel
+        availableTeams={availableTeams}
+        hasExistingBracket={hasExistingBracket}
+        champId={champId}
+        catId={catId}
+      />
+
       {/* bracket */}
-      <div className="overflow-x-auto pb-6">
+      {hasExistingBracket && <div className="overflow-x-auto pb-6">
         <div className="flex gap-8" style={{ minWidth: "max-content" }}>
           {rounds.map((round) => {
             const ri = round.roundIndex;
@@ -378,10 +513,10 @@ export function BracketClient({
             );
           })}
         </div>
-      </div>
+      </div>}
 
       {/* rodapé */}
-      <div className="flex items-center justify-between">
+      {hasExistingBracket && <div className="flex items-center justify-between">
         <p className="text-xs text-gray-400">
           Clique em qualquer confronto para editar duplas ou lançar placar.
         </p>
@@ -397,7 +532,7 @@ export function BracketClient({
           <RefreshCcw className="size-3.5" />
           {confirmReset ? "Confirmar reset?" : "Reiniciar chaveamento"}
         </button>
-      </div>
+      </div>}
 
       {/* modal */}
       {modalState && (

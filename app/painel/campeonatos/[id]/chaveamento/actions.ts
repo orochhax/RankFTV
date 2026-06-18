@@ -3,6 +3,69 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+/* ─── helpers ─── */
+
+function nextPow2(n: number): number {
+  if (n <= 1) return 2;
+  let p = 1;
+  while (p < n) p *= 2;
+  return p;
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ─── gerar bracket por sorteio ─── */
+
+export async function generateBracket(
+  champId: string,
+  catId:   string,
+  teamIds: string[],
+) {
+  const supabase = await createClient();
+
+  await supabase
+    .from("bracket_matches")
+    .delete()
+    .eq("championship_id", champId)
+    .eq("category_id", catId);
+
+  const shuffled = shuffle(teamIds);
+  const n            = nextPow2(shuffled.length);
+  const totalRounds  = Math.log2(n);
+  const slots: (string | null)[] = [
+    ...shuffled,
+    ...Array(n - shuffled.length).fill(null),
+  ];
+
+  const rows = [];
+  for (let r = 0; r < totalRounds; r++) {
+    const matchCount = n / Math.pow(2, r + 1);
+    for (let m = 0; m < matchCount; m++) {
+      rows.push({
+        championship_id: champId,
+        category_id:     catId,
+        round_index:     r,
+        match_index:     m,
+        team_a_id: r === 0 ? (slots[m * 2]     ?? null) : null,
+        team_b_id: r === 0 ? (slots[m * 2 + 1] ?? null) : null,
+      });
+    }
+  }
+
+  if (rows.length > 0) {
+    await supabase.from("bracket_matches").insert(rows);
+  }
+
+  revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
+}
+
 export async function assignTeam(
   matchId: string,
   slot: "a" | "b",

@@ -34,13 +34,6 @@ export type RoundDisplay = {
 
 /* ─── helpers de bracket ─── */
 
-function nextPow2(n: number): number {
-  if (n <= 1) return 2;
-  let p = 1;
-  while (p < n) p *= 2;
-  return p;
-}
-
 function getRoundName(roundIndex: number, totalRounds: number): string {
   const fromEnd = totalRounds - 1 - roundIndex;
   if (fromEnd === 0) return "Final";
@@ -48,39 +41,6 @@ function getRoundName(roundIndex: number, totalRounds: number): string {
   if (fromEnd === 2) return "Quartas de Final";
   if (fromEnd === 3) return "Oitavas de Final";
   return `Fase ${roundIndex + 1}`;
-}
-
-/* ─── inicialização no banco ─── */
-
-async function initializeBracket(
-  supabase:     Awaited<ReturnType<typeof createClient>>,
-  champId:      string,
-  catId:        string,
-  sortedTeams:  TeamDisplay[],
-) {
-  const n           = nextPow2(sortedTeams.length);
-  const totalRounds = Math.log2(n);
-  const slots: (TeamDisplay | null)[] = [
-    ...sortedTeams,
-    ...Array(n - sortedTeams.length).fill(null),
-  ];
-
-  const rows = [];
-  for (let r = 0; r < totalRounds; r++) {
-    const matchCount = n / Math.pow(2, r + 1);
-    for (let m = 0; m < matchCount; m++) {
-      rows.push({
-        championship_id: champId,
-        category_id:     catId,
-        round_index:     r,
-        match_index:     m,
-        team_a_id: r === 0 ? (slots[m * 2]?.id   ?? null) : null,
-        team_b_id: r === 0 ? (slots[m * 2 + 1]?.id ?? null) : null,
-      });
-    }
-  }
-
-  await supabase.from("bracket_matches").insert(rows);
 }
 
 /* ─── page ─── */
@@ -159,23 +119,6 @@ export default async function ChaveamentoPage({
   const activeCatId = cat && categorias.some((c) => c.id === cat) ? cat : categorias[0]?.id ?? null;
 
   const totalDuplas = Object.values(teamsByCat).reduce((s, t) => s + t.length, 0);
-
-  /* ── inicializa bracket se ainda não existe ── */
-  if (activeCatId && teamsByCat[activeCatId]?.length) {
-    const { data: existing } = await supabase
-      .from("bracket_matches")
-      .select("id")
-      .eq("championship_id", id)
-      .eq("category_id", activeCatId)
-      .limit(1);
-
-    if (!existing || existing.length === 0) {
-      const sortedTeams = [...(teamsByCat[activeCatId] ?? [])].sort((a, b) =>
-        a.nome.localeCompare(b.nome, "pt-BR"),
-      );
-      await initializeBracket(supabase, id, activeCatId, sortedTeams);
-    }
-  }
 
   /* ── carrega bracket_matches do banco ── */
   let rounds: RoundDisplay[] = [];
@@ -297,6 +240,7 @@ export default async function ChaveamentoPage({
               )}
 
               <BracketClient
+                key={activeCatId ?? ""}
                 champId={id}
                 catId={activeCatId ?? ""}
                 rounds={rounds}
