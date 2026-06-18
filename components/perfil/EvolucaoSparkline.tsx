@@ -11,8 +11,8 @@ type Props = {
 export function EvolucaoSparkline({ valores, max = 9, className }: Props) {
   if (valores.length === 0) {
     return (
-      <p className="py-4 text-center text-[11px] text-gray-500">
-        Sem dados ainda
+      <p className="py-4 text-center text-[11px] leading-relaxed text-gray-500">
+        Jogue campeonatos e acompanhe sua evolução
       </p>
     );
   }

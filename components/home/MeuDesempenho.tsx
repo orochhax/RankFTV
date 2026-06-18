@@ -35,9 +35,11 @@ export function MeuDesempenho({ conquistas, rank, nivel, evolucao }: Props) {
             Conquistas
           </p>
           {conquistas.length === 0 ? (
-            <p className="text-center text-[11px] leading-relaxed text-gray-500">
-              Aqui aparecerão seus troféus
-            </p>
+            <div className="flex h-full min-h-[80px] items-center justify-center">
+              <p className="text-center text-[11px] leading-relaxed text-gray-500">
+                Aqui aparecerão seus troféus
+              </p>
+            </div>
           ) : (
             <ul className="space-y-2.5">
               {conquistas.map((c) => (
