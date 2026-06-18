@@ -279,13 +279,6 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
             >
               Continuar editando
             </button>
-            <button
-              onClick={sair}
-              disabled={pending}
-              className="w-full rounded-2xl py-3 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 transition-colors"
-            >
-              Sair sem salvar
-            </button>
           </div>
         </div>
       </div>
