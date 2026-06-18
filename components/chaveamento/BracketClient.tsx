@@ -598,7 +598,7 @@ export function BracketClient({
     setExporting("image");
     try {
       const { drawBracket } = await import("@/components/chaveamento/drawBracket");
-      const { dataUrl } = drawBracket(rounds);
+      const { dataUrl } = drawBracket(rounds, thirdPlaceMatch);
       const a = document.createElement("a");
       a.download = "chaveamento.png";
       a.href = dataUrl;
@@ -615,7 +615,7 @@ export function BracketClient({
         import("@/components/chaveamento/drawBracket"),
         import("jspdf"),
       ]);
-      const { dataUrl, logicalW, logicalH } = drawBracket(rounds);
+      const { dataUrl, logicalW, logicalH } = drawBracket(rounds, thirdPlaceMatch);
       const pdf = new jsPDF({
         orientation: logicalW > logicalH ? "landscape" : "portrait",
         unit: "px",

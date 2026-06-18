@@ -1,4 +1,4 @@
-import type { RoundDisplay } from "@/app/painel/campeonatos/[id]/chaveamento/page";
+import type { RoundDisplay, MatchDisplay } from "@/app/painel/campeonatos/[id]/chaveamento/page";
 
 /* ─── constantes de layout ─── */
 const CW    = 220;  // largura do card
@@ -41,16 +41,22 @@ function fitText(ctx: CanvasRenderingContext2D, text: string, maxW: number): str
 /* ─── resultado da função ─── */
 export type BracketExport = { dataUrl: string; logicalW: number; logicalH: number };
 
+const THIRD_GAP = 32; // espaço entre o bracket principal e a partida de 3º lugar
+
 /* ─── função principal ─── */
-export function drawBracket(rounds: RoundDisplay[]): BracketExport {
+export function drawBracket(rounds: RoundDisplay[], thirdPlaceMatch?: MatchDisplay | null): BracketExport {
   const nRounds    = rounds.length;
   const firstCount = rounds[0]?.matches.length ?? 1;
 
   const logicalW = PAD * 2 + nRounds * CW + Math.max(0, nRounds - 1) * CONN;
-  const logicalH =
+  const bracketH =
     PAD * 2 + HDR + ptFor(0) +
     firstCount * CH +
     Math.max(0, firstCount - 1) * gapFor(0);
+
+  const logicalH = thirdPlaceMatch
+    ? bracketH + THIRD_GAP + HDR + CH + PAD
+    : bracketH;
 
   const canvas  = document.createElement("canvas");
   canvas.width  = logicalW * SCALE;
@@ -185,6 +191,85 @@ export function drawBracket(rounds: RoundDisplay[]): BracketExport {
       }
     });
   });
+
+  /* ─── partida pelo 3º lugar ─── */
+  if (thirdPlaceMatch) {
+    const cardY  = bracketH + THIRD_GAP + HDR;
+    const cardX  = PAD;
+    const match  = thirdPlaceMatch;
+    const winA   = !!match.winnerId && match.winnerId === match.teamA?.id;
+    const winB   = !!match.winnerId && match.winnerId === match.teamB?.id;
+    const mid    = cardY + CH / 2;
+
+    /* label */
+    ctx.save();
+    ctx.font      = "bold 10px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = "#9ca3af";
+    ctx.textAlign = "left";
+    ctx.fillText("DISPUTA DE 3º LUGAR", cardX, bracketH + THIRD_GAP + HDR - 10);
+    ctx.restore();
+
+    /* fundo branco + sombra */
+    ctx.save();
+    ctx.shadowColor   = "rgba(0,0,0,0.08)";
+    ctx.shadowBlur    = 8;
+    ctx.shadowOffsetY = 2;
+    ctx.fillStyle     = "#ffffff";
+    rrect(ctx, cardX, cardY, CW, CH, 10);
+    ctx.fill();
+    ctx.restore();
+
+    /* borda */
+    ctx.strokeStyle = "#e5e7eb";
+    ctx.lineWidth   = 1;
+    rrect(ctx, cardX, cardY, CW, CH, 10);
+    ctx.stroke();
+
+    /* highlight vencedor */
+    if (winA || winB) {
+      ctx.save();
+      rrect(ctx, cardX, cardY, CW, CH, 10);
+      ctx.clip();
+      ctx.fillStyle = "#ecfdf5";
+      if (winA) ctx.fillRect(cardX, cardY, CW, CH / 2);
+      if (winB) ctx.fillRect(cardX, cardY + CH / 2, CW, CH / 2);
+      ctx.restore();
+    }
+
+    /* divisor */
+    ctx.strokeStyle = "#f3f4f6";
+    ctx.lineWidth   = 1;
+    ctx.beginPath();
+    ctx.moveTo(cardX + 1, mid);
+    ctx.lineTo(cardX + CW - 1, mid);
+    ctx.stroke();
+
+    /* placar */
+    if (match.setsA !== null && match.setsB !== null) {
+      ctx.save();
+      ctx.font      = "bold 10px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = "#6b7280";
+      ctx.textAlign = "center";
+      ctx.fillText(`${match.setsA} × ${match.setsB}`, cardX + CW / 2, mid + 4);
+      ctx.restore();
+    }
+
+    /* nome A */
+    ctx.save();
+    ctx.font      = `${winA ? "600" : "400"} 11.5px system-ui, -apple-system, sans-serif`;
+    ctx.fillStyle = winA ? "#065f46" : (match.teamA ? "#111827" : "#9ca3af");
+    ctx.textAlign = "left";
+    ctx.fillText(fitText(ctx, match.teamA?.nome ?? "A definir", CW - 24), cardX + 10, cardY + CH / 4 + 4);
+    ctx.restore();
+
+    /* nome B */
+    ctx.save();
+    ctx.font      = `${winB ? "600" : "400"} 11.5px system-ui, -apple-system, sans-serif`;
+    ctx.fillStyle = winB ? "#065f46" : (match.teamB ? "#111827" : "#9ca3af");
+    ctx.textAlign = "left";
+    ctx.fillText(fitText(ctx, match.teamB?.nome ?? "A definir", CW - 24), cardX + 10, cardY + CH * 3 / 4 + 4);
+    ctx.restore();
+  }
 
   return { dataUrl: canvas.toDataURL("image/png"), logicalW, logicalH };
 }
