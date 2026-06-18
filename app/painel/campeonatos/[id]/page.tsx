@@ -16,7 +16,9 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { TierTag } from "@/components/ui/TierTag";
 import { formatBRL, formatDateRangeBR } from "@/lib/format";
+import type { QuizAnswers } from "@/lib/tier";
 
 const ACOES = [
   {
@@ -82,6 +84,17 @@ export default async function PainelCampeonatoPage({
   // Só o organizador dono pode acessar o painel desse camp.
   if (camp.organizadorId !== user.id) notFound();
 
+  // Tier: quiz do banco + duplas pagas (override automático)
+  const [tierRes, paidRes] = await Promise.all([
+    supabase.from("championships").select("tier_quiz").eq("id", id).maybeSingle(),
+    supabase.from("registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("championship_id", id)
+      .eq("status_pagamento", "pago"),
+  ]);
+  const tierQuiz = (tierRes.data?.tier_quiz ?? null) as Partial<QuizAnswers> | null;
+  const duplasPagas = paidRes.count ?? 0;
+
   const vagasTotais = camp.categorias.reduce(
     (acc, c) => acc + ((c as { corteRatingMax?: number; maxDuplas?: number }).maxDuplas ?? 0),
     0,
@@ -115,6 +128,7 @@ export default async function PainelCampeonatoPage({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <TierTag quiz={tierQuiz} duplasPagas={duplasPagas} />
               <StatusBadge status={camp.status} />
               <Link
                 href={`/painel/campeonatos/${id}/editar`}

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { GeneroCategoria } from "@/lib/mock/types";
+import { calcularTierDoQuiz, type QuizAnswers } from "@/lib/tier";
 
 export type CategoriaInput = {
   nome: string;
@@ -25,6 +26,7 @@ export type CreateChampionshipInput = {
   local: string;
   status: "rascunho" | "inscricoes_abertas";
   categorias: CategoriaInput[];
+  tierQuiz: QuizAnswers;
 };
 
 // Gradientes de banner — escolhe um aleatório por enquanto (upload de imagem
@@ -51,6 +53,9 @@ export async function createChampionship(
 
   const nome = input.nome?.trim();
   if (!nome) return { ok: false, error: "Dê um nome ao campeonato." };
+  if (!input.tierQuiz || Object.keys(input.tierQuiz).length < 5) {
+    return { ok: false, error: "Responda todas as 5 perguntas sobre o evento antes de continuar." };
+  }
   if (!input.dataInicio || !input.dataFim) {
     return { ok: false, error: "Informe as datas de início e fim." };
   }
@@ -68,6 +73,8 @@ export async function createChampionship(
 
   const [bannerFrom, bannerTo] =
     GRADIENTS[Math.floor(Math.random() * GRADIENTS.length)];
+
+  const tier = calcularTierDoQuiz(input.tierQuiz);
 
   const { data: champ, error } = await supabase
     .from("championships")
@@ -87,6 +94,8 @@ export async function createChampionship(
       status: input.status === "inscricoes_abertas" ? "inscricoes_abertas" : "rascunho",
       banner_from: bannerFrom,
       banner_to: bannerTo,
+      tier,
+      tier_quiz: input.tierQuiz,
     })
     .select("id")
     .single();
