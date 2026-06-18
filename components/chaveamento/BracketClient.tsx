@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown } from "lucide-react";
+import { useState, useRef, useTransition } from "react";
+import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown, ImageIcon, FileText, AlignLeft } from "lucide-react";
 import { assignTeam, saveScore, clearScore, resetBracket, generateBracket } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
 import type { TeamDisplay, MatchDisplay, RoundDisplay } from "@/app/painel/campeonatos/[id]/chaveamento/page";
 
@@ -466,12 +466,113 @@ export function BracketClient({
   rounds:         RoundDisplay[];
   availableTeams: TeamDisplay[];
 }) {
-  const [modalState, setModalState]   = useState<ModalState | null>(null);
+  const [modalState, setModalState]     = useState<ModalState | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
-  const [isPending, startTransition]  = useTransition();
+  const [exporting, setExporting]       = useState<"image" | "pdf" | "text" | null>(null);
+  const [isPending, startTransition]    = useTransition();
+  const bracketRef = useRef<HTMLDivElement>(null);
 
   function openModal(match: MatchDisplay, roundNome: string) {
     setModalState({ match, roundNome });
+  }
+
+  async function exportAsImage() {
+    if (!bracketRef.current) return;
+    setExporting("image");
+    try {
+      const { toPng } = await import("html-to-image");
+      const dataUrl = await toPng(bracketRef.current, {
+        backgroundColor: "#ffffff",
+        pixelRatio: 2,
+        style: { padding: "20px" },
+      });
+      const a = document.createElement("a");
+      a.download = "chaveamento.png";
+      a.href = dataUrl;
+      a.click();
+    } finally {
+      setExporting(null);
+    }
+  }
+
+  async function exportAsPdf() {
+    if (!bracketRef.current) return;
+    setExporting("pdf");
+    try {
+      const [{ toPng }, { jsPDF }] = await Promise.all([
+        import("html-to-image"),
+        import("jspdf"),
+      ]);
+      const dataUrl = await toPng(bracketRef.current, {
+        backgroundColor: "#ffffff",
+        pixelRatio: 2,
+        style: { padding: "20px" },
+      });
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise<void>((res) => { img.onload = () => res(); });
+      const W = img.naturalWidth;
+      const H = img.naturalHeight;
+      const pdf = new jsPDF({
+        orientation: W > H ? "landscape" : "portrait",
+        unit: "px",
+        format: [W, H],
+      });
+      pdf.addImage(dataUrl, "PNG", 0, 0, W, H);
+      pdf.save("chaveamento.pdf");
+    } finally {
+      setExporting(null);
+    }
+  }
+
+  function exportAsText() {
+    setExporting("text");
+    const lines: string[] = [];
+    lines.push("CHAVEAMENTO");
+    lines.push("=".repeat(50));
+
+    for (const round of rounds) {
+      lines.push("");
+      lines.push(round.nome.toUpperCase());
+      lines.push("-".repeat(30));
+      round.matches.forEach((match, i) => {
+        const a = match.teamA?.nome ?? "A definir";
+        const b = match.teamB?.nome ?? "A definir";
+        let line = `Confronto ${i + 1}: ${a} vs ${b}`;
+        if (match.setsA !== null && match.setsB !== null) {
+          line += `  [${match.setsA} x ${match.setsB}]`;
+        }
+        if (match.winnerId) {
+          const winner =
+            match.teamA?.id === match.winnerId
+              ? match.teamA?.nome
+              : match.teamB?.nome;
+          line += `  -> Vencedor: ${winner}`;
+        }
+        lines.push(line);
+      });
+    }
+
+    const finalRound = rounds[rounds.length - 1];
+    const finalMatch = finalRound?.matches[0];
+    if (finalMatch?.winnerId) {
+      const champion =
+        finalMatch.teamA?.id === finalMatch.winnerId
+          ? finalMatch.teamA?.nome
+          : finalMatch.teamB?.nome;
+      lines.push("");
+      lines.push("=".repeat(50));
+      lines.push(`CAMPEAO: ${champion}`);
+    }
+
+    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.download = "chaveamento.txt";
+    a.href     = url;
+    a.click();
+    URL.revokeObjectURL(url);
+    setExporting(null);
   }
 
   function handleReset() {
@@ -496,7 +597,7 @@ export function BracketClient({
 
       {/* bracket */}
       {hasExistingBracket && <div className="overflow-x-auto pb-6">
-        <div className="flex" style={{ minWidth: "max-content" }}>
+        <div ref={bracketRef} className="flex" style={{ minWidth: "max-content" }}>
           {rounds.flatMap((round, idx) => {
             const ri     = round.roundIndex;
             const pt     = paddingTopFor(ri);
@@ -549,23 +650,57 @@ export function BracketClient({
       </div>}
 
       {/* rodapé */}
-      {hasExistingBracket && <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-400">
-          Clique em qualquer confronto para editar duplas ou lançar placar.
-        </p>
-        <button
-          onClick={handleReset}
-          disabled={isPending}
-          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-40 ${
-            confirmReset
-              ? "bg-red-100 text-red-600 hover:bg-red-200"
-              : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-          }`}
-        >
-          <RefreshCcw className="size-3.5" />
-          {confirmReset ? "Confirmar reset?" : "Reiniciar chaveamento"}
-        </button>
-      </div>}
+      {hasExistingBracket && (
+        <div className="space-y-3">
+          {/* exportar */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400">Exportar:</span>
+            <button
+              onClick={exportAsImage}
+              disabled={!!exporting}
+              className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-200 disabled:opacity-40"
+            >
+              <ImageIcon className="size-3.5" />
+              {exporting === "image" ? "Gerando…" : "PNG"}
+            </button>
+            <button
+              onClick={exportAsPdf}
+              disabled={!!exporting}
+              className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-200 disabled:opacity-40"
+            >
+              <FileText className="size-3.5" />
+              {exporting === "pdf" ? "Gerando…" : "PDF"}
+            </button>
+            <button
+              onClick={exportAsText}
+              disabled={!!exporting}
+              className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-200 disabled:opacity-40"
+            >
+              <AlignLeft className="size-3.5" />
+              {exporting === "text" ? "Gerando…" : "TXT"}
+            </button>
+          </div>
+
+          {/* dica + reiniciar */}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-400">
+              Clique em qualquer confronto para editar duplas ou lançar placar.
+            </p>
+            <button
+              onClick={handleReset}
+              disabled={isPending}
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-40 ${
+                confirmReset
+                  ? "bg-red-100 text-red-600 hover:bg-red-200"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              <RefreshCcw className="size-3.5" />
+              {confirmReset ? "Confirmar reset?" : "Reiniciar chaveamento"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* modal */}
       {modalState && (
