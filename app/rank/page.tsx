@@ -21,17 +21,18 @@ const MEDALHA = ["🥇", "🥈", "🥉"];
 export default async function RankPage({
   searchParams,
 }: {
-  searchParams: Promise<{ genero?: string; tipo?: string }>;
+  searchParams: Promise<{ genero?: string; tipo?: string; fonte?: string }>;
 }) {
-  const { genero: generoParam, tipo: tipoParam } = await searchParams;
+  const { genero: generoParam, tipo: tipoParam, fonte: fonteParam } = await searchParams;
 
   const genero: Genero = generoParam === "feminino" ? "feminino" : "masculino";
   const tipo: "individual" | "dupla" =
     tipoParam === "dupla" ? "dupla" : "individual";
+  const fonte: "liga" | "geral" = fonteParam === "geral" ? "geral" : "liga";
 
   const individual =
-    tipo === "individual" ? await getRankingIndividual(genero) : [];
-  const duplas = tipo === "dupla" ? await getRankingDupla(genero) : [];
+    fonte === "liga" && tipo === "individual" ? await getRankingIndividual(genero) : [];
+  const duplas = fonte === "liga" && tipo === "dupla" ? await getRankingDupla(genero) : [];
   const total = tipo === "individual" ? individual.length : duplas.length;
 
   return (
@@ -50,12 +51,36 @@ export default async function RankPage({
             />
           </div>
 
+          {/* Toggle Liga / Geral */}
+          <div className="flex overflow-hidden rounded-xl border border-white/20 text-sm font-semibold">
+            <Link
+              href={`/rank?fonte=liga&genero=${genero}&tipo=${tipo}`}
+              className={`flex flex-1 items-center justify-center gap-2 px-6 py-3 transition-colors ${
+                fonte === "liga"
+                  ? "bg-blue-600 text-white"
+                  : "text-white/60 hover:text-white/80"
+              }`}
+            >
+              Liga Brasileira
+            </Link>
+            <Link
+              href={`/rank?fonte=geral&genero=${genero}&tipo=${tipo}`}
+              className={`flex flex-1 items-center justify-center gap-2 border-l border-white/20 px-6 py-3 transition-colors ${
+                fonte === "geral"
+                  ? "bg-blue-600 text-white"
+                  : "text-white/60 hover:text-white/80"
+              }`}
+            >
+              Geral
+            </Link>
+          </div>
+
           {/* Filtros */}
           <div className="flex flex-wrap gap-3">
             {/* Gênero */}
             <div className="flex overflow-hidden rounded-lg border border-white/20 text-sm font-medium">
               <Link
-                href={`/rank?genero=masculino&tipo=${tipo}`}
+                href={`/rank?fonte=${fonte}&genero=masculino&tipo=${tipo}`}
                 className={`px-4 py-2 transition-colors ${
                   genero === "masculino"
                     ? "bg-blue-600 text-white"
@@ -65,7 +90,7 @@ export default async function RankPage({
                 Masculino
               </Link>
               <Link
-                href={`/rank?genero=feminino&tipo=${tipo}`}
+                href={`/rank?fonte=${fonte}&genero=feminino&tipo=${tipo}`}
                 className={`border-l border-white/20 px-4 py-2 transition-colors ${
                   genero === "feminino"
                     ? "bg-blue-600 text-white"
@@ -79,7 +104,7 @@ export default async function RankPage({
             {/* Tipo */}
             <div className="flex overflow-hidden rounded-lg border border-white/20 text-sm font-medium">
               <Link
-                href={`/rank?genero=${genero}&tipo=individual`}
+                href={`/rank?fonte=${fonte}&genero=${genero}&tipo=individual`}
                 className={`px-4 py-2 transition-colors ${
                   tipo === "individual"
                     ? "bg-white text-gray-900"
@@ -89,7 +114,7 @@ export default async function RankPage({
                 Individual
               </Link>
               <Link
-                href={`/rank?genero=${genero}&tipo=dupla`}
+                href={`/rank?fonte=${fonte}&genero=${genero}&tipo=dupla`}
                 className={`border-l border-white/20 px-4 py-2 transition-colors ${
                   tipo === "dupla"
                     ? "bg-white text-gray-900"
@@ -111,14 +136,26 @@ export default async function RankPage({
             <span className="font-medium text-gray-700">
               {genero === "masculino" ? "Masculino" : "Feminino"}
             </span>{" "}
-            · {tipo === "individual" ? "Individual" : "Dupla"} · {total}{" "}
-            {tipo === "individual"
-              ? total === 1 ? "atleta" : "atletas"
-              : total === 1 ? "dupla" : "duplas"}
+            · {tipo === "individual" ? "Individual" : "Dupla"}
+            {fonte === "liga" && (
+              <> · {total}{" "}
+                {tipo === "individual"
+                  ? total === 1 ? "atleta" : "atletas"
+                  : total === 1 ? "dupla" : "duplas"}
+              </>
+            )}
           </p>
 
           {/* Tabela */}
-          {total === 0 ? (
+          {fonte === "geral" ? (
+            <div className="rounded-2xl bg-white p-10 text-center ring-1 ring-black/5">
+              <p className="text-base font-semibold text-gray-700">Ranking Geral em breve</p>
+              <p className="mt-2 text-sm text-gray-400 max-w-sm mx-auto">
+                O ranking geral reúne todos os atletas de campeonatos organizados na plataforma.
+                Ficará disponível assim que os primeiros resultados forem registrados.
+              </p>
+            </div>
+          ) : total === 0 ? (
             <div className="rounded-2xl bg-white p-8 text-center ring-1 ring-black/5">
               <p className="text-sm text-gray-400">
                 Nenhum dado de ranking para esse filtro ainda.
@@ -195,8 +232,9 @@ export default async function RankPage({
           )}
 
           <p className="text-center text-xs text-gray-400">
-            Dados oficiais da Liga Brasileira de Futevôlei. Classificação acumulada
-            da temporada — individual e por dupla.
+            {fonte === "liga"
+              ? "Dados oficiais da Liga Brasileira de Futevôlei. Classificação acumulada da temporada."
+              : "Ranking calculado a partir de campeonatos organizados na RankFTV."}
           </p>
         </div>
       </div>
