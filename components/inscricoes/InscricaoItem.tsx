@@ -78,7 +78,9 @@ export function InscricaoItem({ a1, a2, catNome, catGenero: _catGenero, valor, s
 
         {/* Nomes dos dois atletas sempre visíveis */}
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium text-gray-900">{a1.nome}</p>
+          <p className="truncate font-medium text-gray-900">
+            {a1.nome}{a2 && <span className="text-gray-400"> &amp;</span>}
+          </p>
           {a2 ? (
             <p className="truncate font-medium text-gray-900">{a2.nome}</p>
           ) : (
