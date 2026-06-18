@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, ChevronDown, Search, AlignLeft } from "lucide-react";
+import { Check, ChevronDown, Search, FileText } from "lucide-react";
 import { toggleProduced, bulkMarkProduced } from "@/app/painel/campeonatos/[id]/camisas/actions";
 import type { AthleteShirt } from "@/app/painel/campeonatos/[id]/camisas/page";
 
@@ -38,9 +38,11 @@ function computeSizeStats(athletes: Array<AthleteShirt & { produced: boolean }>)
 
 export function CamisasClient({
   champId,
+  campNome,
   athletes,
 }: {
   champId:  string;
+  campNome: string;
   athletes: AthleteShirt[];
 }) {
   /* ── estado ── */
@@ -90,27 +92,130 @@ export function CamisasClient({
     });
   }
 
-  function exportTxt() {
-    const lines = ["LISTA DE CAMISAS / KIT", "=".repeat(40), ""];
-    for (const stat of sizeStats) {
-      lines.push(`Tamanho ${stat.size} — ${stat.total} camisa(s)`);
-      const group = effective
-        .filter((a) => (a.tamanho ?? "—") === stat.size)
-        .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-      for (const a of group) {
-        lines.push(`  ${a.produced ? "[✓]" : "[ ]"} ${a.nome}`);
-      }
-      lines.push("");
+  async function exportPdf() {
+    const { jsPDF } = await import("jspdf");
+
+    const doc      = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const margin   = 20;
+    const pageW    = 210;
+    const colNome  = margin;
+    const colTam   = margin + 120;
+    const colStatus = margin + 145;
+    let y = margin;
+
+    const totalAtletas = athletes.length;
+    const semTamanho   = effective.filter((a) => !a.tamanho).length;
+
+    // lista em ordem alfabética com estado atual (overrides aplicados)
+    const sorted = [...effective].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+
+    /* ── título ── */
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.setTextColor(15, 15, 19);
+    doc.text("Camisas / Kit", margin, y);
+    y += 6;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(156, 163, 175);
+    doc.text(campNome, margin, y);
+    y += 4;
+    doc.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, margin, y);
+    y += 8;
+
+    /* ── linha separadora ── */
+    doc.setDrawColor(229, 231, 235);
+    doc.line(margin, y, pageW - margin, y);
+    y += 8;
+
+    /* ── stats ── */
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(55, 65, 81);
+    doc.text(`Total de atletas = ${totalAtletas}`, margin, y);
+    y += 6;
+    doc.text(`Camisas prontas = ${totalDone} / ${totalAtletas}`, margin, y);
+    y += 6;
+    if (semTamanho > 0) {
+      doc.setTextColor(180, 90, 0);
     }
-    lines.push("=".repeat(40));
-    lines.push(`Prontas: ${totalDone} / ${athletes.length}`);
-    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.download = "camisas.txt";
-    a.href     = url;
-    a.click();
-    URL.revokeObjectURL(url);
+    doc.text(`Sem informação de tamanho = ${semTamanho}`, margin, y);
+    y += 10;
+
+    /* ── linha separadora ── */
+    doc.setDrawColor(229, 231, 235);
+    doc.setTextColor(55, 65, 81);
+    doc.line(margin, y, pageW - margin, y);
+    y += 7;
+
+    /* ── cabeçalho da tabela ── */
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(107, 114, 128);
+    doc.text("ATLETA", colNome, y);
+    doc.text("TAM.", colTam, y);
+    doc.text("STATUS", colStatus, y);
+    y += 3;
+    doc.setDrawColor(229, 231, 235);
+    doc.line(margin, y, pageW - margin, y);
+    y += 6;
+
+    /* ── linhas da tabela ── */
+    const rowH = 7;
+    doc.setFontSize(9);
+
+    for (let i = 0; i < sorted.length; i++) {
+      /* quebra de página */
+      if (y > 272) {
+        doc.addPage();
+        y = margin;
+      }
+
+      const a = sorted[i];
+
+      /* fundo alternado */
+      if (i % 2 === 0) {
+        doc.setFillColor(249, 250, 251);
+        doc.rect(margin - 2, y - 4.5, pageW - margin * 2 + 4, rowH, "F");
+      }
+
+      /* nome — trunca se muito longo */
+      let nome = a.nome;
+      doc.setFontSize(9);
+      while (nome.length > 1 && doc.getTextWidth(nome) > 108) {
+        nome = nome.slice(0, -1);
+      }
+      if (nome !== a.nome) nome += "…";
+
+      doc.setFont("helvetica", a.produced ? "normal" : "bold");
+      doc.setTextColor(a.produced ? 156 : 17, a.produced ? 163 : 24, a.produced ? 175 : 39);
+      doc.text(nome, colNome, y);
+
+      /* tamanho */
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(55, 65, 81);
+      doc.text(a.tamanho ?? "—", colTam, y);
+
+      /* status */
+      if (a.produced) {
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(4, 120, 87);
+        doc.text("Pronta", colStatus, y);
+      } else {
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(156, 163, 175);
+        doc.text("Pendente", colStatus, y);
+      }
+
+      y += rowH;
+    }
+
+    /* ── linha final ── */
+    doc.setDrawColor(229, 231, 235);
+    doc.line(margin, y, pageW - margin, y);
+
+    doc.save("camisas-kit.pdf");
   }
 
   /* ────────────────────────── render ────────────────────────── */
@@ -198,11 +303,11 @@ export function CamisasClient({
             {/* exportar */}
             <div className="flex justify-end pt-1">
               <button
-                onClick={exportTxt}
+                onClick={exportPdf}
                 className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 transition-colors"
               >
-                <AlignLeft className="size-3.5" />
-                Exportar lista TXT
+                <FileText className="size-3.5" />
+                Exportar PDF
               </button>
             </div>
           </div>

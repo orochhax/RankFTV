@@ -142,7 +142,7 @@ export default async function CamisasPage({
               </Link>
             </div>
           ) : (
-            <CamisasClient champId={id} athletes={athletes} />
+            <CamisasClient champId={id} campNome={camp.nome} athletes={athletes} />
           )}
         </div>
       </div>
