@@ -198,6 +198,92 @@ export const BRACKETS: ChampionshipBracket[] = [
       },
     ],
   },
+  // Circuito Nordeste — em andamento, bracket parcialmente jogado
+  {
+    championshipId: "circuito-nordeste",
+    categories: [
+      {
+        id: "cn-a-mista",
+        nome: "A Mista",
+        rounds: [
+          {
+            nome: "Semifinais",
+            matches: [
+              {
+                id: "cn-am-s1",
+                duplaA: { nomes: ["Lucas Andrade", "Ana Beatriz Santos"] },
+                duplaB: { nomes: ["Felipe Rodrigues", "Mariana Costa"] },
+                placar: "21-18, 19-21, 21-17",
+                winner: "a",
+              },
+              {
+                id: "cn-am-s2",
+                duplaA: { nomes: ["Thiago Pereira", "Juliana Lima"] },
+                duplaB: { nomes: ["Rafael Souza", "Beatriz Souza"] },
+                placar: undefined,
+                winner: null,
+              },
+            ],
+          },
+          {
+            nome: "Final",
+            matches: [
+              {
+                id: "cn-am-f",
+                duplaA: { nomes: ["Lucas Andrade", "Ana Beatriz Santos"] },
+                duplaB: { nomes: ["A definir", ""] },
+                placar: undefined,
+                winner: null,
+              },
+            ],
+          },
+        ],
+        terceiroLugar: {
+          id: "cn-am-3p",
+          duplaA: { nomes: ["Felipe Rodrigues", "Mariana Costa"] },
+          duplaB: { nomes: ["A definir", ""] },
+          winner: null,
+        },
+      },
+      {
+        id: "cn-b-mista",
+        nome: "B Mista",
+        rounds: [
+          {
+            nome: "Semifinais",
+            matches: [
+              {
+                id: "cn-bm-s1",
+                duplaA: { nomes: ["Carlos Eduardo", "Fernanda Lima"] },
+                duplaB: { nomes: ["Diego Almeida", "Camila Rocha"] },
+                placar: "21-14, 21-12",
+                winner: "a",
+              },
+              {
+                id: "cn-bm-s2",
+                duplaA: { nomes: ["Bruno Lima", "Larissa Mendes"] },
+                duplaB: { nomes: ["Vinicius Carvalho", "Patrícia Gomes"] },
+                placar: "21-19, 17-21, 21-18",
+                winner: "a",
+              },
+            ],
+          },
+          {
+            nome: "Final",
+            matches: [
+              {
+                id: "cn-bm-f",
+                duplaA: { nomes: ["Carlos Eduardo", "Fernanda Lima"] },
+                duplaB: { nomes: ["Bruno Lima", "Larissa Mendes"] },
+                placar: undefined,
+                winner: null,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export function getBracket(championshipId: string): ChampionshipBracket | undefined {
