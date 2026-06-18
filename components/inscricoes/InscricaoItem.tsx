@@ -69,23 +69,22 @@ export function InscricaoItem({ a1, a2, catNome, catGenero: _catGenero, valor, s
       {/* Linha principal — clicável */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors hover:bg-gray-50"
+        className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-gray-50"
         aria-expanded={open}
       >
         <div className={`flex size-9 shrink-0 items-center justify-center rounded-full ${circleColor}`}>
           <StatusIcon className={`size-4 ${iconColor}`} />
         </div>
 
+        {/* Nomes dos dois atletas sempre visíveis */}
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium text-gray-900">
-            {a1.nome}{a2 ? ` & ${a2.nome}` : ""}
-          </p>
-          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-gray-400">
-            {a1.username && <span>@{a1.username}</span>}
-            {a2?.username && <span>· @{a2.username}</span>}
-            <span className="text-gray-300">·</span>
-            <span>{catNome}</span>
-          </div>
+          <p className="truncate font-medium text-gray-900">{a1.nome}</p>
+          {a2 ? (
+            <p className="truncate text-sm text-gray-500">{a2.nome}</p>
+          ) : (
+            <p className="text-xs text-amber-500">Aguardando parceiro</p>
+          )}
+          <p className="mt-0.5 text-xs text-gray-400">{catNome}</p>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
