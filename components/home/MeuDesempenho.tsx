@@ -35,8 +35,8 @@ export function MeuDesempenho({ conquistas, rank, nivel, evolucao }: Props) {
             Conquistas
           </p>
           {conquistas.length === 0 ? (
-            <p className="text-center text-[11px] text-gray-500">
-              Nenhuma ainda
+            <p className="text-center text-[11px] leading-relaxed text-gray-500">
+              Aqui aparecerão seus troféus
             </p>
           ) : (
             <ul className="space-y-2.5">
@@ -57,18 +57,12 @@ export function MeuDesempenho({ conquistas, rank, nivel, evolucao }: Props) {
           <div className="flex items-center">
             <div className="flex-1 text-center">
               <p className="text-[11px] font-semibold text-gray-300">Rank</p>
-              {rank ? (
-                <>
-                  <p className="mt-0.5 text-base font-bold leading-tight text-white">
-                    #{rank.posicao} - Geral
-                  </p>
-                  <p className="text-xs font-semibold text-gray-300">
-                    {rank.pontos.toLocaleString("pt-BR")} pts
-                  </p>
-                </>
-              ) : (
-                <p className="mt-1 text-xs text-gray-500">Sem ranking</p>
-              )}
+              <p className="mt-0.5 text-base font-bold leading-tight text-white">
+                {rank ? `#${rank.posicao} - Geral` : "# — - Geral"}
+              </p>
+              <p className="text-xs font-semibold text-gray-300">
+                {rank ? rank.pontos.toLocaleString("pt-BR") : "0"} pts
+              </p>
             </div>
             <div className="mx-3 h-10 w-px bg-white/10" />
             <div className="flex-1 text-center">
@@ -76,7 +70,7 @@ export function MeuDesempenho({ conquistas, rank, nivel, evolucao }: Props) {
                 Categoria mais jogada
               </p>
               <p className="mt-0.5 text-base font-bold leading-tight text-white">
-                {nivel ?? "—"}
+                {nivel ?? "Sem categoria"}
               </p>
             </div>
           </div>

@@ -61,8 +61,7 @@ export default async function Home() {
         .map((h) => nivelOrdem(h.categoria))
         .filter((o): o is number => o != null);
 
-      temDesempenho =
-        historico.length > 0 || rank != null || conquistas.length > 0;
+      temDesempenho = true; // card sempre visível; empty states guiam o novo atleta
     }
   }
 
