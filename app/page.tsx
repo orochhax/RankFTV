@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ChevronRight, Radio, Settings } from "lucide-react";
+import { ChevronRight, Radio } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
 import { MeuDesempenho } from "@/components/home/MeuDesempenho";
+import { HamburgerMenu } from "@/components/home/HamburgerMenu";
 import { sortedChampionships, CHAMPIONSHIPS } from "@/lib/mock/championships";
 import { getLivChampionships } from "@/lib/supabase/championships";
 import { createClient } from "@/lib/supabase/server";
@@ -65,6 +66,17 @@ export default async function Home() {
     }
   }
 
+  // Contagem de notificações não lidas (para o badge do menu)
+  let unreadCount = 0;
+  if (user) {
+    const { count } = await supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("lida", false);
+    unreadCount = count ?? 0;
+  }
+
   const destaques = sortedChampionships().slice(0, 3);
   const aoVivoDb   = await getLivChampionships();
   const aoVivoMock = CHAMPIONSHIPS.filter((c) => c.status === "em_andamento");
@@ -96,13 +108,9 @@ export default async function Home() {
                   </h1>
                   <p className="text-sm text-gray-400">@{profile.username}</p>
                 </div>
-                <Link
-                  href="/perfil"
-                  aria-label="Perfil e configurações"
-                  className="md:hidden rounded-full p-2 text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
-                >
-                  <Settings className="size-6" />
-                </Link>
+                <div className="md:hidden">
+                  <HamburgerMenu unreadCount={unreadCount} />
+                </div>
               </div>
 
               {/* Card de desempenho — Conquistas / Rank / Nível / Evolução */}

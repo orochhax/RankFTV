@@ -25,22 +25,25 @@ export function MatchCard({ match }: { match: BracketMatch }) {
 
   return (
     <div className="w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm text-xs">
-      {rows.map(({ dupla, isWinner }, idx) => (
-        <div
-          key={idx}
-          className={[
-            "px-3 py-2.5 border-l-[3px]",
-            idx === 1 ? "border-t border-gray-100" : "",
-            isWinner ? "border-l-blue-500 bg-blue-50" : "border-l-transparent",
-          ].filter(Boolean).join(" ")}
-        >
-          <p className={["truncate font-medium leading-tight", isWinner ? "text-gray-900" : decided ? "text-gray-400" : "text-gray-700"].join(" ")}>
-            {isWinner && <span className="mr-1 text-blue-500">✓</span>}
-            {dupla.nomes[0]}
-          </p>
-          <p className="truncate leading-tight text-gray-400">{dupla.nomes[1]}</p>
-        </div>
-      ))}
+      {rows.map(({ dupla, isWinner }, idx) => {
+        const nameColor = isWinner ? "text-gray-900" : decided ? "text-gray-400" : "text-gray-700";
+        return (
+          <div
+            key={idx}
+            className={[
+              "px-3 py-2.5 border-l-[3px]",
+              idx === 1 ? "border-t border-gray-100" : "",
+              isWinner ? "border-l-blue-500 bg-blue-50" : "border-l-transparent",
+            ].filter(Boolean).join(" ")}
+          >
+            {isWinner && <span className="mb-0.5 block text-[10px] text-blue-500">✓ Vencedor</span>}
+            <p className={`truncate font-medium leading-tight ${nameColor}`}>{dupla.nomes[0]}</p>
+            {dupla.nomes[1] && (
+              <p className={`truncate font-medium leading-tight ${nameColor}`}>{dupla.nomes[1]}</p>
+            )}
+          </div>
+        );
+      })}
       {match.placar && decided && (
         <div className="border-t border-gray-100 px-3 py-1.5 text-[10px] text-gray-400">
           {match.placar}
