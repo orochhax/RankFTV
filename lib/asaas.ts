@@ -49,65 +49,90 @@ export async function criarOuBuscarCliente(input: {
   });
 }
 
-// ── Cobranças (plataforma recebe tudo, sem split) ─────────────────────────────
-// A plataforma coleta o valor cheio. O repasse ao organizador é feito depois
-// via transferência Pix (ver transferirPix abaixo).
+// ── Taxas da plataforma ───────────────────────────────────────────────────────
+// Valores cobrados DO ATLETA por cima do valor da inscrição.
+// A plataforma retém essa taxa e repassa o valor base ao organizador.
+//
+// Asaas aplica a taxa dele sobre o valor total (base + taxa plataforma),
+// o que reduz ligeiramente a margem líquida (~0,3% a menos na prática).
+//
+// Crédito:  7,49% + R$0,49 para 1–6x  |  7,99% + R$0,49 para 7–12x
+// Débito:   5,89% + R$0,35
+// Pix:      R$3,99 fixo por transação
 
-export const TAXAS_PAGAMENTO = {
-  pix:     { percentual: 3, billingType: "PIX"         },
-  debito:  { percentual: 5, billingType: "DEBIT_CARD"  },
-  credito: { percentual: 9, billingType: "CREDIT_CARD" },
-} as const;
+export type MetodoPagamento = "pix" | "debito" | "credito";
 
-export type MetodoPagamento = keyof typeof TAXAS_PAGAMENTO;
+export function calcularValorFinal(
+  valorBase: number,
+  metodo:    MetodoPagamento,
+  parcelas = 1,
+): number {
+  if (metodo === "pix") {
+    return parseFloat((valorBase + 3.99).toFixed(2));
+  }
+  if (metodo === "debito") {
+    return parseFloat((valorBase * 1.0589 + 0.35).toFixed(2));
+  }
+  // credito
+  const pct = parcelas > 6 ? 7.99 : 7.49;
+  return parseFloat((valorBase * (1 + pct / 100) + 0.49).toFixed(2));
+}
+
+export function calcularValorParcela(valorTotal: number, parcelas: number): number {
+  return parseFloat((valorTotal / parcelas).toFixed(2));
+}
+
+/** Descrição da taxa exibida na UI (ex.: "+7,49% + R$ 0,49"). */
+export function descricaoTaxa(metodo: MetodoPagamento, parcelas = 1): string {
+  if (metodo === "pix")    return "+ R$ 3,99 por transação";
+  if (metodo === "debito") return "+ 5,89% + R$ 0,35";
+  const pct = parcelas > 6 ? "7,99" : "7,49";
+  return `+ ${pct}% + R$ 0,49`;
+}
 
 export type CobrancaInput = {
   customerId:        string;
-  valorBase:         number;   // valor da inscrição em BRL (sem taxa da plataforma)
+  valorBase:         number;
   metodo:            MetodoPagamento;
   descricao:         string;
-  externalReference: string;   // registration.id — usado pelo webhook
+  externalReference: string;
 };
 
 export type CobrancaCriada = {
-  id:          string;
-  invoiceUrl:  string;
-  pixQrCode?: {
-    encodedImage: string;
-    payload:      string;
-  };
+  id:         string;
+  invoiceUrl: string;
+  pixQrCode?: { encodedImage: string; payload: string };
 };
 
 export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriada> {
-  const { percentual, billingType } = TAXAS_PAGAMENTO[input.metodo];
-  const valorTotal = parseFloat((input.valorBase * (1 + percentual / 100)).toFixed(2));
+  const billingType =
+    input.metodo === "pix"    ? "PIX" :
+    input.metodo === "debito" ? "DEBIT_CARD" : "CREDIT_CARD";
+
+  const valorTotal = calcularValorFinal(input.valorBase, input.metodo);
 
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 1);
-  const dueDateStr = dueDate.toISOString().split("T")[0];
 
   const body: Record<string, unknown> = {
     customer:          input.customerId,
     billingType,
     value:             valorTotal,
-    dueDate:           dueDateStr,
+    dueDate:           dueDate.toISOString().split("T")[0],
     description:       input.descricao,
     externalReference: input.externalReference,
   };
 
   const pagamento = await request<{ id: string; invoiceUrl: string }>("/payments", {
     method: "POST",
-    body: JSON.stringify(body),
+    body:   JSON.stringify(body),
   });
 
-  const resultado: CobrancaCriada = {
-    id:        pagamento.id,
-    invoiceUrl: pagamento.invoiceUrl,
-  };
+  const resultado: CobrancaCriada = { id: pagamento.id, invoiceUrl: pagamento.invoiceUrl };
 
   if (input.metodo === "pix") {
     const qr = await request<{ encodedImage: string; payload: string }>(
-      `/payments/${pagamento.id}/pixQrCode`
+      `/payments/${pagamento.id}/pixQrCode`,
     );
     resultado.pixQrCode = qr;
   }

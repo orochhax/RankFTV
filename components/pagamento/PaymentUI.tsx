@@ -7,6 +7,7 @@ import { Check, Copy, CreditCard, QrCode, ArrowLeft, Loader2, AlertCircle } from
 import { Avatar } from "@/components/ui/Avatar";
 import { formatBRL } from "@/lib/format";
 import { pagarComCartao } from "@/app/campeonatos/[id]/pagamento/[registrationId]/actions";
+import { calcularValorFinal } from "@/lib/asaas";
 
 const AVATAR_COLORS = ["bg-blue-500","bg-emerald-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
 function avatarColor(str: string) {
@@ -65,11 +66,12 @@ function CardForm({ valor, registrationId, champId }: { valor: number; registrat
   const [parcelas,setParcelas]= useState(1);
   const [error,   setError]   = useState<string | null>(null);
 
-  const taxa       = tipo === "credito" ? 0.09 : 0.05;
-  const valorTotal = valor * (1 + taxa);
+  const valorTotal   = calcularValorFinal(valor, tipo, parcelas);
   const valorParcela = parcelas > 1 ? valorTotal / parcelas : valorTotal;
 
-  const OPCOES_PARCELAS = [1, 2, 3, 4, 6, 12].filter((n) => valorTotal / n >= 5);
+  const OPCOES_PARCELAS = [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12].filter(
+    (n) => valorTotal / n >= 5,
+  );
 
   function handleExpiry(v: string) {
     const prev = expiry;
@@ -198,16 +200,21 @@ function CardForm({ valor, registrationId, champId }: { valor: number; registrat
             value={parcelas}
             onChange={(e) => setParcelas(Number(e.target.value))}
           >
-            {OPCOES_PARCELAS.map((n) => (
-              <option key={n} value={n}>
-                {n === 1
-                  ? `À vista — ${formatBRL(valorTotal)}`
-                  : `${n}x de ${formatBRL(valorTotal / n)} — total ${formatBRL(valorTotal)}`}
-              </option>
-            ))}
+            {OPCOES_PARCELAS.map((n) => {
+              const vt = calcularValorFinal(valor, "credito", n);
+              return (
+                <option key={n} value={n}>
+                  {n === 1
+                    ? `À vista — ${formatBRL(vt)}`
+                    : n <= 6
+                    ? `${n}x de ${formatBRL(vt / n)} sem juros — total ${formatBRL(vt)}`
+                    : `${n}x de ${formatBRL(vt / n)} — total ${formatBRL(vt)}`}
+                </option>
+              );
+            })}
           </select>
           <p className="mt-1 text-xs text-gray-400">
-            Taxa de cartão de crédito: 9% · Débito: 5%
+            Até 6x sem juros · 7–12x com taxa adicional de 0,50%
           </p>
         </div>
       )}
@@ -216,7 +223,7 @@ function CardForm({ valor, registrationId, champId }: { valor: number; registrat
       {tipo === "debito" && (
         <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600 ring-1 ring-black/5">
           Total: <span className="font-semibold text-gray-900">{formatBRL(valorTotal)}</span>
-          <span className="ml-2 text-xs text-gray-400">(5% de taxa)</span>
+          <span className="ml-2 text-xs text-gray-400">(5,89% + R$ 0,35 de taxa)</span>
         </div>
       )}
 
