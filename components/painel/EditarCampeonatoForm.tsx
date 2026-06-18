@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Trash2, FileText, X, ExternalLink, AlertTriangle } from "lucide-react";
 import {
   updateChampionship,
@@ -70,11 +71,12 @@ const inputClass =
 const labelClass = "block text-xs font-medium text-gray-600";
 
 export function EditarCampeonatoForm({ champId, initial }: Props) {
-  const [pending, startTransition]   = useTransition();
-  const [error, setError]            = useState<string | null>(null);
-  const [mudancas, setMudancas]      = useState<string[]>([]);
+  const [pending, startTransition]    = useTransition();
+  const [error, setError]             = useState<string | null>(null);
+  const [mudancas, setMudancas]       = useState<string[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
-  const fileInputRef                 = useRef<HTMLInputElement>(null);
+  const fileInputRef                  = useRef<HTMLInputElement>(null);
+  const router                        = useRouter();
 
   const [nome, setNome]                       = useState(initial.nome);
   const [descricao, setDescricao]             = useState(initial.descricao);
@@ -169,12 +171,21 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
     return lista;
   }
 
+  function sair() {
+    router.push(`/painel/campeonatos/${champId}`);
+  }
+
   function handleClickSalvar() {
     const lista = detectarMudancas();
-    if (lista.length === 0) {
-      setError("Nenhuma alteração detectada.");
-      return;
-    }
+    if (lista.length === 0) { sair(); return; }
+    setMudancas(lista);
+    setShowConfirm(true);
+  }
+
+  function handleClickSair() {
+    const lista = detectarMudancas();
+    if (lista.length === 0) { sair(); return; }
+    // tem mudanças não salvas → abre o modal com aviso
     setMudancas(lista);
     setShowConfirm(true);
   }
@@ -248,7 +259,7 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
           <ul className="mb-5 space-y-1.5 rounded-2xl bg-gray-50 p-4">
             {mudancas.map((m, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-blue-500 mt-2" />
+                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-blue-500" />
                 {m}
               </li>
             ))}
@@ -267,7 +278,14 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
               disabled={pending}
               className="w-full rounded-2xl bg-gray-100 py-3 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-60 transition-colors"
             >
-              Não, continuar editando
+              Continuar editando
+            </button>
+            <button
+              onClick={sair}
+              disabled={pending}
+              className="w-full rounded-2xl py-3 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 transition-colors"
+            >
+              Sair sem salvar
             </button>
           </div>
         </div>
@@ -564,7 +582,14 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
         >
           {pending ? "Salvando…" : "Salvar alterações"}
         </button>
-        <p className="text-xs text-gray-400">As alterações ficam visíveis na página pública imediatamente.</p>
+        <button
+          type="button"
+          onClick={handleClickSair}
+          disabled={pending}
+          className="rounded-xl border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-colors"
+        >
+          Sair sem alterar
+        </button>
       </div>
     </div>
     </>
