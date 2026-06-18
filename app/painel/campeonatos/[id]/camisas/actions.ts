@@ -48,6 +48,24 @@ export async function saveEntrega(
   revalidatePath(`/painel/campeonatos/${champId}/camisas`);
 }
 
+export async function notifyAthletes(
+  champId:    string,
+  athleteIds: string[],
+  campNome:   string,
+) {
+  if (athleteIds.length === 0) return;
+  const supabase = await createClient();
+  const rows = athleteIds.map((uid) => ({
+    user_id:         uid,
+    championship_id: champId,
+    tipo:            "camisa_pronta",
+    titulo:          "Camisa pronta para retirada",
+    mensagem:        `Sua camisa do campeonato ${campNome} já está pronta. Retire no local do evento.`,
+  }));
+  await supabase.from("notifications").insert(rows);
+  revalidatePath(`/painel/campeonatos/${champId}/camisas`);
+}
+
 export async function bulkMarkProduced(
   champId:    string,
   athleteIds: string[],
