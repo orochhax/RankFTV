@@ -1,6 +1,6 @@
 "use server";
 
-import { resend, FROM } from "./resend";
+import { getResend, FROM } from "./resend";
 import {
   conviteDuplaHtml,
   inscricaoConfirmadaHtml,
@@ -14,7 +14,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
 async function send(to: string, subject: string, html: string) {
   if (!process.env.RESEND_API_KEY) return; // sem chave → silencioso em dev
   try {
-    await resend.emails.send({ from: FROM, to, subject, html });
+    await getResend().emails.send({ from: FROM, to, subject, html });
   } catch {
     console.error("[email] falha ao enviar para", to);
   }
