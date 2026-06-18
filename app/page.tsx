@@ -3,7 +3,7 @@ import { ChevronRight, Radio, Settings } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
 import { MeuDesempenho } from "@/components/home/MeuDesempenho";
-import { sortedChampionships } from "@/lib/mock/championships";
+import { sortedChampionships, CHAMPIONSHIPS } from "@/lib/mock/championships";
 import { getLivChampionships } from "@/lib/supabase/championships";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -67,7 +67,11 @@ export default async function Home() {
   }
 
   const destaques = sortedChampionships().slice(0, 3);
-  const aoVivo = await getLivChampionships();
+  const aoVivoDb   = await getLivChampionships();
+  const aoVivoMock = CHAMPIONSHIPS.filter((c) => c.status === "em_andamento");
+  // une DB + mocks, evitando duplicatas por id
+  const aoVivoIds  = new Set(aoVivoDb.map((c) => c.id));
+  const aoVivo     = [...aoVivoDb, ...aoVivoMock.filter((c) => !aoVivoIds.has(c.id))];
 
   return (
     <div className="min-h-screen">
