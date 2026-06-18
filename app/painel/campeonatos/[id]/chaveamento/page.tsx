@@ -142,38 +142,45 @@ export default async function ChaveamentoPage({
 
   /* ── carrega bracket_matches do banco ── */
   let rounds: RoundDisplay[] = [];
+  let thirdPlaceMatch: MatchDisplay | null = null;
 
   if (activeCatId) {
     const { data: dbMatches } = await supabase
       .from("bracket_matches")
-      .select("id, round_index, match_index, team_a_id, team_b_id, sets_a, sets_b, winner_id, set_details")
+      .select("id, round_index, match_index, team_a_id, team_b_id, sets_a, sets_b, winner_id, set_details, is_third_place")
       .eq("championship_id", id)
       .eq("category_id", activeCatId)
       .order("round_index")
       .order("match_index");
 
     if (dbMatches && dbMatches.length > 0) {
-      // teamMap: team.id → nome display
       const teamMap: Record<string, string> = {};
       for (const teams of Object.values(teamsByCat)) {
         for (const t of teams) teamMap[t.id] = t.nome;
       }
 
+      const toDisplay = (m: typeof dbMatches[0]): MatchDisplay => ({
+        dbId:       m.id,
+        roundIndex: m.round_index,
+        matchIndex: m.match_index,
+        teamA:      m.team_a_id ? { id: m.team_a_id, nome: teamMap[m.team_a_id] ?? "Dupla" } : null,
+        teamB:      m.team_b_id ? { id: m.team_b_id, nome: teamMap[m.team_b_id] ?? "Dupla" } : null,
+        setsA:      m.sets_a,
+        setsB:      m.sets_b,
+        winnerId:   m.winner_id,
+        setDetails: (m.set_details as SetDetail[] | null) ?? null,
+      });
+
+      const regularMatches = dbMatches.filter((m) => !(m as { is_third_place?: boolean }).is_third_place);
+      const thirdRow       = dbMatches.find((m)  =>  (m as { is_third_place?: boolean }).is_third_place);
+
+      if (thirdRow) thirdPlaceMatch = toDisplay(thirdRow);
+
       const roundsMap = new Map<number, MatchDisplay[]>();
-      for (const m of dbMatches) {
+      for (const m of regularMatches) {
         const ri = m.round_index;
         if (!roundsMap.has(ri)) roundsMap.set(ri, []);
-        roundsMap.get(ri)!.push({
-          dbId:       m.id,
-          roundIndex: m.round_index,
-          matchIndex: m.match_index,
-          teamA:      m.team_a_id ? { id: m.team_a_id, nome: teamMap[m.team_a_id] ?? "Dupla" } : null,
-          teamB:      m.team_b_id ? { id: m.team_b_id, nome: teamMap[m.team_b_id] ?? "Dupla" } : null,
-          setsA:      m.sets_a,
-          setsB:      m.sets_b,
-          winnerId:   m.winner_id,
-          setDetails: (m.set_details as SetDetail[] | null) ?? null,
-        });
+        roundsMap.get(ri)!.push(toDisplay(m));
       }
 
       const totalRounds = roundsMap.size;
@@ -267,6 +274,7 @@ export default async function ChaveamentoPage({
                 rounds={rounds}
                 availableTeams={availableTeams}
                 confirmedAt={confirmedAt}
+                thirdPlaceMatch={thirdPlaceMatch}
               />
             </>
           )}

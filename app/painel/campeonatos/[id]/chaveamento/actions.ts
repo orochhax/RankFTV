@@ -64,6 +64,19 @@ export async function generateBracket(
     await supabase.from("bracket_matches").insert(rows);
   }
 
+  // Partida pelo 3º lugar: existe quando há pelo menos 2 rodadas (ou seja, semifinais)
+  if (totalRounds >= 2) {
+    await supabase.from("bracket_matches").insert({
+      championship_id: champId,
+      category_id:     catId,
+      round_index:     totalRounds, // após a final, só para ordenação
+      match_index:     0,
+      team_a_id:       null,
+      team_b_id:       null,
+      is_third_place:  true,
+    });
+  }
+
   revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
 }
 
@@ -139,6 +152,40 @@ export async function saveScore(
         .from("bracket_matches")
         .update({ [nextSlot]: winnerId, updated_at: new Date().toISOString() })
         .eq("id", nextRow.id);
+    }
+  }
+
+  // Popula a partida pelo 3º lugar com o perdedor da semifinal
+  if (winnerId && teamAId && teamBId) {
+    const { data: thirdPlace } = await supabase
+      .from("bracket_matches")
+      .select("id, team_a_id, team_b_id")
+      .eq("championship_id", champId)
+      .eq("category_id", catId)
+      .eq("is_third_place", true)
+      .maybeSingle();
+
+    if (thirdPlace) {
+      // Confirma que a próxima rodada tem só 1 jogo (i.e., esta é uma semifinal)
+      const { count: nextCount } = await supabase
+        .from("bracket_matches")
+        .select("id", { count: "exact", head: true })
+        .eq("championship_id", champId)
+        .eq("category_id", catId)
+        .eq("round_index", roundIndex + 1)
+        .eq("is_third_place", false);
+
+      if (nextCount === 1) {
+        const loserId = winnerId === teamAId ? teamBId : teamAId;
+        const slot    = matchIndex === 0 ? "team_a_id" : "team_b_id";
+        const already = slot === "team_a_id" ? thirdPlace.team_a_id : thirdPlace.team_b_id;
+        if (!already) {
+          await supabase
+            .from("bracket_matches")
+            .update({ [slot]: loserId })
+            .eq("id", thirdPlace.id);
+        }
+      }
     }
   }
 
@@ -287,11 +334,17 @@ export async function confirmBracket(
   if (!matches || matches.length === 0)
     return { ok: false, error: "Chaveamento não gerado." };
 
-  const maxRound = Math.max(...matches.map((m) => m.round_index));
-  const finalMatches = matches.filter((m) => m.round_index === maxRound);
-  const hasChampeão = finalMatches.every((m) => m.winner_id);
+  const regularMatches = matches.filter((m) => !(m as { is_third_place?: boolean }).is_third_place);
+  const thirdPlace     = matches.find((m)  =>  (m as { is_third_place?: boolean }).is_third_place);
+
+  const maxRound     = Math.max(...regularMatches.map((m) => m.round_index));
+  const finalMatches = regularMatches.filter((m) => m.round_index === maxRound);
+  const hasChampeão  = finalMatches.every((m) => m.winner_id);
   if (!hasChampeão)
     return { ok: false, error: "O chaveamento ainda não está completo." };
+
+  if (thirdPlace && !thirdPlace.winner_id)
+    return { ok: false, error: "A partida pelo 3º lugar ainda não tem resultado." };
 
   const { error } = await supabase
     .from("championship_categories")

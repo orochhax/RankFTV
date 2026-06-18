@@ -517,7 +517,7 @@ type Podium = {
   thirds: TeamDisplay[];
 };
 
-function computePodium(rounds: RoundDisplay[]): Podium | null {
+function computePodium(rounds: RoundDisplay[], thirdPlaceMatch: MatchDisplay | null): Podium | null {
   if (rounds.length === 0) return null;
   const finalRound = rounds[rounds.length - 1];
   const finalMatch = finalRound.matches[0];
@@ -527,7 +527,15 @@ function computePodium(rounds: RoundDisplay[]): Podium | null {
   const second = finalMatch.winnerId === finalMatch.teamA.id ? finalMatch.teamB : finalMatch.teamA;
 
   const thirds: TeamDisplay[] = [];
-  if (rounds.length >= 2) {
+  if (thirdPlaceMatch?.winnerId && thirdPlaceMatch.teamA && thirdPlaceMatch.teamB) {
+    // Usa o vencedor real da partida pelo 3º lugar
+    thirds.push(
+      thirdPlaceMatch.winnerId === thirdPlaceMatch.teamA.id
+        ? thirdPlaceMatch.teamA
+        : thirdPlaceMatch.teamB,
+    );
+  } else if (rounds.length >= 2) {
+    // Fallback: semifinalistas perdedores (3º lugar empatado)
     const semiRound = rounds[rounds.length - 2];
     for (const m of semiRound.matches) {
       if (m.winnerId && m.teamA && m.teamB) {
@@ -545,12 +553,14 @@ export function BracketClient({
   rounds,
   availableTeams,
   confirmedAt,
+  thirdPlaceMatch,
 }: {
-  champId:        string;
-  catId:          string;
-  rounds:         RoundDisplay[];
-  availableTeams: TeamDisplay[];
-  confirmedAt:    string | null;
+  champId:          string;
+  catId:            string;
+  rounds:           RoundDisplay[];
+  availableTeams:   TeamDisplay[];
+  confirmedAt:      string | null;
+  thirdPlaceMatch:  MatchDisplay | null;
 }) {
   const [modalState, setModalState]         = useState<ModalState | null>(null);
   const [confirmReset, setConfirmReset]     = useState(false);
@@ -560,7 +570,7 @@ export function BracketClient({
   const [isPending, startTransition]        = useTransition();
 
   const isConfirmed = !!confirmedAt;
-  const podium      = computePodium(rounds);
+  const podium      = computePodium(rounds, thirdPlaceMatch);
 
   function openModal(match: MatchDisplay, roundNome: string) {
     if (isConfirmed) return; // read-only quando confirmado
@@ -822,6 +832,41 @@ export function BracketClient({
           })}
         </div>
       </div>}
+
+      {/* Partida pelo 3º lugar */}
+      {thirdPlaceMatch && (
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+            Disputa de 3º Lugar
+          </p>
+          <button
+            onClick={() => openModal(thirdPlaceMatch, "3º Lugar")}
+            disabled={isConfirmed}
+            className={`w-full overflow-hidden rounded-xl text-left transition-all ${
+              isConfirmed
+                ? "bg-white shadow-sm ring-1 ring-black/10 cursor-default"
+                : "bg-white shadow-sm ring-1 ring-black/10 hover:shadow-md hover:ring-amber-400"
+            }`}
+          >
+            <SlotRow
+              team={thirdPlaceMatch.teamA}
+              winner={thirdPlaceMatch.winnerId === thirdPlaceMatch.teamA?.id}
+              bye={false}
+            />
+            <ScoreArea
+              setsA={thirdPlaceMatch.setsA}
+              setsB={thirdPlaceMatch.setsB}
+              hasScore={thirdPlaceMatch.setsA !== null && thirdPlaceMatch.setsB !== null}
+            />
+            <div className="h-px bg-gray-100" />
+            <SlotRow
+              team={thirdPlaceMatch.teamB}
+              winner={thirdPlaceMatch.winnerId === thirdPlaceMatch.teamB?.id}
+              bye={false}
+            />
+          </button>
+        </div>
+      )}
 
       {/* rodapé */}
       {hasExistingBracket && (
