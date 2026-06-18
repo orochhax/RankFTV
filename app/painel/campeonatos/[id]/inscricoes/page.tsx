@@ -14,7 +14,7 @@ type RegRow = {
   championship_categories: { id: string; nome: string; genero: string } | null;
 };
 
-type ProfileRow = { id: string; nome: string; username: string; nivel: string | null };
+type ProfileRow = { id: string; nome: string; username: string };
 
 export default async function InscricoesPage({
   params,
@@ -63,7 +63,7 @@ export default async function InscricoesPage({
   if (athleteIds.length > 0) {
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, nome, username, nivel")
+      .select("id, nome, username")
       .in("id", athleteIds);
     profileMap = Object.fromEntries(
       (profiles ?? []).map((p) => [p.id, p as ProfileRow]),
@@ -185,12 +185,12 @@ export default async function InscricoesPage({
                         a1={{
                           nome:     a1raw?.nome     ?? "Atleta 1",
                           username: a1raw?.username ?? "",
-                          nivel:    a1raw?.nivel    ?? null,
+                          nivel:    null,
                         }}
                         a2={a2raw ? {
                           nome:     a2raw.nome,
                           username: a2raw.username,
-                          nivel:    a2raw.nivel ?? null,
+                          nivel:    null,
                         } : null}
                         catNome={cat?.nome ?? "—"}
                         catGenero={cat?.genero ?? ""}
