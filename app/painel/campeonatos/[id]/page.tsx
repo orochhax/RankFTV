@@ -52,7 +52,7 @@ const ACOES = [
     label: "Chaveamento",
     desc: "Grade e confrontos automáticos",
     href: (id: string) => `/painel/campeonatos/${id}/chaveamento`,
-    disponivel: false,
+    disponivel: true,
   },
   {
     icon: Megaphone,
