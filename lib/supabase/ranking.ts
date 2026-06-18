@@ -13,6 +13,8 @@ export type RankedIndividual = {
   instagram: string | null;
   genero: Genero;
   pontos: number;
+  username: string | null;
+  fotoUrl: string | null;
 };
 
 export type RankedDupla = {
@@ -21,6 +23,10 @@ export type RankedDupla = {
   atleta2: string;
   genero: Genero;
   pontos: number;
+  atleta1Username: string | null;
+  atleta1Foto:     string | null;
+  atleta2Username: string | null;
+  atleta2Foto:     string | null;
 };
 
 export async function getRankingIndividual(
@@ -29,23 +35,32 @@ export async function getRankingIndividual(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("ranking_individual")
-    .select("id, nome, instagram, genero, pontos")
+    .select("id, nome, instagram, genero, pontos, username, foto_url")
     .eq("genero", genero)
     .order("pontos", { ascending: false })
     .order("nome", { ascending: true }); // desempate estável entre pontos iguais
   if (error || !data) return [];
-  return data as RankedIndividual[];
+  return data.map((r) => ({
+    ...r,
+    fotoUrl: r.foto_url ?? null,
+  })) as RankedIndividual[];
 }
 
 export async function getRankingDupla(genero: Genero): Promise<RankedDupla[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("ranking_dupla")
-    .select("id, atleta1, atleta2, genero, pontos")
+    .select("id, atleta1, atleta2, genero, pontos, atleta1_username, atleta1_foto, atleta2_username, atleta2_foto")
     .eq("genero", genero)
     .order("pontos", { ascending: false });
   if (error || !data) return [];
-  return data as RankedDupla[];
+  return data.map((r) => ({
+    ...r,
+    atleta1Username: r.atleta1_username ?? null,
+    atleta1Foto:     r.atleta1_foto     ?? null,
+    atleta2Username: r.atleta2_username ?? null,
+    atleta2Foto:     r.atleta2_foto     ?? null,
+  })) as RankedDupla[];
 }
 
 // ── Admin: torneios próprios (modelo external_*) ──────────────────────────

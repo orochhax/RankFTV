@@ -14,6 +14,29 @@ import { formatBRL, formatDateRangeBR, generoLabel } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { recomendarCategoria } from "@/lib/motor-categoria";
 
+/* Tipo unificado para renderizar duplas (mock ou banco) */
+type AtletaDisplay = {
+  id:          string;
+  nome:        string;
+  username:    string;
+  avatarColor: string;
+  fotoUrl?:    string | null;
+};
+type DuplaDisplay = {
+  id:              string;
+  categoriaNome:   string;
+  categoriaGenero: "masculino" | "feminino" | "mista" | string;
+  atleta1:         AtletaDisplay | null;
+  atleta2:         AtletaDisplay | null;
+};
+
+const AVATAR_COLORS = ["bg-blue-500","bg-emerald-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
+function avatarColor(str: string) {
+  let h = 0;
+  for (const c of str) h = (h * 31 + c.charCodeAt(0)) | 0;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
 // Detalhe do campeonato — ver ftv.md seção 8.4: regulamento, categorias com
 // valor, localização e lista pública de duplas inscritas.
 export async function generateStaticParams() {
@@ -30,12 +53,73 @@ export default async function CampeonatoDetalhePage({
   const championship = getChampionshipById(id) ?? (await getDbChampionshipById(id));
   if (!championship) notFound();
 
+  const supabase    = await createClient();
   const organizador = getAthleteById(championship.organizadorId);
-  const duplas = resolveDuplas(championship);
-  const bannerUrl = getBannerUrl(championship.id);
+  const bannerUrl   = getBannerUrl(championship.id);
+  const isMock      = !!getChampionshipById(id);
+
+  /* ── Duplas: mock vs banco ── */
+  let duplas: DuplaDisplay[] = [];
+
+  if (isMock) {
+    duplas = resolveDuplas(championship).map((t) => ({
+      id:              t.id,
+      categoriaNome:   t.categoriaNome,
+      categoriaGenero: t.categoriaGenero,
+      atleta1: t.atleta1 ? { id: t.atleta1.id, nome: t.atleta1.nome, username: t.atleta1.username, avatarColor: t.atleta1.avatarColor } : null,
+      atleta2: t.atleta2 ? { id: t.atleta2.id, nome: t.atleta2.nome, username: t.atleta2.username, avatarColor: t.atleta2.avatarColor } : null,
+    }));
+  } else {
+    const { data: regs } = await supabase
+      .from("registrations")
+      .select("team_id")
+      .eq("championship_id", id)
+      .eq("status_pagamento", "pago");
+
+    if (regs && regs.length > 0) {
+      const teamIds = [...new Set(regs.map((r) => r.team_id as string))];
+
+      const { data: teams } = await supabase
+        .from("teams")
+        .select("id, atleta1_id, atleta2_id, category_id")
+        .in("id", teamIds);
+
+      const athleteIdSet = new Set<string>();
+      for (const t of teams ?? []) {
+        athleteIdSet.add(t.atleta1_id);
+        if (t.atleta2_id) athleteIdSet.add(t.atleta2_id);
+      }
+
+      const [profilesRes, catsRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, nome, username, foto_url")
+          .in("id", Array.from(athleteIdSet)),
+        supabase
+          .from("championship_categories")
+          .select("id, nome, genero")
+          .in("id", [...new Set((teams ?? []).map((t) => t.category_id))]),
+      ]);
+
+      const profMap = Object.fromEntries((profilesRes.data ?? []).map((p) => [p.id, p]));
+      const catMap  = Object.fromEntries((catsRes.data  ?? []).map((c) => [c.id, c]));
+
+      duplas = (teams ?? []).map((t) => {
+        const cat = catMap[t.category_id] ?? { nome: "—", genero: "masculino" };
+        const p1  = profMap[t.atleta1_id];
+        const p2  = t.atleta2_id ? profMap[t.atleta2_id] : null;
+        return {
+          id:              t.id,
+          categoriaNome:   cat.nome,
+          categoriaGenero: cat.genero as string,
+          atleta1: p1 ? { id: t.atleta1_id, nome: p1.nome, username: p1.username ?? "", avatarColor: avatarColor(t.atleta1_id), fotoUrl: p1.foto_url ?? null } : null,
+          atleta2: p2 ? { id: t.atleta2_id, nome: p2.nome, username: p2.username ?? "", avatarColor: avatarColor(t.atleta2_id), fotoUrl: p2.foto_url ?? null } : null,
+        };
+      });
+    }
+  }
 
   // Rating do usuário logado (opcional — visitante não tem)
-  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   let meuRating = 0;
   if (user) {
@@ -175,7 +259,7 @@ export default async function CampeonatoDetalhePage({
             {duplas.map((t) => (
               <li key={t.id} className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
                 <p className="mb-2 text-xs font-medium text-gray-500">
-                  Categoria {t.categoriaNome} · {generoLabel(t.categoriaGenero)}
+                  Categoria {t.categoriaNome} · {generoLabel(t.categoriaGenero as "masculino" | "feminino" | "mista")}
                 </p>
                 <div className="space-y-2">
                   {[t.atleta1, t.atleta2].map(
@@ -186,7 +270,7 @@ export default async function CampeonatoDetalhePage({
                           href={`/atletas/${atleta.username}`}
                           className="flex items-center gap-2 hover:underline"
                         >
-                          <Avatar nome={atleta.nome} color={atleta.avatarColor} size="sm" />
+                          <Avatar nome={atleta.nome} color={atleta.avatarColor} fotoUrl={atleta.fotoUrl} size="sm" />
                           <span className="text-sm text-gray-800">{atleta.nome}</span>
                         </Link>
                       ),

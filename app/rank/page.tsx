@@ -5,6 +5,14 @@ import {
   type Genero,
 } from "@/lib/supabase/ranking";
 import { RankInfoButton } from "@/components/rank/RankInfoButton";
+import { Avatar } from "@/components/ui/Avatar";
+
+const AVATAR_COLORS = ["bg-blue-500", "bg-emerald-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
+function avatarColor(str: string) {
+  let h = 0;
+  for (const c of str) h = (h * 31 + c.charCodeAt(0)) | 0;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
 
 const MEDALHA = ["🥇", "🥈", "🥉"];
 
@@ -118,15 +126,18 @@ export default async function RankPage({
             </div>
           ) : tipo === "individual" ? (
             <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-              {individual.map((atleta, i) => (
-                <li key={atleta.id}>
+              {individual.map((atleta, i) => {
+                const inner = (
                   <div className="flex items-center gap-4 p-3.5">
                     <span className="w-7 shrink-0 text-center text-sm font-semibold text-gray-500">
                       {MEDALHA[i] ?? i + 1}
                     </span>
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
-                      {atleta.nome.charAt(0).toUpperCase()}
-                    </div>
+                    <Avatar
+                      nome={atleta.nome}
+                      color={avatarColor(atleta.id)}
+                      fotoUrl={atleta.fotoUrl}
+                      size="sm"
+                    />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-gray-900">{atleta.nome}</p>
                       {atleta.instagram && (
@@ -137,8 +148,17 @@ export default async function RankPage({
                       {atleta.pontos.toLocaleString("pt-BR")} pts
                     </p>
                   </div>
-                </li>
-              ))}
+                );
+                return (
+                  <li key={atleta.id}>
+                    {atleta.username ? (
+                      <Link href={`/atletas/${atleta.username}`} className="block hover:bg-gray-50 transition-colors">
+                        {inner}
+                      </Link>
+                    ) : inner}
+                  </li>
+                );
+              })}
             </ol>
           ) : (
             <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
@@ -149,16 +169,21 @@ export default async function RankPage({
                       {MEDALHA[i] ?? i + 1}
                     </span>
                     <div className="flex shrink-0">
-                      <div className="flex size-9 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 ring-2 ring-white">
-                        {dupla.atleta1.charAt(0).toUpperCase()}
+                      <div className="ring-2 ring-white rounded-full">
+                        <Avatar nome={dupla.atleta1} color={avatarColor(dupla.id + "1")} fotoUrl={dupla.atleta1Foto} size="sm" />
                       </div>
-                      <div className="-ml-3 flex size-9 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 ring-2 ring-white">
-                        {dupla.atleta2.charAt(0).toUpperCase()}
+                      <div className="-ml-3 ring-2 ring-white rounded-full">
+                        <Avatar nome={dupla.atleta2} color={avatarColor(dupla.id + "2")} fotoUrl={dupla.atleta2Foto} size="sm" />
                       </div>
                     </div>
                     <p className="min-w-0 flex-1 truncate font-medium text-gray-900">
-                      {dupla.atleta1} <span className="text-gray-400">&amp;</span>{" "}
-                      {dupla.atleta2}
+                      {dupla.atleta1Username ? (
+                        <Link href={`/atletas/${dupla.atleta1Username}`} className="hover:underline">{dupla.atleta1}</Link>
+                      ) : dupla.atleta1}
+                      {" "}<span className="text-gray-400">&amp;</span>{" "}
+                      {dupla.atleta2Username ? (
+                        <Link href={`/atletas/${dupla.atleta2Username}`} className="hover:underline">{dupla.atleta2}</Link>
+                      ) : dupla.atleta2}
                     </p>
                     <p className="shrink-0 font-semibold text-gray-900">
                       {dupla.pontos.toLocaleString("pt-BR")} pts
