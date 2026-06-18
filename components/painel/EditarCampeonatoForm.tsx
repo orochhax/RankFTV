@@ -71,12 +71,13 @@ const inputClass =
 const labelClass = "block text-xs font-medium text-gray-600";
 
 export function EditarCampeonatoForm({ champId, initial }: Props) {
-  const [pending, startTransition]    = useTransition();
-  const [error, setError]             = useState<string | null>(null);
-  const [mudancas, setMudancas]       = useState<string[]>([]);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const fileInputRef                  = useRef<HTMLInputElement>(null);
-  const router                        = useRouter();
+  const [pending, startTransition]      = useTransition();
+  const [error, setError]               = useState<string | null>(null);
+  const [mudancas, setMudancas]         = useState<string[]>([]);
+  const [showConfirm, setShowConfirm]   = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const fileInputRef                    = useRef<HTMLInputElement>(null);
+  const router                          = useRouter();
 
   const [nome, setNome]                       = useState(initial.nome);
   const [descricao, setDescricao]             = useState(initial.descricao);
@@ -185,9 +186,7 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
   function handleClickSair() {
     const lista = detectarMudancas();
     if (lista.length === 0) { sair(); return; }
-    // tem mudanças não salvas → abre o modal com aviso
-    setMudancas(lista);
-    setShowConfirm(true);
+    setShowExitConfirm(true);
   }
 
   const confirmarSalvar = useCallback(() => {
@@ -286,6 +285,31 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
               className="w-full rounded-2xl py-3 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 transition-colors"
             >
               Sair sem salvar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Modal simples de saída */}
+    {showExitConfirm && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="absolute inset-0 bg-black/50" onClick={() => setShowExitConfirm(false)} />
+        <div className="relative z-10 w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
+          <p className="font-semibold text-gray-900">Sair sem salvar?</p>
+          <p className="mt-1 text-sm text-gray-500">As alterações feitas serão perdidas.</p>
+          <div className="mt-5 flex flex-col gap-2">
+            <button
+              onClick={sair}
+              className="w-full rounded-2xl bg-red-600 py-3 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+            >
+              Sim, sair sem salvar
+            </button>
+            <button
+              onClick={() => setShowExitConfirm(false)}
+              className="w-full rounded-2xl bg-gray-100 py-3 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+            >
+              Continuar editando
             </button>
           </div>
         </div>
@@ -586,9 +610,9 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
           type="button"
           onClick={handleClickSair}
           disabled={pending}
-          className="rounded-xl border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-colors"
+          className="rounded-xl border border-red-200 px-6 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 transition-colors"
         >
-          Sair sem alterar
+          Sair sem salvar
         </button>
       </div>
     </div>
