@@ -293,10 +293,10 @@ export function CamisasClient({
     const doc        = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const margin     = 20;
     const pageW      = 210;
-    const colNome    = margin;
-    const colTam     = margin + 110;
-    const colStatus  = margin + 130;
-    const colEntrega = margin + 155;
+    const colNome    = margin;        // 20  — largura ~75mm
+    const colTam     = margin + 77;   // 97  — largura ~15mm
+    const colStatus  = margin + 94;   // 114 — largura ~22mm
+    const colEntrega = margin + 118;  // 138 — largura ~52mm até margem 190
     let y = margin;
 
     const totalAtletas = athletes.length;
@@ -333,7 +333,7 @@ export function CamisasClient({
         doc.rect(margin - 2, y - 4.5, pageW - margin * 2 + 4, rowH, "F");
       }
       let nome = a.nome;
-      while (nome.length > 1 && doc.getTextWidth(nome) > 95) nome = nome.slice(0, -1);
+      while (nome.length > 1 && doc.getTextWidth(nome) > 70) nome = nome.slice(0, -1);
       if (nome !== a.nome) nome += "…";
       doc.setFont("helvetica", a.produced ? "normal" : "bold");
       doc.setTextColor(a.produced ? 156 : 17, a.produced ? 163 : 24, a.produced ? 175 : 39);
@@ -351,7 +351,7 @@ export function CamisasClient({
           ? `${a.retiradoPor} — ${formatDateBR(a.dataRetirada)}`
           : formatDateBR(a.dataRetirada);
         let entregaFit = entregaTexto;
-        while (entregaFit.length > 1 && doc.getTextWidth(entregaFit) > 48) entregaFit = entregaFit.slice(0, -1);
+        while (entregaFit.length > 1 && doc.getTextWidth(entregaFit) > 50) entregaFit = entregaFit.slice(0, -1);
         if (entregaFit !== entregaTexto) entregaFit += "…";
         doc.text(entregaFit, colEntrega, y);
       } else {
