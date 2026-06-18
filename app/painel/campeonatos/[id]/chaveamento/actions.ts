@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { calcElo, DEFAULT_RATING } from "@/lib/rating";
 
 /* ─── helpers ─── */
 
@@ -93,11 +94,19 @@ export async function saveScore(
   matchIndex: number,
   setDetails: Array<{ a: number; b: number }> | null,
 ) {
-  const supabase  = await createClient();
-  const winnerId  =
+  const supabase = await createClient();
+  const winnerId =
     setsA > setsB ? teamAId
     : setsB > setsA ? teamBId
     : null;
+
+  // Guarda o winner anterior para saber se é uma nova vitória
+  const { data: prevMatch } = await supabase
+    .from("bracket_matches")
+    .select("winner_id")
+    .eq("id", matchId)
+    .single();
+  const prevWinnerId = prevMatch?.winner_id ?? null;
 
   await supabase
     .from("bracket_matches")
@@ -133,7 +142,99 @@ export async function saveScore(
     }
   }
 
+  // Atualiza rating somente quando há vencedor novo (evita dupla contagem)
+  const isNewResult = winnerId && winnerId !== prevWinnerId;
+  if (isNewResult && teamAId && teamBId) {
+    await applyRatingUpdate(matchId, champId, teamAId, teamBId, winnerId);
+  }
+
   revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
+  revalidatePath(`/rank`);
+}
+
+async function applyRatingUpdate(
+  matchId:  string,
+  champId:  string,
+  teamAId:  string,
+  teamBId:  string,
+  winnerId: string,
+) {
+  const supabase = await createClient();
+
+  // Busca atletas de cada dupla
+  const { data: teams } = await supabase
+    .from("teams")
+    .select("id, atleta1_id, atleta2_id")
+    .in("id", [teamAId, teamBId]);
+
+  if (!teams || teams.length < 2) return;
+
+  const teamA = teams.find((t) => t.id === teamAId);
+  const teamB = teams.find((t) => t.id === teamBId);
+  if (!teamA || !teamB) return;
+
+  const athleteIds = [
+    teamA.atleta1_id,
+    ...(teamA.atleta2_id ? [teamA.atleta2_id] : []),
+    teamB.atleta1_id,
+    ...(teamB.atleta2_id ? [teamB.atleta2_id] : []),
+  ];
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, rating")
+    .in("id", athleteIds);
+
+  const ratingOf = (id: string) => {
+    const p = profiles?.find((p) => p.id === id);
+    return p?.rating || DEFAULT_RATING;
+  };
+
+  const winnerTeam = winnerId === teamAId ? teamA : teamB;
+  const loserTeam  = winnerId === teamAId ? teamB : teamA;
+
+  const deltas = calcElo(
+    ratingOf(winnerTeam.atleta1_id),
+    winnerTeam.atleta2_id ? ratingOf(winnerTeam.atleta2_id) : 0,
+    ratingOf(loserTeam.atleta1_id),
+    loserTeam.atleta2_id  ? ratingOf(loserTeam.atleta2_id)  : 0,
+  );
+
+  const updates: Array<{ id: string; antes: number; depois: number; resultado: "vitoria" | "derrota" }> = [];
+
+  const addUpdate = (
+    id: string,
+    delta: number,
+    resultado: "vitoria" | "derrota",
+  ) => {
+    const antes  = ratingOf(id);
+    const depois = Math.max(0, antes + delta);
+    updates.push({ id, antes, depois, resultado });
+  };
+
+  addUpdate(winnerTeam.atleta1_id, deltas.atleta1Winner, "vitoria");
+  if (winnerTeam.atleta2_id) addUpdate(winnerTeam.atleta2_id, deltas.atleta2Winner, "vitoria");
+  addUpdate(loserTeam.atleta1_id,  deltas.atleta1Loser,  "derrota");
+  if (loserTeam.atleta2_id)  addUpdate(loserTeam.atleta2_id,  deltas.atleta2Loser,  "derrota");
+
+  // Atualiza ratings em paralelo
+  await Promise.all(
+    updates.map(({ id, depois }) =>
+      supabase.from("profiles").update({ rating: depois }).eq("id", id),
+    ),
+  );
+
+  // Insere histórico
+  await supabase.from("rating_history").insert(
+    updates.map(({ id, antes, depois, resultado }) => ({
+      atleta_id:       id,
+      championship_id: champId,
+      match_id:        matchId,
+      rating_antes:    antes,
+      rating_depois:   depois,
+      resultado,
+    })),
+  );
 }
 
 export async function clearScore(matchId: string, champId: string) {
