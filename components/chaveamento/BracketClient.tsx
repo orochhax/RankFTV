@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown, ImageIcon, FileText, AlignLeft, Lock, CheckCircle2 } from "lucide-react";
+import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown, ImageIcon, FileText, AlignLeft, Lock, CheckCircle2, Share2 } from "lucide-react";
 import { assignTeam, saveScore, clearScore, resetBracket, generateBracket, confirmBracket } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
 import { formatDateTimeBR } from "@/lib/format";
 import type { TeamDisplay, MatchDisplay, RoundDisplay, SetDetail } from "@/app/painel/campeonatos/[id]/chaveamento/page";
@@ -571,7 +571,7 @@ export function BracketClient({
   const [confirmReset, setConfirmReset]     = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmError, setConfirmError]     = useState<string | null>(null);
-  const [exporting, setExporting]           = useState<"image" | "pdf" | "text" | null>(null);
+  const [exporting, setExporting]           = useState<"image" | "pdf" | "text" | "instagram" | null>(null);
   const [isPending, startTransition]        = useTransition();
 
   const isConfirmed = !!confirmedAt;
@@ -676,6 +676,66 @@ export function BracketClient({
     a.click();
     URL.revokeObjectURL(url);
     setExporting(null);
+  }
+
+  async function exportAsInstagram() {
+    setExporting("instagram");
+    try {
+      const { drawBracket } = await import("@/components/chaveamento/drawBracket");
+      const { dataUrl: bracketUrl } = drawBracket(rounds, thirdPlaceMatch);
+
+      // Carrega o bracket como imagem para redimensionar
+      const bracketImg = await new Promise<HTMLImageElement>((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.src = bracketUrl;
+      });
+
+      // Canvas 1080×1920 (9:16 Stories)
+      const canvas = document.createElement("canvas");
+      canvas.width  = 1080;
+      canvas.height = 1920;
+      const ctx = canvas.getContext("2d")!;
+
+      // Fundo
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(0, 0, 1080, 1920);
+
+      // Bracket escalado para caber com padding
+      const PAD        = 64;
+      const BRAND_H    = 80;
+      const availW     = 1080 - PAD * 2;
+      const availH     = 1920 - PAD * 2 - BRAND_H;
+      const scale      = Math.min(availW / bracketImg.width, availH / bracketImg.height);
+      const drawW      = bracketImg.width  * scale;
+      const drawH      = bracketImg.height * scale;
+      const offsetX    = (1080 - drawW) / 2;
+      const offsetY    = PAD + (availH - drawH) / 2;
+
+      ctx.drawImage(bracketImg, offsetX, offsetY, drawW, drawH);
+
+      // Linha divisória branding
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth   = 1;
+      ctx.beginPath();
+      ctx.moveTo(PAD, 1920 - BRAND_H);
+      ctx.lineTo(1080 - PAD, 1920 - BRAND_H);
+      ctx.stroke();
+
+      // "RankFTV" canto inferior direito
+      ctx.font         = "bold 36px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle    = "#2563eb";
+      ctx.textAlign    = "right";
+      ctx.textBaseline = "bottom";
+      ctx.fillText("RankFTV", 1080 - PAD, 1920 - 24);
+
+      const a    = document.createElement("a");
+      a.download = "chaveamento-instagram.png";
+      a.href     = canvas.toDataURL("image/png");
+      a.click();
+    } finally {
+      setExporting(null);
+    }
   }
 
   function handleReset() {
@@ -910,6 +970,14 @@ export function BracketClient({
             >
               <AlignLeft className="size-3.5" />
               {exporting === "text" ? "Gerando…" : "TXT"}
+            </button>
+            <button
+              onClick={exportAsInstagram}
+              disabled={!!exporting}
+              className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-100 disabled:opacity-40"
+            >
+              <Share2 className="size-3.5" />
+              {exporting === "instagram" ? "Gerando…" : "Instagram"}
             </button>
           </div>
 
