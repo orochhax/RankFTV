@@ -18,6 +18,7 @@ export type UpdateChampionshipInput = {
   nome: string;
   descricao: string;
   regulamento: string;
+  regulamentoPdfUrl?: string | null;
   dataInicio: string;
   dataFim: string;
   inscricoesInicio?: string;
@@ -65,9 +66,10 @@ export async function updateChampionship(
     .from("championships")
     .update({
       nome,
-      descricao:         input.descricao?.trim() ?? "",
-      regulamento:       input.regulamento?.trim() ?? "",
-      data_inicio:       input.dataInicio,
+      descricao:            input.descricao?.trim() ?? "",
+      regulamento:          input.regulamento?.trim() ?? "",
+      regulamento_pdf_url:  input.regulamentoPdfUrl ?? null,
+      data_inicio:          input.dataInicio,
       data_fim:          input.dataFim,
       inscricoes_inicio: input.inscricoesInicio || null,
       inscricoes_fim:    input.inscricoesFim    || null,

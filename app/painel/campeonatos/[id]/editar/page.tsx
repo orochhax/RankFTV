@@ -18,7 +18,7 @@ export default async function EditarCampeonatoPage({
   const { data: champ } = await supabase
     .from("championships")
     .select(`
-      id, nome, descricao, regulamento,
+      id, nome, descricao, regulamento, regulamento_pdf_url,
       data_inicio, data_fim,
       inscricoes_inicio, inscricoes_fim,
       cidade, estado, local, status, organizador_id,
@@ -43,7 +43,8 @@ export default async function EditarCampeonatoPage({
     cidade:           champ.cidade,
     estado:           champ.estado,
     local:            champ.local ?? "",
-    status:           champ.status as "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado",
+    status:              champ.status as "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado",
+    regulamentoPdfUrl:   (champ as unknown as { regulamento_pdf_url?: string | null }).regulamento_pdf_url ?? null,
     categorias: ((champ.championship_categories as unknown as Array<{
       id: string; nome: string; genero: string;
       valor_inscricao: number; max_duplas: number | null;

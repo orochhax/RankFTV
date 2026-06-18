@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useState, useTransition, useRef } from "react";
+import { Plus, Trash2, FileText, X, ExternalLink } from "lucide-react";
 import {
   updateChampionship,
   type CategoriaEditInput,
 } from "@/app/painel/campeonatos/[id]/editar/actions";
+import { createClient } from "@/lib/supabase/client";
 import type { GeneroCategoria } from "@/lib/mock/types";
 
 type CatForm = {
@@ -23,6 +24,7 @@ type Props = {
     nome: string;
     descricao: string;
     regulamento: string;
+    regulamentoPdfUrl?: string | null;
     dataInicio: string;
     dataFim: string;
     inscricoesInicio: string;
@@ -60,11 +62,14 @@ const labelClass = "block text-xs font-medium text-gray-600";
 
 export function EditarCampeonatoForm({ champId, initial }: Props) {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]         = useState<string | null>(null);
+  const fileInputRef              = useRef<HTMLInputElement>(null);
 
   const [nome, setNome]                       = useState(initial.nome);
   const [descricao, setDescricao]             = useState(initial.descricao);
   const [regulamento, setRegulamento]         = useState(initial.regulamento);
+  const [pdfFile, setPdfFile]                 = useState<File | null>(null);
+  const [pdfUrl, setPdfUrl]                   = useState<string | null>(initial.regulamentoPdfUrl ?? null);
   const [dataInicio, setDataInicio]           = useState(initial.dataInicio);
   const [dataFim, setDataFim]                 = useState(initial.dataFim);
   const [inscricoesInicio, setInscricoesInicio] = useState(initial.inscricoesInicio);
@@ -110,6 +115,24 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
   function handleSubmit() {
     setError(null);
     startTransition(async () => {
+      // Upload do novo PDF se selecionado
+      let regulamentoPdfUrl: string | null = pdfUrl;
+      if (pdfFile) {
+        const supabase = createClient();
+        const filename = `${Date.now()}-${pdfFile.name.replace(/\s+/g, "_")}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("regulamentos")
+          .upload(filename, pdfFile, { contentType: "application/pdf" });
+        if (uploadError) {
+          setError("Erro ao fazer upload do PDF. Tente novamente.");
+          return;
+        }
+        const { data: urlData } = supabase.storage
+          .from("regulamentos")
+          .getPublicUrl(uploadData.path);
+        regulamentoPdfUrl = urlData.publicUrl;
+      }
+
       const payload: CategoriaEditInput[] = categorias.map((c) => ({
         id:             c.id,
         nome:           c.nome,
@@ -121,6 +144,7 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
 
       const res = await updateChampionship(champId, {
         nome, descricao, regulamento,
+        regulamentoPdfUrl,
         dataInicio, dataFim,
         inscricoesInicio: inscricoesInicio || undefined,
         inscricoesFim:    inscricoesFim    || undefined,
@@ -233,15 +257,81 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
       </div>
 
       {/* Regulamento */}
-      <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-        <h2 className="mb-3 text-sm font-semibold text-gray-800">Regulamento</h2>
-        <textarea
-          rows={5}
-          className={inputClass}
-          value={regulamento}
-          onChange={(e) => setRegulamento(e.target.value)}
-          placeholder="Regras, formato dos jogos, premiação…"
-        />
+      <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
+        <h2 className="text-sm font-semibold text-gray-800">Regulamento</h2>
+
+        <div>
+          <label className={labelClass}>Texto do regulamento</label>
+          <textarea
+            rows={5}
+            className={inputClass}
+            value={regulamento}
+            onChange={(e) => setRegulamento(e.target.value)}
+            placeholder="Regras, formato dos jogos, premiação…"
+          />
+        </div>
+
+        <div>
+          <label className={labelClass}>PDF do regulamento (opcional)</label>
+
+          {/* PDF atual (do banco) */}
+          {pdfUrl && !pdfFile && (
+            <div className="mt-1 flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2">
+              <FileText className="size-4 shrink-0 text-green-600" />
+              <span className="flex-1 truncate text-sm text-green-800">PDF salvo</span>
+              <a
+                href={pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green-600 hover:text-green-700"
+              >
+                <ExternalLink className="size-4" />
+              </a>
+              <button
+                type="button"
+                onClick={() => { setPdfUrl(null); }}
+                className="text-gray-400 hover:text-red-500"
+                title="Remover PDF"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Novo arquivo selecionado */}
+          {pdfFile && (
+            <div className="mt-1 flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2">
+              <FileText className="size-4 shrink-0 text-blue-500" />
+              <span className="flex-1 truncate text-sm text-gray-700">{pdfFile.name}</span>
+              <button
+                type="button"
+                onClick={() => { setPdfFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                className="text-gray-400 hover:text-red-500"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Botão de seleção (quando não há arquivo novo) */}
+          {!pdfFile && (
+            <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600">
+              <FileText className="size-4" />
+              {pdfUrl ? "Substituir PDF" : "Clique para selecionar o PDF"}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          )}
+
+          <p className="mt-1 text-xs text-gray-400">
+            Será disponibilizado como download na página do campeonato.
+          </p>
+        </div>
       </div>
 
       {/* Categorias */}
