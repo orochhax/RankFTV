@@ -95,11 +95,6 @@ export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriad
     externalReference: input.externalReference,
   };
 
-  if (input.metodo === "credito") {
-    body.installmentCount = 6;
-    body.installmentValue = parseFloat((valorTotal / 6).toFixed(2));
-  }
-
   const pagamento = await request<{ id: string; invoiceUrl: string }>("/payments", {
     method: "POST",
     body: JSON.stringify(body),

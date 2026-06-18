@@ -6,24 +6,25 @@ import { PaymentUI } from "@/components/pagamento/PaymentUI";
 
 export default async function PagamentoPage({
   params,
+  searchParams,
 }: {
-  params: Promise<{ id: string; registrationId: string }>;
+  params:       Promise<{ id: string; registrationId: string }>;
+  searchParams: Promise<{ pago?: string }>;
 }) {
   const { id: champId, registrationId } = await params;
+  const { pago: pagoParam } = await searchParams;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Inscrição
   const { data: reg } = await supabase
     .from("registrations")
-    .select("id, valor, status_pagamento, pix_copy_paste, pix_qr_code_base64, invoice_url, asaas_payment_id, team_id, championship_id, category_id")
+    .select("id, valor, status_pagamento, pix_copy_paste, pix_qr_code_base64, team_id, championship_id, category_id")
     .eq("id", registrationId)
     .single();
   if (!reg) notFound();
 
-  // Busca paralela: campeonato, categoria, dupla
   const [champRes, catRes, teamRes] = await Promise.all([
     supabase.from("championships").select("nome").eq("id", reg.championship_id).single(),
     supabase.from("championship_categories").select("nome").eq("id", reg.category_id).single(),
@@ -33,21 +34,21 @@ export default async function PagamentoPage({
   const champNome = champRes.data?.nome ?? "Campeonato";
   const catNome   = catRes.data?.nome   ?? "—";
 
-  // Nomes dos atletas
   const atleta1Id = teamRes.data?.atleta1_id ?? null;
   const atleta2Id = teamRes.data?.atleta2_id ?? null;
-  const athleteIds = [atleta1Id, atleta2Id].filter(Boolean) as string[];
+  const ids = [atleta1Id, atleta2Id].filter(Boolean) as string[];
 
-  const { data: profiles } = athleteIds.length > 0
-    ? await supabase.from("profiles").select("id, nome").in("id", athleteIds)
+  const { data: profiles } = ids.length > 0
+    ? await supabase.from("profiles").select("id, nome").in("id", ids)
     : { data: [] };
 
-  const profMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
-  const atleta1 = atleta1Id ? (profMap[atleta1Id] ?? null) : null;
-  const atleta2 = atleta2Id ? (profMap[atleta2Id] ?? null) : null;
+  const profMap  = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+  const atleta1  = atleta1Id ? (profMap[atleta1Id] ?? null) : null;
+  const atleta2  = atleta2Id ? (profMap[atleta2Id] ?? null) : null;
 
-  // Pago: tela de confirmação
-  if (reg.status_pagamento === "pago") {
+  const isPago = reg.status_pagamento === "pago" || pagoParam === "1";
+
+  if (isPago) {
     return (
       <div className="min-h-screen bg-[#0f0f13]">
         <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
@@ -67,10 +68,7 @@ export default async function PagamentoPage({
             >
               Ver campeonato
             </Link>
-            <Link
-              href="/perfil"
-              className="mt-3 block text-sm text-gray-400 hover:text-gray-600"
-            >
+            <Link href="/perfil" className="mt-3 block text-sm text-gray-400 hover:text-gray-600">
               Meus campeonatos
             </Link>
           </div>
@@ -85,6 +83,7 @@ export default async function PagamentoPage({
       champNome={champNome}
       catNome={catNome}
       valor={Number(reg.valor)}
+      registrationId={registrationId}
       atleta1={atleta1}
       atleta2={atleta2}
       pixCopyPaste={reg.pix_copy_paste ?? null}
