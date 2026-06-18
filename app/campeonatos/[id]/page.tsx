@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { MapPin, Users, Trophy } from "lucide-react";
+import { MapPin, Users, Trophy, ChevronLeft } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { InscricaoButton } from "@/components/campeonatos/InscricaoButton";
@@ -143,6 +143,13 @@ export default async function CampeonatoDetalhePage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-8">
+      <Link
+        href="/campeonatos"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+      >
+        <ChevronLeft className="size-4" /> Campeonatos
+      </Link>
+
       <div>
         {bannerUrl ? (
           <div className="relative h-32 overflow-hidden rounded-2xl">
