@@ -7,7 +7,7 @@ import { Check, Copy, CreditCard, QrCode, ArrowLeft, Loader2, AlertCircle } from
 import { Avatar } from "@/components/ui/Avatar";
 import { formatBRL } from "@/lib/format";
 import { pagarComCartao } from "@/app/campeonatos/[id]/pagamento/[registrationId]/actions";
-import { calcularValorFinal } from "@/lib/asaas";
+import { calcularValorAtleta } from "@/lib/asaas";
 
 const AVATAR_COLORS = ["bg-blue-500","bg-emerald-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
 function avatarColor(str: string) {
@@ -66,11 +66,12 @@ function CardForm({ valor, registrationId, champId }: { valor: number; registrat
   const [parcelas,setParcelas]= useState(1);
   const [error,   setError]   = useState<string | null>(null);
 
-  const valorTotal   = calcularValorFinal(valor, tipo, parcelas);
-  const valorParcela = parcelas > 1 ? valorTotal / parcelas : valorTotal;
+  // Atleta paga o valor da inscrição. Único caso diferente: 7+ parcelas tem 0,5% extra.
+  const valorAtleta  = calcularValorAtleta(valor, tipo, parcelas);
+  const valorParcela = valorAtleta / parcelas;
 
-  const OPCOES_PARCELAS = [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12].filter(
-    (n) => valorTotal / n >= 5,
+  const OPCOES_PARCELAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(
+    (n) => valor / n >= 5,
   );
 
   function handleExpiry(v: string) {
@@ -201,29 +202,25 @@ function CardForm({ valor, registrationId, champId }: { valor: number; registrat
             onChange={(e) => setParcelas(Number(e.target.value))}
           >
             {OPCOES_PARCELAS.map((n) => {
-              const vt = calcularValorFinal(valor, "credito", n);
-              return (
-                <option key={n} value={n}>
-                  {n === 1
-                    ? `À vista — ${formatBRL(vt)}`
-                    : n <= 6
-                    ? `${n}x de ${formatBRL(vt / n)} sem juros — total ${formatBRL(vt)}`
-                    : `${n}x de ${formatBRL(vt / n)} — total ${formatBRL(vt)}`}
-                </option>
-              );
+              const vAtleta = calcularValorAtleta(valor, "credito", n);
+              const vParcela = vAtleta / n;
+              if (n === 1) return <option key={n} value={n}>À vista — {formatBRL(valor)}</option>;
+              if (n <= 6)  return <option key={n} value={n}>{n}x de {formatBRL(vParcela)} sem juros</option>;
+              return <option key={n} value={n}>{n}x de {formatBRL(vParcela)} — total {formatBRL(vAtleta)} (taxa 0,5%)</option>;
             })}
           </select>
-          <p className="mt-1 text-xs text-gray-400">
-            Até 6x sem juros · 7–12x com taxa adicional de 0,50%
-          </p>
+          {parcelas > 6 && (
+            <p className="mt-1.5 text-xs text-amber-600">
+              Parcelamento acima de 6x inclui taxa de 0,5% — total {formatBRL(valorAtleta)}
+            </p>
+          )}
         </div>
       )}
 
       {/* Resumo de débito */}
       {tipo === "debito" && (
         <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600 ring-1 ring-black/5">
-          Total: <span className="font-semibold text-gray-900">{formatBRL(valorTotal)}</span>
-          <span className="ml-2 text-xs text-gray-400">(5,89% + R$ 0,35 de taxa)</span>
+          Total: <span className="font-semibold text-gray-900">{formatBRL(valor)}</span>
         </div>
       )}
 
@@ -243,11 +240,13 @@ function CardForm({ valor, registrationId, champId }: { valor: number; registrat
       >
         {pending
           ? <><Loader2 className="size-4 animate-spin" /> Processando…</>
-          : `Pagar ${parcelas > 1 ? `${parcelas}x de ${formatBRL(valorParcela)}` : formatBRL(valorTotal)}`}
+          : parcelas === 1
+          ? `Pagar ${formatBRL(valorAtleta)}`
+          : `Pagar ${parcelas}x de ${formatBRL(valorParcela)}`}
       </button>
 
       <p className="text-center text-xs text-gray-400">
-        Seus dados de cartão são enviados de forma segura e não são armazenados.
+        Seus dados de cartão são processados com segurança e não ficam armazenados.
       </p>
     </form>
   );

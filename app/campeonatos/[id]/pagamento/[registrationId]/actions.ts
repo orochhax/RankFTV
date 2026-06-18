@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { criarOuBuscarCliente, calcularValorFinal } from "@/lib/asaas";
+import { criarOuBuscarCliente, calcularValorAtleta } from "@/lib/asaas";
 
 export type CardPaymentInput = {
   registrationId: string;
@@ -56,7 +56,7 @@ export async function pagarComCartao(
 
   const billingType = input.tipo === "credito" ? "CREDIT_CARD" : "DEBIT_CARD";
   const valorBase   = Number(regRes.data.valor);
-  const valorTotal  = calcularValorFinal(valorBase, input.tipo, input.parcelas);
+  const valorTotal  = calcularValorAtleta(valorBase, input.tipo, input.parcelas);
 
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 1);
