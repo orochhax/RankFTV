@@ -11,9 +11,12 @@ export function BottomNav() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-1.5 pb-4 md:hidden">
-      {/* Logo discreta acima da pill de navegação */}
-      <Link href="/" className="text-[10px] font-bold tracking-widest text-gray-400/60 hover:text-gray-400 transition-colors select-none">
-        Rank<span className="text-blue-500/70">FTV</span>
+      {/* Logo acima da pill de navegação */}
+      <Link
+        href="/"
+        className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-blue-600/30 select-none hover:bg-blue-500 transition-colors"
+      >
+        Rank <span className="font-black">FTV</span>
       </Link>
 
     <nav
