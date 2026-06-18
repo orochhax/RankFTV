@@ -70,24 +70,28 @@ export default async function InscricoesPage({
     );
   }
 
-  const total     = regs.length;
-  const pagos     = regs.filter((r) => r.status_pagamento === "pago").length;
-  const pendentes = regs.filter((r) => r.status_pagamento === "pendente").length;
+  const total      = regs.length;
+  const pagos      = regs.filter((r) => r.status_pagamento === "pago").length;
+  const pendentes  = regs.filter((r) => r.status_pagamento === "pendente").length;
+  const estornados = regs.filter((r) => r.status_pagamento === "estornado").length;
 
   const filtroAtivo =
-    filtro === "pagos"     ? "pagos"     :
-    filtro === "pendentes" ? "pendentes" :
+    filtro === "pagos"      ? "pagos"      :
+    filtro === "pendentes"  ? "pendentes"  :
+    filtro === "estornados" ? "estornados" :
     "todos";
 
   const lista =
-    filtroAtivo === "pagos"     ? regs.filter((r) => r.status_pagamento === "pago")    :
-    filtroAtivo === "pendentes" ? regs.filter((r) => r.status_pagamento !== "pago")    :
+    filtroAtivo === "pagos"      ? regs.filter((r) => r.status_pagamento === "pago")      :
+    filtroAtivo === "pendentes"  ? regs.filter((r) => r.status_pagamento === "pendente")  :
+    filtroAtivo === "estornados" ? regs.filter((r) => r.status_pagamento === "estornado") :
     regs;
 
   const FILTROS = [
-    { key: "todos",     label: `Todos (${total})` },
-    { key: "pagos",     label: `Pagos (${pagos})` },
-    { key: "pendentes", label: `Pendentes (${pendentes})` },
+    { key: "todos",      label: `Todos (${total})` },
+    { key: "pagos",      label: `Pagos (${pagos})` },
+    { key: "pendentes",  label: `Pendentes (${pendentes})` },
+    { key: "estornados", label: `Estornados (${estornados})` },
   ];
 
   return (
