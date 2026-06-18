@@ -144,6 +144,21 @@ export default async function PainelOrganizadorPage({
                 <p className="text-2xl font-bold text-white">{rascunhos.length}</p>
               </div>
             </div>
+
+            {/* Painel Geral — consolidado de todos os camps */}
+            <Link
+              href="/painel/geral"
+              className="flex w-full items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
+            >
+              <div className="flex items-center gap-3">
+                <LayoutDashboard className="size-5 text-blue-400" />
+                <div>
+                  <p className="font-semibold text-white">Painel Geral</p>
+                  <p className="text-xs text-white/40">Consolidado de todos os campeonatos</p>
+                </div>
+              </div>
+              <ChevronRight className="size-4 text-white/30" />
+            </Link>
           </div>
         </div>
 
@@ -167,21 +182,6 @@ export default async function PainelOrganizadorPage({
                 </Link>
               ))}
             </div>
-
-            {/* Painel Geral — consolidado de todos os camps */}
-            <Link
-              href="/painel/geral"
-              className="flex w-full items-center justify-between rounded-2xl bg-gray-900 px-5 py-4 text-white transition-colors hover:bg-gray-800"
-            >
-              <div className="flex items-center gap-3">
-                <LayoutDashboard className="size-5 text-blue-400" />
-                <div>
-                  <p className="font-semibold text-white">Painel Geral</p>
-                  <p className="text-xs text-white/40">Consolidado de todos os campeonatos</p>
-                </div>
-              </div>
-              <ChevronRight className="size-4 text-white/30" />
-            </Link>
 
             {lista.length === 0 ? (
               <div className="rounded-2xl bg-gray-50 p-8 text-center ring-1 ring-black/5">

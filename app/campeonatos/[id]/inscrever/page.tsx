@@ -46,7 +46,7 @@ export default async function InscreverPage({
   // Busca perfil com rating, CPF e tamanho de camisa
   const { data: profile } = await supabase
     .from("profiles")
-    .select("cpf, rating, questionario, tamanho_camisa")
+    .select("cpf, rating, tamanho_camisa")
     .eq("id", user.id)
     .single();
 
@@ -75,8 +75,7 @@ export default async function InscreverPage({
     : false;
 
   const isRecomendada = categoriaRecomendada?.id === category.id;
-  // Considera respondido se tem questionario salvo OU rating > 0 (questão de migração)
-  const semQuestionario = !profile?.questionario && meuRating === 0;
+  const semQuestionario = meuRating === 0;
 
   return (
     <div className="mx-auto max-w-lg space-y-5 px-6 py-8">

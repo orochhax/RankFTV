@@ -234,8 +234,8 @@ export default async function CampeonatoDetalhePage({
                 </div>
                 <p className="text-sm text-gray-500">
                   {cat.corteRatingMin > 0
-                    ? `Rating mínimo ${cat.corteRatingMin}`
-                    : "Sem corte mínimo de rating"}
+                    ? `Pontuação mínima ${cat.corteRatingMin}`
+                    : "Aberta para todos os níveis"}
                 </p>
               </div>
               <div className="flex items-center gap-4">
