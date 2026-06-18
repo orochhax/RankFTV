@@ -58,8 +58,9 @@ function EntregaModal({
   champId: string;
   onClose: () => void;
 }) {
+  const hoje = new Date().toISOString().slice(0, 10);
   const [retiradoPor,  setRetiradoPor]  = useState(data.retiradoPor  ?? "");
-  const [dataRetirada, setDataRetirada] = useState(data.dataRetirada ?? "");
+  const [dataRetirada, setDataRetirada] = useState(data.dataRetirada ?? hoje);
   const [isPending, startTransition]    = useTransition();
 
   const jaEntregue = !!data.dataRetirada;
