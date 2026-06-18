@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown, ImageIcon, FileText, AlignLeft } from "lucide-react";
 import { assignTeam, saveScore, clearScore, resetBracket, generateBracket } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
-import type { TeamDisplay, MatchDisplay, RoundDisplay } from "@/app/painel/campeonatos/[id]/chaveamento/page";
+import type { TeamDisplay, MatchDisplay, RoundDisplay, SetDetail } from "@/app/painel/campeonatos/[id]/chaveamento/page";
 
 /* ─── layout constants ─── */
 const HEADER_H = 28;   // altura fixa do cabeçalho com nome da rodada
@@ -251,13 +251,29 @@ function MatchModal({
   const [search, setSearch]         = useState("");
   const [setsA, setSetsA]           = useState(match.setsA?.toString() ?? "");
   const [setsB, setSetsB]           = useState(match.setsB?.toString() ?? "");
+  const [setDetails, setSetDetails] = useState<Array<{ a: string; b: string }>>(() =>
+    match.setDetails?.map((s: SetDetail) => ({ a: s.a.toString(), b: s.b.toString() })) ?? [],
+  );
   const [isPending, startTransition] = useTransition();
+
+  const sa = parseInt(setsA);
+  const sb = parseInt(setsB);
+  const totalSets = (isNaN(sa) ? 0 : sa) + (isNaN(sb) ? 0 : sb);
 
   const filteredTeams = availableTeams.filter((t) =>
     t.nome.toLowerCase().includes(search.toLowerCase()),
   );
 
   const canSaveScore = !!match.teamA && !!match.teamB && setsA !== "" && setsB !== "";
+
+  function updateSetDetail(idx: number, field: "a" | "b", val: string) {
+    setSetDetails((prev) => {
+      const next = [...prev];
+      while (next.length <= idx) next.push({ a: "", b: "" });
+      next[idx] = { ...next[idx], [field]: val };
+      return next;
+    });
+  }
 
   function handleAssign(team: TeamDisplay) {
     if (!activeSlot) return;
@@ -271,9 +287,14 @@ function MatchModal({
   }
 
   function handleSaveScore() {
-    const sa = parseInt(setsA);
-    const sb = parseInt(setsB);
     if (isNaN(sa) || isNaN(sb)) return;
+    const details: Array<{ a: number; b: number }> | null =
+      totalSets > 0
+        ? Array.from({ length: totalSets }, (_, i) => ({
+            a: parseInt(setDetails[i]?.a ?? "") || 0,
+            b: parseInt(setDetails[i]?.b ?? "") || 0,
+          }))
+        : null;
     startTransition(async () => {
       await saveScore(
         match.dbId, sa, sb,
@@ -281,6 +302,7 @@ function MatchModal({
         match.teamB?.id ?? null,
         champId, catId,
         match.roundIndex, match.matchIndex,
+        details,
       );
       onClose();
     });
@@ -408,6 +430,39 @@ function MatchModal({
             </button>
           )}
         </div>
+
+        {/* pontos por set */}
+        {totalSets > 0 && (
+          <div className="border-b border-gray-100 bg-white px-4 py-3">
+            <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+              Pontos por set
+            </p>
+            <div className="space-y-2">
+              {Array.from({ length: totalSets }, (_, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="w-10 shrink-0 text-xs text-gray-500">Set {i + 1}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={setDetails[i]?.a ?? ""}
+                    onChange={(e) => updateSetDetail(i, "a", e.target.value)}
+                    className="w-14 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-center text-sm font-semibold outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    placeholder="0"
+                  />
+                  <span className="text-xs font-semibold text-gray-400">×</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={setDetails[i]?.b ?? ""}
+                    onChange={(e) => updateSetDetail(i, "b", e.target.value)}
+                    className="w-14 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-center text-sm font-semibold outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    placeholder="0"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Dupla B */}
         <div className="flex items-center gap-3 bg-white px-4 py-3">

@@ -91,6 +91,7 @@ export async function saveScore(
   catId:      string,
   roundIndex: number,
   matchIndex: number,
+  setDetails: Array<{ a: number; b: number }> | null,
 ) {
   const supabase  = await createClient();
   const winnerId  =
@@ -101,10 +102,11 @@ export async function saveScore(
   await supabase
     .from("bracket_matches")
     .update({
-      sets_a: setsA,
-      sets_b: setsB,
-      winner_id: winnerId,
-      updated_at: new Date().toISOString(),
+      sets_a:      setsA,
+      sets_b:      setsB,
+      winner_id:   winnerId,
+      set_details: setDetails ?? null,
+      updated_at:  new Date().toISOString(),
     })
     .eq("id", matchId);
 

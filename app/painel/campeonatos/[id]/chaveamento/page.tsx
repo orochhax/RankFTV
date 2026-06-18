@@ -16,6 +16,7 @@ type RegRow = {
 type ProfileRow = { id: string; nome: string };
 
 export type TeamDisplay  = { id: string; nome: string };
+export type SetDetail   = { a: number; b: number };
 export type MatchDisplay = {
   dbId:       string;
   roundIndex: number;
@@ -25,6 +26,7 @@ export type MatchDisplay = {
   setsA:      number | null;
   setsB:      number | null;
   winnerId:   string | null;
+  setDetails: SetDetail[] | null;
 };
 export type RoundDisplay = {
   nome:       string;
@@ -129,7 +131,7 @@ export default async function ChaveamentoPage({
   if (activeCatId) {
     const { data: dbMatches } = await supabase
       .from("bracket_matches")
-      .select("id, round_index, match_index, team_a_id, team_b_id, sets_a, sets_b, winner_id")
+      .select("id, round_index, match_index, team_a_id, team_b_id, sets_a, sets_b, winner_id, set_details")
       .eq("championship_id", id)
       .eq("category_id", activeCatId)
       .order("round_index")
@@ -155,6 +157,7 @@ export default async function ChaveamentoPage({
           setsA:      m.sets_a,
           setsB:      m.sets_b,
           winnerId:   m.winner_id,
+          setDetails: (m.set_details as SetDetail[] | null) ?? null,
         });
       }
 
