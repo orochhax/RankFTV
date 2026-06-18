@@ -2,11 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import {
   ArrowLeft,
-  CheckCircle2,
-  Clock,
   DollarSign,
   Info,
-  RotateCcw,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -143,7 +140,6 @@ export default async function FinanceiroPage({
                 </h2>
                 <div className="grid grid-cols-3 gap-3">
                   <StatusCard
-                    icon={<CheckCircle2 className="size-5 text-emerald-600" />}
                     label="Pagos"
                     count={regs.filter((r) => r.status_pagamento === "pago").length}
                     valor={totalPago}
@@ -152,7 +148,6 @@ export default async function FinanceiroPage({
                     textColor="text-emerald-700"
                   />
                   <StatusCard
-                    icon={<Clock className="size-5 text-amber-500" />}
                     label="Pendentes"
                     count={regs.filter((r) => r.status_pagamento === "pendente").length}
                     valor={totalPendente}
@@ -161,7 +156,6 @@ export default async function FinanceiroPage({
                     textColor="text-amber-700"
                   />
                   <StatusCard
-                    icon={<RotateCcw className="size-5 text-red-500" />}
                     label="Estornados"
                     count={regs.filter((r) => r.status_pagamento === "estornado").length}
                     valor={totalEstornado}
@@ -266,9 +260,8 @@ export default async function FinanceiroPage({
 }
 
 function StatusCard({
-  icon, label, count, valor, bgColor, borderColor, textColor,
+  label, count, valor, bgColor, borderColor, textColor,
 }: {
-  icon: React.ReactNode;
   label: string;
   count: number;
   valor: number;
@@ -278,10 +271,7 @@ function StatusCard({
 }) {
   return (
     <div className={`rounded-2xl p-4 ring-1 ${bgColor} ${borderColor}`}>
-      <div className="flex items-center gap-2">
-        {icon}
-        <p className={`text-xs font-medium ${textColor}`}>{label}</p>
-      </div>
+      <p className={`text-xs font-medium ${textColor}`}>{label}</p>
       <p className={`mt-2 text-2xl font-bold ${textColor}`}>{count}</p>
       <p className={`text-xs ${textColor} opacity-70`}>{formatBRL(valor)}</p>
     </div>
