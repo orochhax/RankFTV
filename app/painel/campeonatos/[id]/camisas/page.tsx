@@ -8,10 +8,12 @@ import { CamisasClient } from "@/components/camisas/CamisasClient";
 /* ─── tipos exportados para o client ─── */
 
 export type AthleteShirt = {
-  athleteId: string;
-  nome:      string;
-  tamanho:   string | null;
-  produced:  boolean;
+  athleteId:    string;
+  nome:         string;
+  tamanho:      string | null;
+  produced:     boolean;
+  retiradoPor:  string | null;
+  dataRetirada: string | null;
 };
 
 /* ─── page ─── */
@@ -59,22 +61,32 @@ export default async function CamisasPage({
     profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p as ProfileRow]));
   }
 
-  /* ── status de produção ── */
+  /* ── status de produção e entrega ── */
   const { data: prodRows } = await supabase
     .from("shirt_production")
-    .select("athlete_id, produced")
+    .select("athlete_id, produced, retirado_por, data_retirada")
     .eq("championship_id", id);
-  const producedMap = Object.fromEntries(
-    (prodRows ?? []).map((r) => [r.athlete_id, r.produced as boolean]),
+
+  const prodMap = Object.fromEntries(
+    (prodRows ?? []).map((r) => [
+      r.athlete_id,
+      {
+        produced:     r.produced     as boolean,
+        retiradoPor:  r.retirado_por  as string | null,
+        dataRetirada: r.data_retirada as string | null,
+      },
+    ]),
   );
 
   /* ── monta lista ── */
   const athletes: AthleteShirt[] = athleteIds
     .map((aid) => ({
-      athleteId: aid,
-      nome:      profileMap[aid]?.nome ?? "Atleta",
-      tamanho:   profileMap[aid]?.tamanho_camisa ?? null,
-      produced:  producedMap[aid] ?? false,
+      athleteId:    aid,
+      nome:         profileMap[aid]?.nome ?? "Atleta",
+      tamanho:      profileMap[aid]?.tamanho_camisa ?? null,
+      produced:     prodMap[aid]?.produced     ?? false,
+      retiradoPor:  prodMap[aid]?.retiradoPor  ?? null,
+      dataRetirada: prodMap[aid]?.dataRetirada ?? null,
     }))
     .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 
