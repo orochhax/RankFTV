@@ -45,7 +45,7 @@ const ACOES = [
     label: "Camisas / Kit",
     desc: "Painel de produção por tamanho",
     href: (id: string) => `/painel/campeonatos/${id}/camisas`,
-    disponivel: false,
+    disponivel: true,
   },
   {
     icon: CheckSquare,
