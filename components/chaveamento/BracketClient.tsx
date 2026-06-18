@@ -515,6 +515,7 @@ type Podium = {
   first:  TeamDisplay;
   second: TeamDisplay;
   thirds: TeamDisplay[];
+  fourth: TeamDisplay | null;
 };
 
 function computePodium(rounds: RoundDisplay[], thirdPlaceMatch: MatchDisplay | null): Podium | null {
@@ -527,13 +528,17 @@ function computePodium(rounds: RoundDisplay[], thirdPlaceMatch: MatchDisplay | n
   const second = finalMatch.winnerId === finalMatch.teamA.id ? finalMatch.teamB : finalMatch.teamA;
 
   const thirds: TeamDisplay[] = [];
+  let fourth: TeamDisplay | null = null;
+
   if (thirdPlaceMatch?.winnerId && thirdPlaceMatch.teamA && thirdPlaceMatch.teamB) {
-    // Usa o vencedor real da partida pelo 3º lugar
-    thirds.push(
-      thirdPlaceMatch.winnerId === thirdPlaceMatch.teamA.id
-        ? thirdPlaceMatch.teamA
-        : thirdPlaceMatch.teamB,
-    );
+    const thirdWinner = thirdPlaceMatch.winnerId === thirdPlaceMatch.teamA.id
+      ? thirdPlaceMatch.teamA
+      : thirdPlaceMatch.teamB;
+    const thirdLoser = thirdPlaceMatch.winnerId === thirdPlaceMatch.teamA.id
+      ? thirdPlaceMatch.teamB
+      : thirdPlaceMatch.teamA;
+    thirds.push(thirdWinner);
+    fourth = thirdLoser;
   } else if (rounds.length >= 2) {
     // Fallback: semifinalistas perdedores (3º lugar empatado)
     const semiRound = rounds[rounds.length - 2];
@@ -544,7 +549,7 @@ function computePodium(rounds: RoundDisplay[], thirdPlaceMatch: MatchDisplay | n
     }
   }
 
-  return { first, second, thirds };
+  return { first, second, thirds, fourth };
 }
 
 export function BracketClient({
@@ -727,6 +732,15 @@ export function BracketClient({
                   </div>
                 </div>
               ))}
+              {podium.fourth && (
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">4️⃣</span>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">4º lugar</p>
+                    <p className="text-sm font-medium text-gray-800">{podium.fourth.nome}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Aviso */}
