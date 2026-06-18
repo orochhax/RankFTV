@@ -733,8 +733,7 @@ export function BracketClient({
                 </div>
               ))}
               {podium.fourth && (
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">4️⃣</span>
+                <div className="flex items-center gap-3 pl-9">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">4º lugar</p>
                     <p className="text-sm font-medium text-gray-800">{podium.fourth.nome}</p>
