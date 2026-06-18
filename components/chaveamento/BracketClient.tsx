@@ -6,8 +6,9 @@ import { assignTeam, saveScore, clearScore, resetBracket, generateBracket } from
 import type { TeamDisplay, MatchDisplay, RoundDisplay } from "@/app/painel/campeonatos/[id]/chaveamento/page";
 
 /* ─── layout constants ─── */
-const CARD_H = 73;
-const SLOT_H = 81;
+const HEADER_H = 28;   // altura fixa do cabeçalho com nome da rodada
+const CARD_H   = 93;   // altura fixa do card (36 slot + 20 score + 1 divider + 36 slot)
+const SLOT_H   = 101;  // slot efetivo por confronto na grade (CARD_H + 8 gap)
 
 function paddingTopFor(ri: number) { return (Math.pow(2, ri) * SLOT_H - CARD_H) / 2; }
 function gapFor(ri: number)        { return Math.pow(2, ri) * SLOT_H - CARD_H; }
@@ -50,12 +51,17 @@ function SlotRow({
   );
 }
 
-function ScorePill({ setsA, setsB }: { setsA: number; setsB: number }) {
+function ScoreArea({ setsA, setsB, hasScore }: { setsA: number | null; setsB: number | null; hasScore: boolean }) {
   return (
-    <div className="flex items-center justify-center gap-1 bg-gray-50 px-3 py-0.5">
-      <span className="text-[11px] font-semibold tabular-nums text-gray-500">
-        {setsA} × {setsB}
-      </span>
+    <div
+      className={`flex items-center justify-center px-3 ${hasScore ? "bg-gray-50" : ""}`}
+      style={{ height: "20px" }}
+    >
+      {hasScore && (
+        <span className="text-[11px] font-semibold tabular-nums text-gray-500">
+          {setsA} × {setsB}
+        </span>
+      )}
     </div>
   );
 }
@@ -68,13 +74,13 @@ function ConnectorColumn({ roundIndex, matchCount }: { roundIndex: number; match
   const W     = 32;
   const MID   = W / 2;
   const h     = Math.ceil(
-    paddingTopFor(ri) + matchCount * CARD_H + Math.max(0, matchCount - 1) * gapFor(ri),
+    HEADER_H + paddingTopFor(ri) + matchCount * CARD_H + Math.max(0, matchCount - 1) * gapFor(ri),
   );
 
   const lines = [];
   for (let p = 0; p < pairs; p++) {
-    const y1 = SLOT_H * Math.pow(2, ri) * (2 * p + 0.5);
-    const y2 = SLOT_H * Math.pow(2, ri) * (2 * p + 1.5);
+    const y1 = HEADER_H + SLOT_H * Math.pow(2, ri) * (2 * p + 0.5);
+    const y2 = HEADER_H + SLOT_H * Math.pow(2, ri) * (2 * p + 1.5);
     const ym = (y1 + y2) / 2;
     lines.push(
       <g key={p}>
@@ -497,12 +503,9 @@ export function BracketClient({
             const isLast = idx === rounds.length - 1;
 
             const col = (
-              <div key={`round-${ri}`} className="relative flex flex-col">
-                {/* label posicionado acima do primeiro card */}
-                <div
-                  className="absolute left-0 right-0 text-center text-[11px] font-semibold uppercase tracking-wider text-gray-400"
-                  style={{ top: `${Math.max(0, pt - 22)}px` }}
-                >
+              <div key={`round-${ri}`} className="flex flex-col">
+                {/* label em fluxo normal — altura fixa igual a HEADER_H */}
+                <div className="flex shrink-0 items-end justify-center pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400" style={{ height: `${HEADER_H}px` }}>
                   {round.nome}
                 </div>
 
@@ -528,7 +531,7 @@ export function BracketClient({
                         }`}
                       >
                         <SlotRow team={match.teamA} winner={match.winnerId === match.teamA?.id} bye={byeA} />
-                        {hasScore && <ScorePill setsA={match.setsA!} setsB={match.setsB!} />}
+                        <ScoreArea setsA={match.setsA} setsB={match.setsB} hasScore={hasScore} />
                         <div className="h-px bg-gray-100" />
                         <SlotRow team={match.teamB} winner={match.winnerId === match.teamB?.id} bye={byeB} />
                       </button>
