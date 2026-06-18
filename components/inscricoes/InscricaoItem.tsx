@@ -32,11 +32,6 @@ function NivelBadge({ nivel }: { nivel: string | null }) {
 export function InscricaoItem({ a1, a2, catNome }: Props) {
   return (
     <li className="flex items-center gap-4 px-4 py-3.5">
-      {/* Número / avatar placeholder */}
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-blue-50">
-        <span className="text-xs font-bold text-blue-600">2</span>
-      </div>
-
       {/* Nomes */}
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium text-gray-900">

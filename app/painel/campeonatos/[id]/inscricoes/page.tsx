@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, Info, User, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { InscricaoItem } from "@/components/inscricoes/InscricaoItem";
@@ -8,6 +8,7 @@ import { InscricaoItem } from "@/components/inscricoes/InscricaoItem";
 type RegRow = {
   id: string;
   category_id: string;
+  status_pagamento: string;
   teams: { id: string; atleta1_id: string; atleta2_id: string | null } | null;
   championship_categories: { id: string; nome: string; genero: string } | null;
 };
@@ -45,11 +46,12 @@ export default async function InscricoesPage({
   const { data: rawRegs } = await supabase
     .from("registrations")
     .select(`
-      id, category_id,
+      id, category_id, status_pagamento,
       teams(id, atleta1_id, atleta2_id),
       championship_categories(id, nome, genero)
     `)
-    .eq("championship_id", id);
+    .eq("championship_id", id)
+    .eq("status_pagamento", "pago");
 
   const regs: RegRow[] = (rawRegs ?? []) as unknown as RegRow[];
 
@@ -139,7 +141,7 @@ export default async function InscricoesPage({
             </div>
             <div className="rounded-2xl bg-white/10 p-4">
               <div className="flex items-center gap-1.5 text-white/50">
-                <Users className="size-4" />
+                <User className="size-4" />
                 <p className="text-xs">Total de atletas</p>
               </div>
               <p className="mt-1 text-2xl font-bold text-white">{totalAtletas}</p>
@@ -192,6 +194,14 @@ export default async function InscricoesPage({
                   })}
                 </div>
               )}
+
+              {/* Aviso */}
+              <div className="flex items-start gap-2 rounded-xl bg-blue-50 px-3 py-2.5 ring-1 ring-blue-100">
+                <Info className="mt-0.5 size-3.5 shrink-0 text-blue-400" />
+                <p className="text-xs leading-relaxed text-blue-500">
+                  Exibindo apenas duplas com pagamento confirmado.
+                </p>
+              </div>
 
               {/* Lista em ordem alfabética */}
               {lista.length === 0 ? (
