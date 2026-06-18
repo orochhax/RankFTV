@@ -132,6 +132,13 @@ export default async function CampeonatoDetalhePage({
     meuRating = p?.rating ?? 0;
   }
 
+  // Verifica se existe bracket no banco para este campeonato
+  const { count: bracketCount } = await supabase
+    .from("bracket_matches")
+    .select("id", { count: "exact", head: true })
+    .eq("championship_id", id);
+  const hasDbBracket = (bracketCount ?? 0) > 0;
+
   const categoriasParaMotor = championship.categorias.map((c) => ({
     id: c.id,
     nome: c.nome,
@@ -189,23 +196,42 @@ export default async function CampeonatoDetalhePage({
             </span>
           )}
         </div>
-        {getBracket(championship.id) && championship.status !== "em_andamento" && (
+        {(hasDbBracket || getBracket(championship.id)) && (
           <div className="mt-4">
             <Link
               href={`/campeonatos/${championship.id}/chaveamento`}
               className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
             >
               <Trophy className="size-4" />
-              Chaveamento
+              Ver chaveamento
             </Link>
           </div>
         )}
       </div>
 
       {/* Chaveamento inline — só aparece quando o camp está em andamento */}
-      {(() => {
+      {championship.status === "em_andamento" && hasDbBracket && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <Trophy className="size-5 text-blue-500" />
+              Chaveamento ao vivo
+            </h2>
+            <Link
+              href={`/campeonatos/${championship.id}/chaveamento`}
+              className="flex items-center gap-0.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+            >
+              Ver completo <ChevronRight className="size-4" />
+            </Link>
+          </div>
+          <p className="text-sm text-gray-500">
+            Acesse o chaveamento completo pelo link acima.
+          </p>
+        </section>
+      )}
+      {championship.status === "em_andamento" && !hasDbBracket && (() => {
         const bracket = getBracket(championship.id);
-        if (!bracket || championship.status !== "em_andamento") return null;
+        if (!bracket) return null;
         const cat = bracket.categories[0];
         return (
           <section>
