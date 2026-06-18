@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown, ImageIcon, FileText, AlignLeft } from "lucide-react";
 import { assignTeam, saveScore, clearScore, resetBracket, generateBracket } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
 import type { TeamDisplay, MatchDisplay, RoundDisplay } from "@/app/painel/campeonatos/[id]/chaveamento/page";
@@ -470,22 +470,16 @@ export function BracketClient({
   const [confirmReset, setConfirmReset] = useState(false);
   const [exporting, setExporting]       = useState<"image" | "pdf" | "text" | null>(null);
   const [isPending, startTransition]    = useTransition();
-  const bracketRef = useRef<HTMLDivElement>(null);
 
   function openModal(match: MatchDisplay, roundNome: string) {
     setModalState({ match, roundNome });
   }
 
   async function exportAsImage() {
-    if (!bracketRef.current) return;
     setExporting("image");
     try {
-      const { toPng } = await import("html-to-image");
-      const dataUrl = await toPng(bracketRef.current, {
-        backgroundColor: "#ffffff",
-        pixelRatio: 2,
-        style: { padding: "20px" },
-      });
+      const { drawBracket } = await import("@/components/chaveamento/drawBracket");
+      const { dataUrl } = drawBracket(rounds);
       const a = document.createElement("a");
       a.download = "chaveamento.png";
       a.href = dataUrl;
@@ -496,29 +490,19 @@ export function BracketClient({
   }
 
   async function exportAsPdf() {
-    if (!bracketRef.current) return;
     setExporting("pdf");
     try {
-      const [{ toPng }, { jsPDF }] = await Promise.all([
-        import("html-to-image"),
+      const [{ drawBracket }, { jsPDF }] = await Promise.all([
+        import("@/components/chaveamento/drawBracket"),
         import("jspdf"),
       ]);
-      const dataUrl = await toPng(bracketRef.current, {
-        backgroundColor: "#ffffff",
-        pixelRatio: 2,
-        style: { padding: "20px" },
-      });
-      const img = new Image();
-      img.src = dataUrl;
-      await new Promise<void>((res) => { img.onload = () => res(); });
-      const W = img.naturalWidth;
-      const H = img.naturalHeight;
+      const { dataUrl, logicalW, logicalH } = drawBracket(rounds);
       const pdf = new jsPDF({
-        orientation: W > H ? "landscape" : "portrait",
+        orientation: logicalW > logicalH ? "landscape" : "portrait",
         unit: "px",
-        format: [W, H],
+        format: [logicalW, logicalH],
       });
-      pdf.addImage(dataUrl, "PNG", 0, 0, W, H);
+      pdf.addImage(dataUrl, "PNG", 0, 0, logicalW, logicalH);
       pdf.save("chaveamento.pdf");
     } finally {
       setExporting(null);
@@ -597,7 +581,7 @@ export function BracketClient({
 
       {/* bracket */}
       {hasExistingBracket && <div className="overflow-x-auto pb-6">
-        <div ref={bracketRef} className="flex" style={{ minWidth: "max-content" }}>
+        <div className="flex" style={{ minWidth: "max-content" }}>
           {rounds.flatMap((round, idx) => {
             const ri     = round.roundIndex;
             const pt     = paddingTopFor(ri);
