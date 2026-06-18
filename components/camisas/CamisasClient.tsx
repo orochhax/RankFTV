@@ -545,14 +545,14 @@ export function CamisasClient({
 
                     {/* nome */}
                     {selectMode ? (
-                      <span className={`min-w-0 flex-1 truncate text-sm ${a.produced ? "text-gray-400 line-through" : "font-medium text-gray-900"}`}>
+                      <span className={`min-w-0 flex-1 truncate text-sm ${(a.produced && !!a.dataRetirada) ? "text-gray-400 line-through" : "font-medium text-gray-900"}`}>
                         {a.nome}
                       </span>
                     ) : (
                       <button
                         onClick={() => setEntregaModal({ athleteId: a.athleteId, nome: a.nome, retiradoPor: a.retiradoPor, dataRetirada: a.dataRetirada })}
                         title={a.dataRetirada ? `Entregue em ${formatDateBR(a.dataRetirada)}${a.retiradoPor ? ` para ${a.retiradoPor}` : ""}` : "Clique para registrar entrega"}
-                        className={`min-w-0 flex-1 truncate text-left text-sm transition-colors hover:text-blue-600 ${a.produced ? "text-gray-400 line-through" : "font-medium text-gray-900"}`}
+                        className={`min-w-0 flex-1 truncate text-left text-sm transition-colors hover:text-blue-600 ${(a.produced && !!a.dataRetirada) ? "text-gray-400 line-through" : "font-medium text-gray-900"}`}
                       >
                         {a.nome}
                       </button>
