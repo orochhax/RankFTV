@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown, ImageIcon, FileText, AlignLeft } from "lucide-react";
-import { assignTeam, saveScore, clearScore, resetBracket, generateBracket } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
+import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown, ImageIcon, FileText, AlignLeft, Lock, CheckCircle2 } from "lucide-react";
+import { assignTeam, saveScore, clearScore, resetBracket, generateBracket, confirmBracket } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
+import { formatDateTimeBR } from "@/lib/format";
 import type { TeamDisplay, MatchDisplay, RoundDisplay, SetDetail } from "@/app/painel/campeonatos/[id]/chaveamento/page";
 
 /* ─── layout constants ─── */
@@ -510,24 +511,72 @@ function ModalShell({ children, onClose }: { children: React.ReactNode; onClose:
 
 /* ─── componente principal ─── */
 
+type Podium = {
+  first:  TeamDisplay;
+  second: TeamDisplay;
+  thirds: TeamDisplay[];
+};
+
+function computePodium(rounds: RoundDisplay[]): Podium | null {
+  if (rounds.length === 0) return null;
+  const finalRound = rounds[rounds.length - 1];
+  const finalMatch = finalRound.matches[0];
+  if (!finalMatch?.winnerId || !finalMatch.teamA || !finalMatch.teamB) return null;
+
+  const first  = finalMatch.winnerId === finalMatch.teamA.id ? finalMatch.teamA : finalMatch.teamB;
+  const second = finalMatch.winnerId === finalMatch.teamA.id ? finalMatch.teamB : finalMatch.teamA;
+
+  const thirds: TeamDisplay[] = [];
+  if (rounds.length >= 2) {
+    const semiRound = rounds[rounds.length - 2];
+    for (const m of semiRound.matches) {
+      if (m.winnerId && m.teamA && m.teamB) {
+        thirds.push(m.winnerId === m.teamA.id ? m.teamB : m.teamA);
+      }
+    }
+  }
+
+  return { first, second, thirds };
+}
+
 export function BracketClient({
   champId,
   catId,
   rounds,
   availableTeams,
+  confirmedAt,
 }: {
   champId:        string;
   catId:          string;
   rounds:         RoundDisplay[];
   availableTeams: TeamDisplay[];
+  confirmedAt:    string | null;
 }) {
-  const [modalState, setModalState]     = useState<ModalState | null>(null);
-  const [confirmReset, setConfirmReset] = useState(false);
-  const [exporting, setExporting]       = useState<"image" | "pdf" | "text" | null>(null);
-  const [isPending, startTransition]    = useTransition();
+  const [modalState, setModalState]         = useState<ModalState | null>(null);
+  const [confirmReset, setConfirmReset]     = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmError, setConfirmError]     = useState<string | null>(null);
+  const [exporting, setExporting]           = useState<"image" | "pdf" | "text" | null>(null);
+  const [isPending, startTransition]        = useTransition();
+
+  const isConfirmed = !!confirmedAt;
+  const podium      = computePodium(rounds);
 
   function openModal(match: MatchDisplay, roundNome: string) {
+    if (isConfirmed) return; // read-only quando confirmado
     setModalState({ match, roundNome });
+  }
+
+  function handleConfirm() {
+    setConfirmError(null);
+    startTransition(async () => {
+      const res = await confirmBracket(champId, catId);
+      if (!res.ok) {
+        setConfirmError(res.error ?? "Erro ao confirmar.");
+      } else {
+        setShowConfirmModal(false);
+      }
+    });
   }
 
   async function exportAsImage() {
@@ -626,13 +675,99 @@ export function BracketClient({
 
   return (
     <>
-      {/* sorteio */}
-      <SorteioPanel
-        availableTeams={availableTeams}
-        hasExistingBracket={hasExistingBracket}
-        champId={champId}
-        catId={catId}
-      />
+      {/* Modal de confirmação de resultado */}
+      {showConfirmModal && podium && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowConfirmModal(false)} />
+          <div className="relative z-10 w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                <Trophy className="size-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">Confirmar resultado final</p>
+                <p className="text-xs text-gray-500">Revise o pódio antes de confirmar</p>
+              </div>
+            </div>
+
+            {/* Pódio */}
+            <div className="mb-4 space-y-2 rounded-2xl bg-gray-50 p-4">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🥇</span>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">1º lugar</p>
+                  <p className="text-sm font-semibold text-gray-900">{podium.first.nome}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🥈</span>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">2º lugar</p>
+                  <p className="text-sm font-medium text-gray-800">{podium.second.nome}</p>
+                </div>
+              </div>
+              {podium.thirds.map((t, i) => (
+                <div key={t.id} className="flex items-center gap-3">
+                  <span className="text-xl">🥉</span>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                      3º lugar{podium.thirds.length > 1 ? ` (dupla ${i + 1})` : ""}
+                    </p>
+                    <p className="text-sm font-medium text-gray-800">{t.nome}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Aviso */}
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700">
+              <strong>Atenção:</strong> após confirmar, o chaveamento fica bloqueado e não poderá ser mais editado. Essa ação é irreversível.
+            </div>
+
+            {confirmError && (
+              <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600">{confirmError}</p>
+            )}
+
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleConfirm}
+                disabled={isPending}
+                className="w-full rounded-2xl bg-gray-900 py-3 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              >
+                {isPending ? "Confirmando…" : "Sim, confirmar resultado"}
+              </button>
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                disabled={isPending}
+                className="w-full rounded-2xl bg-gray-100 py-3 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50 transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Banner de resultado confirmado */}
+      {isConfirmed && (
+        <div className="flex items-center gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+          <div>
+            <p className="text-sm font-semibold text-emerald-800">Resultado confirmado</p>
+            <p className="text-xs text-emerald-600">Confirmado em {formatDateTimeBR(confirmedAt!)} · Somente visualização</p>
+          </div>
+        </div>
+      )}
+
+      {/* sorteio — oculto após confirmação */}
+      {!isConfirmed && (
+        <SorteioPanel
+          availableTeams={availableTeams}
+          hasExistingBracket={hasExistingBracket}
+          champId={champId}
+          catId={catId}
+        />
+      )}
 
       {/* bracket */}
       {hasExistingBracket && <div className="overflow-x-auto pb-6">
@@ -720,24 +855,43 @@ export function BracketClient({
             </button>
           </div>
 
-          {/* dica + reiniciar */}
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-400">
-              Clique em qualquer confronto para editar duplas ou lançar placar.
-            </p>
+          {/* dica + reiniciar + confirmar vencedores */}
+          {!isConfirmed && (
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-400">
+                Clique em qualquer confronto para editar duplas ou lançar placar.
+              </p>
+              <button
+                onClick={handleReset}
+                disabled={isPending}
+                className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-40 ${
+                  confirmReset
+                    ? "bg-red-100 text-red-600 hover:bg-red-200"
+                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                }`}
+              >
+                <RefreshCcw className="size-3.5" />
+                {confirmReset ? "Confirmar reset?" : "Reiniciar chaveamento"}
+              </button>
+            </div>
+          )}
+
+          {/* Botão confirmar vencedores */}
+          {!isConfirmed && (
             <button
-              onClick={handleReset}
-              disabled={isPending}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-40 ${
-                confirmReset
-                  ? "bg-red-100 text-red-600 hover:bg-red-200"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              onClick={() => { setConfirmError(null); setShowConfirmModal(true); }}
+              disabled={!podium || isPending}
+              className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold transition-colors ${
+                podium
+                  ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                  : "cursor-not-allowed bg-gray-100 text-gray-400"
               }`}
             >
-              <RefreshCcw className="size-3.5" />
-              {confirmReset ? "Confirmar reset?" : "Reiniciar chaveamento"}
+              <Trophy className="size-4" />
+              {podium ? "Confirmar vencedores" : "Confirmar vencedores (chaveamento incompleto)"}
+              {!podium && <Lock className="size-3.5" />}
             </button>
-          </div>
+          )}
         </div>
       )}
 

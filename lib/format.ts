@@ -27,6 +27,17 @@ export function generoLabel(genero: "masculino" | "feminino" | "mista"): string 
   return { masculino: "Masculina", feminino: "Feminina", mista: "Mista" }[genero];
 }
 
+export function formatDateTimeBR(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString("pt-BR", {
+    day:    "2-digit",
+    month:  "2-digit",
+    year:   "numeric",
+    hour:   "2-digit",
+    minute: "2-digit",
+  });
+}
+
 // "18 a 19 jul 2026" (mesmo mês) ou "30 jul a 02 ago 2026" (virando o mês).
 export function formatDateRangeBR(startISO: string, endISO: string): string {
   if (startISO === endISO) return formatDateBR(startISO);

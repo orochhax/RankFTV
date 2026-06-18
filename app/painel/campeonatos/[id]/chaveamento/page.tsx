@@ -4,6 +4,7 @@ import { ArrowLeft, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { BracketClient } from "@/components/chaveamento/BracketClient";
+import { formatDateTimeBR } from "@/lib/format";
 
 /* ─── tipos ─── */
 
@@ -119,9 +120,23 @@ export default async function ChaveamentoPage({
     catMeta[catData.id] = { nome: catData.nome, genero: catData.genero };
   }
 
+  /* ── bracket_confirmed_at por categoria ── */
+  const catIds = Object.keys(catMeta);
+  let confirmedAtMap: Record<string, string | null> = {};
+  if (catIds.length > 0) {
+    const { data: catRows } = await supabase
+      .from("championship_categories")
+      .select("id, bracket_confirmed_at")
+      .in("id", catIds);
+    confirmedAtMap = Object.fromEntries(
+      (catRows ?? []).map((c) => [c.id, (c as { id: string; bracket_confirmed_at: string | null }).bracket_confirmed_at ?? null]),
+    );
+  }
+
   /* ── categoria ativa ── */
   const categorias  = Object.entries(catMeta).map(([id, m]) => ({ id, ...m }));
   const activeCatId = cat && categorias.some((c) => c.id === cat) ? cat : categorias[0]?.id ?? null;
+  const confirmedAt = activeCatId ? (confirmedAtMap[activeCatId] ?? null) : null;
 
   const totalDuplas = Object.values(teamsByCat).reduce((s, t) => s + t.length, 0);
 
@@ -251,6 +266,7 @@ export default async function ChaveamentoPage({
                 catId={activeCatId ?? ""}
                 rounds={rounds}
                 availableTeams={availableTeams}
+                confirmedAt={confirmedAt}
               />
             </>
           )}

@@ -260,3 +260,47 @@ export async function resetBracket(champId: string, catId: string) {
     .eq("category_id", catId);
   revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
 }
+
+export async function confirmBracket(
+  champId: string,
+  catId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Não autenticado." };
+
+  const { data: champ } = await supabase
+    .from("championships")
+    .select("organizador_id")
+    .eq("id", champId)
+    .single();
+  if (!champ || champ.organizador_id !== user.id)
+    return { ok: false, error: "Sem permissão." };
+
+  // Verifica que a final tem vencedor
+  const { data: matches } = await supabase
+    .from("bracket_matches")
+    .select("round_index, winner_id")
+    .eq("championship_id", champId)
+    .eq("category_id", catId);
+
+  if (!matches || matches.length === 0)
+    return { ok: false, error: "Chaveamento não gerado." };
+
+  const maxRound = Math.max(...matches.map((m) => m.round_index));
+  const finalMatches = matches.filter((m) => m.round_index === maxRound);
+  const hasChampeão = finalMatches.every((m) => m.winner_id);
+  if (!hasChampeão)
+    return { ok: false, error: "O chaveamento ainda não está completo." };
+
+  const { error } = await supabase
+    .from("championship_categories")
+    .update({ bracket_confirmed_at: new Date().toISOString() })
+    .eq("id", catId);
+
+  if (error) return { ok: false, error: "Erro ao confirmar resultado." };
+
+  revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
+  revalidatePath(`/campeonatos/${champId}/chaveamento`);
+  return { ok: true };
+}
