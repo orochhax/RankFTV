@@ -57,13 +57,15 @@ BEGIN
   v_cat_count := ARRAY_LENGTH(v_cats, 1);
 
   -- Coleta IDs dos atletas fake atleta2..atleta11
-  SELECT ARRAY_AGG(u.id ORDER BY u.email)
+  SELECT ARRAY_AGG(sub.id ORDER BY sub.email)
   INTO v_atletas
-  FROM auth.users u
-  WHERE u.email LIKE '%@rankftv.test'
-    AND u.email != 'atleta1@rankftv.test'  -- atleta1 já é o Thiago, parceiro do Carlos
-  ORDER BY u.email
-  LIMIT 10;
+  FROM (
+    SELECT id, email FROM auth.users
+    WHERE email LIKE '%@rankftv.test'
+      AND email != 'atleta1@rankftv.test'
+    ORDER BY email
+    LIMIT 10
+  ) sub;
 
   IF v_atletas IS NULL OR ARRAY_LENGTH(v_atletas, 1) < 10 THEN
     RAISE EXCEPTION 'Menos de 10 atletas fake disponíveis. Rode seed-atletas-rochhacup.sql primeiro.';
