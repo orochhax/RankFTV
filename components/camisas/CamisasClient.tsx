@@ -363,6 +363,25 @@ export function CamisasClient({
     <>
       <div className="space-y-4">
 
+        {/* ── notificar atletas ── */}
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 py-4">
+          <div className="flex items-center gap-4">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50">
+              <Bell className="size-5 text-blue-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-900">Notificar todos os atletas</p>
+              <p className="text-xs text-gray-400">Avisa que as camisas estão prontas para retirada.</p>
+            </div>
+            <button
+              onClick={() => setNotifyModal(true)}
+              className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+            >
+              Enviar aviso
+            </button>
+          </div>
+        </div>
+
         {/* ── resumo por tamanho ── */}
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
           <button
@@ -577,24 +596,6 @@ export function CamisasClient({
           )}
         </div>
 
-        {/* ── notificar atletas ── */}
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 py-4">
-          <div className="flex items-center gap-4">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50">
-              <Bell className="size-5 text-blue-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">Notificar todos os atletas</p>
-              <p className="text-xs text-gray-400">Avisa que as camisas estão prontas para retirada.</p>
-            </div>
-            <button
-              onClick={() => setNotifyModal(true)}
-              className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
-            >
-              Enviar aviso
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* ── barra flutuante de seleção múltipla ── */}
