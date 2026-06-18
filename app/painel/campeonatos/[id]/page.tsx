@@ -24,7 +24,7 @@ const ACOES = [
     label: "Inscrições",
     desc: "Duplas inscritas e status de pagamento",
     href: (id: string) => `/painel/campeonatos/${id}/inscricoes`,
-    disponivel: false,
+    disponivel: true,
   },
   {
     icon: QrCode,

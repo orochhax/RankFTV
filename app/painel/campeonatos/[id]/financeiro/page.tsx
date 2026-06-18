@@ -8,7 +8,6 @@ import {
   Info,
   RotateCcw,
   TrendingUp,
-  Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
@@ -19,17 +18,8 @@ type RegRow = {
   valor: number;
   status_pagamento: "pago" | "pendente" | "estornado";
   category_id: string;
-  teams: { id: string; atleta1_id: string; atleta2_id: string | null; status: string } | null;
   championship_categories: { id: string; nome: string; genero: string } | null;
 };
-
-type ProfileRow = { id: string; nome: string; username: string };
-
-const PAG_CFG = {
-  pago:      { label: "Pago",               className: "bg-emerald-100 text-emerald-700", icon: CheckCircle2 },
-  pendente:  { label: "Ag. pagamento",      className: "bg-amber-100  text-amber-700",   icon: Clock },
-  estornado: { label: "Estornado",          className: "bg-red-100    text-red-600",     icon: RotateCcw },
-} as const;
 
 export default async function FinanceiroPage({
   params,
@@ -48,36 +38,16 @@ export default async function FinanceiroPage({
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
 
-  // Inscrições com dupla + categoria
+  // Inscrições com categoria (sem dupla — só para os totais financeiros)
   const { data: rawRegs } = await supabase
     .from("registrations")
     .select(`
       id, valor, status_pagamento, category_id,
-      teams(id, atleta1_id, atleta2_id, status),
       championship_categories(id, nome, genero)
     `)
-    .eq("championship_id", id)
-    .order("created_at", { ascending: false });
+    .eq("championship_id", id);
 
   const regs: RegRow[] = (rawRegs ?? []) as unknown as RegRow[];
-
-  // Batch-fetch perfis de todos os atletas
-  const athleteIds = [
-    ...new Set(
-      regs.flatMap((r) =>
-        r.teams ? [r.teams.atleta1_id, ...(r.teams.atleta2_id ? [r.teams.atleta2_id] : [])] : [],
-      ),
-    ),
-  ];
-
-  let profileMap: Record<string, ProfileRow> = {};
-  if (athleteIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, nome, username")
-      .in("id", athleteIds);
-    profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p as ProfileRow]));
-  }
 
   // Totais financeiros
   const totalPago      = regs.filter((r) => r.status_pagamento === "pago").reduce((s, r) => s + Number(r.valor), 0);
@@ -286,67 +256,6 @@ export default async function FinanceiroPage({
                 </section>
               )}
 
-              {/* Lista de inscrições */}
-              <section>
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
-                  Inscrições ({regs.length})
-                </h2>
-                <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-                  {regs.map((reg) => {
-                    const cfg = PAG_CFG[reg.status_pagamento] ?? PAG_CFG["pendente"];
-                    const StatusIcon = cfg.icon;
-                    const cat = reg.championship_categories;
-                    const team = reg.teams;
-                    const a1 = team ? profileMap[team.atleta1_id] : null;
-                    const a2 = team?.atleta2_id ? profileMap[team.atleta2_id] : null;
-
-                    return (
-                      <li key={reg.id} className="flex items-center gap-4 px-4 py-3.5">
-                        <div className={`flex size-9 shrink-0 items-center justify-center rounded-full ${
-                          reg.status_pagamento === "pago" ? "bg-emerald-100" :
-                          reg.status_pagamento === "estornado" ? "bg-red-100" :
-                          "bg-amber-100"
-                        }`}>
-                          <StatusIcon className={`size-4 ${
-                            reg.status_pagamento === "pago" ? "text-emerald-600" :
-                            reg.status_pagamento === "estornado" ? "text-red-500" :
-                            "text-amber-500"
-                          }`} />
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          {/* Dupla */}
-                          <p className="truncate font-medium text-gray-900">
-                            {a1?.nome ?? "Atleta 1"}
-                            {a2 ? ` & ${a2.nome}` : ""}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-gray-400">
-                            {a1?.username && <span>@{a1.username}</span>}
-                            {a2?.username && <span>· @{a2.username}</span>}
-                            {cat && (
-                              <span className="text-gray-300">·</span>
-                            )}
-                            {cat && (
-                              <span>
-                                {cat.nome} · {generoLabel(cat.genero as "masculino" | "feminino" | "mista")}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex shrink-0 flex-col items-end gap-1">
-                          <span className="font-semibold text-gray-900">
-                            {formatBRL(Number(reg.valor))}
-                          </span>
-                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cfg.className}`}>
-                            {cfg.label}
-                          </span>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </section>
             </>
           )}
         </div>
