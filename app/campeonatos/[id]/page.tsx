@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { MapPin, Users, Trophy, ChevronLeft } from "lucide-react";
+import { MapPin, Users, Trophy, ChevronLeft, ChevronRight } from "lucide-react";
+import { BracketCategoryView } from "@/components/chaveamento/BracketView";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { InscricaoButton } from "@/components/campeonatos/InscricaoButton";
@@ -188,7 +189,7 @@ export default async function CampeonatoDetalhePage({
             </span>
           )}
         </div>
-        {getBracket(championship.id) && (
+        {getBracket(championship.id) && championship.status !== "em_andamento" && (
           <div className="mt-4">
             <Link
               href={`/campeonatos/${championship.id}/chaveamento`}
@@ -201,7 +202,33 @@ export default async function CampeonatoDetalhePage({
         )}
       </div>
 
-      {/* "Mapa" — placeholder visual até integrarmos um provedor de mapas de verdade */}
+      {/* Chaveamento inline — só aparece quando o camp está em andamento */}
+      {(() => {
+        const bracket = getBracket(championship.id);
+        if (!bracket || championship.status !== "em_andamento") return null;
+        const cat = bracket.categories[0];
+        return (
+          <section>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <Trophy className="size-5 text-blue-500" />
+                Chaveamento ao vivo
+              </h2>
+              {bracket.categories.length > 1 && (
+                <Link
+                  href={`/campeonatos/${championship.id}/chaveamento`}
+                  className="flex items-center gap-0.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+                >
+                  Ver todas as categorias <ChevronRight className="size-4" />
+                </Link>
+              )}
+            </div>
+            <BracketCategoryView category={cat} />
+          </section>
+        );
+      })()}
+
+      {/* Mapa */}
       <div className="flex h-32 items-center justify-center rounded-2xl bg-gray-100 text-sm text-gray-500 ring-1 ring-black/5">
         <MapPin className="mr-2 size-4" /> Mapa de {championship.local} (em breve)
       </div>
