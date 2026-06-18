@@ -347,7 +347,13 @@ export function CamisasClient({
       }
       if (a.dataRetirada) {
         doc.setFont("helvetica", "bold"); doc.setTextColor(4, 120, 87);
-        doc.text(`Entregue ${formatDateBR(a.dataRetirada)}`, colEntrega, y);
+        const entregaTexto = a.retiradoPor
+          ? `${a.retiradoPor} — ${formatDateBR(a.dataRetirada)}`
+          : formatDateBR(a.dataRetirada);
+        let entregaFit = entregaTexto;
+        while (entregaFit.length > 1 && doc.getTextWidth(entregaFit) > 48) entregaFit = entregaFit.slice(0, -1);
+        if (entregaFit !== entregaTexto) entregaFit += "…";
+        doc.text(entregaFit, colEntrega, y);
       } else {
         doc.setFont("helvetica", "normal"); doc.setTextColor(156, 163, 175); doc.text("—", colEntrega, y);
       }
