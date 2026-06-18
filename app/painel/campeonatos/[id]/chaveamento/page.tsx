@@ -100,10 +100,13 @@ export default async function ChaveamentoPage({
   const teamsByCat: Record<string, TeamDisplay[]>                    = {};
   const catMeta:    Record<string, { nome: string; genero: string }> = {};
 
+  const seenTeams = new Set<string>();
   for (const reg of regs) {
     const team    = reg.teams;
     const catData = reg.championship_categories;
     if (!team || !catData) continue;
+    if (seenTeams.has(team.id)) continue;
+    seenTeams.add(team.id);
 
     const a1   = profileMap[team.atleta1_id];
     const a2   = team.atleta2_id ? profileMap[team.atleta2_id] : null;

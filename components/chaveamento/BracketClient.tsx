@@ -60,6 +60,41 @@ function ScorePill({ setsA, setsB }: { setsA: number; setsB: number }) {
   );
 }
 
+/* ─── conector entre rodadas ─── */
+
+function ConnectorColumn({ roundIndex, matchCount }: { roundIndex: number; matchCount: number }) {
+  const ri    = roundIndex;
+  const pairs = matchCount / 2;
+  const W     = 32;
+  const MID   = W / 2;
+  const h     = Math.ceil(
+    paddingTopFor(ri) + matchCount * CARD_H + Math.max(0, matchCount - 1) * gapFor(ri),
+  );
+
+  const lines = [];
+  for (let p = 0; p < pairs; p++) {
+    const y1 = SLOT_H * Math.pow(2, ri) * (2 * p + 0.5);
+    const y2 = SLOT_H * Math.pow(2, ri) * (2 * p + 1.5);
+    const ym = (y1 + y2) / 2;
+    lines.push(
+      <g key={p}>
+        <line x1={0}   y1={y1} x2={MID} y2={y1} />
+        <line x1={MID} y1={y1} x2={MID} y2={y2} />
+        <line x1={0}   y1={y2} x2={MID} y2={y2} />
+        <line x1={MID} y1={ym} x2={W}   y2={ym} />
+      </g>
+    );
+  }
+
+  return (
+    <svg width={W} height={h} className="shrink-0 self-start overflow-visible">
+      <g stroke="#d1d5db" strokeWidth={1.5} fill="none" strokeLinecap="round">
+        {lines}
+      </g>
+    </svg>
+  );
+}
+
 /* ─── sorteio ─── */
 
 function SorteioPanel({
@@ -455,13 +490,14 @@ export function BracketClient({
 
       {/* bracket */}
       {hasExistingBracket && <div className="overflow-x-auto pb-6">
-        <div className="flex gap-8" style={{ minWidth: "max-content" }}>
-          {rounds.map((round) => {
-            const ri = round.roundIndex;
-            const pt = paddingTopFor(ri);
+        <div className="flex" style={{ minWidth: "max-content" }}>
+          {rounds.flatMap((round, idx) => {
+            const ri     = round.roundIndex;
+            const pt     = paddingTopFor(ri);
+            const isLast = idx === rounds.length - 1;
 
-            return (
-              <div key={ri} className="relative flex flex-col">
+            const col = (
+              <div key={`round-${ri}`} className="relative flex flex-col">
                 {/* label posicionado acima do primeiro card */}
                 <div
                   className="absolute left-0 right-0 text-center text-[11px] font-semibold uppercase tracking-wider text-gray-400"
@@ -476,9 +512,9 @@ export function BracketClient({
                   style={{ paddingTop: `${pt}px`, gap: `${gapFor(ri)}px` }}
                 >
                   {round.matches.map((match) => {
-                    const byeA = !match.teamA && !!match.teamB;
-                    const byeB = !match.teamB && !!match.teamA;
-                    const isTBD = !match.teamA && !match.teamB;
+                    const byeA    = !match.teamA && !!match.teamB;
+                    const byeB    = !match.teamB && !!match.teamA;
+                    const isTBD   = !match.teamA && !match.teamB;
                     const hasScore = match.setsA !== null && match.setsB !== null;
 
                     return (
@@ -491,26 +527,20 @@ export function BracketClient({
                             : "bg-white shadow-sm ring-1 ring-black/10 hover:shadow-md hover:ring-blue-400"
                         }`}
                       >
-                        <SlotRow
-                          team={match.teamA}
-                          winner={match.winnerId === match.teamA?.id}
-                          bye={byeA}
-                        />
-                        {hasScore && (
-                          <ScorePill setsA={match.setsA!} setsB={match.setsB!} />
-                        )}
+                        <SlotRow team={match.teamA} winner={match.winnerId === match.teamA?.id} bye={byeA} />
+                        {hasScore && <ScorePill setsA={match.setsA!} setsB={match.setsB!} />}
                         <div className="h-px bg-gray-100" />
-                        <SlotRow
-                          team={match.teamB}
-                          winner={match.winnerId === match.teamB?.id}
-                          bye={byeB}
-                        />
+                        <SlotRow team={match.teamB} winner={match.winnerId === match.teamB?.id} bye={byeB} />
                       </button>
                     );
                   })}
                 </div>
               </div>
             );
+
+            return isLast
+              ? [col]
+              : [col, <ConnectorColumn key={`conn-${ri}`} roundIndex={ri} matchCount={round.matches.length} />];
           })}
         </div>
       </div>}
