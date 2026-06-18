@@ -80,7 +80,7 @@ export function InscricaoItem({ a1, a2, catNome, catGenero: _catGenero, valor, s
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium text-gray-900">{a1.nome}</p>
           {a2 ? (
-            <p className="truncate text-sm text-gray-500">{a2.nome}</p>
+            <p className="truncate font-medium text-gray-900">{a2.nome}</p>
           ) : (
             <p className="text-xs text-amber-500">Aguardando parceiro</p>
           )}
