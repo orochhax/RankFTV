@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, UserPen, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ChevronRight, UserPen, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { SignOutButton } from "@/components/perfil/SignOutButton";
 import { PageCard } from "@/components/campeonatos/PageCard";
@@ -145,6 +145,11 @@ export default async function PerfilPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-8 pb-32">
+
+      <Link href="/" className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors w-fit">
+        <ArrowLeft className="size-4" />
+        Início
+      </Link>
 
       {/* Cabeçalho */}
       <div className="flex items-center gap-4">
