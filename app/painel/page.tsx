@@ -3,6 +3,7 @@ import {
   CalendarDays,
   ChevronRight,
   LayoutDashboard,
+  BookOpen,
   MapPin,
   Plus,
   Tag,
@@ -144,20 +145,35 @@ export default async function PainelOrganizadorPage({
               </div>
             </div>
 
-            {/* Painel Geral — consolidado de todos os camps */}
-            <Link
-              href="/painel/geral"
-              className="flex w-full items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
-            >
-              <div className="flex items-center gap-3">
-                <LayoutDashboard className="size-5 text-blue-400" />
-                <div>
-                  <p className="font-semibold text-white">Painel Geral</p>
-                  <p className="text-xs text-white/40">Consolidado de todos os campeonatos</p>
+            {/* Atalhos do painel */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <Link
+                href="/painel/geral"
+                className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
+              >
+                <div className="flex items-center gap-3">
+                  <LayoutDashboard className="size-5 text-blue-400" />
+                  <div>
+                    <p className="font-semibold text-white">Painel Geral</p>
+                    <p className="text-xs text-white/40">Consolidado de todos os campeonatos</p>
+                  </div>
                 </div>
-              </div>
-              <ChevronRight className="size-4 text-white/30" />
-            </Link>
+                <ChevronRight className="size-4 text-white/30" />
+              </Link>
+              <Link
+                href="/painel/paginas"
+                className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
+              >
+                <div className="flex items-center gap-3">
+                  <BookOpen className="size-5 text-violet-400" />
+                  <div>
+                    <p className="font-semibold text-white">Minhas Páginas</p>
+                    <p className="text-xs text-white/40">Agrupe edições e ganhe seguidores</p>
+                  </div>
+                </div>
+                <ChevronRight className="size-4 text-white/30" />
+              </Link>
+            </div>
           </div>
         </div>
 
