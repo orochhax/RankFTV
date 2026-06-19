@@ -6,6 +6,7 @@ import { getPageChampionships } from "@/lib/supabase/pages";
 import { EditarPaginaForm } from "@/components/painel/EditarPaginaForm";
 import { AlterarHandlePagina } from "@/components/painel/AlterarHandlePagina";
 import { EtapaAtualCard } from "@/components/paginas/EtapaAtualCard";
+import { PageImagesForm } from "@/components/painel/PageImagesForm";
 import { RemoverVinculoPaginaButton } from "@/components/painel/RemoverVinculoPaginaButton";
 import { SocialLinksBar, type SocialLink } from "@/components/paginas/SocialLinksBar";
 import { ExcluirPaginaButton } from "@/components/painel/ExcluirPaginaButton";
@@ -22,7 +23,7 @@ export default async function EditarPaginaPage({
 
   const { data: page } = await supabase
     .from("pages")
-    .select("id, owner_id, nome, handle, handle_updated_at, descricao, social_links")
+    .select("id, owner_id, nome, handle, handle_updated_at, descricao, social_links, avatar_url, banner_url, banner_from, banner_to")
     .eq("id", id)
     .single();
 
@@ -48,6 +49,19 @@ export default async function EditarPaginaPage({
 
       <div className="relative -mt-4 min-h-64 rounded-t-3xl bg-gray-50 px-6 pb-24 pt-8">
         <div className="mx-auto max-w-2xl space-y-6">
+
+          {/* Foto e banner */}
+          <section className="space-y-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Foto e banner</h2>
+            <PageImagesForm
+              pageId={page.id}
+              initialAvatarUrl={(page as Record<string, unknown>).avatar_url as string | null}
+              initialBannerUrl={(page as Record<string, unknown>).banner_url as string | null}
+              pageName={page.nome}
+              bannerFrom={(page as Record<string, unknown>).banner_from as string ?? "from-blue-500"}
+              bannerTo={(page as Record<string, unknown>).banner_to as string ?? "to-cyan-400"}
+            />
+          </section>
 
           {/* Dados da página */}
           <section className="space-y-3">
