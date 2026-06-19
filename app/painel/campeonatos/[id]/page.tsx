@@ -6,6 +6,7 @@ import {
   CheckSquare,
   DollarSign,
   ExternalLink,
+  Link2,
   MapPin,
   Megaphone,
   Pencil,
@@ -14,6 +15,7 @@ import {
   Users,
   UserCog,
 } from "lucide-react";
+import { InviteRespondButtons } from "@/components/painel/InviteRespondButtons";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -93,7 +95,7 @@ export default async function PainelCampeonatoPage({
   if (camp.organizadorId !== user.id) notFound();
 
   // Tier: quiz do banco + duplas pagas (override automático)
-  const [tierRes, paidRes, orgAccountRes] = await Promise.all([
+  const [tierRes, paidRes, orgAccountRes, inviteRes] = await Promise.all([
     supabase.from("championships").select("tier_quiz").eq("id", id).maybeSingle(),
     supabase.from("registrations")
       .select("id", { count: "exact", head: true })
@@ -103,10 +105,16 @@ export default async function PainelCampeonatoPage({
       .select("chave_pix")
       .eq("user_id", user.id)
       .maybeSingle(),
+    supabase.from("page_championship_invites")
+      .select("id, page_id, pages(nome, handle)")
+      .eq("championship_id", id)
+      .eq("status", "pendente")
+      .maybeSingle(),
   ]);
   const tierQuiz    = (tierRes.data?.tier_quiz ?? null) as Partial<QuizAnswers> | null;
   const duplasPagas = paidRes.count ?? 0;
   const temChavePix = !!orgAccountRes.data?.chave_pix;
+  const pendingInvite = inviteRes.data ?? null;
   const temCategoriaPaga = camp.categorias.some((c) => (c.valorInscricao ?? 0) > 0);
 
   const vagasTotais = camp.categorias.reduce(
@@ -176,6 +184,26 @@ export default async function PainelCampeonatoPage({
       {/* ── Conteúdo branco ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-4xl space-y-8">
+
+          {/* Convite de vínculo com página pendente */}
+          {pendingInvite && (() => {
+            const pg = pendingInvite.pages as unknown as { nome: string; handle: string } | null;
+            return (
+              <div className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-200">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-100">
+                  <Link2 className="size-5 text-blue-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-blue-900">Convite de vínculo com página</p>
+                  <p className="mt-0.5 text-sm text-blue-700">
+                    A página <strong>{pg?.nome ?? "—"}</strong>{" "}
+                    <span className="text-blue-500">@{pg?.handle}</span> quer vincular este campeonato como etapa dela.
+                  </p>
+                  <InviteRespondButtons inviteId={pendingInvite.id} campId={id} />
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Aviso: chave Pix não configurada */}
           {temCategoriaPaga && !temChavePix && (

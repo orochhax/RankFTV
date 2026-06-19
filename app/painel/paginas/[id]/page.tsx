@@ -7,6 +7,7 @@ import { getPageChampionships } from "@/lib/supabase/pages";
 import { LiveFollowerCount } from "@/components/paginas/LiveFollowerCount";
 import { PagePublicHeader } from "@/components/paginas/PagePublicHeader";
 import { SocialLinksBar, type SocialLink } from "@/components/paginas/SocialLinksBar";
+import { EtapaAtualCard } from "@/components/paginas/EtapaAtualCard";
 
 function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("pt-BR", {
@@ -93,6 +94,21 @@ export default async function PaginaDetailPage({
 
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-gray-50 px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-2xl space-y-4">
+
+          <EtapaAtualCard
+            pageId={id}
+            isOwner
+            linkedChampionships={editions.map((e) => ({
+              id: e.id,
+              nome: e.nome,
+              cidade: e.cidade,
+              estado: e.estado,
+              data_inicio: e.data_inicio,
+              data_fim: e.data_fim ?? e.data_inicio,
+              status: e.status,
+            }))}
+          />
+
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-700">Edições vinculadas</h2>
             <span className="text-xs text-gray-400">

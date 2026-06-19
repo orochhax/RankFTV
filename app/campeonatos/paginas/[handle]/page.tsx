@@ -10,6 +10,7 @@ import {
 } from "@/lib/supabase/pages";
 import { PagePublicHeader } from "@/components/paginas/PagePublicHeader";
 import { SocialLinksBar, type SocialLink } from "@/components/paginas/SocialLinksBar";
+import { EtapaAtualCard } from "@/components/paginas/EtapaAtualCard";
 
 function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("pt-BR", {
@@ -103,9 +104,24 @@ export default async function PublicPagePage({
         </div>
       </div>
 
-      {/* Edições */}
+      {/* Conteúdo principal */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-2xl space-y-6">
+
+          <EtapaAtualCard
+            pageId={page.id}
+            isOwner={isOwner}
+            linkedChampionships={editions.map((e) => ({
+              id: e.id,
+              nome: e.nome,
+              cidade: e.cidade,
+              estado: e.estado,
+              data_inicio: e.data_inicio,
+              data_fim: e.data_fim ?? e.data_inicio,
+              status: e.status,
+            }))}
+          />
+
           {/* Abertas ou em andamento */}
           {abertas.length > 0 && (
             <section>
