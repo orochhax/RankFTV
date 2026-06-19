@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyPages } from "@/lib/supabase/pages";
-import { NovoCampeonatoForm } from "@/components/painel/NovoCampeonatoForm";
+import { NovoCampeonatoSection } from "@/components/painel/NovoCampeonatoSection";
 
 // O que o organizador desbloqueia ao criar — reforço de valor durante a criação.
 const DESBLOQUEIOS = [
@@ -93,9 +93,9 @@ export default async function NovoCampeonatoPage() {
         </p>
       </div>
 
-      {/* Formulário */}
+      {/* Elite card + formulário */}
       <div className="mt-6">
-        <NovoCampeonatoForm minhasPages={minhasPages} />
+        <NovoCampeonatoSection minhasPages={minhasPages} />
       </div>
     </div>
   );

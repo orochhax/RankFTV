@@ -32,6 +32,7 @@ export type CreateChampionshipInput = {
   status: "rascunho" | "inscricoes_abertas";
   categorias: CategoriaInput[];
   tierQuiz: QuizAnswers;
+  elite?: boolean;
 };
 
 // Gradientes de banner — escolhe um aleatório por enquanto (upload de imagem
@@ -106,6 +107,8 @@ export async function createChampionship(
       banner_to: bannerTo,
       tier,
       tier_quiz: input.tierQuiz,
+      is_elite: input.elite ?? false,
+      premium_fee_pendente: input.elite ? 178 : 0,
     })
     .select("id")
     .single();

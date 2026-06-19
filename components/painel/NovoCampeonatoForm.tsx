@@ -41,7 +41,7 @@ const inputClass =
   "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
 const labelClass = "block text-xs font-medium text-gray-600";
 
-export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPage[] }) {
+export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhasPages?: MinhaPage[]; elite?: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -132,6 +132,7 @@ export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPa
         pageId: pageId || undefined,
         status,
         tierQuiz: quiz as QuizAnswers,
+        elite,
         categorias: categorias
           .filter((c) => c.nome.trim())
           .map<CategoriaInput>((c) => ({

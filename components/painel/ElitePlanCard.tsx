@@ -1,0 +1,140 @@
+"use client";
+
+import { useState } from "react";
+import {
+  Crown, Check, X, ChevronDown, ChevronUp,
+  TrendingDown, Megaphone, BarChart2, Video, MessageCircle, Star,
+} from "lucide-react";
+
+const BENEFICIOS = [
+  { icon: TrendingDown, label: "Taxas reduzidas da plataforma" },
+  { icon: Star,         label: "Destaque no início do site" },
+  { icon: Megaphone,    label: "Comunicação em massa com inscritos" },
+  { icon: BarChart2,    label: "Relatório financeiro detalhado + exportação PDF/Excel" },
+  { icon: Video,        label: "Call ao vivo com o CEO para apresentar todas as funcionalidades" },
+  { icon: MessageCircle,label: "Suporte personalizado direto pelo WhatsApp" },
+];
+
+const TERMOS = [
+  "O valor de R$178,00 será descontado automaticamente das primeiras inscrições recebidas.",
+  "Você não paga nada agora — o desconto acontece conforme os atletas pagam.",
+  "As taxas reduzidas entram em vigor imediatamente após aceitar.",
+  "Caso o evento seja cancelado antes de atingir R$178 em inscrições, o saldo pendente é zerado.",
+  "Ao aceitar, você concorda com os Termos do Campeonato de Elite da RankFTV.",
+];
+
+export function ElitePlanCard({
+  elite,
+  onToggle,
+}: {
+  elite: boolean;
+  onToggle: (v: boolean) => void;
+}) {
+  const [showTerms, setShowTerms] = useState(false);
+
+  // Estado: ativado
+  if (elite) {
+    return (
+      <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 p-5 ring-2 ring-amber-300">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex size-8 items-center justify-center rounded-full bg-amber-400">
+              <Crown className="size-4 text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-amber-900">Campeonato de Elite ativado</p>
+              <p className="text-xs text-amber-600">R$178 descontados das primeiras inscrições</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => { onToggle(false); setShowTerms(false); }}
+            className="rounded-full p-1.5 text-amber-400 hover:bg-amber-100 hover:text-amber-600"
+            title="Cancelar Elite"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <ul className="mt-3 space-y-1.5">
+          {BENEFICIOS.map(({ icon: Icon, label }) => (
+            <li key={label} className="flex items-center gap-2 text-sm text-amber-800">
+              <Check className="size-3.5 shrink-0 text-amber-500" />
+              {label}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  // Estado: termos abertos
+  if (showTerms) {
+    return (
+      <div className="rounded-2xl border-2 border-amber-200 bg-white p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Crown className="size-5 text-amber-500" />
+          <h3 className="font-bold text-gray-900">Termos do Campeonato de Elite</h3>
+        </div>
+
+        <ul className="space-y-2 mb-5">
+          {TERMOS.map((t) => (
+            <li key={t} className="flex items-start gap-2 text-sm text-gray-600">
+              <Check className="size-3.5 mt-0.5 shrink-0 text-amber-500" />
+              {t}
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => { onToggle(true); }}
+            className="flex-1 rounded-xl bg-amber-400 py-2.5 text-sm font-semibold text-white hover:bg-amber-500 transition-colors"
+          >
+            Li e aceito os termos
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowTerms(false)}
+            className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado: padrão — mostra benefícios + botão
+  return (
+    <div className="rounded-2xl bg-gradient-to-br from-[#1a1a24] to-[#0f0f18] p-5 ring-1 ring-amber-400/20">
+      <div className="flex items-center gap-2 mb-1">
+        <Crown className="size-5 text-amber-400" />
+        <p className="font-bold text-white">Campeonato de Elite</p>
+        <span className="ml-auto rounded-full bg-amber-400/20 px-2.5 py-0.5 text-xs font-semibold text-amber-300">
+          R$178 / evento
+        </span>
+      </div>
+      <p className="text-xs text-white/40 mb-4">
+        Descontado automaticamente das primeiras inscrições — sem pagar agora.
+      </p>
+
+      <ul className="space-y-2 mb-5">
+        {BENEFICIOS.map(({ icon: Icon, label }) => (
+          <li key={label} className="flex items-center gap-2 text-sm text-white/70">
+            <Icon className="size-3.5 shrink-0 text-amber-400" />
+            {label}
+          </li>
+        ))}
+      </ul>
+
+      <button
+        type="button"
+        onClick={() => setShowTerms(true)}
+        className="w-full rounded-xl bg-amber-400 py-2.5 text-sm font-semibold text-gray-900 hover:bg-amber-300 transition-colors"
+      >
+        Quero o Campeonato de Elite
+      </button>
+    </div>
+  );
+}

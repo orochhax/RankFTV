@@ -1,0 +1,3 @@
+ALTER TABLE championships
+  ADD COLUMN IF NOT EXISTS is_elite             BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS premium_fee_pendente NUMERIC DEFAULT 0;
