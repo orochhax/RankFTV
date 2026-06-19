@@ -2,17 +2,24 @@
 
 import { useState } from "react";
 import {
-  Crown, Check, X, ChevronDown, ChevronUp,
-  TrendingDown, Megaphone, BarChart2, Video, MessageCircle, Star,
+  Crown, Check, X,
+  TrendingDown, Video, Star, MessageCircle,
+  Sparkles, Megaphone, BarChart2, Wallet, QrCode, Network, TrendingUp, Shirt,
 } from "lucide-react";
 
-const BENEFICIOS = [
-  { icon: TrendingDown, label: "Taxas reduzidas da plataforma" },
-  { icon: Star,         label: "Destaque no início do site" },
-  { icon: Megaphone,    label: "Comunicação em massa com inscritos" },
-  { icon: BarChart2,    label: "Relatório financeiro detalhado + exportação PDF/Excel" },
-  { icon: Video,        label: "Call ao vivo com o CEO para apresentar todas as funcionalidades" },
-  { icon: MessageCircle,label: "Suporte personalizado direto pelo WhatsApp" },
+const BENEFICIOS_ELITE = [
+  { icon: TrendingDown,  label: "Taxas reduzidas da plataforma" },
+  { icon: Video,         label: "Call ao vivo com o CEO para apresentar todas as funcionalidades" },
+  { icon: Star,          label: "Destaque no início do site — seu campeonato fica fixado na tela inicial" },
+  { icon: MessageCircle, label: "Suporte priorizado direto pelo WhatsApp" },
+  { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa" },
+  { icon: Megaphone,     label: "Comunicação em massa com inscritos" },
+  { icon: BarChart2,     label: "Relatório financeiro detalhado + exportação PDF/Excel" },
+  { icon: Wallet,        label: "Inscrição e pagamento online" },
+  { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila" },
+  { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real" },
+  { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu" },
+  { icon: Shirt,         label: "Camisas por tamanho — saiba quantas P/M/G/GG encomendar" },
 ];
 
 const TERMOS = [
@@ -32,7 +39,7 @@ export function ElitePlanCard({
 }) {
   const [showTerms, setShowTerms] = useState(false);
 
-  // Estado: ativado
+  // Ativado
   if (elite) {
     return (
       <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 p-5 ring-2 ring-amber-300">
@@ -55,10 +62,10 @@ export function ElitePlanCard({
             <X className="size-4" />
           </button>
         </div>
-        <ul className="mt-3 space-y-1.5">
-          {BENEFICIOS.map(({ icon: Icon, label }) => (
-            <li key={label} className="flex items-center gap-2 text-sm text-amber-800">
-              <Check className="size-3.5 shrink-0 text-amber-500" />
+        <ul className="mt-3 grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
+          {BENEFICIOS_ELITE.map(({ icon: Icon, label }) => (
+            <li key={label} className="flex items-start gap-2 text-sm text-amber-800">
+              <Check className="size-3.5 mt-0.5 shrink-0 text-amber-500" />
               {label}
             </li>
           ))}
@@ -67,7 +74,7 @@ export function ElitePlanCard({
     );
   }
 
-  // Estado: termos abertos
+  // Termos
   if (showTerms) {
     return (
       <div className="rounded-2xl border-2 border-amber-200 bg-white p-5">
@@ -75,7 +82,6 @@ export function ElitePlanCard({
           <Crown className="size-5 text-amber-500" />
           <h3 className="font-bold text-gray-900">Termos do Campeonato de Elite</h3>
         </div>
-
         <ul className="space-y-2 mb-5">
           {TERMOS.map((t) => (
             <li key={t} className="flex items-start gap-2 text-sm text-gray-600">
@@ -84,11 +90,10 @@ export function ElitePlanCard({
             </li>
           ))}
         </ul>
-
         <div className="flex gap-3">
           <button
             type="button"
-            onClick={() => { onToggle(true); }}
+            onClick={() => onToggle(true)}
             className="flex-1 rounded-xl bg-amber-400 py-2.5 text-sm font-semibold text-white hover:bg-amber-500 transition-colors"
           >
             Li e aceito os termos
@@ -105,7 +110,7 @@ export function ElitePlanCard({
     );
   }
 
-  // Estado: padrão — mostra benefícios + botão
+  // Padrão — mostra benefícios
   return (
     <div className="rounded-2xl bg-gradient-to-br from-[#1a1a24] to-[#0f0f18] p-5 ring-1 ring-amber-400/20">
       <div className="flex items-center gap-2 mb-1">
@@ -118,16 +123,14 @@ export function ElitePlanCard({
       <p className="text-xs text-white/40 mb-4">
         Descontado automaticamente das primeiras inscrições — sem pagar agora.
       </p>
-
-      <ul className="space-y-2 mb-5">
-        {BENEFICIOS.map(({ icon: Icon, label }) => (
-          <li key={label} className="flex items-center gap-2 text-sm text-white/70">
-            <Icon className="size-3.5 shrink-0 text-amber-400" />
+      <ul className="grid gap-x-4 gap-y-2 sm:grid-cols-2 mb-5">
+        {BENEFICIOS_ELITE.map(({ icon: Icon, label }) => (
+          <li key={label} className="flex items-start gap-2 text-sm text-white/70">
+            <Icon className="size-3.5 mt-0.5 shrink-0 text-amber-400" />
             {label}
           </li>
         ))}
       </ul>
-
       <button
         type="button"
         onClick={() => setShowTerms(true)}

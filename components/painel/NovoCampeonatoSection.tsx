@@ -1,21 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { Wallet, QrCode, Sparkles, Network, TrendingUp, Shirt, Megaphone } from "lucide-react";
+import {
+  MessageCircle, Wallet, QrCode, Sparkles,
+  Network, TrendingUp, Shirt, Megaphone, Check,
+} from "lucide-react";
 import { ElitePlanCard } from "./ElitePlanCard";
 import { NovoCampeonatoForm } from "./NovoCampeonatoForm";
 import type { PageWithStats } from "@/lib/supabase/pages";
 
 type MinhaPage = Pick<PageWithStats, "id" | "nome" | "handle">;
 
-const DESBLOQUEIOS = [
-  { icon: Wallet,     titulo: "Inscrição e pagamento online", desc: "Atleta paga na hora, dinheiro confirmado." },
-  { icon: QrCode,     titulo: "Check-in por QR",              desc: "Credencial no celular, portaria sem fila." },
-  { icon: Sparkles,   titulo: "Categoria balanceada",         desc: "A plataforma sugere a categoria certa.", destaque: true },
-  { icon: Network,    titulo: "Chaveamento ao vivo",          desc: "Chave e resultados em tempo real pro público." },
-  { icon: TrendingUp, titulo: "Financeiro em tempo real",     desc: "Veja quanto entrou e quanto é seu." },
-  { icon: Shirt,      titulo: "Camisas por tamanho",          desc: "Saiba quantas P/M/G/GG encomendar." },
-  { icon: Megaphone,  titulo: "Comunicação com inscritos",    desc: "Avise todo mundo num clique." },
+const BENEFICIOS_PADRAO = [
+  { icon: MessageCircle, label: "Atendimento direto pelo WhatsApp" },
+  { icon: Wallet,        label: "Inscrição e pagamento online — atleta paga na hora, dinheiro confirmado" },
+  { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila" },
+  { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa" },
+  { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público" },
+  { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu" },
+  { icon: Shirt,         label: "Camisas por tamanho — saiba quantas P/M/G/GG encomendar" },
+  { icon: Megaphone,     label: "Comunicação com inscritos — avise todo mundo num clique" },
 ];
 
 export function NovoCampeonatoSection({ minhasPages }: { minhasPages: MinhaPage[] }) {
@@ -24,34 +28,20 @@ export function NovoCampeonatoSection({ minhasPages }: { minhasPages: MinhaPage[
   return (
     <div className="space-y-4">
 
-      {/* 1. Elite card — primeiro */}
+      {/* 1. Campeonato de Elite */}
       <ElitePlanCard elite={elite} onToggle={setElite} />
 
-      {/* 2. Card preto — o que vem junto */}
+      {/* 2. Campeonato Padrão */}
       <div className="rounded-2xl bg-[#0f0f13] p-5 text-white sm:p-6">
-        <p className="text-xs font-semibold uppercase tracking-widest text-blue-400">
-          Tudo isso já vem junto
-        </p>
-        <p className="mt-1 text-sm text-white/50">
-          Assim que você criar, seu painel libera:
-        </p>
-        <ul className="mt-4 grid gap-x-5 gap-y-3 sm:grid-cols-2">
-          {DESBLOQUEIOS.map(({ icon: Icon, titulo, desc, destaque }) => (
-            <li key={titulo} className="flex gap-3">
-              <div className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${destaque ? "bg-blue-600" : "bg-white/10"}`}>
-                <Icon className="size-4 text-white" strokeWidth={1.8} />
-              </div>
-              <div className="min-w-0">
-                <p className="flex items-center gap-1.5 text-sm font-medium text-white">
-                  {titulo}
-                  {destaque && (
-                    <span className="rounded-full bg-blue-600/30 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-300">
-                      Exclusivo
-                    </span>
-                  )}
-                </p>
-                <p className="text-xs text-white/40">{desc}</p>
-              </div>
+        <div className="mb-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Campeonato Padrão</p>
+          <p className="mt-0.5 text-sm text-white/50">O que já vem incluso em todos os campeonatos:</p>
+        </div>
+        <ul className="grid gap-x-5 gap-y-2.5 sm:grid-cols-2">
+          {BENEFICIOS_PADRAO.map(({ icon: Icon, label }) => (
+            <li key={label} className="flex items-start gap-2.5 text-sm text-white/70">
+              <Icon className="size-4 mt-0.5 shrink-0 text-white/30" strokeWidth={1.8} />
+              {label}
             </li>
           ))}
         </ul>
