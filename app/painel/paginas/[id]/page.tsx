@@ -5,6 +5,7 @@ import { ArrowLeft, Users, BookOpen, ExternalLink, Calendar, MapPin } from "luci
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPageChampionships } from "@/lib/supabase/pages";
+import { LiveFollowerCount } from "@/components/paginas/LiveFollowerCount";
 
 function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("pt-BR", {
@@ -97,7 +98,7 @@ export default async function PaginaDetailPage({
             <div className="mt-3 flex items-center gap-4 text-sm text-white/50">
               <span className="flex items-center gap-1">
                 <Users className="size-4" />
-                {formatSeguidores(seguidores ?? 0)} seguidores
+                <LiveFollowerCount pageId={id} initial={seguidores ?? 0} /> seguidores
               </span>
               <span className="flex items-center gap-1">
                 <BookOpen className="size-4" />
