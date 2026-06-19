@@ -70,6 +70,41 @@ CREATE POLICY credentials_update_organizer ON credentials FOR UPDATE
     )
   );
 
+-- Staff com can_qrcode vê todas as credenciais do campeonato
+DROP POLICY IF EXISTS credentials_select_staff ON credentials;
+CREATE POLICY credentials_select_staff ON credentials FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM championship_staff cs
+      WHERE cs.championship_id = credentials.championship_id
+        AND cs.user_id = auth.uid()
+        AND cs.status = 'aceito'
+        AND cs.can_qrcode = true
+    )
+  );
+
+-- Staff com can_qrcode pode marcar check-in
+DROP POLICY IF EXISTS credentials_update_staff ON credentials;
+CREATE POLICY credentials_update_staff ON credentials FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM championship_staff cs
+      WHERE cs.championship_id = credentials.championship_id
+        AND cs.user_id = auth.uid()
+        AND cs.status = 'aceito'
+        AND cs.can_qrcode = true
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM championship_staff cs
+      WHERE cs.championship_id = credentials.championship_id
+        AND cs.user_id = auth.uid()
+        AND cs.status = 'aceito'
+        AND cs.can_qrcode = true
+    )
+  );
+
 -- ── GRANTS ────────────────────────────────────────────────────
 
 GRANT SELECT ON credentials TO anon, authenticated;

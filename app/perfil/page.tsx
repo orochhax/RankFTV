@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, UserPen, ShieldCheck, Users } from "lucide-react";
-import { aceitarConvite, recusarConvite } from "./convite-actions";
+import { ChevronRight, UserPen, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { SignOutButton } from "@/components/perfil/SignOutButton";
 import { SeriesCard } from "@/components/campeonatos/SeriesCard";
@@ -43,6 +42,7 @@ const Q_LABELS = {
     A_elite: "Compete na categoria A ou Elite",
   },
 } as const;
+
 const TIER_LABEL: Record<string, string> = {
   nacional: "Nacional",
   regional: "Regional",
@@ -59,9 +59,7 @@ const COR_CLASSES: Record<string, string> = {
 
 export default async function PerfilPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
 
@@ -110,35 +108,6 @@ export default async function PerfilPage() {
       .single(),
   ]);
 
-  // Convites de dupla pendentes (outros atletas adicionaram este usuário como parceiro)
-  const { data: convitesRaw } = await supabase
-    .from("teams")
-    .select("id, atleta1_id, championship_id, category_id, championships(nome), championship_categories(nome)")
-    .eq("atleta2_id", user.id)
-    .eq("status", "convite_pendente");
-
-  type ConviteRow = {
-    id: string;
-    atleta1_id: string;
-    championship_id: string;
-    category_id: string;
-    championships: { nome: string } | null;
-    championship_categories: { nome: string } | null;
-  };
-  const convitesBase = (convitesRaw ?? []) as unknown as ConviteRow[];
-
-  // Busca nomes dos atletas que enviaram convite
-  const atleta1Ids = [...new Set(convitesBase.map((c) => c.atleta1_id))];
-  const { data: atleta1Profiles } = atleta1Ids.length > 0
-    ? await supabase.from("profiles").select("id, nome, username").in("id", atleta1Ids)
-    : { data: [] };
-  const profMap = Object.fromEntries((atleta1Profiles ?? []).map((p) => [p.id, p]));
-
-  const convites = convitesBase.map((c) => ({
-    ...c,
-    atleta1: profMap[c.atleta1_id] ?? null,
-  }));
-
   const total = campeonatosOrganizados?.length ?? 0;
   const totalPontos = historico?.reduce((s, r) => s + r.pontos, 0) ?? 0;
 
@@ -146,7 +115,7 @@ export default async function PerfilPage() {
   const seriesSeguidas = SERIES.filter((s) => followedSeriesIds.includes(s.id));
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-6 py-8">
+    <div className="mx-auto max-w-2xl space-y-6 px-6 py-8 pb-32">
 
       {/* Cabeçalho */}
       <div className="flex items-center gap-4">
@@ -164,52 +133,6 @@ export default async function PerfilPage() {
           )}
         </div>
       </div>
-
-      {/* Convites de dupla pendentes */}
-      {convites.length > 0 && (
-        <section className="rounded-2xl bg-amber-50 p-5 ring-1 ring-amber-200">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-amber-800">
-            <Users className="size-4" />
-            Convites de dupla ({convites.length})
-          </h2>
-          <div className="mt-3 space-y-3">
-            {convites.map((c) => (
-              <div key={c.id} className="rounded-xl bg-white p-4 ring-1 ring-amber-100">
-                <p className="font-medium text-gray-900">{c.championships?.nome ?? "Campeonato"}</p>
-                <p className="text-sm text-gray-500">Categoria {c.championship_categories?.nome ?? "—"}</p>
-                {c.atleta1 && (
-                  <p className="mt-1 text-sm text-gray-600">
-                    Convite de{" "}
-                    <span className="font-medium">{c.atleta1.nome}</span>
-                    {" "}
-                    <span className="text-gray-400">@{c.atleta1.username}</span>
-                  </p>
-                )}
-                <div className="mt-3 flex gap-2">
-                  <form action={aceitarConvite}>
-                    <input type="hidden" name="team_id" value={c.id} />
-                    <button
-                      type="submit"
-                      className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-                    >
-                      Aceitar
-                    </button>
-                  </form>
-                  <form action={recusarConvite}>
-                    <input type="hidden" name="team_id" value={c.id} />
-                    <button
-                      type="submit"
-                      className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 transition-colors"
-                    >
-                      Recusar
-                    </button>
-                  </form>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Nível / Questionário */}
       {profile.questionario ? (
@@ -250,11 +173,10 @@ export default async function PerfilPage() {
         </Link>
       )}
 
-      {/* Organizador — logo abaixo do perfil */}
+      {/* Organizador */}
       <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
         <h2 className="text-sm font-semibold text-gray-500">Organizador</h2>
         {organizerAccount?.habilitado ? (
-          /* Conta ativa → acesso ao painel */
           <>
             <p className="mt-2 text-sm text-gray-600">
               {total > 0
@@ -269,13 +191,11 @@ export default async function PerfilPage() {
             </Link>
           </>
         ) : organizerAccount && !organizerAccount.habilitado ? (
-          /* Conta criada mas pendente de aprovação */
           <p className="mt-2 text-sm text-gray-500">
             Conta de organizador em análise. Você receberá uma notificação quando
             for aprovada.
           </p>
         ) : (
-          /* Ainda não ativou */
           <>
             <p className="mt-2 text-sm text-gray-600">
               Qualquer atleta pode criar campeonatos. Pra receber os repasses, falta

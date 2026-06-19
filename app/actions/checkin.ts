@@ -13,26 +13,35 @@ export async function markCheckin(
   championshipId: string,
 ): Promise<CheckinResult> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Não autenticado" };
 
-  // Só o dono do campeonato pode fazer check-in.
-  const { data: champ } = await supabase
-    .from("championships")
-    .select("organizador_id")
-    .eq("id", championshipId)
-    .maybeSingle();
+  // Permite: organizador do campeonato OU staff aceito com can_qrcode
+  const [{ data: champ }, { data: staffRow }] = await Promise.all([
+    supabase
+      .from("championships")
+      .select("organizador_id")
+      .eq("id", championshipId)
+      .maybeSingle(),
+    supabase
+      .from("championship_staff")
+      .select("can_qrcode")
+      .eq("championship_id", championshipId)
+      .eq("user_id", user.id)
+      .eq("status", "aceito")
+      .maybeSingle(),
+  ]);
 
-  if (!champ || champ.organizador_id !== user.id) {
+  const isOrganizer = champ?.organizador_id === user.id;
+  const isStaff     = staffRow?.can_qrcode === true;
+
+  if (!isOrganizer && !isStaff) {
     return { error: "Sem permissão para este campeonato" };
   }
 
-  const token = input.trim();
+  const token      = input.trim();
   const tokenUpper = token.toUpperCase();
 
-  // Busca credencial pelo qr_token OU pelo code curto (case-insensitive).
   const { data: cred } = await supabase
     .from("credentials")
     .select("id, checked_in, user_id")
@@ -44,7 +53,6 @@ export async function markCheckin(
     return { error: "Código não encontrado neste campeonato" };
   }
 
-  // Nome do atleta para o toast.
   const { data: profile } = await supabase
     .from("profiles")
     .select("nome")
@@ -57,16 +65,16 @@ export async function markCheckin(
     return { alreadyDone: true, nome };
   }
 
-  // Marca check-in e registra quem escaneou.
   await supabase
     .from("credentials")
     .update({
-      checked_in: true,
-      checkin_at: new Date().toISOString(),
-      checked_in_by: user.id,
+      checked_in:     true,
+      checkin_at:     new Date().toISOString(),
+      checked_in_by:  user.id,
     })
     .eq("id", cred.id);
 
   revalidatePath(`/painel/campeonatos/${championshipId}/checkin`);
+  revalidatePath(`/staff/${championshipId}/qrcode`);
   return { ok: true, nome };
 }

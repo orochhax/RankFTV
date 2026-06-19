@@ -1,101 +1,193 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Bell, ChevronLeft } from "lucide-react";
+import { Bell, ShieldCheck, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { marcarTodasLidas } from "./actions";
+import { aceitarConvite, recusarConvite } from "@/app/perfil/convite-actions";
+import { aceitarConviteStaff, recusarConviteStaff } from "@/app/perfil/staff-actions";
+
+type StaffRow = {
+  id: string;
+  invited_by: string;
+  can_qrcode: boolean;
+  can_inscricoes: boolean;
+  can_chaveamento: boolean;
+  championships: { id: string; nome: string } | null;
+};
+
+type ConviteRow = {
+  id: string;
+  atleta1_id: string;
+  championship_id: string;
+  category_id: string;
+  championships: { nome: string } | null;
+  championship_categories: { nome: string } | null;
+};
 
 export default async function NotificacoesPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: notifs } = await supabase
-    .from("notifications")
-    .select("id, titulo, mensagem, tipo, lida, created_at, championship_id")
+  // --- Convites de staff pendentes ---
+  // Busca sem join de profiles (invited_by referencia auth.users, não profiles)
+  const { data: rawStaff } = await supabase
+    .from("championship_staff")
+    .select("id, invited_by, can_qrcode, can_inscricoes, can_chaveamento, championships(id, nome)")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(50);
+    .eq("status", "pendente")
+    .order("created_at", { ascending: false });
 
-  const lista = notifs ?? [];
-  const temNaoLidas = lista.some((n) => !n.lida);
+  const staffRows = (rawStaff ?? []) as unknown as StaffRow[];
 
-  function timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const min  = Math.floor(diff / 60000);
-    if (min < 60) return `${min} min atrás`;
-    const h = Math.floor(min / 60);
-    if (h < 24) return `${h}h atrás`;
-    const d = Math.floor(h / 24);
-    return `${d}d atrás`;
-  }
+  // Busca perfis dos organizadores que enviaram o convite
+  const inviterIds = [...new Set(staffRows.map((r) => r.invited_by))];
+  const { data: inviterProfiles } = inviterIds.length > 0
+    ? await supabase.from("profiles").select("id, nome, username").in("id", inviterIds)
+    : { data: [] };
+  const inviterMap = Object.fromEntries((inviterProfiles ?? []).map((p) => [p.id, p]));
+
+  const staffConvites = staffRows.map((r) => ({
+    ...r,
+    inviter: inviterMap[r.invited_by] ?? null,
+  }));
+
+  // --- Convites de dupla pendentes ---
+  const { data: convitesRaw } = await supabase
+    .from("teams")
+    .select("id, atleta1_id, championship_id, category_id, championships(nome), championship_categories(nome)")
+    .eq("atleta2_id", user.id)
+    .eq("status", "convite_pendente");
+
+  const convitesBase = (convitesRaw ?? []) as unknown as ConviteRow[];
+
+  const atleta1Ids = [...new Set(convitesBase.map((c) => c.atleta1_id))];
+  const { data: atleta1Profiles } = atleta1Ids.length > 0
+    ? await supabase.from("profiles").select("id, nome, username").in("id", atleta1Ids)
+    : { data: [] };
+  const profMap = Object.fromEntries((atleta1Profiles ?? []).map((p) => [p.id, p]));
+
+  const convites = convitesBase.map((c) => ({
+    ...c,
+    atleta1: profMap[c.atleta1_id] ?? null,
+  }));
+
+  const total = staffConvites.length + convites.length;
 
   return (
-    <div className="min-h-screen">
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-2xl space-y-4">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
-          >
-            <ChevronLeft className="size-4" /> Início
-          </Link>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold tracking-tight text-white">Notificações</h1>
-            {temNaoLidas && (
-              <form action={marcarTodasLidas}>
-                <input type="hidden" name="user_id" value={user.id} />
-                <button
-                  type="submit"
-                  className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  Marcar todas como lidas
-                </button>
-              </form>
-            )}
-          </div>
+    <div className="mx-auto max-w-2xl space-y-6 px-6 py-8 pb-32">
+      <div className="flex items-center gap-3">
+        <div className="flex size-10 items-center justify-center rounded-full bg-blue-100">
+          <Bell className="size-5 text-blue-600" />
         </div>
-      </div>
-
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-6 shadow-sm">
-        <div className="mx-auto max-w-2xl">
-          {lista.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-20 text-center">
-              <div className="flex size-16 items-center justify-center rounded-full bg-gray-100">
-                <Bell className="size-8 text-gray-300" />
-              </div>
-              <p className="font-medium text-gray-600">Sem notificações</p>
-              <p className="text-sm text-gray-400">Avisos do campeonato vão aparecer aqui.</p>
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-100">
-              {lista.map((n) => (
-                <li key={n.id} className={`py-4 ${!n.lida ? "relative" : ""}`}>
-                  {!n.lida && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-blue-500" />
-                  )}
-                  <div className={!n.lida ? "pl-5" : ""}>
-                    <div className="flex items-start justify-between gap-3">
-                      <p className={`text-sm font-semibold ${n.lida ? "text-gray-700" : "text-gray-900"}`}>
-                        {n.titulo}
-                      </p>
-                      <span className="shrink-0 text-xs text-gray-400">{timeAgo(n.created_at)}</span>
-                    </div>
-                    <p className="mt-0.5 text-sm text-gray-500">{n.mensagem}</p>
-                    {n.championship_id && (
-                      <Link
-                        href={`/campeonatos/${n.championship_id}`}
-                        className="mt-1 inline-block text-xs font-medium text-blue-600 hover:text-blue-700"
-                      >
-                        Ver campeonato →
-                      </Link>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900">Notificações</h1>
+          {total > 0 && (
+            <p className="text-sm text-gray-500">{total} {total === 1 ? "pendente" : "pendentes"}</p>
           )}
         </div>
       </div>
+
+      {total === 0 ? (
+        <div className="flex flex-col items-center gap-3 rounded-2xl bg-gray-50 py-16 text-center ring-1 ring-black/5">
+          <Bell className="size-10 text-gray-200" />
+          <p className="text-sm font-medium text-gray-500">Tudo em dia</p>
+          <p className="text-xs text-gray-400">Nenhuma notificação pendente.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Convites de staff */}
+          {staffConvites.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                <ShieldCheck className="size-4" /> Convites de staff
+              </h2>
+              {staffConvites.map((c) => {
+                const perms = [
+                  c.can_qrcode      && "QR Code",
+                  c.can_inscricoes  && "Inscrições",
+                  c.can_chaveamento && "Chaveamento",
+                ].filter(Boolean).join(", ");
+                return (
+                  <div key={c.id} className="rounded-2xl bg-blue-50 p-5 ring-1 ring-blue-200">
+                    <div className="flex items-start gap-3">
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                        <ShieldCheck className="size-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900">{c.championships?.nome ?? "Campeonato"}</p>
+                        {c.inviter && (
+                          <p className="text-sm text-gray-500">
+                            Convidado por{" "}
+                            <span className="font-medium">{c.inviter.nome}</span>
+                            {" "}<span className="text-gray-400">@{c.inviter.username}</span>
+                          </p>
+                        )}
+                        {perms && (
+                          <p className="mt-1 text-xs font-medium text-blue-600">Acesso: {perms}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-4 flex gap-2">
+                      <form action={aceitarConviteStaff.bind(null, c.id)}>
+                        <button type="submit" className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                          Aceitar
+                        </button>
+                      </form>
+                      <form action={recusarConviteStaff.bind(null, c.id)}>
+                        <button type="submit" className="rounded-xl bg-white px-5 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50">
+                          Recusar
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                );
+              })}
+            </section>
+          )}
+
+          {/* Convites de dupla */}
+          {convites.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                <Users className="size-4" /> Convites de dupla
+              </h2>
+              {convites.map((c) => (
+                <div key={c.id} className="rounded-2xl bg-amber-50 p-5 ring-1 ring-amber-200">
+                  <div className="flex items-start gap-3">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                      <Users className="size-4 text-amber-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900">{c.championships?.nome ?? "Campeonato"}</p>
+                      <p className="text-sm text-gray-500">Categoria {c.championship_categories?.nome ?? "—"}</p>
+                      {c.atleta1 && (
+                        <p className="text-sm text-gray-600 mt-0.5">
+                          Convite de{" "}
+                          <span className="font-medium">{c.atleta1.nome}</span>
+                          {" "}<span className="text-gray-400">@{c.atleta1.username}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <form action={aceitarConvite}>
+                      <input type="hidden" name="team_id" value={c.id} />
+                      <button type="submit" className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                        Aceitar
+                      </button>
+                    </form>
+                    <form action={recusarConvite}>
+                      <input type="hidden" name="team_id" value={c.id} />
+                      <button type="submit" className="rounded-xl bg-white px-5 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50">
+                        Recusar
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </section>
+          )}
+        </div>
+      )}
     </div>
   );
 }

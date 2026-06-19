@@ -559,6 +559,7 @@ export function BracketClient({
   availableTeams,
   confirmedAt,
   thirdPlaceMatch,
+  canConfirm = true,
 }: {
   champId:          string;
   catId:            string;
@@ -566,6 +567,7 @@ export function BracketClient({
   availableTeams:   TeamDisplay[];
   confirmedAt:      string | null;
   thirdPlaceMatch:  MatchDisplay | null;
+  canConfirm?:      boolean;
 }) {
   const [modalState, setModalState]         = useState<ModalState | null>(null);
   const [confirmReset, setConfirmReset]     = useState(false);
@@ -1002,8 +1004,8 @@ export function BracketClient({
             </div>
           )}
 
-          {/* Botão confirmar vencedores */}
-          {!isConfirmed && (
+          {/* Botão confirmar vencedores — só para organizador */}
+          {!isConfirmed && canConfirm && (
             <button
               onClick={() => { setConfirmError(null); setShowConfirmModal(true); }}
               disabled={!podium || isPending}

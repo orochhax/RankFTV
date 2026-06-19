@@ -110,6 +110,26 @@ export function conviteAceitoHtml(opts: {
   return base("Dupla confirmada!", corpo);
 }
 
+export function conviteStaffHtml(opts: {
+  nomeConvidado: string;
+  nomeOrganizador: string;
+  nomeCampeonato: string;
+  permissoes: string;
+  notificacoesUrl: string;
+}): string {
+  const corpo = `
+    ${p(`Oi, <strong>${opts.nomeConvidado}</strong>!`)}
+    ${p(`<strong>${opts.nomeOrganizador}</strong> te convidou para fazer parte da equipe de staff do campeonato:`)}
+    <div style="margin:16px 0;padding:16px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#1e3a8a;">${opts.nomeCampeonato}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#3b82f6;">Acesso: ${opts.permissoes}</p>
+    </div>
+    ${p("Acesse suas notificações para aceitar ou recusar o convite.")}
+    ${btn("Ver convite", opts.notificacoesUrl)}
+  `;
+  return base("Você foi convidado para ser staff!", corpo);
+}
+
 export function pagamentoConfirmadoHtml(opts: {
   nomeAtleta: string;
   nomeCampeonato: string;

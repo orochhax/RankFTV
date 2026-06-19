@@ -6,6 +6,7 @@ import {
   inscricaoConfirmadaHtml,
   conviteAceitoHtml,
   pagamentoConfirmadoHtml,
+  conviteStaffHtml,
 } from "./templates";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
@@ -76,6 +77,27 @@ export async function enviarConviteAceito(opts: {
       nomeCampeonato: opts.nomeCampeonato,
       nomeCategoria: opts.nomeCategoria,
       inscricoesUrl: `${BASE_URL}/minhas-inscricoes/${opts.championshipId}`,
+    }),
+  );
+}
+
+export async function enviarConviteStaff(opts: {
+  emailConvidado: string;
+  nomeConvidado: string;
+  nomeOrganizador: string;
+  nomeCampeonato: string;
+  permissoes: string;
+}) {
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+  await send(
+    opts.emailConvidado,
+    `${opts.nomeOrganizador} te convidou para ser staff em ${opts.nomeCampeonato}`,
+    conviteStaffHtml({
+      nomeConvidado:    opts.nomeConvidado,
+      nomeOrganizador:  opts.nomeOrganizador,
+      nomeCampeonato:   opts.nomeCampeonato,
+      permissoes:       opts.permissoes,
+      notificacoesUrl:  `${BASE_URL}/notificacoes`,
     }),
   );
 }

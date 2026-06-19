@@ -95,6 +95,7 @@ export async function aceitarConvite(formData: FormData) {
   }
 
   revalidatePath("/perfil");
+  revalidatePath("/notificacoes");
 }
 
 export async function recusarConvite(formData: FormData) {
@@ -118,4 +119,5 @@ export async function recusarConvite(formData: FormData) {
     .eq("id", teamId);
 
   revalidatePath("/perfil");
+  revalidatePath("/notificacoes");
 }
