@@ -131,9 +131,8 @@ export function NovoCampeonatoForm() {
       };
 
       const res = await createChampionship(payload);
-      if (res.ok) {
-        router.push("/painel");
-        router.refresh();
+      if (res.ok && res.id) {
+        router.push(`/painel/campeonatos/${res.id}/criado`);
       } else {
         setError(res.error ?? "Não foi possível criar o campeonato.");
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -145,7 +144,7 @@ export function NovoCampeonatoForm() {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        submit("inscricoes_abertas");
+        submit("rascunho");
       }}
       className="space-y-6"
     >
@@ -516,18 +515,10 @@ export function NovoCampeonatoForm() {
           disabled={pending}
           className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
         >
-          {pending ? "Salvando…" : "Publicar campeonato"}
-        </button>
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() => submit("rascunho")}
-          className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
-        >
-          Salvar como rascunho
+          {pending ? "Criando…" : "Criar campeonato"}
         </button>
         <p className="text-xs text-gray-400">
-          Publicar abre as inscrições. Rascunho fica só pra você.
+          Cria como rascunho. Você publica e configura o recebimento no próximo passo.
         </p>
       </div>
     </form>

@@ -7,61 +7,60 @@ import {
   Plus,
   Tag,
   QrCode,
-  CreditCard,
-  BarChart3,
+  Wallet,
+  Network,
+  Sparkles,
   ShieldCheck,
   Shirt,
   Megaphone,
+  MessageSquare,
+  ClipboardList,
+  UserX,
+  CheckCircle2,
 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { createClient } from "@/lib/supabase/server";
 import { getMyChampionships } from "@/lib/supabase/championships";
 import { formatDateRangeBR } from "@/lib/format";
 
-const AREAS_DE_GESTAO = [
-  "Inscrições",
-  "Credenciamento/check-in",
-  "Camisas/kit",
-  "Comunicação",
-  "Destaque pago",
+// Dores do organizador hoje (agitação) — ver funil de conversão.
+const DORES = [
+  { icon: MessageSquare, texto: "Perseguir no WhatsApp quem ainda não pagou" },
+  { icon: ClipboardList, texto: "Planilha pra controlar quem se inscreveu e confirmou" },
+  { icon: UserX,         texto: "Fila e confusão na portaria no dia do evento" },
 ];
 
-const BENEFICIOS = [
-  {
-    icon: CreditCard,
-    titulo: "Inscrições e pagamento online",
-    descricao:
-      "Atletas se inscrevem e pagam direto na plataforma. Pix cai no mesmo dia, débito em D+3 — sem PIX manual, sem planilha.",
-  },
+// Funcionalidades operacionais (o diferencial vai destacado à parte no JSX).
+const FEATURES = [
   {
     icon: QrCode,
-    titulo: "Credenciamento por QR",
+    titulo: "Portaria sem caos",
     descricao:
-      "Cada atleta recebe uma credencial digital no celular. Check-in na portaria em segundos, com controle de no-show automático.",
+      "Cada atleta recebe a credencial no celular. Check-in por QR em segundos e controle de no-show automático.",
   },
   {
-    icon: BarChart3,
-    titulo: "Motor de categoria balanceada",
+    icon: Wallet,
+    titulo: "Dinheiro sem perseguição",
     descricao:
-      "A plataforma indica a categoria certa pra cada dupla com base no histórico e pontução, reduzindo inscrições incompatíveis com o nível.",
+      "Cada inscrição entra confirmada e paga. O Pix cai no mesmo dia e você acompanha em tempo real quanto já é seu — sem PIX manual, sem planilha.",
+  },
+  {
+    icon: Network,
+    titulo: "Chaveamento ao vivo",
+    descricao:
+      "A chave e os resultados aparecem em tempo real pra atletas e público acompanharem do celular — sem mural, sem foto de papel no grupo.",
   },
   {
     icon: Shirt,
-    titulo: "Gestão de camisas e kit",
+    titulo: "Camisas na medida certa",
     descricao:
-      "Painel de produção por tamanho — saiba exatamente quantas camisas P, M, G e GG encomendar antes do evento.",
+      "Painel de produção por tamanho: saiba exatamente quantas P, M, G e GG encomendar antes do evento.",
   },
   {
     icon: Megaphone,
-    titulo: "Comunicação com inscritos",
+    titulo: "Avise todos num clique",
     descricao:
-      "Avise todos os participantes com um clique: mudança de horário, resultado, informações do local.",
-  },
-  {
-    icon: ShieldCheck,
-    titulo: "Financeiro em tempo real",
-    descricao:
-      "Acompanhe quanto entrou, quanto está a caminho e quanto já foi repassado — tudo transparente, sem surpresa.",
+      "Mudança de horário, resultado, informação do local — comunique todos os inscritos de uma vez.",
   },
 ];
 
@@ -239,10 +238,12 @@ export default async function PainelOrganizadorPage({
     );
   }
 
-  // Caso 1 e 2 — landing page de conversão
+  // Caso 1 e 2 — landing page de conversão.
+  // CTA de baixo atrito: criar o campeonato primeiro; ativação (CPF/PIX) fica
+  // pra depois, no momento de publicar. Logado vai direto pra criação.
   const cta = user
-    ? { href: "/perfil/ativar-organizador", label: "Ativar minha conta de organizador" }
-    : { href: "/cadastro", label: "Criar conta grátis" };
+    ? { href: "/painel/novo-campeonato", label: "Criar campeonato grátis" }
+    : { href: "/cadastro", label: "Criar campeonato grátis" };
 
   return (
     <div className="min-h-screen">
@@ -252,14 +253,14 @@ export default async function PainelOrganizadorPage({
           <span className="inline-block rounded-full bg-blue-600/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-blue-400">
             Para organizadores
           </span>
-          <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight text-white">
-            Organize campeonatos
-            <br />
-            do jeito certo
+          <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
+            Seu campeonato sem planilha,
+            <br className="hidden sm:block" />{" "}
+            sem perseguir pagamento.
           </h1>
           <p className="mt-4 text-lg text-white/60">
-            Inscrições online, pagamento automático e credenciamento por QR —
-            tudo numa plataforma só. Chega de PIX manual e planilha no WhatsApp.
+            A plataforma cuida da inscrição, do pagamento e do credenciamento.
+            Você cuida do jogo.
           </p>
 
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
@@ -279,43 +280,105 @@ export default async function PainelOrganizadorPage({
             )}
           </div>
 
-          {!user && (
-            <p className="mt-3 text-xs text-white/30">Gratuito nos primeiros eventos</p>
-          )}
+          <p className="mt-4 text-xs text-white/30">
+            Sem custo pra começar · Sem mensalidade
+          </p>
         </div>
       </div>
 
-      {/* ── Benefícios ── */}
+      {/* ── Conteúdo branco ── */}
       <div className="relative -mt-6 rounded-t-3xl bg-white px-6 pb-24 pt-10 shadow-sm">
-        <div className="mx-auto max-w-3xl">
-          <p className="mb-6 text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
-            O que você ganha
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {BENEFICIOS.map(({ icon: Icon, titulo, descricao }) => (
-              <div key={titulo} className="rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5">
-                <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-blue-600">
-                  <Icon className="size-5 text-white" strokeWidth={1.8} />
-                </div>
-                <p className="font-semibold text-gray-900">{titulo}</p>
-                <p className="mt-1 text-sm leading-relaxed text-gray-500">{descricao}</p>
-              </div>
-            ))}
-          </div>
+        <div className="mx-auto max-w-3xl space-y-12">
 
-          {/* CTA final */}
-          <div className="mt-10 rounded-2xl bg-[#0f0f13] p-8 text-center">
-            <p className="text-lg font-bold text-white">Pronto pra começar?</p>
-            <p className="mt-1 text-sm text-white/50">
-              Leva menos de 2 minutos pra criar seu primeiro campeonato.
+          {/* Agitação de dor */}
+          <section>
+            <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
+              Você conhece isso?
             </p>
-            <Link
-              href={cta.href}
-              className="mt-5 inline-block rounded-2xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-            >
-              {cta.label}
-            </Link>
-          </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {DORES.map(({ icon: Icon, texto }) => (
+                <div
+                  key={texto}
+                  className="flex items-start gap-3 rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5"
+                >
+                  <Icon className="size-5 shrink-0 text-gray-400" strokeWidth={1.8} />
+                  <p className="text-sm text-gray-600">{texto}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-5 text-center text-base font-medium text-gray-900">
+              Tudo isso vira automático. Veja como 👇
+            </p>
+          </section>
+
+          {/* Diferencial em destaque */}
+          <section>
+            <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 p-7 text-white">
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-wider">
+                <Sparkles className="size-3.5" /> Exclusivo
+              </span>
+              <h2 className="mt-3 text-2xl font-bold">Categoria balanceada</h2>
+              <p className="mt-2 max-w-xl text-blue-50/90">
+                A plataforma indica a categoria certa pra cada dupla com base no
+                histórico e no nível dos atletas. Menos dupla forte jogando em
+                categoria fraca, chave mais justa e atleta mais satisfeito — algo
+                que nenhuma planilha faz.
+              </p>
+            </div>
+          </section>
+
+          {/* Features operacionais */}
+          <section>
+            <p className="mb-6 text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
+              E o resto da operação, redonda
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {FEATURES.map(({ icon: Icon, titulo, descricao }) => (
+                <div key={titulo} className="rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5">
+                  <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-blue-600">
+                    <Icon className="size-5 text-white" strokeWidth={1.8} />
+                  </div>
+                  <p className="font-semibold text-gray-900">{titulo}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-gray-500">{descricao}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Dinheiro / confiança — taxa enquadrada como risco zero */}
+          <section>
+            <div className="rounded-3xl bg-[#0f0f13] p-8 text-center">
+              <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-emerald-500/15">
+                <ShieldCheck className="size-6 text-emerald-400" />
+              </div>
+              <p className="mt-4 text-xl font-bold text-white">
+                Quanto custa? Nada pra começar.
+              </p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-white/50">
+                Sem mensalidade e sem taxa de cadastro. A plataforma só ganha
+                quando você ganha — uma pequena taxa por inscrição paga.
+              </p>
+              <div className="mx-auto mt-5 flex max-w-md flex-col gap-2 text-left">
+                {[
+                  "Pix do atleta cai no mesmo dia",
+                  "Você só paga quando recebe",
+                  "Repasse automático — a plataforma não segura seu dinheiro",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-2 text-sm text-white/70">
+                    <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+              <Link
+                href={cta.href}
+                className="mt-6 inline-block rounded-2xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+              >
+                {cta.label}
+              </Link>
+            </div>
+          </section>
+
         </div>
       </div>
     </div>

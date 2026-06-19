@@ -101,7 +101,7 @@ export async function createChampionship(
     .single();
 
   if (error || !champ) {
-    return { ok: false, error: "Não foi possível criar o campeonato. Tente de novo." };
+    return { ok: false, error: error?.message ?? "Não foi possível criar o campeonato. Tente de novo." };
   }
 
   const rows = categorias.map((c) => ({

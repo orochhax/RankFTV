@@ -46,13 +46,21 @@ export async function generateStaticParams() {
 
 export default async function CampeonatoDetalhePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ voltar?: string }>;
 }) {
   const { id } = await params;
+  const { voltar } = await searchParams;
   // Tenta os campeonatos de exemplo (mock); se não achar, busca no banco.
   const championship = getChampionshipById(id) ?? (await getDbChampionshipById(id));
   if (!championship) notFound();
+
+  // Quando aberto como prévia a partir do card de criação, "voltar" retorna lá.
+  const voltarCriado = voltar === "criado";
+  const backHref  = voltarCriado ? `/painel/campeonatos/${id}/criado` : "/campeonatos";
+  const backLabel = voltarCriado ? "Voltar" : "Campeonatos";
 
   const supabase    = await createClient();
   const organizador = getAthleteById(championship.organizadorId);
@@ -152,10 +160,10 @@ export default async function CampeonatoDetalhePage({
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-8">
       <Link
-        href="/campeonatos"
+        href={backHref}
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
       >
-        <ChevronLeft className="size-4" /> Campeonatos
+        <ChevronLeft className="size-4" /> {backLabel}
       </Link>
 
       <div>
