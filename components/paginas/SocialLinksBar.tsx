@@ -87,7 +87,7 @@ export function SocialLinksBar({
   if (!isOwner) {
     if (publicLinks.length === 0) return null;
     return (
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-2 w-full">
         {publicLinks.map((l) => {
           const m = META[l.type];
           return (
@@ -96,7 +96,7 @@ export function SocialLinksBar({
               href={l.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 ${m.color}`}
+              className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90 ${m.color}`}
             >
               <Link2 className="size-4" />
               {m.label}
@@ -115,12 +115,12 @@ export function SocialLinksBar({
       )}
       {/* Public preview */}
       {publicLinks.length > 0 && (
-        <div className="flex flex-wrap gap-2 pb-1">
+        <div className="flex flex-col gap-2 w-full pb-1">
           {publicLinks.map((l) => {
             const m = META[l.type];
             return (
               <a key={l.type} href={l.url} target="_blank" rel="noopener noreferrer"
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white ${m.color}`}>
+                className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-white ${m.color}`}>
                 <Link2 className="size-4" />{m.label}
               </a>
             );
