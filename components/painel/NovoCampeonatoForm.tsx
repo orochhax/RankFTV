@@ -295,7 +295,7 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
                     </div>
                   )}
 
-                  {!selected && pageDropdownOpen && (
+                  {!selected && pageDropdownOpen && pageSearch.trim().length > 0 && (
                     <div className="absolute z-10 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden">
                       {filtered.length === 0 ? (
                         <p className="px-4 py-3 text-sm text-gray-400">Nenhuma página encontrada</p>
