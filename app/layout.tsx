@@ -66,7 +66,7 @@ export default async function RootLayout({
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-white text-gray-900">
         <TopNav user={navUser} showStaff={isStaff} isAdmin={isAdmin} notifCount={notifCount} />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 pb-28 sm:pb-0">{children}</main>
         <Footer />
         <BottomNav showStaff={isStaff} isAdmin={isAdmin} notifCount={notifCount} isLoggedIn={!!navUser} />
       </body>
