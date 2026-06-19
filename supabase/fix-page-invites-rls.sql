@@ -1,25 +1,37 @@
--- Corrige as policies de RLS da tabela page_championship_invites.
--- FOR ALL USING (...) não cobre INSERT — precisa de WITH CHECK explícito.
+-- Refaz a tabela page_championship_invites com owner_id direto
+-- (evita subquery no RLS que causa permission denied com anon key)
 
-DROP POLICY IF EXISTS "invite_page_owner" ON page_championship_invites;
-DROP POLICY IF EXISTS "invite_champ_owner" ON page_championship_invites;
+DROP TABLE IF EXISTS page_championship_invites;
 
--- Dono da página pode inserir convites
-CREATE POLICY "invite_insert_page_owner" ON page_championship_invites
-  FOR INSERT WITH CHECK (
-    page_id IN (SELECT id FROM pages WHERE owner_id = auth.uid())
-  );
+CREATE TABLE page_championship_invites (
+  id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  page_id         UUID        NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+  page_owner_id   UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  championship_id UUID        NOT NULL REFERENCES championships(id) ON DELETE CASCADE,
+  status          TEXT        NOT NULL DEFAULT 'pendente'
+                              CHECK (status IN ('pendente', 'aceito', 'rejeitado')),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (page_id, championship_id)
+);
 
--- Dono da página pode ver os convites da sua página
-CREATE POLICY "invite_select_page_owner" ON page_championship_invites
+ALTER TABLE page_championship_invites ENABLE ROW LEVEL SECURITY;
+
+-- Dono da página: pode inserir e ver os próprios convites
+CREATE POLICY "invite_page_owner_insert" ON page_championship_invites
+  FOR INSERT WITH CHECK (page_owner_id = auth.uid());
+
+CREATE POLICY "invite_page_owner_select" ON page_championship_invites
+  FOR SELECT USING (page_owner_id = auth.uid());
+
+-- Dono do campeonato: pode ver e atualizar convites pendentes do seu camp
+-- (usa subquery só na direção do championship, que tem policy mais simples)
+CREATE POLICY "invite_champ_owner_select" ON page_championship_invites
   FOR SELECT USING (
-    page_id IN (SELECT id FROM pages WHERE owner_id = auth.uid())
+    championship_id IN (SELECT id FROM championships WHERE organizador_id = auth.uid())
   );
 
--- Dono do campeonato pode ver e atualizar o status
-CREATE POLICY "invite_champ_owner" ON page_championship_invites
-  FOR ALL
-  USING (
+CREATE POLICY "invite_champ_owner_update" ON page_championship_invites
+  FOR UPDATE USING (
     championship_id IN (SELECT id FROM championships WHERE organizador_id = auth.uid())
   )
   WITH CHECK (

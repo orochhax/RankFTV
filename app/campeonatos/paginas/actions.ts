@@ -53,7 +53,7 @@ export async function sendPageChampionshipInvite(
 
   const { error } = await supabase
     .from("page_championship_invites")
-    .insert({ page_id: pageId, championship_id: championshipId, status: "pendente" });
+    .insert({ page_id: pageId, page_owner_id: user.id, championship_id: championshipId, status: "pendente" });
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "Convite já enviado para esse campeonato." };
