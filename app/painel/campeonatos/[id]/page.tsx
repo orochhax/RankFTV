@@ -6,7 +6,6 @@ import {
   CheckSquare,
   DollarSign,
   ExternalLink,
-  Link2,
   MapPin,
   Megaphone,
   MoreVertical,
@@ -167,7 +166,7 @@ export default async function PainelCampeonatoPage({
                   </button>
                 }
                 items={[
-                  { label: "Vinculações", href: `/painel/campeonatos/${id}/vinculacoes`, icon: Link2 },
+                  { label: "Vinculações", href: `/painel/campeonatos/${id}/vinculacoes` },
                 ]}
               />
             </div>

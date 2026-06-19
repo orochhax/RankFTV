@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Calendar, MapPin, MoreVertical, Pencil } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, MoreVertical } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getPageChampionships } from "@/lib/supabase/pages";
 import { LiveFollowerCount } from "@/components/paginas/LiveFollowerCount";
@@ -74,7 +74,7 @@ export default async function PaginaDetailPage({
                 </button>
               }
               items={[
-                { label: "Editar página", href: `/painel/paginas/${id}/editar`, icon: Pencil },
+                { label: "Editar página", href: `/painel/paginas/${id}/editar` },
               ]}
             />
           </div>
