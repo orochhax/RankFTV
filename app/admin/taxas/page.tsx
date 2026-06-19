@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getPlatformConfig, GATEWAY_FEES } from "@/lib/platform-config";
 import { TaxasForm } from "./TaxasForm";
@@ -15,9 +17,10 @@ export default async function AdminTaxasPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-[#0f0f13] px-6 pb-12 pt-6">
         <div className="mx-auto max-w-2xl">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-white/30">
+          <Link href="/admin" className="mb-4 flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors w-fit">
+            <ArrowLeft className="size-4" />
             Admin
-          </p>
+          </Link>
           <h1 className="text-2xl font-bold tracking-tight text-white">Taxas da Plataforma</h1>
           <p className="mt-1 text-sm text-white/40">
             O organizador paga essas taxas — descontadas do repasse após pagamento confirmado.

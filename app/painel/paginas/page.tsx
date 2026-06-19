@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { Plus, Users, BookOpen, ChevronRight } from "lucide-react";
+import { ArrowLeft, Plus, Users, BookOpen, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyPages } from "@/lib/supabase/pages";
 
@@ -23,6 +23,10 @@ export default async function MinhasPaginasPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-[#0f0f13] px-6 pb-14 pt-6">
         <div className="mx-auto max-w-2xl">
+          <Link href="/painel" className="mb-4 flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors w-fit">
+            <ArrowLeft className="size-4" />
+            Painel
+          </Link>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-white">Minhas Páginas</h1>
