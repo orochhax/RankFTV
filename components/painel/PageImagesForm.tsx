@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
-import { Camera, ImagePlus, Loader2, Check, X } from "lucide-react";
+import { Camera, ImagePlus, Loader2, Check, Pencil, Trash2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { atualizarImagensPagina } from "@/app/painel/paginas/[id]/editar/actions";
 
@@ -23,31 +23,19 @@ function useImageUpload(
   async function handleFile(file: File) {
     if (!file.type.startsWith("image/")) { setError("Selecione uma imagem."); return; }
     if (file.size > 5 * 1024 * 1024) { setError("Imagem deve ter no máximo 5 MB."); return; }
-
     setError("");
     setState("saving");
-
     const ext = file.name.split(".").pop() ?? "jpg";
     const path = `${pageId}/${field}-${Date.now()}.${ext}`;
-
     const { error: uploadError } = await supabase.storage
       .from("page-images")
       .upload(path, file, { upsert: true, contentType: file.type });
-
     if (uploadError) { setError("Erro ao enviar imagem."); setState("idle"); return; }
-
     const { data: { publicUrl } } = supabase.storage.from("page-images").getPublicUrl(path);
-
     startTransition(async () => {
       const res = await atualizarImagensPagina(pageId, { [field]: publicUrl });
-      if (res.ok) {
-        setPreview(publicUrl);
-        setState("saved");
-        setTimeout(() => setState("idle"), 2500);
-      } else {
-        setError(res.error ?? "Erro ao salvar.");
-        setState("idle");
-      }
+      if (res.ok) { setPreview(publicUrl); setState("saved"); setTimeout(() => setState("idle"), 2500); }
+      else { setError(res.error ?? "Erro ao salvar."); setState("idle"); }
     });
   }
 
@@ -56,14 +44,8 @@ function useImageUpload(
     setState("saving");
     startTransition(async () => {
       const res = await atualizarImagensPagina(pageId, { [field]: "" });
-      if (res.ok) {
-        setPreview(null);
-        setState("saved");
-        setTimeout(() => setState("idle"), 2500);
-      } else {
-        setError(res.error ?? "Erro ao remover.");
-        setState("idle");
-      }
+      if (res.ok) { setPreview(null); setState("saved"); setTimeout(() => setState("idle"), 2500); }
+      else { setError(res.error ?? "Erro ao remover."); setState("idle"); }
     });
   }
 
@@ -89,45 +71,76 @@ export function PageImagesForm({
 }) {
   const avatar = useImageUpload(pageId, "avatar_url", initialAvatarUrl);
   const banner = useImageUpload(pageId, "banner_url", initialBannerUrl);
+  const [avatarMenu, setAvatarMenu] = useState(false);
+  const [bannerMenu, setBannerMenu] = useState(false);
 
   return (
-    <div className="rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden">
+    <div className="space-y-3">
 
       {/* Banner */}
-      <div className={`relative h-32 w-full group bg-gradient-to-br ${bannerFrom} ${bannerTo}`}>
-        {banner.preview && (
-          <Image src={banner.preview} alt="Banner" fill className="object-cover" sizes="100vw" />
-        )}
-
-        {/* Overlay com ações */}
-        <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-          {banner.state === "saving" ? (
-            <Loader2 className="size-7 animate-spin text-white" />
-          ) : banner.state === "saved" ? (
-            <Check className="size-7 text-white" />
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={banner.openPicker}
-                className="flex flex-col items-center gap-1 text-white hover:scale-105 transition-transform"
-              >
-                <ImagePlus className="size-6" />
-                <span className="text-xs font-medium">{banner.preview ? "Trocar" : "Adicionar"} banner</span>
-              </button>
-              {banner.preview && (
-                <button
-                  type="button"
-                  onClick={banner.handleRemove}
-                  className="flex flex-col items-center gap-1 text-white/80 hover:text-red-300 hover:scale-105 transition-all"
-                >
-                  <X className="size-5" />
-                  <span className="text-xs font-medium">Remover</span>
-                </button>
-              )}
-            </>
+      <div className="rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden">
+        <div className={`relative h-28 w-full bg-gradient-to-br ${bannerFrom} ${bannerTo}`}>
+          {banner.preview && (
+            <Image src={banner.preview} alt="Banner" fill className="object-cover" sizes="100vw" />
+          )}
+          {banner.state === "saving" && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <Loader2 className="size-6 animate-spin text-white" />
+            </div>
+          )}
+          {banner.state === "saved" && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <Check className="size-6 text-white" />
+            </div>
           )}
         </div>
+
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-800">Banner</p>
+            <p className="text-xs text-gray-400">{banner.preview ? "Banner personalizado" : "Usando gradiente padrão"}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setBannerMenu(!bannerMenu); setAvatarMenu(false); }}
+            className="flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+          >
+            <Pencil className="size-3.5" />
+            Editar
+          </button>
+        </div>
+
+        {bannerMenu && (
+          <div className="border-t border-gray-100 px-4 py-3 flex gap-2">
+            <button
+              type="button"
+              onClick={() => { banner.openPicker(); setBannerMenu(false); }}
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            >
+              <ImagePlus className="size-4" />
+              {banner.preview ? "Alterar banner" : "Adicionar banner"}
+            </button>
+            {banner.preview && (
+              <button
+                type="button"
+                onClick={() => { banner.handleRemove(); setBannerMenu(false); }}
+                className="flex items-center justify-center gap-2 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 ring-1 ring-red-200 hover:bg-red-100 transition-colors"
+              >
+                <Trash2 className="size-4" />
+                Remover
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setBannerMenu(false)}
+              className="flex items-center justify-center rounded-xl bg-gray-100 px-3 py-2.5 text-gray-500 hover:bg-gray-200 transition-colors"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        )}
+
+        {banner.error && <p className="px-4 pb-3 text-xs text-red-600">{banner.error}</p>}
 
         <input
           ref={banner.inputRef}
@@ -138,74 +151,86 @@ export function PageImagesForm({
         />
       </div>
 
-      {/* Avatar + info */}
-      <div className="px-5 pb-5">
-        <div className="flex items-end gap-4 -mt-8 mb-3">
-
-          {/* Avatar */}
-          <div className="relative shrink-0 group">
-            <div className="size-16 rounded-2xl ring-4 ring-white overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300">
+      {/* Foto de perfil */}
+      <div className="rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative size-14 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 shrink-0">
               {avatar.preview ? (
-                <Image src={avatar.preview} alt={pageName} fill className="object-cover" sizes="64px" />
+                <Image src={avatar.preview} alt={pageName} fill className="object-cover" sizes="56px" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
-                  <span className="text-2xl font-bold text-gray-500">{pageName.charAt(0)}</span>
+                  <span className="text-xl font-bold text-gray-500">{pageName.charAt(0)}</span>
                 </div>
               )}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity">
-                {avatar.state === "saving" ? (
+              {avatar.state === "saving" && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                   <Loader2 className="size-4 animate-spin text-white" />
-                ) : avatar.state === "saved" ? (
+                </div>
+              )}
+              {avatar.state === "saved" && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                   <Check className="size-4 text-white" />
-                ) : (
-                  <Camera className="size-4 text-white" />
-                )}
-              </div>
+                </div>
+              )}
             </div>
+            <div>
+              <p className="text-sm font-medium text-gray-800">Foto de perfil</p>
+              <p className="text-xs text-gray-400">{avatar.preview ? "Foto personalizada" : "Sem foto"}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setAvatarMenu(!avatarMenu); setBannerMenu(false); }}
+            className="flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+          >
+            <Pencil className="size-3.5" />
+            Editar
+          </button>
+        </div>
 
-            {/* Botões abaixo do avatar, visíveis no hover do container */}
-            {avatar.state === "idle" && (
-              <div className="absolute -bottom-6 left-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                <button
-                  type="button"
-                  onClick={avatar.openPicker}
-                  className="rounded-md bg-gray-800 px-2 py-0.5 text-[10px] font-medium text-white hover:bg-gray-700"
-                >
-                  {avatar.preview ? "Trocar" : "Adicionar"}
-                </button>
-                {avatar.preview && (
-                  <button
-                    type="button"
-                    onClick={avatar.handleRemove}
-                    className="rounded-md bg-red-500 px-2 py-0.5 text-[10px] font-medium text-white hover:bg-red-600"
-                  >
-                    Remover
-                  </button>
-                )}
-              </div>
+        {avatarMenu && (
+          <div className="border-t border-gray-100 px-4 py-3 flex gap-2">
+            <button
+              type="button"
+              onClick={() => { avatar.openPicker(); setAvatarMenu(false); }}
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            >
+              <Camera className="size-4" />
+              {avatar.preview ? "Alterar foto" : "Adicionar foto"}
+            </button>
+            {avatar.preview && (
+              <button
+                type="button"
+                onClick={() => { avatar.handleRemove(); setAvatarMenu(false); }}
+                className="flex items-center justify-center gap-2 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 ring-1 ring-red-200 hover:bg-red-100 transition-colors"
+              >
+                <Trash2 className="size-4" />
+                Remover
+              </button>
             )}
-
-            <input
-              ref={avatar.inputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) avatar.handleFile(f); e.target.value = ""; }}
-            />
+            <button
+              type="button"
+              onClick={() => setAvatarMenu(false)}
+              className="flex items-center justify-center rounded-xl bg-gray-100 px-3 py-2.5 text-gray-500 hover:bg-gray-200 transition-colors"
+            >
+              <X className="size-4" />
+            </button>
           </div>
+        )}
 
-          <div className="mb-1 text-xs text-gray-400">
-            Passe o mouse na foto ou no banner para editar
-          </div>
-        </div>
+        {avatar.error && <p className="px-4 pb-3 text-xs text-red-600">{avatar.error}</p>}
 
-        <div className="mt-8">
-          {(avatar.error || banner.error) && (
-            <p className="text-xs text-red-600 mb-1">{avatar.error || banner.error}</p>
-          )}
-          <p className="text-xs text-gray-400">Formatos aceitos: JPG, PNG, WebP · Máx. 5 MB</p>
-        </div>
+        <input
+          ref={avatar.inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) avatar.handleFile(f); e.target.value = ""; }}
+        />
       </div>
+
+      <p className="text-xs text-gray-400 px-1">Formatos aceitos: JPG, PNG, WebP · Máx. 5 MB</p>
     </div>
   );
 }
