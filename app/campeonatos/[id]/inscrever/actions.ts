@@ -30,7 +30,7 @@ export async function inscreverDupla(
   // ── Carrega perfil, campeonato e categoria em paralelo ────────
   const [{ data: profile }, { data: champ }, { data: cat }] = await Promise.all([
     supabase.from("profiles").select("nome, cpf, username").eq("id", user.id).single(),
-    supabase.from("championships").select("id, nome, taxa_plataforma, organizador_id, status").eq("id", championshipId).single(),
+    supabase.from("championships").select("id, nome, taxa_plataforma, organizador_id, status, inscricoes_fim").eq("id", championshipId).single(),
     supabase.from("championship_categories").select("id, nome, valor_inscricao").eq("id", categoryId).single(),
   ]);
 
@@ -39,6 +39,10 @@ export async function inscreverDupla(
   if (!cat)     return { error: "Categoria não encontrada." };
   if (champ.status !== "inscricoes_abertas")
     return { error: "As inscrições não estão abertas para este campeonato." };
+
+  const hoje = new Date().toISOString().split("T")[0];
+  if (champ.inscricoes_fim && champ.inscricoes_fim < hoje)
+    return { error: "O prazo de inscrições encerrou." };
 
   // ── Verifica se já está inscrito ──────────────────────────────
   const { data: inscricaoExistente } = await supabase
