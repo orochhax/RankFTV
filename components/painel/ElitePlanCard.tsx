@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   Crown, Check, X, ArrowRight,
-  TrendingDown, Video, Star, MessageCircle, Instagram,
+  TrendingDown, Video, Star, MessageCircle, Camera,
   Sparkles, Megaphone, Wallet, QrCode, Network, TrendingUp, Shirt,
   ShieldCheck, BadgeDollarSign,
 } from "lucide-react";
@@ -12,7 +12,7 @@ const BENEFICIOS_ELITE = [
   { icon: TrendingDown,  label: "Taxas reduzidas da plataforma" },
   { icon: Video,         label: "Call ao vivo com o CEO para apresentar todas as funcionalidades" },
   { icon: Star,          label: "Destaque no início do site — seu campeonato fica fixado na tela inicial do site" },
-  { icon: Instagram,     label: "Divulgação do campeonato nos stories do @rankftv" },
+  { icon: Camera,        label: "Divulgação do campeonato nos stories do @rankftv" },
   { icon: MessageCircle, label: "Suporte priorizado direto pelo WhatsApp" },
   { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público" },
   { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila" },
