@@ -535,7 +535,7 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
           <button
             type="button"
             onClick={() => addCat("")}
-            className="rounded-full border border-dashed border-gray-300 px-3 py-1 text-sm font-medium text-gray-400 hover:border-gray-400 hover:text-gray-600"
+            className="rounded-full border border-dashed border-gray-400 px-3 py-1 text-sm font-medium text-gray-700 hover:border-gray-600 hover:text-gray-900"
           >
             + Outros
           </button>
