@@ -9,10 +9,10 @@ function fmt(v: number) {
   return v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function NetTag({ net }: { net: number }) {
+function NetTag({ net, suffix = "%" }: { net: number; suffix?: string }) {
   return (
     <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
-      líquido ≈ {net > 0 ? "+" : ""}{fmt(net)}{net > 0 && "%"}
+      líquido ≈ {net > 0 ? "+" : ""}{suffix === "R$" ? `R$ ${fmt(net)}` : `${fmt(net)}${suffix}`}
     </span>
   );
 }
@@ -104,7 +104,7 @@ export function TaxasForm({ config }: { config: PlatformConfig }) {
           <Field name="plataforma_pix_fixo" label="Taxa" suffix="R$" value={v.plataformaPixFixo} onChange={(r) => set("plataformaPixFixo", r)} />
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-400">Líquido</span>
-            <NetTag net={netPix} />
+            <NetTag net={netPix} suffix="R$" />
           </div>
         </section>
 
@@ -119,7 +119,7 @@ export function TaxasForm({ config }: { config: PlatformConfig }) {
           <Field name="premium_pix_fixo" label="Taxa" suffix="R$" value={v.premiumPixFixo} onChange={(r) => set("premiumPixFixo", r)} />
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-400">Líquido</span>
-            <NetTag net={pNetPix} />
+            <NetTag net={pNetPix} suffix="R$" />
           </div>
         </section>
       </div>
