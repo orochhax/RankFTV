@@ -130,6 +130,22 @@ export function conviteStaffHtml(opts: {
   return base("Você foi convidado para ser staff!", corpo);
 }
 
+export function convitePaginaHtml(opts: {
+  nomeOrganizador: string;
+  nomePagina: string;
+  handlePagina: string;
+  nomeCampeonato: string;
+  painelUrl: string;
+}): string {
+  const corpo = `
+    ${p(`Oi, <strong>${opts.nomeOrganizador}</strong>!`)}
+    ${p(`A página <strong>${opts.nomePagina}</strong> (@${opts.handlePagina}) quer vincular o campeonato <strong>${opts.nomeCampeonato}</strong> como etapa dela.`)}
+    ${p("Acesse o painel do campeonato para aceitar ou recusar o convite.")}
+    ${btn("Ver convite no painel", opts.painelUrl)}
+  `;
+  return base("Convite de vínculo com página", corpo);
+}
+
 export function pagamentoConfirmadoHtml(opts: {
   nomeAtleta: string;
   nomeCampeonato: string;

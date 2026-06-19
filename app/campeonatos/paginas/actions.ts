@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { SocialLink } from "@/components/paginas/SocialLinksBar";
+import { enviarConvitePagina } from "@/lib/email/send";
 
 export async function saveSocialLinks(
   pageId: string,
@@ -59,6 +60,24 @@ export async function sendPageChampionshipInvite(
     if (error.code === "23505") return { ok: false, error: "Convite já enviado para esse campeonato." };
     return { ok: false, error: `[${error.code}] ${error.message}` };
   }
+
+  // RPC SECURITY DEFINER: insere a notificação e retorna o email do organizador
+  const { data: info } = await supabase.rpc("notify_page_championship_invite", {
+    p_championship_id: championshipId,
+    p_page_id: pageId,
+  }) as { data: { org_email: string; org_nome: string; camp_nome: string; page_nome: string; page_handle: string } | null };
+
+  if (info?.org_email) {
+    await enviarConvitePagina({
+      emailOrganizador: info.org_email,
+      nomeOrganizador: info.org_nome,
+      nomePagina: info.page_nome,
+      handlePagina: info.page_handle,
+      nomeCampeonato: info.camp_nome,
+      championshipId,
+    });
+  }
+
   revalidatePath(`/campeonatos/paginas`);
   return { ok: true };
 }

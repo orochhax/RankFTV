@@ -72,6 +72,7 @@ export function EtapaAtualCard({
   const [searching, startSearch] = useTransition();
   const [sending, startSend] = useTransition();
   const [sentId, setSentId] = useState<string | null>(null);
+  const [sentName, setSentName] = useState("");
   const [error, setError] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -93,6 +94,7 @@ export function EtapaAtualCard({
       const res = await sendPageChampionshipInvite(pageId, champId);
       if (res.ok) {
         setSentId(champId);
+        setSentName(results.find((r) => r.id === champId)?.nome ?? "campeonato");
         setQuery("");
         setResults([]);
         setShowSearch(false);
@@ -147,7 +149,15 @@ export function EtapaAtualCard({
           </div>
           {error && <p className="text-xs text-red-600">{error}</p>}
           {sentId && (
-            <p className="text-xs text-green-600">Convite enviado! Aguardando o dono do campeonato aceitar.</p>
+            <div className="flex items-start gap-2 rounded-xl bg-green-50 px-3 py-2.5 ring-1 ring-green-200">
+              <span className="mt-0.5 text-green-500">✓</span>
+              <div>
+                <p className="text-sm font-medium text-green-800">Convite enviado!</p>
+                <p className="text-xs text-green-700">
+                  O dono de <strong>{sentName}</strong> foi notificado por e-mail e no sininho. Assim que aceitar, o campeonato aparece aqui.
+                </p>
+              </div>
+            </div>
           )}
           {searching && <p className="text-xs text-gray-400">Buscando…</p>}
           {results.length > 0 && (

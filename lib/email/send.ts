@@ -7,6 +7,7 @@ import {
   conviteAceitoHtml,
   pagamentoConfirmadoHtml,
   conviteStaffHtml,
+  convitePaginaHtml,
 } from "./templates";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
@@ -98,6 +99,27 @@ export async function enviarConviteStaff(opts: {
       nomeCampeonato:   opts.nomeCampeonato,
       permissoes:       opts.permissoes,
       notificacoesUrl:  `${BASE_URL}/notificacoes`,
+    }),
+  );
+}
+
+export async function enviarConvitePagina(opts: {
+  emailOrganizador: string;
+  nomeOrganizador: string;
+  nomePagina: string;
+  handlePagina: string;
+  nomeCampeonato: string;
+  championshipId: string;
+}) {
+  await send(
+    opts.emailOrganizador,
+    `${opts.nomePagina} quer vincular seu campeonato como etapa`,
+    convitePaginaHtml({
+      nomeOrganizador: opts.nomeOrganizador,
+      nomePagina: opts.nomePagina,
+      handlePagina: opts.handlePagina,
+      nomeCampeonato: opts.nomeCampeonato,
+      painelUrl: `${BASE_URL}/painel/campeonatos/${opts.championshipId}`,
     }),
   );
 }
