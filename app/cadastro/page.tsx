@@ -53,7 +53,10 @@ export default function CadastroPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password: senha,
-      options: { data: { nome, username } },
+      options: {
+        data: { nome, username },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
 
     if (error) {
@@ -64,8 +67,7 @@ export default function CadastroPage() {
       );
       setLoading(false);
     } else {
-      router.push("/");
-      router.refresh();
+      router.push(`/cadastro/verificar-email?email=${encodeURIComponent(email)}`);
     }
   }
 
