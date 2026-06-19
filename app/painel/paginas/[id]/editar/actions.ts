@@ -112,9 +112,9 @@ export async function atualizarImagensPagina(
   const { data: page } = await supabase.from("pages").select("owner_id").eq("id", pageId).single();
   if (!page || page.owner_id !== user.id) return { ok: false, error: "Sem permissão" };
 
-  const update: Record<string, string> = {};
-  if (fields.avatar_url !== undefined) update.avatar_url = fields.avatar_url;
-  if (fields.banner_url  !== undefined) update.banner_url  = fields.banner_url;
+  const update: Record<string, string | null> = {};
+  if (fields.avatar_url !== undefined) update.avatar_url = fields.avatar_url || null;
+  if (fields.banner_url  !== undefined) update.banner_url  = fields.banner_url  || null;
   if (Object.keys(update).length === 0) return { ok: true };
 
   const { error } = await supabase.from("pages").update(update).eq("id", pageId);
