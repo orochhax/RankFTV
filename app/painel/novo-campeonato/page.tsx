@@ -11,6 +11,7 @@ import {
   Megaphone,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getMyPages } from "@/lib/supabase/pages";
 import { NovoCampeonatoForm } from "@/components/painel/NovoCampeonatoForm";
 
 // O que o organizador desbloqueia ao criar — reforço de valor durante a criação.
@@ -32,6 +33,8 @@ export default async function NovoCampeonatoPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  const minhasPages = await getMyPages(user.id);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
@@ -92,7 +95,7 @@ export default async function NovoCampeonatoPage() {
 
       {/* Formulário */}
       <div className="mt-6">
-        <NovoCampeonatoForm />
+        <NovoCampeonatoForm minhasPages={minhasPages} />
       </div>
     </div>
   );

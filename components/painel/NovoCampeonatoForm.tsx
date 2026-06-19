@@ -17,8 +17,10 @@ import {
   type QuizAnswers,
   type QuizKey,
 } from "@/lib/tier";
+import type { PageWithStats } from "@/lib/supabase/pages";
 
 type CatForm = { nome: string; genero: GeneroCategoria; valorInscricao: string; maxDuplas: string };
+type MinhaPage = Pick<PageWithStats, "id" | "nome" | "handle">;
 
 const GENEROS: { value: GeneroCategoria; label: string }[] = [
   { value: "masculino", label: "Masculino" },
@@ -39,7 +41,7 @@ const inputClass =
   "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
 const labelClass = "block text-xs font-medium text-gray-600";
 
-export function NovoCampeonatoForm() {
+export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPage[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +58,8 @@ export function NovoCampeonatoForm() {
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   const [local, setLocal] = useState("");
+  const [liveUrl, setLiveUrl] = useState("");
+  const [pageId, setPageId] = useState("");
   const [categorias, setCategorias] = useState<CatForm[]>([
     { nome: "", genero: "masculino", valorInscricao: "", maxDuplas: "" },
   ]);
@@ -118,6 +122,8 @@ export function NovoCampeonatoForm() {
         cidade,
         estado,
         local,
+        liveUrl: liveUrl.trim() || undefined,
+        pageId: pageId || undefined,
         status,
         tierQuiz: quiz as QuizAnswers,
         categorias: categorias
@@ -214,6 +220,43 @@ export function NovoCampeonatoForm() {
             placeholder="Ex.: Praia do Gonzaga, Quadras 4 a 8"
           />
         </div>
+
+        <div>
+          <label className={labelClass} htmlFor="liveUrl">Link da transmissão ao vivo</label>
+          <input
+            id="liveUrl"
+            type="url"
+            className={inputClass}
+            value={liveUrl}
+            onChange={(e) => setLiveUrl(e.target.value)}
+            placeholder="https://youtube.com/... (opcional)"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Aparece como botão &ldquo;Ver ao vivo&rdquo; na página do campeonato. Pode adicionar depois.
+          </p>
+        </div>
+
+        {minhasPages.length > 0 && (
+          <div>
+            <label className={labelClass} htmlFor="pageId">Vincular a uma Página</label>
+            <select
+              id="pageId"
+              className={inputClass}
+              value={pageId}
+              onChange={(e) => setPageId(e.target.value)}
+            >
+              <option value="">Sem vínculo</option>
+              {minhasPages.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nome} (@{p.handle})
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-400">
+              Este campeonato vira uma &ldquo;edição&rdquo; da página — seguidores serão notificados ao publicar.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Questionário de nível */}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { MapPin, Users, Trophy, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Users, Trophy, ChevronLeft, ChevronRight, Radio } from "lucide-react";
 import { BracketCategoryView } from "@/components/chaveamento/BracketView";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -204,8 +204,9 @@ export default async function CampeonatoDetalhePage({
             </span>
           )}
         </div>
-        {(hasDbBracket || getBracket(championship.id)) && (
-          <div className="mt-4">
+        <div className="mt-4 flex flex-wrap gap-2">
+          {/* Chaveamento — sempre visível; cinza enquanto não há chave */}
+          {hasDbBracket || getBracket(championship.id) ? (
             <Link
               href={`/campeonatos/${championship.id}/chaveamento`}
               className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
@@ -213,8 +214,39 @@ export default async function CampeonatoDetalhePage({
               <Trophy className="size-4" />
               Ver chaveamento
             </Link>
-          </div>
-        )}
+          ) : (
+            <span
+              aria-disabled="true"
+              title="O chaveamento ainda não está disponível"
+              className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-400"
+            >
+              <Trophy className="size-4" />
+              Ver chaveamento
+            </span>
+          )}
+
+          {/* Ver ao vivo — sempre visível; cinza quando não há link de transmissão */}
+          {championship.liveUrl ? (
+            <a
+              href={championship.liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+            >
+              <Radio className="size-4" />
+              Ver ao vivo
+            </a>
+          ) : (
+            <span
+              aria-disabled="true"
+              title="Sem transmissão ao vivo cadastrada"
+              className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-400"
+            >
+              <Radio className="size-4" />
+              Ver ao vivo
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Chaveamento inline — só aparece quando o camp está em andamento */}

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ChampionshipCard } from "@/components/campeonatos/ChampionshipCard";
-import { SeriesCard } from "@/components/campeonatos/SeriesCard";
+import { PageCard } from "@/components/campeonatos/PageCard";
 import { CHAMPIONSHIPS, sortedChampionships } from "@/lib/mock/championships";
 import { getPublishedChampionships } from "@/lib/supabase/championships";
-import { SERIES } from "@/lib/mock/series";
+import { getPages, getFollowedPageIds } from "@/lib/supabase/pages";
 import { createClient } from "@/lib/supabase/server";
 
 // Lista de Campeonatos — ver ftv.md seção 8.4. Filtros por estado e categoria,
@@ -23,14 +23,12 @@ export default async function CampeonatosPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  let followedSeriesIds: string[] = [];
+  let followedPageIds: string[] = [];
   if (user) {
-    const { data } = await supabase
-      .from("series_followers")
-      .select("series_id")
-      .eq("user_id", user.id);
-    followedSeriesIds = data?.map((f) => f.series_id) ?? [];
+    followedPageIds = await getFollowedPageIds(user.id);
   }
+
+  const todasPages = await getPages();
 
   // Campeonatos reais criados na plataforma (publicados) + os de exemplo (mock).
   const publicados = await getPublishedChampionships();
@@ -49,8 +47,8 @@ export default async function CampeonatosPage({
     return true;
   });
 
-  const seriesVisiveis = SERIES.filter((s) => s.id !== "mikasa-open-nacional").slice(0, 2);
-  const temMaisSeries = SERIES.length > 2;
+  const paginasVisiveis = todasPages.slice(0, 3);
+  const temMaisPaginas = todasPages.length > 3;
 
   return (
     <div className="min-h-screen">
@@ -68,7 +66,7 @@ export default async function CampeonatosPage({
                   Siga uma página e seja notificado quando abrir nova edição
                 </p>
               </div>
-              {temMaisSeries && (
+              {temMaisPaginas && (
                 <Link
                   href="/campeonatos/paginas"
                   className="text-sm font-medium text-blue-400 hover:text-blue-300"
@@ -77,16 +75,22 @@ export default async function CampeonatosPage({
                 </Link>
               )}
             </div>
-            <div className="space-y-3">
-              {seriesVisiveis.map((s) => (
-                <SeriesCard
-                  key={s.id}
-                  series={s}
-                  initialFollowing={followedSeriesIds.includes(s.id)}
-                  userId={user?.id ?? null}
-                />
-              ))}
-            </div>
+            {paginasVisiveis.length === 0 ? (
+              <p className="text-sm text-white/40">
+                Ainda não há páginas. Organizadores podem criar uma no painel.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {paginasVisiveis.map((p) => (
+                  <PageCard
+                    key={p.id}
+                    page={p}
+                    initialFollowing={followedPageIds.includes(p.id)}
+                    userId={user?.id ?? null}
+                  />
+                ))}
+              </div>
+            )}
           </section>
         </div>
       </div>

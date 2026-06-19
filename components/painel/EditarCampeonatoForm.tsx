@@ -9,6 +9,7 @@ import {
 } from "@/app/painel/campeonatos/[id]/editar/actions";
 import { createClient } from "@/lib/supabase/client";
 import type { GeneroCategoria } from "@/lib/mock/types";
+import type { PageWithStats } from "@/lib/supabase/pages";
 
 type CatForm = {
   id?: string;
@@ -19,8 +20,11 @@ type CatForm = {
   _delete?: boolean;
 };
 
+type MinhaPage = Pick<PageWithStats, "id" | "nome" | "handle">;
+
 type Props = {
   champId: string;
+  minhasPages?: MinhaPage[];
   initial: {
     nome: string;
     descricao: string;
@@ -33,6 +37,8 @@ type Props = {
     cidade: string;
     estado: string;
     local: string;
+    liveUrl?: string;
+    pageId?: string | null;
     status: "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado";
     categorias: {
       id: string;
@@ -70,7 +76,7 @@ const inputClass =
   "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
 const labelClass = "block text-xs font-medium text-gray-600";
 
-export function EditarCampeonatoForm({ champId, initial }: Props) {
+export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Props) {
   const [pending, startTransition]      = useTransition();
   const [error, setError]               = useState<string | null>(null);
   const [mudancas, setMudancas]         = useState<string[]>([]);
@@ -91,6 +97,8 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
   const [cidade, setCidade]                   = useState(initial.cidade);
   const [estado, setEstado]                   = useState(initial.estado);
   const [local, setLocal]                     = useState(initial.local);
+  const [liveUrl, setLiveUrl]                 = useState(initial.liveUrl ?? "");
+  const [pageId, setPageId]                   = useState(initial.pageId ?? "");
   const [status, setStatus]                   = useState(initial.status);
   const [categorias, setCategorias]           = useState<CatForm[]>(
     initial.categorias.map((c) => ({
@@ -147,6 +155,8 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
     if (cidade.trim()     !== initial.cidade.trim())     lista.push("Cidade alterada");
     if (estado.trim().toUpperCase() !== initial.estado.trim().toUpperCase()) lista.push("Estado (UF) alterado");
     if (local.trim()      !== initial.local.trim())      lista.push("Local alterado");
+    if (liveUrl.trim()    !== (initial.liveUrl ?? "").trim()) lista.push("Link da transmissão ao vivo alterado");
+    if ((pageId || "")    !== (initial.pageId ?? "")) lista.push("Página vinculada alterada");
     if (pdfFile)                                         lista.push("PDF do regulamento substituído");
     if (!pdfUrl && initial.regulamentoPdfUrl)            lista.push("PDF do regulamento removido");
 
@@ -225,7 +235,9 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
         dataInicio, dataFim,
         inscricoesInicio: inscricoesInicio || undefined,
         inscricoesFim:    inscricoesFim    || undefined,
-        cidade, estado, local, status,
+        cidade, estado, local, liveUrl,
+        pageId: pageId || null,
+        status,
         categorias: payload,
       });
 
@@ -236,7 +248,7 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nome, descricao, regulamento, pdfUrl, pdfFile, dataInicio, dataFim,
-      inscricoesInicio, inscricoesFim, cidade, estado, local, status, categorias]);
+      inscricoesInicio, inscricoesFim, cidade, estado, local, liveUrl, pageId, status, categorias]);
 
   return (
     <>
@@ -369,6 +381,41 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
           <label className={labelClass}>Local (nome do espaço)</label>
           <input className={inputClass} value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Ex.: Praia do Gonzaga, Quadras 4 a 8" />
         </div>
+
+        <div>
+          <label className={labelClass}>Link da transmissão ao vivo</label>
+          <input
+            type="url"
+            className={inputClass}
+            value={liveUrl}
+            onChange={(e) => setLiveUrl(e.target.value)}
+            placeholder="https://youtube.com/... (opcional)"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Aparece como botão &ldquo;Ver ao vivo&rdquo; na página do campeonato.
+          </p>
+        </div>
+
+        {minhasPages.length > 0 && (
+          <div>
+            <label className={labelClass}>Vincular a uma Página</label>
+            <select
+              className={inputClass}
+              value={pageId}
+              onChange={(e) => setPageId(e.target.value)}
+            >
+              <option value="">Sem vínculo</option>
+              {minhasPages.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nome} (@{p.handle})
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-400">
+              Este campeonato vira uma &ldquo;edição&rdquo; da página — seguidores serão notificados ao publicar.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Datas */}

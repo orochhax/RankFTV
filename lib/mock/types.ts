@@ -54,6 +54,7 @@ export type Championship = {
   taxaPlataforma: number; // %
   bannerFrom: string; // cor inicial do gradiente do banner
   bannerTo: string; // cor final do gradiente do banner
+  liveUrl?: string | null; // link externo da transmissão ao vivo (YouTube etc.)
   categorias: Category[];
   duplas: Team[];
 };

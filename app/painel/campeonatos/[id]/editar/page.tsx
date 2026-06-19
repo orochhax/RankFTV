@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getMyPages } from "@/lib/supabase/pages";
 import { EditarCampeonatoForm } from "@/components/painel/EditarCampeonatoForm";
 import type { GeneroCategoria } from "@/lib/mock/types";
 
@@ -21,7 +22,7 @@ export default async function EditarCampeonatoPage({
       id, nome, descricao, regulamento, regulamento_pdf_url,
       data_inicio, data_fim,
       inscricoes_inicio, inscricoes_fim,
-      cidade, estado, local, status, organizador_id,
+      cidade, estado, local, live_url, page_id, status, organizador_id,
       championship_categories (
         id, nome, genero, valor_inscricao, max_duplas
       )
@@ -31,6 +32,8 @@ export default async function EditarCampeonatoPage({
 
   if (!champ) notFound();
   if (champ.organizador_id !== user.id) notFound();
+
+  const minhasPages = await getMyPages(user.id);
 
   const initial = {
     nome:             champ.nome,
@@ -43,6 +46,8 @@ export default async function EditarCampeonatoPage({
     cidade:           champ.cidade,
     estado:           champ.estado,
     local:            champ.local ?? "",
+    liveUrl:          (champ as unknown as { live_url?: string | null }).live_url ?? "",
+    pageId:           (champ as unknown as { page_id?: string | null }).page_id ?? null,
     status:              champ.status as "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado",
     regulamentoPdfUrl:   (champ as unknown as { regulamento_pdf_url?: string | null }).regulamento_pdf_url ?? null,
     categorias: ((champ.championship_categories as unknown as Array<{
@@ -73,7 +78,7 @@ export default async function EditarCampeonatoPage({
 
       <div className="relative -mt-6 rounded-t-3xl bg-gray-50 px-6 pb-8 pt-8 shadow-sm">
         <div className="mx-auto max-w-2xl">
-          <EditarCampeonatoForm champId={id} initial={initial} />
+          <EditarCampeonatoForm champId={id} initial={initial} minhasPages={minhasPages} />
         </div>
       </div>
     </div>
