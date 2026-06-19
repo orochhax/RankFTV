@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import {
-  Crown, Check, X,
+  Crown, Check, X, ArrowRight,
   TrendingDown, Video, Star, MessageCircle,
   Sparkles, Megaphone, BarChart2, Wallet, QrCode, Network, TrendingUp, Shirt,
+  ShieldCheck, BadgeDollarSign,
 } from "lucide-react";
 
 const BENEFICIOS_ELITE = [
@@ -15,7 +16,7 @@ const BENEFICIOS_ELITE = [
   { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa" },
   { icon: Megaphone,     label: "Comunicação em massa com inscritos" },
   { icon: BarChart2,     label: "Relatório financeiro detalhado + exportação PDF/Excel" },
-  { icon: Wallet,        label: "Inscrição e pagamento online" },
+  { icon: Wallet,        label: "Inscrição e pagamento online — Pix na hora ou cartão em até 6x sem juros" },
   { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila" },
   { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público" },
   { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu" },
@@ -75,43 +76,82 @@ export function ElitePlanCard({
     );
   }
 
-  // Termos
+  // Explicação + termos
   if (showTerms) {
     return (
-      <div className="rounded-2xl border-2 border-amber-200 bg-white p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Crown className="size-5 text-amber-500" />
-          <h3 className="font-bold text-gray-900">Termos do Campeonato de Elite</h3>
+      <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-[#1a1a24] to-[#0f0f18] p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <Crown className="size-5 text-amber-400" />
+          <h3 className="font-bold text-white">Como funciona o Campeonato de Elite</h3>
         </div>
-        <ul className="space-y-2 mb-5">
+
+        {/* Destaque principal: não paga agora */}
+        <div className="rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/30 p-5 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <ShieldCheck className="size-5 text-emerald-400" />
+            <p className="font-bold text-emerald-300 text-base">Você não paga nada agora</p>
+          </div>
+          <p className="text-sm text-emerald-200/80 leading-relaxed">
+            O valor de <strong className="text-emerald-300">R$178,00</strong> é descontado automaticamente
+            das primeiras inscrições que entram. Sem cartão, sem boleto, sem tirar dinheiro do bolso.
+            Enquanto ninguém se inscrever, você não deve nada.
+          </p>
+        </div>
+
+        {/* Taxa reduzida = mais dinheiro */}
+        <div className="rounded-2xl bg-amber-400/10 ring-1 ring-amber-400/30 p-5 mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <BadgeDollarSign className="size-5 text-amber-400" />
+            <p className="font-bold text-amber-300 text-base">Taxa reduzida = mais dinheiro no seu bolso</p>
+          </div>
+          <p className="text-sm text-amber-200/80 leading-relaxed">
+            No plano Padrão a plataforma retém uma taxa maior por inscrição.
+            No Elite, essa taxa cai — e a diferença vai direto pra você.
+            Num evento com R$10.000 em inscrições, isso pode representar
+            <strong className="text-amber-300"> R$100 a mais</strong> no seu repasse.
+          </p>
+          <div className="mt-3 flex items-center gap-3 text-xs">
+            <div className="rounded-lg bg-white/10 px-3 py-2 text-white/60">
+              Padrão: taxa maior
+            </div>
+            <ArrowRight className="size-3.5 text-amber-400 shrink-0" />
+            <div className="rounded-lg bg-amber-400/20 px-3 py-2 text-amber-300 font-semibold">
+              Elite: taxa reduzida ✓
+            </div>
+          </div>
+        </div>
+
+        {/* Termos resumidos */}
+        <ul className="space-y-1.5 mb-6">
           {TERMOS.map((t) => (
-            <li key={t} className="flex items-start gap-2 text-sm text-gray-600">
-              <Check className="size-3.5 mt-0.5 shrink-0 text-amber-500" />
+            <li key={t} className="flex items-start gap-2 text-xs text-white/50">
+              <Check className="size-3 mt-0.5 shrink-0 text-white/30" />
               {t}
             </li>
           ))}
         </ul>
+
         <div className="flex gap-3">
           <button
             type="button"
             onClick={() => onToggle(true)}
-            className="flex-1 rounded-xl bg-amber-400 py-2.5 text-sm font-semibold text-white hover:bg-amber-500 transition-colors"
+            className="flex-1 rounded-xl bg-amber-400 py-2.5 text-sm font-semibold text-gray-900 hover:bg-amber-300 transition-colors"
           >
-            Li e aceito os termos
+            Quero o Campeonato de Elite
           </button>
           <button
             type="button"
             onClick={() => setShowTerms(false)}
-            className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50"
+            className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-white/50 hover:bg-white/5"
           >
-            Cancelar
+            Voltar
           </button>
         </div>
       </div>
     );
   }
 
-  // Padrão — mostra benefícios
+  // Padrão — lista de benefícios
   return (
     <div className="rounded-2xl bg-gradient-to-br from-[#1a1a24] to-[#0f0f18] p-5 ring-1 ring-amber-400/20">
       <div className="flex items-center gap-2 mb-1">
@@ -137,7 +177,7 @@ export function ElitePlanCard({
         onClick={() => setShowTerms(true)}
         className="w-full rounded-xl bg-amber-400 py-2.5 text-sm font-semibold text-gray-900 hover:bg-amber-300 transition-colors"
       >
-        Quero o Campeonato de Elite
+        Entenda como funciona
       </button>
     </div>
   );
