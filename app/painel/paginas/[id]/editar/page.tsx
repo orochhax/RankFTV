@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPageChampionships } from "@/lib/supabase/pages";
 import { EditarPaginaForm } from "@/components/painel/EditarPaginaForm";
 import { RemoverVinculoPaginaButton } from "@/components/painel/RemoverVinculoPaginaButton";
+import { SocialLinksBar, type SocialLink } from "@/components/paginas/SocialLinksBar";
 
 export default async function EditarPaginaPage({
   params,
@@ -18,7 +19,7 @@ export default async function EditarPaginaPage({
 
   const { data: page } = await supabase
     .from("pages")
-    .select("id, owner_id, nome, handle, descricao")
+    .select("id, owner_id, nome, handle, descricao, social_links")
     .eq("id", id)
     .single();
 
@@ -26,6 +27,7 @@ export default async function EditarPaginaPage({
   if (page.owner_id !== user.id) notFound();
 
   const editions = await getPageChampionships(id);
+  const socialLinks: SocialLink[] = (page.social_links as SocialLink[] | null) ?? [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -52,6 +54,14 @@ export default async function EditarPaginaPage({
               initialNome={page.nome}
               initialDescricao={page.descricao ?? ""}
             />
+          </section>
+
+          {/* Links sociais */}
+          <section className="space-y-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Links sociais</h2>
+            <div className="rounded-2xl bg-[#1a1a22] p-4">
+              <SocialLinksBar pageId={page.id} initialLinks={socialLinks} isOwner />
+            </div>
           </section>
 
           {/* Campeonatos vinculados */}

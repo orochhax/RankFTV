@@ -101,7 +101,7 @@ export default async function PaginaDetailPage({
             initialSeguidores={seguidores ?? 0}
           />
 
-          <SocialLinksBar pageId={page.id} initialLinks={socialLinks} isOwner />
+          <SocialLinksBar pageId={page.id} initialLinks={socialLinks} isOwner={false} />
         </div>
       </div>
 

@@ -63,7 +63,7 @@ export default async function PublicPagePage({
   const abertas = editions.filter((e) => e.status !== "encerrado");
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       {/* Header preto com banner */}
       <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
         <div className="mx-auto max-w-2xl space-y-4">
@@ -99,13 +99,13 @@ export default async function PublicPagePage({
           <SocialLinksBar
             pageId={page.id}
             initialLinks={socialLinks}
-            isOwner={isOwner}
+            isOwner={false}
           />
         </div>
       </div>
 
       {/* Conteúdo principal */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-gray-50 px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-2xl space-y-6">
 
           <EtapaAtualCard
