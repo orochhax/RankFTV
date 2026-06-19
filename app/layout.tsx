@@ -64,7 +64,7 @@ export default async function RootLayout({
       lang="pt-BR"
       className={`${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white text-gray-900">
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-white text-gray-900">
         <TopNav user={navUser} showStaff={isStaff} isAdmin={isAdmin} notifCount={notifCount} />
         <main className="flex-1">{children}</main>
         <Footer />
