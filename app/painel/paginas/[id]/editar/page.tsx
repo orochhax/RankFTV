@@ -6,6 +6,7 @@ import { getPageChampionships } from "@/lib/supabase/pages";
 import { EditarPaginaForm } from "@/components/painel/EditarPaginaForm";
 import { RemoverVinculoPaginaButton } from "@/components/painel/RemoverVinculoPaginaButton";
 import { SocialLinksBar, type SocialLink } from "@/components/paginas/SocialLinksBar";
+import { ExcluirPaginaButton } from "@/components/painel/ExcluirPaginaButton";
 
 export default async function EditarPaginaPage({
   params,
@@ -84,6 +85,20 @@ export default async function EditarPaginaPage({
                 ))}
               </ul>
             )}
+          </section>
+
+          {/* Zona de perigo */}
+          <section className="space-y-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-red-400">Zona de perigo</h2>
+            <div className="rounded-2xl bg-white p-5 ring-1 ring-red-200">
+              <p className="text-sm font-semibold text-gray-900">Excluir página</p>
+              <p className="mt-1 text-sm text-gray-500">
+                Ação permanente. Todos os seguidores, links e vínculos com campeonatos serão removidos. Não tem volta.
+              </p>
+              <div className="mt-4">
+                <ExcluirPaginaButton pageId={id} nomePagina={page.nome} />
+              </div>
+            </div>
           </section>
 
         </div>

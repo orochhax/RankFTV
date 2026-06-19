@@ -27,6 +27,26 @@ export async function atualizarPagina(
   return { ok: true };
 }
 
+export async function excluirPagina(
+  pageId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Não autenticado" };
+
+  const { data: page } = await supabase.from("pages").select("owner_id").eq("id", pageId).single();
+  if (!page || page.owner_id !== user.id) return { ok: false, error: "Sem permissão" };
+
+  // Remove vínculos com campeonatos antes de deletar
+  await supabase.from("championships").update({ page_id: null }).eq("page_id", pageId);
+
+  const { error } = await supabase.from("pages").delete().eq("id", pageId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/painel/paginas");
+  return { ok: true };
+}
+
 export async function removerVinculoPagina(
   champId: string,
   pageId: string,
