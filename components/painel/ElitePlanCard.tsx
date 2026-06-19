@@ -10,16 +10,17 @@ import {
 const BENEFICIOS_ELITE = [
   { icon: TrendingDown,  label: "Taxas reduzidas da plataforma" },
   { icon: Video,         label: "Call ao vivo com o CEO para apresentar todas as funcionalidades" },
-  { icon: Star,          label: "Destaque no início do site — seu campeonato fica fixado na tela inicial" },
+  { icon: Star,          label: "Destaque no início do site — seu campeonato fica fixado na tela inicial do site" },
   { icon: MessageCircle, label: "Suporte priorizado direto pelo WhatsApp" },
   { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa" },
   { icon: Megaphone,     label: "Comunicação em massa com inscritos" },
   { icon: BarChart2,     label: "Relatório financeiro detalhado + exportação PDF/Excel" },
   { icon: Wallet,        label: "Inscrição e pagamento online" },
   { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila" },
-  { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real" },
+  { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público" },
   { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu" },
   { icon: Shirt,         label: "Camisas por tamanho — saiba quantas P/M/G/GG encomendar" },
+  { icon: Megaphone,     label: "Comunicação com inscritos — avise todo mundo num clique" },
 ];
 
 const TERMOS = [
