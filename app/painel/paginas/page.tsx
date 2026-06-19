@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Plus, Users, BookOpen, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -68,12 +69,14 @@ export default async function MinhasPaginasPage() {
                     className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-shadow hover:shadow-sm"
                   >
                     {/* Mini-banner */}
-                    <div
-                      className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${p.bannerFrom} ${p.bannerTo}`}
-                    >
-                      <span className="text-xl font-bold text-white/90">
-                        {p.nome.charAt(0)}
-                      </span>
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
+                      {p.bannerUrl ? (
+                        <Image src={p.bannerUrl} alt={p.nome} fill className="object-cover" sizes="56px" />
+                      ) : (
+                        <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${p.bannerFrom} ${p.bannerTo}`}>
+                          <span className="text-xl font-bold text-white/90">{p.nome.charAt(0)}</span>
+                        </div>
+                      )}
                     </div>
                     {/* Info */}
                     <div className="min-w-0 flex-1">

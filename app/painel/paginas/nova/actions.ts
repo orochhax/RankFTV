@@ -35,6 +35,8 @@ export async function criarPagina(
     .eq("handle", handle);
   if ((count ?? 0) > 0) return { error: "Esse @handle já está em uso. Escolha outro." };
 
+  const bannerUrl = (formData.get("bannerUrl") as string)?.trim() || null;
+
   const { data: page, error } = await supabase
     .from("pages")
     .insert({
@@ -44,6 +46,7 @@ export async function criarPagina(
       descricao,
       banner_from: bannerFrom,
       banner_to: bannerTo,
+      banner_url: bannerUrl,
     })
     .select("id")
     .single();

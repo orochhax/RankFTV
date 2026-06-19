@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Loader2 } from "lucide-react";
 import { inscreverDupla, type InscreverState } from "@/app/campeonatos/[id]/inscrever/actions";
 import { formatBRL } from "@/lib/format";
+import { UserSearchInput } from "@/components/ui/UserSearchInput";
 
 const TAMANHOS = ["PP", "P", "M", "G", "GG", "XGG"] as const;
 
@@ -16,6 +17,7 @@ type Props = {
   tamanhoSalvo: string | null;
   ratingDupla: number;
   isSandbagging: boolean;
+  userId: string;
 };
 
 const initialState: InscreverState = {};
@@ -29,6 +31,7 @@ export function InscricaoForm({
   tamanhoSalvo,
   ratingDupla,
   isSandbagging,
+  userId,
 }: Props) {
   const [state, action, pending] = useActionState(inscreverDupla, initialState);
 
@@ -95,19 +98,13 @@ export function InscricaoForm({
 
       {/* Parceiro */}
       <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-        <label className="block text-sm font-semibold text-gray-700">
-          @usuário do parceiro <span className="font-normal text-gray-400">(opcional agora)</span>
-        </label>
-        <input
+        <UserSearchInput
           name="parceiro_username"
-          type="text"
+          label="Parceiro"
           placeholder="@username"
-          className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          hint="O parceiro receberá um convite para confirmar a dupla. Você pode pagar agora e informar o parceiro depois."
+          excludeUserId={userId}
         />
-        <p className="mt-1 text-xs text-gray-400">
-          O parceiro receberá um convite para confirmar a dupla. Você pode pagar agora e
-          informar o parceiro depois.
-        </p>
       </div>
 
       {state.error && (

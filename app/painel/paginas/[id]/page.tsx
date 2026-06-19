@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Users, BookOpen, ExternalLink, Calendar, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -31,7 +32,7 @@ export default async function PaginaDetailPage({
 
   const { data: page } = await supabase
     .from("pages")
-    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, created_at")
+    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -69,10 +70,20 @@ export default async function PaginaDetailPage({
           </Link>
 
           {/* Banner */}
-          <div
-            className={`flex h-28 w-full items-center justify-center rounded-2xl bg-gradient-to-br ${page.banner_from} ${page.banner_to}`}
-          >
-            <span className="text-5xl font-bold text-white/90">{page.nome.charAt(0)}</span>
+          <div className="relative h-28 w-full overflow-hidden rounded-2xl">
+            {(page as unknown as { banner_url?: string | null }).banner_url ? (
+              <Image
+                src={(page as unknown as { banner_url: string }).banner_url}
+                alt={page.nome}
+                fill
+                className="object-cover"
+                sizes="(max-width: 672px) 100vw, 672px"
+              />
+            ) : (
+              <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${page.banner_from} ${page.banner_to}`}>
+                <span className="text-5xl font-bold text-white/90">{page.nome.charAt(0)}</span>
+              </div>
+            )}
           </div>
 
           <div>

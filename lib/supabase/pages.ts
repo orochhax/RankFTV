@@ -8,6 +8,7 @@ export type Page = {
   descricao: string;
   bannerFrom: string;
   bannerTo: string;
+  bannerUrl: string | null;
   createdAt: string;
 };
 
@@ -24,6 +25,7 @@ type PageRow = {
   descricao: string;
   banner_from: string;
   banner_to: string;
+  banner_url: string | null;
   created_at: string;
 };
 
@@ -36,6 +38,7 @@ function mapPage(row: PageRow): Page {
     descricao: row.descricao,
     bannerFrom: row.banner_from,
     bannerTo: row.banner_to,
+    bannerUrl: row.banner_url ?? null,
     createdAt: row.created_at,
   };
 }
@@ -46,7 +49,7 @@ export async function getPages(): Promise<PageWithStats[]> {
 
   const { data: pagesData } = await supabase
     .from("pages")
-    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, created_at")
+    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at")
     .order("created_at", { ascending: false });
 
   if (!pagesData || pagesData.length === 0) return [];
@@ -92,7 +95,7 @@ export async function getMyPages(userId: string): Promise<PageWithStats[]> {
 
   const { data: pagesData } = await supabase
     .from("pages")
-    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, created_at")
+    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at")
     .eq("owner_id", userId)
     .order("created_at", { ascending: false });
 
@@ -136,7 +139,7 @@ export async function getPageByHandle(handle: string): Promise<PageWithStats | n
 
   const { data: row } = await supabase
     .from("pages")
-    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, created_at")
+    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at")
     .eq("handle", handle)
     .maybeSingle();
 

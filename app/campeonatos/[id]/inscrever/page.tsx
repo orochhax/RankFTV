@@ -134,6 +134,7 @@ export default async function InscreverPage({
         tamanhoSalvo={profile?.tamanho_camisa ?? null}
         ratingDupla={ratingDupla}
         isSandbagging={isSandbagging}
+        userId={user.id}
       />
     </div>
   );

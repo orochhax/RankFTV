@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Users } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { PageWithStats } from "@/lib/supabase/pages";
@@ -56,10 +57,14 @@ export function PageCard({
       className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-shadow hover:shadow-sm"
     >
       {/* Mini-banner */}
-      <div
-        className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${page.bannerFrom} ${page.bannerTo}`}
-      >
-        <span className="text-xl font-bold text-white/90">{page.nome.charAt(0)}</span>
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
+        {page.bannerUrl ? (
+          <Image src={page.bannerUrl} alt={page.nome} fill className="object-cover" sizes="56px" />
+        ) : (
+          <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${page.bannerFrom} ${page.bannerTo}`}>
+            <span className="text-xl font-bold text-white/90">{page.nome.charAt(0)}</span>
+          </div>
+        )}
       </div>
 
       {/* Info */}

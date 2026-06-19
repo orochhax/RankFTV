@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Users, BookOpen, Calendar, MapPin, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -69,10 +70,14 @@ export default async function PublicPagePage({
           </Link>
 
           {/* Banner */}
-          <div
-            className={`flex h-28 w-full items-center justify-center rounded-2xl bg-gradient-to-br ${page.bannerFrom} ${page.bannerTo}`}
-          >
-            <span className="text-5xl font-bold text-white/90">{page.nome.charAt(0)}</span>
+          <div className="relative h-28 w-full overflow-hidden rounded-2xl">
+            {page.bannerUrl ? (
+              <Image src={page.bannerUrl} alt={page.nome} fill className="object-cover" sizes="(max-width: 672px) 100vw, 672px" />
+            ) : (
+              <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${page.bannerFrom} ${page.bannerTo}`}>
+                <span className="text-5xl font-bold text-white/90">{page.nome.charAt(0)}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-start justify-between gap-4">
