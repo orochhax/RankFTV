@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Trash2, X, AlertTriangle } from "lucide-react";
 import { excluirCampeonato } from "@/app/painel/campeonatos/[id]/editar/actions";
 
-const FRASE = "eu quero apagar esse campeonato";
+const FRASE = "Eu quero apagar esse campeonato";
 
 export function ExcluirCampeonatoButton({ champId, champNome }: { champId: string; champNome: string }) {
   const [open, setOpen] = useState(false);
@@ -16,7 +16,7 @@ export function ExcluirCampeonatoButton({ champId, champNome }: { champId: strin
   function fechar() { if (!pending) { setOpen(false); setTexto(""); setError(""); } }
 
   function confirmar() {
-    if (texto.trim().toLowerCase() !== FRASE) {
+    if (texto.trim() !== FRASE) {
       setError("Texto incorreto. Digite exatamente como indicado.");
       return;
     }
@@ -91,7 +91,7 @@ export function ExcluirCampeonatoButton({ champId, champNome }: { champId: strin
               <button
                 type="button"
                 onClick={confirmar}
-                disabled={pending || texto.trim().toLowerCase() !== FRASE}
+                disabled={pending || texto.trim() !== FRASE}
                 className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-40 transition-colors"
               >
                 {pending ? "Excluindo…" : "Confirmar exclusão"}
