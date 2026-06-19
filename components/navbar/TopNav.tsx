@@ -69,9 +69,9 @@ export function TopNav({
           <div className="ml-2 flex items-center gap-1 border-l border-gray-200 pl-3">
             {isAdmin && (
               <Link
-                href="/admin/taxas"
+                href="/admin"
                 aria-label="Painel admin"
-                title="Taxas da plataforma"
+                title="Painel admin"
                 className="rounded-full p-2 text-amber-500 hover:bg-amber-50 hover:text-amber-600 transition-colors"
               >
                 <Wrench className="size-5" />

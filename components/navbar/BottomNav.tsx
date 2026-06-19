@@ -34,7 +34,7 @@ export function BottomNav({
         </Link>
         {isAdmin && (
           <Link
-            href="/admin/taxas"
+            href="/admin"
             aria-label="Painel admin"
             className="flex size-7 items-center justify-center rounded-full bg-amber-100 shadow shadow-black/10 ring-1 ring-amber-200"
           >
