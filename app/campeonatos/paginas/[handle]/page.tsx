@@ -1,14 +1,14 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, BookOpen, Calendar, MapPin, Trophy } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   getPageByHandle,
   getPageChampionships,
   getFollowedPageIds,
 } from "@/lib/supabase/pages";
-import { FollowPageButton } from "@/components/campeonatos/FollowPageButton";
+import { PagePublicHeader } from "@/components/paginas/PagePublicHeader";
 
 function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("pt-BR", {
@@ -80,29 +80,16 @@ export default async function PublicPagePage({
             )}
           </div>
 
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <h1 className="text-2xl font-bold tracking-tight text-white">{page.nome}</h1>
-              <p className="text-sm text-white/50">@{page.handle}</p>
-              {page.descricao && (
-                <p className="mt-1 text-sm text-white/70">{page.descricao}</p>
-              )}
-              <div className="mt-3 flex items-center gap-2 text-sm text-white/50">
-                <span className="flex items-center gap-1">
-                  <BookOpen className="size-4" />
-                  {page.edicoes} edições
-                </span>
-              </div>
-            </div>
-
-            <FollowPageButton
-              pageId={page.id}
-              userId={user?.id ?? null}
-              initialFollowing={following}
-              initialSeguidores={page.seguidores}
-              showCount
-            />
-          </div>
+          <PagePublicHeader
+            pageId={page.id}
+            nome={page.nome}
+            handle={page.handle}
+            descricao={page.descricao}
+            edicoes={page.edicoes}
+            userId={user?.id ?? null}
+            initialFollowing={following}
+            initialSeguidores={page.seguidores}
+          />
         </div>
       </div>
 
