@@ -17,16 +17,9 @@ BEGIN
     RAISE EXCEPTION 'CEO user not found — verifique o e-mail e tente novamente';
   END IF;
 
-  -- Remove registrations de outros usuários
-  DELETE FROM registrations
-  WHERE team_id IN (
-    SELECT id FROM teams
-    WHERE atleta1_id != ceo_id AND (atleta2_id IS NULL OR atleta2_id != ceo_id)
-  );
-
-  -- Remove teams que não envolvem o CEO
-  DELETE FROM teams
-  WHERE atleta1_id != ceo_id AND (atleta2_id IS NULL OR atleta2_id != ceo_id);
+  -- Remove TODOS os registrations e teams (são 100% dados de teste)
+  DELETE FROM registrations;
+  DELETE FROM teams;
 
   -- Remove bracket_matches de campeonatos que não pertencem ao CEO
   DELETE FROM bracket_matches
