@@ -22,8 +22,12 @@ END;
 $$;
 
 -- ── 2. Agendamento: roda todo dia às 03:00 (horário do servidor) ──
--- Remove job anterior caso exista, evita duplicata
-SELECT cron.unschedule('auto-championship-status');
+-- Remove job anterior se já existir (ignora erro se não existir)
+DO $$
+BEGIN
+  PERFORM cron.unschedule('auto-championship-status');
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
 
 SELECT cron.schedule(
   'auto-championship-status',
