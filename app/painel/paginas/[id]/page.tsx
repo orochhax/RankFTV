@@ -110,7 +110,7 @@ export default async function PaginaDetailPage({
 
           <EtapaAtualCard
             pageId={id}
-            isOwner
+            isOwner={false}
             linkedChampionships={editions.map((e) => ({
               id: e.id,
               nome: e.nome,

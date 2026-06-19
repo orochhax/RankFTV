@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPageChampionships } from "@/lib/supabase/pages";
 import { EditarPaginaForm } from "@/components/painel/EditarPaginaForm";
 import { AlterarHandlePagina } from "@/components/painel/AlterarHandlePagina";
+import { EtapaAtualCard } from "@/components/paginas/EtapaAtualCard";
 import { RemoverVinculoPaginaButton } from "@/components/painel/RemoverVinculoPaginaButton";
 import { SocialLinksBar, type SocialLink } from "@/components/paginas/SocialLinksBar";
 import { ExcluirPaginaButton } from "@/components/painel/ExcluirPaginaButton";
@@ -79,11 +80,20 @@ export default async function EditarPaginaPage({
           {/* Campeonatos vinculados */}
           <section className="space-y-3">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Campeonatos vinculados</h2>
-            {editions.length === 0 ? (
-              <div className="rounded-2xl bg-white px-5 py-6 text-center ring-1 ring-black/5">
-                <p className="text-sm text-gray-400">Nenhum campeonato vinculado ainda.</p>
-              </div>
-            ) : (
+            <EtapaAtualCard
+              pageId={id}
+              isOwner
+              linkedChampionships={editions.map((e) => ({
+                id: e.id,
+                nome: e.nome,
+                cidade: e.cidade,
+                estado: e.estado,
+                data_inicio: e.data_inicio,
+                data_fim: e.data_fim ?? e.data_inicio,
+                status: e.status,
+              }))}
+            />
+            {editions.length > 0 && (
               <ul className="space-y-2">
                 {editions.map((e) => (
                   <li key={e.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5">
