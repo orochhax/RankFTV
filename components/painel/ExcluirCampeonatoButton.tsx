@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Trash2, X, AlertTriangle } from "lucide-react";
 import { excluirCampeonato } from "@/app/painel/campeonatos/[id]/editar/actions";
 
-const FRASE = "eu quero excluir esse camp";
+const FRASE = "eu quero apagar esse campeonato";
 
 export function ExcluirCampeonatoButton({ champId, champNome }: { champId: string; champNome: string }) {
   const [open, setOpen] = useState(false);

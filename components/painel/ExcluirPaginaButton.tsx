@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Trash2, X } from "lucide-react";
 import { excluirPagina } from "@/app/painel/paginas/[id]/editar/actions";
 
-const FRASE = "Eu quero excluir essa pagina";
+const FRASE = "Eu quero apagar essa pagina";
 
 export function ExcluirPaginaButton({
   pageId,
