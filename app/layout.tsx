@@ -31,7 +31,7 @@ export default async function RootLayout({
 
   if (user) {
     isAdmin = user.email === process.env.ADMIN_EMAIL;
-    const [profileRes, staffRes, pendingStaffRes, pendingTeamRes] = await Promise.all([
+    const [profileRes, staffRes, pendingStaffRes, pendingTeamRes, notifRes] = await Promise.all([
       supabase.from("profiles").select("nome, username").eq("id", user.id).single(),
       supabase
         .from("championship_staff")
@@ -48,10 +48,15 @@ export default async function RootLayout({
         .select("id", { count: "exact", head: true })
         .eq("atleta2_id", user.id)
         .eq("status", "convite_pendente"),
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("lida", false),
     ]);
     if (profileRes.data) navUser = { id: user.id, ...profileRes.data };
     isStaff = (staffRes.count ?? 0) > 0;
-    notifCount = (pendingStaffRes.count ?? 0) + (pendingTeamRes.count ?? 0);
+    notifCount = (pendingStaffRes.count ?? 0) + (pendingTeamRes.count ?? 0) + (notifRes.count ?? 0);
   }
 
   return (
@@ -63,7 +68,7 @@ export default async function RootLayout({
         <TopNav user={navUser} showStaff={isStaff} isAdmin={isAdmin} notifCount={notifCount} />
         <main className="flex-1">{children}</main>
         <Footer />
-        <BottomNav showStaff={isStaff} isAdmin={isAdmin} notifCount={notifCount} />
+        <BottomNav showStaff={isStaff} isAdmin={isAdmin} notifCount={notifCount} isLoggedIn={!!navUser} />
       </body>
     </html>
   );

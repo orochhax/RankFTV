@@ -9,6 +9,7 @@ import {
   Link2,
   MapPin,
   Megaphone,
+  MoreVertical,
   Pencil,
   QrCode,
   Shirt,
@@ -16,6 +17,7 @@ import {
   UserCog,
 } from "lucide-react";
 import { InviteRespondButtons } from "@/components/painel/InviteRespondButtons";
+import { DropdownMenu } from "@/components/ui/DropdownMenu";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -158,6 +160,16 @@ export default async function PainelCampeonatoPage({
               >
                 <Pencil className="size-3.5" /> Editar
               </Link>
+              <DropdownMenu
+                trigger={
+                  <button className="flex size-8 items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors">
+                    <MoreVertical className="size-4" />
+                  </button>
+                }
+                items={[
+                  { label: "Vinculações", href: `/painel/campeonatos/${id}/vinculacoes`, icon: Link2 },
+                ]}
+              />
             </div>
           </div>
 

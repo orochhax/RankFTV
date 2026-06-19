@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
-import { Bell, ShieldCheck, Users } from "lucide-react";
+import Link from "next/link";
+import { Bell, ShieldCheck, Users, Link2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { aceitarConvite, recusarConvite } from "@/app/perfil/convite-actions";
 import { aceitarConviteStaff, recusarConviteStaff } from "@/app/perfil/staff-actions";
+import { marcarTodasLidas } from "./actions";
 
 type StaffRow = {
   id: string;
@@ -70,7 +72,22 @@ export default async function NotificacoesPage() {
     atleta1: profMap[c.atleta1_id] ?? null,
   }));
 
-  const total = staffConvites.length + convites.length;
+  // --- Notificações gerais da tabela notifications ---
+  const { data: notifRows } = await supabase
+    .from("notifications")
+    .select("id, tipo, titulo, mensagem, lida, championship_id, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  const notifs = notifRows ?? [];
+
+  // Marca todas as notificações gerais como lidas ao abrir a página
+  if (notifs.some((n) => !n.lida)) {
+    void marcarTodasLidas();
+  }
+
+  const total = staffConvites.length + convites.length + notifs.length;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-8 pb-32">
@@ -184,6 +201,40 @@ export default async function NotificacoesPage() {
                   </div>
                 </div>
               ))}
+            </section>
+          )}
+          {/* Notificações gerais */}
+          {notifs.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                <Bell className="size-4" /> Avisos
+              </h2>
+              {notifs.map((n) => {
+                const champLink = n.tipo === "convite_pagina" && n.championship_id
+                  ? `/painel/campeonatos/${n.championship_id}`
+                  : null;
+                return (
+                  <div key={n.id} className={`rounded-2xl p-4 ring-1 ${n.lida ? "bg-gray-50 ring-gray-100" : "bg-blue-50 ring-blue-200"}`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`flex size-9 shrink-0 items-center justify-center rounded-full ${n.lida ? "bg-gray-100" : "bg-blue-100"}`}>
+                        <Link2 className={`size-4 ${n.lida ? "text-gray-400" : "text-blue-600"}`} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-gray-900">{n.titulo}</p>
+                        <p className="mt-0.5 text-sm text-gray-600">{n.mensagem}</p>
+                        {champLink && (
+                          <Link
+                            href={champLink}
+                            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700"
+                          >
+                            Ver no painel do campeonato →
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </section>
           )}
         </div>

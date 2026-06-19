@@ -1,13 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Calendar, MapPin } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, MoreVertical, Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getPageChampionships } from "@/lib/supabase/pages";
 import { LiveFollowerCount } from "@/components/paginas/LiveFollowerCount";
 import { PagePublicHeader } from "@/components/paginas/PagePublicHeader";
 import { SocialLinksBar, type SocialLink } from "@/components/paginas/SocialLinksBar";
 import { EtapaAtualCard } from "@/components/paginas/EtapaAtualCard";
+import { DropdownMenu } from "@/components/ui/DropdownMenu";
 
 function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("pt-BR", {
@@ -59,12 +60,24 @@ export default async function PaginaDetailPage({
     <div className="min-h-screen bg-gray-50">
       <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
         <div className="mx-auto max-w-2xl space-y-4">
-          <Link
-            href="/painel/paginas"
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
-          >
-            <ArrowLeft className="size-4" /> Minhas Páginas
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link
+              href="/painel/paginas"
+              className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
+            >
+              <ArrowLeft className="size-4" /> Minhas Páginas
+            </Link>
+            <DropdownMenu
+              trigger={
+                <button className="flex size-8 items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors">
+                  <MoreVertical className="size-4" />
+                </button>
+              }
+              items={[
+                { label: "Editar página", href: `/painel/paginas/${id}/editar`, icon: Pencil },
+              ]}
+            />
+          </div>
 
           {/* Banner */}
           <div className="relative h-28 w-full overflow-hidden rounded-2xl">

@@ -9,10 +9,12 @@ export function BottomNav({
   showStaff = false,
   isAdmin = false,
   notifCount = 0,
+  isLoggedIn = false,
 }: {
   showStaff?: boolean;
   isAdmin?: boolean;
   notifCount?: number;
+  isLoggedIn?: boolean;
 }) {
   const pathname = usePathname();
 
@@ -39,16 +41,18 @@ export function BottomNav({
             <Wrench className="size-3.5 text-amber-600" />
           </Link>
         )}
-        {notifCount > 0 && (
+        {isLoggedIn && (
           <Link
             href="/notificacoes"
-            aria-label={`${notifCount} notificações pendentes`}
+            aria-label={notifCount > 0 ? `${notifCount} notificações pendentes` : "Notificações"}
             className="relative flex size-7 items-center justify-center rounded-full bg-white shadow shadow-black/10 ring-1 ring-black/5"
           >
             <Bell className="size-4 text-gray-600" />
-            <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white leading-none">
-              {notifCount > 9 ? "9+" : notifCount}
-            </span>
+            {notifCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white leading-none">
+                {notifCount > 9 ? "9+" : notifCount}
+              </span>
+            )}
           </Link>
         )}
       </div>
