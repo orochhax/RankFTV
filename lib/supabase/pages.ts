@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 
 export type Page = {
   id: string;
@@ -47,24 +46,24 @@ function mapPage(row: PageRow): Page {
 // Lista pública de páginas com contadores
 export async function getPages(): Promise<PageWithStats[]> {
   const supabase = await createClient();
-  const admin = createAdminClient();
 
   const { data: pagesData } = await supabase
     .from("pages")
-    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at")
+    .select(
+      "id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at",
+    )
     .order("created_at", { ascending: false });
 
   if (!pagesData || pagesData.length === 0) return [];
 
   const ids = pagesData.map((p) => p.id);
 
-  // Admin bypassa RLS — vê seguidores de todos os usuários
-  const { data: followersData } = await admin
+  // SELECT public — qualquer um pode contar seguidores
+  const { data: followersData } = await supabase
     .from("page_followers")
     .select("page_id")
     .in("page_id", ids);
 
-  // Conta edições por página
   const { data: editionsData } = await supabase
     .from("championships")
     .select("page_id")
@@ -94,11 +93,12 @@ export async function getPages(): Promise<PageWithStats[]> {
 // Páginas que o usuário logado é dono
 export async function getMyPages(userId: string): Promise<PageWithStats[]> {
   const supabase = await createClient();
-  const admin = createAdminClient();
 
   const { data: pagesData } = await supabase
     .from("pages")
-    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at")
+    .select(
+      "id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at",
+    )
     .eq("owner_id", userId)
     .order("created_at", { ascending: false });
 
@@ -106,7 +106,7 @@ export async function getMyPages(userId: string): Promise<PageWithStats[]> {
 
   const ids = pagesData.map((p) => p.id);
 
-  const { data: followersData } = await admin
+  const { data: followersData } = await supabase
     .from("page_followers")
     .select("page_id")
     .in("page_id", ids);
@@ -137,29 +137,33 @@ export async function getMyPages(userId: string): Promise<PageWithStats[]> {
 }
 
 // Página pública por handle
-export async function getPageByHandle(handle: string): Promise<PageWithStats | null> {
+export async function getPageByHandle(
+  handle: string,
+): Promise<PageWithStats | null> {
   const supabase = await createClient();
-  const admin = createAdminClient();
 
   const { data: row } = await supabase
     .from("pages")
-    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at")
+    .select(
+      "id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at",
+    )
     .eq("handle", handle)
     .maybeSingle();
 
   if (!row) return null;
 
-  const [{ count: followersCount }, { count: editionsCount }] = await Promise.all([
-    admin
-      .from("page_followers")
-      .select("id", { count: "exact", head: true })
-      .eq("page_id", row.id),
-    supabase
-      .from("championships")
-      .select("id", { count: "exact", head: true })
-      .eq("page_id", row.id)
-      .neq("status", "rascunho"),
-  ]);
+  const [{ count: followersCount }, { count: editionsCount }] =
+    await Promise.all([
+      supabase
+        .from("page_followers")
+        .select("id", { count: "exact", head: true })
+        .eq("page_id", row.id),
+      supabase
+        .from("championships")
+        .select("id", { count: "exact", head: true })
+        .eq("page_id", row.id)
+        .neq("status", "rascunho"),
+    ]);
 
   return {
     ...mapPage(row as PageRow),
