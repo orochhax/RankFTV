@@ -41,7 +41,7 @@ export default async function PaginaDetailPage({
 
   const { data: page } = await supabase
     .from("pages")
-    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, social_links, created_at")
+    .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, avatar_url, social_links, created_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -99,6 +99,7 @@ export default async function PaginaDetailPage({
             userId={user.id}
             initialFollowing={false}
             initialSeguidores={seguidores ?? 0}
+            avatarUrl={(p.avatar_url as string | null) ?? null}
           />
 
           <SocialLinksBar pageId={page.id} initialLinks={socialLinks} isOwner={false} />

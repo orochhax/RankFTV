@@ -94,6 +94,7 @@ export default async function PublicPagePage({
             userId={user?.id ?? null}
             initialFollowing={following}
             initialSeguidores={page.seguidores}
+            avatarUrl={page.avatarUrl ?? null}
           />
 
           <SocialLinksBar

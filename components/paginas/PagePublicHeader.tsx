@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Users, BookOpen } from "lucide-react";
+import Image from "next/image";
 import { togglePageFollow } from "@/app/campeonatos/paginas/actions";
 
 function fmt(n: number): string {
@@ -19,6 +20,7 @@ export function PagePublicHeader({
   userId,
   initialFollowing,
   initialSeguidores,
+  avatarUrl,
 }: {
   pageId: string;
   nome: string;
@@ -28,6 +30,7 @@ export function PagePublicHeader({
   userId: string | null;
   initialFollowing: boolean;
   initialSeguidores: number;
+  avatarUrl?: string | null;
 }) {
   const [seguindo, setSeguindo] = useState(initialFollowing);
   const [seguidores, setSeguidores] = useState(initialSeguidores);
@@ -47,6 +50,16 @@ export function PagePublicHeader({
 
   return (
     <div className="flex flex-col items-center text-center gap-3">
+      {/* Avatar */}
+      <div className="relative size-20 -mt-10 rounded-2xl ring-4 ring-[#0f0f13] overflow-hidden bg-gradient-to-br from-gray-600 to-gray-700 shrink-0">
+        {avatarUrl ? (
+          <Image src={avatarUrl} alt={nome} fill className="object-cover" sizes="80px" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <span className="text-3xl font-bold text-white/80">{nome.charAt(0)}</span>
+          </div>
+        )}
+      </div>
       <h1 className="text-2xl font-bold tracking-tight text-white">{nome}</h1>
       <p className="text-sm text-white/50">@{handle}</p>
       {descricao && (
