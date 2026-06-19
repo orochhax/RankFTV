@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Users, BookOpen, Calendar, MapPin, Trophy } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, MapPin, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   getPageByHandle,
@@ -87,11 +87,7 @@ export default async function PublicPagePage({
               {page.descricao && (
                 <p className="mt-1 text-sm text-white/70">{page.descricao}</p>
               )}
-              <div className="mt-3 flex items-center gap-4 text-sm text-white/50">
-                <span className="flex items-center gap-1">
-                  <Users className="size-4" />
-                  {formatSeguidores(page.seguidores)} seguidores
-                </span>
+              <div className="mt-3 flex items-center gap-2 text-sm text-white/50">
                 <span className="flex items-center gap-1">
                   <BookOpen className="size-4" />
                   {page.edicoes} edições
@@ -103,6 +99,8 @@ export default async function PublicPagePage({
               pageId={page.id}
               userId={user?.id ?? null}
               initialFollowing={following}
+              initialSeguidores={page.seguidores}
+              showCount
             />
           </div>
         </div>

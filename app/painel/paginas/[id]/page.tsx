@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Users, BookOpen, ExternalLink, Calendar, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getPageChampionships } from "@/lib/supabase/pages";
 
 function formatDate(d: string) {
@@ -39,8 +40,9 @@ export default async function PaginaDetailPage({
   if (!page) notFound();
   if (page.owner_id !== user.id) notFound();
 
+  const admin = createAdminClient();
   const [{ count: seguidores }, editions] = await Promise.all([
-    supabase
+    admin
       .from("page_followers")
       .select("id", { count: "exact", head: true })
       .eq("page_id", id),

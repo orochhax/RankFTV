@@ -23,6 +23,7 @@ export function PageCard({
   userId: string | null;
 }) {
   const [seguindo, setSeguindo] = useState(initialFollowing);
+  const [seguidores, setSeguidores] = useState(page.seguidores);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -41,11 +42,13 @@ export function PageCard({
         .eq("user_id", userId)
         .eq("page_id", page.id);
       setSeguindo(false);
+      setSeguidores((n) => Math.max(0, n - 1));
     } else {
       await supabase
         .from("page_followers")
         .insert({ user_id: userId, page_id: page.id });
       setSeguindo(true);
+      setSeguidores((n) => n + 1);
     }
     setLoading(false);
     router.refresh();
@@ -74,7 +77,7 @@ export function PageCard({
         <div className="mt-1 flex items-center gap-3 overflow-hidden whitespace-nowrap text-xs text-gray-400">
           <span className="flex shrink-0 items-center gap-1">
             <Users className="size-3" />
-            {formatSeguidores(page.seguidores)} seguidores
+            {formatSeguidores(seguidores)} seguidores
           </span>
           <span className="shrink-0">·</span>
           <span className="shrink-0">{page.edicoes} edições</span>
