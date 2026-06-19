@@ -13,19 +13,18 @@ import type { PageWithStats } from "@/lib/supabase/pages";
 type MinhaPage = Pick<PageWithStats, "id" | "nome" | "handle">;
 
 const BENEFICIOS_PADRAO = [
-  { icon: TrendingDown,  label: "Taxas reduzidas da plataforma",                                            locked: true },
-  { icon: Video,         label: "Call ao vivo com o CEO para apresentar todas as funcionalidades",           locked: true },
-  { icon: Star,          label: "Destaque no início do site — seu campeonato fica fixado na tela inicial",  locked: true },
-  { icon: MessageCircle, label: "Suporte priorizado direto pelo WhatsApp",                                  locked: true },
-  { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa",             locked: true },
-  { icon: Megaphone,     label: "Comunicação em massa com inscritos",                                       locked: true },
-  { icon: BarChart2,     label: "Relatório financeiro detalhado + exportação PDF/Excel",                    locked: true },
+  { icon: TrendingDown,  label: "Taxas reduzidas da plataforma",                                             locked: true },
+  { icon: Video,         label: "Call ao vivo com o CEO para apresentar todas as funcionalidades",            locked: true },
+  { icon: Star,          label: "Destaque no início do site — seu campeonato fica fixado na tela inicial",   locked: true },
+  { icon: MessageCircle, label: "Suporte priorizado direto pelo WhatsApp",                                   locked: true },
+  { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público",        locked: false },
+  { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila",               locked: false },
+  { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa",              locked: true },
+  { icon: Megaphone,     label: "Comunicação em massa com inscritos",                                        locked: true },
   { icon: Wallet,        label: "Inscrição e pagamento online — Pix na hora ou cartão em até 6x sem juros", locked: false },
-  { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila",              locked: false },
-  { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público",       locked: false },
-  { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu",             locked: false },
-  { icon: Shirt,         label: "Camisas por tamanho — saiba quantas P/M/G/GG encomendar",                 locked: false },
-  { icon: Megaphone,     label: "Comunicação com inscritos — avise todo mundo num clique",                  locked: false },
+  { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu",              locked: false },
+  { icon: Shirt,         label: "Camisas por tamanho — saiba quantas P/M/G/GG encomendar",                  locked: false },
+  { icon: Megaphone,     label: "Comunicação com inscritos — avise todo mundo num clique",                   locked: false },
 ];
 
 export function NovoCampeonatoSection({ minhasPages }: { minhasPages: MinhaPage[] }) {
