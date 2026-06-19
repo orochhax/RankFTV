@@ -1,12 +1,19 @@
 import { createAdminClient } from "./supabase/admin";
 
 export type PlatformConfig = {
+  // Plano gratuito
   plataformaPixFixo:        number;
   plataformaDebitoPercent:  number;
   plataformaDebitoFixo:     number;
   plataformaCreditoPercent: number;
   plataformaCreditoFixo:    number;
   atletaCredito7a12Extra:   number;
+  // Plano premium
+  premiumPixFixo:           number;
+  premiumDebitoPercent:     number;
+  premiumDebitoFixo:        number;
+  premiumCreditoPercent:    number;
+  premiumCreditoFixo:       number;
 };
 
 // Taxas do gateway Asaas — referência, não editáveis
@@ -25,6 +32,11 @@ export const DEFAULT_CONFIG: PlatformConfig = {
   plataformaCreditoPercent: 7.49,
   plataformaCreditoFixo:    0.49,
   atletaCredito7a12Extra:   0.50,
+  premiumPixFixo:           2.99,
+  premiumDebitoPercent:     4.89,
+  premiumDebitoFixo:        0.35,
+  premiumCreditoPercent:    5.49,
+  premiumCreditoFixo:       0.49,
 };
 
 export async function getPlatformConfig(): Promise<PlatformConfig> {
@@ -44,6 +56,11 @@ export async function getPlatformConfig(): Promise<PlatformConfig> {
     plataformaCreditoPercent: Number(data.plataforma_credito_percent),
     plataformaCreditoFixo:    Number(data.plataforma_credito_fixo),
     atletaCredito7a12Extra:   Number(data.atleta_credito_7a12_extra),
+    premiumPixFixo:           Number(data.premium_pix_fixo   ?? DEFAULT_CONFIG.premiumPixFixo),
+    premiumDebitoPercent:     Number(data.premium_debito_percent ?? DEFAULT_CONFIG.premiumDebitoPercent),
+    premiumDebitoFixo:        Number(data.premium_debito_fixo    ?? DEFAULT_CONFIG.premiumDebitoFixo),
+    premiumCreditoPercent:    Number(data.premium_credito_percent ?? DEFAULT_CONFIG.premiumCreditoPercent),
+    premiumCreditoFixo:       Number(data.premium_credito_fixo    ?? DEFAULT_CONFIG.premiumCreditoFixo),
   };
 }
 

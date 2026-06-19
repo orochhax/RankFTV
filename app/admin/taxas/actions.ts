@@ -21,13 +21,20 @@ export async function salvarTaxas(formData: FormData): Promise<{ ok: boolean; er
 
   try {
     const payload = {
-      plataforma_pix_fixo:        parse("plataforma_pix_fixo"),
-      plataforma_debito_percent:  parse("plataforma_debito_percent"),
-      plataforma_debito_fixo:     parse("plataforma_debito_fixo"),
-      plataforma_credito_percent: parse("plataforma_credito_percent"),
-      plataforma_credito_fixo:    parse("plataforma_credito_fixo"),
-      atleta_credito_7a12_extra:  parse("atleta_credito_7a12_extra"),
-      updated_at:                 new Date().toISOString(),
+      // Plano gratuito
+      plataforma_pix_fixo:         parse("plataforma_pix_fixo"),
+      plataforma_debito_percent:   parse("plataforma_debito_percent"),
+      plataforma_debito_fixo:      parse("plataforma_debito_fixo"),
+      plataforma_credito_percent:  parse("plataforma_credito_percent"),
+      plataforma_credito_fixo:     parse("plataforma_credito_fixo"),
+      atleta_credito_7a12_extra:   parse("atleta_credito_7a12_extra"),
+      // Plano premium
+      premium_pix_fixo:            parse("premium_pix_fixo"),
+      premium_debito_percent:      parse("premium_debito_percent"),
+      premium_debito_fixo:         parse("premium_debito_fixo"),
+      premium_credito_percent:     parse("premium_credito_percent"),
+      premium_credito_fixo:        parse("premium_credito_fixo"),
+      updated_at:                  new Date().toISOString(),
     };
 
     const { error } = await admin
