@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { GeneroCategoria } from "@/lib/mock/types";
+import type { GeneroCategoria } from "@/lib/types";
 
 export type CategoriaEditInput = {
   id?: string; // existe → update; undefined → insert

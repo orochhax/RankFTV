@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { MapPin, Trophy, ChevronRight } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateRangeBR } from "@/lib/format";
-import { getBannerUrl } from "@/lib/mock/banners";
-import type { Championship } from "@/lib/mock/types";
+import type { Championship } from "@/lib/types";
 
 export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
   const [current, setCurrent] = useState(0);
@@ -37,9 +35,7 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
       {/* Stack de cards com profundidade */}
       <div className="relative" style={{ height: "260px" }}>
         {camps.map((camp, i) => {
-          const bannerUrl = getBannerUrl(camp.id);
-
-          // distância em relação ao atual (com wrap circular)
+            // distância em relação ao atual (com wrap circular)
           const raw  = (i - current + camps.length) % camps.length;
           const dist = raw > camps.length / 2 ? raw - camps.length : raw;
           // dist: 0 = frente, ±1 = adjacente, ±2 = mais atrás
@@ -75,21 +71,9 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
                 onClick={(e) => !isFront && e.preventDefault()}
                 className="block"
               >
-                {bannerUrl ? (
-                  <div className="relative h-36">
-                    <Image
-                      src={bannerUrl}
-                      alt={camp.nome}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 100vw, 640px"
-                    />
-                  </div>
-                ) : (
-                  <div className={`flex h-36 items-center justify-center bg-gradient-to-br ${camp.bannerFrom} ${camp.bannerTo}`}>
+                <div className={`flex h-36 items-center justify-center bg-gradient-to-br ${camp.bannerFrom} ${camp.bannerTo}`}>
                     <Trophy className="size-10 text-white/90" strokeWidth={1.5} />
                   </div>
-                )}
                 <div className="space-y-1.5 p-4">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-gray-900">{camp.nome}</h3>

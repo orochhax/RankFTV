@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { GeneroCategoria } from "@/lib/mock/types";
+import type { GeneroCategoria } from "@/lib/types";
 import { calcularTierDoQuiz, type QuizAnswers } from "@/lib/tier";
 
 export type CategoriaInput = {

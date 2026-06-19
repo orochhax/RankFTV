@@ -4,7 +4,7 @@ import { ArrowLeft, CalendarDays, MapPin, Tag, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateRangeBR, generoLabel } from "@/lib/format";
-import type { ChampionshipStatus } from "@/lib/mock/types";
+import type { ChampionshipStatus } from "@/lib/types";
 import { InscricaoMenu } from "@/components/inscricoes/InscricaoMenu";
 
 type TeamRow = {

@@ -4,7 +4,7 @@ import type {
   Championship,
   ChampionshipStatus,
   GeneroCategoria,
-} from "@/lib/mock/types";
+} from "@/lib/types";
 
 // Campeonatos criados na plataforma (Supabase). Mapeamos as linhas do banco
 // para o MESMO tipo Championship usado pelos mocks, então os cards, a lista e a
@@ -79,7 +79,6 @@ function mapChampionship(row: ChampRow): Championship {
         corteRatingMax: c.corte_rating_max,
       }),
     ),
-    duplas: [],
   };
 }
 

@@ -8,7 +8,7 @@ import {
   type CategoriaInput,
 } from "@/app/painel/novo-campeonato/actions";
 import { createClient } from "@/lib/supabase/client";
-import type { GeneroCategoria } from "@/lib/mock/types";
+import type { GeneroCategoria } from "@/lib/types";
 import {
   QUIZ_QUESTIONS,
   calcularTierDoQuiz,

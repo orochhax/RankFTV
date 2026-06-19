@@ -15,7 +15,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatBRL, formatDateRangeBR, generoLabel } from "@/lib/format";
-import type { ChampionshipStatus, GeneroCategoria } from "@/lib/mock/types";
+import type { ChampionshipStatus, GeneroCategoria } from "@/lib/types";
 
 type CatRow = {
   id: string;

@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Trophy, ChevronLeft } from "lucide-react";
-import { getBracket } from "@/lib/mock/brackets";
-import { getChampionshipById } from "@/lib/mock/championships";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { BracketCategoryView } from "@/components/chaveamento/BracketView";
 import { createClient } from "@/lib/supabase/server";
-import type { BracketCategory, BracketMatch, BracketRound } from "@/lib/mock/brackets";
+import type { BracketCategory, BracketMatch, BracketRound } from "@/lib/types";
 
 function splitNomes(nome: string): [string, string] {
   const parts = nome.split(" & ");
@@ -140,17 +138,10 @@ export default async function ChaveamentoPublicPage({
   const { id } = await params;
   const { cat } = await searchParams;
 
-  // Tenta campeonato do banco primeiro, depois mock
   const dbChamp = await getDbChampionshipById(id);
-  const mockChamp = getChampionshipById(id);
-  const campNome = dbChamp?.nome ?? mockChamp?.nome;
-  if (!campNome) notFound();
+  if (!dbChamp) notFound();
 
-  // Tenta bracket do banco, cai no mock
-  const dbCategories = await getDbBracketCategories(id);
-  const mockBracket = getBracket(id);
-
-  const categories = dbCategories ?? mockBracket?.categories ?? null;
+  const categories = await getDbBracketCategories(id);
   if (!categories || categories.length === 0) notFound();
 
   const activeCat =
@@ -168,7 +159,7 @@ export default async function ChaveamentoPublicPage({
         </Link>
         <h1 className="mt-3 flex items-center gap-2 text-xl font-semibold text-gray-900">
           <Trophy className="size-5 text-blue-500" />
-          Chaveamento — {campNome}
+          Chaveamento — {dbChamp.nome}
         </h1>
       </div>
 

@@ -4,8 +4,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
 import { MeuDesempenho } from "@/components/home/MeuDesempenho";
 import { HamburgerMenu } from "@/components/home/HamburgerMenu";
-import { sortedChampionships, CHAMPIONSHIPS } from "@/lib/mock/championships";
-import { getLivChampionships } from "@/lib/supabase/championships";
+import { getLivChampionships, getPublishedChampionships } from "@/lib/supabase/championships";
 import { createClient } from "@/lib/supabase/server";
 import {
   getConquistasDestaque,
@@ -77,12 +76,11 @@ export default async function Home() {
     unreadCount = count ?? 0;
   }
 
-  const destaques = sortedChampionships().slice(0, 3);
-  const aoVivoDb   = await getLivChampionships();
-  const aoVivoMock = CHAMPIONSHIPS.filter((c) => c.status === "em_andamento");
-  // une DB + mocks, evitando duplicatas por id
-  const aoVivoIds  = new Set(aoVivoDb.map((c) => c.id));
-  const aoVivo     = [...aoVivoDb, ...aoVivoMock.filter((c) => !aoVivoIds.has(c.id))];
+  const publicados = await getPublishedChampionships();
+  const destaques = publicados
+    .filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento")
+    .slice(0, 3);
+  const aoVivo = await getLivChampionships();
 
   return (
     <div className="min-h-screen">
@@ -202,9 +200,6 @@ export default async function Home() {
                       <p className="flex items-center gap-1 text-xs text-gray-400">
                         <MapPin className="size-3" />
                         {c.local}, {c.cidade} - {c.estado}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-400">
-                        {c.duplas.length} duplas inscritas
                       </p>
                     </div>
                     <ChevronRight className="size-4 shrink-0 text-gray-300" />

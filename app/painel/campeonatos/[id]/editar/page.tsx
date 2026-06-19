@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyPages } from "@/lib/supabase/pages";
 import { EditarCampeonatoForm } from "@/components/painel/EditarCampeonatoForm";
-import type { GeneroCategoria } from "@/lib/mock/types";
+import type { GeneroCategoria } from "@/lib/types";
 
 export default async function EditarCampeonatoPage({
   params,

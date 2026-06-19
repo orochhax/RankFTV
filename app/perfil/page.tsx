@@ -3,9 +3,9 @@ import Link from "next/link";
 import { ChevronRight, UserPen, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { SignOutButton } from "@/components/perfil/SignOutButton";
-import { SeriesCard } from "@/components/campeonatos/SeriesCard";
+import { PageCard } from "@/components/campeonatos/PageCard";
 import { createClient } from "@/lib/supabase/server";
-import { SERIES } from "@/lib/mock/series";
+import { getFollowedPageIds, getMyPages } from "@/lib/supabase/pages";
 
 const COLOCACAO_EMOJI: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
@@ -75,8 +75,8 @@ export default async function PerfilPage() {
     { data: campeonatosOrganizados },
     { data: historico },
     { data: conquistas },
-    { data: followedSeriesData },
     { data: organizerAccount },
+    followedPageIds,
   ] = await Promise.all([
     supabase
       .from("championships")
@@ -97,22 +97,51 @@ export default async function PerfilPage() {
       .order("data_conquistada", { ascending: false }),
 
     supabase
-      .from("series_followers")
-      .select("series_id")
-      .eq("user_id", user.id),
-
-    supabase
       .from("organizer_accounts")
       .select("habilitado")
       .eq("user_id", user.id)
       .single(),
+
+    getFollowedPageIds(user.id),
   ]);
 
   const total = campeonatosOrganizados?.length ?? 0;
   const totalPontos = historico?.reduce((s, r) => s + r.pontos, 0) ?? 0;
 
-  const followedSeriesIds = followedSeriesData?.map((f) => f.series_id) ?? [];
-  const seriesSeguidas = SERIES.filter((s) => followedSeriesIds.includes(s.id));
+  // Busca as pages que o usuário segue (só as suas próprias não contam — usa IDs dos follows)
+  const todasPages = followedPageIds.length > 0 ? await getMyPages(user.id) : [];
+  // Pages que o usuário segue mas não é dono: precisamos buscar de forma diferente
+  // Simplificado: mostra todas as pages que o usuário segue via page_followers
+  const { data: followedPagesData } = followedPageIds.length > 0
+    ? await supabase
+        .from("pages")
+        .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at")
+        .in("id", followedPageIds)
+    : { data: [] };
+
+  // Contagem de seguidores para cada page seguida
+  const seguedPages = await Promise.all(
+    (followedPagesData ?? []).map(async (p) => {
+      const { count } = await supabase
+        .from("page_followers")
+        .select("id", { count: "exact", head: true })
+        .eq("page_id", p.id);
+      return {
+        id: p.id,
+        ownerId: p.owner_id,
+        nome: p.nome,
+        handle: p.handle,
+        descricao: p.descricao,
+        bannerFrom: p.banner_from,
+        bannerTo: p.banner_to,
+        bannerUrl: p.banner_url ?? null,
+        createdAt: p.created_at,
+        seguidores: count ?? 0,
+        edicoes: 0,
+      };
+    }),
+  );
+  void todasPages; // unused after refactor
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-8 pb-32">
@@ -288,14 +317,14 @@ export default async function PerfilPage() {
         )}
       </section>
 
-      {/* Campeonatos que sigo */}
-      {seriesSeguidas.length > 0 && (
+      {/* Páginas que sigo */}
+      {seguedPages.length > 0 && (
         <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-500">
-              Campeonatos que sigo
+              Páginas que sigo
               <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-500">
-                {seriesSeguidas.length}
+                {seguedPages.length}
               </span>
             </h2>
             <Link
@@ -306,10 +335,10 @@ export default async function PerfilPage() {
             </Link>
           </div>
           <div className="space-y-3">
-            {seriesSeguidas.map((s) => (
-              <SeriesCard
-                key={s.id}
-                series={s}
+            {seguedPages.map((p) => (
+              <PageCard
+                key={p.id}
+                page={p}
                 initialFollowing
                 userId={user.id}
               />

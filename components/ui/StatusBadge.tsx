@@ -1,4 +1,4 @@
-import type { ChampionshipStatus } from "@/lib/mock/types";
+import type { ChampionshipStatus } from "@/lib/types";
 
 const STATUS_CONFIG: Record<ChampionshipStatus, { label: string; className: string }> = {
   inscricoes_abertas: { label: "Inscrições abertas", className: "bg-emerald-100 text-emerald-700" },

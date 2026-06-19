@@ -8,7 +8,7 @@ import {
   type CategoriaEditInput,
 } from "@/app/painel/campeonatos/[id]/editar/actions";
 import { createClient } from "@/lib/supabase/client";
-import type { GeneroCategoria } from "@/lib/mock/types";
+import type { GeneroCategoria } from "@/lib/types";
 import type { PageWithStats } from "@/lib/supabase/pages";
 
 type CatForm = {

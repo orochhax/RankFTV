@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, ChevronLeft, ChevronRight, Eye, EyeOff, List, MapPin } from "lucide-react";
 import type { AgendaEvent } from "@/lib/agenda";
-import type { ChampionshipStatus } from "@/lib/mock/types";
+import type { ChampionshipStatus } from "@/lib/types";
 
 const WEEKDAYS_SHORT = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 const WEEKDAYS_MIN = ["D", "S", "T", "Q", "Q", "S", "S"];

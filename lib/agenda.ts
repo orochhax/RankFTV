@@ -1,5 +1,5 @@
 import { REAL_EVENTS } from "@/lib/mock/agenda-events";
-import type { ChampionshipStatus } from "@/lib/mock/types";
+import type { ChampionshipStatus } from "@/lib/types";
 
 // Um "evento" da agenda é um circuito em UM dia específico. Um evento de vários
 // dias vira vários eventos (um por dia que ele ocupa) — assim ele aparece em

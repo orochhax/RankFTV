@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ChampionshipCard } from "@/components/campeonatos/ChampionshipCard";
 import { PageCard } from "@/components/campeonatos/PageCard";
-import { CHAMPIONSHIPS, sortedChampionships } from "@/lib/mock/championships";
 import { getPublishedChampionships } from "@/lib/supabase/championships";
+import type { Championship } from "@/lib/types";
 import { getPages, getFollowedPageIds } from "@/lib/supabase/pages";
 import { createClient } from "@/lib/supabase/server";
 
@@ -30,22 +30,26 @@ export default async function CampeonatosPage({
 
   const todasPages = await getPages();
 
-  // Campeonatos reais criados na plataforma (publicados) + os de exemplo (mock).
-  const publicados = await getPublishedChampionships();
-  const todos = [...publicados, ...CHAMPIONSHIPS];
+  const todos = await getPublishedChampionships();
 
-  // Opções dos filtros derivam de tudo que aparece na lista.
   const estadosDisponiveis = Array.from(new Set(todos.map((c) => c.estado))).sort();
   const categoriasDisponiveis = Array.from(
     new Set(todos.flatMap((c) => c.categorias.map((cat) => cat.nome))),
   ).sort();
 
-  const filtrados = sortedChampionships(todos).filter((c) => {
-    if (c.status !== "inscricoes_abertas") return false;
-    if (estado && c.estado !== estado) return false;
-    if (categoria && !c.categorias.some((cat) => cat.nome === categoria)) return false;
-    return true;
-  });
+  const STATUS_PRIORIDADE: Record<string, number> = {
+    inscricoes_abertas: 0, em_andamento: 1, rascunho: 2, encerrado: 3,
+  };
+  const filtrados = [...todos]
+    .sort((a, b) => {
+      const p = (STATUS_PRIORIDADE[a.status] ?? 9) - (STATUS_PRIORIDADE[b.status] ?? 9);
+      return p !== 0 ? p : a.dataInicio.localeCompare(b.dataInicio);
+    })
+    .filter((c: Championship) => {
+      if (estado && c.estado !== estado) return false;
+      if (categoria && !c.categorias.some((cat) => cat.nome === categoria)) return false;
+      return true;
+    });
 
   const paginasVisiveis = todasPages.slice(0, 3);
   const temMaisPaginas = todasPages.length > 3;

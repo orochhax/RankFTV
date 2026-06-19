@@ -1,5 +1,5 @@
 import { Medal } from "lucide-react";
-import type { BracketMatch, BracketRound, BracketCategory } from "@/lib/mock/brackets";
+import type { BracketMatch, BracketRound, BracketCategory } from "@/lib/types";
 
 // ── SVG das linhas conectoras entre rodadas ───────────────────────────────────
 function connectorPaths(numMatchesInRound: number, cellH: number): string {

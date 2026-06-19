@@ -1,4 +1,4 @@
-import type { RatingPoint } from "@/lib/mock/rating-history";
+import type { RatingPoint } from "@/lib/types";
 
 // Gráfico simples de evolução do rating (ftv.md 8.5). SVG feito à mão, sem
 // dependência de lib de gráfico — é só uma linha com 6 pontos, não precisa de

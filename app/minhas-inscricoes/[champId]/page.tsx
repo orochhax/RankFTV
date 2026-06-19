@@ -14,7 +14,7 @@ import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateRangeBR, formatBRL, generoLabel } from "@/lib/format";
-import type { ChampionshipStatus } from "@/lib/mock/types";
+import type { ChampionshipStatus } from "@/lib/types";
 
 type TeamRow = {
   id: string;
