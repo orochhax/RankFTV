@@ -451,30 +451,6 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
         </div>
       </div>
 
-      {/* Banner do evento */}
-      <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5 space-y-3">
-        <h2 className="text-sm font-semibold text-gray-800">Banner do evento</h2>
-        <p className="text-xs text-gray-500">
-          Cole a URL de uma imagem para usar como banner deste campeonato.
-          Diferente do banner da página — cada edição pode ter o seu próprio.
-        </p>
-        <input
-          type="url"
-          className={inputClass}
-          value={bannerUrl}
-          onChange={(e) => setBannerUrl(e.target.value)}
-          placeholder="https://..."
-        />
-        {bannerUrl && (
-          <img
-            src={bannerUrl}
-            alt="Preview do banner"
-            className="h-28 w-full rounded-xl object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
-        )}
-      </div>
-
       {/* Regulamento */}
       <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
         <h2 className="text-sm font-semibold text-gray-800">Regulamento</h2>
