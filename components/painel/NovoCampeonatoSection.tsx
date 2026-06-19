@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import {
-  MessageCircle, Wallet, QrCode, Sparkles, Lock,
+  MessageCircle, Wallet, QrCode, Sparkles, Lock, Camera,
   Network, TrendingUp, Shirt, Megaphone, Check,
-  TrendingDown, Video, Star, BarChart2,
+  TrendingDown, Video, Star,
 } from "lucide-react";
 import { ElitePlanCard } from "./ElitePlanCard";
 import { NovoCampeonatoForm } from "./NovoCampeonatoForm";
@@ -16,6 +16,7 @@ const BENEFICIOS_PADRAO = [
   { icon: TrendingDown,  label: "Taxas reduzidas da plataforma",                                             locked: true },
   { icon: Video,         label: "Call ao vivo com o CEO para apresentar todas as funcionalidades",            locked: true },
   { icon: Star,          label: "Destaque no início do site — seu campeonato fica fixado na tela inicial",   locked: true },
+  { icon: Camera,        label: "Divulgação do campeonato nos stories do @rankftv",                          locked: true },
   { icon: MessageCircle, label: "Suporte pelo WhatsApp",                                                     locked: false },
   { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público",        locked: false },
   { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila",               locked: false },
