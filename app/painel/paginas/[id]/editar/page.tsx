@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getPageChampionships } from "@/lib/supabase/pages";
 import { EditarPaginaForm } from "@/components/painel/EditarPaginaForm";
+import { AlterarHandlePagina } from "@/components/painel/AlterarHandlePagina";
 import { RemoverVinculoPaginaButton } from "@/components/painel/RemoverVinculoPaginaButton";
 import { SocialLinksBar, type SocialLink } from "@/components/paginas/SocialLinksBar";
 import { ExcluirPaginaButton } from "@/components/painel/ExcluirPaginaButton";
@@ -20,7 +21,7 @@ export default async function EditarPaginaPage({
 
   const { data: page } = await supabase
     .from("pages")
-    .select("id, owner_id, nome, handle, descricao, social_links")
+    .select("id, owner_id, nome, handle, handle_updated_at, descricao, social_links")
     .eq("id", id)
     .single();
 
@@ -54,6 +55,16 @@ export default async function EditarPaginaPage({
               pageId={page.id}
               initialNome={page.nome}
               initialDescricao={page.descricao ?? ""}
+            />
+          </section>
+
+          {/* Alterar @ */}
+          <section className="space-y-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Endereço da página</h2>
+            <AlterarHandlePagina
+              pageId={page.id}
+              currentHandle={page.handle}
+              handleUpdatedAt={(page as { handle_updated_at?: string | null }).handle_updated_at ?? null}
             />
           </section>
 
