@@ -28,12 +28,13 @@ export async function criarPagina(
   if (!/^[a-z0-9-]{3,30}$/.test(handle))
     return { error: "Handle pode ter só letras, números e hífens (3–30 caracteres)." };
 
-  // Verifica unicidade do handle
-  const { count } = await supabase
-    .from("pages")
-    .select("id", { count: "exact", head: true })
-    .eq("handle", handle);
-  if ((count ?? 0) > 0) return { error: "Esse @handle já está em uso. Escolha outro." };
+  // Verifica unicidade global: páginas + perfis de usuário compartilham o mesmo espaço de @
+  const [{ count: countPages }, { count: countProfiles }] = await Promise.all([
+    supabase.from("pages").select("id", { count: "exact", head: true }).eq("handle", handle),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("username", handle),
+  ]);
+  if ((countPages ?? 0) > 0 || (countProfiles ?? 0) > 0)
+    return { error: "Esse @handle já está em uso. Escolha outro." };
 
   const bannerUrl = (formData.get("bannerUrl") as string)?.trim() || null;
 

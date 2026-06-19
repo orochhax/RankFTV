@@ -27,12 +27,11 @@ export default function CadastroPage() {
 
     setUsernameStatus("checking");
     const timer = setTimeout(async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("username", username)
-        .maybeSingle();
-      setUsernameStatus(data ? "taken" : "ok");
+      const [{ data: profile }, { data: page }] = await Promise.all([
+        supabase.from("profiles").select("id").eq("username", username).maybeSingle(),
+        supabase.from("pages").select("id").eq("handle", username).maybeSingle(),
+      ]);
+      setUsernameStatus(profile || page ? "taken" : "ok");
     }, 400);
     return () => clearTimeout(timer);
   }, [username]);
@@ -60,10 +59,13 @@ export default function CadastroPage() {
     });
 
     if (error) {
+      const msg = error.message || "";
       setErro(
-        error.message.includes("already registered")
+        msg.includes("already registered")
           ? "Esse e-mail já está cadastrado."
-          : error.message
+          : msg.includes("sending") || msg === "{}"
+          ? "Erro ao enviar o e-mail de confirmação. Verifique as configurações de SMTP."
+          : msg || "Erro ao criar conta. Tente novamente."
       );
       setLoading(false);
     } else {
