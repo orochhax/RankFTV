@@ -635,9 +635,13 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+          className={`rounded-lg px-5 py-2.5 text-sm font-semibold disabled:opacity-60 transition-colors ${
+            elite
+              ? "bg-amber-400 text-gray-900 hover:bg-amber-300"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
         >
-          {pending ? "Criando…" : "Criar campeonato"}
+          {pending ? "Criando…" : elite ? "Criar campeonato de Elite" : "Criar campeonato padrão"}
         </button>
         <p className="text-xs text-gray-400">
           Cria como rascunho. Você publica e configura o recebimento no próximo passo.
