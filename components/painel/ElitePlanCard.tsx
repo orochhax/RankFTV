@@ -108,7 +108,7 @@ export function ElitePlanCard({
             No plano Padrão a plataforma retém uma taxa maior por inscrição.
             No Elite, essa taxa cai — e a diferença vai direto pra você.
             Num evento com R$10.000 em inscrições, isso pode representar
-            <strong className="text-amber-300"> R$100 a mais</strong> no seu repasse.
+            <strong className="text-amber-300"> R$100 a mais</strong> no seu bolso.
           </p>
           <div className="mt-3 flex items-center gap-3 text-xs">
             <div className="rounded-lg bg-white/10 px-3 py-2 text-white/60">
