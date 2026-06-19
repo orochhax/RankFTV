@@ -5,7 +5,7 @@
 DROP TABLE IF EXISTS categories CASCADE;
 
 -- Views de ranking por dupla/individual (substituídas pela view ranking_entries)
-DROP VIEW  IF EXISTS ranking_individual CASCADE;
+DROP TABLE IF EXISTS ranking_individual CASCADE;
 DROP TABLE IF EXISTS ranking_dupla      CASCADE;
 
 -- Tabela de seguidores de séries (sistema de séries foi removido, substituído por Pages)
