@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type Page = {
   id: string;
@@ -46,6 +47,7 @@ function mapPage(row: PageRow): Page {
 // Lista pública de páginas com contadores
 export async function getPages(): Promise<PageWithStats[]> {
   const supabase = await createClient();
+  const admin = createAdminClient();
 
   const { data: pagesData } = await supabase
     .from("pages")
@@ -56,8 +58,8 @@ export async function getPages(): Promise<PageWithStats[]> {
 
   const ids = pagesData.map((p) => p.id);
 
-  // Conta seguidores por página
-  const { data: followersData } = await supabase
+  // Admin bypassa RLS — vê seguidores de todos os usuários
+  const { data: followersData } = await admin
     .from("page_followers")
     .select("page_id")
     .in("page_id", ids);
@@ -92,6 +94,7 @@ export async function getPages(): Promise<PageWithStats[]> {
 // Páginas que o usuário logado é dono
 export async function getMyPages(userId: string): Promise<PageWithStats[]> {
   const supabase = await createClient();
+  const admin = createAdminClient();
 
   const { data: pagesData } = await supabase
     .from("pages")
@@ -103,7 +106,7 @@ export async function getMyPages(userId: string): Promise<PageWithStats[]> {
 
   const ids = pagesData.map((p) => p.id);
 
-  const { data: followersData } = await supabase
+  const { data: followersData } = await admin
     .from("page_followers")
     .select("page_id")
     .in("page_id", ids);
@@ -136,6 +139,7 @@ export async function getMyPages(userId: string): Promise<PageWithStats[]> {
 // Página pública por handle
 export async function getPageByHandle(handle: string): Promise<PageWithStats | null> {
   const supabase = await createClient();
+  const admin = createAdminClient();
 
   const { data: row } = await supabase
     .from("pages")
@@ -146,7 +150,7 @@ export async function getPageByHandle(handle: string): Promise<PageWithStats | n
   if (!row) return null;
 
   const [{ count: followersCount }, { count: editionsCount }] = await Promise.all([
-    supabase
+    admin
       .from("page_followers")
       .select("id", { count: "exact", head: true })
       .eq("page_id", row.id),
