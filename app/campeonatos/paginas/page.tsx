@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getPages, getFollowedPageIds } from "@/lib/supabase/pages";
 import { PageCard } from "@/components/campeonatos/PageCard";
@@ -17,6 +19,12 @@ export default async function TodasPaginasPage() {
     <div className="min-h-screen">
       <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
         <div className="mx-auto max-w-2xl">
+          <Link
+            href="/campeonatos"
+            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors mb-3"
+          >
+            <ArrowLeft className="size-4" /> Campeonatos
+          </Link>
           <h1 className="text-2xl font-bold tracking-tight text-white">Páginas</h1>
           <p className="mt-1 text-sm text-white/50">
             Siga uma página e seja notificado quando abrir nova edição.
