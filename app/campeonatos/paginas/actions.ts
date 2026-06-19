@@ -57,7 +57,7 @@ export async function sendPageChampionshipInvite(
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "Convite já enviado para esse campeonato." };
-    return { ok: false, error: "Erro ao enviar convite." };
+    return { ok: false, error: `[${error.code}] ${error.message}` };
   }
   revalidatePath(`/campeonatos/paginas`);
   return { ok: true };
