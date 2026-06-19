@@ -6,6 +6,7 @@ import {
   CheckSquare,
   DollarSign,
   ExternalLink,
+  Link2,
   MapPin,
   Megaphone,
   MoreVertical,
