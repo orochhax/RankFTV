@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, CalendarDays, ChevronRight, MapPin, Tag, Trophy } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Tag, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateRangeBR, generoLabel } from "@/lib/format";
 import type { ChampionshipStatus } from "@/lib/mock/types";
+import { InscricaoMenu } from "@/components/inscricoes/InscricaoMenu";
 
 type TeamRow = {
   id: string;
@@ -169,46 +170,48 @@ function InscricaoSection({
           const pagStatusCfg = pag ? PAG_STATUS[pag.status_pagamento] : null;
 
           return (
-            <li key={t.id}>
+            <li key={t.id} className="flex items-center gap-2 px-4 py-4 transition-colors hover:bg-gray-50">
               <Link
                 href={`/minhas-inscricoes/${champ.id}`}
-                className="flex items-center gap-4 px-4 py-4 transition-colors hover:bg-gray-50"
+                className="min-w-0 flex-1 space-y-1.5"
               >
-                <div className="min-w-0 flex-1 space-y-1.5">
-                  <p className="truncate font-semibold text-gray-900">{champ.nome}</p>
+                <p className="truncate font-semibold text-gray-900">{champ.nome}</p>
 
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-400">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-400">
+                  <span className="flex items-center gap-1">
+                    <CalendarDays className="size-3" />
+                    {formatDateRangeBR(champ.data_inicio, champ.data_fim)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MapPin className="size-3" />
+                    {champ.cidade} — {champ.estado}
+                  </span>
+                  {cat && (
                     <span className="flex items-center gap-1">
-                      <CalendarDays className="size-3" />
-                      {formatDateRangeBR(champ.data_inicio, champ.data_fim)}
+                      <Tag className="size-3" />
+                      {cat.nome} · {generoLabel(cat.genero as "masculino" | "feminino" | "mista")}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="size-3" />
-                      {champ.cidade} — {champ.estado}
-                    </span>
-                    {cat && (
-                      <span className="flex items-center gap-1">
-                        <Tag className="size-3" />
-                        {cat.nome} · {generoLabel(cat.genero as "masculino" | "feminino" | "mista")}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Badges de status */}
-                  <div className="flex flex-wrap gap-1.5">
-                    <StatusBadge status={champ.status as ChampionshipStatus} />
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${teamStatusCfg.className}`}>
-                      {teamStatusCfg.label}
-                    </span>
-                    {pagStatusCfg && (
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${pagStatusCfg.className}`}>
-                        {pagStatusCfg.label}
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
-                <ChevronRight className="size-4 shrink-0 text-gray-300" />
+
+                <div className="flex flex-wrap gap-1.5">
+                  <StatusBadge status={champ.status as ChampionshipStatus} />
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${teamStatusCfg.className}`}>
+                    {teamStatusCfg.label}
+                  </span>
+                  {pagStatusCfg && (
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${pagStatusCfg.className}`}>
+                      {pagStatusCfg.label}
+                    </span>
+                  )}
+                </div>
               </Link>
+
+              <InscricaoMenu
+                teamId={t.id}
+                teamStatus={t.status}
+                pagStatus={pag?.status_pagamento}
+              />
             </li>
           );
         })}
