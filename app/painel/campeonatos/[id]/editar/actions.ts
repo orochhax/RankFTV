@@ -5,6 +5,34 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { GeneroCategoria } from "@/lib/types";
 
+export async function excluirCampeonato(
+  champId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Não autenticado." };
+
+  const { data: champ } = await supabase
+    .from("championships")
+    .select("organizador_id")
+    .eq("id", champId)
+    .single();
+  if (!champ || champ.organizador_id !== user.id)
+    return { ok: false, error: "Sem permissão." };
+
+  await supabase.from("registrations").delete().eq("championship_id", champId);
+  await supabase.from("teams").delete().eq("championship_id", champId);
+  await supabase.from("bracket_matches").delete().eq("championship_id", champId);
+  await supabase.from("credentials").delete().eq("championship_id", champId);
+  await supabase.from("shirt_production").delete().eq("championship_id", champId);
+  await supabase.from("championship_categories").delete().eq("championship_id", champId);
+  await supabase.from("championships").delete().eq("id", champId);
+
+  revalidatePath("/campeonatos");
+  revalidatePath("/painel");
+  redirect("/painel");
+}
+
 export type CategoriaEditInput = {
   id?: string; // existe → update; undefined → insert
   nome: string;
@@ -23,6 +51,9 @@ export type UpdateChampionshipInput = {
   dataFim: string;
   inscricoesInicio?: string;
   inscricoesFim?: string;
+  prevendaInicio?: string;
+  prevendaFim?: string;
+  bannerUrl?: string | null;
   cidade: string;
   estado: string;
   local: string;
@@ -75,6 +106,9 @@ export async function updateChampionship(
       data_fim:          input.dataFim,
       inscricoes_inicio: input.inscricoesInicio || null,
       inscricoes_fim:    input.inscricoesFim    || null,
+      prevenda_inicio:   input.prevendaInicio   || null,
+      prevenda_fim:      input.prevendaFim      || null,
+      banner_url:        input.bannerUrl?.trim() || null,
       cidade:            input.cidade.trim(),
       estado:            input.estado.trim().toUpperCase().slice(0, 2),
       local:             input.local?.trim() ?? "",

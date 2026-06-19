@@ -21,6 +21,9 @@ export type CreateChampionshipInput = {
   dataFim: string;
   inscricoesInicio?: string;
   inscricoesFim?: string;
+  prevendaInicio?: string;
+  prevendaFim?: string;
+  bannerUrl?: string;
   cidade: string;
   estado: string;
   local: string;
@@ -90,6 +93,9 @@ export async function createChampionship(
       data_fim:             input.dataFim,
       inscricoes_inicio:    input.inscricoesInicio || null,
       inscricoes_fim:       input.inscricoesFim || null,
+      prevenda_inicio:      input.prevendaInicio || null,
+      prevenda_fim:         input.prevendaFim || null,
+      banner_url:           input.bannerUrl?.trim() || null,
       cidade: input.cidade.trim(),
       estado: input.estado.trim().toUpperCase().slice(0, 2),
       local: input.local?.trim() ?? "",

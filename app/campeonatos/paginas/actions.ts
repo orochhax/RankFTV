@@ -1,6 +1,27 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import type { SocialLink } from "@/components/paginas/SocialLinksBar";
+
+export async function saveSocialLinks(
+  pageId: string,
+  links: SocialLink[],
+): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autenticado");
+
+  const { data: page } = await supabase
+    .from("pages")
+    .select("owner_id")
+    .eq("id", pageId)
+    .single();
+  if (!page || page.owner_id !== user.id) throw new Error("Sem permissão");
+
+  await supabase.from("pages").update({ social_links: links }).eq("id", pageId);
+  revalidatePath(`/campeonatos/paginas/${pageId}`);
+}
 
 export async function togglePageFollow(
   pageId: string,

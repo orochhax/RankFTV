@@ -55,6 +55,9 @@ export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPa
   const [dataFim, setDataFim] = useState("");
   const [inscricoesInicio, setInscricoesInicio] = useState("");
   const [inscricoesFim, setInscricoesFim] = useState("");
+  const [prevendaInicio, setPrevendaInicio] = useState("");
+  const [prevendaFim, setPrevendaFim] = useState("");
+  const [bannerUrl, setBannerUrl] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   const [local, setLocal] = useState("");
@@ -119,6 +122,9 @@ export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPa
         dataFim,
         inscricoesInicio: inscricoesInicio || undefined,
         inscricoesFim:    inscricoesFim    || undefined,
+        prevendaInicio:   prevendaInicio   || undefined,
+        prevendaFim:      prevendaFim      || undefined,
+        bannerUrl:        bannerUrl.trim() || undefined,
         cidade,
         estado,
         local,
@@ -343,6 +349,20 @@ export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPa
         </div>
 
         <div>
+          <p className="text-xs font-medium text-gray-500 mb-2">Pré-venda</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Início</label>
+              <input type="date" className={inputClass} value={prevendaInicio} onChange={(e) => setPrevendaInicio(e.target.value)} />
+            </div>
+            <div>
+              <label className={labelClass}>Fim</label>
+              <input type="date" className={inputClass} value={prevendaFim} onChange={(e) => setPrevendaFim(e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        <div>
           <p className="text-xs font-medium text-gray-500 mb-2">Inscrições</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -370,6 +390,30 @@ export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPa
             Opcional. Controla quando as inscrições ficam abertas automaticamente.
           </p>
         </div>
+      </div>
+
+      {/* Banner do evento */}
+      <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5 space-y-3">
+        <h2 className="text-sm font-semibold text-gray-800">Banner do evento</h2>
+        <p className="text-xs text-gray-500">
+          Cole a URL de uma imagem para usar como banner deste campeonato.
+          Diferente do banner da página — cada edição pode ter o seu próprio.
+        </p>
+        <input
+          type="url"
+          className={inputClass}
+          value={bannerUrl}
+          onChange={(e) => setBannerUrl(e.target.value)}
+          placeholder="https://..."
+        />
+        {bannerUrl && (
+          <img
+            src={bannerUrl}
+            alt="Preview do banner"
+            className="h-28 w-full rounded-xl object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        )}
       </div>
 
       {/* Regulamento */}

@@ -1,6 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
-import { MapPin, Users, Trophy, ChevronLeft, ChevronRight, Radio } from "lucide-react";
+import { MapPin, Users, Trophy, ChevronLeft, ChevronRight, Radio, CalendarDays } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { InscricaoButton } from "@/components/campeonatos/InscricaoButton";
@@ -118,6 +119,20 @@ export default async function CampeonatoDetalhePage({
     .eq("championship_id", id);
   const hasDbBracket = (bracketCount ?? 0) > 0;
 
+  /* ── Cronograma ── */
+  const { data: scheduleRow } = await supabase
+    .from("championships")
+    .select("prevenda_inicio, prevenda_fim, inscricoes_inicio, inscricoes_fim, data_inicio, data_fim")
+    .eq("id", id)
+    .single();
+
+  type ScheduleItem = { label: string; inicio: string | null; fim: string | null };
+  const schedule: ScheduleItem[] = [
+    { label: "Pré-venda",   inicio: (scheduleRow as unknown as Record<string,string|null>)?.prevenda_inicio ?? null,   fim: (scheduleRow as unknown as Record<string,string|null>)?.prevenda_fim ?? null },
+    { label: "Inscrições",  inicio: (scheduleRow as unknown as Record<string,string|null>)?.inscricoes_inicio ?? null, fim: (scheduleRow as unknown as Record<string,string|null>)?.inscricoes_fim ?? null },
+    { label: "Evento",      inicio: (scheduleRow as unknown as Record<string,string|null>)?.data_inicio ?? null,       fim: (scheduleRow as unknown as Record<string,string|null>)?.data_fim ?? null },
+  ];
+
   const categoriasParaMotor = championship.categorias.map((c) => ({
     id: c.id,
     nome: c.nome,
@@ -138,9 +153,19 @@ export default async function CampeonatoDetalhePage({
       </Link>
 
       <div>
-        <div
-          className={`flex h-32 items-center justify-center rounded-2xl bg-gradient-to-br ${championship.bannerFrom} ${championship.bannerTo}`}
-        />
+        <div className="relative h-32 overflow-hidden rounded-2xl">
+          {championship.bannerUrl ? (
+            <Image
+              src={championship.bannerUrl}
+              alt={championship.nome}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+            />
+          ) : (
+            <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${championship.bannerFrom} ${championship.bannerTo}`} />
+          )}
+        </div>
         <div className="mt-4 flex flex-wrap items-start justify-between gap-2">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">{championship.nome}</h1>
@@ -195,6 +220,28 @@ export default async function CampeonatoDetalhePage({
               Ver ao vivo
             </span>
           )}
+        </div>
+      </div>
+
+      {/* Cronograma */}
+      <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+        <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-700">
+          <CalendarDays className="size-4 text-blue-500" />
+          Cronograma
+        </h2>
+        <div className="space-y-3">
+          {schedule.map((item) => (
+            <div key={item.label} className="flex items-center justify-between gap-4">
+              <span className="w-24 shrink-0 text-sm font-medium text-gray-700">{item.label}</span>
+              <span className="flex-1 text-right text-sm text-gray-500">
+                {item.inicio
+                  ? item.fim && item.fim !== item.inicio
+                    ? `${new Date(item.inicio + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} → ${new Date(item.fim + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}`
+                    : new Date(item.inicio + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })
+                  : "Sem data definida"}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 

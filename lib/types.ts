@@ -34,6 +34,7 @@ export type Championship = {
   taxaPlataforma: number;
   bannerFrom: string;
   bannerTo: string;
+  bannerUrl?: string | null;
   liveUrl?: string | null;
   categorias: Category[];
 };

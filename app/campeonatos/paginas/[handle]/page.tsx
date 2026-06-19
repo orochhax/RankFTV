@@ -9,6 +9,7 @@ import {
   getFollowedPageIds,
 } from "@/lib/supabase/pages";
 import { PagePublicHeader } from "@/components/paginas/PagePublicHeader";
+import { SocialLinksBar, type SocialLink } from "@/components/paginas/SocialLinksBar";
 
 function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("pt-BR", {
@@ -48,12 +49,15 @@ export default async function PublicPagePage({
   const page = await getPageByHandle(handle);
   if (!page) notFound();
 
-  const [editions, followedIds] = await Promise.all([
+  const [editions, followedIds, pageRow] = await Promise.all([
     getPageChampionships(page.id),
     user ? getFollowedPageIds(user.id) : Promise.resolve([]),
+    supabase.from("pages").select("owner_id, social_links").eq("id", page.id).single(),
   ]);
 
   const following = followedIds.includes(page.id);
+  const isOwner = user?.id === pageRow.data?.owner_id;
+  const socialLinks: SocialLink[] = (pageRow.data?.social_links as SocialLink[] | null) ?? [];
   const encerradas = editions.filter((e) => e.status === "encerrado");
   const abertas = editions.filter((e) => e.status !== "encerrado");
 
@@ -89,6 +93,12 @@ export default async function PublicPagePage({
             userId={user?.id ?? null}
             initialFollowing={following}
             initialSeguidores={page.seguidores}
+          />
+
+          <SocialLinksBar
+            pageId={page.id}
+            initialLinks={socialLinks}
+            isOwner={isOwner}
           />
         </div>
       </div>
