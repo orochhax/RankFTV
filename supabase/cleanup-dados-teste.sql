@@ -52,8 +52,16 @@ BEGIN
   -- Remove pages de outros usuários
   DELETE FROM pages WHERE owner_id != ceo_id;
 
-  -- Remove ranking_entries de outros usuários
-  DELETE FROM ranking_entries WHERE user_id != ceo_id;
+  -- Remove resultados externos de outros usuários
+  -- (ranking_entries é uma VIEW; deletamos das tabelas reais)
+  DELETE FROM external_results
+  WHERE athlete_id IN (
+    SELECT id FROM external_athletes WHERE user_id != ceo_id AND user_id IS NOT NULL
+  );
+
+  -- Remove atletas externos de outros usuários
+  DELETE FROM external_athletes
+  WHERE user_id != ceo_id AND user_id IS NOT NULL;
 
   -- Remove conquistas de outros usuários
   DELETE FROM conquistas WHERE user_id != ceo_id;
