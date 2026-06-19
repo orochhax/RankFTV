@@ -1,7 +1,17 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { criarPagina, GRADIENT_OPTIONS } from "@/app/painel/paginas/nova/actions";
+import { criarPagina } from "@/app/painel/paginas/nova/actions";
+
+const GRADIENT_OPTIONS = [
+  { from: "from-blue-500",    to: "to-cyan-400",   label: "Azul" },
+  { from: "from-emerald-500", to: "to-teal-400",   label: "Verde" },
+  { from: "from-orange-500",  to: "to-amber-400",  label: "Laranja" },
+  { from: "from-violet-500",  to: "to-purple-400", label: "Roxo" },
+  { from: "from-rose-500",    to: "to-pink-400",   label: "Rosa" },
+  { from: "from-indigo-500",  to: "to-blue-400",   label: "Índigo" },
+  { from: "from-slate-600",   to: "to-slate-400",  label: "Cinza" },
+] as const;
 
 const INITIAL_STATE: { error?: string } = {};
 
