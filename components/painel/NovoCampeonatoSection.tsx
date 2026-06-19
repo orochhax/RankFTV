@@ -34,7 +34,12 @@ export function NovoCampeonatoSection({ minhasPages }: { minhasPages: MinhaPage[
       {/* 2. Campeonato Padrão */}
       <div className="rounded-2xl bg-[#0f0f13] p-5 text-white sm:p-6">
         <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Campeonato Padrão</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-widest text-blue-400">Campeonato Padrão</p>
+            <span className="ml-auto rounded-full bg-blue-400/20 px-2.5 py-0.5 text-xs font-semibold text-blue-300">
+              R$0 / evento
+            </span>
+          </div>
           <p className="mt-0.5 text-sm text-white/50">O que já vem incluso em todos os campeonatos:</p>
         </div>
         <ul className="grid gap-x-5 gap-y-2.5 sm:grid-cols-2">
