@@ -3,8 +3,8 @@
 import { useState } from "react";
 import {
   Crown, Check, X, ArrowRight,
-  TrendingDown, Video, Star, MessageCircle,
-  Sparkles, Megaphone, BarChart2, Wallet, QrCode, Network, TrendingUp, Shirt,
+  TrendingDown, Video, Star, MessageCircle, Instagram,
+  Sparkles, Megaphone, Wallet, QrCode, Network, TrendingUp, Shirt,
   ShieldCheck, BadgeDollarSign,
 } from "lucide-react";
 
@@ -12,11 +12,11 @@ const BENEFICIOS_ELITE = [
   { icon: TrendingDown,  label: "Taxas reduzidas da plataforma" },
   { icon: Video,         label: "Call ao vivo com o CEO para apresentar todas as funcionalidades" },
   { icon: Star,          label: "Destaque no início do site — seu campeonato fica fixado na tela inicial do site" },
+  { icon: Instagram,     label: "Divulgação do campeonato nos stories do @rankftv" },
   { icon: MessageCircle, label: "Suporte priorizado direto pelo WhatsApp" },
   { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público" },
   { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila" },
   { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa" },
-  { icon: Megaphone,     label: "Comunicação em massa com inscritos" },
   { icon: Wallet,        label: "Inscrição e pagamento online — Pix na hora ou cartão em até 6x sem juros" },
   { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu" },
   { icon: Shirt,         label: "Camisas por tamanho — saiba quantas P/M/G/GG encomendar" },
