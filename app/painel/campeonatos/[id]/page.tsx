@@ -12,6 +12,7 @@ import {
   QrCode,
   Shirt,
   Users,
+  UserCog,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
@@ -57,6 +58,13 @@ const ACOES = [
     disponivel: true,
   },
   {
+    icon: UserCog,
+    label: "Equipe",
+    desc: "Staff e permissões de acesso",
+    href: (id: string) => `/painel/campeonatos/${id}/equipe`,
+    disponivel: true,
+  },
+  {
     icon: Megaphone,
     label: "Comunicação",
     desc: "Avisar todos os inscritos",
@@ -85,15 +93,21 @@ export default async function PainelCampeonatoPage({
   if (camp.organizadorId !== user.id) notFound();
 
   // Tier: quiz do banco + duplas pagas (override automático)
-  const [tierRes, paidRes] = await Promise.all([
+  const [tierRes, paidRes, orgAccountRes] = await Promise.all([
     supabase.from("championships").select("tier_quiz").eq("id", id).maybeSingle(),
     supabase.from("registrations")
       .select("id", { count: "exact", head: true })
       .eq("championship_id", id)
       .eq("status_pagamento", "pago"),
+    supabase.from("organizer_accounts")
+      .select("chave_pix")
+      .eq("user_id", user.id)
+      .maybeSingle(),
   ]);
-  const tierQuiz = (tierRes.data?.tier_quiz ?? null) as Partial<QuizAnswers> | null;
+  const tierQuiz    = (tierRes.data?.tier_quiz ?? null) as Partial<QuizAnswers> | null;
   const duplasPagas = paidRes.count ?? 0;
+  const temChavePix = !!orgAccountRes.data?.chave_pix;
+  const temCategoriaPaga = camp.categorias.some((c) => (c.valorInscricao ?? 0) > 0);
 
   const vagasTotais = camp.categorias.reduce(
     (acc, c) => acc + ((c as { corteRatingMax?: number; maxDuplas?: number }).maxDuplas ?? 0),
@@ -163,6 +177,25 @@ export default async function PainelCampeonatoPage({
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-4xl space-y-8">
 
+          {/* Aviso: chave Pix não configurada */}
+          {temCategoriaPaga && !temChavePix && (
+            <Link
+              href={`/painel/campeonatos/${id}/financeiro`}
+              className="flex items-start gap-3 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 hover:bg-amber-100 transition-colors"
+            >
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-100">
+                <DollarSign className="size-5 text-amber-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-amber-900">Configure sua chave Pix</p>
+                <p className="mt-0.5 text-sm text-amber-700">
+                  Este campeonato tem categorias pagas, mas você ainda não configurou onde receber o dinheiro. Os atletas não conseguirão se inscrever até você configurar.
+                </p>
+                <p className="mt-1 text-xs font-medium text-amber-600">Ir para Financeiro →</p>
+              </div>
+            </Link>
+          )}
+
           {/* Ações de gestão */}
           <section>
             <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Gestão</h2>
@@ -226,7 +259,7 @@ export default async function PainelCampeonatoPage({
                         </span>
                       )}
                       <span className="font-semibold text-gray-900">
-                        {formatBRL(cat.valorInscricao / 100)}
+                        {formatBRL(cat.valorInscricao)}
                       </span>
                     </div>
                   </li>

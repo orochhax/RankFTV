@@ -2,29 +2,63 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { isNavItemActive, NAV_ITEMS } from "./nav-items";
+import { Bell, ShieldCheck, Wrench } from "lucide-react";
+import { isNavItemActive, NAV_ITEMS, type NavItem } from "./nav-items";
 
-// Navbar flutuante de baixo, só no mobile (escondida no desktop via `md:hidden`).
-// A aba ativa vira uma cápsula azul com ícone + texto; as outras ficam só com ícone.
-export function BottomNav() {
+export function BottomNav({
+  showStaff = false,
+  isAdmin = false,
+  notifCount = 0,
+}: {
+  showStaff?: boolean;
+  isAdmin?: boolean;
+  notifCount?: number;
+}) {
   const pathname = usePathname();
+
+  const items: NavItem[] = showStaff
+    ? [...NAV_ITEMS, { href: "/staff", label: "Staff", icon: ShieldCheck }]
+    : NAV_ITEMS;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-1.5 pb-4 md:hidden">
-      {/* Logo acima da pill de navegação */}
-      <Link
-        href="/"
-        className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-blue-600/30 select-none hover:bg-blue-500 transition-colors"
-      >
-        Rank <span className="font-black">FTV</span>
-      </Link>
+      {/* Logo + sino acima da pill de navegação */}
+      <div className="flex items-center gap-2">
+        <Link
+          href="/"
+          className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-blue-600/30 select-none hover:bg-blue-500 transition-colors"
+        >
+          Rank <span className="font-black">FTV</span>
+        </Link>
+        {isAdmin && (
+          <Link
+            href="/admin/taxas"
+            aria-label="Painel admin"
+            className="flex size-7 items-center justify-center rounded-full bg-amber-100 shadow shadow-black/10 ring-1 ring-amber-200"
+          >
+            <Wrench className="size-3.5 text-amber-600" />
+          </Link>
+        )}
+        {notifCount > 0 && (
+          <Link
+            href="/notificacoes"
+            aria-label={`${notifCount} notificações pendentes`}
+            className="relative flex size-7 items-center justify-center rounded-full bg-white shadow shadow-black/10 ring-1 ring-black/5"
+          >
+            <Bell className="size-4 text-gray-600" />
+            <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white leading-none">
+              {notifCount > 9 ? "9+" : notifCount}
+            </span>
+          </Link>
+        )}
+      </div>
 
     <nav
       aria-label="Navegação principal"
       className="flex justify-center"
     >
       <ul className="flex items-center gap-1 rounded-full bg-white p-1.5 shadow-lg shadow-black/10 ring-1 ring-black/5">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {items.map(({ href, label, icon: Icon }) => {
           const active = isNavItemActive(pathname, href);
           return (
             <li key={href}>

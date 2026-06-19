@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { criarOuBuscarCliente, criarCobranca, type MetodoPagamento } from "@/lib/asaas";
 import { enviarConviteDupla, enviarInscricaoConfirmada } from "@/lib/email/send";
 
@@ -44,6 +45,7 @@ export async function inscreverDupla(
     .from("teams")
     .select("id")
     .eq("championship_id", championshipId)
+    .neq("status", "cancelado")
     .or(`atleta1_id.eq.${user.id},atleta2_id.eq.${user.id}`)
     .limit(1)
     .maybeSingle();
@@ -63,14 +65,16 @@ export async function inscreverDupla(
   }
 
   // Chave Pix do organizador só é necessária para inscrições pagas
+  // Usa admin client pois o atleta não pode ler a conta do organizador via RLS
   if (!isGratis) {
-    const { data: orgAccount } = await supabase
+    const admin = createAdminClient();
+    const { data: orgAccount } = await admin
       .from("organizer_accounts")
       .select("chave_pix")
       .eq("user_id", champ.organizador_id)
-      .single();
+      .maybeSingle();
     if (!orgAccount?.chave_pix)
-      return { error: "O organizador ainda não ativou o recebimento de pagamentos." };
+      return { error: "O organizador ainda não ativou o recebimento de pagamentos. Tente mais tarde." };
   }
 
   // ── Parceiro (opcional) ───────────────────────────────────────
@@ -114,6 +118,8 @@ export async function inscreverDupla(
   if (teamError || !team) return { error: "Erro ao criar dupla." };
 
   // ── Cria inscrição ────────────────────────────────────────────
+  const BILLING_TYPE: Record<string, string> = { pix: "PIX", credito: "CREDIT_CARD", debito: "DEBIT_CARD" };
+
   const { data: reg, error: regError } = await supabase
     .from("registrations")
     .insert({
@@ -122,6 +128,7 @@ export async function inscreverDupla(
       category_id:      categoryId,
       valor:            valorInscricao,
       status_pagamento: isGratis ? "pago" : "pendente",
+      billing_type:     isGratis ? null : (BILLING_TYPE[metodo] ?? null),
     })
     .select("id")
     .single();

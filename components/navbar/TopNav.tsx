@@ -2,15 +2,29 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Settings } from "lucide-react";
-import { isNavItemActive, NAV_ITEMS } from "./nav-items";
+import { Bell, Settings, ShieldCheck, Wrench } from "lucide-react";
+import { isNavItemActive, NAV_ITEMS, type NavItem } from "./nav-items";
 import { createClient } from "@/lib/supabase/client";
 
 type NavUser = { id: string; nome: string; username: string };
 
-export function TopNav({ user }: { user: NavUser | null }) {
+export function TopNav({
+  user,
+  showStaff = false,
+  isAdmin = false,
+  notifCount = 0,
+}: {
+  user: NavUser | null;
+  showStaff?: boolean;
+  isAdmin?: boolean;
+  notifCount?: number;
+}) {
   const pathname = usePathname();
   const router = useRouter();
+
+  const items: NavItem[] = showStaff
+    ? [...NAV_ITEMS, { href: "/staff", label: "Staff", icon: ShieldCheck }]
+    : NAV_ITEMS;
 
   async function handleLogout() {
     const supabase = createClient();
@@ -31,7 +45,7 @@ export function TopNav({ user }: { user: NavUser | null }) {
 
         <div className="flex items-center gap-1">
           <ul className="flex items-center gap-1">
-            {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+            {items.map(({ href, label, icon: Icon }) => {
               const active = isNavItemActive(pathname, href);
               return (
                 <li key={href}>
@@ -53,6 +67,30 @@ export function TopNav({ user }: { user: NavUser | null }) {
           </ul>
 
           <div className="ml-2 flex items-center gap-1 border-l border-gray-200 pl-3">
+            {isAdmin && (
+              <Link
+                href="/admin/taxas"
+                aria-label="Painel admin"
+                title="Taxas da plataforma"
+                className="rounded-full p-2 text-amber-500 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+              >
+                <Wrench className="size-5" />
+              </Link>
+            )}
+            {user && (
+              <Link
+                href="/notificacoes"
+                aria-label="Notificações"
+                className="relative rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+              >
+                <Bell className="size-5" />
+                {notifCount > 0 && (
+                  <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white leading-none">
+                    {notifCount > 9 ? "9+" : notifCount}
+                  </span>
+                )}
+              </Link>
+            )}
             <Link
               href="/perfil"
               aria-label="Configurações / Perfil"
