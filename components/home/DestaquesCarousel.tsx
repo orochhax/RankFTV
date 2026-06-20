@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Trophy, ChevronRight } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -71,9 +72,13 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
                 onClick={(e) => !isFront && e.preventDefault()}
                 className="block"
               >
-                <div className={`flex h-36 items-center justify-center bg-gradient-to-br ${camp.bannerFrom} ${camp.bannerTo}`}>
+                <div className={`relative flex h-36 items-center justify-center bg-gradient-to-br ${camp.bannerFrom} ${camp.bannerTo}`}>
+                  {camp.bannerUrl ? (
+                    <Image src={camp.bannerUrl} alt={camp.nome} fill className="object-cover" sizes="(max-width: 640px) 100vw, 640px" />
+                  ) : (
                     <Trophy className="size-10 text-white/90" strokeWidth={1.5} />
-                  </div>
+                  )}
+                </div>
                 <div className="space-y-1.5 p-4">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-gray-900">{camp.nome}</h3>
