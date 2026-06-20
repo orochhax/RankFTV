@@ -11,16 +11,25 @@ type Dupla = {
   catNome: string;
 };
 
+// Remove acentos e deixa minúsculo, pra busca ignorar "César" vs "Cesar"
+function normalizar(s: string) {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 export function InscricoesBuscaLista({ lista }: { lista: Dupla[] }) {
   const [q, setQ] = useState("");
-  const termo = q.trim().toLowerCase();
+  const termo = normalizar(q);
 
   // Busca pelo nome do atleta (1 ou 2), nunca pelo @
   const filtrada = termo
     ? lista.filter(
         (d) =>
-          d.a1.nome.toLowerCase().includes(termo) ||
-          (d.a2?.nome.toLowerCase().includes(termo) ?? false),
+          normalizar(d.a1.nome).includes(termo) ||
+          (d.a2 ? normalizar(d.a2.nome).includes(termo) : false),
       )
     : lista;
 
