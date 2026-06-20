@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getMyPages } from "@/lib/supabase/pages";
 import { EditarCampeonatoForm } from "@/components/painel/EditarCampeonatoForm";
 import { ExcluirCampeonatoButton } from "@/components/painel/ExcluirCampeonatoButton";
+import { ChampBannerForm } from "@/components/painel/ChampBannerForm";
 import type { GeneroCategoria } from "@/lib/types";
 
 export default async function EditarCampeonatoPage({
@@ -86,6 +87,16 @@ export default async function EditarCampeonatoPage({
 
       <div className="relative -mt-6 rounded-t-3xl bg-gray-50 px-6 pb-8 pt-8 shadow-sm">
         <div className="mx-auto max-w-2xl space-y-10">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-gray-700">Banner do campeonato</p>
+            <ChampBannerForm
+              champId={id}
+              initialBannerUrl={(c.banner_url as string | null) ?? null}
+              bannerFrom="from-blue-500"
+              bannerTo="to-cyan-400"
+            />
+          </div>
+
           <EditarCampeonatoForm champId={id} initial={initial} minhasPages={minhasPages} />
 
           {/* Zona de exclusão */}

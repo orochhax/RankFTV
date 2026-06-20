@@ -5,6 +5,32 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { GeneroCategoria } from "@/lib/types";
 
+export async function atualizarBannerCampeonato(
+  champId: string,
+  bannerUrl: string | null,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Não autenticado." };
+
+  const { data: champ } = await supabase
+    .from("championships").select("organizador_id").eq("id", champId).single();
+  if (!champ || champ.organizador_id !== user.id)
+    return { ok: false, error: "Sem permissão." };
+
+  const { error } = await supabase
+    .from("championships")
+    .update({ banner_url: bannerUrl })
+    .eq("id", champId);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/painel/campeonatos/${champId}`);
+  revalidatePath(`/painel/campeonatos/${champId}/editar`);
+  revalidatePath(`/campeonatos/${champId}`);
+  return { ok: true };
+}
+
 export async function excluirCampeonato(
   champId: string,
 ): Promise<{ ok: boolean; error?: string }> {
