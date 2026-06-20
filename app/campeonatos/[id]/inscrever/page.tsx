@@ -9,7 +9,7 @@ import { InscricaoForm } from "@/components/campeonatos/InscricaoForm";
 import {
   calcularRatingDupla,
   recomendarCategoria,
-  detectarSandbagging,
+  statusCategoria,
 } from "@/lib/motor-categoria";
 
 export default async function InscreverPage({
@@ -72,12 +72,15 @@ export default async function InscreverPage({
     corte_rating_max: (todasCategorias?.find((c) => c.id === category.id)?.corte_rating_max) ?? 9999,
   };
 
-  const isSandbagging = meuRating > 0
-    ? detectarSandbagging(ratingDupla, categoriaSelecionada)
-    : false;
-
-  const isRecomendada = categoriaRecomendada?.id === category.id;
   const semQuestionario = !profile?.questionario;
+
+  const status = !semQuestionario && meuRating > 0
+    ? statusCategoria(ratingDupla, categoriaSelecionada, categoriaRecomendada)
+    : null;
+
+  const isRecomendada   = status === "recomendada";
+  const isSandbagging   = status === "sandbagging";
+  const isAcimaDoNivel  = status === "acima_do_nivel";
 
   return (
     <div className="mx-auto max-w-lg space-y-5 px-6 py-8">
@@ -120,8 +123,19 @@ export default async function InscreverPage({
         </div>
       )}
 
+      {/* Banner: categoria acima do nível */}
+      {isAcimaDoNivel && (
+        <div className="rounded-2xl bg-orange-50 px-4 py-3 text-sm text-orange-800 ring-1 ring-orange-200">
+          <p className="font-semibold">Categoria acima do seu nível atual</p>
+          <p className="mt-0.5 text-orange-700">
+            Com base no seu perfil ({meuRating} pts), a categoria indicada é{" "}
+            <strong>{categoriaRecomendada?.nome ?? "uma mais baixa"}</strong>. Você pode continuar mesmo assim.
+          </p>
+        </div>
+      )}
+
       {/* Banner: categoria recomendada */}
-      {!semQuestionario && isRecomendada && (
+      {isRecomendada && (
         <div className="rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-800 ring-1 ring-green-200">
           Categoria indicada para sua pontuação ({meuRating} pontos)
         </div>
