@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function salvarDestaques(
   ids: string[],
@@ -11,7 +12,8 @@ export async function salvarDestaques(
   if (!user || user.email !== process.env.ADMIN_EMAIL)
     return { ok: false, error: "Sem permissão." };
 
-  const { error } = await supabase
+  const admin = createAdminClient();
+  const { error } = await admin
     .from("platform_config")
     .update({ destaques_ids: ids.slice(0, 3) })
     .eq("id", 1);
