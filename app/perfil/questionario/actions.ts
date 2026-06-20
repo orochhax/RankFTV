@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   calcularRatingQuestionario,
@@ -35,5 +36,7 @@ export async function salvarQuestionario(formData: FormData) {
 
   if (error) return { error: "Erro ao salvar. Tente novamente." };
 
+  revalidatePath("/perfil");
+  revalidatePath("/campeonatos", "layout");
   redirect("/perfil");
 }
