@@ -66,6 +66,8 @@ export type CategoriaEditInput = {
   genero: GeneroCategoria;
   valorInscricao: number;
   maxDuplas?: number;
+  corteRatingMin?: number;
+  corteRatingMax?: number;
   _delete?: boolean; // true → deletar categoria existente
 };
 
@@ -165,6 +167,8 @@ export async function updateChampionship(
         genero:           cat.genero,
         valor_inscricao:  Math.max(0, Math.round(Number(cat.valorInscricao) || 0)),
         max_duplas:       cat.maxDuplas && cat.maxDuplas > 0 ? cat.maxDuplas : null,
+        corte_rating_min: cat.corteRatingMin ?? 0,
+        corte_rating_max: cat.corteRatingMax ?? 9999,
       })
       .eq("id", cat.id!);
   }
@@ -176,8 +180,8 @@ export async function updateChampionship(
         nome:             c.nome.trim(),
         genero:           c.genero,
         valor_inscricao:  Math.max(0, Math.round(Number(c.valorInscricao) || 0)),
-        corte_rating_min: 0,
-        corte_rating_max: 9999,
+        corte_rating_min: c.corteRatingMin ?? 0,
+        corte_rating_max: c.corteRatingMax ?? 9999,
         max_duplas:       c.maxDuplas && c.maxDuplas > 0 ? c.maxDuplas : null,
       })),
     );
