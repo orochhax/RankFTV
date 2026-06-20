@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { PageCard } from "@/components/campeonatos/PageCard";
 import type { PageWithStats } from "@/lib/supabase/pages";
 
@@ -22,35 +22,43 @@ export function PaginasCarousel({
   const groups = chunk(pages, 3);
   const [current, setCurrent] = useState(0);
   const [animating, setAnimating] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartX = useRef<number | null>(null);
 
-  function advance() {
-    if (groups.length <= 1) return;
+  function goTo(index: number) {
+    if (index === current || animating) return;
     setAnimating(true);
     setTimeout(() => {
-      setCurrent((c) => (c + 1) % groups.length);
+      setCurrent(index);
       setAnimating(false);
-    }, 300);
+    }, 250);
   }
 
-  useEffect(() => {
-    if (groups.length <= 1) return;
-    timerRef.current = setInterval(advance, 4500);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groups.length]);
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null) return;
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) < 40) return; // swipe mínimo de 40px
+    if (diff > 0 && current < groups.length - 1) goTo(current + 1);
+    if (diff < 0 && current > 0) goTo(current - 1);
+    touchStartX.current = null;
+  }
 
   if (pages.length === 0) return null;
 
-  const group = groups[current];
-
   return (
-    <div className="space-y-3">
+    <div
+      className="space-y-3"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       <div
-        className="space-y-3 transition-opacity duration-300"
+        className="space-y-3 transition-opacity duration-250"
         style={{ opacity: animating ? 0 : 1 }}
       >
-        {group.map((p) => (
+        {groups[current].map((p) => (
           <PageCard
             key={p.id}
             page={p}
@@ -60,17 +68,12 @@ export function PaginasCarousel({
         ))}
       </div>
 
-      {/* Indicadores de grupo */}
       {groups.length > 1 && (
         <div className="flex justify-center gap-1.5 pt-1">
           {groups.map((_, i) => (
             <button
               key={i}
-              onClick={() => {
-                if (timerRef.current) clearInterval(timerRef.current);
-                setCurrent(i);
-                timerRef.current = setInterval(advance, 4500);
-              }}
+              onClick={() => goTo(i)}
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 i === current ? "w-5 bg-blue-400" : "w-1.5 bg-white/30"
               }`}
