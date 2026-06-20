@@ -1,9 +1,15 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, ChevronRight } from "lucide-react";
+import { Percent, Users, Star, Trophy, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 const MENU = [
+  {
+    href: "/admin/campeonatos",
+    icon: Trophy,
+    label: "Campeonatos",
+    desc: "Veja todos os campeonatos, mude o status, exclua e contate o organizador.",
+  },
   {
     href: "/admin/destaques",
     icon: Star,
