@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Info, User, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
-import { InscricaoItem } from "@/components/inscricoes/InscricaoItem";
+import { InscricoesBuscaLista } from "@/components/inscricoes/InscricoesBuscaLista";
 
 type RegRow = {
   id: string;
@@ -203,22 +203,13 @@ export default async function InscricoesPage({
                 </div>
               )}
 
-              {/* Lista em ordem alfabética */}
+              {/* Busca por nome + lista em ordem alfabética */}
               {lista.length === 0 ? (
                 <div className="rounded-2xl bg-gray-50 p-6 text-center ring-1 ring-black/5">
                   <p className="text-sm text-gray-400">Nenhuma dupla nesta categoria.</p>
                 </div>
               ) : (
-                <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-                  {lista.map((d) => (
-                    <InscricaoItem
-                      key={d.id}
-                      a1={d.a1}
-                      a2={d.a2}
-                      catNome={d.catNome}
-                    />
-                  ))}
-                </ol>
+                <InscricoesBuscaLista lista={lista} />
               )}
             </>
           )}
