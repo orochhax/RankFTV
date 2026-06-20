@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { GeneroCategoria } from "@/lib/types";
 import { calcularTierDoQuiz, type QuizAnswers } from "@/lib/tier";
+import { RATING_POR_CATEGORIA } from "@/lib/motor-categoria";
 
 export type CategoriaInput = {
   nome: string;
@@ -117,15 +118,18 @@ export async function createChampionship(
     return { ok: false, error: error?.message ?? "Não foi possível criar o campeonato. Tente de novo." };
   }
 
-  const rows = categorias.map((c) => ({
-    championship_id:  champ.id,
-    nome:             c.nome.trim(),
-    genero:           c.genero,
-    valor_inscricao:  Math.max(0, Math.round(Number(c.valorInscricao) || 0)),
-    corte_rating_min: 0,
-    corte_rating_max: 9999,
-    max_duplas:       c.maxDuplas && c.maxDuplas > 0 ? c.maxDuplas : null,
-  }));
+  const rows = categorias.map((c) => {
+    const faixa = RATING_POR_CATEGORIA[c.nome.trim()];
+    return {
+      championship_id:  champ.id,
+      nome:             c.nome.trim(),
+      genero:           c.genero,
+      valor_inscricao:  Math.max(0, Math.round(Number(c.valorInscricao) || 0)),
+      corte_rating_min: faixa?.min ?? 0,
+      corte_rating_max: faixa?.max ?? 9999,
+      max_duplas:       c.maxDuplas && c.maxDuplas > 0 ? c.maxDuplas : null,
+    };
+  });
 
   const { error: catErr } = await supabase
     .from("championship_categories")

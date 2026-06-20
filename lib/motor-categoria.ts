@@ -37,6 +37,19 @@ export type Categoria = {
   corte_rating_max: number;
 };
 
+/**
+ * Faixas de rating por nome de categoria predefinido.
+ * O organizador escolhe o nome — o sistema aplica os cortes automaticamente.
+ */
+export const RATING_POR_CATEGORIA: Record<string, { min: number; max: number }> = {
+  Aprendiz:       { min: 100,  max: 399  },
+  Iniciante:      { min: 400,  max: 749  },
+  Intermediário:  { min: 750,  max: 1149 },
+  Amador:         { min: 1150, max: 1549 },
+  Qualify:        { min: 1550, max: 1949 },
+  Profissional:   { min: 1950, max: 2900 },
+};
+
 /** Rating combinado de uma dupla (média simples). */
 export function calcularRatingDupla(
   rating1: number,

@@ -17,8 +17,6 @@ type CatForm = {
   genero: GeneroCategoria;
   valorInscricao: string;
   maxDuplas: string;
-  corteRatingMin: string;
-  corteRatingMax: string;
   _delete?: boolean;
 };
 
@@ -50,8 +48,6 @@ type Props = {
       genero: GeneroCategoria;
       valorInscricao: number;
       maxDuplas?: number;
-      corteRatingMin?: number;
-      corteRatingMax?: number;
     }[];
   };
 };
@@ -115,8 +111,6 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
       genero:         c.genero,
       valorInscricao: String(c.valorInscricao),
       maxDuplas:      c.maxDuplas ? String(c.maxDuplas) : "",
-      corteRatingMin: c.corteRatingMin ? String(c.corteRatingMin) : "",
-      corteRatingMax: c.corteRatingMax && c.corteRatingMax < 9999 ? String(c.corteRatingMax) : "",
     })),
   );
 
@@ -129,7 +123,7 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
   function addCat() {
     setCategorias((cs) => [
       ...cs,
-      { nome: "", genero: "masculino", valorInscricao: "", maxDuplas: "", corteRatingMin: "", corteRatingMax: "" },
+      { nome: "", genero: "masculino", valorInscricao: "", maxDuplas: "" },
     ]);
   }
 
@@ -233,14 +227,12 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
       }
 
       const payload: CategoriaEditInput[] = categorias.map((c) => ({
-        id:              c.id,
-        nome:            c.nome,
-        genero:          c.genero,
-        valorInscricao:  Number(c.valorInscricao) || 0,
-        maxDuplas:       Number(c.maxDuplas) || undefined,
-        corteRatingMin:  Number(c.corteRatingMin) || 0,
-        corteRatingMax:  Number(c.corteRatingMax) || 9999,
-        _delete:         c._delete,
+        id:             c.id,
+        nome:           c.nome,
+        genero:         c.genero,
+        valorInscricao: Number(c.valorInscricao) || 0,
+        maxDuplas:      Number(c.maxDuplas) || undefined,
+        _delete:        c._delete,
       }));
 
       const res = await updateChampionship(champId, {
@@ -580,7 +572,7 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
                   if (!ativa)
                     setCategorias((cs) => [
                       ...cs,
-                      { nome: preset, genero: "masculino", valorInscricao: "", maxDuplas: "", corteRatingMin: "", corteRatingMax: "" },
+                      { nome: preset, genero: "masculino", valorInscricao: "", maxDuplas: "" },
                     ]);
                 }}
                 className={`rounded-full border px-3 py-1 text-sm font-medium transition-colors ${
@@ -662,31 +654,6 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
                   </button>
                 </div>
 
-                {/* Rating mín/máx — linha secundária */}
-                <div className="mt-2 grid grid-cols-2 gap-3 border-t border-gray-200 pt-2">
-                  <div>
-                    <label className={labelClass}>Rating mínimo</label>
-                    <input
-                      type="number"
-                      min={0}
-                      className={inputClass}
-                      value={cat.corteRatingMin}
-                      onChange={(e) => updateCat(i, { corteRatingMin: e.target.value })}
-                      placeholder="0 (sem limite)"
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Rating máximo</label>
-                    <input
-                      type="number"
-                      min={0}
-                      className={inputClass}
-                      value={cat.corteRatingMax}
-                      onChange={(e) => updateCat(i, { corteRatingMax: e.target.value })}
-                      placeholder="9999 (sem limite)"
-                    />
-                  </div>
-                </div>
               </div>
             );
           })}

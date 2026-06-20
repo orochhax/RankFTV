@@ -61,15 +61,12 @@ export default async function EditarCampeonatoPage({
     categorias: ((champ.championship_categories as unknown as Array<{
       id: string; nome: string; genero: string;
       valor_inscricao: number; max_duplas: number | null;
-      corte_rating_min: number; corte_rating_max: number;
     }>) ?? []).map((cat) => ({
-      id:              cat.id,
-      nome:            cat.nome,
-      genero:          cat.genero as GeneroCategoria,
-      valorInscricao:  cat.valor_inscricao,
-      maxDuplas:       cat.max_duplas ?? undefined,
-      corteRatingMin:  cat.corte_rating_min ?? 0,
-      corteRatingMax:  cat.corte_rating_max ?? 9999,
+      id:             cat.id,
+      nome:           cat.nome,
+      genero:         cat.genero as GeneroCategoria,
+      valorInscricao: cat.valor_inscricao,
+      maxDuplas:      cat.max_duplas ?? undefined,
     })),
   };
 

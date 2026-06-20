@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { GeneroCategoria } from "@/lib/types";
+import { RATING_POR_CATEGORIA } from "@/lib/motor-categoria";
 
 export async function atualizarBannerCampeonato(
   champId: string,
@@ -66,8 +67,6 @@ export type CategoriaEditInput = {
   genero: GeneroCategoria;
   valorInscricao: number;
   maxDuplas?: number;
-  corteRatingMin?: number;
-  corteRatingMax?: number;
   _delete?: boolean; // true → deletar categoria existente
 };
 
@@ -160,6 +159,7 @@ export async function updateChampionship(
   }
 
   for (const cat of toUpdate) {
+    const faixa = RATING_POR_CATEGORIA[cat.nome.trim()];
     await supabase
       .from("championship_categories")
       .update({
@@ -167,23 +167,26 @@ export async function updateChampionship(
         genero:           cat.genero,
         valor_inscricao:  Math.max(0, Math.round(Number(cat.valorInscricao) || 0)),
         max_duplas:       cat.maxDuplas && cat.maxDuplas > 0 ? cat.maxDuplas : null,
-        corte_rating_min: cat.corteRatingMin ?? 0,
-        corte_rating_max: cat.corteRatingMax ?? 9999,
+        corte_rating_min: faixa?.min ?? 0,
+        corte_rating_max: faixa?.max ?? 9999,
       })
       .eq("id", cat.id!);
   }
 
   if (toInsert.length > 0) {
     await supabase.from("championship_categories").insert(
-      toInsert.map((c) => ({
-        championship_id:  champId,
-        nome:             c.nome.trim(),
-        genero:           c.genero,
-        valor_inscricao:  Math.max(0, Math.round(Number(c.valorInscricao) || 0)),
-        corte_rating_min: c.corteRatingMin ?? 0,
-        corte_rating_max: c.corteRatingMax ?? 9999,
-        max_duplas:       c.maxDuplas && c.maxDuplas > 0 ? c.maxDuplas : null,
-      })),
+      toInsert.map((c) => {
+        const faixa = RATING_POR_CATEGORIA[c.nome.trim()];
+        return {
+          championship_id:  champId,
+          nome:             c.nome.trim(),
+          genero:           c.genero,
+          valor_inscricao:  Math.max(0, Math.round(Number(c.valorInscricao) || 0)),
+          corte_rating_min: faixa?.min ?? 0,
+          corte_rating_max: faixa?.max ?? 9999,
+          max_duplas:       c.maxDuplas && c.maxDuplas > 0 ? c.maxDuplas : null,
+        };
+      }),
     );
   }
 
