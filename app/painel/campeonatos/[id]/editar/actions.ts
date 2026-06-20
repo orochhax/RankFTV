@@ -7,7 +7,10 @@ import type { GeneroCategoria } from "@/lib/types";
 import { RATING_POR_CATEGORIA } from "@/lib/motor-categoria";
 
 function resolverFaixaRating(nome: string) {
-  const base = nome.replace(/\s+(masculino|feminino|misto|mista)$/i, "").trim();
+  const base = nome
+    .replace(/^(masculino|feminino|misto|mista)\s+/i, "")
+    .replace(/\s+(masculino|feminino|misto|mista)$/i, "")
+    .trim();
   return RATING_POR_CATEGORIA[base] ?? RATING_POR_CATEGORIA[nome];
 }
 
