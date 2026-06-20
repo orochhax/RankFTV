@@ -35,7 +35,7 @@ export function PaginasCarousel({
 
   useEffect(() => {
     if (groups.length <= 1) return;
-    timerRef.current = setInterval(advance, 2000);
+    timerRef.current = setInterval(advance, 4500);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groups.length]);
@@ -69,7 +69,7 @@ export function PaginasCarousel({
               onClick={() => {
                 if (timerRef.current) clearInterval(timerRef.current);
                 setCurrent(i);
-                timerRef.current = setInterval(advance, 2000);
+                timerRef.current = setInterval(advance, 4500);
               }}
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 i === current ? "w-5 bg-blue-400" : "w-1.5 bg-white/30"
