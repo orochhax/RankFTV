@@ -76,10 +76,16 @@ export default async function Home() {
     unreadCount = count ?? 0;
   }
 
-  const publicados = await getPublishedChampionships();
-  const destaques = publicados
-    .filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento")
-    .slice(0, 3);
+  const [publicados, configRow] = await Promise.all([
+    getPublishedChampionships(),
+    supabase.from("platform_config").select("destaques_ids").eq("id", 1).single(),
+  ]);
+
+  const destaquesIds: string[] = (configRow.data?.destaques_ids as string[] | null) ?? [];
+  const destaques = destaquesIds.length > 0
+    ? destaquesIds.map((id) => publicados.find((c) => c.id === id)).filter(Boolean) as typeof publicados
+    : publicados.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento").slice(0, 3);
+
   const aoVivo = await getLivChampionships();
 
   return (

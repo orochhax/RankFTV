@@ -1,9 +1,15 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, ChevronRight } from "lucide-react";
+import { Percent, Users, Star, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 const MENU = [
+  {
+    href: "/admin/destaques",
+    icon: Star,
+    label: "Destaques da home",
+    desc: "Escolha os 3 campeonatos fixados na tela inicial para todos.",
+  },
   {
     href: "/admin/taxas",
     icon: Percent,
