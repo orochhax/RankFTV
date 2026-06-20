@@ -6,6 +6,11 @@ import type { GeneroCategoria } from "@/lib/types";
 import { calcularTierDoQuiz, type QuizAnswers } from "@/lib/tier";
 import { RATING_POR_CATEGORIA } from "@/lib/motor-categoria";
 
+function resolverFaixaRating(nome: string) {
+  const base = nome.replace(/\s+(masculino|feminino|misto|mista)$/i, "").trim();
+  return RATING_POR_CATEGORIA[base] ?? RATING_POR_CATEGORIA[nome];
+}
+
 export type CategoriaInput = {
   nome: string;
   genero: GeneroCategoria;
@@ -119,7 +124,7 @@ export async function createChampionship(
   }
 
   const rows = categorias.map((c) => {
-    const faixa = RATING_POR_CATEGORIA[c.nome.trim()];
+    const faixa = resolverFaixaRating(c.nome);
     return {
       championship_id:  champ.id,
       nome:             c.nome.trim(),

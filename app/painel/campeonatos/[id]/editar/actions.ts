@@ -6,6 +6,11 @@ import { createClient } from "@/lib/supabase/server";
 import type { GeneroCategoria } from "@/lib/types";
 import { RATING_POR_CATEGORIA } from "@/lib/motor-categoria";
 
+function resolverFaixaRating(nome: string) {
+  const base = nome.replace(/\s+(masculino|feminino|misto|mista)$/i, "").trim();
+  return RATING_POR_CATEGORIA[base] ?? RATING_POR_CATEGORIA[nome];
+}
+
 export async function atualizarBannerCampeonato(
   champId: string,
   bannerUrl: string | null,
@@ -159,7 +164,7 @@ export async function updateChampionship(
   }
 
   for (const cat of toUpdate) {
-    const faixa = RATING_POR_CATEGORIA[cat.nome.trim()];
+    const faixa = resolverFaixaRating(cat.nome);
     await supabase
       .from("championship_categories")
       .update({
@@ -176,7 +181,7 @@ export async function updateChampionship(
   if (toInsert.length > 0) {
     await supabase.from("championship_categories").insert(
       toInsert.map((c) => {
-        const faixa = RATING_POR_CATEGORIA[c.nome.trim()];
+        const faixa = resolverFaixaRating(c.nome);
         return {
           championship_id:  champId,
           nome:             c.nome.trim(),
