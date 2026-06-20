@@ -36,7 +36,6 @@ type Props = {
     inscricoesFim: string;
     prevendaInicio?: string;
     prevendaFim?: string;
-    bannerUrl?: string;
     cidade: string;
     estado: string;
     local: string;
@@ -99,7 +98,6 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
   const [inscricoesFim, setInscricoesFim]     = useState(initial.inscricoesFim);
   const [prevendaInicio, setPrevendaInicio]   = useState(initial.prevendaInicio ?? "");
   const [prevendaFim, setPrevendaFim]         = useState(initial.prevendaFim ?? "");
-  const [bannerUrl, setBannerUrl]             = useState(initial.bannerUrl ?? "");
   const [cidade, setCidade]                   = useState(initial.cidade);
   const [estado, setEstado]                   = useState(initial.estado);
   const [local, setLocal]                     = useState(initial.local);
@@ -160,7 +158,6 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
     if ((inscricoesFim    || "") !== (initial.inscricoesFim    || "")) lista.push("Encerramento das inscrições alterado");
     if ((prevendaInicio   || "") !== (initial.prevendaInicio  ?? "")) lista.push("Data de início da pré-venda alterada");
     if ((prevendaFim      || "") !== (initial.prevendaFim     ?? "")) lista.push("Data de fim da pré-venda alterada");
-    if ((bannerUrl.trim() || "") !== (initial.bannerUrl       ?? "")) lista.push("Banner do evento alterado");
     if (cidade.trim()     !== initial.cidade.trim())     lista.push("Cidade alterada");
     if (estado.trim().toUpperCase() !== initial.estado.trim().toUpperCase()) lista.push("Estado (UF) alterado");
     if (local.trim()      !== initial.local.trim())      lista.push("Local alterado");
@@ -246,7 +243,6 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
         inscricoesFim:    inscricoesFim    || undefined,
         prevendaInicio:   prevendaInicio   || undefined,
         prevendaFim:      prevendaFim      || undefined,
-        bannerUrl:        bannerUrl.trim() || null,
         cidade, estado, local, liveUrl,
         pageId: pageId || null,
         status,
@@ -260,7 +256,7 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nome, descricao, regulamento, pdfUrl, pdfFile, dataInicio, dataFim,
-      inscricoesInicio, inscricoesFim, prevendaInicio, prevendaFim, bannerUrl,
+      inscricoesInicio, inscricoesFim, prevendaInicio, prevendaFim,
       cidade, estado, local, liveUrl, pageId, status, categorias]);
 
   return (
@@ -476,33 +472,6 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Banner do evento */}
-      <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
-        <h2 className="text-sm font-semibold text-gray-800">Banner do evento</h2>
-        <p className="text-xs text-gray-500">
-          Cole a URL de uma imagem para usar como banner deste campeonato.
-          Diferente do banner da página — cada edição pode ter o seu próprio.
-        </p>
-        <div>
-          <label className={labelClass}>URL da imagem do banner</label>
-          <input
-            type="url"
-            className={inputClass}
-            value={bannerUrl}
-            onChange={(e) => setBannerUrl(e.target.value)}
-            placeholder="https://..."
-          />
-        </div>
-        {bannerUrl && (
-          <img
-            src={bannerUrl}
-            alt="Preview do banner"
-            className="h-28 w-full rounded-xl object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
-        )}
       </div>
 
       {/* Regulamento */}

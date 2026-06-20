@@ -51,7 +51,6 @@ export default async function EditarCampeonatoPage({
     inscricoesFim:    champ.inscricoes_fim ?? "",
     prevendaInicio:   (c.prevenda_inicio as string | null) ?? "",
     prevendaFim:      (c.prevenda_fim    as string | null) ?? "",
-    bannerUrl:        (c.banner_url      as string | null) ?? "",
     cidade:           champ.cidade,
     estado:           champ.estado,
     local:            champ.local ?? "",
