@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChampionshipCard } from "@/components/campeonatos/ChampionshipCard";
-import { PageCard } from "@/components/campeonatos/PageCard";
+import { PaginasCarousel } from "@/components/campeonatos/PaginasCarousel";
 import { getPublishedChampionships } from "@/lib/supabase/championships";
 import type { Championship } from "@/lib/types";
 import { getPages, getFollowedPageIds } from "@/lib/supabase/pages";
@@ -51,7 +51,6 @@ export default async function CampeonatosPage({
       return true;
     });
 
-  const paginasVisiveis = todasPages.slice(0, 3);
   const temMaisPaginas = todasPages.length > 3;
 
   return (
@@ -79,21 +78,16 @@ export default async function CampeonatosPage({
                 </Link>
               )}
             </div>
-            {paginasVisiveis.length === 0 ? (
+            {todasPages.length === 0 ? (
               <p className="text-sm text-white/40">
                 Ainda não há páginas. Organizadores podem criar uma no painel.
               </p>
             ) : (
-              <div className="space-y-3">
-                {paginasVisiveis.map((p) => (
-                  <PageCard
-                    key={p.id}
-                    page={p}
-                    initialFollowing={followedPageIds.includes(p.id)}
-                    userId={user?.id ?? null}
-                  />
-                ))}
-              </div>
+              <PaginasCarousel
+                pages={todasPages}
+                followedPageIds={followedPageIds}
+                userId={user?.id ?? null}
+              />
             )}
           </section>
         </div>
