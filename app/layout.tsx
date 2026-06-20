@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/navbar/BottomNav";
@@ -14,6 +14,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "RankFTV",
   description: "Organize e participe de campeonatos de futevôlei.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default async function RootLayout({
