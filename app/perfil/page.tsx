@@ -115,7 +115,7 @@ export default async function PerfilPage() {
   const { data: followedPagesData } = followedPageIds.length > 0
     ? await supabase
         .from("pages")
-        .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, created_at")
+        .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, avatar_url, created_at")
         .in("id", followedPageIds)
     : { data: [] };
 
@@ -135,6 +135,7 @@ export default async function PerfilPage() {
         bannerFrom: p.banner_from,
         bannerTo: p.banner_to,
         bannerUrl: p.banner_url ?? null,
+        avatarUrl: p.avatar_url ?? null,
         createdAt: p.created_at,
         seguidores: count ?? 0,
         edicoes: 0,
