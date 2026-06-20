@@ -15,6 +15,11 @@ export async function salvarQuestionario(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const genero = formData.get("genero") as "masculino" | "feminino" | null;
+  if (genero !== "masculino" && genero !== "feminino") {
+    return { error: "Selecione seu gênero." };
+  }
+
   const respostas: RespostasQuestionario = {
     tempo:            formData.get("tempo")            as RespostasQuestionario["tempo"],
     nivel:            formData.get("nivel")            as RespostasQuestionario["nivel"],
@@ -31,7 +36,7 @@ export async function salvarQuestionario(formData: FormData) {
 
   const { error } = await supabase
     .from("profiles")
-    .update({ questionario: respostas, rating })
+    .update({ questionario: respostas, rating, genero })
     .eq("id", user.id);
 
   if (error) return { error: "Erro ao salvar. Tente novamente." };

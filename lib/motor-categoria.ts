@@ -2,6 +2,8 @@
 // Recebe os ratings dos atletas e as categorias do campeonato,
 // devolve qual categoria é a certa e se há risco de sandbagging.
 
+import type { Genero, GeneroCategoria } from "@/lib/types";
+
 // ── Questionário de nível ─────────────────────────────────────────────────────
 
 export type RespostasQuestionario = {
@@ -35,7 +37,21 @@ export type Categoria = {
   nome: string;
   corte_rating_min: number;
   corte_rating_max: number;
+  genero?: GeneroCategoria;
 };
+
+/**
+ * Filtra as categorias elegíveis para o gênero do atleta.
+ * Categorias do mesmo gênero + categorias mistas (abertas a todos).
+ * Se o gênero não for informado, devolve todas.
+ */
+export function categoriasDoGenero(
+  categorias: Categoria[],
+  genero: Genero | null | undefined
+): Categoria[] {
+  if (!genero) return categorias;
+  return categorias.filter((c) => c.genero === genero || c.genero === "mista");
+}
 
 /**
  * Faixas de rating por nome de categoria predefinido.
@@ -61,17 +77,21 @@ export function calcularRatingDupla(
 
 /**
  * Categoria recomendada para o rating da dupla.
+ * O gênero SEMPRE prevalece: filtra primeiro pelas categorias do gênero
+ * do atleta (+ mistas) e só então escolhe pela faixa de rating.
  * Retorna a categoria cujo intervalo contém o rating,
- * ou a mais alta se o rating ultrapassar todas.
+ * ou a mais baixa/alta se o rating ficar fora de todas.
  */
 export function recomendarCategoria(
   ratingDupla: number,
-  categorias: Categoria[]
+  categorias: Categoria[],
+  genero?: Genero | null
 ): Categoria | null {
-  if (!categorias.length) return null;
+  const elegiveis = categoriasDoGenero(categorias, genero);
+  if (!elegiveis.length) return null;
 
   // Ordena do menor pro maior corte mínimo
-  const ordenadas = [...categorias].sort(
+  const ordenadas = [...elegiveis].sort(
     (a, b) => a.corte_rating_min - b.corte_rating_min
   );
 

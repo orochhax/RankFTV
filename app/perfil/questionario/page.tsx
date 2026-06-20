@@ -13,12 +13,12 @@ export default async function QuestionarioPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("questionario")
+    .select("questionario, genero")
     .eq("id", user.id)
     .single();
 
-  // Se já respondeu, manda pro perfil
-  if (profile?.questionario) redirect("/perfil");
+  // Só pula o questionário se já respondeu E já tem gênero definido
+  if (profile?.questionario && profile?.genero) redirect("/perfil");
 
   return (
     <div className="mx-auto max-w-lg space-y-6 px-6 py-8">

@@ -45,25 +45,31 @@ export default async function InscreverPage({
   const category = championship.categorias.find((c) => c.id === categoryId);
   if (!category) notFound();
 
-  // Busca perfil com rating, CPF e tamanho de camisa
+  // Busca perfil com rating, CPF, gênero e tamanho de camisa
   const { data: profile } = await supabase
     .from("profiles")
-    .select("cpf, rating, tamanho_camisa, questionario")
+    .select("cpf, rating, genero, tamanho_camisa, questionario")
     .eq("id", user.id)
     .single();
 
   // Busca todas as categorias do campeonato para o motor
   const { data: todasCategorias } = await supabase
     .from("championship_categories")
-    .select("id, nome, corte_rating_min, corte_rating_max")
+    .select("id, nome, genero, corte_rating_min, corte_rating_max")
     .eq("championship_id", id);
 
   // ── Motor de categoria ──────────────────────────────────────
   const meuRating = profile?.rating ?? 0;
+  const meuGenero = (profile?.genero as "masculino" | "feminino" | null) ?? null;
   const ratingDupla = calcularRatingDupla(meuRating, null); // parceiro ainda não informado
   const categoriaRecomendada = todasCategorias
-    ? recomendarCategoria(ratingDupla, todasCategorias)
+    ? recomendarCategoria(ratingDupla, todasCategorias, meuGenero)
     : null;
+
+  // Gênero da categoria escolhida — sempre prevalece sobre o nível
+  const generoCategoria = category.genero;
+  const generoConflita =
+    !!meuGenero && generoCategoria !== "mista" && generoCategoria !== meuGenero;
 
   const categoriaSelecionada = {
     id:               category.id,
@@ -74,7 +80,8 @@ export default async function InscreverPage({
 
   const semQuestionario = !profile?.questionario;
 
-  const status = !semQuestionario && meuRating > 0
+  // Conflito de gênero suprime os banners de nível (o gênero prevalece)
+  const status = !semQuestionario && meuRating > 0 && !generoConflita
     ? statusCategoria(ratingDupla, categoriaSelecionada)
     : null;
 
@@ -109,6 +116,21 @@ export default async function InscreverPage({
               questionário de nível
             </Link>{" "}
             para que a plataforma possa indicar a melhor categoria pra você.
+          </p>
+        </div>
+      )}
+
+      {/* Banner: categoria de outro gênero (o gênero sempre prevalece) */}
+      {generoConflita && (
+        <div className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200">
+          <p className="font-semibold">
+            Esta é uma categoria {generoCategoria === "feminino" ? "feminina" : "masculina"}
+          </p>
+          <p className="mt-0.5 text-red-700">
+            Seu perfil é {meuGenero === "feminino" ? "feminino" : "masculino"}.
+            {categoriaRecomendada
+              ? <> A categoria indicada para você é <strong>{categoriaRecomendada.nome}</strong>.</>
+              : <> Este campeonato não tem categoria do seu gênero.</>}
           </p>
         </div>
       )}

@@ -71,6 +71,40 @@ export function QuestionarioForm() {
 
   return (
     <form action={action} className="space-y-8">
+      {/* Gênero — define em quais categorias o atleta pode jogar */}
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-semibold text-gray-800">
+          <span className="mr-2 inline-flex size-6 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+            ♦
+          </span>
+          Qual é o seu gênero?
+        </legend>
+        <p className="text-xs text-gray-500">
+          Usamos isso para indicar as categorias certas (masculina, feminina ou
+          mista) e avisar quando um campeonato não tem categoria para você.
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { valor: "masculino", texto: "Masculino" },
+            { valor: "feminino",  texto: "Feminino" },
+          ].map((opcao) => (
+            <label
+              key={opcao.valor}
+              className="flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-800 hover:bg-gray-50"
+            >
+              <input
+                type="radio"
+                name="genero"
+                value={opcao.valor}
+                required
+                className="accent-blue-600"
+              />
+              {opcao.texto}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       {PERGUNTAS.map((pergunta, idx) => (
         <fieldset key={pergunta.name} className="space-y-3">
           <legend className="text-sm font-semibold text-gray-800">

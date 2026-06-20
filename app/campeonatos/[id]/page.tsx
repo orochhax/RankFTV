@@ -103,13 +103,15 @@ export default async function CampeonatoDetalhePage({
   /* ── Usuário logado ── */
   const { data: { user } } = await supabase.auth.getUser();
   let meuRating = 0;
+  let meuGenero: "masculino" | "feminino" | null = null;
   if (user) {
     const { data: p } = await supabase
       .from("profiles")
-      .select("rating")
+      .select("rating, genero")
       .eq("id", user.id)
       .single();
     meuRating = p?.rating ?? 0;
+    meuGenero = (p?.genero as "masculino" | "feminino" | null) ?? null;
   }
 
   /* ── Bracket ── */
@@ -138,10 +140,19 @@ export default async function CampeonatoDetalhePage({
     nome: c.nome,
     corte_rating_min: c.corteRatingMin,
     corte_rating_max: c.corteRatingMax,
+    genero: c.genero,
   }));
   const catRecomendada = meuRating > 0
-    ? recomendarCategoria(meuRating, categoriasParaMotor)
+    ? recomendarCategoria(meuRating, categoriasParaMotor, meuGenero)
     : null;
+
+  // Aviso: atleta tem gênero definido mas o campeonato não tem categoria pra ele
+  const temCategoriaParaMim =
+    !meuGenero ||
+    championship.categorias.some(
+      (c) => c.genero === meuGenero || c.genero === "mista",
+    );
+  const generoLabelAtleta = meuGenero === "feminino" ? "feminina" : "masculina";
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-8">
@@ -276,6 +287,17 @@ export default async function CampeonatoDetalhePage({
 
       <section>
         <h2 className="mb-3 text-lg font-semibold text-gray-900">Categorias e inscrição</h2>
+        {!temCategoriaParaMim && (
+          <div className="mb-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">
+            <p className="font-semibold">
+              Este campeonato não tem categoria {generoLabelAtleta}
+            </p>
+            <p className="mt-0.5 text-amber-700">
+              As categorias disponíveis não correspondem ao seu gênero e não há
+              categoria mista. Fale com o organizador se quiser participar.
+            </p>
+          </div>
+        )}
         <div className="space-y-3">
           {championship.categorias.map((cat) => {
             const isRecomendada = catRecomendada?.id === cat.id;

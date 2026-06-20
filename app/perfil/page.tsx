@@ -65,7 +65,7 @@ export default async function PerfilPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("nome, username, bio, foto_url, questionario, rating")
+    .select("nome, username, bio, foto_url, questionario, rating, genero")
     .eq("id", user.id)
     .single();
 
@@ -168,6 +168,23 @@ export default async function PerfilPage() {
           )}
         </div>
       </div>
+
+      {/* Aviso: respondeu o questionário antes da pergunta de gênero existir */}
+      {profile.questionario && !profile.genero && (
+        <Link
+          href="/perfil/questionario"
+          className="flex items-center justify-between rounded-2xl bg-amber-50 px-5 py-4 text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100"
+        >
+          <div>
+            <p className="text-sm font-semibold">Falta informar seu gênero</p>
+            <p className="mt-0.5 text-xs text-amber-700">
+              Precisamos disso para indicar as categorias certas (masculina,
+              feminina ou mista) nos campeonatos.
+            </p>
+          </div>
+          <ChevronRight className="size-5 shrink-0" />
+        </Link>
+      )}
 
       {/* Nível / Questionário */}
       {profile.questionario ? (
