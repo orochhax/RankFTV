@@ -36,18 +36,24 @@ export async function criarPagina(
   if ((countPages ?? 0) > 0 || (countProfiles ?? 0) > 0)
     return { error: "Esse @handle já está em uso. Escolha outro." };
 
-  const bannerUrl = (formData.get("bannerUrl") as string)?.trim() || null;
+  const bannerUrl   = (formData.get("bannerUrl") as string)?.trim()  || null;
+  const avatarUrl   = (formData.get("avatarUrl") as string)?.trim()  || null;
+  const socialRaw   = (formData.get("socialLinks") as string)?.trim() || "[]";
+  let socialLinks: unknown[] = [];
+  try { socialLinks = JSON.parse(socialRaw); } catch { socialLinks = []; }
 
   const { data: page, error } = await supabase
     .from("pages")
     .insert({
-      owner_id: user.id,
+      owner_id:     user.id,
       nome,
       handle,
       descricao,
-      banner_from: bannerFrom,
-      banner_to: bannerTo,
-      banner_url: bannerUrl,
+      banner_from:  bannerFrom,
+      banner_to:    bannerTo,
+      banner_url:   bannerUrl,
+      avatar_url:   avatarUrl,
+      social_links: socialLinks,
     })
     .select("id")
     .single();
