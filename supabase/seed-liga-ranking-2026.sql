@@ -2,7 +2,45 @@
 -- Atualizado após etapa de 17/06/2026 (54ª etapa Team Águia Footvolley Cup)
 -- Executa no Supabase SQL Editor
 
--- Limpa dados anteriores da liga (mantém apenas entradas sem instagram/username externo)
+-- ── Cria tabelas se não existirem ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS ranking_individual (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome       TEXT NOT NULL,
+  instagram  TEXT,
+  genero     TEXT NOT NULL CHECK (genero IN ('masculino','feminino')),
+  pontos     INTEGER NOT NULL DEFAULT 0,
+  username   TEXT,
+  foto_url   TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS ranking_dupla (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  atleta1          TEXT NOT NULL,
+  atleta2          TEXT NOT NULL,
+  genero           TEXT NOT NULL CHECK (genero IN ('masculino','feminino')),
+  pontos           INTEGER NOT NULL DEFAULT 0,
+  atleta1_username TEXT,
+  atleta1_foto     TEXT,
+  atleta2_username TEXT,
+  atleta2_foto     TEXT,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- RLS: leitura pública
+ALTER TABLE ranking_individual ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ranking_dupla      ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='ranking_individual' AND policyname='ranking_individual_read') THEN
+    CREATE POLICY ranking_individual_read ON ranking_individual FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='ranking_dupla' AND policyname='ranking_dupla_read') THEN
+    CREATE POLICY ranking_dupla_read ON ranking_dupla FOR SELECT USING (true);
+  END IF;
+END $$;
+
+-- Limpa dados anteriores
 TRUNCATE TABLE ranking_individual RESTART IDENTITY;
 TRUNCATE TABLE ranking_dupla      RESTART IDENTITY;
 
