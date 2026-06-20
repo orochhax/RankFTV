@@ -75,12 +75,15 @@ export default async function InscreverPage({
   const semQuestionario = !profile?.questionario;
 
   const status = !semQuestionario && meuRating > 0
-    ? statusCategoria(ratingDupla, categoriaSelecionada, categoriaRecomendada)
+    ? statusCategoria(ratingDupla, categoriaSelecionada)
     : null;
 
   const isRecomendada   = status === "recomendada";
   const isSandbagging   = status === "sandbagging";
   const isAcimaDoNivel  = status === "acima_do_nivel";
+
+  // Atleta está abaixo de todas as categorias → a "recomendada" é a própria escolhida
+  const recomendadaEhAEscolhida = categoriaRecomendada?.id === category.id;
 
   return (
     <div className="mx-auto max-w-lg space-y-5 px-6 py-8">
@@ -128,8 +131,17 @@ export default async function InscreverPage({
         <div className="rounded-2xl bg-orange-50 px-4 py-3 text-sm text-orange-800 ring-1 ring-orange-200">
           <p className="font-semibold">Categoria acima do seu nível atual</p>
           <p className="mt-0.5 text-orange-700">
-            Com base no seu perfil ({meuRating} pts), a categoria indicada é{" "}
-            <strong>{categoriaRecomendada?.nome ?? "uma mais baixa"}</strong>. Você pode continuar mesmo assim.
+            {recomendadaEhAEscolhida ? (
+              <>
+                Esta é a categoria mais acessível deste campeonato, mas ainda está
+                acima do seu nível atual ({meuRating} pts). Você pode continuar mesmo assim.
+              </>
+            ) : (
+              <>
+                Com base no seu perfil ({meuRating} pts), a categoria indicada é{" "}
+                <strong>{categoriaRecomendada?.nome ?? "uma mais baixa"}</strong>. Você pode continuar mesmo assim.
+              </>
+            )}
           </p>
         </div>
       )}

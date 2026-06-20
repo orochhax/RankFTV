@@ -81,7 +81,10 @@ export function recomendarCategoria(
   );
   if (match) return match;
 
-  // Rating acima de todas → retorna a mais alta
+  // Rating abaixo de todas → a mais baixa disponível
+  if (ratingDupla < ordenadas[0].corte_rating_min) return ordenadas[0];
+
+  // Rating acima de todas → a mais alta
   return ordenadas[ordenadas.length - 1];
 }
 
@@ -107,12 +110,11 @@ export type StatusCategoria =
 
 export function statusCategoria(
   ratingDupla: number,
-  categoriaEscolhida: Categoria,
-  categoriaRecomendada: Categoria | null
+  categoriaEscolhida: Categoria
 ): StatusCategoria {
-  if (!categoriaRecomendada) return "recomendada";
+  // Bem acima do teto da categoria → sandbagging
   if (detectarSandbagging(ratingDupla, categoriaEscolhida)) return "sandbagging";
-  if (categoriaEscolhida.corte_rating_min > (categoriaRecomendada.corte_rating_max ?? 9999))
-    return "acima_do_nivel";
+  // Abaixo do piso da categoria escolhida → categoria acima do nível do atleta
+  if (ratingDupla < categoriaEscolhida.corte_rating_min) return "acima_do_nivel";
   return "recomendada";
 }
