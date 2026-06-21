@@ -209,6 +209,15 @@ export default async function PainelCampeonatoPage({
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-4xl space-y-8">
 
+          {/* Link público */}
+          <Link
+            href={`/campeonatos/${id}`}
+            className="flex items-center justify-center gap-2 rounded-xl bg-gray-50 py-2.5 text-sm font-medium text-blue-600 ring-1 ring-black/5 hover:bg-gray-100 transition-colors"
+          >
+            <ExternalLink className="size-4" />
+            Ver página pública do campeonato
+          </Link>
+
           {/* Convite de vínculo com página pendente */}
           {pendingInvite && (() => {
             const pg = pendingInvite.pages as unknown as { nome: string; handle: string } | null;
@@ -319,14 +328,6 @@ export default async function PainelCampeonatoPage({
               })}
             </ol>
           </section>
-
-          <Link
-            href={`/campeonatos/${id}`}
-            className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700"
-          >
-            <ExternalLink className="size-4" />
-            Ver página pública do campeonato
-          </Link>
 
         </div>
       </div>

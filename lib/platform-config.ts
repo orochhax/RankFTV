@@ -64,21 +64,27 @@ export async function getPlatformConfig(): Promise<PlatformConfig> {
   };
 }
 
-/** Repasse líquido do organizador após desconto da taxa da plataforma */
+/**
+ * Repasse líquido do organizador após desconto da taxa da plataforma.
+ * Quando `isElite` é true, usa as taxas reduzidas do plano Elite (premium_*).
+ */
 export function calcularRepasse(
   valorBase: number,
   metodo: "pix" | "debito" | "credito",
   config: PlatformConfig,
+  isElite = false,
 ): number {
+  const pixFixo        = isElite ? config.premiumPixFixo        : config.plataformaPixFixo;
+  const debitoPercent  = isElite ? config.premiumDebitoPercent  : config.plataformaDebitoPercent;
+  const debitoFixo     = isElite ? config.premiumDebitoFixo     : config.plataformaDebitoFixo;
+  const creditoPercent = isElite ? config.premiumCreditoPercent : config.plataformaCreditoPercent;
+  const creditoFixo    = isElite ? config.premiumCreditoFixo    : config.plataformaCreditoFixo;
+
   if (metodo === "pix") {
-    return parseFloat((valorBase - config.plataformaPixFixo).toFixed(2));
+    return parseFloat((valorBase - pixFixo).toFixed(2));
   }
   if (metodo === "debito") {
-    return parseFloat(
-      (valorBase * (1 - config.plataformaDebitoPercent / 100) - config.plataformaDebitoFixo).toFixed(2)
-    );
+    return parseFloat((valorBase * (1 - debitoPercent / 100) - debitoFixo).toFixed(2));
   }
-  return parseFloat(
-    (valorBase * (1 - config.plataformaCreditoPercent / 100) - config.plataformaCreditoFixo).toFixed(2)
-  );
+  return parseFloat((valorBase * (1 - creditoPercent / 100) - creditoFixo).toFixed(2));
 }

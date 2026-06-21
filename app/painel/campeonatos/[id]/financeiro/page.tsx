@@ -49,14 +49,15 @@ export default async function FinanceiroPage({
       .maybeSingle(),
     supabase
       .from("championships")
-      .select("is_elite")
+      .select("is_elite, premium_fee_pendente")
       .eq("id", id)
       .maybeSingle(),
     getPlatformConfig(),
   ]);
 
-  const chavePix = orgAccount?.chave_pix ?? null;
-  const isElite  = !!champExtra?.is_elite;
+  const chavePix    = orgAccount?.chave_pix ?? null;
+  const isElite     = !!champExtra?.is_elite;
+  const feePendente = Number(champExtra?.premium_fee_pendente ?? 0);
 
   // Inscrições com categoria (sem dupla — só para os totais financeiros)
   const { data: rawRegs } = await supabase
@@ -196,6 +197,8 @@ export default async function FinanceiroPage({
           <PlanoTaxas
             champId={id}
             isElite={isElite}
+            status={camp.status}
+            feePendente={feePendente}
             padrao={{
               pixFixo:        config.plataformaPixFixo,
               debitoPercent:  config.plataformaDebitoPercent,

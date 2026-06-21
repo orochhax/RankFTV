@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { transferirPix } from "@/lib/asaas";
 import { getPlatformConfig, calcularRepasse } from "@/lib/platform-config";
+import { executarRepasse } from "@/lib/repasse";
 
 const EVENTOS_CONFIRMADO = new Set(["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"]);
 const EVENTOS_ESTORNADO  = new Set(["PAYMENT_REFUNDED", "PAYMENT_DELETED"]);
@@ -79,10 +79,10 @@ export async function POST(req: NextRequest) {
 
     if (!reg) return NextResponse.json({ ok: true });
 
-    // Busca dados do campeonato (organizador + taxa da plataforma)
+    // Busca dados do campeonato (organizador + taxa da plataforma + plano Elite)
     const { data: champ } = await supabase
       .from("championships")
-      .select("nome, organizador_id, taxa_plataforma")
+      .select("nome, organizador_id, taxa_plataforma, is_elite, premium_fee_pendente")
       .eq("id", reg.championship_id)
       .single();
 
@@ -130,14 +130,16 @@ export async function POST(req: NextRequest) {
 
       const chavePix   = orgAccountRes.data?.chave_pix as string | undefined;
       const valorBruto = Number(reg.valor ?? 0);
+      const isElite    = !!champ.is_elite;
 
       const metodo =
         payment.billingType === "PIX"        ? "pix" :
         payment.billingType === "DEBIT_CARD" ? "debito" : "credito";
 
-      const valorRepasse = calcularRepasse(valorBruto, metodo, platformConfig);
+      // Repasse já com a taxa do plano correto (Elite usa taxas menores).
+      const repasseBase = calcularRepasse(valorBruto, metodo, platformConfig, isElite);
 
-      if (chavePix && valorRepasse > 0) {
+      if (chavePix && repasseBase > 0) {
         const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
 
         if (dias === 0) {
@@ -153,33 +155,26 @@ export async function POST(req: NextRequest) {
             .select("id");
 
           if (claimed && claimed.length > 0) {
-            try {
-              const transferencia = await transferirPix({
-                valor:     valorRepasse,
+            await executarRepasse(
+              supabase,
+              {
+                registrationId,
+                championshipId: reg.championship_id,
+                champNome:      champ.nome,
+                isElite,
+                feePendente:    Number(champ.premium_fee_pendente ?? 0),
                 chavePix,
-                descricao: `Repasse RankFTV — ${champ.nome}`,
-              });
-
-              await supabase
-                .from("registrations")
-                .update({
-                  repasse_status:      "repassado",
-                  repasse_transfer_id: transferencia.id,
-                  repasse_erro:        null,
-                })
-                .eq("id", registrationId);
-            } catch (err) {
-              const msg = err instanceof Error ? err.message : String(err);
-              console.error("[webhook] Erro ao transferir Pix:", msg);
-              // Volta pra 'pendente' pra permitir nova tentativa e registra o erro.
-              await supabase
-                .from("registrations")
-                .update({ repasse_status: "pendente", repasse_erro: msg.slice(0, 300) })
-                .eq("id", registrationId);
-            }
+                repasseBase,
+              },
+              "pendente",
+            );
           }
           // Se não reivindicou (0 linhas), já foi repassado/está processando → não faz nada.
         } else {
+          // Crédito/débito: liquidação diferida (D+3/D+32). O repasse e o
+          // abatimento da dívida Elite acontecem quando a transferência
+          // diferida for executada (job futuro). Até lá a dívida segue
+          // pendente e é abatida nos próximos repasses Pix.
           const dataRepasse = new Date();
           dataRepasse.setDate(dataRepasse.getDate() + dias);
 
@@ -199,9 +194,24 @@ export async function POST(req: NextRequest) {
 
   // 4. Estorno
   if (novoStatus === "estornado") {
+    // Se esta inscrição tinha abatido parte da dívida Elite, devolve à dívida
+    // (o dinheiro que pagou os R$178 veio dessa inscrição, agora estornada).
+    const { data: regEst } = await supabase
+      .from("registrations")
+      .select("championship_id, elite_fee_coletada")
+      .eq("id", registrationId)
+      .single();
+
+    if (regEst && Number(regEst.elite_fee_coletada ?? 0) > 0) {
+      await supabase.rpc("release_elite_fee", {
+        p_champ_id: regEst.championship_id,
+        p_amount:   Number(regEst.elite_fee_coletada),
+      });
+    }
+
     await supabase
       .from("registrations")
-      .update({ repasse_status: "estornado" })
+      .update({ repasse_status: "estornado", elite_fee_coletada: 0 })
       .eq("id", registrationId);
   }
 

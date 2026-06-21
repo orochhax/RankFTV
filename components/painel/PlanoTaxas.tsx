@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Crown, Loader2 } from "lucide-react";
+import { Check, Crown, Loader2, Lock } from "lucide-react";
 import { tornarCampeonatoElite } from "@/app/painel/campeonatos/[id]/financeiro/actions";
+import { PRECO_ELITE } from "@/lib/elite";
 
 type Taxas = {
   pixFixo: number;
@@ -12,8 +13,6 @@ type Taxas = {
   creditoPercent: number;
   creditoFixo: number;
 };
-
-const PRECO_ELITE = 178;
 
 function brl(n: number) {
   return `R$ ${n.toFixed(2).replace(".", ",")}`;
@@ -45,11 +44,17 @@ function LinhasTaxa({ t }: { t: Taxas }) {
 export function PlanoTaxas({
   champId,
   isElite,
+  status,
+  feePendente,
   padrao,
   elite,
 }: {
   champId: string;
   isElite: boolean;
+  /** Status do campeonato — Elite só ativa com inscrições abertas/rascunho. */
+  status: string;
+  /** Quanto da ativação Elite (R$178) ainda falta abater dos repasses. */
+  feePendente: number;
   padrao: Taxas;
   elite: Taxas;
 }) {
@@ -57,11 +62,21 @@ export function PlanoTaxas({
   const [isPending, startTransition] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
 
+  // Depois que as inscrições fecham não dá mais pra ativar (a cobrança depende
+  // de inscrições futuras pra abater a dívida).
+  const inscricoesAbertas = status === "rascunho" || status === "inscricoes_abertas";
+  const podeAtivar = !isElite && inscricoesAbertas;
+
+  const feeQuitada = feePendente <= 0;
+
   function handleAtivar() {
     setErro(null);
     if (
       !confirm(
-        `Tornar este campeonato Elite por ${brl(PRECO_ELITE)}?\n\nVocê passa a pagar as taxas reduzidas (Elite) em cada inscrição paga.`,
+        `Tornar este campeonato Elite?\n\n` +
+          `Você NÃO paga nada agora. Os ${brl(PRECO_ELITE)} da ativação são ` +
+          `descontados automaticamente das suas próximas inscrições pagas. ` +
+          `A partir daí você passa a pagar as taxas reduzidas (Elite) em cada inscrição.`,
       )
     )
       return;
@@ -109,7 +124,26 @@ export function PlanoTaxas({
           </div>
           <LinhasTaxa t={elite} />
 
-          {!isElite && (
+          {/* Estado da dívida de ativação (quando já é Elite) */}
+          {isElite && (
+            <div className="mt-3 border-t border-amber-200/60 pt-3">
+              {feeQuitada ? (
+                <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+                  <Check className="size-3.5" />
+                  Ativação de {brl(PRECO_ELITE)} já quitada.
+                </p>
+              ) : (
+                <p className="text-xs text-amber-700">
+                  Ativação de {brl(PRECO_ELITE)} — faltam{" "}
+                  <strong>{brl(feePendente)}</strong> a descontar das próximas
+                  inscrições pagas.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Ativar Elite (só quando dá pra receber inscrições) */}
+          {podeAtivar && (
             <div className="mt-4 border-t border-gray-100 pt-3">
               <button
                 type="button"
@@ -122,9 +156,20 @@ export function PlanoTaxas({
                 ) : (
                   <Crown className="size-4" />
                 )}
-                Tornar meu campeonato Elite — {brl(PRECO_ELITE)}
+                Tornar meu campeonato Elite
               </button>
+              <p className="mt-2 text-center text-xs text-gray-400">
+                Sem cobrança agora — os {brl(PRECO_ELITE)} são descontados das próximas inscrições.
+              </p>
               {erro && <p className="mt-2 text-xs text-red-600">{erro}</p>}
+            </div>
+          )}
+
+          {/* Inscrições já fecharam → não dá mais pra ativar */}
+          {!isElite && !inscricoesAbertas && (
+            <div className="mt-4 flex items-center gap-1.5 border-t border-gray-100 pt-3 text-xs text-gray-400">
+              <Lock className="size-3.5" />
+              Ativação Elite indisponível — as inscrições já encerraram.
             </div>
           )}
         </div>

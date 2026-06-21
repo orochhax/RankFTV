@@ -3,8 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Zap, CreditCard, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getPlatformConfig } from "@/lib/platform-config";
-import { formatBRL } from "@/lib/format";
 import { PublicarCampeonatoForm } from "@/components/painel/PublicarCampeonatoForm";
+import { PlanoTaxas } from "@/components/painel/PlanoTaxas";
 
 // Fluxo de publicação (rascunho → no ar). Mostra a taxa e como o repasse
 // funciona ANTES de abrir as inscrições, e coleta os dados de recebimento no
@@ -24,7 +24,7 @@ export default async function PublicarPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome, status, organizador_id")
+    .select("nome, status, organizador_id, is_elite, premium_fee_pendente")
     .eq("id", id)
     .maybeSingle();
 
@@ -52,6 +52,8 @@ export default async function PublicarPage({
   const temCategoriaPaga = (cats ?? []).some((c) => Number(c.valor_inscricao) > 0);
   const temChavePix      = !!orgAccount?.chave_pix;
   const precisaPix       = temCategoriaPaga && !temChavePix;
+  const isElite          = !!champ?.is_elite;
+  const feePendente      = Number(champ?.premium_fee_pendente ?? 0);
 
   return (
     <div className="min-h-screen">
@@ -104,33 +106,27 @@ export default async function PublicarPage({
                 </ul>
               </div>
 
-              {/* Taxa da plataforma */}
-              <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-                <p className="font-semibold text-gray-900">Taxa da plataforma</p>
-                <p className="mt-0.5 text-xs text-gray-400">
-                  Descontada automaticamente de cada inscrição paga.
-                </p>
-                <div className="mt-3 grid grid-cols-3 gap-3 text-center">
-                  <div className="rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
-                    <p className="text-xs text-gray-400">Pix</p>
-                    <p className="mt-1 text-sm font-bold text-gray-900">
-                      {formatBRL(config.plataformaPixFixo)}
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
-                    <p className="text-xs text-gray-400">Débito</p>
-                    <p className="mt-1 text-sm font-bold text-gray-900">
-                      {config.plataformaDebitoPercent}% + {formatBRL(config.plataformaDebitoFixo)}
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
-                    <p className="text-xs text-gray-400">Crédito</p>
-                    <p className="mt-1 text-sm font-bold text-gray-900">
-                      {config.plataformaCreditoPercent}% + {formatBRL(config.plataformaCreditoFixo)}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              {/* Plano de taxas (Padrão x Elite) */}
+              <PlanoTaxas
+                champId={id}
+                isElite={isElite}
+                status={champ.status}
+                feePendente={feePendente}
+                padrao={{
+                  pixFixo:        config.plataformaPixFixo,
+                  debitoPercent:  config.plataformaDebitoPercent,
+                  debitoFixo:     config.plataformaDebitoFixo,
+                  creditoPercent: config.plataformaCreditoPercent,
+                  creditoFixo:    config.plataformaCreditoFixo,
+                }}
+                elite={{
+                  pixFixo:        config.premiumPixFixo,
+                  debitoPercent:  config.premiumDebitoPercent,
+                  debitoFixo:     config.premiumDebitoFixo,
+                  creditoPercent: config.premiumCreditoPercent,
+                  creditoFixo:    config.premiumCreditoFixo,
+                }}
+              />
 
               {/* Recebimento já configurado */}
               {!precisaPix && (
