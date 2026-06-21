@@ -77,20 +77,25 @@ export default async function PainelOrganizadorPage({
   } = await supabase.auth.getUser();
 
   // Caso 1 — não logado
-  // Caso 2 — logado mas sem conta de organizador
+  // Caso 2 — logado mas sem conta de organizador E sem nenhum campeonato
   let isOrganizer = false;
+  let todos: Awaited<ReturnType<typeof getMyChampionships>> = [];
   if (user) {
-    const { data } = await supabase
-      .from("organizer_accounts")
-      .select("id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    isOrganizer = !!data;
+    const [orgRes, champs] = await Promise.all([
+      supabase
+        .from("organizer_accounts")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      getMyChampionships(user.id),
+    ]);
+    isOrganizer = !!orgRes.data;
+    todos = champs;
   }
 
-  // Caso 3 — organizador ativo → mostra o painel real
-  if (user && isOrganizer) {
-    const todos = await getMyChampionships(user.id);
+  // Caso 3 — já tem conta de organizador OU já criou algum campeonato (mesmo
+  // rascunho, antes de completar CPF/PIX) → mostra o painel real com a lista.
+  if (user && (isOrganizer || todos.length > 0)) {
     const abertos  = todos.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento");
     const rascunhos = todos.filter((c) => c.status === "rascunho");
     const encerrados = todos.filter((c) => c.status === "encerrado");
