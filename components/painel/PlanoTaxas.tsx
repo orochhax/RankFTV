@@ -90,25 +90,8 @@ export function PlanoTaxas({
         </span>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {/* Padrão */}
-        <div
-          className={`rounded-2xl bg-white p-4 ring-1 ${
-            isElite ? "ring-black/5 opacity-70" : "ring-blue-300"
-          }`}
-        >
-          <div className="mb-3 flex items-center justify-between">
-            <p className="font-semibold text-gray-900">Padrão</p>
-            {!isElite && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
-                <Check className="size-3" /> Atual
-              </span>
-            )}
-          </div>
-          <LinhasTaxa t={padrao} />
-        </div>
-
-        {/* Elite */}
+      <div className="grid gap-3">
+        {/* Elite (em cima) */}
         <div
           className={`rounded-2xl p-4 ring-1 ${
             isElite ? "bg-amber-50 ring-amber-300" : "bg-white ring-black/5"
@@ -144,6 +127,23 @@ export function PlanoTaxas({
               {erro && <p className="mt-2 text-xs text-red-600">{erro}</p>}
             </div>
           )}
+        </div>
+
+        {/* Padrão (embaixo) */}
+        <div
+          className={`rounded-2xl bg-white p-4 ring-1 ${
+            isElite ? "ring-black/5 opacity-70" : "ring-blue-300"
+          }`}
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <p className="font-semibold text-gray-900">Padrão</p>
+            {!isElite && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                <Check className="size-3" /> Atual
+              </span>
+            )}
+          </div>
+          <LinhasTaxa t={padrao} />
         </div>
       </div>
 
