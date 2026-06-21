@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   CalendarDays,
   CheckSquare,
+  Crown,
   DollarSign,
   ExternalLink,
   Link2,
@@ -98,7 +99,7 @@ export default async function PainelCampeonatoPage({
 
   // Tier: quiz do banco + duplas pagas (override automático)
   const [tierRes, paidRes, orgAccountRes, inviteRes] = await Promise.all([
-    supabase.from("championships").select("tier_quiz").eq("id", id).maybeSingle(),
+    supabase.from("championships").select("tier_quiz, is_elite").eq("id", id).maybeSingle(),
     supabase.from("registrations")
       .select("id", { count: "exact", head: true })
       .eq("championship_id", id)
@@ -114,6 +115,7 @@ export default async function PainelCampeonatoPage({
       .maybeSingle(),
   ]);
   const tierQuiz    = (tierRes.data?.tier_quiz ?? null) as Partial<QuizAnswers> | null;
+  const isElite     = !!tierRes.data?.is_elite;
   const duplasPagas = paidRes.count ?? 0;
   const temChavePix = !!orgAccountRes.data?.chave_pix;
   const pendingInvite = inviteRes.data ?? null;
@@ -152,6 +154,16 @@ export default async function PainelCampeonatoPage({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  isElite
+                    ? "bg-amber-400/20 text-amber-300"
+                    : "bg-white/10 text-white/60"
+                }`}
+              >
+                {isElite && <Crown className="size-3.5" />}
+                {isElite ? "Elite" : "Padrão"}
+              </span>
               <TierTag quiz={tierQuiz} duplasPagas={duplasPagas} />
               <StatusBadge status={camp.status} />
               <Link

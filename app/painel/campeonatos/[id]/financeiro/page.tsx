@@ -9,8 +9,10 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
+import { getPlatformConfig } from "@/lib/platform-config";
 import { formatBRL, generoLabel } from "@/lib/format";
 import { ChavePixClient } from "@/components/painel/ChavePixClient";
+import { PlanoTaxas } from "@/components/painel/PlanoTaxas";
 
 type RegRow = {
   id: string;
@@ -38,14 +40,23 @@ export default async function FinanceiroPage({
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
 
-  // Chave Pix do organizador
-  const { data: orgAccount } = await supabase
-    .from("organizer_accounts")
-    .select("chave_pix")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  // Chave Pix do organizador + se o campeonato é Elite + taxas da plataforma
+  const [{ data: orgAccount }, { data: champExtra }, config] = await Promise.all([
+    supabase
+      .from("organizer_accounts")
+      .select("chave_pix")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("championships")
+      .select("is_elite")
+      .eq("id", id)
+      .maybeSingle(),
+    getPlatformConfig(),
+  ]);
 
   const chavePix = orgAccount?.chave_pix ?? null;
+  const isElite  = !!champExtra?.is_elite;
 
   // Inscrições com categoria (sem dupla — só para os totais financeiros)
   const { data: rawRegs } = await supabase
@@ -180,6 +191,26 @@ export default async function FinanceiroPage({
               <MetodoCard emoji="🏦" label="Débito"  valor={totalDebito} />
             </div>
           </section>
+
+          {/* Plano de taxas (Padrão x Elite) */}
+          <PlanoTaxas
+            champId={id}
+            isElite={isElite}
+            padrao={{
+              pixFixo:        config.plataformaPixFixo,
+              debitoPercent:  config.plataformaDebitoPercent,
+              debitoFixo:     config.plataformaDebitoFixo,
+              creditoPercent: config.plataformaCreditoPercent,
+              creditoFixo:    config.plataformaCreditoFixo,
+            }}
+            elite={{
+              pixFixo:        config.premiumPixFixo,
+              debitoPercent:  config.premiumDebitoPercent,
+              debitoFixo:     config.premiumDebitoFixo,
+              creditoPercent: config.premiumCreditoPercent,
+              creditoFixo:    config.premiumCreditoFixo,
+            }}
+          />
 
           {/* Por categoria */}
           <section>
