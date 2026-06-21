@@ -45,12 +45,20 @@ export default async function InscreverPage({
   const category = championship.categorias.find((c) => c.id === categoryId);
   if (!category) notFound();
 
-  // Busca perfil com rating, CPF, gênero e tamanho de camisa
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("cpf, rating, genero, tamanho_camisa, questionario")
-    .eq("id", user.id)
-    .single();
+  // Perfil (público) + CPF guardado na tabela privada
+  const [{ data: profile }, { data: priv }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("rating, genero, tamanho_camisa, questionario")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("profiles_private")
+      .select("cpf")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
+  const cpfSalvo = priv?.cpf ?? null;
 
   // Busca todas as categorias do campeonato para o motor
   const { data: todasCategorias } = await supabase
@@ -180,7 +188,7 @@ export default async function InscreverPage({
         categoryId={category.id}
         categoriaNome={category.nome}
         valorInscricao={category.valorInscricao}
-        cpfSalvo={profile?.cpf ?? null}
+        cpfSalvo={cpfSalvo}
         tamanhoSalvo={profile?.tamanho_camisa ?? null}
         ratingDupla={ratingDupla}
         isSandbagging={isSandbagging}

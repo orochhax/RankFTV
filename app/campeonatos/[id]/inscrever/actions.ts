@@ -28,11 +28,14 @@ export async function inscreverDupla(
   if (!tamanhoCamisa) return { error: "Selecione o tamanho da camisa." };
 
   // ── Carrega perfil, campeonato e categoria em paralelo ────────
-  const [{ data: profile }, { data: champ }, { data: cat }] = await Promise.all([
-    supabase.from("profiles").select("nome, cpf, username").eq("id", user.id).single(),
+  const [{ data: profile }, { data: priv }, { data: champ }, { data: cat }] = await Promise.all([
+    supabase.from("profiles").select("nome, username").eq("id", user.id).single(),
+    supabase.from("profiles_private").select("cpf").eq("user_id", user.id).maybeSingle(),
     supabase.from("championships").select("id, nome, taxa_plataforma, organizador_id, status, inscricoes_fim").eq("id", championshipId).single(),
     supabase.from("championship_categories").select("id, nome, valor_inscricao").eq("id", categoryId).single(),
   ]);
+
+  const cpfSalvo = priv?.cpf ?? "";
 
   if (!profile) return { error: "Perfil não encontrado." };
   if (!champ)   return { error: "Campeonato não encontrado." };
@@ -61,7 +64,7 @@ export async function inscreverDupla(
   const valorInscricao = Number(cat.valor_inscricao);
   const isGratis       = valorInscricao === 0;
 
-  const cpf = cpfInput || profile.cpf || "";
+  const cpf = cpfInput || cpfSalvo || "";
 
   // CPF só é obrigatório para inscrições pagas (Asaas exige)
   if (!isGratis && (!cpf || cpf.length !== 11)) {
@@ -96,10 +99,13 @@ export async function inscreverDupla(
     parceiroDados = parceiro;
   }
 
-  // ── Salva CPF e tamanho de camisa no perfil ──────────────────
-  const profileUpdates: Record<string, string> = { tamanho_camisa: tamanhoCamisa };
-  if (!profile.cpf && cpf) profileUpdates.cpf = cpf;
-  await supabase.from("profiles").update(profileUpdates).eq("id", user.id);
+  // ── Salva tamanho de camisa (público) e CPF (privado) ────────
+  await supabase.from("profiles").update({ tamanho_camisa: tamanhoCamisa }).eq("id", user.id);
+  if (!cpfSalvo && cpf) {
+    await supabase
+      .from("profiles_private")
+      .upsert({ user_id: user.id, cpf }, { onConflict: "user_id" });
+  }
 
   // Se gratuito e sem parceiro → confirma direto. Com parceiro → ainda precisa do convite.
   const teamStatus = isGratis && !atleta2Id ? "confirmado" : "convite_pendente";

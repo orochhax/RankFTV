@@ -141,39 +141,57 @@ export async function POST(req: NextRequest) {
         const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
 
         if (dias === 0) {
-          try {
-            const transferencia = await transferirPix({
-              valor:     valorRepasse,
-              chavePix,
-              descricao: `Repasse RankFTV — ${champ.nome}`,
-            });
+          // Trava de idempotência: marca 'processando' SÓ se ainda estiver
+          // 'pendente'. Como é um UPDATE condicional atômico, um webhook
+          // duplicado (ou PAYMENT_CONFIRMED + PAYMENT_RECEIVED) não consegue
+          // reivindicar de novo → evita repasse em dobro.
+          const { data: claimed } = await supabase
+            .from("registrations")
+            .update({ repasse_status: "processando" })
+            .eq("id", registrationId)
+            .eq("repasse_status", "pendente")
+            .select("id");
 
-            await supabase
-              .from("registrations")
-              .update({
-                repasse_status:      "repassado",
-                repasse_transfer_id: transferencia.id,
-              })
-              .eq("id", registrationId);
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            console.error("[webhook] Erro ao transferir Pix:", msg);
-            await supabase
-              .from("registrations")
-              .update({ repasse_status: `erro: ${msg.slice(0, 200)}` })
-              .eq("id", registrationId);
+          if (claimed && claimed.length > 0) {
+            try {
+              const transferencia = await transferirPix({
+                valor:     valorRepasse,
+                chavePix,
+                descricao: `Repasse RankFTV — ${champ.nome}`,
+              });
+
+              await supabase
+                .from("registrations")
+                .update({
+                  repasse_status:      "repassado",
+                  repasse_transfer_id: transferencia.id,
+                  repasse_erro:        null,
+                })
+                .eq("id", registrationId);
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : String(err);
+              console.error("[webhook] Erro ao transferir Pix:", msg);
+              // Volta pra 'pendente' pra permitir nova tentativa e registra o erro.
+              await supabase
+                .from("registrations")
+                .update({ repasse_status: "pendente", repasse_erro: msg.slice(0, 300) })
+                .eq("id", registrationId);
+            }
           }
+          // Se não reivindicou (0 linhas), já foi repassado/está processando → não faz nada.
         } else {
           const dataRepasse = new Date();
           dataRepasse.setDate(dataRepasse.getDate() + dias);
 
+          // Idempotente: agenda só se ainda estiver pendente.
           await supabase
             .from("registrations")
             .update({
               repasse_status:        "aguardando_liquidacao",
               repasse_data_prevista: dataRepasse.toISOString(),
             })
-            .eq("id", registrationId);
+            .eq("id", registrationId)
+            .eq("repasse_status", "pendente");
         }
       }
     }

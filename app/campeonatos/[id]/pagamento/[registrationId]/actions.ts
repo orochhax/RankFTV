@@ -25,16 +25,20 @@ export async function pagarComCartao(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada. Faça login novamente." };
 
-  const [regRes, profileRes] = await Promise.all([
+  const [regRes, profileRes, privRes] = await Promise.all([
     supabase.from("registrations")
       .select("id, valor, status_pagamento, championship_id, category_id")
       .eq("id", input.registrationId).single(),
-    supabase.from("profiles").select("nome, cpf").eq("id", user.id).single(),
+    supabase.from("profiles").select("nome").eq("id", user.id).single(),
+    supabase.from("profiles_private").select("cpf").eq("user_id", user.id).maybeSingle(),
   ]);
 
+  const cpf = privRes.data?.cpf ?? null;
+
   if (!regRes.data) return { ok: false, error: "Inscrição não encontrada." };
+  if (!profileRes.data) return { ok: false, error: "Perfil não encontrado." };
   if (regRes.data.status_pagamento === "pago") return { ok: true, pago: true };
-  if (!profileRes.data?.cpf) {
+  if (!cpf) {
     return { ok: false, error: "CPF não encontrado no seu perfil. Atualize o perfil e tente novamente." };
   }
 
@@ -48,7 +52,7 @@ export async function pagarComCartao(
     customer = await criarOuBuscarCliente({
       name:     profileRes.data.nome,
       email:    user.email!,
-      cpfCnpj: profileRes.data.cpf,
+      cpfCnpj: cpf,
     });
   } catch {
     return { ok: false, error: "Erro ao registrar dados do pagador." };
@@ -72,7 +76,7 @@ export async function pagarComCartao(
   const holderInfo = {
     name:          profileRes.data.nome,
     email:         user.email!,
-    cpfCnpj:       profileRes.data.cpf,
+    cpfCnpj:       cpf,
     postalCode:    "00000000",
     addressNumber: "0",
   };

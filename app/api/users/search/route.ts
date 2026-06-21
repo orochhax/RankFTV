@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
+  const supabase = await createClient();
+
+  // Exige login: busca de usuários é só para convidar parceiro/staff.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json([], { status: 401 });
+
   const q = req.nextUrl.searchParams.get("q")?.trim().replace(/^@/, "") ?? "";
   if (q.length < 1) return NextResponse.json([]);
-
-  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("profiles")

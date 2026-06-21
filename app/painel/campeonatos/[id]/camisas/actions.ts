@@ -1,7 +1,21 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+
+// Defesa em profundidade: o RLS de shirt_production/notifications já restringe
+// ao dono, mas a checagem explícita evita operar em campeonato alheio.
+async function isOwner(supabase: SupabaseClient, champId: string): Promise<boolean> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { data: champ } = await supabase
+    .from("championships")
+    .select("organizador_id")
+    .eq("id", champId)
+    .single();
+  return !!champ && champ.organizador_id === user.id;
+}
 
 export async function toggleProduced(
   champId:   string,
@@ -9,6 +23,7 @@ export async function toggleProduced(
   produced:  boolean,
 ) {
   const supabase = await createClient();
+  if (!(await isOwner(supabase, champId))) return;
   await supabase
     .from("shirt_production")
     .upsert(
@@ -25,6 +40,7 @@ export async function saveEntrega(
   dataRetirada: string | null,
 ) {
   const supabase = await createClient();
+  if (!(await isOwner(supabase, champId))) return;
   const updates = {
     retirado_por:  retiradoPor  || null,
     data_retirada: dataRetirada || null,
@@ -55,6 +71,7 @@ export async function notifyAthletes(
 ) {
   if (athleteIds.length === 0) return;
   const supabase = await createClient();
+  if (!(await isOwner(supabase, champId))) return;
   const rows = athleteIds.map((uid) => ({
     user_id:         uid,
     championship_id: champId,
@@ -73,6 +90,7 @@ export async function bulkMarkProduced(
 ) {
   if (athleteIds.length === 0) return;
   const supabase = await createClient();
+  if (!(await isOwner(supabase, champId))) return;
   const rows = athleteIds.map((id) => ({
     championship_id: champId,
     athlete_id:      id,

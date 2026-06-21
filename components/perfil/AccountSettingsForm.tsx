@@ -35,9 +35,11 @@ export function AccountSettingsForm({ userId, email, initialTelefone }: Props) {
     setPhoneSuccess(false);
 
     const { error } = await supabase
-      .from("profiles")
-      .update({ telefone: telefone.trim() || null })
-      .eq("id", userId);
+      .from("profiles_private")
+      .upsert(
+        { user_id: userId, telefone: telefone.trim() || null },
+        { onConflict: "user_id" },
+      );
 
     setSavingPhone(false);
     if (error) {

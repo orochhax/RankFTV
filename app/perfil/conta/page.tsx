@@ -12,13 +12,11 @@ export default async function DadosContaPage() {
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
+  const { data: priv } = await supabase
+    .from("profiles_private")
     .select("telefone")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) redirect("/login");
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-8">
@@ -34,7 +32,7 @@ export default async function DadosContaPage() {
       <AccountSettingsForm
         userId={user.id}
         email={user.email ?? ""}
-        initialTelefone={profile.telefone ?? null}
+        initialTelefone={priv?.telefone ?? null}
       />
     </div>
   );

@@ -1,10 +1,25 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { calcElo, DEFAULT_RATING } from "@/lib/rating";
 
 /* ─── helpers ─── */
+
+// Confirma que o usuário logado é o organizador dono do campeonato.
+// Defesa em profundidade: o RLS já barra a escrita, mas a checagem
+// explícita evita operar com dados de campeonato alheio.
+async function isOwner(supabase: SupabaseClient, champId: string): Promise<boolean> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { data: champ } = await supabase
+    .from("championships")
+    .select("organizador_id")
+    .eq("id", champId)
+    .single();
+  return !!champ && champ.organizador_id === user.id;
+}
 
 function nextPow2(n: number): number {
   if (n <= 1) return 2;
@@ -30,6 +45,7 @@ export async function generateBracket(
   teamIds: string[],
 ) {
   const supabase = await createClient();
+  if (!(await isOwner(supabase, champId))) return;
 
   await supabase
     .from("bracket_matches")
@@ -300,6 +316,7 @@ export async function clearScore(matchId: string, champId: string) {
 
 export async function resetBracket(champId: string, catId: string) {
   const supabase = await createClient();
+  if (!(await isOwner(supabase, champId))) return;
   await supabase
     .from("bracket_matches")
     .delete()
