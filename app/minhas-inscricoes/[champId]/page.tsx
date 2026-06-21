@@ -8,6 +8,7 @@ import {
   MapPin,
   ScrollText,
   Shirt,
+  Trophy,
   Users,
 } from "lucide-react";
 import QRCode from "qrcode";
@@ -338,6 +339,17 @@ export default async function IngressoPage({
                 </div>
               </div>
             </section>
+          )}
+
+          {/* Card de resultado pro story (quando o campeonato já está rolando/encerrado) */}
+          {(champ.status === "em_andamento" || champ.status === "encerrado") && (
+            <Link
+              href={`/campeonatos/${champ.id}/card-resultado`}
+              className="flex items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 py-3 text-sm font-semibold text-white hover:bg-amber-600 transition-colors"
+            >
+              <Trophy className="size-4" />
+              Gerar card de resultado pro story
+            </Link>
           )}
 
           {/* Link para ver a página pública */}

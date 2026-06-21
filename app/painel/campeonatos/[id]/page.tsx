@@ -14,6 +14,7 @@ import {
   Pencil,
   QrCode,
   Shirt,
+  Trophy,
   Users,
   UserCog,
 } from "lucide-react";
@@ -67,6 +68,13 @@ const ACOES = [
     label: "Equipe",
     desc: "Staff e permissões de acesso",
     href: (id: string) => `/painel/campeonatos/${id}/equipe`,
+    disponivel: true,
+  },
+  {
+    icon: Trophy,
+    label: "Card de resultado",
+    desc: "Imagem do campeão pra postar no story",
+    href: (id: string) => `/campeonatos/${id}/card-resultado`,
     disponivel: true,
   },
   {
