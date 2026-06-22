@@ -22,6 +22,11 @@ export type CategoriaInput = {
   maxDuplas?: number;
 };
 
+export type IngressoPlateiaInput = {
+  nome: string;
+  valor: number;
+};
+
 export type CreateChampionshipInput = {
   nome: string;
   descricao: string;
@@ -41,6 +46,7 @@ export type CreateChampionshipInput = {
   pageId?: string;
   status: "rascunho" | "inscricoes_abertas";
   categorias: CategoriaInput[];
+  ingressosPlateia?: IngressoPlateiaInput[];
   tierQuiz: QuizAnswers;
   elite?: boolean;
 };
@@ -83,8 +89,9 @@ export async function createChampionship(
   }
 
   const categorias = (input.categorias ?? []).filter((c) => c.nome?.trim());
-  if (categorias.length === 0) {
-    return { ok: false, error: "Adicione pelo menos uma categoria." };
+  const ingressos  = (input.ingressosPlateia ?? []).filter((i) => i.nome?.trim());
+  if (categorias.length === 0 && ingressos.length === 0) {
+    return { ok: false, error: "Adicione pelo menos uma categoria de atleta ou um ingresso de plateia." };
   }
 
   const [bannerFrom, bannerTo] =
@@ -127,27 +134,48 @@ export async function createChampionship(
     return { ok: false, error: error?.message ?? "Não foi possível criar o campeonato. Tente de novo." };
   }
 
-  const rows = categorias.map((c) => {
-    const faixa = resolverFaixaRating(c.nome);
-    return {
-      championship_id:  champ.id,
-      nome:             c.nome.trim(),
-      genero:           c.genero,
-      valor_inscricao:  Math.max(0, Math.round(Number(c.valorInscricao) || 0)),
-      corte_rating_min: faixa?.min ?? 0,
-      corte_rating_max: faixa?.max ?? 9999,
-      max_duplas:       c.maxDuplas && c.maxDuplas > 0 ? c.maxDuplas : null,
-    };
-  });
+  // Categorias de atleta (se houver)
+  if (categorias.length > 0) {
+    const rows = categorias.map((c) => {
+      const faixa = resolverFaixaRating(c.nome);
+      return {
+        championship_id:  champ.id,
+        nome:             c.nome.trim(),
+        genero:           c.genero,
+        valor_inscricao:  Math.max(0, Math.round(Number(c.valorInscricao) || 0)),
+        corte_rating_min: faixa?.min ?? 0,
+        corte_rating_max: faixa?.max ?? 9999,
+        max_duplas:       c.maxDuplas && c.maxDuplas > 0 ? c.maxDuplas : null,
+      };
+    });
 
-  const { error: catErr } = await supabase
-    .from("championship_categories")
-    .insert(rows);
+    const { error: catErr } = await supabase
+      .from("championship_categories")
+      .insert(rows);
 
-  if (catErr) {
-    // Evita campeonato órfão sem categorias se a segunda inserção falhar.
-    await supabase.from("championships").delete().eq("id", champ.id);
-    return { ok: false, error: "Não foi possível salvar as categorias. Tente de novo." };
+    if (catErr) {
+      // Evita campeonato órfão se a segunda inserção falhar.
+      await supabase.from("championships").delete().eq("id", champ.id);
+      return { ok: false, error: "Não foi possível salvar as categorias. Tente de novo." };
+    }
+  }
+
+  // Ingressos de plateia (se houver)
+  if (ingressos.length > 0) {
+    const ingRows = ingressos.map((i, idx) => ({
+      championship_id: champ.id,
+      nome:            i.nome.trim(),
+      valor:           Math.max(0, Math.round(Number(i.valor) || 0)),
+      ativo:           true,
+      ordem:           idx,
+    }));
+    const { error: ingErr } = await supabase
+      .from("spectator_ticket_types")
+      .insert(ingRows);
+    if (ingErr) {
+      await supabase.from("championships").delete().eq("id", champ.id);
+      return { ok: false, error: "Não foi possível salvar os ingressos de plateia. Tente de novo." };
+    }
   }
 
   revalidatePath("/painel");

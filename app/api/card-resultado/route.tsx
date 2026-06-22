@@ -42,7 +42,12 @@ export async function GET(req: NextRequest) {
       readFile(join(process.cwd(), "assets/fonts/Archivo-900.ttf")),
     ]);
 
-    const CELL = 120; // largura de cada coluna de número (alinha campeã/vice)
+    // Colunas de número mais estreitas quando há mais sets, pra caber 3 sets
+    // mesmo com nomes longos.
+    const nSets = Math.max(campeaSets.length, viceSets.length, 1);
+    const CELL = nSets >= 3 ? 88 : 110; // largura de cada coluna de número
+    const NUM_FS = nSets >= 3 ? 58 : 72; // tamanho da fonte dos números
+    const NAME_FS = nSets >= 3 ? 44 : 54; // tamanho da fonte dos nomes
     const WHITE = "#ffffff";
 
     // Coluna de números reutilizada nas duas linhas de placar
@@ -56,7 +61,7 @@ export async function GET(req: NextRequest) {
               width: CELL,
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 84,
+              fontSize: NUM_FS,
               fontFamily: "Archivo Black",
               color: WHITE,
             }}
@@ -128,8 +133,10 @@ export async function GET(req: NextRequest) {
                 style={{
                   display: "flex",
                   flex: 1,
+                  minWidth: 0,
+                  paddingRight: 20,
                   fontFamily: "Archivo Black",
-                  fontSize: 58,
+                  fontSize: NAME_FS,
                   color: WHITE,
                 }}
               >
@@ -174,8 +181,10 @@ export async function GET(req: NextRequest) {
                 style={{
                   display: "flex",
                   flex: 1,
+                  minWidth: 0,
+                  paddingRight: 20,
                   fontFamily: "Archivo Black",
-                  fontSize: 58,
+                  fontSize: NAME_FS,
                   color: "rgba(255,255,255,0.92)",
                 }}
               >

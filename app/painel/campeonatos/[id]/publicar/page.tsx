@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Zap, CreditCard, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getPlatformConfig } from "@/lib/platform-config";
 import { PublicarCampeonatoForm } from "@/components/painel/PublicarCampeonatoForm";
 import { PlanoTaxas } from "@/components/painel/PlanoTaxas";
 
@@ -36,7 +35,7 @@ export default async function PublicarPage({
     redirect(`/painel/campeonatos/${id}/criado`);
   }
 
-  const [{ data: cats }, { data: orgAccount }, config] = await Promise.all([
+  const [{ data: cats }, { data: orgAccount }] = await Promise.all([
     supabase
       .from("championship_categories")
       .select("valor_inscricao")
@@ -46,7 +45,6 @@ export default async function PublicarPage({
       .select("chave_pix")
       .eq("user_id", user.id)
       .maybeSingle(),
-    getPlatformConfig(),
   ]);
 
   const temCategoriaPaga = (cats ?? []).some((c) => Number(c.valor_inscricao) > 0);
@@ -89,11 +87,11 @@ export default async function PublicarPage({
                 <ul className="mt-3 space-y-2 text-sm text-blue-800">
                   <li className="flex items-start gap-2">
                     <Zap className="mt-0.5 size-4 shrink-0 text-blue-500" />
-                    Atleta paga a inscrição (Pix ou cartão)
+                    Atleta paga a inscrição + a taxa de serviço (Pix ou cartão)
                   </li>
                   <li className="flex items-start gap-2">
                     <ShieldCheck className="mt-0.5 size-4 shrink-0 text-blue-500" />
-                    A plataforma retém a taxa e repassa o restante pra você
+                    Você recebe o valor cheio da inscrição — a taxa é paga pelo comprador
                   </li>
                   <li className="flex items-start gap-2">
                     <Zap className="mt-0.5 size-4 shrink-0 text-blue-500" />
@@ -112,20 +110,6 @@ export default async function PublicarPage({
                 isElite={isElite}
                 status={champ.status}
                 feePendente={feePendente}
-                padrao={{
-                  pixFixo:        config.plataformaPixFixo,
-                  debitoPercent:  config.plataformaDebitoPercent,
-                  debitoFixo:     config.plataformaDebitoFixo,
-                  creditoPercent: config.plataformaCreditoPercent,
-                  creditoFixo:    config.plataformaCreditoFixo,
-                }}
-                elite={{
-                  pixFixo:        config.premiumPixFixo,
-                  debitoPercent:  config.premiumDebitoPercent,
-                  debitoFixo:     config.premiumDebitoFixo,
-                  creditoPercent: config.premiumCreditoPercent,
-                  creditoFixo:    config.premiumCreditoFixo,
-                }}
               />
 
               {/* Recebimento já configurado */}

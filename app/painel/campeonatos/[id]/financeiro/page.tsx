@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
-import { getPlatformConfig } from "@/lib/platform-config";
 import { formatBRL, generoLabel } from "@/lib/format";
 import { ChavePixClient } from "@/components/painel/ChavePixClient";
 import { PlanoTaxas } from "@/components/painel/PlanoTaxas";
@@ -40,8 +39,8 @@ export default async function FinanceiroPage({
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
 
-  // Chave Pix do organizador + se o campeonato é Elite + taxas da plataforma
-  const [{ data: orgAccount }, { data: champExtra }, config] = await Promise.all([
+  // Chave Pix do organizador + se o campeonato é Elite
+  const [{ data: orgAccount }, { data: champExtra }] = await Promise.all([
     supabase
       .from("organizer_accounts")
       .select("chave_pix")
@@ -52,7 +51,6 @@ export default async function FinanceiroPage({
       .select("is_elite, premium_fee_pendente")
       .eq("id", id)
       .maybeSingle(),
-    getPlatformConfig(),
   ]);
 
   const chavePix    = orgAccount?.chave_pix ?? null;
@@ -74,9 +72,8 @@ export default async function FinanceiroPage({
   const totalPago      = regs.filter((r) => r.status_pagamento === "pago").reduce((s, r) => s + Number(r.valor), 0);
   const totalPendente  = regs.filter((r) => r.status_pagamento === "pendente").reduce((s, r) => s + Number(r.valor), 0);
   const totalEstornado = regs.filter((r) => r.status_pagamento === "estornado").reduce((s, r) => s + Number(r.valor), 0);
-  const taxaPercent    = camp.taxaPlataforma ?? 0;
-  const taxaTotal      = totalPago * (taxaPercent / 100);
-  const repasseLiquido = totalPago - taxaTotal;
+  // A taxa é paga pelo comprador → o organizador recebe o valor cheio.
+  const repasseLiquido = totalPago;
 
   // Breakdown por categoria (só inscrições pagas)
   type CatSummary = { nome: string; genero: string; count: number; total: number };
@@ -199,20 +196,6 @@ export default async function FinanceiroPage({
             isElite={isElite}
             status={camp.status}
             feePendente={feePendente}
-            padrao={{
-              pixFixo:        config.plataformaPixFixo,
-              debitoPercent:  config.plataformaDebitoPercent,
-              debitoFixo:     config.plataformaDebitoFixo,
-              creditoPercent: config.plataformaCreditoPercent,
-              creditoFixo:    config.plataformaCreditoFixo,
-            }}
-            elite={{
-              pixFixo:        config.premiumPixFixo,
-              debitoPercent:  config.premiumDebitoPercent,
-              debitoFixo:     config.premiumDebitoFixo,
-              creditoPercent: config.premiumCreditoPercent,
-              creditoFixo:    config.premiumCreditoFixo,
-            }}
           />
 
           {/* Por categoria */}
@@ -241,7 +224,7 @@ export default async function FinanceiroPage({
                     const summary = catMap[cat.id];
                     const count   = summary?.count ?? 0;
                     const total   = summary?.total ?? 0;
-                    const repasse = total - total * (taxaPercent / 100);
+                    const repasse = total; // organizador recebe o valor cheio
                     return (
                       <tr key={cat.id}>
                         <td className="px-4 py-3">

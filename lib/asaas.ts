@@ -49,48 +49,12 @@ export async function criarOuBuscarCliente(input: {
   });
 }
 
-// ── Taxas da plataforma ───────────────────────────────────────────────────────
-// O ATLETA sempre paga apenas o valor da inscrição.
-// A taxa da plataforma é descontada do repasse ao organizador (invisível pro atleta).
-//
-// Única exceção: crédito 7–12x tem taxa extra de 0,5% cobrada do atleta
-// (parcelamento longo fica por conta de quem escolheu, não do organizador).
-//
-// Taxas plataforma → organizador:
-//   Pix:     R$3,99 fixo  (Asaas custa R$1,99 → plataforma líquida R$2,00)
-//   Débito:  5,89% + R$0,35  (Asaas 1,89% + R$0,35 → líquido 4,00%)
-//   Crédito: 7,49% + R$0,49  (Asaas 2,99–3,49% + R$0,49 → líquido 4,00–4,50%)
+// ── Modelo de taxa ────────────────────────────────────────────────────────────
+// A taxa de serviço é PAGA PELO COMPRADOR (somada ao valor) e fica com a
+// plataforma. O organizador recebe o valor cheio do ingresso. O cálculo da taxa
+// mora em lib/taxas.ts; aqui a cobrança só recebe o TOTAL já somado (valor+taxa).
 
 export type MetodoPagamento = "pix" | "debito" | "credito";
-
-/**
- * Valor que o atleta paga no gateway.
- * Para PIX, débito e crédito 1–6x: igual ao valor da inscrição.
- * Para crédito 7–12x: inscrição + 0,5% (taxa de parcelamento longo).
- */
-export function calcularValorAtleta(
-  valorBase: number,
-  metodo:    MetodoPagamento,
-  parcelas = 1,
-): number {
-  if (metodo === "credito" && parcelas > 6) {
-    return parseFloat((valorBase * 1.005).toFixed(2));
-  }
-  return parseFloat(valorBase.toFixed(2));
-}
-
-/**
- * Valor líquido que o organizador recebe após desconto da taxa da plataforma.
- * (Usado na hora de calcular o repasse via Pix — ver webhook/financeiro.)
- */
-export function calcularRepasseOrganizador(
-  valorBase: number,
-  metodo:    MetodoPagamento,
-): number {
-  if (metodo === "pix")    return parseFloat((valorBase - 3.99).toFixed(2));
-  if (metodo === "debito") return parseFloat((valorBase * (1 - 0.0589) - 0.35).toFixed(2));
-  return parseFloat((valorBase * (1 - 0.0749) - 0.49).toFixed(2));
-}
 
 export type CobrancaInput = {
   customerId:        string;
@@ -111,7 +75,8 @@ export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriad
     input.metodo === "pix"    ? "PIX" :
     input.metodo === "debito" ? "DEBIT_CARD" : "CREDIT_CARD";
 
-  const valorTotal = calcularValorAtleta(input.valorBase, input.metodo);
+  // input.valorBase já é o TOTAL que o comprador paga (valor + taxa).
+  const valorTotal = parseFloat(Number(input.valorBase).toFixed(2));
 
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 1);

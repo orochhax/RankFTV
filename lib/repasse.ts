@@ -6,6 +6,44 @@ import { transferirPix } from "./asaas";
 // "reivindicado" a inscrição (repasse_status='processando') de forma atômica
 // antes de chamar isto — é o que garante idempotência (sem repasse em dobro).
 
+/**
+ * Repasse de ingresso de PLATEIA. Igual ao de atleta, mas mais simples:
+ * sem taxa da plataforma (repassa o valor integral) e sem dívida Elite.
+ * Atualiza a tabela `spectator_tickets`. O chamador já reivindicou o ticket
+ * (repasse_status='processando') antes de chamar.
+ */
+export async function executarRepasseEspectador(
+  supabase: SupabaseClient,
+  ctx: { ticketId: string; champNome: string; chavePix: string; valor: number },
+  revertStatus: "pendente" | "aguardando_liquidacao",
+): Promise<{ ok: boolean; transferId?: string | null; error?: string }> {
+  const valor = parseFloat(Number(ctx.valor).toFixed(2));
+  try {
+    let transferId: string | null = null;
+    if (valor > 0) {
+      const t = await transferirPix({
+        valor,
+        chavePix:  ctx.chavePix,
+        descricao: `Repasse plateia RankFTV — ${ctx.champNome}`,
+      });
+      transferId = t.id;
+    }
+    await supabase
+      .from("spectator_tickets")
+      .update({ repasse_status: "repassado", repasse_transfer_id: transferId, repasse_erro: null })
+      .eq("id", ctx.ticketId);
+    return { ok: true, transferId };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[repasse-plateia] Erro ao transferir Pix:", msg);
+    await supabase
+      .from("spectator_tickets")
+      .update({ repasse_status: revertStatus, repasse_erro: msg.slice(0, 300) })
+      .eq("id", ctx.ticketId);
+    return { ok: false, error: msg };
+  }
+}
+
 export type RepasseCtx = {
   registrationId: string;
   championshipId: string;

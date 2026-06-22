@@ -7,7 +7,7 @@ import { Check, Copy, CreditCard, QrCode, ArrowLeft, Loader2, AlertCircle } from
 import { Avatar } from "@/components/ui/Avatar";
 import { formatBRL } from "@/lib/format";
 import { pagarComCartao } from "@/app/campeonatos/[id]/pagamento/[registrationId]/actions";
-import { calcularValorAtleta } from "@/lib/asaas";
+import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 
 const AVATAR_COLORS = ["bg-blue-500","bg-emerald-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
 function avatarColor(str: string) {
@@ -33,6 +33,7 @@ type Props = {
   champNome:     string;
   catNome:       string;
   valor:         number;
+  isElite:       boolean;
   registrationId: string;
   atleta1:       Atleta | null;
   atleta2:       Atleta | null;
@@ -55,7 +56,7 @@ function CopyPixButton({ text }: { text: string }) {
   );
 }
 
-function CardForm({ valor, registrationId, champId }: { valor: number; registrationId: string; champId: string }) {
+function CardForm({ valor, isElite, registrationId, champId }: { valor: number; isElite: boolean; registrationId: string; champId: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [tipo,    setTipo]    = useState<Tipo>("credito");
@@ -66,12 +67,13 @@ function CardForm({ valor, registrationId, champId }: { valor: number; registrat
   const [parcelas,setParcelas]= useState(1);
   const [error,   setError]   = useState<string | null>(null);
 
-  // Atleta paga o valor da inscrição. Único caso diferente: 7+ parcelas tem 0,5% extra.
-  const valorAtleta  = calcularValorAtleta(valor, tipo, parcelas);
+  // Comprador paga valor + taxa de cartão (flat, à vista ou parcelado).
+  const taxa         = calcularTaxaComprador(valor, tipo, isElite);
+  const valorAtleta  = calcularTotalComprador(valor, tipo, isElite); // valor + taxa
   const valorParcela = valorAtleta / parcelas;
 
   const OPCOES_PARCELAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(
-    (n) => valor / n >= 5,
+    (n) => valorAtleta / n >= 5,
   );
 
   function handleExpiry(v: string) {
@@ -202,27 +204,26 @@ function CardForm({ valor, registrationId, champId }: { valor: number; registrat
             onChange={(e) => setParcelas(Number(e.target.value))}
           >
             {OPCOES_PARCELAS.map((n) => {
-              const vAtleta = calcularValorAtleta(valor, "credito", n);
-              const vParcela = vAtleta / n;
-              if (n === 1) return <option key={n} value={n}>À vista — {formatBRL(valor)}</option>;
-              if (n <= 6)  return <option key={n} value={n}>{n}x de {formatBRL(vParcela)} sem juros</option>;
-              return <option key={n} value={n}>{n}x de {formatBRL(vParcela)} — total {formatBRL(vAtleta)} (taxa 0,5%)</option>;
+              const vParcela = valorAtleta / n;
+              if (n === 1) return <option key={n} value={n}>À vista — {formatBRL(valorAtleta)}</option>;
+              return <option key={n} value={n}>{n}x de {formatBRL(vParcela)} sem juros</option>;
             })}
           </select>
-          {parcelas > 6 && (
-            <p className="mt-1.5 text-xs text-amber-600">
-              Parcelamento acima de 6x inclui taxa de 0,5% — total {formatBRL(valorAtleta)}
-            </p>
-          )}
         </div>
       )}
 
-      {/* Resumo de débito */}
-      {tipo === "debito" && (
-        <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600 ring-1 ring-black/5">
-          Total: <span className="font-semibold text-gray-900">{formatBRL(valor)}</span>
+      {/* Resumo: valor + taxa = total (comprador vê o valor final, não a %) */}
+      <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm ring-1 ring-black/5">
+        <div className="flex items-center justify-between text-gray-500">
+          <span>Ingresso</span><span>{formatBRL(valor)}</span>
         </div>
-      )}
+        <div className="mt-1 flex items-center justify-between text-gray-500">
+          <span>Taxa de serviço</span><span>+ {formatBRL(taxa)}</span>
+        </div>
+        <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2 font-semibold text-gray-900">
+          <span>Total</span><span>{formatBRL(valorAtleta)}</span>
+        </div>
+      </div>
 
       {/* Erro */}
       {error && (
@@ -257,6 +258,7 @@ export function PaymentUI({
   champNome,
   catNome,
   valor,
+  isElite,
   registrationId,
   atleta1,
   atleta2,
@@ -264,6 +266,10 @@ export function PaymentUI({
   pixQrBase64,
 }: Props) {
   const [tab, setTab] = useState<Tab>("pix");
+
+  // Pix: o QR já foi gerado com valor + taxa Pix. Mostra a conta pro comprador.
+  const taxaPix  = calcularTaxaComprador(valor, "pix", isElite);
+  const totalPix = calcularTotalComprador(valor, "pix", isElite);
 
   return (
     <div className="min-h-screen">
@@ -335,6 +341,19 @@ export function PaymentUI({
           {/* ── Tab Pix ── */}
           {tab === "pix" && (
             <div className="space-y-5">
+              {/* Resumo: valor + taxa = total */}
+              <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm ring-1 ring-black/5">
+                <div className="flex items-center justify-between text-gray-500">
+                  <span>Inscrição</span><span>{formatBRL(valor)}</span>
+                </div>
+                <div className="mt-1 flex items-center justify-between text-gray-500">
+                  <span>Taxa de serviço</span><span>+ {formatBRL(taxaPix)}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2 font-semibold text-gray-900">
+                  <span>Total no Pix</span><span>{formatBRL(totalPix)}</span>
+                </div>
+              </div>
+
               <div className="flex flex-col items-center gap-4 rounded-2xl bg-gray-50 px-6 py-8 ring-1 ring-black/5">
                 {pixQrBase64 ? (
                   <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5">
@@ -384,7 +403,7 @@ export function PaymentUI({
 
           {/* ── Tab Cartão ── */}
           {tab === "cartao" && (
-            <CardForm valor={valor} registrationId={registrationId} champId={champId} />
+            <CardForm valor={valor} isElite={isElite} registrationId={registrationId} champId={champId} />
           )}
 
         </div>

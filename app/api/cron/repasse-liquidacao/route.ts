@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getPlatformConfig, calcularRepasse } from "@/lib/platform-config";
 import { executarRepasse } from "@/lib/repasse";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +18,6 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = createAdminClient();
-  const config   = await getPlatformConfig();
   const agora    = new Date().toISOString();
 
   // Inscrições pagas cujo repasse já venceu a liquidação.
@@ -66,11 +64,8 @@ export async function GET(req: NextRequest) {
     const chavePix = org?.chave_pix as string | undefined;
     if (!chavePix) { await revert("Organizador sem chave Pix"); falhas++; continue; }
 
-    const metodo =
-      reg.billing_type === "PIX"        ? "pix" :
-      reg.billing_type === "DEBIT_CARD" ? "debito" : "credito";
-
-    const repasseBase = calcularRepasse(Number(reg.valor ?? 0), metodo, config, !!champ.is_elite);
+    // Organizador recebe o valor cheio (a taxa foi paga pelo comprador).
+    const repasseBase = Number(reg.valor ?? 0);
     if (repasseBase <= 0) {
       await supabase.from("registrations").update({ repasse_status: "repassado" }).eq("id", reg.id);
       pulados++;

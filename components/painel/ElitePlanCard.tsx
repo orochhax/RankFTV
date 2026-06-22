@@ -17,7 +17,7 @@ const BENEFICIOS_ELITE = [
   { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público" },
   { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila" },
   { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa" },
-  { icon: Wallet,        label: "Inscrição e pagamento online — Pix na hora ou cartão em até 6x sem juros" },
+  { icon: Wallet,        label: "Inscrição e pagamento online — Pix na hora ou cartão em até 12x sem juros" },
   { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu" },
   { icon: Shirt,         label: "Camisas por tamanho — saiba quantas P/M/G/GG encomendar" },
   { icon: Megaphone,     label: "Comunicação com inscritos — avise todo mundo num clique" },

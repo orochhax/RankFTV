@@ -19,15 +19,18 @@ export function CardResultadoGenerator({ tituloInicial, marcaInicial }: Props) {
   const [s1v, setS1v] = useState("");
   const [s2c, setS2c] = useState("");
   const [s2v, setS2v] = useState("");
+  const [s3c, setS3c] = useState("");
+  const [s3v, setS3v] = useState("");
   const [baixando, setBaixando] = useState(false);
 
-  // Monta "18-16,18-15" só com os sets preenchidos
+  // Monta "18-16,18-15,15-12" só com os sets preenchidos (até 3 sets)
   const sets = useMemo(() => {
     const pares: string[] = [];
     if (s1c || s1v) pares.push(`${s1c || 0}-${s1v || 0}`);
     if (s2c || s2v) pares.push(`${s2c || 0}-${s2v || 0}`);
+    if (s3c || s3v) pares.push(`${s3c || 0}-${s3v || 0}`);
     return pares.join(",");
-  }, [s1c, s1v, s2c, s2v]);
+  }, [s1c, s1v, s2c, s2v, s3c, s3v]);
 
   const url = useMemo(() => {
     const p = new URLSearchParams();
@@ -71,31 +74,38 @@ export function CardResultadoGenerator({ tituloInicial, marcaInicial }: Props) {
           <input className={`mt-1 ${input}`} value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex: TAFC 54 - Bahia - Porto Seguro" />
         </div>
 
-        <div className="grid grid-cols-[1fr_auto_auto] items-end gap-2">
+        {/* Dupla campeã — nome em linha cheia, depois os 3 sets */}
+        <div className="space-y-2">
           <div>
             <label className="block text-sm font-medium text-gray-700">Dupla campeã 🏆</label>
             <input className={`mt-1 ${input}`} value={campea} onChange={(e) => setCampea(e.target.value)} placeholder="Carlos e Gustavo" />
           </div>
-          <div>
-            <label className="block text-center text-xs font-medium text-gray-500">Set 1</label>
-            <input className={`mt-1 w-16 ${numInput}`} value={s1c} onChange={(e) => setS1c(e.target.value)} placeholder="18" inputMode="numeric" />
-          </div>
-          <div>
-            <label className="block text-center text-xs font-medium text-gray-500">Set 2</label>
-            <input className={`mt-1 w-16 ${numInput}`} value={s2c} onChange={(e) => setS2c(e.target.value)} placeholder="18" inputMode="numeric" />
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="block text-center text-xs font-medium text-gray-500">Set 1</label>
+              <input className={`mt-1 ${numInput}`} value={s1c} onChange={(e) => setS1c(e.target.value)} placeholder="18" inputMode="numeric" />
+            </div>
+            <div>
+              <label className="block text-center text-xs font-medium text-gray-500">Set 2</label>
+              <input className={`mt-1 ${numInput}`} value={s2c} onChange={(e) => setS2c(e.target.value)} placeholder="18" inputMode="numeric" />
+            </div>
+            <div>
+              <label className="block text-center text-xs font-medium text-gray-500">Set 3</label>
+              <input className={`mt-1 ${numInput}`} value={s3c} onChange={(e) => setS3c(e.target.value)} placeholder="" inputMode="numeric" />
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-[1fr_auto_auto] items-end gap-2">
+        {/* Dupla vice — nome em linha cheia, depois os 3 sets */}
+        <div className="space-y-2">
           <div>
             <label className="block text-sm font-medium text-gray-700">Dupla vice</label>
             <input className={`mt-1 ${input}`} value={vice} onChange={(e) => setVice(e.target.value)} placeholder="Maicon e Lucas" />
           </div>
-          <div>
-            <input className={`mt-1 w-16 ${numInput}`} value={s1v} onChange={(e) => setS1v(e.target.value)} placeholder="16" inputMode="numeric" />
-          </div>
-          <div>
-            <input className={`mt-1 w-16 ${numInput}`} value={s2v} onChange={(e) => setS2v(e.target.value)} placeholder="15" inputMode="numeric" />
+          <div className="grid grid-cols-3 gap-2">
+            <input className={numInput} value={s1v} onChange={(e) => setS1v(e.target.value)} placeholder="16" inputMode="numeric" />
+            <input className={numInput} value={s2v} onChange={(e) => setS2v(e.target.value)} placeholder="15" inputMode="numeric" />
+            <input className={numInput} value={s3v} onChange={(e) => setS3v(e.target.value)} placeholder="" inputMode="numeric" />
           </div>
         </div>
 

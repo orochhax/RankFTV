@@ -1,7 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { criarOuBuscarCliente, calcularValorAtleta } from "@/lib/asaas";
+import { criarOuBuscarCliente } from "@/lib/asaas";
+import { calcularTotalComprador } from "@/lib/taxas";
 
 export type CardPaymentInput = {
   registrationId: string;
@@ -43,7 +44,7 @@ export async function pagarComCartao(
   }
 
   const [champRes, catRes] = await Promise.all([
-    supabase.from("championships").select("nome").eq("id", regRes.data.championship_id).single(),
+    supabase.from("championships").select("nome, is_elite").eq("id", regRes.data.championship_id).single(),
     supabase.from("championship_categories").select("nome").eq("id", regRes.data.category_id).single(),
   ]);
 
@@ -60,7 +61,8 @@ export async function pagarComCartao(
 
   const billingType = input.tipo === "credito" ? "CREDIT_CARD" : "DEBIT_CARD";
   const valorBase   = Number(regRes.data.valor);
-  const valorTotal  = calcularValorAtleta(valorBase, input.tipo, input.parcelas);
+  // Comprador paga valor + taxa de cartão (10% Padrão / 9% Elite, mín. R$3,99).
+  const valorTotal  = calcularTotalComprador(valorBase, input.tipo, !!champRes.data?.is_elite);
 
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 1);

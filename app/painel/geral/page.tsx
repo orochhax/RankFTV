@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, TrendingUp, Trophy, Users, DollarSign, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, TrendingUp, Users, DollarSign, CheckCircle2, Clock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyChampionships } from "@/lib/supabase/championships";
 import { formatBRL, formatDateRangeBR } from "@/lib/format";
-import { calcularRepasseOrganizador } from "@/lib/asaas";
 
 export default async function PainelGeralPage({
   searchParams,
@@ -46,11 +45,9 @@ export default async function PainelGeralPage({
   const regsPendente = (regs ?? []).filter((r) => r.status_pagamento === "pendente");
   const regsEstorno  = (regs ?? []).filter((r) => r.status_pagamento === "estornado");
 
+  // A taxa é paga pelo comprador → o organizador recebe o valor cheio.
   const totalBruto   = regsPagas.reduce((s, r) => s + Number(r.valor), 0);
-  const totalLiquido = regsPagas.reduce(
-    (s, r) => s + calcularRepasseOrganizador(Number(r.valor), "pix"),
-    0
-  );
+  const totalLiquido = totalBruto;
   const totalPendente  = regsPendente.reduce((s, r) => s + Number(r.valor), 0);
   const totalEstornado = regsEstorno.reduce((s, r) => s + Number(r.valor), 0);
 

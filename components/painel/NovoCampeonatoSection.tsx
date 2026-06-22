@@ -21,7 +21,7 @@ const BENEFICIOS_PADRAO = [
   { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público",        locked: false },
   { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila",               locked: false },
   { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa",              locked: true },
-  { icon: Wallet,        label: "Inscrição e pagamento online — Pix na hora ou cartão em até 6x sem juros", locked: false },
+  { icon: Wallet,        label: "Inscrição e pagamento online — Pix na hora ou cartão em até 12x sem juros", locked: false },
   { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu",              locked: false },
   { icon: Shirt,         label: "Camisas por tamanho — saiba quantas P/M/G/GG encomendar",                  locked: false },
   { icon: Megaphone,     label: "Comunicação com inscritos — avise todo mundo num clique",                   locked: false },

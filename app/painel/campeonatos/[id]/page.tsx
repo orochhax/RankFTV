@@ -14,6 +14,7 @@ import {
   Pencil,
   QrCode,
   Shirt,
+  Ticket,
   Trophy,
   Users,
   UserCog,
@@ -265,9 +266,9 @@ export default async function PainelCampeonatoPage({
             </Link>
           )}
 
-          {/* Ações de gestão */}
+          {/* Ações de gestão — Atletas */}
           <section>
-            <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Gestão</h2>
+            <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Gestão de Atletas</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {ACOES.map(({ icon: Icon, label, desc, href, disponivel }) => {
                 const inner = (
@@ -308,7 +309,23 @@ export default async function PainelCampeonatoPage({
             </div>
           </section>
 
-          {/* Link público */}
+          {/* Ações de gestão — Espectadores */}
+          <section>
+            <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Gestão de Espectadores</h2>
+            <Link
+              href={`/painel/campeonatos/${id}/plateia`}
+              className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-colors hover:bg-gray-50"
+            >
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gray-900">
+                <Ticket className="size-5 text-white" strokeWidth={1.8} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-gray-900">Ingressos de plateia</p>
+                <p className="text-xs text-gray-400">Tipos de ingresso, financeiro, check-in e lista da plateia</p>
+              </div>
+            </Link>
+          </section>
+
           {/* Categorias */}
           <section>
             <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Categorias</h2>

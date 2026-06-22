@@ -1,14 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { MapPin, Users, Trophy, ChevronLeft, ChevronRight, Radio, CalendarDays } from "lucide-react";
+import { MapPin, Users, Trophy, ChevronLeft, ChevronRight, Radio, CalendarDays, Ticket } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { InscricaoButton } from "@/components/campeonatos/InscricaoButton";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
-import { formatBRL, formatDateRangeBR, generoLabel } from "@/lib/format";
+import { formatDateRangeBR, generoLabel } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
-import { recomendarCategoria } from "@/lib/motor-categoria";
 
 type AtletaDisplay = {
   id: string;
@@ -100,20 +98,6 @@ export default async function CampeonatoDetalhePage({
     });
   }
 
-  /* ── Usuário logado ── */
-  const { data: { user } } = await supabase.auth.getUser();
-  let meuRating = 0;
-  let meuGenero: "masculino" | "feminino" | null = null;
-  if (user) {
-    const { data: p } = await supabase
-      .from("profiles")
-      .select("rating, genero")
-      .eq("id", user.id)
-      .single();
-    meuRating = p?.rating ?? 0;
-    meuGenero = (p?.genero as "masculino" | "feminino" | null) ?? null;
-  }
-
   /* ── Bracket ── */
   const { count: bracketCount } = await supabase
     .from("bracket_matches")
@@ -135,24 +119,13 @@ export default async function CampeonatoDetalhePage({
     { label: "Evento",      inicio: (scheduleRow as unknown as Record<string,string|null>)?.data_inicio ?? null,       fim: (scheduleRow as unknown as Record<string,string|null>)?.data_fim ?? null },
   ];
 
-  const categoriasParaMotor = championship.categorias.map((c) => ({
-    id: c.id,
-    nome: c.nome,
-    corte_rating_min: c.corteRatingMin,
-    corte_rating_max: c.corteRatingMax,
-    genero: c.genero,
-  }));
-  const catRecomendada = meuRating > 0
-    ? recomendarCategoria(meuRating, categoriasParaMotor, meuGenero)
-    : null;
-
-  // Aviso: atleta tem gênero definido mas o campeonato não tem categoria pra ele
-  const temCategoriaParaMim =
-    !meuGenero ||
-    championship.categorias.some(
-      (c) => c.genero === meuGenero || c.genero === "mista",
-    );
-  const generoLabelAtleta = meuGenero === "feminino" ? "feminina" : "masculina";
+  // Ingressos de plateia disponíveis? (mostra o botão "Vou assistir")
+  const { count: ingressoPlateiaCount } = await supabase
+    .from("spectator_ticket_types")
+    .select("id", { count: "exact", head: true })
+    .eq("championship_id", id)
+    .eq("ativo", true);
+  const temIngressoPlateia = (ingressoPlateiaCount ?? 0) > 0;
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-8">
@@ -276,68 +249,50 @@ export default async function CampeonatoDetalhePage({
         </section>
       )}
 
-      <div className="flex h-32 items-center justify-center rounded-2xl bg-gray-100 text-sm text-gray-500 ring-1 ring-black/5">
-        <MapPin className="mr-2 size-4" /> Mapa de {championship.local} (em breve)
+      {/* Escolha principal: jogar (atleta) ou assistir (plateia) */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Link
+          href={`/campeonatos/${championship.id}/categorias`}
+          className="flex items-center gap-3 rounded-2xl bg-blue-600 p-5 text-white transition-colors hover:bg-blue-700"
+        >
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
+            <Trophy className="size-6" />
+          </div>
+          <div>
+            <p className="font-semibold">Sou atleta</p>
+            <p className="text-sm text-blue-100/80">Ver categorias e inscrever minha dupla</p>
+          </div>
+        </Link>
+
+        {temIngressoPlateia ? (
+          <Link
+            href={`/campeonatos/${championship.id}/plateia`}
+            className="flex items-center gap-3 rounded-2xl bg-gray-900 p-5 text-white transition-colors hover:bg-gray-800"
+          >
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/10">
+              <Ticket className="size-6" />
+            </div>
+            <div>
+              <p className="font-semibold">Vou assistir o evento</p>
+              <p className="text-sm text-white/60">Comprar ingresso de plateia</p>
+            </div>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-3 rounded-2xl bg-gray-100 p-5 text-gray-400 ring-1 ring-black/5">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gray-200">
+              <Ticket className="size-6" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">Ingresso de plateia</p>
+              <p className="text-sm">Ainda não disponível pra este evento</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <section>
         <h2 className="mb-3 text-lg font-semibold text-gray-900">Regulamento</h2>
         <p className="text-sm leading-relaxed text-gray-600">{championship.regulamento}</p>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-lg font-semibold text-gray-900">Categorias e inscrição</h2>
-        {!temCategoriaParaMim && (
-          <div className="mb-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">
-            <p className="font-semibold">
-              Este campeonato não tem categoria {generoLabelAtleta}
-            </p>
-            <p className="mt-0.5 text-amber-700">
-              As categorias disponíveis não correspondem ao seu gênero e não há
-              categoria mista. Fale com o organizador se quiser participar.
-            </p>
-          </div>
-        )}
-        <div className="space-y-3">
-          {championship.categorias.map((cat) => {
-            const isRecomendada = catRecomendada?.id === cat.id;
-            return (
-              <div
-                key={cat.id}
-                className={`rounded-2xl bg-white p-4 ring-1 ${isRecomendada ? "ring-green-400 bg-green-50" : "ring-black/5"}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-gray-900">
-                        Categoria {cat.nome} · {generoLabel(cat.genero)}
-                      </p>
-                      {isRecomendada && (
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
-                          Recomendada para você
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-0.5 text-sm text-gray-500">
-                      {cat.corteRatingMin > 0
-                        ? `Pontuação mínima ${cat.corteRatingMin}`
-                        : "Aberta para todos os níveis"}
-                    </p>
-                  </div>
-                  <span className="shrink-0 font-semibold text-gray-900">{formatBRL(cat.valorInscricao)}</span>
-                </div>
-                <div className="mt-3">
-                  <InscricaoButton
-                    categoriaNome={cat.nome}
-                    championshipId={championship.id}
-                    categoryId={cat.id}
-                    status={championship.status}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
       </section>
 
       <section>

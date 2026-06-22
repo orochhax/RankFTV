@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getPlatformConfig, calcularRepasse } from "@/lib/platform-config";
-import { executarRepasse } from "@/lib/repasse";
+import { executarRepasse, executarRepasseEspectador } from "@/lib/repasse";
 
 const EVENTOS_CONFIRMADO = new Set(["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"]);
 const EVENTOS_ESTORNADO  = new Set(["PAYMENT_REFUNDED", "PAYMENT_DELETED"]);
@@ -53,6 +52,79 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminClient();
   const novoStatus = EVENTOS_CONFIRMADO.has(event) ? "pago" : "estornado";
+
+  // ── Ingresso de PLATEIA (externalReference "spec:<ticketId>") ──
+  // Caminho separado do de atleta: repasse integral (sem taxa por enquanto).
+  if (registrationId.startsWith("spec:")) {
+    const ticketId = registrationId.slice(5);
+
+    await supabase
+      .from("spectator_tickets")
+      .update({
+        status_pagamento: novoStatus,
+        ...(novoStatus === "pago" ? { billing_type: payment.billingType } : {}),
+      })
+      .eq("id", ticketId);
+
+    if (novoStatus === "estornado") {
+      await supabase.from("spectator_tickets").update({ repasse_status: "estornado" }).eq("id", ticketId);
+      return NextResponse.json({ ok: true, tipo: "espectador", status: novoStatus });
+    }
+
+    // Pago → repasse integral pra chave Pix do organizador
+    const { data: ticket } = await supabase
+      .from("spectator_tickets")
+      .select("id, championship_id, valor")
+      .eq("id", ticketId)
+      .single();
+
+    if (ticket) {
+      const { data: champ } = await supabase
+        .from("championships")
+        .select("nome, organizador_id")
+        .eq("id", ticket.championship_id)
+        .single();
+
+      if (champ) {
+        const { data: org } = await supabase
+          .from("organizer_accounts")
+          .select("chave_pix")
+          .eq("user_id", champ.organizador_id)
+          .single();
+        const chavePix = org?.chave_pix as string | undefined;
+        const valor    = Number(ticket.valor ?? 0);
+
+        if (chavePix && valor > 0) {
+          const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
+          if (dias === 0) {
+            const { data: claimed } = await supabase
+              .from("spectator_tickets")
+              .update({ repasse_status: "processando" })
+              .eq("id", ticketId)
+              .eq("repasse_status", "pendente")
+              .select("id");
+            if (claimed && claimed.length > 0) {
+              await executarRepasseEspectador(
+                supabase,
+                { ticketId, champNome: champ.nome, chavePix, valor },
+                "pendente",
+              );
+            }
+          } else {
+            const dataRepasse = new Date();
+            dataRepasse.setDate(dataRepasse.getDate() + dias);
+            await supabase
+              .from("spectator_tickets")
+              .update({ repasse_status: "aguardando_liquidacao", repasse_data_prevista: dataRepasse.toISOString() })
+              .eq("id", ticketId)
+              .eq("repasse_status", "pendente");
+          }
+        }
+      }
+    }
+
+    return NextResponse.json({ ok: true, tipo: "espectador", status: novoStatus });
+  }
 
   // 2. Atualiza status do pagamento
   const { error: updateError } = await supabase
@@ -123,21 +195,18 @@ export async function POST(req: NextRequest) {
 
     // Repasse ao organizador via Pix
     if (champ) {
-      const [orgAccountRes, platformConfig] = await Promise.all([
-        supabase.from("organizer_accounts").select("chave_pix").eq("user_id", champ.organizador_id).single(),
-        getPlatformConfig(),
-      ]);
+      const orgAccountRes = await supabase
+        .from("organizer_accounts")
+        .select("chave_pix")
+        .eq("user_id", champ.organizador_id)
+        .single();
 
-      const chavePix   = orgAccountRes.data?.chave_pix as string | undefined;
-      const valorBruto = Number(reg.valor ?? 0);
-      const isElite    = !!champ.is_elite;
+      const chavePix = orgAccountRes.data?.chave_pix as string | undefined;
+      const isElite  = !!champ.is_elite;
 
-      const metodo =
-        payment.billingType === "PIX"        ? "pix" :
-        payment.billingType === "DEBIT_CARD" ? "debito" : "credito";
-
-      // Repasse já com a taxa do plano correto (Elite usa taxas menores).
-      const repasseBase = calcularRepasse(valorBruto, metodo, platformConfig, isElite);
+      // A taxa é paga pelo comprador (somada na cobrança) → o organizador recebe
+      // o VALOR CHEIO do ingresso. A dívida Elite (R$178) ainda é abatida daqui.
+      const repasseBase = Number(reg.valor ?? 0);
 
       if (chavePix && repasseBase > 0) {
         const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;

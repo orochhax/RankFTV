@@ -2,15 +2,23 @@ import { Medal } from "lucide-react";
 import type { BracketMatch, BracketRound, BracketCategory } from "@/lib/types";
 
 // ── SVG das linhas conectoras entre rodadas ───────────────────────────────────
-function connectorPaths(numMatchesInRound: number, cellH: number): string {
-  const numPairs = numMatchesInRound / 2;
+// Conecta cada jogo da próxima rodada (j) aos seus alimentadores na rodada atual
+// (2j e 2j+1). Usa os centros REAIS dos cards — então funciona mesmo quando a
+// rodada não tem o dobro de jogos da seguinte (1 semi → 1 final, byes, etc.),
+// sem desenhar linha pra posição vazia.
+function connectorPaths(numCurrent: number, numNext: number, totalH: number): string {
+  const cellH = totalH / numCurrent;
+  const nextCellH = totalH / numNext;
   let d = "";
-  for (let i = 0; i < numPairs; i++) {
-    const m1c = 2 * i * cellH + cellH / 2;
-    const m2c = (2 * i + 1) * cellH + cellH / 2;
-    const junction = (m1c + m2c) / 2;
-    d += `M 0 ${m1c} H 16 V ${junction} H 32 `;
-    d += `M 0 ${m2c} H 16 V ${junction} `;
+  for (let j = 0; j < numNext; j++) {
+    const feeders = [2 * j, 2 * j + 1].filter((idx) => idx < numCurrent);
+    if (feeders.length === 0) continue;
+    const junction = (j + 0.5) * nextCellH; // centro do jogo j na próxima rodada
+    for (const idx of feeders) {
+      const c = (idx + 0.5) * cellH; // centro do alimentador
+      d += `M 0 ${c} H 16 V ${junction} `;
+    }
+    d += `M 16 ${junction} H 32 `; // entra na próxima rodada
   }
   return d.trim();
 }
@@ -88,7 +96,7 @@ export function BracketGrid({ rounds }: { rounds: BracketRound[] }) {
               {roundIdx < rounds.length - 1 && (
                 <svg width={32} height={totalH} className="shrink-0" aria-hidden>
                   <path
-                    d={connectorPaths(numMatches, cellH)}
+                    d={connectorPaths(numMatches, rounds[roundIdx + 1].matches.length, totalH)}
                     fill="none"
                     stroke="#D1D5DB"
                     strokeWidth="1.5"

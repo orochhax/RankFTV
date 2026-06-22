@@ -26,13 +26,14 @@ export default async function PagamentoPage({
   if (!reg) notFound();
 
   const [champRes, catRes, teamRes] = await Promise.all([
-    supabase.from("championships").select("nome").eq("id", reg.championship_id).single(),
+    supabase.from("championships").select("nome, is_elite").eq("id", reg.championship_id).single(),
     supabase.from("championship_categories").select("nome").eq("id", reg.category_id).single(),
     supabase.from("teams").select("atleta1_id, atleta2_id").eq("id", reg.team_id).single(),
   ]);
 
   const champNome = champRes.data?.nome ?? "Campeonato";
   const catNome   = catRes.data?.nome   ?? "—";
+  const isElite   = !!champRes.data?.is_elite;
 
   const atleta1Id = teamRes.data?.atleta1_id ?? null;
   const atleta2Id = teamRes.data?.atleta2_id ?? null;
@@ -83,6 +84,7 @@ export default async function PagamentoPage({
       champNome={champNome}
       catNome={catNome}
       valor={Number(reg.valor)}
+      isElite={isElite}
       registrationId={registrationId}
       atleta1={atleta1}
       atleta2={atleta2}
