@@ -25,6 +25,7 @@ export type CategoriaInput = {
 export type IngressoPlateiaInput = {
   nome: string;
   valor: number;
+  maxQuantidade?: number;
 };
 
 export type CreateChampionshipInput = {
@@ -74,10 +75,7 @@ export async function createChampionship(
   }
 
   const nome = input.nome?.trim();
-  if (!nome) return { ok: false, error: "Dê um nome ao campeonato." };
-  if (!input.tierQuiz || Object.keys(input.tierQuiz).length < 5) {
-    return { ok: false, error: "Responda todas as 5 perguntas sobre o evento antes de continuar." };
-  }
+  if (!nome) return { ok: false, error: "Dê um nome ao evento." };
   if (!input.dataInicio || !input.dataFim) {
     return { ok: false, error: "Informe as datas de início e fim." };
   }
@@ -92,6 +90,11 @@ export async function createChampionship(
   const ingressos  = (input.ingressosPlateia ?? []).filter((i) => i.nome?.trim());
   if (categorias.length === 0 && ingressos.length === 0) {
     return { ok: false, error: "Adicione pelo menos uma categoria de atleta ou um ingresso de plateia." };
+  }
+
+  // O nível (quiz) só é obrigatório quando há competição de atletas.
+  if (categorias.length > 0 && (!input.tierQuiz || Object.keys(input.tierQuiz).length < 5)) {
+    return { ok: false, error: "Responda todas as 5 perguntas sobre o nível do evento." };
   }
 
   const [bannerFrom, bannerTo] =
@@ -166,6 +169,7 @@ export async function createChampionship(
       championship_id: champ.id,
       nome:            i.nome.trim(),
       valor:           Math.max(0, Math.round(Number(i.valor) || 0)),
+      max_quantidade:  i.maxQuantidade && i.maxQuantidade > 0 ? Math.floor(i.maxQuantidade) : null,
       ativo:           true,
       ordem:           idx,
     }));

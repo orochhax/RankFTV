@@ -22,6 +22,11 @@ export async function publicarCampeonato(
   const championshipId = formData.get("championship_id") as string;
   if (!championshipId) return { error: "Campeonato não encontrado." };
 
+  // Aceite dos Termos de uso é obrigatório pra publicar.
+  if (!formData.get("aceito_termos")) {
+    return { error: "Você precisa aceitar os Termos de uso para publicar." };
+  }
+
   // Verifica dono
   const { data: champ } = await supabase
     .from("championships")

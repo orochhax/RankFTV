@@ -18,11 +18,12 @@ import {
   type QuizAnswers,
 } from "@/lib/tier";
 import type { PageWithStats } from "@/lib/supabase/pages";
+import { PlanoCards } from "./PlanoCards";
 
 type CatForm = { nome: string; genero: GeneroCategoria; valorInscricao: string; maxDuplas: string };
-type IngForm = { nome: string; valor: string };
+type IngForm = { nome: string; valor: string; quantidade: string };
 type MinhaPage = Pick<PageWithStats, "id" | "nome" | "handle">;
-type StepKey = "geral" | "categorias" | "ingressos";
+type StepKey = "selects" | "dados" | "ingressos" | "plano";
 
 const GENEROS: { value: GeneroCategoria; label: string }[] = [
   { value: "masculino", label: "Masculino" },
@@ -31,25 +32,21 @@ const GENEROS: { value: GeneroCategoria; label: string }[] = [
 ];
 
 const CATEGORIAS_PRESET = [
-  "Aprendiz",
-  "Iniciante",
-  "Intermediário",
-  "Amador",
-  "Qualify",
-  "Profissional",
+  "Aprendiz", "Iniciante", "Intermediário", "Amador", "Qualify", "Profissional",
 ] as const;
 
 const STEP_LABEL: Record<StepKey, string> = {
-  geral: "Dados do campeonato",
-  categorias: "Categorias (atletas)",
+  selects: "O que você vai vender",
+  dados: "Dados do evento",
   ingressos: "Ingressos (plateia)",
+  plano: "Plano",
 };
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
 const labelClass = "block text-xs font-medium text-gray-600";
 
-export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhasPages?: MinhaPage[]; elite?: boolean }) {
+export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPage[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -88,22 +85,23 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
   const [categorias, setCategorias] = useState<CatForm[]>([
     { nome: "", genero: "masculino", valorInscricao: "", maxDuplas: "" },
   ]);
-  const [ingressos, setIngressos] = useState<IngForm[]>([{ nome: "", valor: "" }]);
+  const [ingressos, setIngressos] = useState<IngForm[]>([{ nome: "", valor: "", quantidade: "" }]);
   const [quiz, setQuiz] = useState<Partial<QuizAnswers>>({});
+  const [elite, setElite] = useState(false);
 
-  // O que o organizador vai vender (define quais etapas aparecem).
   const [vender, setVender] = useState<{ atleta: boolean; plateia: boolean }>({ atleta: true, plateia: false });
   const [stepIdx, setStepIdx] = useState(0);
 
   const quizCompleto = QUIZ_QUESTIONS.every((q) => quiz[q.key] !== undefined);
   const tierPreview = quizCompleto ? calcularTierDoQuiz(quiz as QuizAnswers) : null;
 
-  // Sequência de etapas: geral → (categorias se atleta) → (ingressos se plateia).
-  // Atleta sempre vem antes da plateia.
+  // Etapas: selects → dados (sempre) → ingressos (se plateia) → plano (sempre).
+  // Nível + categorias só aparecem DENTRO de "dados" quando vende pra atleta.
   const sequence: StepKey[] = [
-    "geral",
-    ...(vender.atleta ? (["categorias"] as StepKey[]) : []),
+    "selects",
+    "dados",
     ...(vender.plateia ? (["ingressos"] as StepKey[]) : []),
+    "plano",
   ];
   const idx = Math.min(stepIdx, sequence.length - 1);
   const stepKey = sequence[idx];
@@ -125,35 +123,34 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
     setIngressos((cs) => cs.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   }
   function addIng() {
-    setIngressos((cs) => [...cs, { nome: "", valor: "" }]);
+    setIngressos((cs) => [...cs, { nome: "", valor: "", quantidade: "" }]);
   }
   function removeIng(i: number) {
     setIngressos((cs) => (cs.length === 1 ? cs : cs.filter((_, j) => j !== i)));
   }
 
-  function scrollTop() {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
+  const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  function fail(msg: string) { setError(msg); scrollTop(); }
 
   function nextStep() {
     setError(null);
-    if (stepKey === "geral") {
-      if (!nome.trim()) return fail("Dê um nome ao campeonato.");
+    if (stepKey === "selects") {
+      if (!vender.atleta && !vender.plateia) return fail("Escolha o que vai vender: atletas, plateia ou os dois.");
+    }
+    if (stepKey === "dados") {
+      if (!nome.trim()) return fail("Dê um nome ao evento.");
       if (!dataInicio || !dataFim) return fail("Informe as datas de início e fim.");
       if (dataFim < dataInicio) return fail("A data de fim não pode ser antes do início.");
       if (!cidade.trim() || !estado.trim()) return fail("Informe a cidade e o estado.");
-      if (!quizCompleto) return fail("Responda as 5 perguntas do nível.");
-      if (!vender.atleta && !vender.plateia) return fail("Escolha o que vai vender: atleta, plateia ou os dois.");
+      if (vender.atleta) {
+        if (!quizCompleto) return fail("Responda as 5 perguntas do nível.");
+        if (!categorias.some((c) => c.nome.trim())) return fail("Adicione pelo menos uma categoria.");
+      }
     }
-    if (stepKey === "categorias" && !categorias.some((c) => c.nome.trim())) {
-      return fail("Adicione pelo menos uma categoria.");
+    if (stepKey === "ingressos" && !ingressos.some((i) => i.nome.trim())) {
+      return fail("Adicione pelo menos um ingresso de plateia.");
     }
     setStepIdx(idx + 1);
-    scrollTop();
-  }
-
-  function fail(msg: string) {
-    setError(msg);
     scrollTop();
   }
 
@@ -165,8 +162,9 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
 
   function submit() {
     setError(null);
-    if (!vender.atleta && !vender.plateia) return fail("Escolha o que vai vender: atleta, plateia ou os dois.");
+    if (!vender.atleta && !vender.plateia) return fail("Escolha o que vai vender: atletas, plateia ou os dois.");
     if (vender.atleta && !categorias.some((c) => c.nome.trim())) return fail("Adicione pelo menos uma categoria.");
+    if (vender.atleta && !quizCompleto) return fail("Responda as 5 perguntas do nível.");
     if (vender.plateia && !ingressos.some((i) => i.nome.trim())) return fail("Adicione pelo menos um ingresso de plateia.");
 
     startTransition(async () => {
@@ -200,30 +198,24 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
         liveUrl: liveUrl.trim() || undefined,
         pageId: pageId || undefined,
         status: "rascunho" as const,
-        tierQuiz: quiz as QuizAnswers,
+        // Plateia-only não tem nível — manda quiz vazio (tier vira "local").
+        tierQuiz: (vender.atleta ? (quiz as QuizAnswers) : ({} as QuizAnswers)),
         elite,
         categorias: vender.atleta
           ? categorias.filter((c) => c.nome.trim()).map<CategoriaInput>((c) => ({
-              nome:           c.nome,
-              genero:         c.genero,
-              valorInscricao: Number(c.valorInscricao) || 0,
-              maxDuplas:      Number(c.maxDuplas) || undefined,
+              nome: c.nome, genero: c.genero, valorInscricao: Number(c.valorInscricao) || 0, maxDuplas: Number(c.maxDuplas) || undefined,
             }))
           : [],
         ingressosPlateia: vender.plateia
           ? ingressos.filter((i) => i.nome.trim()).map<IngressoPlateiaInput>((i) => ({
-              nome:  i.nome.trim(),
-              valor: Number(i.valor) || 0,
+              nome: i.nome.trim(), valor: Number(i.valor) || 0, maxQuantidade: Number(i.quantidade) || undefined,
             }))
           : [],
       };
 
       const res = await createChampionship(payload);
-      if (res.ok && res.id) {
-        router.push(`/painel/campeonatos/${res.id}/criado`);
-      } else {
-        fail(res.error ?? "Não foi possível criar o campeonato.");
-      }
+      if (res.ok && res.id) router.push(`/painel/campeonatos/${res.id}/criado`);
+      else fail(res.error ?? "Não foi possível criar o campeonato.");
     });
   }
 
@@ -233,19 +225,16 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
       <div className="flex items-center gap-2">
         {sequence.map((k, i) => (
           <div key={k} className="flex items-center gap-2">
-            <span
-              className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${
-                i === idx ? "bg-blue-600 text-white" : i < idx ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"
-              }`}
-            >
+            <span className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${
+              i === idx ? "bg-blue-600 text-white" : i < idx ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"
+            }`}>
               {i + 1}
             </span>
             {i < sequence.length - 1 && <span className="h-px w-6 bg-gray-200" />}
           </div>
         ))}
         <span className="ml-1 text-sm font-medium text-gray-700">
-          {STEP_LABEL[stepKey]}{" "}
-          <span className="text-gray-400">· etapa {idx + 1} de {sequence.length}</span>
+          {STEP_LABEL[stepKey]} <span className="text-gray-400">· etapa {idx + 1} de {sequence.length}</span>
         </span>
       </div>
 
@@ -253,15 +242,42 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
         <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">{error}</div>
       )}
 
-      {/* ───────── ETAPA 1: GERAL ───────── */}
-      {stepKey === "geral" && (
+      {/* ───────── ETAPA 1: SELECTS ───────── */}
+      {stepKey === "selects" && (
+        <div className="space-y-3 rounded-2xl bg-white p-5 ring-1 ring-black/5">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-800">O que você vai vender? *</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Escolha um ou os dois. Se for só plateia, não pedimos nível nem categorias.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <SelectCard
+              icon={<Trophy className="size-5" />}
+              titulo="Inscrição de atletas"
+              desc="Categorias pra duplas jogarem"
+              ativo={vender.atleta}
+              onClick={() => setVender((v) => ({ ...v, atleta: !v.atleta }))}
+            />
+            <SelectCard
+              icon={<Ticket className="size-5" />}
+              titulo="Ingressos de plateia"
+              desc="Vender entrada pro público"
+              ativo={vender.plateia}
+              onClick={() => setVender((v) => ({ ...v, plateia: !v.plateia }))}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ───────── ETAPA 2: DADOS DO EVENTO ───────── */}
+      {stepKey === "dados" && (
         <>
-          {/* Dados gerais */}
           <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
             <h2 className="text-sm font-semibold text-gray-800">Informações gerais</h2>
 
             <div>
-              <label className={labelClass} htmlFor="nome">Nome do campeonato *</label>
+              <label className={labelClass} htmlFor="nome">Nome do evento *</label>
               <input id="nome" className={inputClass} value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex.: Copa Verão de Futevôlei" />
             </div>
 
@@ -289,9 +305,7 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
             <div>
               <label className={labelClass} htmlFor="liveUrl">Link da transmissão ao vivo</label>
               <input id="liveUrl" type="url" className={inputClass} value={liveUrl} onChange={(e) => setLiveUrl(e.target.value)} placeholder="https://youtube.com/... (opcional)" />
-              <p className="mt-1 text-xs text-gray-400">
-                Aparece como botão &ldquo;Ver ao vivo&rdquo; na página do campeonato. Pode adicionar depois.
-              </p>
+              <p className="mt-1 text-xs text-gray-400">Aparece como botão &ldquo;Ver ao vivo&rdquo; na página do evento. Pode adicionar depois.</p>
             </div>
 
             {minhasPages.length > 0 && (
@@ -334,12 +348,7 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
                             <p className="px-4 py-3 text-sm text-gray-400">Nenhuma página encontrada</p>
                           ) : (
                             filtered.map((p) => (
-                              <button
-                                key={p.id}
-                                type="button"
-                                onMouseDown={() => { setPageId(p.id); setPageSearch(""); setPageDropdownOpen(false); }}
-                                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-blue-50"
-                              >
+                              <button key={p.id} type="button" onMouseDown={() => { setPageId(p.id); setPageSearch(""); setPageDropdownOpen(false); }} className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-blue-50">
                                 <span className="font-medium text-gray-800">{p.nome}</span>
                                 <span className="text-gray-400">@{p.handle}</span>
                               </button>
@@ -350,61 +359,16 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
                     </div>
                   );
                 })()}
-                <p className="mt-1 text-xs text-gray-400">
-                  Este campeonato vira uma &ldquo;edição&rdquo; da página — seguidores serão notificados ao publicar.
-                </p>
+                <p className="mt-1 text-xs text-gray-400">Este evento vira uma &ldquo;edição&rdquo; da página — seguidores serão notificados ao publicar.</p>
               </div>
             )}
-          </div>
-
-          {/* Questionário de nível */}
-          <div className="space-y-5 rounded-2xl bg-white p-5 ring-1 ring-black/5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold text-gray-800">Nível do evento</h2>
-                <p className="mt-0.5 text-xs text-gray-400">
-                  Responda as 5 perguntas. A plataforma calcula o nível automaticamente e pode atualizá-lo conforme as inscrições chegam.
-                </p>
-              </div>
-              {tierPreview ? (
-                <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${TIER_STYLES[tierPreview]}`}>{TIER_LABEL[tierPreview]}</span>
-              ) : (
-                <span className="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-400">{Object.keys(quiz).length}/5</span>
-              )}
-            </div>
-
-            <div className="space-y-5">
-              {QUIZ_QUESTIONS.map((q, qi) => (
-                <div key={q.key}>
-                  <p className="mb-2 text-xs font-medium text-gray-700">{qi + 1}. {q.pergunta}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {q.opcoes.map((op) => {
-                      const selecionado = quiz[q.key] === op.valor;
-                      return (
-                        <button
-                          key={op.valor}
-                          type="button"
-                          onClick={() => setQuiz((prev) => ({ ...prev, [q.key]: op.valor as 0 | 1 | 2 | 3 }))}
-                          className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-                            selecionado ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:text-blue-600"
-                          }`}
-                        >
-                          {op.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Datas */}
           <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
             <h2 className="text-sm font-semibold text-gray-800">Datas</h2>
-
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-2">Campeonato</p>
+              <p className="text-xs font-medium text-gray-500 mb-2">Evento</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass} htmlFor="dataInicio">Início *</label>
@@ -416,55 +380,37 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
                 </div>
               </div>
             </div>
-
             <div>
               <p className="text-xs font-medium text-gray-500 mb-2">Pré-venda</p>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={labelClass}>Início</label>
-                  <input type="date" className={inputClass} value={prevendaInicio} onChange={(e) => setPrevendaInicio(e.target.value)} />
-                </div>
-                <div>
-                  <label className={labelClass}>Fim</label>
-                  <input type="date" className={inputClass} value={prevendaFim} onChange={(e) => setPrevendaFim(e.target.value)} />
-                </div>
+                <div><label className={labelClass}>Início</label><input type="date" className={inputClass} value={prevendaInicio} onChange={(e) => setPrevendaInicio(e.target.value)} /></div>
+                <div><label className={labelClass}>Fim</label><input type="date" className={inputClass} value={prevendaFim} onChange={(e) => setPrevendaFim(e.target.value)} /></div>
               </div>
             </div>
-
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-2">Inscrições</p>
+              <p className="text-xs font-medium text-gray-500 mb-2">{vender.atleta ? "Inscrições" : "Vendas"}</p>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={labelClass} htmlFor="inscricoesInicio">Abertura</label>
-                  <input id="inscricoesInicio" type="date" className={inputClass} value={inscricoesInicio} onChange={(e) => setInscricoesInicio(e.target.value)} />
-                </div>
-                <div>
-                  <label className={labelClass} htmlFor="inscricoesFim">Encerramento</label>
-                  <input id="inscricoesFim" type="date" className={inputClass} value={inscricoesFim} onChange={(e) => setInscricoesFim(e.target.value)} />
-                </div>
+                <div><label className={labelClass} htmlFor="inscricoesInicio">Abertura</label><input id="inscricoesInicio" type="date" className={inputClass} value={inscricoesInicio} onChange={(e) => setInscricoesInicio(e.target.value)} /></div>
+                <div><label className={labelClass} htmlFor="inscricoesFim">Encerramento</label><input id="inscricoesFim" type="date" className={inputClass} value={inscricoesFim} onChange={(e) => setInscricoesFim(e.target.value)} /></div>
               </div>
-              <p className="mt-1.5 text-xs text-gray-400">Opcional. Controla quando as inscrições ficam abertas automaticamente.</p>
+              <p className="mt-1.5 text-xs text-gray-400">Opcional. Controla quando as vendas abrem automaticamente.</p>
             </div>
           </div>
 
           {/* Regulamento */}
           <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
             <h2 className="text-sm font-semibold text-gray-800">Regulamento</h2>
-
             <div>
               <label className={labelClass} htmlFor="regulamento">Texto do regulamento</label>
               <textarea id="regulamento" rows={4} className={inputClass} value={regulamento} onChange={(e) => setRegulamento(e.target.value)} placeholder="Regras, formato dos jogos, premiação, tolerância de atraso…" />
             </div>
-
             <div>
               <label className={labelClass}>PDF do regulamento (opcional)</label>
               {pdfFile ? (
                 <div className="mt-1 flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2">
                   <FileText className="size-4 shrink-0 text-blue-500" />
                   <span className="flex-1 truncate text-sm text-gray-700">{pdfFile.name}</span>
-                  <button type="button" onClick={() => { setPdfFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="text-gray-400 hover:text-red-500">
-                    <X className="size-4" />
-                  </button>
+                  <button type="button" onClick={() => { setPdfFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="text-gray-400 hover:text-red-500"><X className="size-4" /></button>
                 </div>
               ) : (
                 <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600">
@@ -473,172 +419,130 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
                   <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)} />
                 </label>
               )}
-              <p className="mt-1 text-xs text-gray-400">Será disponibilizado como download na página do campeonato.</p>
+              <p className="mt-1 text-xs text-gray-400">Será disponibilizado como download na página do evento.</p>
             </div>
           </div>
 
-          {/* O que vai vender */}
-          <div className="space-y-3 rounded-2xl bg-white p-5 ring-1 ring-black/5">
-            <div>
-              <h2 className="text-sm font-semibold text-gray-800">O que você vai vender? *</h2>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Escolha um ou os dois. Se marcar plateia sem atleta, a etapa de categorias não aparece.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <SelectCard
-                icon={<Trophy className="size-5" />}
-                titulo="Inscrição de atletas"
-                desc="Categorias pra duplas jogarem"
-                ativo={vender.atleta}
-                onClick={() => setVender((v) => ({ ...v, atleta: !v.atleta }))}
-              />
-              <SelectCard
-                icon={<Ticket className="size-5" />}
-                titulo="Ingressos de plateia"
-                desc="Vender entrada pro público"
-                ativo={vender.plateia}
-                onClick={() => setVender((v) => ({ ...v, plateia: !v.plateia }))}
-              />
-            </div>
-          </div>
+          {/* Nível + Categorias — só quando vende pra atleta */}
+          {vender.atleta && (
+            <>
+              <div className="space-y-5 rounded-2xl bg-white p-5 ring-1 ring-black/5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-sm font-semibold text-gray-800">Nível do evento</h2>
+                    <p className="mt-0.5 text-xs text-gray-400">Responda as 5 perguntas. A plataforma calcula o nível automaticamente.</p>
+                  </div>
+                  {tierPreview ? (
+                    <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${TIER_STYLES[tierPreview]}`}>{TIER_LABEL[tierPreview]}</span>
+                  ) : (
+                    <span className="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-400">{Object.keys(quiz).length}/5</span>
+                  )}
+                </div>
+                <div className="space-y-5">
+                  {QUIZ_QUESTIONS.map((q, qi) => (
+                    <div key={q.key}>
+                      <p className="mb-2 text-xs font-medium text-gray-700">{qi + 1}. {q.pergunta}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {q.opcoes.map((op) => {
+                          const selecionado = quiz[q.key] === op.valor;
+                          return (
+                            <button key={op.valor} type="button" onClick={() => setQuiz((prev) => ({ ...prev, [q.key]: op.valor as 0 | 1 | 2 | 3 }))}
+                              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${selecionado ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:text-blue-600"}`}>
+                              {op.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3 rounded-2xl bg-white p-5 ring-1 ring-black/5">
+                <div>
+                  <h2 className="text-sm font-semibold text-gray-800">Categorias dos atletas *</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">Clique para adicionar. Pelo menos uma é obrigatória.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORIAS_PRESET.map((preset) => {
+                    const ativa = nomesUsados.has(preset);
+                    return (
+                      <button key={preset} type="button" onClick={() => { if (!ativa) addCat(preset); }} disabled={ativa}
+                        className={`rounded-full border px-3 py-1 text-sm font-medium transition-colors ${ativa ? "border-blue-300 bg-blue-100 text-blue-600 cursor-default" : "border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"}`}>
+                        {ativa ? "✓ " : "+ "}{preset}
+                      </button>
+                    );
+                  })}
+                  <button type="button" onClick={() => addCat("")} className="rounded-full border border-dashed border-gray-400 px-3 py-1 text-sm font-medium text-gray-700 hover:border-gray-600 hover:text-gray-900">+ Outros</button>
+                </div>
+                <div className="space-y-3">
+                  {categorias.map((cat, i) => (
+                    <div key={i} className="rounded-xl bg-gray-50 p-3 ring-1 ring-black/5 space-y-3">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_8rem_7rem_6rem_auto] sm:items-end">
+                        <div><label className={labelClass}>Nome</label><input className={inputClass} value={cat.nome} onChange={(e) => updateCat(i, { nome: e.target.value })} placeholder="A, B, Mista…" /></div>
+                        <div><label className={labelClass}>Gênero</label><select className={inputClass} value={cat.genero} onChange={(e) => updateCat(i, { genero: e.target.value as GeneroCategoria })}>{GENEROS.map((g) => (<option key={g.value} value={g.value}>{g.label}</option>))}</select></div>
+                        <div><label className={labelClass}>Valor (R$)</label><input type="number" min={0} className={inputClass} value={cat.valorInscricao} onChange={(e) => updateCat(i, { valorInscricao: e.target.value })} placeholder="100" /></div>
+                        <div><label className={labelClass}>Máx. duplas</label><input type="number" min={1} className={inputClass} value={cat.maxDuplas} onChange={(e) => updateCat(i, { maxDuplas: e.target.value })} placeholder="∞" /></div>
+                        <button type="button" onClick={() => removeCat(i)} disabled={categorias.length === 1} aria-label="Remover categoria" className="mb-1 inline-flex size-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"><Trash2 className="size-4" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
 
-      {/* ───────── ETAPA: CATEGORIAS ───────── */}
-      {stepKey === "categorias" && (
-        <div className="space-y-3 rounded-2xl bg-white p-5 ring-1 ring-black/5">
-          <div>
-            <h2 className="text-sm font-semibold text-gray-800">Categorias dos atletas *</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Clique para adicionar. Pelo menos uma categoria é obrigatória.</p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIAS_PRESET.map((preset) => {
-              const ativa = nomesUsados.has(preset);
-              return (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => { if (!ativa) addCat(preset); }}
-                  disabled={ativa}
-                  className={`rounded-full border px-3 py-1 text-sm font-medium transition-colors ${
-                    ativa ? "border-blue-300 bg-blue-100 text-blue-600 cursor-default" : "border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
-                  }`}
-                >
-                  {ativa ? "✓ " : "+ "}{preset}
-                </button>
-              );
-            })}
-            <button type="button" onClick={() => addCat("")} className="rounded-full border border-dashed border-gray-400 px-3 py-1 text-sm font-medium text-gray-700 hover:border-gray-600 hover:text-gray-900">
-              + Outros
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {categorias.map((cat, i) => (
-              <div key={i} className="rounded-xl bg-gray-50 p-3 ring-1 ring-black/5 space-y-3">
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_8rem_7rem_6rem_auto] sm:items-end">
-                  <div>
-                    <label className={labelClass}>Nome</label>
-                    <input className={inputClass} value={cat.nome} onChange={(e) => updateCat(i, { nome: e.target.value })} placeholder="A, B, Mista…" />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Gênero</label>
-                    <select className={inputClass} value={cat.genero} onChange={(e) => updateCat(i, { genero: e.target.value as GeneroCategoria })}>
-                      {GENEROS.map((g) => (<option key={g.value} value={g.value}>{g.label}</option>))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className={labelClass}>Valor (R$)</label>
-                    <input type="number" min={0} className={inputClass} value={cat.valorInscricao} onChange={(e) => updateCat(i, { valorInscricao: e.target.value })} placeholder="100" />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Máx. duplas</label>
-                    <input type="number" min={1} className={inputClass} value={cat.maxDuplas} onChange={(e) => updateCat(i, { maxDuplas: e.target.value })} placeholder="∞" />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeCat(i)}
-                    disabled={categorias.length === 1}
-                    aria-label="Remover categoria"
-                    className="mb-1 inline-flex size-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {(() => {
-            const totalDuplas = categorias.reduce((sum, c) => sum + (Number(c.maxDuplas) || 0), 0);
-            const temLimite = categorias.some((c) => Number(c.maxDuplas) > 0);
-            if (!temLimite) return null;
-            return (
-              <div className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3 text-sm ring-1 ring-blue-100">
-                <span className="text-blue-700 font-medium">Total do evento</span>
-                <div className="flex gap-4 text-right">
-                  <div>
-                    <p className="text-xs text-blue-500">Duplas</p>
-                    <p className="font-bold text-blue-800">{totalDuplas}</p>
-                  </div>
-                  <div className="w-px bg-blue-200" />
-                  <div>
-                    <p className="text-xs text-blue-500">Jogadores</p>
-                    <p className="font-bold text-blue-800">{totalDuplas * 2}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      )}
-
-      {/* ───────── ETAPA: INGRESSOS DE PLATEIA ───────── */}
+      {/* ───────── ETAPA: INGRESSOS ───────── */}
       {stepKey === "ingressos" && (
         <div className="space-y-3 rounded-2xl bg-white p-5 ring-1 ring-black/5">
           <div>
             <h2 className="text-sm font-semibold text-gray-800">Ingressos de plateia *</h2>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Tipos de ingresso (inteira, meia, VIP…) e valores. O comprador paga a taxa de serviço por cima; você recebe o valor cheio.
-            </p>
+            <p className="text-xs text-gray-400 mt-0.5">Tipos de ingresso (inteira, meia, VIP…) e valores. O comprador paga a taxa por cima; você recebe o valor cheio.</p>
           </div>
-
           <div className="space-y-3">
             {ingressos.map((ing, i) => (
-              <div key={i} className="grid grid-cols-[1fr_7rem_auto] items-end gap-3 rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
+              <div key={i} className="rounded-xl bg-gray-50 p-3 ring-1 ring-black/5 space-y-2">
                 <div>
                   <label className={labelClass}>Nome</label>
                   <input className={inputClass} value={ing.nome} onChange={(e) => updateIng(i, { nome: e.target.value })} placeholder="Inteira, Meia, VIP…" />
                 </div>
-                <div>
-                  <label className={labelClass}>Valor (R$)</label>
-                  <input type="number" min={0} className={inputClass} value={ing.valor} onChange={(e) => updateIng(i, { valor: e.target.value })} placeholder="0" />
+                <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-3">
+                  <div><label className={labelClass}>Valor (R$)</label><input type="number" min={0} className={inputClass} value={ing.valor} onChange={(e) => updateIng(i, { valor: e.target.value })} placeholder="0" /></div>
+                  <div><label className={labelClass}>Qtd.</label><input type="number" min={1} className={inputClass} value={ing.quantidade} onChange={(e) => updateIng(i, { quantidade: e.target.value })} placeholder="∞" /></div>
+                  <button type="button" onClick={() => removeIng(i)} disabled={ingressos.length === 1} aria-label="Remover ingresso" className="mb-1 inline-flex size-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"><Trash2 className="size-4" /></button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeIng(i)}
-                  disabled={ingressos.length === 1}
-                  aria-label="Remover ingresso"
-                  className="mb-1 inline-flex size-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <Trash2 className="size-4" />
-                </button>
               </div>
             ))}
           </div>
+          <button type="button" onClick={addIng} className="flex items-center gap-1.5 rounded-full border border-dashed border-gray-400 px-3 py-1 text-sm font-medium text-gray-700 hover:border-gray-600 hover:text-gray-900"><Plus className="size-4" /> Adicionar ingresso</button>
 
-          <button type="button" onClick={addIng} className="flex items-center gap-1.5 rounded-full border border-dashed border-gray-400 px-3 py-1 text-sm font-medium text-gray-700 hover:border-gray-600 hover:text-gray-900">
-            <Plus className="size-4" /> Adicionar ingresso
-          </button>
-          <p className="text-xs text-gray-400">Valor 0 = ingresso grátis.</p>
+          {/* Total de pessoas (soma das quantidades) */}
+          {(() => {
+            const totalPessoas = ingressos.reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
+            if (totalPessoas <= 0) return null;
+            return (
+              <div className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3 text-sm ring-1 ring-blue-100">
+                <span className="font-medium text-blue-700">Total de pessoas na plateia</span>
+                <span className="font-bold text-blue-800">{totalPessoas}</span>
+              </div>
+            );
+          })()}
+          <p className="text-xs text-gray-400">Valor 0 = grátis. Qtd. em branco = sem limite.</p>
         </div>
       )}
 
+      {/* ───────── ETAPA: PLANO ───────── */}
+      {stepKey === "plano" && <PlanoCards elite={elite} onToggle={setElite} />}
+
       {/* ───────── Navegação ───────── */}
       <div className="flex flex-wrap items-center gap-3">
-        {!isFirst && (
+        {isFirst ? (
+          <button type="button" onClick={() => router.push("/painel")} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50">
+            <ArrowLeft className="size-4" /> Voltar ao painel
+          </button>
+        ) : (
           <button type="button" onClick={prevStep} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50">
             <ArrowLeft className="size-4" /> Voltar
           </button>
@@ -648,20 +552,12 @@ export function NovoCampeonatoForm({ minhasPages = [], elite = false }: { minhas
             Próximo <ArrowRight className="size-4" />
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={submit}
-            disabled={pending}
-            className={`rounded-lg px-5 py-2.5 text-sm font-semibold disabled:opacity-60 transition-colors ${
-              elite ? "bg-amber-400 text-gray-900 hover:bg-amber-300" : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
-          >
-            {pending ? "Criando…" : elite ? "Criar campeonato de Elite" : "Criar campeonato"}
+          <button type="button" onClick={submit} disabled={pending}
+            className={`rounded-lg px-5 py-2.5 text-sm font-semibold disabled:opacity-60 transition-colors ${elite ? "bg-amber-400 text-gray-900 hover:bg-amber-300" : "bg-blue-600 text-white hover:bg-blue-700"}`}>
+            {pending ? "Criando…" : elite ? "Criar Evento de Elite" : "Criar Evento"}
           </button>
         )}
-        {isLast && (
-          <p className="text-xs text-gray-400">Cria como rascunho. Você publica e configura o recebimento no próximo passo.</p>
-        )}
+        {isLast && <p className="text-xs text-gray-400">Cria como rascunho. Você publica e configura o recebimento no próximo passo.</p>}
       </div>
     </form>
   );
@@ -673,16 +569,9 @@ function SelectCard({
   icon: React.ReactNode; titulo: string; desc: string; ativo: boolean; onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors ${
-        ativo ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500" : "border-gray-200 bg-white hover:bg-gray-50"
-      }`}
-    >
-      <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${ativo ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-400"}`}>
-        {icon}
-      </div>
+    <button type="button" onClick={onClick}
+      className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors ${ativo ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500" : "border-gray-200 bg-white hover:bg-gray-50"}`}>
+      <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${ativo ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-400"}`}>{icon}</div>
       <div className="min-w-0 flex-1">
         <p className="font-medium text-gray-900">{titulo}</p>
         <p className="text-xs text-gray-400">{desc}</p>

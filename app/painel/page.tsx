@@ -225,7 +225,11 @@ export default async function PainelOrganizadorPage({
                 {lista.map((c) => (
                   <li key={c.id}>
                     <Link
-                      href={`/painel/campeonatos/${c.id}`}
+                      href={
+                        c.status === "rascunho"
+                          ? `/painel/campeonatos/${c.id}/criado`
+                          : `/painel/campeonatos/${c.id}`
+                      }
                       className="flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-gray-50"
                     >
                       <div className="min-w-0 flex-1">

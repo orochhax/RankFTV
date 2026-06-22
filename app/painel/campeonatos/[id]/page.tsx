@@ -106,6 +106,9 @@ export default async function PainelCampeonatoPage({
   // Só o organizador dono pode acessar o painel desse camp.
   if (camp.organizadorId !== user.id) notFound();
 
+  // Rascunho ainda não tem painel de gestão — manda pro fluxo de publicação.
+  if (camp.status === "rascunho") redirect(`/painel/campeonatos/${id}/criado`);
+
   // Tier: quiz do banco + duplas pagas (override automático)
   const [tierRes, paidRes, orgAccountRes, inviteRes] = await Promise.all([
     supabase.from("championships").select("tier_quiz, is_elite").eq("id", id).maybeSingle(),

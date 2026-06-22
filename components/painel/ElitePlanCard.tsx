@@ -17,7 +17,7 @@ const BENEFICIOS_ELITE = [
   { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público" },
   { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila" },
   { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa" },
-  { icon: Wallet,        label: "Inscrição e pagamento online — Pix na hora ou cartão em até 12x sem juros" },
+  { icon: Wallet,        label: "Inscrição e pagamento online — Pix na hora ou cartão em até 12x" },
   { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu" },
   { icon: Shirt,         label: "Camisas por tamanho — saiba quantas P/M/G/GG encomendar" },
   { icon: Megaphone,     label: "Comunicação com inscritos — avise todo mundo num clique" },
@@ -28,7 +28,7 @@ const TERMOS = [
   "Você não paga nada agora — o desconto acontece conforme os atletas pagam.",
   "As taxas reduzidas entram em vigor imediatamente após aceitar.",
   "Caso o evento seja cancelado antes de atingir R$178 em inscrições, o saldo pendente é zerado.",
-  "Ao aceitar, você concorda com os Termos do Campeonato de Elite da RankFTV.",
+  "Ao aceitar, você concorda com os Termos do Evento de Elite da RankFTV.",
 ];
 
 export function ElitePlanCard({
@@ -50,7 +50,7 @@ export function ElitePlanCard({
               <Crown className="size-4 text-white" />
             </div>
             <div>
-              <p className="font-bold text-amber-900">Campeonato de Elite ativado</p>
+              <p className="font-bold text-amber-900">Evento de Elite ativado</p>
               <p className="text-xs text-amber-600">R$178 descontados das primeiras inscrições</p>
             </div>
           </div>
@@ -81,7 +81,7 @@ export function ElitePlanCard({
       <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-[#1a1a24] to-[#0f0f18] p-6">
         <div className="flex items-center gap-2 mb-6">
           <Crown className="size-5 text-amber-400" />
-          <h3 className="font-bold text-white">Como funciona o Campeonato de Elite</h3>
+          <h3 className="font-bold text-white">Como funciona o Evento de Elite</h3>
         </div>
 
         {/* Destaque principal: não paga agora */}
@@ -136,7 +136,7 @@ export function ElitePlanCard({
             onClick={() => onToggle(true)}
             className="flex-1 rounded-xl bg-amber-400 py-2.5 text-sm font-semibold text-gray-900 hover:bg-amber-300 transition-colors"
           >
-            Quero o Campeonato de Elite
+            Quero o Evento de Elite
           </button>
           <button
             type="button"
@@ -155,7 +155,7 @@ export function ElitePlanCard({
     <div className="rounded-2xl bg-gradient-to-br from-[#1a1a24] to-[#0f0f18] p-5 ring-1 ring-amber-400/20">
       <div className="flex items-center gap-2 mb-1">
         <Crown className="size-5 text-amber-400" />
-        <p className="font-bold text-white">Campeonato de Elite</p>
+        <p className="font-bold text-white">Evento de Elite</p>
         <span className="ml-auto rounded-full bg-amber-400/20 px-2.5 py-0.5 text-xs font-semibold text-amber-300">
           R$178 / evento
         </span>

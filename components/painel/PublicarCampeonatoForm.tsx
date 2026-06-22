@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import Link from "next/link";
 import { Loader2, Rocket } from "lucide-react";
 import {
   publicarCampeonato,
@@ -20,6 +21,7 @@ export function PublicarCampeonatoForm({
   precisaPix: boolean;
 }) {
   const [state, action, pending] = useActionState(publicarCampeonato, initial);
+  const [aceito, setAceito] = useState(false);
 
   return (
     <form action={action} className="space-y-4">
@@ -63,18 +65,44 @@ export function PublicarCampeonatoForm({
         </div>
       )}
 
+      {/* Aceite dos termos — obrigatório pra publicar */}
+      <label className="flex items-start gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5">
+        <input
+          type="checkbox"
+          name="aceito_termos"
+          checked={aceito}
+          onChange={(e) => setAceito(e.target.checked)}
+          className="mt-0.5 size-4 shrink-0 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+        <span className="text-sm text-gray-600">
+          Li e aceito os{" "}
+          <Link
+            href="/termos"
+            className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+          >
+            Termos de uso
+          </Link>{" "}
+          da plataforma.
+        </span>
+      </label>
+
       {state.error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>
       )}
 
       <button
         type="submit"
-        disabled={pending}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:opacity-60"
+        disabled={pending || !aceito}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? <Loader2 className="size-4 animate-spin" /> : <Rocket className="size-4" />}
         {pending ? "Publicando…" : "Publicar campeonato"}
       </button>
+      {!aceito && (
+        <p className="text-center text-xs text-gray-400">
+          Aceite os Termos de uso para liberar a publicação.
+        </p>
+      )}
     </form>
   );
 }

@@ -195,12 +195,6 @@ export default async function CampeonatoCriadoPage({
               >
                 <Eye className="size-4" /> Ver página pública (prévia)
               </Link>
-              <Link
-                href={`/painel/campeonatos/${id}`}
-                className="block w-full py-1 text-center text-sm font-medium text-gray-400 hover:text-gray-600"
-              >
-                Ir pro painel do campeonato
-              </Link>
             </div>
           ) : (
             <div className="space-y-3">
