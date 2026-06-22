@@ -6,6 +6,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export type CriarNoticiaInput = {
   titulo: string;
+  tituloStory?: string;
+  tamanhoFonte?: string;
   resumo: string;
   conteudo: string;
   imagemUrl?: string;
@@ -34,6 +36,8 @@ export async function criarNoticia(
   const admin = createAdminClient();
   const { error } = await admin.from("news").insert({
     titulo,
+    titulo_story: input.tituloStory?.trim() || null,
+    tamanho_fonte: input.tamanhoFonte ?? "M",
     resumo,
     conteudo,
     imagem_url: input.imagemUrl?.trim() || null,
@@ -64,6 +68,8 @@ export async function excluirNoticia(
 export type EditarNoticiaInput = {
   id: string;
   titulo: string;
+  tituloStory?: string;
+  tamanhoFonte?: string;
   resumo: string;
   conteudo: string;
   imagemUrl?: string;
@@ -87,6 +93,8 @@ export async function editarNoticia(
     .from("news")
     .update({
       titulo,
+      titulo_story: input.tituloStory?.trim() || null,
+      tamanho_fonte: input.tamanhoFonte ?? "M",
       resumo,
       conteudo,
       imagem_url: input.removerImagem

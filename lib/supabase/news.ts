@@ -4,7 +4,7 @@ import type { News } from "@/lib/news-utils";
 export type { News } from "@/lib/news-utils";
 export { formatDataNoticia } from "@/lib/news-utils";
 
-const COLS = "id, titulo, resumo, conteudo, imagem_url, created_at";
+const COLS = "id, titulo, titulo_story, tamanho_fonte, resumo, conteudo, imagem_url, created_at";
 
 // As N notícias mais recentes (usado na home — mostra 3).
 export async function getRecentNews(limit = 3): Promise<News[]> {

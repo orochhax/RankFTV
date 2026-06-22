@@ -17,6 +17,8 @@ export function EditarNoticiaForm({ noticia }: { noticia: News }) {
   const [error, setError] = useState<string | null>(null);
 
   const [titulo, setTitulo] = useState(noticia.titulo);
+  const [tituloStory, setTituloStory] = useState(noticia.titulo_story ?? "");
+  const [tamanhoFonte, setTamanhoFonte] = useState<"P" | "M" | "G">(noticia.tamanho_fonte ?? "M");
   const [resumo, setResumo] = useState(noticia.resumo);
   const [conteudo, setConteudo] = useState(noticia.conteudo);
 
@@ -63,6 +65,8 @@ export function EditarNoticiaForm({ noticia }: { noticia: News }) {
       const res = await editarNoticia({
         id: noticia.id,
         titulo,
+        tituloStory,
+        tamanhoFonte,
         resumo,
         conteudo,
         imagemUrl,
@@ -86,6 +90,42 @@ export function EditarNoticiaForm({ noticia }: { noticia: News }) {
           onChange={(e) => setTitulo(e.target.value)}
           placeholder="Manchete da notícia"
         />
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="tituloStory">
+          Título do Story <span className="font-normal text-gray-400">(opcional — se vazio, usa o título acima)</span>
+        </label>
+        <input
+          id="tituloStory"
+          className={inputClass}
+          value={tituloStory}
+          onChange={(e) => setTituloStory(e.target.value)}
+          placeholder="Versão curta do título pra caber bem no story"
+        />
+      </div>
+
+      <div>
+        <label className={labelClass}>Tamanho da fonte no story</label>
+        <div className="mt-1 flex gap-2">
+          {(["P", "M", "G"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTamanhoFonte(t)}
+              className={`flex size-10 items-center justify-center rounded-lg text-sm font-bold transition-colors ${
+                tamanhoFonte === t
+                  ? "bg-blue-600 text-white"
+                  : "border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+          <span className="ml-1 self-center text-xs text-gray-400">
+            {tamanhoFonte === "P" ? "Pequena" : tamanhoFonte === "M" ? "Média" : "Grande"}
+          </span>
+        </div>
       </div>
 
       <div>

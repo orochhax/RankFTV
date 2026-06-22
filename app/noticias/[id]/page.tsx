@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getNewsById, formatDataNoticia } from "@/lib/supabase/news";
+import { BotoesNoticia } from "@/components/noticias/BotoesNoticia";
 
 export default async function NoticiaDetalhePage({
   params,
@@ -54,7 +55,14 @@ export default async function NoticiaDetalhePage({
         </h1>
         <p className="mt-2 text-base text-gray-500">{noticia.resumo}</p>
 
-        <article className="mt-6 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+        <BotoesNoticia
+          titulo={noticia.titulo}
+          tituloStory={noticia.titulo_story}
+          tamanhoFonte={noticia.tamanho_fonte}
+          imagemUrl={noticia.imagem_url}
+        />
+
+        <article className="mt-8 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
           {noticia.conteudo}
         </article>
       </div>

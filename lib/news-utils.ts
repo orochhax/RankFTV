@@ -1,6 +1,10 @@
+export type TamanhoFonte = "P" | "M" | "G";
+
 export type News = {
   id: string;
   titulo: string;
+  titulo_story: string | null;
+  tamanho_fonte: TamanhoFonte;
   resumo: string;
   conteudo: string;
   imagem_url: string | null;

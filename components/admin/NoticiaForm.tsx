@@ -20,6 +20,8 @@ export function NoticiaForm() {
   const [ok, setOk] = useState(false);
 
   const [titulo, setTitulo] = useState("");
+  const [tituloStory, setTituloStory] = useState("");
+  const [tamanhoFonte, setTamanhoFonte] = useState<"P" | "M" | "G">("M");
   const [resumo, setResumo] = useState("");
   const [conteudo, setConteudo] = useState("");
   const [imagem, setImagem] = useState<File | null>(null);
@@ -52,11 +54,13 @@ export function NoticiaForm() {
         imagemUrl = supabase.storage.from("noticias").getPublicUrl(data.path).data.publicUrl;
       }
 
-      const res = await criarNoticia({ titulo, resumo, conteudo, imagemUrl });
+      const res = await criarNoticia({ titulo, tituloStory, tamanhoFonte, resumo, conteudo, imagemUrl });
       if (!res.ok) return setError(res.error ?? "Não foi possível publicar.");
 
       setOk(true);
       setTitulo("");
+      setTituloStory("");
+      setTamanhoFonte("M");
       setResumo("");
       setConteudo("");
       limparImagem();
@@ -71,6 +75,36 @@ export function NoticiaForm() {
       <div>
         <label className={labelClass} htmlFor="titulo">Título *</label>
         <input id="titulo" className={inputClass} value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Manchete da notícia" />
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="tituloStory">
+          Título do Story <span className="font-normal text-gray-400">(opcional — se vazio, usa o título acima)</span>
+        </label>
+        <input id="tituloStory" className={inputClass} value={tituloStory} onChange={(e) => setTituloStory(e.target.value)} placeholder="Versão curta do título pra caber bem no story" />
+      </div>
+
+      <div>
+        <label className={labelClass}>Tamanho da fonte no story</label>
+        <div className="mt-1 flex gap-2">
+          {(["P", "M", "G"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTamanhoFonte(t)}
+              className={`flex size-10 items-center justify-center rounded-lg text-sm font-bold transition-colors ${
+                tamanhoFonte === t
+                  ? "bg-blue-600 text-white"
+                  : "border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+          <span className="ml-1 self-center text-xs text-gray-400">
+            {tamanhoFonte === "P" ? "Pequena" : tamanhoFonte === "M" ? "Média" : "Grande"}
+          </span>
+        </div>
       </div>
 
       <div>
