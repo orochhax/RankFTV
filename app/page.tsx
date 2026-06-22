@@ -4,7 +4,9 @@ import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
 import { MeuDesempenho } from "@/components/home/MeuDesempenho";
 import { HamburgerMenu } from "@/components/home/HamburgerMenu";
+import { NoticiasCarousel } from "@/components/home/NoticiasCarousel";
 import { getLivChampionships, getPublishedChampionships } from "@/lib/supabase/championships";
+import { getRecentNews, getDestaqueNews } from "@/lib/supabase/news";
 import { createClient } from "@/lib/supabase/server";
 import {
   getConquistasDestaque,
@@ -78,7 +80,11 @@ export default async function Home() {
 
   const [publicados, configRow] = await Promise.all([
     getPublishedChampionships(),
-    supabase.from("platform_config").select("destaques_ids").eq("id", 1).single(),
+    supabase
+      .from("platform_config")
+      .select("destaques_ids, noticias_destaques_ids")
+      .eq("id", 1)
+      .single(),
   ]);
 
   const destaquesIds: string[] = (configRow.data?.destaques_ids as string[] | null) ?? [];
@@ -86,7 +92,16 @@ export default async function Home() {
     ? destaquesIds.map((id) => publicados.find((c) => c.id === id)).filter(Boolean) as typeof publicados
     : publicados.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento").slice(0, 3);
 
-  const aoVivo = await getLivChampionships();
+  // Notícias da home: destaques escolhidos pelo admin; senão, as 3 mais recentes.
+  const noticiasDestaquesIds: string[] =
+    (configRow.data?.noticias_destaques_ids as string[] | null) ?? [];
+
+  const [aoVivo, noticias] = await Promise.all([
+    getLivChampionships(),
+    noticiasDestaquesIds.length > 0
+      ? getDestaqueNews(noticiasDestaquesIds)
+      : getRecentNews(3),
+  ]);
 
   return (
     <div className="min-h-screen">
@@ -212,6 +227,19 @@ export default async function Home() {
                   </Link>
                 ))}
               </div>
+            </section>
+          )}
+
+          {/* Notícias — sempre abaixo do "ao vivo"; 3 mais recentes */}
+          {noticias.length > 0 && (
+            <section>
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h2 className="text-base font-semibold text-gray-900">Notícias</h2>
+                <Link href="/noticias" className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                  Ver todas
+                </Link>
+              </div>
+              <NoticiasCarousel noticias={noticias} />
             </section>
           )}
 

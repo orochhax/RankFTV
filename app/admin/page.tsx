@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, ChevronRight } from "lucide-react";
+import { Percent, Users, Star, Trophy, Newspaper, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 const MENU = [
@@ -9,6 +9,12 @@ const MENU = [
     icon: Trophy,
     label: "Campeonatos",
     desc: "Veja todos os campeonatos, mude o status, exclua e contate o organizador.",
+  },
+  {
+    href: "/admin/noticias",
+    icon: Newspaper,
+    label: "Notícias",
+    desc: "Crie e exclua as notícias que aparecem na home e em /noticias.",
   },
   {
     href: "/admin/destaques",
