@@ -5,12 +5,14 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock,
+  Link2,
   MapPin,
   ScrollText,
   Shirt,
   Trophy,
   Users,
 } from "lucide-react";
+import { CopiarLink } from "@/components/ui/CopiarLink";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -22,6 +24,7 @@ type TeamRow = {
   status: string;
   atleta1_id: string;
   atleta2_id: string | null;
+  parceiro_username: string | null;
   championships: {
     id: string;
     nome: string;
@@ -68,7 +71,7 @@ export default async function IngressoPage({
   const { data: teamsRes } = await supabase
     .from("teams")
     .select(`
-      id, status, atleta1_id, atleta2_id,
+      id, status, atleta1_id, atleta2_id, parceiro_username,
       championships(id, nome, data_inicio, data_fim, cidade, estado, local, status, regulamento),
       championship_categories(nome, genero, valor_inscricao),
       registrations(id, valor, status_pagamento)
@@ -323,6 +326,41 @@ export default async function IngressoPage({
               )}
             </div>
           </section>
+
+          {/* ── Card de convite ── */}
+          {team.status === "convite_pendente" && team.atleta1_id === user.id && (
+            <section className="space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                Convidar parceiro
+              </h2>
+              <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5 space-y-3">
+                <div className="flex items-start gap-3">
+                  <Link2 className="mt-0.5 size-4 shrink-0 text-blue-500" />
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-medium text-gray-800">
+                      Compartilhe o link de convite
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Envie para seu parceiro. Se ele ainda não tem conta no RankFTV,
+                      peça para criar uma — ao acessar o link, ele poderá aceitar o
+                      convite e selecionar o tamanho da camisa.
+                    </p>
+                  </div>
+                </div>
+                <CopiarLink
+                  link={`${process.env.NEXT_PUBLIC_BASE_URL}/convite/${team.id}`}
+                />
+                {team.parceiro_username && (
+                  <p className="text-center text-xs text-gray-400">
+                    Convite enviado para{" "}
+                    <span className="font-medium text-gray-600">
+                      @{team.parceiro_username}
+                    </span>
+                  </p>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* ── Regulamento ── */}
           {champ.regulamento && (

@@ -33,7 +33,8 @@ export default function LoginPage() {
       setErro("E-mail ou senha incorretos.");
       setLoading(false);
     } else {
-      router.push("/");
+      const next = searchParams.get("next") ?? "/";
+      router.push(next);
       router.refresh();
     }
   }

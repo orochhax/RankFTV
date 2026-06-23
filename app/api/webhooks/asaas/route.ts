@@ -161,18 +161,28 @@ export async function POST(req: NextRequest) {
     // Ativa a dupla e busca atletas
     const { data: team } = await supabase
       .from("teams")
-      .select("atleta1_id, atleta2_id")
+      .select("atleta1_id, atleta2_id, status")
       .eq("id", reg.team_id)
       .single();
 
     if (team) {
-      await supabase
-        .from("teams")
-        .update({ status: "confirmado" })
-        .eq("id", reg.team_id);
+      // Só confirma a dupla se não há parceiro pendente de aceite.
+      // Quando há parceiro (atleta2_id) e ele ainda não aceitou (convite_pendente),
+      // o status muda para "confirmado" somente quando o parceiro aceitar o convite.
+      const parceiroPendente = !!team.atleta2_id && team.status === "convite_pendente";
 
-      // Gera credencial para atleta1 (se ainda não tiver)
-      const atletasParaCredencial = [team.atleta1_id, team.atleta2_id].filter(Boolean) as string[];
+      if (!parceiroPendente) {
+        await supabase
+          .from("teams")
+          .update({ status: "confirmado" })
+          .eq("id", reg.team_id);
+      }
+
+      // Credencial só para atleta1 enquanto parceiro não aceitou;
+      // quando não há parceiro pendente, gera para os dois.
+      const atletasParaCredencial = parceiroPendente
+        ? [team.atleta1_id]
+        : [team.atleta1_id, team.atleta2_id].filter(Boolean) as string[];
       for (const atletaId of atletasParaCredencial) {
         const { data: credExistente } = await supabase
           .from("credentials")
