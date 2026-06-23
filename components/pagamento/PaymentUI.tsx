@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, Copy, CreditCard, QrCode, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { formatBRL } from "@/lib/format";
 import { pagarComCartao } from "@/app/campeonatos/[id]/pagamento/[registrationId]/actions";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
+import { createClient } from "@/lib/supabase/client";
 
 const AVATAR_COLORS = ["bg-blue-500","bg-emerald-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
 function avatarColor(str: string) {
@@ -266,6 +267,35 @@ export function PaymentUI({
   pixQrBase64,
 }: Props) {
   const [tab, setTab] = useState<Tab>("pix");
+  const router = useRouter();
+  const stoppedRef = useRef(false);
+
+  // Polling: verifica a cada 3s se o pagamento foi confirmado pelo webhook.
+  // Para automaticamente após 20 minutos.
+  useEffect(() => {
+    const supabase = createClient();
+    stoppedRef.current = false;
+
+    async function check() {
+      if (stoppedRef.current) return;
+      const { data } = await supabase
+        .from("registrations")
+        .select("status_pagamento")
+        .eq("id", registrationId)
+        .single();
+      if (data?.status_pagamento === "pago") {
+        router.push(`/campeonatos/${champId}/pagamento/${registrationId}?pago=1`);
+        router.refresh();
+        return;
+      }
+      if (!stoppedRef.current) timer = setTimeout(check, 3000);
+    }
+
+    let timer = setTimeout(check, 3000);
+    const maxTimer = setTimeout(() => { stoppedRef.current = true; clearTimeout(timer); }, 20 * 60 * 1000);
+
+    return () => { stoppedRef.current = true; clearTimeout(timer); clearTimeout(maxTimer); };
+  }, [registrationId, champId, router]);
 
   // Pix: o QR já foi gerado com valor + taxa Pix. Mostra a conta pro comprador.
   const taxaPix  = calcularTaxaComprador(valor, "pix", isElite);
@@ -393,6 +423,11 @@ export function PaymentUI({
                   <li className="flex items-center gap-2"><Check className="size-4 shrink-0 text-blue-500" />Válido por 24 horas</li>
                   <li className="flex items-center gap-2"><Check className="size-4 shrink-0 text-blue-500" />Disponível em qualquer banco</li>
                 </ul>
+              </div>
+
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
+                <span className="inline-block size-1.5 animate-pulse rounded-full bg-emerald-400" />
+                Aguardando confirmação do pagamento…
               </div>
 
               <Link href={`/campeonatos/${champId}`} className="block text-center text-sm text-gray-400 hover:text-gray-600">
