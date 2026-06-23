@@ -4,6 +4,44 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { reembolsarPagamento } from "@/lib/asaas";
 
+export type ReembolsoInfo = {
+  regId:            string;
+  valorInscricao:   number;
+  dentroDosPrazo7d: boolean;
+};
+
+/** Carrega os dados necessários para exibir a tela de reembolso. */
+export async function carregarReembolsoInfo(regId: string): Promise<ReembolsoInfo | null> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: reg } = await supabase
+    .from("registrations")
+    .select("id, valor, status_pagamento, team_id, created_at")
+    .eq("id", regId)
+    .single();
+
+  if (!reg || reg.status_pagamento !== "pago") return null;
+
+  const { data: team } = await supabase
+    .from("teams")
+    .select("atleta1_id, atleta2_id")
+    .eq("id", reg.team_id)
+    .single();
+
+  if (!team || (team.atleta1_id !== user.id && team.atleta2_id !== user.id)) return null;
+
+  const diasDesdeCompra = (Date.now() - new Date(reg.created_at).getTime()) / (1000 * 60 * 60 * 24);
+
+  return {
+    regId:            reg.id,
+    valorInscricao:   Number(reg.valor),
+    dentroDosPrazo7d: diasDesdeCompra <= 7,
+  };
+}
+
+/** Executa o reembolso via Asaas. */
 export async function solicitarReembolso(
   regId: string,
 ): Promise<{ ok: boolean; error?: string }> {
@@ -11,10 +49,9 @@ export async function solicitarReembolso(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Não autenticado." };
 
-  // Carrega a inscrição e verifica que pertence ao usuário
   const { data: reg } = await supabase
     .from("registrations")
-    .select("id, status_pagamento, asaas_payment_id, championship_id, team_id")
+    .select("id, valor, status_pagamento, asaas_payment_id, team_id, created_at")
     .eq("id", regId)
     .single();
 
@@ -22,7 +59,6 @@ export async function solicitarReembolso(
   if (reg.status_pagamento !== "pago") return { ok: false, error: "Esta inscrição não pode ser estornada." };
   if (!reg.asaas_payment_id) return { ok: false, error: "Cobrança não encontrada no Asaas." };
 
-  // Confirma que o usuário é atleta desta dupla
   const { data: team } = await supabase
     .from("teams")
     .select("atleta1_id, atleta2_id")
@@ -33,15 +69,18 @@ export async function solicitarReembolso(
     return { ok: false, error: "Sem permissão para estornar esta inscrição." };
   }
 
-  // Chama a API do Asaas para estornar
+  // Dentro de 7 dias (CDC) → reembolso total (taxa de serviço incluída).
+  // Após 7 dias → reembolso parcial: só o valor da inscrição (sem taxa de serviço).
+  const diasDesdeCompra = (Date.now() - new Date(reg.created_at).getTime()) / (1000 * 60 * 60 * 24);
+  const dentroDosPrazo  = diasDesdeCompra <= 7;
+  const valorParcial    = dentroDosPrazo ? undefined : Number(reg.valor);
+
   try {
-    await reembolsarPagamento(reg.asaas_payment_id);
+    await reembolsarPagamento(reg.asaas_payment_id, valorParcial);
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Erro desconhecido";
     return { ok: false, error: `Erro ao processar reembolso: ${msg}` };
   }
 
-  // O webhook PAYMENT_REFUNDED vai atualizar o status no banco automaticamente.
-  // Redireciona para as inscrições.
   redirect("/minhas-inscricoes");
 }

@@ -23,32 +23,40 @@ export default async function ReembolsoPage({
 
   const { data: reg } = await supabase
     .from("registrations")
-    .select("id, valor, status_pagamento, team_id, championship_id, category_id")
+    .select("id, valor, status_pagamento, team_id, championship_id, category_id, created_at")
     .eq("id", regId)
     .single();
 
   if (!reg) notFound();
   if (reg.status_pagamento !== "pago") redirect(`/minhas-inscricoes/${champId}`);
 
-  const [champRes, catRes, teamRes] = await Promise.all([
+  // Verifica pertencimento
+  const { data: team } = await supabase
+    .from("teams")
+    .select("atleta1_id, atleta2_id")
+    .eq("id", reg.team_id)
+    .single();
+
+  if (!team || (team.atleta1_id !== user.id && team.atleta2_id !== user.id)) {
+    redirect("/minhas-inscricoes");
+  }
+
+  const [champRes, catRes] = await Promise.all([
     supabase.from("championships").select("nome, data_inicio, data_fim, cidade, estado").eq("id", champId).single(),
     supabase.from("championship_categories").select("nome").eq("id", reg.category_id).single(),
-    supabase.from("teams").select("atleta1_id, atleta2_id").eq("id", reg.team_id).single(),
   ]);
-
-  // Só quem é atleta da dupla pode pedir reembolso
-  const t = teamRes.data;
-  if (!t || (t.atleta1_id !== user.id && t.atleta2_id !== user.id)) {
-    redirect(`/minhas-inscricoes`);
-  }
 
   const champ = champRes.data;
   const cat   = catRes.data;
-  const valor = Number(reg.valor);
+  const valorInscricao = Number(reg.valor);
 
-  // Verifica se ainda está dentro do prazo de 7 dias do CDC
-  // (a data de criação está na inscrição, mas não selecionamos; usamos lógica conservadora)
-  const dentroDosPrazo7Dias = true; // TODO: comparar com created_at da inscrição
+  const diasDesdeCompra   = (Date.now() - new Date(reg.created_at).getTime()) / (1000 * 60 * 60 * 24);
+  const dentroDosPrazo7d  = diasDesdeCompra <= 7;
+  const valorReembolso    = valorInscricao; // sempre só a inscrição; taxa só volta se dentro de 7 dias (via Asaas total)
+  // Dentro de 7 dias → Asaas devolve tudo (taxa inclusa); fora → só valor da inscrição
+  const textoValorReembolso = dentroDosPrazo7d
+    ? "Valor integral pago (inscrição + taxa de serviço)"
+    : `Apenas o valor da inscrição — ${formatBRL(valorInscricao)}`;
 
   return (
     <div className="min-h-screen">
@@ -61,16 +69,14 @@ export default async function ReembolsoPage({
             <ArrowLeft className="size-4" /> Voltar
           </Link>
           <h1 className="text-2xl font-bold text-white">Solicitar reembolso</h1>
-          {champ && (
-            <p className="text-sm text-white/50">{champ.nome}</p>
-          )}
+          {champ && <p className="text-sm text-white/50">{champ.nome}</p>}
         </div>
       </div>
 
       <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-md space-y-5">
 
-          {/* Resumo da inscrição */}
+          {/* Resumo */}
           {champ && cat && (
             <div className="rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5 space-y-1">
               <p className="font-semibold text-gray-900">{champ.nome}</p>
@@ -78,37 +84,53 @@ export default async function ReembolsoPage({
                 {cat.nome} · {formatDateRangeBR(champ.data_inicio, champ.data_fim)}
               </p>
               <p className="text-sm text-gray-500">{champ.cidade} — {champ.estado}</p>
-              <p className="mt-3 text-lg font-bold text-gray-900">
-                Valor pago: {formatBRL(valor)}
-              </p>
             </div>
           )}
 
+          {/* Valor que será reembolsado */}
+          <div className={`rounded-2xl p-4 ring-1 space-y-1 ${dentroDosPrazo7d ? "bg-emerald-50 ring-emerald-200" : "bg-amber-50 ring-amber-200"}`}>
+            <p className={`text-xs font-semibold uppercase tracking-wider ${dentroDosPrazo7d ? "text-emerald-700" : "text-amber-700"}`}>
+              {dentroDosPrazo7d ? "Dentro do prazo de 7 dias (CDC)" : "Fora do prazo de 7 dias"}
+            </p>
+            <p className={`text-sm font-medium ${dentroDosPrazo7d ? "text-emerald-800" : "text-amber-800"}`}>
+              Você receberá de volta: {textoValorReembolso}
+            </p>
+            {!dentroDosPrazo7d && (
+              <p className="text-xs text-amber-700">
+                A taxa de serviço da plataforma não é reembolsável após 7 dias da compra,
+                conforme os Termos de Uso.
+              </p>
+            )}
+          </div>
+
           {/* Aviso sobre o que acontece */}
-          <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 space-y-2">
-            <div className="flex items-center gap-2 font-semibold text-amber-800">
+          <div className="rounded-2xl bg-red-50 p-4 ring-1 ring-red-200 space-y-2">
+            <div className="flex items-center gap-2 font-semibold text-red-800">
               <AlertTriangle className="size-4 shrink-0" />
-              O que acontece ao pedir reembolso
+              O que acontece ao confirmar
             </div>
-            <ul className="space-y-1.5 text-sm text-amber-700 ml-6 list-disc">
-              <li>Sua inscrição e credencial (QR Code) serão canceladas imediatamente.</li>
-              <li>Sua dupla será removida do campeonato.</li>
-              <li>O reembolso retorna para o mesmo método de pagamento usado.</li>
-              <li>Pix: geralmente em até 1 dia útil. Cartão: até 30 dias conforme a operadora.</li>
+            <ul className="space-y-1.5 text-sm text-red-700 ml-6 list-disc">
+              <li>Sua inscrição e credencial (QR Code) são canceladas imediatamente.</li>
+              <li>Sua dupla é removida do campeonato.</li>
+              <li>Pix: dinheiro de volta em até 1 dia útil.</li>
+              <li>Cartão: em até 30 dias, conforme a operadora.</li>
             </ul>
           </div>
 
-          {/* Info sobre prazo CDC / taxa */}
+          {/* Info legal */}
           <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 flex gap-3">
             <Info className="size-4 shrink-0 text-blue-500 mt-0.5" />
             <p className="text-sm text-blue-700">
-              {dentroDosPrazo7Dias
-                ? "Conforme o Código de Defesa do Consumidor (art. 49), compras feitas online podem ser canceladas em até 7 dias com reembolso integral."
-                : "O prazo de 7 dias do CDC já encerrou. O reembolso fica a critério do regulamento do campeonato e da política do organizador."}
+              Dúvidas ou problemas com o evento? Entre em contato pelo e-mail{" "}
+              <span className="font-medium">carlosrocha0923@gmail.com</span>.
             </p>
           </div>
 
-          <ReembolsoForm regId={regId} champId={champId} valor={valor} />
+          <ReembolsoForm
+            regId={regId}
+            champId={champId}
+            valorExibido={dentroDosPrazo7d ? null : valorInscricao}
+          />
 
         </div>
       </div>

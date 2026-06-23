@@ -9,15 +9,15 @@ import { formatBRL } from "@/lib/format";
 export function ReembolsoForm({
   regId,
   champId,
-  valor,
+  valorExibido, // null = reembolso total (CDC 7 dias); número = apenas inscrição
 }: {
-  regId:   string;
-  champId: string;
-  valor:   number;
+  regId:        string;
+  champId:      string;
+  valorExibido: number | null;
 }) {
-  const router   = useRouter();
-  const [erro,   setErro]   = useState<string | null>(null);
-  const [pending, start]    = useTransition();
+  const router  = useRouter();
+  const [erro,  setErro]  = useState<string | null>(null);
+  const [pending, start]  = useTransition();
 
   function confirmar() {
     setErro(null);
@@ -26,9 +26,12 @@ export function ReembolsoForm({
       if (res && !res.ok) {
         setErro(res.error ?? "Erro ao processar reembolso.");
       }
-      // Se ok, o action faz redirect para /minhas-inscricoes
     });
   }
+
+  const labelBotao = valorExibido != null
+    ? `Confirmar reembolso de ${formatBRL(valorExibido)}`
+    : "Confirmar reembolso integral";
 
   return (
     <div className="space-y-4">
@@ -45,7 +48,7 @@ export function ReembolsoForm({
       >
         {pending
           ? <><Loader2 className="size-4 animate-spin" /> Processando…</>
-          : <><RotateCcw className="size-4" /> Confirmar reembolso de {formatBRL(valor)}</>}
+          : <><RotateCcw className="size-4" /> {labelBotao}</>}
       </button>
 
       <button

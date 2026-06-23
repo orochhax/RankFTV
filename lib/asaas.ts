@@ -111,9 +111,15 @@ export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriad
 // Estorna a cobrança no Asaas. O webhook PAYMENT_REFUNDED dispara em seguida e
 // atualiza o status da inscrição no banco.
 
-export async function reembolsarPagamento(asaasPaymentId: string): Promise<{ id: string; status: string }> {
+export async function reembolsarPagamento(
+  asaasPaymentId: string,
+  valorParcial?: number,   // omitir = reembolso total; informar = reembolso parcial
+): Promise<{ id: string; status: string }> {
   return request<{ id: string; status: string }>(`/payments/${asaasPaymentId}/refund`, {
     method: "POST",
+    body: valorParcial != null
+      ? JSON.stringify({ value: parseFloat(valorParcial.toFixed(2)) })
+      : undefined,
   });
 }
 

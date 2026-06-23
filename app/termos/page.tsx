@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Termos de uso — RankFTV",
 };
 
-const ULTIMA_ATUALIZACAO = "22 de junho de 2026";
+const ULTIMA_ATUALIZACAO = "23 de junho de 2026";
 
 type Bloco =
   | { p: string }
@@ -142,9 +142,12 @@ const SECOES: Secao[] = [
   {
     titulo: "Cancelamento e reembolso",
     blocos: [
-      { p: "O comprador pode solicitar o cancelamento da compra em até 7 (sete) dias corridos a contar da data da compra, conforme o art. 49 do Código de Defesa do Consumidor (Lei nº 8.078/1990). Cancelamentos solicitados após esse prazo ficam a critério do Organizador, conforme a política de cancelamento informada." },
-      { p: "Reembolsos devem ser feitos obrigatoriamente pela Plataforma e correspondem ao valor integral pago, não sendo permitido reembolso parcial. Iniciado o reembolso, a inscrição/ingresso e a credencial deixam de ser válidos." },
-      { p: "O Organizador é responsável por processar os reembolsos devidos. Não o fazendo, a RankFTV poderá efetuá-los, descontando os valores dos repasses do Organizador ou cobrando-os posteriormente." },
+      { p: "O comprador pode solicitar o cancelamento da inscrição ou ingresso diretamente pela Plataforma." },
+      { p: "Direito de arrependimento (art. 49, CDC): cancelamentos solicitados em até 7 (sete) dias corridos da data da compra dão direito ao reembolso integral do valor pago, incluindo a taxa de serviço da Plataforma." },
+      { p: "Após os 7 dias: a taxa de serviço cobrada pela RankFTV é não reembolsável, pois remunera o serviço de intermediação já prestado. O reembolso nesse caso corresponde apenas ao valor da inscrição ou ingresso definido pelo Organizador, sem a taxa de serviço. Cancelamentos após esse prazo ficam sujeitos à política de cancelamento do Organizador." },
+      { p: "Iniciado o reembolso, a inscrição, a dupla e a credencial digital (QR Code) são cancelados imediatamente e deixam de dar acesso ao evento." },
+      { p: "Os prazos para o dinheiro retornar ao comprador dependem do meio de pagamento: Pix em até 1 (um) dia útil; cartão de crédito ou débito em até 30 (trinta) dias corridos, conforme as regras da operadora do cartão." },
+      { p: "O Organizador é responsável pelos reembolsos do valor da inscrição. A RankFTV poderá efetuá-los e descontar dos repasses do Organizador caso ele não o faça no prazo devido." },
     ],
   },
   {
