@@ -1,19 +1,11 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import {
-  ArrowLeft,
-  DollarSign,
-  Info,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { ArrowLeft, DollarSign, Info, TrendingUp, Users, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { formatBRL, generoLabel } from "@/lib/format";
 import { ChavePixClient } from "@/components/painel/ChavePixClient";
 import { PlanoTaxas } from "@/components/painel/PlanoTaxas";
-import { InscricaoExpandivel } from "@/components/painel/InscricaoExpandivel";
 
 type RegRow = {
   id: string;
@@ -24,20 +16,8 @@ type RegRow = {
   championship_categories: { id: string; nome: string; genero: string } | null;
 };
 
-type Filtro = "pago" | "pendente" | "estornado";
-
-export default async function FinanceiroPage({
-  params,
-  searchParams,
-}: {
-  params:       Promise<{ id: string }>;
-  searchParams: Promise<{ filtro?: string }>;
-}) {
-  const { id }     = await params;
-  const { filtro: filtroParam } = await searchParams;
-  const filtro = (["pago", "pendente", "estornado"].includes(filtroParam ?? "")
-    ? filtroParam
-    : null) as Filtro | null;
+export default async function FinanceiroPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -83,84 +63,35 @@ export default async function FinanceiroPage({
   const totalCredito = pagas.filter((r) => r.billing_type === "CREDIT_CARD").reduce((s, r) => s + Number(r.valor), 0);
   const totalDebito  = pagas.filter((r) => r.billing_type === "DEBIT_CARD").reduce((s, r) => s + Number(r.valor), 0);
 
-  // ── Lista filtrada ────────────────────────────────────────────────────────
-  type InscricaoDetalhe = {
-    regId:      string;
-    valor:      number;
-    categoria:  string;
-    criadoEm:   string;
-    atleta1:    { nome: string; username: string; telefone: string | null; email: string | null };
-    atleta2:    { nome: string; username: string; telefone: string | null; email: string | null } | null;
-  };
-
-  let listaFiltrada: InscricaoDetalhe[] = [];
-
-  if (filtro) {
-    const { data: rawFiltered } = await supabase
-      .from("registrations")
-      .select(`id, valor, created_at, team_id, championship_categories(nome), teams(atleta1_id, atleta2_id)`)
-      .eq("championship_id", id)
-      .eq("status_pagamento", filtro)
-      .order("created_at", { ascending: false });
-
-    if (rawFiltered && rawFiltered.length > 0) {
-      // Coleta todos os IDs de atletas únicos
-      const atletaIds = new Set<string>();
-      for (const r of rawFiltered) {
-        const t = (r.teams as unknown) as { atleta1_id: string; atleta2_id: string | null } | null;
-        if (t?.atleta1_id) atletaIds.add(t.atleta1_id);
-        if (t?.atleta2_id) atletaIds.add(t.atleta2_id);
-      }
-      const ids = Array.from(atletaIds);
-
-      // Busca perfis (nome, username, telefone)
-      const { data: perfis } = await supabase
-        .from("profiles")
-        .select("id, nome, username, telefone")
-        .in("id", ids);
-      const perfilMap: Record<string, { nome: string; username: string; telefone: string | null }> =
-        Object.fromEntries((perfis ?? []).map((p) => [p.id, p]));
-
-      // Busca e-mails via admin (auth.users)
-      const admin = createAdminClient();
-      const emailMap: Record<string, string | null> = {};
-      await Promise.all(
-        ids.map(async (uid) => {
-          const { data } = await admin.auth.admin.getUserById(uid);
-          emailMap[uid] = data?.user?.email ?? null;
-        }),
-      );
-
-      listaFiltrada = rawFiltered.map((r) => {
-        const t   = (r.teams as unknown) as { atleta1_id: string; atleta2_id: string | null } | null;
-        const cat = (r.championship_categories as unknown) as { nome: string } | null;
-        const a1id = t?.atleta1_id ?? "";
-        const a2id = t?.atleta2_id ?? null;
-        const p1 = perfilMap[a1id];
-        const p2 = a2id ? perfilMap[a2id] : null;
-        return {
-          regId:     r.id,
-          valor:     Number(r.valor),
-          categoria: cat?.nome ?? "—",
-          criadoEm:  r.created_at as string,
-          atleta1:   { nome: p1?.nome ?? "—", username: p1?.username ?? "—", telefone: p1?.telefone ?? null, email: emailMap[a1id] ?? null },
-          atleta2:   p2 ? { nome: p2.nome, username: p2.username, telefone: p2.telefone ?? null, email: emailMap[a2id!] ?? null } : null,
-        };
-      });
-    }
-  }
-
-  const FILTRO_CONFIG = {
-    pago:      { label: "Pagos",      bg: "bg-emerald-50", ring: "ring-emerald-200", text: "text-emerald-700", count: regs.filter((r) => r.status_pagamento === "pago").length,      valor: totalPago },
-    pendente:  { label: "Pendentes",  bg: "bg-amber-50",   ring: "ring-amber-200",   text: "text-amber-700",   count: regs.filter((r) => r.status_pagamento === "pendente").length,  valor: totalPendente },
-    estornado: { label: "Estornados", bg: "bg-red-50",     ring: "ring-red-200",     text: "text-red-600",     count: regs.filter((r) => r.status_pagamento === "estornado").length, valor: totalEstornado },
-  };
-
-  const TITULO_FILTRO: Record<Filtro, string> = {
-    pago:      "Duplas que pagaram",
-    pendente:  "Duplas com pagamento pendente",
-    estornado: "Duplas estornadas / canceladas",
-  };
+  const STATUS_CARDS = [
+    {
+      slug:    "pagos",
+      label:   "Pagos",
+      count:   regs.filter((r) => r.status_pagamento === "pago").length,
+      valor:   totalPago,
+      bg:      "bg-emerald-50",
+      ring:    "ring-emerald-200",
+      text:    "text-emerald-700",
+    },
+    {
+      slug:    "pendentes",
+      label:   "Pendentes",
+      count:   regs.filter((r) => r.status_pagamento === "pendente").length,
+      valor:   totalPendente,
+      bg:      "bg-amber-50",
+      ring:    "ring-amber-200",
+      text:    "text-amber-700",
+    },
+    {
+      slug:    "estornados",
+      label:   "Estornados",
+      count:   regs.filter((r) => r.status_pagamento === "estornado").length,
+      valor:   totalEstornado,
+      bg:      "bg-red-50",
+      ring:    "ring-red-200",
+      text:    "text-red-600",
+    },
+  ];
 
   return (
     <div className="min-h-screen">
@@ -191,19 +122,20 @@ export default async function FinanceiroPage({
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-3xl space-y-8">
 
-          {/* Status dos pagamentos — cards clicáveis */}
+          {/* Status dos pagamentos */}
           <section>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Status dos pagamentos</h2>
             <div className="grid grid-cols-3 gap-3">
-              {(Object.entries(FILTRO_CONFIG) as [Filtro, typeof FILTRO_CONFIG[Filtro]][]).map(([key, cfg]) => (
+              {STATUS_CARDS.map((c) => (
                 <Link
-                  key={key}
-                  href={filtro === key ? `/painel/campeonatos/${id}/financeiro` : `/painel/campeonatos/${id}/financeiro?filtro=${key}`}
-                  className={`rounded-2xl p-4 ring-1 transition-all ${cfg.bg} ${cfg.ring} ${filtro === key ? "ring-2 shadow-md scale-[1.02]" : "hover:shadow-sm hover:scale-[1.01]"}`}
+                  key={c.slug}
+                  href={`/painel/campeonatos/${id}/financeiro/${c.slug}`}
+                  className={`group relative rounded-2xl p-4 ring-1 transition-all hover:shadow-md hover:scale-[1.02] ${c.bg} ${c.ring}`}
                 >
-                  <p className={`text-xs font-medium ${cfg.text}`}>{cfg.label}</p>
-                  <p className={`mt-2 text-2xl font-bold ${cfg.text}`}>{cfg.count}</p>
-                  <p className={`text-xs ${cfg.text} opacity-70`}>{formatBRL(cfg.valor)}</p>
+                  <p className={`text-xs font-medium ${c.text}`}>{c.label}</p>
+                  <p className={`mt-2 text-2xl font-bold ${c.text}`}>{c.count}</p>
+                  <p className={`text-xs ${c.text} opacity-70`}>{formatBRL(c.valor)}</p>
+                  <ChevronRight className={`absolute bottom-3 right-3 size-3.5 opacity-0 group-hover:opacity-60 transition-opacity ${c.text}`} />
                 </Link>
               ))}
             </div>
@@ -214,30 +146,6 @@ export default async function FinanceiroPage({
               <MetodoCard emoji="🏦" label="Débito"  valor={totalDebito} />
             </div>
           </section>
-
-          {/* Lista filtrada */}
-          {filtro && (
-            <section>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
-                {TITULO_FILTRO[filtro]}
-                <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-                  {listaFiltrada.length}
-                </span>
-              </h2>
-
-              {listaFiltrada.length === 0 ? (
-                <p className="rounded-2xl bg-gray-50 px-4 py-8 text-center text-sm text-gray-400 ring-1 ring-black/5">
-                  Nenhuma inscrição com este status.
-                </p>
-              ) : (
-                <div className="divide-y divide-gray-100 overflow-hidden rounded-2xl ring-1 ring-black/5">
-                  {listaFiltrada.map((ins) => (
-                    <InscricaoExpandivel key={ins.regId} inscricao={ins} />
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
 
           {/* Plano de taxas */}
           <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} />
