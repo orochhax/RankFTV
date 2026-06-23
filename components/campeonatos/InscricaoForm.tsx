@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import { inscreverDupla, type InscreverState } from "@/app/campeonatos/[id]/inscrever/actions";
 import { formatBRL } from "@/lib/format";
 import { UserSearchInput } from "@/components/ui/UserSearchInput";
@@ -106,6 +107,27 @@ export function InscricaoForm({
           excludeUserId={userId}
         />
       </div>
+
+      {/* Aceite dos termos */}
+      <label className="flex cursor-pointer items-start gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5">
+        <input
+          type="checkbox"
+          name="aceite_termos"
+          required
+          className="mt-0.5 size-4 shrink-0 cursor-pointer accent-blue-600"
+        />
+        <span className="text-sm text-gray-600 leading-relaxed">
+          Li e concordo com os{" "}
+          <Link
+            href="/termos"
+            target="_blank"
+            className="font-medium text-blue-600 underline hover:text-blue-700"
+          >
+            Termos de Uso e Política de Privacidade
+          </Link>{" "}
+          da plataforma RankFTV.
+        </span>
+      </label>
 
       {state.error && (
         <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
