@@ -86,18 +86,23 @@ export async function inscreverDupla(
   }
 
   // ── Parceiro (opcional) ───────────────────────────────────────
+  // profiles não tem e-mail (fica em auth.users); busca só id/nome aqui e o
+  // e-mail (pro convite) via admin client logo abaixo.
   let atleta2Id: string | null = null;
   let parceiroDados: { id: string; nome: string; email?: string } | null = null;
   if (parceiroUsername) {
     const { data: parceiro } = await supabase
       .from("profiles")
-      .select("id, nome, email")
+      .select("id, nome")
       .eq("username", parceiroUsername)
       .single();
     if (!parceiro)
       return { error: `Usuário @${parceiroUsername} não encontrado.` };
     atleta2Id = parceiro.id;
-    parceiroDados = parceiro;
+
+    const admin = createAdminClient();
+    const { data: authData } = await admin.auth.admin.getUserById(parceiro.id);
+    parceiroDados = { id: parceiro.id, nome: parceiro.nome, email: authData?.user?.email ?? undefined };
   }
 
   // ── Salva tamanho de camisa (público) e CPF (privado) ────────

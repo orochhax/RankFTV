@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { enviarConviteAceito, enviarInscricaoConfirmada } from "@/lib/email/send";
 
 export async function aceitarConvite(formData: FormData) {
@@ -25,14 +26,21 @@ export async function aceitarConvite(formData: FormData) {
     .update({ status: "confirmado" })
     .eq("id", teamId);
 
-  // Busca inscrição, atleta1 e atleta2 em paralelo
+  // Busca inscrição, atleta1 e atleta2 em paralelo (profiles não tem e-mail).
   const [{ data: reg }, { data: atleta1Profile }, { data: atleta2Profile }, { data: champ }] =
     await Promise.all([
       supabase.from("registrations").select("valor, category_id").eq("team_id", teamId).maybeSingle(),
-      supabase.from("profiles").select("nome, email, username").eq("id", team.atleta1_id).single(),
-      supabase.from("profiles").select("nome, email, username").eq("id", user.id).single(),
+      supabase.from("profiles").select("nome, username").eq("id", team.atleta1_id).single(),
+      supabase.from("profiles").select("nome, username").eq("id", user.id).single(),
       supabase.from("championships").select("nome").eq("id", team.championship_id).single(),
     ]);
+
+  // E-mails vêm de auth.users: o do atleta2 é o próprio usuário logado; o do
+  // atleta1 (quem convidou) busca via admin.
+  const admin = createAdminClient();
+  const { data: a1Auth } = await admin.auth.admin.getUserById(team.atleta1_id);
+  const atleta1Email = a1Auth?.user?.email ?? null;
+  const atleta2Email = user.email ?? null;
 
   const categoryId = reg?.category_id ?? "";
   const { data: categoria } = categoryId
@@ -70,9 +78,9 @@ export async function aceitarConvite(formData: FormData) {
     });
 
     // E-mail de confirmação para atleta2 (quem aceitou)
-    if (atleta2Profile?.email && champ && categoria) {
+    if (atleta2Email && atleta2Profile && champ && categoria) {
       await enviarInscricaoConfirmada({
-        emailAtleta:    atleta2Profile.email,
+        emailAtleta:    atleta2Email,
         nomeAtleta:     atleta2Profile.nome,
         nomeCampeonato: champ.nome,
         nomeCategoria:  categoria.nome,
@@ -82,9 +90,9 @@ export async function aceitarConvite(formData: FormData) {
   }
 
   // E-mail para atleta1 avisando que o convite foi aceito
-  if (atleta1Profile?.email && atleta2Profile && champ && categoria) {
+  if (atleta1Email && atleta1Profile && atleta2Profile && champ && categoria) {
     await enviarConviteAceito({
-      emailAtleta1:    atleta1Profile.email,
+      emailAtleta1:    atleta1Email,
       nomeAtleta1:     atleta1Profile.nome,
       nomeAtleta2:     atleta2Profile.nome,
       usernameAtleta2: atleta2Profile.username ?? "",

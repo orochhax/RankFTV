@@ -30,9 +30,38 @@ export function PublicarCampeonatoForm({
       {precisaPix && (
         <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Pra onde mandamos sua parte</p>
+            <p className="text-sm font-semibold text-gray-900">Seus dados de recebimento</p>
             <p className="mt-0.5 text-xs text-gray-400">
-              Precisamos disso pra repassar o dinheiro das inscrições pra você.
+              Precisamos disso pra repassar o dinheiro das inscrições pra você e
+              confirmar sua identidade.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">CPF ou CNPJ</label>
+            <input
+              name="cpf_cnpj"
+              type="text"
+              inputMode="numeric"
+              placeholder="Só números"
+              required
+              className={inputClass}
+            />
+            <p className="mt-1 text-xs text-gray-400">
+              Precisa ser o mesmo titular da chave Pix abaixo.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Data de nascimento</label>
+            <input
+              name="data_nascimento"
+              type="date"
+              required
+              className={inputClass}
+            />
+            <p className="mt-1 text-xs text-gray-400">
+              No CNPJ, use a data de nascimento do responsável.
             </p>
           </div>
 

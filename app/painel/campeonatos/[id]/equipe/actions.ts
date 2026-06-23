@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { enviarConviteStaff } from "@/lib/email/send";
 
@@ -67,16 +68,19 @@ export async function convidarStaff(
 
   if (error) return { ok: false, error: "Erro ao enviar convite." };
 
-  // Envia e-mail (best-effort — não bloqueia se falhar)
+  // Envia e-mail (best-effort — não bloqueia se falhar). profiles não tem
+  // e-mail; busca o do convidado via admin (auth.users).
   const [{ data: orgProfile }, { data: invitedProfile }] = await Promise.all([
     supabase.from("profiles").select("nome").eq("id", user.id).single(),
-    supabase.from("profiles").select("nome, email").eq("id", userId).single(),
+    supabase.from("profiles").select("nome").eq("id", userId).single(),
   ]);
+  const { data: invitedAuth } = await createAdminClient().auth.admin.getUserById(userId);
+  const invitedEmail = invitedAuth?.user?.email ?? null;
 
-  if (invitedProfile?.email) {
+  if (invitedEmail) {
     await enviarConviteStaff({
-      emailConvidado:   invitedProfile.email,
-      nomeConvidado:    invitedProfile.nome ?? "Atleta",
+      emailConvidado:   invitedEmail,
+      nomeConvidado:    invitedProfile?.nome ?? "Atleta",
       nomeOrganizador:  orgProfile?.nome ?? "Organizador",
       nomeCampeonato:   champ.nome,
       permissoes:       "QR Code",
