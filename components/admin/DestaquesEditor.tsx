@@ -13,7 +13,13 @@ export function DestaquesEditor({
   campeonatos: Championship[];
   initialDestaques: string[];
 }) {
-  const [selecionados, setSelecionados] = useState<string[]>(initialDestaques.slice(0, 3));
+  // Descarta IDs de destaques que apontam pra campeonatos que não existem mais
+  // (excluídos / viraram rascunho). Sem isso eles contavam pro limite de 3 e
+  // travavam a seleção de novos, mesmo sem aparecer na lista.
+  const [selecionados, setSelecionados] = useState<string[]>(() => {
+    const idsValidos = new Set(campeonatos.map((c) => c.id));
+    return initialDestaques.filter((id) => idsValidos.has(id)).slice(0, 3);
+  });
   const [busca, setBusca] = useState("");
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");

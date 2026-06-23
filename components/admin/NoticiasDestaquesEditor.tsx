@@ -16,7 +16,12 @@ export function NoticiasDestaquesEditor({
   noticias: News[];
   initialDestaques: string[];
 }) {
-  const [selecionados, setSelecionados] = useState<string[]>(initialDestaques.slice(0, 3));
+  // Descarta IDs de notícias que não existem mais — senão contam pro limite de
+  // 3 e travam a seleção de novas, mesmo sem aparecer na lista.
+  const [selecionados, setSelecionados] = useState<string[]>(() => {
+    const idsValidos = new Set(noticias.map((n) => n.id));
+    return initialDestaques.filter((id) => idsValidos.has(id)).slice(0, 3);
+  });
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
