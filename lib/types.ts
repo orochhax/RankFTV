@@ -36,6 +36,7 @@ export type Championship = {
   bannerTo: string;
   bannerUrl?: string | null;
   liveUrl?: string | null;
+  isVitrine?: boolean;
   categorias: Category[];
 };
 

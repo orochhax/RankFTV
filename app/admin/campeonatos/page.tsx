@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatDateRangeBR } from "@/lib/format";
@@ -15,6 +15,7 @@ type ChampRow = {
   id: string;
   nome: string;
   status: string;
+  is_vitrine: boolean | null;
   organizador_id: string;
   cidade: string;
   estado: string;
@@ -33,7 +34,7 @@ export default async function AdminCampeonatosPage() {
   // Todos os campeonatos (admin client ignora RLS, então vê rascunhos de todos)
   const { data: rawChamps } = await admin
     .from("championships")
-    .select("id, nome, status, organizador_id, cidade, estado, data_inicio, data_fim, created_at")
+    .select("id, nome, status, is_vitrine, organizador_id, cidade, estado, data_inicio, data_fim, created_at")
     .order("created_at", { ascending: false });
 
   const champs: ChampRow[] = (rawChamps ?? []) as ChampRow[];
@@ -60,6 +61,7 @@ export default async function AdminCampeonatosPage() {
       id:     c.id,
       nome:   c.nome,
       status: c.status,
+      isVitrine: c.is_vitrine ?? false,
       cidade: c.cidade,
       estado: c.estado,
       datas:  formatDateRangeBR(c.data_inicio, c.data_fim),
@@ -81,12 +83,20 @@ export default async function AdminCampeonatosPage() {
         <ChevronLeft className="size-4" /> Painel admin
       </Link>
 
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Campeonatos</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Todos os campeonatos da plataforma. Mude o status, exclua ou veja o
-          contato do organizador. {champs.length} no total.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Campeonatos</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Todos os campeonatos da plataforma. Mude o status, exclua ou veja o
+            contato do organizador. {champs.length} no total.
+          </p>
+        </div>
+        <Link
+          href="/admin/campeonatos/novo"
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="size-4" /> Campeonato vitrine
+        </Link>
       </div>
 
       <AdminCampeonatosLista itens={itens} />

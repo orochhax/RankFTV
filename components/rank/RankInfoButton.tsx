@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { Info, X } from "lucide-react";
 
 // Botãozinho de informação (i) no topo do Ranking. Ao clicar, abre um balão
-// flutuante com a data da última atualização — sem sair/recarregar a página.
+// flutuante com a info da atualização — sem sair/recarregar a página.
+// O texto muda conforme o gênero (masculino x feminino), por isso vem pronto.
 export function RankInfoButton({
-  atualizadoEm,
-  detalhe,
+  titulo = "Atualização da tabela",
+  texto,
 }: {
-  atualizadoEm: string;
-  detalhe: string;
+  titulo?: string;
+  texto: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -54,9 +55,7 @@ export function RankInfoButton({
           className="absolute right-0 top-full z-20 mt-2 w-72 rounded-2xl bg-white p-4 shadow-xl ring-1 ring-black/5"
         >
           <div className="mb-1.5 flex items-center justify-between">
-            <p className="text-sm font-semibold text-gray-900">
-              Atualização da tabela
-            </p>
+            <p className="text-sm font-semibold text-gray-900">{titulo}</p>
             <button
               type="button"
               onClick={() => setOpen(false)}
@@ -66,11 +65,7 @@ export function RankInfoButton({
               <X className="size-4" />
             </button>
           </div>
-          <p className="text-sm leading-relaxed text-gray-600">
-            Tabela atualizada em{" "}
-            <span className="font-medium text-gray-900">{atualizadoEm}</span>,
-            após a finalização da {detalhe}.
-          </p>
+          <p className="text-sm leading-relaxed text-gray-600">{texto}</p>
         </div>
       )}
     </div>

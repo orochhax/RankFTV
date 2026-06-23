@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Users, BookOpen } from "lucide-react";
 import Image from "next/image";
 import { togglePageFollow } from "@/app/campeonatos/paginas/actions";
@@ -21,6 +22,7 @@ export function PagePublicHeader({
   initialFollowing,
   initialSeguidores,
   avatarUrl,
+  seguidoresHref,
 }: {
   pageId: string;
   nome: string;
@@ -31,6 +33,9 @@ export function PagePublicHeader({
   initialFollowing: boolean;
   initialSeguidores: number;
   avatarUrl?: string | null;
+  // Quando informado (painel do dono), a contagem de seguidores vira link
+  // pra lista de seguidores. Na página pública fica só texto.
+  seguidoresHref?: string | null;
 }) {
   const [seguindo, setSeguindo] = useState(initialFollowing);
   const [seguidores, setSeguidores] = useState(initialSeguidores);
@@ -66,10 +71,20 @@ export function PagePublicHeader({
         <p className="text-sm text-white/70 max-w-sm">{descricao}</p>
       )}
       <div className="flex items-center gap-5 text-sm text-white/50">
-        <span className="flex items-center gap-1">
-          <Users className="size-4" />
-          {fmt(seguidores)} seguidores
-        </span>
+        {seguidoresHref ? (
+          <Link
+            href={seguidoresHref}
+            className="flex items-center gap-1 font-semibold text-white underline decoration-white/40 decoration-1 underline-offset-4 transition-colors hover:decoration-white"
+          >
+            <Users className="size-4" />
+            {fmt(seguidores)} seguidores
+          </Link>
+        ) : (
+          <span className="flex items-center gap-1">
+            <Users className="size-4" />
+            {fmt(seguidores)} seguidores
+          </span>
+        )}
         <span className="flex items-center gap-1">
           <BookOpen className="size-4" />
           {edicoes} edições

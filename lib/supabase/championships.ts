@@ -35,11 +35,12 @@ type ChampRow = {
   taxa_plataforma: number;
   live_url: string | null;
   banner_url: string | null;
+  is_vitrine: boolean | null;
   championship_categories: CatRow[] | null;
 };
 
 const SELECT =
-  "id, organizador_id, nome, descricao, regulamento, data_inicio, data_fim, cidade, estado, local, status, taxa_plataforma, live_url, banner_url, championship_categories(id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max)";
+  "id, organizador_id, nome, descricao, regulamento, data_inicio, data_fim, cidade, estado, local, status, taxa_plataforma, live_url, banner_url, is_vitrine, championship_categories(id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max)";
 
 const GRADIENTS: [string, string][] = [
   ["from-blue-500", "to-cyan-400"],
@@ -71,6 +72,7 @@ function mapChampionship(row: ChampRow): Championship {
     bannerTo,
     bannerUrl: row.banner_url ?? null,
     liveUrl: row.live_url,
+    isVitrine: row.is_vitrine ?? false,
     categorias: (row.championship_categories ?? []).map(
       (c): Category => ({
         id: c.id,

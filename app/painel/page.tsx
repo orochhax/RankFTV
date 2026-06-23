@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   CalendarDays,
   ChevronRight,
@@ -35,33 +36,33 @@ const DORES = [
 const FEATURES = [
   {
     icon: QrCode,
-    titulo: "Portaria sem caos",
+    titulo: "Check-in",
     descricao:
       "Cada atleta recebe a credencial no celular. Check-in por QR em segundos e controle de no-show automático.",
   },
   {
     icon: Wallet,
-    titulo: "Dinheiro sem perseguição",
+    titulo: "Financeiro",
     descricao:
-      "Cada inscrição entra confirmada e paga. O Pix cai no mesmo dia e você acompanha em tempo real quanto já é seu — sem PIX manual, sem planilha.",
+      "Cada inscrição entra confirmada e paga. O Pix cai no mesmo dia e você acompanha em tempo real quanto já é seu.",
   },
   {
     icon: Network,
-    titulo: "Chaveamento ao vivo",
+    titulo: "Chaveamento",
     descricao:
-      "A chave e os resultados aparecem em tempo real pra atletas e público acompanharem do celular — sem mural, sem foto de papel no grupo.",
-  },
-  {
-    icon: Shirt,
-    titulo: "Camisas na medida certa",
-    descricao:
-      "Painel de produção por tamanho: saiba exatamente quantas P, M, G e GG encomendar antes do evento.",
+      "A chave e os resultados aparecem em tempo real pra atletas e público acompanharem do celular.",
   },
   {
     icon: Megaphone,
-    titulo: "Avise todos num clique",
+    titulo: "Aviso com um clique",
     descricao:
       "Mudança de horário, resultado, informação do local — comunique todos os inscritos de uma vez.",
+  },
+  {
+    icon: Shirt,
+    titulo: "Camisas certas",
+    descricao:
+      "Painel de produção por tamanho: saiba exatamente quantas P, M, G e GG encomendar antes do evento.",
   },
 ];
 
@@ -267,8 +268,8 @@ export default async function PainelOrganizadorPage({
   // CTA de baixo atrito: criar o campeonato primeiro; ativação (CPF/PIX) fica
   // pra depois, no momento de publicar. Logado vai direto pra criação.
   const cta = user
-    ? { href: "/painel/novo-campeonato", label: "Criar campeonato grátis" }
-    : { href: "/cadastro", label: "Criar campeonato grátis" };
+    ? { href: "/painel/novo-campeonato", label: "Criar evento grátis" }
+    : { href: "/cadastro", label: "Criar evento grátis" };
 
   return (
     <div className="min-h-screen">
@@ -312,20 +313,46 @@ export default async function PainelOrganizadorPage({
       </div>
 
       {/* ── Conteúdo branco ── */}
-      <div className="relative -mt-6 rounded-t-3xl bg-white px-6 pb-24 pt-10 shadow-sm">
-        <div className="mx-auto max-w-3xl space-y-12">
+      <div className="relative -mt-6 overflow-hidden rounded-t-3xl bg-white pb-24 pt-10 shadow-sm">
 
-          {/* Agitação de dor */}
+        {/* Seções 1–5 dentro do container com padding lateral */}
+        <div className="mx-auto max-w-3xl space-y-12 px-6">
+
+          {/* 1. Card Nova Geração */}
+          <section>
+            <div className="relative overflow-hidden rounded-3xl bg-[#0a0a0f] px-7 pb-8 pt-7 text-white">
+              <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-blue-600/20 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-12 -left-12 size-48 rounded-full bg-blue-500/10 blur-2xl" />
+              <span className="inline-block rounded-full border border-blue-500/40 bg-blue-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-blue-400">
+                Comunidade
+              </span>
+              <p className="mt-4 text-sm font-medium uppercase tracking-widest text-white/40">
+                A sua conexão com a
+              </p>
+              <h2 className="text-4xl font-black uppercase leading-none tracking-tight text-white sm:text-5xl">
+                Nova<br />
+                <span className="text-blue-400">Geração</span>
+              </h2>
+              <p className="mt-6 text-sm leading-relaxed text-white/60">
+                Atletas, plateias e organizadores — toda a comunidade do futevôlei em um único lugar.
+              </p>
+              <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <p className="text-sm font-semibold text-white">Aumente suas vendas</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-white/50">
+                  A experiência digital do seu público é essencial para mostrar que seu evento não é mais qualquer um.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 2. Você conhece isso? */}
           <section>
             <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
               Você conhece isso?
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               {DORES.map(({ icon: Icon, texto }) => (
-                <div
-                  key={texto}
-                  className="flex items-start gap-3 rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5"
-                >
+                <div key={texto} className="flex items-start gap-3 rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5">
                   <Icon className="size-5 shrink-0 text-gray-400" strokeWidth={1.8} />
                   <p className="text-sm text-gray-600">{texto}</p>
                 </div>
@@ -336,7 +363,7 @@ export default async function PainelOrganizadorPage({
             </p>
           </section>
 
-          {/* Diferencial em destaque */}
+          {/* 3. Diferencial — categoria balanceada */}
           <section>
             <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 p-7 text-white">
               <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-wider">
@@ -349,10 +376,16 @@ export default async function PainelOrganizadorPage({
                 categoria fraca, chave mais justa e atleta mais satisfeito — algo
                 que nenhuma planilha faz.
               </p>
+              <Link
+                href={cta.href}
+                className="mt-6 inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50"
+              >
+                {cta.label}
+              </Link>
             </div>
           </section>
 
-          {/* Features operacionais */}
+          {/* 4. Features operacionais */}
           <section>
             <p className="mb-6 text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
               E o resto da operação, redonda
@@ -370,41 +403,134 @@ export default async function PainelOrganizadorPage({
             </div>
           </section>
 
-          {/* Dinheiro / confiança — taxa enquadrada como risco zero */}
+          {/* 5. Foto do evento */}
           <section>
-            <div className="rounded-3xl bg-[#0f0f13] p-8 text-center">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-emerald-500/15">
-                <ShieldCheck className="size-6 text-emerald-400" />
+            <div className="relative h-52 w-full overflow-hidden rounded-3xl sm:h-64">
+              <Image
+                src="/images/evento-painel.jpg"
+                alt="Evento de futevôlei"
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 100vw, 768px"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+              <div className="absolute bottom-0 left-0 p-5">
+                <p className="text-xs font-semibold uppercase tracking-widest text-white/60">
+                  Seu Evento Completo
+                </p>
+                <p className="mt-0.5 text-lg font-bold text-white">
+                  A plataforma completa para o futevôlei
+                </p>
               </div>
-              <p className="mt-4 text-xl font-bold text-white">
-                Quanto custa? Nada pra começar.
-              </p>
-              <p className="mx-auto mt-2 max-w-md text-sm text-white/50">
-                Sem mensalidade e sem taxa de cadastro. A plataforma só ganha
-                quando você ganha — uma pequena taxa por inscrição paga.
-              </p>
-              <div className="mx-auto mt-5 flex max-w-md flex-col gap-2 text-left">
-                {[
-                  "Pix do atleta cai no mesmo dia",
-                  "Você só paga quando recebe",
-                  "Repasse automático — a plataforma não segura seu dinheiro",
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-2 text-sm text-white/70">
-                    <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
-                    {item}
-                  </div>
-                ))}
-              </div>
-              <Link
-                href={cta.href}
-                className="mt-6 inline-block rounded-2xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-              >
-                {cta.label}
-              </Link>
             </div>
           </section>
 
         </div>
+
+        {/* 6. Faixa azul full-width — receita e comunidade */}
+        <div className="mt-12 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 px-6 py-10 text-white">
+          <div className="mx-auto max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-widest text-blue-200">
+              Mais do que um evento
+            </p>
+            <h2 className="mt-2 text-2xl font-bold leading-snug">
+              Múltiplas fontes de receita, uma plataforma
+            </h2>
+
+            <div className="mt-6 flex flex-col gap-4">
+              {/* Atletas */}
+              <div className="flex items-start gap-4 rounded-2xl bg-white/10 p-5">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
+                  <Tag className="size-5 text-white" strokeWidth={1.8} />
+                </div>
+                <div>
+                  <p className="font-bold text-white">Venda para atletas</p>
+                  <p className="mt-0.5 text-sm text-blue-100/80">
+                    Inscrições online com pagamento integrado. O dinheiro cai direto na sua conta, sem intermediário.
+                  </p>
+                </div>
+              </div>
+
+              {/* Plateia */}
+              <div className="flex items-start gap-4 rounded-2xl bg-white/10 p-5">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
+                  <ClipboardList className="size-5 text-white" strokeWidth={1.8} />
+                </div>
+                <div>
+                  <p className="font-bold text-white">Venda para plateia</p>
+                  <p className="mt-0.5 text-sm text-blue-100/80">
+                    Ingressos digitais para espectadores. Mais receita no mesmo evento, com check-in por QR Code.
+                  </p>
+                </div>
+              </div>
+
+              {/* Comunidade */}
+              <div className="flex items-start gap-4 rounded-2xl bg-white/10 p-5">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
+                  <Megaphone className="size-5 text-white" strokeWidth={1.8} />
+                </div>
+                <div>
+                  <p className="font-bold text-white">Crie sua comunidade de seguidores</p>
+                  <p className="mt-0.5 text-sm text-blue-100/80">
+                    Quem participa vira seguidor. Divulgue o próximo evento pra quem já ama o que você faz e gere marketing orgânico de graça.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href={cta.href}
+                className="flex-1 rounded-2xl bg-white py-3 text-center text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50"
+              >
+                {cta.label}
+              </Link>
+              {!user && (
+                <Link
+                  href="/login"
+                  className="flex-1 rounded-2xl border border-white/30 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                >
+                  Já tenho conta — entrar
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 7. Preço / confiança */}
+        <div className="mx-auto mt-12 max-w-3xl px-6">
+          <div className="rounded-3xl bg-[#0f0f13] p-8 text-center">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-emerald-500/15">
+              <ShieldCheck className="size-6 text-emerald-400" />
+            </div>
+            <p className="mt-4 text-xl font-bold text-white">
+              Quanto custa? Nada pra começar.
+            </p>
+            <p className="mx-auto mt-2 max-w-md text-sm text-white/50">
+              Sem mensalidade e sem taxa de cadastro. A plataforma só ganha
+              quando você ganha — uma pequena taxa por inscrição paga.
+            </p>
+            <div className="mx-auto mt-5 flex max-w-md flex-col gap-2 text-left">
+              {[
+                "Pix do atleta cai no mesmo dia",
+                "Você só paga quando recebe",
+                "Repasse automático — a plataforma não segura seu dinheiro",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-2 text-sm text-white/70">
+                  <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
+                  {item}
+                </div>
+              ))}
+            </div>
+            <Link
+              href={cta.href}
+              className="mt-6 inline-block rounded-2xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            >
+              {cta.label}
+            </Link>
+          </div>
+        </div>
+
       </div>
     </div>
   );

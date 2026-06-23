@@ -30,7 +30,11 @@ export default async function CampeonatosPage({
 
   const todasPages = await getPages();
 
-  const todos = await getPublishedChampionships();
+  // Campeonatos encerrados saem da lista pública — ficam só no painel do
+  // organizador (getMyChampionships). Aqui mostramos apenas os "ativos".
+  const todos = (await getPublishedChampionships()).filter(
+    (c) => c.status !== "encerrado",
+  );
 
   const estadosDisponiveis = Array.from(new Set(todos.map((c) => c.estado))).sort();
   const categoriasDisponiveis = Array.from(

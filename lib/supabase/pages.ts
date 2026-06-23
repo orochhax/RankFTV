@@ -187,6 +187,61 @@ export async function getPageChampionships(pageId: string) {
   return data ?? [];
 }
 
+// Seguidores de uma página (dado público, como Instagram/YouTube), do mais
+// recente pro mais antigo, já com nome/@/foto do perfil.
+export type PageFollower = {
+  id: string;
+  nome: string;
+  username: string | null;
+  fotoUrl: string | null;
+  avatarColor: string;
+};
+
+const FOLLOWER_AVATAR_COLORS = [
+  "bg-blue-500", "bg-emerald-500", "bg-violet-500",
+  "bg-orange-500", "bg-rose-500", "bg-teal-500",
+];
+function followerAvatarColor(str: string) {
+  let h = 0;
+  for (const c of str) h = (h * 31 + c.charCodeAt(0)) | 0;
+  return FOLLOWER_AVATAR_COLORS[Math.abs(h) % FOLLOWER_AVATAR_COLORS.length];
+}
+
+export async function getPageFollowers(pageId: string): Promise<PageFollower[]> {
+  const supabase = await createClient();
+
+  const { data: follows } = await supabase
+    .from("page_followers")
+    .select("user_id, created_at")
+    .eq("page_id", pageId)
+    .order("created_at", { ascending: false });
+
+  const userIds = [...new Set((follows ?? []).map((f) => f.user_id as string))];
+  if (userIds.length === 0) return [];
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, nome, username, foto_url")
+    .in("id", userIds);
+
+  const profMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+
+  // Preserva a ordem dos follows e ignora perfis que sumiram.
+  return userIds
+    .map((uid) => {
+      const p = profMap.get(uid);
+      if (!p) return null;
+      return {
+        id: uid,
+        nome: p.nome ?? "Atleta",
+        username: p.username ?? null,
+        fotoUrl: p.foto_url ?? null,
+        avatarColor: followerAvatarColor(uid),
+      } satisfies PageFollower;
+    })
+    .filter((f): f is PageFollower => f !== null);
+}
+
 // IDs das páginas que um usuário segue
 export async function getFollowedPageIds(userId: string): Promise<string[]> {
   const supabase = await createClient();

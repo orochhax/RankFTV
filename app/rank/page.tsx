@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import {
   getRankingDupla,
   getRankingIndividual,
@@ -6,6 +7,25 @@ import {
 } from "@/lib/supabase/ranking";
 import { RankInfoButton } from "@/components/rank/RankInfoButton";
 import { Avatar } from "@/components/ui/Avatar";
+
+// Setinha de movimento na tabela: compara a posição atual com a da atualização
+// passada. Sem posição anterior (entrou agora) não mostra nada.
+function Movimento({
+  atual,
+  anterior,
+}: {
+  atual: number | null;
+  anterior: number | null;
+}) {
+  if (atual == null || anterior == null) return null;
+  if (anterior > atual) {
+    return <ArrowUp className="size-4 text-green-600" aria-label="Subiu" />;
+  }
+  if (anterior < atual) {
+    return <ArrowDown className="size-4 text-red-600" aria-label="Desceu" />;
+  }
+  return <Minus className="size-4 text-gray-900" aria-label="Manteve a posição" />;
+}
 
 const AVATAR_COLORS = ["bg-blue-500", "bg-emerald-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
 function avatarColor(str: string) {
@@ -46,8 +66,12 @@ export default async function RankPage({
               <p className="mt-1 text-sm text-white/50">Liga Brasileira de Futevôlei</p>
             </div>
             <RankInfoButton
-              atualizadoEm="17/06/2026"
-              detalhe="54ª etapa do Team Águia Footvolley Cup"
+              titulo={genero === "masculino" ? "Ranking oficial" : "Atualização da tabela"}
+              texto={
+                genero === "masculino"
+                  ? "Ranking oficial após a finalização da 8ª etapa da Liga Brasileira de Futevôlei com o Brasil Open de Futevôlei."
+                  : "Tabela atualizada em 17/06/2026, após a finalização da 54ª etapa do Team Águia Footvolley Cup."
+              }
             />
           </div>
 
@@ -165,9 +189,12 @@ export default async function RankPage({
             <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
               {individual.map((atleta, i) => {
                 const inner = (
-                  <div className="flex items-center gap-4 p-3.5">
+                  <div className="flex items-center gap-3 p-3.5">
                     <span className="w-7 shrink-0 text-center text-sm font-semibold text-gray-500">
                       {MEDALHA[i] ?? i + 1}
+                    </span>
+                    <span className="flex w-4 shrink-0 justify-center">
+                      <Movimento atual={atleta.posicao} anterior={atleta.posicaoAnterior} />
                     </span>
                     <Avatar
                       nome={atleta.nome}
@@ -201,9 +228,12 @@ export default async function RankPage({
             <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
               {duplas.map((dupla, i) => (
                 <li key={dupla.id}>
-                  <div className="flex items-center gap-4 p-3.5">
+                  <div className="flex items-center gap-3 p-3.5">
                     <span className="w-7 shrink-0 text-center text-sm font-semibold text-gray-500">
                       {MEDALHA[i] ?? i + 1}
+                    </span>
+                    <span className="flex w-4 shrink-0 justify-center">
+                      <Movimento atual={dupla.posicao} anterior={dupla.posicaoAnterior} />
                     </span>
                     <div className="flex shrink-0">
                       <div className="ring-2 ring-white rounded-full">

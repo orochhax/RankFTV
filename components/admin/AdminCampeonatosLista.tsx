@@ -10,6 +10,7 @@ export type AdminCampItem = {
   id: string;
   nome: string;
   status: string;
+  isVitrine: boolean;
   cidade: string;
   estado: string;
   datas: string;
@@ -25,13 +26,38 @@ function normalizar(s: string) {
     .trim();
 }
 
+type Filtro = "todos" | "inscricoes_abertas" | "em_andamento" | "encerrado" | "informativos";
+
+const FILTROS: { valor: Filtro; label: string }[] = [
+  { valor: "todos",              label: "Todos" },
+  { valor: "inscricoes_abertas", label: "Inscrições abertas" },
+  { valor: "em_andamento",       label: "Em andamento" },
+  { valor: "encerrado",          label: "Encerrado" },
+  { valor: "informativos",       label: "Informativos" },
+];
+
+// Conta quantos itens batem com cada filtro (mostra o número no chip).
+function contar(itens: AdminCampItem[], f: Filtro): number {
+  if (f === "todos") return itens.length;
+  if (f === "informativos") return itens.filter((c) => c.isVitrine).length;
+  return itens.filter((c) => c.status === f).length;
+}
+
 export function AdminCampeonatosLista({ itens }: { itens: AdminCampItem[] }) {
   const [q, setQ] = useState("");
+  const [filtro, setFiltro] = useState<Filtro>("todos");
   const termo = normalizar(q);
 
-  const filtrados = termo
-    ? itens.filter((c) => normalizar(c.nome).includes(termo))
-    : itens;
+  const filtrados = itens.filter((c) => {
+    const passaBusca = termo ? normalizar(c.nome).includes(termo) : true;
+    const passaFiltro =
+      filtro === "todos"
+        ? true
+        : filtro === "informativos"
+        ? c.isVitrine
+        : c.status === filtro;
+    return passaBusca && passaFiltro;
+  });
 
   return (
     <div className="space-y-4">
@@ -46,10 +72,35 @@ export function AdminCampeonatosLista({ itens }: { itens: AdminCampItem[] }) {
         />
       </div>
 
+      {/* Filtros por situação */}
+      <div className="flex flex-wrap gap-2">
+        {FILTROS.map(({ valor, label }) => {
+          const n = contar(itens, valor);
+          const ativo = filtro === valor;
+          return (
+            <button
+              key={valor}
+              type="button"
+              onClick={() => setFiltro(valor)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                ativo
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-600 ring-1 ring-black/5 hover:bg-gray-50"
+              }`}
+            >
+              {label}
+              <span className={ativo ? "text-blue-100" : "text-gray-400"}>{n}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {filtrados.length === 0 ? (
         <p className="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-400 ring-1 ring-black/5">
           {termo
             ? `Nenhum campeonato encontrado para “${q.trim()}”.`
+            : filtro !== "todos"
+            ? "Nenhum campeonato nesta situação."
             : "Nenhum campeonato criado ainda."}
         </p>
       ) : (
@@ -66,6 +117,11 @@ export function AdminCampeonatosLista({ itens }: { itens: AdminCampItem[] }) {
                       {c.nome}
                     </Link>
                     <AdminStatusSelect champId={c.id} currentStatus={c.status} />
+                    {c.isVitrine && (
+                      <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
+                        Informativo
+                      </span>
+                    )}
                   </div>
                   <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
                     <MapPin className="size-3.5" />

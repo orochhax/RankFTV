@@ -100,6 +100,7 @@ export default async function PaginaDetailPage({
             initialFollowing={false}
             initialSeguidores={seguidores ?? 0}
             avatarUrl={(p.avatar_url as string | null) ?? null}
+            seguidoresHref={`/painel/paginas/${id}/seguidores`}
           />
 
           <SocialLinksBar pageId={page.id} initialLinks={socialLinks} isOwner={false} />
@@ -125,9 +126,9 @@ export default async function PaginaDetailPage({
 
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-700">Edições vinculadas</h2>
-            <span className="text-xs text-gray-400">
+            <Link href={`/painel/paginas/${id}/seguidores`} className="text-xs font-semibold text-blue-600 underline decoration-blue-300 underline-offset-2 hover:decoration-blue-600">
               <LiveFollowerCount pageId={id} initial={seguidores ?? 0} /> seguidores
-            </span>
+            </Link>
           </div>
 
           {editions.length === 0 ? (

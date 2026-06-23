@@ -15,6 +15,8 @@ export type RankedIndividual = {
   pontos: number;
   username: string | null;
   fotoUrl: string | null;
+  posicao: number | null;
+  posicaoAnterior: number | null;
 };
 
 export type RankedDupla = {
@@ -27,6 +29,8 @@ export type RankedDupla = {
   atleta1Foto:     string | null;
   atleta2Username: string | null;
   atleta2Foto:     string | null;
+  posicao: number | null;
+  posicaoAnterior: number | null;
 };
 
 export async function getRankingIndividual(
@@ -35,14 +39,19 @@ export async function getRankingIndividual(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("ranking_individual")
-    .select("id, nome, instagram, genero, pontos, username, foto_url")
+    .select("id, nome, instagram, genero, pontos, username, foto_url, posicao, posicao_anterior")
     .eq("genero", genero)
+    // Onde há posição oficial (masculino), ordena por ela; senão (feminino),
+    // cai pra pontos desc + nome asc como antes.
+    .order("posicao", { ascending: true, nullsFirst: false })
     .order("pontos", { ascending: false })
-    .order("nome", { ascending: true }); // desempate estável entre pontos iguais
+    .order("nome", { ascending: true });
   if (error || !data) return [];
   return data.map((r) => ({
     ...r,
     fotoUrl: r.foto_url ?? null,
+    posicao: r.posicao ?? null,
+    posicaoAnterior: r.posicao_anterior ?? null,
   })) as RankedIndividual[];
 }
 
@@ -50,8 +59,9 @@ export async function getRankingDupla(genero: Genero): Promise<RankedDupla[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("ranking_dupla")
-    .select("id, atleta1, atleta2, genero, pontos, atleta1_username, atleta1_foto, atleta2_username, atleta2_foto")
+    .select("id, atleta1, atleta2, genero, pontos, atleta1_username, atleta1_foto, atleta2_username, atleta2_foto, posicao, posicao_anterior")
     .eq("genero", genero)
+    .order("posicao", { ascending: true, nullsFirst: false })
     .order("pontos", { ascending: false });
   if (error || !data) return [];
   return data.map((r) => ({
@@ -60,6 +70,8 @@ export async function getRankingDupla(genero: Genero): Promise<RankedDupla[]> {
     atleta1Foto:     r.atleta1_foto     ?? null,
     atleta2Username: r.atleta2_username ?? null,
     atleta2Foto:     r.atleta2_foto     ?? null,
+    posicao:         r.posicao          ?? null,
+    posicaoAnterior: r.posicao_anterior ?? null,
   })) as RankedDupla[];
 }
 

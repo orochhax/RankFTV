@@ -1,8 +1,10 @@
-import { getAgendaEvents } from "@/lib/agenda";
+import { getAgendaEvents, getAgendaRangeEvents } from "@/lib/agenda";
 import { AgendaView } from "@/components/agenda/AgendaView";
 
-// Agenda de eventos — lista (só dias com algo) + visão de calendário do mês.
+// Agenda de eventos — lista por mês (mini cards com intervalo de datas) +
+// visão de calendário do mês.
 export default function AgendaPage() {
   const events = getAgendaEvents();
-  return <AgendaView events={events} />;
+  const rangeEvents = getAgendaRangeEvents();
+  return <AgendaView events={events} rangeEvents={rangeEvents} />;
 }

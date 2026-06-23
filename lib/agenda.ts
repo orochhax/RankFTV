@@ -47,6 +47,31 @@ function statusByDate(inicio: string, fim: string): ChampionshipStatus {
   return "em_andamento";
 }
 
+// Um evento com o intervalo inteiro (início ~ fim) em vez de explodido por dia.
+// Usado na visão de LISTA, agrupada por mês, com a data tipo "16/06 ~ 19/06".
+export type AgendaRangeEvent = {
+  id: string;
+  nome: string;
+  status: ChampionshipStatus;
+  cidade: string;
+  estado: string;
+  dataInicio: string; // "YYYY-MM-DD"
+  dataFim: string;    // "YYYY-MM-DD"
+  href?: string;
+};
+
+export function getAgendaRangeEvents(): AgendaRangeEvent[] {
+  return REAL_EVENTS.map((e) => ({
+    id: e.id,
+    nome: e.circuito,
+    status: statusByDate(e.dataInicio, e.dataFim),
+    cidade: e.cidade,
+    estado: e.estado,
+    dataInicio: e.dataInicio,
+    dataFim: e.dataFim,
+  })).sort((a, b) => a.dataInicio.localeCompare(b.dataInicio));
+}
+
 // Fonte da agenda: o calendário real da temporada (lib/mock/agenda-events.ts).
 export function getAgendaEvents(): AgendaEvent[] {
   const events: AgendaEvent[] = [];

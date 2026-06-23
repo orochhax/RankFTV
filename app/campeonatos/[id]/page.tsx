@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { MapPin, Users, Trophy, ChevronLeft, ChevronRight, Radio, CalendarDays, Ticket } from "lucide-react";
+import { MapPin, Users, Trophy, ChevronLeft, ChevronRight, Radio, CalendarDays, Ticket, Info } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
@@ -42,6 +42,10 @@ export default async function CampeonatoDetalhePage({
 
   const championship = await getDbChampionshipById(id);
   if (!championship) notFound();
+
+  // Campeonato vitrine: evento externo só informativo. Esconde tudo que é
+  // inscrição/plateia/chaveamento — a página vira uma vitrine do evento.
+  const isVitrine = championship.isVitrine ?? false;
 
   const voltarCriado = voltar === "criado";
   const backHref  = voltarCriado ? `/painel/campeonatos/${id}/criado` : "/campeonatos";
@@ -164,47 +168,49 @@ export default async function CampeonatoDetalhePage({
             {championship.local}, {championship.cidade} - {championship.estado}
           </span>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {hasDbBracket ? (
-            <Link
-              href={`/campeonatos/${championship.id}/chaveamento`}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-            >
-              <Trophy className="size-4" />
-              Ver chaveamento
-            </Link>
-          ) : (
-            <span
-              aria-disabled="true"
-              title="O chaveamento ainda não está disponível"
-              className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-400"
-            >
-              <Trophy className="size-4" />
-              Ver chaveamento
-            </span>
-          )}
+        {!isVitrine && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {hasDbBracket ? (
+              <Link
+                href={`/campeonatos/${championship.id}/chaveamento`}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+              >
+                <Trophy className="size-4" />
+                Ver chaveamento
+              </Link>
+            ) : (
+              <span
+                aria-disabled="true"
+                title="O chaveamento ainda não está disponível"
+                className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-400"
+              >
+                <Trophy className="size-4" />
+                Ver chaveamento
+              </span>
+            )}
 
-          {championship.liveUrl ? (
-            <a
-              href={championship.liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
-            >
-              <Radio className="size-4" />
-              Ver ao vivo
-            </a>
-          ) : (
-            <span
-              aria-disabled="true"
-              title="Sem transmissão ao vivo cadastrada"
-              className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-400"
-            >
-              <Radio className="size-4" />
-              Ver ao vivo
-            </span>
-          )}
-        </div>
+            {championship.liveUrl ? (
+              <a
+                href={championship.liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+              >
+                <Radio className="size-4" />
+                Ver ao vivo
+              </a>
+            ) : (
+              <span
+                aria-disabled="true"
+                title="Sem transmissão ao vivo cadastrada"
+                className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-400"
+              >
+                <Radio className="size-4" />
+                Ver ao vivo
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Cronograma */}
@@ -249,7 +255,22 @@ export default async function CampeonatoDetalhePage({
         </section>
       )}
 
+      {/* Aviso de evento informativo (vitrine) */}
+      {isVitrine && (
+        <div className="flex items-start gap-3 rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5">
+          <Info className="mt-0.5 size-5 shrink-0 text-gray-400" />
+          <div>
+            <p className="font-semibold text-gray-800">Evento informativo</p>
+            <p className="mt-0.5 text-sm text-gray-500">
+              As inscrições deste campeonato não são feitas pela plataforma. Esta página é
+              só pra você acompanhar as informações do evento.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Escolha principal: jogar (atleta) ou assistir (plateia) */}
+      {!isVitrine && (
       <div className="grid gap-3 sm:grid-cols-2">
         <Link
           href={`/campeonatos/${championship.id}/categorias`}
@@ -289,12 +310,14 @@ export default async function CampeonatoDetalhePage({
           </div>
         )}
       </div>
+      )}
 
       <section>
         <h2 className="mb-3 text-lg font-semibold text-gray-900">Regulamento</h2>
         <p className="text-sm leading-relaxed text-gray-600">{championship.regulamento}</p>
       </section>
 
+      {!isVitrine && (
       <section>
         <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900">
           <Users className="size-5" /> Duplas inscritas ({duplas.length})
@@ -328,6 +351,7 @@ export default async function CampeonatoDetalhePage({
           </ul>
         )}
       </section>
+      )}
     </div>
   );
 }

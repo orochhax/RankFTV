@@ -20,22 +20,6 @@ function formatDate(d: string) {
   });
 }
 
-function formatSeguidores(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(".", ",")}k`;
-  return String(n);
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  inscricoes_abertas: "Inscrições abertas",
-  em_andamento: "Em andamento",
-  encerrado: "Encerrado",
-};
-const STATUS_COLOR: Record<string, string> = {
-  inscricoes_abertas: "bg-green-100 text-green-700",
-  em_andamento: "bg-blue-100 text-blue-700",
-  encerrado: "bg-gray-100 text-gray-500",
-};
-
 export default async function PublicPagePage({
   params,
 }: {
@@ -57,10 +41,8 @@ export default async function PublicPagePage({
   ]);
 
   const following = followedIds.includes(page.id);
-  const isOwner = user?.id === pageRow.data?.owner_id;
   const socialLinks: SocialLink[] = (pageRow.data?.social_links as SocialLink[] | null) ?? [];
   const encerradas = editions.filter((e) => e.status === "encerrado");
-  const abertas = editions.filter((e) => e.status !== "encerrado");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -95,6 +77,7 @@ export default async function PublicPagePage({
             initialFollowing={following}
             initialSeguidores={page.seguidores}
             avatarUrl={page.avatarUrl ?? null}
+            seguidoresHref={`/campeonatos/paginas/${handle}/seguidores`}
           />
 
           <SocialLinksBar
@@ -122,44 +105,6 @@ export default async function PublicPagePage({
               status: e.status,
             }))}
           />
-
-          {/* Abertas ou em andamento */}
-          {abertas.length > 0 && (
-            <section>
-              <h2 className="mb-3 text-sm font-semibold text-gray-700">Próximas edições</h2>
-              <ul className="space-y-3">
-                {abertas.map((e) => (
-                  <li key={e.id}>
-                    <Link
-                      href={`/campeonatos/${e.id}`}
-                      className="flex items-start gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-shadow hover:shadow-sm"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold text-gray-900">{e.nome}</p>
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLOR[e.status] ?? "bg-gray-100 text-gray-500"}`}
-                          >
-                            {STATUS_LABEL[e.status] ?? e.status}
-                          </span>
-                        </div>
-                        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-400">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="size-3" />
-                            {formatDate(e.data_inicio)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="size-3" />
-                            {e.cidade}, {e.estado}
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
 
           {/* Encerradas */}
           {encerradas.length > 0 && (

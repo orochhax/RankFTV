@@ -3,18 +3,13 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, ChevronLeft, ChevronRight, Eye, EyeOff, List, MapPin } from "lucide-react";
-import type { AgendaEvent } from "@/lib/agenda";
+import type { AgendaEvent, AgendaRangeEvent } from "@/lib/agenda";
 import type { ChampionshipStatus } from "@/lib/types";
 
-const WEEKDAYS_SHORT = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 const WEEKDAYS_MIN = ["D", "S", "T", "Q", "Q", "S", "S"];
 const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-];
-const MONTHS_ABREV = [
-  "jan", "fev", "mar", "abr", "mai", "jun",
-  "jul", "ago", "set", "out", "nov", "dez",
 ];
 
 // Cor de cada status — a "bolinha" do evento e o bloco de data na lista.
@@ -33,15 +28,6 @@ const CIRCUITO_BLOCK: Record<string, string> = {
   "Circuito Brasileiro de Futevôlei": "bg-green-700 text-white",
 };
 
-// Quando um dia tem eventos de status diferentes, a cor do bloco de data segue
-// o mais "ativo" (em andamento > inscrições abertas > encerrado).
-const STATUS_PRIORITY: Record<ChampionshipStatus, number> = {
-  em_andamento: 0,
-  inscricoes_abertas: 1,
-  rascunho: 2,
-  encerrado: 3,
-};
-
 function parseDate(iso: string): Date {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);
@@ -51,10 +37,13 @@ function toISO(y: number, m: number, d: number): string {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-function dominantStatus(events: AgendaEvent[]): ChampionshipStatus {
-  return [...events].sort(
-    (a, b) => STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status],
-  )[0].status;
+// "2026-06-16" → "16/06". Intervalo vira "16/06 ~ 19/06" (ou só "16/06" se 1 dia).
+function ddmm(iso: string): string {
+  const [, m, d] = iso.split("-");
+  return `${d}/${m}`;
+}
+function formatRange(inicio: string, fim: string): string {
+  return inicio === fim ? ddmm(inicio) : `${ddmm(inicio)} ~ ${ddmm(fim)}`;
 }
 
 // Chip de um evento — reaproveitado na lista e no painel do calendário.
@@ -90,16 +79,21 @@ function EventChip({ event }: { event: AgendaEvent }) {
   return <div className={baseClass}>{inner}</div>;
 }
 
-export function AgendaView({ events }: { events: AgendaEvent[] }) {
+export function AgendaView({
+  events,
+  rangeEvents,
+}: {
+  events: AgendaEvent[];
+  rangeEvents: AgendaRangeEvent[];
+}) {
   const [view, setView] = useState<"lista" | "calendario">("lista");
   const [showFinished, setShowFinished] = useState(false);
 
-  // Quantos eventos já finalizados existem (conta cada evento uma vez, não por dia).
-  const finishedCount = useMemo(() => {
-    const ids = new Set<string>();
-    for (const e of events) if (e.status === "encerrado") ids.add(e.id);
-    return ids.size;
-  }, [events]);
+  // Quantos eventos já finalizados existem (cada evento conta uma vez).
+  const finishedCount = useMemo(
+    () => rangeEvents.filter((e) => e.status === "encerrado").length,
+    [rangeEvents],
+  );
 
   // Por padrão escondemos os já finalizados; o botão revela.
   const visibleEvents = useMemo(
@@ -108,7 +102,15 @@ export function AgendaView({ events }: { events: AgendaEvent[] }) {
     [events, showFinished],
   );
 
-  // Agrupa os eventos visíveis por dia uma vez só.
+  const visibleRangeEvents = useMemo(
+    () =>
+      showFinished
+        ? rangeEvents
+        : rangeEvents.filter((e) => e.status !== "encerrado"),
+    [rangeEvents, showFinished],
+  );
+
+  // Agrupa os eventos visíveis por dia uma vez só (visão calendário).
   const eventsByDate = useMemo(() => {
     const map = new Map<string, AgendaEvent[]>();
     for (const e of visibleEvents) {
@@ -118,11 +120,6 @@ export function AgendaView({ events }: { events: AgendaEvent[] }) {
     }
     return map;
   }, [visibleEvents]);
-
-  const sortedDates = useMemo(
-    () => [...eventsByDate.keys()].sort(),
-    [eventsByDate],
-  );
 
   return (
     <div className="min-h-screen">
@@ -175,7 +172,7 @@ export function AgendaView({ events }: { events: AgendaEvent[] }) {
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-3xl">
           {view === "lista" ? (
-            <ListView sortedDates={sortedDates} eventsByDate={eventsByDate} />
+            <ListView events={visibleRangeEvents} />
           ) : (
             <CalendarView eventsByDate={eventsByDate} />
           )}
@@ -186,15 +183,10 @@ export function AgendaView({ events }: { events: AgendaEvent[] }) {
 }
 
 // ─────────────────────────── Visão LISTA ───────────────────────────
-// Só mostra os dias que têm evento. Dia sem nada não aparece.
-function ListView({
-  sortedDates,
-  eventsByDate,
-}: {
-  sortedDates: string[];
-  eventsByDate: Map<string, AgendaEvent[]>;
-}) {
-  if (sortedDates.length === 0) {
+// Agrupada por mês. Dentro de cada mês, um mini card por evento com o nome do
+// circuito e o intervalo de datas (ex.: "16/06 ~ 19/06").
+function ListView({ events }: { events: AgendaRangeEvent[] }) {
+  if (events.length === 0) {
     return (
       <div className="rounded-2xl bg-white p-8 text-center ring-1 ring-black/5">
         <p className="text-sm text-gray-500">Nenhum evento na agenda ainda.</p>
@@ -202,53 +194,71 @@ function ListView({
     );
   }
 
-  let lastMonthKey = "";
+  // Agrupa por mês (a partir da data de início), preservando a ordem cronológica.
+  const meses: { key: string; label: string; eventos: AgendaRangeEvent[] }[] = [];
+  for (const e of events) {
+    const d = parseDate(e.dataInicio);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    let grupo = meses.find((m) => m.key === key);
+    if (!grupo) {
+      grupo = { key, label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}`, eventos: [] };
+      meses.push(grupo);
+    }
+    grupo.eventos.push(e);
+  }
 
   return (
-    <div className="space-y-3">
-      {sortedDates.map((iso) => {
-        const date = parseDate(iso);
-        const dayEvents = eventsByDate.get(iso)!;
-        const status = dominantStatus(dayEvents);
-
-        // Separador de mês quando vira o mês.
-        const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-        const showMonth = monthKey !== lastMonthKey;
-        lastMonthKey = monthKey;
-
-        return (
-          <div key={iso}>
-            {showMonth && (
-              <p className="mb-2 mt-4 px-1 text-xs font-semibold uppercase tracking-widest text-gray-400 first:mt-0">
-                {MONTHS[date.getMonth()]} {date.getFullYear()}
-              </p>
-            )}
-            <div className="flex gap-4 rounded-2xl bg-white p-4 ring-1 ring-black/5">
-              {/* Bloco de data — cor do circuito dominante do dia */}
-              <div
-                className={`flex w-14 shrink-0 flex-col items-center justify-center rounded-xl py-2 text-center ${CIRCUITO_BLOCK[dayEvents[0]?.nome] ?? STATUS_STYLE[status].block}`}
-              >
-                <span className="text-[10px] font-semibold uppercase">
-                  {WEEKDAYS_SHORT[date.getDay()]}
-                </span>
-                <span className="text-2xl font-bold leading-none">{date.getDate()}</span>
-                <span className="text-[10px] font-medium uppercase">
-                  {MONTHS_ABREV[date.getMonth()]}
-                </span>
-              </div>
-
-              {/* Eventos do dia, lado a lado */}
-              <div className="flex flex-1 flex-wrap content-center items-center gap-2">
-                {dayEvents.map((e) => (
-                  <EventChip key={e.id} event={e} />
-                ))}
-              </div>
-            </div>
+    <div className="space-y-7">
+      {meses.map((mes) => (
+        <section key={mes.key}>
+          <p className="mb-2.5 px-1 text-xs font-semibold uppercase tracking-widest text-gray-400">
+            {mes.label}
+          </p>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {mes.eventos.map((e) => (
+              <MiniCard key={e.id} event={e} />
+            ))}
           </div>
-        );
-      })}
+        </section>
+      ))}
     </div>
   );
+}
+
+// Mini card de um evento na lista por mês. Vira link só quando o evento tem
+// página própria (href).
+function MiniCard({ event }: { event: AgendaRangeEvent }) {
+  const local = event.estado ? `${event.cidade} - ${event.estado}` : event.cidade;
+  const acento = CIRCUITO_BLOCK[event.nome] ?? STATUS_STYLE[event.status].block;
+
+  const inner = (
+    <div className="flex items-stretch gap-3 overflow-hidden rounded-2xl bg-white p-3 ring-1 ring-black/5">
+      {/* Faixa colorida do circuito */}
+      <span className={`w-1.5 shrink-0 rounded-full ${acento}`} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold leading-tight text-gray-900">
+          {event.nome}
+        </p>
+        <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-gray-700">
+          <CalendarDays className="size-3.5 text-gray-400" />
+          {formatRange(event.dataInicio, event.dataFim)}
+        </p>
+        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-400">
+          <MapPin className="size-3" />
+          {local}
+        </p>
+      </div>
+    </div>
+  );
+
+  if (event.href) {
+    return (
+      <Link href={event.href} className="block transition-shadow hover:shadow-sm">
+        {inner}
+      </Link>
+    );
+  }
+  return inner;
 }
 
 // ─────────────────────────── Visão CALENDÁRIO ───────────────────────────
