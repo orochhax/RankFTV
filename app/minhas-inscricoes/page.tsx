@@ -26,7 +26,7 @@ type TeamRow = {
     genero: string;
     valor_inscricao: number;
   } | null;
-  registrations: { status_pagamento: string }[] | null;
+  registrations: { id: string; status_pagamento: string }[] | null;
 };
 
 const TEAM_STATUS: Record<string, { label: string; className: string }> = {
@@ -55,7 +55,7 @@ export default async function MinhasInscricoesPage() {
       id, status, championship_id, category_id,
       championships(id, nome, data_inicio, data_fim, cidade, estado, status),
       championship_categories(nome, genero, valor_inscricao),
-      registrations(status_pagamento)
+      registrations(id, status_pagamento)
     `)
     .or(`atleta1_id.eq.${user.id},atleta2_id.eq.${user.id}`)
     .order("created_at", { ascending: false });
@@ -209,6 +209,8 @@ function InscricaoSection({
 
               <InscricaoMenu
                 teamId={t.id}
+                champId={champ.id}
+                regId={pag?.id}
                 teamStatus={t.status}
                 pagStatus={pag?.status_pagamento}
               />

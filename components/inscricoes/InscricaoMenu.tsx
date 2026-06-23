@@ -1,18 +1,24 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2, MoreVertical, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Loader2, MoreVertical, RotateCcw, X } from "lucide-react";
 import { cancelarInscricao } from "@/app/minhas-inscricoes/actions";
 
 export function InscricaoMenu({
   teamId,
+  champId,
+  regId,
   teamStatus,
   pagStatus,
 }: {
   teamId:     string;
+  champId:    string;
+  regId?:     string;
   teamStatus: string;
   pagStatus?: string;
 }) {
+  const router = useRouter();
   const [open,       setOpen]       = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [erro,       setErro]       = useState<string | null>(null);
@@ -20,7 +26,8 @@ export function InscricaoMenu({
 
   if (teamStatus === "cancelado") return null;
 
-  const jaPago = pagStatus === "pago";
+  const jaPago   = pagStatus === "pago";
+  const estornado = pagStatus === "estornado";
 
   function abrirMenu(e: React.MouseEvent) {
     e.preventDefault();
@@ -34,6 +41,13 @@ export function InscricaoMenu({
     e.stopPropagation();
     setOpen(false);
     setConfirming(true);
+  }
+
+  function irParaReembolso(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(false);
+    router.push(`/minhas-inscricoes/${champId}/reembolso?reg=${regId}`);
   }
 
   function confirmar(e: React.MouseEvent) {
@@ -93,18 +107,31 @@ export function InscricaoMenu({
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-9 z-20 w-52 overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5">
-            {jaPago && (
-              <p className="border-b border-gray-100 px-4 py-2.5 text-xs text-gray-400">
-                Pagamento já confirmado — o estorno precisa ser solicitado ao organizador.
+            {/* Reembolso — só aparece se já pagou e não está estornado */}
+            {jaPago && !estornado && regId && (
+              <button
+                onClick={irParaReembolso}
+                className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-amber-600 hover:bg-amber-50 transition-colors"
+              >
+                <RotateCcw className="size-4" /> Solicitar reembolso
+              </button>
+            )}
+
+            {/* Cancelar — só aparece se ainda não pagou */}
+            {!jaPago && !estornado && (
+              <button
+                onClick={pedirConfirmacao}
+                className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <X className="size-4" /> Cancelar inscrição
+              </button>
+            )}
+
+            {estornado && (
+              <p className="px-4 py-3 text-xs text-gray-400">
+                Esta inscrição já foi estornada.
               </p>
             )}
-            <button
-              onClick={jaPago ? undefined : pedirConfirmacao}
-              disabled={jaPago}
-              className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
-            >
-              <X className="size-4" /> Cancelar inscrição
-            </button>
           </div>
         </>
       )}

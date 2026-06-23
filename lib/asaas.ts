@@ -107,6 +107,16 @@ export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriad
   return resultado;
 }
 
+// ── Reembolso de pagamento ────────────────────────────────────────────────────
+// Estorna a cobrança no Asaas. O webhook PAYMENT_REFUNDED dispara em seguida e
+// atualiza o status da inscrição no banco.
+
+export async function reembolsarPagamento(asaasPaymentId: string): Promise<{ id: string; status: string }> {
+  return request<{ id: string; status: string }>(`/payments/${asaasPaymentId}/refund`, {
+    method: "POST",
+  });
+}
+
 // ── Transferência Pix ao organizador ─────────────────────────────────────────
 // Chamada após confirmação de pagamento (Pix/débito: imediato; crédito: D+32).
 
