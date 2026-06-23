@@ -71,7 +71,45 @@ export function NoticiasCarousel({ noticias }: { noticias: News[] }) {
   if (count === 0) return null;
 
   return (
-    <div className="space-y-3">
+    <>
+    {/* ───────── Desktop (PC): 3 cards de notícia lado a lado, foto vertical ───────── */}
+    <div className="hidden gap-4 md:grid md:grid-cols-3">
+      {noticias.map((n) => (
+        <Link
+          key={n.id}
+          href={`/noticias/${n.id}`}
+          className="group flex min-w-0 flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 transition-shadow hover:shadow-md"
+        >
+          <div className="relative aspect-[3/4] w-full bg-gray-900">
+            {n.imagem_url ? (
+              <Image
+                src={n.imagem_url}
+                alt=""
+                fill
+                sizes="(max-width: 1024px) 33vw, 340px"
+                className="object-cover"
+              />
+            ) : (
+              <div className="flex size-full items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-400">
+                <Newspaper className="size-10 text-white/90" strokeWidth={1.5} />
+              </div>
+            )}
+          </div>
+          <div className="flex flex-1 flex-col p-4">
+            <p className="text-xs font-medium text-gray-400">
+              {formatDataNoticia(n.created_at)}
+            </p>
+            <h3 className="mt-1 line-clamp-2 text-base font-bold leading-tight text-gray-900 group-hover:text-blue-700">
+              {n.titulo}
+            </h3>
+            <p className="mt-1.5 line-clamp-2 text-sm text-gray-500">{n.resumo}</p>
+          </div>
+        </Link>
+      ))}
+    </div>
+
+    {/* ───────── Mobile: carrossel (arrasta pro lado) ───────── */}
+    <div className="space-y-3 md:hidden">
       <div className="relative mx-auto max-w-sm">
         <div
           ref={scrollRef}
@@ -155,5 +193,6 @@ export function NoticiasCarousel({ noticias }: { noticias: News[] }) {
         </div>
       )}
     </div>
+    </>
   );
 }

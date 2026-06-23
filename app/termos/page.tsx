@@ -52,7 +52,7 @@ const SECOES: Secao[] = [
   {
     titulo: "Informações gerais",
     blocos: [
-      { p: "Estes Termos de Uso (“Termos”) regulam o acesso e a utilização da Plataforma RankFTV, mantida por [razão social — preencher], inscrita no CNPJ sob o nº [CNPJ — preencher], com sede em [endereço — preencher] (“RankFTV”, “nós”)." },
+      { p: "Estes Termos de Uso (“Termos”) regulam o acesso e a utilização da Plataforma RankFTV, mantida por Carlos Gregório Rocha Batista, inscrito no CPF sob o nº 070.460.265-21, com sede na Travessa da Roda, nº 52, Stela Reis, Eunápolis/BA (“RankFTV”, “nós”)." },
       { p: "A Plataforma RankFTV oferece: (i) ferramentas para o Organizador criar, divulgar e gerenciar campeonatos de futevôlei; (ii) inscrição online de atletas e duplas em categorias; (iii) venda de ingressos de plateia ao público; (iv) credenciamento e check-in por QR Code; e (v) processamento de pagamentos com repasse ao Organizador, por meio de processador de pagamentos parceiro." },
       { p: "A RankFTV é uma intermediadora de tecnologia e de pagamentos. Os campeonatos e seus dados (datas, local, regras, valores, premiação) são de responsabilidade exclusiva do Organizador, único responsável por realizar o evento conforme anunciado." },
       { p: "A Plataforma é apresentada da maneira como está disponível e pode passar por melhorias e atualizações contínuas. A RankFTV empenha-se em manter as funcionalidades acessíveis, com layout claro e usável." },
@@ -192,7 +192,7 @@ const SECOES: Secao[] = [
   {
     titulo: "Nota fiscal e tributos",
     blocos: [
-      { p: "A RankFTV emitirá documento fiscal referente à sua taxa de serviço. Os tributos incidentes sobre o valor total das vendas do Organizador são de responsabilidade exclusiva deste." },
+      { p: "Os tributos incidentes sobre a taxa de serviço cobrada pela RankFTV são de responsabilidade da RankFTV. Os tributos incidentes sobre o valor total das vendas (inscrições e ingressos) do Organizador são de responsabilidade exclusiva deste." },
       { p: "É responsabilidade do Organizador emitir os documentos fiscais devidos aos compradores e recolher os tributos correspondentes às suas vendas." },
     ],
   },
@@ -213,9 +213,14 @@ const SECOES: Secao[] = [
     ],
   },
   {
-    titulo: "Privacidade dos usuários",
+    titulo: "Privacidade e proteção de dados",
     blocos: [
-      { p: "O tratamento de dados pessoais é regido pela Política de Privacidade da RankFTV, parte integrante destes Termos, em conformidade com a Lei nº 13.709/2018 (LGPD). Em caso de conflito entre os documentos, prevalece a norma mais específica." },
+      { p: "A RankFTV trata os dados pessoais dos Usuários em conformidade com a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados — LGPD). Esta seção integra os Termos e descreve como os dados são coletados, utilizados, compartilhados e protegidos." },
+      { p: "Dados coletados: (i) dados de cadastro (nome, e-mail, @usuário, senha e, quando aplicável, telefone, cidade/estado, CPF/CNPJ e chave Pix); (ii) dados das inscrições, duplas, ingressos e credenciais; (iii) dados necessários ao pagamento, processados pelo processador de pagamentos parceiro; e (iv) dados de navegação e de uso da Plataforma." },
+      { p: "Finalidades: os dados são usados para criar e gerenciar a conta, viabilizar inscrições, ingressos, credenciamento e pagamentos, repassar valores aos Organizadores, prevenir fraudes, cumprir obrigações legais e comunicar informações sobre eventos e sobre a Plataforma." },
+      { p: "Compartilhamento: os dados podem ser compartilhados com o processador de pagamentos parceiro (para processar transações e repasses), com o Organizador do evento em que o Usuário se inscreveu (na medida necessária à realização do evento) e com autoridades quando exigido por lei ou ordem judicial. A RankFTV não vende dados pessoais a terceiros." },
+      { p: "Direitos do titular: o Usuário pode solicitar, a qualquer momento, a confirmação da existência de tratamento, o acesso, a correção, a portabilidade, a anonimização ou a exclusão de seus dados, bem como informações sobre o tratamento, pelos canais oficiais da Plataforma, observadas as obrigações legais de guarda." },
+      { p: "Segurança e retenção: a RankFTV adota medidas técnicas e administrativas razoáveis para proteger os dados pessoais e os mantém apenas pelo tempo necessário às finalidades acima ou ao cumprimento de obrigações legais e regulatórias." },
     ],
   },
   {
@@ -252,7 +257,7 @@ const SECOES: Secao[] = [
       { p: "A RankFTV poderá modificar estes Termos a qualquer tempo, para aprimoramento ou adequação legal, cabendo ao Usuário consultá-los periodicamente. O uso continuado da Plataforma após alterações implica concordância com a versão vigente." },
       { p: "A eventual tolerância a qualquer violação destes Termos é mera liberalidade e não implica novação, renúncia de direitos ou alteração contratual." },
       { p: "Se qualquer disposição destes Termos for considerada inválida, as demais permanecem em vigor. Estes Termos são regidos pela legislação brasileira." },
-      { p: "A comunicação com a RankFTV deve ser feita pelos canais oficiais indicados na Plataforma ([e-mail de contato — preencher]). As divergências serão, sempre que possível, resolvidas amigavelmente; não havendo acordo, fica eleito o foro da Comarca de [cidade/UF — preencher], com renúncia a qualquer outro, por mais privilegiado que seja." },
+      { p: "A comunicação com a RankFTV deve ser feita pelos canais oficiais indicados na Plataforma (carlosrocha0923@gmail.com). As divergências serão, sempre que possível, resolvidas amigavelmente; não havendo acordo, fica eleito o foro da Comarca de Eunápolis/BA, com renúncia a qualquer outro, por mais privilegiado que seja." },
     ],
   },
 ];

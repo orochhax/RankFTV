@@ -33,8 +33,42 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
         </Link>
       </div>
 
-      {/* Stack de cards com profundidade */}
-      <div className="relative" style={{ height: "260px" }}>
+      {/* ───────── Desktop (PC): cards grandes, horizontais, empilhados ───────── */}
+      <div className="hidden gap-4 md:flex md:flex-col">
+        {camps.map((camp) => (
+          <Link
+            key={camp.id}
+            href={`/campeonatos/${camp.id}`}
+            className="group flex overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-sm transition-shadow hover:shadow-md"
+          >
+            <div className={`relative h-44 w-1/2 shrink-0 bg-gradient-to-br ${camp.bannerFrom} ${camp.bannerTo}`}>
+              {camp.bannerUrl ? (
+                <Image src={camp.bannerUrl} alt={camp.nome} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 512px" />
+              ) : (
+                <div className="flex size-full items-center justify-center">
+                  <Trophy className="size-12 text-white/90" strokeWidth={1.5} />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-1 flex-col justify-center gap-2 p-6">
+              <h3 className="text-xl font-bold leading-tight text-gray-900 group-hover:text-blue-700">
+                {camp.nome}
+              </h3>
+              <p className="text-sm text-gray-500">{formatDateRangeBR(camp.dataInicio, camp.dataFim)}</p>
+              <p className="flex items-center gap-1 text-sm text-gray-500">
+                <MapPin className="size-4" />
+                {camp.cidade} - {camp.estado}
+              </p>
+              <div className="mt-1">
+                <StatusBadge status={camp.status} />
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* ───────── Mobile: stack de cards com profundidade (carrossel) ───────── */}
+      <div className="relative md:hidden" style={{ height: "260px" }}>
         {camps.map((camp, i) => {
             // distância em relação ao atual (com wrap circular)
           const raw  = (i - current + camps.length) % camps.length;
@@ -96,9 +130,9 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
         })}
       </div>
 
-      {/* Indicadores de posição */}
+      {/* Indicadores de posição (só no mobile) */}
       {camps.length > 1 && (
-        <div className="flex justify-center gap-1.5 pt-1">
+        <div className="flex justify-center gap-1.5 pt-1 md:hidden">
           {camps.map((_, i) => (
             <button
               key={i}

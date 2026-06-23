@@ -19,6 +19,7 @@ import {
   ClipboardList,
   UserX,
   CheckCircle2,
+  FileText,
 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { createClient } from "@/lib/supabase/server";
@@ -258,6 +259,15 @@ export default async function PainelOrganizadorPage({
                 ))}
               </ol>
             )}
+
+            <Link
+              href="/termos"
+              className="flex items-center gap-3 rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5 transition-colors hover:bg-gray-100"
+            >
+              <FileText className="size-5 shrink-0 text-gray-400" />
+              <span className="flex-1 text-sm font-medium text-gray-700">Termos de uso</span>
+              <ChevronRight className="size-4 shrink-0 text-gray-300" />
+            </Link>
           </div>
         </div>
       </div>
@@ -529,6 +539,16 @@ export default async function PainelOrganizadorPage({
               {cta.label}
             </Link>
           </div>
+        </div>
+
+        {/* Termos de uso */}
+        <div className="mx-auto mt-10 max-w-3xl px-6 text-center">
+          <Link
+            href="/termos"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-gray-600"
+          >
+            <FileText className="size-4" /> Termos de uso
+          </Link>
         </div>
 
       </div>
