@@ -168,7 +168,7 @@ const SECOES: Secao[] = [
         "Plano Elite: 7% no Pix e 9% no cartão de crédito ou débito.",
       ] },
       { p: "A taxa de serviço tem valor mínimo de R$ 3,99 por transação. Não há cobrança de taxa em inscrições e ingressos gratuitos." },
-      { p: "Plano Elite — o Organizador pode optar, em cada evento, pelo Plano Elite, que reduz as taxas e inclui benefícios adicionais (destaque do evento, divulgação, suporte priorizado, entre outros). A adesão ao Elite corresponde a R$ 178,00 por evento, que não é cobrado antecipadamente: o valor é descontado automaticamente dos primeiros repasses recebidos. Enquanto não houver vendas, nada é devido; caso o evento seja encerrado sem atingir esse valor em vendas, o saldo pendente é zerado." },
+      { p: "Plano Elite — o Organizador pode optar, em cada evento, pelo Plano Elite, que reduz as taxas e inclui benefícios adicionais (destaque do evento, divulgação, suporte priorizado, entre outros). A adesão ao Elite corresponde a R$ 178,00 (de R$ 399,00) por evento, que não é cobrado antecipadamente: o valor é descontado automaticamente dos primeiros repasses recebidos. Enquanto não houver vendas, nada é devido; caso o evento seja encerrado sem atingir esse valor em vendas, o saldo pendente é zerado." },
       { p: "A opção pelo Plano Elite pode ser feita enquanto as inscrições estiverem abertas. Após o encerramento das inscrições, não é possível ativar o Elite." },
     ],
   },

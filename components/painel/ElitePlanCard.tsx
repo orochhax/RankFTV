@@ -24,7 +24,7 @@ const BENEFICIOS_ELITE = [
 ];
 
 const TERMOS = [
-  "O valor de R$178,00 será descontado automaticamente das primeiras inscrições recebidas.",
+  "O valor de R$178,00 (de R$399,00) será descontado automaticamente das primeiras inscrições recebidas.",
   "Você não paga nada agora — o desconto acontece conforme os atletas pagam.",
   "As taxas reduzidas entram em vigor imediatamente após aceitar.",
   "Caso o evento seja cancelado antes de atingir R$178 em inscrições, o saldo pendente é zerado.",
@@ -51,7 +51,7 @@ export function ElitePlanCard({
             </div>
             <div>
               <p className="font-bold text-amber-900">Evento de Elite ativado</p>
-              <p className="text-xs text-amber-600">R$178 descontados das primeiras inscrições</p>
+              <p className="text-xs text-amber-600">De R$399 por R$178 — descontado das primeiras inscrições</p>
             </div>
           </div>
           <button
@@ -91,7 +91,9 @@ export function ElitePlanCard({
             <p className="font-bold text-emerald-300 text-base">Você não paga nada agora</p>
           </div>
           <p className="text-sm text-emerald-200/80 leading-relaxed">
-            O valor de <strong className="text-emerald-300">R$178,00</strong> é descontado automaticamente
+            O valor de{" "}
+            <span className="line-through opacity-50 mr-0.5">R$399,00</span>
+            <strong className="text-emerald-300">R$178,00</strong> é descontado automaticamente
             das primeiras inscrições que entram. Sem cartão, sem boleto, sem tirar dinheiro do bolso.
             Enquanto ninguém se inscrever, você não deve nada.
           </p>
@@ -157,7 +159,7 @@ export function ElitePlanCard({
         <Crown className="size-5 text-amber-400" />
         <p className="font-bold text-white">Evento de Elite</p>
         <span className="ml-auto rounded-full bg-amber-400/20 px-2.5 py-0.5 text-xs font-semibold text-amber-300">
-          R$178 / evento
+          <span className="line-through opacity-50 mr-1">R$399</span>R$178 / evento
         </span>
       </div>
       <p className="text-xs text-white/40 mb-4">

@@ -6,3 +6,6 @@
 
 /** Preço único de ativação do Elite por campeonato (descontado dos repasses). */
 export const PRECO_ELITE = 178;
+
+/** Preço original (antes da promoção) — exibido riscado na UI. */
+export const PRECO_ELITE_ORIGINAL = 399;

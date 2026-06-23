@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Crown, Loader2, Lock } from "lucide-react";
 import { tornarCampeonatoElite } from "@/app/painel/campeonatos/[id]/financeiro/actions";
-import { PRECO_ELITE } from "@/lib/elite";
+import { PRECO_ELITE, PRECO_ELITE_ORIGINAL } from "@/lib/elite";
 import { TAXAS_EXIBICAO } from "@/lib/taxas";
 
 function brl(n: number) {
@@ -56,7 +56,7 @@ export function PlanoTaxas({
     if (
       !confirm(
         `Tornar este campeonato Elite?\n\n` +
-          `Você NÃO paga nada agora. Os ${brl(PRECO_ELITE)} da ativação são ` +
+          `Você NÃO paga nada agora. Os ${brl(PRECO_ELITE)} da ativação (de ${brl(PRECO_ELITE_ORIGINAL)}) são ` +
           `descontados automaticamente das suas próximas inscrições pagas. ` +
           `A partir daí a taxa que o comprador paga fica menor (Elite).`,
       )
@@ -128,7 +128,7 @@ export function PlanoTaxas({
                 Tornar meu campeonato Elite
               </button>
               <p className="mt-2 text-center text-xs text-gray-400">
-                Sem cobrança agora — os {brl(PRECO_ELITE)} saem das próximas inscrições.
+                Sem cobrança agora — de {brl(PRECO_ELITE_ORIGINAL)} por {brl(PRECO_ELITE)}, descontado das próximas inscrições.
               </p>
               {erro && <p className="mt-2 text-xs text-red-600">{erro}</p>}
             </div>
