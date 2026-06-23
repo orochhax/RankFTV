@@ -314,7 +314,7 @@ export default async function CampeonatoDetalhePage({
 
       <section>
         <h2 className="mb-3 text-lg font-semibold text-gray-900">Regulamento</h2>
-        <p className="text-sm leading-relaxed text-gray-600">{championship.regulamento}</p>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">{championship.regulamento}</p>
       </section>
 
       {!isVitrine && (
