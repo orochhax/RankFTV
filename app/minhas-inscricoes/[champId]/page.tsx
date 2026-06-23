@@ -12,7 +12,9 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+
 import { CopiarLink } from "@/components/ui/CopiarLink";
+import { TamanhoCamisaPicker } from "@/components/inscricoes/TamanhoCamisaPicker";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -112,10 +114,10 @@ export default async function IngressoPage({
     parceiro = data;
   }
 
-  // Busca perfil do próprio usuário
+  // Busca perfil do próprio usuário (inclui tamanho_camisa para seção de uniforme)
   const { data: meProfile } = await supabase
     .from("profiles")
-    .select("nome, username")
+    .select("nome, username, tamanho_camisa")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -132,6 +134,12 @@ export default async function IngressoPage({
 
   const isPago = reg?.status_pagamento === "pago";
   const isCheckedIn = credential?.checked_in ?? false;
+
+  // Atleta2 (convidado) que ainda não confirmou o tamanho de camisa
+  const isAtleta2 = team.atleta1_id !== user.id;
+  const precisaConfirmarCamisa = isAtleta2
+    && team.status === "confirmado"
+    && !meProfile?.tamanho_camisa;
 
   return (
     <div className="min-h-screen">
@@ -326,6 +334,26 @@ export default async function IngressoPage({
               )}
             </div>
           </section>
+
+          {/* ── Tamanho do uniforme (atleta2 após aceitar convite) ── */}
+          {isAtleta2 && team.status === "confirmado" && (
+            <section className="space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                Uniforme
+              </h2>
+              {precisaConfirmarCamisa ? (
+                <TamanhoCamisaPicker champId={champId} />
+              ) : (
+                <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 ring-1 ring-black/5">
+                  <Shirt className="size-4 shrink-0 text-gray-400" />
+                  <div>
+                    <p className="text-xs text-gray-400">Tamanho confirmado</p>
+                    <p className="text-sm font-semibold text-gray-900">{meProfile?.tamanho_camisa}</p>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
           {/* ── Card de convite ── */}
           {team.status === "convite_pendente" && team.atleta1_id === user.id && (

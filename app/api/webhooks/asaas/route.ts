@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { executarRepasse, executarRepasseEspectador } from "@/lib/repasse";
+import { enviarConviteDupla } from "@/lib/email/send";
 
 const EVENTOS_CONFIRMADO = new Set(["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"]);
 const EVENTOS_ESTORNADO  = new Set(["PAYMENT_REFUNDED", "PAYMENT_DELETED"]);
@@ -166,21 +167,51 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (team) {
-      // Só confirma a dupla se não há parceiro pendente de aceite.
-      // Quando há parceiro (atleta2_id) e ele ainda não aceitou (convite_pendente),
-      // o status muda para "confirmado" somente quando o parceiro aceitar o convite.
-      const parceiroPendente = !!team.atleta2_id && team.status === "convite_pendente";
+      // aguardandoPagamento: parceiro já definido mas convite SÓ agora é enviado
+      //   (inscrição paga — o convite foi segurado até o pagamento ser confirmado).
+      // parceiroPendente: convite já foi enviado mas parceiro ainda não aceitou.
+      const aguardandoPagamento = !!team.atleta2_id && team.status === "aguardando_pagamento";
+      const parceiroPendente    = !!team.atleta2_id && team.status === "convite_pendente";
 
-      if (!parceiroPendente) {
+      if (aguardandoPagamento) {
+        // Pagamento OK → agora sim manda o convite e muda status para convite_pendente
+        await supabase
+          .from("teams")
+          .update({ status: "convite_pendente" })
+          .eq("id", reg.team_id);
+
+        // Busca dados necessários para o e-mail de convite
+        const [{ data: a1Prof }, { data: a2Prof }, { data: catRow }] = await Promise.all([
+          supabase.from("profiles").select("nome, username").eq("id", team.atleta1_id).single(),
+          supabase.from("profiles").select("nome").eq("id", team.atleta2_id!).single(),
+          reg.category_id
+            ? supabase.from("championship_categories").select("nome").eq("id", reg.category_id).single()
+            : Promise.resolve({ data: null }),
+        ]);
+        const { data: a2Auth } = await supabase.auth.admin.getUserById(team.atleta2_id!);
+        const atleta2Email = a2Auth?.user?.email ?? null;
+
+        if (atleta2Email && a1Prof && a2Prof && champ) {
+          await enviarConviteDupla({
+            emailConvidado:  atleta2Email,
+            nomeConvidado:   a2Prof.nome,
+            nomeAtleta1:     a1Prof.nome,
+            usernameAtleta1: a1Prof.username ?? "",
+            nomeCampeonato:  champ.nome,
+            nomeCategoria:   catRow?.nome ?? "",
+          });
+        }
+      } else if (!parceiroPendente) {
+        // Sem parceiro pendente → confirma a dupla imediatamente
         await supabase
           .from("teams")
           .update({ status: "confirmado" })
           .eq("id", reg.team_id);
       }
 
-      // Credencial só para atleta1 enquanto parceiro não aceitou;
-      // quando não há parceiro pendente, gera para os dois.
-      const atletasParaCredencial = parceiroPendente
+      // Credencial só para atleta1 enquanto parceiro não aceitou (aguardando ou pendente);
+      // quando não há parceiro, gera para todos agora.
+      const atletasParaCredencial = (aguardandoPagamento || parceiroPendente)
         ? [team.atleta1_id]
         : [team.atleta1_id, team.atleta2_id].filter(Boolean) as string[];
       for (const atletaId of atletasParaCredencial) {

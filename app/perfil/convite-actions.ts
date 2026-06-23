@@ -11,7 +11,6 @@ export async function aceitarConvite(formData: FormData) {
   if (!user) return;
 
   const teamId = formData.get("team_id") as string;
-  const tamanhoCamisa = (formData.get("tamanho_camisa") as string | null)?.trim() ?? "";
 
   // Garante que só o atleta2 pode aceitar, e só se ainda estiver pendente.
   // atleta2_id null = convite aberto (link direto sem @usuário especificado).
@@ -32,11 +31,6 @@ export async function aceitarConvite(formData: FormData) {
     .from("teams")
     .update({ status: "confirmado" })
     .eq("id", teamId);
-
-  // Salva tamanho de camisa do atleta2 (quem está aceitando)
-  if (tamanhoCamisa) {
-    await supabase.from("profiles").update({ tamanho_camisa: tamanhoCamisa }).eq("id", user.id);
-  }
 
   // Busca inscrição, atleta1 e atleta2 em paralelo (profiles não tem e-mail).
   const [{ data: reg }, { data: atleta1Profile }, { data: atleta2Profile }, { data: champ }] =

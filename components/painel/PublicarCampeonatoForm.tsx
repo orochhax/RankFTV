@@ -107,9 +107,11 @@ export function PublicarCampeonatoForm({
           Li e aceito os{" "}
           <Link
             href="/termos"
+            target="_blank"
+            rel="noreferrer"
             className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
           >
-            Termos de uso
+            Termos de uso ↗
           </Link>{" "}
           da plataforma.
         </span>

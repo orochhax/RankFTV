@@ -12,6 +12,7 @@ type TeamRow = {
   status: string;
   championship_id: string;
   category_id: string;
+  atleta1_id: string;
   championships: {
     id: string;
     nome: string;
@@ -30,9 +31,10 @@ type TeamRow = {
 };
 
 const TEAM_STATUS: Record<string, { label: string; className: string }> = {
-  convite_pendente: { label: "Aguardando parceiro", className: "bg-amber-100 text-amber-700" },
-  confirmado:       { label: "Dupla confirmada",    className: "bg-blue-100 text-blue-700" },
-  cancelado:        { label: "Cancelado",           className: "bg-red-100 text-red-600" },
+  convite_pendente:   { label: "Aguardando parceiro",  className: "bg-amber-100 text-amber-700" },
+  aguardando_pagamento: { label: "Aguardando pagamento", className: "bg-amber-100 text-amber-700" },
+  confirmado:         { label: "Dupla confirmada",     className: "bg-blue-100 text-blue-700" },
+  cancelado:          { label: "Cancelado",            className: "bg-red-100 text-red-600" },
 };
 
 const PAG_STATUS: Record<string, { label: string; className: string }> = {
@@ -49,18 +51,22 @@ export default async function MinhasInscricoesPage() {
   if (!user) redirect("/login");
 
   // Duplas onde o atleta é atleta1 ou atleta2, com campeonato + categoria + pagamento
-  const { data: rawTeams } = await supabase
-    .from("teams")
-    .select(`
-      id, status, championship_id, category_id,
-      championships(id, nome, data_inicio, data_fim, cidade, estado, status),
-      championship_categories(nome, genero, valor_inscricao),
-      registrations(id, status_pagamento)
-    `)
-    .or(`atleta1_id.eq.${user.id},atleta2_id.eq.${user.id}`)
-    .order("created_at", { ascending: false });
+  const [{ data: rawTeams }, { data: meProfile }] = await Promise.all([
+    supabase
+      .from("teams")
+      .select(`
+        id, status, championship_id, category_id, atleta1_id,
+        championships(id, nome, data_inicio, data_fim, cidade, estado, status),
+        championship_categories(nome, genero, valor_inscricao),
+        registrations(id, status_pagamento)
+      `)
+      .or(`atleta1_id.eq.${user.id},atleta2_id.eq.${user.id}`)
+      .order("created_at", { ascending: false }),
+    supabase.from("profiles").select("tamanho_camisa").eq("id", user.id).maybeSingle(),
+  ]);
 
   const teams = (rawTeams ?? []) as unknown as TeamRow[];
+  const semTamanho = !meProfile?.tamanho_camisa;
 
   // Separa por status do campeonato
   const ativos    = teams.filter((t) => {
@@ -128,17 +134,19 @@ export default async function MinhasInscricoesPage() {
                 <InscricaoSection
                   titulo="Em andamento ou com inscrições abertas"
                   teams={ativos}
+                  userId={user.id}
+                  semTamanho={semTamanho}
                 />
               )}
 
               {/* Outros (rascunho etc.) */}
               {outros.length > 0 && (
-                <InscricaoSection titulo="Próximos" teams={outros} />
+                <InscricaoSection titulo="Próximos" teams={outros} userId={user.id} semTamanho={semTamanho} />
               )}
 
               {/* Encerrados */}
               {encerrados.length > 0 && (
-                <InscricaoSection titulo="Encerrados" teams={encerrados} />
+                <InscricaoSection titulo="Encerrados" teams={encerrados} userId={user.id} semTamanho={semTamanho} />
               )}
             </>
           )}
@@ -151,9 +159,13 @@ export default async function MinhasInscricoesPage() {
 function InscricaoSection({
   titulo,
   teams,
+  userId,
+  semTamanho,
 }: {
   titulo: string;
   teams: TeamRow[];
+  userId: string;
+  semTamanho: boolean;
 }) {
   return (
     <section>
@@ -169,6 +181,7 @@ function InscricaoSection({
           const teamStatusCfg = TEAM_STATUS[t.status] ?? { label: t.status, className: "bg-gray-100 text-gray-500" };
           const pagStatusCfg = pag ? PAG_STATUS[pag.status_pagamento] : null;
 
+          const uniformePendente = semTamanho && t.status === "confirmado" && t.atleta1_id !== userId;
           return (
             <li key={t.id} className="flex items-center gap-2 px-4 py-4 transition-colors hover:bg-gray-50">
               <Link
@@ -202,6 +215,11 @@ function InscricaoSection({
                   {pagStatusCfg && (
                     <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${pagStatusCfg.className}`}>
                       {pagStatusCfg.label}
+                    </span>
+                  )}
+                  {uniformePendente && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
+                      👕 Escolher tamanho do uniforme
                     </span>
                   )}
                 </div>

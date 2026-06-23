@@ -113,8 +113,13 @@ export async function inscreverDupla(
       .upsert({ user_id: user.id, cpf }, { onConflict: "user_id" });
   }
 
-  // Se gratuito e sem parceiro → confirma direto. Com parceiro → ainda precisa do convite.
-  const teamStatus = isGratis && !atleta2Id ? "confirmado" : "convite_pendente";
+  // Gratuito sem parceiro → confirma direto.
+  // Gratuito com parceiro → convite_pendente (não precisa de pagamento).
+  // Pago sem parceiro   → convite_pendente (aguardando só pagamento).
+  // Pago com parceiro   → aguardando_pagamento (convite SÓ enviado após pagamento confirmado).
+  const teamStatus = isGratis
+    ? (atleta2Id ? "convite_pendente" : "confirmado")
+    : (atleta2Id ? "aguardando_pagamento" : "convite_pendente");
 
   // ── Cria dupla ────────────────────────────────────────────────
   const { data: team, error: teamError } = await supabase
@@ -187,19 +192,8 @@ export async function inscreverDupla(
     redirect(`/minhas-inscricoes/${championshipId}`);
   }
 
-  // ── Convite por e-mail para inscrições pagas com parceiro ─────
-  if (atleta2Id && parceiroDados?.email) {
-    await enviarConviteDupla({
-      emailConvidado:  parceiroDados.email,
-      nomeConvidado:   parceiroDados.nome,
-      nomeAtleta1:     profile.nome,
-      usernameAtleta1: profile.username ?? "",
-      nomeCampeonato:  champ.nome,
-      nomeCategoria:   cat.nome,
-    });
-  }
-
   // ── Inscrição paga: cria cobrança no Asaas ────────────────────
+  // (convite para o parceiro é enviado APÓS pagamento confirmado, via webhook)
   try {
     const customer = await criarOuBuscarCliente({
       name:     profile.nome,
