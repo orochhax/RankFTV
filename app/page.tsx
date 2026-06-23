@@ -170,18 +170,24 @@ export default async function Home() {
               <p className="text-gray-400">
                 Encontre campeonatos, inscreva sua dupla e acompanhe o ranking nacional.
               </p>
-              <div className="flex justify-center gap-3 pt-1">
+              <div className="mx-auto flex w-full max-w-xs flex-col gap-3 pt-1">
                 <Link
                   href="/cadastro"
-                  className="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                  className="rounded-2xl bg-blue-600 px-6 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-blue-500"
                 >
-                  Criar conta grátis
+                  Criar conta como atleta
+                </Link>
+                <Link
+                  href="/painel"
+                  className="rounded-2xl bg-white/10 px-6 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-white/15"
+                >
+                  Criar meu evento gratuito
                 </Link>
                 <Link
                   href="/login"
-                  className="rounded-2xl bg-white/10 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/15"
+                  className="py-2 text-center text-sm font-medium text-gray-400 transition-colors hover:text-white"
                 >
-                  Entrar
+                  Já tenho conta · Fazer login
                 </Link>
               </div>
             </div>
