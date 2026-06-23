@@ -82,11 +82,15 @@ PÚBLICO / ATLETA            PAINEL (organizador)        STAFF              ADMI
 /campeonatos/[id]/inscrever  /painel/campeonatos/[id]     └ /chaveamento /admin/usuarios
 /campeonatos/[id]/pagamento/…   ├ /editar  /publicar
 /campeonatos/[id]/chaveamento   ├ /inscricoes /financeiro
-/campeonatos/paginas/[handle]   ├ /checkin /camisas
-/rank                           ├ /chaveamento /equipe
-/atletas/[username]             ├ /vinculacoes /criado
-/perfil (+ sub-rotas)
-/minhas-inscricoes (+ [champId])
+/campeonatos/paginas/[handle]   │    └ /financeiro/[status]  ← pagos/pendentes/estornados
+/rank                           ├ /checkin /camisas
+/atletas/[username]             ├ /chaveamento /equipe
+/perfil (+ sub-rotas)           ├ /vinculacoes /criado
+/minhas-inscricoes              └ /criado
+  ├ /[champId] (aceitar convite)
+  └ /[champId]/reembolso
+/convite/[teamId]
+/termos
 /notificacoes
 /cadastro · /login · /auth/callback
 ```
@@ -148,17 +152,17 @@ O coração da experiência do atleta. Mostra:
 
 ### `/campeonatos/[id]/inscrever` — Inscrição da dupla ([page](app/campeonatos/[id]/inscrever/page.tsx) · [actions](app/campeonatos/[id]/inscrever/actions.ts))
 Fluxo central da Fase 1. O atleta:
-1. Escolhe categoria, informa **@ do parceiro** (busca por nome via [UserSearchInput](components/ui/UserSearchInput.tsx) → `/api/users/search`), tamanho de camisa e, se pago, **CPF** + método (Pix/cartão).
+1. Escolhe categoria, informa **@ do parceiro** (busca por nome via [UserSearchInput](components/ui/UserSearchInput.tsx) → `/api/users/search`), tamanho de camisa e, se pago, **CPF** + método (Pix/cartão). Aceite dos **Termos de Uso** obrigatório antes de confirmar.
 2. O motor calcula o rating da dupla e avisa se há **sandbagging** ou categoria acima do nível.
 3. `inscreverDupla` valida (inscrições abertas, prazo, não inscrito ainda, chave Pix do organizador existe), salva tamanho (público) e CPF (privado), cria **team** + **registration**.
    - **Grátis sem parceiro** → confirma na hora, gera credencial, e-mail de confirmação, vai pra `/minhas-inscricoes/[champId]`.
-   - **Com parceiro** → manda convite por e-mail; parceiro aceita no perfil dele.
+   - **Com parceiro** → manda convite por e-mail; parceiro aceita no perfil dele **ou** via **link de convite** copiável ([CopiarLink](components/ui/CopiarLink.tsx)) que aparece no card de inscrição de atleta1 enquanto o convite está pendente. O link leva a `/convite/[teamId]`.
    - **Paga** → cria cobrança no Asaas e vai pra `/pagamento/[registrationId]`.
 - **Conexões:** ← detalhe do campeonato. → `/pagamento/[registrationId]` ou `/minhas-inscricoes/[champId]`.
 
 ### `/campeonatos/[id]/pagamento/[registrationId]` — Pagamento ([page](app/campeonatos/[id]/pagamento/[registrationId]/page.tsx) · [actions](app/campeonatos/[id]/pagamento/[registrationId]/actions.ts))
 - Mostra **QR Code Pix + copia-e-cola** (gerados na inscrição) ou formulário de **cartão** ([PaymentUI](components/pagamento/PaymentUI.tsx) / `pagarComCartao`).
-- Quando o pagamento confirma (via **webhook do Asaas**, ver seção 8), a tela vira "Pagamento confirmado!".
+- Na aba Pix: indicador visual "Aguardando confirmação" + **polling a cada 3 s no Supabase** — quando o webhook do Asaas confirmar o pagamento, a tela redireciona automaticamente sem o atleta precisar recarregar.
 - **Conexões:** ← inscrição. → `/minhas-inscricoes`.
 
 ### `/campeonatos/[id]/chaveamento` — Chaveamento público ([app/campeonatos/[id]/chaveamento/page.tsx](app/campeonatos/[id]/chaveamento/page.tsx))
@@ -191,13 +195,27 @@ Hub da conta do usuário logado. Mostra:
   - `/perfil/evolucao` — gráfico de evolução do rating.
 
 ### `/minhas-inscricoes` e `/minhas-inscricoes/[champId]` ([lista](app/minhas-inscricoes/page.tsx))
-- Lista as duplas do atleta (como atleta1 ou atleta2), agrupadas por status do campeonato, com **status da dupla** e **status de pagamento**. Menu por item ([InscricaoMenu](components/inscricoes/InscricaoMenu.tsx)) pra pagar/cancelar.
+- Lista as duplas do atleta (como atleta1 ou atleta2), agrupadas por status do campeonato, com **status da dupla** e **status de pagamento**. Menu por item ([InscricaoMenu](components/inscricoes/InscricaoMenu.tsx)):
+  - Inscrição **não paga**: opções "Pagar" e "Cancelar".
+  - Inscrição **paga**: opção "Solicitar reembolso" → `/minhas-inscricoes/[champId]/reembolso`.
 - O **detalhe** (`[champId]`) é onde o convidado **aceita/recusa** o convite de dupla.
-- **Conexões:** ← Home, inscrição, e-mails. → detalhe do campeonato, pagamento.
+- **Conexões:** ← Home, inscrição, e-mails. → detalhe do campeonato, pagamento, reembolso.
+
+### `/minhas-inscricoes/[champId]/reembolso` — Reembolso ([page](app/minhas-inscricoes/[champId]/reembolso/page.tsx) · [actions](app/minhas-inscricoes/[champId]/reembolso/actions.ts))
+- Mostra resumo da inscrição + **valor que será devolvido** (considerando a política abaixo) e botão de confirmação.
+- **Política de reembolso (CDC):** dentro de 7 dias da data do pagamento → reembolso **total**; após 7 dias → reembolso **parcial** (só o valor da inscrição; a taxa de serviço da plataforma não é devolvida).
+- `solicitarReembolso` chama `Asaas /payments/{id}/refund` (com `valorParcial` quando fora do prazo); o webhook `PAYMENT_REFUNDED` atualiza o status para `estornado`.
+- **Conexões:** ← `/minhas-inscricoes/[champId]`.
 
 ### `/notificacoes` — Sininho ([app/notificacoes/page.tsx](app/notificacoes/page.tsx))
 - Feed único: **convites de dupla** pendentes (aceitar/recusar — [convite-actions](app/perfil/convite-actions.ts)), **convites de staff** ([staff-actions](app/perfil/staff-actions.ts)) e notificações gerais. Marca todas como lidas.
 - **Regra de produto:** toda notificação aparece aqui; a ação de fato acontece na página de destino, não duplicada.
+
+### `/convite/[teamId]` — Aceite de convite via link ([page](app/convite/[teamId]/page.tsx))
+- Página pública que permite ao parceiro **aceitar o convite de dupla por link** (sem precisar entrar direto pelo Perfil/Notificações).
+- Se não logado, redireciona para `/login?next=/convite/[teamId]`.
+- Formulário ([AceitarConviteViaLink](app/convite/[teamId]/AceitarConviteViaLink.tsx)): confirma aceite + seleciona tamanho de camisa. Associa `atleta2_id` ao team (caso convite ainda esteja aberto sem parceiro definido) e gera credencial se a inscrição já estiver paga.
+- **Conexões:** ← link enviado por e-mail ou copiado na tela de inscrição de atleta1.
 
 ### Cadastro / Login / Auth
 - `/cadastro` — nome, e-mail, senha, **@usuário** (checa duplicado em tempo real). Depois cai na Home.
@@ -237,7 +255,8 @@ Outras sub-rotas:
 - **`/editar`** — edita dados/categorias ([EditarCampeonatoForm](components/painel/EditarCampeonatoForm.tsx)).
 - **`/publicar`** ([page](app/painel/campeonatos/[id]/publicar/page.tsx)) — fluxo rascunho → no ar: explica o repasse, mostra o **plano de taxas (Elite/Padrão)** com botão de ativar Elite, coleta a chave Pix se precisar. → `/criado`.
 - **`/criado`** — tela de sucesso pós-criação/publicação.
-- **`/financeiro`** ([page](app/painel/campeonatos/[id]/financeiro/page.tsx) · [actions](app/painel/campeonatos/[id]/financeiro/actions.ts)) — totais por status e método, breakdown por categoria, [ChavePixClient](components/painel/ChavePixClient.tsx) e [PlanoTaxas](components/painel/PlanoTaxas.tsx) (ativar Elite).
+- **`/financeiro`** ([page](app/painel/campeonatos/[id]/financeiro/page.tsx) · [actions](app/painel/campeonatos/[id]/financeiro/actions.ts)) — totais por status e método, breakdown por categoria, [ChavePixClient](components/painel/ChavePixClient.tsx) e [PlanoTaxas](components/painel/PlanoTaxas.tsx) (ativar Elite). Os cards de **Pagos / Pendentes / Estornados** são clicáveis e levam a:
+  - **`/financeiro/pagos`**, **`/financeiro/pendentes`**, **`/financeiro/estornados`** — lista de duplas filtrada por status, expansível por linha para ver contato dos atletas (telefone com link WhatsApp + e-mail), buscada via admin client.
 - **`/vinculacoes`** — vincular o campeonato a uma página/circuito.
 - **Conexões:** ← `/painel`. → todas as sub-rotas acima e `/campeonatos/[id]` (pública).
 
@@ -256,8 +275,8 @@ Outras sub-rotas:
    - **Cartão (débito D+3 / crédito D+32):** a inscrição fica `aguardando_liquidacao` e o repasse é executado depois pelo **cron** `/api/cron/repasse-liquidacao` ([route](app/api/cron/repasse-liquidacao/route.ts), diário, ver `vercel.json`).
 4. A lógica de repasse é compartilhada por webhook e cron em [lib/repasse.ts](lib/repasse.ts) (`executarRepasse`), com trava de idempotência (status `pendente → processando`) pra nunca repassar em dobro.
 
-### Plano Elite (R$ 178)
-- Ativar Elite **não cobra nada na hora**: cria a dívida `premium_fee_pendente = 178`.
+### Plano Elite (R$ 178 — exibido como "de R$ 399 por R$ 178")
+- Ativar Elite **não cobra nada na hora**: cria a dívida `premium_fee_pendente = 178`. Na UI o preço é mostrado com o valor original tachado (R$ 399) e o valor promocional (R$ 178) — definido em [lib/elite.ts](lib/elite.ts).
 - A cada repasse, a função atômica `claim_elite_fee` ([supabase/add-elite-fee-collection.sql](supabase/add-elite-fee-collection.sql)) **abate** `min(dívida, repasse)` — se não cobrir os 178, o resto sai das próximas inscrições. `release_elite_fee` devolve em estorno/falha; `registrations.elite_fee_coletada` audita.
 - Só pode ativar com inscrições **abertas** (`rascunho`/`inscricoes_abertas`); depois disso o botão some.
 - UI: [PlanoTaxas](components/painel/PlanoTaxas.tsx) (financeiro/publicar) e [ElitePlanCard](components/painel/ElitePlanCard.tsx) (criação).
@@ -310,17 +329,18 @@ Disparados como **best-effort** ([lib/email/send.ts](lib/email/send.ts), nunca q
 ## 12. Mapa rápido de conexões (quem leva pra onde)
 
 ```
-Home ──> Campeonatos ──> Campeonato[id] ──> Inscrever ──> Pagamento ──> Minhas inscrições
-  │           │                │                                              │
-  │           └─> Paginas[handle] ─> Campeonato[id]                           └─> aceitar convite
-  │
+Home ──> Campeonatos ──> Campeonato[id] ──> Inscrever ──> Pagamento (polling 3s) ──> Minhas inscrições
+  │           │                │               │                                          │
+  │           └─> Paginas[handle] ──> Campeonato[id]  └─> link copiável ──> /convite/[teamId]  │
+  │                                                                                    └─> reembolso
   ├─> Rank ──> Atletas[username]
   ├─> Perfil ──> Questionario / Editar / Conta / Ativar-organizador / Evolucao
   │        └─> Painel (se organizador)
   └─> Notificacoes (convites de dupla e staff)
 
-Painel ──> Campeonatos[id] ──> Inscrições / Financeiro(+Elite) / Check-in / Camisas
-  │                       └──> Chaveamento / Equipe(staff) / Editar / Publicar / Vinculacoes
+Painel ──> Campeonatos[id] ──> Inscrições / Financeiro ──> pagos/pendentes/estornados
+  │                       └──> Check-in / Camisas / Chaveamento / Equipe(staff)
+  │                       └──> Editar / Publicar(+Elite) / Vinculacoes
   ├─> Painel Geral
   └─> Paginas ──> nova / [id] editar
 
@@ -328,10 +348,10 @@ Admin ──> Campeonatos (todos) / Destaques / Taxas / Usuarios
 Staff ──> [id] ──> QRCode / Inscrições / Chaveamento  (conforme permissões)
 
 Webhook Asaas ──> confirma pagamento ──> repasse Pix (lib/repasse) + abate Elite
+               └─> PAYMENT_REFUNDED ──> status estornado
 Cron diário ─────> repasse de cartão vencido (D+3/D+32)
 ```
 
 ---
 
-*Última atualização: documentação gerada a partir do código em 2026-06. Ao mudar fluxos
-grandes (pagamento, navegação, novas páginas), atualize este arquivo.*
+*Última atualização: 2026-06-23. Ao mudar fluxos grandes (pagamento, navegação, novas páginas), atualize este arquivo.*
