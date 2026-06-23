@@ -278,8 +278,8 @@ export default async function PainelOrganizadorPage({
   // CTA de baixo atrito: criar o campeonato primeiro; ativação (CPF/PIX) fica
   // pra depois, no momento de publicar. Logado vai direto pra criação.
   const cta = user
-    ? { href: "/painel/novo-campeonato", label: "Criar evento grátis" }
-    : { href: "/cadastro", label: "Criar evento grátis" };
+    ? { href: "/painel/novo-campeonato", label: "Criar meu evento grátis" }
+    : { href: "/cadastro", label: "Criar minha conta" };
 
   return (
     <div className="min-h-screen">
