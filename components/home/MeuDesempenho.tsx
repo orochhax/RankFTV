@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, TrendingUp } from "lucide-react";
 import { EvolucaoSparkline } from "@/components/perfil/EvolucaoSparkline";
 import type { ConquistaDestaque, RankPosicao } from "@/lib/supabase/desempenho";
 
@@ -7,15 +7,13 @@ type Props = {
   conquistas: ConquistaDestaque[];
   rank: RankPosicao | null;
   nivel: string | null;
-  evolucao: number[]; // ordens dos níveis, em ordem cronológica
+  evolucao: number[];
 };
 
-// Bloco "Meu desempenho" da Home (ver imagem de referência): card escuro com
-// uma coluna alta de Conquistas à esquerda, Rank + Nível no topo direito e o
-// gráfico de Evolução ocupando a base direita (clicável -> histórico completo).
 export function MeuDesempenho({ conquistas, rank, nivel, evolucao }: Props) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-gray-800/50 p-4 md:p-5">
+    <div className="rounded-2xl border border-white/10 bg-gray-900/60 p-4 md:p-5">
+      {/* Cabeçalho */}
       <div className="mb-4 flex items-center justify-between">
         <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
           Meu desempenho
@@ -28,66 +26,94 @@ export function MeuDesempenho({ conquistas, rank, nivel, evolucao }: Props) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-3 grid-rows-[auto_auto] gap-3">
-        {/* Conquistas — coluna alta à esquerda (3 itens) */}
-        <div className="row-span-2 rounded-xl bg-white/5 p-3">
-          <p className="mb-2 text-center text-[11px] font-semibold text-gray-300">
+      <div className="grid grid-cols-[1fr_1.6fr] gap-3">
+
+        {/* ── Conquistas ──────────────────────────────── */}
+        <div className="flex flex-col gap-2">
+          <p className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase">
             Conquistas
           </p>
+
           {conquistas.length === 0 ? (
-            <div className="flex h-full min-h-[80px] items-center justify-center pb-6">
-              <p className="text-center text-[11px] leading-relaxed text-gray-500">
+            <div className="flex flex-1 items-center justify-center rounded-xl bg-white/5 py-6">
+              <p className="text-center text-[11px] leading-relaxed text-gray-500 px-3">
                 Aqui aparecerão seus troféus
               </p>
             </div>
           ) : (
-            <ul className="space-y-2.5">
+            <div className="flex flex-col gap-2">
               {conquistas.map((c) => (
-                <li key={c.id} className="text-center">
-                  <div className="text-xl leading-none">{c.icone ?? "🏆"}</div>
-                  <p className="mt-0.5 line-clamp-2 text-[10px] font-medium leading-tight text-white">
-                    {c.titulo}
+                <div
+                  key={c.id}
+                  className="flex items-center gap-2.5 rounded-xl bg-white/5 px-3 py-2.5 ring-1 ring-white/8"
+                >
+                  <span className="text-2xl leading-none shrink-0">
+                    {c.icone ?? "🏆"}
+                  </span>
+                  <p className="text-[11px] font-semibold leading-snug text-white line-clamp-2">
+                    {/* Remove o emoji duplicado do título se o icone já está separado */}
+                    {c.titulo.replace(/^[\p{Emoji}\s]+/u, "").trim()}
                   </p>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
 
-        {/* Rank + Categoria — linha horizontal, col-span-2 */}
-        <div className="col-span-2 rounded-xl bg-white/5 p-3">
-          <div className="flex items-center">
-            <div className="flex-1 text-center">
-              <p className="text-[11px] font-semibold text-gray-300">Rank</p>
-              <p className="mt-0.5 text-base font-bold leading-tight text-white">
-                {rank ? `#${rank.posicao} - Geral` : "# — - Geral"}
+        {/* ── Coluna direita: Rank + Evolução ─────────── */}
+        <div className="flex flex-col gap-2">
+
+          {/* Rank + Nível */}
+          <div className="grid grid-cols-2 gap-2">
+            {/* Rank */}
+            <div className="rounded-xl bg-white/5 p-3 ring-1 ring-white/8 text-center">
+              <p className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase mb-1">
+                Rank
               </p>
-              <p className="text-xs font-semibold text-gray-300">
-                {rank ? rank.pontos.toLocaleString("pt-BR") : "0"} pts
-              </p>
+              {rank ? (
+                <>
+                  <p className="text-xl font-black text-white leading-none">
+                    #{rank.posicao}
+                  </p>
+                  <p className="text-[10px] font-semibold text-blue-400 mt-0.5">
+                    {rank.pontos.toLocaleString("pt-BR")} pts
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm font-bold text-gray-500 leading-none mt-1">—</p>
+              )}
             </div>
-            <div className="mx-3 h-10 w-px bg-white/10" />
-            <div className="flex-1 text-center">
-              <p className="text-[11px] font-semibold text-gray-300">
-                Categoria mais jogada
+
+            {/* Nível */}
+            <div className="rounded-xl bg-white/5 p-3 ring-1 ring-white/8 text-center">
+              <p className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase mb-1">
+                Nível
               </p>
-              <p className="mt-0.5 text-base font-bold leading-tight text-white">
-                {nivel ?? "Sem categoria"}
-              </p>
+              {nivel ? (
+                <p className="text-sm font-black text-white leading-snug mt-0.5">
+                  {nivel}
+                </p>
+              ) : (
+                <p className="text-sm font-bold text-gray-500 leading-none mt-1">—</p>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* Evolução — base direita, clicável */}
-        <Link
-          href="/perfil/evolucao"
-          className="col-span-2 rounded-xl bg-white/5 p-3 transition-colors hover:bg-white/10"
-        >
-          <p className="mb-1 text-center text-[11px] font-semibold text-gray-300">
-            Evolução
-          </p>
-          <EvolucaoSparkline valores={evolucao} />
-        </Link>
+          {/* Evolução */}
+          <Link
+            href="/perfil/evolucao"
+            className="flex-1 rounded-xl bg-white/5 p-3 ring-1 ring-white/8 transition-colors hover:bg-white/10 block"
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase">
+                Evolução
+              </p>
+              <TrendingUp className="size-3.5 text-blue-400" />
+            </div>
+            <EvolucaoSparkline valores={evolucao} />
+          </Link>
+
+        </div>
       </div>
     </div>
   );
