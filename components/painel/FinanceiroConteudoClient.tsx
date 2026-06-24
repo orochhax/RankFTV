@@ -91,33 +91,27 @@ export function FinanceiroConteudoClient({
         </div>
       </div>
 
-      {/* Transação Plano Elite */}
-      {isElite && (
+      {/* Transação Plano Elite — some quando 100% quitado */}
+      {isElite && feePendente > 0 && (
         <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 space-y-3">
           <div className="flex items-center gap-2">
             <Crown className="size-4 text-amber-500" />
             <span className="text-sm font-semibold text-amber-900">Plano Elite — ativação</span>
           </div>
 
-          {feePendente > 0 ? (
-            <>
-              <div className="flex justify-between text-xs font-semibold text-amber-700">
-                <span>Saldo devedor</span>
-                <span className="text-red-600">{mostrar ? formatBRL(-feePendente) : "••••••"}</span>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-amber-200">
-                <div
-                  className="h-full rounded-full bg-amber-500 transition-all"
-                  style={{ width: `${Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}%` }}
-                />
-              </div>
-              <p className="text-xs text-amber-600">
-                {Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}% quitado — abatido automaticamente das próximas inscrições pagas.
-              </p>
-            </>
-          ) : (
-            <p className="text-xs font-medium text-emerald-700">✓ Ativação de {formatBRL(PRECO_ELITE)} totalmente quitada.</p>
-          )}
+          <div className="flex justify-between text-xs font-semibold text-amber-700">
+            <span>Saldo devedor</span>
+            <span className="text-red-600">{mostrar ? formatBRL(-feePendente) : "••••••"}</span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-amber-200">
+            <div
+              className="h-full rounded-full bg-amber-500 transition-all"
+              style={{ width: `${Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}%` }}
+            />
+          </div>
+          <p className="text-xs text-amber-600">
+            {Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}% quitado — abatido automaticamente das próximas inscrições pagas.
+          </p>
 
           <p className="rounded-xl bg-amber-100 p-3 text-xs leading-relaxed text-amber-800">
             Você não paga nada agora. O valor de {formatBRL(PRECO_ELITE)} é descontado
