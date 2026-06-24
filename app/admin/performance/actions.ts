@@ -151,6 +151,42 @@ export async function removerHabito(id: string): Promise<Res> {
   return { ok: true };
 }
 
+// ── Peso ─────────────────────────────────────────────────────────────────────
+export async function registrarPeso(formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+
+  const pesoKg = parseFloat(formData.get("peso_kg") as string);
+  if (!Number.isFinite(pesoKg) || pesoKg <= 0) return { ok: false, error: "Peso inválido." };
+  const data = (formData.get("data") as string)?.trim() || hojeISO();
+
+  const { error } = await supabase.from("perf_weight").upsert(
+    { user_id: user.id, data, peso_kg: pesoKg },
+    { onConflict: "user_id,data" },
+  );
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function definirMetaPeso(formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+
+  const meta = parseFloat(formData.get("peso_meta") as string);
+  if (!Number.isFinite(meta) || meta <= 0) return { ok: false, error: "Meta inválida." };
+
+  const { error } = await supabase.from("perf_profile").upsert(
+    { user_id: user.id, peso_meta: meta, updated_at: new Date().toISOString() },
+    { onConflict: "user_id" },
+  );
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
 // ── Relatório semanal ────────────────────────────────────────────────────────
 export async function salvarRelatorio(formData: FormData): Promise<Res> {
   const ctx = await requireCeo();

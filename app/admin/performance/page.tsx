@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MetasDoDia } from "@/components/performance/MetasDoDia";
 import { PerfilEditor } from "@/components/performance/PerfilEditor";
 import { RelatorioSemanal, type WeeklyReport } from "@/components/performance/RelatorioSemanal";
+import { PesoCorpo } from "@/components/performance/PesoCorpo";
 import {
   type Habit, type HabitLog,
   hojeISO, indexLogs, heatmap, streak, veredito, habitStats, insights,
@@ -42,7 +43,7 @@ export default async function PerformancePage() {
     supabase.from("profiles").select("nome, username, foto_url").eq("id", user.id).maybeSingle(),
     supabase.from("perf_habit").select("*").eq("user_id", user.id).eq("ativo", true).order("ordem"),
     supabase.from("perf_habit_log").select("habit_id, data, valor").eq("user_id", user.id).gte("data", desde),
-    supabase.from("perf_weight").select("peso_kg, data").eq("user_id", user.id).order("data", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("perf_weight").select("peso_kg, data").eq("user_id", user.id).order("data", { ascending: true }).limit(365),
     supabase.from("perf_weekly_report").select("*").eq("user_id", user.id).eq("semana_inicio", segunda).maybeSingle(),
     supabase.from("perf_weekly_report").select("*").eq("user_id", user.id).eq("fechado", true).order("semana_inicio", { ascending: false }).limit(8),
   ]);
@@ -75,6 +76,10 @@ export default async function PerformancePage() {
 
   const relatorioAtual = reportAtualRes.data as WeeklyReport | null;
   const historico = (historicoRes.data ?? []) as WeeklyReport[];
+  const pesoHistorico = (pesoRes.data ?? []).map((p) => ({
+    data: p.data as string,
+    peso_kg: Number(p.peso_kg),
+  }));
 
   // Stats da semana atual (segunda → hoje) para o relatório.
   let diasRegistrados = 0;
@@ -91,7 +96,7 @@ export default async function PerformancePage() {
       : null;
 
   const alturaCm = perfil?.altura_cm ?? null;
-  const pesoAtual = pesoRes.data?.peso_kg != null ? Number(pesoRes.data.peso_kg) : null;
+  const pesoAtual = pesoHistorico.length ? pesoHistorico[pesoHistorico.length - 1].peso_kg : null;
   const temImc = alturaCm && pesoAtual;
   const imcVal = temImc ? imc(pesoAtual!, alturaCm!) : null;
   const imcF = imcVal != null ? imcFaixa(imcVal) : null;
@@ -269,6 +274,12 @@ export default async function PerformancePage() {
               )}
             </section>
           )}
+
+          <PesoCorpo
+            pesos={pesoHistorico}
+            pesoMeta={perfil?.peso_meta != null ? Number(perfil.peso_meta) : null}
+            hoje={hoje}
+          />
 
         </div>
       </div>
