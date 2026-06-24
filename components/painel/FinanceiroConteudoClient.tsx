@@ -51,6 +51,7 @@ export function FinanceiroConteudoClient({
   feePendente,
 }: Props) {
   const [mostrar, setMostrar] = useState(true);
+  const [infoElite, setInfoElite] = useState(false);
   const val = (v: number) => (mostrar ? formatBRL(v) : "R$ ••••••");
 
   const maxCatTotal = Math.max(...categorias.map((c) => catMap[c.id]?.total ?? 0), 1);
@@ -126,6 +127,25 @@ export function FinanceiroConteudoClient({
             </>
           ) : (
             <p className="text-xs font-medium text-emerald-700">✓ Ativação de {formatBRL(PRECO_ELITE)} totalmente quitada.</p>
+          )}
+
+          {/* Botão de info — canto inferior direito */}
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setInfoElite((v) => !v)}
+              className="flex size-5 items-center justify-center rounded-full bg-amber-200 text-[11px] font-bold text-amber-700 hover:bg-amber-300 transition-colors"
+              aria-label="Mais informações"
+            >
+              i
+            </button>
+          </div>
+
+          {infoElite && (
+            <p className="rounded-xl bg-amber-100 p-3 text-xs leading-relaxed text-amber-800">
+              Você não paga nada agora. O valor de {formatBRL(PRECO_ELITE)} da ativação é descontado
+              automaticamente dos repasses das suas próximas inscrições pagas — sem nenhum custo no bolso.
+            </p>
           )}
         </div>
       )}
