@@ -92,7 +92,7 @@ export function MetasDoDia({ habits, valoresIniciais, hoje }: Props) {
         <EmptyState />
       )}
 
-      {editMode && <Editor habits={ativos} />}
+      {editMode && <Editor habits={ativos} fecharEditor={() => setEditMode(false)} />}
     </section>
   );
 }
@@ -181,7 +181,7 @@ function EmptyState() {
 }
 
 // ── Editor da lista ───────────────────────────────────────────────────────────
-function Editor({ habits }: { habits: Habit[] }) {
+function Editor({ habits, fecharEditor }: { habits: Habit[]; fecharEditor?: () => void }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [editing, setEditing] = useState<Habit | null>(null);
@@ -225,7 +225,7 @@ function Editor({ habits }: { habits: Habit[] }) {
       )}
 
       {!editing && (showForm ? (
-        <HabitForm onDone={() => setShowForm(false)} />
+        <HabitForm onDone={() => { setShowForm(false); fecharEditor?.(); }} />
       ) : (
         <button onClick={() => setShowForm(true)}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-50">
