@@ -151,6 +151,43 @@ export async function removerHabito(id: string): Promise<Res> {
   return { ok: true };
 }
 
+// ── Relatório semanal ────────────────────────────────────────────────────────
+export async function salvarRelatorio(formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+
+  const semana_inicio = (formData.get("semana_inicio") as string)?.trim();
+  if (!semana_inicio) return { ok: false, error: "Semana inválida." };
+
+  const notaRaw = parseInt(formData.get("nota") as string ?? "");
+  const nota = Number.isInteger(notaRaw) && notaRaw >= 0 && notaRaw <= 10 ? notaRaw : null;
+
+  const str = (k: string) => { const v = (formData.get(k) as string)?.trim(); return v || undefined; };
+  const num = (k: string) => { const v = parseFloat(formData.get(k) as string ?? ""); return Number.isFinite(v) ? v : undefined; };
+
+  const respostasRaw: Record<string, unknown> = {
+    aderencia_semana: num("aderencia_semana"),
+    dias_registrados: num("dias_registrados"),
+    melhor_habito:    str("melhor_habito"),
+    habito_fraco:     str("habito_fraco"),
+    o_que_foi_bem:    str("o_que_foi_bem"),
+    o_que_melhorar:   str("o_que_melhorar"),
+    foco_proxima:     str("foco_proxima"),
+  };
+  const respostas: Record<string, unknown> = Object.fromEntries(
+    Object.entries(respostasRaw).filter(([, v]) => v !== undefined),
+  );
+
+  const { error } = await supabase.from("perf_weekly_report").upsert(
+    { user_id: user.id, semana_inicio, nota, respostas, updated_at: new Date().toISOString() },
+    { onConflict: "user_id,semana_inicio" },
+  );
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
 // ── Registro diário ──────────────────────────────────────────────────────────
 export async function registrarHabito(
   habitId: string,

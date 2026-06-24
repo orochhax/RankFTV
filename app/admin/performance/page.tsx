@@ -5,10 +5,11 @@ import { ArrowLeft, Flame, TrendingDown, TrendingUp, Minus, Sparkles } from "luc
 import { createClient } from "@/lib/supabase/server";
 import { MetasDoDia } from "@/components/performance/MetasDoDia";
 import { PerfilEditor } from "@/components/performance/PerfilEditor";
+import { RelatorioSemanal, type WeeklyReport } from "@/components/performance/RelatorioSemanal";
 import {
   type Habit, type HabitLog,
   hojeISO, indexLogs, heatmap, streak, veredito, habitStats, insights,
-  pct, imc, imcFaixa, idadeDe, addDays,
+  pct, imc, imcFaixa, idadeDe, addDays, segundaDaSemana,
 } from "@/lib/performance";
 
 export const metadata = { title: "Performance — Admin" };
@@ -34,13 +35,25 @@ export default async function PerformancePage() {
   const hoje = hojeISO();
   const desde = addDays(hoje, -34);
 
-  const [perfRes, profRes, habitsRes, logsRes, pesoRes] = await Promise.all([
+  const segunda = segundaDaSemana(hoje);
+
+  const [perfRes, profRes, habitsRes, logsRes, pesoRes, reportAtualRes, historicoRes] = await Promise.all([
     supabase.from("perf_profile").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("profiles").select("nome, username, foto_url").eq("id", user.id).maybeSingle(),
     supabase.from("perf_habit").select("*").eq("user_id", user.id).eq("ativo", true).order("ordem"),
     supabase.from("perf_habit_log").select("habit_id, data, valor").eq("user_id", user.id).gte("data", desde),
     supabase.from("perf_weight").select("peso_kg, data").eq("user_id", user.id).order("data", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("perf_weekly_report").select("*").eq("user_id", user.id).eq("semana_inicio", segunda).maybeSingle(),
+    supabase.from("perf_weekly_report").select("*").eq("user_id", user.id).eq("fechado", true).order("semana_inicio", { ascending: false }).limit(8),
   ]);
+
+  // Fecha relatórios de semanas passadas que ainda estão abertos (idempotente).
+  await supabase
+    .from("perf_weekly_report")
+    .update({ fechado: true })
+    .eq("user_id", user.id)
+    .eq("fechado", false)
+    .lt("semana_inicio", segunda);
 
   const perfil = perfRes.data;
   const prof   = profRes.data;
@@ -59,6 +72,23 @@ export default async function PerformancePage() {
   const ver  = veredito(habits, idx, hoje);
   const stats = habitStats(habits, idx, hoje);
   const ins  = insights(habits, idx, hoje);
+
+  const relatorioAtual = reportAtualRes.data as WeeklyReport | null;
+  const historico = (historicoRes.data ?? []) as WeeklyReport[];
+
+  // Stats da semana atual (segunda → hoje) para o relatório.
+  let diasRegistrados = 0;
+  let cur = segunda;
+  while (cur <= hoje) {
+    if (idx[cur] && Object.keys(idx[cur]).length > 0) diasRegistrados++;
+    cur = addDays(cur, 1);
+  }
+  const statsSorted = [...stats].sort((a, b) => b.semanaAtual - a.semanaAtual);
+  const melhorHabito = statsSorted.length && statsSorted[0].semanaAtual > 0 ? statsSorted[0].habit.label : null;
+  const habitoFraco =
+    statsSorted.length > 1 && statsSorted[statsSorted.length - 1].semanaAtual < statsSorted[0].semanaAtual
+      ? statsSorted[statsSorted.length - 1].habit.label
+      : null;
 
   const alturaCm = perfil?.altura_cm ?? null;
   const pesoAtual = pesoRes.data?.peso_kg != null ? Number(pesoRes.data.peso_kg) : null;
@@ -173,6 +203,18 @@ export default async function PerformancePage() {
               </div>
             </section>
           )}
+
+          <RelatorioSemanal
+            relatorioAtual={relatorioAtual}
+            historico={historico}
+            semanaAtual={segunda}
+            stats={{
+              aderenciaSemana: ver.semanaAtual,
+              diasRegistrados,
+              melhorHabito,
+              habitoFraco,
+            }}
+          />
 
           {/* Evolução inteligente */}
           {habits.length > 0 && (

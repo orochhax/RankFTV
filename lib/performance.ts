@@ -282,3 +282,24 @@ export function idadeDe(nascimentoISO: string, todayISO: string): number {
   if (m < 0 || (m === 0 && h.getDate() < n.getDate())) idade--;
   return idade;
 }
+
+/** Segunda-feira da semana que contém `iso`. */
+export function segundaDaSemana(iso: string): string {
+  const d = parseISO(iso);
+  const dow = d.getDay(); // 0=Dom, 1=Seg, …, 6=Sáb
+  const diff = dow === 0 ? -6 : 1 - dow;
+  d.setDate(d.getDate() + diff);
+  return toISO(d);
+}
+
+/** "22 a 28/06" ou "27/05 a 02/06" se mudar de mês. */
+export function labelSemana(segunda: string): string {
+  const seg = parseISO(segunda);
+  const dom = parseISO(addDays(segunda, 6));
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const mes2 = pad(dom.getMonth() + 1);
+  if (seg.getMonth() === dom.getMonth()) {
+    return `${seg.getDate()} a ${dom.getDate()}/${mes2}`;
+  }
+  return `${seg.getDate()}/${pad(seg.getMonth() + 1)} a ${dom.getDate()}/${mes2}`;
+}
