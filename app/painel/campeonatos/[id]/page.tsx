@@ -51,17 +51,17 @@ const ACOES = [
     disponivel: true,
   },
   {
-    icon: Shirt,
-    label: "Camisas / Kit",
-    desc: "Painel de produção por tamanho",
-    href: (id: string) => `/painel/campeonatos/${id}/camisas`,
-    disponivel: true,
-  },
-  {
     icon: CheckSquare,
     label: "Chaveamento",
     desc: "Grade e confrontos automáticos",
     href: (id: string) => `/painel/campeonatos/${id}/chaveamento`,
+    disponivel: true,
+  },
+  {
+    icon: Shirt,
+    label: "Camisas / Kit",
+    desc: "Painel de produção por tamanho",
+    href: (id: string) => `/painel/campeonatos/${id}/camisas`,
     disponivel: true,
   },
   {
