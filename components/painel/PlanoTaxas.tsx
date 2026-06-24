@@ -2,8 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Crown, Loader2, Lock } from "lucide-react";
-import { tornarCampeonatoElite } from "@/app/painel/campeonatos/[id]/financeiro/actions";
+import { Check, Crown, Loader2, Lock, X } from "lucide-react";
+import {
+  tornarCampeonatoElite,
+  cancelarCampeonatoElite,
+} from "@/app/painel/campeonatos/[id]/financeiro/actions";
 import { PRECO_ELITE, PRECO_ELITE_ORIGINAL } from "@/lib/elite";
 import { TAXAS_EXIBICAO } from "@/lib/taxas";
 
@@ -35,6 +38,7 @@ export function PlanoTaxas({
   isElite,
   status,
   feePendente,
+  permitirCancelar = false,
 }: {
   champId: string;
   isElite: boolean;
@@ -42,6 +46,8 @@ export function PlanoTaxas({
   status: string;
   /** Quanto da ativação Elite (R$178) ainda falta abater dos repasses. */
   feePendente: number;
+  /** Mostra o botão de cancelar o Elite (só na tela de financeiro). */
+  permitirCancelar?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -50,6 +56,8 @@ export function PlanoTaxas({
   const inscricoesAbertas = status === "rascunho" || status === "inscricoes_abertas";
   const podeAtivar = !isElite && inscricoesAbertas;
   const feeQuitada = feePendente <= 0;
+  // Cancelamento grátis só enquanto NADA foi descontado (dívida ainda cheia).
+  const nadaColetado = feePendente >= PRECO_ELITE;
 
   function handleAtivar() {
     setErro(null);
@@ -67,6 +75,23 @@ export function PlanoTaxas({
       const res = await tornarCampeonatoElite(champId);
       if (res.ok) router.refresh();
       else setErro(res.error ?? "Erro ao ativar o Elite.");
+    });
+  }
+
+  function handleCancelar() {
+    setErro(null);
+    if (
+      !confirm(
+        `Cancelar o Plano Elite?\n\n` +
+          `Como nenhum valor da adesão foi descontado ainda, o cancelamento é gratuito e sem multa. ` +
+          `O campeonato volta pro Plano Padrão e as taxas voltam ao normal.`,
+      )
+    )
+      return;
+    startTransition(async () => {
+      const res = await cancelarCampeonatoElite(champId);
+      if (res.ok) router.refresh();
+      else setErro(res.error ?? "Erro ao cancelar o Elite.");
     });
   }
 
@@ -115,6 +140,33 @@ export function PlanoTaxas({
                 <p className="text-xs text-amber-700">
                   Ativação de {brl(PRECO_ELITE)} — faltam{" "}
                   <strong>{brl(feePendente)}</strong> a descontar das próximas inscrições pagas.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Cancelar Elite — só na financeiro, e só enquanto nada foi descontado */}
+          {isElite && permitirCancelar && (
+            <div className="mt-3 border-t border-amber-200/60 pt-3">
+              {nadaColetado ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleCancelar}
+                    disabled={isPending}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-60"
+                  >
+                    {isPending ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
+                    Cancelar Plano Elite
+                  </button>
+                  <p className="mt-2 text-center text-xs text-gray-400">
+                    Grátis enquanto nada foi descontado — volta pro Plano Padrão.
+                  </p>
+                </>
+              ) : (
+                <p className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <Lock className="size-3.5" />
+                  O Elite já começou a ser cobrado e não pode mais ser cancelado.
                 </p>
               )}
             </div>

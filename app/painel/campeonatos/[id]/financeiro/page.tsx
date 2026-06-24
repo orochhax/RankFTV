@@ -126,7 +126,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
             isElite={isElite}
             feePendente={feePendente}
           />
-          <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} />
+          <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} permitirCancelar />
         </div>
       </div>
     </div>

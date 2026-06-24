@@ -69,3 +69,50 @@ export async function tornarCampeonatoElite(
   revalidatePath(`/painel/campeonatos/${champId}/publicar`);
   return { ok: true };
 }
+
+/**
+ * Cancela o Plano Elite, voltando ao Plano Padrão.
+ *
+ * Regra (ver Termos, seção 13): só dá pra cancelar enquanto NENHUM valor da
+ * adesão tiver sido descontado. A partir do primeiro abatimento, a adesão é
+ * definitiva. O UPDATE é condicional/atômico: só desativa se a dívida ainda
+ * estiver cheia (premium_fee_pendente >= PRECO_ELITE). Se um repasse abateu
+ * qualquer valor entre a checagem e aqui, o WHERE não casa → 0 linhas, e
+ * devolvemos erro (evita corrida com o webhook de pagamento).
+ */
+export async function cancelarCampeonatoElite(
+  champId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Não autenticado." };
+
+  const { data: champ } = await supabase
+    .from("championships")
+    .select("organizador_id, is_elite")
+    .eq("id", champId)
+    .single();
+  if (!champ || champ.organizador_id !== user.id)
+    return { ok: false, error: "Sem permissão." };
+  if (!champ.is_elite) return { ok: true }; // já não é elite
+
+  const { data: cancelado } = await supabase
+    .from("championships")
+    .update({ is_elite: false, premium_fee_pendente: 0 })
+    .eq("id", champId)
+    .eq("is_elite", true)
+    .gte("premium_fee_pendente", PRECO_ELITE)
+    .select("id");
+
+  if (!cancelado || cancelado.length === 0) {
+    return {
+      ok: false,
+      error: "O Plano Elite já começou a ser cobrado e não pode mais ser cancelado.",
+    };
+  }
+
+  revalidatePath(`/painel/campeonatos/${champId}`, "layout");
+  revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+  revalidatePath(`/painel/campeonatos/${champId}/publicar`);
+  return { ok: true };
+}
