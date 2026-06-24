@@ -1,0 +1,248 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { DollarSign, Eye, EyeOff, ChevronRight, Users } from "lucide-react";
+import { formatBRL, generoLabel } from "@/lib/format";
+
+type StatusCardData = {
+  slug: string;
+  label: string;
+  count: number;
+  valor: number;
+  bg: string;
+  ring: string;
+  text: string;
+};
+
+type CatSummary = { nome: string; genero: string; count: number; total: number };
+
+type CatItem = {
+  id: string;
+  nome: string;
+  genero: string;
+  valorInscricao: number | null;
+};
+
+type Props = {
+  champId: string;
+  repasseLiquido: number;
+  totalPago: number;
+  statusCards: StatusCardData[];
+  totalPix: number;
+  totalCredito: number;
+  totalDebito: number;
+  categorias: CatItem[];
+  catMap: Record<string, CatSummary>;
+  catSummaries: CatSummary[];
+};
+
+export function FinanceiroConteudoClient({
+  champId,
+  repasseLiquido,
+  totalPago,
+  statusCards,
+  totalPix,
+  totalCredito,
+  totalDebito,
+  categorias,
+  catMap,
+  catSummaries,
+}: Props) {
+  const [mostrar, setMostrar] = useState(true);
+  const val = (v: number) => (mostrar ? formatBRL(v) : "R$ ••••••");
+
+  const maxCatTotal = Math.max(...categorias.map((c) => catMap[c.id]?.total ?? 0), 1);
+
+  return (
+    <div className="space-y-8">
+      {/* Saldo líquido */}
+      <div className="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-emerald-600">
+            <DollarSign className="size-4" />
+            <p className="text-xs font-medium">Seu saldo líquido</p>
+          </div>
+          <button
+            onClick={() => setMostrar((v) => !v)}
+            className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-gray-400 hover:text-gray-700 transition-colors"
+            aria-label={mostrar ? "Ocultar valores" : "Mostrar valores"}
+          >
+            {mostrar ? (
+              <>
+                <EyeOff className="size-3.5" /> Ocultar valores
+              </>
+            ) : (
+              <>
+                <Eye className="size-3.5" /> Mostrar valores
+              </>
+            )}
+          </button>
+        </div>
+        <p className="mt-2 text-2xl font-bold text-emerald-700">{val(repasseLiquido)}</p>
+      </div>
+
+      {/* Status dos pagamentos */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+          Status dos pagamentos
+        </h2>
+        <div className="grid grid-cols-3 gap-3">
+          {statusCards.map((c) => (
+            <Link
+              key={c.slug}
+              href={`/painel/campeonatos/${champId}/financeiro/${c.slug}`}
+              className={`group relative rounded-2xl p-4 ring-1 transition-all hover:shadow-md hover:scale-[1.02] ${c.bg} ${c.ring}`}
+            >
+              <p className={`text-xs font-medium ${c.text}`}>{c.label}</p>
+              <p className={`mt-2 text-2xl font-bold ${c.text}`}>{c.count}</p>
+              <p className={`text-xs ${c.text} opacity-70`}>{val(c.valor)}</p>
+              <ChevronRight
+                className={`absolute bottom-3 right-3 size-3.5 opacity-0 group-hover:opacity-60 transition-opacity ${c.text}`}
+              />
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <MetodoCard emoji="⚡" label="Pix" valor={totalPix} val={val} />
+          <MetodoCard emoji="💳" label="Crédito" valor={totalCredito} val={val} />
+          <MetodoCard emoji="🏦" label="Débito" valor={totalDebito} val={val} />
+        </div>
+      </section>
+
+      {/* Arrecadação por categoria — gráfico de barras */}
+      {categorias.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+            Arrecadação por categoria
+          </h2>
+          <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5 space-y-4">
+            {categorias.map((cat) => {
+              const total = catMap[cat.id]?.total ?? 0;
+              const count = catMap[cat.id]?.count ?? 0;
+              const pct = (total / maxCatTotal) * 100;
+              return (
+                <div key={cat.id} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-800">{cat.nome}</span>
+                    <span className={`font-semibold ${total > 0 ? "text-gray-900" : "text-gray-300"}`}>
+                      {mostrar ? formatBRL(total) : "R$ ••••••"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                      <div
+                        className="absolute inset-y-0 left-0 rounded-full bg-blue-500 transition-all"
+                        style={{ width: `${mostrar ? pct : 0}%` }}
+                      />
+                    </div>
+                    <span className="w-16 text-right text-xs text-gray-400">
+                      {count} dupla{count !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Tabela por categoria */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+          Por categoria
+        </h2>
+        <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase tracking-wider text-gray-400">
+                <th className="px-4 py-3">Categoria</th>
+                <th className="px-4 py-3 text-right">Inscrições</th>
+                <th className="px-4 py-3 text-right">Total bruto</th>
+                <th className="px-4 py-3 text-right">Repasse</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {categorias.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-6 text-center text-sm text-gray-400">
+                    Nenhuma categoria cadastrada
+                  </td>
+                </tr>
+              ) : (
+                categorias.map((cat) => {
+                  const summary = catMap[cat.id];
+                  const count = summary?.count ?? 0;
+                  const total = summary?.total ?? 0;
+                  return (
+                    <tr key={cat.id}>
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-gray-900">{cat.nome}</p>
+                        <p className="text-xs text-gray-400 capitalize">
+                          {generoLabel(cat.genero as "masculino" | "feminino" | "mista")}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-600">
+                        <span className="inline-flex items-center gap-1">
+                          <Users className="size-3.5 text-gray-400" />
+                          {count}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium text-gray-900">
+                        {val(total)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-emerald-600">
+                        {val(total)}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+            {categorias.length > 1 && (
+              <tfoot className="border-t-2 border-gray-200">
+                <tr className="bg-gray-50">
+                  <td className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">Total</td>
+                  <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
+                    {catSummaries.reduce((s, c) => s + c.count, 0)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
+                    {val(totalPago)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm font-semibold text-emerald-600">
+                    {val(repasseLiquido)}
+                  </td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function MetodoCard({
+  emoji,
+  label,
+  valor,
+  val,
+}: {
+  emoji: string;
+  label: string;
+  valor: number;
+  val: (v: number) => string;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5 rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
+      <div className="flex items-center gap-1.5">
+        <span className="text-sm leading-none">{emoji}</span>
+        <p className="text-xs font-medium text-gray-500">{label}</p>
+      </div>
+      <p className={`text-sm font-semibold ${valor > 0 ? "text-gray-900" : "text-gray-300"}`}>
+        {val(valor)}
+      </p>
+    </div>
+  );
+}

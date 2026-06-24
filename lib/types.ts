@@ -17,6 +17,7 @@ export type Category = {
   valorInscricao: number;
   corteRatingMin: number;
   corteRatingMax: number;
+  maxDuplas?: number;
 };
 
 export type Championship = {

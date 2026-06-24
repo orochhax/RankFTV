@@ -18,6 +18,7 @@ type CatRow = {
   valor_inscricao: number;
   corte_rating_min: number;
   corte_rating_max: number;
+  max_duplas: number | null;
 };
 
 type ChampRow = {
@@ -40,7 +41,7 @@ type ChampRow = {
 };
 
 const SELECT =
-  "id, organizador_id, nome, descricao, regulamento, data_inicio, data_fim, cidade, estado, local, status, taxa_plataforma, live_url, banner_url, is_vitrine, championship_categories(id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max)";
+  "id, organizador_id, nome, descricao, regulamento, data_inicio, data_fim, cidade, estado, local, status, taxa_plataforma, live_url, banner_url, is_vitrine, championship_categories(id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max, max_duplas)";
 
 const GRADIENTS: [string, string][] = [
   ["from-blue-500", "to-cyan-400"],
@@ -81,6 +82,7 @@ function mapChampionship(row: ChampRow): Championship {
         valorInscricao: c.valor_inscricao,
         corteRatingMin: c.corte_rating_min,
         corteRatingMax: c.corte_rating_max,
+        maxDuplas: c.max_duplas ?? undefined,
       }),
     ),
   };

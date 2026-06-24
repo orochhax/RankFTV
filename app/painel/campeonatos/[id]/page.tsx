@@ -136,13 +136,13 @@ export default async function PainelCampeonatoPage({
   const temCategoriaPaga = camp.categorias.some((c) => (c.valorInscricao ?? 0) > 0);
 
   const vagasTotais = camp.categorias.reduce(
-    (acc, c) => acc + ((c as { corteRatingMax?: number; maxDuplas?: number }).maxDuplas ?? 0),
+    (acc, c) => acc + (c.maxDuplas ?? 0),
     0,
   );
-  const totalPotencial = camp.categorias.reduce((acc, c) => {
-    const ext = c as { maxDuplas?: number };
-    return acc + ((ext.maxDuplas ?? 0) * (c.valorInscricao ?? 0));
-  }, 0);
+  const totalPotencial = camp.categorias.reduce(
+    (acc, c) => acc + ((c.maxDuplas ?? 0) * (c.valorInscricao ?? 0)),
+    0,
+  );
 
   return (
     <div className="min-h-screen">
@@ -360,27 +360,24 @@ export default async function PainelCampeonatoPage({
           <section>
             <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Categorias</h2>
             <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-              {camp.categorias.map((cat) => {
-                const catExt = cat as typeof cat & { maxDuplas?: number };
-                return (
-                  <li key={cat.id} className="flex items-center justify-between px-4 py-3">
-                    <div>
-                      <p className="font-medium text-gray-900">{cat.nome}</p>
-                      <p className="text-xs text-gray-400 capitalize">{cat.genero}</p>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      {catExt.maxDuplas && (
-                        <span className="text-gray-400">
-                          0 / {catExt.maxDuplas} duplas
-                        </span>
-                      )}
-                      <span className="font-semibold text-gray-900">
-                        {formatBRL(cat.valorInscricao)}
+              {camp.categorias.map((cat) => (
+                <li key={cat.id} className="flex items-center justify-between px-4 py-3">
+                  <div>
+                    <p className="font-medium text-gray-900">{cat.nome}</p>
+                    <p className="text-xs text-gray-400 capitalize">{cat.genero}</p>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    {cat.maxDuplas != null && cat.maxDuplas > 0 && (
+                      <span className="text-gray-400">
+                        {duplasPagas} / {cat.maxDuplas} duplas
                       </span>
-                    </div>
-                  </li>
-                );
-              })}
+                    )}
+                    <span className="font-semibold text-gray-900">
+                      {formatBRL(cat.valorInscricao)}
+                    </span>
+                  </div>
+                </li>
+              ))}
             </ol>
           </section>
 
