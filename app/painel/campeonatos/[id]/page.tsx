@@ -221,22 +221,30 @@ export default async function PainelCampeonatoPage({
             </div>
           </div>
 
-          {/* Barra de progresso de vagas */}
-          {vagasTotais > 0 && (
+          {/* Barra de progresso de vagas — aparece sempre que há duplas ou vagas configuradas */}
+          {(duplasPagas > 0 || vagasTotais > 0) && (
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs text-white/50">
                 <span>
-                  {duplasPagas} / {vagasTotais} vagas preenchidas
-                  {duplasPagas > 0 && ` · ${Math.round((duplasPagas / vagasTotais) * 100)}%`}
+                  {vagasTotais > 0
+                    ? `${duplasPagas} / ${vagasTotais} vagas · ${Math.round((duplasPagas / vagasTotais) * 100)}%`
+                    : `${duplasPagas} dupla${duplasPagas !== 1 ? "s" : ""} inscrita${duplasPagas !== 1 ? "s" : ""}`}
                 </span>
-                {totalPotencial > 0 && (
-                  <span>{formatBRL(totalArrecadado)} / {formatBRL(totalPotencial)}</span>
+                {totalArrecadado > 0 && (
+                  <span>
+                    {formatBRL(totalArrecadado)}
+                    {totalPotencial > 0 && ` / ${formatBRL(totalPotencial)}`}
+                  </span>
                 )}
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
-                  style={{ width: `${Math.min(100, (duplasPagas / vagasTotais) * 100)}%` }}
+                  style={{
+                    width: vagasTotais > 0
+                      ? `${Math.min(100, (duplasPagas / vagasTotais) * 100)}%`
+                      : duplasPagas > 0 ? "100%" : "0%",
+                  }}
                 />
               </div>
             </div>

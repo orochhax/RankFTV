@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { DollarSign, Eye, EyeOff, ChevronRight, Users } from "lucide-react";
-import { formatBRL, generoLabel } from "@/lib/format";
+import { DollarSign, Eye, EyeOff, ChevronRight, Info } from "lucide-react";
+import { formatBRL } from "@/lib/format";
 
 type StatusCardData = {
   slug: string;
@@ -27,27 +27,23 @@ type CatItem = {
 type Props = {
   champId: string;
   repasseLiquido: number;
-  totalPago: number;
   statusCards: StatusCardData[];
   totalPix: number;
   totalCredito: number;
   totalDebito: number;
   categorias: CatItem[];
   catMap: Record<string, CatSummary>;
-  catSummaries: CatSummary[];
 };
 
 export function FinanceiroConteudoClient({
   champId,
   repasseLiquido,
-  totalPago,
   statusCards,
   totalPix,
   totalCredito,
   totalDebito,
   categorias,
   catMap,
-  catSummaries,
 }: Props) {
   const [mostrar, setMostrar] = useState(true);
   const val = (v: number) => (mostrar ? formatBRL(v) : "R$ ••••••");
@@ -80,6 +76,12 @@ export function FinanceiroConteudoClient({
           </button>
         </div>
         <p className="mt-2 text-2xl font-bold text-emerald-700">{val(repasseLiquido)}</p>
+        <div className="mt-3 flex items-start gap-1.5">
+          <Info className="mt-0.5 size-3.5 shrink-0 text-emerald-500/60" />
+          <p className="text-xs leading-relaxed text-emerald-700/60">
+            Valores pendentes e estornados não são contabilizados no saldo líquido.
+          </p>
+        </div>
       </div>
 
       {/* Status dos pagamentos */}
@@ -148,77 +150,6 @@ export function FinanceiroConteudoClient({
         </section>
       )}
 
-      {/* Tabela por categoria */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
-          Por categoria
-        </h2>
-        <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase tracking-wider text-gray-400">
-                <th className="px-4 py-3">Categoria</th>
-                <th className="px-4 py-3 text-right">Inscrições</th>
-                <th className="px-4 py-3 text-right">Total bruto</th>
-                <th className="px-4 py-3 text-right">Repasse</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {categorias.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-6 text-center text-sm text-gray-400">
-                    Nenhuma categoria cadastrada
-                  </td>
-                </tr>
-              ) : (
-                categorias.map((cat) => {
-                  const summary = catMap[cat.id];
-                  const count = summary?.count ?? 0;
-                  const total = summary?.total ?? 0;
-                  return (
-                    <tr key={cat.id}>
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-gray-900">{cat.nome}</p>
-                        <p className="text-xs text-gray-400 capitalize">
-                          {generoLabel(cat.genero as "masculino" | "feminino" | "mista")}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3 text-right text-gray-600">
-                        <span className="inline-flex items-center gap-1">
-                          <Users className="size-3.5 text-gray-400" />
-                          {count}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-900">
-                        {val(total)}
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold text-emerald-600">
-                        {val(total)}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-            {categorias.length > 1 && (
-              <tfoot className="border-t-2 border-gray-200">
-                <tr className="bg-gray-50">
-                  <td className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">Total</td>
-                  <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
-                    {catSummaries.reduce((s, c) => s + c.count, 0)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
-                    {val(totalPago)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm font-semibold text-emerald-600">
-                    {val(repasseLiquido)}
-                  </td>
-                </tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
-      </section>
     </div>
   );
 }

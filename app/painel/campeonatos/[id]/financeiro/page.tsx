@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Info } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { FinanceiroConteudoClient } from "@/components/painel/FinanceiroConteudoClient";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
@@ -56,7 +56,6 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     if (!catMap[catId]) catMap[catId] = { nome: r.championship_categories.nome, genero: r.championship_categories.genero, count: 0, total: 0 };
     if (r.status_pagamento === "pago") { catMap[catId].count += 1; catMap[catId].total += Number(r.valor); }
   }
-  const catSummaries = Object.values(catMap).filter((c) => c.count > 0);
 
   const pagas = regs.filter((r) => r.status_pagamento === "pago");
   const totalPix     = pagas.filter((r) => r.billing_type === "PIX").reduce((s, r) => s + Number(r.valor), 0);
@@ -108,10 +107,6 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
             <ArrowLeft className="size-4" /> {camp.nome}
           </Link>
           <h1 className="text-2xl font-bold tracking-tight text-white">Financeiro</h1>
-          <div className="flex items-start gap-2 rounded-xl bg-white/5 px-3 py-2.5">
-            <Info className="mt-0.5 size-3.5 shrink-0 text-white/30" />
-            <p className="text-xs leading-relaxed text-white/30">Valores pendentes e estornados não são contabilizados no total recebido nem no saldo líquido.</p>
-          </div>
           <ChavePixClient chavePix={chavePix} />
         </div>
       </div>
@@ -121,14 +116,12 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
           <FinanceiroConteudoClient
             champId={id}
             repasseLiquido={repasseLiquido}
-            totalPago={totalPago}
             statusCards={STATUS_CARDS}
             totalPix={totalPix}
             totalCredito={totalCredito}
             totalDebito={totalDebito}
             categorias={categorias}
             catMap={catMap}
-            catSummaries={catSummaries}
           />
           <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} />
         </div>
