@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -12,6 +13,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erro, setErro] = useState<string | null>(
     searchParams.get("erro") === "link-invalido"
       ? "O link de confirmação é inválido ou expirou. Faça login ou crie uma nova conta."
@@ -64,13 +66,23 @@ export default function LoginPage() {
           <label htmlFor="senha" className="block text-sm font-medium text-gray-700">
             Senha
           </label>
-          <input
-            id="senha"
-            type="password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-          />
+          <div className="relative mt-1">
+            <input
+              id="senha"
+              type={mostrarSenha ? "text" : "password"}
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:border-blue-500 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setMostrarSenha((v) => !v)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+            >
+              {mostrarSenha ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
         </div>
         <button
           type="submit"

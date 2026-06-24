@@ -113,7 +113,7 @@ export default async function PainelCampeonatoPage({
   const [tierRes, paidRes, orgAccountRes, inviteRes] = await Promise.all([
     supabase.from("championships").select("tier_quiz, is_elite").eq("id", id).maybeSingle(),
     supabase.from("registrations")
-      .select("id", { count: "exact", head: true })
+      .select("valor")
       .eq("championship_id", id)
       .eq("status_pagamento", "pago"),
     supabase.from("organizer_accounts")
@@ -128,7 +128,9 @@ export default async function PainelCampeonatoPage({
   ]);
   const tierQuiz    = (tierRes.data?.tier_quiz ?? null) as Partial<QuizAnswers> | null;
   const isElite     = !!tierRes.data?.is_elite;
-  const duplasPagas = paidRes.count ?? 0;
+  const paidRows    = (paidRes.data ?? []) as { valor: number }[];
+  const duplasPagas = paidRows.length;
+  const totalArrecadado = paidRows.reduce((s, r) => s + Number(r.valor), 0);
   const temChavePix = !!orgAccountRes.data?.chave_pix;
   const pendingInvite = inviteRes.data ?? null;
   const temCategoriaPaga = camp.categorias.some((c) => (c.valorInscricao ?? 0) > 0);
@@ -137,6 +139,10 @@ export default async function PainelCampeonatoPage({
     (acc, c) => acc + ((c as { corteRatingMax?: number; maxDuplas?: number }).maxDuplas ?? 0),
     0,
   );
+  const totalPotencial = camp.categorias.reduce((acc, c) => {
+    const ext = c as { maxDuplas?: number };
+    return acc + ((ext.maxDuplas ?? 0) * (c.valorInscricao ?? 0));
+  }, 0);
 
   return (
     <div className="min-h-screen">
@@ -201,7 +207,7 @@ export default async function PainelCampeonatoPage({
           <div className="grid grid-cols-3 gap-3 pt-1">
             <div className="rounded-2xl bg-white/10 p-4">
               <p className="text-xs text-white/50">Duplas inscritas</p>
-              <p className="text-2xl font-bold text-white">0</p>
+              <p className="text-2xl font-bold text-white">{duplasPagas}</p>
             </div>
             <div className="rounded-2xl bg-white/10 p-4">
               <p className="text-xs text-white/50">Categorias</p>
@@ -214,6 +220,27 @@ export default async function PainelCampeonatoPage({
               </p>
             </div>
           </div>
+
+          {/* Barra de progresso de vagas */}
+          {vagasTotais > 0 && (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs text-white/50">
+                <span>
+                  {duplasPagas} / {vagasTotais} vagas preenchidas
+                  {duplasPagas > 0 && ` · ${Math.round((duplasPagas / vagasTotais) * 100)}%`}
+                </span>
+                {totalPotencial > 0 && (
+                  <span>{formatBRL(totalArrecadado)} / {formatBRL(totalPotencial)}</span>
+                )}
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
+                  style={{ width: `${Math.min(100, (duplasPagas / vagasTotais) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

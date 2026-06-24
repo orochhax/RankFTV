@@ -3,7 +3,7 @@
 import { useState, useEffect, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function CadastroPage() {
@@ -17,6 +17,7 @@ export default function CadastroPage() {
   const [usernameStatus, setUsernameStatus] = useState<
     "idle" | "checking" | "ok" | "taken" | "invalid"
   >("idle");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -155,14 +156,24 @@ export default function CadastroPage() {
           <label htmlFor="senha" className="block text-sm font-medium text-gray-700">
             Senha
           </label>
-          <input
-            id="senha"
-            type="password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-            placeholder="Mínimo 6 caracteres"
-          />
+          <div className="relative mt-1">
+            <input
+              id="senha"
+              type={mostrarSenha ? "text" : "password"}
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:border-blue-500 focus:outline-none"
+              placeholder="Mínimo 6 caracteres"
+            />
+            <button
+              type="button"
+              onClick={() => setMostrarSenha((v) => !v)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+            >
+              {mostrarSenha ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
         </div>
 
         <button

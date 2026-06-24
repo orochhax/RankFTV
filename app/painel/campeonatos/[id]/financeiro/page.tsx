@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, DollarSign, Info, TrendingUp, Users, ChevronRight } from "lucide-react";
+import { ArrowLeft, Info, Users, ChevronRight } from "lucide-react";
+import { FinanceiroHeaderClient } from "@/components/painel/FinanceiroHeaderClient";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { formatBRL, generoLabel } from "@/lib/format";
@@ -101,16 +102,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
             <ArrowLeft className="size-4" /> {camp.nome}
           </Link>
           <h1 className="text-2xl font-bold tracking-tight text-white">Financeiro</h1>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-white/10 p-4">
-              <div className="flex items-center gap-1.5 text-white/50"><TrendingUp className="size-4" /><p className="text-xs">Saldo Bruto</p></div>
-              <p className="mt-1 text-xl font-bold text-white">{formatBRL(totalPago)}</p>
-            </div>
-            <div className="rounded-2xl bg-emerald-500/20 p-4">
-              <div className="flex items-center gap-1.5 text-emerald-400"><DollarSign className="size-4" /><p className="text-xs">Seu saldo líquido</p></div>
-              <p className="mt-1 text-xl font-bold text-emerald-300">{formatBRL(repasseLiquido)}</p>
-            </div>
-          </div>
+          <FinanceiroHeaderClient repasseLiquido={repasseLiquido} />
           <div className="flex items-start gap-2 rounded-xl bg-white/5 px-3 py-2.5">
             <Info className="mt-0.5 size-3.5 shrink-0 text-white/30" />
             <p className="text-xs leading-relaxed text-white/30">Valores pendentes e estornados não são contabilizados no total recebido nem no saldo líquido.</p>
@@ -149,6 +141,16 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
 
           {/* Plano de taxas */}
           <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} />
+
+          {/* Gráfico: arrecadação por categoria */}
+          {camp.categorias.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Arrecadação por categoria</h2>
+              <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5 space-y-4">
+                <CategoriaBarChart categorias={camp.categorias} catMap={catMap} />
+              </div>
+            </section>
+          )}
 
           {/* Por categoria */}
           <section>
@@ -198,6 +200,45 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
           </section>
         </div>
       </div>
+    </div>
+  );
+}
+
+type CatBarProps = {
+  categorias: { id: string; nome: string; genero: string; valorInscricao: number | null }[];
+  catMap: Record<string, { nome: string; genero: string; count: number; total: number }>;
+};
+
+function CategoriaBarChart({ categorias, catMap }: CatBarProps) {
+  const maxTotal = Math.max(...categorias.map((c) => catMap[c.id]?.total ?? 0), 1);
+  return (
+    <div className="space-y-4">
+      {categorias.map((cat) => {
+        const total = catMap[cat.id]?.total ?? 0;
+        const count = catMap[cat.id]?.count ?? 0;
+        const pct = (total / maxTotal) * 100;
+        return (
+          <div key={cat.id} className="space-y-1.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-gray-800">{cat.nome}</span>
+              <span className={`font-semibold ${total > 0 ? "text-gray-900" : "text-gray-300"}`}>
+                {formatBRL(total)}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full bg-blue-500 transition-all"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <span className="w-16 text-right text-xs text-gray-400">
+                {count} dupla{count !== 1 ? "s" : ""}
+              </span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
