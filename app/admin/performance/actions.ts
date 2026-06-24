@@ -224,6 +224,80 @@ export async function salvarRelatorio(formData: FormData): Promise<Res> {
   return { ok: true };
 }
 
+// ── Futevôlei: rating ────────────────────────────────────────────────────────
+export async function registrarRating(formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+
+  const rating = parseFloat(formData.get("rating") as string);
+  if (!Number.isFinite(rating) || rating < 0) return { ok: false, error: "Rating inválido." };
+  const data = (formData.get("data") as string)?.trim() || hojeISO();
+
+  const { error } = await supabase.from("perf_rating").insert({ user_id: user.id, data, rating });
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function definirMetaRating(formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+
+  const meta = parseFloat(formData.get("rating_meta") as string);
+  if (!Number.isFinite(meta) || meta < 0) return { ok: false, error: "Meta inválida." };
+
+  const { error } = await supabase.from("perf_profile").upsert(
+    { user_id: user.id, rating_meta: meta, updated_at: new Date().toISOString() },
+    { onConflict: "user_id" },
+  );
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+// ── Futevôlei: jogos ─────────────────────────────────────────────────────────
+export async function adicionarJogo(formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+
+  const resultado = formData.get("resultado") as string;
+  if (resultado !== "vitoria" && resultado !== "derrota") {
+    return { ok: false, error: "Resultado inválido." };
+  }
+  const str = (k: string) => (formData.get(k) as string)?.trim() || null;
+
+  const { error } = await supabase.from("perf_match").insert({
+    user_id:    user.id,
+    data:       str("data") ?? hojeISO(),
+    parceiro:   str("parceiro"),
+    adversario: str("adversario"),
+    resultado,
+    placar:     str("placar"),
+    obs:        str("obs"),
+  });
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function removerJogo(id: string): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+
+  const { error } = await supabase
+    .from("perf_match")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
 // ── Registro diário ──────────────────────────────────────────────────────────
 export async function registrarHabito(
   habitId: string,
