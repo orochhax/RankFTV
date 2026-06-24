@@ -30,7 +30,7 @@ export function MeuDesempenho({ conquistas, rank, nivel, evolucao }: Props) {
 
         {/* ── Conquistas ──────────────────────────────── */}
         <div className="flex flex-col gap-2">
-          <p className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase">
+          <p className="text-[10px] font-semibold tracking-widest text-gray-500 uppercase text-center">
             Conquistas
           </p>
 

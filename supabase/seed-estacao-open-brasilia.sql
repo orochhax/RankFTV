@@ -247,6 +247,23 @@ BEGIN
                        160,160,160,160,
                        170,170,170]::numeric[];
 
+  -- ─────────────────────────────────────────────────────────────
+  -- 6b. LIMPEZA dos fakes anteriores (torna o script idempotente)
+  -- ─────────────────────────────────────────────────────────────
+  DELETE FROM shirt_production
+  WHERE championship_id = v_champ_id
+    AND athlete_id IN (
+      SELECT id FROM auth.users WHERE email LIKE 'fake.brasilia.%@rankftv.test'
+    );
+  DELETE FROM credentials
+  WHERE championship_id = v_champ_id
+    AND user_id IN (
+      SELECT id FROM auth.users WHERE email LIKE 'fake.brasilia.%@rankftv.test'
+    );
+  DELETE FROM registrations WHERE championship_id = v_champ_id;
+  DELETE FROM teams WHERE championship_id = v_champ_id;
+  DELETE FROM auth.users WHERE email LIKE 'fake.brasilia.%@rankftv.test';
+
   RAISE NOTICE 'Categorias OK. Iniciando criação das 20 duplas...';
 
   -- ─────────────────────────────────────────────────────────────
