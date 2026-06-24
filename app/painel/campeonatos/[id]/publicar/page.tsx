@@ -4,6 +4,7 @@ import { ArrowLeft, Zap, CreditCard, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PublicarCampeonatoForm } from "@/components/painel/PublicarCampeonatoForm";
 import { PlanoTaxas } from "@/components/painel/PlanoTaxas";
+import { ChavePixClient } from "@/components/painel/ChavePixClient";
 
 // Fluxo de publicação (rascunho → no ar). Mostra a taxa e como o repasse
 // funciona ANTES de abrir as inscrições, e coleta os dados de recebimento no
@@ -79,6 +80,11 @@ export default async function PublicarPage({
               visível pra todo mundo e as inscrições abrem.
             </p>
           </div>
+
+          {/* Chave Pix — visível sempre que há categorias pagas */}
+          {temCategoriaPaga && (
+            <ChavePixClient chavePix={orgAccount?.chave_pix ?? null} />
+          )}
         </div>
       </div>
 
@@ -119,17 +125,6 @@ export default async function PublicarPage({
                 feePendente={feePendente}
               />
 
-              {/* Recebimento já configurado */}
-              {!precisaPix && (
-                <div className="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-100">
-                  <p className="text-sm font-medium text-emerald-800">
-                    Recebimento já configurado ✓
-                  </p>
-                  <p className="mt-0.5 text-xs text-emerald-600">
-                    Sua chave Pix já está cadastrada. É só publicar.
-                  </p>
-                </div>
-              )}
             </>
           ) : (
             /* Campeonato gratuito */
