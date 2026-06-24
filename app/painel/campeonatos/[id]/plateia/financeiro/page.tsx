@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Info, Ticket } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatBRL } from "@/lib/format";
 
@@ -94,28 +94,52 @@ export default async function FinanceiroPlateiaPage({
           </section>
 
           <section>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Por tipo de ingresso</h2>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Arrecadação por tipo de ingresso</h2>
             {Object.keys(porTipo).length === 0 ? (
               <p className="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-400 ring-1 ring-black/5">
                 Nenhum ingresso pago ainda.
               </p>
             ) : (
-              <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-                {Object.entries(porTipo).map(([nome, v]) => (
-                  <li key={nome} className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Ticket className="size-4 text-gray-300" />
-                      <span className="font-medium text-gray-900">{nome}</span>
-                      <span className="text-xs text-gray-400">· {v.count}</span>
-                    </div>
-                    <span className="font-semibold text-gray-900">{formatBRL(v.total)}</span>
-                  </li>
-                ))}
-              </ul>
+              <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+                <IngressoBarChart porTipo={porTipo} />
+              </div>
             )}
           </section>
         </div>
       </div>
+    </div>
+  );
+}
+
+function IngressoBarChart({ porTipo }: { porTipo: Record<string, { count: number; total: number }> }) {
+  const entries = Object.entries(porTipo);
+  const maxTotal = Math.max(...entries.map(([, v]) => v.total), 1);
+  return (
+    <div className="space-y-4">
+      {entries.map(([nome, v]) => {
+        const pct = (v.total / maxTotal) * 100;
+        return (
+          <div key={nome} className="space-y-1.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-gray-800">{nome}</span>
+              <span className={`font-semibold ${v.total > 0 ? "text-gray-900" : "text-gray-300"}`}>
+                {formatBRL(v.total)}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full bg-blue-500 transition-all"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <span className="w-20 text-right text-xs text-gray-400">
+                {v.count} ingresso{v.count !== 1 ? "s" : ""}
+              </span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
