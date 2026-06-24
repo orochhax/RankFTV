@@ -23,7 +23,7 @@ export default async function PublicarPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome, status, organizador_id, is_elite, premium_fee_pendente")
+    .select("nome, status, organizador_id, is_elite, premium_fee_pendente, max_parcelas_inscricao, max_parcelas_ingresso")
     .eq("id", id)
     .maybeSingle();
 
@@ -35,7 +35,7 @@ export default async function PublicarPage({
     redirect(`/painel/campeonatos/${id}/criado`);
   }
 
-  const [{ data: cats }, { data: orgAccount }] = await Promise.all([
+  const [{ data: cats }, { data: orgAccount }, { data: tiposIngresso }] = await Promise.all([
     supabase
       .from("championship_categories")
       .select("valor_inscricao")
@@ -45,13 +45,20 @@ export default async function PublicarPage({
       .select("chave_pix")
       .eq("user_id", user.id)
       .maybeSingle(),
+    supabase
+      .from("spectator_ticket_types")
+      .select("id, valor")
+      .eq("championship_id", id),
   ]);
 
-  const temCategoriaPaga = (cats ?? []).some((c) => Number(c.valor_inscricao) > 0);
-  const temChavePix      = !!orgAccount?.chave_pix;
-  const precisaPix       = temCategoriaPaga && !temChavePix;
-  const isElite          = !!champ?.is_elite;
-  const feePendente      = Number(champ?.premium_fee_pendente ?? 0);
+  const temCategoriaPaga     = (cats ?? []).some((c) => Number(c.valor_inscricao) > 0);
+  const temChavePix          = !!orgAccount?.chave_pix;
+  const precisaPix           = temCategoriaPaga && !temChavePix;
+  const isElite              = !!champ?.is_elite;
+  const feePendente          = Number(champ?.premium_fee_pendente ?? 0);
+  const temIngresso          = (tiposIngresso ?? []).some((t) => Number(t.valor) > 0);
+  const maxParcelasInscricao = (champ as Record<string, unknown>).max_parcelas_inscricao as number ?? 1;
+  const maxParcelasIngresso  = (champ as Record<string, unknown>).max_parcelas_ingresso  as number ?? 1;
 
   return (
     <div className="min-h-screen">
@@ -136,7 +143,14 @@ export default async function PublicarPage({
           )}
 
           {/* Form de publicação (mostra campos de Pix só quando precisa) */}
-          <PublicarCampeonatoForm championshipId={id} precisaPix={precisaPix} />
+          <PublicarCampeonatoForm
+            championshipId={id}
+            precisaPix={precisaPix}
+            temCategoriaPaga={temCategoriaPaga}
+            temIngresso={temIngresso}
+            maxParcelasInscricao={maxParcelasInscricao}
+            maxParcelasIngresso={maxParcelasIngresso}
+          />
 
         </div>
       </div>

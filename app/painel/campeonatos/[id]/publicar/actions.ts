@@ -70,6 +70,9 @@ export async function publicarCampeonato(
   const championshipId = formData.get("championship_id") as string;
   if (!championshipId) return { error: "Campeonato não encontrado." };
 
+  const maxParcelasInscricao = Math.min(12, Math.max(1, parseInt(formData.get("max_parcelas_inscricao") as string) || 1));
+  const maxParcelasIngresso  = Math.min(12, Math.max(1, parseInt(formData.get("max_parcelas_ingresso")  as string) || 1));
+
   // Aceite dos Termos de uso é obrigatório pra publicar.
   if (!formData.get("aceito_termos")) {
     return { error: "Você precisa aceitar os Termos de uso para publicar." };
@@ -139,10 +142,14 @@ export async function publicarCampeonato(
     if (upErr) return { error: "Erro ao salvar seus dados de recebimento. Tente de novo." };
   }
 
-  // Publica.
+  // Publica e salva as configurações de parcelamento.
   const { error: stErr } = await supabase
     .from("championships")
-    .update({ status: "inscricoes_abertas" })
+    .update({
+      status: "inscricoes_abertas",
+      max_parcelas_inscricao: maxParcelasInscricao,
+      max_parcelas_ingresso:  maxParcelasIngresso,
+    })
     .eq("id", championshipId);
   if (stErr) return { error: "Não foi possível publicar. Tente de novo." };
 
