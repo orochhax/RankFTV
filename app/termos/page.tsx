@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Termos de uso — RankFTV",
 };
 
-const ULTIMA_ATUALIZACAO = "23 de junho de 2026";
+const ULTIMA_ATUALIZACAO = "24 de junho de 2026";
 
 type Bloco =
   | { p: string }
@@ -144,6 +144,7 @@ const SECOES: Secao[] = [
     blocos: [
       { p: "O comprador pode solicitar o cancelamento da inscrição ou ingresso diretamente pela Plataforma." },
       { p: "Direito de arrependimento (art. 49, CDC): cancelamentos solicitados em até 7 (sete) dias corridos da data da compra dão direito ao reembolso integral do valor pago, incluindo a taxa de serviço da Plataforma." },
+      { p: "Exceção ao direito de arrependimento (art. 49, parágrafo único, CDC): o direito de cancelamento não se aplica quando o evento ocorre dentro do prazo de 7 (sete) dias da data da compra, conforme previsão contratual expressa. Nesses casos, o comprador declara ciência de que a proximidade da data do evento impede o exercício do arrependimento, e o reembolso fica condicionado à política de cancelamento definida pelo Organizador." },
       { p: "Após os 7 dias: a taxa de serviço cobrada pela RankFTV é não reembolsável, pois remunera o serviço de intermediação já prestado. O reembolso nesse caso corresponde apenas ao valor da inscrição ou ingresso definido pelo Organizador, sem a taxa de serviço. Cancelamentos após esse prazo ficam sujeitos à política de cancelamento do Organizador." },
       { p: "Iniciado o reembolso, a inscrição, a dupla e a credencial digital (QR Code) são cancelados imediatamente e deixam de dar acesso ao evento." },
       { p: "Os prazos para o dinheiro retornar ao comprador dependem do meio de pagamento: Pix em até 1 (um) dia útil; cartão de crédito ou débito em até 30 (trinta) dias corridos, conforme as regras da operadora do cartão." },
