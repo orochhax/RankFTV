@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { DollarSign, Eye, EyeOff, ChevronRight, Info } from "lucide-react";
+import { Crown, DollarSign, Eye, EyeOff, ChevronRight, Info } from "lucide-react";
 import { formatBRL } from "@/lib/format";
+import { PRECO_ELITE } from "@/lib/elite";
 
 type StatusCardData = {
   slug: string;
@@ -33,6 +34,8 @@ type Props = {
   totalDebito: number;
   categorias: CatItem[];
   catMap: Record<string, CatSummary>;
+  isElite: boolean;
+  feePendente: number;
 };
 
 export function FinanceiroConteudoClient({
@@ -44,6 +47,8 @@ export function FinanceiroConteudoClient({
   totalDebito,
   categorias,
   catMap,
+  isElite,
+  feePendente,
 }: Props) {
   const [mostrar, setMostrar] = useState(true);
   const val = (v: number) => (mostrar ? formatBRL(v) : "R$ ••••••");
@@ -53,9 +58,9 @@ export function FinanceiroConteudoClient({
   return (
     <div className="space-y-8">
       {/* Saldo líquido */}
-      <div className="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
+      <div className={`rounded-2xl p-4 ring-1 ${repasseLiquido < 0 ? "bg-red-50 ring-red-200" : "bg-emerald-50 ring-emerald-200"}`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-emerald-600">
+          <div className={`flex items-center gap-1.5 ${repasseLiquido < 0 ? "text-red-600" : "text-emerald-600"}`}>
             <DollarSign className="size-4" />
             <p className="text-xs font-medium">Seu saldo líquido</p>
           </div>
@@ -75,14 +80,55 @@ export function FinanceiroConteudoClient({
             )}
           </button>
         </div>
-        <p className="mt-2 text-2xl font-bold text-emerald-700">{val(repasseLiquido)}</p>
+        <p className={`mt-2 text-2xl font-bold ${repasseLiquido < 0 ? "text-red-600" : "text-emerald-700"}`}>
+          {val(repasseLiquido)}
+        </p>
         <div className="mt-3 flex items-start gap-1.5">
-          <Info className="mt-0.5 size-3.5 shrink-0 text-emerald-500/60" />
-          <p className="text-xs leading-relaxed text-emerald-700/60">
+          <Info className={`mt-0.5 size-3.5 shrink-0 ${repasseLiquido < 0 ? "text-red-400/60" : "text-emerald-500/60"}`} />
+          <p className={`text-xs leading-relaxed ${repasseLiquido < 0 ? "text-red-700/60" : "text-emerald-700/60"}`}>
             Valores pendentes e estornados não são contabilizados no saldo líquido.
           </p>
         </div>
       </div>
+
+      {/* Transação Plano Elite */}
+      {isElite && (
+        <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Crown className="size-4 text-amber-500" />
+              <span className="text-sm font-semibold text-amber-900">Plano Elite — ativação</span>
+            </div>
+            <span className="font-bold text-red-600">{mostrar ? formatBRL(-PRECO_ELITE) : "R$ ••••••"}</span>
+          </div>
+
+          {feePendente > 0 ? (
+            <>
+              <div className="space-y-1 text-xs text-amber-700">
+                <div className="flex justify-between">
+                  <span>Já abatido das inscrições</span>
+                  <span>{mostrar ? formatBRL(PRECO_ELITE - feePendente) : "••••••"}</span>
+                </div>
+                <div className="flex justify-between font-semibold">
+                  <span>Saldo devedor</span>
+                  <span className="text-red-600">{mostrar ? formatBRL(-feePendente) : "••••••"}</span>
+                </div>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-amber-200">
+                <div
+                  className="h-full rounded-full bg-amber-500 transition-all"
+                  style={{ width: `${Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}%` }}
+                />
+              </div>
+              <p className="text-xs text-amber-600">
+                {Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}% quitado — abatido automaticamente das próximas inscrições pagas.
+              </p>
+            </>
+          ) : (
+            <p className="text-xs font-medium text-emerald-700">✓ Ativação de {formatBRL(PRECO_ELITE)} totalmente quitada.</p>
+          )}
+        </div>
+      )}
 
       {/* Status dos pagamentos */}
       <section>

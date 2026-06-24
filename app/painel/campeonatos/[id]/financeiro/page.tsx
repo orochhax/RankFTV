@@ -46,7 +46,8 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const totalPago      = regs.filter((r) => r.status_pagamento === "pago").reduce((s, r) => s + Number(r.valor), 0);
   const totalPendente  = regs.filter((r) => r.status_pagamento === "pendente").reduce((s, r) => s + Number(r.valor), 0);
   const totalEstornado = regs.filter((r) => r.status_pagamento === "estornado").reduce((s, r) => s + Number(r.valor), 0);
-  const repasseLiquido = totalPago;
+  // Elite: a ativação é descontada dos repasses — saldo pode ficar negativo até quitar.
+  const repasseLiquido = isElite ? totalPago - feePendente : totalPago;
 
   type CatSummary = { nome: string; genero: string; count: number; total: number };
   const catMap: Record<string, CatSummary> = {};
@@ -122,6 +123,8 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
             totalDebito={totalDebito}
             categorias={categorias}
             catMap={catMap}
+            isElite={isElite}
+            feePendente={feePendente}
           />
           <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} />
         </div>
