@@ -298,6 +298,83 @@ export async function removerJogo(id: string): Promise<Res> {
   return { ok: true };
 }
 
+// ── Treinos ──────────────────────────────────────────────────────────────────
+export async function registrarTreino(formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+
+  const tipo = formData.get("tipo") as string;
+  if (!["tecnico", "fisico", "jogo"].includes(tipo)) return { ok: false, error: "Tipo inválido." };
+  const duracaoRaw = parseInt(formData.get("duracao_min") as string ?? "");
+  const duracao_min = Number.isInteger(duracaoRaw) && duracaoRaw > 0 ? duracaoRaw : null;
+  const str = (k: string) => (formData.get(k) as string)?.trim() || null;
+
+  const { error } = await supabase.from("perf_training").insert({
+    user_id: user.id, data: str("data") ?? hojeISO(), tipo, duracao_min, obs: str("obs"),
+  });
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function removerTreino(id: string): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+  const { error } = await supabase.from("perf_training").delete().eq("id", id).eq("user_id", user.id);
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function definirMetaTreinos(formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+
+  const meta = parseInt(formData.get("treinos_semana_meta") as string ?? "");
+  if (!Number.isInteger(meta) || meta < 1 || meta > 14) return { ok: false, error: "Meta inválida (1–14)." };
+
+  const { error } = await supabase.from("perf_profile").upsert(
+    { user_id: user.id, treinos_semana_meta: meta, updated_at: new Date().toISOString() },
+    { onConflict: "user_id" },
+  );
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+// ── Testes físicos ────────────────────────────────────────────────────────────
+export async function registrarTeste(formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+
+  const tipo_teste = (formData.get("tipo_teste") as string)?.trim();
+  if (!tipo_teste) return { ok: false, error: "Nome do teste obrigatório." };
+  const valor = parseFloat(formData.get("valor") as string ?? "");
+  if (!Number.isFinite(valor)) return { ok: false, error: "Valor inválido." };
+  const str = (k: string) => (formData.get(k) as string)?.trim() || null;
+
+  const { error } = await supabase.from("perf_test").insert({
+    user_id: user.id, data: str("data") ?? hojeISO(), tipo_teste, valor, unidade: str("unidade"),
+  });
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function removerTeste(id: string): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { supabase, user } = ctx;
+  const { error } = await supabase.from("perf_test").delete().eq("id", id).eq("user_id", user.id);
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
 // ── Registro diário ──────────────────────────────────────────────────────────
 export async function registrarHabito(
   habitId: string,

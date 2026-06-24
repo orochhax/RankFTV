@@ -8,6 +8,7 @@ import { PerfilEditor } from "@/components/performance/PerfilEditor";
 import { RelatorioSemanal, type WeeklyReport } from "@/components/performance/RelatorioSemanal";
 import { PesoCorpo } from "@/components/performance/PesoCorpo";
 import { FutevoleiSection } from "@/components/performance/FutevoleiSection";
+import { TreinosSection } from "@/components/performance/TreinosSection";
 import {
   type Habit, type HabitLog,
   hojeISO, indexLogs, heatmap, streak, veredito, habitStats, insights,
@@ -39,7 +40,7 @@ export default async function PerformancePage() {
 
   const segunda = segundaDaSemana(hoje);
 
-  const [perfRes, profRes, habitsRes, logsRes, pesoRes, reportAtualRes, historicoRes, ratingsRes, jogosRes] = await Promise.all([
+  const [perfRes, profRes, habitsRes, logsRes, pesoRes, reportAtualRes, historicoRes, ratingsRes, jogosRes, treinosRes, testesRes] = await Promise.all([
     supabase.from("perf_profile").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("profiles").select("nome, username, foto_url").eq("id", user.id).maybeSingle(),
     supabase.from("perf_habit").select("*").eq("user_id", user.id).eq("ativo", true).order("ordem"),
@@ -49,6 +50,8 @@ export default async function PerformancePage() {
     supabase.from("perf_weekly_report").select("*").eq("user_id", user.id).eq("fechado", true).order("semana_inicio", { ascending: false }).limit(8),
     supabase.from("perf_rating").select("id, data, rating").eq("user_id", user.id).order("data", { ascending: true }).limit(365),
     supabase.from("perf_match").select("*").eq("user_id", user.id).order("data", { ascending: false }).limit(100),
+    supabase.from("perf_training").select("id, data, tipo, duracao_min, obs").eq("user_id", user.id).order("data", { ascending: false }).limit(50),
+    supabase.from("perf_test").select("id, data, tipo_teste, valor, unidade").eq("user_id", user.id).order("data", { ascending: false }),
   ]);
 
   // Fecha relatórios de semanas passadas que ainda estão abertos (idempotente).
@@ -86,6 +89,13 @@ export default async function PerformancePage() {
     id: string; data: string; parceiro: string | null; adversario: string | null;
     resultado: "vitoria" | "derrota"; placar: string | null; obs: string | null;
   }[];
+  const treinos = (treinosRes.data ?? []) as {
+    id: string; data: string; tipo: string; duracao_min: number | null; obs: string | null;
+  }[];
+  const testes = (testesRes.data ?? []).map((t) => ({
+    id: t.id as string, data: t.data as string, tipo_teste: t.tipo_teste as string,
+    valor: Number(t.valor), unidade: t.unidade as string | null,
+  }));
   const pesoHistorico = (pesoRes.data ?? []).map((p) => ({
     data: p.data as string,
     peso_kg: Number(p.peso_kg),
@@ -297,6 +307,14 @@ export default async function PerformancePage() {
             jogos={jogos}
             ratingMeta={perfil?.rating_meta != null ? Number(perfil.rating_meta) : null}
             hoje={hoje}
+          />
+
+          <TreinosSection
+            treinos={treinos}
+            testes={testes}
+            treinosMeta={perfil?.treinos_semana_meta != null ? Number(perfil.treinos_semana_meta) : null}
+            hoje={hoje}
+            segunda={segunda}
           />
 
         </div>
