@@ -89,9 +89,12 @@ export function PlanoTaxas({
         {/* Elite (em cima) */}
         <div className={`rounded-2xl p-4 ring-1 ${isElite ? "bg-amber-50 ring-amber-300" : "bg-white ring-black/5"}`}>
           <div className="mb-3 flex items-center justify-between">
-            <p className="flex items-center gap-1.5 font-semibold text-gray-900">
-              <Crown className="size-4 text-amber-500" /> Elite
-            </p>
+            <div>
+              <p className="flex items-center gap-1.5 font-semibold text-gray-900">
+                <Crown className="size-4 text-amber-500" /> Elite
+              </p>
+              <p className="mt-0.5 text-xs text-amber-600">Seu cliente paga mais barato</p>
+            </div>
             {isElite && (
               <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
                 <Check className="size-3" /> Atual
