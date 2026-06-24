@@ -1,9 +1,15 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, Newspaper, ChevronRight } from "lucide-react";
+import { Percent, Users, Star, Trophy, Newspaper, Activity, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 const MENU = [
+  {
+    href: "/admin/performance",
+    icon: Activity,
+    label: "Performance",
+    desc: "Seu painel pessoal: metas do dia, constância e evolução.",
+  },
   {
     href: "/admin/campeonatos",
     icon: Trophy,
