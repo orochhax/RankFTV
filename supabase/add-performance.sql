@@ -140,4 +140,11 @@ BEGIN
   END LOOP;
 END $$;
 
+-- Permissão para o role authenticated ler/escrever nas próprias linhas.
+-- RLS já restringe ao dono; este GRANT só libera o acesso básico à tabela.
+GRANT ALL ON TABLE
+  perf_profile, perf_habit, perf_habit_log, perf_weekly_report,
+  perf_weight, perf_rating, perf_match, perf_training, perf_test
+TO authenticated;
+
 NOTIFY pgrst, 'reload schema';
