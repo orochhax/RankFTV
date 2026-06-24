@@ -26,6 +26,7 @@ import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { TierTag } from "@/components/ui/TierTag";
 import { formatBRL, formatDateRangeBR } from "@/lib/format";
+import { VagasProgressBar } from "@/components/painel/VagasProgressBar";
 import type { QuizAnswers } from "@/lib/tier";
 
 const ACOES = [
@@ -221,33 +222,14 @@ export default async function PainelCampeonatoPage({
             </div>
           </div>
 
-          {/* Barra de progresso de vagas — aparece sempre que há duplas ou vagas configuradas */}
+          {/* Barra de progresso de vagas */}
           {(duplasPagas > 0 || vagasTotais > 0) && (
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs text-white/50">
-                <span>
-                  {vagasTotais > 0
-                    ? `${duplasPagas} / ${vagasTotais} vagas · ${Math.round((duplasPagas / vagasTotais) * 100)}%`
-                    : `${duplasPagas} dupla${duplasPagas !== 1 ? "s" : ""} inscrita${duplasPagas !== 1 ? "s" : ""}`}
-                </span>
-                {totalArrecadado > 0 && (
-                  <span>
-                    {formatBRL(totalArrecadado)}
-                    {totalPotencial > 0 && ` / ${formatBRL(totalPotencial)}`}
-                  </span>
-                )}
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
-                  style={{
-                    width: vagasTotais > 0
-                      ? `${Math.min(100, (duplasPagas / vagasTotais) * 100)}%`
-                      : duplasPagas > 0 ? "100%" : "0%",
-                  }}
-                />
-              </div>
-            </div>
+            <VagasProgressBar
+              duplasPagas={duplasPagas}
+              vagasTotais={vagasTotais}
+              totalArrecadado={totalArrecadado}
+              totalPotencial={totalPotencial}
+            />
           )}
         </div>
       </div>
