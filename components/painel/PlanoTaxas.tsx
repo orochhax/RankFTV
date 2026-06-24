@@ -57,8 +57,9 @@ export function PlanoTaxas({
       !confirm(
         `Tornar este campeonato Elite?\n\n` +
           `Você NÃO paga nada agora. Os ${brl(PRECO_ELITE)} da ativação (de ${brl(PRECO_ELITE_ORIGINAL)}) são ` +
-          `descontados automaticamente das suas próximas inscrições pagas. ` +
-          `A partir daí a taxa que o comprador paga fica menor (Elite).`,
+          `descontados das vendas que você já teve até agora; se ainda não houver vendas, ` +
+          `o valor é abatido das próximas, até quitar.\n\n` +
+          `Importante: depois que o primeiro valor for descontado, o Plano Elite não pode mais ser cancelado.`,
       )
     )
       return;

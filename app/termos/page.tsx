@@ -169,8 +169,11 @@ const SECOES: Secao[] = [
         "Plano Elite: 7% no Pix e 9% no cartão de crédito ou débito.",
       ] },
       { p: "A taxa de serviço tem valor mínimo de R$ 3,99 por transação. Não há cobrança de taxa em inscrições e ingressos gratuitos." },
-      { p: "Plano Elite — o Organizador pode optar, em cada evento, pelo Plano Elite, que reduz as taxas e inclui benefícios adicionais (destaque do evento, divulgação, suporte priorizado, entre outros). A adesão ao Elite corresponde a R$ 178,00 (de R$ 399,00) por evento, que não é cobrado antecipadamente: o valor é descontado automaticamente dos primeiros repasses recebidos. Enquanto não houver vendas, nada é devido; caso o evento seja encerrado sem atingir esse valor em vendas, o saldo pendente é zerado." },
-      { p: "A opção pelo Plano Elite pode ser feita enquanto as inscrições estiverem abertas. Após o encerramento das inscrições, não é possível ativar o Elite." },
+      { p: "Plano Elite — o Organizador pode optar, em cada evento, pelo Plano Elite, que reduz as taxas e inclui benefícios adicionais (destaque do evento, divulgação, suporte priorizado, entre outros). A adesão ao Elite corresponde a R$ 178,00 (de R$ 399,00) por evento e não é cobrada antecipadamente: nada é pago no momento da ativação." },
+      { p: "Forma de cobrança da adesão: o valor de R$ 178,00 é descontado automaticamente dos repasses das vendas do evento (inscrições e ingressos), abatendo-se o máximo possível de cada venda até a quitação integral. Se a primeira venda já for suficiente para cobrir todo o valor, a adesão é quitada de uma só vez nesse primeiro repasse; caso contrário, o saldo restante é abatido das vendas seguintes, até zerar." },
+      { p: "Enquanto não houver vendas, nada é devido. Caso o evento seja encerrado sem vendas suficientes para cobrir os R$ 178,00, o saldo pendente é integralmente perdoado (zerado), sem qualquer cobrança ao Organizador." },
+      { p: "Ativação: o Plano Elite pode ser ativado a qualquer momento enquanto o campeonato ainda não tiver começado — ou seja, durante a pré-venda ou com as vendas abertas. Após o início do campeonato, não é mais possível ativar o Elite." },
+      { p: "Cancelamento do Plano Elite: enquanto nenhum valor da adesão tiver sido descontado, o Organizador pode cancelar o Plano Elite a qualquer momento, sem custo ou multa, retornando ao Plano Padrão. A partir do momento em que o primeiro valor for descontado de uma venda — independentemente do quanto for abatido —, a adesão torna-se definitiva e o Plano Elite não pode mais ser cancelado, permanecendo o Organizador responsável pela quitação dos R$ 178,00 na forma acima." },
     ],
   },
   {
