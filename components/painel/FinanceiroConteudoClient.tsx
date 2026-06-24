@@ -94,12 +94,9 @@ export function FinanceiroConteudoClient({
       {/* Transação Plano Elite */}
       {isElite && (
         <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Crown className="size-4 text-amber-500" />
-              <span className="text-sm font-semibold text-amber-900">Plano Elite — ativação</span>
-            </div>
-            <span className="font-bold text-red-600">{mostrar ? formatBRL(-PRECO_ELITE) : "R$ ••••••"}</span>
+          <div className="flex items-center gap-2">
+            <Crown className="size-4 text-amber-500" />
+            <span className="text-sm font-semibold text-amber-900">Plano Elite — ativação</span>
           </div>
 
           {feePendente > 0 ? (
