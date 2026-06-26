@@ -273,7 +273,7 @@ export default async function CampeonatoDetalhePage({
       {!isVitrine && (
       <div className="grid gap-3 sm:grid-cols-2">
         <Link
-          href={`/campeonatos/${championship.id}/categorias`}
+          href={`/campeonatos/${championship.id}/comprar`}
           className="flex items-center gap-3 rounded-2xl bg-blue-600 p-5 text-white transition-colors hover:bg-blue-700"
         >
           <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
@@ -281,7 +281,7 @@ export default async function CampeonatoDetalhePage({
           </div>
           <div>
             <p className="font-semibold">Sou atleta</p>
-            <p className="text-sm text-blue-100/80">Ver categorias e inscrever minha dupla</p>
+            <p className="text-sm text-blue-100/80">Inscrever minha dupla</p>
           </div>
         </Link>
 
