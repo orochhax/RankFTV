@@ -1,10 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import {
+  Building2,
   CalendarDays,
   ChevronRight,
   LayoutDashboard,
-  BookOpen,
   MapPin,
   Plus,
   Tag,
@@ -20,6 +20,7 @@ import {
   UserX,
   CheckCircle2,
   FileText,
+  Trophy,
 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { createClient } from "@/lib/supabase/server";
@@ -82,17 +83,23 @@ export default async function PainelOrganizadorPage({
   // Caso 2 — logado mas sem conta de organizador E sem nenhum campeonato
   let isOrganizer = false;
   let todos: Awaited<ReturnType<typeof getMyChampionships>> = [];
+  let arenaCount = 0;
   if (user) {
-    const [orgRes, champs] = await Promise.all([
+    const [orgRes, champs, arenaRes] = await Promise.all([
       supabase
         .from("organizer_accounts")
         .select("id")
         .eq("user_id", user.id)
         .maybeSingle(),
       getMyChampionships(user.id),
+      supabase
+        .from("arenas")
+        .select("id", { count: "exact", head: true })
+        .eq("dono_id", user.id),
     ]);
     isOrganizer = !!orgRes.data;
     todos = champs;
+    arenaCount = arenaRes.count ?? 0;
   }
 
   // Caso 3 — já tem conta de organizador OU já criou algum campeonato (mesmo
@@ -137,23 +144,25 @@ export default async function PainelOrganizadorPage({
               </Link>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-white/10 p-4">
                 <p className="text-xs text-white/50">Campeonatos</p>
                 <p className="text-2xl font-bold text-white">{todos.length}</p>
+                <p className="mt-1 text-[11px] text-white/40">
+                  {abertos.length} abertos · {todos.filter(c => c.status === "em_andamento").length} em andamento
+                </p>
               </div>
               <div className="rounded-2xl bg-white/10 p-4">
-                <p className="text-xs text-white/50">Abertos</p>
-                <p className="text-2xl font-bold text-white">{abertos.length}</p>
-              </div>
-              <div className="rounded-2xl bg-white/10 p-4">
-                <p className="text-xs text-white/50">Rascunhos</p>
-                <p className="text-2xl font-bold text-white">{rascunhos.length}</p>
+                <p className="text-xs text-white/50">Arenas</p>
+                <p className="text-2xl font-bold text-white">{arenaCount}</p>
+                <p className="mt-1 text-[11px] text-white/40">
+                  {arenaCount === 0 ? "nenhuma ainda" : arenaCount === 1 ? "ativa" : "ativas"}
+                </p>
               </div>
             </div>
 
             {/* Atalhos do painel */}
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <Link
                 href="/painel/geral"
                 className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
@@ -168,14 +177,27 @@ export default async function PainelOrganizadorPage({
                 <ChevronRight className="size-4 text-white/30" />
               </Link>
               <Link
-                href="/painel/paginas"
+                href="/arena"
                 className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
               >
                 <div className="flex items-center gap-3">
-                  <BookOpen className="size-5 text-violet-400" />
+                  <Building2 className="size-5 text-emerald-400" />
                   <div>
-                    <p className="font-semibold text-white">Minhas Páginas</p>
-                    <p className="text-xs text-white/40">Agrupe edições e ganhe seguidores</p>
+                    <p className="font-semibold text-white">Minhas Arenas</p>
+                    <p className="text-xs text-white/40">Alunos, presenças e mensalidades</p>
+                  </div>
+                </div>
+                <ChevronRight className="size-4 text-white/30" />
+              </Link>
+              <Link
+                href="/painel?filtro=todos"
+                className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
+              >
+                <div className="flex items-center gap-3">
+                  <Trophy className="size-5 text-amber-400" />
+                  <div>
+                    <p className="font-semibold text-white">Meus Campeonatos</p>
+                    <p className="text-xs text-white/40">Categorias, inscrições e resultados</p>
                   </div>
                 </div>
                 <ChevronRight className="size-4 text-white/30" />
