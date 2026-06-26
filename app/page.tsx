@@ -1,38 +1,23 @@
 import Link from "next/link";
-import { ChevronRight, Radio } from "lucide-react";
+import { ChevronRight, Radio, MapPin } from "lucide-react";
 import { PersonaSwitcher } from "@/components/home/PersonaSwitcher";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
-import { MeuDesempenho } from "@/components/home/MeuDesempenho";
+import { CampeonatosSection } from "@/components/home/CampeonatosSection";
 import { HamburgerMenu } from "@/components/home/HamburgerMenu";
-import { NoticiasCarousel } from "@/components/home/NoticiasCarousel";
 import { getLivChampionships, getPublishedChampionships } from "@/lib/supabase/championships";
-import { getRecentNews, getDestaqueNews } from "@/lib/supabase/news";
 import { createClient } from "@/lib/supabase/server";
-import {
-  getConquistasDestaque,
-  getHistorico,
-  getRankPosicao,
-  type ConquistaDestaque,
-  type RankPosicao,
-} from "@/lib/supabase/desempenho";
-import { nivelLabel, nivelOrdem } from "@/lib/niveis";
 import { formatDateRangeBR } from "@/lib/format";
-import { MapPin } from "lucide-react";
+
+const STATUS_PRIORIDADE: Record<string, number> = {
+  inscricoes_abertas: 0, em_andamento: 1, rascunho: 2, encerrado: 3,
+};
 
 export default async function Home() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   let profile: { nome: string; username: string; foto_url: string | null } | null = null;
-  let conquistas: ConquistaDestaque[] = [];
-  let rank: RankPosicao | null = null;
-  let nivel: string | null = null;
-  let evolucao: number[] = [];
-  let temDesempenho = false;
-
   if (user) {
     const { data } = await supabase
       .from("profiles")
@@ -40,35 +25,8 @@ export default async function Home() {
       .eq("id", user.id)
       .single();
     profile = data;
-
-    if (profile) {
-      const [historico, rankPos, conquistasDestaque] = await Promise.all([
-        getHistorico(user.id),
-        getRankPosicao(profile.username),
-        getConquistasDestaque(user.id),
-      ]);
-
-      conquistas = conquistasDestaque;
-      rank = rankPos;
-
-      // Categoria mais jogada = a que aparece mais vezes no histórico.
-      const catCount: Record<string, number> = {};
-      for (const h of historico) {
-        if (h.categoria) catCount[h.categoria] = (catCount[h.categoria] ?? 0) + 1;
-      }
-      const catMaisJogada = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0]?.[0];
-      nivel = catMaisJogada ? (nivelLabel(catMaisJogada) ?? null) : null;
-
-      // Evolução = a ordem do nível de cada campeonato, em ordem cronológica.
-      evolucao = historico
-        .map((h) => nivelOrdem(h.categoria))
-        .filter((o): o is number => o != null);
-
-      temDesempenho = true; // card sempre visível; empty states guiam o novo atleta
-    }
   }
 
-  // Contagem de notificações não lidas (para o badge do menu)
   let unreadCount = 0;
   if (user) {
     const { count } = await supabase
@@ -79,13 +37,14 @@ export default async function Home() {
     unreadCount = count ?? 0;
   }
 
-  const [publicados, configRow] = await Promise.all([
+  const [publicados, configRow, aoVivo] = await Promise.all([
     getPublishedChampionships(),
     supabase
       .from("platform_config")
-      .select("destaques_ids, noticias_destaques_ids")
+      .select("destaques_ids")
       .eq("id", 1)
       .single(),
+    getLivChampionships(),
   ]);
 
   const destaquesIds: string[] = (configRow.data?.destaques_ids as string[] | null) ?? [];
@@ -93,16 +52,18 @@ export default async function Home() {
     ? destaquesIds.map((id) => publicados.find((c) => c.id === id)).filter(Boolean) as typeof publicados
     : publicados.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento").slice(0, 3);
 
-  // Notícias da home: destaques escolhidos pelo admin; senão, as 3 mais recentes.
-  const noticiasDestaquesIds: string[] =
-    (configRow.data?.noticias_destaques_ids as string[] | null) ?? [];
+  // Campeonatos ordenados para a seção de listagem
+  const todosOrdenados = [...publicados]
+    .filter((c) => c.status !== "encerrado")
+    .sort((a, b) => {
+      const p = (STATUS_PRIORIDADE[a.status] ?? 9) - (STATUS_PRIORIDADE[b.status] ?? 9);
+      return p !== 0 ? p : a.dataInicio.localeCompare(b.dataInicio);
+    });
 
-  const [aoVivo, noticias] = await Promise.all([
-    getLivChampionships(),
-    noticiasDestaquesIds.length > 0
-      ? getDestaqueNews(noticiasDestaquesIds)
-      : getRecentNews(3),
-  ]);
+  const estados = Array.from(new Set(todosOrdenados.map((c) => c.estado))).sort();
+  const categorias = Array.from(
+    new Set(todosOrdenados.flatMap((c) => c.categorias.map((cat) => cat.nome)))
+  ).sort();
 
   return (
     <div className="min-h-screen">
@@ -110,61 +71,33 @@ export default async function Home() {
       <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
         <div className="mx-auto max-w-5xl">
           {profile ? (
-            <div className="space-y-6">
-              {/* Saudação */}
-              <div className="flex items-center gap-4">
-                <Avatar
-                  nome={profile.nome}
-                  color="bg-blue-500"
-                  size="lg"
-                  fotoUrl={profile.foto_url}
-                />
-                <div className="flex-1">
-                  <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
-                    Bem-vindo
-                  </p>
-                  <h1 className="text-2xl font-bold tracking-tight text-white">
-                    {profile.nome.split(" ")[0]}
-                  </h1>
-                  <p className="text-sm text-gray-400">@{profile.username}</p>
-                </div>
-                <div className="md:hidden">
-                  <HamburgerMenu unreadCount={unreadCount} />
-                </div>
+            <div className="flex items-center gap-4">
+              <Avatar
+                nome={profile.nome}
+                color="bg-blue-500"
+                size="lg"
+                fotoUrl={profile.foto_url}
+              />
+              <div className="flex-1">
+                <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
+                  Bem-vindo
+                </p>
+                <h1 className="text-2xl font-bold tracking-tight text-white">
+                  {profile.nome.split(" ")[0]}
+                </h1>
+                <p className="text-sm text-gray-400">@{profile.username}</p>
               </div>
-
-              {/* Card de desempenho — Conquistas / Rank / Nível / Evolução */}
-              {temDesempenho ? (
-                <MeuDesempenho
-                  conquistas={conquistas}
-                  rank={rank}
-                  nivel={nivel}
-                  evolucao={evolucao}
-                />
-              ) : (
-                /* Banner onboarding para quem ainda não jogou */
-                <div className="rounded-2xl border border-blue-500/30 bg-blue-600/15 p-5">
-                  <p className="font-semibold text-white">Bem-vindo ao RankFTV!</p>
-                  <p className="mt-1 text-sm text-blue-200/80">
-                    Explore os campeonatos e faça sua primeira inscrição.
-                  </p>
-                  <Link
-                    href="/campeonatos"
-                    className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-400 hover:text-blue-300"
-                  >
-                    Ver campeonatos <ChevronRight className="size-4" />
-                  </Link>
-                </div>
-              )}
+              <div className="md:hidden">
+                <HamburgerMenu unreadCount={unreadCount} />
+              </div>
             </div>
           ) : (
-            /* Visitante não logado — toggle de persona */
             <PersonaSwitcher />
           )}
         </div>
       </div>
 
-      {/* ── Seção branca — card sobreposto com cantos arredondados ── */}
+      {/* ── Seção branca ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-5xl space-y-8">
 
@@ -205,18 +138,12 @@ export default async function Home() {
             </section>
           )}
 
-          {/* Notícias — sempre abaixo do "ao vivo"; 3 mais recentes */}
-          {noticias.length > 0 && (
-            <section>
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <h2 className="text-base font-semibold text-gray-900">Notícias</h2>
-                <Link href="/noticias" className="text-sm font-medium text-blue-600 hover:text-blue-700">
-                  Ver todas
-                </Link>
-              </div>
-              <NoticiasCarousel noticias={noticias} />
-            </section>
-          )}
+          {/* Lista de campeonatos com filtros */}
+          <CampeonatosSection
+            allCamps={todosOrdenados}
+            estados={estados}
+            categorias={categorias}
+          />
 
         </div>
       </div>

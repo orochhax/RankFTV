@@ -3,9 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ChevronRight, UserPen, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { SignOutButton } from "@/components/perfil/SignOutButton";
-import { PageCard } from "@/components/campeonatos/PageCard";
 import { createClient } from "@/lib/supabase/server";
-import { getFollowedPageIds, getMyPages } from "@/lib/supabase/pages";
 
 const COLOCACAO_EMOJI: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
@@ -49,14 +47,6 @@ const TIER_LABEL: Record<string, string> = {
   local: "Local",
 };
 
-const COR_CLASSES: Record<string, string> = {
-  yellow: "bg-yellow-50 ring-yellow-200 text-yellow-800",
-  blue:   "bg-blue-50   ring-blue-200   text-blue-800",
-  green:  "bg-green-50  ring-green-200  text-green-800",
-  purple: "bg-purple-50 ring-purple-200 text-purple-800",
-  gray:   "bg-gray-50   ring-gray-200   text-gray-700",
-};
-
 export default async function PerfilPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -74,11 +64,9 @@ export default async function PerfilPage() {
   const [
     { data: campeonatosOrganizados },
     { data: historico },
-    { data: conquistas },
     { data: organizerAccount },
     { data: minhaArena },
     { data: vinculoArena },
-    followedPageIds,
   ] = await Promise.all([
     supabase
       .from("championships")
@@ -91,12 +79,6 @@ export default async function PerfilPage() {
       .select("id, colocacao, pontos, parceiro_nome, nome_circuito, tier, data")
       .eq("user_id", user.id)
       .order("data", { ascending: false }),
-
-    supabase
-      .from("conquistas")
-      .select("id, titulo, descricao, icone, cor, data_conquistada")
-      .eq("user_id", user.id)
-      .order("data_conquistada", { ascending: false }),
 
     supabase
       .from("organizer_accounts")
@@ -117,48 +99,10 @@ export default async function PerfilPage() {
       .eq("status", "ativo")
       .limit(1)
       .maybeSingle(),
-
-    getFollowedPageIds(user.id),
   ]);
 
   const total = campeonatosOrganizados?.length ?? 0;
   const totalPontos = historico?.reduce((s, r) => s + r.pontos, 0) ?? 0;
-
-  // Busca as pages que o usuário segue (só as suas próprias não contam — usa IDs dos follows)
-  const todasPages = followedPageIds.length > 0 ? await getMyPages(user.id) : [];
-  // Pages que o usuário segue mas não é dono: precisamos buscar de forma diferente
-  // Simplificado: mostra todas as pages que o usuário segue via page_followers
-  const { data: followedPagesData } = followedPageIds.length > 0
-    ? await supabase
-        .from("pages")
-        .select("id, owner_id, nome, handle, descricao, banner_from, banner_to, banner_url, avatar_url, created_at")
-        .in("id", followedPageIds)
-    : { data: [] };
-
-  // Contagem de seguidores para cada page seguida
-  const seguedPages = await Promise.all(
-    (followedPagesData ?? []).map(async (p) => {
-      const { count } = await supabase
-        .from("page_followers")
-        .select("id", { count: "exact", head: true })
-        .eq("page_id", p.id);
-      return {
-        id: p.id,
-        ownerId: p.owner_id,
-        nome: p.nome,
-        handle: p.handle,
-        descricao: p.descricao,
-        bannerFrom: p.banner_from,
-        bannerTo: p.banner_to,
-        bannerUrl: p.banner_url ?? null,
-        avatarUrl: p.avatar_url ?? null,
-        createdAt: p.created_at,
-        seguidores: count ?? 0,
-        edicoes: 0,
-      };
-    }),
-  );
-  void todasPages; // unused after refactor
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-8 pb-32">
@@ -325,35 +269,6 @@ export default async function PerfilPage() {
         )}
       </section>
 
-      {/* Conquistas */}
-      {conquistas && conquistas.length > 0 && (
-        <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-          <h2 className="text-sm font-semibold text-gray-500">
-            Conquistas
-            <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-500">
-              {conquistas.length}
-            </span>
-          </h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {conquistas.map((c) => (
-              <div
-                key={c.id}
-                title={c.descricao ?? c.titulo}
-                className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium ring-1 ${COR_CLASSES[c.cor] ?? COR_CLASSES.gray}`}
-              >
-                <span className="text-base leading-none">{c.icone}</span>
-                <span>{c.titulo}</span>
-                {c.data_conquistada && (
-                  <span className="opacity-60 text-xs">
-                    {new Date(c.data_conquistada + "T12:00:00").getFullYear()}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Histórico */}
       <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
         <div className="flex items-center justify-between">
@@ -401,36 +316,6 @@ export default async function PerfilPage() {
           </ol>
         )}
       </section>
-
-      {/* Páginas que sigo */}
-      {seguedPages.length > 0 && (
-        <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-500">
-              Páginas que sigo
-              <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-500">
-                {seguedPages.length}
-              </span>
-            </h2>
-            <Link
-              href="/campeonatos"
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              Explorar mais
-            </Link>
-          </div>
-          <div className="space-y-3">
-            {seguedPages.map((p) => (
-              <PageCard
-                key={p.id}
-                page={p}
-                initialFollowing
-                userId={user.id}
-              />
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Opções de conta */}
       <section className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
