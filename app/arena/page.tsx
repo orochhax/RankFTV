@@ -161,6 +161,18 @@ export default async function ArenaPage() {
               </Link>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5">
+              <span className="text-sm text-gray-600">Financeiro e mensalidades</span>
+              <Link href="/arena/financeiro" className="text-sm font-medium text-blue-600 hover:underline">
+                Ver
+              </Link>
+            </div>
+            <div className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5">
+              <span className="text-sm text-gray-600">Assinatura da plataforma</span>
+              <Link href="/arena/assinatura" className="text-sm font-medium text-blue-600 hover:underline">
+                Ver
+              </Link>
+            </div>
+            <div className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Building2 className="size-4 text-gray-400" />
                 Página pública
