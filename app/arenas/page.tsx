@@ -1,20 +1,28 @@
 import Link from "next/link";
 import { Building2, Plus } from "lucide-react";
-import { ArenaCard, type ArenaCardData } from "@/components/arenas/ArenaCard";
+import { DestaquesArenasCarousel, type ArenaDestaque } from "@/components/arenas/DestaquesArenasCarousel";
 import { ArenaSection } from "@/components/arenas/ArenaSection";
+import type { ArenaCardData } from "@/components/arenas/ArenaCard";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ArenasPage() {
   const supabase = await createClient();
 
-  const { data: raw } = await supabase
-    .from("arenas")
-    .select("id, nome, handle, cidade, estado, descricao, avatar_url, banner_url")
-    .order("created_at", { ascending: false });
+  const [arenaRows, configRow] = await Promise.all([
+    supabase
+      .from("arenas")
+      .select("id, nome, handle, cidade, estado, descricao, avatar_url, banner_url")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("platform_config")
+      .select("arenas_destaques_ids")
+      .eq("id", 1)
+      .single(),
+  ]);
 
-  const rows = raw ?? [];
+  const rows = arenaRows.data ?? [];
 
-  // Busca contagem de alunos ativos por arena
+  // Contagem de alunos por arena
   const counts = await Promise.all(
     rows.map(async (a) => {
       const { count } = await supabase
@@ -39,7 +47,14 @@ export default async function ArenasPage() {
     alunos: countMap[a.id] ?? 0,
   }));
 
-  const destaques = arenas.slice(0, 3);
+  // Destaques configurados no admin (ou 3 primeiras como fallback)
+  const destaquesIds: string[] = (configRow.data?.arenas_destaques_ids as string[] | null) ?? [];
+  const destaques: ArenaDestaque[] = destaquesIds.length > 0
+    ? destaquesIds
+        .map((id) => arenas.find((a) => a.id === id))
+        .filter(Boolean) as ArenaDestaque[]
+    : arenas.slice(0, 3);
+
   const estados = Array.from(new Set(arenas.map((a) => a.estado))).sort();
 
   if (arenas.length === 0) {
@@ -71,7 +86,7 @@ export default async function ArenasPage() {
     <div className="min-h-screen">
       {/* ── Cabeçalho preto ── */}
       <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
-        <div className="mx-auto max-w-5xl space-y-6">
+        <div className="mx-auto max-w-5xl">
           <div className="flex items-center justify-between gap-3">
             <h1 className="text-2xl font-bold tracking-tight text-white">Arenas</h1>
             <Link
@@ -81,45 +96,21 @@ export default async function ArenasPage() {
               <Plus className="size-4" /> Cadastrar arena
             </Link>
           </div>
-
-          {/* Destaques — as 3 primeiras arenas em scroll horizontal no header */}
-          {destaques.length > 0 && (
-            <div>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/40">
-                Em destaque
-              </p>
-              <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {destaques.map((a) => (
-                  <Link
-                    key={a.id}
-                    href={`/arenas/${a.handle}`}
-                    className="relative flex-shrink-0 h-32 w-52 overflow-hidden rounded-2xl"
-                  >
-                    {a.banner_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={a.banner_url} alt={a.nome} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="h-full w-full bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center">
-                        <Building2 className="size-8 text-white/30" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 px-3 pb-2.5">
-                      <p className="truncate text-sm font-semibold text-white">{a.nome}</p>
-                      <p className="text-[10px] text-white/60">{a.cidade}/{a.estado}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
       {/* ── Seção branca ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-5xl space-y-8">
+
+          {/* Destaques — mesmo carrossel dos campeonatos */}
+          {destaques.length > 0 && (
+            <DestaquesArenasCarousel arenas={destaques} />
+          )}
+
+          {/* Filtros + lista completa */}
           <ArenaSection allArenas={arenas} estados={estados} />
+
         </div>
       </div>
     </div>
