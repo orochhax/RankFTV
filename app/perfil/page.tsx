@@ -77,6 +77,7 @@ export default async function PerfilPage() {
     { data: conquistas },
     { data: organizerAccount },
     { data: minhaArena },
+    { data: vinculoArena },
     followedPageIds,
   ] = await Promise.all([
     supabase
@@ -107,6 +108,14 @@ export default async function PerfilPage() {
       .from("arenas")
       .select("id, nome, handle")
       .eq("dono_id", user.id)
+      .maybeSingle(),
+
+    supabase
+      .from("arena_students")
+      .select("status, arenas(nome)")
+      .eq("user_id", user.id)
+      .eq("status", "ativo")
+      .limit(1)
       .maybeSingle(),
 
     getFollowedPageIds(user.id),
@@ -269,6 +278,22 @@ export default async function PerfilPage() {
           </>
         )}
       </section>
+
+      {/* Aluno de arena — marcar presença */}
+      {vinculoArena?.status === "ativo" && (
+        <Link
+          href="/arena/presenca"
+          className="flex items-center justify-between rounded-2xl bg-blue-600 px-5 py-4 text-white hover:bg-blue-700"
+        >
+          <div>
+            <p className="text-sm font-semibold">Marcar presença</p>
+            <p className="mt-0.5 text-xs text-blue-200">
+              {(vinculoArena.arenas as { nome?: string } | null)?.nome ?? "Sua arena"}
+            </p>
+          </div>
+          <ChevronRight className="size-5 shrink-0" />
+        </Link>
+      )}
 
       {/* Arena */}
       <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">

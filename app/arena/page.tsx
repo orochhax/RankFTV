@@ -152,18 +152,26 @@ export default async function ArenaPage() {
             )}
           </section>
 
-          {/* Link página pública */}
-          <div className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Building2 className="size-4 text-gray-400" />
-              Página pública
+          {/* Ações secundárias */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5">
+              <span className="text-sm text-gray-600">Aulas e treinos</span>
+              <Link href="/arena/aulas" className="text-sm font-medium text-blue-600 hover:underline">
+                Gerenciar
+              </Link>
             </div>
-            <Link
-              href={`/arenas/${arena.handle}`}
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              Ver vitrine
-            </Link>
+            <div className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Building2 className="size-4 text-gray-400" />
+                Página pública
+              </div>
+              <Link
+                href={`/arenas/${arena.handle}`}
+                className="text-sm font-medium text-blue-600 hover:underline"
+              >
+                Ver vitrine
+              </Link>
+            </div>
           </div>
 
         </div>
