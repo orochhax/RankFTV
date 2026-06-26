@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { Building2, MapPin, Users } from "lucide-react";
+import { Building2 } from "lucide-react";
+
+export type ProximaData = { dia: number; label: string };
 
 export type ArenaCardData = {
   id: string;
@@ -11,16 +13,19 @@ export type ArenaCardData = {
   avatar_url: string | null;
   banner_url: string | null;
   alunos: number;
+  proximasDatas: ProximaData[];
 };
 
 export function ArenaCard({ arena }: { arena: ArenaCardData }) {
+  const temDatas = arena.proximasDatas.length > 0;
+
   return (
     <Link
       href={`/arenas/${arena.handle}`}
-      className="block overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 transition-shadow hover:shadow-md"
+      className="group block overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 transition-shadow hover:shadow-md"
     >
       {/* Banner */}
-      <div className="relative h-36 bg-gradient-to-br from-blue-700 to-blue-900">
+      <div className="relative h-44 bg-gradient-to-br from-blue-700 to-blue-900">
         {arena.banner_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -33,38 +38,60 @@ export function ArenaCard({ arena }: { arena: ArenaCardData }) {
             <Building2 className="size-10 text-white/20" />
           </div>
         )}
-        {/* Avatar flutuante */}
-        <div className="absolute bottom-0 left-4 translate-y-1/2">
-          <div className="flex size-12 items-center justify-center overflow-hidden rounded-xl bg-white ring-2 ring-white">
-            {arena.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={arena.avatar_url}
-                alt={arena.nome}
-                className="size-12 object-cover"
-              />
-            ) : (
-              <Building2 className="size-6 text-blue-400" />
-            )}
-          </div>
+
+        {/* Ícones de esporte — canto inferior direito do banner */}
+        <div className="absolute bottom-3 right-3 flex items-center">
+          {[
+            { emoji: "⚽", bg: "bg-green-500" },
+            { emoji: "🏐", bg: "bg-emerald-500" },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className={`flex size-9 items-center justify-center rounded-full text-base ring-2 ring-white ${item.bg} ${i > 0 ? "-ml-2" : ""}`}
+              style={{ zIndex: 10 - i }}
+            >
+              {item.emoji}
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Info */}
-      <div className="px-4 pb-4 pt-8">
-        <p className="font-semibold text-gray-900">{arena.nome}</p>
-        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-400">
-          <MapPin className="size-3" />
-          {arena.cidade}/{arena.estado}
-        </p>
-        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-400">
-          <Users className="size-3" />
-          {arena.alunos} {arena.alunos === 1 ? "aluno" : "alunos"}
-        </p>
-        {arena.descricao && (
-          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-gray-500">
-            {arena.descricao}
-          </p>
+      <div className="p-4">
+        {/* Nome + alunos */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="font-bold text-gray-900 group-hover:text-blue-600 truncate">
+              {arena.nome}
+            </p>
+            <p className="mt-0.5 text-xs text-gray-400">
+              {arena.alunos > 0
+                ? `${arena.alunos} ${arena.alunos === 1 ? "aluno ativo" : "alunos ativos"}`
+                : `${arena.cidade}/${arena.estado}`}
+            </p>
+          </div>
+        </div>
+
+        {/* Próximas aulas */}
+        {temDatas && (
+          <div className="mt-3">
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+              Próximas aulas
+            </p>
+            <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {arena.proximasDatas.map((d, i) => (
+                <div
+                  key={i}
+                  className="flex shrink-0 flex-col items-center rounded-xl border border-gray-200 px-2.5 py-1.5 text-center"
+                >
+                  <span className="text-sm font-bold leading-none text-gray-900">
+                    {String(d.dia).padStart(2, "0")}
+                  </span>
+                  <span className="mt-0.5 text-[10px] text-gray-400">{d.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </Link>

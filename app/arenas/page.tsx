@@ -2,8 +2,26 @@ import Link from "next/link";
 import { Building2, Plus } from "lucide-react";
 import { DestaquesArenasCarousel, type ArenaDestaque } from "@/components/arenas/DestaquesArenasCarousel";
 import { ArenaSection } from "@/components/arenas/ArenaSection";
-import type { ArenaCardData } from "@/components/arenas/ArenaCard";
+import type { ArenaCardData, ProximaData } from "@/components/arenas/ArenaCard";
 import { createClient } from "@/lib/supabase/server";
+
+const DIAS_LABEL = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+function computeProximasDatas(diasSemana: number[], count = 7): ProximaData[] {
+  if (!diasSemana.length) return [];
+  const result: ProximaData[] = [];
+  const d = new Date();
+  d.setHours(12, 0, 0, 0);
+  let tries = 0;
+  while (result.length < count && tries < 60) {
+    if (diasSemana.includes(d.getDay())) {
+      result.push({ dia: d.getDate(), label: DIAS_LABEL[d.getDay()] });
+    }
+    d.setDate(d.getDate() + 1);
+    tries++;
+  }
+  return result;
+}
 
 export default async function ArenasPage() {
   const supabase = await createClient();
@@ -21,31 +39,53 @@ export default async function ArenasPage() {
   ]);
 
   const rows = arenaRows.data ?? [];
+  const arenaIds = rows.map((r) => r.id);
 
-  // Contagem de alunos por arena
-  const counts = await Promise.all(
-    rows.map(async (a) => {
-      const { count } = await supabase
-        .from("arena_students")
-        .select("id", { count: "exact", head: true })
-        .eq("arena_id", a.id)
-        .eq("status", "ativo");
-      return { id: a.id, alunos: count ?? 0 };
-    }),
-  );
+  // Busca contagem de alunos e dias de aula em paralelo
+  const [counts, classesRows] = await Promise.all([
+    Promise.all(
+      rows.map(async (a) => {
+        const { count } = await supabase
+          .from("arena_students")
+          .select("id", { count: "exact", head: true })
+          .eq("arena_id", a.id)
+          .eq("status", "ativo");
+        return { id: a.id, alunos: count ?? 0 };
+      }),
+    ),
+    arenaIds.length > 0
+      ? supabase
+          .from("arena_classes")
+          .select("arena_id, dias_semana")
+          .in("arena_id", arenaIds)
+          .eq("ativo", true)
+      : { data: [] },
+  ]);
+
   const countMap = Object.fromEntries(counts.map((c) => [c.id, c.alunos]));
 
-  const arenas: ArenaCardData[] = rows.map((a) => ({
-    id: a.id,
-    nome: a.nome,
-    handle: a.handle,
-    cidade: a.cidade,
-    estado: a.estado,
-    descricao: a.descricao ?? null,
-    avatar_url: a.avatar_url ?? null,
-    banner_url: a.banner_url ?? null,
-    alunos: countMap[a.id] ?? 0,
-  }));
+  // Agrupa dias da semana por arena (union de todas as turmas ativas)
+  const diasMap: Record<string, Set<number>> = {};
+  for (const cl of (classesRows.data ?? []) as { arena_id: string; dias_semana: number[] | null }[]) {
+    if (!diasMap[cl.arena_id]) diasMap[cl.arena_id] = new Set();
+    for (const d of cl.dias_semana ?? []) diasMap[cl.arena_id].add(d);
+  }
+
+  const arenas: ArenaCardData[] = rows.map((a) => {
+    const diasSemana = Array.from(diasMap[a.id] ?? []).sort();
+    return {
+      id: a.id,
+      nome: a.nome,
+      handle: a.handle,
+      cidade: a.cidade,
+      estado: a.estado,
+      descricao: a.descricao ?? null,
+      avatar_url: a.avatar_url ?? null,
+      banner_url: a.banner_url ?? null,
+      alunos: countMap[a.id] ?? 0,
+      proximasDatas: computeProximasDatas(diasSemana),
+    };
+  });
 
   // Destaques configurados no admin (ou 3 primeiras como fallback)
   const destaquesIds: string[] = (configRow.data?.arenas_destaques_ids as string[] | null) ?? [];
