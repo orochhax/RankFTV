@@ -1,4 +1,4 @@
-import { BarChart3, CalendarDays, Home, LayoutDashboard, Trophy } from "lucide-react";
+import { Building2, CalendarDays, Home, LayoutDashboard, Trophy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -7,13 +7,12 @@ export type NavItem = {
   icon: LucideIcon;
 };
 
-// Estrutura do site: Home, Agenda, Campeonatos, Rank (ver ftv.md, seção 8.1).
-// Perfil é acessado via ícone de engrenagem no canto superior da Home.
+// Estrutura do site: Home, Campeonatos, Arenas, Painel.
+// Rank saiu do menu principal (ainda acessível via /rank mas sem destaque na nav).
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/campeonatos", label: "Campeonatos", icon: Trophy },
-  { href: "/rank", label: "Rank", icon: BarChart3 },
+  { href: "/arenas", label: "Arenas", icon: Building2 },
   { href: "/painel", label: "Painel", icon: LayoutDashboard },
 ];
 

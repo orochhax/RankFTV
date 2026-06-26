@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronRight, Radio } from "lucide-react";
+import { PersonaSwitcher } from "@/components/home/PersonaSwitcher";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
 import { MeuDesempenho } from "@/components/home/MeuDesempenho";
@@ -157,40 +158,8 @@ export default async function Home() {
               )}
             </div>
           ) : (
-            /* Visitante não logado */
-            <div className="space-y-5 py-8 text-center">
-              <p className="text-[11px] font-bold tracking-widest text-blue-400 uppercase">
-                RankFTV
-              </p>
-              <h1 className="text-4xl font-bold leading-tight tracking-tight text-white">
-                Futevôlei organizado,
-                <br />
-                do zero ao pódio.
-              </h1>
-              <p className="text-gray-400">
-                Encontre campeonatos, inscreva sua dupla e acompanhe o ranking nacional.
-              </p>
-              <div className="mx-auto flex w-full max-w-xs flex-col gap-3 pt-1">
-                <Link
-                  href="/cadastro"
-                  className="rounded-2xl bg-blue-600 px-6 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-                >
-                  Criar conta como atleta
-                </Link>
-                <Link
-                  href="/painel"
-                  className="rounded-2xl bg-white/10 px-6 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-white/15"
-                >
-                  Criar meu evento gratuito
-                </Link>
-                <Link
-                  href="/login"
-                  className="py-2 text-center text-sm font-medium text-gray-400 transition-colors hover:text-white"
-                >
-                  Já tenho conta · Fazer login
-                </Link>
-              </div>
-            </div>
+            /* Visitante não logado — toggle de persona */
+            <PersonaSwitcher />
           )}
         </div>
       </div>
