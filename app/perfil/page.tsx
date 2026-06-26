@@ -76,6 +76,7 @@ export default async function PerfilPage() {
     { data: historico },
     { data: conquistas },
     { data: organizerAccount },
+    { data: minhaArena },
     followedPageIds,
   ] = await Promise.all([
     supabase
@@ -101,6 +102,12 @@ export default async function PerfilPage() {
       .select("habilitado")
       .eq("user_id", user.id)
       .single(),
+
+    supabase
+      .from("arenas")
+      .select("id, nome, handle")
+      .eq("dono_id", user.id)
+      .maybeSingle(),
 
     getFollowedPageIds(user.id),
   ]);
@@ -258,6 +265,36 @@ export default async function PerfilPage() {
               className="mt-3 inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
               Ativar conta de organizador <ChevronRight className="size-4" />
+            </Link>
+          </>
+        )}
+      </section>
+
+      {/* Arena */}
+      <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+        <h2 className="text-sm font-semibold text-gray-500">Arena</h2>
+        {minhaArena ? (
+          <>
+            <p className="mt-2 text-sm text-gray-600">
+              Você é dono da <strong>{minhaArena.nome}</strong>.
+            </p>
+            <Link
+              href="/arena"
+              className="mt-3 inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Ir pro painel da arena <ChevronRight className="size-4" />
+            </Link>
+          </>
+        ) : (
+          <>
+            <p className="mt-2 text-sm text-gray-600">
+              Gerencie alunos, presenças e mensalidades da sua arena pelo site.
+            </p>
+            <Link
+              href="/perfil/ativar-arena"
+              className="mt-3 inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Criar minha arena <ChevronRight className="size-4" />
             </Link>
           </>
         )}
