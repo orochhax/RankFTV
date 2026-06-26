@@ -5,26 +5,33 @@ import { createClient } from "@/lib/supabase/server";
 import { FinanceiroDashboard } from "@/components/arena/FinanceiroDashboard";
 import { FinanceiroArenaClient } from "@/components/arena/FinanceiroArenaClient";
 
-type ProfileRow = { nome: string; username: string };
-function perfil(raw: unknown): ProfileRow | null {
-  if (!raw) return null;
-  if (Array.isArray(raw)) return (raw[0] as ProfileRow) ?? null;
-  return raw as ProfileRow;
+type ProfileRow = { id?: string; nome: string; username: string };
+function perfil(raw: ProfileRow | null | undefined): ProfileRow | null {
+  return raw ?? null;
 }
 
 const DIAS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
-export default async function FinanceiroArenaPage() {
+export default async function FinanceiroArenaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ handle?: string }>;
+}) {
+  const { handle } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: arena } = await supabase
+  let query = supabase
     .from("arenas")
     .select("id, nome, handle")
-    .eq("dono_id", user.id)
-    .maybeSingle();
+    .eq("dono_id", user.id);
+
+  if (handle) query = query.eq("handle", handle);
+  else query = query.order("created_at", { ascending: true });
+
+  const { data: arena } = await query.maybeSingle();
 
   if (!arena) redirect("/perfil/ativar-arena");
 
@@ -48,7 +55,7 @@ export default async function FinanceiroArenaPage() {
   const [alunosRes, cobMesRes, chargesRes, attendanceRes, classesRes] = await Promise.all([
     supabase
       .from("arena_students")
-      .select("id, user_id, valor_mensalidade, status, profiles(nome, username)")
+      .select("id, user_id, valor_mensalidade, status")
       .eq("arena_id", arena.id)
       .eq("status", "ativo")
       .order("created_at", { ascending: true }),
@@ -76,9 +83,21 @@ export default async function FinanceiroArenaPage() {
       .order("horario", { ascending: true }),
   ]);
 
-  const alunos     = alunosRes.data ?? [];
+  const alunosRaw  = alunosRes.data ?? [];
   const attendance = attendanceRes.data ?? [];
   const classes    = (classesRes.data ?? []) as { id: string; titulo: string; horario: string | null; dias_semana: number[] | null }[];
+
+  // Busca profiles dos alunos separadamente (FK de arena_students aponta para auth.users, não profiles)
+  const userIds = alunosRaw.map((a) => a.user_id as string).filter(Boolean);
+  const { data: profilesData } = userIds.length
+    ? await supabase.from("profiles").select("id, nome, username").in("id", userIds)
+    : { data: [] };
+  const profileMap = new Map((profilesData ?? []).map((p) => [p.id, p]));
+
+  const alunos = alunosRaw.map((a) => ({
+    ...a,
+    profiles: profileMap.get(a.user_id as string) ?? null,
+  }));
 
   // ── Faturamento previsto ──
   const faturamentoPrevisto = alunos.reduce(

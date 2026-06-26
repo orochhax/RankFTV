@@ -132,7 +132,7 @@ export default async function ArenaPainelPage({
           {/* ── Botões de ação ── */}
           <div className="grid grid-cols-3 gap-3">
             <Link
-              href="/arena/financeiro"
+              href={`/arena/financeiro?handle=${arena.handle}`}
               className="flex flex-col items-center gap-2 rounded-2xl bg-gray-50 py-4 text-center ring-1 ring-black/5 transition-colors hover:bg-blue-50 hover:ring-blue-200"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-blue-600">
@@ -141,7 +141,7 @@ export default async function ArenaPainelPage({
               <span className="text-xs font-semibold text-gray-700">Financeiro</span>
             </Link>
             <Link
-              href="/arena/assinatura"
+              href={`/arena/assinatura?handle=${arena.handle}`}
               className="flex flex-col items-center gap-2 rounded-2xl bg-gray-50 py-4 text-center ring-1 ring-black/5 transition-colors hover:bg-purple-50 hover:ring-purple-200"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-purple-600">
@@ -150,7 +150,7 @@ export default async function ArenaPainelPage({
               <span className="text-xs font-semibold text-gray-700">Planos</span>
             </Link>
             <Link
-              href="/arena/aulas"
+              href={`/arena/aulas?handle=${arena.handle}`}
               className="flex flex-col items-center gap-2 rounded-2xl bg-gray-50 py-4 text-center ring-1 ring-black/5 transition-colors hover:bg-emerald-50 hover:ring-emerald-200"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-600">
@@ -282,7 +282,7 @@ export default async function ArenaPainelPage({
                 <CalendarDays className="mx-auto mb-2 size-8 text-gray-200" />
                 <p className="text-sm text-gray-400">Nenhuma aula configurada.</p>
                 <Link
-                  href="/arena/aulas"
+                  href={`/arena/aulas?handle=${arena.handle}`}
                   className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
                 >
                   <Settings className="size-3.5" /> Configurar horários

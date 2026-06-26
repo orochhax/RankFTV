@@ -51,11 +51,13 @@ DECLARE
   ];
 
   i int;
+  v_tmp     uuid;
+  v_tmp_sid uuid;
 BEGIN
 
   -- ── 1. Pega a primeira arena ──────────────────────────────────
   SELECT id, dono_id INTO v_arena_id, v_dono_id
-  FROM arenas ORDER BY created_at LIMIT 1;
+  FROM arenas WHERE nome ILIKE '%Carlos Gregorio%' ORDER BY created_at LIMIT 1;
 
   IF v_arena_id IS NULL THEN
     RAISE EXCEPTION 'Nenhuma arena encontrada. Crie uma arena no painel primeiro.';
@@ -80,7 +82,12 @@ BEGIN
       '{"provider":"email","providers":["email"]}'::jsonb,
       -- O trigger handle_new_user() lê 'username' e 'nome' daqui para criar o profile
       jsonb_build_object('username', usernames[i], 'nome', nomes[i])
-    ) ON CONFLICT (id) DO NOTHING;
+    ) ON CONFLICT DO NOTHING;
+
+    -- Re-lê o ID real (pode ser diferente se o email já existia de outra rodada)
+    SELECT id INTO v_tmp FROM auth.users
+    WHERE email = 'seed_' || usernames[i] || '@rankftv-fake.test';
+    v_uids[i] := v_tmp;
   END LOOP;
   -- O trigger handle_new_user() já criou os profiles automaticamente acima.
 
@@ -104,6 +111,11 @@ BEGIN
       mensalidades[i],
       (CURRENT_DATE - ((15 + i * 4) * INTERVAL '1 day'))::date
     ) ON CONFLICT DO NOTHING;
+
+    -- Re-lê o ID real (pode ter conflito em user_id+arena_id de rodada anterior)
+    SELECT id INTO v_tmp_sid FROM arena_students
+    WHERE arena_id = v_arena_id AND user_id = v_uids[i];
+    v_sids[i] := v_tmp_sid;
   END LOOP;
 
   -- ── 6. Presenças (últimos 60 dias) ───────────────────────────

@@ -74,34 +74,41 @@ export function FinanceiroDashboard({
           <DollarSign className="size-4 text-blue-500" />
           <h3 className="text-sm font-semibold text-gray-700">Receita — últimos 6 meses</h3>
         </div>
-        <div className="flex h-28 items-end gap-2">
-          {receitaMensal.map((r, i) => {
-            const pct = Math.max(Math.round((r.valor / maxReceita) * 100), r.valor > 0 ? 4 : 1);
-            const isLast = i === receitaMensal.length - 1;
-            return (
-              <div key={i} className="flex flex-1 flex-col items-center gap-1">
-                {r.valor > 0 && (
-                  <span className="text-[9px] font-semibold text-gray-400">
-                    {r.valor >= 1000
-                      ? `${(r.valor / 1000).toFixed(1)}k`
-                      : r.valor.toFixed(0)}
-                  </span>
-                )}
-                <div className="w-full flex-1 flex items-end">
-                  <div
-                    className={`w-full rounded-t-lg transition-all ${isLast ? "bg-blue-600" : "bg-blue-200"}`}
-                    style={{ height: `${pct}%` }}
-                  />
-                </div>
-                <span className="text-[10px] capitalize text-gray-400">{r.label}</span>
-              </div>
-            );
-          })}
-        </div>
-        {receitaMensal.every((r) => r.valor === 0) && (
-          <p className="mt-2 text-center text-xs text-gray-400">
+        {receitaMensal.every((r) => r.valor === 0) ? (
+          <p className="text-center text-xs text-gray-400">
             Nenhuma mensalidade paga registrada ainda.
           </p>
+        ) : (
+          <>
+            {/* barras com altura em px para evitar problema de % em flex-grow */}
+            <div className="flex items-end gap-2" style={{ height: 80 }}>
+              {receitaMensal.map((r, i) => {
+                const barH = r.valor > 0 ? Math.max(Math.round((r.valor / maxReceita) * 80), 4) : 2;
+                const isLast = i === receitaMensal.length - 1;
+                return (
+                  <div key={i} className="flex flex-1 flex-col items-center justify-end">
+                    {r.valor > 0 && (
+                      <span className="mb-1 text-[9px] font-semibold text-gray-400">
+                        {r.valor >= 1000 ? `${(r.valor / 1000).toFixed(1)}k` : r.valor.toFixed(0)}
+                      </span>
+                    )}
+                    <div
+                      className={`w-full rounded-t-lg ${isLast ? "bg-blue-600" : "bg-blue-200"}`}
+                      style={{ height: barH }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            {/* labels abaixo */}
+            <div className="mt-1.5 flex gap-2">
+              {receitaMensal.map((r, i) => (
+                <span key={i} className="flex-1 text-center text-[10px] capitalize text-gray-400">
+                  {r.label}
+                </span>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
@@ -113,43 +120,47 @@ export function FinanceiroDashboard({
         </div>
         <p className="mb-4 text-xs text-gray-400">Últimos 30 dias · Clique num dia para ver os horários</p>
 
-        <div className="flex h-28 items-end gap-1.5">
+        {/* barras em px + labels em linha separada */}
+        <div className="flex items-end gap-1.5" style={{ height: 80 }}>
           {presencasSemanal.map((p) => {
-            const pct = Math.max(Math.round((p.count / maxPresenca) * 100), p.count > 0 ? 4 : 1);
+            const barH = p.count > 0 ? Math.max(Math.round((p.count / maxPresenca) * 80), 4) : 2;
             const selected = selectedDow === p.dow;
             return (
               <button
                 key={p.dow}
                 onClick={() => setSelectedDow(selected ? null : p.dow)}
-                className="group flex flex-1 flex-col items-center gap-1 focus:outline-none"
+                className="group flex flex-1 flex-col items-center justify-end focus:outline-none"
               >
                 {p.count > 0 && (
-                  <span className="text-[9px] font-semibold text-gray-400 group-hover:text-blue-600">
+                  <span className="mb-1 text-[9px] font-semibold text-gray-400 group-hover:text-blue-600">
                     {p.count}
                   </span>
                 )}
-                <div className="w-full flex-1 flex items-end">
-                  <div
-                    className={`w-full rounded-t-lg transition-all ${
-                      selected
-                        ? "bg-blue-600"
-                        : p.count > 0
-                        ? "bg-blue-200 group-hover:bg-blue-400"
-                        : "bg-gray-100"
-                    }`}
-                    style={{ height: `${pct}%` }}
-                  />
-                </div>
-                <span
-                  className={`text-[10px] font-medium transition-colors ${
-                    selected ? "text-blue-600" : "text-gray-400"
+                <div
+                  className={`w-full rounded-t-lg transition-all ${
+                    selected
+                      ? "bg-blue-600"
+                      : p.count > 0
+                      ? "bg-blue-200 group-hover:bg-blue-400"
+                      : "bg-gray-100"
                   }`}
-                >
-                  {p.label}
-                </span>
+                  style={{ height: barH }}
+                />
               </button>
             );
           })}
+        </div>
+        <div className="mt-1.5 flex gap-1.5">
+          {presencasSemanal.map((p) => (
+            <span
+              key={p.dow}
+              className={`flex-1 text-center text-[10px] font-medium transition-colors ${
+                selectedDow === p.dow ? "text-blue-600" : "text-gray-400"
+              }`}
+            >
+              {p.label}
+            </span>
+          ))}
         </div>
 
         {/* Detalhe do dia selecionado */}
