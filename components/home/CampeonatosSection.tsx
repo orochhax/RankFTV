@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, Search, X, Radio } from "lucide-react";
 import { ChampionshipCard } from "@/components/campeonatos/ChampionshipCard";
 import type { Championship } from "@/lib/types";
 
@@ -46,7 +46,16 @@ export function CampeonatosSection({
 
   return (
     <section>
-      <h2 className="mb-3 text-base font-semibold text-gray-900">Campeonatos</h2>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="text-base font-semibold text-gray-900">Campeonatos</h2>
+        <Link
+          href="/campeonatos/ao-vivo"
+          className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-100 transition-colors"
+        >
+          <Radio className="size-3 animate-pulse" />
+          Ao vivo
+        </Link>
+      </div>
 
       {/* Busca */}
       <div className="relative mb-3">
