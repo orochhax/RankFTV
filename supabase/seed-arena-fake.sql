@@ -78,16 +78,11 @@ BEGIN
       'authenticated',
       '',
       '{"provider":"email","providers":["email"]}'::jsonb,
-      jsonb_build_object('full_name', nomes[i])
+      -- O trigger handle_new_user() lê 'username' e 'nome' daqui para criar o profile
+      jsonb_build_object('username', usernames[i], 'nome', nomes[i])
     ) ON CONFLICT (id) DO NOTHING;
   END LOOP;
-
-  -- ── 3. Cria profiles ──────────────────────────────────────────
-  FOR i IN 1..30 LOOP
-    INSERT INTO profiles (id, nome, username)
-    VALUES (v_uids[i], nomes[i], usernames[i])
-    ON CONFLICT (id) DO NOTHING;
-  END LOOP;
+  -- O trigger handle_new_user() já criou os profiles automaticamente acima.
 
   -- ── 4. Cria 3 turmas (se não existirem já) ───────────────────
   INSERT INTO arena_classes (id, arena_id, titulo, horario, dias_semana, ativo)
