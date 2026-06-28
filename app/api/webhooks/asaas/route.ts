@@ -54,6 +54,120 @@ export async function POST(req: NextRequest) {
   const supabase = createAdminClient();
   const novoStatus = EVENTOS_CONFIRMADO.has(event) ? "pago" : "estornado";
 
+  // ── Mensalidade de ARENA (externalReference "arena_student:<studentId>") ──
+  if (registrationId.startsWith("arena_student:")) {
+    const studentId = registrationId.slice("arena_student:".length);
+
+    if (EVENTOS_CONFIRMADO.has(event)) {
+      const { data: student } = await supabase
+        .from("arena_students")
+        .select("id, arena_id, user_id, valor_mensalidade")
+        .eq("id", studentId)
+        .single();
+
+      if (student) {
+        await supabase
+          .from("arena_students")
+          .update({ status: "ativo" })
+          .eq("id", studentId);
+
+        const now = new Date();
+        const competencia = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        await supabase
+          .from("student_charges")
+          .upsert(
+            {
+              arena_id:         student.arena_id,
+              arena_student_id: studentId,
+              user_id:          student.user_id,
+              competencia,
+              valor:            Number(student.valor_mensalidade ?? 0),
+              status_pagamento: "pago",
+              asaas_payment_id: payment.id,
+              pago_em:          now.toISOString(),
+            },
+            { onConflict: "arena_student_id,competencia" },
+          );
+
+        const { data: arenaAccount } = await supabase
+          .from("arena_accounts")
+          .select("chave_pix")
+          .eq("arena_id", student.arena_id)
+          .maybeSingle();
+
+        const chavePix  = arenaAccount?.chave_pix as string | undefined;
+        const valorBase = Number(student.valor_mensalidade ?? 0);
+        const dias      = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
+
+        if (chavePix && valorBase > 0 && dias === 0) {
+          try {
+            const { transferirPix } = await import("@/lib/asaas");
+            await transferirPix({ valor: valorBase, chavePix, descricao: `Mensalidade arena ${competencia}` });
+          } catch (err) {
+            console.error("[webhook] Falha no repasse arena:", err);
+          }
+        }
+      }
+    }
+
+    if (EVENTOS_ESTORNADO.has(event)) {
+      await supabase.from("arena_students").update({ status: "pendente" }).eq("id", studentId);
+    }
+
+    return NextResponse.json({ ok: true, tipo: "arena_student" });
+  }
+
+  // ── Aluguel de ARENA (externalReference "arena_rental:<rentalId>") ──
+  if (registrationId.startsWith("arena_rental:")) {
+    const rentalId = registrationId.slice("arena_rental:".length);
+
+    if (EVENTOS_CONFIRMADO.has(event)) {
+      await supabase
+        .from("arena_rentals")
+        .update({ status_pagamento: "pago", billing_type: payment.billingType })
+        .eq("id", rentalId);
+
+      const { data: rental } = await supabase
+        .from("arena_rentals")
+        .select("arena_id, valor")
+        .eq("id", rentalId)
+        .single();
+
+      if (rental) {
+        const { data: arenaAccount } = await supabase
+          .from("arena_accounts")
+          .select("chave_pix")
+          .eq("arena_id", rental.arena_id)
+          .maybeSingle();
+
+        const chavePix  = arenaAccount?.chave_pix as string | undefined;
+        const valorBase = Number(rental.valor ?? 0);
+        const dias      = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
+
+        if (chavePix && valorBase > 0 && dias === 0) {
+          try {
+            const { transferirPix } = await import("@/lib/asaas");
+            await transferirPix({ valor: valorBase, chavePix, descricao: `Aluguel quadra ${rentalId}` });
+            await supabase.from("arena_rentals").update({ repasse_status: "concluido" }).eq("id", rentalId);
+          } catch (err) {
+            console.error("[webhook] Falha no repasse aluguel:", err);
+          }
+        } else if (chavePix && valorBase > 0 && dias > 0) {
+          await supabase.from("arena_rentals").update({ repasse_status: "aguardando_liquidacao" }).eq("id", rentalId);
+        }
+      }
+    }
+
+    if (EVENTOS_ESTORNADO.has(event)) {
+      await supabase
+        .from("arena_rentals")
+        .update({ status_pagamento: "estornado", repasse_status: "estornado" })
+        .eq("id", rentalId);
+    }
+
+    return NextResponse.json({ ok: true, tipo: "arena_rental" });
+  }
+
   // ── Ingresso de PLATEIA (externalReference "spec:<ticketId>") ──
   // Caminho separado do de atleta: repasse integral (sem taxa por enquanto).
   if (registrationId.startsWith("spec:")) {

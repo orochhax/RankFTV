@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Building2, MapPin, Users, Trophy, Tag, CalendarCheck } from "lucide-react";
+import { ArrowLeft, Building2, MapPin, Users, Trophy, Tag, CalendarCheck, CreditCard } from "lucide-react";
 import { ArenaPhotoGallery } from "@/components/arena/ArenaPhotoGallery";
 import { Avatar } from "@/components/ui/Avatar";
 import { createClient } from "@/lib/supabase/server";
@@ -66,7 +66,7 @@ export default async function ArenaPublicaPage({
   // Planos da arena (públicos)
   const { data: plans } = await supabase
     .from("arena_plans")
-    .select("id, tipo, nome, descricao, valor, ativo")
+    .select("id, tipo, nome, descricao, valor, ativo, aceita_credito, aceita_debito")
     .eq("arena_id", arena.id)
     .eq("ativo", true)
     .order("ordem", { ascending: true })
@@ -153,6 +153,15 @@ export default async function ArenaPublicaPage({
                       {`R$ ${Number(p.valor).toFixed(2).replace(".", ",")}`}
                       <span className="ml-1 text-xs font-normal text-gray-400">/mês</span>
                     </p>
+                    {/* Botão de assinatura — oculto se já for aluno */}
+                    {!isAluno && (
+                      <Link
+                        href={user ? `/arenas/${arena.handle}/assinar/${p.id}` : `/login?next=/arenas/${arena.handle}/assinar/${p.id}`}
+                        className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                      >
+                        <CreditCard className="size-4" /> Assinar
+                      </Link>
+                    )}
                   </div>
                 ))}
               </div>
@@ -169,10 +178,29 @@ export default async function ArenaPublicaPage({
               {aluguelPlan.descricao && (
                 <p className="text-xs text-emerald-700 mb-2">{aluguelPlan.descricao}</p>
               )}
-              <p className="text-2xl font-black text-emerald-600">
-                {`R$ ${Number(aluguelPlan.valor).toFixed(2).replace(".", ",")}`}
-                <span className="ml-1 text-xs font-normal text-emerald-500">/hora</span>
-              </p>
+              <div className="flex items-end justify-between gap-3">
+                <p className="text-2xl font-black text-emerald-600">
+                  {`R$ ${Number(aluguelPlan.valor).toFixed(2).replace(".", ",")}`}
+                  <span className="ml-1 text-xs font-normal text-emerald-500">/hora</span>
+                </p>
+                <Link
+                  href={user
+                    ? `/arenas/${arena.handle}/alugar?planId=${aluguelPlan.id}`
+                    : `/login?next=/arenas/${arena.handle}/alugar`}
+                  className="shrink-0 flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
+                >
+                  <CalendarCheck className="size-4" /> Reservar
+                </Link>
+              </div>
+              {/* Métodos aceitos */}
+              <div className="mt-2 flex gap-1.5">
+                {(aluguelPlan.aceita_credito ?? true) && (
+                  <span className="rounded-lg bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Crédito</span>
+                )}
+                {(aluguelPlan.aceita_debito ?? false) && (
+                  <span className="rounded-lg bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Débito</span>
+                )}
+              </div>
             </section>
           )}
 

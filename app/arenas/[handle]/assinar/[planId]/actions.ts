@@ -1,0 +1,158 @@
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
+import { criarOuBuscarCliente } from "@/lib/asaas";
+
+export type AssinarInput = {
+  planId:      string;
+  handle:      string;
+  cpf:         string;
+  numero:      string;
+  nomeTitular: string;
+  mesValidade: string;
+  anoValidade: string;
+  cvv:         string;
+};
+
+export type AssinarResult =
+  | { ok: true  }
+  | { ok: false; error: string };
+
+export async function assinarPlano(input: AssinarInput): Promise<AssinarResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Sessão expirada. Faça login novamente." };
+
+  const cpfNum = input.cpf.replace(/\D/g, "");
+  if (cpfNum.length !== 11) return { ok: false, error: "CPF inválido." };
+
+  const { data: plan } = await supabase
+    .from("arena_plans")
+    .select("id, arena_id, nome, valor, dia_vencimento, tipo, ativo")
+    .eq("id", input.planId)
+    .eq("tipo", "mensalidade")
+    .eq("ativo", true)
+    .single();
+
+  if (!plan) return { ok: false, error: "Plano não encontrado." };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("nome")
+    .eq("id", user.id)
+    .single();
+  if (!profile) return { ok: false, error: "Perfil não encontrado." };
+
+  const { data: existingStudent } = await supabase
+    .from("arena_students")
+    .select("id, status")
+    .eq("arena_id", plan.arena_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existingStudent?.status === "ativo") {
+    return { ok: false, error: "Você já é aluno ativo desta arena." };
+  }
+
+  let customer: { id: string };
+  try {
+    customer = await criarOuBuscarCliente({ name: profile.nome, email: user.email!, cpfCnpj: cpfNum });
+  } catch {
+    return { ok: false, error: "Erro ao registrar dados do pagador." };
+  }
+
+  // Cria ou reutiliza o vínculo de aluno
+  let studentId: string;
+  if (existingStudent) {
+    await supabase
+      .from("arena_students")
+      .update({ plan_id: plan.id, asaas_customer_id: customer.id, valor_mensalidade: plan.valor })
+      .eq("id", existingStudent.id);
+    studentId = existingStudent.id;
+  } else {
+    const { data: newStudent, error: insErr } = await supabase
+      .from("arena_students")
+      .insert({
+        arena_id:          plan.arena_id,
+        user_id:           user.id,
+        status:            "pendente",
+        plan_id:           plan.id,
+        valor_mensalidade: plan.valor,
+        asaas_customer_id: customer.id,
+      })
+      .select("id")
+      .single();
+    if (insErr || !newStudent) return { ok: false, error: "Erro ao criar vínculo com a arena." };
+    studentId = newStudent.id;
+  }
+
+  // Calcula data do próximo vencimento
+  const TAXA         = 0.10;
+  const valorTotal   = parseFloat((Number(plan.valor) * (1 + TAXA)).toFixed(2));
+  const diaVenc      = plan.dia_vencimento ?? 10;
+  const now          = new Date();
+  const nextDue      = new Date(now.getFullYear(), now.getMonth(), diaVenc);
+  if (nextDue <= now) nextDue.setMonth(nextDue.getMonth() + 1);
+  const nextDueDate  = nextDue.toISOString().split("T")[0];
+
+  const baseUrl = process.env.ASAAS_BASE_URL;
+  const apiKey  = process.env.ASAAS_API_KEY;
+  if (!baseUrl || !apiKey) return { ok: false, error: "Configuração de pagamento indisponível." };
+
+  try {
+    const res = await fetch(`${baseUrl}/subscriptions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "access_token": apiKey },
+      body: JSON.stringify({
+        customer:          customer.id,
+        billingType:       "CREDIT_CARD",
+        value:             valorTotal,
+        nextDueDate,
+        cycle:             "MONTHLY",
+        description:       `Mensalidade ${plan.nome}`,
+        externalReference: `arena_student:${studentId}`,
+        creditCard: {
+          holderName:  input.nomeTitular.toUpperCase(),
+          number:      input.numero.replace(/\s/g, ""),
+          expiryMonth: input.mesValidade,
+          expiryYear:  input.anoValidade,
+          ccv:         input.cvv,
+        },
+        creditCardHolderInfo: {
+          name:          profile.nome,
+          email:         user.email!,
+          cpfCnpj:       cpfNum,
+          postalCode:    "00000000",
+          addressNumber: "0",
+        },
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      let msg = "Erro ao processar o cartão.";
+      try {
+        const json = JSON.parse(text) as { errors?: { description: string }[] };
+        if (json.errors?.[0]?.description) msg = json.errors[0].description;
+      } catch { /* usa msg padrão */ }
+      return { ok: false, error: msg };
+    }
+
+    const sub = await res.json() as { id: string };
+
+    await Promise.all([
+      supabase
+        .from("arena_students")
+        .update({ asaas_subscription_id: sub.id })
+        .eq("id", studentId),
+      supabase
+        .from("profiles_private")
+        .upsert({ user_id: user.id, cpf: cpfNum }, { onConflict: "user_id" }),
+    ]);
+
+    return { ok: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Erro ao processar pagamento.";
+    return { ok: false, error: msg };
+  }
+}
