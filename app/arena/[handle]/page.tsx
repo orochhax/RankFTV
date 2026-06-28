@@ -9,6 +9,7 @@ import {
   Clock,
   DollarSign,
   Settings,
+  Settings2,
   Tag,
   Users,
 } from "lucide-react";
@@ -130,7 +131,7 @@ export default async function ArenaPainelPage({
           </div>
 
           {/* ── Botões de ação ── */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Link
               href={`/arena/financeiro?handle=${arena.handle}`}
               className="flex flex-col items-center gap-2 rounded-2xl bg-gray-50 py-4 text-center ring-1 ring-black/5 transition-colors hover:bg-blue-50 hover:ring-blue-200"
@@ -141,7 +142,7 @@ export default async function ArenaPainelPage({
               <span className="text-xs font-semibold text-gray-700">Financeiro</span>
             </Link>
             <Link
-              href={`/arena/assinatura?handle=${arena.handle}`}
+              href={`/arena/planos?handle=${arena.handle}`}
               className="flex flex-col items-center gap-2 rounded-2xl bg-gray-50 py-4 text-center ring-1 ring-black/5 transition-colors hover:bg-purple-50 hover:ring-purple-200"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-purple-600">
@@ -156,9 +157,16 @@ export default async function ArenaPainelPage({
               <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-600">
                 <Settings className="size-5 text-white" />
               </div>
-              <span className="text-xs font-semibold text-gray-700 text-balance text-center leading-tight">
-                Horários
-              </span>
+              <span className="text-xs font-semibold text-gray-700">Horários</span>
+            </Link>
+            <Link
+              href={`/arena/configuracoes?handle=${arena.handle}`}
+              className="flex flex-col items-center gap-2 rounded-2xl bg-gray-50 py-4 text-center ring-1 ring-black/5 transition-colors hover:bg-orange-50 hover:ring-orange-200"
+            >
+              <div className="flex size-10 items-center justify-center rounded-xl bg-orange-500">
+                <Settings2 className="size-5 text-white" />
+              </div>
+              <span className="text-xs font-semibold text-gray-700">Editar</span>
             </Link>
           </div>
 

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Building2, MapPin, Users, Trophy } from "lucide-react";
+import { ArrowLeft, Building2, MapPin, Users, Trophy, Tag, CalendarCheck } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { createClient } from "@/lib/supabase/server";
 import { EntrarNaArenaButtons } from "@/components/arena/EntrarNaArenaButtons";
@@ -30,7 +30,7 @@ export default async function ArenaPublicaPage({
 
   const { data: arena } = await supabase
     .from("arenas")
-    .select("id, nome, handle, cidade, estado, descricao, avatar_url, banner_url")
+    .select("id, nome, handle, cidade, estado, descricao, avatar_url")
     .eq("handle", handle)
     .maybeSingle();
 
@@ -54,6 +54,25 @@ export default async function ArenaPublicaPage({
     .map((a) => ({ ...getProfile(a.profiles), userId: a.user_id }))
     .filter((a): a is ProfileRow & { userId: string } => !!a.id)
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+
+  // Fotos do espaço
+  const { data: photos } = await supabase
+    .from("arena_photos")
+    .select("id, url")
+    .eq("arena_id", arena.id)
+    .order("ordem", { ascending: true });
+
+  // Planos da arena (públicos)
+  const { data: plans } = await supabase
+    .from("arena_plans")
+    .select("id, tipo, nome, descricao, valor, ativo")
+    .eq("arena_id", arena.id)
+    .eq("ativo", true)
+    .order("ordem", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  const mensalidadePlans = (plans ?? []).filter((p) => p.tipo === "mensalidade");
+  const aluguelPlan      = (plans ?? []).find((p) => p.tipo === "aluguel") ?? null;
 
   // Verifica vínculo do usuário logado
   let vinculo: { status: string } | null = null;
@@ -80,31 +99,38 @@ export default async function ArenaPublicaPage({
             <ArrowLeft className="size-4" /> Arenas
           </Link>
 
-          {arena.banner_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={arena.banner_url} alt={arena.nome} className="h-28 w-full rounded-2xl object-cover" />
-          ) : (
-            <div className="flex h-28 w-full items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800">
-              <Building2 className="size-10 text-white/60" />
-            </div>
-          )}
-
-          <div className="flex items-start gap-3">
-            <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-white/10">
+          <div className="flex items-start gap-4">
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-white/10 overflow-hidden">
               {arena.avatar_url
-                ? <img src={arena.avatar_url} alt={arena.nome} className="size-14 rounded-xl object-cover" /> // eslint-disable-line @next/next/no-img-element
-                : <Building2 className="size-7 text-white/60" />}
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={arena.avatar_url} alt={arena.nome} className="size-16 object-cover" />
+                : <Building2 className="size-8 text-white/60" />}
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">{arena.nome}</h1>
-              <p className="flex items-center gap-1 text-sm text-white/50">
-                <MapPin className="size-3.5" /> {arena.cidade}/{arena.estado}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-bold text-white leading-tight">{arena.nome}</h1>
+              <p className="flex items-center gap-1 text-sm text-white/50 mt-1">
+                <MapPin className="size-3.5 shrink-0" /> {arena.cidade}/{arena.estado}
               </p>
               <p className="mt-1 flex items-center gap-1 text-xs text-white/40">
                 <Users className="size-3" /> {ranking.length} alunos ativos
               </p>
             </div>
           </div>
+
+          {/* Galeria horizontal */}
+          {(photos ?? []).length > 0 && (
+            <div className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 scrollbar-none">
+              {(photos ?? []).map((p) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={p.id}
+                  src={p.url}
+                  alt="foto da arena"
+                  className="h-44 w-64 shrink-0 rounded-2xl object-cover"
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -115,6 +141,50 @@ export default async function ArenaPublicaPage({
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
               {arena.descricao}
             </p>
+          )}
+
+          {/* ── Planos de mensalidade ── */}
+          {mensalidadePlans.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Tag className="size-4 text-blue-500" />
+                <h2 className="text-sm font-semibold text-gray-700">Planos de mensalidade</h2>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {mensalidadePlans.map((p) => (
+                  <div
+                    key={p.id}
+                    className="rounded-2xl bg-gradient-to-br from-blue-50 to-white p-4 ring-1 ring-blue-100"
+                  >
+                    <p className="font-bold text-gray-900">{p.nome}</p>
+                    {p.descricao && (
+                      <p className="mt-1 text-xs text-gray-500 leading-relaxed">{p.descricao}</p>
+                    )}
+                    <p className="mt-3 text-2xl font-black text-blue-600">
+                      {`R$ ${Number(p.valor).toFixed(2).replace(".", ",")}`}
+                      <span className="ml-1 text-xs font-normal text-gray-400">/mês</span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── Aluguel da quadra ── */}
+          {aluguelPlan && (
+            <section className="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-100">
+              <div className="flex items-center gap-2 mb-2">
+                <CalendarCheck className="size-4 text-emerald-600" />
+                <h2 className="text-sm font-semibold text-emerald-800">Aluguel da quadra</h2>
+              </div>
+              {aluguelPlan.descricao && (
+                <p className="text-xs text-emerald-700 mb-2">{aluguelPlan.descricao}</p>
+              )}
+              <p className="text-2xl font-black text-emerald-600">
+                {`R$ ${Number(aluguelPlan.valor).toFixed(2).replace(".", ",")}`}
+                <span className="ml-1 text-xs font-normal text-emerald-500">/hora</span>
+              </p>
+            </section>
           )}
 
           <EntrarNaArenaButtons
