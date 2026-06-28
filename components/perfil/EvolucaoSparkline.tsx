@@ -42,8 +42,8 @@ export function EvolucaoSparkline({ valores, max = 9, className }: Props) {
     >
       <defs>
         <linearGradient id="evolGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+          <stop offset="0%" stopColor="#006400" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#006400" stopOpacity="0" />
         </linearGradient>
       </defs>
 
@@ -65,7 +65,7 @@ export function EvolucaoSparkline({ valores, max = 9, className }: Props) {
       <polyline
         points={linha}
         fill="none"
-        stroke="#3b82f6"
+        stroke="#006400"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"

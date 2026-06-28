@@ -726,7 +726,7 @@ export function BracketClient({
 
       // "RankFTV" canto inferior direito
       ctx.font         = "bold 36px system-ui, -apple-system, sans-serif";
-      ctx.fillStyle    = "#2563eb";
+      ctx.fillStyle    = "#006400";
       ctx.textAlign    = "right";
       ctx.textBaseline = "bottom";
       ctx.fillText("RankFTV", 1080 - PAD, 1920 - 24);

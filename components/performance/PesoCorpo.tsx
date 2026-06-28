@@ -153,11 +153,11 @@ function WeightChart({ pesos, meta }: { pesos: PesoEntry[]; meta: number | null 
         {(minKg + 1).toFixed(1)}
       </text>
 
-      {/* Linha azul */}
+      {/* Linha principal */}
       <polyline
         points={points}
         fill="none"
-        stroke="#3b82f6"
+        stroke="#006400"
         strokeWidth="2"
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -165,18 +165,18 @@ function WeightChart({ pesos, meta }: { pesos: PesoEntry[]; meta: number | null 
 
       {/* Pontos */}
       {pesos.map((p, i) => (
-        <circle key={i} cx={sx(p.data)} cy={sy(p.peso_kg)} r="2.5" fill="#3b82f6" />
+        <circle key={i} cx={sx(p.data)} cy={sy(p.peso_kg)} r="2.5" fill="#006400" />
       ))}
 
       {/* Último ponto destacado */}
       <circle
         cx={sx(last.data)} cy={sy(last.peso_kg)}
-        r="4.5" fill="white" stroke="#3b82f6" strokeWidth="2"
+        r="4.5" fill="white" stroke="#006400" strokeWidth="2"
       />
       {/* Label do último valor */}
       <text
         x={sx(last.data)} y={sy(last.peso_kg) - 8}
-        fontSize="8.5" fill="#3b82f6" textAnchor="middle" fontWeight="bold"
+        fontSize="8.5" fill="#006400" textAnchor="middle" fontWeight="bold"
       >
         {last.peso_kg} kg
       </text>
