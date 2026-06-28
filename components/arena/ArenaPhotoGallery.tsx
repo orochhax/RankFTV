@@ -17,14 +17,21 @@ export function ArenaPhotoGallery({ photos }: { photos: Photo[] }) {
     setOpen((i) => (i !== null && i < photos.length - 1 ? i + 1 : i)), [photos.length]);
 
   useEffect(() => {
-    if (open === null) return;
+    if (open === null) {
+      document.body.style.overflow = "";
+      return;
+    }
+    document.body.style.overflow = "hidden";
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape")     close();
       if (e.key === "ArrowLeft")  prev();
       if (e.key === "ArrowRight") next();
     }
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
   }, [open, close, prev, next]);
 
   if (photos.length === 0) return null;
@@ -48,7 +55,7 @@ export function ArenaPhotoGallery({ photos }: { photos: Photo[] }) {
       {/* ── Lightbox ── */}
       {open !== null && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4"
           onClick={close}
         >
           {/* Imagem — para o clique para não fechar ao clicar na foto */}
