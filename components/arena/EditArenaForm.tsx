@@ -2,7 +2,7 @@
 
 import { useState, useRef, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Loader2, Check, Building2, Plus, X } from "lucide-react";
+import { Camera, Loader2, Check, Building2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const ESTADOS = [
@@ -106,6 +106,19 @@ export function EditArenaForm({
     setPhotos((prev) => prev.filter((p) => p.id !== photoId));
   }
 
+  async function movePhoto(index: number, direction: -1 | 1) {
+    const next = index + direction;
+    if (next < 0 || next >= photos.length) return;
+    const updated = [...photos];
+    [updated[index], updated[next]] = [updated[next], updated[index]];
+    setPhotos(updated);
+    // Persiste a nova ordem no banco
+    await Promise.all([
+      supabase.from("arena_photos").update({ ordem: index }).eq("id", updated[index].id),
+      supabase.from("arena_photos").update({ ordem: next }).eq("id", updated[next].id),
+    ]);
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!nome.trim())   { setError("O nome é obrigatório."); return; }
@@ -184,10 +197,19 @@ export function EditArenaForm({
           Fotos do espaço
         </p>
         <div className="flex flex-wrap gap-3">
-          {photos.map((p) => (
-            <div key={p.id} className="relative size-24 overflow-hidden rounded-xl bg-gray-100">
+          {photos.map((p, i) => (
+            <div key={p.id} className="relative size-24 overflow-hidden rounded-xl bg-gray-100 group">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={p.url} alt="foto" className="h-full w-full object-cover" />
+
+              {/* Badge "capa" na primeira foto */}
+              {i === 0 && (
+                <span className="absolute left-1 top-1 rounded-md bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                  capa
+                </span>
+              )}
+
+              {/* Botão remover */}
               <button
                 type="button"
                 onClick={() => removePhoto(p.id)}
@@ -195,6 +217,26 @@ export function EditArenaForm({
               >
                 <X className="size-3" />
               </button>
+
+              {/* Botões de reordenação (aparecem no hover) */}
+              <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  type="button"
+                  onClick={() => movePhoto(i, -1)}
+                  disabled={i === 0}
+                  className="flex size-6 items-center justify-center rounded-full bg-black/70 text-white disabled:opacity-30 hover:bg-black"
+                >
+                  <ChevronLeft className="size-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => movePhoto(i, 1)}
+                  disabled={i === photos.length - 1}
+                  className="flex size-6 items-center justify-center rounded-full bg-black/70 text-white disabled:opacity-30 hover:bg-black"
+                >
+                  <ChevronRight className="size-3.5" />
+                </button>
+              </div>
             </div>
           ))}
 

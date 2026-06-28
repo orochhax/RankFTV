@@ -42,7 +42,7 @@ export default async function ArenasPage() {
   const arenaIds = rows.map((r) => r.id);
 
   // Busca contagem de alunos e dias de aula em paralelo
-  const [counts, classesRows] = await Promise.all([
+  const [counts, classesRows, photosRows] = await Promise.all([
     Promise.all(
       rows.map(async (a) => {
         const { count } = await supabase
@@ -59,10 +59,23 @@ export default async function ArenasPage() {
           .select("arena_id, dias_semana")
           .in("arena_id", arenaIds)
           .eq("ativo", true)
-      : { data: [] },
+      : { data: [] as { arena_id: string; dias_semana: number[] | null }[] },
+    arenaIds.length > 0
+      ? supabase
+          .from("arena_photos")
+          .select("arena_id, url")
+          .in("arena_id", arenaIds)
+          .order("ordem", { ascending: true })
+      : { data: [] as { arena_id: string; url: string }[] },
   ]);
 
   const countMap = Object.fromEntries(counts.map((c) => [c.id, c.alunos]));
+
+  // Primeira foto de cada arena (menor ordem)
+  const firstPhotoMap: Record<string, string> = {};
+  for (const p of (photosRows.data ?? []) as { arena_id: string; url: string }[]) {
+    if (!firstPhotoMap[p.arena_id]) firstPhotoMap[p.arena_id] = p.url;
+  }
 
   // Agrupa dias da semana por arena (union de todas as turmas ativas)
   const diasMap: Record<string, Set<number>> = {};
@@ -81,7 +94,7 @@ export default async function ArenasPage() {
       estado: a.estado,
       descricao: a.descricao ?? null,
       avatar_url: a.avatar_url ?? null,
-      banner_url: a.banner_url ?? null,
+      banner_url: firstPhotoMap[a.id] ?? a.banner_url ?? null,
       alunos: countMap[a.id] ?? 0,
       proximasDatas: computeProximasDatas(diasSemana),
     };
