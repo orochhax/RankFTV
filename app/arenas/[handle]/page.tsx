@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Building2, MapPin, Users, Trophy, Tag, CalendarCheck } from "lucide-react";
+import { ArenaPhotoGallery } from "@/components/arena/ArenaPhotoGallery";
 import { Avatar } from "@/components/ui/Avatar";
 import { createClient } from "@/lib/supabase/server";
 import { EntrarNaArenaButtons } from "@/components/arena/EntrarNaArenaButtons";
@@ -117,20 +118,8 @@ export default async function ArenaPublicaPage({
             </div>
           </div>
 
-          {/* Galeria horizontal */}
-          {(photos ?? []).length > 0 && (
-            <div className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 scrollbar-none">
-              {(photos ?? []).map((p) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={p.id}
-                  src={p.url}
-                  alt="foto da arena"
-                  className="h-44 w-64 shrink-0 rounded-2xl object-cover"
-                />
-              ))}
-            </div>
-          )}
+          {/* Galeria com lightbox */}
+          <ArenaPhotoGallery photos={photos ?? []} />
         </div>
       </div>
 
