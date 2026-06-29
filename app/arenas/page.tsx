@@ -140,13 +140,8 @@ export default async function ArenasPage() {
       {/* ── Cabeçalho preto ── */}
       <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
         <div className="mx-auto max-w-5xl">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">Arenas</h1>
-              <p className="mt-1 text-sm text-white/50">
-                Alugue uma quadra por hora ou assine um plano mensal de treino.
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-white">Arenas</h1>
             <Link
               href="/perfil/ativar-arena"
               className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/15 transition-colors"
@@ -154,6 +149,9 @@ export default async function ArenasPage() {
               <Plus className="size-4" /> Cadastrar arena
             </Link>
           </div>
+          <p className="mt-1 text-sm text-white/50">
+            Alugue uma quadra por hora ou assine um plano mensal de treino.
+          </p>
         </div>
       </div>
 
