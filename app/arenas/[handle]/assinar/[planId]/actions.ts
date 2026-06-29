@@ -156,3 +156,54 @@ export async function assinarPlano(input: AssinarInput): Promise<AssinarResult> 
     return { ok: false, error: msg };
   }
 }
+
+// ── Onboarding pós-pagamento ──────────────────────────────────────────────────
+
+export type OnboardingInput = {
+  nome:            string;
+  dataNascimento:  string; // "YYYY-MM-DD"
+  genero:          string; // "masculino" | "feminino" | "outro"
+  experiencia:     string; // "iniciante" | "menos1" | "1a3" | "mais3"
+  esportes:        string; // JSON array string
+  frequencia:      string; // "nao" | "1-2" | "3-4" | "5+"
+  autoavaliacao:   string; // "basico" | "intermediario" | "avancado"
+};
+
+export type OnboardingResult =
+  | { ok: true  }
+  | { ok: false; error: string };
+
+export async function salvarOnboardingAtleta(input: OnboardingInput): Promise<OnboardingResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Sessão expirada." };
+
+  // Calcula rating inicial baseado nas respostas
+  let rating = 800;
+
+  if (input.experiencia === "menos1") rating += 100;
+  if (input.experiencia === "1a3")    rating += 350;
+  if (input.experiencia === "mais3")  rating += 600;
+
+  if (input.autoavaliacao === "intermediario") rating += 200;
+  if (input.autoavaliacao === "avancado")      rating += 500;
+
+  if (input.frequencia === "3-4") rating += 100;
+  if (input.frequencia === "5+")  rating += 150;
+
+  const esportes: string[] = JSON.parse(input.esportes || "[]");
+  if (esportes.includes("volei") || esportes.includes("futebol")) rating += 100;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      nome:            input.nome.trim(),
+      data_nascimento: input.dataNascimento || null,
+      genero:          input.genero || null,
+      rating,
+    })
+    .eq("id", user.id);
+
+  if (error) return { ok: false, error: "Erro ao salvar perfil." };
+  return { ok: true };
+}

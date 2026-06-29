@@ -13,7 +13,7 @@ export default async function AssinarPlanoPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/arenas/${handle}/assinar/${planId}`);
 
-  const [arenaRes, planRes, privRes] = await Promise.all([
+  const [arenaRes, planRes, privRes, profileRes] = await Promise.all([
     supabase.from("arenas").select("id, nome").eq("handle", handle).maybeSingle(),
     supabase.from("arena_plans")
       .select("id, arena_id, nome, valor, dia_vencimento, tipo, ativo, aceita_credito")
@@ -22,15 +22,12 @@ export default async function AssinarPlanoPage({
       .eq("ativo", true)
       .maybeSingle(),
     supabase.from("profiles_private").select("cpf").eq("user_id", user.id).maybeSingle(),
+    supabase.from("profiles").select("nome, data_nascimento, genero").eq("id", user.id).maybeSingle(),
   ]);
 
   if (!arenaRes.data) notFound();
   if (!planRes.data) notFound();
-
-  // Verifica se plano pertence a esta arena
   if (planRes.data.arena_id !== arenaRes.data.id) notFound();
-
-  const cpfSalvo = privRes.data?.cpf ?? null;
 
   return (
     <SubscriptionPaymentUI
@@ -38,7 +35,10 @@ export default async function AssinarPlanoPage({
       handle={handle}
       planNome={planRes.data.nome}
       valorBase={Number(planRes.data.valor)}
-      cpfSalvo={cpfSalvo}
+      cpfSalvo={privRes.data?.cpf ?? null}
+      nomeSalvo={profileRes.data?.nome ?? ""}
+      dataNascimentoSalva={profileRes.data?.data_nascimento ?? null}
+      generoSalvo={profileRes.data?.genero ?? null}
     />
   );
 }
