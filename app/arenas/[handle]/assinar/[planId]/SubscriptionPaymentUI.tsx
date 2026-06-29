@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   CreditCard, Loader2, AlertCircle, CheckCircle, ArrowLeft,
   ArrowRight, User, Dumbbell,
 } from "lucide-react";
 import Link from "next/link";
-import { assinarPlano, salvarOnboardingAtleta } from "./actions";
+import { assinarPlano, assinarGratuito, salvarOnboardingAtleta } from "./actions";
 import { formatBRL } from "@/lib/format";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -341,9 +341,20 @@ function StepNivel({ onNext }: { onNext: (data: NivelData) => void }) {
 // ── componente principal ──────────────────────────────────────────────────────
 
 export function SubscriptionPaymentUI(props: Props) {
-  const { handle, planNome, valorBase, nomeSalvo, dataNascimentoSalva, generoSalvo } = props;
-  const router = useRouter();
-  const [step, setStep] = useState<Step>("pagamento");
+  const { planId, handle, planNome, valorBase, nomeSalvo, dataNascimentoSalva, generoSalvo } = props;
+  const router    = useRouter();
+  const isGratuito = valorBase === 0;
+
+  const [step, setStep] = useState<Step>(isGratuito ? "perfil" : "pagamento");
+  const [initError, setInitError] = useState<string | null>(null);
+
+  // Para planos gratuitos: registra o aluno como ativo assim que a página abre
+  useEffect(() => {
+    if (!isGratuito) return;
+    assinarGratuito(planId).then((res) => {
+      if (!res.ok) setInitError(res.error);
+    });
+  }, [isGratuito, planId]);
 
   // Dados acumulados entre steps
   const [perfilData,  setPerfilData]  = useState<{ nome: string; dataNascimento: string; genero: string } | null>(null);
@@ -369,8 +380,10 @@ export function SubscriptionPaymentUI(props: Props) {
   }
 
   // ── indicador de progresso ──
-  const stepIndex = step === "pagamento" ? 0 : step === "perfil" ? 1 : step === "nivel" ? 2 : 3;
-  const stepLabels = ["Pagamento", "Dados pessoais", "Nível"];
+  const stepLabels = isGratuito ? ["Dados pessoais", "Nível"] : ["Pagamento", "Dados pessoais", "Nível"];
+  const stepIndex  = isGratuito
+    ? (step === "perfil" ? 0 : step === "nivel" ? 1 : 2)
+    : (step === "pagamento" ? 0 : step === "perfil" ? 1 : step === "nivel" ? 2 : 3);
 
   if (step === "concluido") {
     return (
@@ -411,7 +424,7 @@ export function SubscriptionPaymentUI(props: Props) {
 
   const stepSubtitle =
     step === "pagamento" ? `${formatBRL(valorBase)}/mês` :
-    step === "perfil"    ? "Para personalizar sua experiência" :
+    step === "perfil"    ? (isGratuito ? `${planNome} — gratuito` : "Para personalizar sua experiência") :
     "Para colocarmos na categoria certa";
 
   return (
@@ -460,6 +473,13 @@ export function SubscriptionPaymentUI(props: Props) {
       {/* ── Área branca ── */}
       <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-lg">
+
+          {initError && (
+            <div className="mb-5 flex items-start gap-2 rounded-xl bg-red-50 px-4 py-3 ring-1 ring-red-200">
+              <AlertCircle className="size-4 shrink-0 text-red-500 mt-0.5" />
+              <p className="text-sm text-red-700">{initError}</p>
+            </div>
+          )}
 
           {step === "pagamento" && (
             <StepPagamento {...props} onSuccess={() => setStep("perfil")} />

@@ -157,6 +157,48 @@ export async function assinarPlano(input: AssinarInput): Promise<AssinarResult> 
   }
 }
 
+// ── Plano gratuito (valor = 0) ────────────────────────────────────────────────
+
+export async function assinarGratuito(planId: string): Promise<AssinarResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Sessão expirada." };
+
+  const { data: plan } = await supabase
+    .from("arena_plans")
+    .select("id, arena_id, valor, tipo, ativo")
+    .eq("id", planId)
+    .eq("tipo", "mensalidade")
+    .eq("ativo", true)
+    .single();
+
+  if (!plan)                           return { ok: false, error: "Plano não encontrado." };
+  if (Number(plan.valor) !== 0)        return { ok: false, error: "Este plano não é gratuito." };
+
+  const { data: existing } = await supabase
+    .from("arena_students")
+    .select("id, status")
+    .eq("arena_id", plan.arena_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existing?.status === "ativo") return { ok: true }; // já ativo, ok
+
+  if (existing) {
+    await supabase
+      .from("arena_students")
+      .update({ plan_id: plan.id, status: "ativo", valor_mensalidade: 0 })
+      .eq("id", existing.id);
+  } else {
+    const { error } = await supabase
+      .from("arena_students")
+      .insert({ arena_id: plan.arena_id, user_id: user.id, plan_id: plan.id, status: "ativo", valor_mensalidade: 0 });
+    if (error) return { ok: false, error: "Erro ao criar vínculo com a arena." };
+  }
+
+  return { ok: true };
+}
+
 // ── Onboarding pós-pagamento ──────────────────────────────────────────────────
 
 export type OnboardingInput = {
