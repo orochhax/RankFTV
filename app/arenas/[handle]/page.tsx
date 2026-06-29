@@ -132,42 +132,6 @@ export default async function ArenaPublicaPage({
             </p>
           )}
 
-          {/* ── Planos de mensalidade ── */}
-          {mensalidadePlans.length > 0 && (
-            <section className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Tag className="size-4 text-blue-500" />
-                <h2 className="text-sm font-semibold text-gray-700">Planos de mensalidade</h2>
-              </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {mensalidadePlans.map((p) => (
-                  <div
-                    key={p.id}
-                    className="rounded-2xl bg-gradient-to-br from-blue-50 to-white p-4 ring-1 ring-blue-100"
-                  >
-                    <p className="font-bold text-gray-900">{p.nome}</p>
-                    {p.descricao && (
-                      <p className="mt-1 text-xs text-gray-500 leading-relaxed">{p.descricao}</p>
-                    )}
-                    <p className="mt-3 text-2xl font-black text-blue-600">
-                      {`R$ ${Number(p.valor).toFixed(2).replace(".", ",")}`}
-                      <span className="ml-1 text-xs font-normal text-gray-400">/mês</span>
-                    </p>
-                    {/* Botão de assinatura — oculto se já for aluno */}
-                    {!isAluno && (
-                      <Link
-                        href={user ? `/arenas/${arena.handle}/assinar/${p.id}` : `/login?next=/arenas/${arena.handle}/assinar/${p.id}`}
-                        className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-                      >
-                        <CreditCard className="size-4" /> Assinar
-                      </Link>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
           {/* ── Aluguel da quadra ── */}
           {aluguelPlan && (
             <section className="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-100">
@@ -200,6 +164,41 @@ export default async function ArenaPublicaPage({
                 {(aluguelPlan.aceita_debito ?? false) && (
                   <span className="rounded-lg bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Débito</span>
                 )}
+              </div>
+            </section>
+          )}
+
+          {/* ── Planos de mensalidade ── */}
+          {mensalidadePlans.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Tag className="size-4 text-blue-500" />
+                <h2 className="text-sm font-semibold text-gray-700">Planos de mensalidade</h2>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {mensalidadePlans.map((p) => (
+                  <div
+                    key={p.id}
+                    className="rounded-2xl bg-gradient-to-br from-blue-50 to-white p-4 ring-1 ring-blue-100"
+                  >
+                    <p className="font-bold text-gray-900">{p.nome}</p>
+                    {p.descricao && (
+                      <p className="mt-1 text-xs text-gray-500 leading-relaxed">{p.descricao}</p>
+                    )}
+                    <p className="mt-3 text-2xl font-black text-blue-600">
+                      {`R$ ${Number(p.valor).toFixed(2).replace(".", ",")}`}
+                      <span className="ml-1 text-xs font-normal text-gray-400">/mês</span>
+                    </p>
+                    {!isAluno && (
+                      <Link
+                        href={user ? `/arenas/${arena.handle}/assinar/${p.id}` : `/login?next=/arenas/${arena.handle}/assinar/${p.id}`}
+                        className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                      >
+                        <CreditCard className="size-4" /> Assinar
+                      </Link>
+                    )}
+                  </div>
+                ))}
               </div>
             </section>
           )}
