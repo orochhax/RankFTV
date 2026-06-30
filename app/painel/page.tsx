@@ -369,9 +369,9 @@ export default async function PainelOrganizadorPage() {
                     <Users className="size-4 text-blue-500" />
                     <div>
                       <p className="text-sm text-gray-700">Saldo de plateia</p>
-                      {qtdIngressos > 0 && (
-                        <p className="text-xs text-gray-400">média {fmt(ticketPlateia)} / ingresso</p>
-                      )}
+                      <p className="text-xs text-gray-400">
+                        {qtdIngressos > 0 ? `média ${fmt(ticketPlateia)} / ingresso` : "sem ingressos pagos"}
+                      </p>
                     </div>
                   </div>
                   <p className="font-semibold text-gray-900">{fmt(totalPlateia)}</p>
@@ -383,7 +383,11 @@ export default async function PainelOrganizadorPage() {
                       <Banknote className="size-4 text-blue-500" />
                       <div>
                         <p className="text-sm text-gray-700">MRR (mensalidades ativas)</p>
-                        <p className="text-xs text-gray-400">{alunosAtivos.length} alunos ativos</p>
+                        <p className="text-xs text-gray-400">
+                          {alunosAtivos.length > 0
+                            ? `média ${fmt(totalMRR / alunosAtivos.length)} / aluno`
+                            : "sem alunos ativos"}
+                        </p>
                       </div>
                     </div>
                     <p className="font-semibold text-gray-900">{fmt(totalMRR)}</p>
