@@ -85,18 +85,19 @@ export async function GET(req: NextRequest) {
           }}
         >
           {/* Scrim de cima (degradê escuro pra ler o título) */}
+          {/* Padding top 300px = seguro abaixo do avatar+@ do Instagram */}
           <div
             style={{
               position: "absolute",
               top: 0,
               left: 0,
               right: 0,
-              height: 560,
+              height: 720,
               display: "flex",
               flexDirection: "column",
-              padding: "80px 70px",
+              padding: "300px 70px 0px",
               backgroundImage:
-                "linear-gradient(180deg, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0) 100%)",
+                "linear-gradient(180deg, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0) 100%)",
             }}
           >
             <div
@@ -121,7 +122,7 @@ export async function GET(req: NextRequest) {
               right: 0,
               display: "flex",
               flexDirection: "column",
-              padding: "0 70px 90px 70px",
+              padding: "0 70px 280px 70px",
               paddingTop: 260,
               backgroundImage:
                 "linear-gradient(0deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0) 100%)",
