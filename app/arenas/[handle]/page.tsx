@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Building2, MapPin, Users, Trophy, Tag, CalendarCheck, CreditCard } from "lucide-react";
+import { ArrowLeft, Building2, MapPin, Users, Trophy, Tag, CalendarCheck, CalendarDays, CreditCard } from "lucide-react";
 import { ArenaPhotoGallery } from "@/components/arena/ArenaPhotoGallery";
 import { Avatar } from "@/components/ui/Avatar";
 import { createClient } from "@/lib/supabase/server";
@@ -74,6 +74,7 @@ export default async function ArenaPublicaPage({
 
   const mensalidadePlans = (plans ?? []).filter((p) => p.tipo === "mensalidade");
   const aluguelPlan      = (plans ?? []).find((p) => p.tipo === "aluguel") ?? null;
+  const diariaPlan       = (plans ?? []).find((p) => p.tipo === "diaria") ?? null;
 
   // Verifica vínculo do usuário logado
   let vinculo: { status: string } | null = null;
@@ -162,6 +163,41 @@ export default async function ArenaPublicaPage({
                   <span className="rounded-lg bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Crédito</span>
                 )}
                 {(aluguelPlan.aceita_debito ?? false) && (
+                  <span className="rounded-lg bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Débito</span>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* ── Diária de treino ── */}
+          {diariaPlan && (
+            <section className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
+              <div className="flex items-center gap-2 mb-2">
+                <CalendarDays className="size-4 text-blue-600" />
+                <h2 className="text-sm font-semibold text-blue-800">Diária de treino</h2>
+              </div>
+              {diariaPlan.descricao && (
+                <p className="text-xs text-blue-700 mb-2">{diariaPlan.descricao}</p>
+              )}
+              <div className="flex items-end justify-between gap-3">
+                <p className="text-2xl font-black text-blue-600">
+                  {`R$ ${Number(diariaPlan.valor).toFixed(2).replace(".", ",")}`}
+                  <span className="ml-1 text-xs font-normal text-blue-500">/sessão</span>
+                </p>
+                <Link
+                  href={user
+                    ? `/arenas/${arena.handle}/diaria?planId=${diariaPlan.id}`
+                    : `/login?next=/arenas/${arena.handle}/diaria`}
+                  className="shrink-0 flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                >
+                  <CalendarDays className="size-4" /> Pagar diária
+                </Link>
+              </div>
+              <div className="mt-2 flex gap-1.5">
+                {(diariaPlan.aceita_credito ?? true) && (
+                  <span className="rounded-lg bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Crédito</span>
+                )}
+                {(diariaPlan.aceita_debito ?? false) && (
                   <span className="rounded-lg bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Débito</span>
                 )}
               </div>

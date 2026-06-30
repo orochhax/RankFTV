@@ -168,6 +168,57 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, tipo: "arena_rental" });
   }
 
+  // ── Diária de ALUNO (externalReference "arena_daily:<passId>") ──
+  if (registrationId.startsWith("arena_daily:")) {
+    const passId = registrationId.slice("arena_daily:".length);
+
+    if (EVENTOS_CONFIRMADO.has(event)) {
+      await supabase
+        .from("arena_daily_passes")
+        .update({ status_pagamento: "pago", billing_type: payment.billingType })
+        .eq("id", passId);
+
+      const { data: passe } = await supabase
+        .from("arena_daily_passes")
+        .select("arena_id, valor")
+        .eq("id", passId)
+        .single();
+
+      if (passe) {
+        const { data: arenaAccount } = await supabase
+          .from("arena_accounts")
+          .select("chave_pix")
+          .eq("arena_id", passe.arena_id)
+          .maybeSingle();
+
+        const chavePix  = arenaAccount?.chave_pix as string | undefined;
+        const valorBase = Number(passe.valor ?? 0);
+        const dias      = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
+
+        if (chavePix && valorBase > 0 && dias === 0) {
+          try {
+            const { transferirPix } = await import("@/lib/asaas");
+            await transferirPix({ valor: valorBase, chavePix, descricao: `Diária arena ${passId}` });
+            await supabase.from("arena_daily_passes").update({ repasse_status: "concluido" }).eq("id", passId);
+          } catch (err) {
+            console.error("[webhook] Falha no repasse diária:", err);
+          }
+        } else if (chavePix && valorBase > 0 && dias > 0) {
+          await supabase.from("arena_daily_passes").update({ repasse_status: "aguardando_liquidacao" }).eq("id", passId);
+        }
+      }
+    }
+
+    if (EVENTOS_ESTORNADO.has(event)) {
+      await supabase
+        .from("arena_daily_passes")
+        .update({ status_pagamento: "estornado", repasse_status: "estornado" })
+        .eq("id", passId);
+    }
+
+    return NextResponse.json({ ok: true, tipo: "arena_daily" });
+  }
+
   // ── Ingresso de PLATEIA (externalReference "spec:<ticketId>") ──
   // Caminho separado do de atleta: repasse integral (sem taxa por enquanto).
   if (registrationId.startsWith("spec:")) {

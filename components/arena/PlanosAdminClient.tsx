@@ -250,7 +250,7 @@ function AddPlanForm({ tipo, handle, onDone }: { tipo: string; handle: string; o
         required
         autoFocus
         className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-        placeholder={tipo === "mensalidade" ? "Ex: Plano Básico (2x/semana)" : "Ex: Aluguel da quadra"}
+        placeholder={tipo === "mensalidade" ? "Ex: Plano Básico (2x/semana)" : tipo === "aluguel" ? "Ex: Aluguel da quadra" : "Ex: Diária de treino"}
       />
       <input
         name="descricao"
@@ -264,7 +264,7 @@ function AddPlanForm({ tipo, handle, onDone }: { tipo: string; handle: string; o
         min="0"
         required
         className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-        placeholder={tipo === "aluguel" ? "Valor por hora (R$)" : "Valor mensal (R$)"}
+        placeholder={tipo === "mensalidade" ? "Valor mensal (R$)" : tipo === "aluguel" ? "Valor por hora (R$)" : "Valor por sessão (R$)"}
       />
       <div className="flex gap-2">
         <button
@@ -287,10 +287,12 @@ function AddPlanForm({ tipo, handle, onDone }: { tipo: string; handle: string; o
 
 export function PlanosAdminClient({ plans, handle }: { plans: Plan[]; handle: string }) {
   const [addingMensalidade, setAddingMensalidade] = useState(false);
-  const [addingAluguel, setAddingAluguel] = useState(false);
+  const [addingAluguel,     setAddingAluguel]     = useState(false);
+  const [addingDiaria,      setAddingDiaria]      = useState(false);
 
   const mensalidade = plans.filter((p) => p.tipo === "mensalidade");
   const aluguel     = plans.filter((p) => p.tipo === "aluguel");
+  const diaria      = plans.filter((p) => p.tipo === "diaria");
 
   return (
     <div className="space-y-8">
@@ -356,6 +358,39 @@ export function PlanosAdminClient({ plans, handle }: { plans: Plan[]; handle: st
 
         <p className="text-xs text-gray-400">
           O valor informado é por hora. Use o ícone <Settings2 className="inline size-3" /> para aceitar crédito ou débito.
+        </p>
+      </section>
+
+      <div className="h-px bg-gray-100" />
+
+      {/* ── Diária de aluno ── */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-gray-800">Diária de treino</h2>
+          {diaria.length === 0 && !addingDiaria && (
+            <button
+              onClick={() => setAddingDiaria(true)}
+              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+            >
+              <Plus className="size-3.5" /> Habilitar
+            </button>
+          )}
+        </div>
+
+        {diaria.length === 0 && !addingDiaria && (
+          <p className="text-sm text-gray-400">Diária desabilitada. Clique em Habilitar para configurar.</p>
+        )}
+
+        {diaria.map((p) => (
+          <PlanRow key={p.id} plan={p} handle={handle} />
+        ))}
+
+        {addingDiaria && (
+          <AddPlanForm tipo="diaria" handle={handle} onDone={() => setAddingDiaria(false)} />
+        )}
+
+        <p className="text-xs text-gray-400">
+          Cobrança por sessão avulsa. Use o ícone <Settings2 className="inline size-3" /> para aceitar crédito ou débito.
         </p>
       </section>
 

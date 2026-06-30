@@ -23,19 +23,19 @@ import {
   TrendingUp,
   Trophy,
   Users,
+  Banknote,
+  CalendarCheck,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyChampionships } from "@/lib/supabase/championships";
 import { formatBRL, formatDateRangeBR } from "@/lib/format";
 
-// Dores do organizador hoje (agitação) — ver funil de conversão.
 const DORES = [
   { icon: MessageSquare, texto: "Perseguir no WhatsApp quem ainda não pagou" },
   { icon: ClipboardList, texto: "Planilha pra controlar quem se inscreveu e confirmou" },
   { icon: UserX,         texto: "Fila e confusão na portaria no dia do evento" },
 ];
 
-// Funcionalidades operacionais (o diferencial vai destacado à parte no JSX).
 const FEATURES = [
   {
     icon: QrCode,
@@ -69,53 +69,120 @@ const FEATURES = [
   },
 ];
 
+function fmt(v: number) {
+  return `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 export default async function PainelOrganizadorPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // Caso 1 — não logado
-  // Caso 2 — logado mas sem conta de organizador E sem nenhum campeonato
   let isOrganizer = false;
   let todos: Awaited<ReturnType<typeof getMyChampionships>> = [];
   let arenaCount = 0;
   if (user) {
     const [orgRes, champs, arenaRes] = await Promise.all([
-      supabase
-        .from("organizer_accounts")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle(),
+      supabase.from("organizer_accounts").select("id").eq("user_id", user.id).maybeSingle(),
       getMyChampionships(user.id),
-      supabase
-        .from("arenas")
-        .select("id", { count: "exact", head: true })
-        .eq("dono_id", user.id),
+      supabase.from("arenas").select("id", { count: "exact", head: true }).eq("dono_id", user.id),
     ]);
     isOrganizer = !!orgRes.data;
     todos = champs;
     arenaCount = arenaRes.count ?? 0;
   }
 
-  // Caso 3 — já tem conta de organizador OU já criou algum campeonato
   if (user && (isOrganizer || todos.length > 0)) {
-    const abertos      = todos.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento");
-    const campsAbertos  = todos.filter((c) => c.status === "inscricoes_abertas").length;
-    const campsAndamento = todos.filter((c) => c.status === "em_andamento").length;
+    const abertos         = todos.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento");
+    const campsAbertos    = todos.filter((c) => c.status === "inscricoes_abertas").length;
+    const campsAndamento  = todos.filter((c) => c.status === "em_andamento").length;
     const campsEncerrados = todos.filter((c) => c.status === "encerrado").length;
 
-    // Financeiro consolidado
-    const ids = todos.map((c) => c.id);
-    const { data: regs } = ids.length > 0
-      ? await supabase.from("registrations").select("valor, status_pagamento").in("championship_id", ids)
-      : { data: [] };
-    const regsPagas    = (regs ?? []).filter((r) => r.status_pagamento === "pago");
-    const regsPendente = (regs ?? []).filter((r) => r.status_pagamento === "pendente");
-    const regsEstorno  = (regs ?? []).filter((r) => r.status_pagamento === "estornado");
-    const totalBruto    = regsPagas.reduce((s, r) => s + Number(r.valor), 0);
-    const totalPendente = regsPendente.reduce((s, r) => s + Number(r.valor), 0);
-    const totalEstornado = regsEstorno.reduce((s, r) => s + Number(r.valor), 0);
+    const champIds = todos.map((c) => c.id);
+
+    // Busca arenas do organizador
+    const { data: arenaRows } = await supabase
+      .from("arenas")
+      .select("id")
+      .eq("dono_id", user.id);
+    const arenaIds = (arenaRows ?? []).map((a) => a.id);
+
+    // Datas do mês corrente
+    const hoje     = new Date();
+    const inicioMs = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split("T")[0];
+    const fimMs    = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().split("T")[0];
+
+    // Busca todos os dados financeiros em paralelo
+    const [
+      regsData,
+      ticketsData,
+      studentsData,
+      rentalsData,
+      dailiesData,
+      chargesData,
+    ] = await Promise.all([
+      champIds.length > 0
+        ? supabase.from("registrations").select("valor, status_pagamento").in("championship_id", champIds)
+        : Promise.resolve({ data: [] as { valor: number; status_pagamento: string }[] }),
+      champIds.length > 0
+        ? supabase.from("spectator_tickets").select("valor, status_pagamento, quantidade").in("championship_id", champIds)
+        : Promise.resolve({ data: [] as { valor: number; status_pagamento: string; quantidade: number | null }[] }),
+      arenaIds.length > 0
+        ? supabase.from("arena_students").select("valor_mensalidade, status").in("arena_id", arenaIds)
+        : Promise.resolve({ data: [] as { valor_mensalidade: number | null; status: string }[] }),
+      arenaIds.length > 0
+        ? supabase.from("arena_rentals").select("valor, status_pagamento, data").in("arena_id", arenaIds)
+        : Promise.resolve({ data: [] as { valor: number; status_pagamento: string; data: string }[] }),
+      arenaIds.length > 0
+        ? supabase.from("arena_daily_passes").select("valor, status_pagamento, data").in("arena_id", arenaIds)
+        : Promise.resolve({ data: [] as { valor: number; status_pagamento: string; data: string }[] }),
+      arenaIds.length > 0
+        ? supabase.from("student_charges").select("valor, status_pagamento").in("arena_id", arenaIds)
+        : Promise.resolve({ data: [] as { valor: number; status_pagamento: string }[] }),
+    ]);
+
+    // ── Campeonatos ──
+    const regs           = regsData.data ?? [];
+    const regsPagas      = regs.filter((r) => r.status_pagamento === "pago");
+    const regsPendente   = regs.filter((r) => r.status_pagamento === "pendente");
+    const regsEstornado  = regs.filter((r) => r.status_pagamento === "estornado");
+    const totalAtletas   = regsPagas.reduce((s, r) => s + Number(r.valor), 0);
+    const totalPendente  = regsPendente.reduce((s, r) => s + Number(r.valor), 0);
+    const totalEstornado = regsEstornado.reduce((s, r) => s + Number(r.valor), 0);
+    const ticketAtletas  = regsPagas.length > 0 ? totalAtletas / regsPagas.length : 0;
+
+    // ── Plateia ──
+    const tickets        = ticketsData.data ?? [];
+    const ticketsPagos   = tickets.filter((t) => t.status_pagamento === "pago");
+    const totalPlateia   = ticketsPagos.reduce((s, t) => s + Number(t.valor), 0);
+    const qtdIngressos   = ticketsPagos.reduce((s, t) => s + Number(t.quantidade ?? 1), 0);
+    const ticketPlateia  = qtdIngressos > 0 ? totalPlateia / qtdIngressos : 0;
+
+    // ── Saldo de Campeonatos (card 3) ──
+    const saldoCampeonatos = totalAtletas + totalPlateia;
+
+    // ── Arena ──
+    const students       = studentsData.data ?? [];
+    const alunosAtivos   = students.filter((s) => s.status === "ativo");
+    const totalMRR       = alunosAtivos.reduce((s, a) => s + Number(a.valor_mensalidade ?? 0), 0);
+
+    const rentals        = rentalsData.data ?? [];
+    const rentaisMes     = rentals.filter((r) => r.status_pagamento === "pago" && r.data >= inicioMs && r.data <= fimMs);
+    const totalAluguelMs = rentaisMes.reduce((s, r) => s + Number(r.valor), 0);
+
+    const dailies        = dailiesData.data ?? [];
+    const diariasMes     = dailies.filter((d) => d.status_pagamento === "pago" && d.data >= inicioMs && d.data <= fimMs);
+    const totalDiariasMs = diariasMes.reduce((s, d) => s + Number(d.valor), 0);
+
+    // ── Saldo da Arena (card 4) ──
+    const saldoArena = totalMRR + totalAluguelMs + totalDiariasMs;
+
+    // ── Receita total consolidada ──
+    const charges         = chargesData.data ?? [];
+    const chargesPagas    = charges.filter((c) => c.status_pagamento === "pago");
+    const totalCharges    = chargesPagas.reduce((s, c) => s + Number(c.valor), 0);
+    const totalAluguelAll = rentals.filter((r) => r.status_pagamento === "pago").reduce((s, r) => s + Number(r.valor), 0);
+    const totalDiariasAll = dailies.filter((d) => d.status_pagamento === "pago").reduce((s, d) => s + Number(d.valor), 0);
+    const receitaTotal    = totalAtletas + totalPlateia + totalCharges + totalAluguelAll + totalDiariasAll;
 
     return (
       <div className="min-h-screen">
@@ -153,14 +220,14 @@ export default async function PainelOrganizadorPage() {
                 </p>
               </div>
               <div className="rounded-2xl bg-blue-500/20 p-4">
-                <p className="text-xs text-blue-400">Saldo bruto</p>
-                <p className="text-xl font-bold text-blue-300">{formatBRL(totalBruto)}</p>
-                <p className="mt-1 text-[11px] text-blue-400/60">{regsPagas.length} duplas pagas</p>
+                <p className="text-xs text-blue-400">Saldo de Campeonatos</p>
+                <p className="text-xl font-bold text-blue-300">{fmt(saldoCampeonatos)}</p>
+                <p className="mt-1 text-[11px] text-blue-400/60">atletas + plateia</p>
               </div>
               <div className="rounded-2xl bg-white/10 p-4">
-                <p className="text-xs text-white/50">Pendente</p>
-                <p className="text-xl font-bold text-amber-300">{formatBRL(totalPendente)}</p>
-                <p className="mt-1 text-[11px] text-white/40">{regsPendente.length} aguardando</p>
+                <p className="text-xs text-white/50">Saldo da Arena</p>
+                <p className="text-xl font-bold text-white">{fmt(saldoArena)}</p>
+                <p className="mt-1 text-[11px] text-white/40">MRR + aluguéis + diárias</p>
               </div>
             </div>
 
@@ -213,6 +280,15 @@ export default async function PainelOrganizadorPage() {
         <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
           <div className="mx-auto max-w-4xl space-y-8">
 
+            {/* Receita total consolidada */}
+            <section className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 text-white">
+              <p className="text-xs font-semibold uppercase tracking-wider text-blue-200">Receita total consolidada</p>
+              <p className="mt-2 text-3xl font-bold text-white">{fmt(receitaTotal)}</p>
+              <p className="mt-1 text-xs text-blue-200/70">
+                atletas + plateia + mensalidades + aluguéis + diárias (tudo recebido)
+              </p>
+            </section>
+
             {/* Status dos campeonatos */}
             <section>
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Status dos campeonatos</h2>
@@ -232,38 +308,101 @@ export default async function PainelOrganizadorPage() {
               </div>
             </section>
 
+            {/* Status da arena */}
+            {arenaIds.length > 0 && (
+              <section>
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Status da arena</h2>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 text-center">
+                    <p className="text-2xl font-bold text-blue-700">{alunosAtivos.length}</p>
+                    <p className="mt-1 text-xs text-blue-600">Alunos mensalistas</p>
+                  </div>
+                  <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-gray-100 text-center">
+                    <p className="text-2xl font-bold text-gray-700">{rentaisMes.length}</p>
+                    <p className="mt-1 text-xs text-gray-500">Aluguéis no mês</p>
+                  </div>
+                  <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-gray-100 text-center">
+                    <p className="text-2xl font-bold text-gray-700">{diariasMes.length}</p>
+                    <p className="mt-1 text-xs text-gray-500">Diárias no mês</p>
+                  </div>
+                </div>
+              </section>
+            )}
+
             {/* Financeiro consolidado */}
             <section>
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Financeiro consolidado</h2>
               <div className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
+                {/* Saldo de atletas */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="size-4 text-blue-500" />
-                    <p className="text-sm text-gray-700">Saldo bruto (recebido)</p>
+                    <div>
+                      <p className="text-sm text-gray-700">Saldo de atletas</p>
+                      {regsPagas.length > 0 && (
+                        <p className="text-xs text-gray-400">média {fmt(ticketAtletas)} / dupla</p>
+                      )}
+                    </div>
                   </div>
-                  <p className="font-semibold text-gray-900">{formatBRL(totalBruto)}</p>
+                  <p className="font-semibold text-gray-900">{fmt(totalAtletas)}</p>
                 </div>
+                {/* Saldo de plateia */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-2">
                     <Users className="size-4 text-blue-500" />
-                    <p className="text-sm text-gray-700">Duplas pagas</p>
+                    <div>
+                      <p className="text-sm text-gray-700">Saldo de plateia</p>
+                      {qtdIngressos > 0 && (
+                        <p className="text-xs text-gray-400">média {fmt(ticketPlateia)} / ingresso</p>
+                      )}
+                    </div>
                   </div>
-                  <p className="font-semibold text-gray-900">{regsPagas.length}</p>
+                  <p className="font-semibold text-gray-900">{fmt(totalPlateia)}</p>
                 </div>
+                {/* Pendente */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-2">
                     <Clock className="size-4 text-amber-500" />
                     <p className="text-sm text-gray-700">Pendente de pagamento</p>
                   </div>
-                  <p className="font-semibold text-amber-600">{formatBRL(totalPendente)}</p>
+                  <p className="font-semibold text-amber-600">{fmt(totalPendente)}</p>
                 </div>
+                {/* Estornado */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="size-4 text-red-400" />
                     <p className="text-sm text-gray-700">Estornado</p>
                   </div>
-                  <p className="font-semibold text-red-500">{formatBRL(totalEstornado)}</p>
+                  <p className="font-semibold text-red-500">{fmt(totalEstornado)}</p>
                 </div>
+                {/* MRR */}
+                {arenaIds.length > 0 && (
+                  <div className="flex items-center justify-between px-5 py-4">
+                    <div className="flex items-center gap-2">
+                      <Banknote className="size-4 text-blue-500" />
+                      <div>
+                        <p className="text-sm text-gray-700">MRR (mensalidades ativas)</p>
+                        <p className="text-xs text-gray-400">{alunosAtivos.length} alunos ativos</p>
+                      </div>
+                    </div>
+                    <p className="font-semibold text-gray-900">{fmt(totalMRR)}</p>
+                  </div>
+                )}
+                {/* Aluguéis + Diárias do mês */}
+                {arenaIds.length > 0 && (totalAluguelMs > 0 || totalDiariasMs > 0) && (
+                  <div className="flex items-center justify-between px-5 py-4">
+                    <div className="flex items-center gap-2">
+                      <CalendarCheck className="size-4 text-blue-500" />
+                      <div>
+                        <p className="text-sm text-gray-700">Aluguéis + diárias (mês)</p>
+                        <p className="text-xs text-gray-400">
+                          {rentaisMes.length} alug. · {diariasMes.length} diárias
+                        </p>
+                      </div>
+                    </div>
+                    <p className="font-semibold text-gray-900">{fmt(totalAluguelMs + totalDiariasMs)}</p>
+                  </div>
+                )}
               </div>
             </section>
 
@@ -315,16 +454,14 @@ export default async function PainelOrganizadorPage() {
     );
   }
 
-  // Caso 1 e 2 — landing page de conversão.
-  // CTA de baixo atrito: criar o campeonato primeiro; ativação (CPF/PIX) fica
-  // pra depois, no momento de publicar. Logado vai direto pra criação.
+  // Landing page de conversão (não logado ou sem conta de organizador)
   const cta = user
     ? { href: "/painel/novo-campeonato", label: "Criar meu evento grátis" }
     : { href: "/cadastro", label: "Criar minha conta" };
 
   return (
     <div className="min-h-screen">
-      {/* ── Hero preto ── */}
+      {/* Hero preto */}
       <div className="bg-[#0f0f13] px-6 pb-20 pt-12">
         <div className="mx-auto max-w-3xl text-center">
           <span className="inline-block rounded-full bg-blue-600/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-blue-400">
@@ -363,13 +500,12 @@ export default async function PainelOrganizadorPage() {
         </div>
       </div>
 
-      {/* ── Conteúdo branco ── */}
+      {/* Conteúdo branco */}
       <div className="relative -mt-6 overflow-hidden rounded-t-3xl bg-white pb-24 pt-10 shadow-sm">
 
-        {/* Seções 1–5 dentro do container com padding lateral */}
         <div className="mx-auto max-w-3xl space-y-12 px-6">
 
-          {/* 1. Card Nova Geração */}
+          {/* Card Nova Geração */}
           <section>
             <div className="relative overflow-hidden rounded-3xl bg-[#0a0a0f] px-7 pb-8 pt-7 text-white">
               <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-blue-600/20 blur-3xl" />
@@ -396,7 +532,7 @@ export default async function PainelOrganizadorPage() {
             </div>
           </section>
 
-          {/* 2. Você conhece isso? */}
+          {/* Você conhece isso? */}
           <section>
             <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
               Você conhece isso?
@@ -414,7 +550,7 @@ export default async function PainelOrganizadorPage() {
             </p>
           </section>
 
-          {/* 3. Diferencial — categoria balanceada */}
+          {/* Diferencial */}
           <section>
             <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 p-7 text-white">
               <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-wider">
@@ -424,8 +560,7 @@ export default async function PainelOrganizadorPage() {
               <p className="mt-2 max-w-xl text-blue-50/90">
                 A plataforma indica a categoria certa pra cada dupla com base no
                 histórico e no nível dos atletas. Menos dupla forte jogando em
-                categoria fraca, chave mais justa e atleta mais satisfeito — algo
-                que nenhuma planilha faz.
+                categoria fraca, chave mais justa e atleta mais satisfeito.
               </p>
               <Link
                 href={cta.href}
@@ -436,7 +571,7 @@ export default async function PainelOrganizadorPage() {
             </div>
           </section>
 
-          {/* 4. Features operacionais */}
+          {/* Features operacionais */}
           <section>
             <p className="mb-6 text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
               E o resto da operação, redonda
@@ -454,7 +589,7 @@ export default async function PainelOrganizadorPage() {
             </div>
           </section>
 
-          {/* 5. Foto do evento */}
+          {/* Foto do evento */}
           <section>
             <div className="relative h-52 w-full overflow-hidden rounded-3xl sm:h-64">
               <Image
@@ -478,7 +613,7 @@ export default async function PainelOrganizadorPage() {
 
         </div>
 
-        {/* 6. Faixa azul full-width — receita e comunidade */}
+        {/* Faixa azul full-width */}
         <div className="mt-12 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 px-6 py-10 text-white">
           <div className="mx-auto max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-widest text-blue-200">
@@ -489,7 +624,6 @@ export default async function PainelOrganizadorPage() {
             </h2>
 
             <div className="mt-6 flex flex-col gap-4">
-              {/* Atletas */}
               <div className="flex items-start gap-4 rounded-2xl bg-white/10 p-5">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
                   <Tag className="size-5 text-white" strokeWidth={1.8} />
@@ -502,7 +636,6 @@ export default async function PainelOrganizadorPage() {
                 </div>
               </div>
 
-              {/* Plateia */}
               <div className="flex items-start gap-4 rounded-2xl bg-white/10 p-5">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
                   <ClipboardList className="size-5 text-white" strokeWidth={1.8} />
@@ -515,7 +648,6 @@ export default async function PainelOrganizadorPage() {
                 </div>
               </div>
 
-              {/* Comunidade */}
               <div className="flex items-start gap-4 rounded-2xl bg-white/10 p-5">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
                   <Megaphone className="size-5 text-white" strokeWidth={1.8} />
@@ -523,7 +655,7 @@ export default async function PainelOrganizadorPage() {
                 <div>
                   <p className="font-bold text-white">Crie sua comunidade de seguidores</p>
                   <p className="mt-0.5 text-sm text-blue-100/80">
-                    Quem participa vira seguidor. Divulgue o próximo evento pra quem já ama o que você faz e gere marketing orgânico de graça.
+                    Quem participa vira seguidor. Divulgue o próximo evento pra quem já ama o que você faz.
                   </p>
                 </div>
               </div>
@@ -548,7 +680,7 @@ export default async function PainelOrganizadorPage() {
           </div>
         </div>
 
-        {/* 7. Preço / confiança */}
+        {/* Preço / confiança */}
         <div className="mx-auto mt-12 max-w-3xl px-6">
           <div className="rounded-3xl bg-[#0f0f13] p-8 text-center">
             <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-blue-500/15">
@@ -582,7 +714,6 @@ export default async function PainelOrganizadorPage() {
           </div>
         </div>
 
-        {/* Termos de uso */}
         <div className="mx-auto mt-10 max-w-3xl px-6 text-center">
           <Link
             href="/termos"
