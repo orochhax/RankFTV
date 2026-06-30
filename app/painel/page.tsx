@@ -68,7 +68,10 @@ const FEATURES = [
 ];
 
 function fmt(v: number) {
-  return `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+  return `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+function fmtMedia(v: number) {
+  return `~R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export default async function PainelOrganizadorPage() {
@@ -357,7 +360,7 @@ export default async function PainelOrganizadorPage() {
                     <div>
                       <p className="text-sm text-gray-700">Saldo de atletas</p>
                       {regsPagas.length > 0 && (
-                        <p className="text-xs text-gray-400">média {fmt(ticketAtletas)} / dupla</p>
+                        <p className="text-xs text-gray-400">média {fmtMedia(ticketAtletas)} / dupla</p>
                       )}
                     </div>
                   </div>
@@ -370,7 +373,7 @@ export default async function PainelOrganizadorPage() {
                     <div>
                       <p className="text-sm text-gray-700">Saldo de plateia</p>
                       <p className="text-xs text-gray-400">
-                        {qtdIngressos > 0 ? `média ${fmt(ticketPlateia)} / ingresso` : "sem ingressos pagos"}
+                        {qtdIngressos > 0 ? `média ${fmtMedia(ticketPlateia)} / ingresso` : "sem ingressos pagos"}
                       </p>
                     </div>
                   </div>
@@ -385,7 +388,7 @@ export default async function PainelOrganizadorPage() {
                         <p className="text-sm text-gray-700">MRR (mensalidades ativas)</p>
                         <p className="text-xs text-gray-400">
                           {alunosAtivos.length > 0
-                            ? `média ${fmt(totalMRR / alunosAtivos.length)} / aluno`
+                            ? `média ${fmtMedia(totalMRR / alunosAtivos.length)} / aluno`
                             : "sem alunos ativos"}
                         </p>
                       </div>
