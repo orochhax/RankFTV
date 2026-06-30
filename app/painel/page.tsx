@@ -220,10 +220,10 @@ export default async function PainelOrganizadorPage() {
                   {arenaCount === 0 ? "nenhuma ainda" : arenaCount === 1 ? "ativa" : "ativas"}
                 </p>
               </div>
-              <div className="rounded-2xl bg-blue-500/20 p-4">
-                <p className="text-xs text-blue-400">Saldo de Campeonatos</p>
-                <p className="text-xl font-bold text-blue-300">{fmt(saldoCampeonatos)}</p>
-                <p className="mt-1 text-[11px] text-blue-400/60">atletas + plateia</p>
+              <div className="rounded-2xl bg-white/10 p-4">
+                <p className="text-xs text-white/50">Saldo de Campeonatos</p>
+                <p className="text-xl font-bold text-white">{fmt(saldoCampeonatos)}</p>
+                <p className="mt-1 text-[11px] text-white/40">atletas + plateia</p>
               </div>
               <div className="rounded-2xl bg-white/10 p-4">
                 <p className="text-xs text-white/50">Saldo da Arena</p>
