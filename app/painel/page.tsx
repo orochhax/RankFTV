@@ -136,12 +136,20 @@ export default async function PainelOrganizadorPage({
           <div className="mx-auto max-w-4xl space-y-6">
             <div className="flex items-center justify-between gap-3">
               <h1 className="text-2xl font-bold tracking-tight text-white">Painel do organizador</h1>
-              <Link
-                href="/painel/novo-campeonato"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500"
-              >
-                <Plus className="size-4" /> Criar campeonato
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/perfil/ativar-arena"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/15 transition-colors"
+                >
+                  <Plus className="size-4" /> Cadastrar arena
+                </Link>
+                <Link
+                  href="/painel/novo-campeonato"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500"
+                >
+                  <Plus className="size-4" /> Criar campeonato
+                </Link>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
