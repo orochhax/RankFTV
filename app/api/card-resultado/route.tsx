@@ -45,8 +45,8 @@ export async function GET(req: NextRequest) {
     // Colunas de número mais estreitas quando há mais sets, pra caber 3 sets
     // mesmo com nomes longos.
     const nSets = Math.max(campeaSets.length, viceSets.length, 1);
-    const CELL = nSets >= 3 ? 68 : 110;  // largura de cada coluna de número
-    const NUM_FS = nSets >= 3 ? 42 : 72; // tamanho da fonte dos números
+    const CELL = nSets >= 3 ? 52 : 110;  // largura de cada coluna de número
+    const NUM_FS = nSets >= 3 ? 32 : 72; // tamanho da fonte dos números
     const NAME_FS = 54;                   // nome sempre no mesmo tamanho
     const WHITE = "#ffffff";
 
