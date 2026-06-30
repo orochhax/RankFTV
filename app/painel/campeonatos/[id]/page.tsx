@@ -7,20 +7,15 @@ import {
   Crown,
   DollarSign,
   ExternalLink,
-  Link2,
   MapPin,
   Megaphone,
-  MoreVertical,
   Pencil,
   QrCode,
   Shirt,
   Ticket,
-  Trophy,
   Users,
   UserCog,
 } from "lucide-react";
-import { InviteRespondButtons } from "@/components/painel/InviteRespondButtons";
-import { DropdownMenu } from "@/components/ui/DropdownMenu";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -73,18 +68,11 @@ const ACOES = [
     disponivel: true,
   },
   {
-    icon: Trophy,
-    label: "Card de resultado",
-    desc: "Imagem do campeão pra postar no story",
-    href: (id: string) => `/campeonatos/${id}/card-resultado`,
-    disponivel: true,
-  },
-  {
     icon: Megaphone,
     label: "Comunicação",
     desc: "Avisar todos os inscritos",
     href: (id: string) => `/painel/campeonatos/${id}/comunicacao`,
-    disponivel: false,
+    disponivel: true,
   },
 ];
 
@@ -111,7 +99,7 @@ export default async function PainelCampeonatoPage({
   if (camp.status === "rascunho") redirect(`/painel/campeonatos/${id}/criado`);
 
   // Tier: quiz do banco + duplas pagas (override automático)
-  const [tierRes, paidRes, orgAccountRes, inviteRes] = await Promise.all([
+  const [tierRes, paidRes, orgAccountRes] = await Promise.all([
     supabase.from("championships").select("tier_quiz, is_elite").eq("id", id).maybeSingle(),
     supabase.from("registrations")
       .select("valor")
@@ -121,11 +109,6 @@ export default async function PainelCampeonatoPage({
       .select("chave_pix")
       .eq("user_id", user.id)
       .maybeSingle(),
-    supabase.from("page_championship_invites")
-      .select("id, page_id, pages(nome, handle)")
-      .eq("championship_id", id)
-      .eq("status", "pendente")
-      .maybeSingle(),
   ]);
   const tierQuiz    = (tierRes.data?.tier_quiz ?? null) as Partial<QuizAnswers> | null;
   const isElite     = !!tierRes.data?.is_elite;
@@ -133,7 +116,6 @@ export default async function PainelCampeonatoPage({
   const duplasPagas = paidRows.length;
   const totalArrecadado = paidRows.reduce((s, r) => s + Number(r.valor), 0);
   const temChavePix = !!orgAccountRes.data?.chave_pix;
-  const pendingInvite = inviteRes.data ?? null;
   const temCategoriaPaga = camp.categorias.some((c) => (c.valorInscricao ?? 0) > 0);
 
   const vagasTotais = camp.categorias.reduce(
@@ -191,16 +173,6 @@ export default async function PainelCampeonatoPage({
               >
                 <Pencil className="size-3.5" /> Editar
               </Link>
-              <DropdownMenu
-                trigger={
-                  <button className="flex size-8 items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors">
-                    <MoreVertical className="size-4" />
-                  </button>
-                }
-                items={[
-                  { label: "Vinculações", href: `/painel/campeonatos/${id}/vinculacoes` },
-                ]}
-              />
             </div>
           </div>
 
@@ -246,26 +218,6 @@ export default async function PainelCampeonatoPage({
             <ExternalLink className="size-4" />
             Ver página pública do campeonato
           </Link>
-
-          {/* Convite de vínculo com página pendente */}
-          {pendingInvite && (() => {
-            const pg = pendingInvite.pages as unknown as { nome: string; handle: string } | null;
-            return (
-              <div className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-200">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-100">
-                  <Link2 className="size-5 text-blue-600" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-blue-900">Convite de vínculo com página</p>
-                  <p className="mt-0.5 text-sm text-blue-700">
-                    A página <strong>{pg?.nome ?? "—"}</strong>{" "}
-                    <span className="text-blue-500">@{pg?.handle}</span> quer vincular este campeonato como etapa dela.
-                  </p>
-                  <InviteRespondButtons inviteId={pendingInvite.id} campId={id} />
-                </div>
-              </div>
-            );
-          })()}
 
           {/* Aviso: chave Pix não configurada */}
           {temCategoriaPaga && !temChavePix && (

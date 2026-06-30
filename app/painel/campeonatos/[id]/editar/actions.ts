@@ -93,7 +93,6 @@ export type UpdateChampionshipInput = {
   estado: string;
   local: string;
   liveUrl?: string | null;
-  pageId?: string | null;
   status: "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado";
   categorias: CategoriaEditInput[];
 };
@@ -147,7 +146,6 @@ export async function updateChampionship(
       estado:            input.estado.trim().toUpperCase().slice(0, 2),
       local:             input.local?.trim() ?? "",
       live_url:          input.liveUrl?.trim() || null,
-      page_id:           input.pageId ?? null,
       status:            input.status,
     })
     .eq("id", champId);

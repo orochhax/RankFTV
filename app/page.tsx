@@ -68,7 +68,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen">
       {/* ── Seção escura ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
+      <div className="bg-[#0f0f13] px-6 pb-10 pt-8">
         <div className="mx-auto max-w-5xl">
           {profile ? (
             <div className="flex items-center gap-4">

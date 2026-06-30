@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect } from "react";
+import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, FileText, X, Search, CheckCircle2, Trophy, Ticket, Plus, ArrowLeft, ArrowRight } from "lucide-react";
+import { Trash2, FileText, X, CheckCircle2, Trophy, Ticket, Plus, ArrowLeft, ArrowRight } from "lucide-react";
 import {
   createChampionship,
   type CategoriaInput,
@@ -17,12 +17,10 @@ import {
   TIER_STYLES,
   type QuizAnswers,
 } from "@/lib/tier";
-import type { PageWithStats } from "@/lib/supabase/pages";
 import { PlanoCards } from "./PlanoCards";
 
 type CatForm = { nome: string; genero: GeneroCategoria; valorInscricao: string; maxDuplas: string };
 type IngForm = { nome: string; valor: string; quantidade: string };
-type MinhaPage = Pick<PageWithStats, "id" | "nome" | "handle">;
 type StepKey = "selects" | "dados" | "ingressos" | "plano";
 
 const GENEROS: { value: GeneroCategoria; label: string }[] = [
@@ -46,7 +44,7 @@ const inputClass =
   "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
 const labelClass = "block text-xs font-medium text-gray-600";
 
-export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPage[] }) {
+export function NovoCampeonatoForm() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -67,20 +65,6 @@ export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPa
   const [estado, setEstado] = useState("");
   const [local, setLocal] = useState("");
   const [liveUrl, setLiveUrl] = useState("");
-  const [pageId, setPageId] = useState("");
-  const [pageSearch, setPageSearch] = useState("");
-  const [pageDropdownOpen, setPageDropdownOpen] = useState(false);
-  const pageSearchRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (pageSearchRef.current && !pageSearchRef.current.contains(e.target as Node)) {
-        setPageDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
 
   const [categorias, setCategorias] = useState<CatForm[]>([
     { nome: "", genero: "masculino", valorInscricao: "", maxDuplas: "" },
@@ -196,7 +180,6 @@ export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPa
         estado,
         local,
         liveUrl: liveUrl.trim() || undefined,
-        pageId: pageId || undefined,
         status: "rascunho" as const,
         // Plateia-only não tem nível — manda quiz vazio (tier vira "local").
         tierQuiz: (vender.atleta ? (quiz as QuizAnswers) : ({} as QuizAnswers)),
@@ -308,60 +291,6 @@ export function NovoCampeonatoForm({ minhasPages = [] }: { minhasPages?: MinhaPa
               <p className="mt-1 text-xs text-gray-400">Aparece como botão &ldquo;Ver ao vivo&rdquo; na página do evento. Pode adicionar depois.</p>
             </div>
 
-            {minhasPages.length > 0 && (
-              <div ref={pageSearchRef}>
-                <label className={labelClass}>Vincular a uma Página</label>
-                {(() => {
-                  const selected = minhasPages.find((p) => p.id === pageId);
-                  const filtered = minhasPages.filter((p) =>
-                    p.nome.toLowerCase().includes(pageSearch.toLowerCase()) ||
-                    p.handle.toLowerCase().includes(pageSearch.toLowerCase())
-                  );
-                  return (
-                    <div className="relative mt-1">
-                      {selected ? (
-                        <div className="flex items-center justify-between rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="size-4 text-blue-500 shrink-0" />
-                            <span className="font-medium text-blue-800">{selected.nome}</span>
-                            <span className="text-blue-500">@{selected.handle}</span>
-                          </div>
-                          <button type="button" onClick={() => { setPageId(""); setPageSearch(""); }} className="text-blue-400 hover:text-blue-700">
-                            <X className="size-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
-                          <input
-                            className="w-full rounded-lg border border-gray-200 pl-9 pr-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            placeholder="Buscar página por nome ou @handle…"
-                            value={pageSearch}
-                            onChange={(e) => { setPageSearch(e.target.value); setPageDropdownOpen(true); }}
-                            onFocus={() => setPageDropdownOpen(true)}
-                          />
-                        </div>
-                      )}
-                      {!selected && pageDropdownOpen && pageSearch.trim().length > 0 && (
-                        <div className="absolute z-10 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden">
-                          {filtered.length === 0 ? (
-                            <p className="px-4 py-3 text-sm text-gray-400">Nenhuma página encontrada</p>
-                          ) : (
-                            filtered.map((p) => (
-                              <button key={p.id} type="button" onMouseDown={() => { setPageId(p.id); setPageSearch(""); setPageDropdownOpen(false); }} className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-blue-50">
-                                <span className="font-medium text-gray-800">{p.nome}</span>
-                                <span className="text-gray-400">@{p.handle}</span>
-                              </button>
-                            ))
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-                <p className="mt-1 text-xs text-gray-400">Este evento vira uma &ldquo;edição&rdquo; da página — seguidores serão notificados ao publicar.</p>
-              </div>
-            )}
           </div>
 
           {/* Datas */}

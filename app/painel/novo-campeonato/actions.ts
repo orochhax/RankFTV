@@ -44,7 +44,6 @@ export type CreateChampionshipInput = {
   estado: string;
   local: string;
   liveUrl?: string;
-  pageId?: string;
   status: "rascunho" | "inscricoes_abertas";
   categorias: CategoriaInput[];
   ingressosPlateia?: IngressoPlateiaInput[];
@@ -121,7 +120,6 @@ export async function createChampionship(
       estado: input.estado.trim().toUpperCase().slice(0, 2),
       local: input.local?.trim() ?? "",
       live_url: input.liveUrl?.trim() || null,
-      page_id: input.pageId || null,
       status: input.status === "inscricoes_abertas" ? "inscricoes_abertas" : "rascunho",
       banner_from: bannerFrom,
       banner_to: bannerTo,

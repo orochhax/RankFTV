@@ -9,7 +9,6 @@ import {
 } from "@/app/painel/campeonatos/[id]/editar/actions";
 import { createClient } from "@/lib/supabase/client";
 import type { GeneroCategoria } from "@/lib/types";
-import type { PageWithStats } from "@/lib/supabase/pages";
 
 type CatForm = {
   id?: string;
@@ -20,11 +19,8 @@ type CatForm = {
   _delete?: boolean;
 };
 
-type MinhaPage = Pick<PageWithStats, "id" | "nome" | "handle">;
-
 type Props = {
   champId: string;
-  minhasPages?: MinhaPage[];
   initial: {
     nome: string;
     descricao: string;
@@ -40,7 +36,6 @@ type Props = {
     estado: string;
     local: string;
     liveUrl?: string;
-    pageId?: string | null;
     status: "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado";
     categorias: {
       id: string;
@@ -78,7 +73,7 @@ const inputClass =
   "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
 const labelClass = "block text-xs font-medium text-gray-600";
 
-export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Props) {
+export function EditarCampeonatoForm({ champId, initial }: Props) {
   const [pending, startTransition]      = useTransition();
   const [error, setError]               = useState<string | null>(null);
   const [mudancas, setMudancas]         = useState<string[]>([]);
@@ -102,7 +97,6 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
   const [estado, setEstado]                   = useState(initial.estado);
   const [local, setLocal]                     = useState(initial.local);
   const [liveUrl, setLiveUrl]                 = useState(initial.liveUrl ?? "");
-  const [pageId, setPageId]                   = useState(initial.pageId ?? "");
   const [status, setStatus]                   = useState(initial.status);
   const [categorias, setCategorias]           = useState<CatForm[]>(
     initial.categorias.map((c) => ({
@@ -162,7 +156,6 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
     if (estado.trim().toUpperCase() !== initial.estado.trim().toUpperCase()) lista.push("Estado (UF) alterado");
     if (local.trim()      !== initial.local.trim())      lista.push("Local alterado");
     if (liveUrl.trim()    !== (initial.liveUrl ?? "").trim()) lista.push("Link da transmissão ao vivo alterado");
-    if ((pageId || "")    !== (initial.pageId ?? "")) lista.push("Página vinculada alterada");
     if (pdfFile)                                         lista.push("PDF do regulamento substituído");
     if (!pdfUrl && initial.regulamentoPdfUrl)            lista.push("PDF do regulamento removido");
 
@@ -244,7 +237,6 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
         prevendaInicio:   prevendaInicio   || undefined,
         prevendaFim:      prevendaFim      || undefined,
         cidade, estado, local, liveUrl,
-        pageId: pageId || null,
         status,
         categorias: payload,
       });
@@ -257,7 +249,7 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nome, descricao, regulamento, pdfUrl, pdfFile, dataInicio, dataFim,
       inscricoesInicio, inscricoesFim, prevendaInicio, prevendaFim,
-      cidade, estado, local, liveUrl, pageId, status, categorias]);
+      cidade, estado, local, liveUrl, status, categorias]);
 
   return (
     <>
@@ -405,26 +397,6 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
           </p>
         </div>
 
-        {minhasPages.length > 0 && (
-          <div>
-            <label className={labelClass}>Vincular a uma Página</label>
-            <select
-              className={inputClass}
-              value={pageId}
-              onChange={(e) => setPageId(e.target.value)}
-            >
-              <option value="">Sem vínculo</option>
-              {minhasPages.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nome} (@{p.handle})
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-gray-400">
-              Este campeonato vira uma &ldquo;edição&rdquo; da página — seguidores serão notificados ao publicar.
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Datas */}

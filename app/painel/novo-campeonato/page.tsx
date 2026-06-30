@@ -1,14 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getMyPages } from "@/lib/supabase/pages";
 import { NovoCampeonatoSection } from "@/components/painel/NovoCampeonatoSection";
 
 export default async function NovoCampeonatoPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-
-  const minhasPages = await getMyPages(user.id);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
@@ -18,7 +15,7 @@ export default async function NovoCampeonatoPage() {
       </p>
 
       <div className="mt-6">
-        <NovoCampeonatoSection minhasPages={minhasPages} />
+        <NovoCampeonatoSection />
       </div>
     </div>
   );

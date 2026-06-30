@@ -613,9 +613,9 @@ export default async function PainelOrganizadorPage() {
                   <Megaphone className="size-5 text-white" strokeWidth={1.8} />
                 </div>
                 <div>
-                  <p className="font-bold text-white">Crie sua comunidade de seguidores</p>
+                  <p className="font-bold text-white">Comunique todos com um clique</p>
                   <p className="mt-0.5 text-sm text-blue-100/80">
-                    Quem participa vira seguidor. Divulgue o próximo evento pra quem já ama o que você faz.
+                    Mudou o horário? Tem um aviso? Envie uma notificação e e-mail pra todos os inscritos de uma vez.
                   </p>
                 </div>
               </div>

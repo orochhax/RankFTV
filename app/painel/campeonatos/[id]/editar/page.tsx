@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getMyPages } from "@/lib/supabase/pages";
 import { EditarCampeonatoForm } from "@/components/painel/EditarCampeonatoForm";
 import { ExcluirCampeonatoButton } from "@/components/painel/ExcluirCampeonatoButton";
 import { ChampBannerForm } from "@/components/painel/ChampBannerForm";
@@ -26,7 +25,7 @@ export default async function EditarCampeonatoPage({
       inscricoes_inicio, inscricoes_fim,
       prevenda_inicio, prevenda_fim,
       banner_url,
-      cidade, estado, local, live_url, page_id, status, organizador_id,
+      cidade, estado, local, live_url, status, organizador_id,
       championship_categories (
         id, nome, genero, valor_inscricao, max_duplas
       )
@@ -36,8 +35,6 @@ export default async function EditarCampeonatoPage({
 
   if (!champ) notFound();
   if (champ.organizador_id !== user.id) notFound();
-
-  const minhasPages = await getMyPages(user.id);
 
   const c = champ as unknown as Record<string, unknown>;
 
@@ -55,7 +52,6 @@ export default async function EditarCampeonatoPage({
     estado:           champ.estado,
     local:            champ.local ?? "",
     liveUrl:          (c.live_url  as string | null) ?? "",
-    pageId:           (c.page_id   as string | null) ?? null,
     status:              champ.status as "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado",
     regulamentoPdfUrl:   (c.regulamento_pdf_url as string | null) ?? null,
     categorias: ((champ.championship_categories as unknown as Array<{
@@ -96,7 +92,7 @@ export default async function EditarCampeonatoPage({
             />
           </div>
 
-          <EditarCampeonatoForm champId={id} initial={initial} minhasPages={minhasPages} />
+          <EditarCampeonatoForm champId={id} initial={initial} />
 
           {/* Zona de exclusão */}
           <div className="rounded-2xl border border-red-100 bg-red-50/50 p-5">

@@ -28,11 +28,9 @@ export default function CadastroPage() {
 
     setUsernameStatus("checking");
     const timer = setTimeout(async () => {
-      const [{ data: profile }, { data: page }] = await Promise.all([
-        supabase.from("profiles").select("id").eq("username", username).maybeSingle(),
-        supabase.from("pages").select("id").eq("handle", username).maybeSingle(),
-      ]);
-      setUsernameStatus(profile || page ? "taken" : "ok");
+      const { data: profile } = await supabase
+        .from("profiles").select("id").eq("username", username).maybeSingle();
+      setUsernameStatus(profile ? "taken" : "ok");
     }, 400);
     return () => clearTimeout(timer);
   }, [username]);

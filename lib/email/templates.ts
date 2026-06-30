@@ -130,22 +130,6 @@ export function conviteStaffHtml(opts: {
   return base("Você foi convidado para ser staff!", corpo);
 }
 
-export function convitePaginaHtml(opts: {
-  nomeOrganizador: string;
-  nomePagina: string;
-  handlePagina: string;
-  nomeCampeonato: string;
-  painelUrl: string;
-}): string {
-  const corpo = `
-    ${p(`Oi, <strong>${opts.nomeOrganizador}</strong>!`)}
-    ${p(`A página <strong>${opts.nomePagina}</strong> (@${opts.handlePagina}) quer vincular o campeonato <strong>${opts.nomeCampeonato}</strong> como etapa dela.`)}
-    ${p("Acesse o painel do campeonato para aceitar ou recusar o convite.")}
-    ${btn("Ver convite no painel", opts.painelUrl)}
-  `;
-  return base("Convite de vínculo com página", corpo);
-}
-
 export function pagamentoConfirmadoHtml(opts: {
   nomeAtleta: string;
   nomeCampeonato: string;
@@ -164,4 +148,21 @@ export function pagamentoConfirmadoHtml(opts: {
     ${btn("Ver minha credencial", opts.inscricoesUrl)}
   `;
   return base("Pagamento confirmado!", corpo);
+}
+
+export function comunicadoHtml(opts: {
+  nomeAtleta: string;
+  nomeCampeonato: string;
+  titulo: string;
+  mensagem: string;
+}): string {
+  const corpo = `
+    ${p(`Oi, <strong>${opts.nomeAtleta}</strong>!`)}
+    ${p(`O organizador do <strong>${opts.nomeCampeonato}</strong> enviou um comunicado:`)}
+    <div style="margin:16px 0;padding:20px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;">
+      <p style="margin:0 0 10px;font-size:16px;font-weight:700;color:#1e3a8a;">${opts.titulo}</p>
+      <p style="margin:0;font-size:14px;color:#374151;line-height:1.7;white-space:pre-line;">${opts.mensagem}</p>
+    </div>
+  `;
+  return base(opts.titulo, corpo);
 }
