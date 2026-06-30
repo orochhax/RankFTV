@@ -115,7 +115,7 @@ export default async function CategoriasPage({
                 return (
                   <div
                     key={cat.id}
-                    className={`rounded-2xl bg-white p-4 ring-1 ${isRecomendada ? "ring-green-400 bg-green-50" : "ring-black/5"}`}
+                    className={`rounded-2xl bg-white p-4 ring-1 ${isRecomendada ? "ring-blue-400 bg-blue-50" : "ring-black/5"}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -124,7 +124,7 @@ export default async function CategoriasPage({
                             Categoria {cat.nome} · {generoLabel(cat.genero)}
                           </p>
                           {isRecomendada && (
-                            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
                               Recomendada para você
                             </span>
                           )}
@@ -138,7 +138,7 @@ export default async function CategoriasPage({
                       {(() => {
                         const valor = cat.valorInscricao;
                         if (valor <= 0) {
-                          return <span className="shrink-0 font-semibold text-emerald-600">Grátis</span>;
+                          return <span className="shrink-0 font-semibold text-blue-600">Grátis</span>;
                         }
                         const taxa  = calcularTaxaComprador(valor, "pix", isElite);
                         const total = calcularTotalComprador(valor, "pix", isElite);

@@ -230,7 +230,7 @@ function MetaRatingForm({ ratingMeta }: { ratingMeta: number | null }) {
 
   return (
     <form action={action} className="flex items-center gap-2">
-      <Target className="size-4 shrink-0 text-emerald-500" />
+      <Target className="size-4 shrink-0 text-blue-500" />
       <input
         name="rating_meta"
         type="number"
@@ -238,10 +238,10 @@ function MetaRatingForm({ ratingMeta }: { ratingMeta: number | null }) {
         min={0}
         defaultValue={ratingMeta ?? undefined}
         placeholder="Meta (pts)"
-        className="w-24 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        className="w-24 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <button type="submit" disabled={isPending}
-        className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-60">
+        className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 disabled:opacity-60">
         {isPending ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
         {salvo ? "Salvo!" : "Definir"}
       </button>
@@ -344,7 +344,7 @@ function JogoItem({ jogo }: { jogo: Jogo }) {
       {/* Badge resultado */}
       <span className={`mt-0.5 shrink-0 rounded-md px-1.5 py-0.5 text-xs font-bold ${
         jogo.resultado === "vitoria"
-          ? "bg-emerald-100 text-emerald-700"
+          ? "bg-blue-100 text-blue-700"
           : "bg-red-100 text-red-700"
       }`}>
         {jogo.resultado === "vitoria" ? "V" : "D"}
@@ -381,7 +381,7 @@ function Chip({
 }) {
   const cls = {
     blue:  "bg-blue-50 text-blue-700",
-    green: "bg-emerald-50 text-emerald-700",
+    green: "bg-blue-50 text-blue-700",
     amber: "bg-amber-50 text-amber-700",
     red:   "bg-red-50 text-red-700",
     gray:  "bg-gray-100 text-gray-600",

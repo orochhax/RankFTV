@@ -60,7 +60,7 @@ export function PesoCorpo({ pesos, pesoMeta, hoje }: Props) {
       {pesoMeta != null && pesoAtual != null && pesoInicial != null && (
         <div className="mt-3">
           {metaAtingida ? (
-            <p className="text-sm font-semibold text-emerald-600">Meta atingida!</p>
+            <p className="text-sm font-semibold text-blue-600">Meta atingida!</p>
           ) : (
             <>
               <div className="mb-1 flex items-center justify-between text-xs text-gray-400">
@@ -157,7 +157,7 @@ function WeightChart({ pesos, meta }: { pesos: PesoEntry[]; meta: number | null 
       <polyline
         points={points}
         fill="none"
-        stroke="#006400"
+        stroke="#0000ff"
         strokeWidth="2"
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -165,18 +165,18 @@ function WeightChart({ pesos, meta }: { pesos: PesoEntry[]; meta: number | null 
 
       {/* Pontos */}
       {pesos.map((p, i) => (
-        <circle key={i} cx={sx(p.data)} cy={sy(p.peso_kg)} r="2.5" fill="#006400" />
+        <circle key={i} cx={sx(p.data)} cy={sy(p.peso_kg)} r="2.5" fill="#0000ff" />
       ))}
 
       {/* Último ponto destacado */}
       <circle
         cx={sx(last.data)} cy={sy(last.peso_kg)}
-        r="4.5" fill="white" stroke="#006400" strokeWidth="2"
+        r="4.5" fill="white" stroke="#0000ff" strokeWidth="2"
       />
       {/* Label do último valor */}
       <text
         x={sx(last.data)} y={sy(last.peso_kg) - 8}
-        fontSize="8.5" fill="#006400" textAnchor="middle" fontWeight="bold"
+        fontSize="8.5" fill="#0000ff" textAnchor="middle" fontWeight="bold"
       >
         {last.peso_kg} kg
       </text>
@@ -245,7 +245,7 @@ function MetaForm({ pesoMeta }: { pesoMeta: number | null }) {
 
   return (
     <form action={action} className="flex items-center gap-2">
-      <Target className="size-4 shrink-0 text-emerald-500" />
+      <Target className="size-4 shrink-0 text-blue-500" />
       <input
         name="peso_meta"
         type="number"
@@ -253,12 +253,12 @@ function MetaForm({ pesoMeta }: { pesoMeta: number | null }) {
         min={0}
         defaultValue={pesoMeta ?? undefined}
         placeholder="Meta (kg)"
-        className="w-24 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        className="w-24 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <button
         type="submit"
         disabled={isPending}
-        className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-60"
+        className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 disabled:opacity-60"
       >
         {isPending ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
         {salvo ? "Salvo!" : "Definir meta"}
@@ -279,7 +279,7 @@ function Chip({
 }) {
   const cls = {
     blue:  "bg-blue-50 text-blue-700",
-    green: "bg-emerald-50 text-emerald-700",
+    green: "bg-blue-50 text-blue-700",
     amber: "bg-amber-50 text-amber-700",
     gray:  "bg-gray-100 text-gray-600",
   };

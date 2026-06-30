@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
-/* Sobrescreve a paleta blue com o verde da marca (#006400 = blue-600).
+/* Sobrescreve a paleta blue com a cor da marca (#0000FF = blue-600).
    Deve ficar em @theme separado (sem inline) para vencer a paleta padrão do Tailwind v4. */
 @theme {
-  --color-blue-50:  #f0fff0;
-  --color-blue-100: #d6f5d6;
-  --color-blue-200: #adebad;
-  --color-blue-300: #7dd87d;
-  --color-blue-400: #4dc44d;
-  --color-blue-500: #1e9600;
-  --color-blue-600: #006400;
-  --color-blue-700: #004d00;
-  --color-blue-800: #003300;
-  --color-blue-900: #001a00;
-  --color-blue-950: #000d00;
+  --color-blue-50:  #f0f0ff;
+  --color-blue-100: #d6d6ff;
+  --color-blue-200: #adadff;
+  --color-blue-300: #7d7dff;
+  --color-blue-400: #4d4dff;
+  --color-blue-500: #1e1eff;
+  --color-blue-600: #0000ff;
+  --color-blue-700: #0000cc;
+  --color-blue-800: #000099;
+  --color-blue-900: #000066;
+  --color-blue-950: #000033;
 }
 
 :root {

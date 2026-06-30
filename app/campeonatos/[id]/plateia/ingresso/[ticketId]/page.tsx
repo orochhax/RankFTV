@@ -85,7 +85,7 @@ export default async function IngressoPlateiaPage({
             {pago ? (
               /* ── Pago: QR de entrada ── */
               <div className="flex flex-col items-center gap-3 text-center">
-                <div className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-600">
                   <CheckCircle2 className="size-4" /> Ingresso confirmado
                 </div>
                 {entradaQr && (

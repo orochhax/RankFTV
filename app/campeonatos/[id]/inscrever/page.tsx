@@ -178,7 +178,7 @@ export default async function InscreverPage({
 
       {/* Banner: categoria recomendada */}
       {isRecomendada && (
-        <div className="rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-800 ring-1 ring-green-200">
+        <div className="rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-800 ring-1 ring-blue-200">
           Categoria indicada para sua pontuação ({meuRating} pontos)
         </div>
       )}

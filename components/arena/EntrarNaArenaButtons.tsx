@@ -41,11 +41,11 @@ export function EntrarNaArenaButtons({
   // Já é aluno
   if (vinculo?.status === "ativo") {
     return (
-      <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 px-5 py-4 ring-1 ring-emerald-100">
-        <CheckCircle2 className="size-5 shrink-0 text-emerald-500" />
+      <div className="flex items-center gap-2 rounded-2xl bg-blue-50 px-5 py-4 ring-1 ring-blue-100">
+        <CheckCircle2 className="size-5 shrink-0 text-blue-500" />
         <div>
-          <p className="font-semibold text-emerald-800">Você é aluno desta arena</p>
-          <p className="text-sm text-emerald-600">Acompanhe sua evolução no perfil.</p>
+          <p className="font-semibold text-blue-800">Você é aluno desta arena</p>
+          <p className="text-sm text-blue-600">Acompanhe sua evolução no perfil.</p>
         </div>
       </div>
     );
@@ -119,12 +119,12 @@ export function EntrarNaArenaButtons({
             <p className="text-sm text-red-600">{codigoState.error}</p>
           )}
           {codigoState.ok && (
-            <p className="text-sm font-semibold text-emerald-600">Bem-vindo à arena!</p>
+            <p className="text-sm font-semibold text-blue-600">Bem-vindo à arena!</p>
           )}
           <button
             onClick={usarCodigo}
             disabled={pending || !codigo.trim()}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
           >
             {pending && <Loader2 className="size-4 animate-spin" />}
             Entrar com código

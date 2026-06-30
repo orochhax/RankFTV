@@ -51,8 +51,8 @@ export default async function MensalidadePage({
           <div className="px-6 py-6">
             {pago ? (
               <div className="flex flex-col items-center gap-3 text-center">
-                <CheckCircle2 className="size-10 text-emerald-500" />
-                <p className="font-semibold text-emerald-700">Mensalidade paga!</p>
+                <CheckCircle2 className="size-10 text-blue-500" />
+                <p className="font-semibold text-blue-700">Mensalidade paga!</p>
                 <p className="text-sm text-gray-500">{formatBRL(Number(charge.valor))}</p>
               </div>
             ) : (

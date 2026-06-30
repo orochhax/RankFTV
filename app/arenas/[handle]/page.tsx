@@ -6,7 +6,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { createClient } from "@/lib/supabase/server";
 import { EntrarNaArenaButtons } from "@/components/arena/EntrarNaArenaButtons";
 
-const AVATAR_COLORS = ["bg-blue-500","bg-emerald-500","bg-violet-500","bg-orange-500","bg-rose-500"];
+const AVATAR_COLORS = ["bg-blue-500","bg-blue-500","bg-violet-500","bg-orange-500","bg-rose-500"];
 function avatarColor(str: string) {
   let h = 0;
   for (const c of str) h = (h * 31 + c.charCodeAt(0)) | 0;
@@ -134,24 +134,24 @@ export default async function ArenaPublicaPage({
 
           {/* ── Aluguel da quadra ── */}
           {aluguelPlan && (
-            <section className="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-100">
+            <section className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
               <div className="flex items-center gap-2 mb-2">
-                <CalendarCheck className="size-4 text-emerald-600" />
-                <h2 className="text-sm font-semibold text-emerald-800">Aluguel da quadra</h2>
+                <CalendarCheck className="size-4 text-blue-600" />
+                <h2 className="text-sm font-semibold text-blue-800">Aluguel da quadra</h2>
               </div>
               {aluguelPlan.descricao && (
-                <p className="text-xs text-emerald-700 mb-2">{aluguelPlan.descricao}</p>
+                <p className="text-xs text-blue-700 mb-2">{aluguelPlan.descricao}</p>
               )}
               <div className="flex items-end justify-between gap-3">
-                <p className="text-2xl font-black text-emerald-600">
+                <p className="text-2xl font-black text-blue-600">
                   {`R$ ${Number(aluguelPlan.valor).toFixed(2).replace(".", ",")}`}
-                  <span className="ml-1 text-xs font-normal text-emerald-500">/hora</span>
+                  <span className="ml-1 text-xs font-normal text-blue-500">/hora</span>
                 </p>
                 <Link
                   href={user
                     ? `/arenas/${arena.handle}/alugar?planId=${aluguelPlan.id}`
                     : `/login?next=/arenas/${arena.handle}/alugar`}
-                  className="shrink-0 flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
+                  className="shrink-0 flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
                 >
                   <CalendarCheck className="size-4" /> Reservar
                 </Link>
@@ -159,10 +159,10 @@ export default async function ArenaPublicaPage({
               {/* Métodos aceitos */}
               <div className="mt-2 flex gap-1.5">
                 {(aluguelPlan.aceita_credito ?? true) && (
-                  <span className="rounded-lg bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Crédito</span>
+                  <span className="rounded-lg bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Crédito</span>
                 )}
                 {(aluguelPlan.aceita_debito ?? false) && (
-                  <span className="rounded-lg bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Débito</span>
+                  <span className="rounded-lg bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Débito</span>
                 )}
               </div>
             </section>

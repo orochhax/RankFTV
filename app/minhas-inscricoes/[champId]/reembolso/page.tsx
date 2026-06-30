@@ -88,11 +88,11 @@ export default async function ReembolsoPage({
           )}
 
           {/* Valor que será reembolsado */}
-          <div className={`rounded-2xl p-4 ring-1 space-y-1 ${dentroDosPrazo7d ? "bg-emerald-50 ring-emerald-200" : "bg-amber-50 ring-amber-200"}`}>
-            <p className={`text-xs font-semibold uppercase tracking-wider ${dentroDosPrazo7d ? "text-emerald-700" : "text-amber-700"}`}>
+          <div className={`rounded-2xl p-4 ring-1 space-y-1 ${dentroDosPrazo7d ? "bg-blue-50 ring-blue-200" : "bg-amber-50 ring-amber-200"}`}>
+            <p className={`text-xs font-semibold uppercase tracking-wider ${dentroDosPrazo7d ? "text-blue-700" : "text-amber-700"}`}>
               {dentroDosPrazo7d ? "Dentro do prazo de 7 dias (CDC)" : "Fora do prazo de 7 dias"}
             </p>
-            <p className={`text-sm font-medium ${dentroDosPrazo7d ? "text-emerald-800" : "text-amber-800"}`}>
+            <p className={`text-sm font-medium ${dentroDosPrazo7d ? "text-blue-800" : "text-amber-800"}`}>
               Você receberá de volta: {textoValorReembolso}
             </p>
             {!dentroDosPrazo7d && (

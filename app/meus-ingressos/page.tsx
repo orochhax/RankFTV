@@ -178,7 +178,7 @@ function IngressoCard({ ingresso: ing }: { ingresso: Ingresso }) {
         <div className="mt-3 flex items-center gap-3">
           {pago ? (
             <>
-              <div className="flex items-center gap-1 text-xs font-semibold text-emerald-600">
+              <div className="flex items-center gap-1 text-xs font-semibold text-blue-600">
                 <CheckCircle2 className="size-3.5" /> Confirmado
               </div>
               {ing.qr_token && (

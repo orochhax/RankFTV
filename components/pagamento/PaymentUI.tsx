@@ -10,7 +10,7 @@ import { pagarComCartao } from "@/app/campeonatos/[id]/pagamento/[registrationId
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 import { createClient } from "@/lib/supabase/client";
 
-const AVATAR_COLORS = ["bg-blue-500","bg-emerald-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
+const AVATAR_COLORS = ["bg-blue-500","bg-blue-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
 function avatarColor(str: string) {
   let h = 0;
   for (const c of str) h = (h * 31 + c.charCodeAt(0)) | 0;
@@ -48,7 +48,7 @@ function CopyPixButton({ text }: { text: string }) {
     <button
       onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
       className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-        copied ? "bg-emerald-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700 active:scale-95"
+        copied ? "bg-blue-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700 active:scale-95"
       }`}
     >
       {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
@@ -426,7 +426,7 @@ export function PaymentUI({
               </div>
 
               <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
-                <span className="inline-block size-1.5 animate-pulse rounded-full bg-emerald-400" />
+                <span className="inline-block size-1.5 animate-pulse rounded-full bg-blue-400" />
                 Aguardando confirmação do pagamento…
               </div>
 

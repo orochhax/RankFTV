@@ -117,7 +117,7 @@ function FormSemanaAtual({
               className={`flex size-8 items-center justify-center rounded-full text-sm font-semibold transition-colors ${
                 nota === i
                   ? i >= 7
-                    ? "bg-emerald-500 text-white"
+                    ? "bg-blue-500 text-white"
                     : i >= 5
                     ? "bg-amber-500 text-white"
                     : "bg-red-500 text-white"
@@ -195,7 +195,7 @@ function StatChip({
   color: "green" | "amber" | "red" | "gray";
 }) {
   const colors = {
-    green: "bg-emerald-50 text-emerald-700",
+    green: "bg-blue-50 text-blue-700",
     amber: "bg-amber-50 text-amber-700",
     red:   "bg-red-50 text-red-700",
     gray:  "bg-gray-100 text-gray-600",
@@ -217,7 +217,7 @@ function HistoricoItem({ report }: { report: WeeklyReport }) {
     report.nota == null
       ? "text-gray-400"
       : report.nota >= 7
-      ? "text-emerald-600"
+      ? "text-blue-600"
       : report.nota >= 5
       ? "text-amber-600"
       : "text-red-600";
@@ -251,7 +251,7 @@ function HistoricoItem({ report }: { report: WeeklyReport }) {
             <span
               className={
                 adh >= 0.7
-                  ? "text-emerald-600"
+                  ? "text-blue-600"
                   : adh >= 0.5
                   ? "text-amber-600"
                   : "text-red-600"

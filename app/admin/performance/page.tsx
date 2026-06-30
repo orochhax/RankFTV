@@ -19,13 +19,13 @@ export const metadata = { title: "Performance — Admin" };
 
 function corHeat(score: number, temReg: boolean): string {
   if (!temReg) return "bg-gray-100";
-  if (score >= 0.85) return "bg-emerald-500";
+  if (score >= 0.85) return "bg-blue-500";
   if (score >= 0.5)  return "bg-amber-400";
   return "bg-red-400";
 }
 
 function corDot(media: number): string {
-  if (media >= 0.85) return "bg-emerald-500";
+  if (media >= 0.85) return "bg-blue-500";
   if (media >= 0.65) return "bg-amber-400";
   return "bg-red-500";
 }
@@ -127,7 +127,7 @@ export default async function PerformancePage() {
 
   // Veredito → rótulo/cor/ícone
   const verMap = {
-    evoluindo:  { label: "Evoluindo", cls: "text-emerald-300", Icon: TrendingUp },
+    evoluindo:  { label: "Evoluindo", cls: "text-blue-300", Icon: TrendingUp },
     regredindo: { label: "Regredindo", cls: "text-red-300", Icon: TrendingDown },
     estavel:    { label: "Estável", cls: "text-white/70", Icon: Minus },
     comecando:  { label: "Começando", cls: "text-blue-300", Icon: Sparkles },
@@ -197,7 +197,7 @@ export default async function PerformancePage() {
                 <h2 className="font-semibold text-gray-900">Constância</h2>
                 <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
                   ver.status === "regredindo" ? "bg-red-50 text-red-600"
-                  : ver.status === "evoluindo" ? "bg-emerald-50 text-emerald-600"
+                  : ver.status === "evoluindo" ? "bg-blue-50 text-blue-600"
                   : "bg-gray-100 text-gray-500"
                 }`}>
                   {ver.status === "regredindo" ? <TrendingDown className="size-3.5" />
@@ -272,7 +272,7 @@ export default async function PerformancePage() {
                         <span className="flex-1 text-sm text-gray-700">{s.habit.label}</span>
                         <span className="text-sm font-semibold text-gray-900">{pct(s.mediaMes)}%</span>
                         <span className="w-4 text-center">
-                          {s.tendencia === "subindo" ? <TrendingUp className="size-4 text-emerald-500" />
+                          {s.tendencia === "subindo" ? <TrendingUp className="size-4 text-blue-500" />
                             : s.tendencia === "caindo" ? <TrendingDown className="size-4 text-red-500" />
                             : <Minus className="size-4 text-gray-300" />}
                         </span>

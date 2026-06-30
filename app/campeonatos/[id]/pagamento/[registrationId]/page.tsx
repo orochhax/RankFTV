@@ -54,8 +54,8 @@ export default async function PagamentoPage({
       <div className="min-h-screen bg-[#0f0f13]">
         <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
           <div className="w-full max-w-sm rounded-3xl bg-white p-10 text-center shadow-xl">
-            <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100">
-              <CheckCircle className="size-9 text-emerald-500" />
+            <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-blue-100">
+              <CheckCircle className="size-9 text-blue-500" />
             </div>
             <h1 className="mt-5 text-xl font-bold text-gray-900">Pagamento confirmado!</h1>
             <p className="mt-2 text-sm text-gray-500">

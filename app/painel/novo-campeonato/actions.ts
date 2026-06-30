@@ -56,7 +56,7 @@ export type CreateChampionshipInput = {
 // real fica pra quando ligarmos o Storage).
 const GRADIENTS: [string, string][] = [
   ["from-blue-500", "to-cyan-400"],
-  ["from-emerald-500", "to-teal-400"],
+  ["from-blue-500", "to-teal-400"],
   ["from-orange-500", "to-amber-400"],
   ["from-violet-500", "to-purple-400"],
   ["from-rose-500", "to-pink-400"],

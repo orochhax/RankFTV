@@ -19,9 +19,9 @@ const CONFIG: Record<StatusSlug, { titulo: string; bg: string; text: string; rin
   pagos: {
     titulo:    "Pagamentos confirmados",
     descricao: "Duplas que concluíram o pagamento.",
-    bg:        "bg-emerald-50",
-    ring:      "ring-emerald-200",
-    text:      "text-emerald-700",
+    bg:        "bg-blue-50",
+    ring:      "ring-blue-200",
+    text:      "text-blue-700",
   },
   pendentes: {
     titulo:    "Pagamentos pendentes",

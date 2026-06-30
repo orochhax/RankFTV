@@ -11,7 +11,7 @@ function fmt(v: number) {
 
 function NetTag({ net, suffix = "%" }: { net: number; suffix?: string }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">
       líquido ≈ {net > 0 ? "+" : ""}{suffix === "R$" ? `R$ ${fmt(net)}` : `${fmt(net)}${suffix}`}
     </span>
   );
@@ -217,7 +217,7 @@ export function TaxasForm({ config }: { config: PlatformConfig }) {
           {pending ? "Salvando…" : "Salvar taxas"}
         </button>
         {saved && (
-          <span className="flex items-center gap-1.5 text-sm text-emerald-600">
+          <span className="flex items-center gap-1.5 text-sm text-blue-600">
             <CheckCircle2 className="size-4" /> Salvo com sucesso!
           </span>
         )}

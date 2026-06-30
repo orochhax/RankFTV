@@ -51,7 +51,7 @@ type TeamRow = {
 };
 
 const PAG_BADGE: Record<string, { label: string; className: string; icon: "check" | "clock" }> = {
-  pago:      { label: "Pagamento confirmado",   className: "bg-emerald-100 text-emerald-700", icon: "check" },
+  pago:      { label: "Pagamento confirmado",   className: "bg-blue-100 text-blue-700", icon: "check" },
   pendente:  { label: "Aguardando pagamento",   className: "bg-amber-100  text-amber-700",   icon: "clock" },
   estornado: { label: "Pagamento estornado",    className: "bg-red-100    text-red-700",     icon: "clock" },
 };
@@ -170,7 +170,7 @@ export default async function IngressoPage({
           <div className="flex items-center gap-2">
             <StatusBadge status={champ.status as ChampionshipStatus} />
             {isCheckedIn && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-400">
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-400">
                 <CheckCircle2 className="size-3.5" /> Check-in realizado
               </span>
             )}
@@ -215,7 +215,7 @@ export default async function IngressoPage({
                     className={`rounded-2xl ${isCheckedIn ? "opacity-40 grayscale" : ""}`}
                   />
                   {isCheckedIn ? (
-                    <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-600">
+                    <div className="flex items-center gap-1.5 text-sm font-medium text-blue-600">
                       <CheckCircle2 className="size-4" />
                       Check-in já realizado
                       {credential?.checkin_at && (
@@ -315,7 +315,7 @@ export default async function IngressoPage({
 
               <InfoRow icon={<Users className="size-4 text-gray-400" />} label="Status da dupla">
                 <span className={`text-sm font-medium ${
-                  team.status === "confirmado" ? "text-emerald-600" :
+                  team.status === "confirmado" ? "text-blue-600" :
                   team.status === "cancelado"  ? "text-red-600" :
                   "text-amber-600"
                 }`}>

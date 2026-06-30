@@ -19,7 +19,7 @@ export function CopyButton({ text }: { text: string }) {
       className="shrink-0 rounded-md p-1 text-gray-400 hover:text-gray-700 transition-colors"
       aria-label="Copiar código Pix"
     >
-      {copied ? <Check className="size-4 text-emerald-500" /> : <Copy className="size-4" />}
+      {copied ? <Check className="size-4 text-blue-500" /> : <Copy className="size-4" />}
     </button>
   );
 }

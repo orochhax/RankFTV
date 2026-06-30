@@ -1,7 +1,7 @@
 import type { ChampionshipStatus } from "@/lib/types";
 
 const STATUS_CONFIG: Record<ChampionshipStatus, { label: string; className: string }> = {
-  inscricoes_abertas: { label: "Inscrições abertas", className: "bg-emerald-100 text-emerald-700" },
+  inscricoes_abertas: { label: "Inscrições abertas", className: "bg-blue-100 text-blue-700" },
   em_andamento: { label: "Em andamento", className: "bg-amber-100 text-amber-700" },
   encerrado: { label: "Encerrado", className: "bg-red-100 text-red-600" },
   rascunho: { label: "Rascunho", className: "bg-gray-100 text-gray-500" },

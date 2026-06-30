@@ -83,7 +83,7 @@ export function IngressoAtletaForm({
               </div>
               <div className="shrink-0 text-right">
                 {v <= 0 ? (
-                  <span className="font-semibold text-emerald-600">Grátis</span>
+                  <span className="font-semibold text-blue-600">Grátis</span>
                 ) : (
                   <div>
                     <p className="font-semibold text-gray-900">{formatBRL(t)}</p>

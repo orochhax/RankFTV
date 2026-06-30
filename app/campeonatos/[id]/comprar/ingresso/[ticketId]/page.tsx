@@ -81,7 +81,7 @@ export default async function IngressoAtletaPage({
           <div className="px-6 py-6">
             {pago ? (
               <div className="flex flex-col items-center gap-3 text-center">
-                <div className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-600">
                   <CheckCircle2 className="size-4" /> Inscrição confirmada
                 </div>
                 {entradaQr && (

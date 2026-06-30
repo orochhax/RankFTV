@@ -132,7 +132,7 @@ export function PlanoTaxas({
           {isElite && (
             <div className="mt-3 border-t border-amber-200/60 pt-3">
               {feeQuitada ? (
-                <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+                <p className="flex items-center gap-1.5 text-xs font-medium text-blue-700">
                   <Check className="size-3.5" />
                   Ativação de {brl(PRECO_ELITE)} já quitada.
                 </p>

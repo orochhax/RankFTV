@@ -119,10 +119,10 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
 
         {!editando && chavePix ? (
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
+            <CheckCircle2 className="size-4 shrink-0 text-blue-400" />
             <p className="font-mono text-sm text-white">{mascarar(chavePix)}</p>
             {sucesso && (
-              <span className="ml-auto text-xs text-emerald-400">Salvo!</span>
+              <span className="ml-auto text-xs text-blue-400">Salvo!</span>
             )}
           </div>
         ) : (

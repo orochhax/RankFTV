@@ -75,7 +75,7 @@ export function FinanceiroArenaClient({
 
               {/* Status da mensalidade */}
               {pago && (
-                <div className="flex items-center gap-1 text-xs font-semibold text-emerald-600">
+                <div className="flex items-center gap-1 text-xs font-semibold text-blue-600">
                   <CheckCircle2 className="size-3.5" /> Pago
                 </div>
               )}

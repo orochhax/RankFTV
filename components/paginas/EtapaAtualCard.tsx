@@ -51,7 +51,7 @@ const STATUS_LABEL: Record<string, string> = {
   encerrado: "Encerrado",
 };
 const STATUS_COLOR: Record<string, string> = {
-  inscricoes_abertas: "text-green-600 bg-green-50",
+  inscricoes_abertas: "text-blue-600 bg-blue-50",
   em_andamento: "text-blue-600 bg-blue-50",
   encerrado: "text-gray-500 bg-gray-100",
 };
@@ -149,11 +149,11 @@ export function EtapaAtualCard({
           </div>
           {error && <p className="text-xs text-red-600">{error}</p>}
           {sentId && (
-            <div className="flex items-start gap-2 rounded-xl bg-green-50 px-3 py-2.5 ring-1 ring-green-200">
-              <span className="mt-0.5 text-green-500">✓</span>
+            <div className="flex items-start gap-2 rounded-xl bg-blue-50 px-3 py-2.5 ring-1 ring-blue-200">
+              <span className="mt-0.5 text-blue-500">✓</span>
               <div>
-                <p className="text-sm font-medium text-green-800">Convite enviado!</p>
-                <p className="text-xs text-green-700">
+                <p className="text-sm font-medium text-blue-800">Convite enviado!</p>
+                <p className="text-xs text-blue-700">
                   O dono de <strong>{sentName}</strong> foi notificado por e-mail e no sininho. Assim que aceitar, o campeonato aparece aqui.
                 </p>
               </div>

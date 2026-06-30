@@ -18,7 +18,7 @@ export function AceitarAlunoButton({
       <button
         onClick={() => startTransition(() => { void aceitarAluno(alunoId, arenaId); })}
         disabled={pending}
-        className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+        className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
       >
         {pending ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
         Aceitar

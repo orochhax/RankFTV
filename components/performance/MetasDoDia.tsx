@@ -17,7 +17,7 @@ type Props = {
 };
 
 function corBarra(a: number): string {
-  if (a >= 0.85) return "bg-emerald-500";
+  if (a >= 0.85) return "bg-blue-500";
   if (a >= 0.5)  return "bg-amber-500";
   return "bg-red-500";
 }
@@ -108,7 +108,7 @@ function BinarioRow({
       className="flex w-full items-center gap-3 text-left"
     >
       <span className={`flex size-6 shrink-0 items-center justify-center rounded-md ring-1 transition-colors ${
-        feito ? "bg-emerald-500 ring-emerald-500" : "bg-white ring-gray-300"
+        feito ? "bg-blue-500 ring-blue-500" : "bg-white ring-gray-300"
       }`}>
         {feito && <Check className="size-4 text-white" />}
       </span>

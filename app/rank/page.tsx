@@ -19,7 +19,7 @@ function Movimento({
 }) {
   if (atual == null || anterior == null) return null;
   if (anterior > atual) {
-    return <ArrowUp className="size-4 text-green-600" aria-label="Subiu" />;
+    return <ArrowUp className="size-4 text-blue-600" aria-label="Subiu" />;
   }
   if (anterior < atual) {
     return <ArrowDown className="size-4 text-red-600" aria-label="Desceu" />;
@@ -27,7 +27,7 @@ function Movimento({
   return <Minus className="size-4 text-gray-900" aria-label="Manteve a posição" />;
 }
 
-const AVATAR_COLORS = ["bg-blue-500", "bg-emerald-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
+const AVATAR_COLORS = ["bg-blue-500", "bg-blue-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
 function avatarColor(str: string) {
   let h = 0;
   for (const c of str) h = (h * 31 + c.charCodeAt(0)) | 0;

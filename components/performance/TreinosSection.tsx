@@ -35,7 +35,7 @@ const TIPO_LABEL: Record<string, string> = {
 const TIPO_CLS: Record<string, string> = {
   tecnico: "bg-blue-100 text-blue-700",
   fisico:  "bg-amber-100 text-amber-700",
-  jogo:    "bg-emerald-100 text-emerald-700",
+  jogo:    "bg-blue-100 text-blue-700",
 };
 
 export function TreinosSection({ treinos, testes, treinosMeta, hoje, segunda }: Props) {
@@ -69,7 +69,7 @@ export function TreinosSection({ treinos, testes, treinosMeta, hoje, segunda }: 
           <div className="mb-3 h-2 overflow-hidden rounded-full bg-gray-100">
             <div
               className={`h-full rounded-full transition-all ${
-                metaOk ? "bg-emerald-500" : progress >= 0.5 ? "bg-amber-500" : "bg-blue-400"
+                metaOk ? "bg-blue-500" : progress >= 0.5 ? "bg-amber-500" : "bg-blue-400"
               }`}
               style={{ width: `${Math.round(progress * 100)}%` }}
             />
@@ -154,7 +154,7 @@ function TesteGrupo({ tipo, entries }: { tipo: string; entries: Teste[] }) {
     <div>
       <div className="mb-1.5 flex items-center gap-2">
         <p className="text-sm font-medium text-gray-800">{tipo}</p>
-        {tendencia === "subindo"  && <TrendingUp   className="size-3.5 text-emerald-500" />}
+        {tendencia === "subindo"  && <TrendingUp   className="size-3.5 text-blue-500" />}
         {tendencia === "caindo"   && <TrendingDown  className="size-3.5 text-red-500" />}
         {tendencia === "estavel"  && <Minus         className="size-3.5 text-gray-300" />}
       </div>
@@ -347,7 +347,7 @@ function AdicionarTesteForm({ hoje }: { hoje: string }) {
 
 // ── Chip ──────────────────────────────────────────────────────────────────────
 function Chip({ label, value, color }: { label: string; value: string; color: "green" | "amber" | "gray" }) {
-  const cls = { green: "bg-emerald-50 text-emerald-700", amber: "bg-amber-50 text-amber-700", gray: "bg-gray-100 text-gray-600" };
+  const cls = { green: "bg-blue-50 text-blue-700", amber: "bg-amber-50 text-amber-700", gray: "bg-gray-100 text-gray-600" };
   return (
     <div className={`rounded-lg px-2.5 py-1 text-xs ${cls[color]}`}>
       <span className="font-medium">{label}:</span> {value}

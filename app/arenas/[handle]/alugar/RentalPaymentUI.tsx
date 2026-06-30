@@ -111,8 +111,8 @@ export function RentalPaymentUI({ planId, handle, planNome, valorBase, aceitaCre
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#0f0f13] px-6 py-12">
         <div className="w-full max-w-sm rounded-3xl bg-white p-10 text-center shadow-xl">
-          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100">
-            <CheckCircle className="size-9 text-emerald-500" />
+          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-blue-100">
+            <CheckCircle className="size-9 text-blue-500" />
           </div>
           <h1 className="mt-5 text-xl font-bold text-gray-900">Reserva confirmada!</h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -163,16 +163,16 @@ export function RentalPaymentUI({ planId, handle, planNome, valorBase, aceitaCre
           <form onSubmit={submit} className="space-y-5">
 
             {/* Data e hora */}
-            <div className="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-100 space-y-3">
-              <p className="text-sm font-semibold text-emerald-800 flex items-center gap-2">
+            <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 space-y-3">
+              <p className="text-sm font-semibold text-blue-800 flex items-center gap-2">
                 <CalendarCheck className="size-4" /> Escolha data e horário
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-emerald-700">Data</label>
+                  <label className="block text-xs font-medium text-blue-700">Data</label>
                   <input
                     type="date"
-                    className="mt-1 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     value={data}
                     min={minDate}
                     onChange={(e) => setData(e.target.value)}
@@ -180,10 +180,10 @@ export function RentalPaymentUI({ planId, handle, planNome, valorBase, aceitaCre
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-emerald-700">Horário</label>
+                  <label className="block text-xs font-medium text-blue-700">Horário</label>
                   <input
                     type="time"
-                    className="mt-1 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     value={hora}
                     onChange={(e) => setHora(e.target.value)}
                     required
@@ -315,7 +315,7 @@ export function RentalPaymentUI({ planId, handle, planNome, valorBase, aceitaCre
             <button
               type="submit"
               disabled={pending}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 transition-colors"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
             >
               {pending
                 ? <><Loader2 className="size-4 animate-spin" /> Processando…</>

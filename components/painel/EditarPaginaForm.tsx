@@ -59,7 +59,7 @@ export function EditarPaginaForm({
       {error && <p className="text-xs text-red-600">{error}</p>}
       <div className="flex items-center justify-between">
         {saved && (
-          <span className="flex items-center gap-1 text-xs text-green-600">
+          <span className="flex items-center gap-1 text-xs text-blue-600">
             <Check className="size-3.5" /> Salvo
           </span>
         )}

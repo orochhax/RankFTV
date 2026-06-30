@@ -30,7 +30,7 @@ export function AceitarConviteViaLink({
       <button
         type="submit"
         disabled={pending}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-500 py-3 text-sm font-semibold text-white hover:bg-blue-600 disabled:opacity-60"
       >
         <CheckCircle2 className="size-4" />
         {pending ? "Aceitando…" : "Aceitar convite"}

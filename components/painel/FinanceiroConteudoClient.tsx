@@ -58,9 +58,9 @@ export function FinanceiroConteudoClient({
   return (
     <div className="space-y-8">
       {/* Saldo líquido */}
-      <div className={`rounded-2xl p-4 ring-1 ${repasseLiquido < 0 ? "bg-red-50 ring-red-200" : "bg-emerald-50 ring-emerald-200"}`}>
+      <div className={`rounded-2xl p-4 ring-1 ${repasseLiquido < 0 ? "bg-red-50 ring-red-200" : "bg-blue-50 ring-blue-200"}`}>
         <div className="flex items-center justify-between">
-          <div className={`flex items-center gap-1.5 ${repasseLiquido < 0 ? "text-red-600" : "text-emerald-600"}`}>
+          <div className={`flex items-center gap-1.5 ${repasseLiquido < 0 ? "text-red-600" : "text-blue-600"}`}>
             <DollarSign className="size-4" />
             <p className="text-xs font-medium">Seu saldo líquido</p>
           </div>
@@ -80,12 +80,12 @@ export function FinanceiroConteudoClient({
             )}
           </button>
         </div>
-        <p className={`mt-2 text-2xl font-bold ${repasseLiquido < 0 ? "text-red-600" : "text-emerald-700"}`}>
+        <p className={`mt-2 text-2xl font-bold ${repasseLiquido < 0 ? "text-red-600" : "text-blue-700"}`}>
           {val(repasseLiquido)}
         </p>
         <div className="mt-3 flex items-start gap-1.5">
-          <Info className={`mt-0.5 size-3.5 shrink-0 ${repasseLiquido < 0 ? "text-red-400/60" : "text-emerald-500/60"}`} />
-          <p className={`text-xs leading-relaxed ${repasseLiquido < 0 ? "text-red-700/60" : "text-emerald-700/60"}`}>
+          <Info className={`mt-0.5 size-3.5 shrink-0 ${repasseLiquido < 0 ? "text-red-400/60" : "text-blue-500/60"}`} />
+          <p className={`text-xs leading-relaxed ${repasseLiquido < 0 ? "text-red-700/60" : "text-blue-700/60"}`}>
             Valores pendentes e estornados não são contabilizados no saldo líquido.
           </p>
         </div>

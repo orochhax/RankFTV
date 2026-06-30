@@ -42,12 +42,12 @@ function SlotRow({
     );
   }
   return (
-    <div className={`flex h-9 items-center gap-2 px-3 ${winner ? "bg-emerald-50" : ""}`}>
-      <div className={`size-1.5 shrink-0 rounded-full ${winner ? "bg-emerald-500" : "bg-blue-400"}`} />
-      <span className={`truncate text-xs font-medium ${winner ? "text-emerald-700" : "text-gray-800"}`}>
+    <div className={`flex h-9 items-center gap-2 px-3 ${winner ? "bg-blue-50" : ""}`}>
+      <div className={`size-1.5 shrink-0 rounded-full ${winner ? "bg-blue-500" : "bg-blue-400"}`} />
+      <span className={`truncate text-xs font-medium ${winner ? "text-blue-700" : "text-gray-800"}`}>
         {team.nome}
       </span>
-      {winner && <Trophy className="ml-auto size-3 shrink-0 text-emerald-400" />}
+      {winner && <Trophy className="ml-auto size-3 shrink-0 text-blue-400" />}
     </div>
   );
 }
@@ -726,7 +726,7 @@ export function BracketClient({
 
       // "RankFTV" canto inferior direito
       ctx.font         = "bold 36px system-ui, -apple-system, sans-serif";
-      ctx.fillStyle    = "#006400";
+      ctx.fillStyle    = "#0000ff";
       ctx.textAlign    = "right";
       ctx.textBaseline = "bottom";
       ctx.fillText("RankFTV", 1080 - PAD, 1920 - 24);
@@ -835,11 +835,11 @@ export function BracketClient({
 
       {/* Banner de resultado confirmado */}
       {isConfirmed && (
-        <div className="flex items-center gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-          <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+        <div className="flex items-center gap-2.5 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3">
+          <CheckCircle2 className="size-4 shrink-0 text-blue-600" />
           <div>
-            <p className="text-sm font-semibold text-emerald-800">Resultado confirmado</p>
-            <p className="text-xs text-emerald-600">Confirmado em {formatDateTimeBR(confirmedAt!)} · Somente visualização</p>
+            <p className="text-sm font-semibold text-blue-800">Resultado confirmado</p>
+            <p className="text-xs text-blue-600">Confirmado em {formatDateTimeBR(confirmedAt!)} · Somente visualização</p>
           </div>
         </div>
       )}
@@ -1011,7 +1011,7 @@ export function BracketClient({
               disabled={!podium || isPending}
               className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold transition-colors ${
                 podium
-                  ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "cursor-not-allowed bg-gray-100 text-gray-400"
               }`}
             >

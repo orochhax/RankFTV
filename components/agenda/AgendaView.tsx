@@ -14,7 +14,7 @@ const MONTHS = [
 
 // Cor de cada status — a "bolinha" do evento e o bloco de data na lista.
 const STATUS_STYLE: Record<ChampionshipStatus, { dot: string; block: string }> = {
-  inscricoes_abertas: { dot: "bg-emerald-500", block: "bg-emerald-500 text-white" },
+  inscricoes_abertas: { dot: "bg-blue-500", block: "bg-blue-500 text-white" },
   em_andamento:       { dot: "bg-amber-500",   block: "bg-amber-500 text-white" },
   encerrado:          { dot: "bg-gray-400",    block: "bg-gray-200 text-gray-600" },
   rascunho:           { dot: "bg-gray-400",    block: "bg-gray-200 text-gray-600" },
@@ -22,10 +22,10 @@ const STATUS_STYLE: Record<ChampionshipStatus, { dot: string; block: string }> =
 
 // Cor do bloco de data por circuito (substitui o verde padrão de status).
 const CIRCUITO_BLOCK: Record<string, string> = {
-  "Brasil Open":                      "bg-gradient-to-b from-blue-600 via-yellow-400 to-green-500 text-white",
+  "Brasil Open":                      "bg-gradient-to-b from-blue-600 via-yellow-400 to-blue-500 text-white",
   "Big WolfCup":                      "bg-gray-500 text-white",
   "TAFC":                             "bg-gray-900 text-white",
-  "Circuito Brasileiro de Futevôlei": "bg-green-700 text-white",
+  "Circuito Brasileiro de Futevôlei": "bg-blue-700 text-white",
 };
 
 function parseDate(iso: string): Date {

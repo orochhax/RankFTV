@@ -113,9 +113,9 @@ export default async function PainelGeralPage({
               <p className="text-xs text-white/50">Duplas pagas</p>
               <p className="text-2xl font-bold text-white">{regsPagas.length}</p>
             </div>
-            <div className="rounded-2xl bg-emerald-500/20 p-4">
-              <p className="text-xs text-emerald-400">Saldo Bruto</p>
-              <p className="text-xl font-bold text-emerald-300">{formatBRL(totalBruto)}</p>
+            <div className="rounded-2xl bg-blue-500/20 p-4">
+              <p className="text-xs text-blue-400">Saldo Bruto</p>
+              <p className="text-xl font-bold text-blue-300">{formatBRL(totalBruto)}</p>
             </div>
             <div className="rounded-2xl bg-blue-500/20 p-4">
               <p className="text-xs text-blue-400">Saldo Líquido</p>
@@ -133,9 +133,9 @@ export default async function PainelGeralPage({
           <section>
             <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Status dos campeonatos</h2>
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-2xl bg-green-50 p-4 ring-1 ring-green-100 text-center">
-                <p className="text-2xl font-bold text-green-700">{campsAbertos}</p>
-                <p className="text-xs text-green-600 mt-1">Inscrições abertas</p>
+              <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 text-center">
+                <p className="text-2xl font-bold text-blue-700">{campsAbertos}</p>
+                <p className="text-xs text-blue-600 mt-1">Inscrições abertas</p>
               </div>
               <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 text-center">
                 <p className="text-2xl font-bold text-blue-700">{campsEmAndamento}</p>
@@ -154,7 +154,7 @@ export default async function PainelGeralPage({
             <div className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
               <div className="flex items-center justify-between px-5 py-4">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="size-4 text-emerald-500" />
+                  <TrendingUp className="size-4 text-blue-500" />
                   <p className="text-sm text-gray-700">Saldo Bruto (recebido)</p>
                 </div>
                 <p className="font-semibold text-gray-900">{formatBRL(totalBruto)}</p>

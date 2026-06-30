@@ -71,9 +71,9 @@ export default async function GestaoEspectadoresPage({
               <p className="text-xs text-white/50">Ingressos pagos</p>
               <p className="text-2xl font-bold text-white">{ingressosPagos}</p>
             </div>
-            <div className="rounded-2xl bg-emerald-500/20 p-4">
-              <p className="text-xs text-emerald-400">Faturamento</p>
-              <p className="text-xl font-bold text-emerald-300">{formatBRL(faturamento)}</p>
+            <div className="rounded-2xl bg-blue-500/20 p-4">
+              <p className="text-xs text-blue-400">Faturamento</p>
+              <p className="text-xl font-bold text-blue-300">{formatBRL(faturamento)}</p>
             </div>
             <div className="rounded-2xl bg-white/10 p-4">
               <p className="text-xs text-white/50">Presentes</p>

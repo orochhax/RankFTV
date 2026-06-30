@@ -389,8 +389,8 @@ export function SubscriptionPaymentUI(props: Props) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#0f0f13] px-6 py-12">
         <div className="w-full max-w-sm rounded-3xl bg-white p-10 text-center shadow-xl">
-          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100">
-            <CheckCircle className="size-9 text-emerald-500" />
+          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-blue-100">
+            <CheckCircle className="size-9 text-blue-500" />
           </div>
           <h1 className="mt-5 text-xl font-bold text-gray-900">Tudo pronto!</h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -444,7 +444,7 @@ export function SubscriptionPaymentUI(props: Props) {
             {stepLabels.map((label, i) => (
               <div key={label} className="flex items-center gap-2">
                 <div className={`flex size-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${
-                  i < stepIndex  ? "bg-emerald-500 text-white" :
+                  i < stepIndex  ? "bg-blue-500 text-white" :
                   i === stepIndex ? "bg-white text-gray-900" :
                   "bg-white/20 text-white/40"
                 }`}>
@@ -454,7 +454,7 @@ export function SubscriptionPaymentUI(props: Props) {
                   i === stepIndex ? "text-white" : "text-white/40"
                 }`}>{label}</span>
                 {i < stepLabels.length - 1 && (
-                  <div className={`h-px w-8 ${i < stepIndex ? "bg-emerald-500" : "bg-white/20"}`} />
+                  <div className={`h-px w-8 ${i < stepIndex ? "bg-blue-500" : "bg-white/20"}`} />
                 )}
               </div>
             ))}

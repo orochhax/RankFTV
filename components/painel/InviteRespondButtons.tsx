@@ -28,7 +28,7 @@ export function InviteRespondButtons({
 
   if (done) {
     return (
-      <p className={`mt-2 text-xs font-medium ${done === "aceito" ? "text-green-700" : "text-gray-500"}`}>
+      <p className={`mt-2 text-xs font-medium ${done === "aceito" ? "text-blue-700" : "text-gray-500"}`}>
         {done === "aceito" ? "Vínculo aceito — campeonato aparece na página agora." : "Convite recusado."}
       </p>
     );

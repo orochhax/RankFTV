@@ -181,7 +181,7 @@ export default async function PainelOrganizadorPage({
                 className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
               >
                 <div className="flex items-center gap-3">
-                  <Building2 className="size-5 text-emerald-400" />
+                  <Building2 className="size-5 text-blue-400" />
                   <div>
                     <p className="font-semibold text-white">Minhas Arenas</p>
                     <p className="text-xs text-white/40">Alunos, presenças e mensalidades</p>
@@ -532,8 +532,8 @@ export default async function PainelOrganizadorPage({
         {/* 7. Preço / confiança */}
         <div className="mx-auto mt-12 max-w-3xl px-6">
           <div className="rounded-3xl bg-[#0f0f13] p-8 text-center">
-            <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-emerald-500/15">
-              <ShieldCheck className="size-6 text-emerald-400" />
+            <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-blue-500/15">
+              <ShieldCheck className="size-6 text-blue-400" />
             </div>
             <p className="mt-4 text-xl font-bold text-white">
               Quanto custa? Nada pra começar.
@@ -549,7 +549,7 @@ export default async function PainelOrganizadorPage({
                 "Repasse automático — a plataforma não segura seu dinheiro",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-2 text-sm text-white/70">
-                  <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
+                  <CheckCircle2 className="size-4 shrink-0 text-blue-400" />
                   {item}
                 </div>
               ))}

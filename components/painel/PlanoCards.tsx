@@ -51,9 +51,9 @@ export function PlanoCards({ elite, onToggle }: { elite: boolean; onToggle: (v: 
         </ul>
       </div>
 
-      <div className="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-100">
-        <p className="text-sm font-medium text-emerald-800">Sem custo pra criar</p>
-        <p className="mt-0.5 text-xs text-emerald-600">
+      <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
+        <p className="text-sm font-medium text-blue-800">Sem custo pra criar</p>
+        <p className="mt-0.5 text-xs text-blue-600">
           Você só configura o recebimento na hora de publicar. Salvar como rascunho é livre.
         </p>
       </div>

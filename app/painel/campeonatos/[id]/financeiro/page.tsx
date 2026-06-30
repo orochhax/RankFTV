@@ -69,9 +69,9 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
       label: "Pagos",
       count: regs.filter((r) => r.status_pagamento === "pago").length,
       valor: totalPago,
-      bg:    "bg-emerald-50",
-      ring:  "ring-emerald-200",
-      text:  "text-emerald-700",
+      bg:    "bg-blue-50",
+      ring:  "ring-blue-200",
+      text:  "text-blue-700",
     },
     {
       slug:  "pendentes",

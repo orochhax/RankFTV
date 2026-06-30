@@ -42,8 +42,8 @@ export function ArenaCard({ arena }: { arena: ArenaCardData }) {
         {/* Ícones de esporte — canto inferior direito do banner */}
         <div className="absolute bottom-3 right-3 flex items-center">
           {[
-            { emoji: "⚽", bg: "bg-green-500" },
-            { emoji: "🏐", bg: "bg-emerald-500" },
+            { emoji: "⚽", bg: "bg-blue-500" },
+            { emoji: "🏐", bg: "bg-blue-500" },
           ].map((item, i) => (
             <div
               key={i}

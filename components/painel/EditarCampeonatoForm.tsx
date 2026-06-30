@@ -494,14 +494,14 @@ export function EditarCampeonatoForm({ champId, initial, minhasPages = [] }: Pro
 
           {/* PDF atual (do banco) */}
           {pdfUrl && !pdfFile && (
-            <div className="mt-1 flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2">
-              <FileText className="size-4 shrink-0 text-green-600" />
-              <span className="flex-1 truncate text-sm text-green-800">PDF salvo</span>
+            <div className="mt-1 flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
+              <FileText className="size-4 shrink-0 text-blue-600" />
+              <span className="flex-1 truncate text-sm text-blue-800">PDF salvo</span>
               <a
                 href={pdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-green-600 hover:text-green-700"
+                className="text-blue-600 hover:text-blue-700"
               >
                 <ExternalLink className="size-4" />
               </a>

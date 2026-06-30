@@ -51,13 +51,13 @@ export function PresencaClient({
                 key={a.id}
                 className={`flex items-center justify-between gap-3 rounded-2xl p-4 ring-1 transition-colors ${
                   a.jaFez
-                    ? "bg-emerald-50 ring-emerald-100"
+                    ? "bg-blue-50 ring-blue-100"
                     : "bg-white ring-black/5"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   {a.jaFez ? (
-                    <CheckCircle2 className="size-5 shrink-0 text-emerald-500" />
+                    <CheckCircle2 className="size-5 shrink-0 text-blue-500" />
                   ) : (
                     <Circle className="size-5 shrink-0 text-gray-300" />
                   )}
@@ -79,7 +79,7 @@ export function PresencaClient({
                   </button>
                 )}
                 {a.jaFez && (
-                  <span className="text-xs font-semibold text-emerald-600">Presente!</span>
+                  <span className="text-xs font-semibold text-blue-600">Presente!</span>
                 )}
               </li>
             ))}
@@ -97,7 +97,7 @@ export function PresencaClient({
           <ul className="space-y-1.5">
             {historico.map((h, i) => (
               <li key={i} className="flex items-center gap-3 text-sm text-gray-600">
-                <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />
+                <CheckCircle2 className="size-4 shrink-0 text-blue-400" />
                 <span className="flex-1">{h.titulo}</span>
                 <span className="text-xs text-gray-400">{formatData(h.data)}</span>
               </li>

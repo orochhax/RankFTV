@@ -12,7 +12,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STATUS_COLOR: Record<string, string> = {
   trial:       "bg-blue-50 text-blue-700 ring-blue-100",
-  ativo:       "bg-emerald-50 text-emerald-700 ring-emerald-100",
+  ativo:       "bg-blue-50 text-blue-700 ring-blue-100",
   inadimplente:"bg-red-50 text-red-700 ring-red-100",
   cancelado:   "bg-gray-50 text-gray-500 ring-gray-100",
 };

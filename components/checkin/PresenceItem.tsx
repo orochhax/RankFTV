@@ -19,15 +19,15 @@ export function PresenceItem({ nome, username, checkinAt, scannerNome }: Props) 
   const [open, setOpen] = useState(false);
 
   return (
-    <li className="bg-emerald-50/50">
+    <li className="bg-blue-50/50">
       {/* Linha principal — clicável */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-emerald-50"
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-blue-50"
         aria-expanded={open}
       >
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-          <CheckCircle2 className="size-4 text-emerald-600" />
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
+          <CheckCircle2 className="size-4 text-blue-600" />
         </div>
 
         <div className="min-w-0 flex-1">
@@ -37,7 +37,7 @@ export function PresenceItem({ nome, username, checkinAt, scannerNome }: Props) 
 
         <div className="flex shrink-0 items-center gap-2">
           <div className="flex flex-col items-end gap-0.5">
-            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
+            <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
               Presente
             </span>
             <span className="text-xs text-gray-400">{formatDateTime(checkinAt)}</span>
@@ -50,7 +50,7 @@ export function PresenceItem({ nome, username, checkinAt, scannerNome }: Props) 
 
       {/* Painel de detalhes */}
       {open && (
-        <div className="border-t border-emerald-100 bg-white px-4 py-3">
+        <div className="border-t border-blue-100 bg-white px-4 py-3">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <User className="size-4 shrink-0 text-gray-300" />
             <span>

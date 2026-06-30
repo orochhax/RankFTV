@@ -128,9 +128,9 @@ export default async function PublicarPage({
             </>
           ) : (
             /* Campeonato gratuito */
-            <div className="rounded-2xl bg-emerald-50 p-5 ring-1 ring-emerald-100">
-              <p className="font-semibold text-emerald-800">Campeonato gratuito</p>
-              <p className="mt-0.5 text-sm text-emerald-700">
+            <div className="rounded-2xl bg-blue-50 p-5 ring-1 ring-blue-100">
+              <p className="font-semibold text-blue-800">Campeonato gratuito</p>
+              <p className="mt-0.5 text-sm text-blue-700">
                 Todas as categorias são grátis — não precisa configurar recebimento.
                 É só publicar.
               </p>

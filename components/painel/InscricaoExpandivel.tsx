@@ -79,11 +79,11 @@ function AtletaCard({ label, atleta }: { label: string; atleta: Atleta }) {
             href={`https://wa.me/55${atleta.telefone.replace(/\D/g, "")}`}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 hover:bg-emerald-100 transition-colors ring-1 ring-emerald-200"
+            className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700 hover:bg-blue-100 transition-colors ring-1 ring-blue-200"
           >
             <Phone className="size-3.5 shrink-0" />
             <span className="font-medium">{atleta.telefone}</span>
-            <span className="ml-auto text-xs text-emerald-500">WhatsApp</span>
+            <span className="ml-auto text-xs text-blue-500">WhatsApp</span>
           </a>
         ) : (
           <p className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-400 ring-1 ring-black/5">

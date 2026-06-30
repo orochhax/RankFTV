@@ -24,7 +24,7 @@ const STATUS_LABEL: Record<string, string> = {
   encerrado: "Encerrado",
 };
 const STATUS_COLOR: Record<string, string> = {
-  inscricoes_abertas: "bg-green-100 text-green-700",
+  inscricoes_abertas: "bg-blue-100 text-blue-700",
   em_andamento: "bg-blue-100 text-blue-700",
   encerrado: "bg-gray-100 text-gray-500",
 };

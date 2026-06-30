@@ -403,7 +403,7 @@ export function CamisasClient({
               <div className="hidden sm:flex items-center gap-2">
                 <div className="h-1.5 w-24 overflow-hidden rounded-full bg-gray-100">
                   <div
-                    className="h-full rounded-full bg-emerald-500 transition-all"
+                    className="h-full rounded-full bg-blue-500 transition-all"
                     style={{ width: `${athletes.length ? (totalDone / athletes.length) * 100 : 0}%` }}
                   />
                 </div>
@@ -426,7 +426,7 @@ export function CamisasClient({
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-500">{done} de {total} pronta{total !== 1 ? "s" : ""}</span>
                         {allDone ? (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+                          <span className="flex items-center gap-1 text-[11px] font-semibold text-blue-600">
                             <Check className="size-3" /> Concluído
                           </span>
                         ) : (
@@ -437,7 +437,7 @@ export function CamisasClient({
                         )}
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-gray-100">
-                        <div className={`h-full rounded-full transition-all ${allDone ? "bg-emerald-500" : "bg-blue-400"}`} style={{ width: `${pct}%` }} />
+                        <div className={`h-full rounded-full transition-all ${allDone ? "bg-blue-500" : "bg-blue-400"}`} style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                     <span className="w-12 shrink-0 text-right text-xs font-semibold tabular-nums text-gray-700">{done}/{total}</span>
@@ -550,7 +550,7 @@ export function CamisasClient({
 
                     {/* dot */}
                     {!selectMode && (
-                      <div className={`size-2 shrink-0 rounded-full ${a.produced ? "bg-emerald-500" : "bg-gray-300"}`} />
+                      <div className={`size-2 shrink-0 rounded-full ${a.produced ? "bg-blue-500" : "bg-gray-300"}`} />
                     )}
 
                     {/* nome */}
@@ -575,7 +575,7 @@ export function CamisasClient({
 
                     {/* tag entrega */}
                     {a.dataRetirada ? (
-                      <span className="shrink-0 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Entregue</span>
+                      <span className="shrink-0 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">Entregue</span>
                     ) : (
                       <span className="shrink-0 rounded-md bg-gray-50 px-2 py-0.5 text-[11px] font-bold text-gray-400">Pendente</span>
                     )}
@@ -585,7 +585,7 @@ export function CamisasClient({
                       <button
                         onClick={() => handleToggle(a.athleteId, a.produced)} disabled={isPending}
                         className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-40 ${
-                          a.produced ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          a.produced ? "bg-blue-100 text-blue-700 hover:bg-blue-200" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}>
                         {a.produced
                           ? <span className="flex items-center gap-1"><Check className="size-3" /> Pronta</span>
@@ -616,7 +616,7 @@ export function CamisasClient({
           </span>
           <button
             onClick={handleBulkSelected} disabled={isPending}
-            className="flex items-center gap-1.5 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-400 disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 rounded-xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-400 disabled:opacity-40 transition-colors"
           >
             <Check className="size-4" /> Marcar como prontas
           </button>

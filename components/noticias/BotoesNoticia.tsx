@@ -179,7 +179,7 @@ export function BotoesNoticia({ titulo, tituloStory, tamanhoFonte, imagemUrl }: 
           className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
         >
           {copiado
-            ? <Check className="size-4 text-emerald-500" />
+            ? <Check className="size-4 text-blue-500" />
             : <Share2 className="size-4" />}
           {copiado ? "Link copiado!" : "Compartilhar link"}
         </button>

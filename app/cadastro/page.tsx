@@ -122,7 +122,7 @@ export default function CadastroPage() {
               <Loader2 className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 animate-spin text-gray-400" />
             )}
             {usernameStatus === "ok" && (
-              <CheckCircle2 className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-emerald-500" />
+              <CheckCircle2 className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-blue-500" />
             )}
             {(usernameStatus === "taken" || usernameStatus === "invalid") && (
               <XCircle className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-red-500" />

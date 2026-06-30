@@ -223,7 +223,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
           onClick={handleToggle}
           disabled={pending}
           title={plan.ativo ? "Desativar" : "Ativar"}
-          className={`rounded-lg p-2 ${plan.ativo ? "text-emerald-500 hover:bg-emerald-50" : "text-gray-400 hover:bg-gray-100"}`}
+          className={`rounded-lg p-2 ${plan.ativo ? "text-blue-500 hover:bg-blue-50" : "text-gray-400 hover:bg-gray-100"}`}
         >
           <Power className="size-4" />
         </button>
@@ -335,7 +335,7 @@ export function PlanosAdminClient({ plans, handle }: { plans: Plan[]; handle: st
           {aluguel.length === 0 && !addingAluguel && (
             <button
               onClick={() => setAddingAluguel(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
             >
               <Plus className="size-3.5" /> Habilitar
             </button>

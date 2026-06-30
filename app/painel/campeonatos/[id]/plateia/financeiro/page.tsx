@@ -62,9 +62,9 @@ export default async function FinanceiroPlateiaPage({
           <h1 className="text-2xl font-bold tracking-tight text-white">Financeiro da plateia</h1>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-emerald-500/20 p-4">
-              <p className="text-xs text-emerald-400">Recebido (plateia)</p>
-              <p className="mt-1 text-xl font-bold text-emerald-300">{formatBRL(totalPago)}</p>
+            <div className="rounded-2xl bg-blue-500/20 p-4">
+              <p className="text-xs text-blue-400">Recebido (plateia)</p>
+              <p className="mt-1 text-xl font-bold text-blue-300">{formatBRL(totalPago)}</p>
             </div>
             <div className="rounded-2xl bg-white/10 p-4">
               <p className="text-xs text-white/50">Ingressos pagos</p>
@@ -87,7 +87,7 @@ export default async function FinanceiroPlateiaPage({
           <section>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Status</h2>
             <div className="grid grid-cols-3 gap-3">
-              <Card label="Pagos" count={pagos.length} valor={totalPago} cls="bg-emerald-50 ring-emerald-200 text-emerald-700" />
+              <Card label="Pagos" count={pagos.length} valor={totalPago} cls="bg-blue-50 ring-blue-200 text-blue-700" />
               <Card label="Pendentes" count={pendentes.length} valor={totalPendente} cls="bg-amber-50 ring-amber-200 text-amber-700" />
               <Card label="Estornados" count={estornos.length} valor={totalEstornado} cls="bg-red-50 ring-red-200 text-red-600" />
             </div>

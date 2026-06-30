@@ -175,7 +175,7 @@ export function AccountSettingsForm({ userId, email, initialTelefone }: Props) {
                 <p className="text-xs text-red-600">{passError}</p>
               )}
               {passSuccess && (
-                <p className="flex items-center gap-1 text-xs text-green-600">
+                <p className="flex items-center gap-1 text-xs text-blue-600">
                   <Check className="size-3" /> Senha alterada com sucesso!
                 </p>
               )}

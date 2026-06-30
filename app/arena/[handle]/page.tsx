@@ -152,9 +152,9 @@ export default async function ArenaPainelPage({
             </Link>
             <Link
               href={`/arena/aulas?handle=${arena.handle}`}
-              className="flex flex-col items-center gap-2 rounded-2xl bg-gray-50 py-4 text-center ring-1 ring-black/5 transition-colors hover:bg-emerald-50 hover:ring-emerald-200"
+              className="flex flex-col items-center gap-2 rounded-2xl bg-gray-50 py-4 text-center ring-1 ring-black/5 transition-colors hover:bg-blue-50 hover:ring-blue-200"
             >
-              <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-600">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-blue-600">
                 <Settings className="size-5 text-white" />
               </div>
               <span className="text-xs font-semibold text-gray-700">Horários</span>
@@ -245,7 +245,7 @@ export default async function ArenaPainelPage({
                       className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 ring-1 ring-black/5"
                     >
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
+                        <CheckCircle2 className="size-4 shrink-0 text-blue-500" />
                         <div>
                           <p className="text-sm font-medium text-gray-900">{p?.nome ?? "—"}</p>
                           <p className="text-xs text-gray-400">

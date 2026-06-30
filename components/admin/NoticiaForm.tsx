@@ -136,7 +136,7 @@ export function NoticiaForm() {
       </div>
 
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
-      {ok && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">Notícia publicada!</p>}
+      {ok && <p className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700">Notícia publicada!</p>}
 
       <button
         type="button"

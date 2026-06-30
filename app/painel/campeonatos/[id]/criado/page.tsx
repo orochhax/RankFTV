@@ -74,8 +74,8 @@ export default async function CampeonatoCriadoPage({
       {/* ── Hero preto celebratório ── */}
       <div className="bg-[#0f0f13] px-6 pb-16 pt-12 text-center">
         <div className="mx-auto max-w-2xl">
-          <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-emerald-500/15">
-            <CheckCircle2 className="size-9 text-emerald-400" />
+          <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-blue-500/15">
+            <CheckCircle2 className="size-9 text-blue-400" />
           </div>
           <h1 className="mt-4 text-2xl font-bold text-white">
             {publicado ? "Campeonato no ar! 🎉" : "Campeonato criado! 🎉"}

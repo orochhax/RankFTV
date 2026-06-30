@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const GRADIENT_OPTIONS = [
   { from: "from-blue-500",    to: "to-cyan-400",   label: "Azul" },
-  { from: "from-emerald-500", to: "to-teal-400",   label: "Verde" },
+  { from: "from-blue-500", to: "to-teal-400",   label: "Verde" },
   { from: "from-orange-500",  to: "to-amber-400",  label: "Laranja" },
   { from: "from-violet-500",  to: "to-purple-400", label: "Roxo" },
   { from: "from-rose-500",    to: "to-pink-400",   label: "Rosa" },
@@ -21,7 +21,7 @@ const GRADIENT_OPTIONS = [
 const SOCIALS = [
   { type: "instagram", label: "Instagram", color: "bg-gradient-to-br from-pink-500 to-orange-400", placeholder: "https://instagram.com/rankftv" },
   { type: "tiktok",    label: "TikTok",    color: "bg-black",                                       placeholder: "https://tiktok.com/@rankftv" },
-  { type: "whatsapp",  label: "WhatsApp",  color: "bg-green-500",                                   placeholder: "https://wa.me/5511999999999" },
+  { type: "whatsapp",  label: "WhatsApp",  color: "bg-blue-500",                                   placeholder: "https://wa.me/5511999999999" },
   { type: "facebook",  label: "Facebook",  color: "bg-blue-600",                                    placeholder: "https://facebook.com/rankftv" },
   { type: "youtube",   label: "YouTube",   color: "bg-red-600",                                     placeholder: "https://youtube.com/@rankftv" },
 ] as const;
@@ -254,13 +254,13 @@ export function NovaPaginaForm() {
           />
           <div className="absolute right-3">
             {handleStatus === "checking" && <Loader2 className="size-4 animate-spin text-gray-400" />}
-            {handleStatus === "ok"       && <CheckCircle2 className="size-4 text-emerald-500" />}
+            {handleStatus === "ok"       && <CheckCircle2 className="size-4 text-blue-500" />}
             {(handleStatus === "taken" || handleStatus === "invalid") && <XCircle className="size-4 text-red-500" />}
           </div>
         </div>
         {handleStatus === "taken"   && <p className="text-xs text-red-600">Esse @ já está em uso. Escolha outro.</p>}
         {handleStatus === "invalid" && <p className="text-xs text-red-600">Só letras minúsculas, números e hífens (mín. 3 caracteres).</p>}
-        {handleStatus === "ok"      && <p className="text-xs text-emerald-600">@ disponível!</p>}
+        {handleStatus === "ok"      && <p className="text-xs text-blue-600">@ disponível!</p>}
         {handleStatus === "idle"    && <p className="text-xs text-gray-400">Letras minúsculas, números e hífens · aparece na URL da página</p>}
       </div>
 

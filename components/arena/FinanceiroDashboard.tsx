@@ -256,7 +256,7 @@ export function FinanceiroDashboard({
 
                 {/* Tendência */}
                 {a.trend === "up" && (
-                  <TrendingUp className="size-4 shrink-0 text-emerald-500" />
+                  <TrendingUp className="size-4 shrink-0 text-blue-500" />
                 )}
                 {a.trend === "down" && (
                   <TrendingDown className="size-4 shrink-0 text-red-400" />

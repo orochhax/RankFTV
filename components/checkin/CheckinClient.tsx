@@ -47,7 +47,7 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
   };
 
   const TOAST_STYLE: Record<ToastType, string> = {
-    success: "bg-emerald-500 text-white",
+    success: "bg-blue-500 text-white",
     already: "bg-amber-500 text-white",
     error: "bg-red-500 text-white",
   };

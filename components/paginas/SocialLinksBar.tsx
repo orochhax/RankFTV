@@ -21,7 +21,7 @@ const DEFAULTS: SocialLink[] = [
 const META: Record<SocialLink["type"], { label: string; color: string; placeholder: string }> = {
   instagram: { label: "Instagram", color: "bg-gradient-to-br from-pink-500 to-orange-400", placeholder: "https://instagram.com/..." },
   tiktok:    { label: "TikTok",    color: "bg-black",                                       placeholder: "https://tiktok.com/@..." },
-  whatsapp:  { label: "WhatsApp",  color: "bg-green-500",                                   placeholder: "https://wa.me/55..." },
+  whatsapp:  { label: "WhatsApp",  color: "bg-blue-500",                                   placeholder: "https://wa.me/55..." },
   facebook:  { label: "Facebook",  color: "bg-blue-600",                                    placeholder: "https://facebook.com/..." },
   youtube:   { label: "YouTube",   color: "bg-red-600",                                     placeholder: "https://youtube.com/@..." },
 };
@@ -111,7 +111,7 @@ export function SocialLinksBar({
   return (
     <div className="space-y-2">
       {saved && (
-        <p className="text-xs text-green-600 text-right">Salvo ✓</p>
+        <p className="text-xs text-blue-600 text-right">Salvo ✓</p>
       )}
       {/* Public preview */}
       {publicLinks.length > 0 && (

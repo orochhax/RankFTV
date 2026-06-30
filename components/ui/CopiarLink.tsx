@@ -21,7 +21,7 @@ export function CopiarLink({ link }: { link: string }) {
     >
       <span className="min-w-0 flex-1 truncate text-xs text-blue-700">{link}</span>
       {copiado ? (
-        <Check className="size-4 shrink-0 text-emerald-600" />
+        <Check className="size-4 shrink-0 text-blue-600" />
       ) : (
         <Copy className="size-4 shrink-0 text-blue-500" />
       )}
