@@ -2,10 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   Building2,
-  CalendarDays,
   ChevronRight,
   CheckCircle2,
-  Clock,
   LayoutDashboard,
   Plus,
   QrCode,
@@ -28,7 +26,6 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyChampionships } from "@/lib/supabase/championships";
-import { formatBRL, formatDateRangeBR } from "@/lib/format";
 
 const DORES = [
   { icon: MessageSquare, texto: "Perseguir no WhatsApp quem ainda não pagou" },
@@ -293,18 +290,27 @@ export default async function PainelOrganizadorPage() {
             <section>
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Status dos campeonatos</h2>
               <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 text-center">
-                  <p className="text-2xl font-bold text-blue-700">{campsAbertos}</p>
-                  <p className="mt-1 text-xs text-blue-600">Inscrições abertas</p>
-                </div>
-                <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 text-center">
-                  <p className="text-2xl font-bold text-blue-700">{campsAndamento}</p>
-                  <p className="mt-1 text-xs text-blue-600">Em andamento</p>
-                </div>
-                <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-gray-100 text-center">
-                  <p className="text-2xl font-bold text-gray-600">{campsEncerrados}</p>
-                  <p className="mt-1 text-xs text-gray-500">Encerrados</p>
-                </div>
+                {[
+                  { valor: campsAbertos,    label: "Inscrições abertas" },
+                  { valor: campsAndamento,  label: "Em andamento" },
+                  { valor: campsEncerrados, label: "Encerrados" },
+                ].map(({ valor, label }) => (
+                  <div
+                    key={label}
+                    className={`rounded-2xl p-4 ring-1 text-center ${
+                      valor > 0
+                        ? "bg-blue-50 ring-blue-100"
+                        : "bg-gray-50 ring-gray-100"
+                    }`}
+                  >
+                    <p className={`text-2xl font-bold ${valor > 0 ? "text-blue-700" : "text-gray-400"}`}>
+                      {valor}
+                    </p>
+                    <p className={`mt-1 text-xs ${valor > 0 ? "text-blue-600" : "text-gray-400"}`}>
+                      {label}
+                    </p>
+                  </div>
+                ))}
               </div>
             </section>
 
@@ -313,25 +319,34 @@ export default async function PainelOrganizadorPage() {
               <section>
                 <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Status da arena</h2>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 text-center">
-                    <p className="text-2xl font-bold text-blue-700">{alunosAtivos.length}</p>
-                    <p className="mt-1 text-xs text-blue-600">Alunos mensalistas</p>
-                  </div>
-                  <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-gray-100 text-center">
-                    <p className="text-2xl font-bold text-gray-700">{rentaisMes.length}</p>
-                    <p className="mt-1 text-xs text-gray-500">Aluguéis no mês</p>
-                  </div>
-                  <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-gray-100 text-center">
-                    <p className="text-2xl font-bold text-gray-700">{diariasMes.length}</p>
-                    <p className="mt-1 text-xs text-gray-500">Diárias no mês</p>
-                  </div>
+                  {[
+                    { valor: alunosAtivos.length, label: "Alunos mensalistas" },
+                    { valor: rentaisMes.length,   label: "Aluguéis no mês" },
+                    { valor: diariasMes.length,   label: "Diárias no mês" },
+                  ].map(({ valor, label }) => (
+                    <div
+                      key={label}
+                      className={`rounded-2xl p-4 ring-1 text-center ${
+                        valor > 0
+                          ? "bg-blue-50 ring-blue-100"
+                          : "bg-gray-50 ring-gray-100"
+                      }`}
+                    >
+                      <p className={`text-2xl font-bold ${valor > 0 ? "text-blue-700" : "text-gray-400"}`}>
+                        {valor}
+                      </p>
+                      <p className={`mt-1 text-xs ${valor > 0 ? "text-blue-600" : "text-gray-400"}`}>
+                        {label}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </section>
             )}
 
-            {/* Financeiro consolidado */}
+            {/* Financeiro por Categoria */}
             <section>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Financeiro consolidado</h2>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Financeiro por categoria</h2>
               <div className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
                 {/* Saldo de atletas */}
                 <div className="flex items-center justify-between px-5 py-4">
@@ -358,22 +373,6 @@ export default async function PainelOrganizadorPage() {
                     </div>
                   </div>
                   <p className="font-semibold text-gray-900">{fmt(totalPlateia)}</p>
-                </div>
-                {/* Pendente */}
-                <div className="flex items-center justify-between px-5 py-4">
-                  <div className="flex items-center gap-2">
-                    <Clock className="size-4 text-amber-500" />
-                    <p className="text-sm text-gray-700">Pendente de pagamento</p>
-                  </div>
-                  <p className="font-semibold text-amber-600">{fmt(totalPendente)}</p>
-                </div>
-                {/* Estornado */}
-                <div className="flex items-center justify-between px-5 py-4">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="size-4 text-red-400" />
-                    <p className="text-sm text-gray-700">Estornado</p>
-                  </div>
-                  <p className="font-semibold text-red-500">{fmt(totalEstornado)}</p>
                 </div>
                 {/* MRR */}
                 {arenaIds.length > 0 && (
@@ -405,40 +404,6 @@ export default async function PainelOrganizadorPage() {
                 )}
               </div>
             </section>
-
-            {/* Campeonatos recentes */}
-            {todos.length > 0 && (
-              <section>
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">Campeonatos recentes</h2>
-                  <Link href="/painel/campeonatos" className="text-xs font-medium text-blue-600 hover:text-blue-700">
-                    Ver todos →
-                  </Link>
-                </div>
-                <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-                  {[...todos]
-                    .sort((a, b) => b.dataInicio.localeCompare(a.dataInicio))
-                    .slice(0, 5)
-                    .map((c) => (
-                      <li key={c.id}>
-                        <Link
-                          href={c.status === "rascunho" ? `/painel/campeonatos/${c.id}/criado` : `/painel/campeonatos/${c.id}`}
-                          className="flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-gray-50"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-medium text-gray-900">{c.nome}</p>
-                            <p className="text-xs text-gray-400">
-                              <CalendarDays className="mr-1 inline size-3" />
-                              {formatDateRangeBR(c.dataInicio, c.dataFim)}
-                            </p>
-                          </div>
-                          <ChevronRight className="size-4 shrink-0 text-gray-300" />
-                        </Link>
-                      </li>
-                    ))}
-                </ol>
-              </section>
-            )}
 
             <Link
               href="/termos"
