@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Clock, Users } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CheckinClient } from "@/components/checkin/CheckinClient";
 import { PresenceItem } from "@/components/checkin/PresenceItem";
@@ -137,7 +137,6 @@ export default async function CheckinPage({
             </div>
             <div className="rounded-2xl bg-white/10 p-4">
               <div className="flex items-center gap-1.5 text-white/50">
-                <Clock className="size-4" />
                 <p className="text-xs">Pendentes</p>
               </div>
               <p className="mt-1 text-2xl font-bold text-white">{pendentes}</p>
@@ -211,7 +210,7 @@ export default async function CheckinPage({
                     // Pendente — linha simples
                     <li key={c.id} className="flex items-center gap-3 px-4 py-3">
                       <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
-                        <Clock className="size-4 text-gray-400" />
+                        <span className="text-xs font-bold text-gray-400">?</span>
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-gray-900">{c.nome}</p>
