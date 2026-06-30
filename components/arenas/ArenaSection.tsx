@@ -87,7 +87,7 @@ export function ArenaSection({
         </p>
       ) : (
         <>
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {exibidos.map((a) => (
               <ArenaCard key={a.id} arena={a} />
             ))}
