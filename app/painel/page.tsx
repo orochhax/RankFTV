@@ -4,10 +4,10 @@ import {
   Building2,
   CalendarDays,
   ChevronRight,
+  CheckCircle2,
+  Clock,
   LayoutDashboard,
-  MapPin,
   Plus,
-  Tag,
   QrCode,
   Wallet,
   Network,
@@ -18,14 +18,15 @@ import {
   MessageSquare,
   ClipboardList,
   UserX,
-  CheckCircle2,
   FileText,
+  Tag,
+  TrendingUp,
   Trophy,
+  Users,
 } from "lucide-react";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { createClient } from "@/lib/supabase/server";
 import { getMyChampionships } from "@/lib/supabase/championships";
-import { formatDateRangeBR } from "@/lib/format";
+import { formatBRL, formatDateRangeBR } from "@/lib/format";
 
 // Dores do organizador hoje (agitação) — ver funil de conversão.
 const DORES = [
@@ -68,12 +69,7 @@ const FEATURES = [
   },
 ];
 
-export default async function PainelOrganizadorPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ filtro?: string }>;
-}) {
-  const { filtro } = await searchParams;
+export default async function PainelOrganizadorPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -102,38 +98,30 @@ export default async function PainelOrganizadorPage({
     arenaCount = arenaRes.count ?? 0;
   }
 
-  // Caso 3 — já tem conta de organizador OU já criou algum campeonato (mesmo
-  // rascunho, antes de completar CPF/PIX) → mostra o painel real com a lista.
+  // Caso 3 — já tem conta de organizador OU já criou algum campeonato
   if (user && (isOrganizer || todos.length > 0)) {
-    const abertos  = todos.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento");
-    const rascunhos = todos.filter((c) => c.status === "rascunho");
-    const encerrados = todos.filter((c) => c.status === "encerrado");
+    const abertos      = todos.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento");
+    const campsAbertos  = todos.filter((c) => c.status === "inscricoes_abertas").length;
+    const campsAndamento = todos.filter((c) => c.status === "em_andamento").length;
+    const campsEncerrados = todos.filter((c) => c.status === "encerrado").length;
 
-    // Padrão: abertos ordenados do mais próximo pro mais distante.
-    // Filtro ativo: rascunhos ou encerrados.
-    const filtroAtivo =
-      filtro === "rascunho" ? "rascunho" :
-      filtro === "encerrado" ? "encerrado" :
-      filtro === "todos" ? "todos" : "aberto";
-
-    const lista =
-      filtroAtivo === "rascunho"  ? rascunhos :
-      filtroAtivo === "encerrado" ? [...encerrados].sort((a, b) => b.dataInicio.localeCompare(a.dataInicio)) :
-      filtroAtivo === "todos"     ? [...todos].sort((a, b) => a.dataInicio.localeCompare(b.dataInicio)) :
-      [...abertos].sort((a, b) => a.dataInicio.localeCompare(b.dataInicio));
-
-    const FILTROS = [
-      { key: "todos",     label: `Todos (${todos.length})` },
-      { key: "aberto",    label: `Abertos (${abertos.length})` },
-      { key: "rascunho",  label: `Rascunhos (${rascunhos.length})` },
-      { key: "encerrado", label: `Encerrados (${encerrados.length})` },
-    ];
+    // Financeiro consolidado
+    const ids = todos.map((c) => c.id);
+    const { data: regs } = ids.length > 0
+      ? await supabase.from("registrations").select("valor, status_pagamento").in("championship_id", ids)
+      : { data: [] };
+    const regsPagas    = (regs ?? []).filter((r) => r.status_pagamento === "pago");
+    const regsPendente = (regs ?? []).filter((r) => r.status_pagamento === "pendente");
+    const regsEstorno  = (regs ?? []).filter((r) => r.status_pagamento === "estornado");
+    const totalBruto    = regsPagas.reduce((s, r) => s + Number(r.valor), 0);
+    const totalPendente = regsPendente.reduce((s, r) => s + Number(r.valor), 0);
+    const totalEstornado = regsEstorno.reduce((s, r) => s + Number(r.valor), 0);
 
     return (
       <div className="min-h-screen">
         {/* ── Cabeçalho preto ── */}
         <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
-          <div className="mx-auto max-w-4xl space-y-6">
+          <div className="mx-auto max-w-4xl space-y-5">
             <h1 className="text-2xl font-bold tracking-tight text-white">Painel do organizador</h1>
             <div className="flex items-center gap-2">
               <Link
@@ -150,13 +138,12 @@ export default async function PainelOrganizadorPage({
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            {/* Cards de resumo */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-2xl bg-white/10 p-4">
                 <p className="text-xs text-white/50">Campeonatos</p>
                 <p className="text-2xl font-bold text-white">{todos.length}</p>
-                <p className="mt-1 text-[11px] text-white/40">
-                  {abertos.length} abertos · {todos.filter(c => c.status === "em_andamento").length} em andamento
-                </p>
+                <p className="mt-1 text-[11px] text-white/40">{abertos.length} abertos</p>
               </div>
               <div className="rounded-2xl bg-white/10 p-4">
                 <p className="text-xs text-white/50">Arenas</p>
@@ -165,23 +152,20 @@ export default async function PainelOrganizadorPage({
                   {arenaCount === 0 ? "nenhuma ainda" : arenaCount === 1 ? "ativa" : "ativas"}
                 </p>
               </div>
+              <div className="rounded-2xl bg-blue-500/20 p-4">
+                <p className="text-xs text-blue-400">Saldo bruto</p>
+                <p className="text-xl font-bold text-blue-300">{formatBRL(totalBruto)}</p>
+                <p className="mt-1 text-[11px] text-blue-400/60">{regsPagas.length} duplas pagas</p>
+              </div>
+              <div className="rounded-2xl bg-white/10 p-4">
+                <p className="text-xs text-white/50">Pendente</p>
+                <p className="text-xl font-bold text-amber-300">{formatBRL(totalPendente)}</p>
+                <p className="mt-1 text-[11px] text-white/40">{regsPendente.length} aguardando</p>
+              </div>
             </div>
 
-            {/* Atalhos do painel */}
+            {/* Atalhos */}
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <Link
-                href="/painel/geral"
-                className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
-              >
-                <div className="flex items-center gap-3">
-                  <LayoutDashboard className="size-5 text-blue-400" />
-                  <div>
-                    <p className="font-semibold text-white">Painel Geral</p>
-                    <p className="text-xs text-white/40">Consolidado de todos os campeonatos</p>
-                  </div>
-                </div>
-                <ChevronRight className="size-4 text-white/30" />
-              </Link>
               <Link
                 href="/arena"
                 className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
@@ -196,7 +180,7 @@ export default async function PainelOrganizadorPage({
                 <ChevronRight className="size-4 text-white/30" />
               </Link>
               <Link
-                href="/painel?filtro=todos"
+                href="/painel/campeonatos"
                 className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
               >
                 <div className="flex items-center gap-3">
@@ -208,84 +192,113 @@ export default async function PainelOrganizadorPage({
                 </div>
                 <ChevronRight className="size-4 text-white/30" />
               </Link>
+              <Link
+                href="/painel/geral"
+                className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
+              >
+                <div className="flex items-center gap-3">
+                  <LayoutDashboard className="size-5 text-blue-400" />
+                  <div>
+                    <p className="font-semibold text-white">Relatório detalhado</p>
+                    <p className="text-xs text-white/40">Financeiro por período</p>
+                  </div>
+                </div>
+                <ChevronRight className="size-4 text-white/30" />
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* ── Lista de campeonatos ── */}
+        {/* ── Seção branca — Painel Geral ── */}
         <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-          <div className="mx-auto max-w-4xl space-y-4">
+          <div className="mx-auto max-w-4xl space-y-8">
 
-            {/* Filtros */}
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {FILTROS.map(({ key, label }) => (
-                <Link
-                  key={key}
-                  href={key === "aberto" ? "/painel" : `/painel?filtro=${key}`}
-                  className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                    filtroAtivo === key
-                      ? "bg-gray-900 text-white"
-                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                  }`}
-                >
-                  {label}
-                </Link>
-              ))}
-            </div>
-
-            {lista.length === 0 ? (
-              <div className="rounded-2xl bg-gray-50 p-8 text-center ring-1 ring-black/5">
-                <p className="text-sm text-gray-500">
-                  {filtroAtivo === "aberto"   ? "Nenhum campeonato aberto no momento." :
-                   filtroAtivo === "rascunho" ? "Nenhum rascunho salvo." :
-                   filtroAtivo === "todos"    ? "Nenhum campeonato criado ainda." :
-                                               "Nenhum campeonato encerrado."}
-                </p>
-                {filtroAtivo === "aberto" && (
-                  <Link
-                    href="/painel/novo-campeonato"
-                    className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-                  >
-                    <Plus className="size-4" /> Criar campeonato
-                  </Link>
-                )}
+            {/* Status dos campeonatos */}
+            <section>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Status dos campeonatos</h2>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 text-center">
+                  <p className="text-2xl font-bold text-blue-700">{campsAbertos}</p>
+                  <p className="mt-1 text-xs text-blue-600">Inscrições abertas</p>
+                </div>
+                <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 text-center">
+                  <p className="text-2xl font-bold text-blue-700">{campsAndamento}</p>
+                  <p className="mt-1 text-xs text-blue-600">Em andamento</p>
+                </div>
+                <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-gray-100 text-center">
+                  <p className="text-2xl font-bold text-gray-600">{campsEncerrados}</p>
+                  <p className="mt-1 text-xs text-gray-500">Encerrados</p>
+                </div>
               </div>
-            ) : (
-              <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-                {lista.map((c) => (
-                  <li key={c.id}>
-                    <Link
-                      href={
-                        c.status === "rascunho"
-                          ? `/painel/campeonatos/${c.id}/criado`
-                          : `/painel/campeonatos/${c.id}`
-                      }
-                      className="flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-gray-50"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-gray-900">{c.nome}</p>
-                        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-400">
-                          <span className="flex items-center gap-1">
-                            <CalendarDays className="size-3" />
-                            {formatDateRangeBR(c.dataInicio, c.dataFim)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="size-3" />
-                            {c.cidade}-{c.estado}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Tag className="size-3" />
-                            {c.categorias.length}{" "}
-                            {c.categorias.length === 1 ? "categoria" : "categorias"}
-                          </span>
-                        </div>
-                      </div>
-                      <StatusBadge status={c.status} />
-                      <ChevronRight className="size-4 shrink-0 text-gray-300" />
-                    </Link>
-                  </li>
-                ))}
-              </ol>
+            </section>
+
+            {/* Financeiro consolidado */}
+            <section>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Financeiro consolidado</h2>
+              <div className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
+                <div className="flex items-center justify-between px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="size-4 text-blue-500" />
+                    <p className="text-sm text-gray-700">Saldo bruto (recebido)</p>
+                  </div>
+                  <p className="font-semibold text-gray-900">{formatBRL(totalBruto)}</p>
+                </div>
+                <div className="flex items-center justify-between px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="size-4 text-blue-500" />
+                    <p className="text-sm text-gray-700">Duplas pagas</p>
+                  </div>
+                  <p className="font-semibold text-gray-900">{regsPagas.length}</p>
+                </div>
+                <div className="flex items-center justify-between px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="size-4 text-amber-500" />
+                    <p className="text-sm text-gray-700">Pendente de pagamento</p>
+                  </div>
+                  <p className="font-semibold text-amber-600">{formatBRL(totalPendente)}</p>
+                </div>
+                <div className="flex items-center justify-between px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="size-4 text-red-400" />
+                    <p className="text-sm text-gray-700">Estornado</p>
+                  </div>
+                  <p className="font-semibold text-red-500">{formatBRL(totalEstornado)}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* Campeonatos recentes */}
+            {todos.length > 0 && (
+              <section>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">Campeonatos recentes</h2>
+                  <Link href="/painel/campeonatos" className="text-xs font-medium text-blue-600 hover:text-blue-700">
+                    Ver todos →
+                  </Link>
+                </div>
+                <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
+                  {[...todos]
+                    .sort((a, b) => b.dataInicio.localeCompare(a.dataInicio))
+                    .slice(0, 5)
+                    .map((c) => (
+                      <li key={c.id}>
+                        <Link
+                          href={c.status === "rascunho" ? `/painel/campeonatos/${c.id}/criado` : `/painel/campeonatos/${c.id}`}
+                          className="flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-gray-50"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium text-gray-900">{c.nome}</p>
+                            <p className="text-xs text-gray-400">
+                              <CalendarDays className="mr-1 inline size-3" />
+                              {formatDateRangeBR(c.dataInicio, c.dataFim)}
+                            </p>
+                          </div>
+                          <ChevronRight className="size-4 shrink-0 text-gray-300" />
+                        </Link>
+                      </li>
+                    ))}
+                </ol>
+              </section>
             )}
 
             <Link
