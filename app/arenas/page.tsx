@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, Plus } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { DestaquesArenasCarousel, type ArenaDestaque } from "@/components/arenas/DestaquesArenasCarousel";
 import { ArenaSection } from "@/components/arenas/ArenaSection";
 import type { ArenaCardData, ProximaData } from "@/components/arenas/ArenaCard";
@@ -121,14 +121,8 @@ export default async function ArenasPage() {
         <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-12 shadow-sm">
           <div className="mx-auto max-w-5xl py-12 text-center">
             <Building2 className="mx-auto mb-4 size-12 text-gray-200" />
-            <p className="font-semibold text-gray-700">Em breve</p>
-            <p className="mt-1 text-sm text-gray-400">As primeiras arenas parceiras chegam em breve.</p>
-            <Link
-              href="/perfil/ativar-arena"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              <Plus className="size-4" /> Cadastrar minha arena
-            </Link>
+            <p className="font-semibold text-gray-700">Nenhuma arena encontrada</p>
+            <p className="mt-1 text-sm text-gray-400">Ainda não há arenas cadastradas na plataforma.</p>
           </div>
         </div>
       </div>
