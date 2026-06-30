@@ -22,11 +22,12 @@ const H = 1920;
 export async function GET(req: NextRequest) {
   try {
     const sp = req.nextUrl.searchParams;
-    const titulo = sp.get("titulo") || "TAFC 54 - Bahia - Porto Seguro";
-    const campea = (sp.get("campea") || "Carlos e Gustavo").toUpperCase();
-    const vice   = (sp.get("vice") || "Maicon e Lucas").toUpperCase();
-    const marca  = (sp.get("marca") || "TAFC").toUpperCase();
-    const setsRaw = sp.get("sets") || "18-16,18-15";
+    const titulo   = sp.get("titulo") || "TAFC 54 - Bahia - Porto Seguro";
+    const campea   = (sp.get("campea") || "Carlos e Gustavo").toUpperCase();
+    const vice     = (sp.get("vice") || "Maicon e Lucas").toUpperCase();
+    const marca    = (sp.get("marca") || "TAFC").toUpperCase();
+    const setsRaw  = sp.get("sets") || "18-16,18-15";
+    const fundoSolido = sp.get("fundo") === "solido";
 
     // "18-16,18-15" → campea [18,18], vice [16,15]
     const pares = setsRaw
@@ -84,6 +85,19 @@ export async function GET(req: NextRequest) {
             // SEM background → PNG transparente no miolo
           }}
         >
+          {/* Fundo sólido opcional — cobre tudo quando fundo=solido */}
+          {fundoSolido && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                backgroundImage:
+                  "linear-gradient(180deg, #0d0d0d 0%, #1c1c1c 60%, #0d0d0d 100%)",
+              }}
+            />
+          )}
+
           {/* Scrim de cima (degradê escuro pra ler o título) */}
           {/* Padding top 300px = seguro abaixo do avatar+@ do Instagram */}
           <div

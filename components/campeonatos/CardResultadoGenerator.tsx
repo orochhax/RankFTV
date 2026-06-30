@@ -21,6 +21,7 @@ export function CardResultadoGenerator({ tituloInicial, marcaInicial }: Props) {
   const [s2v, setS2v] = useState("");
   const [s3c, setS3c] = useState("");
   const [s3v, setS3v] = useState("");
+  const [fundoSolido, setFundoSolido] = useState(false);
   const [baixando, setBaixando] = useState(false);
 
   // Monta "18-16,18-15,15-12" só com os sets preenchidos (até 3 sets)
@@ -39,8 +40,9 @@ export function CardResultadoGenerator({ tituloInicial, marcaInicial }: Props) {
     if (vice) p.set("vice", vice);
     if (sets) p.set("sets", sets);
     p.set("marca", marca);
+    if (fundoSolido) p.set("fundo", "solido");
     return `/api/card-resultado?${p.toString()}`;
-  }, [titulo, campea, vice, sets, marca]);
+  }, [titulo, campea, vice, sets, marca, fundoSolido]);
 
   async function baixar() {
     setBaixando(true);
@@ -112,6 +114,33 @@ export function CardResultadoGenerator({ tituloInicial, marcaInicial }: Props) {
         <div>
           <label className="block text-sm font-medium text-gray-700">Marca / circuito (rodapé esquerdo)</label>
           <input className={`mt-1 ${input}`} value={marca} onChange={(e) => setMarca(e.target.value)} placeholder="TAFC" />
+        </div>
+
+        {/* Toggle de fundo */}
+        <div className="flex items-center gap-3 rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
+          <span className="flex-1 text-sm font-medium text-gray-700">Fundo</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFundoSolido(false)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                !fundoSolido
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-500 ring-1 ring-gray-200 hover:bg-gray-100"
+              }`}
+            >
+              Transparente
+            </button>
+            <button
+              onClick={() => setFundoSolido(true)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                fundoSolido
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-500 ring-1 ring-gray-200 hover:bg-gray-100"
+              }`}
+            >
+              Preto
+            </button>
+          </div>
         </div>
 
         <button
