@@ -4,7 +4,6 @@ import {
   Building2,
   ChevronRight,
   CheckCircle2,
-  LayoutDashboard,
   Plus,
   QrCode,
   Wallet,
@@ -257,19 +256,6 @@ export default async function PainelOrganizadorPage() {
                   <div>
                     <p className="font-semibold text-white">Meus Campeonatos</p>
                     <p className="text-xs text-white/40">Categorias, inscrições e resultados</p>
-                  </div>
-                </div>
-                <ChevronRight className="size-4 text-white/30" />
-              </Link>
-              <Link
-                href="/painel/geral"
-                className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white transition-colors hover:bg-white/15"
-              >
-                <div className="flex items-center gap-3">
-                  <LayoutDashboard className="size-5 text-blue-400" />
-                  <div>
-                    <p className="font-semibold text-white">Relatório detalhado</p>
-                    <p className="text-xs text-white/40">Financeiro por período</p>
                   </div>
                 </div>
                 <ChevronRight className="size-4 text-white/30" />
