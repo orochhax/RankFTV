@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Crown, DollarSign, Eye, EyeOff, ChevronRight, Info } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { PRECO_ELITE } from "@/lib/elite";
+import { GraficoVendasDiarias } from "@/components/painel/GraficoVendasDiarias";
+import type { DiaVenda } from "@/app/painel/campeonatos/[id]/financeiro/page";
 
 type StatusCardData = {
   slug: string;
@@ -36,6 +38,7 @@ type Props = {
   catMap: Record<string, CatSummary>;
   isElite: boolean;
   feePendente: number;
+  vendasDiarias: DiaVenda[];
 };
 
 export function FinanceiroConteudoClient({
@@ -49,6 +52,7 @@ export function FinanceiroConteudoClient({
   catMap,
   isElite,
   feePendente,
+  vendasDiarias,
 }: Props) {
   const [mostrar, setMostrar] = useState(true);
   const val = (v: number) => (mostrar ? formatBRL(v) : "R$ ••••••");
@@ -118,6 +122,18 @@ export function FinanceiroConteudoClient({
             automaticamente dos repasses das suas próximas inscrições pagas — sem nenhum custo no bolso.
           </p>
         </div>
+      )}
+
+      {/* Gráfico de vendas diárias */}
+      {vendasDiarias.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+            Vendas por dia
+          </h2>
+          <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+            <GraficoVendasDiarias dados={vendasDiarias} />
+          </div>
+        </section>
       )}
 
       {/* Status dos pagamentos */}

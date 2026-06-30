@@ -13,7 +13,15 @@ type RegRow = {
   status_pagamento: "pago" | "pendente" | "estornado";
   billing_type: string | null;
   category_id: string;
+  created_at: string;
   championship_categories: { id: string; nome: string; genero: string } | null;
+};
+
+export type DiaVenda = {
+  data: string;   // "2026-06-01"
+  label: string;  // "01/06"
+  total: number;
+  count: number;
 };
 
 export default async function FinanceiroPage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,10 +44,17 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const isElite     = !!champExtra?.is_elite;
   const feePendente = Number(champExtra?.premium_fee_pendente ?? 0);
 
-  const { data: rawRegs } = await supabase
-    .from("registrations")
-    .select(`id, valor, status_pagamento, billing_type, category_id, championship_categories(id, nome, genero)`)
-    .eq("championship_id", id);
+  const [{ data: rawRegs }, { data: champDates }] = await Promise.all([
+    supabase
+      .from("registrations")
+      .select(`id, valor, status_pagamento, billing_type, category_id, created_at, championship_categories(id, nome, genero)`)
+      .eq("championship_id", id),
+    supabase
+      .from("championships")
+      .select("prevenda_inicio, inscricoes_inicio, data_inicio")
+      .eq("id", id)
+      .single(),
+  ]);
 
   const regs: RegRow[] = (rawRegs ?? []) as unknown as RegRow[];
 
@@ -93,6 +108,44 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     },
   ];
 
+  // Gráfico de vendas diárias — do início da pré-venda (ou inscrição) até hoje
+  const dataInicioChart =
+    champDates?.prevenda_inicio ??
+    champDates?.inscricoes_inicio ??
+    champDates?.data_inicio ??
+    camp.dataInicio;
+
+  const vendasDiarias: DiaVenda[] = (() => {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const inicio = new Date(dataInicioChart + "T00:00:00");
+    if (inicio > hoje) return [];
+
+    const diasMap: Record<string, { total: number; count: number }> = {};
+    for (const r of regs) {
+      if (r.status_pagamento !== "pago") continue;
+      const dia = r.created_at.slice(0, 10);
+      if (!diasMap[dia]) diasMap[dia] = { total: 0, count: 0 };
+      diasMap[dia].total += Number(r.valor);
+      diasMap[dia].count += 1;
+    }
+
+    const result: DiaVenda[] = [];
+    const cur = new Date(inicio);
+    while (cur <= hoje) {
+      const iso = cur.toISOString().slice(0, 10);
+      const [, m, d] = iso.split("-");
+      result.push({
+        data: iso,
+        label: `${d}/${m}`,
+        total: diasMap[iso]?.total ?? 0,
+        count: diasMap[iso]?.count ?? 0,
+      });
+      cur.setDate(cur.getDate() + 1);
+    }
+    return result;
+  })();
+
   const categorias = camp.categorias.map((c) => ({
     id: c.id,
     nome: c.nome,
@@ -125,6 +178,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
             catMap={catMap}
             isElite={isElite}
             feePendente={feePendente}
+            vendasDiarias={vendasDiarias}
           />
           <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} permitirCancelar />
         </div>
