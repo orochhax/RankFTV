@@ -119,23 +119,23 @@ export function CardResultadoGenerator({ tituloInicial, marcaInicial }: Props) {
         {/* Toggle de fundo */}
         <div className="flex items-center gap-3 rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
           <span className="flex-1 text-sm font-medium text-gray-700">Fundo</span>
-          <div className="flex gap-2">
+          <div className="flex rounded-lg overflow-hidden ring-1 ring-gray-200">
             <button
               onClick={() => setFundoSolido(false)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+              className={`px-4 py-2 text-xs font-semibold transition-colors ${
                 !fundoSolido
                   ? "bg-gray-900 text-white"
-                  : "bg-white text-gray-500 ring-1 ring-gray-200 hover:bg-gray-100"
+                  : "bg-white text-gray-400 hover:bg-gray-50"
               }`}
             >
               Transparente
             </button>
             <button
               onClick={() => setFundoSolido(true)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+              className={`px-4 py-2 text-xs font-semibold transition-colors border-l border-gray-200 ${
                 fundoSolido
                   ? "bg-gray-900 text-white"
-                  : "bg-white text-gray-500 ring-1 ring-gray-200 hover:bg-gray-100"
+                  : "bg-white text-gray-400 hover:bg-gray-50"
               }`}
             >
               Preto
@@ -168,7 +168,7 @@ export function CardResultadoGenerator({ tituloInicial, marcaInicial }: Props) {
           style={{ aspectRatio: "1080 / 1920", background: "linear-gradient(135deg,#374151,#9ca3af)" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt="Prévia do card" className="h-full w-full object-contain" />
+          <img key={url} src={url} alt="Prévia do card" className="h-full w-full object-contain" />
         </div>
         <p className="text-center text-xs text-gray-400">
           Fundo cinza só pra visualizar — no PNG ele é transparente.
