@@ -145,7 +145,7 @@ export async function createChampionship(
         championship_id:  champ.id,
         nome:             c.nome.trim(),
         genero:           c.genero,
-        valor_inscricao:  Math.max(0, Math.round(Number(c.valorInscricao) || 0)),
+        valor_inscricao:  Math.max(0, Number(c.valorInscricao) || 0),
         corte_rating_min: faixa?.min ?? 0,
         corte_rating_max: faixa?.max ?? 9999,
         max_duplas:       c.maxDuplas && c.maxDuplas > 0 ? c.maxDuplas : null,
@@ -168,7 +168,7 @@ export async function createChampionship(
     const ingRows = ingressos.map((i, idx) => ({
       championship_id: champ.id,
       nome:            i.nome.trim(),
-      valor:           Math.max(0, Math.round(Number(i.valor) || 0)),
+      valor:           Math.max(0, Number(i.valor) || 0),
       max_quantidade:  i.maxQuantidade && i.maxQuantidade > 0 ? Math.floor(i.maxQuantidade) : null,
       ativo:           true,
       ordem:           idx,

@@ -68,7 +68,7 @@ const FEATURES = [
 ];
 
 function fmt(v: number) {
-  return `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 }
 
 export default async function PainelOrganizadorPage() {

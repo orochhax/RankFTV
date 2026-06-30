@@ -173,7 +173,7 @@ export async function updateChampionship(
       .update({
         nome:             cat.nome.trim(),
         genero:           cat.genero,
-        valor_inscricao:  Math.max(0, Math.round(Number(cat.valorInscricao) || 0)),
+        valor_inscricao:  Math.max(0, Number(cat.valorInscricao) || 0),
         max_duplas:       cat.maxDuplas && cat.maxDuplas > 0 ? cat.maxDuplas : null,
         corte_rating_min: faixa?.min ?? 0,
         corte_rating_max: faixa?.max ?? 9999,

@@ -1,5 +1,5 @@
-// Helpers de formatação — sempre seguindo a convenção do ftv.md (seção 9):
-// moeda em BRL como "R$ 1.234,56", valores monetários sempre arredondados.
+// Helpers de formatação — convenção do ftv.md (seção 9):
+// moeda em BRL como "R$ 1.234,56". Valores nunca são arredondados.
 
 export function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", {

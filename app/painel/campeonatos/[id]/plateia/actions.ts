@@ -29,7 +29,7 @@ export async function criarTipoIngresso(
 
   const nomeClean = nome.trim();
   if (!nomeClean) return { ok: false, error: "Dê um nome ao ingresso." };
-  const valorClean = Math.max(0, Math.round(Number(valor) || 0));
+  const valorClean = Math.max(0, Number(valor) || 0);
 
   const supabase = await createClient();
   const { error } = await supabase.from("spectator_ticket_types").insert({
