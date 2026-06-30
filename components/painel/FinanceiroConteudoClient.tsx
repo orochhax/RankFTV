@@ -125,16 +125,14 @@ export function FinanceiroConteudoClient({
       )}
 
       {/* Gráfico de vendas diárias */}
-      {vendasDiarias.length > 0 && (
-        <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
-            Vendas por dia
-          </h2>
-          <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-            <GraficoVendasDiarias dados={vendasDiarias} />
-          </div>
-        </section>
-      )}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+          Vendas por dia
+        </h2>
+        <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+          <GraficoVendasDiarias dados={vendasDiarias} />
+        </div>
+      </section>
 
       {/* Status dos pagamentos */}
       <section>

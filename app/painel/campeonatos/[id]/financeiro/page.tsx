@@ -108,22 +108,40 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     },
   ];
 
-  // Gráfico de vendas diárias — do início da pré-venda (ou inscrição) até hoje
-  const dataInicioChart =
-    champDates?.prevenda_inicio ??
-    champDates?.inscricoes_inicio ??
-    champDates?.data_inicio ??
-    camp.dataInicio;
+  // Gráfico de vendas diárias — do início da pré-venda (ou inscrição) até hoje.
+  // Usa formatação local para evitar bug de timezone com toISOString().
+  function isoLocal(d: Date) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${dd}`;
+  }
 
   const vendasDiarias: DiaVenda[] = (() => {
+    const pagasSorted = regs
+      .filter((r) => r.status_pagamento === "pago")
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+
+    // Início: prevenda_inicio → inscricoes_inicio → primeira venda → hoje
+    const candidatos = [
+      champDates?.prevenda_inicio,
+      champDates?.inscricoes_inicio,
+      pagasSorted[0]?.created_at.slice(0, 10),
+    ].filter(Boolean) as string[];
+
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
-    const inicio = new Date(dataInicioChart + "T00:00:00");
+    const hojeIso = isoLocal(hoje);
+
+    const inicioStr = candidatos.length > 0
+      ? candidatos.reduce((a, b) => (a < b ? a : b)) // menor data
+      : hojeIso;
+
+    const inicio = new Date(inicioStr + "T00:00:00");
     if (inicio > hoje) return [];
 
     const diasMap: Record<string, { total: number; count: number }> = {};
-    for (const r of regs) {
-      if (r.status_pagamento !== "pago") continue;
+    for (const r of pagasSorted) {
       const dia = r.created_at.slice(0, 10);
       if (!diasMap[dia]) diasMap[dia] = { total: 0, count: 0 };
       diasMap[dia].total += Number(r.valor);
@@ -132,15 +150,10 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
 
     const result: DiaVenda[] = [];
     const cur = new Date(inicio);
-    while (cur <= hoje) {
-      const iso = cur.toISOString().slice(0, 10);
+    while (isoLocal(cur) <= hojeIso) {
+      const iso = isoLocal(cur);
       const [, m, d] = iso.split("-");
-      result.push({
-        data: iso,
-        label: `${d}/${m}`,
-        total: diasMap[iso]?.total ?? 0,
-        count: diasMap[iso]?.count ?? 0,
-      });
+      result.push({ data: iso, label: `${d}/${m}`, total: diasMap[iso]?.total ?? 0, count: diasMap[iso]?.count ?? 0 });
       cur.setDate(cur.getDate() + 1);
     }
     return result;
