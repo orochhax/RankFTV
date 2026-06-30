@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Users } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CheckinClient } from "@/components/checkin/CheckinClient";
 import { PresenceItem } from "@/components/checkin/PresenceItem";
@@ -130,7 +130,6 @@ export default async function CheckinPage({
             </div>
             <div className="rounded-2xl bg-blue-500/20 p-4">
               <div className="flex items-center gap-1.5 text-blue-400">
-                <CheckCircle2 className="size-4" />
                 <p className="text-xs">Confirmados</p>
               </div>
               <p className="mt-1 text-2xl font-bold text-blue-300">{confirmados}</p>
