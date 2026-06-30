@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyChampionships } from "@/lib/supabase/championships";
+import { AutoRefresh } from "@/components/ui/AutoRefresh";
 
 const DORES = [
   { icon: MessageSquare, texto: "Perseguir no WhatsApp quem ainda não pagou" },
@@ -183,6 +184,7 @@ export default async function PainelOrganizadorPage() {
 
     return (
       <div className="min-h-screen">
+        <AutoRefresh intervalMs={60_000} />
         {/* ── Cabeçalho preto ── */}
         <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
           <div className="mx-auto max-w-4xl space-y-5">
