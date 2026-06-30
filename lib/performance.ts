@@ -270,7 +270,7 @@ export function imc(pesoKg: number, alturaCm: number): number {
 
 export function imcFaixa(valor: number): { label: string; cor: string } {
   if (valor < 18.5) return { label: "abaixo", cor: "text-blue-600" };
-  if (valor < 25)   return { label: "normal", cor: "text-emerald-600" };
+  if (valor < 25)   return { label: "normal", cor: "text-blue-600" };
   if (valor < 30)   return { label: "sobrepeso", cor: "text-amber-600" };
   return { label: "obesidade", cor: "text-red-600" };
 }
