@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
-/* Sobrescreve a paleta blue com a cor da marca (#0000FF = blue-600).
-   Deve ficar em @theme separado (sem inline) para vencer a paleta padrão do Tailwind v4. */
+/* Cor da marca: #0000FF (blue-600). @theme sem inline sobrescreve a paleta built-in do Tailwind v4. v2 */
 @theme {
   --color-blue-50:  #f0f0ff;
   --color-blue-100: #d6d6ff;
