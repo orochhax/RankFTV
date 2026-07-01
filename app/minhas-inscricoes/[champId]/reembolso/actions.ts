@@ -75,9 +75,29 @@ export async function solicitarReembolso(
   const dentroDosPrazo  = diasDesdeCompra <= 7;
   const valorParcial    = dentroDosPrazo ? undefined : Number(reg.valor);
 
+  // Trava de idempotência: reivindica o estorno mudando 'pago' → 'estornado' de
+  // forma atômica ANTES de chamar o Asaas. Um duplo-clique / requisição
+  // concorrente não consegue reivindicar de novo (0 linhas) → não estorna 2x.
+  // O webhook PAYMENT_REFUNDED depois só reconfirma o mesmo estado (idempotente).
+  const { data: claimed } = await supabase
+    .from("registrations")
+    .update({ status_pagamento: "estornado" })
+    .eq("id", regId)
+    .eq("status_pagamento", "pago")
+    .select("id");
+
+  if (!claimed || claimed.length === 0) {
+    return { ok: false, error: "Este estorno já foi solicitado." };
+  }
+
   try {
     await reembolsarPagamento(reg.asaas_payment_id, valorParcial);
   } catch (err) {
+    // Falhou no Asaas → devolve o status pra 'pago' pra permitir nova tentativa.
+    await supabase
+      .from("registrations")
+      .update({ status_pagamento: "pago" })
+      .eq("id", regId);
     const msg = err instanceof Error ? err.message : "Erro desconhecido";
     return { ok: false, error: `Erro ao processar reembolso: ${msg}` };
   }

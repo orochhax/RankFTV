@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 // Consulta pública de ingressos por CPF + e-mail.
 // Usa service_role pra bypassar RLS (visitante sem conta) mas filtra
 // rigorosamente por CPF+email — não expõe dados de terceiros.
 export async function GET(req: NextRequest) {
+  // Rate limit: a resposta inclui o qr_token (credencial de check-in). Sem
+  // limite, dava pra brute-forçar CPFs com um e-mail conhecido e roubar o QR.
+  // Máx. 15 consultas por IP a cada 60s.
+  const ip = getClientIp(req.headers);
+  const allowed = await checkRateLimit(`ingressos:${ip}`, 15, 60);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Muitas consultas. Aguarde um minuto e tente de novo." },
+      { status: 429 },
+    );
+  }
+
   const { searchParams } = req.nextUrl;
   const cpf   = (searchParams.get("cpf") ?? "").replace(/\D/g, "");
   const email = (searchParams.get("email") ?? "").trim().toLowerCase();

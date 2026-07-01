@@ -6,11 +6,7 @@ import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { InscricaoForm } from "@/components/campeonatos/InscricaoForm";
-import {
-  calcularRatingDupla,
-  recomendarCategoria,
-  statusCategoria,
-} from "@/lib/motor-categoria";
+import type { Genero } from "@/lib/types";
 
 export default async function InscreverPage({
   params,
@@ -45,11 +41,10 @@ export default async function InscreverPage({
   const category = championship.categorias.find((c) => c.id === categoryId);
   if (!category) notFound();
 
-  // Perfil (público) + CPF guardado na tabela privada
   const [{ data: profile }, { data: priv }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("rating, genero, tamanho_camisa, questionario")
+      .select("genero, tamanho_camisa")
       .eq("id", user.id)
       .single(),
     supabase
@@ -60,45 +55,15 @@ export default async function InscreverPage({
   ]);
   const cpfSalvo = priv?.cpf ?? null;
 
-  // Busca todas as categorias do campeonato para o motor
-  const { data: todasCategorias } = await supabase
-    .from("championship_categories")
-    .select("id, nome, genero, corte_rating_min, corte_rating_max")
-    .eq("championship_id", id);
-
-  // ── Motor de categoria ──────────────────────────────────────
-  const meuRating = profile?.rating ?? 0;
-  const meuGenero = (profile?.genero as "masculino" | "feminino" | null) ?? null;
-  const ratingDupla = calcularRatingDupla(meuRating, null); // parceiro ainda não informado
-  const categoriaRecomendada = todasCategorias
-    ? recomendarCategoria(ratingDupla, todasCategorias, meuGenero)
-    : null;
-
-  // Gênero da categoria escolhida — sempre prevalece sobre o nível
+  const meuGenero = (profile?.genero as Genero | null) ?? null;
   const generoCategoria = category.genero;
+
+  // Conflito: "outro" pode tudo; "mista" aceita todos; caso contrário, gênero deve bater
   const generoConflita =
-    !!meuGenero && generoCategoria !== "mista" && generoCategoria !== meuGenero;
-
-  const categoriaSelecionada = {
-    id:               category.id,
-    nome:             category.nome,
-    corte_rating_min: (todasCategorias?.find((c) => c.id === category.id)?.corte_rating_min) ?? 0,
-    corte_rating_max: (todasCategorias?.find((c) => c.id === category.id)?.corte_rating_max) ?? 9999,
-  };
-
-  const semQuestionario = !profile?.questionario;
-
-  // Conflito de gênero suprime os banners de nível (o gênero prevalece)
-  const status = !semQuestionario && meuRating > 0 && !generoConflita
-    ? statusCategoria(ratingDupla, categoriaSelecionada)
-    : null;
-
-  const isRecomendada   = status === "recomendada";
-  const isSandbagging   = status === "sandbagging";
-  const isAcimaDoNivel  = status === "acima_do_nivel";
-
-  // Atleta está abaixo de todas as categorias → a "recomendada" é a própria escolhida
-  const recomendadaEhAEscolhida = categoriaRecomendada?.id === category.id;
+    !!meuGenero &&
+    meuGenero !== "outro" &&
+    generoCategoria !== "mista" &&
+    generoCategoria !== meuGenero;
 
   return (
     <div className="mx-auto max-w-lg space-y-5 px-6 py-8">
@@ -114,86 +79,56 @@ export default async function InscreverPage({
         <p className="text-sm text-gray-500">Inscrição de dupla</p>
       </div>
 
-      {/* Banner: sem questionário preenchido */}
-      {semQuestionario && (
+      {/* Aviso suave: gênero não definido */}
+      {!meuGenero && (
         <div className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">
-          <p className="font-semibold">Seu nível ainda não foi definido</p>
+          <p className="font-semibold">Seu gênero ainda não foi definido</p>
           <p className="mt-0.5 text-amber-700">
-            Responda o{" "}
             <Link href="/perfil/questionario" className="underline font-medium">
-              questionário de nível
+              Informe seu gênero no perfil
             </Link>{" "}
-            para que a plataforma possa indicar a melhor categoria pra você.
+            para que a plataforma possa validar as categorias corretamente.
           </p>
         </div>
       )}
 
-      {/* Banner: categoria de outro gênero (o gênero sempre prevalece) */}
-      {generoConflita && (
-        <div className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200">
-          <p className="font-semibold">
-            Esta é uma categoria {generoCategoria === "feminino" ? "feminina" : "masculina"}
+      {/* Bloqueio duro: conflito de gênero */}
+      {generoConflita ? (
+        <div className="rounded-2xl bg-red-50 px-5 py-5 text-sm text-red-800 ring-1 ring-red-200 space-y-2">
+          <p className="font-semibold text-base">
+            Esta categoria é {generoCategoria === "feminino" ? "feminina" : "masculina"}
           </p>
-          <p className="mt-0.5 text-red-700">
-            Seu perfil é {meuGenero === "feminino" ? "feminino" : "masculino"}.
-            {categoriaRecomendada
-              ? <> A categoria indicada para você é <strong>{categoriaRecomendada.nome}</strong>.</>
-              : <> Este campeonato não tem categoria do seu gênero.</>}
+          <p className="text-red-700">
+            Seu perfil está cadastrado como{" "}
+            <strong>{meuGenero === "feminino" ? "feminino" : "masculino"}</strong>.
+            Você não pode se inscrever nesta categoria.
           </p>
-        </div>
-      )}
-
-      {/* Banner: nível acima da categoria escolhida */}
-      {isSandbagging && (
-        <div className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200">
-          <p className="font-semibold">Atenção: sua pontuação é superior a esta categoria</p>
-          <p className="mt-0.5 text-red-700">
-            Com base no seu perfil, a categoria indicada para você é{" "}
-            <strong>{categoriaRecomendada?.nome ?? "uma mais alta"}</strong>. Você
-            pode continuar mesmo assim — o organizador do evento será avisado e
-            decidirá como proceder.
+          <p className="text-red-700">
+            Volte e escolha uma categoria{" "}
+            {meuGenero === "feminino" ? "feminina" : "masculina"} ou mista, ou{" "}
+            <Link href="/perfil/questionario" className="underline font-medium">
+              corrija seu gênero no perfil
+            </Link>
+            .
           </p>
+          <Link
+            href={`/campeonatos/${id}`}
+            className="mt-3 inline-flex items-center gap-1 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+          >
+            <ChevronLeft className="size-4" /> Voltar ao campeonato
+          </Link>
         </div>
+      ) : (
+        <InscricaoForm
+          championshipId={id}
+          categoryId={category.id}
+          categoriaNome={category.nome}
+          valorInscricao={category.valorInscricao}
+          cpfSalvo={cpfSalvo}
+          tamanhoSalvo={profile?.tamanho_camisa ?? null}
+          userId={user.id}
+        />
       )}
-
-      {/* Banner: categoria acima do nível */}
-      {isAcimaDoNivel && (
-        <div className="rounded-2xl bg-orange-50 px-4 py-3 text-sm text-orange-800 ring-1 ring-orange-200">
-          <p className="font-semibold">Categoria acima do seu nível atual</p>
-          <p className="mt-0.5 text-orange-700">
-            {recomendadaEhAEscolhida ? (
-              <>
-                Esta é a categoria mais acessível deste campeonato, mas ainda está
-                acima do seu nível atual ({meuRating} pts). Você pode continuar mesmo assim.
-              </>
-            ) : (
-              <>
-                Com base no seu perfil ({meuRating} pts), a categoria indicada é{" "}
-                <strong>{categoriaRecomendada?.nome ?? "uma mais baixa"}</strong>. Você pode continuar mesmo assim.
-              </>
-            )}
-          </p>
-        </div>
-      )}
-
-      {/* Banner: categoria recomendada */}
-      {isRecomendada && (
-        <div className="rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-800 ring-1 ring-blue-200">
-          Categoria indicada para sua pontuação ({meuRating} pontos)
-        </div>
-      )}
-
-      <InscricaoForm
-        championshipId={id}
-        categoryId={category.id}
-        categoriaNome={category.nome}
-        valorInscricao={category.valorInscricao}
-        cpfSalvo={cpfSalvo}
-        tamanhoSalvo={profile?.tamanho_camisa ?? null}
-        ratingDupla={ratingDupla}
-        isSandbagging={isSandbagging}
-        userId={user.id}
-      />
     </div>
   );
 }

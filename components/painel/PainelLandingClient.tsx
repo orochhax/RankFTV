@@ -50,31 +50,31 @@ const MOMENTOS_EVENTO = [
 
 // ── Conteúdo: MINHA ARENA ──────────────────────────────────────────
 const DORES_ARENA = [
-  { icon: MessageSquare, texto: "Mensalidade atrasada e ter que ligar pra cobrar o aluno" },
-  { icon: ClipboardList, texto: "Controle de presença em caderno ou planilha de papel" },
-  { icon: CalendarCheck, texto: "Sem visibilidade de quais horários estão livres na quadra" },
+  { icon: MessageSquare, texto: "Cobrar mensalidade pelo WhatsApp e torcer pra todo mundo pagar em dia" },
+  { icon: ClipboardList, texto: "Controle de alunos e presença em planilha que ninguém consegue manter atualizada" },
+  { icon: CalendarCheck, texto: "Sem saber quais horários estão livres na quadra sem ligar ou mandar mensagem" },
 ];
 
 const FEATURES_ARENA = [
   {
     icon: GraduationCap,
-    titulo: "Mensalidades",
-    descricao: "Cadastre alunos, defina o valor mensal e acompanhe quem pagou e quem está em atraso — tudo em um lugar só.",
+    titulo: "Mensalidades automáticas",
+    descricao: "Cadastre alunos, defina o valor e a data de vencimento. A cobrança sai sozinha — você só acompanha quem pagou.",
   },
   {
     icon: CalendarCheck,
     titulo: "Aluguéis de quadra",
-    descricao: "Registre reservas e pagamentos de horários. Histórico completo de quem alugou cada quadra.",
+    descricao: "Registre reservas e receba o pagamento online. Sem WhatsApp pra confirmar, sem Pix que some.",
   },
   {
     icon: Banknote,
-    titulo: "Diárias",
-    descricao: "Venda acesso avulso por dia. Ideal pra quem não é mensalista mas aparece na arena de vez em quando.",
+    titulo: "Diárias avulsas",
+    descricao: "Venda acesso por dia pra quem não é mensalista. Mais receita no mesmo espaço, sem trabalho extra.",
   },
   {
     icon: Users,
     titulo: "Controle de frequência",
-    descricao: "Registre presença nas aulas e veja quais alunos estão sumindo antes que eles cancelem a mensalidade.",
+    descricao: "Veja quais alunos estão sumindo antes que eles cancelem. Aja cedo e segure a receita recorrente.",
   },
 ];
 
@@ -201,55 +201,67 @@ function SectionEvento({ ctaHref, ctaLabel }: { ctaHref: string; ctaLabel: strin
 
 function SectionArena({ ctaHref }: { ctaHref: string }) {
   return (
-    <div className="space-y-12 px-6 pt-10 pb-24">
-      <div className="mx-auto max-w-3xl space-y-12">
+    <div className="px-6 pt-10 pb-24">
+      <div className="mx-auto max-w-3xl space-y-14">
 
-        {/* Você conhece isso? */}
-        <section>
-          <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
-            Você conhece isso?
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        {/* Abertura empática + dores */}
+        <section className="space-y-5">
+          <div className="text-center space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+              A gente conhece essa realidade
+            </p>
+            <h2 className="text-2xl font-bold leading-snug text-gray-900">
+              Gerir uma arena no braço<br className="hidden sm:block" /> é trabalho dobrado — e dá pra ser diferente.
+            </h2>
+          </div>
+          <div className="space-y-3">
             {DORES_ARENA.map(({ icon: Icon, texto }) => (
-              <div key={texto} className="flex items-start gap-3 rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5">
-                <Icon className="size-5 shrink-0 text-gray-400" strokeWidth={1.8} />
-                <p className="text-sm text-gray-600">{texto}</p>
+              <div key={texto} className="flex items-start gap-3 rounded-2xl bg-red-50 p-4 ring-1 ring-red-100">
+                <Icon className="mt-0.5 size-5 shrink-0 text-red-300" strokeWidth={1.8} />
+                <p className="text-sm leading-relaxed text-red-700">{texto}</p>
               </div>
             ))}
           </div>
-          <p className="mt-5 text-center text-base font-medium text-gray-900">
-            Gerencie tudo pela plataforma 👇
+          <p className="text-center text-base font-semibold text-blue-600">
+            Com a RankFTV, sua arena se paga sozinha<br className="hidden sm:block" /> enquanto você foca no esporte.
           </p>
         </section>
 
         {/* Features */}
-        <section>
-          <div className="grid gap-4 sm:grid-cols-2">
+        <section className="space-y-4">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-blue-100" />
+            <p className="text-xs font-semibold uppercase tracking-widest text-blue-500">O que você ganha</p>
+            <div className="h-px flex-1 bg-blue-100" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
             {FEATURES_ARENA.map(({ icon: Icon, titulo, descricao }) => (
-              <div key={titulo} className="rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5">
-                <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-blue-600">
-                  <Icon className="size-5 text-white" strokeWidth={1.8} />
+              <div key={titulo} className="flex items-start gap-4 rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-600">
+                  <Icon className="size-4 text-white" strokeWidth={1.8} />
                 </div>
-                <p className="font-semibold text-gray-900">{titulo}</p>
-                <p className="mt-1 text-sm leading-relaxed text-gray-500">{descricao}</p>
+                <div>
+                  <p className="text-sm font-semibold text-blue-600">{titulo}</p>
+                  <p className="mt-0.5 text-sm leading-relaxed text-gray-700">{descricao}</p>
+                </div>
               </div>
             ))}
           </div>
         </section>
 
         {/* Resumo de receitas */}
-        <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 p-7 text-white">
+        <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 p-7 text-white">
           <p className="text-xs font-semibold uppercase tracking-widest text-blue-200">
             Visão completa
           </p>
           <h2 className="mt-2 text-2xl font-bold leading-snug">
-            Toda a receita da arena em um painel
+            Toda a receita da arena<br className="hidden sm:block" /> em um painel só
           </h2>
           <div className="mt-5 flex flex-col gap-3">
             {[
-              { icon: GraduationCap, titulo: "MRR de mensalistas",      desc: "Veja em tempo real quanto de receita recorrente a arena está gerando por mês." },
-              { icon: CalendarCheck, titulo: "Aluguéis e diárias",       desc: "Histórico de todos os pagamentos por quadra e por dia." },
-              { icon: Banknote,      titulo: "Cobranças automáticas",    desc: "Envie boleto ou Pix pra alunos em atraso sem sair da plataforma." },
+              { icon: GraduationCap, titulo: "Receita recorrente",     desc: "Veja em tempo real quanto os mensalistas estão gerando e quem está em atraso." },
+              { icon: CalendarCheck, titulo: "Aluguéis e diárias",      desc: "Histórico completo de todos os pagamentos por quadra e por dia." },
+              { icon: Banknote,      titulo: "Cobranças sem esforço",   desc: "O Pix ou boleto sai automático. Você só confirma quando cair na conta." },
             ].map(({ icon: Icon, titulo, desc }) => (
               <div key={titulo} className="flex items-start gap-4 rounded-2xl bg-white/10 p-4">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/20">
@@ -266,24 +278,24 @@ function SectionArena({ ctaHref }: { ctaHref: string }) {
             href={ctaHref}
             className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-white py-3 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50"
           >
-            Cadastrar minha arena
+            Gerenciar minha arena
           </Link>
         </section>
 
-        {/* Preço */}
+        {/* CTA final */}
         <section className="rounded-3xl bg-[#0f0f13] p-8 text-center">
           <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-blue-500/15">
             <ShieldCheck className="size-6 text-blue-400" />
           </div>
-          <p className="mt-4 text-xl font-bold text-white">Simples e sem mensalidade.</p>
+          <p className="mt-4 text-xl font-bold text-white">Grátis pra começar.</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-white/50">
-            Cadastre sua arena gratuitamente e comece a organizar do jeito certo.
+            Cadastre sua arena agora e veja como é gerir sem planilha e sem WhatsApp.
           </p>
           <Link
             href={ctaHref}
             className="mt-6 inline-block rounded-2xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
           >
-            Cadastrar minha arena
+            Gerenciar minha arena
           </Link>
         </section>
 
@@ -308,8 +320,8 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const ctaArenaHref   = isLoggedIn ? "/perfil/ativar-arena" : "/cadastro";
 
   const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-    { id: "eventos", label: "Criar evento",  icon: Trophy },
-    { id: "arena",   label: "Minha arena",   icon: Building2 },
+    { id: "eventos", label: "Meu Evento",  icon: Trophy },
+    { id: "arena",   label: "Minha Arena", icon: Building2 },
   ];
 
   return (
@@ -343,6 +355,29 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
               </button>
             ))}
           </div>
+
+          {/* Botão de ação — só para visitantes não logados, muda conforme a aba */}
+          {!isLoggedIn && (
+            <div>
+              {tab === "eventos" ? (
+                <Link
+                  href="/cadastro"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                >
+                  <Trophy className="size-4" />
+                  Criar Evento
+                </Link>
+              ) : (
+                <Link
+                  href="/cadastro?next=/painel%3Ftab%3Darena"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                >
+                  <Building2 className="size-4" />
+                  Gerenciar Arena
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

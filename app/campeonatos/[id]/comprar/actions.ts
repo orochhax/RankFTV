@@ -30,7 +30,8 @@ export async function comprarIngressoAtleta(
   const pCpf    = ((formData.get("parceiro_cpf")   as string) ?? "").replace(/\D/g, "");
   const pEmail  = ((formData.get("parceiro_email") as string) ?? "").trim() || null;
   const pZap    = ((formData.get("parceiro_zap")   as string) ?? "").replace(/\D/g, "") || null;
-  const pGenero = (formData.get("parceiro_genero") as string) || null;
+  const pGenero  = (formData.get("parceiro_genero") as string) || null;
+  const pCamisa  = (formData.get("parceiro_camisa") as string) || null;
 
   if (!nome)                               return { error: "Informe seu nome completo." };
   if (!email || !email.includes("@"))      return { error: "Informe um e-mail válido." };
@@ -84,6 +85,7 @@ export async function comprarIngressoAtleta(
       parceiro_email:       pEmail,
       parceiro_zap:         pZap,
       parceiro_genero:      pGenero,
+      parceiro_camisa:      pCamisa,
       valor:                valorBase,
       status_pagamento:     isGratis ? "pago" : "pendente",
       billing_type:         isGratis ? null : "PIX",

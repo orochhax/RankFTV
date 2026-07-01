@@ -13,12 +13,11 @@ export default async function QuestionarioPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("questionario, genero")
+    .select("genero")
     .eq("id", user.id)
     .single();
 
-  // Só pula o questionário se já respondeu E já tem gênero definido
-  if (profile?.questionario && profile?.genero) redirect("/perfil");
+  if (profile?.genero) redirect("/perfil");
 
   return (
     <div className="mx-auto max-w-lg space-y-6 px-6 py-8">
@@ -31,19 +30,12 @@ export default async function QuestionarioPage() {
 
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">
-          Qual é o seu nível?
+          Informe seu gênero
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          5 perguntas rápidas para definir seu rating inicial e aparecer
-          corretamente no ranking. Suas respostas ficam visíveis no seu perfil
-          público.
+          Usamos isso para validar as categorias dos campeonatos em que você se
+          inscrever.
         </p>
-      </div>
-
-      <div className="rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-800">
-        Responda com honestidade — as respostas aparecem no seu perfil para
-        todos verem. Se você se inscrever numa categoria abaixo do que
-        declarou aqui, o organizador será alertado automaticamente.
       </div>
 
       <QuestionarioForm />

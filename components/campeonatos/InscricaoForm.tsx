@@ -16,8 +16,6 @@ type Props = {
   valorInscricao: number;
   cpfSalvo: string | null;
   tamanhoSalvo: string | null;
-  ratingDupla: number;
-  isSandbagging: boolean;
   userId: string;
 };
 
@@ -30,8 +28,6 @@ export function InscricaoForm({
   valorInscricao,
   cpfSalvo,
   tamanhoSalvo,
-  ratingDupla,
-  isSandbagging,
   userId,
 }: Props) {
   const [state, action, pending] = useActionState(inscreverDupla, initialState);
@@ -40,8 +36,6 @@ export function InscricaoForm({
     <form action={action} className="space-y-5">
       <input type="hidden" name="championship_id" value={championshipId} />
       <input type="hidden" name="category_id"     value={categoryId}     />
-      <input type="hidden" name="rating_dupla"    value={ratingDupla}    />
-      <input type="hidden" name="sandbagging"     value={isSandbagging ? "1" : "0"} />
 
       {/* Resumo da inscrição */}
       <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">

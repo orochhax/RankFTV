@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Termos de uso — RankFTV",
 };
 
-const ULTIMA_ATUALIZACAO = "24 de junho de 2026";
+const ULTIMA_ATUALIZACAO = "1 de julho de 2026";
 
 type Bloco =
   | { p: string }
@@ -36,6 +36,11 @@ const SECOES: Secao[] = [
           { termo: "Inscrição", desc: "Registro de uma dupla em uma categoria, mediante pagamento quando aplicável. Dá direito à participação e à credencial digital." },
           { termo: "Ingresso de plateia", desc: "Entrada adquirida por um Espectador para assistir ao evento." },
           { termo: "Credencial", desc: "Comprovante digital com QR Code que dá acesso ao evento e é validado na portaria (check-in)." },
+          { termo: "Arena", desc: "Espaço físico de futevôlei ou beach sports cadastrado na Plataforma pelo Dono de arena para gestão de alunos, mensalidades, aluguéis de quadra e controle de frequência." },
+          { termo: "Dono de arena", desc: "Pessoa física ou jurídica responsável pela Arena que cadastra o espaço na Plataforma e recebe os pagamentos gerados pelos alunos e reservas." },
+          { termo: "Mensalidade", desc: "Valor cobrado periodicamente de alunos cadastrados na Arena, processado pela Plataforma." },
+          { termo: "Aluguel de quadra", desc: "Valor cobrado pela reserva de um horário específico na quadra da Arena, processado pela Plataforma." },
+          { termo: "Diária", desc: "Acesso avulso à Arena adquirido por dia, sem vínculo de mensalidade." },
           { termo: "Taxa de serviço", desc: "Valor cobrado do comprador, somado ao valor da inscrição ou ingresso, pela utilização da Plataforma." },
           { termo: "Plano Padrão / Plano Elite", desc: "Planos do Organizador para cada evento, com diferentes taxas e benefícios (ver Seção 13)." },
           { termo: "Split de pagamento / Repasse", desc: "Divisão e transferência dos valores: a Plataforma intermedia o pagamento e repassa ao Organizador o valor que lhe cabe." },
@@ -174,6 +179,23 @@ const SECOES: Secao[] = [
       { p: "Enquanto não houver vendas, nada é devido. Caso o evento seja encerrado sem vendas suficientes para cobrir os R$ 178,00, o saldo pendente é integralmente perdoado (zerado), sem qualquer cobrança ao Organizador." },
       { p: "Ativação: o Plano Elite pode ser ativado a qualquer momento enquanto o campeonato ainda não tiver começado — ou seja, durante a pré-venda ou com as vendas abertas. Após o início do campeonato, não é mais possível ativar o Elite." },
       { p: "Cancelamento do Plano Elite: enquanto nenhum valor da adesão tiver sido descontado, o Organizador pode cancelar o Plano Elite a qualquer momento, sem custo ou multa, retornando ao Plano Padrão. A partir do momento em que o primeiro valor for descontado de uma venda — independentemente do quanto for abatido —, a adesão torna-se definitiva e o Plano Elite não pode mais ser cancelado, permanecendo o Organizador responsável pela quitação dos R$ 178,00 na forma acima." },
+    ],
+  },
+  {
+    titulo: "Gestão de arena",
+    blocos: [
+      { p: "A Plataforma oferece ao Dono de arena ferramentas para: (i) cadastrar e gerenciar alunos; (ii) configurar e cobrar mensalidades de forma recorrente; (iii) registrar e cobrar aluguéis de quadra e diárias; e (iv) controlar a frequência dos alunos." },
+      { p: "Ao cadastrar a Arena, o Dono de arena compromete-se a:" },
+      { ul: [
+        "Fornecer informações verdadeiras sobre o espaço, os valores praticados e os dados de recebimento;",
+        "Cadastrar a chave Pix de sua titularidade (mesmo CPF/CNPJ) antes de iniciar as cobranças;",
+        "Comunicar com clareza aos alunos as condições de mensalidade, aluguéis, diárias e política de cancelamento;",
+        "Executar cancelamentos e devoluções devidas em tempo hábil;",
+        "Recolher os tributos incidentes sobre as receitas da Arena e emitir os documentos fiscais devidos.",
+      ] },
+      { p: "O Dono de arena é o único responsável pela gestão do espaço, pelo relacionamento com os alunos e pelo cumprimento das obrigações tributárias, trabalhistas e regulatórias aplicáveis ao seu negócio. A RankFTV atua exclusivamente como intermediadora de tecnologia e de pagamentos." },
+      { p: "A cobrança das mensalidades, aluguéis e diárias é processada pelo processador de pagamentos parceiro. O repasse ao Dono de arena ocorre conforme os prazos descritos na seção Prazos de repasse destes Termos, deduzidos eventuais reembolsos, chargebacks e débitos pendentes." },
+      { p: "A RankFTV poderá suspender o acesso à Arena na Plataforma em caso de indícios de fraude, volume atípico de estornos ou descumprimento destes Termos, com aviso prévio sempre que possível." },
     ],
   },
   {

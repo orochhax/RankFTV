@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isAdminUser } from "@/lib/supabase/roles";
 
 export type CriarNoticiaInput = {
   titulo: string;
@@ -15,10 +16,7 @@ export type CriarNoticiaInput = {
 
 async function ensureAdmin(): Promise<boolean> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return !!user && user.email === process.env.ADMIN_EMAIL;
+  return isAdminUser(supabase);
 }
 
 export async function criarNoticia(

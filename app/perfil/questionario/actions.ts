@@ -3,10 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import {
-  calcularRatingQuestionario,
-  type RespostasQuestionario,
-} from "@/lib/motor-categoria";
+import type { Genero } from "@/lib/types";
 
 export async function salvarQuestionario(formData: FormData) {
   const supabase = await createClient();
@@ -15,28 +12,14 @@ export async function salvarQuestionario(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const genero = formData.get("genero") as "masculino" | "feminino" | null;
-  if (genero !== "masculino" && genero !== "feminino") {
+  const genero = formData.get("genero") as Genero | null;
+  if (genero !== "masculino" && genero !== "feminino" && genero !== "outro") {
     return { error: "Selecione seu gênero." };
   }
 
-  const respostas: RespostasQuestionario = {
-    tempo:            formData.get("tempo")            as RespostasQuestionario["tempo"],
-    nivel:            formData.get("nivel")            as RespostasQuestionario["nivel"],
-    frequencia:       formData.get("frequencia")       as RespostasQuestionario["frequencia"],
-    melhor_resultado: formData.get("melhor_resultado") as RespostasQuestionario["melhor_resultado"],
-    categoria_usual:  formData.get("categoria_usual")  as RespostasQuestionario["categoria_usual"],
-  };
-
-  for (const [key, val] of Object.entries(respostas)) {
-    if (!val) return { error: `Responda a pergunta sobre ${key}.` };
-  }
-
-  const rating = calcularRatingQuestionario(respostas);
-
   const { error } = await supabase
     .from("profiles")
-    .update({ questionario: respostas, rating, genero })
+    .update({ genero })
     .eq("id", user.id);
 
   if (error) return { error: "Erro ao salvar. Tente novamente." };

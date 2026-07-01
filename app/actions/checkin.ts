@@ -42,6 +42,12 @@ export async function markCheckin(
   const token      = input.trim();
   const tokenUpper = token.toUpperCase();
 
+  // Só aceita o formato esperado (UUID do qr_token ou código alfanumérico).
+  // Isso impede injeção de filtro no PostgREST via vírgula/parênteses no `.or()`.
+  if (!/^[A-Za-z0-9-]{1,64}$/.test(token)) {
+    return { error: "Código inválido" };
+  }
+
   const { data: cred } = await supabase
     .from("credentials")
     .select("id, checked_in, user_id")

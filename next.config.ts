@@ -1,13 +1,15 @@
 import type { NextConfig } from "next";
 
+// Libera as Server Actions vindas do túnel do cloudflared (teste do lado do
+// atleta) SÓ quando ALLOW_TUNNEL_ORIGIN=1 estiver no .env.local. Em produção a
+// variável não existe, então o wildcard não é aplicado — mantém a proteção de
+// origin nativa das Server Actions.
 const nextConfig: NextConfig = {
-  // Libera as Server Actions quando o site é acessado pelo túnel do cloudflared
-  // (teste do lado do atleta). O wildcard cobre qualquer URL *.trycloudflare.com,
-  // então não precisa mexer aqui toda vez que o túnel reinicia.
   experimental: {
-    serverActions: {
-      allowedOrigins: ["*.trycloudflare.com"],
-    },
+    serverActions:
+      process.env.ALLOW_TUNNEL_ORIGIN === "1"
+        ? { allowedOrigins: ["*.trycloudflare.com"] }
+        : undefined,
   },
   images: {
     remotePatterns: [

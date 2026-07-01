@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { isAdminUser } from "@/lib/supabase/roles";
 
 export async function salvarTaxas(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const supabase  = await createClient();
   const admin     = createAdminClient();
-  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+  if (!(await isAdminUser(supabase))) {
     return { ok: false, error: "Acesso negado." };
   }
 

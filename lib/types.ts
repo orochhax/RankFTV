@@ -1,8 +1,8 @@
 // Tipos compartilhados usados por componentes e server functions.
 // Esta é a fonte de verdade para tipos de domínio — não lib/mock.
 
-export type Genero = "masculino" | "feminino";
-export type GeneroCategoria = Genero | "mista";
+export type Genero = "masculino" | "feminino" | "outro";
+export type GeneroCategoria = "masculino" | "feminino" | "mista";
 
 export type ChampionshipStatus =
   | "rascunho"

@@ -49,7 +49,7 @@ export function categoriasDoGenero(
   categorias: Categoria[],
   genero: Genero | null | undefined
 ): Categoria[] {
-  if (!genero) return categorias;
+  if (!genero || genero === "outro") return categorias;
   return categorias.filter((c) => c.genero === genero || c.genero === "mista");
 }
 

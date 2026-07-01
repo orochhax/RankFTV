@@ -134,6 +134,7 @@ export function IngressoAtletaForm({
                   <option value="">Não informar</option>
                   <option value="masculino">Masculino</option>
                   <option value="feminino">Feminino</option>
+                  <option value="outro">Outro</option>
                 </select>
               </div>
               <div>
@@ -163,17 +164,26 @@ export function IngressoAtletaForm({
                 <input name="parceiro_zap" inputMode="numeric" className={`mt-1 ${input}`} placeholder="DDD + número" />
               </div>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">E-mail</label>
+              <input name="parceiro_email" type="email" className={`mt-1 ${input}`} placeholder="parceiro@email.com" />
+              <p className="mt-1 text-xs text-gray-400">O ingresso e QR de entrada chegam nesse e-mail.</p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">E-mail</label>
-                <input name="parceiro_email" type="email" className={`mt-1 ${input}`} placeholder="parceiro@email.com" />
-              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Gênero</label>
                 <select name="parceiro_genero" className={`mt-1 ${select}`}>
                   <option value="">Não informar</option>
                   <option value="masculino">Masculino</option>
                   <option value="feminino">Feminino</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Camisa (kit)</label>
+                <select name="parceiro_camisa" className={`mt-1 ${select}`}>
+                  <option value="">Não informar</option>
+                  {CAMISAS.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
             </div>

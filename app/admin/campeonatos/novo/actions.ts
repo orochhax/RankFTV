@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isAdminUser } from "@/lib/supabase/roles";
 
 export type CriarVitrineInput = {
   nome: string;
@@ -22,8 +23,8 @@ async function getAdminUser() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) return null;
-  return user;
+  if (!user) return null;
+  return (await isAdminUser(supabase)) ? user : null;
 }
 
 // Cria um campeonato "vitrine" — só informativo, sem categoria/quiz/PIX.

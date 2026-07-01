@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isAdminUser } from "@/lib/supabase/roles";
 
 type ChampStatus = "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado";
 const STATUS_VALIDOS: ChampStatus[] = [
@@ -14,8 +15,7 @@ const STATUS_VALIDOS: ChampStatus[] = [
 
 async function exigirAdmin() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+  if (!(await isAdminUser(supabase))) {
     return { ok: false as const, error: "Sem permissão." };
   }
   return { ok: true as const };
