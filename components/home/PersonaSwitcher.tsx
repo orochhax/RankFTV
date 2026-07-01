@@ -57,12 +57,6 @@ function CTAs({ persona }: { persona: Persona }) {
         >
           Entrar no painel
         </Link>
-        <Link
-          href="/login"
-          className="py-2 text-center text-sm font-medium text-gray-400 transition-colors hover:text-white"
-        >
-          Já tenho conta · Fazer login <ChevronRight className="inline size-3.5" />
-        </Link>
       </div>
     );
   }
@@ -71,7 +65,7 @@ function CTAs({ persona }: { persona: Persona }) {
   return (
     <div className="flex flex-col gap-3">
       <Link
-        href="/arenas/criar"
+        href="/painel?tab=arena"
         className="flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
       >
         <Building2 className="size-4" />
