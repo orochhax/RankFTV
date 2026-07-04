@@ -29,27 +29,61 @@ type ClassRow = {
   titulo: string;
   horario: string | null;
   dias_semana: number[] | null;
+  nivel: string | null;
+  max_alunos: number | null;
+};
+
+const NIVEL_LABEL: Record<string, string> = {
+  iniciante:     "Iniciante",
+  intermediario: "Intermediário",
+  avancado:      "Avançado",
 };
 
 const DIAS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
-function computeAgenda(classes: ClassRow[], dias = 14) {
-  const result: { label: string; dateLabel: string; isToday: boolean; aulas: ClassRow[] }[] = [];
+// Agenda em janela fixa: 1 dia que passou (ontem), o dia atual e 3 dias à
+// frente. Para cada dia lista as aulas recorrentes daquele dia da semana,
+// sem duplicatas (mesmo título + horário) e ordenadas por horário. Dias sem
+// nada aparecem mesmo assim, com um aviso de "sem aula ou reserva".
+function computeAgenda(classes: ClassRow[]) {
+  const result: {
+    key: number;
+    date: string;
+    label: string;
+    relLabel: string;
+    isToday: boolean;
+    isPast: boolean;
+    aulas: ClassRow[];
+  }[] = [];
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  for (let i = 0; i < dias; i++) {
+  for (let i = -1; i <= 3; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     const dow = d.getDay();
-    const dayClasses = classes.filter((c) => (c.dias_semana ?? []).includes(dow));
-    if (dayClasses.length === 0) continue;
+
+    const aulas = classes
+      .filter((c) => (c.dias_semana ?? []).includes(dow))
+      .filter(
+        (c, idx, arr) =>
+          arr.findIndex(
+            (x) => x.titulo === c.titulo && x.horario === c.horario,
+          ) === idx,
+      )
+      .sort((a, b) => (a.horario ?? "").localeCompare(b.horario ?? ""));
+
     result.push({
+      key: i,
+      // Data ISO local (YYYY-MM-DD) usada pra casar com as presenças do dia
+      date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
       label: `${DIAS_PT[dow]}, ${d.getDate()} ${MESES_PT[d.getMonth()]}`,
-      dateLabel: i === 0 ? "Hoje" : i === 1 ? "Amanhã" : "",
+      relLabel: i === -1 ? "Ontem" : i === 0 ? "Hoje" : i === 1 ? "Amanhã" : "",
       isToday: i === 0,
-      aulas: dayClasses,
+      isPast: i < 0,
+      aulas,
     });
   }
   return result;
@@ -82,7 +116,7 @@ export default async function ArenaPainelPage({
       .order("created_at", { ascending: false }),
     supabase
       .from("arena_classes")
-      .select("id, titulo, horario, dias_semana")
+      .select("id, titulo, horario, dias_semana, nivel, max_alunos")
       .eq("arena_id", arena.id)
       .eq("ativo", true)
       .order("horario", { ascending: true }),
@@ -93,6 +127,23 @@ export default async function ArenaPainelPage({
   const pendentes = alunos.filter((a) => a.status === "pendente");
   const classes   = (aulasRes.data ?? []) as ClassRow[];
   const agenda    = computeAgenda(classes);
+
+  // Conta presenças confirmadas por aula e por dia, dentro da janela da agenda,
+  // pra montar as "vagas" (ex.: 10/12). Chave: `${class_id}|${data}`.
+  const datas = agenda.map((d) => d.date);
+  const presencasMap = new Map<string, number>();
+  if (datas.length > 0) {
+    const { data: presencas } = await supabase
+      .from("arena_attendance")
+      .select("class_id, data")
+      .eq("arena_id", arena.id)
+      .gte("data", datas[0])
+      .lte("data", datas[datas.length - 1]);
+    for (const p of presencas ?? []) {
+      const chave = `${p.class_id}|${p.data}`;
+      presencasMap.set(chave, (presencasMap.get(chave) ?? 0) + 1);
+    }
+  }
 
   return (
     <div className="min-h-screen">
@@ -278,69 +329,111 @@ export default async function ArenaPainelPage({
 
           {/* ── Agenda ── */}
           <section>
-            <div className="mb-3 flex items-center gap-2">
-              <CalendarDays className="size-4 text-blue-500" />
-              <h2 className="text-sm font-semibold text-gray-700">
-                Agenda — próximos 14 dias
-              </h2>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="size-4 text-blue-500" />
+                <h2 className="text-sm font-semibold text-gray-700">Agenda</h2>
+              </div>
+              <Link
+                href={`/arena/aulas?handle=${arena.handle}`}
+                className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700"
+              >
+                <Settings className="size-3.5" /> Editar
+              </Link>
             </div>
 
-            {agenda.length === 0 ? (
-              <div className="rounded-2xl bg-gray-50 p-6 text-center ring-1 ring-black/5">
-                <CalendarDays className="mx-auto mb-2 size-8 text-gray-200" />
-                <p className="text-sm text-gray-400">Nenhuma aula configurada.</p>
-                <Link
-                  href={`/arena/aulas?handle=${arena.handle}`}
-                  className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+            <div className="space-y-2">
+              {agenda.map((dia) => (
+                <div
+                  key={dia.key}
+                  className={`flex gap-3 rounded-2xl p-3 ring-1 ${
+                    dia.isToday
+                      ? "bg-blue-50 ring-blue-200"
+                      : dia.isPast
+                        ? "bg-gray-50/60 ring-black/5"
+                        : "bg-white ring-black/5"
+                  }`}
                 >
-                  <Settings className="size-3.5" /> Configurar horários
-                </Link>
-              </div>
-            ) : (
-              <div className="overflow-hidden rounded-2xl ring-1 ring-black/5">
-                {agenda.map((dia, i) => (
-                  <div
-                    key={i}
-                    className={`border-b border-gray-100 last:border-none ${dia.isToday ? "bg-blue-50" : "bg-white"}`}
-                  >
-                    {/* Cabeçalho do dia */}
-                    <div className="flex items-center gap-2 px-4 py-2.5">
-                      <div className={`h-2 w-2 rounded-full ${dia.isToday ? "bg-blue-500" : "bg-gray-300"}`} />
-                      <span className={`text-sm font-semibold ${dia.isToday ? "text-blue-700" : "text-gray-700"}`}>
-                        {dia.label}
-                      </span>
-                      {dia.dateLabel && (
-                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-600">
-                          {dia.dateLabel}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Aulas do dia */}
-                    <div className="space-y-1 px-4 pb-3">
-                      {dia.aulas.map((aula) => (
-                        <div
-                          key={aula.id}
-                          className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 ring-1 ring-black/5"
-                        >
-                          <Clock className="size-3.5 shrink-0 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-800">{aula.titulo}</span>
-                          {aula.horario && (
-                            <span className="ml-auto text-xs text-gray-400">{aula.horario}</span>
-                          )}
-                        </div>
-                      ))}
-
-                      {/* Placeholder para reservas externas */}
-                      <div className="flex items-center gap-2 rounded-xl border border-dashed border-gray-200 px-3 py-2">
-                        <Building2 className="size-3.5 shrink-0 text-gray-300" />
-                        <span className="text-xs text-gray-300">Reservas externas — em breve</span>
-                      </div>
-                    </div>
+                  {/* Dia à esquerda */}
+                  <div className="w-20 shrink-0 pt-0.5">
+                    <p
+                      className={`text-sm font-semibold ${
+                        dia.isToday ? "text-blue-700" : dia.isPast ? "text-gray-400" : "text-gray-700"
+                      }`}
+                    >
+                      {dia.label}
+                    </p>
+                    {dia.relLabel && (
+                      <p
+                        className={`text-[10px] font-bold uppercase tracking-wide ${
+                          dia.isToday ? "text-blue-500" : "text-gray-400"
+                        }`}
+                      >
+                        {dia.relLabel}
+                      </p>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
+
+                  {/* Aulas do dia — ou aviso de dia vazio */}
+                  <div className="flex flex-1 flex-wrap items-start gap-2">
+                    {dia.aulas.length === 0 ? (
+                      <span className={`pt-1 text-xs ${dia.isPast ? "text-gray-300" : "text-gray-400"}`}>
+                        Sem aula ou reserva neste dia
+                      </span>
+                    ) : (
+                      dia.aulas.map((aula) => {
+                        const confirmados = presencasMap.get(`${aula.id}|${dia.date}`) ?? 0;
+                        const nivelLabel  = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : null;
+                        const temLimite   = aula.max_alunos != null;
+                        const lotada      = temLimite && confirmados >= (aula.max_alunos as number);
+                        return (
+                          <Link
+                            key={aula.id}
+                            href={`/arena/aula/${aula.id}?data=${dia.date}`}
+                            className={`rounded-xl px-3 py-1.5 ring-1 transition-colors hover:ring-blue-300 ${
+                              dia.isToday ? "bg-white ring-blue-100" : "bg-gray-50 ring-black/5"
+                            } ${dia.isPast ? "opacity-60" : ""}`}
+                          >
+                            {/* Linha 1: horário + título */}
+                            <div className="flex items-center gap-1.5">
+                              {aula.horario && (
+                                <span className="flex items-center gap-1 text-xs font-bold text-blue-600">
+                                  <Clock className="size-3.5" />
+                                  {aula.horario}
+                                </span>
+                              )}
+                              <span className="text-sm font-medium text-gray-700">{aula.titulo}</span>
+                            </div>
+
+                            {/* Linha 2: nível + vagas */}
+                            {(nivelLabel || temLimite || confirmados > 0) && (
+                              <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
+                                {nivelLabel && (
+                                  <span className="font-semibold text-gray-500">{nivelLabel}</span>
+                                )}
+                                {nivelLabel && (temLimite || confirmados > 0) && (
+                                  <span className="text-gray-300">·</span>
+                                )}
+                                {temLimite ? (
+                                  <span className={`font-semibold ${lotada ? "text-red-500" : "text-gray-500"}`}>
+                                    {confirmados}/{aula.max_alunos}
+                                    {lotada && " · lotada"}
+                                  </span>
+                                ) : confirmados > 0 ? (
+                                  <span className="text-gray-400">
+                                    {confirmados} confirmado{confirmados > 1 ? "s" : ""}
+                                  </span>
+                                ) : null}
+                              </div>
+                            )}
+                          </Link>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </section>
 
           {/* ── Link vitrine ── */}

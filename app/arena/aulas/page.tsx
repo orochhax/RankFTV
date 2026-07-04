@@ -19,7 +19,7 @@ export default async function AulasPage() {
 
   const { data: aulas } = await supabase
     .from("arena_classes")
-    .select("id, titulo, horario, dias_semana, ativo")
+    .select("id, titulo, horario, dias_semana, ativo, nivel, max_alunos")
     .eq("arena_id", arena.id)
     .eq("ativo", true)
     .order("created_at", { ascending: false });

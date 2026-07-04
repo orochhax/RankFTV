@@ -7,6 +7,8 @@ export function getResend(): Resend {
   return new Resend(key);
 }
 
-// onboarding@resend.dev funciona sem verificar domínio próprio.
-// Trocar para noreply@rankftv.com.br quando o domínio estiver verificado no Resend.
+// ⚠️ onboarding@resend.dev só entrega pro e-mail do dono da conta Resend —
+// clientes NÃO recebem convite/ingresso/confirmação por e-mail.
+// Quando verificar o domínio rankftv.com no Resend (grátis, só DNS),
+// trocar para: "RankFTV <noreply@rankftv.com>"
 export const FROM = "RankFTV <onboarding@resend.dev>";

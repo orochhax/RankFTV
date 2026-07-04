@@ -18,6 +18,15 @@ export async function criarAula(
   const diasRaw = formData.getAll("dias_semana") as string[];
   const dias    = diasRaw.map(Number).filter((n) => n >= 0 && n <= 6);
 
+  // Nível opcional — vazio = "todos os níveis" (null no banco)
+  const nivelRaw = ((formData.get("nivel") as string) ?? "").trim();
+  const NIVEIS   = ["iniciante", "intermediario", "avancado"];
+  const nivel    = NIVEIS.includes(nivelRaw) ? nivelRaw : null;
+
+  // Limite de alunos opcional — vazio ou inválido = sem limite (null)
+  const maxRaw     = parseInt((formData.get("max_alunos") as string) ?? "", 10);
+  const maxAlunos  = Number.isInteger(maxRaw) && maxRaw > 0 ? maxRaw : null;
+
   if (!titulo) return { error: "Informe o título da aula." };
 
   const { data: arena } = await supabase
@@ -33,6 +42,8 @@ export async function criarAula(
     titulo,
     horario:     horario || null,
     dias_semana: dias,
+    nivel,
+    max_alunos:  maxAlunos,
   });
 
   if (error) return { error: "Erro ao criar a aula." };

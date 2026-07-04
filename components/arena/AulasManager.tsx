@@ -6,7 +6,21 @@ import { criarAula, removerAula, type AulaState } from "@/app/arena/aulas/action
 
 const DIAS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-type Aula = { id: string; titulo: string; horario: string | null; dias_semana: number[] | null; ativo: boolean };
+const NIVEL_LABEL: Record<string, string> = {
+  iniciante:     "Iniciante",
+  intermediario: "Intermediário",
+  avancado:      "Avançado",
+};
+
+type Aula = {
+  id: string;
+  titulo: string;
+  horario: string | null;
+  dias_semana: number[] | null;
+  ativo: boolean;
+  nivel: string | null;
+  max_alunos: number | null;
+};
 
 export function AulasManager({ aulas }: { aulas: Aula[] }) {
   const [state, formAction, pending] = useActionState<AulaState, FormData>(criarAula, {});
@@ -14,6 +28,8 @@ export function AulasManager({ aulas }: { aulas: Aula[] }) {
 
   const input =
     "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  const select =
+    "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
 
   return (
     <div className="space-y-6">
@@ -30,10 +46,18 @@ export function AulasManager({ aulas }: { aulas: Aula[] }) {
               className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 ring-1 ring-black/5"
             >
               <div>
-                <p className="text-sm font-medium text-gray-900">{a.titulo}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-gray-900">{a.titulo}</p>
+                  {a.nivel && (
+                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
+                      {NIVEL_LABEL[a.nivel] ?? a.nivel}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-400">
                   {(a.dias_semana ?? []).map((d) => DIAS[d]).join(", ")}
                   {a.horario && ` · ${a.horario}`}
+                  {a.max_alunos && ` · máx. ${a.max_alunos} alunos`}
                 </p>
               </div>
               <button
@@ -57,9 +81,37 @@ export function AulasManager({ aulas }: { aulas: Aula[] }) {
           <input name="titulo" className={`mt-1 ${input}`} placeholder="Ex.: Treino técnico" required />
         </div>
 
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Horário</label>
+            <input name="horario" type="time" className={`mt-1 ${input}`} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Nível</label>
+            <select name="nivel" className={`mt-1 ${select}`} defaultValue="">
+              <option value="">Todos os níveis</option>
+              <option value="iniciante">Iniciante</option>
+              <option value="intermediario">Intermediário</option>
+              <option value="avancado">Avançado</option>
+            </select>
+          </div>
+        </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-700">Horário</label>
-          <input name="horario" type="time" className={`mt-1 ${input}`} />
+          <label className="block text-sm font-medium text-gray-700">
+            Limite de alunos <span className="font-normal text-gray-400">(opcional)</span>
+          </label>
+          <input
+            name="max_alunos"
+            type="number"
+            min={1}
+            inputMode="numeric"
+            placeholder="Sem limite"
+            className={`mt-1 ${input}`}
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Máximo de alunos que podem confirmar presença nessa aula. Deixe em branco para não limitar.
+          </p>
         </div>
 
         <div>
