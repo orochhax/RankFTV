@@ -21,7 +21,7 @@ export function EntrarNaArenaButtons({
   const [codigoState, setCodigoState] = useState<EntrarState>({});
   const [pending, setPending] = useState(false);
 
-  const [, pedirEntrada, pedirPending] = useActionState<EntrarState, FormData>(
+  const [pedidoState, pedirEntrada, pedirPending] = useActionState<EntrarState, FormData>(
     async (_prev, _fd) => {
       const r = await entrarNaArena(arenaId);
       return r;
@@ -36,6 +36,19 @@ export function EntrarNaArenaButtons({
     setCodigoState(r);
     setPending(false);
     if (r.ok) setCodigo("");
+  }
+
+  // Pedido acabou de ser enviado nesta sessão
+  if (pedidoState.ok) {
+    return (
+      <div className="flex items-center gap-2 rounded-2xl bg-amber-50 px-5 py-4 ring-1 ring-amber-100">
+        <Clock className="size-5 shrink-0 text-amber-500" />
+        <div>
+          <p className="font-semibold text-amber-800">Pedido enviado!</p>
+          <p className="text-sm text-amber-600">O dono da arena foi notificado e vai revisar em breve.</p>
+        </div>
+      </div>
+    );
   }
 
   // Já é aluno
@@ -82,6 +95,12 @@ export function EntrarNaArenaButtons({
       <p className="text-sm text-gray-600">
         Quer treinar nesta arena? Você pode pedir entrada ou usar o código de convite do dono.
       </p>
+
+      {pedidoState.error && (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 ring-1 ring-red-100">
+          {pedidoState.error}
+        </p>
+      )}
 
       <div className="flex gap-3">
         {/* Pedir entrada */}
