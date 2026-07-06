@@ -4,7 +4,26 @@ import { ArrowLeft, Building2, MapPin, Users, Trophy, Tag, CalendarCheck, Calend
 import { ArenaPhotoGallery } from "@/components/arena/ArenaPhotoGallery";
 import { Avatar } from "@/components/ui/Avatar";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { EntrarNaArenaButtons } from "@/components/arena/EntrarNaArenaButtons";
+import { MeuPlanoCard } from "@/components/arena/MeuPlanoCard";
+import { AgendaPresenca, type DiaAgenda } from "@/components/arena/AgendaPresenca";
+
+const DIAS_PT  = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const pad = (n: number) => String(n).padStart(2, "0");
+const isoDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+// Semana seg–dom que contém a data (mesma regra das actions de presença).
+function semanaDe(dataISO: string): { ini: string; fim: string } {
+  const d = new Date(dataISO + "T12:00:00");
+  const diffSegunda = (d.getDay() + 6) % 7;
+  const seg = new Date(d);
+  seg.setDate(d.getDate() - diffSegunda);
+  const dom = new Date(seg);
+  dom.setDate(seg.getDate() + 6);
+  return { ini: isoDate(seg), fim: isoDate(dom) };
+}
 
 const AVATAR_COLORS = ["bg-blue-500","bg-blue-500","bg-violet-500","bg-orange-500","bg-rose-500"];
 function avatarColor(str: string) {
@@ -72,16 +91,30 @@ export default async function ArenaPublicaPage({
     .order("ordem", { ascending: true })
     .order("created_at", { ascending: true });
 
-  const mensalidadePlans = (plans ?? []).filter((p) => p.tipo === "mensalidade");
+  // Mensalidades sempre ordenadas por preço, do menor pro maior
+  const mensalidadePlans = (plans ?? [])
+    .filter((p) => p.tipo === "mensalidade")
+    .sort((a, b) => Number(a.valor) - Number(b.valor));
   const aluguelPlan      = (plans ?? []).find((p) => p.tipo === "aluguel") ?? null;
   const diariaPlan       = (plans ?? []).find((p) => p.tipo === "diaria") ?? null;
 
-  // Verifica vínculo do usuário logado
-  let vinculo: { status: string } | null = null;
+  // Frequência semanal dos planos — query separada e tolerante: se a migração
+  // add-arena-presenca-planos.sql ainda não rodou, tudo fica "ilimitado".
+  const freqMap = new Map<string, number | null>();
+  {
+    const { data: freqRows } = await supabase
+      .from("arena_plans")
+      .select("id, aulas_por_semana")
+      .eq("arena_id", arena.id);
+    for (const r of freqRows ?? []) freqMap.set(r.id, r.aulas_por_semana);
+  }
+
+  // Verifica vínculo do usuário logado (com o plano atual)
+  let vinculo: { status: string; plan_id?: string | null } | null = null;
   if (user) {
     const { data: v } = await supabase
       .from("arena_students")
-      .select("status")
+      .select("status, plan_id")
       .eq("arena_id", arena.id)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -89,6 +122,139 @@ export default async function ArenaPublicaPage({
   }
 
   const isAluno = vinculo?.status === "ativo";
+  const planoAtual = isAluno && vinculo?.plan_id
+    ? mensalidadePlans.find((p) => p.id === vinculo!.plan_id) ?? null
+    : null;
+
+  // ── Agenda de aulas: hoje + 6 dias, com presenças confirmadas ──────────────
+  const { data: classesRaw } = await supabase
+    .from("arena_classes")
+    .select("id, titulo, horario, dias_semana, nivel, max_alunos")
+    .eq("arena_id", arena.id)
+    .eq("ativo", true)
+    .order("horario", { ascending: true });
+  const classes = classesRaw ?? [];
+
+  const agora = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const hojeISO = isoDate(agora);
+
+  const datasJanela: string[] = [];
+  for (let i = 0; i <= 6; i++) {
+    const d = new Date(agora);
+    d.setDate(agora.getDate() + i);
+    datasJanela.push(isoDate(d));
+  }
+
+  // Presenças da janela via admin: o RLS esconde as linhas dos outros alunos,
+  // mas a contagem é pública e os nomes só vão pra quem é aluno da arena.
+  const countMap = new Map<string, number>();          // `${classId}|${data}` → confirmados
+  const minhasChaves = new Set<string>();              // aulas que EU confirmei
+  const nomesMap = new Map<string, { nome: string; fotoUrl: string | null }[]>();
+  if (classes.length > 0) {
+    const admin = createAdminClient();
+    const { data: presencas } = await admin
+      .from("arena_attendance")
+      .select("class_id, data, user_id")
+      .eq("arena_id", arena.id)
+      .gte("data", datasJanela[0])
+      .lte("data", datasJanela[datasJanela.length - 1]);
+
+    const userIds = [...new Set((presencas ?? []).map((p) => p.user_id))];
+    const perfilMap = new Map<string, { nome: string; foto_url: string | null }>();
+    if (isAluno && userIds.length > 0) {
+      const { data: perfis } = await admin
+        .from("profiles")
+        .select("id, nome, foto_url")
+        .in("id", userIds);
+      for (const p of perfis ?? []) perfilMap.set(p.id, { nome: p.nome, foto_url: p.foto_url });
+    }
+
+    for (const p of presencas ?? []) {
+      const chave = `${p.class_id}|${p.data}`;
+      countMap.set(chave, (countMap.get(chave) ?? 0) + 1);
+      if (user && p.user_id === user.id) minhasChaves.add(chave);
+      if (isAluno) {
+        const perfil = perfilMap.get(p.user_id);
+        if (perfil) {
+          const lista = nomesMap.get(chave) ?? [];
+          lista.push({ nome: perfil.nome, fotoUrl: perfil.foto_url });
+          nomesMap.set(chave, lista);
+        }
+      }
+    }
+  }
+
+  // Uso da semana atual (seg–dom) pro chip "2/3 aulas"
+  let usadasSemana = 0;
+  if (isAluno && user) {
+    const { ini, fim } = semanaDe(hojeISO);
+    const { count } = await supabase
+      .from("arena_attendance")
+      .select("id", { count: "exact", head: true })
+      .eq("arena_id", arena.id)
+      .eq("user_id", user.id)
+      .gte("data", ini)
+      .lte("data", fim);
+    usadasSemana = count ?? 0;
+  }
+
+  // Antecedência de cancelamento (tolerante à migração pendente)
+  let cancelHoras = 2;
+  {
+    const { data: cfg } = await supabase
+      .from("arenas")
+      .select("cancel_horas_antes")
+      .eq("id", arena.id)
+      .maybeSingle();
+    if (typeof cfg?.cancel_horas_antes === "number") cancelHoras = cfg.cancel_horas_antes;
+  }
+
+  const diasAgenda: DiaAgenda[] = datasJanela.map((date, i) => {
+    const d = new Date(date + "T12:00:00");
+    const dow = d.getDay();
+    const aulasDia = classes
+      .filter((c) => (c.dias_semana ?? []).includes(dow))
+      .filter(
+        (c, idx, arr) =>
+          arr.findIndex((x) => x.titulo === c.titulo && x.horario === c.horario) === idx,
+      )
+      .map((c) => {
+        const chave = `${c.id}|${date}`;
+        const minha = minhasChaves.has(chave);
+        const passou = i === 0 && !!c.horario
+          ? agora >= new Date(`${date}T${c.horario}:00`)
+          : false;
+        const podeDesmarcar = minha && (!c.horario
+          ? date >= hojeISO
+          : agora <= new Date(new Date(`${date}T${c.horario}:00`).getTime() - cancelHoras * 3600_000));
+        return {
+          id: c.id,
+          titulo: c.titulo,
+          horario: c.horario,
+          nivel: c.nivel,
+          maxAlunos: c.max_alunos,
+          confirmados: countMap.get(chave) ?? 0,
+          minha,
+          passou,
+          podeDesmarcar,
+          nomes: nomesMap.get(chave) ?? [],
+        };
+      });
+    return {
+      date,
+      label: `${DIAS_PT[dow]}, ${d.getDate()} ${MESES_PT[d.getMonth()]}`,
+      relLabel: i === 0 ? "Hoje" : i === 1 ? "Amanhã" : "",
+      isToday: i === 0,
+      aulas: aulasDia,
+    };
+  });
+
+  const planoResumo = (p: { id: string; nome: string; valor: number }) => ({
+    id: p.id,
+    nome: p.nome,
+    valor: Number(p.valor),
+    aulasPorSemana: freqMap.get(p.id) ?? null,
+  });
 
   return (
     <div className="min-h-screen">
@@ -205,7 +371,16 @@ export default async function ArenaPublicaPage({
           )}
 
           {/* ── Planos de mensalidade ── */}
-          {mensalidadePlans.length > 0 && (
+          {planoAtual ? (
+            /* Aluno com plano: só a tag do plano atual + "Mudar de plano" */
+            <MeuPlanoCard
+              handle={arena.handle}
+              planoAtual={planoResumo(planoAtual)}
+              outrosPlanos={mensalidadePlans
+                .filter((p) => p.id !== planoAtual.id)
+                .map(planoResumo)}
+            />
+          ) : mensalidadePlans.length > 0 ? (
             <section className="space-y-3">
               <div className="flex items-center gap-2">
                 <Tag className="size-4 text-blue-500" />
@@ -218,6 +393,9 @@ export default async function ArenaPublicaPage({
                     className="rounded-2xl bg-gradient-to-br from-blue-50 to-white p-4 ring-1 ring-blue-100"
                   >
                     <p className="font-bold text-gray-900">{p.nome}</p>
+                    <p className="text-xs text-gray-500">
+                      {freqMap.get(p.id) ? `${freqMap.get(p.id)}x por semana` : "Aulas ilimitadas"}
+                    </p>
                     {p.descricao && (
                       <p className="mt-1 text-xs text-gray-500 leading-relaxed">{p.descricao}</p>
                     )}
@@ -225,18 +403,27 @@ export default async function ArenaPublicaPage({
                       {`R$ ${Number(p.valor).toFixed(2).replace(".", ",")}`}
                       <span className="ml-1 text-xs font-normal text-gray-400">/mês</span>
                     </p>
-                    {!isAluno && (
-                      <Link
-                        href={user ? `/arenas/${arena.handle}/assinar/${p.id}` : `/login?next=/arenas/${arena.handle}/assinar/${p.id}`}
-                        className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-                      >
-                        <CreditCard className="size-4" /> Assinar
-                      </Link>
-                    )}
+                    <Link
+                      href={user ? `/arenas/${arena.handle}/assinar/${p.id}` : `/login?next=/arenas/${arena.handle}/assinar/${p.id}`}
+                      className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                    >
+                      <CreditCard className="size-4" /> Assinar
+                    </Link>
                   </div>
                 ))}
               </div>
             </section>
+          ) : null}
+
+          {/* ── Agenda de aulas + presença ── */}
+          {classes.length > 0 && (
+            <AgendaPresenca
+              arenaId={arena.id}
+              isAluno={isAluno}
+              planoLimite={planoAtual ? (freqMap.get(planoAtual.id) ?? null) : null}
+              usadasSemana={usadasSemana}
+              dias={diasAgenda}
+            />
           )}
 
           <EntrarNaArenaButtons

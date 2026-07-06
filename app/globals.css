@@ -40,3 +40,18 @@ img {
   -webkit-user-drag: none;
   user-drag: none;
 }
+
+/* Anti-cópia: bloqueia seleção de texto no site inteiro (mobile e desktop).
+   Campos de digitação continuam selecionáveis — sem isso o usuário não
+   consegue editar o que digita nem copiar o código PIX copia-e-cola. */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}

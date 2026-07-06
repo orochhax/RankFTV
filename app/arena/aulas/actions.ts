@@ -51,6 +51,23 @@ export async function criarAula(
   return {};
 }
 
+// Até quantas horas antes da aula o aluno pode desmarcar presença.
+export async function salvarCancelHoras(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const horas = parseInt((formData.get("cancel_horas_antes") as string) ?? "", 10);
+  if (!Number.isInteger(horas) || horas < 0 || horas > 72) return;
+
+  await supabase
+    .from("arenas")
+    .update({ cancel_horas_antes: horas })
+    .eq("dono_id", user.id);
+
+  revalidatePath("/arena/aulas");
+}
+
 export async function removerAula(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

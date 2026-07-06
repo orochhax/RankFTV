@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { CheckCircle2, Circle, Loader2, CalendarDays } from "lucide-react";
 import { marcarPresenca } from "@/app/arena/presenca/actions";
 
@@ -19,10 +19,13 @@ export function PresencaClient({
   hoje: string;
 }) {
   const [pending, startTransition] = useTransition();
+  const [erro, setErro] = useState<string | null>(null);
 
   function marcar(classId: string) {
+    setErro(null);
     startTransition(async () => {
-      await marcarPresenca(classId, arenaId);
+      const r = await marcarPresenca(classId, arenaId);
+      if (r?.error) setErro(r.error);
     });
   }
 
@@ -40,6 +43,11 @@ export function PresencaClient({
         <p className="mb-3 text-sm font-semibold text-gray-700">
           Aulas de hoje — {formatData(hoje)}
         </p>
+        {erro && (
+          <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 ring-1 ring-red-100">
+            {erro}
+          </p>
+        )}
         {aulasHoje.length === 0 ? (
           <p className="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-400 ring-1 ring-black/5">
             Nenhuma aula agendada para hoje.

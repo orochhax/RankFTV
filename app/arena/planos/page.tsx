@@ -27,7 +27,7 @@ export default async function PlanosArenaPage({
 
   const { data: plans } = await supabase
     .from("arena_plans")
-    .select("id, tipo, nome, descricao, valor, ativo, ordem, aceita_credito, aceita_debito, dia_vencimento")
+    .select("id, tipo, nome, descricao, valor, ativo, ordem, aceita_credito, aceita_debito, dia_vencimento, aulas_por_semana")
     .eq("arena_id", arena.id)
     .order("ordem", { ascending: true })
     .order("created_at", { ascending: true });

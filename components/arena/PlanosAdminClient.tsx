@@ -14,6 +14,7 @@ type Plan = {
   aceita_credito: boolean | null;
   aceita_debito: boolean | null;
   dia_vencimento: number | null;
+  aulas_por_semana: number | null;
 };
 
 function fmt(v: number) {
@@ -48,6 +49,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
       >
         <input type="hidden" name="handle" value={handle} />
         <input type="hidden" name="planId" value={plan.id} />
+        <input type="hidden" name="tipo"   value={plan.tipo} />
         <input
           name="nome"
           defaultValue={plan.nome}
@@ -71,6 +73,21 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
           className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           placeholder="Valor (R$)"
         />
+        {plan.tipo === "mensalidade" && (
+          <div>
+            <input
+              name="aulas_por_semana"
+              type="number"
+              min="1"
+              defaultValue={plan.aulas_por_semana ?? ""}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Aulas por semana (vazio = ilimitado)"
+            />
+            <p className="mt-1 text-[11px] text-gray-400">
+              Quantas presenças por semana (seg a dom) esse plano dá direito.
+            </p>
+          </div>
+        )}
         <div className="flex gap-2">
           <button
             type="submit"
@@ -198,7 +215,12 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
             </span>
           )}
           {plan.tipo === "mensalidade" && (
-            <span className="text-[10px] text-gray-400">vence dia {plan.dia_vencimento ?? 10}</span>
+            <>
+              <span className="inline-flex items-center rounded-lg bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                {plan.aulas_por_semana ? `${plan.aulas_por_semana}x por semana` : "Aulas ilimitadas"}
+              </span>
+              <span className="text-[10px] text-gray-400">vence dia {plan.dia_vencimento ?? 10}</span>
+            </>
           )}
         </div>
       </div>
@@ -266,6 +288,20 @@ function AddPlanForm({ tipo, handle, onDone }: { tipo: string; handle: string; o
         className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         placeholder={tipo === "mensalidade" ? "Valor mensal (R$)" : tipo === "aluguel" ? "Valor por hora (R$)" : "Valor por sessão (R$)"}
       />
+      {tipo === "mensalidade" && (
+        <div>
+          <input
+            name="aulas_por_semana"
+            type="number"
+            min="1"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="Aulas por semana (vazio = ilimitado)"
+          />
+          <p className="mt-1 text-[11px] text-gray-400">
+            Quantas presenças por semana (seg a dom) esse plano dá direito. Ex.: plano 3x = 3.
+          </p>
+        </div>
+      )}
       <div className="flex gap-2">
         <button
           type="submit"

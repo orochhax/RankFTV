@@ -135,6 +135,199 @@ export async function entrarNaArena(arenaId: string) {
   return { ok: true };
 }
 
+// ── Presença com regras de plano ─────────────────────────────────────────────
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const isoDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+// "Agora" no fuso de Brasília, como Date naive (comparável com data+horario da aula).
+function agoraSP(): Date {
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+}
+
+// Semana seg–dom que contém a data (o limite do plano conta dentro dela).
+function semanaDe(dataISO: string): { ini: string; fim: string } {
+  const d = new Date(dataISO + "T12:00:00");
+  const diffSegunda = (d.getDay() + 6) % 7; // seg=0 … dom=6
+  const seg = new Date(d);
+  seg.setDate(d.getDate() - diffSegunda);
+  const dom = new Date(seg);
+  dom.setDate(seg.getDate() + 6);
+  return { ini: isoDate(seg), fim: isoDate(dom) };
+}
+
+export type PresencaResult = { ok?: boolean; error?: string };
+
+/**
+ * Confirma presença numa aula em um dia específico (hoje até hoje+6).
+ * Valida: aluno ativo, aula do dia, horário ainda não passou, vaga disponível
+ * e limite semanal do plano (aulas_por_semana; sem limite = ilimitado).
+ * Pode marcar mais de uma aula no mesmo dia, desde que caiba na semana.
+ */
+export async function confirmarPresenca(
+  arenaId: string,
+  classId: string,
+  data: string,
+): Promise<PresencaResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Faça login para confirmar presença." };
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return { error: "Data inválida." };
+
+  // Janela: hoje até hoje+6 (Brasília)
+  const agora = agoraSP();
+  const hoje = isoDate(agora);
+  const limite = new Date(agora);
+  limite.setDate(agora.getDate() + 6);
+  if (data < hoje || data > isoDate(limite)) {
+    return { error: "Só é possível confirmar presença até 6 dias à frente." };
+  }
+
+  // Aluno ativo da arena (traz o plano junto)
+  const { data: vinculo } = await supabase
+    .from("arena_students")
+    .select("id, plan_id")
+    .eq("arena_id", arenaId)
+    .eq("user_id", user.id)
+    .eq("status", "ativo")
+    .maybeSingle();
+  if (!vinculo) return { error: "Você não é aluno ativo desta arena." };
+
+  // Aula válida naquele dia da semana
+  const { data: aula } = await supabase
+    .from("arena_classes")
+    .select("id, titulo, horario, dias_semana, max_alunos")
+    .eq("id", classId)
+    .eq("arena_id", arenaId)
+    .eq("ativo", true)
+    .maybeSingle();
+  if (!aula) return { error: "Aula não encontrada." };
+
+  const dow = new Date(data + "T12:00:00").getDay();
+  if (!(aula.dias_semana ?? []).includes(dow)) {
+    return { error: "Essa aula não acontece nesse dia." };
+  }
+
+  // Aula de hoje que já começou não aceita mais confirmação
+  if (data === hoje && aula.horario) {
+    const inicio = new Date(`${data}T${aula.horario}:00`);
+    if (agora >= inicio) return { error: "Essa aula já começou." };
+  }
+
+  const admin = createAdminClient();
+
+  // Vagas (contagem via admin — o RLS esconde as presenças dos outros alunos)
+  if (aula.max_alunos != null) {
+    const { count } = await admin
+      .from("arena_attendance")
+      .select("id", { count: "exact", head: true })
+      .eq("class_id", classId)
+      .eq("data", data);
+    if ((count ?? 0) >= aula.max_alunos) {
+      return { error: "Essa aula já está lotada." };
+    }
+  }
+
+  // Limite semanal do plano (seg a dom da semana da aula)
+  if (vinculo.plan_id) {
+    const { data: plano } = await admin
+      .from("arena_plans")
+      .select("aulas_por_semana")
+      .eq("id", vinculo.plan_id)
+      .maybeSingle();
+    const limiteSemana = plano?.aulas_por_semana ?? null;
+    if (limiteSemana != null) {
+      const { ini, fim } = semanaDe(data);
+      const { count } = await supabase
+        .from("arena_attendance")
+        .select("id", { count: "exact", head: true })
+        .eq("arena_id", arenaId)
+        .eq("user_id", user.id)
+        .gte("data", ini)
+        .lte("data", fim);
+      if ((count ?? 0) >= limiteSemana) {
+        return {
+          error: `Seu plano dá direito a ${limiteSemana} aula${limiteSemana > 1 ? "s" : ""} por semana — você já usou todas nesta semana.`,
+        };
+      }
+    }
+  }
+
+  const { error } = await supabase.from("arena_attendance").insert({
+    class_id: classId,
+    arena_id: arenaId,
+    user_id: user.id,
+    data,
+  });
+  if (error) {
+    if (error.code === "23505") return { error: "Você já confirmou presença nessa aula." };
+    return { error: "Erro ao confirmar presença. Tente novamente." };
+  }
+
+  revalidatePath("/arena/presenca");
+  return { ok: true };
+}
+
+/**
+ * Desmarca uma presença confirmada — devolve o crédito da semana e libera a
+ * vaga. Só até `cancel_horas_antes` horas antes da aula (configurado pelo dono).
+ */
+export async function desmarcarPresenca(
+  arenaId: string,
+  classId: string,
+  data: string,
+): Promise<PresencaResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Faça login." };
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return { error: "Data inválida." };
+
+  const { data: aula } = await supabase
+    .from("arena_classes")
+    .select("id, horario")
+    .eq("id", classId)
+    .eq("arena_id", arenaId)
+    .maybeSingle();
+  if (!aula) return { error: "Aula não encontrada." };
+
+  // Antecedência mínima configurada pelo dono (padrão 2h se a migração não rodou)
+  let cancelHoras = 2;
+  const { data: cfgArena } = await supabase
+    .from("arenas")
+    .select("cancel_horas_antes")
+    .eq("id", arenaId)
+    .maybeSingle();
+  if (typeof cfgArena?.cancel_horas_antes === "number") {
+    cancelHoras = cfgArena.cancel_horas_antes;
+  }
+
+  const agora = agoraSP();
+  if (aula.horario) {
+    const inicio = new Date(`${data}T${aula.horario}:00`);
+    const prazo = new Date(inicio.getTime() - cancelHoras * 3600_000);
+    if (agora > prazo) {
+      return {
+        error: `O prazo pra desmarcar já passou — só até ${cancelHoras}h antes da aula.`,
+      };
+    }
+  } else if (data < isoDate(agora)) {
+    return { error: "Essa aula já passou." };
+  }
+
+  const { error } = await supabase
+    .from("arena_attendance")
+    .delete()
+    .eq("class_id", classId)
+    .eq("user_id", user.id)
+    .eq("data", data);
+  if (error) return { error: "Erro ao desmarcar. Tente novamente." };
+
+  revalidatePath("/arena/presenca");
+  return { ok: true };
+}
+
 export async function entrarComCodigo(arenaId: string, codigo: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
