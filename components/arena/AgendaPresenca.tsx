@@ -113,7 +113,7 @@ export function AgendaPresenca({
                 {dia.aulas.map((aula) => {
                   const chave = `${aula.id}|${dia.date}`;
                   const lotada = aula.maxAlunos != null && aula.confirmados >= aula.maxAlunos && !aula.minha;
-                  const nivelLabel = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : null;
+                  const nivelLabel = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : "Todos os níveis";
                   const expandida = aberta === chave;
                   return (
                     <div
@@ -141,8 +141,8 @@ export function AgendaPresenca({
                           <div className={`mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] ${
                             aula.minha ? "text-blue-100" : "text-gray-500"
                           }`}>
-                            {nivelLabel && <span className="font-semibold">{nivelLabel}</span>}
-                            {nivelLabel && <span className={aula.minha ? "text-blue-300" : "text-gray-300"}>·</span>}
+                            <span className="font-semibold">{nivelLabel}</span>
+                            <span className={aula.minha ? "text-blue-300" : "text-gray-300"}>·</span>
                             <span className={`font-semibold ${
                               lotada && !aula.minha ? "text-red-500" : ""
                             }`}>

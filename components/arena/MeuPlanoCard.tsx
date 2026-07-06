@@ -21,46 +21,54 @@ export function MeuPlanoCard({
   handle,
   planoAtual,
   outrosPlanos,
+  usadasSemana,
+  semanaLabel,
 }: {
   handle: string;
   planoAtual: PlanoResumo;
   outrosPlanos: PlanoResumo[];
+  usadasSemana: number;
+  semanaLabel: string;
 }) {
   const [mostrarOutros, setMostrarOutros] = useState(false);
 
   return (
-    <section className="space-y-3">
-      {/* Tag do plano atual */}
-      <div className="flex items-center justify-between gap-3 rounded-2xl bg-blue-50 px-4 py-3.5 ring-1 ring-blue-100">
-        <div className="flex items-center gap-3 min-w-0">
-          <BadgeCheck className="size-5 shrink-0 text-blue-600" />
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-blue-500">
-              Seu plano
-            </p>
-            <p className="truncate text-sm font-bold text-blue-900">
-              {planoAtual.nome}
-              <span className="ml-1.5 font-medium text-blue-600">
-                {fmtBRL(planoAtual.valor)}/mês
-              </span>
-            </p>
-            <p className="text-xs text-blue-600">
-              {planoAtual.aulasPorSemana
-                ? `${planoAtual.aulasPorSemana}x por semana`
-                : "Aulas ilimitadas"}
-            </p>
-          </div>
+    <div className="space-y-3">
+      {/* Card do plano atual — mesma estrutura do card de Aluguel (ícone+título,
+          informações empilhadas, botão de largura total) pra ficarem do mesmo tamanho */}
+      <section className="flex flex-col gap-3 rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
+        <div className="flex items-center gap-2">
+          <BadgeCheck className="size-4 shrink-0 text-blue-600" />
+          <h2 className="text-sm font-semibold text-blue-800">Seu plano</h2>
         </div>
+
+        <div>
+          <p className="text-sm font-bold text-blue-900">{planoAtual.nome}</p>
+          <p className="text-xs font-medium text-blue-600">{fmtBRL(planoAtual.valor)}/mês</p>
+          <p className="mt-1 text-xs text-blue-600">
+            {planoAtual.aulasPorSemana
+              ? `${planoAtual.aulasPorSemana}x por semana`
+              : "Aulas ilimitadas"}
+          </p>
+          {planoAtual.aulasPorSemana != null && (
+            <p className="mt-1 text-xs text-blue-500">
+              {usadasSemana < planoAtual.aulasPorSemana
+                ? `Você ainda tem ${planoAtual.aulasPorSemana - usadasSemana} aula${planoAtual.aulasPorSemana - usadasSemana > 1 ? "s" : ""} essa semana (${semanaLabel})`
+                : `Você já usou todas as aulas dessa semana (${semanaLabel})`}
+            </p>
+          )}
+        </div>
+
         {outrosPlanos.length > 0 && (
           <button
             onClick={() => setMostrarOutros((v) => !v)}
-            className="flex shrink-0 items-center gap-1 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-blue-700 ring-1 ring-blue-200 hover:bg-blue-100"
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 ring-1 ring-blue-200 hover:bg-blue-100"
           >
             Mudar de plano
-            {mostrarOutros ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+            {mostrarOutros ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
           </button>
         )}
-      </div>
+      </section>
 
       {/* Outros planos — só quando o aluno pede */}
       {mostrarOutros && (
@@ -85,6 +93,6 @@ export function MeuPlanoCard({
           ))}
         </div>
       )}
-    </section>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TrendingUp, TrendingDown, Minus, Users, DollarSign, CalendarDays, Clock, X } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Users, DollarSign, CalendarDays, Clock, X, ChevronDown, ChevronUp } from "lucide-react";
 
 type ReceitaMes = { label: string; valor: number };
 type PresencaDia = { dow: number; label: string; count: number };
@@ -31,6 +31,7 @@ export function FinanceiroDashboard({
   rankingAlunos: AlunoRanking[];
 }) {
   const [selectedDow, setSelectedDow] = useState<number | null>(null);
+  const [rankingAberto, setRankingAberto] = useState(true);
 
   const maxReceita = Math.max(...receitaMensal.map((r) => r.valor), 1);
   const maxPresenca = Math.max(...presencasSemanal.map((p) => p.count), 1);
@@ -214,15 +215,25 @@ export function FinanceiroDashboard({
 
       {/* ── Ranking de alunos ── */}
       <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-        <div className="mb-4 flex items-center gap-2">
-          <Users className="size-4 text-blue-500" />
-          <h3 className="text-sm font-semibold text-gray-700">Ranking de presença — últimos 30 dias</h3>
-        </div>
+        <button
+          onClick={() => setRankingAberto((v) => !v)}
+          className="flex w-full items-center justify-between gap-2"
+        >
+          <div className="flex items-center gap-2">
+            <Users className="size-4 text-blue-500" />
+            <h3 className="text-sm font-semibold text-gray-700">Ranking de presença — últimos 30 dias</h3>
+          </div>
+          {rankingAberto ? (
+            <ChevronUp className="size-4 shrink-0 text-gray-400" />
+          ) : (
+            <ChevronDown className="size-4 shrink-0 text-gray-400" />
+          )}
+        </button>
 
-        {rankingAlunos.length === 0 ? (
-          <p className="text-center text-xs text-gray-400">Nenhuma presença registrada ainda.</p>
+        {rankingAberto && (rankingAlunos.length === 0 ? (
+          <p className="mt-4 text-center text-xs text-gray-400">Nenhuma presença registrada ainda.</p>
         ) : (
-          <ol className="space-y-2">
+          <ol className="mt-4 space-y-2">
             {rankingAlunos.map((a, i) => (
               <li
                 key={a.userId}
@@ -272,7 +283,7 @@ export function FinanceiroDashboard({
               </li>
             ))}
           </ol>
-        )}
+        ))}
       </div>
 
     </div>

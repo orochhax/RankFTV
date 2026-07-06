@@ -19,7 +19,7 @@ export default async function IngressoPlateiaPage({
   const supabase = createAdminClient();
   const { data: t } = await supabase
     .from("spectator_tickets")
-    .select("id, tipo_nome, comprador_nome, valor, quantidade, itens, status_pagamento, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in")
+    .select("id, tipo_nome, valor, quantidade, itens, status_pagamento, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in")
     .eq("id", ticketId)
     .maybeSingle();
   if (!t) notFound();
@@ -99,7 +99,9 @@ export default async function IngressoPlateiaPage({
                       ? `Apresente este QR na entrada — admite ${t.quantidade} pessoas`
                       : "Apresente este QR na entrada do evento"}
                 </p>
-                <p className="text-sm text-gray-500">{t.comprador_nome}</p>
+                {t.code && (
+                  <p className="font-mono text-xs tracking-[0.2em] text-gray-400">{t.code}</p>
+                )}
               </div>
             ) : (
               /* ── Pendente: pagar via Pix ── */

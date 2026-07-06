@@ -73,9 +73,11 @@ export default async function RootLayout({
       className={`${inter.variable} h-full antialiased`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-white text-gray-900">
-        <AntiInspect />
+        {/* Desativado temporariamente para uso do modo mobile do DevTools no PC.
+            Reativar: descomentar a linha abaixo. */}
+        {/* <AntiInspect /> */}
         <TopNav user={navUser} showStaff={isStaff} isAdmin={isAdmin} notifCount={notifCount} />
-        <main className="flex-1 pb-28 sm:pb-0">{children}</main>
+        <main className="flex-1 pb-28 md:pb-0">{children}</main>
         <Footer />
         <BottomNav showStaff={isStaff} isAdmin={isAdmin} notifCount={notifCount} isLoggedIn={!!navUser} />
       </body>

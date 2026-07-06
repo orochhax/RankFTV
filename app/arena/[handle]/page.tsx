@@ -383,7 +383,7 @@ export default async function ArenaPainelPage({
                     ) : (
                       dia.aulas.map((aula) => {
                         const confirmados = presencasMap.get(`${aula.id}|${dia.date}`) ?? 0;
-                        const nivelLabel  = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : null;
+                        const nivelLabel  = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : "Todos os níveis";
                         const temLimite   = aula.max_alunos != null;
                         const lotada      = temLimite && confirmados >= (aula.max_alunos as number);
                         return (
@@ -406,26 +406,20 @@ export default async function ArenaPainelPage({
                             </div>
 
                             {/* Linha 2: nível + vagas */}
-                            {(nivelLabel || temLimite || confirmados > 0) && (
-                              <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
-                                {nivelLabel && (
-                                  <span className="font-semibold text-gray-500">{nivelLabel}</span>
-                                )}
-                                {nivelLabel && (temLimite || confirmados > 0) && (
-                                  <span className="text-gray-300">·</span>
-                                )}
+                            <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
+                                <span className="font-semibold text-gray-500">{nivelLabel}</span>
+                                <span className="text-gray-300">·</span>
                                 {temLimite ? (
                                   <span className={`font-semibold ${lotada ? "text-red-500" : "text-gray-500"}`}>
                                     {confirmados}/{aula.max_alunos}
                                     {lotada && " · lotada"}
                                   </span>
-                                ) : confirmados > 0 ? (
+                                ) : (
                                   <span className="text-gray-400">
-                                    {confirmados} confirmado{confirmados > 1 ? "s" : ""}
+                                    {confirmados} confirmado{confirmados === 1 ? "" : "s"}
                                   </span>
-                                ) : null}
+                                )}
                               </div>
-                            )}
                           </Link>
                         );
                       })

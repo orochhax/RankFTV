@@ -48,9 +48,10 @@ export default async function Home() {
   ]);
 
   const destaquesIds: string[] = (configRow.data?.destaques_ids as string[] | null) ?? [];
-  const destaques = destaquesIds.length > 0
+  const destaques = (destaquesIds.length > 0
     ? destaquesIds.map((id) => publicados.find((c) => c.id === id)).filter(Boolean) as typeof publicados
-    : publicados.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento").slice(0, 3);
+    : publicados.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento").slice(0, 3)
+  ).filter((c) => c.status !== "encerrado");
 
   // Campeonatos ordenados para a seção de listagem
   const todosOrdenados = [...publicados]
@@ -143,6 +144,7 @@ export default async function Home() {
             allCamps={todosOrdenados}
             estados={estados}
             categorias={categorias}
+            temAoVivo={aoVivo.length > 0}
           />
 
         </div>

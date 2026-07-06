@@ -185,18 +185,23 @@ export default async function ArenaPublicaPage({
   }
 
   // Uso da semana atual (seg–dom) pro chip "2/3 aulas"
+  const { ini: semanaIni, fim: semanaFim } = semanaDe(hojeISO);
   let usadasSemana = 0;
   if (isAluno && user) {
-    const { ini, fim } = semanaDe(hojeISO);
     const { count } = await supabase
       .from("arena_attendance")
       .select("id", { count: "exact", head: true })
       .eq("arena_id", arena.id)
       .eq("user_id", user.id)
-      .gte("data", ini)
-      .lte("data", fim);
+      .gte("data", semanaIni)
+      .lte("data", semanaFim);
     usadasSemana = count ?? 0;
   }
+  const fmtDiaMes = (iso: string) => {
+    const [, mm, dd] = iso.split("-");
+    return `${dd}/${mm}`;
+  };
+  const semanaLabel = `${fmtDiaMes(semanaIni)} a ${fmtDiaMes(semanaFim)}`;
 
   // Antecedência de cancelamento (tolerante à migração pendente)
   let cancelHoras = 2;
@@ -299,88 +304,77 @@ export default async function ArenaPublicaPage({
             </p>
           )}
 
-          {/* ── Aluguel da quadra ── */}
+          {/* ── Aluguel / Diária / Seu plano — lado a lado quando couber ── */}
+          {(aluguelPlan || diariaPlan || planoAtual) && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+
           {aluguelPlan && (
-            <section className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
-              <div className="flex items-center gap-2 mb-2">
+            <section className="flex flex-col gap-3 self-start rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
+              <div className="flex items-center gap-2">
                 <CalendarCheck className="size-4 text-blue-600" />
                 <h2 className="text-sm font-semibold text-blue-800">Aluguel da quadra</h2>
               </div>
               {aluguelPlan.descricao && (
-                <p className="text-xs text-blue-700 mb-2">{aluguelPlan.descricao}</p>
+                <p className="text-xs text-blue-700">{aluguelPlan.descricao}</p>
               )}
-              <div className="flex items-end justify-between gap-3">
-                <p className="text-2xl font-black text-blue-600">
-                  {`R$ ${Number(aluguelPlan.valor).toFixed(2).replace(".", ",")}`}
-                  <span className="ml-1 text-xs font-normal text-blue-500">/hora</span>
-                </p>
-                <Link
-                  href={user
-                    ? `/arenas/${arena.handle}/alugar?planId=${aluguelPlan.id}`
-                    : `/login?next=/arenas/${arena.handle}/alugar`}
-                  className="shrink-0 flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-                >
-                  <CalendarCheck className="size-4" /> Reservar
-                </Link>
-              </div>
-              {/* Métodos aceitos */}
-              <div className="mt-2 flex gap-1.5">
-                {(aluguelPlan.aceita_credito ?? true) && (
-                  <span className="rounded-lg bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Crédito</span>
-                )}
-                {(aluguelPlan.aceita_debito ?? false) && (
-                  <span className="rounded-lg bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Débito</span>
-                )}
-              </div>
+              <p className="whitespace-nowrap text-xl font-black text-blue-600">
+                {`R$ ${Number(aluguelPlan.valor).toFixed(2).replace(".", ",")}`}
+                <span className="ml-1 text-xs font-normal text-blue-500">/hora</span>
+              </p>
+              <Link
+                href={user
+                  ? `/arenas/${arena.handle}/alugar?planId=${aluguelPlan.id}`
+                  : `/login?next=/arenas/${arena.handle}/alugar`}
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+              >
+                <CalendarCheck className="size-4" /> Reservar
+              </Link>
             </section>
           )}
 
           {/* ── Diária de treino ── */}
           {diariaPlan && (
-            <section className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
-              <div className="flex items-center gap-2 mb-2">
+            <section className="flex flex-col gap-3 self-start rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
+              <div className="flex items-center gap-2">
                 <CalendarDays className="size-4 text-blue-600" />
                 <h2 className="text-sm font-semibold text-blue-800">Diária de treino</h2>
               </div>
               {diariaPlan.descricao && (
-                <p className="text-xs text-blue-700 mb-2">{diariaPlan.descricao}</p>
+                <p className="text-xs text-blue-700">{diariaPlan.descricao}</p>
               )}
-              <div className="flex items-end justify-between gap-3">
-                <p className="text-2xl font-black text-blue-600">
-                  {`R$ ${Number(diariaPlan.valor).toFixed(2).replace(".", ",")}`}
-                  <span className="ml-1 text-xs font-normal text-blue-500">/sessão</span>
-                </p>
-                <Link
-                  href={user
-                    ? `/arenas/${arena.handle}/diaria?planId=${diariaPlan.id}`
-                    : `/login?next=/arenas/${arena.handle}/diaria`}
-                  className="shrink-0 flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-                >
-                  <CalendarDays className="size-4" /> Pagar diária
-                </Link>
-              </div>
-              <div className="mt-2 flex gap-1.5">
-                {(diariaPlan.aceita_credito ?? true) && (
-                  <span className="rounded-lg bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Crédito</span>
-                )}
-                {(diariaPlan.aceita_debito ?? false) && (
-                  <span className="rounded-lg bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Débito</span>
-                )}
-              </div>
+              <p className="whitespace-nowrap text-xl font-black text-blue-600">
+                {`R$ ${Number(diariaPlan.valor).toFixed(2).replace(".", ",")}`}
+                <span className="ml-1 text-xs font-normal text-blue-500">/sessão</span>
+              </p>
+              <Link
+                href={user
+                  ? `/arenas/${arena.handle}/diaria?planId=${diariaPlan.id}`
+                  : `/login?next=/arenas/${arena.handle}/diaria`}
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+              >
+                <CalendarDays className="size-4" /> Pagar diária
+              </Link>
             </section>
           )}
 
-          {/* ── Planos de mensalidade ── */}
-          {planoAtual ? (
-            /* Aluno com plano: só a tag do plano atual + "Mudar de plano" */
+          {/* ── Seu plano (aluno já assinante) ── */}
+          {planoAtual && (
             <MeuPlanoCard
               handle={arena.handle}
               planoAtual={planoResumo(planoAtual)}
               outrosPlanos={mensalidadePlans
                 .filter((p) => p.id !== planoAtual.id)
                 .map(planoResumo)}
+              usadasSemana={usadasSemana}
+              semanaLabel={semanaLabel}
             />
-          ) : mensalidadePlans.length > 0 ? (
+          )}
+
+          </div>
+          )}
+
+          {/* ── Planos de mensalidade (aluno ainda sem plano) ── */}
+          {!planoAtual && mensalidadePlans.length > 0 && (
             <section className="space-y-3">
               <div className="flex items-center gap-2">
                 <Tag className="size-4 text-blue-500" />
@@ -413,7 +407,7 @@ export default async function ArenaPublicaPage({
                 ))}
               </div>
             </section>
-          ) : null}
+          )}
 
           {/* ── Agenda de aulas + presença ── */}
           {classes.length > 0 && (
