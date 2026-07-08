@@ -14,7 +14,7 @@ export default async function DadosContaPage() {
 
   const { data: priv } = await supabase
     .from("profiles_private")
-    .select("telefone")
+    .select("telefone, cpf")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -33,6 +33,7 @@ export default async function DadosContaPage() {
         userId={user.id}
         email={user.email ?? ""}
         initialTelefone={priv?.telefone ?? null}
+        initialCpf={priv?.cpf ?? null}
       />
 
       <Link

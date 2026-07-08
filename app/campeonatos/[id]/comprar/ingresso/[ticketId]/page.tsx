@@ -1,19 +1,30 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Clock, Users } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import QRCode from "qrcode";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { CopyButton } from "@/components/ui/CopyButton";
-import { formatBRL } from "@/lib/format";
+import { Avatar } from "@/components/ui/Avatar";
+import { IngressoAtletaPagamento } from "@/components/campeonatos/IngressoAtletaPagamento";
 
-// Ingresso de atleta: tela de pagamento (Pix) quando pendente, QR de entrada quando pago.
+const AVATAR_COLORS = ["bg-blue-500", "bg-blue-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
+function avatarColor(str: string) {
+  let h = 0;
+  for (const c of str) h = (h * 31 + c.charCodeAt(0)) | 0;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
+// Ingresso de atleta: tela de pagamento (Pix/Cartão) quando pendente, QR de entrada quando pago.
 // Visitante sem conta → lemos via admin client pelo id do ingresso.
 export default async function IngressoAtletaPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; ticketId: string }>;
+  searchParams: Promise<{ voltar?: string }>;
 }) {
   const { id: champId, ticketId } = await params;
+  const { voltar } = await searchParams;
+  const backHref  = voltar === "minhas-compras" ? "/minhas-compras" : `/campeonatos/${champId}`;
 
   const supabase = createAdminClient();
   const { data: t } = await supabase
@@ -27,7 +38,7 @@ export default async function IngressoAtletaPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome")
+    .select("nome, is_elite")
     .eq("id", champId)
     .maybeSingle();
 
@@ -44,99 +55,62 @@ export default async function IngressoAtletaPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f13]">
-      <div className="mx-auto max-w-md px-6 py-8">
-        <Link
-          href={`/campeonatos/${champId}`}
-          className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
-        >
-          <ArrowLeft className="size-4" /> {champ?.nome ?? "Campeonato"}
-        </Link>
+    <div className="min-h-screen">
+      {/* ── Cabeçalho escuro ── */}
+      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
+        <div className="mx-auto max-w-lg space-y-5">
+          <Link
+            href={backHref}
+            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
+          >
+            <ArrowLeft className="size-4" /> {voltar === "minhas-compras" ? "Minhas Compras" : "Voltar ao campeonato"}
+          </Link>
 
-        <div className="mt-5 overflow-hidden rounded-3xl bg-white shadow-xl">
-          {/* Topo */}
-          <div className="bg-[#0f0f13] px-6 py-5 text-center">
-            {t.code && (
-              <p className="mb-1 font-mono text-[10px] tracking-[0.25em] text-white/50">{t.code}</p>
-            )}
-            <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">
-              Ingresso de atleta
-            </p>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-widest text-white/40">Ingresso de atleta</p>
+            <h1 className="mt-1 text-xl font-bold text-white">{champ?.nome ?? "Campeonato"}</h1>
             {t.categoria_nome && (
-              <p className="mt-0.5 text-sm font-semibold text-white">Categoria {t.categoria_nome}</p>
+              <p className="text-sm text-white/50">Categoria {t.categoria_nome}</p>
             )}
           </div>
 
-          {/* Atletas */}
-          <div className="flex items-center gap-3 border-b border-gray-100 px-6 py-3">
-            <Users className="size-4 shrink-0 text-gray-400" />
-            <p className="text-sm text-gray-700">
-              <span className="font-medium">{t.comprador_nome}</span>
-              {t.parceiro_nome && (
-                <> + <span className="font-medium">{t.parceiro_nome}</span></>
-              )}
-            </p>
-          </div>
-
-          <div className="px-6 py-6">
-            {pago ? (
-              <div className="flex flex-col items-center gap-3 text-center">
-                <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-600">
-                  <CheckCircle2 className="size-4" /> Inscrição confirmada
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Avatar nome={t.comprador_nome} color={avatarColor(t.comprador_nome)} size="sm" />
+              <span className="text-sm font-medium text-white">{t.comprador_nome}</span>
+            </div>
+            {t.parceiro_nome && (
+              <>
+                <span className="text-white/30">+</span>
+                <div className="flex items-center gap-2">
+                  <Avatar nome={t.parceiro_nome} color={avatarColor(t.parceiro_nome)} size="sm" />
+                  <span className="text-sm font-medium text-white">{t.parceiro_nome}</span>
                 </div>
-                {entradaQr && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={entradaQr}
-                    alt="QR de entrada"
-                    width={220}
-                    height={220}
-                    className={`rounded-2xl ${t.checked_in ? "opacity-40 grayscale" : ""}`}
-                  />
-                )}
-                <p className="text-xs text-gray-400">
-                  {t.checked_in
-                    ? "Check-in já realizado"
-                    : "Apresente este QR na entrada do evento"}
-                </p>
-                <p className="text-xs text-blue-600">
-                  Salve o link desta página para acessar depois.
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-4 text-center">
-                <div className="flex items-center gap-1.5 text-sm font-medium text-amber-600">
-                  <Clock className="size-4" /> Aguardando pagamento
-                </div>
-                {t.pix_qr_code_base64 ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={`data:image/png;base64,${t.pix_qr_code_base64}`}
-                    alt="QR Pix"
-                    width={220}
-                    height={220}
-                    className="rounded-2xl ring-1 ring-black/5"
-                  />
-                ) : (
-                  <div className="flex size-[220px] items-center justify-center rounded-2xl bg-gray-100">
-                    <Clock className="size-10 text-gray-300" />
-                  </div>
-                )}
-                <p className="text-lg font-bold text-gray-900">{formatBRL(Number(t.valor))}</p>
-                {t.pix_copy_paste && (
-                  <div className="flex w-full items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 ring-1 ring-black/5">
-                    <span className="flex-1 truncate font-mono text-xs text-gray-500">
-                      {t.pix_copy_paste}
-                    </span>
-                    <CopyButton text={t.pix_copy_paste} />
-                  </div>
-                )}
-                <p className="text-xs text-gray-400">
-                  Pague pelo app do seu banco. Assim que cair, a inscrição é confirmada e o QR de entrada aparece aqui.
-                </p>
-              </div>
+              </>
             )}
           </div>
+
+          {t.code && (
+            <p className="font-mono text-[11px] tracking-[0.25em] text-white/30">{t.code}</p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Área branca ── */}
+      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
+        <div className="mx-auto max-w-lg">
+          <IngressoAtletaPagamento
+            ticketId={t.id}
+            isElite={!!champ?.is_elite}
+            initialStatusPagamento={t.status_pagamento}
+            initialCheckedIn={t.checked_in}
+            initialEntradaQr={entradaQr}
+            qrToken={t.qr_token}
+            code={t.code}
+            valor={Number(t.valor)}
+            pixCopyPaste={t.pix_copy_paste}
+            pixQrBase64={t.pix_qr_code_base64}
+          />
         </div>
       </div>
     </div>

@@ -97,8 +97,8 @@ export function TopNav({
               </Link>
             )}
             <Link
-              href="/perfil"
-              aria-label="Configurações / Perfil"
+              href="/perfil/conta"
+              aria-label="Configurações"
               className="rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               <Settings className="size-5" />
@@ -183,11 +183,11 @@ export function TopNav({
               </Link>
             )}
             <Link
-              href="/perfil"
+              href="/perfil/conta"
               onClick={() => setOpen(false)}
               className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
             >
-              <Settings className="size-4" /> Perfil
+              <Settings className="size-4" /> Configurações
             </Link>
             {user ? (
               <button

@@ -1,17 +1,32 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Mail, Phone, Lock, Eye, EyeOff, Check, Loader2 } from "lucide-react";
+import { Mail, Phone, IdCard, Lock, Eye, EyeOff, Check, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   userId: string;
   email: string;
   initialTelefone: string | null;
+  initialCpf: string | null;
 };
 
-export function AccountSettingsForm({ userId, email, initialTelefone }: Props) {
+function formatCpf(digits: string) {
+  return digits
+    .slice(0, 11)
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+}
+
+export function AccountSettingsForm({ userId, email, initialTelefone, initialCpf }: Props) {
   const supabase = createClient();
+
+  // CPF
+  const [cpf, setCpf] = useState(initialCpf ? formatCpf(initialCpf) : "");
+  const [savingCpf, setSavingCpf] = useState(false);
+  const [cpfSuccess, setCpfSuccess] = useState(false);
+  const [cpfError, setCpfError] = useState<string | null>(null);
 
   // Telefone
   const [telefone, setTelefone] = useState(initialTelefone ?? "");
@@ -27,6 +42,30 @@ export function AccountSettingsForm({ userId, email, initialTelefone }: Props) {
   const [savingPass, setSavingPass] = useState(false);
   const [passSuccess, setPassSuccess] = useState(false);
   const [passError, setPassError] = useState<string | null>(null);
+
+  async function handleSaveCpf(e: FormEvent) {
+    e.preventDefault();
+    const digits = cpf.replace(/\D/g, "");
+    if (digits.length !== 11) {
+      setCpfError("CPF inválido (precisa ter 11 dígitos).");
+      return;
+    }
+    setSavingCpf(true);
+    setCpfError(null);
+    setCpfSuccess(false);
+
+    const { error } = await supabase
+      .from("profiles_private")
+      .upsert({ user_id: userId, cpf: digits }, { onConflict: "user_id" });
+
+    setSavingCpf(false);
+    if (error) {
+      setCpfError("Erro ao salvar. Tente novamente.");
+    } else {
+      setCpfSuccess(true);
+      setTimeout(() => setCpfSuccess(false), 3000);
+    }
+  }
 
   async function handleSavePhone(e: FormEvent) {
     e.preventDefault();
@@ -96,6 +135,40 @@ export function AccountSettingsForm({ userId, email, initialTelefone }: Props) {
             O e-mail não pode ser alterado por aqui.
           </p>
         </div>
+
+        {/* CPF */}
+        <form onSubmit={handleSaveCpf}>
+          <label className="block text-sm font-medium text-gray-700">CPF</label>
+          <div className="mt-1 flex gap-2">
+            <div className="relative flex-1">
+              <IdCard className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                inputMode="numeric"
+                value={cpf}
+                onChange={(e) => setCpf(formatCpf(e.target.value.replace(/\D/g, "")))}
+                placeholder="000.000.000-00"
+                maxLength={14}
+                className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={savingCpf}
+              className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
+            >
+              {savingCpf && <Loader2 className="size-4 animate-spin" />}
+              {cpfSuccess && <Check className="size-4" />}
+              {cpfSuccess ? "Salvo!" : "Salvar"}
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-gray-400">
+            Usado pra emitir cobranças e inscrições em campeonatos.
+          </p>
+          {cpfError && (
+            <p className="mt-1.5 text-xs text-red-600">{cpfError}</p>
+          )}
+        </form>
 
         {/* Telefone */}
         <form onSubmit={handleSavePhone}>

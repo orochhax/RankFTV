@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight, UserPen, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ChevronRight, UserPen, ShieldCheck, ShoppingBag } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { SignOutButton } from "@/components/perfil/SignOutButton";
 import { createClient } from "@/lib/supabase/server";
@@ -100,6 +100,23 @@ export default async function PerfilPage() {
           )}
         </div>
       </div>
+
+      {/* Minhas Compras */}
+      <Link
+        href="/minhas-compras"
+        className="flex items-center justify-between rounded-2xl bg-white p-5 ring-1 ring-black/5 hover:bg-gray-50"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+            <ShoppingBag className="size-5 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Minhas Compras</p>
+            <p className="text-xs text-gray-400">Ingressos comprados ou aguardando pagamento</p>
+          </div>
+        </div>
+        <ChevronRight className="size-5 shrink-0 text-gray-300" />
+      </Link>
 
       {/* Gênero */}
       {profile.genero ? (

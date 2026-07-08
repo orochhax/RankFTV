@@ -44,6 +44,44 @@ export async function executarRepasseEspectador(
   }
 }
 
+/**
+ * Repasse de ingresso de ATLETA (guest checkout, tabela `athlete_tickets`).
+ * Igual ao de plateia: repassa o valor integral, sem dívida Elite (esse
+ * fluxo de compra avulsa não tem plano Elite). O chamador já reivindicou o
+ * ticket (repasse_status='processando') antes de chamar.
+ */
+export async function executarRepasseAtletaTicket(
+  supabase: SupabaseClient,
+  ctx: { ticketId: string; champNome: string; chavePix: string; valor: number },
+  revertStatus: "pendente" | "aguardando_liquidacao",
+): Promise<{ ok: boolean; transferId?: string | null; error?: string }> {
+  const valor = parseFloat(Number(ctx.valor).toFixed(2));
+  try {
+    let transferId: string | null = null;
+    if (valor > 0) {
+      const t = await transferirPix({
+        valor,
+        chavePix:  ctx.chavePix,
+        descricao: `Repasse ingresso atleta RankFTV — ${ctx.champNome}`,
+      });
+      transferId = t.id;
+    }
+    await supabase
+      .from("athlete_tickets")
+      .update({ repasse_status: "repassado", repasse_transfer_id: transferId, repasse_erro: null })
+      .eq("id", ctx.ticketId);
+    return { ok: true, transferId };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[repasse-atleta-ticket] Erro ao transferir Pix:", msg);
+    await supabase
+      .from("athlete_tickets")
+      .update({ repasse_status: revertStatus, repasse_erro: msg.slice(0, 300) })
+      .eq("id", ctx.ticketId);
+    return { ok: false, error: msg };
+  }
+}
+
 export type RepasseCtx = {
   registrationId: string;
   championshipId: string;

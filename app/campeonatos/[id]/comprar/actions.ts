@@ -94,7 +94,10 @@ export async function comprarIngressoAtleta(
     .select("id")
     .single();
 
-  if (insErr || !ticket) return { error: "Erro ao gerar o ingresso. Tente novamente." };
+  if (insErr || !ticket) {
+    console.error("[comprarIngressoAtleta] falha ao inserir athlete_tickets:", insErr);
+    return { error: "Erro ao gerar o ingresso. Tente novamente." };
+  }
 
   if (isGratis) {
     redirect(`/campeonatos/${championshipId}/comprar/ingresso/${ticket.id}`);

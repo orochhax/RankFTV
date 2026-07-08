@@ -1,4 +1,4 @@
-import { Building2, LayoutDashboard, Trophy } from "lucide-react";
+import { Building2, LayoutDashboard, Trophy, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -11,6 +11,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Campeonatos", icon: Trophy },
   { href: "/arenas", label: "Arenas", icon: Building2 },
   { href: "/painel", label: "Painel", icon: LayoutDashboard },
+  { href: "/perfil", label: "Perfil", icon: User },
 ];
 
 // "/" (Campeonatos) fica ativo também em /campeonatos/* (detalhe do camp).
