@@ -5,8 +5,9 @@ import { Loader2, Ticket, Minus, Plus } from "lucide-react";
 import { comprarIngresso, type ComprarState } from "@/app/campeonatos/[id]/plateia/actions";
 import { formatBRL } from "@/lib/format";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
+import { CupomInput, type CupomAplicado } from "@/components/ui/CupomInput";
 
-type Tipo = { id: string; nome: string; valor: number };
+type Tipo = { id: string; nome: string; valor: number; loteNome?: string | null };
 
 export function IngressoPlateiaForm({
   championshipId,
@@ -18,10 +19,12 @@ export function IngressoPlateiaForm({
   isElite: boolean;
 }) {
   const [qtys, setQtys] = useState<Record<string, number>>({});
+  const [cupom, setCupom] = useState<CupomAplicado | null>(null);
   const [state, formAction, pending] = useActionState<ComprarState, FormData>(comprarIngresso, {});
 
   function setQty(id: string, q: number) {
     setQtys((prev) => ({ ...prev, [id]: Math.max(0, Math.min(20, q)) }));
+    setCupom(null); // muda a quantidade → o desconto validado não vale mais
   }
 
   const { totalBase, totalQty, itens } = useMemo(() => {
@@ -38,9 +41,10 @@ export function IngressoPlateiaForm({
     return { totalBase: base, totalQty: qty, itens: its };
   }, [qtys, tipos]);
 
-  const isGratis = totalBase === 0;
-  const taxa  = calcularTaxaComprador(totalBase, "pix", isElite);
-  const total = calcularTotalComprador(totalBase, "pix", isElite);
+  const valorFinal = cupom ? Math.max(0, totalBase - cupom.desconto) : totalBase;
+  const isGratis = valorFinal <= 0;
+  const taxa  = calcularTaxaComprador(valorFinal, "pix", isElite);
+  const total = calcularTotalComprador(valorFinal, "pix", isElite);
 
   const input =
     "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -67,7 +71,14 @@ export function IngressoPlateiaForm({
                   <Ticket className={`size-5 ${q > 0 ? "text-white" : "text-gray-400"}`} />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-medium text-gray-900">{t.nome}</p>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className="font-medium text-gray-900">{t.nome}</p>
+                    {t.loteNome && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                        {t.loteNome}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-500">{Number(t.valor) === 0 ? "Grátis" : formatBRL(Number(t.valor))}</p>
                 </div>
               </div>
@@ -98,6 +109,16 @@ export function IngressoPlateiaForm({
         })}
       </div>
 
+      {/* Cupom de desconto */}
+      {totalQty > 0 && totalBase > 0 && (
+        <CupomInput
+          championshipId={championshipId}
+          aplicaEm="plateia"
+          valorBase={totalBase}
+          onChange={setCupom}
+        />
+      )}
+
       {/* Dados do comprador */}
       <div className="space-y-3">
         <div>
@@ -123,6 +144,11 @@ export function IngressoPlateiaForm({
           <div className="flex items-center justify-between text-gray-500">
             <span>{totalQty} {totalQty === 1 ? "ingresso" : "ingressos"}</span><span>{formatBRL(totalBase)}</span>
           </div>
+          {cupom && (
+            <div className="mt-1 flex items-center justify-between text-blue-600">
+              <span>Cupom {cupom.codigo}</span><span>- {formatBRL(cupom.desconto)}</span>
+            </div>
+          )}
           <div className="mt-1 flex items-center justify-between text-gray-500">
             <span>Taxa de serviço</span><span>+ {formatBRL(taxa)}</span>
           </div>

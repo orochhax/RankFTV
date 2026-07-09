@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { inscreverDupla, type InscreverState } from "@/app/campeonatos/[id]/inscrever/actions";
 import { formatBRL } from "@/lib/format";
 import { UserSearchInput } from "@/components/ui/UserSearchInput";
+import { CupomInput, type CupomAplicado } from "@/components/ui/CupomInput";
 
 const TAMANHOS = ["PP", "P", "M", "G", "GG", "XGG"] as const;
 
@@ -31,6 +32,8 @@ export function InscricaoForm({
   userId,
 }: Props) {
   const [state, action, pending] = useActionState(inscreverDupla, initialState);
+  const [cupom, setCupom] = useState<CupomAplicado | null>(null);
+  const valorFinal = cupom ? Math.max(0, valorInscricao - cupom.desconto) : valorInscricao;
 
   return (
     <form action={action} className="space-y-5">
@@ -41,9 +44,28 @@ export function InscricaoForm({
       <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
         <p className="text-sm font-semibold text-gray-500">Categoria</p>
         <p className="mt-0.5 text-base font-semibold text-gray-900">{categoriaNome}</p>
-        <p className="mt-3 text-sm font-semibold text-gray-500">Valor base da inscrição</p>
-        <p className="mt-0.5 text-xl font-bold text-gray-900">{formatBRL(valorInscricao)}</p>
+        <p className="mt-3 text-sm font-semibold text-gray-500">
+          {cupom ? "Valor com desconto" : "Valor base da inscrição"}
+        </p>
+        {cupom ? (
+          <div className="mt-0.5 flex items-baseline gap-2">
+            <p className="text-xl font-bold text-gray-900">{formatBRL(valorFinal)}</p>
+            <p className="text-sm text-gray-400 line-through">{formatBRL(valorInscricao)}</p>
+          </div>
+        ) : (
+          <p className="mt-0.5 text-xl font-bold text-gray-900">{formatBRL(valorInscricao)}</p>
+        )}
       </div>
+
+      {/* Cupom de desconto */}
+      {valorInscricao > 0 && (
+        <CupomInput
+          championshipId={championshipId}
+          aplicaEm="atleta"
+          valorBase={valorInscricao}
+          onChange={setCupom}
+        />
+      )}
 
       {/* CPF */}
       <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">

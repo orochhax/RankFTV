@@ -5,6 +5,7 @@ import { Loader2, Trophy, ChevronDown, ChevronUp } from "lucide-react";
 import { comprarIngressoAtleta, type ComprarAtletaState } from "@/app/campeonatos/[id]/comprar/actions";
 import { formatBRL } from "@/lib/format";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
+import { CupomInput, type CupomAplicado } from "@/components/ui/CupomInput";
 
 export type CategoriaOpcao = {
   id: string;
@@ -27,6 +28,7 @@ export function IngressoAtletaForm({
   isElite: boolean;
 }) {
   const [catSelecionada, setCat] = useState<CategoriaOpcao | null>(null);
+  const [cupom, setCupom] = useState<CupomAplicado | null>(null);
   const [state, formAction, pending] = useActionState<ComprarAtletaState, FormData>(
     comprarIngressoAtleta,
     {},
@@ -37,10 +39,11 @@ export function IngressoAtletaForm({
   const select =
     "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
 
-  const valor   = catSelecionada?.valorInscricao ?? 0;
-  const isGratis = valor <= 0;
-  const taxa    = calcularTaxaComprador(valor, "pix", isElite);
-  const total   = calcularTotalComprador(valor, "pix", isElite);
+  const valor      = catSelecionada?.valorInscricao ?? 0;
+  const valorFinal = cupom ? Math.max(0, valor - cupom.desconto) : valor;
+  const isGratis   = valorFinal <= 0;
+  const taxa       = calcularTaxaComprador(valorFinal, "pix", isElite);
+  const total      = calcularTotalComprador(valorFinal, "pix", isElite);
 
   return (
     <div className="space-y-6">
@@ -55,7 +58,7 @@ export function IngressoAtletaForm({
             <button
               key={cat.id}
               type="button"
-              onClick={() => setCat(sel ? null : cat)}
+              onClick={() => { setCat(sel ? null : cat); setCupom(null); }}
               className={`w-full flex items-center justify-between gap-3 rounded-2xl border p-4 text-left transition-colors ${
                 sel ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
               }`}
@@ -103,7 +106,6 @@ export function IngressoAtletaForm({
           <input type="hidden" name="championship_id" value={championshipId} />
           <input type="hidden" name="category_id"     value={catSelecionada.id} />
           <input type="hidden" name="categoria_nome"  value={catSelecionada.nome} />
-          <input type="hidden" name="valor"           value={catSelecionada.valorInscricao} />
 
           {/* Seus dados */}
           <section className="space-y-3">
@@ -189,6 +191,16 @@ export function IngressoAtletaForm({
             </div>
           </section>
 
+          {/* Cupom de desconto */}
+          {valor > 0 && (
+            <CupomInput
+              championshipId={championshipId}
+              aplicaEm="atleta"
+              valorBase={valor}
+              onChange={setCupom}
+            />
+          )}
+
           {/* Resumo do valor */}
           {!isGratis && (
             <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm ring-1 ring-black/5">
@@ -196,6 +208,12 @@ export function IngressoAtletaForm({
                 <span>Inscrição da dupla</span>
                 <span>{formatBRL(valor)}</span>
               </div>
+              {cupom && (
+                <div className="mt-1 flex items-center justify-between text-blue-600">
+                  <span>Cupom {cupom.codigo}</span>
+                  <span>- {formatBRL(cupom.desconto)}</span>
+                </div>
+              )}
               <div className="mt-1 flex items-center justify-between text-gray-500">
                 <span>Taxa de serviço</span>
                 <span>+ {formatBRL(taxa)}</span>

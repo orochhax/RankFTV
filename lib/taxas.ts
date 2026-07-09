@@ -42,6 +42,24 @@ export function calcularTotalComprador(
   return Math.round(total * 100) / 100;
 }
 
+export type TipoDescontoCupom = "percentual" | "valor_fixo";
+
+/**
+ * Desconto de um cupom sobre o valor base — aplicado ANTES da taxa da
+ * plataforma (a taxa é sempre calculada em cima do valor já com desconto).
+ * Nunca deixa o valor final ficar negativo (cap em 100% do valor base).
+ */
+export function calcularDesconto(
+  valorBase: number,
+  tipo: TipoDescontoCupom,
+  valorDesconto: number,
+): number {
+  const v = Number(valorBase);
+  if (!v || v <= 0) return 0;
+  const desconto = tipo === "percentual" ? v * (Number(valorDesconto) / 100) : Number(valorDesconto);
+  return Math.round(Math.min(Math.max(desconto, 0), v) * 100) / 100;
+}
+
 /** Percentuais (pra exibir nas telas de taxa). */
 export const TAXAS_EXIBICAO = {
   padrao: { pix: 8, cartao: 10 },

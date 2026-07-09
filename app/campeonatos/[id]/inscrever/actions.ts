@@ -4,7 +4,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { criarOuBuscarCliente, criarCobranca, type MetodoPagamento } from "@/lib/asaas";
-import { calcularTotalComprador } from "@/lib/taxas";
+import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
+import { buscarCupomValido, type CupomValido } from "@/lib/cupons";
+import { resolverPrecos, resolverEClaimarLote } from "@/lib/lotes";
 import { enviarConviteDupla, enviarInscricaoConfirmada } from "@/lib/email/send";
 
 export type InscreverState = { error?: string };
@@ -25,6 +27,7 @@ export async function inscreverDupla(
   const ratingDupla      = parseInt(formData.get("rating_dupla") as string) || 0;
   const sandbaggingFlag  = formData.get("sandbagging") === "1";
   const tamanhoCamisa    = ((formData.get("tamanho_camisa") as string) ?? "").trim();
+  const cupomCodigo      = ((formData.get("cupom_codigo") as string) ?? "").trim();
 
   if (!tamanhoCamisa) return { error: "Selecione o tamanho da camisa." };
 
@@ -62,19 +65,39 @@ export async function inscreverDupla(
     return { error: "Você já está inscrito neste campeonato." };
   }
 
-  const valorInscricao = Number(cat.valor_inscricao);
-  const isGratis       = valorInscricao === 0;
+  const valorBaseCategoria = Number(cat.valor_inscricao);
+
+  // ── Cupom de desconto (opcional) — só valida aqui (preview), sem
+  // reivindicar. A reivindicação atômica (lote + cupom) só acontece logo
+  // antes de criar a dupla, depois de todas as outras validações passarem
+  // — senão um erro posterior (CPF inválido, organizador sem chave Pix,
+  // parceiro não encontrado) "queimaria" o cupom/lote sem gerar inscrição.
+  let cupomPreview: CupomValido | undefined;
+  if (cupomCodigo) {
+    const { cupom, error: cupomErro } = await buscarCupomValido(championshipId, cupomCodigo, "atleta");
+    if (cupomErro || !cupom) return { error: cupomErro ?? "Cupom inválido." };
+    cupomPreview = cupom;
+  }
+
+  // Preço estimado (lote vigente + cupom) só pra decidir se CPF/chave Pix
+  // são obrigatórios agora — o valor definitivo é travado no claim atômico.
+  const precoPreview = await resolverPrecos("category", [categoryId], { [categoryId]: valorBaseCategoria });
+  const valorLotePreview = precoPreview[categoryId].valor;
+  const descontoPreview = cupomPreview
+    ? calcularDesconto(valorLotePreview, cupomPreview.tipoDesconto, cupomPreview.valorDesconto)
+    : 0;
+  const isGratisPreview = Math.max(0, valorLotePreview - descontoPreview) === 0;
 
   const cpf = cpfInput || cpfSalvo || "";
 
   // CPF só é obrigatório para inscrições pagas (Asaas exige)
-  if (!isGratis && (!cpf || cpf.length !== 11)) {
+  if (!isGratisPreview && (!cpf || cpf.length !== 11)) {
     return { error: "CPF obrigatório (somente números, 11 dígitos)." };
   }
 
   // Chave Pix do organizador só é necessária para inscrições pagas
   // Usa admin client pois o atleta não pode ler a conta do organizador via RLS
-  if (!isGratis) {
+  if (!isGratisPreview) {
     const admin = createAdminClient();
     const { data: orgAccount } = await admin
       .from("organizer_accounts")
@@ -113,6 +136,28 @@ export async function inscreverDupla(
       .upsert({ user_id: user.id, cpf }, { onConflict: "user_id" });
   }
 
+  // ── Reivindica lote + cupom (atômico) — última validação antes de criar
+  // qualquer coisa. Ordem: lote primeiro (define o valor base real),
+  // cupom depois (desconta em cima do valor do lote já travado).
+  const claimLote = await resolverEClaimarLote("category", categoryId, valorBaseCategoria, 1);
+  if (!claimLote.ok) return { error: claimLote.error };
+  let valorInscricao = claimLote.valor;
+  const loteId = claimLote.loteId;
+
+  let cupomId: string | null = null;
+  if (cupomPreview) {
+    const desconto = calcularDesconto(valorInscricao, cupomPreview.tipoDesconto, cupomPreview.valorDesconto);
+    valorInscricao = Math.round((valorInscricao - desconto) * 100) / 100;
+    const { data: claimed } = await supabase.rpc("claim_coupon_use", { p_coupon_id: cupomPreview.id });
+    if (!claimed) {
+      if (loteId) await supabase.rpc("release_pricing_tier", { p_tier_id: loteId, p_qty: 1 });
+      return { error: "Esse cupom acabou de esgotar. Tente novamente sem ele." };
+    }
+    cupomId = cupomPreview.id;
+  }
+
+  const isGratis = valorInscricao === 0;
+
   // Gratuito sem parceiro → confirma direto.
   // Gratuito com parceiro → convite_pendente (não precisa de pagamento).
   // Pago sem parceiro   → convite_pendente (aguardando só pagamento).
@@ -120,6 +165,11 @@ export async function inscreverDupla(
   const teamStatus = isGratis
     ? (atleta2Id ? "convite_pendente" : "confirmado")
     : (atleta2Id ? "aguardando_pagamento" : "convite_pendente");
+
+  async function liberarReivindicacoes() {
+    if (cupomId) await supabase.rpc("release_coupon_use", { p_coupon_id: cupomId });
+    if (loteId)  await supabase.rpc("release_pricing_tier", { p_tier_id: loteId, p_qty: 1 });
+  }
 
   // ── Cria dupla ────────────────────────────────────────────────
   const { data: team, error: teamError } = await supabase
@@ -136,7 +186,10 @@ export async function inscreverDupla(
     })
     .select("id")
     .single();
-  if (teamError || !team) return { error: "Erro ao criar dupla." };
+  if (teamError || !team) {
+    await liberarReivindicacoes();
+    return { error: "Erro ao criar dupla." };
+  }
 
   // ── Cria inscrição ────────────────────────────────────────────
   const BILLING_TYPE: Record<string, string> = { pix: "PIX", credito: "CREDIT_CARD", debito: "DEBIT_CARD" };
@@ -148,12 +201,17 @@ export async function inscreverDupla(
       championship_id:  championshipId,
       category_id:      categoryId,
       valor:            valorInscricao,
+      cupom_id:         cupomId,
+      lote_id:          loteId,
       status_pagamento: isGratis ? "pago" : "pendente",
       billing_type:     isGratis ? null : (BILLING_TYPE[metodo] ?? null),
     })
     .select("id")
     .single();
-  if (regError || !reg) return { error: "Erro ao criar inscrição." };
+  if (regError || !reg) {
+    await liberarReivindicacoes();
+    return { error: "Erro ao criar inscrição." };
+  }
 
   // ── Inscrição gratuita sem parceiro: credencial imediata ──────
   if (isGratis && !atleta2Id) {
@@ -222,6 +280,7 @@ export async function inscreverDupla(
       })
       .eq("id", reg.id);
   } catch (err) {
+    await liberarReivindicacoes();
     const msg = err instanceof Error ? err.message : "Erro desconhecido";
     return { error: `Erro ao gerar Pix: ${msg}` };
   }

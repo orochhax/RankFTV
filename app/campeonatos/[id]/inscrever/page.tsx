@@ -6,6 +6,7 @@ import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { InscricaoForm } from "@/components/campeonatos/InscricaoForm";
+import { resolverPrecos } from "@/lib/lotes";
 import type { Genero } from "@/lib/types";
 
 export default async function InscreverPage({
@@ -54,6 +55,10 @@ export default async function InscreverPage({
       .maybeSingle(),
   ]);
   const cpfSalvo = priv?.cpf ?? null;
+
+  // Preço vigente (lote atual, se houver) — sobrepõe o valor "de tabela".
+  const precos = await resolverPrecos("category", [category.id], { [category.id]: category.valorInscricao });
+  const valorVigente = precos[category.id].valor;
 
   const meuGenero = (profile?.genero as Genero | null) ?? null;
   const generoCategoria = category.genero;
@@ -123,7 +128,7 @@ export default async function InscreverPage({
           championshipId={id}
           categoryId={category.id}
           categoriaNome={category.nome}
-          valorInscricao={category.valorInscricao}
+          valorInscricao={valorVigente}
           cpfSalvo={cpfSalvo}
           tamanhoSalvo={profile?.tamanho_camisa ?? null}
           userId={user.id}

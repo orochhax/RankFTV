@@ -3,7 +3,9 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { criarOuBuscarCliente, criarCobranca } from "@/lib/asaas";
-import { calcularTotalComprador } from "@/lib/taxas";
+import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
+import { buscarCupomValido } from "@/lib/cupons";
+import { resolverEClaimarLote } from "@/lib/lotes";
 
 export type ComprarAtletaState = { error?: string };
 
@@ -14,7 +16,6 @@ export async function comprarIngressoAtleta(
   const championshipId = formData.get("championship_id") as string;
   const categoryId     = (formData.get("category_id") as string) || null;
   const categoriaNome  = (formData.get("categoria_nome") as string) || null;
-  const valorBase      = parseFloat((formData.get("valor") as string) || "0");
 
   // Comprador
   const nome      = ((formData.get("comprador_nome")  as string) ?? "").trim();
@@ -33,6 +34,8 @@ export async function comprarIngressoAtleta(
   const pGenero  = (formData.get("parceiro_genero") as string) || null;
   const pCamisa  = (formData.get("parceiro_camisa") as string) || null;
 
+  const cupomCodigo = ((formData.get("cupom_codigo") as string) ?? "").trim();
+
   if (!nome)                               return { error: "Informe seu nome completo." };
   if (!email || !email.includes("@"))      return { error: "Informe um e-mail válido." };
   if (!cpf || cpf.length !== 11)           return { error: "CPF inválido (somente números, 11 dígitos)." };
@@ -43,19 +46,40 @@ export async function comprarIngressoAtleta(
 
   const supabase = createAdminClient();
 
-  const { data: champ } = await supabase
-    .from("championships")
-    .select("nome, status, organizador_id, is_elite")
-    .eq("id", championshipId)
-    .maybeSingle();
+  const [{ data: champ }, { data: cat }] = await Promise.all([
+    supabase
+      .from("championships")
+      .select("nome, status, organizador_id, is_elite")
+      .eq("id", championshipId)
+      .maybeSingle(),
+    supabase
+      .from("championship_categories")
+      .select("valor_inscricao")
+      .eq("id", categoryId)
+      .maybeSingle(),
+  ]);
 
   if (!champ) return { error: "Campeonato não encontrado." };
+  if (!cat)   return { error: "Categoria não encontrada." };
   if (champ.status !== "inscricoes_abertas" && champ.status !== "em_andamento")
     return { error: "As inscrições não estão abertas." };
 
-  const isGratis = valorBase <= 0;
+  // ── Cupom de desconto (opcional) — só valida aqui (preview), sem
+  // reivindicar. A reivindicação de verdade (lote + cupom) só acontece
+  // logo antes de criar o ticket, depois de todas as outras validações.
+  let cupomPreview: Awaited<ReturnType<typeof buscarCupomValido>>["cupom"];
+  if (cupomCodigo) {
+    const { cupom, error: cupomErro } = await buscarCupomValido(championshipId, cupomCodigo, "atleta");
+    if (cupomErro || !cupom) return { error: cupomErro ?? "Cupom inválido." };
+    cupomPreview = cupom;
+  }
 
-  if (!isGratis) {
+  // Preço "de tabela" nunca é confiado do client — sempre buscado do banco
+  // pelo categoryId. O valor definitivo (lote vigente) só é travado no
+  // claim atômico logo abaixo.
+  const valorBaseCategoria = Number(cat.valor_inscricao);
+
+  if (valorBaseCategoria > 0) {
     const { data: org } = await supabase
       .from("organizer_accounts")
       .select("chave_pix")
@@ -63,6 +87,31 @@ export async function comprarIngressoAtleta(
       .maybeSingle();
     if (!org?.chave_pix)
       return { error: "O organizador ainda não ativou o recebimento. Tente mais tarde." };
+  }
+
+  // ── Reivindica lote + cupom (atômico) ──────────────────────────
+  const claimLote = await resolverEClaimarLote("category", categoryId, valorBaseCategoria, 1);
+  if (!claimLote.ok) return { error: claimLote.error };
+  let valorFinal = claimLote.valor;
+  const loteId = claimLote.loteId;
+
+  let cupomId: string | null = null;
+  if (cupomPreview) {
+    const desconto = calcularDesconto(valorFinal, cupomPreview.tipoDesconto, cupomPreview.valorDesconto);
+    valorFinal = Math.round((valorFinal - desconto) * 100) / 100;
+    const { data: claimed } = await supabase.rpc("claim_coupon_use", { p_coupon_id: cupomPreview.id });
+    if (!claimed) {
+      if (loteId) await supabase.rpc("release_pricing_tier", { p_tier_id: loteId, p_qty: 1 });
+      return { error: "Esse cupom acabou de esgotar. Tente novamente sem ele." };
+    }
+    cupomId = cupomPreview.id;
+  }
+
+  const isGratis = valorFinal <= 0;
+
+  async function liberarReivindicacoes() {
+    if (cupomId) await supabase.rpc("release_coupon_use", { p_coupon_id: cupomId });
+    if (loteId)  await supabase.rpc("release_pricing_tier", { p_tier_id: loteId, p_qty: 1 });
   }
 
   const code = Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -86,7 +135,9 @@ export async function comprarIngressoAtleta(
       parceiro_zap:         pZap,
       parceiro_genero:      pGenero,
       parceiro_camisa:      pCamisa,
-      valor:                valorBase,
+      valor:                valorFinal,
+      cupom_id:             cupomId,
+      lote_id:              loteId,
       status_pagamento:     isGratis ? "pago" : "pendente",
       billing_type:         isGratis ? null : "PIX",
       code,
@@ -96,6 +147,7 @@ export async function comprarIngressoAtleta(
 
   if (insErr || !ticket) {
     console.error("[comprarIngressoAtleta] falha ao inserir athlete_tickets:", insErr);
+    await liberarReivindicacoes();
     return { error: "Erro ao gerar o ingresso. Tente novamente." };
   }
 
@@ -105,7 +157,7 @@ export async function comprarIngressoAtleta(
 
   try {
     const customer      = await criarOuBuscarCliente({ name: nome, email, cpfCnpj: cpf });
-    const totalComprador = calcularTotalComprador(valorBase, "pix", !!champ.is_elite);
+    const totalComprador = calcularTotalComprador(valorFinal, "pix", !!champ.is_elite);
     const cobranca      = await criarCobranca({
       customerId:        customer.id,
       valorBase:         totalComprador,
@@ -124,6 +176,7 @@ export async function comprarIngressoAtleta(
       })
       .eq("id", ticket.id);
   } catch (err) {
+    await liberarReivindicacoes();
     const msg = err instanceof Error ? err.message : "Erro desconhecido";
     return { error: `Erro ao gerar o Pix: ${msg}` };
   }

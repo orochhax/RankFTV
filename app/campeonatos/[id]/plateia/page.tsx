@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Ticket } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { IngressoPlateiaForm } from "@/components/plateia/IngressoPlateiaForm";
+import { resolverPrecos } from "@/lib/lotes";
 
 // Compra de ingresso de plateia (visitante, sem conta).
 export default async function PlateiaPage({
@@ -30,7 +31,20 @@ export default async function PlateiaPage({
     .order("valor", { ascending: true });
 
   const vendaAberta = champ.status === "inscricoes_abertas" || champ.status === "em_andamento";
-  const lista = tipos ?? [];
+  const tiposRaw = tipos ?? [];
+
+  // Preço vigente (lote atual, se houver) — sobrepõe o valor "de tabela".
+  const precos = await resolverPrecos(
+    "ticket_type",
+    tiposRaw.map((t) => t.id),
+    Object.fromEntries(tiposRaw.map((t) => [t.id, Number(t.valor)])),
+  );
+  const lista = tiposRaw.map((t) => ({
+    id:       t.id,
+    nome:     t.nome,
+    valor:    precos[t.id].valor,
+    loteNome: precos[t.id].loteNome,
+  }));
 
   return (
     <div className="min-h-screen">

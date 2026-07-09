@@ -1,0 +1,206 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Plus, Trash2, Loader2, Eye, EyeOff, Layers } from "lucide-react";
+import { criarLote, alternarLote, excluirLote, type CriarLoteInput } from "@/app/painel/campeonatos/[id]/lotes/actions";
+import { formatBRL } from "@/lib/format";
+
+type Lote = {
+  id: string;
+  nome: string;
+  valor: number;
+  ordem: number;
+  quantidade_maxima: number | null;
+  vendidos: number;
+  data_fim: string | null;
+  ativo: boolean;
+};
+
+export type GrupoLote = {
+  entidade: "category" | "ticket_type";
+  entidadeId: string;
+  label: string;
+  valorBase: number;
+  lotes: Lote[];
+};
+
+function LoteGroupCard({ champId, grupo }: { champId: string; grupo: GrupoLote }) {
+  const router = useRouter();
+  const [adding, setAdding] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  const [nome, setNome] = useState("");
+  const [valor, setValor] = useState("");
+  const [quantidadeMaxima, setQuantidadeMaxima] = useState("");
+  const [dataFim, setDataFim] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+
+  function limparForm() {
+    setNome(""); setValor(""); setQuantidadeMaxima(""); setDataFim("");
+  }
+
+  function adicionar() {
+    setErro(null);
+    const input: CriarLoteInput = {
+      entidade: grupo.entidade,
+      entidadeId: grupo.entidadeId,
+      nome,
+      valor: Number(valor) || 0,
+      ordem: grupo.lotes.length,
+      quantidadeMaxima: quantidadeMaxima.trim() ? Math.max(1, Math.floor(Number(quantidadeMaxima))) : null,
+      dataFim: dataFim || null,
+    };
+    startTransition(async () => {
+      const res = await criarLote(champId, input);
+      if (res.ok) { limparForm(); setAdding(false); router.refresh(); }
+      else setErro(res.error ?? "Erro ao criar.");
+    });
+  }
+
+  function alternar(loteId: string, ativo: boolean) {
+    startTransition(async () => {
+      await alternarLote(champId, loteId, ativo);
+      router.refresh();
+    });
+  }
+
+  function excluir(loteId: string) {
+    if (!confirm("Excluir este lote? Vendas já feitas com ele não são afetadas.")) return;
+    startTransition(async () => {
+      await excluirLote(champId, loteId);
+      router.refresh();
+    });
+  }
+
+  const input =
+    "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
+
+  const lotesOrdenados = [...grupo.lotes].sort((a, b) => a.ordem - b.ordem);
+
+  return (
+    <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-semibold text-gray-900">{grupo.label}</p>
+        <span className="text-xs text-gray-400">
+          Valor de tabela: {grupo.valorBase <= 0 ? "Grátis" : formatBRL(grupo.valorBase)}
+        </span>
+      </div>
+
+      {lotesOrdenados.length > 0 && (
+        <ul className="mt-3 divide-y divide-gray-100 overflow-hidden rounded-xl ring-1 ring-black/5">
+          {lotesOrdenados.map((l) => {
+            const esgotado = l.quantidade_maxima != null && l.vendidos >= l.quantidade_maxima;
+            return (
+              <li key={l.id} className="flex items-center gap-3 px-3 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <p className={`text-sm font-medium ${l.ativo ? "text-gray-900" : "text-gray-400 line-through"}`}>
+                    {l.nome} · {formatBRL(Number(l.valor))}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {l.quantidade_maxima != null
+                      ? `${l.vendidos}/${l.quantidade_maxima} vendidos${esgotado ? " · esgotado" : ""}`
+                      : `${l.vendidos} vendidos · sem limite`}
+                    {l.data_fim && ` · até ${new Date(l.data_fim).toLocaleDateString("pt-BR")}`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => alternar(l.id, !l.ativo)}
+                  disabled={pending}
+                  title={l.ativo ? "Desativar" : "Ativar"}
+                  className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                >
+                  {l.ativo ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => excluir(l.id)}
+                  disabled={pending}
+                  className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {!adding ? (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="mt-3 flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+        >
+          <Plus className="size-4" /> Adicionar lote
+        </button>
+      ) : (
+        <div className="mt-3 rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="col-span-2">
+              <label className="block text-xs font-medium text-gray-500">Nome do lote</label>
+              <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="1º Lote" className={input} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500">Valor (R$)</label>
+              <input value={valor} onChange={(e) => setValor(e.target.value)} inputMode="numeric" placeholder="50" className={input} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500">Limite de unidades</label>
+              <input value={quantidadeMaxima} onChange={(e) => setQuantidadeMaxima(e.target.value)} inputMode="numeric" placeholder="Sem limite" className={input} />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs font-medium text-gray-500">Vale até (opcional)</label>
+              <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className={input} />
+            </div>
+          </div>
+          {erro && <p className="mt-2 text-xs text-red-600">{erro}</p>}
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={adicionar}
+              disabled={pending}
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            >
+              {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
+              Criar lote
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAdding(false); limparForm(); setErro(null); }}
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function LotesManager({ champId, grupos }: { champId: string; grupos: GrupoLote[] }) {
+  if (grupos.length === 0) {
+    return (
+      <p className="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-400 ring-1 ring-black/5">
+        Cadastre categorias ou tipos de ingresso primeiro pra poder criar lotes.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-start gap-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs text-blue-700 ring-1 ring-blue-100">
+        <Layers className="mt-0.5 size-4 shrink-0" />
+        <p>
+          O lote com a menor ordem que ainda estiver dentro da data e da quantidade é o que vale no
+          momento da compra. Sem nenhum lote configurado, continua valendo o valor de tabela.
+        </p>
+      </div>
+      {grupos.map((g) => (
+        <LoteGroupCard key={`${g.entidade}-${g.entidadeId}`} champId={champId} grupo={g} />
+      ))}
+    </div>
+  );
+}

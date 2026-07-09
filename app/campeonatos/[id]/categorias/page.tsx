@@ -6,6 +6,7 @@ import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { InscricaoButton } from "@/components/campeonatos/InscricaoButton";
 import { recomendarCategoria } from "@/lib/motor-categoria";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
+import { resolverPrecos } from "@/lib/lotes";
 import { formatBRL, generoLabel } from "@/lib/format";
 
 // Categorias e inscrição do atleta. Fica numa página separada (acessada pelo
@@ -61,6 +62,13 @@ export default async function CategoriasPage({
     championship.categorias.some((c) => c.genero === meuGenero || c.genero === "mista");
   const generoLabelAtleta = meuGenero === "feminino" ? "feminina" : "masculina";
 
+  // Preço vigente (lote atual, se houver) — sobrepõe o valor "de tabela".
+  const precos = await resolverPrecos(
+    "category",
+    championship.categorias.map((c) => c.id),
+    Object.fromEntries(championship.categorias.map((c) => [c.id, c.valorInscricao])),
+  );
+
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho preto ── */}
@@ -112,6 +120,7 @@ export default async function CategoriasPage({
               )}
               {championship.categorias.map((cat) => {
                 const isRecomendada = catRecomendada?.id === cat.id;
+                const preco = precos[cat.id];
                 return (
                   <div
                     key={cat.id}
@@ -128,6 +137,11 @@ export default async function CategoriasPage({
                               Recomendada para você
                             </span>
                           )}
+                          {preco.loteNome && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                              {preco.loteNome}
+                            </span>
+                          )}
                         </div>
                         <p className="mt-0.5 text-sm text-gray-500">
                           {cat.corteRatingMin > 0
@@ -136,7 +150,7 @@ export default async function CategoriasPage({
                         </p>
                       </div>
                       {(() => {
-                        const valor = cat.valorInscricao;
+                        const valor = preco.valor;
                         if (valor <= 0) {
                           return <span className="shrink-0 font-semibold text-blue-600">Grátis</span>;
                         }
