@@ -28,6 +28,7 @@ export type CriarLoteInput = {
   ordem:            number;
   quantidadeMaxima: number | null;
   dataFim:          string | null; // "YYYY-MM-DD" ou null
+  aplicarATodas?:   boolean; // replica o lote pra todas as categorias do campeonato
 };
 
 export async function criarLote(champId: string, input: CriarLoteInput): Promise<Result> {
@@ -39,18 +40,67 @@ export async function criarLote(champId: string, input: CriarLoteInput): Promise
   const valor = Number(input.valor);
   if (isNaN(valor) || valor < 0) return { ok: false, error: "Valor inválido." };
 
+  const quantidadeMaxima =
+    input.quantidadeMaxima != null && Number.isFinite(input.quantidadeMaxima)
+      ? Math.max(1, Math.floor(input.quantidadeMaxima))
+      : null;
+  if (!quantidadeMaxima && !input.dataFim)
+    return { ok: false, error: "Escolha uma data de término ou uma quantidade máxima pra esse lote." };
+
   const supabase = await createClient();
-  const { error } = await supabase.from("pricing_tiers").insert({
-    category_id:       input.entidade === "category" ? input.entidadeId : null,
-    ticket_type_id:    input.entidade === "ticket_type" ? input.entidadeId : null,
+
+  // Alvo(s) do lote: só a entidade escolhida, ou todas as categorias do
+  // campeonato de uma vez (aplicarATodas só vale pra categoria, não plateia).
+  let entidadeIds = [input.entidadeId];
+  if (input.aplicarATodas && input.entidade === "category") {
+    const { data: categorias, error: catErr } = await supabase
+      .from("championship_categories")
+      .select("id")
+      .eq("championship_id", champId);
+    if (catErr) {
+      console.error("[criarLote] erro ao buscar categorias:", catErr);
+      return { ok: false, error: "Erro ao buscar as categorias do campeonato." };
+    }
+    entidadeIds = (categorias ?? []).map((c) => c.id);
+  }
+  if (entidadeIds.length === 0) return { ok: false, error: "Nenhuma categoria encontrada." };
+
+  // Ordem por entidade = quantos lotes ela já tem (cada categoria pode estar
+  // em um "ponto" diferente da própria progressão de lotes).
+  const coluna = input.entidade === "category" ? "category_id" : "ticket_type_id";
+  const { data: lotesExistentes, error: lotesErr } = await supabase
+    .from("pricing_tiers")
+    .select(coluna)
+    .in(coluna, entidadeIds);
+  if (lotesErr) {
+    console.error("[criarLote] erro ao contar lotes existentes:", lotesErr);
+    return { ok: false, error: "Erro ao verificar os lotes existentes." };
+  }
+
+  const contagem = new Map<string, number>();
+  for (const l of (lotesExistentes ?? []) as Record<string, string | null>[]) {
+    const key = l[coluna];
+    if (key) contagem.set(key, (contagem.get(key) ?? 0) + 1);
+  }
+
+  const dataFimIso = input.dataFim ? new Date(input.dataFim + "T23:59:59").toISOString() : null;
+
+  const rows = entidadeIds.map((id) => ({
+    category_id:       input.entidade === "category" ? id : null,
+    ticket_type_id:    input.entidade === "ticket_type" ? id : null,
     nome,
     valor,
-    ordem:             input.ordem,
-    quantidade_maxima: input.quantidadeMaxima,
-    data_fim:          input.dataFim ? new Date(input.dataFim + "T23:59:59").toISOString() : null,
-  });
+    ordem:             contagem.get(id) ?? 0,
+    quantidade_maxima: quantidadeMaxima,
+    data_fim:          dataFimIso,
+  }));
 
-  if (error) return { ok: false, error: "Erro ao criar o lote." };
+  const { error } = await supabase.from("pricing_tiers").insert(rows);
+
+  if (error) {
+    console.error("[criarLote] erro ao inserir:", error);
+    return { ok: false, error: `Erro ao criar o lote: ${error.message}` };
+  }
 
   revalidatePath(`/painel/campeonatos/${champId}/lotes`);
   return { ok: true };
@@ -63,6 +113,41 @@ export async function alternarLote(champId: string, loteId: string, ativo: boole
   const supabase = await createClient();
   const { error } = await supabase.from("pricing_tiers").update({ ativo }).eq("id", loteId);
   if (error) return { ok: false, error: "Erro ao atualizar." };
+
+  revalidatePath(`/painel/campeonatos/${champId}/lotes`);
+  return { ok: true };
+}
+
+export async function atualizarValorBase(
+  champId: string,
+  entidade: Entidade,
+  entidadeId: string,
+  novoValor: number,
+  aplicarATodas = false,
+): Promise<Result> {
+  const auth = await assertOwner(champId);
+  if (!auth.ok) return auth;
+
+  const valor = Number(novoValor);
+  if (isNaN(valor) || valor < 0) return { ok: false, error: "Valor inválido." };
+
+  const supabase = await createClient();
+
+  // aplicarATodas só vale pra categoria — atualiza o valor_inscricao de
+  // todas as categorias do campeonato de uma vez.
+  if (entidade === "category" && aplicarATodas) {
+    const { error } = await supabase
+      .from("championship_categories")
+      .update({ valor_inscricao: valor })
+      .eq("championship_id", champId);
+    if (error) return { ok: false, error: "Erro ao atualizar o valor." };
+  } else {
+    const { error } =
+      entidade === "category"
+        ? await supabase.from("championship_categories").update({ valor_inscricao: valor }).eq("id", entidadeId)
+        : await supabase.from("spectator_ticket_types").update({ valor }).eq("id", entidadeId);
+    if (error) return { ok: false, error: "Erro ao atualizar o valor." };
+  }
 
   revalidatePath(`/painel/campeonatos/${champId}/lotes`);
   return { ok: true };

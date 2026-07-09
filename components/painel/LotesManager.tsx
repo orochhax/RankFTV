@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, Eye, EyeOff, Layers } from "lucide-react";
-import { criarLote, alternarLote, excluirLote, type CriarLoteInput } from "@/app/painel/campeonatos/[id]/lotes/actions";
+import { Plus, Trash2, Loader2, Eye, EyeOff, Layers, Pencil, Check, X } from "lucide-react";
+import { criarLote, alternarLote, excluirLote, atualizarValorBase, type CriarLoteInput } from "@/app/painel/campeonatos/[id]/lotes/actions";
 import { formatBRL } from "@/lib/format";
 
 type Lote = {
@@ -25,7 +25,15 @@ export type GrupoLote = {
   lotes: Lote[];
 };
 
-function LoteGroupCard({ champId, grupo }: { champId: string; grupo: GrupoLote }) {
+function LoteGroupCard({
+  champId,
+  grupo,
+  mostrarAplicarTodas,
+}: {
+  champId: string;
+  grupo: GrupoLote;
+  mostrarAplicarTodas: boolean;
+}) {
   const router = useRouter();
   const [adding, setAdding] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -34,14 +42,34 @@ function LoteGroupCard({ champId, grupo }: { champId: string; grupo: GrupoLote }
   const [valor, setValor] = useState("");
   const [quantidadeMaxima, setQuantidadeMaxima] = useState("");
   const [dataFim, setDataFim] = useState("");
+  const [aplicarTodasLote, setAplicarTodasLote] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
+  const [editandoValor, setEditandoValor] = useState(false);
+  const [valorBaseInput, setValorBaseInput] = useState(String(grupo.valorBase));
+  const [aplicarTodasValor, setAplicarTodasValor] = useState(false);
+
   function limparForm() {
-    setNome(""); setValor(""); setQuantidadeMaxima(""); setDataFim("");
+    setNome(""); setValor(""); setQuantidadeMaxima(""); setDataFim(""); setAplicarTodasLote(false);
+  }
+
+  function salvarValorBase() {
+    setErro(null);
+    const novoValor = Number(valorBaseInput.replace(",", "."));
+    if (isNaN(novoValor) || novoValor < 0) { setErro("Valor inválido."); return; }
+    startTransition(async () => {
+      const res = await atualizarValorBase(champId, grupo.entidade, grupo.entidadeId, novoValor, aplicarTodasValor);
+      if (res.ok) { setEditandoValor(false); setAplicarTodasValor(false); router.refresh(); }
+      else setErro(res.error ?? "Erro ao atualizar.");
+    });
   }
 
   function adicionar() {
     setErro(null);
+    if (!quantidadeMaxima.trim() && !dataFim) {
+      setErro("Escolha uma data de término ou uma quantidade máxima pra esse lote.");
+      return;
+    }
     const input: CriarLoteInput = {
       entidade: grupo.entidade,
       entidadeId: grupo.entidadeId,
@@ -50,6 +78,7 @@ function LoteGroupCard({ champId, grupo }: { champId: string; grupo: GrupoLote }
       ordem: grupo.lotes.length,
       quantidadeMaxima: quantidadeMaxima.trim() ? Math.max(1, Math.floor(Number(quantidadeMaxima))) : null,
       dataFim: dataFim || null,
+      aplicarATodas: aplicarTodasLote,
     };
     startTransition(async () => {
       const res = await criarLote(champId, input);
@@ -82,10 +111,59 @@ function LoteGroupCard({ champId, grupo }: { champId: string; grupo: GrupoLote }
     <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
       <div className="flex items-center justify-between gap-2">
         <p className="font-semibold text-gray-900">{grupo.label}</p>
-        <span className="text-xs text-gray-400">
-          Valor de tabela: {grupo.valorBase <= 0 ? "Grátis" : formatBRL(grupo.valorBase)}
-        </span>
+        {editandoValor ? (
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-400">R$</span>
+              <input
+                autoFocus
+                value={valorBaseInput}
+                onChange={(e) => setValorBaseInput(e.target.value)}
+                inputMode="numeric"
+                className="w-20 rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={salvarValorBase}
+                disabled={pending}
+                title="Salvar"
+                className="rounded-lg p-1 text-green-600 hover:bg-green-50"
+              >
+                <Check className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => { setEditandoValor(false); setValorBaseInput(String(grupo.valorBase)); setAplicarTodasValor(false); setErro(null); }}
+                title="Cancelar"
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+            {mostrarAplicarTodas && (
+              <label className="flex items-center gap-1.5 text-[11px] text-gray-500">
+                <input
+                  type="checkbox"
+                  checked={aplicarTodasValor}
+                  onChange={(e) => setAplicarTodasValor(e.target.checked)}
+                  className="size-3"
+                />
+                Aplicar a todas as categorias
+              </label>
+            )}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setValorBaseInput(String(grupo.valorBase)); setEditandoValor(true); }}
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600"
+          >
+            Valor de tabela: {grupo.valorBase <= 0 ? "Grátis" : formatBRL(grupo.valorBase)}
+            <Pencil className="size-3" />
+          </button>
+        )}
       </div>
+      {editandoValor && erro && <p className="mt-1 text-right text-xs text-red-600">{erro}</p>}
 
       {lotesOrdenados.length > 0 && (
         <ul className="mt-3 divide-y divide-gray-100 overflow-hidden rounded-xl ring-1 ring-black/5">
@@ -148,14 +226,26 @@ function LoteGroupCard({ champId, grupo }: { champId: string; grupo: GrupoLote }
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500">Limite de unidades</label>
-              <input value={quantidadeMaxima} onChange={(e) => setQuantidadeMaxima(e.target.value)} inputMode="numeric" placeholder="Sem limite" className={input} />
+              <input value={quantidadeMaxima} onChange={(e) => setQuantidadeMaxima(e.target.value)} inputMode="numeric" placeholder="Ex: 50" className={input} />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-500">Vale até (opcional)</label>
+              <label className="block text-xs font-medium text-gray-500">Vale até</label>
               <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className={input} />
             </div>
           </div>
-          {erro && <p className="mt-2 text-xs text-red-600">{erro}</p>}
+          <p className="mt-2 text-xs text-gray-400">Preencha data de término ou limite de unidades (pelo menos um dos dois).</p>
+          {mostrarAplicarTodas && (
+            <label className="mt-2 flex items-center gap-1.5 text-xs text-gray-600">
+              <input
+                type="checkbox"
+                checked={aplicarTodasLote}
+                onChange={(e) => setAplicarTodasLote(e.target.checked)}
+                className="size-3.5 rounded"
+              />
+              Aplicar esse lote a todas as categorias
+            </label>
+          )}
+          {erro && <p className="mt-1 text-xs text-red-600">{erro}</p>}
           <div className="mt-3 flex gap-2">
             <button
               type="button"
@@ -189,6 +279,8 @@ export function LotesManager({ champId, grupos }: { champId: string; grupos: Gru
     );
   }
 
+  const multiplasCategorias = grupos.filter((g) => g.entidade === "category").length > 1;
+
   return (
     <div className="space-y-4">
       <div className="flex items-start gap-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs text-blue-700 ring-1 ring-blue-100">
@@ -199,7 +291,12 @@ export function LotesManager({ champId, grupos }: { champId: string; grupos: Gru
         </p>
       </div>
       {grupos.map((g) => (
-        <LoteGroupCard key={`${g.entidade}-${g.entidadeId}`} champId={champId} grupo={g} />
+        <LoteGroupCard
+          key={`${g.entidade}-${g.entidadeId}`}
+          champId={champId}
+          grupo={g}
+          mostrarAplicarTodas={g.entidade === "category" && multiplasCategorias}
+        />
       ))}
     </div>
   );
