@@ -17,7 +17,7 @@ export default async function LotesPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome, organizador_id")
+    .select("nome, organizador_id, inscricoes_fim")
     .eq("id", id)
     .maybeSingle();
   if (!champ) notFound();
@@ -108,7 +108,7 @@ export default async function LotesPage({
       {/* ── Conteúdo branco ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-3xl">
-          <LotesManager champId={id} grupos={grupos} />
+          <LotesManager champId={id} grupos={grupos} inscricoesFim={champ.inscricoes_fim} />
         </div>
       </div>
     </div>

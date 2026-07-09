@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, Eye, EyeOff, Layers, Pencil, Check, X } from "lucide-react";
+import { Plus, Trash2, Loader2, Eye, EyeOff, Layers, Pencil, Check, X, AlertTriangle, Info } from "lucide-react";
 import { criarLote, alternarLote, excluirLote, atualizarValorBase, type CriarLoteInput } from "@/app/painel/campeonatos/[id]/lotes/actions";
 import { formatBRL } from "@/lib/format";
 
@@ -25,14 +25,72 @@ export type GrupoLote = {
   lotes: Lote[];
 };
 
+type Cobertura =
+  | { tipo: "divergencia"; ultimaData: string; inscricoesFim: string }
+  | { tipo: "info_quantidade"; inscricoesFim: string }
+  | { tipo: "nenhuma" };
+
+// Compara até quando os lotes (por data) cobrem, contra o encerramento das
+// inscrições configurado no campeonato. Lotes só por quantidade não dá pra
+// comparar com uma data — nesse caso só informa o prazo, sem alarde.
+function analisarCobertura(lotes: Lote[], inscricoesFim: string | null): Cobertura {
+  const ativos = lotes.filter((l) => l.ativo);
+  if (ativos.length === 0) return { tipo: "nenhuma" };
+
+  const comData = ativos.filter((l): l is Lote & { data_fim: string } => !!l.data_fim);
+  if (comData.length === 0) {
+    return inscricoesFim ? { tipo: "info_quantidade", inscricoesFim } : { tipo: "nenhuma" };
+  }
+
+  if (!inscricoesFim) return { tipo: "nenhuma" };
+
+  const ultimaData = comData.reduce((max, l) => (l.data_fim > max ? l.data_fim : max), comData[0].data_fim);
+  const fimInscricoes = new Date(inscricoesFim + "T23:59:59");
+  if (new Date(ultimaData) < fimInscricoes) {
+    return { tipo: "divergencia", ultimaData, inscricoesFim };
+  }
+  return { tipo: "nenhuma" };
+}
+
+function AvisoCobertura({ cobertura }: { cobertura: Cobertura }) {
+  if (cobertura.tipo === "divergencia") {
+    return (
+      <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-xs text-amber-800 ring-1 ring-amber-200">
+        <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+        <p>
+          Divergência de datas: as inscrições ficam abertas até{" "}
+          <strong>{new Date(cobertura.inscricoesFim + "T23:59:59").toLocaleDateString("pt-BR")}</strong>, mas o
+          último lote termina em <strong>{new Date(cobertura.ultimaData).toLocaleDateString("pt-BR")}</strong>.
+          Depois disso o preço volta pro valor de tabela.
+        </p>
+      </div>
+    );
+  }
+  if (cobertura.tipo === "info_quantidade") {
+    return (
+      <div className="mt-3 flex items-start gap-2 rounded-xl bg-gray-50 px-3 py-2.5 text-xs text-gray-500 ring-1 ring-black/5">
+        <Info className="mt-0.5 size-3.5 shrink-0" />
+        <p>
+          As inscrições encerram em{" "}
+          {new Date(cobertura.inscricoesFim + "T23:59:59").toLocaleDateString("pt-BR")} (definido nas
+          configurações do campeonato). Esses lotes viram só por quantidade vendida.
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
 function LoteGroupCard({
   champId,
   grupo,
   mostrarAplicarTodas,
+  inscricoesFim,
 }: {
   champId: string;
   grupo: GrupoLote;
   mostrarAplicarTodas: boolean;
+  inscricoesFim: string | null;
 }) {
   const router = useRouter();
   const [adding, setAdding] = useState(false);
@@ -205,6 +263,8 @@ function LoteGroupCard({
         </ul>
       )}
 
+      <AvisoCobertura cobertura={analisarCobertura(grupo.lotes, inscricoesFim)} />
+
       {!adding ? (
         <button
           type="button"
@@ -270,7 +330,15 @@ function LoteGroupCard({
   );
 }
 
-export function LotesManager({ champId, grupos }: { champId: string; grupos: GrupoLote[] }) {
+export function LotesManager({
+  champId,
+  grupos,
+  inscricoesFim,
+}: {
+  champId: string;
+  grupos: GrupoLote[];
+  inscricoesFim: string | null;
+}) {
   if (grupos.length === 0) {
     return (
       <p className="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-400 ring-1 ring-black/5">
@@ -296,6 +364,7 @@ export function LotesManager({ champId, grupos }: { champId: string; grupos: Gru
           champId={champId}
           grupo={g}
           mostrarAplicarTodas={g.entidade === "category" && multiplasCategorias}
+          inscricoesFim={inscricoesFim}
         />
       ))}
     </div>
