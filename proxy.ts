@@ -1,9 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Rotas que exigem login (qualquer role)
-const AUTH_ROUTES = ["/perfil"];
-
 // Rotas que exigem role admin ou ceo
 const ADMIN_ROUTES = ["/admin"];
 
@@ -55,11 +52,11 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Rotas que exigem apenas login
-  const needsAuth = AUTH_ROUTES.some((r) => pathname.startsWith(r));
-  if (needsAuth && !user) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  // /perfil não é gated aqui — a própria página já faz o redirect("/login")
+  // se não tiver usuário. Ter os dois (middleware + página) fazia o token
+  // ser validado/renovado duas vezes na mesma requisição, e quando o access
+  // token estava expirado, a segunda renovação usava um refresh token que a
+  // primeira já tinha rotacionado — falhava e mandava pro login à toa.
 
   return supabaseResponse;
 }
