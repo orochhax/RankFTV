@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { IngressoAtletaForm, type CategoriaOpcao } from "@/components/campeonatos/IngressoAtletaForm";
-import { resolverPrecos } from "@/lib/lotes";
+import { resolverPrecos, listarLotesComStatus } from "@/lib/lotes";
 import { generoLabel } from "@/lib/format";
 
 // Compra de ingresso de atleta (dupla) como visitante, sem conta.
@@ -32,11 +32,15 @@ export default async function ComprarAtletaPage({
     champ.status === "inscricoes_abertas" || champ.status === "em_andamento";
 
   // Preço vigente (lote atual, se houver) — sobrepõe o valor "de tabela".
-  const precos = await resolverPrecos(
-    "category",
-    (cats ?? []).map((c) => c.id),
-    Object.fromEntries((cats ?? []).map((c) => [c.id, Number(c.valor_inscricao)])),
-  );
+  const categoryIds = (cats ?? []).map((c) => c.id);
+  const [precos, lotesPorCategoria] = await Promise.all([
+    resolverPrecos(
+      "category",
+      categoryIds,
+      Object.fromEntries((cats ?? []).map((c) => [c.id, Number(c.valor_inscricao)])),
+    ),
+    listarLotesComStatus("category", categoryIds),
+  ]);
 
   const categorias: CategoriaOpcao[] = (cats ?? []).map((c) => ({
     id:             c.id,
@@ -45,6 +49,7 @@ export default async function ComprarAtletaPage({
     valorInscricao: precos[c.id].valor,
     corteRatingMin: Number(c.corte_rating_min ?? 0),
     corteRatingMax: Number(c.corte_rating_max ?? 0),
+    lotes:          lotesPorCategoria[c.id] ?? [],
   }));
 
   return (

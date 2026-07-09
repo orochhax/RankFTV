@@ -76,6 +76,74 @@ export async function resolverPrecos(
   return resultado;
 }
 
+export type LoteComStatus = {
+  id: string;
+  nome: string;
+  valor: number;
+  status: "ativo" | "encerrado" | "a_seguir";
+  dataFim: string | null;
+  quantidadeMaxima: number | null;
+  vendidos: number;
+};
+
+/**
+ * Lista TODOS os lotes configurados (vigente, já encerrados por data/quantidade
+ * e os que ainda vão virar) de várias categorias/tipos de uma vez — usado pra
+ * mostrar a régua de preço completa quando o comprador abre a categoria, não
+ * só o preço vigente.
+ */
+export async function listarLotesComStatus(
+  entidade: EntidadeLote,
+  ids: string[],
+): Promise<Record<string, LoteComStatus[]>> {
+  const resultado: Record<string, LoteComStatus[]> = {};
+  if (ids.length === 0) return resultado;
+
+  const admin = createAdminClient();
+  const coluna = entidade === "category" ? "category_id" : "ticket_type_id";
+  const { data: lotes } = await admin
+    .from("pricing_tiers")
+    .select("id, nome, valor, ordem, quantidade_maxima, vendidos, data_fim, ativo, category_id, ticket_type_id")
+    .in(coluna, ids)
+    .eq("ativo", true);
+
+  const porId = new Map<string, TierRow[]>();
+  for (const l of lotes ?? []) {
+    const key = (entidade === "category" ? l.category_id : l.ticket_type_id) as string;
+    if (!porId.has(key)) porId.set(key, []);
+    porId.get(key)!.push(l as TierRow);
+  }
+
+  const agora = new Date();
+  for (const id of ids) {
+    const ordenados = [...(porId.get(id) ?? [])].sort((a, b) => a.ordem - b.ordem);
+    let ativoEncontrado = false;
+    resultado[id] = ordenados.map((l) => {
+      const expirado = l.data_fim != null && agora > new Date(l.data_fim);
+      const esgotado = l.quantidade_maxima != null && l.vendidos >= l.quantidade_maxima;
+      let status: LoteComStatus["status"];
+      if (expirado || esgotado) {
+        status = "encerrado";
+      } else if (!ativoEncontrado) {
+        status = "ativo";
+        ativoEncontrado = true;
+      } else {
+        status = "a_seguir";
+      }
+      return {
+        id:                l.id,
+        nome:              l.nome,
+        valor:             Number(l.valor),
+        status,
+        dataFim:           l.data_fim,
+        quantidadeMaxima:  l.quantidade_maxima,
+        vendidos:          l.vendidos,
+      };
+    });
+  }
+  return resultado;
+}
+
 /**
  * Resolve e reivindica atomicamente `qty` unidades do lote vigente de UMA
  * categoria/tipo — usado nas actions de compra, nunca confia em preço vindo

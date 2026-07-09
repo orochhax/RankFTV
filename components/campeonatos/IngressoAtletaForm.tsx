@@ -1,11 +1,12 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Loader2, Trophy, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Trophy, Check } from "lucide-react";
 import { comprarIngressoAtleta, type ComprarAtletaState } from "@/app/campeonatos/[id]/comprar/actions";
 import { formatBRL } from "@/lib/format";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 import { CupomInput, type CupomAplicado } from "@/components/ui/CupomInput";
+import type { LoteComStatus } from "@/lib/lotes";
 
 export type CategoriaOpcao = {
   id: string;
@@ -14,9 +15,49 @@ export type CategoriaOpcao = {
   valorInscricao: number;
   corteRatingMin: number;
   corteRatingMax: number;
+  lotes: LoteComStatus[];
 };
 
 const CAMISAS = ["PP", "P", "M", "G", "GG", "XG", "XGG"];
+
+type Etapa = "categoria" | "dados";
+const ETAPAS: { key: Etapa | "pagamento"; label: string }[] = [
+  { key: "categoria", label: "Categoria" },
+  { key: "dados", label: "Dados dos atletas" },
+  { key: "pagamento", label: "Pagamento" },
+];
+
+function BarraDeProgresso({ etapa }: { etapa: Etapa }) {
+  const idx = ETAPAS.findIndex((e) => e.key === etapa);
+  return (
+    <div className="grid grid-cols-3">
+      {ETAPAS.map((e, i) => {
+        const feita = i < idx;
+        const atual = i === idx;
+        return (
+          <div key={e.key} className="relative flex flex-col items-center gap-1">
+            {i > 0 && (
+              <div className={`absolute left-0 top-3 h-px w-1/2 ${i <= idx ? "bg-blue-600" : "bg-gray-200"}`} />
+            )}
+            {i < ETAPAS.length - 1 && (
+              <div className={`absolute right-0 top-3 h-px w-1/2 ${i < idx ? "bg-blue-600" : "bg-gray-200"}`} />
+            )}
+            <div
+              className={`relative z-10 flex size-6 items-center justify-center rounded-full text-[11px] font-semibold ${
+                feita || atual ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"
+              }`}
+            >
+              {feita ? <Check className="size-3.5" /> : i + 1}
+            </div>
+            <span className={`text-center text-[11px] font-medium leading-tight ${atual ? "text-blue-600" : "text-gray-400"}`}>
+              {e.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function IngressoAtletaForm({
   championshipId,
@@ -27,6 +68,7 @@ export function IngressoAtletaForm({
   categorias: CategoriaOpcao[];
   isElite: boolean;
 }) {
+  const [etapa, setEtapa] = useState<Etapa>("categoria");
   const [catSelecionada, setCat] = useState<CategoriaOpcao | null>(null);
   const [cupom, setCupom] = useState<CupomAplicado | null>(null);
   const [state, formAction, pending] = useActionState<ComprarAtletaState, FormData>(
@@ -47,65 +89,101 @@ export function IngressoAtletaForm({
 
   return (
     <div className="space-y-6">
-      {/* Seleção de categoria */}
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700">Escolha a categoria da dupla</p>
-        {categorias.map((cat) => {
-          const sel = catSelecionada?.id === cat.id;
-          const v   = cat.valorInscricao;
-          const t   = calcularTotalComprador(v, "pix", isElite);
-          return (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => { setCat(sel ? null : cat); setCupom(null); }}
-              className={`w-full flex items-center justify-between gap-3 rounded-2xl border p-4 text-left transition-colors ${
-                sel ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
-              }`}
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${sel ? "bg-blue-600" : "bg-gray-100"}`}>
-                  <Trophy className={`size-5 ${sel ? "text-white" : "text-gray-400"}`} />
+      <BarraDeProgresso etapa={etapa} />
+
+      {/* Etapa 1 — escolha da categoria */}
+      {etapa === "categoria" && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-700">Escolha a categoria da dupla</p>
+          {categorias.map((cat) => {
+            const sel = catSelecionada?.id === cat.id;
+            const v   = cat.valorInscricao;
+            const t   = calcularTotalComprador(v, "pix", isElite);
+            const loteAtivo = cat.lotes.find((l) => l.status === "ativo");
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => { setCat(sel ? null : cat); setCupom(null); }}
+                className={`w-full flex items-center justify-between gap-3 rounded-2xl border p-4 text-left transition-colors ${
+                  sel ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${sel ? "bg-blue-600" : "bg-gray-100"}`}>
+                    <Trophy className={`size-5 ${sel ? "text-white" : "text-gray-400"}`} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900">
+                      Categoria {cat.nome}
+                      {cat.genero !== "mista" && (
+                        <span className="ml-1.5 text-xs font-normal text-gray-400">
+                          · {cat.genero === "masculino" ? "Masculino" : "Feminino"}
+                        </span>
+                      )}
+                      {cat.genero === "mista" && (
+                        <span className="ml-1.5 text-xs font-normal text-gray-400">· Mista</span>
+                      )}
+                    </p>
+                    {loteAtivo && (
+                      <p className="text-xs text-amber-600">
+                        {loteAtivo.nome}
+                        {loteAtivo.dataFim && ` · até ${new Date(loteAtivo.dataFim).toLocaleDateString("pt-BR")}`}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-medium text-gray-900">
-                    Categoria {cat.nome}
-                    {cat.genero !== "mista" && (
-                      <span className="ml-1.5 text-xs font-normal text-gray-400">
-                        · {cat.genero === "masculino" ? "Masculino" : "Feminino"}
-                      </span>
-                    )}
-                    {cat.genero === "mista" && (
-                      <span className="ml-1.5 text-xs font-normal text-gray-400">· Mista</span>
-                    )}
-                  </p>
-                  {cat.corteRatingMin > 0 && (
-                    <p className="text-xs text-gray-400">Pontuação mín. {cat.corteRatingMin}</p>
+                <div className="shrink-0 text-right">
+                  {v <= 0 ? (
+                    <span className="font-semibold text-blue-600">Grátis</span>
+                  ) : (
+                    <div>
+                      <p className="font-semibold text-gray-900">{formatBRL(t)}</p>
+                      <p className="text-[11px] text-gray-400">com taxa · Pix</p>
+                    </div>
+                  )}
+                  {sel && (
+                    <div className="ml-auto mt-1 flex size-4 items-center justify-center rounded-full bg-blue-600">
+                      <Check className="size-3 text-white" />
+                    </div>
                   )}
                 </div>
-              </div>
-              <div className="shrink-0 text-right">
-                {v <= 0 ? (
-                  <span className="font-semibold text-blue-600">Grátis</span>
-                ) : (
-                  <div>
-                    <p className="font-semibold text-gray-900">{formatBRL(t)}</p>
-                    <p className="text-[11px] text-gray-400">com taxa · Pix</p>
-                  </div>
-                )}
-                {sel ? <ChevronUp className="ml-auto mt-1 size-4 text-blue-500" /> : <ChevronDown className="ml-auto mt-1 size-4 text-gray-300" />}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+              </button>
+            );
+          })}
 
-      {/* Formulário — só aparece após selecionar categoria */}
-      {catSelecionada && (
+          <button
+            type="button"
+            onClick={() => catSelecionada && setEtapa("dados")}
+            disabled={!catSelecionada}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Continuar
+          </button>
+        </div>
+      )}
+
+      {/* Etapa 2 — dados dos atletas + pagamento */}
+      {etapa === "dados" && catSelecionada && (
         <form action={formAction} className="space-y-6">
           <input type="hidden" name="championship_id" value={championshipId} />
           <input type="hidden" name="category_id"     value={catSelecionada.id} />
           <input type="hidden" name="categoria_nome"  value={catSelecionada.nome} />
+
+          {/* Resumo da categoria escolhida */}
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500">Categoria escolhida</p>
+              <p className="font-medium text-gray-900">Categoria {catSelecionada.nome}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setEtapa("categoria"); setCupom(null); }}
+              className="shrink-0 text-xs font-semibold text-blue-600 hover:underline"
+            >
+              Trocar
+            </button>
+          </div>
 
           {/* Seus dados */}
           <section className="space-y-3">
