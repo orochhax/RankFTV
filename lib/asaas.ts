@@ -1,5 +1,7 @@
 // Cliente da API do Asaas. Todas as chamadas passam por aqui.
 // Chaves via process.env — nunca hardcoded (ver .env.local).
+import "server-only"; // build quebra se isso for importado por um Client Component
+import { detectarTipoChavePix } from "@/lib/pix";
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const baseUrl = process.env.ASAAS_BASE_URL;
@@ -125,18 +127,6 @@ export async function reembolsarPagamento(
 
 // ── Transferência Pix ao organizador ─────────────────────────────────────────
 // Chamada após confirmação de pagamento (Pix/débito: imediato; crédito: D+32).
-
-export type TipoChavePix = "CPF" | "CNPJ" | "EMAIL" | "PHONE" | "EVP";
-
-/** Detecta automaticamente o tipo da chave Pix a partir do valor. */
-export function detectarTipoChavePix(chave: string): TipoChavePix {
-  const digits = chave.replace(/\D/g, "");
-  if (chave.includes("@"))     return "EMAIL";
-  if (digits.length === 11)    return "CPF";
-  if (digits.length === 14)    return "CNPJ";
-  if (/^\+?\d{10,13}$/.test(chave)) return "PHONE";
-  return "EVP"; // chave aleatória (UUID)
-}
 
 export async function transferirPix(input: {
   valor:     number;

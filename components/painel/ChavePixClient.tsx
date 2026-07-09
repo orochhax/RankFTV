@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { CheckCircle2, Pencil, AlertTriangle, X, QrCode } from "lucide-react";
 import { salvarChavePix } from "@/app/painel/campeonatos/[id]/financeiro/actions";
-import { detectarTipoChavePix } from "@/lib/asaas";
+import { detectarTipoChavePix } from "@/lib/pix";
 
 function mascarar(chave: string): string {
   if (chave.includes("@")) {

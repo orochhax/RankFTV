@@ -1,3 +1,4 @@
+import "server-only"; // build quebra se isso for importado por um Client Component (lê ADMIN_EMAIL)
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type UserRole = "user" | "admin" | "ceo";

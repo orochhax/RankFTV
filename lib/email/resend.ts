@@ -1,3 +1,4 @@
+import "server-only"; // build quebra se isso for importado por um Client Component
 import { Resend } from "resend";
 
 // Instanciado de forma lazy para não quebrar o build quando a variável não está definida.

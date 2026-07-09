@@ -1,3 +1,4 @@
+import "server-only"; // build quebra se isso for importado por um Client Component
 import { createClient } from "@supabase/supabase-js";
 
 // Cliente com service_role — bypassa RLS e tem acesso total ao banco.
