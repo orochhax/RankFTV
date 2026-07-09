@@ -16,6 +16,7 @@ export type CategoriaOpcao = {
   corteRatingMin: number;
   corteRatingMax: number;
   lotes: LoteComStatus[];
+  esgotado: boolean;
 };
 
 const CAMISAS = ["PP", "P", "M", "G", "GG", "XG", "XGG"];
@@ -104,14 +105,17 @@ export function IngressoAtletaForm({
               <button
                 key={cat.id}
                 type="button"
+                disabled={cat.esgotado}
                 onClick={() => { setCat(sel ? null : cat); setCupom(null); }}
                 className={`w-full flex items-center justify-between gap-3 rounded-2xl border p-4 text-left transition-colors ${
-                  sel ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
+                  cat.esgotado
+                    ? "cursor-not-allowed border-gray-200 bg-gray-50 opacity-60"
+                    : sel ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${sel ? "bg-blue-600" : "bg-gray-100"}`}>
-                    <Trophy className={`size-5 ${sel ? "text-white" : "text-gray-400"}`} />
+                  <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${sel && !cat.esgotado ? "bg-blue-600" : "bg-gray-100"}`}>
+                    <Trophy className={`size-5 ${sel && !cat.esgotado ? "text-white" : "text-gray-400"}`} />
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium text-gray-900">
@@ -125,7 +129,9 @@ export function IngressoAtletaForm({
                         <span className="ml-1.5 text-xs font-normal text-gray-400">· Mista</span>
                       )}
                     </p>
-                    {loteAtivo && (
+                    {cat.esgotado ? (
+                      <p className="text-xs text-gray-400">Vagas esgotadas</p>
+                    ) : loteAtivo && (
                       <p className="text-xs text-amber-600">
                         {loteAtivo.nome}
                         {loteAtivo.dataFim && ` · até ${new Date(loteAtivo.dataFim).toLocaleDateString("pt-BR")}`}
@@ -134,7 +140,9 @@ export function IngressoAtletaForm({
                   </div>
                 </div>
                 <div className="shrink-0 text-right">
-                  {v <= 0 ? (
+                  {cat.esgotado ? (
+                    <span className="font-semibold text-gray-400">Esgotado</span>
+                  ) : v <= 0 ? (
                     <span className="font-semibold text-blue-600">Grátis</span>
                   ) : (
                     <div>
@@ -142,7 +150,7 @@ export function IngressoAtletaForm({
                       <p className="text-[11px] text-gray-400">com taxa · Pix</p>
                     </div>
                   )}
-                  {sel && (
+                  {sel && !cat.esgotado && (
                     <div className="ml-auto mt-1 flex size-4 items-center justify-center rounded-full bg-blue-600">
                       <Check className="size-3 text-white" />
                     </div>

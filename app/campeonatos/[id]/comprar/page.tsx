@@ -50,6 +50,7 @@ export default async function ComprarAtletaPage({
     corteRatingMin: Number(c.corte_rating_min ?? 0),
     corteRatingMax: Number(c.corte_rating_max ?? 0),
     lotes:          lotesPorCategoria[c.id] ?? [],
+    esgotado:       precos[c.id].esgotado,
   }));
 
   return (

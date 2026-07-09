@@ -142,6 +142,11 @@ export default async function CategoriasPage({
                               {preco.loteNome}
                             </span>
                           )}
+                          {preco.esgotado && (
+                            <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600">
+                              Vagas esgotadas
+                            </span>
+                          )}
                         </div>
                         <p className="mt-0.5 text-sm text-gray-500">
                           {cat.corteRatingMin > 0
@@ -150,6 +155,9 @@ export default async function CategoriasPage({
                         </p>
                       </div>
                       {(() => {
+                        if (preco.esgotado) {
+                          return <span className="shrink-0 font-semibold text-gray-400">Esgotado</span>;
+                        }
                         const valor = preco.valor;
                         if (valor <= 0) {
                           return <span className="shrink-0 font-semibold text-blue-600">Grátis</span>;
@@ -172,6 +180,7 @@ export default async function CategoriasPage({
                         championshipId={championship.id}
                         categoryId={cat.id}
                         status={championship.status}
+                        esgotado={preco.esgotado}
                       />
                     </div>
                   </div>

@@ -44,6 +44,7 @@ export default async function PlateiaPage({
     nome:     t.nome,
     valor:    precos[t.id].valor,
     loteNome: precos[t.id].loteNome,
+    esgotado: precos[t.id].esgotado,
   }));
 
   return (

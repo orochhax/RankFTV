@@ -68,7 +68,10 @@ export async function resolverPrecos(
     if (r.status === "ativo") {
       resultado[id] = { valor: r.lote.valor, loteNome: r.lote.nome, esgotado: false };
     } else if (r.status === "esgotado") {
-      resultado[id] = { valor: valoresBase[id] ?? 0, loteNome: null, esgotado: true };
+      // Lotes existem mas todos esgotaram (por data ou por quantidade) — NÃO
+      // volta pro valor de tabela. Quantidade de lote representa vaga de
+      // verdade; esgotar significa esgotar, não subir de preço.
+      resultado[id] = { valor: 0, loteNome: null, esgotado: true };
     } else {
       resultado[id] = { valor: valoresBase[id] ?? 0, loteNome: null, esgotado: false };
     }

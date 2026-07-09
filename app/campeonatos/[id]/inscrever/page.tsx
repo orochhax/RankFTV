@@ -58,7 +58,8 @@ export default async function InscreverPage({
 
   // Preço vigente (lote atual, se houver) — sobrepõe o valor "de tabela".
   const precos = await resolverPrecos("category", [category.id], { [category.id]: category.valorInscricao });
-  const valorVigente = precos[category.id].valor;
+  const precoCategoria = precos[category.id];
+  const valorVigente = precoCategoria.valor;
 
   const meuGenero = (profile?.genero as Genero | null) ?? null;
   const generoCategoria = category.genero;
@@ -119,6 +120,17 @@ export default async function InscreverPage({
           <Link
             href={`/campeonatos/${id}`}
             className="mt-3 inline-flex items-center gap-1 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+          >
+            <ChevronLeft className="size-4" /> Voltar ao campeonato
+          </Link>
+        </div>
+      ) : precoCategoria.esgotado ? (
+        <div className="rounded-2xl bg-gray-50 px-5 py-5 text-sm text-gray-600 ring-1 ring-black/5 space-y-2">
+          <p className="font-semibold text-base text-gray-900">Vagas esgotadas</p>
+          <p>Essa categoria esgotou as vagas dos lotes configurados. Fale com o organizador se quiser participar.</p>
+          <Link
+            href={`/campeonatos/${id}`}
+            className="mt-3 inline-flex items-center gap-1 rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
           >
             <ChevronLeft className="size-4" /> Voltar ao campeonato
           </Link>

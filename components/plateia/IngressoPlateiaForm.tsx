@@ -7,7 +7,7 @@ import { formatBRL } from "@/lib/format";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 import { CupomInput, type CupomAplicado } from "@/components/ui/CupomInput";
 
-type Tipo = { id: string; nome: string; valor: number; loteNome?: string | null };
+type Tipo = { id: string; nome: string; valor: number; loteNome?: string | null; esgotado?: boolean };
 
 export function IngressoPlateiaForm({
   championshipId,
@@ -59,6 +59,24 @@ export function IngressoPlateiaForm({
         <p className="text-sm font-medium text-gray-700">Ingressos</p>
         {tipos.map((t) => {
           const q = qtys[t.id] ?? 0;
+          if (t.esgotado) {
+            return (
+              <div
+                key={t.id}
+                className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-4 opacity-60"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gray-100">
+                    <Ticket className="size-5 text-gray-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900">{t.nome}</p>
+                    <p className="text-sm text-gray-400">Esgotado</p>
+                  </div>
+                </div>
+              </div>
+            );
+          }
           return (
             <div
               key={t.id}

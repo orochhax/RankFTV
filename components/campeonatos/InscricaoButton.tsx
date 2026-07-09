@@ -5,6 +5,7 @@ type Props = {
   championshipId?: string;
   categoryId?: string;
   status?: string;
+  esgotado?: boolean;
 };
 
 // Botão de inscrição na página de detalhe do campeonato.
@@ -15,9 +16,18 @@ export function InscricaoButton({
   championshipId,
   categoryId,
   status,
+  esgotado,
 }: Props) {
   const isReal = !!championshipId && !!categoryId;
   const aberto = status === "inscricoes_abertas";
+
+  if (esgotado) {
+    return (
+      <span className="block w-full rounded-lg bg-gray-100 px-4 py-2.5 text-center text-sm text-gray-400">
+        Vagas esgotadas
+      </span>
+    );
+  }
 
   if (isReal && aberto) {
     return (
