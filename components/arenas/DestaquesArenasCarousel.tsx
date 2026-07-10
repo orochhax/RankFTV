@@ -61,6 +61,12 @@ export function DestaquesArenasCarousel({ arenas }: { arenas: ArenaDestaque[] })
                   <Building2 className="size-12 text-white/30" strokeWidth={1.5} />
                 </div>
               )}
+              {arena.avatar_url && (
+                <div className="absolute left-3 top-3 size-12 overflow-hidden rounded-xl ring-2 ring-white shadow-md">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={arena.avatar_url} alt="" className="h-full w-full object-cover" />
+                </div>
+              )}
             </div>
             <div className="flex flex-1 flex-col justify-center gap-2 p-6">
               <h3 className="text-xl font-bold leading-tight text-gray-900 group-hover:text-blue-700">
@@ -122,6 +128,12 @@ export function DestaquesArenasCarousel({ arenas }: { arenas: ArenaDestaque[] })
                     />
                   ) : (
                     <Building2 className="size-10 text-white/30" strokeWidth={1.5} />
+                  )}
+                  {arena.avatar_url && (
+                    <div className="absolute left-3 top-3 size-11 overflow-hidden rounded-xl ring-2 ring-white shadow-md">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={arena.avatar_url} alt="" className="h-full w-full object-cover" />
+                    </div>
                   )}
                 </div>
                 <div className="space-y-1.5 p-4">
