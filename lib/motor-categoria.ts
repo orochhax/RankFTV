@@ -22,6 +22,66 @@ const PESOS: Record<keyof RespostasQuestionario, Record<string, number>> = {
   categoria_usual:  { nunca: 0, D: 50, C: 200, B: 350, A_elite: 500 },
 };
 
+// Perguntas + opções pro formulário do atleta (/perfil/questionario-nivel).
+// As `key`/`valor` batem exatamente com RespostasQuestionario e PESOS acima.
+export const PERGUNTAS_NIVEL: {
+  key: keyof RespostasQuestionario;
+  pergunta: string;
+  opcoes: { valor: string; label: string }[];
+}[] = [
+  {
+    key: "tempo",
+    pergunta: "Há quanto tempo você joga futevôlei?",
+    opcoes: [
+      { valor: "menos_1", label: "Menos de 1 ano" },
+      { valor: "1_3",     label: "De 1 a 3 anos" },
+      { valor: "3_6",     label: "De 3 a 6 anos" },
+      { valor: "mais_6",  label: "Mais de 6 anos" },
+    ],
+  },
+  {
+    key: "nivel",
+    pergunta: "Como você classificaria seu nível de jogo?",
+    opcoes: [
+      { valor: "recreativo",  label: "Recreativo" },
+      { valor: "amador",      label: "Amador" },
+      { valor: "competitivo", label: "Competitivo" },
+      { valor: "alto_nivel",  label: "Alto nível" },
+    ],
+  },
+  {
+    key: "frequencia",
+    pergunta: "Com que frequência você joga?",
+    opcoes: [
+      { valor: "1x",       label: "1x por semana" },
+      { valor: "2_3x",     label: "2 a 3x por semana" },
+      { valor: "4_5x",     label: "4 a 5x por semana" },
+      { valor: "todo_dia", label: "Praticamente todo dia" },
+    ],
+  },
+  {
+    key: "melhor_resultado",
+    pergunta: "Qual seu melhor resultado em campeonatos?",
+    opcoes: [
+      { valor: "nunca",     label: "Nunca joguei um campeonato" },
+      { valor: "sem_podio", label: "Já joguei, sem pódio" },
+      { valor: "top4",      label: "Já fiquei entre os 4 primeiros" },
+      { valor: "campeao",   label: "Já fui campeão" },
+    ],
+  },
+  {
+    key: "categoria_usual",
+    pergunta: "Qual categoria você costuma jogar?",
+    opcoes: [
+      { valor: "nunca",   label: "Nunca joguei categoria" },
+      { valor: "D",       label: "Categoria D" },
+      { valor: "C",       label: "Categoria C" },
+      { valor: "B",       label: "Categoria B" },
+      { valor: "A_elite", label: "Categoria A / Elite" },
+    ],
+  },
+];
+
 export function calcularRatingQuestionario(r: RespostasQuestionario): number {
   const soma =
     (PESOS.tempo[r.tempo]                       ?? 0) +

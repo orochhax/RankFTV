@@ -53,9 +53,13 @@ export default async function CategoriasPage({
     corte_rating_max: c.corteRatingMax,
     genero: c.genero,
   }));
-  const catRecomendada = meuRating > 0
+  const motorLigado = championship.usaMotorCategoria;
+  const catRecomendada = motorLigado && meuRating > 0
     ? recomendarCategoria(meuRating, categoriasParaMotor, meuGenero)
     : null;
+  // Só exige o questionário de quem já está logado — visitante ainda vai
+  // passar pelo login antes de chegar na inscrição de qualquer jeito.
+  const precisaQuestionario = !!user && motorLigado && meuRating === 0;
 
   const temCategoriaParaMim =
     !meuGenero ||
@@ -94,6 +98,16 @@ export default async function CategoriasPage({
       {/* ── Conteúdo branco ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-2xl">
+          {precisaQuestionario && (
+            <div className="mb-3 rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-800 ring-1 ring-blue-100">
+              <p className="font-semibold">Esse campeonato recomenda a categoria pra você</p>
+              <p className="mt-0.5 text-blue-700">
+                Ao clicar em inscrever, você responde um questionário rápido (5 perguntas) sobre
+                seu nível antes de continuar.
+              </p>
+            </div>
+          )}
+
           {!temCategoriaParaMim && (
             <div className="mb-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">
               <p className="font-semibold">
@@ -181,6 +195,7 @@ export default async function CategoriasPage({
                         categoryId={cat.id}
                         status={championship.status}
                         esgotado={preco.esgotado}
+                        precisaQuestionario={precisaQuestionario}
                       />
                     </div>
                   </div>

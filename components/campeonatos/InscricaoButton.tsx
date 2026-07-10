@@ -6,6 +6,7 @@ type Props = {
   categoryId?: string;
   status?: string;
   esgotado?: boolean;
+  precisaQuestionario?: boolean;
 };
 
 // Botão de inscrição na página de detalhe do campeonato.
@@ -17,6 +18,7 @@ export function InscricaoButton({
   categoryId,
   status,
   esgotado,
+  precisaQuestionario,
 }: Props) {
   const isReal = !!championshipId && !!categoryId;
   const aberto = status === "inscricoes_abertas";
@@ -30,9 +32,13 @@ export function InscricaoButton({
   }
 
   if (isReal && aberto) {
+    const inscreverHref = `/campeonatos/${championshipId}/inscrever?categoria=${categoryId}`;
+    const href = precisaQuestionario
+      ? `/perfil/questionario-nivel?redirect=${encodeURIComponent(inscreverHref)}`
+      : inscreverHref;
     return (
       <Link
-        href={`/campeonatos/${championshipId}/inscrever?categoria=${categoryId}`}
+        href={href}
         className="block w-full rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700"
       >
         Inscrever dupla — {categoriaNome}

@@ -72,6 +72,7 @@ export function NovoCampeonatoForm() {
   const [ingressos, setIngressos] = useState<IngForm[]>([{ nome: "", valor: "", quantidade: "" }]);
   const [quiz, setQuiz] = useState<Partial<QuizAnswers>>({});
   const [elite, setElite] = useState(false);
+  const [usaMotorCategoria, setUsaMotorCategoria] = useState(true);
 
   const [vender, setVender] = useState<{ atleta: boolean; plateia: boolean }>({ atleta: true, plateia: false });
   const [stepIdx, setStepIdx] = useState(0);
@@ -184,6 +185,7 @@ export function NovoCampeonatoForm() {
         // Plateia-only não tem nível — manda quiz vazio (tier vira "local").
         tierQuiz: (vender.atleta ? (quiz as QuizAnswers) : ({} as QuizAnswers)),
         elite,
+        usaMotorCategoria: vender.atleta ? usaMotorCategoria : false,
         categorias: vender.atleta
           ? categorias.filter((c) => c.nome.trim()).map<CategoriaInput>((c) => ({
               nome: c.nome, genero: c.genero, valorInscricao: Number(c.valorInscricao) || 0, maxDuplas: Number(c.maxDuplas) || undefined,
@@ -417,6 +419,37 @@ export function NovoCampeonatoForm() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+                <label className="flex items-start justify-between gap-4">
+                  <span>
+                    <span className="block text-sm font-semibold text-gray-800">
+                      Recomendar categoria pro atleta
+                    </span>
+                    <span className="mt-0.5 block text-xs text-gray-400">
+                      O atleta responde um questionário de 5 perguntas sobre o próprio nível
+                      antes de se inscrever, e a plataforma recomenda a categoria certa pra ele.
+                      Se desligar, o atleta escolhe a categoria livremente, sem passar pelo
+                      questionário.
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={usaMotorCategoria}
+                    onClick={() => setUsaMotorCategoria((v) => !v)}
+                    className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                      usaMotorCategoria ? "bg-blue-600" : "bg-gray-200"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block size-4 transform rounded-full bg-white transition-transform ${
+                        usaMotorCategoria ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </label>
               </div>
             </>
           )}

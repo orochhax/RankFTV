@@ -49,6 +49,7 @@ export type CreateChampionshipInput = {
   ingressosPlateia?: IngressoPlateiaInput[];
   tierQuiz: QuizAnswers;
   elite?: boolean;
+  usaMotorCategoria?: boolean;
 };
 
 // Gradientes de banner — escolhe um aleatório por enquanto (upload de imagem
@@ -127,6 +128,7 @@ export async function createChampionship(
       tier_quiz: input.tierQuiz,
       is_elite: input.elite ?? false,
       premium_fee_pendente: input.elite ? PRECO_ELITE : 0,
+      usa_motor_categoria: input.usaMotorCategoria ?? true,
     })
     .select("id")
     .single();

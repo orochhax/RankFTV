@@ -26,6 +26,7 @@ export default async function EditarCampeonatoPage({
       prevenda_inicio, prevenda_fim,
       banner_url,
       cidade, estado, local, live_url, status, organizador_id,
+      usa_motor_categoria,
       championship_categories (
         id, nome, genero, valor_inscricao, max_duplas
       )
@@ -54,6 +55,7 @@ export default async function EditarCampeonatoPage({
     liveUrl:          (c.live_url  as string | null) ?? "",
     status:              champ.status as "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado",
     regulamentoPdfUrl:   (c.regulamento_pdf_url as string | null) ?? null,
+    usaMotorCategoria:   (c.usa_motor_categoria as boolean | null) ?? true,
     categorias: ((champ.championship_categories as unknown as Array<{
       id: string; nome: string; genero: string;
       valor_inscricao: number; max_duplas: number | null;

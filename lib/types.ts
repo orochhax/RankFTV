@@ -38,6 +38,7 @@ export type Championship = {
   bannerUrl?: string | null;
   liveUrl?: string | null;
   isVitrine?: boolean;
+  usaMotorCategoria: boolean;
   categorias: Category[];
 };
 
