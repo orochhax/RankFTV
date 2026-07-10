@@ -104,8 +104,10 @@ PÚBLICO / ATLETA            PAINEL (organizador)        STAFF              ADMI
 - **profiles** — `id`, `nome`, `username` (@handle único), `bio`, `foto_url`, `rating`, `genero` (`masculino`/`feminino`), `questionario` (jsonb das 5 perguntas), `tamanho_camisa`. *Dados públicos.*
 - **profiles_private** — `user_id`, `cpf`, `telefone`. *RLS estrita: só o dono lê (`user_id = auth.uid()`).*
 - **organizer_accounts** — `user_id`, `cpf_cnpj`, `chave_pix`, `habilitado`. Existe quando o usuário ativa o modo organizador.
-- **championships** — `id`, `organizador_id`, `nome`, `descricao`, `regulamento`, datas (`data_inicio/fim`, `prevenda_*`, `inscricoes_*`), `cidade`, `estado`, `local`, `status`, `taxa_plataforma`, `banner_url`, `live_url`, `tier` + `tier_quiz`, **`is_elite`** + **`premium_fee_pendente`**, `page_id`.
+- **championships** — `id`, `organizador_id`, `nome`, `descricao`, `regulamento`, datas (`data_inicio/fim`, `prevenda_*`, `inscricoes_*`), `cidade`, `estado`, `local`, `status`, `taxa_plataforma`, `banner_url`, `live_url`, `tier` + `tier_quiz`, **`is_elite`** + **`premium_fee_pendente`**, `page_id`, **`usa_motor_categoria`** (liga/desliga a recomendação de categoria por questionário — ligado por padrão).
 - **championship_categories** — `id`, `championship_id`, `nome`, `genero` (`masculino`/`feminino`/`mista`), `valor_inscricao`, `corte_rating_min/max`, `max_duplas`.
+- **pricing_tiers** ([supabase/add-pricing-tiers.sql](supabase/add-pricing-tiers.sql)) — lotes de preço escalonado ("1º Lote R$50, 2º Lote R$70"). `id`, `category_id` OU `ticket_type_id` (exatamente um dos dois), `nome`, `valor`, `ordem` (menor = primeiro a valer), `quantidade_maxima`, `vendidos`, `data_fim`, `ativo`. O vigente é o de menor `ordem` que ainda não expirou por data nem esgotou por quantidade; reivindicação atômica via `claim_pricing_tier`/`release_pricing_tier`. Sem nenhum lote configurado, vale o valor de tabela normal — mas se os lotes esgotarem (todos), a categoria/ingresso fica **Esgotado**, não volta pro valor de tabela.
+- **coupons** ([supabase/add-coupons.sql](supabase/add-coupons.sql)) — cupom de desconto por campeonato. `id`, `championship_id`, `codigo`, `tipo_desconto` (`percentual`/`valor_fixo`), `valor_desconto`, `aplica_em` (`atleta`/`plateia`/`ambos`), `quantidade_maxima`, `usos_atuais`, `data_inicio/fim`, `ativo`. Desconto aplicado sobre o valor base antes da taxa da plataforma; reivindicação atômica via `claim_coupon_use`/`release_coupon_use`. Rastro de uso em `registrations.cupom_id` / `athlete_tickets.cupom_id` / `spectator_tickets.cupom_id`.
 - **teams** (duplas) — `id`, `championship_id`, `category_id`, `atleta1_id`, `atleta2_id`, `parceiro_username`, `status` (`convite_pendente`/`confirmado`/`cancelado`), `sandbagging_flag`, `rating_dupla`.
 - **registrations** (inscrições) — `id`, `team_id`, `championship_id`, `category_id`, `valor`, `status_pagamento` (`pendente`/`pago`/`estornado`), `billing_type`, `asaas_payment_id`, `pix_copy_paste`, `pix_qr_code_base64`, `invoice_url`, **repasse**: `repasse_status`, `repasse_data_prevista`, `repasse_transfer_id`, `repasse_erro`, `elite_fee_coletada`.
 - **credentials** — `id`, `user_id`, `championship_id`, `role`, `qr_token`, `checked_in`, `checkin_at`.
@@ -146,19 +148,22 @@ O coração da experiência do atleta. Mostra:
 - Banner, nome, status, datas, local; botões "Ver chaveamento" (→ `/campeonatos/[id]/chaveamento`, se já existe) e "Ver ao vivo" (link externo `live_url`).
 - **Cronograma** (pré-venda / inscrições / evento).
 - **Regulamento**.
-- **Categorias e inscrição** — cada categoria mostra valor e "Pontuação mínima". A categoria **recomendada pelo motor** (com base no rating + gênero do atleta logado) ganha selo verde. Botão de inscrição → `/campeonatos/[id]/inscrever` (via [InscricaoButton](components/campeonatos/InscricaoButton.tsx)). Aviso âmbar se o campeonato não tem categoria do gênero do atleta.
+- **Categorias e inscrição** ([app/campeonatos/[id]/categorias/page.tsx](app/campeonatos/[id]/categorias/page.tsx), aberta pelo botão "Sou atleta") — categorias e valores **sempre visíveis**, sem barreira nenhuma. Se o campeonato tem `usa_motor_categoria` ligado, a categoria **recomendada pelo motor** (rating + gênero do atleta logado) ganha selo azul "Recomendada para você"; se todos os lotes de uma categoria esgotaram, ela vira **Esgotado** (não volta pro valor de tabela). Botão de inscrição → `/campeonatos/[id]/inscrever` (via [InscricaoButton](components/campeonatos/InscricaoButton.tsx)) — se o motor estiver ligado e o atleta ainda não tiver respondido o questionário de nível, passa antes por `/perfil/questionario-nivel`. Aviso âmbar se o campeonato não tem categoria do gênero do atleta.
 - **Duplas inscritas** (só pagas) — cada atleta → `/atletas/[username]`.
 - **Conexões:** ← Home, Campeonatos, página de circuito, busca. → `/inscrever`, `/chaveamento`, `/atletas/[username]`.
 
 ### `/campeonatos/[id]/inscrever` — Inscrição da dupla ([page](app/campeonatos/[id]/inscrever/page.tsx) · [actions](app/campeonatos/[id]/inscrever/actions.ts))
 Fluxo central da Fase 1. O atleta:
 1. Escolhe categoria, informa **@ do parceiro** (busca por nome via [UserSearchInput](components/ui/UserSearchInput.tsx) → `/api/users/search`), tamanho de camisa e, se pago, **CPF** + método (Pix/cartão). Aceite dos **Termos de Uso** obrigatório antes de confirmar.
-2. O motor calcula o rating da dupla e avisa se há **sandbagging** ou categoria acima do nível.
+2. O motor calcula a categoria recomendada com base no rating + gênero (`recomendarCategoria`). A detecção de **sandbagging** (`detectarSandbagging`/`statusCategoria` em [motor-categoria.ts](lib/motor-categoria.ts)) já existe mas **ainda não está ligada em nenhuma tela** — hoje só a recomendação (selo azul) é exibida.
 3. `inscreverDupla` valida (inscrições abertas, prazo, não inscrito ainda, chave Pix do organizador existe), salva tamanho (público) e CPF (privado), cria **team** + **registration**.
    - **Grátis sem parceiro** → confirma na hora, gera credencial, e-mail de confirmação, vai pra `/minhas-inscricoes/[champId]`.
    - **Com parceiro** → manda convite por e-mail; parceiro aceita no perfil dele **ou** via **link de convite** copiável ([CopiarLink](components/ui/CopiarLink.tsx)) que aparece no card de inscrição de atleta1 enquanto o convite está pendente. O link leva a `/convite/[teamId]`.
    - **Paga** → cria cobrança no Asaas e vai pra `/pagamento/[registrationId]`.
 - **Conexões:** ← detalhe do campeonato. → `/pagamento/[registrationId]` ou `/minhas-inscricoes/[champId]`.
+
+### `/campeonatos/[id]/comprar` — Inscrição de atleta **sem conta** ([page](app/campeonatos/[id]/comprar/page.tsx) · [actions](app/campeonatos/[id]/comprar/actions.ts))
+Guest checkout (não exige login; cria só `athlete_tickets`, não usa `profiles`). Fluxo em **3 etapas com barra de progresso** ([IngressoAtletaForm](components/campeonatos/IngressoAtletaForm.tsx)): **Categoria** (clique só seleciona — mostra selo do lote vigente com data-limite se houver, e "Esgotado" se os lotes acabaram) → **Dados dos atletas** (os dois, com opção de trocar a categoria escolhida) → **Pagamento**. Preço sempre resolvido pelo lote vigente no servidor (`resolverEClaimarLote`), nunca confiando em valor vindo do cliente. Não passa pelo motor de categoria (é fluxo sem conta, sem rating salvo em lugar nenhum).
 
 ### `/campeonatos/[id]/pagamento/[registrationId]` — Pagamento ([page](app/campeonatos/[id]/pagamento/[registrationId]/page.tsx) · [actions](app/campeonatos/[id]/pagamento/[registrationId]/actions.ts))
 - Mostra **QR Code Pix + copia-e-cola** (gerados na inscrição) ou formulário de **cartão** ([PaymentUI](components/pagamento/PaymentUI.tsx) / `pagarComCartao`).
@@ -181,17 +186,27 @@ Fluxo central da Fase 1. O atleta:
 - Foto, nome, @, nível/rating, histórico, conquistas, gráfico de evolução. Aberto a partir do Rank, das duplas inscritas e dos times.
 
 ### `/perfil` — Perfil privado ([app/perfil/page.tsx](app/perfil/page.tsx))
-Hub da conta do usuário logado. Mostra:
-- Cabeçalho (foto, nome, @, bio).
-- **Perfil de atleta / Questionário** → se não respondeu, card azul → `/perfil/questionario`. Aviso âmbar se respondeu antes de existir a pergunta de gênero.
-- **Organizador** — se `organizer_accounts.habilitado` → botão "Ir pro Painel" (`/painel`); senão → "Ativar conta de organizador" (`/perfil/ativar-organizador`).
-- Conquistas, histórico, **páginas que sigo** (→ `/campeonatos/paginas/[handle]`).
-- Opções: **Editar perfil** (`/perfil/editar`), **Dados da conta** (`/perfil/conta`), Sair.
+Hub da conta do usuário logado. Cabeçalho azul com avatar, nome, @usuário · cidade/estado, e
+uma linha de estatísticas — **Nível** (nível mais alto já alcançado em pódio, via
+[niveis.ts](lib/niveis.ts)), **Rating** (`profiles.rating`) e **Ranking** (posição na Liga
+Brasileira via `getRankPosicao`, só se o @usuário bater com o Instagram cadastrado na Liga).
+Abaixo:
+- **Minhas Compras** (→ `/minhas-compras`), **Gênero** (valor inline → `/perfil/questionario`),
+  **Editar perfil** (→ `/perfil/editar`), **Configurações da conta** (→ `/perfil/conta`).
+- Se for aluno ativo de alguma arena, banner azul "Marcar presença" (→ `/arena/presenca`).
+- **Organizador** — card escuro. Se `organizer_accounts.habilitado`: campeonatos ativos +
+  total arrecadado (atletas + plateia, só pago) → `/painel`. Senão: "Vire organizador" →
+  `/perfil/ativar-organizador`, ou "Conta em análise" se já pediu e ainda não foi aprovada.
+- **Arena** — dono de arena → card com nome + "Ir pro painel da arena" (`/arena`). Sem arena →
+  card tracejado "Criar arena" → `/perfil/ativar-arena`.
+- Histórico de campeonatos, Sair.
 - **Sub-rotas:**
-  - `/perfil/questionario` — 5 perguntas + gênero → calcula `rating` ([motor-categoria](lib/motor-categoria.ts)).
+  - `/perfil/questionario` — só **gênero** (apesar do nome, não são as 5 perguntas de nível).
+  - `/perfil/questionario-nivel` — as **5 perguntas de nível do atleta** ([PERGUNTAS_NIVEL](lib/motor-categoria.ts)) → calcula e salva `rating`. Aceita `?redirect=` pra voltar pro fluxo de onde veio (normalmente a inscrição de um campeonato) depois de responder. Só é exigido na hora de inscrever quando o campeonato tem `usa_motor_categoria` ligado e o atleta ainda não respondeu — ver seção 9.
   - `/perfil/editar` — nome, bio, foto.
-  - `/perfil/conta` — e-mail (leitura), telefone (em `profiles_private`), trocar senha.
+  - `/perfil/conta` — e-mail (leitura), telefone/CPF (em `profiles_private`), trocar senha.
   - `/perfil/ativar-organizador` — CPF/CNPJ + telefone + chave Pix → cria `organizer_accounts`.
+  - `/perfil/ativar-arena` — cadastra a arena do usuário (academia/local fixo).
   - `/perfil/evolucao` — gráfico de evolução do rating.
 
 ### `/minhas-inscricoes` e `/minhas-inscricoes/[champId]` ([lista](app/minhas-inscricoes/page.tsx))
@@ -235,7 +250,8 @@ Hub da conta do usuário logado. Mostra:
 - Financeiro somado de todos os campeonatos (bruto, líquido, pendente, estornado), filtro de período, lista de campeonatos. Exige `organizer_accounts`.
 
 ### `/painel/novo-campeonato` — Criação ([page](app/painel/novo-campeonato/page.tsx) · [actions](app/painel/novo-campeonato/actions.ts))
-- Formulário multi-seção ([NovoCampeonatoForm](components/painel/NovoCampeonatoForm.tsx)): dados, datas, banner, categorias (o nome da categoria define automaticamente a faixa de rating via `RATING_POR_CATEGORIA`), **quiz de tier** (5 perguntas → Local/Open/Elite) e o **card do plano Elite** ([ElitePlanCard](components/painel/ElitePlanCard.tsx)).
+- Formulário multi-seção ([NovoCampeonatoForm](components/painel/NovoCampeonatoForm.tsx)): dados, datas, banner, categorias (o nome da categoria define automaticamente a faixa de rating via `RATING_POR_CATEGORIA`), **quiz de tier do evento** (5 perguntas sobre o campeonato → Local/Open/Elite — **não confundir** com o questionário de nível do atleta, que é outra coisa, em `/perfil/questionario-nivel`) e o **card do plano Elite** ([ElitePlanCard](components/painel/ElitePlanCard.tsx)).
+- Toggle **"Recomendar categoria pro atleta"** (`usa_motor_categoria`, ligado por padrão) — liga/desliga o motor de categoria pra esse campeonato (ver seção 9). Editável depois em `/editar`.
 - Salva como `rascunho` ou já publica. → `/painel/campeonatos/[id]/criado`.
 
 ### `/painel/campeonatos/[id]` — Painel do campeonato ([app/painel/campeonatos/[id]/page.tsx](app/painel/campeonatos/[id]/page.tsx))
@@ -249,7 +265,9 @@ Central de gestão de **um** campeonato (só o dono acessa). No topo: badge **El
 | Camisas / Kit | `/painel/campeonatos/[id]/camisas` | Produção por tamanho |
 | Chaveamento | `/painel/campeonatos/[id]/chaveamento` | Gerar/zerar a chave *(Fase 2)* |
 | Equipe | `/painel/campeonatos/[id]/equipe` | Convidar staff e definir permissões |
-| Comunicação | (em breve) | Avisar inscritos |
+| Comunicação | `/painel/campeonatos/[id]/comunicacao` | Avisar inscritos por e-mail (Resend) |
+| Lotes | `/painel/campeonatos/[id]/lotes` | Preço escalonado por categoria/ingresso: criar lotes (por data e/ou quantidade), editar o valor de tabela, aplicar o mesmo lote a todas as categorias de uma vez, aviso se as datas dos lotes não cobrem todo o período de inscrições |
+| Cupons | `/painel/campeonatos/[id]/cupons` | Criar/gerenciar cupons de desconto (percentual ou valor fixo, atleta/plateia/ambos) |
 
 Outras sub-rotas:
 - **`/editar`** — edita dados/categorias ([EditarCampeonatoForm](components/painel/EditarCampeonatoForm.tsx)).
@@ -289,10 +307,12 @@ Outras sub-rotas:
 
 | Motor | Arquivo | O que faz |
 |---|---|---|
-| **Categoria balanceada** | [lib/motor-categoria.ts](lib/motor-categoria.ts) | Calcula rating pelo questionário, recomenda categoria (gênero sempre prevalece), detecta sandbagging. Faixas em `RATING_POR_CATEGORIA` (Aprendiz→Profissional). |
+| **Categoria balanceada** | [lib/motor-categoria.ts](lib/motor-categoria.ts) | Calcula `rating` pelo questionário de nível (`/perfil/questionario-nivel`, 5 perguntas — `PERGUNTAS_NIVEL`), recomenda categoria (gênero sempre prevalece). `detectarSandbagging`/`statusCategoria` já existem mas não estão ligados em nenhuma tela ainda. **Opcional por campeonato** via `championships.usa_motor_categoria` (organizador liga/desliga ao criar/editar) — se ligado, o atleta é obrigado a responder o questionário antes de inscrever (mas categorias/valores continuam sempre visíveis sem essa barreira). Faixas em `RATING_POR_CATEGORIA` (Aprendiz→Profissional). |
 | **Rating (Elo)** | [lib/rating.ts](lib/rating.ts) | Elo adaptado a duplas (K=32) pra atualizar rating após jogos. *(Fase 2)* |
-| **Tier do campeonato** | [lib/tier.ts](lib/tier.ts) | Quiz de 5 perguntas → Local/Open/Elite (classificação do evento). **Não confundir com `is_elite`** (plano pago de taxas). |
+| **Tier do campeonato** | [lib/tier.ts](lib/tier.ts) | Quiz de 5 perguntas **sobre o evento** (duplas esperadas, abrangência, premiação, nível médio, circuito) → Local/Open/Elite (classificação do evento). Respondido pelo **organizador** na criação. **Não confundir com `is_elite`** (plano pago de taxas) nem com o questionário de nível do atleta (`lib/motor-categoria.ts`). |
 | **Níveis** | [lib/niveis.ts](lib/niveis.ts) | Faixas Estreante→Profissional pro histórico/evolução. |
+| **Lote / preço escalonado** | [lib/lotes.ts](lib/lotes.ts) | Resolve o preço vigente de uma categoria/ingresso pelo lote de menor `ordem` que não expirou nem esgotou (`resolverPrecos`, leitura; `resolverEClaimarLote`, atômico no checkout). Sem lote ativo, esgotados todos → fica **Esgotado**, não volta pro valor de tabela. |
+| **Cupom de desconto** | [lib/cupons.ts](lib/cupons.ts) | Valida cupom (`buscarCupomValido`) e resolve o desconto (`lib/taxas.ts` → `calcularDesconto`) sobre o valor base, antes da taxa da plataforma. Reivindicação atômica no checkout. |
 | **Taxas/repasse** | [lib/platform-config.ts](lib/platform-config.ts) · [lib/repasse.ts](lib/repasse.ts) · [lib/elite.ts](lib/elite.ts) | Cálculo de taxa Padrão/Elite e execução do repasse. |
 
 ---
@@ -354,4 +374,4 @@ Cron diário ─────> repasse de cartão vencido (D+3/D+32)
 
 ---
 
-*Última atualização: 2026-06-23. Ao mudar fluxos grandes (pagamento, navegação, novas páginas), atualize este arquivo.*
+*Última atualização: 2026-07-10. Ao mudar fluxos grandes (pagamento, navegação, novas páginas), atualize este arquivo.*
