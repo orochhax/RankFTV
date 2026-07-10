@@ -13,7 +13,7 @@
 **RankFTV** é uma plataforma web (só site, responsivo — sem app nativo) para
 **organização de campeonatos de futevôlei**. Três grandes usos, todos na mesma conta:
 
-- **Atleta** — descobre campeonatos, inscreve a dupla, paga, recebe credencial (QR), acompanha ranking.
+- **Atleta** — descobre campeonatos, inscreve a dupla, paga, recebe credencial (QR).
 - **Organizador** — cria/gerencia campeonatos, recebe inscrições pagas com repasse automático, faz check-in, controla camisas, financeiro.
 - **Admin** (só o dono da plataforma) — gerencia todos os campeonatos, taxas, destaques e usuários.
 
@@ -51,12 +51,13 @@ pílula flutuante embaixo (mobile). Definida em [components/navbar/nav-items.ts]
 
 | Item | Rota | Quem vê |
 |---|---|---|
-| Home | `/` | todos |
-| Agenda | `/agenda` | todos |
-| Campeonatos | `/campeonatos` | todos |
-| Rank | `/rank` | todos |
+| Campeonatos | `/` | todos (também ativo em `/campeonatos/*`) |
+| Arenas | `/arenas` | todos |
 | Painel | `/painel` | todos (vira landing de conversão pra quem não organiza) |
-| Staff | `/staff` | só quem é staff aceito de algum campeonato |
+| Perfil | `/perfil` | todos |
+
+> Nota: a tabela acima reflete [nav-items.ts](components/navbar/nav-items.ts) hoje. Itens como
+> Agenda e Staff existem como páginas mas não estão na pílula principal da navbar.
 
 Itens extras (fora da pílula), em [TopNav](components/navbar/TopNav.tsx) / [BottomNav](components/navbar/BottomNav.tsx):
 - **Sino 🔔** → `/notificacoes` (com badge de não-lidas; só logado)
@@ -83,8 +84,8 @@ PÚBLICO / ATLETA            PAINEL (organizador)        STAFF              ADMI
 /campeonatos/[id]/pagamento/…   ├ /editar  /publicar
 /campeonatos/[id]/chaveamento   ├ /inscricoes /financeiro
 /campeonatos/paginas/[handle]   │    └ /financeiro/[status]  ← pagos/pendentes/estornados
-/rank                           ├ /checkin /camisas
-/atletas/[username]             ├ /chaveamento /equipe
+/atletas/[username]             ├ /checkin /camisas
+                                 ├ /chaveamento /equipe
 /perfil (+ sub-rotas)           ├ /vinculacoes /criado
 /minhas-inscricoes              └ /criado
   ├ /[champId] (aceitar convite)
@@ -117,7 +118,6 @@ PÚBLICO / ATLETA            PAINEL (organizador)        STAFF              ADMI
 - **page_followers** — quem segue cada página (notifica em nova edição).
 - **page_championship_invites** — convite pra vincular um campeonato como etapa de uma página.
 - **notifications** — feed do sininho (`user_id`, `lida`, …).
-- **ranking_entries** — histórico/pontos do atleta na Liga (alimenta perfil e rank).
 - **conquistas** — badges do atleta (`titulo`, `icone`, `cor`, `data_conquistada`).
 - **shirt_production** — produção de camisas por tamanho.
 - **platform_config** (linha única `id=1`) — taxas Padrão e Premium, `atleta_credito_7a12_extra`, `destaques_ids` (3 campeonatos fixados na Home).
@@ -129,7 +129,7 @@ PÚBLICO / ATLETA            PAINEL (organizador)        STAFF              ADMI
 
 ### `/` — Home ([app/page.tsx](app/page.tsx))
 - **Visitante:** hero com CTA "Criar conta grátis" → `/cadastro` e "Entrar" → `/login`.
-- **Logado:** saudação + **card "Meu desempenho"** (conquistas, posição no rank, nível, sparkline de evolução). Usuário novo vê banner de onboarding → `/campeonatos`.
+- **Logado:** saudação. Usuário novo vê banner de onboarding → `/campeonatos`.
 - **Carrossel de destaques** (os 3 de `platform_config.destaques_ids`, ou os abertos mais recentes) → cada card abre `/campeonatos/[id]`.
 - **Seção "Ao vivo agora"** (campeonatos `em_andamento`) → `/campeonatos/[id]`.
 - **Conexões:** → `/campeonatos`, `/campeonatos/[id]`, `/cadastro`, `/login`, `/notificacoes` (hambúrguer no mobile), `/perfil`.
@@ -177,20 +177,14 @@ Guest checkout (não exige login; cria só `athlete_tickets`, não usa `profiles
 - Lista de páginas ([page](app/campeonatos/paginas/page.tsx)) e a **página pública de um circuito** ([handle](app/campeonatos/paginas/[handle]/page.tsx)): banner, bio, redes sociais, botão **Seguir** ([FollowPageButton](components/campeonatos/FollowPageButton.tsx)), etapa atual em destaque e lista de edições (abertas/encerradas) → cada uma abre `/campeonatos/[id]`.
 - **Conexões:** ← Campeonatos, Perfil ("Páginas que sigo"). → `/campeonatos/[id]`.
 
-### `/rank` — Ranking ([app/rank/page.tsx](app/rank/page.tsx))
-- Dois eixos de filtro: **Gênero** (Masculino/Feminino) × **Tipo** (Individual/Dupla), e toggle **Liga Brasileira / Geral**.
-- Hoje a "Liga" usa dados oficiais carregados via seed; o "Geral" (rank dos campeonatos da plataforma) é Fase 2.
-- Cada atleta → `/atletas/[username]`.
-
 ### `/atletas/[username]` — Perfil público ([app/atletas/[username]/page.tsx](app/atletas/[username]/page.tsx))
-- Foto, nome, @, nível/rating, histórico, conquistas, gráfico de evolução. Aberto a partir do Rank, das duplas inscritas e dos times.
+- Foto, nome, @, nível (`A`/`B`/`C` a partir de `profiles.rating`, via `categoriaFromRating`), conquistas. Aberto a partir das duplas inscritas e dos times.
 
 ### `/perfil` — Perfil privado ([app/perfil/page.tsx](app/perfil/page.tsx))
-Hub da conta do usuário logado. Cabeçalho azul com avatar, nome, @usuário · cidade/estado, e
-uma linha de estatísticas — **Nível** (nível mais alto já alcançado em pódio, via
-[niveis.ts](lib/niveis.ts)), **Rating** (`profiles.rating`) e **Ranking** (posição na Liga
-Brasileira via `getRankPosicao`, só se o @usuário bater com o Instagram cadastrado na Liga).
+Hub da conta do usuário logado. Cabeçalho azul com avatar, nome, @usuário · cidade/estado.
 Abaixo:
+- **Rating** — card com o valor de `profiles.rating` e uma explicação de que vem do
+  questionário de nível, com link pra responder/refazer (→ `/perfil/questionario-nivel`).
 - **Minhas Compras** (→ `/minhas-compras`), **Gênero** (valor inline → `/perfil/questionario`),
   **Editar perfil** (→ `/perfil/editar`), **Configurações da conta** (→ `/perfil/conta`).
 - Se for aluno ativo de alguma arena, banner azul "Marcar presença" (→ `/arena/presenca`).
@@ -199,7 +193,7 @@ Abaixo:
   `/perfil/ativar-organizador`, ou "Conta em análise" se já pediu e ainda não foi aprovada.
 - **Arena** — dono de arena → card com nome + "Ir pro painel da arena" (`/arena`). Sem arena →
   card tracejado "Criar arena" → `/perfil/ativar-arena`.
-- Histórico de campeonatos, Sair.
+- Sair.
 - **Sub-rotas:**
   - `/perfil/questionario` — só **gênero** (apesar do nome, não são as 5 perguntas de nível).
   - `/perfil/questionario-nivel` — as **5 perguntas de nível do atleta** ([PERGUNTAS_NIVEL](lib/motor-categoria.ts)) → calcula e salva `rating`. Aceita `?redirect=` pra voltar pro fluxo de onde veio (normalmente a inscrição de um campeonato) depois de responder. Só é exigido na hora de inscrever quando o campeonato tem `usa_motor_categoria` ligado e o atleta ainda não respondeu — ver seção 9.
@@ -207,7 +201,11 @@ Abaixo:
   - `/perfil/conta` — e-mail (leitura), telefone/CPF (em `profiles_private`), trocar senha.
   - `/perfil/ativar-organizador` — CPF/CNPJ + telefone + chave Pix → cria `organizer_accounts`.
   - `/perfil/ativar-arena` — cadastra a arena do usuário (academia/local fixo).
-  - `/perfil/evolucao` — gráfico de evolução do rating.
+
+> **Removido:** a página `/rank` (ranking da Liga Brasileira), `/perfil/evolucao` (gráfico de
+> evolução) e os cards de Nível/Ranking/Histórico de campeonatos no Perfil — decisão de produto,
+> a plataforma não vai mais mostrar esse ranking. `lib/niveis.ts`, `lib/supabase/ranking.ts`,
+> `EvolucaoSparkline` e `MeuDesempenho` foram deletados junto.
 
 ### `/minhas-inscricoes` e `/minhas-inscricoes/[champId]` ([lista](app/minhas-inscricoes/page.tsx))
 - Lista as duplas do atleta (como atleta1 ou atleta2), agrupadas por status do campeonato, com **status da dupla** e **status de pagamento**. Menu por item ([InscricaoMenu](components/inscricoes/InscricaoMenu.tsx)):
@@ -310,7 +308,6 @@ Outras sub-rotas:
 | **Categoria balanceada** | [lib/motor-categoria.ts](lib/motor-categoria.ts) | Calcula `rating` pelo questionário de nível (`/perfil/questionario-nivel`, 5 perguntas — `PERGUNTAS_NIVEL`), recomenda categoria (gênero sempre prevalece). `detectarSandbagging`/`statusCategoria` já existem mas não estão ligados em nenhuma tela ainda. **Opcional por campeonato** via `championships.usa_motor_categoria` (organizador liga/desliga ao criar/editar) — se ligado, o atleta é obrigado a responder o questionário antes de inscrever (mas categorias/valores continuam sempre visíveis sem essa barreira). Faixas em `RATING_POR_CATEGORIA` (Aprendiz→Profissional). |
 | **Rating (Elo)** | [lib/rating.ts](lib/rating.ts) | Elo adaptado a duplas (K=32) pra atualizar rating após jogos. *(Fase 2)* |
 | **Tier do campeonato** | [lib/tier.ts](lib/tier.ts) | Quiz de 5 perguntas **sobre o evento** (duplas esperadas, abrangência, premiação, nível médio, circuito) → Local/Open/Elite (classificação do evento). Respondido pelo **organizador** na criação. **Não confundir com `is_elite`** (plano pago de taxas) nem com o questionário de nível do atleta (`lib/motor-categoria.ts`). |
-| **Níveis** | [lib/niveis.ts](lib/niveis.ts) | Faixas Estreante→Profissional pro histórico/evolução. |
 | **Lote / preço escalonado** | [lib/lotes.ts](lib/lotes.ts) | Resolve o preço vigente de uma categoria/ingresso pelo lote de menor `ordem` que não expirou nem esgotou (`resolverPrecos`, leitura; `resolverEClaimarLote`, atômico no checkout). Sem lote ativo, esgotados todos → fica **Esgotado**, não volta pro valor de tabela. |
 | **Cupom de desconto** | [lib/cupons.ts](lib/cupons.ts) | Valida cupom (`buscarCupomValido`) e resolve o desconto (`lib/taxas.ts` → `calcularDesconto`) sobre o valor base, antes da taxa da plataforma. Reivindicação atômica no checkout. |
 | **Taxas/repasse** | [lib/platform-config.ts](lib/platform-config.ts) · [lib/repasse.ts](lib/repasse.ts) · [lib/elite.ts](lib/elite.ts) | Cálculo de taxa Padrão/Elite e execução do repasse. |
@@ -353,8 +350,8 @@ Home ──> Campeonatos ──> Campeonato[id] ──> Inscrever ──> Pagame
   │           │                │               │                                          │
   │           └─> Paginas[handle] ──> Campeonato[id]  └─> link copiável ──> /convite/[teamId]  │
   │                                                                                    └─> reembolso
-  ├─> Rank ──> Atletas[username]
-  ├─> Perfil ──> Questionario / Editar / Conta / Ativar-organizador / Evolucao
+  ├─> Atletas[username]
+  ├─> Perfil ──> Questionario / Questionario-nivel / Editar / Conta / Ativar-organizador
   │        └─> Painel (se organizador)
   └─> Notificacoes (convites de dupla e staff)
 

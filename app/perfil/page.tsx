@@ -4,21 +4,11 @@ import { ArrowLeft, ChevronRight, ShieldCheck, ShoppingBag, UserPen } from "luci
 import { Avatar } from "@/components/ui/Avatar";
 import { SignOutButton } from "@/components/perfil/SignOutButton";
 import { createClient } from "@/lib/supabase/server";
-import { getHistorico, getRankPosicao } from "@/lib/supabase/desempenho";
-import { nivelMaisAlto } from "@/lib/niveis";
-
-const COLOCACAO_EMOJI: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
 const GENERO_LABEL: Record<string, string> = {
   masculino: "Masculino",
   feminino:  "Feminino",
   outro:     "Outro",
-};
-
-const TIER_LABEL: Record<string, string> = {
-  nacional: "Nacional",
-  regional: "Regional",
-  local: "Local",
 };
 
 function fmtBRL(v: number) {
@@ -41,8 +31,6 @@ export default async function PerfilPage() {
 
   const [
     { data: campeonatosOrganizados },
-    historico,
-    rankPosicao,
     { data: organizerAccount },
     { data: minhaArena },
     { data: vinculoArena },
@@ -52,9 +40,6 @@ export default async function PerfilPage() {
       .select("id, nome, status")
       .eq("organizador_id", user.id)
       .order("created_at", { ascending: false }),
-
-    getHistorico(user.id),
-    profile.username ? getRankPosicao(profile.username) : Promise.resolve(null),
 
     supabase
       .from("organizer_accounts")
@@ -78,10 +63,6 @@ export default async function PerfilPage() {
   ]);
 
   const totalCampeonatos = campeonatosOrganizados?.length ?? 0;
-  const totalPontos = historico.reduce((s, r) => s + r.pontos, 0);
-  const nivelAtual = nivelMaisAlto(
-    historico.filter((h) => h.colocacao <= 3).map((h) => h.categoria)
-  )?.label ?? null;
 
   // ── Financeiro consolidado dos campeonatos organizados (atletas + plateia) ──
   const champIds = (campeonatosOrganizados ?? []).map((c) => c.id);
@@ -134,20 +115,19 @@ export default async function PerfilPage() {
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-32 pt-6 shadow-sm">
         <div className="mx-auto max-w-2xl space-y-5">
 
-          {/* Estatísticas rápidas */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-2xl bg-gray-50 p-3 text-center ring-1 ring-black/5">
-              <p className="truncate text-sm font-bold text-gray-900">{nivelAtual ?? "—"}</p>
-              <p className="mt-0.5 text-xs text-gray-400">Nível</p>
+          {/* Rating */}
+          <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-gray-500">Rating</p>
+              <p className="text-lg font-bold text-gray-900">{profile.rating > 0 ? profile.rating : "—"}</p>
             </div>
-            <div className="rounded-2xl bg-gray-50 p-3 text-center ring-1 ring-black/5">
-              <p className="text-sm font-bold text-gray-900">{profile.rating > 0 ? profile.rating : "—"}</p>
-              <p className="mt-0.5 text-xs text-gray-400">Rating</p>
-            </div>
-            <div className="rounded-2xl bg-gray-50 p-3 text-center ring-1 ring-black/5">
-              <p className="text-sm font-bold text-gray-900">{rankPosicao ? `#${rankPosicao.posicao}` : "—"}</p>
-              <p className="mt-0.5 text-xs text-gray-400">Ranking</p>
-            </div>
+            <p className="mt-1 text-xs text-gray-400">
+              Sua pontuação de nível, calculada a partir do questionário de nível — usada pra
+              recomendar sua categoria nos campeonatos que ativam essa opção.{" "}
+              <Link href="/perfil/questionario-nivel" className="font-medium text-blue-600 hover:underline">
+                {profile.rating > 0 ? "Refazer questionário" : "Responder questionário"}
+              </Link>
+            </p>
           </div>
 
           {/* Minhas Compras */}
@@ -287,54 +267,6 @@ export default async function PerfilPage() {
               </div>
             )}
           </div>
-
-          {/* Histórico */}
-          <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-gray-500">Histórico de campeonatos</h2>
-              {historico.length > 0 && (
-                <span className="text-xs font-medium text-gray-400">
-                  {totalPontos.toLocaleString("pt-BR")} pts totais
-                </span>
-              )}
-            </div>
-
-            {historico.length === 0 ? (
-              <p className="mt-3 text-sm text-gray-400">
-                Seu histórico e ranking aparecerão aqui conforme você participa de campeonatos.
-              </p>
-            ) : (
-              <ol className="mt-3 space-y-2">
-                {[...historico].reverse().map((r) => (
-                  <li
-                    key={r.id}
-                    className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2.5"
-                  >
-                    <span className="text-lg leading-none">
-                      {COLOCACAO_EMOJI[r.colocacao] ?? `${r.colocacao}º`}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">
-                        {r.nome_circuito}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {new Date(r.data + "T12:00:00").toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                        {r.parceiro_nome && ` · com ${r.parceiro_nome}`}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-semibold text-gray-700">{r.pontos} pts</p>
-                      <p className="text-xs text-gray-400">{TIER_LABEL[r.tier] ?? r.tier}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
 
           <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
             <SignOutButton />

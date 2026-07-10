@@ -212,7 +212,6 @@ export async function saveScore(
   }
 
   revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
-  revalidatePath(`/rank`);
 }
 
 async function applyRatingUpdate(
