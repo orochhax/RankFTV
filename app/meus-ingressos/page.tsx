@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Search, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Loader2, Search, AlertCircle } from "lucide-react";
 import { IngressoCard, type Ingresso } from "@/components/ingressos/IngressoCard";
 
 export default function MeusIngressosPage() {
@@ -37,6 +38,12 @@ export default function MeusIngressosPage() {
     <div className="min-h-screen">
       <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
         <div className="mx-auto max-w-xl space-y-3">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-white/50 transition-colors hover:text-white/80"
+          >
+            <ArrowLeft className="size-4" /> Início
+          </Link>
           <p className="text-[11px] font-bold tracking-widest text-blue-400 uppercase">Meus ingressos</p>
           <h1 className="text-2xl font-bold tracking-tight text-white">Consultar ingresso por CPF</h1>
           <p className="text-sm text-white/50">

@@ -4,7 +4,6 @@ import "./globals.css";
 import { BottomNav } from "@/components/navbar/BottomNav";
 import { TopNav } from "@/components/navbar/TopNav";
 import { Footer } from "@/components/Footer";
-import { AntiInspect } from "@/components/AntiInspect";
 import { createClient } from "@/lib/supabase/server";
 
 const inter = Inter({
@@ -73,7 +72,6 @@ export default async function RootLayout({
       className={`${inter.variable} h-full antialiased`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-white text-gray-900">
-        <AntiInspect />
         <TopNav user={navUser} showStaff={isStaff} isAdmin={isAdmin} notifCount={notifCount} />
         <main className="flex-1 pb-28 md:pb-0">{children}</main>
         <Footer />
