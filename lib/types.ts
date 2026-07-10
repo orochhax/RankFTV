@@ -39,6 +39,8 @@ export type Championship = {
   liveUrl?: string | null;
   isVitrine?: boolean;
   usaMotorCategoria: boolean;
+  prevendaInicio?: string | null;
+  prevendaFim?: string | null;
   categorias: Category[];
 };
 

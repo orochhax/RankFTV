@@ -5,13 +5,29 @@ import type { Championship } from "@/lib/types";
 
 const MESES = ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
 
+// Selo de status do card: Pré-venda (dentro da janela de prevenda_inicio/fim),
+// Inscrição aberta (status inscricoes_abertas/em_andamento) ou Encerrado.
+function statusBadge(c: Championship): string | null {
+  if (c.status === "encerrado") return "Encerrado";
+
+  const hoje = new Date().toISOString().split("T")[0];
+  if (c.prevendaInicio && c.prevendaFim && hoje >= c.prevendaInicio && hoje <= c.prevendaFim) {
+    return "Pré-venda";
+  }
+
+  // em_andamento (evento rolando agora, ex.: página /campeonatos/ao-vivo) cai
+  // aqui também — não faria sentido mostrar "Encerrado" num evento ao vivo.
+  if (c.status === "inscricoes_abertas" || c.status === "em_andamento") return "Inscrição aberta";
+
+  return null; // rascunho — não deve chegar aqui, mas por via das dúvidas
+}
+
 export function ChampionshipCard({ championship: c }: { championship: Championship }) {
   const data = new Date(c.dataInicio + "T12:00:00");
   const mes = MESES[data.getMonth()];
   const dia = data.getDate();
 
-  // Usa o nome da primeira categoria como badge de modalidade
-  const badge = c.categorias[0]?.nome ?? null;
+  const badge = statusBadge(c);
 
   return (
     <Link
