@@ -27,19 +27,15 @@ function fmtBRL(v: number) {
 
 export default async function PerfilPage() {
   const supabase = await createClient();
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-  console.log("[perfil-debug] user:", user?.id ?? null, "userError:", userError?.message ?? null);
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("nome, username, bio, foto_url, questionario, rating, genero, cidade, estado")
     .eq("id", user.id)
     .single();
-
-  console.log("[perfil-debug] profile:", profile, "profileError:", profileError?.message ?? null, profileError?.code ?? null);
 
   if (!profile) redirect("/login");
 
