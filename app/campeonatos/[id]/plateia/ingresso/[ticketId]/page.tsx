@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
 import QRCode from "qrcode";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { IngressoPlateiaStatus } from "@/components/plateia/IngressoPlateiaStatus";
+import { IngressoOpcoesMenu } from "@/components/ingressos/IngressoOpcoesMenu";
 import { formatBRL } from "@/lib/format";
+
+function dataBR(iso: string) {
+  return new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", {
+    day: "2-digit", month: "long", year: "numeric",
+  });
+}
 
 // Ingresso de plateia: tela de pagamento (Pix) quando pendente, e o QR de
 // entrada quando pago. Visitante não tem conta, então lemos via admin client
@@ -23,7 +30,7 @@ export default async function IngressoPlateiaPage({
   const supabase = createAdminClient();
   const { data: t } = await supabase
     .from("spectator_tickets")
-    .select("id, tipo_nome, valor, quantidade, itens, status_pagamento, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in")
+    .select("id, tipo_nome, comprador_nome, comprador_email, comprador_cpf, valor, quantidade, itens, status_pagamento, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in")
     .eq("id", ticketId)
     .maybeSingle();
   if (!t) notFound();
@@ -32,7 +39,7 @@ export default async function IngressoPlateiaPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome")
+    .select("nome, data_inicio, data_fim, cidade, estado, local")
     .eq("id", champId)
     .maybeSingle();
 
@@ -52,12 +59,25 @@ export default async function IngressoPlateiaPage({
   return (
     <div className="min-h-screen bg-[#0f0f13]">
       <div className="mx-auto max-w-md px-6 py-8">
-        <Link
-          href={backHref}
-          className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
-        >
-          <ArrowLeft className="size-4" /> {voltar === "minhas-compras" ? "Minhas Compras" : (champ?.nome ?? "Campeonato")}
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href={backHref}
+            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
+          >
+            <ArrowLeft className="size-4" /> {voltar === "minhas-compras" ? "Minhas Compras" : (champ?.nome ?? "Campeonato")}
+          </Link>
+          {t.status_pagamento !== "estornado" && (
+            <IngressoOpcoesMenu
+              tipo="plateia"
+              ticketId={t.id}
+              dadosAtuais={{
+                compradorNome:  t.comprador_nome,
+                compradorEmail: t.comprador_email,
+                compradorCpf:   t.comprador_cpf,
+              }}
+            />
+          )}
+        </div>
 
         <div className="mt-5 overflow-hidden rounded-3xl bg-white shadow-xl">
           {/* Topo */}
@@ -99,6 +119,33 @@ export default async function IngressoPlateiaPage({
               pixQrBase64={t.pix_qr_code_base64}
             />
           </div>
+
+          {/* Dados do campeonato */}
+          {champ && (
+            <div className="space-y-3 border-t border-gray-100 bg-gray-50 px-6 py-5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Sobre o campeonato</p>
+              <p className="font-semibold text-gray-900">{champ.nome}</p>
+              {champ.data_inicio && (
+                <p className="flex items-center gap-2 text-sm text-gray-600">
+                  <CalendarDays className="size-4 shrink-0 text-gray-400" />
+                  {dataBR(champ.data_inicio)}
+                  {champ.data_fim && champ.data_fim !== champ.data_inicio && ` a ${dataBR(champ.data_fim)}`}
+                </p>
+              )}
+              {(champ.local || champ.cidade) && (
+                <p className="flex items-center gap-2 text-sm text-gray-600">
+                  <MapPin className="size-4 shrink-0 text-gray-400" />
+                  {[champ.local, champ.cidade && `${champ.cidade}/${champ.estado}`].filter(Boolean).join(" · ")}
+                </p>
+              )}
+              <Link
+                href={`/campeonatos/${champId}`}
+                className="inline-block text-sm font-medium text-blue-600 hover:underline"
+              >
+                Ver página do campeonato
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>
