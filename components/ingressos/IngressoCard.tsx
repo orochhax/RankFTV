@@ -1,8 +1,5 @@
-"use client";
-
-import { useState } from "react";
-import { Ticket, Users, CheckCircle2, Clock } from "lucide-react";
-import QRCode from "qrcode";
+import Link from "next/link";
+import { Ticket, Users, CheckCircle2, Clock, ChevronRight } from "lucide-react";
 
 export type Ingresso = {
   id:               string;
@@ -26,34 +23,21 @@ export function IngressoCard({
   origem,
 }: {
   ingresso: Ingresso;
-  /** De onde essa lista foi aberta — usado pro botão "Voltar" da tela de
-   *  pagamento saber pra onde retornar (ex.: "minhas-compras"). */
+  /** De onde essa lista foi aberta — usado pra tela do ingresso saber pra
+   *  onde volta (ex.: "minhas-compras"). */
   origem?: "minhas-compras";
 }) {
-  const [qrData, setQrData] = useState<string | null>(null);
-  const [showQr, setShowQr] = useState(false);
-
-  async function toggleQr() {
-    if (showQr) { setShowQr(false); return; }
-    if (!ing.qr_token) return;
-    if (!qrData) {
-      const data = await QRCode.toDataURL(ing.qr_token, {
-        width:  220,
-        margin: 2,
-        color:  { dark: "#0f0f13", light: "#ffffff" },
-        errorCorrectionLevel: "M",
-      });
-      setQrData(data);
-    }
-    setShowQr(true);
-  }
-
   const pago       = ing.status_pagamento === "pago";
   const estornado  = ing.status_pagamento === "estornado";
   const isAtleta   = ing.tipo === "atleta";
 
+  const href = `/campeonatos/${ing.championship_id}/${isAtleta ? "comprar" : "plateia"}/ingresso/${ing.ticket_id}${origem ? `?voltar=${origem}` : ""}`;
+
   return (
-    <div className="overflow-hidden rounded-2xl ring-1 ring-black/5">
+    <Link
+      href={href}
+      className="block overflow-hidden rounded-2xl ring-1 ring-black/5 transition-shadow hover:shadow-md"
+    >
       <div className="bg-[#0f0f13] px-5 py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -76,63 +60,32 @@ export function IngressoCard({
         )}
       </div>
 
-      <div className="bg-white px-5 py-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          {isAtleta && ing.parceiro_nome
-            ? <><span className="font-medium">{ing.comprador_nome}</span> + <span className="font-medium">{ing.parceiro_nome}</span></>
-            : <span className="font-medium">{ing.comprador_nome}</span>}
-        </div>
-
-        <div className="mt-3 flex items-center gap-3">
-          {estornado ? (
-            <div className="flex items-center gap-1 text-xs font-semibold text-red-500">
-              Cancelado
-            </div>
-          ) : pago ? (
-            <>
-              <div className="flex items-center gap-1 text-xs font-semibold text-blue-600">
-                <CheckCircle2 className="size-3.5" /> Confirmado
-              </div>
-              {ing.qr_token && (
-                <button
-                  onClick={toggleQr}
-                  className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
-                >
-                  {showQr ? "Fechar QR" : "Ver QR de entrada"}
-                </button>
-              )}
-            </>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 text-xs font-semibold text-amber-600">
-                <Clock className="size-3.5" /> Aguardando pagamento
-              </div>
-              <a
-                href={`/campeonatos/${ing.championship_id}/${ing.tipo === "atleta" ? "comprar" : "plateia"}/ingresso/${ing.ticket_id}${origem ? `?voltar=${origem}` : ""}`}
-                className="text-xs font-medium text-blue-600 underline"
-              >
-                Ver pagamento
-              </a>
-            </div>
-          )}
-        </div>
-
-        {showQr && qrData && (
-          <div className="mt-4 flex justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={qrData}
-              alt="QR de entrada"
-              width={180}
-              height={180}
-              className={`rounded-xl ${ing.checked_in ? "opacity-40 grayscale" : ""}`}
-            />
+      <div className="flex items-center justify-between gap-3 bg-white px-5 py-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            {isAtleta && ing.parceiro_nome
+              ? <><span className="font-medium">{ing.comprador_nome}</span> + <span className="font-medium">{ing.parceiro_nome}</span></>
+              : <span className="font-medium truncate">{ing.comprador_nome}</span>}
           </div>
-        )}
-        {ing.checked_in && showQr && (
-          <p className="mt-2 text-center text-xs font-semibold text-gray-400">Check-in já realizado</p>
-        )}
+
+          <div className="mt-2 flex items-center gap-1 text-xs font-semibold">
+            {estornado ? (
+              <span className="text-red-500">Cancelado</span>
+            ) : pago ? (
+              <span className="flex items-center gap-1 text-blue-600">
+                <CheckCircle2 className="size-3.5" /> Confirmado
+                {ing.checked_in && <span className="font-normal text-gray-400">· check-in feito</span>}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-amber-600">
+                <Clock className="size-3.5" /> Aguardando pagamento
+              </span>
+            )}
+          </div>
+        </div>
+
+        <ChevronRight className="size-4 shrink-0 text-gray-300" />
       </div>
-    </div>
+    </Link>
   );
 }

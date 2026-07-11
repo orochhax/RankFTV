@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useTransition } from "react";
 import Link from "next/link";
-import { Menu, X, User, Bell, CalendarPlus, Settings, LogOut } from "lucide-react";
+import { Menu, X, User, ShoppingBag, CalendarPlus, Settings, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
@@ -45,10 +45,10 @@ export function HamburgerMenu({ unreadCount }: Props) {
       badge: 0,
     },
     {
-      icon: Bell,
-      label: "Notificações",
-      href: "/notificacoes",
-      badge: unreadCount,
+      icon: ShoppingBag,
+      label: "Minhas Compras",
+      href: "/minhas-compras",
+      badge: 0,
     },
     {
       icon: CalendarPlus,
