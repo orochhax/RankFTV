@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import type { GeneroCategoria } from "@/lib/types";
+import { resolverFaixaRating } from "@/lib/motor-categoria";
 
 type Result = { ok: boolean; error?: string };
 type Entidade = "category" | "ticket_type";
@@ -162,5 +164,74 @@ export async function excluirLote(champId: string, loteId: string): Promise<Resu
   if (error) return { ok: false, error: "Erro ao excluir." };
 
   revalidatePath(`/painel/campeonatos/${champId}/lotes`);
+  return { ok: true };
+}
+
+// ── Categorias (atleta) ──────────────────────────────────────────────────────
+
+export async function criarCategoria(
+  champId: string,
+  nome: string,
+  genero: GeneroCategoria,
+  valorInscricao: number,
+): Promise<Result> {
+  const auth = await assertOwner(champId);
+  if (!auth.ok) return auth;
+
+  const nomeClean = nome.trim();
+  if (!nomeClean) return { ok: false, error: "Dê um nome à categoria." };
+  const valor = Math.max(0, Math.round(Number(valorInscricao) || 0));
+  if (isNaN(valor)) return { ok: false, error: "Valor inválido." };
+
+  const supabase = await createClient();
+  const faixa = resolverFaixaRating(nomeClean);
+  const { error } = await supabase.from("championship_categories").insert({
+    championship_id:  champId,
+    nome:             nomeClean,
+    genero,
+    valor_inscricao:  valor,
+    corte_rating_min: faixa?.min ?? 0,
+    corte_rating_max: faixa?.max ?? 9999,
+  });
+  if (error) return { ok: false, error: "Erro ao criar a categoria." };
+
+  revalidatePath(`/painel/campeonatos/${champId}/lotes`);
+  revalidatePath(`/painel/campeonatos/${champId}/editar`);
+  revalidatePath(`/campeonatos/${champId}`);
+  return { ok: true };
+}
+
+export async function excluirCategoria(champId: string, categoriaId: string): Promise<Result> {
+  const auth = await assertOwner(champId);
+  if (!auth.ok) return auth;
+
+  const supabase = await createClient();
+
+  const [{ count: inscricoesPagas }, { count: ingressosPagos }] = await Promise.all([
+    supabase
+      .from("registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("category_id", categoriaId)
+      .eq("status_pagamento", "pago"),
+    supabase
+      .from("athlete_tickets")
+      .select("id", { count: "exact", head: true })
+      .eq("category_id", categoriaId)
+      .eq("status_pagamento", "pago"),
+  ]);
+  if ((inscricoesPagas ?? 0) > 0 || (ingressosPagos ?? 0) > 0)
+    return { ok: false, error: "Essa categoria já tem inscrições pagas — não dá pra excluir." };
+
+  await supabase.from("pricing_tiers").delete().eq("category_id", categoriaId);
+  const { error } = await supabase
+    .from("championship_categories")
+    .delete()
+    .eq("id", categoriaId)
+    .eq("championship_id", champId);
+  if (error) return { ok: false, error: "Erro ao excluir a categoria." };
+
+  revalidatePath(`/painel/campeonatos/${champId}/lotes`);
+  revalidatePath(`/painel/campeonatos/${champId}/editar`);
+  revalidatePath(`/campeonatos/${champId}`);
   return { ok: true };
 }

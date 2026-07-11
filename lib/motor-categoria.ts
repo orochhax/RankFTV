@@ -126,6 +126,15 @@ export const RATING_POR_CATEGORIA: Record<string, { min: number; max: number }> 
   Profissional:   { min: 1950, max: 2900 },
 };
 
+/** Resolve a faixa de rating pelo nome da categoria, ignorando prefixo/sufixo de gênero. */
+export function resolverFaixaRating(nome: string) {
+  const base = nome
+    .replace(/^(masculino|feminino|misto|mista)\s+/i, "")
+    .replace(/\s+(masculino|feminino|misto|mista)$/i, "")
+    .trim();
+  return RATING_POR_CATEGORIA[base] ?? RATING_POR_CATEGORIA[nome];
+}
+
 /** Rating combinado de uma dupla (média simples). */
 export function calcularRatingDupla(
   rating1: number,

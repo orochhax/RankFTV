@@ -2,9 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, Eye, EyeOff, Layers, Pencil, Check, X, AlertTriangle, Info } from "lucide-react";
-import { criarLote, alternarLote, excluirLote, atualizarValorBase, type CriarLoteInput } from "@/app/painel/campeonatos/[id]/lotes/actions";
+import { Plus, Trash2, Loader2, Eye, EyeOff, Layers, Pencil, Check, X, AlertTriangle, Info, Users, Ticket } from "lucide-react";
+import {
+  criarLote, alternarLote, excluirLote, atualizarValorBase,
+  criarCategoria, excluirCategoria,
+  type CriarLoteInput,
+} from "@/app/painel/campeonatos/[id]/lotes/actions";
+import { criarTipoIngresso, excluirTipoIngresso } from "@/app/painel/campeonatos/[id]/plateia/actions";
 import { formatBRL } from "@/lib/format";
+import type { GeneroCategoria } from "@/lib/types";
 
 type Lote = {
   id: string;
@@ -160,6 +166,21 @@ function LoteGroupCard({
     });
   }
 
+  const [erroGrupo, setErroGrupo] = useState<string | null>(null);
+
+  function excluirGrupo() {
+    const tipo = grupo.entidade === "category" ? "categoria" : "tipo de ingresso";
+    if (!confirm(`Excluir essa ${tipo}? Essa ação não pode ser desfeita.`)) return;
+    setErroGrupo(null);
+    startTransition(async () => {
+      const res = grupo.entidade === "category"
+        ? await excluirCategoria(champId, grupo.entidadeId)
+        : await excluirTipoIngresso(champId, grupo.entidadeId);
+      if (!res.ok) { setErroGrupo(res.error ?? "Erro ao excluir."); return; }
+      router.refresh();
+    });
+  }
+
   const input =
     "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
@@ -168,7 +189,18 @@ function LoteGroupCard({
   return (
     <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
       <div className="flex items-center justify-between gap-2">
-        <p className="font-semibold text-gray-900">{grupo.label}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="font-semibold text-gray-900">{grupo.label}</p>
+          <button
+            type="button"
+            onClick={excluirGrupo}
+            disabled={pending}
+            title={grupo.entidade === "category" ? "Excluir categoria" : "Excluir tipo de ingresso"}
+            className="rounded-lg p-1 text-gray-300 hover:bg-red-50 hover:text-red-600"
+          >
+            <Trash2 className="size-3.5" />
+          </button>
+        </div>
         {editandoValor ? (
           <div className="flex flex-col items-end gap-1">
             <div className="flex items-center gap-1">
@@ -222,6 +254,7 @@ function LoteGroupCard({
         )}
       </div>
       {editandoValor && erro && <p className="mt-1 text-right text-xs text-red-600">{erro}</p>}
+      {erroGrupo && <p className="mt-1 text-xs text-red-600">{erroGrupo}</p>}
 
       {lotesOrdenados.length > 0 && (
         <ul className="mt-3 divide-y divide-gray-100 overflow-hidden rounded-xl ring-1 ring-black/5">
@@ -330,6 +363,153 @@ function LoteGroupCard({
   );
 }
 
+function NovaCategoriaCard({ champId }: { champId: string }) {
+  const router = useRouter();
+  const [adding, setAdding] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const [nome, setNome] = useState("");
+  const [genero, setGenero] = useState<GeneroCategoria>("mista");
+  const [valor, setValor] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+
+  const input =
+    "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
+
+  function criar() {
+    setErro(null);
+    startTransition(async () => {
+      const res = await criarCategoria(champId, nome, genero, Number(valor.replace(",", ".")) || 0);
+      if (!res.ok) { setErro(res.error ?? "Erro ao criar."); return; }
+      setNome(""); setValor(""); setGenero("mista"); setAdding(false);
+      router.refresh();
+    });
+  }
+
+  if (!adding) {
+    return (
+      <button
+        type="button"
+        onClick={() => setAdding(true)}
+        className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-gray-300 py-3 text-sm font-medium text-gray-500 hover:border-blue-300 hover:text-blue-600"
+      >
+        <Plus className="size-4" /> Adicionar categoria
+      </button>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5">
+      <div className="grid grid-cols-2 gap-2">
+        <div className="col-span-2">
+          <label className="block text-xs font-medium text-gray-500">Nome da categoria</label>
+          <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Intermediário" className={input} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500">Gênero</label>
+          <select value={genero} onChange={(e) => setGenero(e.target.value as GeneroCategoria)} className={input}>
+            <option value="mista">Mista</option>
+            <option value="masculino">Masculina</option>
+            <option value="feminino">Feminina</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500">Valor de tabela (R$)</label>
+          <input value={valor} onChange={(e) => setValor(e.target.value)} inputMode="numeric" placeholder="300" className={input} />
+        </div>
+      </div>
+      {erro && <p className="mt-2 text-xs text-red-600">{erro}</p>}
+      <div className="mt-3 flex gap-2">
+        <button
+          type="button"
+          onClick={criar}
+          disabled={pending}
+          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+        >
+          {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
+          Criar categoria
+        </button>
+        <button
+          type="button"
+          onClick={() => { setAdding(false); setErro(null); }}
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function NovoTipoPlateiaCard({ champId }: { champId: string }) {
+  const router = useRouter();
+  const [adding, setAdding] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const [nome, setNome] = useState("");
+  const [valor, setValor] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+
+  const input =
+    "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
+
+  function criar() {
+    setErro(null);
+    const nomeClean = nome.trim();
+    if (!nomeClean) { setErro("Dê um nome ao ingresso."); return; }
+    startTransition(async () => {
+      const res = await criarTipoIngresso(champId, nomeClean, Number(valor.replace(",", ".")) || 0);
+      if (!res.ok) { setErro(res.error ?? "Erro ao criar."); return; }
+      setNome(""); setValor(""); setAdding(false);
+      router.refresh();
+    });
+  }
+
+  if (!adding) {
+    return (
+      <button
+        type="button"
+        onClick={() => setAdding(true)}
+        className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-gray-300 py-3 text-sm font-medium text-gray-500 hover:border-blue-300 hover:text-blue-600"
+      >
+        <Plus className="size-4" /> Adicionar tipo de ingresso
+      </button>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5">
+      <div className="grid grid-cols-2 gap-2">
+        <div className="col-span-2">
+          <label className="block text-xs font-medium text-gray-500">Nome do ingresso</label>
+          <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Visitante" className={input} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500">Valor de tabela (R$)</label>
+          <input value={valor} onChange={(e) => setValor(e.target.value)} inputMode="numeric" placeholder="40" className={input} />
+        </div>
+      </div>
+      {erro && <p className="mt-2 text-xs text-red-600">{erro}</p>}
+      <div className="mt-3 flex gap-2">
+        <button
+          type="button"
+          onClick={criar}
+          disabled={pending}
+          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+        >
+          {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
+          Criar tipo de ingresso
+        </button>
+        <button
+          type="button"
+          onClick={() => { setAdding(false); setErro(null); }}
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function LotesManager({
   champId,
   grupos,
@@ -339,18 +519,12 @@ export function LotesManager({
   grupos: GrupoLote[];
   inscricoesFim: string | null;
 }) {
-  if (grupos.length === 0) {
-    return (
-      <p className="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-400 ring-1 ring-black/5">
-        Cadastre categorias ou tipos de ingresso primeiro pra poder criar lotes.
-      </p>
-    );
-  }
-
-  const multiplasCategorias = grupos.filter((g) => g.entidade === "category").length > 1;
+  const categorias = grupos.filter((g) => g.entidade === "category");
+  const tipos      = grupos.filter((g) => g.entidade === "ticket_type");
+  const multiplasCategorias = categorias.length > 1;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-start gap-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs text-blue-700 ring-1 ring-blue-100">
         <Layers className="mt-0.5 size-4 shrink-0" />
         <p>
@@ -358,15 +532,38 @@ export function LotesManager({
           momento da compra. Sem nenhum lote configurado, continua valendo o valor de tabela.
         </p>
       </div>
-      {grupos.map((g) => (
-        <LoteGroupCard
-          key={`${g.entidade}-${g.entidadeId}`}
-          champId={champId}
-          grupo={g}
-          mostrarAplicarTodas={g.entidade === "category" && multiplasCategorias}
-          inscricoesFim={inscricoesFim}
-        />
-      ))}
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-500">
+          <Users className="size-4" /> Categorias de atleta
+        </div>
+        {categorias.map((g) => (
+          <LoteGroupCard
+            key={`${g.entidade}-${g.entidadeId}`}
+            champId={champId}
+            grupo={g}
+            mostrarAplicarTodas={multiplasCategorias}
+            inscricoesFim={inscricoesFim}
+          />
+        ))}
+        <NovaCategoriaCard champId={champId} />
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-500">
+          <Ticket className="size-4" /> Ingressos de plateia
+        </div>
+        {tipos.map((g) => (
+          <LoteGroupCard
+            key={`${g.entidade}-${g.entidadeId}`}
+            champId={champId}
+            grupo={g}
+            mostrarAplicarTodas={false}
+            inscricoesFim={inscricoesFim}
+          />
+        ))}
+        <NovoTipoPlateiaCard champId={champId} />
+      </div>
     </div>
   );
 }
