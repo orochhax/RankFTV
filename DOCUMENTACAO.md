@@ -232,6 +232,7 @@ Abaixo:
 
 ### Cadastro / Login / Auth
 - `/cadastro` — nome, e-mail, senha, **@usuário** (checa duplicado em tempo real). Depois cai na Home.
+- Cada campo do formulário de cadastro tem `name`/`autoComplete` explícitos (`name`, `username`, `email`, `new-password`) pra evitar o autofill do navegador confundir e-mail com @usuário — sem isso o Chrome às vezes preenchia o e-mail salvo no campo `@usuário` por heurística de posição/rótulo. O campo `@usuário` também desliga autocapitalize/autocorrect/spellcheck, já que aceita só minúsculas.
 - `/cadastro/verificar-email` — aviso pra confirmar o e-mail.
 - `/login` — e-mail/senha.
 - `/auth/callback` ([route](app/auth/callback/route.ts)) — confirma o e-mail aceitando **token_hash (OTP, cross-device)** e **code (PKCE)**.

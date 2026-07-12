@@ -90,7 +90,9 @@ export default function CadastroPage() {
           </label>
           <input
             id="nome"
+            name="name"
             type="text"
+            autoComplete="name"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
@@ -108,7 +110,13 @@ export default function CadastroPage() {
             </span>
             <input
               id="username"
+              name="username"
               type="text"
+              inputMode="text"
+              autoComplete="username"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
               value={username}
               onChange={(e) =>
                 setUsername(e.target.value.toLowerCase().replace(/\s/g, ""))
@@ -142,7 +150,10 @@ export default function CadastroPage() {
           </label>
           <input
             id="email"
+            name="email"
             type="email"
+            inputMode="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
@@ -157,7 +168,9 @@ export default function CadastroPage() {
           <div className="relative mt-1">
             <input
               id="senha"
+              name="new-password"
               type={mostrarSenha ? "text" : "password"}
+              autoComplete="new-password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:border-blue-500 focus:outline-none"
