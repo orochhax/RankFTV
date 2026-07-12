@@ -28,13 +28,22 @@ export default async function Home() {
   }
 
   let unreadCount = 0;
+  let organizerHabilitado = false;
   if (user) {
-    const { count } = await supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("lida", false);
+    const [{ count }, orgRes] = await Promise.all([
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("lida", false),
+      supabase
+        .from("organizer_accounts")
+        .select("habilitado")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
     unreadCount = count ?? 0;
+    organizerHabilitado = !!orgRes.data?.habilitado;
   }
 
   const [publicados, configRow, aoVivo] = await Promise.all([
@@ -89,7 +98,7 @@ export default async function Home() {
                 <p className="text-sm text-gray-400">@{profile.username}</p>
               </div>
               <div className="md:hidden">
-                <HamburgerMenu unreadCount={unreadCount} />
+                <HamburgerMenu unreadCount={unreadCount} organizerHabilitado={organizerHabilitado} />
               </div>
             </div>
           ) : (

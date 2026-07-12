@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { IngressoPlateiaStatus } from "@/components/plateia/IngressoPlateiaStatus";
 import { IngressoOpcoesMenu } from "@/components/ingressos/IngressoOpcoesMenu";
 import { formatBRL } from "@/lib/format";
+import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 
 function dataBR(iso: string) {
   return new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", {
@@ -21,10 +22,12 @@ export default async function IngressoPlateiaPage({
   searchParams,
 }: {
   params: Promise<{ id: string; ticketId: string }>;
-  searchParams: Promise<{ voltar?: string }>;
+  searchParams: Promise<{ voltar?: string; token?: string }>;
 }) {
   const { id: champId, ticketId } = await params;
-  const { voltar } = await searchParams;
+  const { voltar, token } = await searchParams;
+  const accessToken = normalizarTicketAccessToken(token);
+  if (!accessToken) notFound();
   const backHref  = voltar === "minhas-compras" ? "/minhas-compras" : `/campeonatos/${champId}`;
 
   const supabase = createAdminClient();
@@ -32,6 +35,7 @@ export default async function IngressoPlateiaPage({
     .from("spectator_tickets")
     .select("id, tipo_nome, comprador_nome, comprador_email, comprador_cpf, valor, quantidade, itens, status_pagamento, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in")
     .eq("id", ticketId)
+    .eq("access_token", accessToken)
     .maybeSingle();
   if (!t) notFound();
 
@@ -67,10 +71,11 @@ export default async function IngressoPlateiaPage({
             <ArrowLeft className="size-4" /> {voltar === "minhas-compras" ? "Minhas Compras" : (champ?.nome ?? "Campeonato")}
           </Link>
           {t.status_pagamento !== "estornado" && (
-            <IngressoOpcoesMenu
-              tipo="plateia"
-              ticketId={t.id}
-              dadosAtuais={{
+              <IngressoOpcoesMenu
+                tipo="plateia"
+                ticketId={t.id}
+                accessToken={accessToken}
+                dadosAtuais={{
                 compradorNome:  t.comprador_nome,
                 compradorEmail: t.comprador_email,
                 compradorCpf:   t.comprador_cpf,
@@ -108,6 +113,7 @@ export default async function IngressoPlateiaPage({
           <div className="px-6 py-6">
             <IngressoPlateiaStatus
               ticketId={t.id}
+              accessToken={accessToken}
               initialStatusPagamento={t.status_pagamento}
               initialCheckedIn={t.checked_in}
               initialEntradaQr={entradaQr}

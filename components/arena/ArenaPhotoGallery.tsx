@@ -36,20 +36,31 @@ export function ArenaPhotoGallery({ photos }: { photos: Photo[] }) {
 
   if (photos.length === 0) return null;
 
+  // Com 3+ fotos, a faixa roda sozinha (duplicada, pra loop sem emenda).
+  // Com menos, não dá o efeito de passagem contínua — fica só o scroll manual.
+  const autoPlay = photos.length >= 3;
+  const track = autoPlay ? [...photos, ...photos] : photos;
+  const duration = photos.length * 4;
+
   return (
     <>
-      {/* ── Galeria horizontal (scroll) ── */}
-      <div className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {photos.map((p, i) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={p.id}
-            src={p.url}
-            alt={`foto ${i + 1}`}
-            onClick={() => setOpen(i)}
-            className="h-44 w-64 shrink-0 cursor-pointer rounded-2xl object-cover transition-opacity hover:opacity-90 active:opacity-75"
-          />
-        ))}
+      {/* ── Galeria horizontal (sempre arrastável; anima sozinha por cima quando permitido) ── */}
+      <div className="-mx-6 overflow-x-auto px-6 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div
+          className={`flex w-max gap-2 ${autoPlay ? "animate-marquee hover:[animation-play-state:paused]" : ""}`}
+          style={autoPlay ? { animationDuration: `${duration}s` } : undefined}
+        >
+          {track.map((p, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={`${p.id}-${i}`}
+              src={p.url}
+              alt={`foto ${(i % photos.length) + 1}`}
+              onClick={() => setOpen(i % photos.length)}
+              className="h-44 w-64 shrink-0 cursor-pointer rounded-2xl object-cover transition-opacity hover:opacity-90 active:opacity-75"
+            />
+          ))}
+        </div>
       </div>
 
       {/* ── Lightbox ── */}

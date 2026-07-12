@@ -50,9 +50,9 @@ export default async function ReembolsoPage({
   const cat   = catRes.data;
   const valorInscricao = Number(reg.valor);
 
-  const diasDesdeCompra   = (Date.now() - new Date(reg.created_at).getTime()) / (1000 * 60 * 60 * 24);
+  const agora = new Date();
+  const diasDesdeCompra   = (agora.getTime() - new Date(reg.created_at).getTime()) / (1000 * 60 * 60 * 24);
   const dentroDosPrazo7d  = diasDesdeCompra <= 7;
-  const valorReembolso    = valorInscricao; // sempre só a inscrição; taxa só volta se dentro de 7 dias (via Asaas total)
   // Dentro de 7 dias → Asaas devolve tudo (taxa inclusa); fora → só valor da inscrição
   const textoValorReembolso = dentroDosPrazo7d
     ? "Valor integral pago (inscrição + taxa de serviço)"

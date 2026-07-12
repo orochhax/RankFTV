@@ -101,7 +101,8 @@ export async function getPublishedChampionships(): Promise<Championship[]> {
     .from("championships")
     .select(SELECT)
     .neq("status", "rascunho")
-    .order("data_inicio", { ascending: true });
+    .order("data_inicio", { ascending: true })
+    .limit(200);
   if (error || !data) return [];
   return (data as ChampRow[]).map(mapChampionship);
 }
@@ -113,7 +114,8 @@ export async function getLivChampionships(): Promise<Championship[]> {
     .from("championships")
     .select(SELECT)
     .eq("status", "em_andamento")
-    .order("data_inicio", { ascending: false });
+    .order("data_inicio", { ascending: false })
+    .limit(20);
   if (error || !data) return [];
   return (data as ChampRow[]).map(mapChampionship);
 }

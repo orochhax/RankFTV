@@ -12,16 +12,13 @@ interface Props {
 // Em navegadores sem suporte mostra apenas o campo manual.
 export function QrScanner({ onDetected, onClose }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [phase, setPhase] = useState<"requesting" | "scanning" | "unsupported" | "denied">(
-    "requesting",
+  const [phase, setPhase] = useState<"requesting" | "scanning" | "unsupported" | "denied">(() =>
+    typeof window !== "undefined" && !("BarcodeDetector" in window) ? "unsupported" : "requesting",
   );
   const detectedRef = useRef(false);
 
   useEffect(() => {
-    if (!("BarcodeDetector" in window)) {
-      setPhase("unsupported");
-      return;
-    }
+    if (typeof window !== "undefined" && !("BarcodeDetector" in window)) return;
 
     let stream: MediaStream | null = null;
     let rafId: number;

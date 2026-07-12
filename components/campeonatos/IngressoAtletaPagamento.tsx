@@ -21,6 +21,7 @@ function formatExpiry(v: string) {
 
 type Props = {
   ticketId:     string;
+  accessToken:  string;
   isElite:      boolean;
   initialStatusPagamento: string; // "pendente" | "pago" | "estornado"
   initialCheckedIn: boolean;
@@ -34,6 +35,7 @@ type Props = {
 
 export function IngressoAtletaPagamento({
   ticketId,
+  accessToken,
   isElite,
   initialStatusPagamento,
   initialCheckedIn,
@@ -73,7 +75,7 @@ export function IngressoAtletaPagamento({
     async function check() {
       if (stoppedRef.current) return;
       try {
-        const res = await fetch(`/api/ticket-status?tipo=atleta&id=${ticketId}`, { cache: "no-store" });
+        const res = await fetch(`/api/ticket-status?tipo=atleta&id=${ticketId}&token=${accessToken}`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           if (data.status_pagamento === "pago") {
@@ -94,7 +96,7 @@ export function IngressoAtletaPagamento({
 
     return () => { stoppedRef.current = true; clearTimeout(timer); clearTimeout(maxTimer); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pago, ticketId, qrToken]);
+  }, [pago, ticketId, accessToken, qrToken]);
 
   if (pago) {
     return (
@@ -163,6 +165,7 @@ export function IngressoAtletaPagamento({
       ) : (
         <CardForm
           ticketId={ticketId}
+          accessToken={accessToken}
           valor={valor}
           isElite={isElite}
           onPago={async () => {
@@ -177,11 +180,13 @@ export function IngressoAtletaPagamento({
 
 function CardForm({
   ticketId,
+  accessToken,
   valor,
   isElite,
   onPago,
 }: {
   ticketId: string;
+  accessToken: string;
   valor: number;
   isElite: boolean;
   onPago: () => void;
@@ -224,6 +229,7 @@ function CardForm({
     setPending(true);
     const res = await pagarIngressoAtletaComCartao({
       ticketId,
+      accessToken,
       tipo,
       numero:      digits,
       nomeTitular: nome,

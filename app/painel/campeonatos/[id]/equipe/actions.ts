@@ -5,19 +5,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { enviarConviteStaff } from "@/lib/email/send";
 
-export async function searchUserByUsername(
-  username: string,
-): Promise<{ id: string; nome: string; username: string } | null> {
-  const supabase = await createClient();
-  const clean = username.replace(/^@/, "").trim();
-  if (!clean) return null;
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, nome, username")
-    .ilike("username", clean)
-    .maybeSingle();
-  return data ?? null;
-}
+// Busca em tempo real do @usuário fica em /api/users/search (mesma rota usada
+// pelo UserSearchInput). Este arquivo só cuida das actions de convite/permissão.
 
 export async function convidarStaff(
   champId: string,

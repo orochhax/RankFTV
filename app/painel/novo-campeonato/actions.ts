@@ -74,6 +74,15 @@ export async function createChampionship(
     return { ok: false, error: "Você precisa estar logado para criar um campeonato." };
   }
 
+  const { data: conta } = await supabase
+    .from("organizer_accounts")
+    .select("habilitado")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!conta?.habilitado) {
+    return { ok: false, error: "Ative sua conta de organizador antes de criar um campeonato." };
+  }
+
   const nome = input.nome?.trim();
   if (!nome) return { ok: false, error: "Dê um nome ao evento." };
   if (!input.dataInicio || !input.dataFim) {

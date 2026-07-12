@@ -1,31 +1,52 @@
 "use client";
 
-import { useState, useEffect, type FormEvent } from "react";
+import { Suspense, useState, useEffect, useMemo, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, XCircle, Loader2, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { validaCpfCnpj, idadeEm, soDigitos } from "@/lib/validacao";
+import type { Genero } from "@/lib/types";
 
-export default function CadastroPage() {
+const GENEROS: { valor: Genero; texto: string }[] = [
+  { valor: "masculino", texto: "Masculino" },
+  { valor: "feminino", texto: "Feminino" },
+  { valor: "outro", texto: "Outro" },
+];
+
+function CadastroForm() {
   const router = useRouter();
-  const supabase = createClient();
+  const searchParams = useSearchParams();
+  const supabase = useMemo(() => createClient(), []);
+
+  const modoOrganizador = searchParams.get("modo") === "organizador";
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [username, setUsername] = useState("");
+  const [genero, setGenero] = useState<Genero | "">("");
   const [usernameStatus, setUsernameStatus] = useState<
-    "idle" | "checking" | "ok" | "taken" | "invalid"
-  >("idle");
+    "checking" | "ok" | "taken"
+  >("checking");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Só coletados quando vem do fluxo "organizar evento" sem conta ainda.
+  const [telefone, setTelefone] = useState("");
+  const [cpfCnpj, setCpfCnpj] = useState("");
+  const [nascimento, setNascimento] = useState("");
+
+  const usernameBasicoStatus =
+    !username ? "idle" : /^[a-z0-9_.]{3,30}$/.test(username) ? null : "invalid";
+  const statusUsername = usernameBasicoStatus ?? usernameStatus;
+
   // Verifica @username em tempo real contra o banco real
   useEffect(() => {
-    if (!username) { setUsernameStatus("idle"); return; }
-    if (!/^[a-z0-9_.]{3,30}$/.test(username)) { setUsernameStatus("invalid"); return; }
+    if (usernameBasicoStatus) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUsernameStatus("checking");
     const timer = setTimeout(async () => {
       const { data: profile } = await supabase
@@ -33,27 +54,59 @@ export default function CadastroPage() {
       setUsernameStatus(profile ? "taken" : "ok");
     }, 400);
     return () => clearTimeout(timer);
-  }, [username]);
+  }, [supabase, username, usernameBasicoStatus]);
 
   const canSubmit =
     nome.trim().length > 0 &&
     email.trim().length > 0 &&
     senha.length >= 6 &&
-    usernameStatus === "ok" &&
+    statusUsername === "ok" &&
+    !!genero &&
+    (!modoOrganizador || (telefone.trim().length > 0 && cpfCnpj.trim().length > 0 && nascimento.trim().length > 0)) &&
     !loading;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    setLoading(true);
     setErro(null);
+
+    // Validações extras só valem no fluxo de cadastro direto como organizador.
+    if (modoOrganizador) {
+      const telefoneDigits = soDigitos(telefone);
+      const cpfCnpjDigits = soDigitos(cpfCnpj);
+      if (telefoneDigits.length < 10) {
+        setErro("Informe um celular válido com DDD.");
+        return;
+      }
+      if (!validaCpfCnpj(cpfCnpjDigits)) {
+        setErro("Informe um CPF ou CNPJ válido.");
+        return;
+      }
+      if (Number.isNaN(Date.parse(nascimento)) || idadeEm(nascimento) < 18) {
+        setErro("Você precisa ter pelo menos 18 anos para organizar eventos.");
+        return;
+      }
+    }
+
+    setLoading(true);
+
+    const metadata: Record<string, string> = { nome, username, genero };
+    if (modoOrganizador) {
+      metadata.modo = "organizador";
+      metadata.telefone = soDigitos(telefone);
+      metadata.cpf_cnpj = soDigitos(cpfCnpj);
+      metadata.data_nascimento = nascimento;
+    }
+
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    if (modoOrganizador) callbackUrl.searchParams.set("next", "/painel/novo-campeonato");
 
     const { error } = await supabase.auth.signUp({
       email,
       password: senha,
       options: {
-        data: { nome, username },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: metadata,
+        emailRedirectTo: callbackUrl.toString(),
       },
     });
 
@@ -74,9 +127,13 @@ export default function CadastroPage() {
 
   return (
     <div className="mx-auto max-w-md px-6 py-10">
-      <h1 className="text-2xl font-semibold text-gray-900">Criar conta</h1>
+      <h1 className="text-2xl font-semibold text-gray-900">
+        {modoOrganizador ? "Criar conta de organizador" : "Criar conta"}
+      </h1>
       <p className="mt-1 text-sm text-gray-500">
-        Só o essencial pra começar — o resto você completa depois, quando precisar.
+        {modoOrganizador
+          ? "Precisamos desses dados pra liberar a criação de campeonatos."
+          : "Só o essencial pra começar — o resto você completa depois, quando precisar."}
       </p>
 
       {erro && (
@@ -124,20 +181,20 @@ export default function CadastroPage() {
               className="w-full rounded-lg border border-gray-200 py-2 pl-7 pr-8 text-sm focus:border-blue-500 focus:outline-none"
               placeholder="seu.usuario"
             />
-            {usernameStatus === "checking" && (
+            {statusUsername === "checking" && (
               <Loader2 className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 animate-spin text-gray-400" />
             )}
-            {usernameStatus === "ok" && (
+            {statusUsername === "ok" && (
               <CheckCircle2 className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-blue-500" />
             )}
-            {(usernameStatus === "taken" || usernameStatus === "invalid") && (
+            {(statusUsername === "taken" || statusUsername === "invalid") && (
               <XCircle className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-red-500" />
             )}
           </div>
-          {usernameStatus === "taken" && (
+          {statusUsername === "taken" && (
             <p className="mt-1 text-xs text-red-600">Esse @usuário já existe — escolha outro.</p>
           )}
-          {usernameStatus === "invalid" && (
+          {statusUsername === "invalid" && (
             <p className="mt-1 text-xs text-red-600">
               Só letras minúsculas, números, . e _ (mínimo 3 caracteres)
             </p>
@@ -187,6 +244,83 @@ export default function CadastroPage() {
           </div>
         </div>
 
+        <fieldset className="space-y-2">
+          <legend className="block text-sm font-medium text-gray-700">Gênero</legend>
+          <div className="grid grid-cols-3 gap-2">
+            {GENEROS.map((opcao) => (
+              <label
+                key={opcao.valor}
+                className="flex cursor-pointer items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-800 hover:bg-gray-50"
+              >
+                <input
+                  type="radio"
+                  name="genero"
+                  value={opcao.valor}
+                  checked={genero === opcao.valor}
+                  onChange={() => setGenero(opcao.valor)}
+                  className="sr-only"
+                />
+                {opcao.texto}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        {modoOrganizador && (
+          <>
+            <div>
+              <label htmlFor="telefone" className="block text-sm font-medium text-gray-700">
+                Celular (com DDD)
+              </label>
+              <input
+                id="telefone"
+                name="tel"
+                type="tel"
+                autoComplete="tel"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                placeholder="(11) 99999-8888"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="cpfCnpj" className="block text-sm font-medium text-gray-700">
+                CPF ou CNPJ
+              </label>
+              <input
+                id="cpfCnpj"
+                name="cpf-cnpj"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                value={cpfCnpj}
+                onChange={(e) => setCpfCnpj(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                placeholder="Só números"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="nascimento" className="block text-sm font-medium text-gray-700">
+                Data de nascimento
+              </label>
+              <input
+                id="nascimento"
+                name="bday"
+                type="date"
+                autoComplete="bday"
+                value={nascimento}
+                onChange={(e) => setNascimento(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                No CNPJ, use a data de nascimento do responsável.
+              </p>
+            </div>
+          </>
+        )}
+
         <button
           type="submit"
           disabled={!canSubmit}
@@ -203,5 +337,13 @@ export default function CadastroPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function CadastroPage() {
+  return (
+    <Suspense fallback={null}>
+      <CadastroForm />
+    </Suspense>
   );
 }

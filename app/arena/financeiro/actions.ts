@@ -53,7 +53,7 @@ export async function emitirMensalidade(
   const { data: priv } = await adminSupabase
     .from("profiles_private")
     .select("cpf")
-    .eq("id", aluno.user_id)
+    .eq("user_id", aluno.user_id)
     .maybeSingle();
   const cpf = ((priv as { cpf?: string } | null)?.cpf ?? "").replace(/\D/g, "");
 

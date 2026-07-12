@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS athlete_tickets (
   -- Credencial de entrada
   code                 text UNIQUE,
   qr_token             text UNIQUE DEFAULT gen_random_uuid()::text,
+  access_token         text NOT NULL DEFAULT gen_random_uuid()::text,
   checked_in           boolean NOT NULL DEFAULT false,
   checkin_at           timestamptz,
 
@@ -50,6 +51,8 @@ CREATE INDEX IF NOT EXISTS athlete_tickets_parceiro
   ON athlete_tickets (parceiro_cpf, parceiro_email);
 CREATE INDEX IF NOT EXISTS athlete_tickets_championship
   ON athlete_tickets (championship_id);
+CREATE UNIQUE INDEX IF NOT EXISTS athlete_tickets_access_token_unique
+  ON athlete_tickets(access_token);
 
 -- RLS: visitante não tem conta → escrita via service_role (bypass RLS).
 --       Dono do campeonato lê os ingressos do seu evento.

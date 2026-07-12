@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, QrCode, Users, CheckSquare } from "lucide-react";
+import { ArrowLeft, QrCode, Users, CheckSquare, MapPin, CalendarDays } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { Avatar } from "@/components/ui/Avatar";
+import { formatDateRangeBR } from "@/lib/format";
 
 type Permission = {
   canQrcode: boolean;
@@ -39,11 +41,17 @@ export default async function StaffCampPage({
 
   const { data: camp } = await supabase
     .from("championships")
-    .select("nome, cidade, estado")
+    .select("nome, cidade, estado, data_inicio, data_fim")
     .eq("id", id)
     .single();
 
   if (!camp) notFound();
+
+  const { data: meuPerfil } = await supabase
+    .from("profiles")
+    .select("nome, foto_url")
+    .eq("id", user.id)
+    .maybeSingle();
 
   const OPCOES = [
     {
@@ -81,7 +89,28 @@ export default async function StaffCampPage({
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-white">{camp.nome}</h1>
-            <p className="mt-1 text-sm text-white/40">{camp.cidade} — {camp.estado}</p>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-white/40">
+              <MapPin className="size-3.5 shrink-0" /> {camp.cidade} — {camp.estado}
+            </p>
+            {camp.data_inicio && camp.data_fim && (
+              <p className="mt-0.5 flex items-center gap-1.5 text-sm text-white/40">
+                <CalendarDays className="size-3.5 shrink-0" /> {formatDateRangeBR(camp.data_inicio, camp.data_fim)}
+              </p>
+            )}
+          </div>
+
+          {/* Mini perfil do staff logado */}
+          <div className="flex items-center gap-3 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
+            <Avatar
+              nome={meuPerfil?.nome ?? "Staff"}
+              color="bg-blue-600"
+              size="sm"
+              fotoUrl={meuPerfil?.foto_url}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-white">{meuPerfil?.nome ?? "Staff"}</p>
+              <p className="text-xs text-white/40">Você está acessando como staff</p>
+            </div>
           </div>
         </div>
       </div>

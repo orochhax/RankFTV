@@ -49,6 +49,15 @@ body {
   user-select: none;
   -webkit-touch-callout: none;
 }
+/* Marquee: faixa de fotos rolando sozinha na horizontal (galeria de arena). */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee linear infinite;
+}
+
 input,
 textarea,
 [contenteditable="true"] {

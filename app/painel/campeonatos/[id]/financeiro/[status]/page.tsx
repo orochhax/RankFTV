@@ -78,26 +78,32 @@ export default async function FinanceiroStatusPage({
   }
   const ids = Array.from(atletaIds);
 
-  // Perfis (nome, username, telefone)
+  // Perfis publicos (nome, username) + telefone privado via admin apos validar dono.
   const perfilMap: Record<string, { nome: string; username: string; telefone: string | null }> = {};
   if (ids.length > 0) {
     const { data: perfis } = await supabase
       .from("profiles")
-      .select("id, nome, username, telefone")
+      .select("id, nome, username")
       .in("id", ids);
-    for (const p of perfis ?? []) perfilMap[p.id] = p;
+    for (const p of perfis ?? []) perfilMap[p.id] = { ...p, telefone: null };
   }
 
-  // E-mails via admin
+  // E-mails e telefones via admin
   const emailMap: Record<string, string | null> = {};
   if (ids.length > 0) {
     const admin = createAdminClient();
-    await Promise.all(
-      ids.map(async (uid) => {
-        const { data } = await admin.auth.admin.getUserById(uid);
-        emailMap[uid] = data?.user?.email ?? null;
-      }),
-    );
+    const [{ data: privRows }] = await Promise.all([
+      admin.from("profiles_private").select("user_id, telefone").in("user_id", ids),
+      Promise.all(
+        ids.map(async (uid) => {
+          const { data } = await admin.auth.admin.getUserById(uid);
+          emailMap[uid] = data?.user?.email ?? null;
+        }),
+      ),
+    ]);
+    for (const row of privRows ?? []) {
+      if (perfilMap[row.user_id]) perfilMap[row.user_id].telefone = row.telefone ?? null;
+    }
   }
 
   const totalValor = regs.reduce((s, r) => s + Number(r.valor), 0);

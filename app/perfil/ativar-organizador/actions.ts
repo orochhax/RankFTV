@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { validaCpfCnpj, idadeEm, soDigitos } from "@/lib/validacao";
 
 export async function ativarOrganizador(formData: FormData) {
   const supabase = await createClient();
@@ -10,26 +11,32 @@ export async function ativarOrganizador(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const telefone = (formData.get("telefone") as string).replace(/\D/g, "");
-  const chavePix = (formData.get("chave_pix") as string).trim();
+  const cpfCnpj    = soDigitos((formData.get("cpf_cnpj") as string) ?? "");
+  const nascimento = ((formData.get("data_nascimento") as string) ?? "").trim();
+  const telefone   = soDigitos((formData.get("telefone") as string) ?? "");
+  const destino    = ((formData.get("destino") as string) ?? "").trim();
 
-  if (!telefone || !chavePix) {
-    return { error: "Preencha todos os campos." };
+  if (!validaCpfCnpj(cpfCnpj)) {
+    return { error: "Informe um CPF ou CNPJ válido." };
+  }
+  if (!nascimento || Number.isNaN(Date.parse(nascimento))) {
+    return { error: "Informe a data de nascimento." };
+  }
+  if (idadeEm(nascimento) < 18) {
+    return { error: "Você precisa ter pelo menos 18 anos para organizar eventos." };
   }
   if (telefone.length < 10) {
     return { error: "Telefone inválido. Informe com DDD." };
-  }
-  if (chavePix.length < 5) {
-    return { error: "Chave Pix inválida." };
   }
 
   const { error: dbError } = await supabase
     .from("organizer_accounts")
     .upsert(
       {
-        user_id:   user.id,
+        user_id: user.id,
+        cpf_cnpj: cpfCnpj,
+        data_nascimento: nascimento,
         telefone,
-        chave_pix: chavePix,
         habilitado: true,
       },
       { onConflict: "user_id" }
@@ -37,5 +44,5 @@ export async function ativarOrganizador(formData: FormData) {
 
   if (dbError) return { error: "Erro ao salvar dados. Tente novamente." };
 
-  redirect("/painel");
+  redirect(destino && destino.startsWith("/") && !destino.startsWith("//") ? destino : "/painel/novo-campeonato");
 }

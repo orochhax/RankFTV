@@ -45,14 +45,14 @@ function CTAs({ persona }: { persona: Persona }) {
     return (
       <div className="flex flex-col gap-3">
         <Link
-          href="/painel"
+          href="/cadastro?modo=organizador"
           className="flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
         >
           <LayoutDashboard className="size-4" />
           Criar meu evento grátis
         </Link>
         <Link
-          href="/painel"
+          href="/login?next=%2Fpainel%2Fnovo-campeonato"
           className="flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/15"
         >
           Entrar no painel

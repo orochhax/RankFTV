@@ -4,20 +4,28 @@ import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AtivarOrganizadorForm } from "@/components/perfil/AtivarOrganizadorForm";
 
-export default async function AtivarOrganizadorPage() {
+export default async function AtivarOrganizadorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+  // Só aceita caminhos internos (nunca "//host" nem URL absoluta) pra evitar open redirect.
+  const destino = next && next.startsWith("/") && !next.startsWith("//") ? next : "/painel/novo-campeonato";
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(`/login?next=${encodeURIComponent(`/perfil/ativar-organizador?next=${destino}`)}`);
 
   const { data: conta } = await supabase
     .from("organizer_accounts")
     .select("habilitado")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (conta?.habilitado) redirect("/painel");
+  if (conta?.habilitado) redirect(destino);
 
   return (
     <div className="mx-auto max-w-lg space-y-6 px-6 py-8">
@@ -33,22 +41,13 @@ export default async function AtivarOrganizadorPage() {
           Ativar conta de organizador
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Informe sua chave Pix para receber os repasses das inscrições dos
-          seus campeonatos. A plataforma desconta a taxa automaticamente.
+          Precisamos desses dados pra confirmar sua identidade antes de você
+          criar um campeonato. A chave Pix pra receber os repasses é pedida
+          depois, na hora de publicar.
         </p>
       </div>
 
-      <div className="rounded-2xl bg-blue-50 px-5 py-4 text-sm text-blue-800">
-        <p className="font-semibold">Como funciona o repasse</p>
-        <ul className="mt-2 space-y-1 text-blue-700">
-          <li>• Atleta paga a inscrição (Pix ou cartão)</li>
-          <li>• A plataforma retém a taxa</li>
-          <li>• <strong>Pix:</strong> você recebe no mesmo dia</li>
-          <li>• <strong>Cartão:</strong> você recebe em até 32 dias (prazo da operadora)</li>
-        </ul>
-      </div>
-
-      <AtivarOrganizadorForm />
+      <AtivarOrganizadorForm destino={destino} />
     </div>
   );
 }

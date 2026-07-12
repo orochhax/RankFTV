@@ -8,9 +8,10 @@ import { useRouter } from "next/navigation";
 
 type Props = {
   unreadCount: number;
+  organizerHabilitado: boolean;
 };
 
-export function HamburgerMenu({ unreadCount }: Props) {
+export function HamburgerMenu({ unreadCount, organizerHabilitado }: Props) {
   const [open, setOpen]       = useState(false);
   const [isPending, start]    = useTransition();
   const menuRef               = useRef<HTMLDivElement>(null);
@@ -53,7 +54,7 @@ export function HamburgerMenu({ unreadCount }: Props) {
     {
       icon: CalendarPlus,
       label: "Organizar um evento",
-      href: "/painel/novo-campeonato",
+      href: organizerHabilitado ? "/painel/novo-campeonato" : "/perfil/ativar-organizador",
       badge: 0,
     },
     {

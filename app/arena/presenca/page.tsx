@@ -65,6 +65,9 @@ export default async function PresencaPage() {
     : { data: [] };
 
   const presencasSet = new Set((presencasHoje ?? []).map((p) => p.class_id));
+  const inicioHistorico = new Date(`${hoje}T12:00:00`);
+  inicioHistorico.setDate(inicioHistorico.getDate() - 30);
+  const inicioHistoricoISO = inicioHistorico.toISOString().split("T")[0];
 
   // Histórico de presença dos últimos 30 dias
   const { data: historico } = await supabase
@@ -72,7 +75,7 @@ export default async function PresencaPage() {
     .select("class_id, data, arena_classes(titulo)")
     .eq("user_id", user.id)
     .eq("arena_id", arena.id)
-    .gte("data", new Date(Date.now() - 30 * 86400000).toISOString().split("T")[0])
+    .gte("data", inicioHistoricoISO)
     .order("data", { ascending: false })
     .limit(20);
 

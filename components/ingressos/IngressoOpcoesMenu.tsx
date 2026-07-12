@@ -35,8 +35,8 @@ type DadosPlateia = {
 };
 
 type Props =
-  | { tipo: "atleta"; ticketId: string; dadosAtuais: DadosAtleta }
-  | { tipo: "plateia"; ticketId: string; dadosAtuais: DadosPlateia };
+  | { tipo: "atleta"; ticketId: string; accessToken: string; dadosAtuais: DadosAtleta }
+  | { tipo: "plateia"; ticketId: string; accessToken: string; dadosAtuais: DadosPlateia };
 
 const inputCls =
   "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
@@ -91,7 +91,7 @@ export function IngressoOpcoesMenu(props: Props) {
         <TitularidadeModal {...props} onClose={() => setModal(null)} />
       )}
       {modal === "cancelar" && (
-        <CancelarModal tipo={props.tipo} ticketId={props.ticketId} onClose={() => setModal(null)} />
+        <CancelarModal tipo={props.tipo} ticketId={props.ticketId} accessToken={props.accessToken} onClose={() => setModal(null)} />
       )}
     </>
   );
@@ -142,11 +142,13 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
       const res = atleta
         ? await alterarTitularidadeAtleta({
             ticketId: props.ticketId,
+            accessToken: props.accessToken,
             compradorNome, compradorCpf, compradorEmail, compradorZap, compradorGenero,
             parceiroNome, parceiroCpf, parceiroEmail, parceiroZap, parceiroGenero,
           } satisfies TitularidadeAtletaInput)
         : await alterarTitularidadePlateia({
             ticketId: props.ticketId,
+            accessToken: props.accessToken,
             compradorNome, compradorEmail, compradorCpf,
           } satisfies TitularidadePlateiaInput);
 
@@ -290,10 +292,12 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
 function CancelarModal({
   tipo,
   ticketId,
+  accessToken,
   onClose,
 }: {
   tipo: "atleta" | "plateia";
   ticketId: string;
+  accessToken: string;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -304,8 +308,8 @@ function CancelarModal({
     setError(null);
     startTransition(async () => {
       const res = tipo === "atleta"
-        ? await cancelarIngressoAtleta(ticketId)
-        : await cancelarIngressoPlateia(ticketId);
+        ? await cancelarIngressoAtleta(ticketId, accessToken)
+        : await cancelarIngressoPlateia(ticketId, accessToken);
 
       if (!res.ok) { setError(res.error ?? "Erro ao cancelar."); return; }
       onClose();

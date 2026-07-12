@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, Eye, EyeOff, Layers, Pencil, Check, X, AlertTriangle, Info, Users, Ticket } from "lucide-react";
+import { Plus, Trash2, Loader2, Eye, EyeOff, Layers, Pencil, Check, X, AlertTriangle, Info, Users, Ticket, ChevronDown } from "lucide-react";
 import {
   criarLote, alternarLote, excluirLote, atualizarValorBase,
   criarCategoria, excluirCategoria,
@@ -99,6 +99,7 @@ function LoteGroupCard({
   inscricoesFim: string | null;
 }) {
   const router = useRouter();
+  const [expanded, setExpanded] = useState(false);
   const [adding, setAdding] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -188,184 +189,233 @@ function LoteGroupCard({
 
   return (
     <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setExpanded((v) => !v)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setExpanded((v) => !v); }}
+        className="flex cursor-pointer flex-wrap items-center justify-between gap-x-2 gap-y-1"
+      >
+        <div className="flex min-w-0 items-center gap-1.5">
           <p className="font-semibold text-gray-900">{grupo.label}</p>
           <button
             type="button"
-            onClick={excluirGrupo}
+            onClick={(e) => { e.stopPropagation(); excluirGrupo(); }}
             disabled={pending}
             title={grupo.entidade === "category" ? "Excluir categoria" : "Excluir tipo de ingresso"}
-            className="rounded-lg p-1 text-gray-300 hover:bg-red-50 hover:text-red-600"
+            className="shrink-0 rounded-lg p-1 text-gray-300 hover:bg-red-50 hover:text-red-600"
           >
             <Trash2 className="size-3.5" />
           </button>
         </div>
-        {editandoValor ? (
-          <div className="flex flex-col items-end gap-1">
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-gray-400">R$</span>
-              <input
-                autoFocus
-                value={valorBaseInput}
-                onChange={(e) => setValorBaseInput(e.target.value)}
-                inputMode="numeric"
-                className="w-20 rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                type="button"
-                onClick={salvarValorBase}
-                disabled={pending}
-                title="Salvar"
-                className="rounded-lg p-1 text-green-600 hover:bg-green-50"
-              >
-                <Check className="size-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => { setEditandoValor(false); setValorBaseInput(String(grupo.valorBase)); setAplicarTodasValor(false); setErro(null); }}
-                title="Cancelar"
-                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100"
-              >
-                <X className="size-3.5" />
-              </button>
-            </div>
-            {mostrarAplicarTodas && (
-              <label className="flex items-center gap-1.5 text-[11px] text-gray-500">
+        <div className="flex shrink-0 items-center gap-1.5">
+          {editandoValor ? (
+            <div onClick={(e) => e.stopPropagation()} className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-400">R$</span>
                 <input
-                  type="checkbox"
-                  checked={aplicarTodasValor}
-                  onChange={(e) => setAplicarTodasValor(e.target.checked)}
-                  className="size-3"
+                  autoFocus
+                  value={valorBaseInput}
+                  onChange={(e) => setValorBaseInput(e.target.value)}
+                  inputMode="numeric"
+                  className="w-20 rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                Aplicar a todas as categorias
-              </label>
-            )}
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => { setValorBaseInput(String(grupo.valorBase)); setEditandoValor(true); }}
-            className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600"
-          >
-            Valor de tabela: {grupo.valorBase <= 0 ? "Grátis" : formatBRL(grupo.valorBase)}
-            <Pencil className="size-3" />
-          </button>
-        )}
+                <button
+                  type="button"
+                  onClick={salvarValorBase}
+                  disabled={pending}
+                  title="Salvar"
+                  className="rounded-lg p-1 text-green-600 hover:bg-green-50"
+                >
+                  <Check className="size-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setEditandoValor(false); setValorBaseInput(String(grupo.valorBase)); setAplicarTodasValor(false); setErro(null); }}
+                  title="Cancelar"
+                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
+              {mostrarAplicarTodas && (
+                <label className="flex items-center gap-1.5 text-[11px] text-gray-500">
+                  <input
+                    type="checkbox"
+                    checked={aplicarTodasValor}
+                    onChange={(e) => setAplicarTodasValor(e.target.checked)}
+                    className="size-3"
+                  />
+                  Aplicar a todas as categorias
+                </label>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setValorBaseInput(String(grupo.valorBase)); setEditandoValor(true); }}
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600"
+            >
+              Valor de tabela: {grupo.valorBase <= 0 ? "Grátis" : formatBRL(grupo.valorBase)}
+              <Pencil className="size-3" />
+            </button>
+          )}
+          <ChevronDown className={`size-4 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} />
+        </div>
       </div>
       {editandoValor && erro && <p className="mt-1 text-right text-xs text-red-600">{erro}</p>}
       {erroGrupo && <p className="mt-1 text-xs text-red-600">{erroGrupo}</p>}
-
-      {lotesOrdenados.length > 0 && (
-        <ul className="mt-3 divide-y divide-gray-100 overflow-hidden rounded-xl ring-1 ring-black/5">
-          {lotesOrdenados.map((l) => {
-            const esgotado = l.quantidade_maxima != null && l.vendidos >= l.quantidade_maxima;
-            return (
-              <li key={l.id} className="flex items-center gap-3 px-3 py-2.5">
-                <div className="min-w-0 flex-1">
-                  <p className={`text-sm font-medium ${l.ativo ? "text-gray-900" : "text-gray-400 line-through"}`}>
-                    {l.nome} · {formatBRL(Number(l.valor))}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {l.quantidade_maxima != null
-                      ? `${l.vendidos}/${l.quantidade_maxima} vendidos${esgotado ? " · esgotado" : ""}`
-                      : `${l.vendidos} vendidos · sem limite`}
-                    {l.data_fim && ` · até ${new Date(l.data_fim).toLocaleDateString("pt-BR")}`}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => alternar(l.id, !l.ativo)}
-                  disabled={pending}
-                  title={l.ativo ? "Desativar" : "Ativar"}
-                  className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                >
-                  {l.ativo ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => excluir(l.id)}
-                  disabled={pending}
-                  className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+      {!expanded && (
+        <p className="mt-1 text-xs text-gray-400">
+          {grupo.lotes.length > 0 ? `${grupo.lotes.length} lote${grupo.lotes.length > 1 ? "s" : ""} configurado${grupo.lotes.length > 1 ? "s" : ""}` : "Sem lotes"}
+        </p>
       )}
 
-      <AvisoCobertura cobertura={analisarCobertura(grupo.lotes, inscricoesFim)} />
-
-      {!adding ? (
-        <button
-          type="button"
-          onClick={() => setAdding(true)}
-          className="mt-3 flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
-        >
-          <Plus className="size-4" /> Adicionar lote
-        </button>
-      ) : (
-        <div className="mt-3 rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-500">Nome do lote</label>
-              <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="1º Lote" className={input} />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500">Valor (R$)</label>
-              <input value={valor} onChange={(e) => setValor(e.target.value)} inputMode="numeric" placeholder="50" className={input} />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500">Limite de unidades</label>
-              <input value={quantidadeMaxima} onChange={(e) => setQuantidadeMaxima(e.target.value)} inputMode="numeric" placeholder="Ex: 50" className={input} />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-500">Vale até</label>
-              <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className={input} />
-            </div>
-          </div>
-          <p className="mt-2 text-xs text-gray-400">Preencha data de término ou limite de unidades (pelo menos um dos dois).</p>
-          {mostrarAplicarTodas && (
-            <label className="mt-2 flex items-center gap-1.5 text-xs text-gray-600">
-              <input
-                type="checkbox"
-                checked={aplicarTodasLote}
-                onChange={(e) => setAplicarTodasLote(e.target.checked)}
-                className="size-3.5 rounded"
-              />
-              Aplicar esse lote a todas as categorias
-            </label>
+      {expanded && (
+        <>
+          {lotesOrdenados.length > 0 && (
+            <ul className="mt-3 divide-y divide-gray-100 overflow-hidden rounded-xl ring-1 ring-black/5">
+              {lotesOrdenados.map((l) => {
+                const esgotado = l.quantidade_maxima != null && l.vendidos >= l.quantidade_maxima;
+                return (
+                  <li key={l.id} className="flex items-center gap-3 px-3 py-2.5">
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-sm font-medium ${l.ativo ? "text-gray-900" : "text-gray-400 line-through"}`}>
+                        {l.nome} · {formatBRL(Number(l.valor))}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {l.quantidade_maxima != null
+                          ? `${l.vendidos}/${l.quantidade_maxima} vendidos${esgotado ? " · esgotado" : ""}`
+                          : `${l.vendidos} vendidos · sem limite`}
+                        {l.data_fim && ` · até ${new Date(l.data_fim).toLocaleDateString("pt-BR")}`}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => alternar(l.id, !l.ativo)}
+                      disabled={pending}
+                      title={l.ativo ? "Desativar" : "Ativar"}
+                      className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                    >
+                      {l.ativo ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => excluir(l.id)}
+                      disabled={pending}
+                      className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           )}
-          {erro && <p className="mt-1 text-xs text-red-600">{erro}</p>}
-          <div className="mt-3 flex gap-2">
+
+          <AvisoCobertura cobertura={analisarCobertura(grupo.lotes, inscricoesFim)} />
+
+          {!adding ? (
             <button
               type="button"
-              onClick={adicionar}
-              disabled={pending}
-              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+              onClick={() => setAdding(true)}
+              className="mt-3 flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
             >
-              {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
-              Criar lote
+              <Plus className="size-4" /> Adicionar lote
             </button>
-            <button
-              type="button"
-              onClick={() => { setAdding(false); limparForm(); setErro(null); }}
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
+          ) : (
+            <div className="mt-3 rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-gray-500">Nome do lote</label>
+                  <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="1º Lote" className={input} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500">Valor (R$)</label>
+                  <input value={valor} onChange={(e) => setValor(e.target.value)} inputMode="numeric" placeholder="50" className={input} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500">Limite de unidades</label>
+                  <input value={quantidadeMaxima} onChange={(e) => setQuantidadeMaxima(e.target.value)} inputMode="numeric" placeholder="Ex: 50" className={input} />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-gray-500">Vale até</label>
+                  <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className={input} />
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-gray-400">Preencha data de término ou limite de unidades (pelo menos um dos dois).</p>
+              {mostrarAplicarTodas && (
+                <label className="mt-2 flex items-center gap-1.5 text-xs text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={aplicarTodasLote}
+                    onChange={(e) => setAplicarTodasLote(e.target.checked)}
+                    className="size-3.5 rounded"
+                  />
+                  Aplicar esse lote a todas as categorias
+                </label>
+              )}
+              {erro && <p className="mt-1 text-xs text-red-600">{erro}</p>}
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={adicionar}
+                  disabled={pending}
+                  className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
+                  Criar lote
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAdding(false); limparForm(); setErro(null); }}
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 }
 
-function NovaCategoriaCard({ champId }: { champId: string }) {
+function SectionHeader({
+  icon: Icon,
+  titulo,
+  aberto,
+  onToggle,
+  addLabel,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  titulo: string;
+  aberto: boolean;
+  onToggle: () => void;
+  addLabel: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-500">
+        <Icon className="size-4" /> {titulo}
+      </div>
+      <button
+        type="button"
+        onClick={onToggle}
+        className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
+          aberto ? "bg-gray-100 text-gray-600" : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+        }`}
+      >
+        {aberto ? <X className="size-3.5" /> : <Plus className="size-3.5" />}
+        {aberto ? "Cancelar" : addLabel}
+      </button>
+    </div>
+  );
+}
+
+function CategoriaForm({ champId, onDone }: { champId: string; onDone: () => void }) {
   const router = useRouter();
-  const [adding, setAdding] = useState(false);
   const [pending, startTransition] = useTransition();
   const [nome, setNome] = useState("");
   const [genero, setGenero] = useState<GeneroCategoria>("mista");
@@ -380,21 +430,9 @@ function NovaCategoriaCard({ champId }: { champId: string }) {
     startTransition(async () => {
       const res = await criarCategoria(champId, nome, genero, Number(valor.replace(",", ".")) || 0);
       if (!res.ok) { setErro(res.error ?? "Erro ao criar."); return; }
-      setNome(""); setValor(""); setGenero("mista"); setAdding(false);
+      onDone();
       router.refresh();
     });
-  }
-
-  if (!adding) {
-    return (
-      <button
-        type="button"
-        onClick={() => setAdding(true)}
-        className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-gray-300 py-3 text-sm font-medium text-gray-500 hover:border-blue-300 hover:text-blue-600"
-      >
-        <Plus className="size-4" /> Adicionar categoria
-      </button>
-    );
   }
 
   return (
@@ -430,7 +468,7 @@ function NovaCategoriaCard({ champId }: { champId: string }) {
         </button>
         <button
           type="button"
-          onClick={() => { setAdding(false); setErro(null); }}
+          onClick={onDone}
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100"
         >
           Cancelar
@@ -440,9 +478,8 @@ function NovaCategoriaCard({ champId }: { champId: string }) {
   );
 }
 
-function NovoTipoPlateiaCard({ champId }: { champId: string }) {
+function TipoPlateiaForm({ champId, onDone }: { champId: string; onDone: () => void }) {
   const router = useRouter();
-  const [adding, setAdding] = useState(false);
   const [pending, startTransition] = useTransition();
   const [nome, setNome] = useState("");
   const [valor, setValor] = useState("");
@@ -458,21 +495,9 @@ function NovoTipoPlateiaCard({ champId }: { champId: string }) {
     startTransition(async () => {
       const res = await criarTipoIngresso(champId, nomeClean, Number(valor.replace(",", ".")) || 0);
       if (!res.ok) { setErro(res.error ?? "Erro ao criar."); return; }
-      setNome(""); setValor(""); setAdding(false);
+      onDone();
       router.refresh();
     });
-  }
-
-  if (!adding) {
-    return (
-      <button
-        type="button"
-        onClick={() => setAdding(true)}
-        className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-gray-300 py-3 text-sm font-medium text-gray-500 hover:border-blue-300 hover:text-blue-600"
-      >
-        <Plus className="size-4" /> Adicionar tipo de ingresso
-      </button>
-    );
   }
 
   return (
@@ -500,7 +525,7 @@ function NovoTipoPlateiaCard({ champId }: { champId: string }) {
         </button>
         <button
           type="button"
-          onClick={() => { setAdding(false); setErro(null); }}
+          onClick={onDone}
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100"
         >
           Cancelar
@@ -523,6 +548,9 @@ export function LotesManager({
   const tipos      = grupos.filter((g) => g.entidade === "ticket_type");
   const multiplasCategorias = categorias.length > 1;
 
+  const [addingCategoria, setAddingCategoria] = useState(false);
+  const [addingTipo, setAddingTipo] = useState(false);
+
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs text-blue-700 ring-1 ring-blue-100">
@@ -534,9 +562,16 @@ export function LotesManager({
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-500">
-          <Users className="size-4" /> Categorias de atleta
-        </div>
+        <SectionHeader
+          icon={Users}
+          titulo="Categorias de atleta"
+          aberto={addingCategoria}
+          onToggle={() => setAddingCategoria((v) => !v)}
+          addLabel="Adicionar categoria"
+        />
+        {addingCategoria && (
+          <CategoriaForm champId={champId} onDone={() => setAddingCategoria(false)} />
+        )}
         {categorias.map((g) => (
           <LoteGroupCard
             key={`${g.entidade}-${g.entidadeId}`}
@@ -546,13 +581,19 @@ export function LotesManager({
             inscricoesFim={inscricoesFim}
           />
         ))}
-        <NovaCategoriaCard champId={champId} />
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-500">
-          <Ticket className="size-4" /> Ingressos de plateia
-        </div>
+        <SectionHeader
+          icon={Ticket}
+          titulo="Ingressos de plateia"
+          aberto={addingTipo}
+          onToggle={() => setAddingTipo((v) => !v)}
+          addLabel="Adicionar ingresso"
+        />
+        {addingTipo && (
+          <TipoPlateiaForm champId={champId} onDone={() => setAddingTipo(false)} />
+        )}
         {tipos.map((g) => (
           <LoteGroupCard
             key={`${g.entidade}-${g.entidadeId}`}
@@ -562,7 +603,6 @@ export function LotesManager({
             inscricoesFim={inscricoesFim}
           />
         ))}
-        <NovoTipoPlateiaCard champId={champId} />
       </div>
     </div>
   );

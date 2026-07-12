@@ -6,6 +6,7 @@ import { criarOuBuscarCliente, criarCobranca } from "@/lib/asaas";
 import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
 import { buscarCupomValido } from "@/lib/cupons";
 import { resolverPrecos, resolverEClaimarLote } from "@/lib/lotes";
+import { gerarTicketAccessToken } from "@/lib/ticket-access";
 
 export type ComprarState = { error?: string };
 
@@ -158,6 +159,7 @@ export async function comprarIngresso(
   // continuou pago, o CPF já foi validado acima.
 
   const code = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const accessToken = gerarTicketAccessToken();
 
   const { data: ticket, error: insErr } = await supabase
     .from("spectator_tickets")
@@ -175,6 +177,7 @@ export async function comprarIngresso(
       status_pagamento: isGratis ? "pago" : "pendente",
       billing_type:     isGratis ? null : "PIX",
       code,
+      access_token:     accessToken,
     })
     .select("id")
     .single();
@@ -186,7 +189,7 @@ export async function comprarIngresso(
   }
 
   if (isGratis) {
-    redirect(`/campeonatos/${championshipId}/plateia/ingresso/${ticket.id}`);
+    redirect(`/campeonatos/${championshipId}/plateia/ingresso/${ticket.id}?token=${accessToken}`);
   }
 
   try {
@@ -217,5 +220,5 @@ export async function comprarIngresso(
     return { error: `Erro ao gerar o Pix: ${msg}` };
   }
 
-  redirect(`/campeonatos/${championshipId}/plateia/ingresso/${ticket.id}`);
+  redirect(`/campeonatos/${championshipId}/plateia/ingresso/${ticket.id}?token=${accessToken}`);
 }

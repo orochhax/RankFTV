@@ -6,7 +6,7 @@ import { ativarOrganizador } from "@/app/perfil/ativar-organizador/actions";
 
 const initialState = { error: undefined as string | undefined };
 
-export function AtivarOrganizadorForm() {
+export function AtivarOrganizadorForm({ destino }: { destino: string }) {
   const [state, action, pending] = useActionState(
     async (_prev: typeof initialState, formData: FormData) => {
       const result = await ativarOrganizador(formData);
@@ -17,6 +17,37 @@ export function AtivarOrganizadorForm() {
 
   return (
     <form action={action} className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
+      <input type="hidden" name="destino" value={destino} />
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          CPF ou CNPJ
+        </label>
+        <input
+          name="cpf_cnpj"
+          type="text"
+          inputMode="numeric"
+          placeholder="Só números"
+          required
+          className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Data de nascimento
+        </label>
+        <input
+          name="data_nascimento"
+          type="date"
+          required
+          className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <p className="mt-1 text-xs text-gray-400">
+          No CNPJ, use a data de nascimento do responsável.
+        </p>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700">
           Celular (com DDD)
@@ -28,22 +59,6 @@ export function AtivarOrganizadorForm() {
           required
           className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Chave Pix para receber os repasses
-        </label>
-        <input
-          name="chave_pix"
-          type="text"
-          placeholder="CPF, celular, e-mail ou chave aleatória"
-          required
-          className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <p className="mt-1 text-xs text-gray-400">
-          É para cá que vamos transferir sua parte de cada inscrição paga.
-        </p>
       </div>
 
       {state.error && (

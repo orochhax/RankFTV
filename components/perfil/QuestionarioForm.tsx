@@ -23,7 +23,7 @@ export function QuestionarioForm() {
         </legend>
         <p className="text-xs text-gray-500">
           Usamos isso para validar as categorias dos campeonatos (masculina,
-          feminina ou mista). Quem escolher "Outro" pode se inscrever em qualquer
+          feminina ou mista). Quem escolher &quot;Outro&quot; pode se inscrever em qualquer
           categoria.
         </p>
         <div className="space-y-2">

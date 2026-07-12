@@ -8,6 +8,7 @@ import { formatBRL } from "@/lib/format";
 
 type Props = {
   ticketId: string;
+  accessToken: string;
   initialStatusPagamento: string; // "pendente" | "pago" | "estornado"
   initialCheckedIn: boolean;
   initialEntradaQr: string | null; // já gerado no servidor se pago no load
@@ -24,6 +25,7 @@ type Props = {
 // confirmado — sem precisar dar refresh na página.
 export function IngressoPlateiaStatus({
   ticketId,
+  accessToken,
   initialStatusPagamento,
   initialCheckedIn,
   initialEntradaQr,
@@ -49,7 +51,7 @@ export function IngressoPlateiaStatus({
     async function check() {
       if (stoppedRef.current) return;
       try {
-        const res = await fetch(`/api/ticket-status?tipo=plateia&id=${ticketId}`, { cache: "no-store" });
+        const res = await fetch(`/api/ticket-status?tipo=plateia&id=${ticketId}&token=${accessToken}`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           if (data.status_pagamento === "pago") {
@@ -77,7 +79,7 @@ export function IngressoPlateiaStatus({
     const maxTimer = setTimeout(() => { stoppedRef.current = true; clearTimeout(timer); }, 20 * 60 * 1000);
 
     return () => { stoppedRef.current = true; clearTimeout(timer); clearTimeout(maxTimer); };
-  }, [pago, ticketId, qrToken]);
+  }, [pago, ticketId, accessToken, qrToken]);
 
   if (pago) {
     return (

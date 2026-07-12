@@ -29,17 +29,17 @@ export default async function MinhasComprasPage() {
     const [ath1, ath2, plateia] = await Promise.all([
       admin
         .from("athlete_tickets")
-        .select("id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, qr_token, checked_in, championships(nome)")
+        .select("id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)")
         .eq("comprador_email", email)
         .order("created_at", { ascending: false }),
       admin
         .from("athlete_tickets")
-        .select("id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, qr_token, checked_in, championships(nome)")
+        .select("id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)")
         .eq("parceiro_email", email)
         .order("created_at", { ascending: false }),
       admin
         .from("spectator_tickets")
-        .select("id, championship_id, tipo_nome, comprador_nome, valor, status_pagamento, code, qr_token, checked_in, championships(nome)")
+        .select("id, championship_id, tipo_nome, comprador_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)")
         .eq("comprador_email", email)
         .order("created_at", { ascending: false }),
     ]);
@@ -53,14 +53,14 @@ export default async function MinhasComprasPage() {
         campeonato_nome: champNome(r as Row), categoria_nome: r.categoria_nome ?? null,
         tipo_nome: null, comprador_nome: r.comprador_nome, parceiro_nome: r.parceiro_nome ?? null,
         valor: Number(r.valor), status_pagamento: r.status_pagamento, code: r.code ?? null,
-        qr_token: r.qr_token ?? null, checked_in: r.checked_in, id: r.id,
+        access_token: r.access_token ?? null, checked_in: r.checked_in, id: r.id,
       })),
       ...(ath2.data ?? []).map((r) => ({
         tipo: "atleta" as const, ticket_id: r.id, championship_id: r.championship_id,
         campeonato_nome: champNome(r as Row), categoria_nome: r.categoria_nome ?? null,
         tipo_nome: null, comprador_nome: r.comprador_nome, parceiro_nome: r.parceiro_nome ?? null,
         valor: Number(r.valor), status_pagamento: r.status_pagamento, code: r.code ?? null,
-        qr_token: r.qr_token ?? null, checked_in: r.checked_in, id: r.id,
+        access_token: r.access_token ?? null, checked_in: r.checked_in, id: r.id,
       })),
     ];
 
@@ -68,7 +68,7 @@ export default async function MinhasComprasPage() {
       tipo: "plateia" as const, ticket_id: r.id, championship_id: r.championship_id,
       campeonato_nome: champNome(r as Row), categoria_nome: null, tipo_nome: r.tipo_nome ?? null,
       comprador_nome: r.comprador_nome, parceiro_nome: null, valor: Number(r.valor),
-      status_pagamento: r.status_pagamento, code: r.code ?? null, qr_token: r.qr_token ?? null,
+      status_pagamento: r.status_pagamento, code: r.code ?? null, access_token: r.access_token ?? null,
       checked_in: r.checked_in, id: r.id,
     }));
 

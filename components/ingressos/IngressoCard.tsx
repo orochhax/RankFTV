@@ -10,7 +10,7 @@ export type Ingresso = {
   valor:            number;
   status_pagamento: string;
   code:             string | null;
-  qr_token:         string | null;
+  access_token:     string | null;
   checked_in:       boolean;
   comprador_nome:   string;
   parceiro_nome?:   string | null;
@@ -31,7 +31,11 @@ export function IngressoCard({
   const estornado  = ing.status_pagamento === "estornado";
   const isAtleta   = ing.tipo === "atleta";
 
-  const href = `/campeonatos/${ing.championship_id}/${isAtleta ? "comprar" : "plateia"}/ingresso/${ing.ticket_id}${origem ? `?voltar=${origem}` : ""}`;
+  const params = new URLSearchParams();
+  if (ing.access_token) params.set("token", ing.access_token);
+  if (origem) params.set("voltar", origem);
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const href = `/campeonatos/${ing.championship_id}/${isAtleta ? "comprar" : "plateia"}/ingresso/${ing.ticket_id}${suffix}`;
 
   return (
     <Link

@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Avatar } from "@/components/ui/Avatar";
 import { IngressoAtletaPagamento } from "@/components/campeonatos/IngressoAtletaPagamento";
 import { IngressoOpcoesMenu } from "@/components/ingressos/IngressoOpcoesMenu";
+import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 
 const AVATAR_COLORS = ["bg-blue-500", "bg-blue-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
 function avatarColor(str: string) {
@@ -27,10 +28,12 @@ export default async function IngressoAtletaPage({
   searchParams,
 }: {
   params: Promise<{ id: string; ticketId: string }>;
-  searchParams: Promise<{ voltar?: string }>;
+  searchParams: Promise<{ voltar?: string; token?: string }>;
 }) {
   const { id: champId, ticketId } = await params;
-  const { voltar } = await searchParams;
+  const { voltar, token } = await searchParams;
+  const accessToken = normalizarTicketAccessToken(token);
+  if (!accessToken) notFound();
   const backHref  = voltar === "minhas-compras" ? "/minhas-compras" : `/campeonatos/${champId}`;
 
   const supabase = createAdminClient();
@@ -40,6 +43,7 @@ export default async function IngressoAtletaPage({
       "id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in",
     )
     .eq("id", ticketId)
+    .eq("access_token", accessToken)
     .maybeSingle();
   if (!t) notFound();
 
@@ -87,6 +91,7 @@ export default async function IngressoAtletaPage({
               <IngressoOpcoesMenu
                 tipo="atleta"
                 ticketId={t.id}
+                accessToken={accessToken}
                 dadosAtuais={{
                   compradorNome:   t.comprador_nome,
                   compradorCpf:    t.comprador_cpf,
@@ -139,6 +144,7 @@ export default async function IngressoAtletaPage({
         <div className="mx-auto max-w-lg space-y-6">
           <IngressoAtletaPagamento
             ticketId={t.id}
+            accessToken={accessToken}
             isElite={!!champ?.is_elite}
             initialStatusPagamento={t.status_pagamento}
             initialCheckedIn={t.checked_in}

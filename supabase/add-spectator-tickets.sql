@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS spectator_tickets (
   pix_qr_code_base64    text,
   invoice_url           text,
   qr_token              text NOT NULL DEFAULT (gen_random_uuid())::text,
+  access_token          text NOT NULL DEFAULT (gen_random_uuid())::text,
   code                  text,                         -- código curto pra digitar na portaria
   checked_in            boolean NOT NULL DEFAULT false,
   checkin_at            timestamptz,
@@ -55,6 +56,8 @@ CREATE TABLE IF NOT EXISTS spectator_tickets (
 );
 
 CREATE INDEX IF NOT EXISTS idx_spectator_tickets_champ ON spectator_tickets(championship_id);
+CREATE UNIQUE INDEX IF NOT EXISTS spectator_tickets_access_token_unique
+  ON spectator_tickets(access_token);
 
 ALTER TABLE spectator_tickets DROP CONSTRAINT IF EXISTS spectator_tickets_status_pagamento_check;
 ALTER TABLE spectator_tickets

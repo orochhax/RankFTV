@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { criarOuBuscarCliente, reembolsarPagamento } from "@/lib/asaas";
 import { calcularTotalComprador } from "@/lib/taxas";
+import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 
 export type CardPaymentInput = {
   ticketId:    string;
+  accessToken: string;
   tipo:        "credito" | "debito";
   numero:      string;
   nomeTitular: string;
@@ -28,11 +30,14 @@ export async function pagarIngressoAtletaComCartao(
   input: CardPaymentInput,
 ): Promise<CardPaymentResult> {
   const admin = createAdminClient();
+  const accessToken = normalizarTicketAccessToken(input.accessToken);
+  if (!accessToken) return { ok: false, error: "Link do ingresso invalido." };
 
   const { data: ticket } = await admin
     .from("athlete_tickets")
     .select("id, championship_id, comprador_nome, comprador_cpf, comprador_email, valor, status_pagamento")
     .eq("id", input.ticketId)
+    .eq("access_token", accessToken)
     .maybeSingle();
 
   if (!ticket) return { ok: false, error: "Ingresso não encontrado." };
@@ -124,7 +129,9 @@ export async function pagarIngressoAtletaComCartao(
       status_pagamento: pago ? "pago" : "pendente",
       invoice_url:      pagamento.invoiceUrl ?? null,
       billing_type:     billingType,
-    }).eq("id", input.ticketId);
+    })
+      .eq("id", input.ticketId)
+      .eq("access_token", accessToken);
 
     return { ok: true, pago };
   } catch (e) {
@@ -140,6 +147,7 @@ export async function pagarIngressoAtletaComCartao(
 
 export type TitularidadeAtletaInput = {
   ticketId:       string;
+  accessToken:    string;
   compradorNome:  string;
   compradorCpf:   string;
   compradorEmail: string;
@@ -156,11 +164,14 @@ export async function alterarTitularidadeAtleta(
   input: TitularidadeAtletaInput,
 ): Promise<{ ok: boolean; error?: string }> {
   const admin = createAdminClient();
+  const accessToken = normalizarTicketAccessToken(input.accessToken);
+  if (!accessToken) return { ok: false, error: "Link do ingresso invalido." };
 
   const { data: ticket } = await admin
     .from("athlete_tickets")
     .select("id, championship_id, category_id, status_pagamento")
     .eq("id", input.ticketId)
+    .eq("access_token", accessToken)
     .maybeSingle();
 
   if (!ticket) return { ok: false, error: "Ingresso não encontrado." };
@@ -221,7 +232,8 @@ export async function alterarTitularidadeAtleta(
       parceiro_zap:     parceiroZap,
       parceiro_genero:  parceiroGenero,
     })
-    .eq("id", input.ticketId);
+    .eq("id", input.ticketId)
+    .eq("access_token", accessToken);
 
   if (error) return { ok: false, error: "Erro ao salvar. Tente de novo." };
 
@@ -235,13 +247,17 @@ export async function alterarTitularidadeAtleta(
 // total até 7 dias da compra, parcial (sem a taxa de serviço) depois disso.
 export async function cancelarIngressoAtleta(
   ticketId: string,
+  accessTokenRaw: string,
 ): Promise<{ ok: boolean; error?: string }> {
   const admin = createAdminClient();
+  const accessToken = normalizarTicketAccessToken(accessTokenRaw);
+  if (!accessToken) return { ok: false, error: "Link do ingresso invalido." };
 
   const { data: ticket } = await admin
     .from("athlete_tickets")
     .select("id, championship_id, valor, status_pagamento, asaas_payment_id, created_at")
     .eq("id", ticketId)
+    .eq("access_token", accessToken)
     .maybeSingle();
 
   if (!ticket) return { ok: false, error: "Ingresso não encontrado." };
@@ -256,6 +272,7 @@ export async function cancelarIngressoAtleta(
       .from("athlete_tickets")
       .update({ status_pagamento: "estornado" })
       .eq("id", ticketId)
+      .eq("access_token", accessToken)
       .eq("status_pagamento", "pendente");
     revalidatePath(path);
     return { ok: true };
@@ -267,6 +284,7 @@ export async function cancelarIngressoAtleta(
       .from("athlete_tickets")
       .update({ status_pagamento: "estornado" })
       .eq("id", ticketId)
+      .eq("access_token", accessToken)
       .eq("status_pagamento", "pago")
       .select("id");
     if (!claimed || claimed.length === 0) return { ok: false, error: "Esse cancelamento já foi solicitado." };
@@ -284,6 +302,7 @@ export async function cancelarIngressoAtleta(
     .from("athlete_tickets")
     .update({ status_pagamento: "estornado" })
     .eq("id", ticketId)
+    .eq("access_token", accessToken)
     .eq("status_pagamento", "pago")
     .select("id");
 
@@ -292,7 +311,7 @@ export async function cancelarIngressoAtleta(
   try {
     await reembolsarPagamento(ticket.asaas_payment_id, valorParcial);
   } catch (err) {
-    await admin.from("athlete_tickets").update({ status_pagamento: "pago" }).eq("id", ticketId);
+    await admin.from("athlete_tickets").update({ status_pagamento: "pago" }).eq("id", ticketId).eq("access_token", accessToken);
     const msg = err instanceof Error ? err.message : "Erro desconhecido";
     return { ok: false, error: `Erro ao processar o estorno: ${msg}` };
   }

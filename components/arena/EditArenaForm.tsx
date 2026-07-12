@@ -51,7 +51,7 @@ export function EditArenaForm({
     setUploadingAvatar(true);
     setError(null);
     const ext  = file.name.split(".").pop() ?? "jpg";
-    const path = `${arenaId}/avatar.${ext}`;
+    const path = `${arenaId}/avatar-${crypto.randomUUID()}.${ext}`;
 
     const { error: upErr } = await supabase.storage
       .from("arenas")
@@ -63,7 +63,7 @@ export function EditArenaForm({
       return;
     }
     const { data } = supabase.storage.from("arenas").getPublicUrl(path);
-    setAvatarUrl(data.publicUrl + "?t=" + Date.now());
+    setAvatarUrl(data.publicUrl);
     setUploadingAvatar(false);
   }
 
@@ -71,7 +71,7 @@ export function EditArenaForm({
     setUploadingPhoto(true);
     setError(null);
     const ext  = file.name.split(".").pop() ?? "jpg";
-    const name = `${Date.now()}.${ext}`;
+    const name = `${crypto.randomUUID()}.${ext}`;
     const path = `${arenaId}/photos/${name}`;
 
     const { error: upErr } = await supabase.storage

@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
-// Consulta pública de ingressos por CPF + e-mail.
-// Usa service_role pra bypassar RLS (visitante sem conta) mas filtra
-// rigorosamente por CPF+email — não expõe dados de terceiros.
+// Consulta publica de ingressos por CPF + e-mail.
+// Usa service_role porque visitante nao tem conta, mas filtra por CPF+email e
+// nao devolve qr_token. O QR completo so aparece na pagina privada com token.
 export async function GET(req: NextRequest) {
-  // Rate limit: a resposta inclui o qr_token (credencial de check-in). Sem
-  // limite, dava pra brute-forçar CPFs com um e-mail conhecido e roubar o QR.
-  // Máx. 15 consultas por IP a cada 60s.
   const ip = getClientIp(req.headers);
   const allowed = await checkRateLimit(`ingressos:${ip}`, 15, 60);
   if (!allowed) {
@@ -19,43 +16,45 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = req.nextUrl;
-  const cpf   = (searchParams.get("cpf") ?? "").replace(/\D/g, "");
+  const cpf = (searchParams.get("cpf") ?? "").replace(/\D/g, "");
   const email = (searchParams.get("email") ?? "").trim().toLowerCase();
 
   if (cpf.length !== 11 || !email.includes("@")) {
-    return NextResponse.json({ error: "Parâmetros inválidos." }, { status: 400 });
+    return NextResponse.json({ error: "Parametros invalidos." }, { status: 400 });
   }
 
   const supabase = createAdminClient();
 
-  // Busca em athlete_tickets — comprador OU parceiro
   const [ath1, ath2, plateia] = await Promise.all([
     supabase
       .from("athlete_tickets")
       .select(
-        "id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, qr_token, checked_in, championships(nome)",
+        "id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)",
       )
-      .eq("comprador_cpf",   cpf)
+      .eq("comprador_cpf", cpf)
       .eq("comprador_email", email)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(50),
 
     supabase
       .from("athlete_tickets")
       .select(
-        "id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, qr_token, checked_in, championships(nome)",
+        "id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)",
       )
-      .eq("parceiro_cpf",   cpf)
+      .eq("parceiro_cpf", cpf)
       .eq("parceiro_email", email)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(50),
 
     supabase
       .from("spectator_tickets")
       .select(
-        "id, championship_id, tipo_nome, comprador_nome, valor, status_pagamento, code, qr_token, checked_in, championships(nome)",
+        "id, championship_id, tipo_nome, comprador_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)",
       )
-      .eq("comprador_cpf",   cpf)
+      .eq("comprador_cpf", cpf)
       .eq("comprador_email", email)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(50),
   ]);
 
   type Row = { id: string; championship_id: string; championships: unknown; [k: string]: unknown };
@@ -66,54 +65,53 @@ export async function GET(req: NextRequest) {
 
   const atleta = [
     ...(ath1.data ?? []).map((r) => ({
-      tipo:             "atleta" as const,
-      ticket_id:        r.id,
-      championship_id:  r.championship_id,
-      campeonato_nome:  champNome(r as Row),
-      categoria_nome:   r.categoria_nome ?? null,
-      tipo_nome:        null,
-      comprador_nome:   r.comprador_nome,
-      parceiro_nome:    r.parceiro_nome ?? null,
-      valor:            Number(r.valor),
+      tipo: "atleta" as const,
+      ticket_id: r.id,
+      championship_id: r.championship_id,
+      campeonato_nome: champNome(r as Row),
+      categoria_nome: r.categoria_nome ?? null,
+      tipo_nome: null,
+      comprador_nome: r.comprador_nome,
+      parceiro_nome: r.parceiro_nome ?? null,
+      valor: Number(r.valor),
       status_pagamento: r.status_pagamento,
-      code:             r.code ?? null,
-      qr_token:         r.qr_token ?? null,
-      checked_in:       r.checked_in,
+      code: r.code ?? null,
+      access_token: r.access_token ?? null,
+      checked_in: r.checked_in,
     })),
     ...(ath2.data ?? []).map((r) => ({
-      tipo:             "atleta" as const,
-      ticket_id:        r.id,
-      championship_id:  r.championship_id,
-      campeonato_nome:  champNome(r as Row),
-      categoria_nome:   r.categoria_nome ?? null,
-      tipo_nome:        null,
-      comprador_nome:   r.comprador_nome,
-      parceiro_nome:    r.parceiro_nome ?? null,
-      valor:            Number(r.valor),
+      tipo: "atleta" as const,
+      ticket_id: r.id,
+      championship_id: r.championship_id,
+      campeonato_nome: champNome(r as Row),
+      categoria_nome: r.categoria_nome ?? null,
+      tipo_nome: null,
+      comprador_nome: r.comprador_nome,
+      parceiro_nome: r.parceiro_nome ?? null,
+      valor: Number(r.valor),
       status_pagamento: r.status_pagamento,
-      code:             r.code ?? null,
-      qr_token:         r.qr_token ?? null,
-      checked_in:       r.checked_in,
+      code: r.code ?? null,
+      access_token: r.access_token ?? null,
+      checked_in: r.checked_in,
     })),
   ];
 
   const plateiaList = (plateia.data ?? []).map((r) => ({
-    tipo:             "plateia" as const,
-    ticket_id:        r.id,
-    championship_id:  r.championship_id,
-    campeonato_nome:  champNome(r as Row),
-    categoria_nome:   null,
-    tipo_nome:        r.tipo_nome ?? null,
-    comprador_nome:   r.comprador_nome,
-    parceiro_nome:    null,
-    valor:            Number(r.valor),
+    tipo: "plateia" as const,
+    ticket_id: r.id,
+    championship_id: r.championship_id,
+    campeonato_nome: champNome(r as Row),
+    categoria_nome: null,
+    tipo_nome: r.tipo_nome ?? null,
+    comprador_nome: r.comprador_nome,
+    parceiro_nome: null,
+    valor: Number(r.valor),
     status_pagamento: r.status_pagamento,
-    code:             r.code ?? null,
-    qr_token:         r.qr_token ?? null,
-    checked_in:       r.checked_in,
+    code: r.code ?? null,
+    access_token: r.access_token ?? null,
+    checked_in: r.checked_in,
   }));
 
-  // Deduplica (mesmo atleta como comprador e parceiro no mesmo ticket não deve aparecer 2x)
   const seen = new Set<string>();
   const ingressos = [...atleta, ...plateiaList].filter((i) => {
     const key = `${i.tipo}-${i.ticket_id}`;

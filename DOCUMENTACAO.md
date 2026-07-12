@@ -36,6 +36,14 @@ Uma **taxa por inscrição paga**, descontada do repasse ao organizador (o atlet
 
 **Detalhes não óbvios de infra** (chaves novas do Supabase, `proxy.ts` no lugar de `middleware.ts`, grants do `service_role`) estão na memória do projeto, não aqui.
 
+### SQLs de segurança/performance aplicados
+Aplicados em produção em **2026-07-12**:
+- [supabase/fix-security-staff-and-ticket-access.sql](supabase/fix-security-staff-and-ticket-access.sql) — liga RLS em `championship_staff`, adiciona `access_token` nos ingressos de visitante e remove `cpf`/`telefone` antigos de `profiles`.
+- [supabase/add-rate-limits.sql](supabase/add-rate-limits.sql) — cria `rate_limits` + função `check_rate_limit` para endpoints públicos com CPF/e-mail.
+- [supabase/add-performance-indexes.sql](supabase/add-performance-indexes.sql) — adiciona índices para Home/listagens, busca de ingressos e badge de notificações.
+
+O código assume esses SQLs aplicados: ingressos públicos exigem `access_token` e o rate limit falha fechado se a função não existir.
+
 ### Variáveis de ambiente principais (`.env.local` + Vercel)
 - `NEXT_PUBLIC_SUPABASE_URL`, anon key, `SUPABASE_SERVICE_ROLE_KEY` (`sb_secret_…`)
 - `ASAAS_BASE_URL`, `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN`
@@ -102,18 +110,20 @@ PÚBLICO / ATLETA            PAINEL (organizador)        STAFF              ADMI
 
 > Toda referência interna usa o **`id`** (uuid), nunca o `@username` (que pode mudar no futuro).
 
-- **profiles** — `id`, `nome`, `username` (@handle único), `bio`, `foto_url`, `rating`, `genero` (`masculino`/`feminino`), `questionario` (jsonb das 5 perguntas), `tamanho_camisa`. *Dados públicos.*
+- **profiles** — `id`, `nome`, `username` (@handle único), `bio`, `foto_url`, `rating`, `genero` (`masculino`/`feminino`/`outro`, coletado obrigatoriamente no cadastro), `questionario` (jsonb das 5 perguntas), `tamanho_camisa`. *Dados públicos.*
 - **profiles_private** — `user_id`, `cpf`, `telefone`. *RLS estrita: só o dono lê (`user_id = auth.uid()`).*
-- **organizer_accounts** — `user_id`, `cpf_cnpj`, `chave_pix`, `habilitado`. Existe quando o usuário ativa o modo organizador.
+- **organizer_accounts** — `user_id`, `cpf_cnpj`, `data_nascimento`, `telefone`, `chave_pix` (nullable — só preenchido na hora de publicar campeonato pago), `habilitado`. Criada em `/perfil/ativar-organizador` (CPF/CNPJ + nascimento + telefone, sem Pix); `habilitado = true` é o que libera `/painel/novo-campeonato`.
 - **championships** — `id`, `organizador_id`, `nome`, `descricao`, `regulamento`, datas (`data_inicio/fim`, `prevenda_*`, `inscricoes_*`), `cidade`, `estado`, `local`, `status`, `taxa_plataforma`, `banner_url`, `live_url`, `tier` + `tier_quiz`, **`is_elite`** + **`premium_fee_pendente`**, `page_id`, **`usa_motor_categoria`** (liga/desliga a recomendação de categoria por questionário — ligado por padrão).
 - **championship_categories** — `id`, `championship_id`, `nome`, `genero` (`masculino`/`feminino`/`mista`), `valor_inscricao`, `corte_rating_min/max`, `max_duplas`.
 - **pricing_tiers** ([supabase/add-pricing-tiers.sql](supabase/add-pricing-tiers.sql)) — lotes de preço escalonado ("1º Lote R$50, 2º Lote R$70"). `id`, `category_id` OU `ticket_type_id` (exatamente um dos dois), `nome`, `valor`, `ordem` (menor = primeiro a valer), `quantidade_maxima`, `vendidos`, `data_fim`, `ativo`. O vigente é o de menor `ordem` que ainda não expirou por data nem esgotou por quantidade; reivindicação atômica via `claim_pricing_tier`/`release_pricing_tier`. Sem nenhum lote configurado, vale o valor de tabela normal — mas se os lotes esgotarem (todos), a categoria/ingresso fica **Esgotado**, não volta pro valor de tabela.
 - **coupons** ([supabase/add-coupons.sql](supabase/add-coupons.sql)) — cupom de desconto por campeonato. `id`, `championship_id`, `codigo`, `tipo_desconto` (`percentual`/`valor_fixo`), `valor_desconto`, `aplica_em` (`atleta`/`plateia`/`ambos`), `quantidade_maxima`, `usos_atuais`, `data_inicio/fim`, `ativo`. Desconto aplicado sobre o valor base antes da taxa da plataforma; reivindicação atômica via `claim_coupon_use`/`release_coupon_use`. Rastro de uso em `registrations.cupom_id` / `athlete_tickets.cupom_id` / `spectator_tickets.cupom_id`.
 - **teams** (duplas) — `id`, `championship_id`, `category_id`, `atleta1_id`, `atleta2_id`, `parceiro_username`, `status` (`convite_pendente`/`confirmado`/`cancelado`), `sandbagging_flag`, `rating_dupla`.
 - **registrations** (inscrições) — `id`, `team_id`, `championship_id`, `category_id`, `valor`, `status_pagamento` (`pendente`/`pago`/`estornado`), `billing_type`, `asaas_payment_id`, `pix_copy_paste`, `pix_qr_code_base64`, `invoice_url`, **repasse**: `repasse_status`, `repasse_data_prevista`, `repasse_transfer_id`, `repasse_erro`, `elite_fee_coletada`.
+- **athlete_tickets** — ingressos/inscrições de atleta sem conta. Guarda dados do comprador/parceiro, pagamento, lote/cupom, `qr_token` (credencial de entrada) e **`access_token`** (token privado do link). O `id` do ingresso sozinho não deve abrir dados sensíveis.
+- **spectator_tickets** — ingressos de plateia sem conta. Guarda comprador, itens/quantidade, pagamento, `qr_token` e **`access_token`**. Mesma regra: página pública exige `id + access_token`.
 - **credentials** — `id`, `user_id`, `championship_id`, `role`, `qr_token`, `checked_in`, `checkin_at`.
 - **bracket_matches** — chaveamento (confrontos, placar, vencedor) por categoria. *(Fase 2)*
-- **championship_staff** — `id`, `championship_id`, `user_id`, `invited_by`, `status` (`pendente`/`aceito`), permissões `can_qrcode`/`can_inscricoes`/`can_chaveamento`.
+- **championship_staff** — `id`, `championship_id`, `user_id`, `invited_by`, `status` (`pendente`/`aceito`), permissões `can_qrcode`/`can_inscricoes`/`can_chaveamento`. RLS ligada: staff vê/atualiza o próprio convite; dono do campeonato gerencia a equipe.
 - **pages** — "páginas" de circuito: `id`, `owner_id`, `nome`, `handle`, `descricao`, banner, `avatar_url`, `social_links`. Agrupam várias edições/etapas.
 - **page_followers** — quem segue cada página (notifica em nova edição).
 - **page_championship_invites** — convite pra vincular um campeonato como etapa de uma página.
@@ -122,6 +132,7 @@ PÚBLICO / ATLETA            PAINEL (organizador)        STAFF              ADMI
 - **shirt_production** — produção de camisas por tamanho.
 - **platform_config** (linha única `id=1`) — taxas Padrão e Premium, `atleta_credito_7a12_extra`, `destaques_ids` (3 campeonatos fixados na Home).
 - **rating_history** — evolução do rating ao longo do tempo. *(Fase 2)*
+- **rate_limits** — contador por chave/janela para endpoints públicos sensíveis. A aplicação chama `check_rate_limit` via `service_role`; se a função falhar, o código bloqueia a requisição.
 
 ---
 
@@ -132,6 +143,7 @@ PÚBLICO / ATLETA            PAINEL (organizador)        STAFF              ADMI
 - **Logado:** saudação. Usuário novo vê banner de onboarding → `/campeonatos`.
 - **Carrossel de destaques** (os 3 de `platform_config.destaques_ids`, ou os abertos mais recentes) → cada card abre `/campeonatos/[id]`.
 - **Seção "Ao vivo agora"** (campeonatos `em_andamento`) → `/campeonatos/[id]`.
+- Por segurança/performance, a listagem pública busca no máximo 200 campeonatos publicados e até 20 campeonatos ao vivo; os índices de `add-performance-indexes.sql` sustentam essas consultas em produção.
 - **Conexões:** → `/campeonatos`, `/campeonatos/[id]`, `/cadastro`, `/login`, `/notificacoes` (hambúrguer no mobile), `/perfil`.
 
 ### `/agenda` — Agenda ([app/agenda/page.tsx](app/agenda/page.tsx))
@@ -164,6 +176,17 @@ Fluxo central da Fase 1. O atleta:
 
 ### `/campeonatos/[id]/comprar` — Inscrição de atleta **sem conta** ([page](app/campeonatos/[id]/comprar/page.tsx) · [actions](app/campeonatos/[id]/comprar/actions.ts))
 Guest checkout (não exige login; cria só `athlete_tickets`, não usa `profiles`). Fluxo em **3 etapas com barra de progresso** ([IngressoAtletaForm](components/campeonatos/IngressoAtletaForm.tsx)): **Categoria** (clique só seleciona — mostra selo do lote vigente com data-limite se houver, e "Esgotado" se os lotes acabaram) → **Dados dos atletas** (os dois, com opção de trocar a categoria escolhida) → **Pagamento**. Preço sempre resolvido pelo lote vigente no servidor (`resolverEClaimarLote`), nunca confiando em valor vindo do cliente. Não passa pelo motor de categoria (é fluxo sem conta, sem rating salvo em lugar nenhum).
+- Ao criar o ingresso, o servidor gera `access_token` separado do `qr_token` e redireciona para `/campeonatos/[id]/comprar/ingresso/[ticketId]?token=...`. A página do ingresso, o polling de status, alteração de titularidade, cancelamento e pagamento por cartão exigem `id + access_token`.
+
+### `/campeonatos/[id]/plateia/ingresso/[ticketId]` e `/comprar/ingresso/[ticketId]`
+- Páginas privadas por link para visitante sem conta. Mostram Pix, QR de entrada, dados do comprador e opções do ingresso.
+- **Nunca** devem abrir apenas com `ticketId`: se `token` estiver ausente/inválido, retornam `notFound()`.
+- O `qr_token` continua sendo somente a credencial lida no check-in; o `access_token` é o segredo do link para ver/gerenciar o ingresso.
+
+### `/minhas-compras` e `/api/meus-ingressos`
+- Permite localizar ingressos de visitante por CPF + e-mail. A API usa `service_role`, mas devolve somente dados mínimos + `access_token` para montar o link privado; **não devolve `qr_token`, CPF completo extra nem Pix/QR de pagamento**.
+- Rate limit: `15` consultas por minuto por IP (`check_rate_limit`). A rota falha fechada se o rate limiter não estiver disponível.
+- Cada busca retorna no máximo 50 ingressos por origem (comprador atleta, parceiro atleta, plateia), ordenados por mais recentes.
 
 ### `/campeonatos/[id]/pagamento/[registrationId]` — Pagamento ([page](app/campeonatos/[id]/pagamento/[registrationId]/page.tsx) · [actions](app/campeonatos/[id]/pagamento/[registrationId]/actions.ts))
 - Mostra **QR Code Pix + copia-e-cola** (gerados na inscrição) ou formulário de **cartão** ([PaymentUI](components/pagamento/PaymentUI.tsx) / `pagarComCartao`).
@@ -199,7 +222,7 @@ Abaixo:
   - `/perfil/questionario-nivel` — as **5 perguntas de nível do atleta** ([PERGUNTAS_NIVEL](lib/motor-categoria.ts)) → calcula e salva `rating`. Aceita `?redirect=` pra voltar pro fluxo de onde veio (normalmente a inscrição de um campeonato) depois de responder. Só é exigido na hora de inscrever quando o campeonato tem `usa_motor_categoria` ligado e o atleta ainda não respondeu — ver seção 9.
   - `/perfil/editar` — nome, bio, foto.
   - `/perfil/conta` — e-mail (leitura), telefone/CPF (em `profiles_private`), trocar senha.
-  - `/perfil/ativar-organizador` — CPF/CNPJ + telefone + chave Pix → cria `organizer_accounts`.
+  - `/perfil/ativar-organizador` — CPF/CNPJ + data de nascimento (18+) + telefone → cria/habilita `organizer_accounts`. **Não pede chave Pix** (isso fica pra hora de publicar um campeonato pago). Aceita `?next=` pra voltar pro fluxo de origem depois de ativar (padrão: `/painel/novo-campeonato`).
   - `/perfil/ativar-arena` — cadastra a arena do usuário (academia/local fixo).
 
 > **Removido:** a página `/rank` (ranking da Liga Brasileira), `/perfil/evolucao` (gráfico de
@@ -231,11 +254,12 @@ Abaixo:
 - **Conexões:** ← link enviado por e-mail ou copiado na tela de inscrição de atleta1.
 
 ### Cadastro / Login / Auth
-- `/cadastro` — nome, e-mail, senha, **@usuário** (checa duplicado em tempo real). Depois cai na Home.
+- `/cadastro` — nome, e-mail, senha, **@usuário** (checa duplicado em tempo real) e **gênero** (obrigatório, `masculino`/`feminino`/`outro`). Depois cai na Home.
 - Cada campo do formulário de cadastro tem `name`/`autoComplete` explícitos (`name`, `username`, `email`, `new-password`) pra evitar o autofill do navegador confundir e-mail com @usuário — sem isso o Chrome às vezes preenchia o e-mail salvo no campo `@usuário` por heurística de posição/rótulo. O campo `@usuário` também desliga autocapitalize/autocorrect/spellcheck, já que aceita só minúsculas.
+- `/cadastro?modo=organizador` — mesma tela, mais **telefone, CPF/CNPJ e data de nascimento** (18+), pra quem clicou em "organizar evento" sem ter conta ainda. Tudo vai no metadata do `signUp` e é sincronizado (gênero em `profiles`, os dados de organizador em `organizer_accounts` com `habilitado = true`) em `/auth/callback` assim que o e-mail é confirmado — a chave Pix continua de fora, pedida só na publicação.
 - `/cadastro/verificar-email` — aviso pra confirmar o e-mail.
 - `/login` — e-mail/senha.
-- `/auth/callback` ([route](app/auth/callback/route.ts)) — confirma o e-mail aceitando **token_hash (OTP, cross-device)** e **code (PKCE)**.
+- `/auth/callback` ([route](app/auth/callback/route.ts)) — confirma o e-mail aceitando **token_hash (OTP, cross-device)** e **code (PKCE)**, sincroniza o metadata do cadastro (gênero / dados de organizador) e redireciona pro `?next=` informado.
 
 ---
 
@@ -249,6 +273,7 @@ Abaixo:
 - Financeiro somado de todos os campeonatos (bruto, líquido, pendente, estornado), filtro de período, lista de campeonatos. Exige `organizer_accounts`.
 
 ### `/painel/novo-campeonato` — Criação ([page](app/painel/novo-campeonato/page.tsx) · [actions](app/painel/novo-campeonato/actions.ts))
+- **Exige `organizer_accounts.habilitado = true`** — sem isso, a página redireciona pra `/perfil/ativar-organizador?next=/painel/novo-campeonato` (checado de novo dentro de `createChampionship`, defesa em profundidade). Corrige o bug em que uma conta comum conseguia abrir essa tela direto.
 - Formulário multi-seção ([NovoCampeonatoForm](components/painel/NovoCampeonatoForm.tsx)): dados, datas, banner, categorias (o nome da categoria define automaticamente a faixa de rating via `RATING_POR_CATEGORIA`), **quiz de tier do evento** (5 perguntas sobre o campeonato → Local/Open/Elite — **não confundir** com o questionário de nível do atleta, que é outra coisa, em `/perfil/questionario-nivel`) e o **card do plano Elite** ([ElitePlanCard](components/painel/ElitePlanCard.tsx)).
 - Toggle **"Recomendar categoria pro atleta"** (`usa_motor_categoria`, ligado por padrão) — liga/desliga o motor de categoria pra esse campeonato (ver seção 9). Editável depois em `/editar`.
 - Salva como `rascunho` ou já publica. → `/painel/campeonatos/[id]/criado`.
@@ -270,7 +295,7 @@ Central de gestão de **um** campeonato (só o dono acessa). No topo: badge **El
 
 Outras sub-rotas:
 - **`/editar`** — edita dados/categorias ([EditarCampeonatoForm](components/painel/EditarCampeonatoForm.tsx)).
-- **`/publicar`** ([page](app/painel/campeonatos/[id]/publicar/page.tsx)) — fluxo rascunho → no ar: explica o repasse, mostra o **plano de taxas (Elite/Padrão)** com botão de ativar Elite, coleta a chave Pix se precisar. → `/criado`.
+- **`/publicar`** ([page](app/painel/campeonatos/[id]/publicar/page.tsx)) — fluxo rascunho → no ar: explica o repasse, mostra o **plano de taxas (Elite/Padrão)** com botão de ativar Elite, coleta só a **chave Pix** se precisar (CPF/CNPJ, nascimento e telefone já vieram de `/perfil/ativar-organizador`). → `/criado`.
 - **`/criado`** — tela de sucesso pós-criação/publicação.
 - **`/financeiro`** ([page](app/painel/campeonatos/[id]/financeiro/page.tsx) · [actions](app/painel/campeonatos/[id]/financeiro/actions.ts)) — totais por status e método, breakdown por categoria, [ChavePixClient](components/painel/ChavePixClient.tsx) e [PlanoTaxas](components/painel/PlanoTaxas.tsx) (ativar Elite). Os cards de **Pagos / Pendentes / Estornados** são clicáveis e levam a:
   - **`/financeiro/pagos`**, **`/financeiro/pendentes`**, **`/financeiro/estornados`** — lista de duplas filtrada por status, expansível por linha para ver contato dos atletas (telefone com link WhatsApp + e-mail), buscada via admin client.
@@ -319,6 +344,7 @@ Outras sub-rotas:
 
 ### Staff (modo limitado) — `/staff`
 - Aparece na navbar só pra quem é **staff aceito**. Lista os campeonatos onde a pessoa é staff.
+- A tabela `championship_staff` tem RLS ligada: o convidado só vê/atualiza o próprio convite e o dono do campeonato gerencia a equipe. As Server Actions continuam checando permissão, mas o banco também bloqueia acesso indevido.
 - `/staff/[id]` ([page](app/staff/[id]/page.tsx)) mostra só o que as permissões liberam:
   - `/staff/[id]/qrcode` — escanear QR + presença (se `can_qrcode`).
   - `/staff/[id]/inscricoes` — ver duplas (se `can_inscricoes`).
@@ -372,4 +398,4 @@ Cron diário ─────> repasse de cartão vencido (D+3/D+32)
 
 ---
 
-*Última atualização: 2026-07-10. Ao mudar fluxos grandes (pagamento, navegação, novas páginas), atualize este arquivo.*
+*Última atualização: 2026-07-12. Ao mudar fluxos grandes (pagamento, navegação, novas páginas), atualize este arquivo.*

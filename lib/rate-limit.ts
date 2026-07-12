@@ -1,8 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
- * Extrai o IP do cliente a partir dos headers (a Vercel seta x-forwarded-for).
- * Pega só o primeiro IP da lista. Cai pra "unknown" se não achar.
+ * Extrai o IP do cliente a partir dos headers. A Vercel seta x-forwarded-for.
+ * Pega so o primeiro IP da lista. Cai para "unknown" se nao achar.
  */
 export function getClientIp(headers: Headers): string {
   const fwd = headers.get("x-forwarded-for");
@@ -11,14 +11,9 @@ export function getClientIp(headers: Headers): string {
 }
 
 /**
- * Rate limit por chave. Retorna true se a requisição PODE prosseguir,
- * false se estourou o limite. Fail-open: se a checagem der erro (ex.: função
- * ainda não criada no banco), libera — não queremos derrubar o app por causa
- * do rate limiter.
- *
- * @param key            identificador único (ex.: "ingressos:1.2.3.4")
- * @param max            nº máximo de hits dentro da janela
- * @param windowSeconds  tamanho da janela em segundos
+ * Rate limit por chave. Retorna true se a requisicao pode prosseguir.
+ * Falha fechada: endpoints publicos com CPF/email nao podem liberar tudo
+ * quando a checagem do banco falha ou nao foi instalada.
  */
 export async function checkRateLimit(
   key: string,
@@ -33,12 +28,12 @@ export async function checkRateLimit(
       p_window_seconds: windowSeconds,
     });
     if (error) {
-      console.error("[rate-limit] erro na checagem, liberando:", error.message);
-      return true; // fail-open
+      console.error("[rate-limit] erro na checagem, bloqueando:", error.message);
+      return false;
     }
     return data === true;
   } catch (err) {
-    console.error("[rate-limit] exceção, liberando:", err);
-    return true; // fail-open
+    console.error("[rate-limit] excecao, bloqueando:", err);
+    return false;
   }
 }
