@@ -1,8 +1,6 @@
 // Helpers do controle financeiro pessoal (/admin/gastos). Tabela isolada
 // (personal_finance_entries) — nada aqui toca no financeiro de campeonatos/arenas.
 
-import { formatBRL } from "@/lib/format";
-
 export type Person = "carlos" | "julia";
 export type PersonFilter = "todos" | Person;
 /** Valor do form de novo lançamento — "carlos_e_julia" nunca é salvo em `person`; vira 2 linhas. */
@@ -416,56 +414,6 @@ export function caixaAcumulado(
   const gasto = somaAcumulada(entries, overrideMap, "gasto", hojeIso);
   const invest = somaAcumulada(entries, overrideMap, "investimento", hojeIso);
   return renda - gasto - invest;
-}
-
-export type SituacaoStatus = "boa" | "atencao" | "critica";
-export type Situacao = { status: SituacaoStatus; motivo: string };
-
-/** Classifica a situação financeira do mês atual. Ver regra em ftv.md/tarefa original. */
-export function calcularSituacao(
-  entries: PersonalFinanceEntry[],
-  overrides: RecurringOverride[],
-  hojeIso: string,
-): Situacao {
-  const overrideMap = buildOverrideMap(overrides);
-  const mesAtual = monthKeyOf(hojeIso);
-  const rendaMes = somaMes(entries, overrideMap, "renda", mesAtual);
-  const gastosMes = somaMes(entries, overrideMap, "gasto", mesAtual);
-  const investMes = somaMes(entries, overrideMap, "investimento", mesAtual);
-  const caixa = caixaAcumulado(entries, overrides, hojeIso);
-
-  const taxaGastos = rendaMes > 0 ? gastosMes / rendaMes : gastosMes > 0 ? Infinity : 0;
-  const taxaInvestimento = rendaMes > 0 ? investMes / rendaMes : 0;
-
-  const mediaGastos3 =
-    ([0, -1, -2] as const)
-      .map((d) => somaMes(entries, overrideMap, "gasto", addMonthsToKey(mesAtual, d)))
-      .reduce((s, v) => s + v, 0) / 3;
-  const mesesDeCaixa = mediaGastos3 > 0 ? caixa / mediaGastos3 : caixa > 0 ? Infinity : 0;
-
-  const pctGastos = Number.isFinite(taxaGastos) ? Math.round(taxaGastos * 100) : null;
-  const caixaTxt = Number.isFinite(mesesDeCaixa) ? mesesDeCaixa.toFixed(1) : "∞";
-  const mesLabel = (v: string) => (v === "1.0" ? "mês" : "meses");
-
-  const critica = (rendaMes <= 0 && gastosMes > 0) || taxaGastos > 0.9 || caixa < 0;
-  if (critica) {
-    if (caixa < 0) return { status: "critica", motivo: `Caixa negativo (${formatBRL(caixa)}).` };
-    if (rendaMes <= 0 && gastosMes > 0) return { status: "critica", motivo: "Sem renda registrada este mês, mas com gastos lançados." };
-    return { status: "critica", motivo: `Gastos em ${pctGastos}% da renda do mês.` };
-  }
-
-  const boa = taxaGastos <= 0.7 && taxaInvestimento >= 0.1 && mesesDeCaixa >= 1;
-  if (boa) {
-    return {
-      status: "boa",
-      motivo: `Gastos em ${pctGastos}% da renda e caixa cobre ${caixaTxt} ${mesLabel(caixaTxt)}.`,
-    };
-  }
-
-  return {
-    status: "atencao",
-    motivo: `Gastos em ${pctGastos ?? 0}% da renda e caixa cobre ${caixaTxt} ${mesLabel(caixaTxt)}.`,
-  };
 }
 
 export type MonthlyGastoPoint = {

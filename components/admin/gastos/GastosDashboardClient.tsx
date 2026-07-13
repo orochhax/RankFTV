@@ -6,7 +6,7 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from "recharts";
 import {
-  Plus, X, CheckCircle2, AlertTriangle, AlertOctagon, PiggyBank, Wallet, Trash2, Loader2, Inbox, Repeat,
+  Plus, X, AlertTriangle, PiggyBank, Wallet, Trash2, Loader2, Inbox, Repeat,
   ReceiptText, Tags, Settings2, TrendingUp, Calculator,
 } from "lucide-react";
 import { apagarLancamento } from "@/app/admin/gastos/actions";
@@ -18,7 +18,7 @@ import { CalculadoraRapida } from "@/components/admin/gastos/CalculadoraRapida";
 import { formatBRL, formatDateBR } from "@/lib/format";
 import {
   hojeISO, monthKeyNow, filterByPerson, valorInvestidoAcumulado, resumoFinanceiroDoMes,
-  calcularSituacao, gastoMensal, categoriasDoMes, lancamentosDaCategoriaNoMes,
+  gastoMensal, categoriasDoMes, lancamentosDaCategoriaNoMes,
   BANK_LABEL, PAYMENT_METHOD_LABEL,
   type PersonalFinanceEntry, type PersonFilter, type MonthlyGastoPoint,
   type RecurringOverride, type PersonalFinanceCategory,
@@ -56,12 +56,6 @@ function FiltroPessoa({ value, onChange }: { value: PersonFilter; onChange: (v: 
     </div>
   );
 }
-
-const SITUACAO_UI = {
-  boa:     { label: "Boa",     cls: "bg-green-50 text-green-700 ring-green-100", Icon: CheckCircle2 },
-  atencao: { label: "Atenção", cls: "bg-amber-50 text-amber-700 ring-amber-100", Icon: AlertTriangle },
-  critica: { label: "Crítica", cls: "bg-red-50 text-red-700 ring-red-100",       Icon: AlertOctagon },
-} as const;
 
 function CustomTooltip({ active, payload }: { active?: boolean; payload?: { payload: MonthlyGastoPoint }[] }) {
   if (!active || !payload?.length) return null;
@@ -124,7 +118,6 @@ export function GastosDashboardClient({
 
   const valorInvestido = useMemo(() => valorInvestidoAcumulado(filtradas, overrides, hoje), [filtradas, overrides, hoje]);
   const resumoMes      = useMemo(() => resumoFinanceiroDoMes(entries, overrides, monthKeyNow(), filtro), [entries, overrides, filtro]);
-  const situacao        = useMemo(() => calcularSituacao(filtradas, overrides, hoje), [filtradas, overrides, hoje]);
   const mensal          = useMemo(() => gastoMensal(filtradas, overrides, hoje, horizonte), [filtradas, overrides, hoje, horizonte]);
   const categorias       = useMemo(() => categoriasDoMes(filtradas, overrides, mesAnalise), [filtradas, overrides, mesAnalise]);
   const maxCategoria      = Math.max(...categorias.map((c) => c.total), 1);
@@ -185,8 +178,6 @@ export function GastosDashboardClient({
     return lancamentosDaCategoriaNoMes(filtradas, overrides, mesAnalise, categoriaSelecionada);
   }, [filtradas, overrides, mesAnalise, categoriaSelecionada]);
 
-  const situacaoUi = SITUACAO_UI[situacao.status];
-
   function handleRemover(entry: PersonalFinanceEntry) {
     if (!confirm(entry.isRecurring
       ? `Remover "${entry.name}"? Isso apaga o lançamento fixo em TODOS os meses. Use o Extrato pra apagar só um mês específico.`
@@ -234,7 +225,7 @@ export function GastosDashboardClient({
       </div>
 
       {/* ── Cards ── */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-start">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-start">
         <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-emerald-600">
@@ -293,15 +284,6 @@ export function GastosDashboardClient({
               <span className="font-semibold text-red-600">{formatBRL(resumoMes.gastos)}</span>
             </div>
           </div>
-        </div>
-
-        <div className={`rounded-2xl p-4 ring-1 ${situacaoUi.cls}`}>
-          <div className="flex items-center gap-1.5">
-            <situacaoUi.Icon className="size-4" />
-            <p className="text-xs font-medium">Situação financeira</p>
-          </div>
-          <p className="mt-2 text-xl font-bold">{situacaoUi.label}</p>
-          <p className="mt-1 text-xs opacity-80">{situacao.motivo}</p>
         </div>
       </div>
 

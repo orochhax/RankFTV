@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, ChevronRight } from "lucide-react";
+import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 const MENU = [
@@ -15,6 +15,12 @@ const MENU = [
     icon: WalletCards,
     label: "Gastos pessoais",
     desc: "Controle financeiro pessoal de Carlos e Julia — isolado do RankFTV.",
+  },
+  {
+    href: "/admin/gasto-mensal",
+    icon: CalendarRange,
+    label: "Gasto mensal",
+    desc: "Planejamento financeiro mensal de Carlos e Julia — receitas, despesas e resultado previsto.",
   },
   {
     href: "/admin/campeonatos",
