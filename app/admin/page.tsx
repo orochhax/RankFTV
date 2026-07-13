@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, Newspaper, Activity, ChevronRight } from "lucide-react";
+import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 const MENU = [
@@ -9,6 +9,12 @@ const MENU = [
     icon: Activity,
     label: "Performance",
     desc: "Seu painel pessoal: metas do dia, constância e evolução.",
+  },
+  {
+    href: "/admin/gastos",
+    icon: WalletCards,
+    label: "Gastos pessoais",
+    desc: "Controle financeiro pessoal de Carlos e Julia — isolado do RankFTV.",
   },
   {
     href: "/admin/campeonatos",
