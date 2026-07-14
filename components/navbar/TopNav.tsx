@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell, Settings, ShieldCheck, Wrench, Menu, X } from "lucide-react";
-import { isNavItemActive, NAV_ITEMS, type NavItem } from "./nav-items";
+import { isArenaOrganizerRoute, isNavItemActive, NAV_ITEMS, type NavItem } from "./nav-items";
 import { createClient } from "@/lib/supabase/client";
 
 type NavUser = { id: string; nome: string; username: string };
@@ -23,6 +23,8 @@ export function TopNav({
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  if (isArenaOrganizerRoute(pathname)) return null;
 
   const items: NavItem[] = showStaff
     ? [...NAV_ITEMS, { href: "/staff", label: "Staff", icon: ShieldCheck }]

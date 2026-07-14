@@ -4,6 +4,7 @@ import "./globals.css";
 import { BottomNav } from "@/components/navbar/BottomNav";
 import { TopNav } from "@/components/navbar/TopNav";
 import { Footer } from "@/components/Footer";
+import { MainContent } from "@/components/MainContent";
 import { createClient } from "@/lib/supabase/server";
 
 const inter = Inter({
@@ -73,7 +74,7 @@ export default async function RootLayout({
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-white text-gray-900">
         <TopNav user={navUser} showStaff={isStaff} isAdmin={isAdmin} notifCount={notifCount} />
-        <main className="flex-1 pb-28 md:pb-0">{children}</main>
+        <MainContent>{children}</MainContent>
         <Footer />
         <BottomNav showStaff={isStaff} isAdmin={isAdmin} notifCount={notifCount} isLoggedIn={!!navUser} />
       </body>

@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 type ProfileRow = {
@@ -40,20 +39,10 @@ export default async function ArenaAlunosPage({
     .order("created_at", { ascending: false });
 
   return (
-    <main className="mx-auto min-h-screen max-w-2xl space-y-6 px-6 py-8">
-      <Link
-        href={`/arena/${arena.handle}`}
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800"
-      >
-        <ArrowLeft className="size-4" /> Voltar ao painel
-      </Link>
-
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">{arena.nome}</p>
-        <h1 className="mt-1 flex items-center gap-2 text-2xl font-bold text-gray-900">
-          <Users className="size-6" /> Alunos
-        </h1>
-      </div>
+    <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 md:px-8 md:py-8">
+      <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900">
+        <Users className="size-5" /> Alunos ({(alunos ?? []).length})
+      </h1>
 
       {(alunos ?? []).length === 0 ? (
         <p className="rounded-2xl bg-gray-50 p-8 text-center text-sm text-gray-500 ring-1 ring-black/5">
@@ -93,6 +82,6 @@ export default async function ArenaAlunosPage({
           })}
         </ul>
       )}
-    </main>
+    </div>
   );
 }

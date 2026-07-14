@@ -19,3 +19,14 @@ export function isNavItemActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/" || pathname.startsWith("/campeonatos");
   return pathname.startsWith(href);
 }
+
+// Painel do organizador da arena (/arena/...) tem navegação própria (sidebar
+// desktop + drawer mobile) e não deve duplicar TopNav/BottomNav/Footer
+// globais. Exclui as rotas de /arena que na verdade são do ATLETA (marcar
+// presença, pagar mensalidade) — essas continuam com a navegação do site.
+const ARENA_ATLETA_PREFIXES = ["/arena/presenca", "/arena/mensalidade"];
+
+export function isArenaOrganizerRoute(pathname: string): boolean {
+  if (pathname !== "/arena" && !pathname.startsWith("/arena/")) return false;
+  return !ARENA_ATLETA_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}

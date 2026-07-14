@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, ShieldCheck, Wrench } from "lucide-react";
-import { isNavItemActive, NAV_ITEMS, type NavItem } from "./nav-items";
+import { isArenaOrganizerRoute, isNavItemActive, NAV_ITEMS, type NavItem } from "./nav-items";
 
 export function BottomNav({
   showStaff = false,
@@ -17,6 +17,8 @@ export function BottomNav({
   isLoggedIn?: boolean;
 }) {
   const pathname = usePathname();
+
+  if (isArenaOrganizerRoute(pathname)) return null;
 
   const items: NavItem[] = showStaff
     ? [...NAV_ITEMS, { href: "/staff", label: "Staff", icon: ShieldCheck }]
