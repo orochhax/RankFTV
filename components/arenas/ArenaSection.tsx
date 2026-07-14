@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, Search, X, Building2 } from "lucide-react";
 import { ArenaCard, type ArenaCardData } from "./ArenaCard";
+import { FilterBar } from "@/components/shell/FilterBar";
+import { EmptyState } from "@/components/shell/EmptyState";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 12;
 
 export function ArenaSection({
   allArenas,
@@ -37,33 +39,31 @@ export function ArenaSection({
 
   return (
     <section>
-      <h2 className="mb-3 text-base font-semibold text-gray-900">Arenas</h2>
+      <h2 className="mb-3 text-base font-semibold text-ink">Arenas</h2>
 
-      {/* Busca */}
-      <div className="relative mb-3">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
-        <input
-          value={busca}
-          onChange={(e) => handleBusca(e.target.value)}
-          placeholder="Buscar arena pelo nome…"
-          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-9 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        {busca && (
-          <button
-            onClick={() => handleBusca("")}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-gray-400 hover:text-gray-700"
-          >
-            <X className="size-4" />
-          </button>
-        )}
-      </div>
+      <FilterBar className="mb-4">
+        <div className="relative flex-1 sm:min-w-64">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+          <input
+            value={busca}
+            onChange={(e) => handleBusca(e.target.value)}
+            placeholder="Buscar arena pelo nome…"
+            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-9 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {busca && (
+            <button
+              onClick={() => handleBusca("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-gray-400 hover:text-gray-700"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
 
-      {/* Filtro por estado */}
-      <div className="mb-4 flex flex-wrap gap-2">
         <select
           value={estadoFiltro}
           onChange={(e) => handleEstado(e.target.value)}
-          className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Todos os estados</option>
           {estados.map((uf) => (
@@ -74,20 +74,22 @@ export function ArenaSection({
         {temFiltro && (
           <button
             onClick={limpar}
-            className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-500 hover:bg-gray-50"
+            className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-500 hover:bg-gray-50"
           >
             Limpar
           </button>
         )}
-      </div>
+      </FilterBar>
 
       {filtrados.length === 0 ? (
-        <p className="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-400 ring-1 ring-black/5">
-          Nenhuma arena encontrada.
-        </p>
+        <EmptyState
+          icon={Building2}
+          title="Nenhuma arena encontrada"
+          description="Tente outro nome ou remova o filtro de estado."
+        />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {exibidos.map((a) => (
               <ArenaCard key={a.id} arena={a} />
             ))}

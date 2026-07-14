@@ -13,6 +13,30 @@
   --color-blue-800: #000099;
   --color-blue-900: #000066;
   --color-blue-950: #000033;
+
+  /* ── Design system do shell desktop (redesign global) ──────────────────
+     Tokens semânticos por cima da paleta acima — usados pelo AppShell,
+     ArenaShell e pelos componentes de página (PageContainer, Surface,
+     StatCard, etc). O azul da marca continua reservado pra ações, seleção
+     e destaques; fundo/superfície/texto usam esta escala neutra. */
+  --color-app-bg:     #f3f5fa; /* fundo geral do desktop — azul-acinzentado bem claro */
+  --color-surface:    #ffffff; /* cards, sidebar, topbar */
+  --color-surface-2:  #f8f9fc; /* superfície secundária (hover sutil, seções internas) */
+  --color-border:     #e4e7ef; /* bordas discretas */
+  --color-ink:        #10152b; /* texto principal — azul-marinho quase preto */
+  --color-ink-muted:  #667085; /* texto secundário */
+  --color-success:    #16a34a;
+  --color-success-bg: #ecfdf3;
+  --color-warning:    #d97706;
+  --color-warning-bg: #fffaeb;
+  --color-danger:     #dc2626;
+  --color-danger-bg:  #fef3f2;
+
+  --radius-card:    1rem;    /* 16px */
+  --radius-card-lg: 1.5rem;  /* 24px */
+
+  --shadow-soft:     0 1px 2px rgba(16, 21, 43, 0.04), 0 1px 3px rgba(16, 21, 43, 0.06);
+  --shadow-elevated: 0 8px 24px rgba(16, 21, 43, 0.08);
 }
 
 :root {
@@ -32,7 +56,8 @@
    do fundo preto: uma regra "solta", fora de @layer, vence a classe
    utilitária do Tailwind, não importa a especificidade.) */
 
-/* Protege imagens: desabilita salvar, arrastar, copiar e zoom por toque */
+/* Protege imagens: desabilita salvar, arrastar e menu de contexto por toque.
+   Mantido de propósito (evita cópia fácil de fotos de perfil/arena/banner). */
 img {
   -webkit-user-select: none;
   user-select: none;
@@ -41,14 +66,6 @@ img {
   user-drag: none;
 }
 
-/* Anti-cópia: bloqueia seleção de texto no site inteiro (mobile e desktop).
-   Campos de digitação continuam selecionáveis — sem isso o usuário não
-   consegue editar o que digita nem copiar o código PIX copia-e-cola. */
-body {
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
 /* Marquee: faixa de fotos rolando sozinha na horizontal (galeria de arena). */
 @keyframes marquee {
   from { transform: translateX(0); }
@@ -58,9 +75,15 @@ body {
   animation: marquee linear infinite;
 }
 
-input,
-textarea,
-[contenteditable="true"] {
-  -webkit-user-select: text;
-  user-select: text;
+/* Reduz movimento pra quem pede — a única animação contínua do site hoje é
+   o marquee da galeria de fotos da arena. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

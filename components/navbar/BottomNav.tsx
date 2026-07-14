@@ -4,25 +4,31 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, ShieldCheck, Wrench } from "lucide-react";
 import { isArenaOrganizerRoute, isNavItemActive, NAV_ITEMS, type NavItem } from "./nav-items";
+import { isFocusedRoute } from "@/components/shell/app-nav-items";
 
 export function BottomNav({
   showStaff = false,
   isAdmin = false,
+  isOrganizer = false,
   notifCount = 0,
   isLoggedIn = false,
 }: {
   showStaff?: boolean;
   isAdmin?: boolean;
+  isOrganizer?: boolean;
   notifCount?: number;
   isLoggedIn?: boolean;
 }) {
   const pathname = usePathname();
 
-  if (isArenaOrganizerRoute(pathname)) return null;
+  if (isArenaOrganizerRoute(pathname) || isFocusedRoute(pathname)) return null;
 
+  // "Painel" só aparece pra quem já tem permissão de organizador — sem isso
+  // é um link que só leva a uma tela de "ativar organizador".
+  const base = isOrganizer ? NAV_ITEMS : NAV_ITEMS.filter((i) => i.href !== "/painel");
   const items: NavItem[] = showStaff
-    ? [...NAV_ITEMS, { href: "/staff", label: "Staff", icon: ShieldCheck }]
-    : NAV_ITEMS;
+    ? [...base, { href: "/staff", label: "Staff", icon: ShieldCheck }]
+    : base;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-1.5 pb-4 md:hidden bg-gradient-to-t from-white via-white/95 to-transparent pt-6">

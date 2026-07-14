@@ -2,11 +2,13 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ChevronDown, Search, X, Radio } from "lucide-react";
+import { ChevronDown, Search, X, Radio, Trophy } from "lucide-react";
 import { ChampionshipCard } from "@/components/campeonatos/ChampionshipCard";
+import { FilterBar } from "@/components/shell/FilterBar";
+import { EmptyState } from "@/components/shell/EmptyState";
 import type { Championship } from "@/lib/types";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 12;
 
 export function CampeonatosSection({
   allCamps,
@@ -49,7 +51,7 @@ export function CampeonatosSection({
   return (
     <section>
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h2 className="text-base font-semibold text-gray-900">Campeonatos</h2>
+        <h2 className="text-base font-semibold text-ink">Campeonatos</h2>
         {temAoVivo && (
           <Link
             href="/campeonatos/ao-vivo"
@@ -61,31 +63,29 @@ export function CampeonatosSection({
         )}
       </div>
 
-      {/* Busca */}
-      <div className="relative mb-3">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
-        <input
-          value={busca}
-          onChange={(e) => handleBusca(e.target.value)}
-          placeholder="Buscar campeonato pelo nome…"
-          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-9 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        {busca && (
-          <button
-            onClick={() => handleBusca("")}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-gray-400 hover:text-gray-700"
-          >
-            <X className="size-4" />
-          </button>
-        )}
-      </div>
+      <FilterBar className="mb-4">
+        <div className="relative flex-1 sm:min-w-64">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+          <input
+            value={busca}
+            onChange={(e) => handleBusca(e.target.value)}
+            placeholder="Buscar campeonato pelo nome…"
+            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-9 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {busca && (
+            <button
+              onClick={() => handleBusca("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-gray-400 hover:text-gray-700"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
 
-      {/* Filtros */}
-      <div className="mb-4 flex flex-wrap gap-2">
         <select
           value={estadoFiltro}
           onChange={(e) => handleEstado(e.target.value)}
-          className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Todos os estados</option>
           {estados.map((uf) => (
@@ -96,7 +96,7 @@ export function CampeonatosSection({
         <select
           value={categoriaFiltro}
           onChange={(e) => handleCategoria(e.target.value)}
-          className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Todas as categorias</option>
           {categorias.map((nome) => (
@@ -107,20 +107,22 @@ export function CampeonatosSection({
         {temFiltro && (
           <button
             onClick={limpar}
-            className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-500 hover:bg-gray-50"
+            className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-500 hover:bg-gray-50"
           >
             Limpar
           </button>
         )}
-      </div>
+      </FilterBar>
 
       {filtrados.length === 0 ? (
-        <p className="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-400 ring-1 ring-black/5">
-          Nenhum campeonato encontrado.
-        </p>
+        <EmptyState
+          icon={Trophy}
+          title="Nenhum campeonato encontrado"
+          description="Tente outro nome ou remova os filtros de estado/categoria."
+        />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
             {exibidos.map((c) => (
               <ChampionshipCard key={c.id} championship={c} />
             ))}
@@ -136,15 +138,6 @@ export function CampeonatosSection({
                 Ver mais ({filtrados.length - visible} restantes)
               </button>
             </div>
-          )}
-
-          {!temMais && filtrados.length > PAGE_SIZE && (
-            <p className="mt-3 text-center text-xs text-gray-400">
-              Você viu todos os {filtrados.length} campeonatos.{" "}
-              <Link href="/campeonatos" className="underline hover:text-gray-700">
-                Ver lista completa
-              </Link>
-            </p>
           )}
         </>
       )}
