@@ -109,39 +109,3 @@ CREATE POLICY credentials_update_staff ON credentials FOR UPDATE
 
 GRANT SELECT ON credentials TO anon, authenticated;
 GRANT INSERT, UPDATE ON credentials TO authenticated;
-
--- ── SEED DE TESTE ─────────────────────────────────────────────
--- Cria credencial de teste para a conta carlosrocha0923@gmail.com
--- no primeiro campeonato encontrado (RochaCup 2026).
--- Pode rodar mais de uma vez (ON CONFLICT ignora duplicatas).
-
-DO $$
-DECLARE
-  v_user_id        uuid;
-  v_championship_id uuid;
-BEGIN
-  SELECT id INTO v_user_id FROM auth.users
-  WHERE email = 'carlosrocha0923@gmail.com' LIMIT 1;
-
-  IF v_user_id IS NULL THEN
-    RAISE NOTICE 'Usuário não encontrado — seed de credencial ignorado.';
-    RETURN;
-  END IF;
-
-  SELECT id INTO v_championship_id FROM championships
-  WHERE organizador_id = v_user_id
-  ORDER BY created_at DESC
-  LIMIT 1;
-
-  IF v_championship_id IS NULL THEN
-    RAISE NOTICE 'Nenhum campeonato encontrado — seed de credencial ignorado.';
-    RETURN;
-  END IF;
-
-  INSERT INTO credentials (user_id, championship_id, role, qr_token)
-  VALUES (v_user_id, v_championship_id, 'atleta', 'TEST-QR-TOKEN-ROCHHAX')
-  ON CONFLICT (user_id, championship_id, role) DO NOTHING;
-
-  RAISE NOTICE 'Credencial de teste criada (ou já existia). Token: TEST-QR-TOKEN-ROCHHAX';
-END;
-$$;

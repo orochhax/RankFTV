@@ -18,6 +18,7 @@ export async function inscreverDupla(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const privileged = createAdminClient();
 
   const championshipId   = formData.get("championship_id") as string;
   const categoryId       = formData.get("category_id") as string;
@@ -148,9 +149,9 @@ export async function inscreverDupla(
   if (cupomPreview) {
     const desconto = calcularDesconto(valorInscricao, cupomPreview.tipoDesconto, cupomPreview.valorDesconto);
     valorInscricao = Math.round((valorInscricao - desconto) * 100) / 100;
-    const { data: claimed } = await supabase.rpc("claim_coupon_use", { p_coupon_id: cupomPreview.id });
+    const { data: claimed } = await privileged.rpc("claim_coupon_use", { p_coupon_id: cupomPreview.id });
     if (!claimed) {
-      if (loteId) await supabase.rpc("release_pricing_tier", { p_tier_id: loteId, p_qty: 1 });
+      if (loteId) await privileged.rpc("release_pricing_tier", { p_tier_id: loteId, p_qty: 1 });
       return { error: "Esse cupom acabou de esgotar. Tente novamente sem ele." };
     }
     cupomId = cupomPreview.id;
@@ -167,12 +168,13 @@ export async function inscreverDupla(
     : (atleta2Id ? "aguardando_pagamento" : "convite_pendente");
 
   async function liberarReivindicacoes() {
-    if (cupomId) await supabase.rpc("release_coupon_use", { p_coupon_id: cupomId });
-    if (loteId)  await supabase.rpc("release_pricing_tier", { p_tier_id: loteId, p_qty: 1 });
+    if (cupomId) await privileged.rpc("release_coupon_use", { p_coupon_id: cupomId });
+    if (loteId)  await privileged.rpc("release_pricing_tier", { p_tier_id: loteId, p_qty: 1 });
   }
 
   // ── Cria dupla ────────────────────────────────────────────────
-  const { data: team, error: teamError } = await supabase
+  const admin = createAdminClient();
+  const { data: team, error: teamError } = await admin
     .from("teams")
     .insert({
       championship_id:   championshipId,
@@ -194,7 +196,7 @@ export async function inscreverDupla(
   // ── Cria inscrição ────────────────────────────────────────────
   const BILLING_TYPE: Record<string, string> = { pix: "PIX", credito: "CREDIT_CARD", debito: "DEBIT_CARD" };
 
-  const { data: reg, error: regError } = await supabase
+  const { data: reg, error: regError } = await admin
     .from("registrations")
     .insert({
       team_id:          team.id,
@@ -215,7 +217,7 @@ export async function inscreverDupla(
 
   // ── Inscrição gratuita sem parceiro: credencial imediata ──────
   if (isGratis && !atleta2Id) {
-    await supabase.from("credentials").insert({
+    await createAdminClient().from("credentials").insert({
       user_id:         user.id,
       championship_id: championshipId,
       role:            "atleta",
@@ -270,7 +272,7 @@ export async function inscreverDupla(
       externalReference: reg.id,
     });
 
-    await supabase
+    await createAdminClient()
       .from("registrations")
       .update({
         asaas_payment_id:   cobranca.id,

@@ -18,7 +18,7 @@ export async function emitirMensalidade(
   // Valida que o usuário é dono da arena
   const { data: aluno } = await supabase
     .from("arena_students")
-    .select("id, user_id, valor_mensalidade, arena_id, arenas(nome, dono_id), profiles(nome, email)")
+    .select("id, user_id, valor_mensalidade, arena_id, arenas(nome, dono_id), profiles(nome)")
     .eq("id", alunoId)
     .maybeSingle();
 
@@ -45,22 +45,25 @@ export async function emitirMensalidade(
 
   const profileRow = Array.isArray(aluno.profiles) ? aluno.profiles[0] : aluno.profiles;
   const alunoNome  = (profileRow as { nome?: string })?.nome ?? "Aluno";
-  const alunoEmail = (profileRow as { email?: string })?.email ?? "";
   const arenaNome  = (arenaRow as { nome?: string })?.nome ?? "Arena";
 
   // Busca CPF do aluno em profiles_private
   const adminSupabase = createAdminClient();
-  const { data: priv } = await adminSupabase
-    .from("profiles_private")
-    .select("cpf")
-    .eq("user_id", aluno.user_id)
-    .maybeSingle();
+  const [{ data: priv }, { data: authUser }] = await Promise.all([
+    adminSupabase
+      .from("profiles_private")
+      .select("cpf")
+      .eq("user_id", aluno.user_id)
+      .maybeSingle(),
+    adminSupabase.auth.admin.getUserById(aluno.user_id),
+  ]);
   const cpf = ((priv as { cpf?: string } | null)?.cpf ?? "").replace(/\D/g, "");
+  const alunoEmail = authUser.user?.email ?? "";
 
   if (!cpf || cpf.length !== 11) return { error: "Aluno sem CPF cadastrado — não é possível emitir cobrança." };
   if (!alunoEmail) return { error: "Aluno sem e-mail cadastrado." };
 
-  const { data: charge, error: insErr } = await supabase
+  const { data: charge, error: insErr } = await adminSupabase
     .from("student_charges")
     .insert({
       arena_id:        aluno.arena_id,
@@ -84,7 +87,7 @@ export async function emitirMensalidade(
       externalReference: `mens:${charge.id}`,
     });
 
-    await supabase
+    await adminSupabase
       .from("student_charges")
       .update({
         asaas_payment_id:   cobranca.id,
@@ -94,6 +97,7 @@ export async function emitirMensalidade(
       })
       .eq("id", charge.id);
   } catch (err) {
+    await adminSupabase.from("student_charges").delete().eq("id", charge.id);
     const msg = err instanceof Error ? err.message : "Erro desconhecido";
     return { error: `Erro ao gerar o Pix: ${msg}` };
   }
@@ -121,7 +125,7 @@ export async function definirValorMensalidade(
   if ((arenaRow as { dono_id?: string })?.dono_id !== user.id)
     return { error: "Sem permissão." };
 
-  await supabase
+  await createAdminClient()
     .from("arena_students")
     .update({ valor_mensalidade: valor })
     .eq("id", alunoId);

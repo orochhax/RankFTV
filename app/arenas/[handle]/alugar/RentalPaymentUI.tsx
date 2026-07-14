@@ -17,6 +17,10 @@ function formatCPF(v: string) {
   if (d.length <= 9) return d.slice(0, 3) + "." + d.slice(3, 6) + "." + d.slice(6);
   return d.slice(0, 3) + "." + d.slice(3, 6) + "." + d.slice(6, 9) + "-" + d.slice(9);
 }
+function formatCEP(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 8);
+  return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+}
 function formatExpiry(v: string, prev: string) {
   if (v.length < prev.length) return v;
   const d = v.replace(/\D/g, "").slice(0, 4);
@@ -48,6 +52,8 @@ export function RentalPaymentUI({ planId, handle, planNome, valorBase, aceitaCre
   const [data,   setData]   = useState("");
   const [hora,   setHora]   = useState("");
   const [cpf,    setCpf]    = useState(cpfSalvo ? formatCPF(cpfSalvo) : "");
+  const [cep,    setCep]    = useState("");
+  const [numeroEndereco, setNumeroEndereco] = useState("");
   const [numero, setNumero] = useState("");
   const [nome,   setNome]   = useState("");
   const [expiry, setExpiry] = useState("");
@@ -83,6 +89,9 @@ export function RentalPaymentUI({ planId, handle, planNome, valorBase, aceitaCre
     if (cvv.length < 3)     { setError("CVV inválido."); return; }
     if (!nome.trim())       { setError("Digite o nome como está no cartão."); return; }
 
+    if (cep.replace(/\D/g, "").length !== 8) { setError("CEP invalido."); return; }
+    if (!numeroEndereco.trim()) { setError("Informe o numero do endereco do titular."); return; }
+
     startTransition(async () => {
       const res = await alugarQuadra({
         planId,
@@ -90,6 +99,8 @@ export function RentalPaymentUI({ planId, handle, planNome, valorBase, aceitaCre
         data,
         hora,
         cpf:         cpfNum,
+        cep,
+        numeroEndereco,
         tipo,
         numero:      digits,
         nomeTitular: nome,
@@ -259,6 +270,21 @@ export function RentalPaymentUI({ planId, handle, planNome, valorBase, aceitaCre
                 autoComplete="cc-name"
                 required
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>CEP do titular</label>
+                <input className={inputCls} placeholder="00000-000" value={cep}
+                  onChange={(e) => setCep(formatCEP(e.target.value))} inputMode="numeric"
+                  autoComplete="postal-code" maxLength={9} required />
+              </div>
+              <div>
+                <label className={labelCls}>Numero</label>
+                <input className={inputCls} placeholder="123" value={numeroEndereco}
+                  onChange={(e) => setNumeroEndereco(e.target.value.slice(0, 20))}
+                  autoComplete="address-line2" maxLength={20} required />
+              </div>
             </div>
 
             {/* Validade + CVV */}

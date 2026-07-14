@@ -6,10 +6,6 @@ import { getMyChampionships } from "@/lib/supabase/championships";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateRangeBR } from "@/lib/format";
 
-const STATUS_PRIORIDADE: Record<string, number> = {
-  inscricoes_abertas: 0, em_andamento: 1, rascunho: 2, encerrado: 3,
-};
-
 export default async function MeusCampeonatosPage({
   searchParams,
 }: {

@@ -34,7 +34,9 @@ export function ChampBannerForm({
     setState("saving");
     setMenuOpen(false);
 
-    const path = `champ-banners/${champId}-${Date.now()}.${file.name.split(".").pop() ?? "jpg"}`;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setError("Sessão expirada."); setState("idle"); return; }
+    const path = `${user.id}/champ-banners/${champId}-${Date.now()}.${file.name.split(".").pop() ?? "jpg"}`;
     const { data, error: uploadErr } = await supabase.storage
       .from("page-images")
       .upload(path, file, { upsert: true, contentType: file.type });

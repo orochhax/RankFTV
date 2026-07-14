@@ -11,7 +11,7 @@ type Props = {
 
 // Botão de inscrição na página de detalhe do campeonato.
 // Campeonatos reais (UUID) → link para /inscrever.
-// Campeonatos mock ou com inscrições fechadas → estado visual.
+// Campeonatos sem link de inscrição ou com inscrições fechadas → estado visual.
 export function InscricaoButton({
   categoriaNome,
   championshipId,

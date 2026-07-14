@@ -74,14 +74,20 @@ export function EditProfileForm({
       .update({
         nome: nome.trim(),
         bio: bio.trim() || null,
-        data_nascimento: dataNascimento || null,
         foto_url: fotoUrl || null,
       })
       .eq("id", userId);
 
+    const { error: privateUpdateError } = await supabase
+      .from("profiles_private")
+      .upsert(
+        { user_id: userId, data_nascimento: dataNascimento || null },
+        { onConflict: "user_id" },
+      );
+
     setLoading(false);
 
-    if (updateError) {
+    if (updateError || privateUpdateError) {
       setError("Erro ao salvar. Tente novamente.");
     } else {
       setSuccess(true);

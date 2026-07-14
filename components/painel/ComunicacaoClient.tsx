@@ -48,7 +48,8 @@ export function ComunicacaoClient({
   function toggleUm(userId: string) {
     setSelecionados((prev) => {
       const next = new Set(prev);
-      next.has(userId) ? next.delete(userId) : next.add(userId);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
       return next;
     });
     setFiltro("todos"); // reseta label do filtro ao selecionar manualmente

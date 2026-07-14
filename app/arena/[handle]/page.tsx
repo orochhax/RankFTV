@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { AceitarAlunoButton } from "@/components/arena/AceitarAlunoButton";
 import { CopyCodeButton } from "@/components/arena/CopyCodeButton";
 
@@ -99,14 +100,23 @@ export default async function ArenaPainelPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: arena } = await supabase
+  const { data: arenaPublica } = await supabase
     .from("arenas")
-    .select("id, nome, handle, cidade, estado, invite_code")
+    .select("id, nome, handle, cidade, estado")
     .eq("handle", handle)
     .eq("dono_id", user.id)
     .maybeSingle();
 
-  if (!arena) redirect("/arena");
+  if (!arenaPublica) redirect("/arena");
+
+  // invite_code não possui grant de leitura para anon/authenticated.
+  const { data: arenaPrivada } = await createAdminClient()
+    .from("arenas")
+    .select("invite_code")
+    .eq("id", arenaPublica.id)
+    .single();
+  if (!arenaPrivada) redirect("/arena");
+  const arena = { ...arenaPublica, invite_code: arenaPrivada.invite_code };
 
   const [alunosRes, aulasRes] = await Promise.all([
     supabase
@@ -276,7 +286,7 @@ export default async function ArenaPainelPage({
                 </h2>
               </div>
               <Link
-                href="/arena/alunos"
+                href={`/arena/${arena.handle}/alunos`}
                 className="text-xs font-medium text-blue-600 hover:underline"
               >
                 Ver todos
@@ -316,7 +326,7 @@ export default async function ArenaPainelPage({
                 })}
                 {ativos.length > 5 && (
                   <Link
-                    href="/arena/alunos"
+                    href={`/arena/${arena.handle}/alunos`}
                     className="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-500 ring-1 ring-black/5 hover:bg-gray-100"
                   >
                     Ver mais {ativos.length - 5} alunos

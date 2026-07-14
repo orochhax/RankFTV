@@ -21,8 +21,8 @@ export default async function AssinarPlanoPage({
       .eq("tipo", "mensalidade")
       .eq("ativo", true)
       .maybeSingle(),
-    supabase.from("profiles_private").select("cpf").eq("user_id", user.id).maybeSingle(),
-    supabase.from("profiles").select("nome, data_nascimento, genero").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles_private").select("cpf, data_nascimento").eq("user_id", user.id).maybeSingle(),
+    supabase.from("profiles").select("nome, genero").eq("id", user.id).maybeSingle(),
   ]);
 
   if (!arenaRes.data) notFound();
@@ -37,7 +37,7 @@ export default async function AssinarPlanoPage({
       valorBase={Number(planRes.data.valor)}
       cpfSalvo={privRes.data?.cpf ?? null}
       nomeSalvo={profileRes.data?.nome ?? ""}
-      dataNascimentoSalva={profileRes.data?.data_nascimento ?? null}
+      dataNascimentoSalva={privRes.data?.data_nascimento ?? null}
       generoSalvo={profileRes.data?.genero ?? null}
     />
   );

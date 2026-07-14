@@ -209,10 +209,12 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
       let regulamentoPdfUrl: string | null = pdfUrl;
       if (pdfFile) {
         const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setError("Sessão expirada."); return; }
         const filename = `${Date.now()}-${pdfFile.name.replace(/\s+/g, "_")}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from("regulamentos")
-          .upload(filename, pdfFile, { contentType: "application/pdf" });
+          .upload(`${user.id}/${filename}`, pdfFile, { contentType: "application/pdf" });
         if (uploadError) {
           setError("Erro ao fazer upload do PDF. Tente novamente.");
           return;

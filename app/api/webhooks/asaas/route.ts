@@ -18,6 +18,7 @@ type AsaasPayment = {
   status: string;
   value: number;
   billingType: string;
+  subscription?: string;
 };
 
 type AsaasWebhookBody = {
@@ -54,72 +55,185 @@ export async function POST(req: NextRequest) {
   const supabase = createAdminClient();
   const novoStatus = EVENTOS_CONFIRMADO.has(event) ? "pago" : "estornado";
 
+  async function paymentBelongsToRecord(table: string, id: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from(table)
+      .select("asaas_payment_id")
+      .eq("id", id)
+      .maybeSingle();
+    if (error || !data || data.asaas_payment_id !== payment.id) {
+      console.error(`[webhook] Pagamento ${payment.id} nao pertence a ${table}:${id}`);
+      return false;
+    }
+    return true;
+  }
+
+  async function processarRepasseArena(
+    table: "student_charges" | "arena_rentals" | "arena_daily_passes",
+    id: string,
+    valor: number,
+    chavePix: string | undefined,
+    descricao: string,
+  ) {
+    if (!chavePix || valor <= 0) return;
+    const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
+
+    if (dias > 0) {
+      const dataRepasse = new Date();
+      dataRepasse.setDate(dataRepasse.getDate() + dias);
+      await supabase
+        .from(table)
+        .update({
+          repasse_status: "aguardando_liquidacao",
+          repasse_data_prevista: dataRepasse.toISOString(),
+        })
+        .eq("id", id)
+        .eq("repasse_status", "pendente");
+      return;
+    }
+
+    const { data: claimed } = await supabase
+      .from(table)
+      .update({ repasse_status: "processando" })
+      .eq("id", id)
+      .eq("repasse_status", "pendente")
+      .select("id");
+    if (!claimed || claimed.length === 0) return;
+
+    try {
+      const { transferirPix } = await import("@/lib/asaas");
+      const transferencia = await transferirPix({ valor, chavePix, descricao });
+      await supabase
+        .from(table)
+        .update({
+          repasse_status: "concluido",
+          repasse_transfer_id: transferencia.id,
+          repasse_erro: null,
+        })
+        .eq("id", id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      await supabase
+        .from(table)
+        .update({ repasse_status: "pendente", repasse_erro: msg.slice(0, 300) })
+        .eq("id", id)
+        .eq("repasse_status", "processando");
+      console.error(`[webhook] Falha no repasse ${table}:${id}:`, msg);
+    }
+  }
+
   // ── Mensalidade de ARENA (externalReference "arena_student:<studentId>") ──
   if (registrationId.startsWith("arena_student:")) {
     const studentId = registrationId.slice("arena_student:".length);
+    const { data: student } = await supabase
+      .from("arena_students")
+      .select("id, arena_id, user_id, valor_mensalidade, asaas_subscription_id")
+      .eq("id", studentId)
+      .maybeSingle();
+    if (!student || !payment.subscription || student.asaas_subscription_id !== payment.subscription) {
+      return NextResponse.json({ error: "Assinatura nao confere" }, { status: 409 });
+    }
 
     if (EVENTOS_CONFIRMADO.has(event)) {
-      const { data: student } = await supabase
+      await supabase
         .from("arena_students")
-        .select("id, arena_id, user_id, valor_mensalidade")
-        .eq("id", studentId)
+        .update({ status: "ativo" })
+        .eq("id", studentId);
+
+      const now = new Date();
+      const competencia = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      const { data: charge } = await supabase
+        .from("student_charges")
+        .upsert(
+          {
+            arena_id:         student.arena_id,
+            arena_student_id: studentId,
+            user_id:          student.user_id,
+            competencia,
+            valor:            Number(student.valor_mensalidade ?? 0),
+            status_pagamento: "pago",
+            asaas_payment_id: payment.id,
+            pago_em:          now.toISOString(),
+          },
+          { onConflict: "arena_student_id,competencia" },
+        )
+        .select("id")
         .single();
 
-      if (student) {
-        await supabase
-          .from("arena_students")
-          .update({ status: "ativo" })
-          .eq("id", studentId);
+      const { data: arenaAccount } = await supabase
+        .from("arena_accounts")
+        .select("chave_pix")
+        .eq("arena_id", student.arena_id)
+        .maybeSingle();
 
-        const now = new Date();
-        const competencia = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-        await supabase
-          .from("student_charges")
-          .upsert(
-            {
-              arena_id:         student.arena_id,
-              arena_student_id: studentId,
-              user_id:          student.user_id,
-              competencia,
-              valor:            Number(student.valor_mensalidade ?? 0),
-              status_pagamento: "pago",
-              asaas_payment_id: payment.id,
-              pago_em:          now.toISOString(),
-            },
-            { onConflict: "arena_student_id,competencia" },
-          );
-
-        const { data: arenaAccount } = await supabase
-          .from("arena_accounts")
-          .select("chave_pix")
-          .eq("arena_id", student.arena_id)
-          .maybeSingle();
-
-        const chavePix  = arenaAccount?.chave_pix as string | undefined;
-        const valorBase = Number(student.valor_mensalidade ?? 0);
-        const dias      = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
-
-        if (chavePix && valorBase > 0 && dias === 0) {
-          try {
-            const { transferirPix } = await import("@/lib/asaas");
-            await transferirPix({ valor: valorBase, chavePix, descricao: `Mensalidade arena ${competencia}` });
-          } catch (err) {
-            console.error("[webhook] Falha no repasse arena:", err);
-          }
-        }
+      const chavePix  = arenaAccount?.chave_pix as string | undefined;
+      const valorBase = Number(student.valor_mensalidade ?? 0);
+      if (charge) {
+        await processarRepasseArena(
+          "student_charges",
+          charge.id,
+          valorBase,
+          chavePix,
+          `Mensalidade arena ${competencia}`,
+        );
       }
     }
 
     if (EVENTOS_ESTORNADO.has(event)) {
       await supabase.from("arena_students").update({ status: "pendente" }).eq("id", studentId);
+      await supabase
+        .from("student_charges")
+        .update({ status_pagamento: "estornado", repasse_status: "estornado" })
+        .eq("asaas_payment_id", payment.id);
     }
 
     return NextResponse.json({ ok: true, tipo: "arena_student" });
   }
 
+  // Mensalidade Pix emitida manualmente pelo painel da arena.
+  if (registrationId.startsWith("mens:")) {
+    const chargeId = registrationId.slice("mens:".length);
+    if (!(await paymentBelongsToRecord("student_charges", chargeId))) {
+      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+    }
+
+    if (EVENTOS_CONFIRMADO.has(event)) {
+      const { data: charge } = await supabase
+        .from("student_charges")
+        .update({ status_pagamento: "pago", pago_em: new Date().toISOString() })
+        .eq("id", chargeId)
+        .select("id, arena_id, valor")
+        .single();
+
+      if (charge) {
+        const { data: account } = await supabase
+          .from("arena_accounts")
+          .select("chave_pix")
+          .eq("arena_id", charge.arena_id)
+          .maybeSingle();
+        await processarRepasseArena(
+          "student_charges",
+          charge.id,
+          Number(charge.valor ?? 0),
+          account?.chave_pix as string | undefined,
+          `Mensalidade arena ${charge.id}`,
+        );
+      }
+    } else {
+      await supabase
+        .from("student_charges")
+        .update({ status_pagamento: "estornado", repasse_status: "estornado" })
+        .eq("id", chargeId);
+    }
+
+    return NextResponse.json({ ok: true, tipo: "mensalidade_arena" });
+  }
+
   // ── Aluguel de ARENA (externalReference "arena_rental:<rentalId>") ──
   if (registrationId.startsWith("arena_rental:")) {
     const rentalId = registrationId.slice("arena_rental:".length);
+    if (!(await paymentBelongsToRecord("arena_rentals", rentalId)))
+      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
 
     if (EVENTOS_CONFIRMADO.has(event)) {
       await supabase
@@ -142,19 +256,13 @@ export async function POST(req: NextRequest) {
 
         const chavePix  = arenaAccount?.chave_pix as string | undefined;
         const valorBase = Number(rental.valor ?? 0);
-        const dias      = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
-
-        if (chavePix && valorBase > 0 && dias === 0) {
-          try {
-            const { transferirPix } = await import("@/lib/asaas");
-            await transferirPix({ valor: valorBase, chavePix, descricao: `Aluguel quadra ${rentalId}` });
-            await supabase.from("arena_rentals").update({ repasse_status: "concluido" }).eq("id", rentalId);
-          } catch (err) {
-            console.error("[webhook] Falha no repasse aluguel:", err);
-          }
-        } else if (chavePix && valorBase > 0 && dias > 0) {
-          await supabase.from("arena_rentals").update({ repasse_status: "aguardando_liquidacao" }).eq("id", rentalId);
-        }
+        await processarRepasseArena(
+          "arena_rentals",
+          rentalId,
+          valorBase,
+          chavePix,
+          `Aluguel quadra ${rentalId}`,
+        );
       }
     }
 
@@ -171,6 +279,8 @@ export async function POST(req: NextRequest) {
   // ── Diária de ALUNO (externalReference "arena_daily:<passId>") ──
   if (registrationId.startsWith("arena_daily:")) {
     const passId = registrationId.slice("arena_daily:".length);
+    if (!(await paymentBelongsToRecord("arena_daily_passes", passId)))
+      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
 
     if (EVENTOS_CONFIRMADO.has(event)) {
       await supabase
@@ -193,19 +303,13 @@ export async function POST(req: NextRequest) {
 
         const chavePix  = arenaAccount?.chave_pix as string | undefined;
         const valorBase = Number(passe.valor ?? 0);
-        const dias      = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
-
-        if (chavePix && valorBase > 0 && dias === 0) {
-          try {
-            const { transferirPix } = await import("@/lib/asaas");
-            await transferirPix({ valor: valorBase, chavePix, descricao: `Diária arena ${passId}` });
-            await supabase.from("arena_daily_passes").update({ repasse_status: "concluido" }).eq("id", passId);
-          } catch (err) {
-            console.error("[webhook] Falha no repasse diária:", err);
-          }
-        } else if (chavePix && valorBase > 0 && dias > 0) {
-          await supabase.from("arena_daily_passes").update({ repasse_status: "aguardando_liquidacao" }).eq("id", passId);
-        }
+        await processarRepasseArena(
+          "arena_daily_passes",
+          passId,
+          valorBase,
+          chavePix,
+          `Diaria arena ${passId}`,
+        );
       }
     }
 
@@ -224,6 +328,8 @@ export async function POST(req: NextRequest) {
   // plateia: repasse integral, sem taxa/dívida Elite.
   if (registrationId.startsWith("athl:")) {
     const ticketId = registrationId.slice(5);
+    if (!(await paymentBelongsToRecord("athlete_tickets", ticketId)))
+      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
 
     await supabase
       .from("athlete_tickets")
@@ -297,6 +403,8 @@ export async function POST(req: NextRequest) {
   // Caminho separado do de atleta: repasse integral (sem taxa por enquanto).
   if (registrationId.startsWith("spec:")) {
     const ticketId = registrationId.slice(5);
+    if (!(await paymentBelongsToRecord("spectator_tickets", ticketId)))
+      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
 
     await supabase
       .from("spectator_tickets")
@@ -365,6 +473,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, tipo: "espectador", status: novoStatus });
   }
+
+  if (!(await paymentBelongsToRecord("registrations", registrationId)))
+    return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
 
   // 2. Atualiza status do pagamento
   const { error: updateError } = await supabase

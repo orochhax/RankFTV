@@ -6,10 +6,8 @@ import type {
   GeneroCategoria,
 } from "@/lib/types";
 
-// Campeonatos criados na plataforma (Supabase). Mapeamos as linhas do banco
-// para o MESMO tipo Championship usado pelos mocks, então os cards, a lista e a
-// página de detalhe renderizam sem nenhuma mudança. Duplas ficam vazias até a
-// Fase 1 (inscrições).
+// Campeonatos criados na plataforma (Supabase), mapeados para o tipo de domínio
+// usado pelos cards, listas e páginas de detalhe.
 
 type CatRow = {
   id: string;
@@ -132,9 +130,8 @@ export async function getMyChampionships(userId: string): Promise<Championship[]
   return (data as ChampRow[]).map(mapChampionship);
 }
 
-// Para a página de detalhe quando o id não é de um mock. Os ids do banco são
-// uuid; ids de mock são slugs (ex.: "copa-litoral-ftv"), então filtramos antes
-// de consultar pra não disparar erro de "uuid inválido".
+// IDs de campeonato no banco são UUIDs; validamos antes de consultar para não
+// enviar uma entrada inválida ao Postgres.
 export async function getDbChampionshipById(
   id: string,
 ): Promise<Championship | null> {

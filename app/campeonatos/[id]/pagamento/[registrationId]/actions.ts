@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { criarOuBuscarCliente } from "@/lib/asaas";
 import { calcularTotalComprador } from "@/lib/taxas";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type CardPaymentInput = {
   registrationId: string;
@@ -13,6 +14,8 @@ export type CardPaymentInput = {
   anoValidade:    string;
   cvv:            string;
   parcelas:       number;
+  cep:             string;
+  numeroEndereco:  string;
 };
 
 export type CardPaymentResult =
@@ -35,6 +38,10 @@ export async function pagarComCartao(
   ]);
 
   const cpf = privRes.data?.cpf ?? null;
+  const cep = input.cep.replace(/\D/g, "");
+  const numeroEndereco = input.numeroEndereco.trim();
+  if (cep.length !== 8) return { ok: false, error: "CEP invalido." };
+  if (!numeroEndereco) return { ok: false, error: "Informe o numero do endereco do titular." };
 
   if (!regRes.data) return { ok: false, error: "Inscrição não encontrada." };
   if (!profileRes.data) return { ok: false, error: "Perfil não encontrado." };
@@ -79,8 +86,8 @@ export async function pagarComCartao(
     name:          profileRes.data.nome,
     email:         user.email!,
     cpfCnpj:       cpf,
-    postalCode:    "00000000",
-    addressNumber: "0",
+    postalCode:    cep,
+    addressNumber: numeroEndereco,
   };
 
   const body: Record<string, unknown> = {
@@ -124,7 +131,7 @@ export async function pagarComCartao(
     const pagamento = await res.json() as { id: string; status: string; invoiceUrl?: string };
     const pago = ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status);
 
-    await supabase.from("registrations").update({
+    await createAdminClient().from("registrations").update({
       asaas_payment_id:  pagamento.id,
       status_pagamento:  pago ? "pago" : "pendente",
       invoice_url:       pagamento.invoiceUrl ?? null,

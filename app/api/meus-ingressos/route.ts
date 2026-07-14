@@ -2,25 +2,38 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
+const PRIVATE_RESPONSE_HEADERS = { "Cache-Control": "no-store, private" };
+
 // Consulta publica de ingressos por CPF + e-mail.
 // Usa service_role porque visitante nao tem conta, mas filtra por CPF+email e
 // nao devolve qr_token. O QR completo so aparece na pagina privada com token.
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers);
   const allowed = await checkRateLimit(`ingressos:${ip}`, 15, 60);
   if (!allowed) {
     return NextResponse.json(
       { error: "Muitas consultas. Aguarde um minuto e tente de novo." },
-      { status: 429 },
+      { status: 429, headers: PRIVATE_RESPONSE_HEADERS },
     );
   }
 
-  const { searchParams } = req.nextUrl;
-  const cpf = (searchParams.get("cpf") ?? "").replace(/\D/g, "");
-  const email = (searchParams.get("email") ?? "").trim().toLowerCase();
+  let body: { cpf?: unknown; email?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Corpo da requisição inválido." },
+      { status: 400, headers: PRIVATE_RESPONSE_HEADERS },
+    );
+  }
+  const cpf = (typeof body.cpf === "string" ? body.cpf : "").replace(/\D/g, "");
+  const email = (typeof body.email === "string" ? body.email : "").trim().toLowerCase();
 
   if (cpf.length !== 11 || !email.includes("@")) {
-    return NextResponse.json({ error: "Parametros invalidos." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Parâmetros inválidos." },
+      { status: 400, headers: PRIVATE_RESPONSE_HEADERS },
+    );
   }
 
   const supabase = createAdminClient();
@@ -120,5 +133,5 @@ export async function GET(req: NextRequest) {
     return true;
   });
 
-  return NextResponse.json({ ingressos });
+  return NextResponse.json({ ingressos }, { headers: PRIVATE_RESPONSE_HEADERS });
 }

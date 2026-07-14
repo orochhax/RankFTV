@@ -22,6 +22,10 @@ function formatCPF(v: string) {
   if (d.length <= 9) return d.slice(0, 3) + "." + d.slice(3, 6) + "." + d.slice(6);
   return d.slice(0, 3) + "." + d.slice(3, 6) + "." + d.slice(6, 9) + "-" + d.slice(9);
 }
+function formatCEP(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 8);
+  return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+}
 function formatExpiry(v: string, prev: string) {
   if (v.length < prev.length) return v;
   const d = v.replace(/\D/g, "").slice(0, 4);
@@ -50,12 +54,14 @@ type Props = {
 // ── step 1: Pagamento ─────────────────────────────────────────────────────────
 
 function StepPagamento({
-  planId, handle, planNome, valorBase, cpfSalvo,
+  planId, handle, valorBase, cpfSalvo,
   onSuccess,
 }: Props & { onSuccess: () => void }) {
   const [pending, startTransition] = useTransition();
   const [error, setError]   = useState<string | null>(null);
   const [cpf,    setCpf]    = useState(cpfSalvo ? formatCPF(cpfSalvo) : "");
+  const [cep,    setCep]    = useState("");
+  const [numeroEndereco, setNumeroEndereco] = useState("");
   const [numero, setNumero] = useState("");
   const [nome,   setNome]   = useState("");
   const [expiry, setExpiry] = useState("");
@@ -76,9 +82,12 @@ function StepPagamento({
     if (cvv.length < 3)     { setError("CVV inválido."); return; }
     if (!nome.trim())       { setError("Digite o nome como está no cartão."); return; }
 
+    if (cep.replace(/\D/g, "").length !== 8) { setError("CEP invalido."); return; }
+    if (!numeroEndereco.trim()) { setError("Informe o numero do endereco do titular."); return; }
+
     startTransition(async () => {
       const res = await assinarPlano({
-        planId, handle, cpf: cpfNum, numero: digits,
+        planId, handle, cpf: cpfNum, numero: digits, cep, numeroEndereco,
         nomeTitular: nome, mesValidade: mes, anoValidade: "20" + ano, cvv,
       });
       if (!res.ok) { setError(res.error); return; }
@@ -108,6 +117,20 @@ function StepPagamento({
         <input className={`${inputCls} uppercase`} placeholder="CARLOS ROCHA"
           value={nome} onChange={(e) => setNome(e.target.value.toUpperCase())}
           autoComplete="cc-name" required />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>CEP do titular</label>
+          <input className={inputCls} placeholder="00000-000" value={cep}
+            onChange={(e) => setCep(formatCEP(e.target.value))} inputMode="numeric"
+            autoComplete="postal-code" maxLength={9} required />
+        </div>
+        <div>
+          <label className={labelCls}>Numero</label>
+          <input className={inputCls} placeholder="123" value={numeroEndereco}
+            onChange={(e) => setNumeroEndereco(e.target.value.slice(0, 20))}
+            autoComplete="address-line2" maxLength={20} required />
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>

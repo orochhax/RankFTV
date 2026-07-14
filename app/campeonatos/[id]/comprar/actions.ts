@@ -57,6 +57,7 @@ export async function comprarIngressoAtleta(
       .from("championship_categories")
       .select("valor_inscricao")
       .eq("id", categoryId)
+      .eq("championship_id", championshipId)
       .maybeSingle(),
   ]);
 

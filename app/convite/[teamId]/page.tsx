@@ -8,10 +8,15 @@ import { AceitarConviteViaLink } from "./AceitarConviteViaLink";
 
 export default async function ConvitePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ teamId: string }>;
+  searchParams: Promise<{ token?: string }>;
 }) {
   const { teamId } = await params;
+  const { token } = await searchParams;
+  const inviteToken = token?.trim() ?? "";
+  if (!/^[0-9a-f-]{36}$/i.test(inviteToken)) notFound();
   const admin = createAdminClient();
 
   const { data: rawTeam } = await admin
@@ -22,6 +27,7 @@ export default async function ConvitePage({
       championship_categories(nome)
     `)
     .eq("id", teamId)
+    .eq("invite_token", inviteToken)
     .maybeSingle();
 
   if (!rawTeam) notFound();
@@ -45,6 +51,7 @@ export default async function ConvitePage({
 
   const conviteExpirado = rawTeam.status !== "convite_pendente";
   const conviteErrado   = !!rawTeam.atleta2_id && !!user && rawTeam.atleta2_id !== user.id;
+  const invitePath = `/convite/${teamId}?token=${encodeURIComponent(inviteToken)}`;
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-gray-50 px-4 py-12">
@@ -97,13 +104,13 @@ export default async function ConvitePage({
               </p>
               <div className="flex flex-col gap-2 pt-1">
                 <Link
-                  href={`/login?next=/convite/${teamId}`}
+                  href={`/login?next=${encodeURIComponent(invitePath)}`}
                   className="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 text-center"
                 >
                   Entrar
                 </Link>
                 <Link
-                  href={`/cadastro?next=/convite/${teamId}`}
+                  href={`/cadastro?next=${encodeURIComponent(invitePath)}`}
                   className="w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 text-center"
                 >
                   Criar conta
@@ -122,6 +129,7 @@ export default async function ConvitePage({
               <AceitarConviteViaLink
                 teamId={teamId}
                 champId={champ.id}
+                inviteToken={inviteToken}
               />
             </div>
           )}

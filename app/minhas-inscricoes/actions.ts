@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function confirmarTamanhoCamisa(
   champId: string,
@@ -49,10 +50,11 @@ export async function cancelarInscricao(
   if (team.status === "cancelado")
     return { ok: false, error: "Inscrição já cancelada." };
 
-  await supabase.from("teams").update({ status: "cancelado" }).eq("id", teamId);
+  const admin = createAdminClient();
+  await admin.from("teams").update({ status: "cancelado" }).eq("id", teamId);
 
   // Cancela somente inscrições ainda pendentes (não reverte pagamentos já confirmados)
-  await supabase
+  await admin
     .from("registrations")
     .update({ status_pagamento: "estornado" })
     .eq("team_id", teamId)

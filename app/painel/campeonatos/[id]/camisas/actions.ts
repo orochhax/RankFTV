@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // Defesa em profundidade: o RLS de shirt_production/notifications já restringe
 // ao dono, mas a checagem explícita evita operar em campeonato alheio.
@@ -72,14 +73,23 @@ export async function notifyAthletes(
   if (athleteIds.length === 0) return;
   const supabase = await createClient();
   if (!(await isOwner(supabase, champId))) return;
-  const rows = athleteIds.map((uid) => ({
+  const { data: teams } = await supabase
+    .from("teams")
+    .select("atleta1_id, atleta2_id")
+    .eq("championship_id", champId);
+  const participantes = new Set(
+    (teams ?? []).flatMap((team) => [team.atleta1_id, team.atleta2_id].filter(Boolean) as string[]),
+  );
+  const recipients = [...new Set(athleteIds)].filter((id) => participantes.has(id)).slice(0, 500);
+  if (recipients.length === 0) return;
+  const rows = recipients.map((uid) => ({
     user_id:         uid,
     championship_id: champId,
     tipo:            "camisa_pronta",
     titulo:          "Camisa pronta para retirada",
     mensagem:        `Sua camisa do campeonato ${campNome} já está pronta. Retire no local do evento.`,
   }));
-  await supabase.from("notifications").insert(rows);
+  await createAdminClient().from("notifications").insert(rows);
   revalidatePath(`/painel/campeonatos/${champId}/camisas`);
 }
 

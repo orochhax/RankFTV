@@ -1,5 +1,15 @@
-import { REAL_EVENTS } from "@/lib/mock/agenda-events";
 import type { ChampionshipStatus } from "@/lib/types";
+
+export type AgendaSourceEvent = {
+  id: string;
+  nome: string;
+  status: ChampionshipStatus;
+  cidade: string;
+  estado: string;
+  dataInicio: string;
+  dataFim: string;
+  href?: string;
+};
 
 // Um "evento" da agenda é um circuito em UM dia específico. Um evento de vários
 // dias vira vários eventos (um por dia que ele ocupa) — assim ele aparece em
@@ -60,31 +70,32 @@ export type AgendaRangeEvent = {
   href?: string;
 };
 
-export function getAgendaRangeEvents(): AgendaRangeEvent[] {
-  return REAL_EVENTS.map((e) => ({
+export function getAgendaRangeEvents(source: AgendaSourceEvent[]): AgendaRangeEvent[] {
+  return source.map((e) => ({
     id: e.id,
-    nome: e.circuito,
-    status: statusByDate(e.dataInicio, e.dataFim),
+    nome: e.nome,
+    status: e.status ?? statusByDate(e.dataInicio, e.dataFim),
     cidade: e.cidade,
     estado: e.estado,
     dataInicio: e.dataInicio,
     dataFim: e.dataFim,
+    href: e.href,
   })).sort((a, b) => a.dataInicio.localeCompare(b.dataInicio));
 }
 
-// Fonte da agenda: o calendário real da temporada (lib/mock/agenda-events.ts).
-export function getAgendaEvents(): AgendaEvent[] {
+export function getAgendaEvents(source: AgendaSourceEvent[]): AgendaEvent[] {
   const events: AgendaEvent[] = [];
-  for (const e of REAL_EVENTS) {
-    const status = statusByDate(e.dataInicio, e.dataFim);
+  for (const e of source) {
+    const status = e.status ?? statusByDate(e.dataInicio, e.dataFim);
     for (const date of eachDay(e.dataInicio, e.dataFim)) {
       events.push({
         id: e.id,
-        nome: e.circuito,
+        nome: e.nome,
         status,
         cidade: e.cidade,
         estado: e.estado,
         date,
+        href: e.href,
       });
     }
   }

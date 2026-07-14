@@ -25,6 +25,15 @@ function parseAulasSemana(raw: FormDataEntryValue | null): number | null {
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
+const TIPOS_PLANO = new Set(["mensalidade", "aluguel", "diaria"]);
+
+function validarPlano(tipo: string, nome: string, valor: number) {
+  if (!TIPOS_PLANO.has(tipo)) throw new Error("Tipo de plano inválido");
+  if (!nome || nome.length > 80) throw new Error("Nome de plano inválido");
+  if (!Number.isFinite(valor) || valor < 0 || valor > 1_000_000)
+    throw new Error("Valor de plano inválido");
+}
+
 export async function addPlan(formData: FormData) {
   const handle   = formData.get("handle") as string;
   const tipo     = formData.get("tipo") as string;
@@ -32,6 +41,8 @@ export async function addPlan(formData: FormData) {
   const descricao = (formData.get("descricao") as string | null)?.trim() || null;
   const valor    = parseFloat(formData.get("valor") as string);
   const aulasSemana = tipo === "mensalidade" ? parseAulasSemana(formData.get("aulas_por_semana")) : null;
+
+  validarPlano(tipo, nome, valor);
 
   const { supabase, arenaId } = await getArenaId(handle);
 
@@ -45,15 +56,15 @@ export async function addPlan(formData: FormData) {
 }
 
 export async function togglePlan(planId: string, ativo: boolean, handle: string) {
-  const { supabase } = await getArenaId(handle);
-  await supabase.from("arena_plans").update({ ativo }).eq("id", planId);
+  const { supabase, arenaId } = await getArenaId(handle);
+  await supabase.from("arena_plans").update({ ativo }).eq("id", planId).eq("arena_id", arenaId);
   revalidatePath(`/arena/planos`);
   revalidatePath(`/arenas/${handle}`);
 }
 
 export async function deletePlan(planId: string, handle: string) {
-  const { supabase } = await getArenaId(handle);
-  await supabase.from("arena_plans").delete().eq("id", planId);
+  const { supabase, arenaId } = await getArenaId(handle);
+  await supabase.from("arena_plans").delete().eq("id", planId).eq("arena_id", arenaId);
   revalidatePath(`/arena/planos`);
   revalidatePath(`/arenas/${handle}`);
 }
@@ -66,13 +77,15 @@ export async function updatePlan(formData: FormData) {
   const valor     = parseFloat(formData.get("valor") as string);
   const tipo      = formData.get("tipo") as string;
 
-  const { supabase } = await getArenaId(handle);
+  validarPlano(tipo, nome, valor);
+
+  const { supabase, arenaId } = await getArenaId(handle);
   await supabase.from("arena_plans").update({
     nome, descricao, valor,
     ...(tipo === "mensalidade"
       ? { aulas_por_semana: parseAulasSemana(formData.get("aulas_por_semana")) }
       : {}),
-  }).eq("id", planId);
+  }).eq("id", planId).eq("arena_id", arenaId);
 
   revalidatePath(`/arena/planos`);
   revalidatePath(`/arenas/${handle}`);
@@ -83,14 +96,15 @@ export async function updatePlanPaymentConfig(formData: FormData) {
   const planId        = formData.get("planId") as string;
   const aceitaCredito = formData.get("aceita_credito") === "true";
   const aceitaDebito  = formData.get("aceita_debito") === "true";
-  const diaVencimento = parseInt(formData.get("dia_vencimento") as string, 10) || 10;
+  const rawDia = parseInt(formData.get("dia_vencimento") as string, 10);
+  const diaVencimento = Number.isInteger(rawDia) && rawDia >= 1 && rawDia <= 28 ? rawDia : 10;
 
-  const { supabase } = await getArenaId(handle);
+  const { supabase, arenaId } = await getArenaId(handle);
   await supabase.from("arena_plans").update({
     aceita_credito:  aceitaCredito,
     aceita_debito:   aceitaDebito,
     dia_vencimento:  diaVencimento,
-  }).eq("id", planId);
+  }).eq("id", planId).eq("arena_id", arenaId);
 
   revalidatePath(`/arena/planos`);
   revalidatePath(`/arenas/${handle}`);

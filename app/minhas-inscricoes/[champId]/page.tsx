@@ -16,6 +16,7 @@ import { CopiarLink } from "@/components/ui/CopiarLink";
 import { TamanhoCamisaPicker } from "@/components/inscricoes/TamanhoCamisaPicker";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateRangeBR, formatBRL, generoLabel } from "@/lib/format";
 import type { ChampionshipStatus } from "@/lib/types";
@@ -88,6 +89,17 @@ export default async function IngressoPage({
   const team = rawTeam as unknown as TeamRow;
   const champ = team.championships;
   if (!champ) notFound();
+
+  let inviteToken: string | null = null;
+  if (team.status === "convite_pendente" && team.atleta1_id === user.id) {
+    const { data: privateTeam } = await createAdminClient()
+      .from("teams")
+      .select("invite_token")
+      .eq("id", team.id)
+      .eq("atleta1_id", user.id)
+      .maybeSingle();
+    inviteToken = privateTeam?.invite_token ?? null;
+  }
 
   const cat = team.championship_categories;
   const reg = team.registrations?.[0];
@@ -355,7 +367,7 @@ export default async function IngressoPage({
           )}
 
           {/* ── Card de convite ── */}
-          {team.status === "convite_pendente" && team.atleta1_id === user.id && (
+          {team.status === "convite_pendente" && team.atleta1_id === user.id && inviteToken && (
             <section className="space-y-3">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
                 Convidar parceiro
@@ -375,7 +387,7 @@ export default async function IngressoPage({
                   </div>
                 </div>
                 <CopiarLink
-                  link={`${process.env.NEXT_PUBLIC_BASE_URL}/convite/${team.id}`}
+                  link={`${process.env.NEXT_PUBLIC_BASE_URL}/convite/${team.id}?token=${inviteToken}`}
                 />
                 {team.parceiro_username && (
                   <p className="text-center text-xs text-gray-400">

@@ -11,23 +11,27 @@ export async function aceitarConvite(formData: FormData) {
   if (!user) return;
 
   const teamId = formData.get("team_id") as string;
+  const inviteToken = formData.get("invite_token") as string;
+  const admin = createAdminClient();
+  if (!/^[0-9a-f-]{36}$/i.test(inviteToken ?? "")) return;
 
   // Garante que só o atleta2 pode aceitar, e só se ainda estiver pendente.
   // atleta2_id null = convite aberto (link direto sem @usuário especificado).
-  const { data: team } = await supabase
+  const { data: team } = await admin
     .from("teams")
     .select("id, atleta1_id, atleta2_id, championship_id, status")
     .eq("id", teamId)
+    .eq("invite_token", inviteToken)
     .single();
 
   if (!team || (team.atleta2_id !== null && team.atleta2_id !== user.id) || team.status !== "convite_pendente") return;
 
   // Se convite aberto (atleta2_id null), associa o usuário atual como parceiro
   if (team.atleta2_id === null) {
-    await supabase.from("teams").update({ atleta2_id: user.id }).eq("id", teamId);
+    await admin.from("teams").update({ atleta2_id: user.id }).eq("id", teamId);
   }
 
-  await supabase
+  await admin
     .from("teams")
     .update({ status: "confirmado" })
     .eq("id", teamId);
@@ -43,7 +47,6 @@ export async function aceitarConvite(formData: FormData) {
 
   // E-mails vêm de auth.users: o do atleta2 é o próprio usuário logado; o do
   // atleta1 (quem convidou) busca via admin.
-  const admin = createAdminClient();
   const { data: a1Auth } = await admin.auth.admin.getUserById(team.atleta1_id);
   const atleta1Email = a1Auth?.user?.email ?? null;
   const atleta2Email = user.email ?? null;
@@ -62,7 +65,7 @@ export async function aceitarConvite(formData: FormData) {
   if (isGratis || isPago) {
     if (isGratis) {
       // Gratuito: gera também para atleta1 se ainda não tiver
-      const { data: cred1 } = await supabase
+      const { data: cred1 } = await admin
         .from("credentials")
         .select("id")
         .eq("user_id", team.atleta1_id)
@@ -70,7 +73,7 @@ export async function aceitarConvite(formData: FormData) {
         .maybeSingle();
 
       if (!cred1) {
-        await supabase.from("credentials").insert({
+        await admin.from("credentials").insert({
           user_id:         team.atleta1_id,
           championship_id: team.championship_id,
           role:            "atleta",
@@ -81,7 +84,7 @@ export async function aceitarConvite(formData: FormData) {
     }
 
     // Credencial para atleta2 (quem aceitou) se ainda não tiver
-    const { data: cred2 } = await supabase
+    const { data: cred2 } = await admin
       .from("credentials")
       .select("id")
       .eq("user_id", user.id)
@@ -89,7 +92,7 @@ export async function aceitarConvite(formData: FormData) {
       .maybeSingle();
 
     if (!cred2) {
-      await supabase.from("credentials").insert({
+      await admin.from("credentials").insert({
         user_id:         user.id,
         championship_id: team.championship_id,
         role:            "atleta",
@@ -142,7 +145,7 @@ export async function recusarConvite(formData: FormData) {
 
   if (!team || team.atleta2_id !== user.id || team.status !== "convite_pendente") return;
 
-  await supabase
+  await createAdminClient()
     .from("teams")
     .update({ status: "recusado" })
     .eq("id", teamId);

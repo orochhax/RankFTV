@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   calcularRatingQuestionario,
   PERGUNTAS_NIVEL,
@@ -23,13 +24,19 @@ export async function salvarQuestionarioNivel(formData: FormData) {
   }
   const respostas = raw as unknown as RespostasQuestionario;
   const rating = calcularRatingQuestionario(respostas);
+  const admin = createAdminClient();
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({ questionario: respostas, rating })
-    .eq("id", user.id);
+  const [{ error: ratingError }, { error: questionnaireError }] = await Promise.all([
+    admin.from("profiles").update({ rating }).eq("id", user.id),
+    supabase
+      .from("profiles_private")
+      .upsert(
+        { user_id: user.id, questionario: respostas },
+        { onConflict: "user_id" },
+      ),
+  ]);
 
-  if (error) return { error: "Erro ao salvar. Tente de novo." };
+  if (ratingError || questionnaireError) return { error: "Erro ao salvar. Tente de novo." };
 
   const redirectParam = formData.get("redirect");
   const redirectTo =

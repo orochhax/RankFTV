@@ -156,10 +156,12 @@ export function NovoCampeonatoForm() {
       let regulamentoPdfUrl: string | undefined;
       if (pdfFile) {
         const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return fail("Sessão expirada.");
         const filename = `${Date.now()}-${pdfFile.name.replace(/\s+/g, "_")}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from("regulamentos")
-          .upload(filename, pdfFile, { contentType: "application/pdf" });
+          .upload(`${user.id}/${filename}`, pdfFile, { contentType: "application/pdf" });
         if (uploadError) return fail("Erro ao fazer upload do PDF. Tente novamente.");
         const { data: urlData } = supabase.storage.from("regulamentos").getPublicUrl(uploadData.path);
         regulamentoPdfUrl = urlData.publicUrl;

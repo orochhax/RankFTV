@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, ChevronDown, Search, FileText, X, Package, Bell, CheckSquare, Square } from "lucide-react";
+import { Check, ChevronDown, Search, FileText, X, Package, Bell, CheckSquare } from "lucide-react";
 import { toggleProduced, bulkMarkProduced, saveEntrega, notifyAthletes } from "@/app/painel/campeonatos/[id]/camisas/actions";
 import type { AthleteShirt } from "@/app/painel/campeonatos/[id]/camisas/page";
 

@@ -4,7 +4,6 @@ import { ArrowLeft, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { IngressoAtletaForm, type CategoriaOpcao } from "@/components/campeonatos/IngressoAtletaForm";
 import { resolverPrecos, listarLotesComStatus } from "@/lib/lotes";
-import { generoLabel } from "@/lib/format";
 
 // Compra de ingresso de atleta (dupla) como visitante, sem conta.
 export default async function ComprarAtletaPage({

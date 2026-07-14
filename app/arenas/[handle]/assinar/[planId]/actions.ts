@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { criarOuBuscarCliente } from "@/lib/asaas";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type AssinarInput = {
   planId:      string;
@@ -12,6 +13,8 @@ export type AssinarInput = {
   mesValidade: string;
   anoValidade: string;
   cvv:         string;
+  cep:         string;
+  numeroEndereco: string;
 };
 
 export type AssinarResult =
@@ -22,8 +25,13 @@ export async function assinarPlano(input: AssinarInput): Promise<AssinarResult> 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada. Faça login novamente." };
+  const admin = createAdminClient();
 
   const cpfNum = input.cpf.replace(/\D/g, "");
+  const cep = input.cep.replace(/\D/g, "");
+  const numeroEndereco = input.numeroEndereco.trim();
+  if (cep.length !== 8) return { ok: false, error: "CEP invalido." };
+  if (!numeroEndereco) return { ok: false, error: "Informe o numero do endereco do titular." };
   if (cpfNum.length !== 11) return { ok: false, error: "CPF inválido." };
 
   const { data: plan } = await supabase
@@ -64,13 +72,13 @@ export async function assinarPlano(input: AssinarInput): Promise<AssinarResult> 
   // Cria ou reutiliza o vínculo de aluno
   let studentId: string;
   if (existingStudent) {
-    await supabase
+    await admin
       .from("arena_students")
       .update({ plan_id: plan.id, asaas_customer_id: customer.id, valor_mensalidade: plan.valor })
       .eq("id", existingStudent.id);
     studentId = existingStudent.id;
   } else {
-    const { data: newStudent, error: insErr } = await supabase
+    const { data: newStudent, error: insErr } = await admin
       .from("arena_students")
       .insert({
         arena_id:          plan.arena_id,
@@ -122,8 +130,8 @@ export async function assinarPlano(input: AssinarInput): Promise<AssinarResult> 
           name:          profile.nome,
           email:         user.email!,
           cpfCnpj:       cpfNum,
-          postalCode:    "00000000",
-          addressNumber: "0",
+          postalCode:    cep,
+          addressNumber: numeroEndereco,
         },
       }),
     });
@@ -141,7 +149,7 @@ export async function assinarPlano(input: AssinarInput): Promise<AssinarResult> 
     const sub = await res.json() as { id: string };
 
     await Promise.all([
-      supabase
+      admin
         .from("arena_students")
         .update({ asaas_subscription_id: sub.id })
         .eq("id", studentId),
@@ -163,6 +171,7 @@ export async function assinarGratuito(planId: string): Promise<AssinarResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada." };
+  const admin = createAdminClient();
 
   const { data: plan } = await supabase
     .from("arena_plans")
@@ -185,12 +194,12 @@ export async function assinarGratuito(planId: string): Promise<AssinarResult> {
   if (existing?.status === "ativo") return { ok: true }; // já ativo, ok
 
   if (existing) {
-    await supabase
+    await admin
       .from("arena_students")
       .update({ plan_id: plan.id, status: "ativo", valor_mensalidade: 0 })
       .eq("id", existing.id);
   } else {
-    const { error } = await supabase
+    const { error } = await admin
       .from("arena_students")
       .insert({ arena_id: plan.arena_id, user_id: user.id, plan_id: plan.id, status: "ativo", valor_mensalidade: 0 });
     if (error) return { ok: false, error: "Erro ao criar vínculo com a arena." };
@@ -217,6 +226,7 @@ export type OnboardingResult =
 
 export async function salvarOnboardingAtleta(input: OnboardingInput): Promise<OnboardingResult> {
   const supabase = await createClient();
+  const admin = createAdminClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada." };
 
@@ -236,16 +246,23 @@ export async function salvarOnboardingAtleta(input: OnboardingInput): Promise<On
   const esportes: string[] = JSON.parse(input.esportes || "[]");
   if (esportes.includes("volei") || esportes.includes("futebol")) rating += 100;
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      nome:            input.nome.trim(),
-      data_nascimento: input.dataNascimento || null,
-      genero:          input.genero || null,
-      rating,
-    })
-    .eq("id", user.id);
+  const [{ error }, { error: privateError }] = await Promise.all([
+    admin
+      .from("profiles")
+      .update({
+        nome: input.nome.trim(),
+        genero: input.genero || null,
+        rating,
+      })
+      .eq("id", user.id),
+    supabase
+      .from("profiles_private")
+      .upsert(
+        { user_id: user.id, data_nascimento: input.dataNascimento || null },
+        { onConflict: "user_id" },
+      ),
+  ]);
 
-  if (error) return { ok: false, error: "Erro ao salvar perfil." };
+  if (error || privateError) return { ok: false, error: "Erro ao salvar perfil." };
   return { ok: true };
 }

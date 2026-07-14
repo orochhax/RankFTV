@@ -4,13 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { calcElo, DEFAULT_RATING } from "@/lib/rating";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /* ─── helpers ─── */
 
 // Confirma que o usuário logado é o organizador dono do campeonato.
 // Defesa em profundidade: o RLS já barra a escrita, mas a checagem
 // explícita evita operar com dados de campeonato alheio.
-async function isOwner(supabase: SupabaseClient, champId: string): Promise<boolean> {
+async function canManageBracket(supabase: SupabaseClient, champId: string): Promise<boolean> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
   const { data: champ } = await supabase
@@ -18,7 +19,32 @@ async function isOwner(supabase: SupabaseClient, champId: string): Promise<boole
     .select("organizador_id")
     .eq("id", champId)
     .single();
-  return !!champ && champ.organizador_id === user.id;
+  if (!champ) return false;
+  if (champ.organizador_id === user.id) return true;
+
+  const { data: staff } = await supabase
+    .from("championship_staff")
+    .select("id")
+    .eq("championship_id", champId)
+    .eq("user_id", user.id)
+    .eq("status", "aceito")
+    .eq("can_chaveamento", true)
+    .maybeSingle();
+  return !!staff;
+}
+
+async function categoryBelongsToChampionship(
+  supabase: SupabaseClient,
+  champId: string,
+  catId: string,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("championship_categories")
+    .select("id")
+    .eq("id", catId)
+    .eq("championship_id", champId)
+    .maybeSingle();
+  return !!data;
 }
 
 function nextPow2(n: number): number {
@@ -45,7 +71,20 @@ export async function generateBracket(
   teamIds: string[],
 ) {
   const supabase = await createClient();
-  if (!(await isOwner(supabase, champId))) return;
+  if (!(await canManageBracket(supabase, champId))) return;
+  if (!(await categoryBelongsToChampionship(supabase, champId, catId))) return;
+
+  const uniqueTeamIds = [...new Set(teamIds)].slice(0, 256);
+  if (uniqueTeamIds.length !== teamIds.length) return;
+  if (uniqueTeamIds.length > 0) {
+    const { data: validTeams } = await supabase
+      .from("teams")
+      .select("id")
+      .in("id", uniqueTeamIds)
+      .eq("championship_id", champId)
+      .eq("category_id", catId);
+    if ((validTeams ?? []).length !== uniqueTeamIds.length) return;
+  }
 
   await supabase
     .from("bracket_matches")
@@ -53,7 +92,7 @@ export async function generateBracket(
     .eq("championship_id", champId)
     .eq("category_id", catId);
 
-  const shuffled = shuffle(teamIds);
+  const shuffled = shuffle(uniqueTeamIds);
   const n            = nextPow2(shuffled.length);
   const totalRounds  = Math.log2(n);
   const slots: (string | null)[] = [
@@ -103,11 +142,32 @@ export async function assignTeam(
   champId: string,
 ) {
   const supabase = await createClient();
+  if (!(await canManageBracket(supabase, champId))) return;
+
+  const { data: match } = await supabase
+    .from("bracket_matches")
+    .select("category_id")
+    .eq("id", matchId)
+    .eq("championship_id", champId)
+    .maybeSingle();
+  if (!match) return;
+
+  if (teamId) {
+    const { data: team } = await supabase
+      .from("teams")
+      .select("id")
+      .eq("id", teamId)
+      .eq("championship_id", champId)
+      .eq("category_id", match.category_id)
+      .maybeSingle();
+    if (!team) return;
+  }
   const field = slot === "a" ? "team_a_id" : "team_b_id";
   await supabase
     .from("bracket_matches")
     .update({ [field]: teamId, updated_at: new Date().toISOString() })
-    .eq("id", matchId);
+    .eq("id", matchId)
+    .eq("championship_id", champId);
   revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
 }
 
@@ -124,18 +184,36 @@ export async function saveScore(
   setDetails: Array<{ a: number; b: number }> | null,
 ) {
   const supabase = await createClient();
+  if (!(await canManageBracket(supabase, champId))) return;
+  if (!Number.isInteger(setsA) || !Number.isInteger(setsB) || setsA < 0 || setsB < 0 || setsA > 9 || setsB > 9)
+    return;
+  if (setsA === setsB) return;
+  if (
+    setDetails?.some(
+      (set) =>
+        !Number.isInteger(set.a) || !Number.isInteger(set.b) ||
+        set.a < 0 || set.b < 0 || set.a > 99 || set.b > 99,
+    )
+  ) return;
+
+  const { data: securedMatch } = await supabase
+    .from("bracket_matches")
+    .select("winner_id, team_a_id, team_b_id, round_index, match_index, category_id")
+    .eq("id", matchId)
+    .eq("championship_id", champId)
+    .eq("category_id", catId)
+    .maybeSingle();
+  if (!securedMatch) return;
+  if (securedMatch.team_a_id !== teamAId || securedMatch.team_b_id !== teamBId) return;
+  if (securedMatch.round_index !== roundIndex || securedMatch.match_index !== matchIndex) return;
+
   const winnerId =
     setsA > setsB ? teamAId
     : setsB > setsA ? teamBId
     : null;
 
   // Guarda o winner anterior para saber se é uma nova vitória
-  const { data: prevMatch } = await supabase
-    .from("bracket_matches")
-    .select("winner_id")
-    .eq("id", matchId)
-    .single();
-  const prevWinnerId = prevMatch?.winner_id ?? null;
+  const prevWinnerId = securedMatch.winner_id ?? null;
 
   await supabase
     .from("bracket_matches")
@@ -146,7 +224,9 @@ export async function saveScore(
       set_details: setDetails ?? null,
       updated_at:  new Date().toISOString(),
     })
-    .eq("id", matchId);
+    .eq("id", matchId)
+    .eq("championship_id", champId)
+    .eq("category_id", catId);
 
   // Avança o vencedor para a próxima rodada
   if (winnerId) {
@@ -221,7 +301,9 @@ async function applyRatingUpdate(
   teamBId:  string,
   winnerId: string,
 ) {
-  const supabase = await createClient();
+  // A autorização ocorreu em saveScore. O service role é necessário
+  // somente para atualizar os ratings dos atletas, que não pertencem ao staff.
+  const supabase = createAdminClient();
 
   // Busca atletas de cada dupla
   const { data: teams } = await supabase
@@ -301,6 +383,7 @@ async function applyRatingUpdate(
 
 export async function clearScore(matchId: string, champId: string) {
   const supabase = await createClient();
+  if (!(await canManageBracket(supabase, champId))) return;
   await supabase
     .from("bracket_matches")
     .update({
@@ -309,13 +392,15 @@ export async function clearScore(matchId: string, champId: string) {
       winner_id: null,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", matchId);
+    .eq("id", matchId)
+    .eq("championship_id", champId);
   revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
 }
 
 export async function resetBracket(champId: string, catId: string) {
   const supabase = await createClient();
-  if (!(await isOwner(supabase, champId))) return;
+  if (!(await canManageBracket(supabase, champId))) return;
+  if (!(await categoryBelongsToChampionship(supabase, champId, catId))) return;
   await supabase
     .from("bracket_matches")
     .delete()

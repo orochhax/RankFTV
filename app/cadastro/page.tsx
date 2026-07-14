@@ -59,7 +59,7 @@ function CadastroForm() {
   const canSubmit =
     nome.trim().length > 0 &&
     email.trim().length > 0 &&
-    senha.length >= 6 &&
+    senha.length >= 8 &&
     statusUsername === "ok" &&
     !!genero &&
     (!modoOrganizador || (telefone.trim().length > 0 && cpfCnpj.trim().length > 0 && nascimento.trim().length > 0)) &&
@@ -99,7 +99,13 @@ function CadastroForm() {
     }
 
     const callbackUrl = new URL("/auth/callback", window.location.origin);
+    const requestedNext = searchParams.get("next");
+    const safeNext =
+      requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
+        ? requestedNext
+        : null;
     if (modoOrganizador) callbackUrl.searchParams.set("next", "/painel/novo-campeonato");
+    else if (safeNext) callbackUrl.searchParams.set("next", safeNext);
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -231,7 +237,7 @@ function CadastroForm() {
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:border-blue-500 focus:outline-none"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mínimo 8 caracteres"
             />
             <button
               type="button"

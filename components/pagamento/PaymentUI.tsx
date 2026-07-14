@@ -24,6 +24,10 @@ function formatExpiry(v: string) {
   const d = v.replace(/\D/g, "").slice(0, 4);
   return d.length >= 3 ? d.slice(0, 2) + "/" + d.slice(2) : d;
 }
+function formatCEP(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 8);
+  return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+}
 
 type Atleta = { id: string; nome: string };
 type Tab    = "pix" | "cartao";
@@ -65,6 +69,8 @@ function CardForm({ valor, isElite, registrationId, champId }: { valor: number; 
   const [nome,    setNome]    = useState("");
   const [expiry,  setExpiry]  = useState("");
   const [cvv,     setCvv]     = useState("");
+  const [cep,     setCep]     = useState("");
+  const [numeroEndereco, setNumeroEndereco] = useState("");
   const [parcelas,setParcelas]= useState(1);
   const [error,   setError]   = useState<string | null>(null);
 
@@ -96,6 +102,9 @@ function CardForm({ valor, isElite, registrationId, champId }: { valor: number; 
     if (cvv.length < 3)     { setError("CVV inválido."); return; }
     if (!nome.trim())       { setError("Digite o nome como está no cartão."); return; }
 
+    if (cep.replace(/\D/g, "").length !== 8) { setError("CEP invalido."); return; }
+    if (!numeroEndereco.trim()) { setError("Informe o numero do endereco do titular."); return; }
+
     startTransition(async () => {
       const res = await pagarComCartao({
         registrationId,
@@ -106,6 +115,8 @@ function CardForm({ valor, isElite, registrationId, champId }: { valor: number; 
         anoValidade: "20" + ano,
         cvv,
         parcelas: tipo === "credito" ? parcelas : 1,
+        cep,
+        numeroEndereco,
       });
 
       if (!res.ok) { setError(res.error); return; }
@@ -196,6 +207,21 @@ function CardForm({ valor, isElite, registrationId, champId }: { valor: number; 
       </div>
 
       {/* Parcelas — só crédito */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>CEP do titular</label>
+          <input className={inputCls} placeholder="00000-000" value={cep}
+            onChange={(e) => setCep(formatCEP(e.target.value))} inputMode="numeric"
+            autoComplete="postal-code" maxLength={9} required />
+        </div>
+        <div>
+          <label className={labelCls}>Numero</label>
+          <input className={inputCls} placeholder="123" value={numeroEndereco}
+            onChange={(e) => setNumeroEndereco(e.target.value.slice(0, 20))}
+            autoComplete="address-line2" maxLength={20} required />
+        </div>
+      </div>
+
       {tipo === "credito" && (
         <div>
           <label className={labelCls}>Parcelamento</label>

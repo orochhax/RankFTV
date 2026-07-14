@@ -64,7 +64,7 @@ export function ElitePlanCard({
           </button>
         </div>
         <ul className="mt-3 grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
-          {BENEFICIOS_ELITE.map(({ icon: Icon, label }) => (
+          {BENEFICIOS_ELITE.map(({ label }) => (
             <li key={label} className="flex items-start gap-2 text-sm text-amber-800">
               <Check className="size-3.5 mt-0.5 shrink-0 text-amber-500" />
               {label}

@@ -8,6 +8,40 @@ import { resolverFaixaRating } from "@/lib/motor-categoria";
 type Result = { ok: boolean; error?: string };
 type Entidade = "category" | "ticket_type";
 
+async function entidadePertenceAoCampeonato(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  champId: string,
+  entidade: Entidade,
+  entidadeId: string,
+): Promise<boolean> {
+  const tabela = entidade === "category" ? "championship_categories" : "spectator_ticket_types";
+  const { data } = await supabase
+    .from(tabela)
+    .select("id")
+    .eq("id", entidadeId)
+    .eq("championship_id", champId)
+    .maybeSingle();
+  return !!data;
+}
+
+async function lotePertenceAoCampeonato(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  champId: string,
+  loteId: string,
+): Promise<boolean> {
+  const { data: lote } = await supabase
+    .from("pricing_tiers")
+    .select("category_id, ticket_type_id")
+    .eq("id", loteId)
+    .maybeSingle();
+  if (!lote) return false;
+  if (lote.category_id)
+    return entidadePertenceAoCampeonato(supabase, champId, "category", lote.category_id);
+  if (lote.ticket_type_id)
+    return entidadePertenceAoCampeonato(supabase, champId, "ticket_type", lote.ticket_type_id);
+  return false;
+}
+
 // Confere se o usuário logado é o dono do campeonato.
 async function assertOwner(champId: string): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createClient();
@@ -50,6 +84,13 @@ export async function criarLote(champId: string, input: CriarLoteInput): Promise
     return { ok: false, error: "Escolha uma data de término ou uma quantidade máxima pra esse lote." };
 
   const supabase = await createClient();
+
+  if (
+    (input.entidade !== "category" && input.entidade !== "ticket_type") ||
+    !(await entidadePertenceAoCampeonato(supabase, champId, input.entidade, input.entidadeId))
+  ) {
+    return { ok: false, error: "Categoria ou ingresso não pertence a este campeonato." };
+  }
 
   // Alvo(s) do lote: só a entidade escolhida, ou todas as categorias do
   // campeonato de uma vez (aplicarATodas só vale pra categoria, não plateia).
@@ -113,6 +154,8 @@ export async function alternarLote(champId: string, loteId: string, ativo: boole
   if (!auth.ok) return auth;
 
   const supabase = await createClient();
+  if (!(await lotePertenceAoCampeonato(supabase, champId, loteId)))
+    return { ok: false, error: "Lote não encontrado neste campeonato." };
   const { error } = await supabase.from("pricing_tiers").update({ ativo }).eq("id", loteId);
   if (error) return { ok: false, error: "Erro ao atualizar." };
 
@@ -135,6 +178,13 @@ export async function atualizarValorBase(
 
   const supabase = await createClient();
 
+  if (
+    (entidade !== "category" && entidade !== "ticket_type") ||
+    !(await entidadePertenceAoCampeonato(supabase, champId, entidade, entidadeId))
+  ) {
+    return { ok: false, error: "Categoria ou ingresso não pertence a este campeonato." };
+  }
+
   // aplicarATodas só vale pra categoria — atualiza o valor_inscricao de
   // todas as categorias do campeonato de uma vez.
   if (entidade === "category" && aplicarATodas) {
@@ -146,8 +196,8 @@ export async function atualizarValorBase(
   } else {
     const { error } =
       entidade === "category"
-        ? await supabase.from("championship_categories").update({ valor_inscricao: valor }).eq("id", entidadeId)
-        : await supabase.from("spectator_ticket_types").update({ valor }).eq("id", entidadeId);
+        ? await supabase.from("championship_categories").update({ valor_inscricao: valor }).eq("id", entidadeId).eq("championship_id", champId)
+        : await supabase.from("spectator_ticket_types").update({ valor }).eq("id", entidadeId).eq("championship_id", champId);
     if (error) return { ok: false, error: "Erro ao atualizar o valor." };
   }
 
@@ -160,6 +210,8 @@ export async function excluirLote(champId: string, loteId: string): Promise<Resu
   if (!auth.ok) return auth;
 
   const supabase = await createClient();
+  if (!(await lotePertenceAoCampeonato(supabase, champId, loteId)))
+    return { ok: false, error: "Lote não encontrado neste campeonato." };
   const { error } = await supabase.from("pricing_tiers").delete().eq("id", loteId);
   if (error) return { ok: false, error: "Erro ao excluir." };
 
@@ -184,6 +236,7 @@ export async function criarCategoria(
   if (isNaN(valor)) return { ok: false, error: "Valor inválido." };
 
   const supabase = await createClient();
+
   const faixa = resolverFaixaRating(nomeClean);
   const { error } = await supabase.from("championship_categories").insert({
     championship_id:  champId,
@@ -206,6 +259,9 @@ export async function excluirCategoria(champId: string, categoriaId: string): Pr
   if (!auth.ok) return auth;
 
   const supabase = await createClient();
+
+  if (!(await entidadePertenceAoCampeonato(supabase, champId, "category", categoriaId)))
+    return { ok: false, error: "Categoria não encontrada neste campeonato." };
 
   const [{ count: inscricoesPagas }, { count: ingressosPagos }] = await Promise.all([
     supabase

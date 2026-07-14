@@ -93,8 +93,8 @@ export function AccountSettingsForm({ userId, email, initialTelefone, initialCpf
     e.preventDefault();
     setPassError(null);
 
-    if (novaSenha.length < 6) {
-      setPassError("A senha precisa ter ao menos 6 caracteres.");
+    if (novaSenha.length < 8) {
+      setPassError("A senha precisa ter ao menos 8 caracteres.");
       return;
     }
     if (novaSenha !== confirma) {
@@ -221,7 +221,7 @@ export function AccountSettingsForm({ userId, email, initialTelefone, initialCpf
                   type={showPass ? "text" : "password"}
                   value={novaSenha}
                   onChange={(e) => setNovaSenha(e.target.value)}
-                  placeholder="Nova senha (mín. 6 caracteres)"
+                  placeholder="Nova senha (mín. 8 caracteres)"
                   required
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />

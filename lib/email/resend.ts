@@ -8,8 +8,6 @@ export function getResend(): Resend {
   return new Resend(key);
 }
 
-// ⚠️ onboarding@resend.dev só entrega pro e-mail do dono da conta Resend —
-// clientes NÃO recebem convite/ingresso/confirmação por e-mail.
-// Quando verificar o domínio rankftv.com no Resend (grátis, só DNS),
-// trocar para: "RankFTV <noreply@rankftv.com>"
-export const FROM = "RankFTV <onboarding@resend.dev>";
+// O fallback e apenas para desenvolvimento. Em producao, configure
+// RESEND_FROM_EMAIL com um remetente de dominio verificado.
+export const FROM = process.env.RESEND_FROM_EMAIL ?? "RankFTV <onboarding@resend.dev>";

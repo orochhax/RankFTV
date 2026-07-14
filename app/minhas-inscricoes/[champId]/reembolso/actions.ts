@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { reembolsarPagamento } from "@/lib/asaas";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ReembolsoInfo = {
   regId:            string;
@@ -68,6 +69,7 @@ export async function solicitarReembolso(
   if (!team || (team.atleta1_id !== user.id && team.atleta2_id !== user.id)) {
     return { ok: false, error: "Sem permissão para estornar esta inscrição." };
   }
+  const admin = createAdminClient();
 
   // Dentro de 7 dias (CDC) → reembolso total (taxa de serviço incluída).
   // Após 7 dias → reembolso parcial: só o valor da inscrição (sem taxa de serviço).
@@ -79,7 +81,7 @@ export async function solicitarReembolso(
   // forma atômica ANTES de chamar o Asaas. Um duplo-clique / requisição
   // concorrente não consegue reivindicar de novo (0 linhas) → não estorna 2x.
   // O webhook PAYMENT_REFUNDED depois só reconfirma o mesmo estado (idempotente).
-  const { data: claimed } = await supabase
+  const { data: claimed } = await admin
     .from("registrations")
     .update({ status_pagamento: "estornado" })
     .eq("id", regId)
@@ -94,7 +96,7 @@ export async function solicitarReembolso(
     await reembolsarPagamento(reg.asaas_payment_id, valorParcial);
   } catch (err) {
     // Falhou no Asaas → devolve o status pra 'pago' pra permitir nova tentativa.
-    await supabase
+    await admin
       .from("registrations")
       .update({ status_pagamento: "pago" })
       .eq("id", regId);

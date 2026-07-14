@@ -22,7 +22,7 @@ export function EntrarNaArenaButtons({
   const [pending, setPending] = useState(false);
 
   const [pedidoState, pedirEntrada, pedirPending] = useActionState<EntrarState, FormData>(
-    async (_prev, _fd) => {
+    async () => {
       const r = await entrarNaArena(arenaId);
       return r;
     },

@@ -16,12 +16,17 @@ export default async function EditarPerfilPage() {
 
   if (!user) redirect("/login");
 
-  const [{ data: profile }, { data: conquistas }] = await Promise.all([
+  const [{ data: profile }, { data: privateProfile }, { data: conquistas }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("nome, bio, data_nascimento, foto_url")
+      .select("nome, bio, foto_url")
       .eq("id", user.id)
       .single(),
+    supabase
+      .from("profiles_private")
+      .select("data_nascimento")
+      .eq("user_id", user.id)
+      .maybeSingle(),
     supabase
       .from("conquistas")
       .select("id, titulo, icone, destaque_ordem")
@@ -46,7 +51,7 @@ export default async function EditarPerfilPage() {
         userId={user.id}
         initialNome={profile.nome}
         initialBio={profile.bio ?? null}
-        initialDataNascimento={profile.data_nascimento ?? null}
+        initialDataNascimento={privateProfile?.data_nascimento ?? null}
         initialFotoUrl={profile.foto_url ?? null}
       />
 

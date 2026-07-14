@@ -4,7 +4,6 @@ import { ArrowLeft, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { BracketClient } from "@/components/chaveamento/BracketClient";
-import { formatDateTimeBR } from "@/lib/format";
 
 /* ─── tipos ─── */
 

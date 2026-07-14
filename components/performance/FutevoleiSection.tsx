@@ -336,7 +336,7 @@ function JogoItem({ jogo }: { jogo: Jogo }) {
     startTransition(async () => { await removerJogo(jogo.id); router.refresh(); });
   }
 
-  const [ano, mes, dia] = jogo.data.split("-");
+  const [, mes, dia] = jogo.data.split("-");
   const dataFmt = `${dia}/${mes}`;
 
   return (

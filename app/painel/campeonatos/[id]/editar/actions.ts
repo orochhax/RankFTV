@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { GeneroCategoria } from "@/lib/types";
 import { resolverFaixaRating } from "@/lib/motor-categoria";
 
@@ -48,13 +49,26 @@ export async function excluirCampeonato(
   if (!champ || champ.organizador_id !== user.id)
     return { ok: false, error: "Sem permissão." };
 
-  await supabase.from("registrations").delete().eq("championship_id", champId);
-  await supabase.from("teams").delete().eq("championship_id", champId);
-  await supabase.from("bracket_matches").delete().eq("championship_id", champId);
-  await supabase.from("credentials").delete().eq("championship_id", champId);
-  await supabase.from("shirt_production").delete().eq("championship_id", champId);
-  await supabase.from("championship_categories").delete().eq("championship_id", champId);
-  await supabase.from("championships").delete().eq("id", champId);
+  // As escritas privilegiadas abaixo so acontecem depois de confirmar, com o
+  // client da sessao, que o usuario e o organizador. Isso evita que as novas
+  // permissoes restritas deixem registros orfaos ou facam a exclusao falhar.
+  const admin = createAdminClient();
+  const dependencias = [
+    "registrations",
+    "teams",
+    "bracket_matches",
+    "credentials",
+    "shirt_production",
+    "championship_categories",
+  ] as const;
+
+  for (const tabela of dependencias) {
+    const { error } = await admin.from(tabela).delete().eq("championship_id", champId);
+    if (error) return { ok: false, error: "Erro ao excluir os dados do campeonato." };
+  }
+
+  const { error: deleteError } = await admin.from("championships").delete().eq("id", champId);
+  if (deleteError) return { ok: false, error: "Erro ao excluir o campeonato." };
 
   revalidatePath("/campeonatos");
   revalidatePath("/painel");

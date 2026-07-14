@@ -10,7 +10,6 @@ import {
   Network,
   Megaphone,
   Shirt,
-  Sparkles,
   ShieldCheck,
   MessageSquare,
   ClipboardList,

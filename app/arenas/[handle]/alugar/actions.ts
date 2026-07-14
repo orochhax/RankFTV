@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { criarOuBuscarCliente } from "@/lib/asaas";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type AlugarInput = {
   planId:      string;
@@ -15,6 +16,8 @@ export type AlugarInput = {
   mesValidade: string;
   anoValidade: string;
   cvv:         string;
+  cep:         string;
+  numeroEndereco: string;
 };
 
 export type AlugarResult =
@@ -25,8 +28,13 @@ export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada. Faça login novamente." };
+  const admin = createAdminClient();
 
   const cpfNum = input.cpf.replace(/\D/g, "");
+  const cep = input.cep.replace(/\D/g, "");
+  const numeroEndereco = input.numeroEndereco.trim();
+  if (cep.length !== 8) return { ok: false, error: "CEP invalido." };
+  if (!numeroEndereco) return { ok: false, error: "Informe o numero do endereco do titular." };
   if (cpfNum.length !== 11) return { ok: false, error: "CPF inválido." };
 
   if (!input.data || !input.hora) return { ok: false, error: "Data e hora são obrigatórios." };
@@ -67,7 +75,7 @@ export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
   const valorTotal = parseFloat((valorBase * (1 + TAXA)).toFixed(2));
 
   // Cria reserva com status pendente
-  const { data: rental, error: insErr } = await supabase
+  const { data: rental, error: insErr } = await admin
     .from("arena_rentals")
     .insert({
       arena_id:         plan.arena_id,
@@ -115,8 +123,8 @@ export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
           name:          profile.nome,
           email:         user.email!,
           cpfCnpj:       cpfNum,
-          postalCode:    "00000000",
-          addressNumber: "0",
+          postalCode:    cep,
+          addressNumber: numeroEndereco,
         },
       }),
     });
@@ -129,7 +137,7 @@ export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
         if (json.errors?.[0]?.description) msg = json.errors[0].description;
       } catch { /* usa msg padrão */ }
       // Remove reserva que não foi paga
-      await supabase.from("arena_rentals").delete().eq("id", rental.id);
+      await admin.from("arena_rentals").delete().eq("id", rental.id);
       return { ok: false, error: msg };
     }
 
@@ -137,7 +145,7 @@ export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
     const pago = ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status);
 
     await Promise.all([
-      supabase
+      admin
         .from("arena_rentals")
         .update({
           asaas_payment_id: pagamento.id,
@@ -152,7 +160,7 @@ export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
 
     return { ok: true, pago };
   } catch (e) {
-    await supabase.from("arena_rentals").delete().eq("id", rental.id);
+    await admin.from("arena_rentals").delete().eq("id", rental.id);
     const msg = e instanceof Error ? e.message : "Erro ao processar pagamento.";
     return { ok: false, error: msg };
   }

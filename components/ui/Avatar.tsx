@@ -11,6 +11,8 @@ const SIZE_CLASSES = {
   lg: "size-20 text-2xl",
 } as const;
 
+const IMAGE_SIZE = { sm: 32, md: 44, lg: 80 } as const;
+
 export function Avatar({
   nome,
   color,
@@ -24,9 +26,11 @@ export function Avatar({
 }) {
   if (fotoUrl) {
     return (
-      <img
+      <Image
         src={fotoUrl}
         alt={nome}
+        width={IMAGE_SIZE[size]}
+        height={IMAGE_SIZE[size]}
         className={`shrink-0 rounded-full object-cover ${SIZE_CLASSES[size]}`}
       />
     );
@@ -41,3 +45,4 @@ export function Avatar({
     </span>
   );
 }
+import Image from "next/image";

@@ -16,6 +16,8 @@ export type CardPaymentInput = {
   anoValidade: string;
   cvv:         string;
   parcelas:    number;
+  cep:          string;
+  numeroEndereco: string;
 };
 
 export type CardPaymentResult =
@@ -30,6 +32,10 @@ export async function pagarIngressoAtletaComCartao(
   input: CardPaymentInput,
 ): Promise<CardPaymentResult> {
   const admin = createAdminClient();
+  const cep = input.cep.replace(/\D/g, "");
+  const numeroEndereco = input.numeroEndereco.trim();
+  if (cep.length !== 8) return { ok: false, error: "CEP invalido." };
+  if (!numeroEndereco) return { ok: false, error: "Informe o numero do endereco do titular." };
   const accessToken = normalizarTicketAccessToken(input.accessToken);
   if (!accessToken) return { ok: false, error: "Link do ingresso invalido." };
 
@@ -80,8 +86,8 @@ export async function pagarIngressoAtletaComCartao(
     name:          ticket.comprador_nome,
     email:         ticket.comprador_email,
     cpfCnpj:       ticket.comprador_cpf,
-    postalCode:    "00000000",
-    addressNumber: "0",
+    postalCode:    cep,
+    addressNumber: numeroEndereco,
   };
 
   const body: Record<string, unknown> = {

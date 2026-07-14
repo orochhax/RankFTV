@@ -9,9 +9,11 @@ type State = void | undefined;
 export function AceitarConviteViaLink({
   teamId,
   champId,
+  inviteToken,
 }: {
   teamId: string;
   champId: string;
+  inviteToken: string;
 }) {
   const [, action, pending] = useActionState<State, FormData>(
     async (_prev, formData) => {
@@ -24,6 +26,7 @@ export function AceitarConviteViaLink({
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="team_id" value={teamId} />
+      <input type="hidden" name="invite_token" value={inviteToken} />
       <p className="text-xs text-gray-400 text-center">
         Após aceitar, você poderá escolher o tamanho do seu uniforme na página do ingresso.
       </p>

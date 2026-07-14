@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { DestaquesArenasCarousel, type ArenaDestaque } from "@/components/arenas/DestaquesArenasCarousel";
 import { ArenaSection } from "@/components/arenas/ArenaSection";

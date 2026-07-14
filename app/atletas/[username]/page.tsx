@@ -13,11 +13,18 @@ export default async function PerfilPublicoPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, nome, username, cidade, estado, bio, foto_url, rating, questionario")
+    .select("id, nome, username, cidade, estado, bio, foto_url, rating")
     .eq("username", username)
     .maybeSingle();
 
   if (!profile) notFound();
+
+  const { data: history } = await supabase
+    .from("rating_history")
+    .select("id, rating_antes, rating_depois, resultado, created_at, championships(nome)")
+    .eq("atleta_id", profile.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
 
   const avatarColors = ["bg-blue-500","bg-blue-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
   function avatarColor(str: string) {
@@ -73,9 +80,32 @@ export default async function PerfilPublicoPage({
 
       <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
         <h2 className="mb-2 text-sm font-semibold text-gray-500">Histórico</h2>
-        <p className="text-sm text-gray-400">
-          Histórico de campeonatos disponível em breve.
-        </p>
+        {(history ?? []).length === 0 ? (
+          <p className="text-sm text-gray-400">Nenhuma partida registrada.</p>
+        ) : (
+          <ul className="divide-y divide-gray-100">
+            {(history ?? []).map((item) => {
+              const championship = Array.isArray(item.championships)
+                ? item.championships[0]
+                : item.championships;
+              const delta = item.rating_depois - item.rating_antes;
+              return (
+                <li key={item.id} className="flex items-center justify-between gap-4 py-3 text-sm">
+                  <div>
+                    <p className="font-medium text-gray-800">{championship?.nome ?? "Campeonato"}</p>
+                    <p className="text-xs text-gray-400">
+                      {new Date(item.created_at).toLocaleDateString("pt-BR")}
+                      {" · "}{item.resultado === "vitoria" ? "Vitória" : "Derrota"}
+                    </p>
+                  </div>
+                  <span className={delta >= 0 ? "font-semibold text-emerald-600" : "font-semibold text-red-600"}>
+                    {delta >= 0 ? "+" : ""}{delta} pts
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
     </div>
   );

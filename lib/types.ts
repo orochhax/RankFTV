@@ -1,5 +1,5 @@
 // Tipos compartilhados usados por componentes e server functions.
-// Esta é a fonte de verdade para tipos de domínio — não lib/mock.
+// Fonte de verdade para os tipos de domínio da aplicação.
 
 export type Genero = "masculino" | "feminino" | "outro";
 export type GeneroCategoria = "masculino" | "feminino" | "mista";

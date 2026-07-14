@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { criarOuBuscarCliente } from "@/lib/asaas";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type DiariaInput = {
   planId:      string;
@@ -14,6 +15,8 @@ export type DiariaInput = {
   mesValidade: string;
   anoValidade: string;
   cvv:         string;
+  cep:         string;
+  numeroEndereco: string;
 };
 
 export type DiariaResult =
@@ -24,8 +27,13 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada. Faça login novamente." };
+  const admin = createAdminClient();
 
   const cpfNum = input.cpf.replace(/\D/g, "");
+  const cep = input.cep.replace(/\D/g, "");
+  const numeroEndereco = input.numeroEndereco.trim();
+  if (cep.length !== 8) return { ok: false, error: "CEP invalido." };
+  if (!numeroEndereco) return { ok: false, error: "Informe o numero do endereco do titular." };
   if (cpfNum.length !== 11) return { ok: false, error: "CPF inválido." };
 
   if (!input.data) return { ok: false, error: "Data é obrigatória." };
@@ -65,7 +73,7 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
   const valorBase  = Number(plan.valor);
   const valorTotal = parseFloat((valorBase * (1 + TAXA)).toFixed(2));
 
-  const { data: passe, error: insErr } = await supabase
+  const { data: passe, error: insErr } = await admin
     .from("arena_daily_passes")
     .insert({
       arena_id:          plan.arena_id,
@@ -111,8 +119,8 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
           name:          profile.nome,
           email:         user.email!,
           cpfCnpj:       cpfNum,
-          postalCode:    "00000000",
-          addressNumber: "0",
+          postalCode:    cep,
+          addressNumber: numeroEndereco,
         },
       }),
     });
@@ -124,7 +132,7 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
         const json = JSON.parse(text) as { errors?: { description: string }[] };
         if (json.errors?.[0]?.description) msg = json.errors[0].description;
       } catch { /* usa msg padrão */ }
-      await supabase.from("arena_daily_passes").delete().eq("id", passe.id);
+      await admin.from("arena_daily_passes").delete().eq("id", passe.id);
       return { ok: false, error: msg };
     }
 
@@ -132,7 +140,7 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
     const pago = ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status);
 
     await Promise.all([
-      supabase
+      admin
         .from("arena_daily_passes")
         .update({
           asaas_payment_id: pagamento.id,
@@ -147,7 +155,7 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
 
     return { ok: true, pago };
   } catch (e) {
-    await supabase.from("arena_daily_passes").delete().eq("id", passe.id);
+    await admin.from("arena_daily_passes").delete().eq("id", passe.id);
     const msg = e instanceof Error ? e.message : "Erro ao processar pagamento.";
     return { ok: false, error: msg };
   }

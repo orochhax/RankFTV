@@ -35,7 +35,7 @@ export async function aceitarAluno(alunoId: string, arenaId: string) {
 
   if (!arena) return { error: "Arena não encontrada." };
 
-  const { data: vinculo, error } = await supabase
+  const { data: vinculo, error } = await createAdminClient()
     .from("arena_students")
     .update({ status: "ativo", data_entrada: new Date().toISOString().split("T")[0] })
     .eq("id", alunoId)
@@ -70,7 +70,7 @@ export async function recusarAluno(alunoId: string, arenaId: string) {
 
   if (!arena) return { error: "Arena não encontrada." };
 
-  await supabase
+  await createAdminClient()
     .from("arena_students")
     .update({ status: "inativo" })
     .eq("id", alunoId)
@@ -92,6 +92,7 @@ export async function entrarNaArena(arenaId: string) {
     .eq("id", arenaId)
     .maybeSingle();
   if (!arena) return { error: "Arena não encontrada." };
+  const admin = createAdminClient();
 
   // Verifica se já é aluno
   const { data: existente } = await supabase
@@ -105,13 +106,13 @@ export async function entrarNaArena(arenaId: string) {
     if (existente.status === "ativo")    return { error: "Você já é aluno desta arena." };
     if (existente.status === "pendente") return { error: "Seu pedido já está em análise." };
     // inativo: reativar
-    const { error } = await supabase
+    const { error } = await admin
       .from("arena_students")
       .update({ status: "pendente" })
       .eq("id", existente.id);
     if (error) return { error: "Erro ao enviar o pedido. Tente novamente." };
   } else {
-    const { error } = await supabase
+    const { error } = await admin
       .from("arena_students")
       .insert({ arena_id: arenaId, user_id: user.id });
     if (error) return { error: "Erro ao enviar o pedido. Tente novamente." };
@@ -333,14 +334,17 @@ export async function entrarComCodigo(arenaId: string, codigo: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Faça login para entrar na arena." };
 
-  const { data: arena } = await supabase
+  // O código não pode ser legível pelo cliente. Depois de autenticar o
+  // usuário, a validação é feita exclusivamente no servidor.
+  const admin = createAdminClient();
+  const { data: arena } = await admin
     .from("arenas")
     .select("id, invite_code")
     .eq("id", arenaId)
     .maybeSingle();
 
   if (!arena) return { error: "Arena não encontrada." };
-  if (arena.invite_code?.toUpperCase() !== codigo.toUpperCase())
+  if (arena.invite_code?.toUpperCase() !== codigo.trim().toUpperCase())
     return { error: "Código inválido." };
 
   const { data: existente } = await supabase
@@ -353,9 +357,9 @@ export async function entrarComCodigo(arenaId: string, codigo: string) {
   if (existente?.status === "ativo") return { error: "Você já é aluno desta arena." };
 
   if (existente) {
-    await supabase.from("arena_students").update({ status: "ativo", data_entrada: new Date().toISOString().split("T")[0] }).eq("id", existente.id);
+    await admin.from("arena_students").update({ status: "ativo", data_entrada: new Date().toISOString().split("T")[0] }).eq("id", existente.id);
   } else {
-    await supabase.from("arena_students").insert({
+    await admin.from("arena_students").insert({
       arena_id:    arenaId,
       user_id:     user.id,
       status:      "ativo",

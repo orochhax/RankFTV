@@ -60,8 +60,10 @@ export function CampeonatoVitrineForm() {
       if (banner) {
         setEnviandoBanner(true);
         const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setEnviandoBanner(false); return setError("Sessão expirada."); }
         const ext = banner.name.split(".").pop() ?? "jpg";
-        const path = `champ-banners/vitrine-${Date.now()}.${ext}`;
+        const path = `${user.id}/champ-banners/vitrine-${Date.now()}.${ext}`;
         const { data, error: upErr } = await supabase.storage
           .from("page-images")
           .upload(path, banner, { contentType: banner.type || undefined });

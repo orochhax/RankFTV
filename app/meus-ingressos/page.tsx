@@ -20,7 +20,11 @@ export default function MeusIngressosPage() {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch(`/api/meus-ingressos?cpf=${cpfClean}&email=${encodeURIComponent(email)}`);
+      const res = await fetch("/api/meus-ingressos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cpf: cpfClean, email: email.trim().toLowerCase() }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Erro ao buscar.");
       setResults(data.ingressos ?? []);

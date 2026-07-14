@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { executarRepasse } from "@/lib/repasse";
+import {
+  executarRepasse,
+  executarRepasseAtletaTicket,
+  executarRepasseEspectador,
+} from "@/lib/repasse";
+import { transferirPix } from "@/lib/asaas";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +37,7 @@ export async function GET(req: NextRequest) {
   let repassados = 0;
   let falhas     = 0;
   let pulados    = 0;
+  let vencidosTotal = due?.length ?? 0;
 
   for (const reg of due ?? []) {
     // Reivindica atomicamente: só processa se ainda estiver aguardando.
@@ -88,9 +94,143 @@ export async function GET(req: NextRequest) {
     if (res.ok) repassados++; else falhas++;
   }
 
+  // Ingressos avulsos de atleta e plateia tambem aguardam D+3/D+32.
+  const ticketSources = [
+    {
+      table: "athlete_tickets" as const,
+      executar: executarRepasseAtletaTicket,
+    },
+    {
+      table: "spectator_tickets" as const,
+      executar: executarRepasseEspectador,
+    },
+  ];
+
+  for (const source of ticketSources) {
+    const { data: tickets } = await supabase
+      .from(source.table)
+      .select("id, championship_id, valor")
+      .eq("status_pagamento", "pago")
+      .eq("repasse_status", "aguardando_liquidacao")
+      .lte("repasse_data_prevista", agora)
+      .limit(200);
+    vencidosTotal += tickets?.length ?? 0;
+
+    for (const ticket of tickets ?? []) {
+      const { data: claimed } = await supabase
+        .from(source.table)
+        .update({ repasse_status: "processando" })
+        .eq("id", ticket.id)
+        .eq("repasse_status", "aguardando_liquidacao")
+        .select("id");
+      if (!claimed || claimed.length === 0) continue;
+
+      const revert = async (erro: string) =>
+        supabase
+          .from(source.table)
+          .update({ repasse_status: "aguardando_liquidacao", repasse_erro: erro.slice(0, 300) })
+          .eq("id", ticket.id);
+
+      const { data: champ } = await supabase
+        .from("championships")
+        .select("nome, organizador_id")
+        .eq("id", ticket.championship_id)
+        .maybeSingle();
+      if (!champ) { await revert("Campeonato nao encontrado"); falhas++; continue; }
+
+      const { data: org } = await supabase
+        .from("organizer_accounts")
+        .select("chave_pix")
+        .eq("user_id", champ.organizador_id)
+        .maybeSingle();
+      const chavePix = org?.chave_pix as string | undefined;
+      if (!chavePix) { await revert("Organizador sem chave Pix"); falhas++; continue; }
+
+      const res = await source.executar(
+        supabase,
+        { ticketId: ticket.id, champNome: champ.nome, chavePix, valor: Number(ticket.valor ?? 0) },
+        "aguardando_liquidacao",
+      );
+      if (res.ok) repassados++; else falhas++;
+    }
+  }
+
+  // Receitas de arena: mensalidades, aluguel de quadra e diarias.
+  const arenaSources = [
+    { table: "student_charges" as const, descricao: "Mensalidade de arena" },
+    { table: "arena_rentals" as const, descricao: "Aluguel de quadra" },
+    { table: "arena_daily_passes" as const, descricao: "Diaria de arena" },
+  ];
+
+  for (const source of arenaSources) {
+    const { data: itens } = await supabase
+      .from(source.table)
+      .select("id, arena_id, valor")
+      .eq("status_pagamento", "pago")
+      .eq("repasse_status", "aguardando_liquidacao")
+      .lte("repasse_data_prevista", agora)
+      .limit(200);
+    vencidosTotal += itens?.length ?? 0;
+
+    for (const item of itens ?? []) {
+      const { data: claimed } = await supabase
+        .from(source.table)
+        .update({ repasse_status: "processando" })
+        .eq("id", item.id)
+        .eq("repasse_status", "aguardando_liquidacao")
+        .select("id");
+      if (!claimed || claimed.length === 0) continue;
+
+      const { data: account } = await supabase
+        .from("arena_accounts")
+        .select("chave_pix")
+        .eq("arena_id", item.arena_id)
+        .maybeSingle();
+      const chavePix = account?.chave_pix as string | undefined;
+      if (!chavePix) {
+        await supabase
+          .from(source.table)
+          .update({ repasse_status: "aguardando_liquidacao", repasse_erro: "Arena sem chave Pix" })
+          .eq("id", item.id);
+        falhas++;
+        continue;
+      }
+
+      try {
+        const valor = Number(item.valor ?? 0);
+        if (valor <= 0) {
+          await supabase.from(source.table).update({ repasse_status: "concluido" }).eq("id", item.id);
+          pulados++;
+          continue;
+        }
+        const transferencia = await transferirPix({
+          valor,
+          chavePix,
+          descricao: `${source.descricao} RankFTV`,
+        });
+        await supabase
+          .from(source.table)
+          .update({
+            repasse_status: "concluido",
+            repasse_transfer_id: transferencia.id,
+            repasse_erro: null,
+          })
+          .eq("id", item.id);
+        repassados++;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        await supabase
+          .from(source.table)
+          .update({ repasse_status: "aguardando_liquidacao", repasse_erro: msg.slice(0, 300) })
+          .eq("id", item.id);
+        falhas++;
+      }
+    }
+  }
+
   return NextResponse.json({
     ok: true,
-    vencidos: due?.length ?? 0,
+    vencidos: vencidosTotal,
     repassados,
     falhas,
     pulados,
