@@ -13,6 +13,7 @@ import { apagarDespesa, apagarReceita, alternarPagoDespesa } from "@/app/admin/g
 import { DespesaForm } from "@/components/admin/gasto-mensal/DespesaForm";
 import { ReceitaForm } from "@/components/admin/gasto-mensal/ReceitaForm";
 import { ExcluirEscopoDialog } from "@/components/admin/gasto-mensal/ExcluirEscopoDialog";
+import { ConfirmarExclusaoDialog } from "@/components/admin/gasto-mensal/ConfirmarExclusaoDialog";
 import { formatBRL, formatDateBR } from "@/lib/format";
 import {
   addMonthsToKey, monthLabelLong, itemsOfMonth, filterByPersonParticipation, sortByVisibleAmountDesc,
@@ -151,12 +152,7 @@ export function GastoMensalClient({
   }
 
   function handleApagarDespesa(despesa: MonthlyBudgetExpense) {
-    if (fazParteDeGrupo(expenses, despesa)) {
-      setExcluirDespesaAlvo(despesa);
-      return;
-    }
-    if (!confirm(`Excluir a despesa "${despesa.name}"? Essa ação não pode ser desfeita.`)) return;
-    executarExclusaoDespesa(despesa, "esta");
+    setExcluirDespesaAlvo(despesa);
   }
 
   function executarExclusaoDespesa(despesa: MonthlyBudgetExpense, escopo: EscopoEdicao) {
@@ -171,12 +167,7 @@ export function GastoMensalClient({
   }
 
   function handleApagarReceita(income: MonthlyBudgetIncome) {
-    if (fazParteDeGrupo(incomes, income)) {
-      setExcluirReceitaAlvo(income);
-      return;
-    }
-    if (!confirm(`Excluir a receita "${income.name}"? Essa ação não pode ser desfeita.`)) return;
-    executarExclusaoReceita(income, "esta");
+    setExcluirReceitaAlvo(income);
   }
 
   function executarExclusaoReceita(income: MonthlyBudgetIncome, escopo: EscopoEdicao) {
@@ -434,19 +425,37 @@ export function GastoMensalClient({
       )}
 
       {excluirDespesaAlvo && (
-        <ExcluirEscopoDialog
-          nome={excluirDespesaAlvo.name}
-          onConfirm={(escopo) => executarExclusaoDespesa(excluirDespesaAlvo, escopo)}
-          onCancel={() => setExcluirDespesaAlvo(null)}
-        />
+        fazParteDeGrupo(expenses, excluirDespesaAlvo) ? (
+          <ExcluirEscopoDialog
+            nome={excluirDespesaAlvo.name}
+            onConfirm={(escopo) => executarExclusaoDespesa(excluirDespesaAlvo, escopo)}
+            onCancel={() => setExcluirDespesaAlvo(null)}
+          />
+        ) : (
+          <ConfirmarExclusaoDialog
+            titulo="Excluir despesa?"
+            mensagem={`Excluir a despesa "${excluirDespesaAlvo.name}"? Essa ação não pode ser desfeita.`}
+            onConfirm={() => executarExclusaoDespesa(excluirDespesaAlvo, "esta")}
+            onCancel={() => setExcluirDespesaAlvo(null)}
+          />
+        )
       )}
 
       {excluirReceitaAlvo && (
-        <ExcluirEscopoDialog
-          nome={excluirReceitaAlvo.name}
-          onConfirm={(escopo) => executarExclusaoReceita(excluirReceitaAlvo, escopo)}
-          onCancel={() => setExcluirReceitaAlvo(null)}
-        />
+        fazParteDeGrupo(incomes, excluirReceitaAlvo) ? (
+          <ExcluirEscopoDialog
+            nome={excluirReceitaAlvo.name}
+            onConfirm={(escopo) => executarExclusaoReceita(excluirReceitaAlvo, escopo)}
+            onCancel={() => setExcluirReceitaAlvo(null)}
+          />
+        ) : (
+          <ConfirmarExclusaoDialog
+            titulo="Excluir receita?"
+            mensagem={`Excluir a receita "${excluirReceitaAlvo.name}"? Essa ação não pode ser desfeita.`}
+            onConfirm={() => executarExclusaoReceita(excluirReceitaAlvo, "esta")}
+            onCancel={() => setExcluirReceitaAlvo(null)}
+          />
+        )
       )}
     </div>
   );
