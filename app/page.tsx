@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Radio, MapPin } from "lucide-react";
+import { ChevronRight, Radio, MapPin, CalendarDays, Building2, Ticket, ClipboardList } from "lucide-react";
 import { PersonaSwitcher } from "@/components/home/PersonaSwitcher";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
@@ -8,6 +8,8 @@ import { HamburgerMenu } from "@/components/home/HamburgerMenu";
 import { getLivChampionships, getPublishedChampionships } from "@/lib/supabase/championships";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateRangeBR } from "@/lib/format";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { Surface } from "@/components/shell/Surface";
 
 const STATUS_PRIORIDADE: Record<string, number> = {
   inscricoes_abertas: 0, em_andamento: 1, rascunho: 2, encerrado: 3,
@@ -75,87 +77,120 @@ export default async function Home() {
     new Set(todosOrdenados.flatMap((c) => c.categorias.map((cat) => cat.nome)))
   ).sort();
 
+  const quickLinks = [
+    { href: "/agenda", label: "Agenda de eventos", icon: CalendarDays },
+    { href: "/arenas", label: "Arenas", icon: Building2 },
+    { href: "/meus-ingressos", label: "Meus ingressos", icon: Ticket },
+    ...(profile ? [{ href: "/minhas-inscricoes", label: "Minhas inscrições", icon: ClipboardList }] : []),
+  ];
+
   return (
     <div className="min-h-screen">
-      {/* ── Seção escura ── */}
-      <div className="bg-[#0f0f13] px-6 pb-10 pt-8">
-        <div className="mx-auto max-w-5xl">
-          {profile ? (
-            <div className="flex items-center gap-4">
-              <Avatar
-                nome={profile.nome}
-                color="bg-blue-500"
-                size="lg"
-                fotoUrl={profile.foto_url}
-              />
-              <div className="flex-1">
-                <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
-                  Bem-vindo
-                </p>
-                <h1 className="text-2xl font-bold tracking-tight text-white">
-                  {profile.nome.split(" ")[0]}
-                </h1>
-                <p className="text-sm text-gray-400">@{profile.username}</p>
-              </div>
-              <div className="md:hidden">
-                <HamburgerMenu unreadCount={unreadCount} organizerHabilitado={organizerHabilitado} />
-              </div>
+      {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
+      <div className="bg-[#0f0f13] px-6 pb-10 pt-8 md:hidden">
+        {profile ? (
+          <div className="flex items-center gap-4">
+            <Avatar
+              nome={profile.nome}
+              color="bg-blue-500"
+              size="lg"
+              fotoUrl={profile.foto_url}
+            />
+            <div className="flex-1">
+              <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
+                Bem-vindo
+              </p>
+              <h1 className="text-2xl font-bold tracking-tight text-white">
+                {profile.nome.split(" ")[0]}
+              </h1>
+              <p className="text-sm text-gray-400">@{profile.username}</p>
             </div>
-          ) : (
-            <PersonaSwitcher />
-          )}
-        </div>
+            <div className="md:hidden">
+              <HamburgerMenu unreadCount={unreadCount} organizerHabilitado={organizerHabilitado} />
+            </div>
+          </div>
+        ) : (
+          <PersonaSwitcher />
+        )}
       </div>
 
-      {/* ── Seção branca ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-5xl space-y-8">
+      <div className="hidden border-b border-border bg-surface px-8 py-6 md:block">
+        <PageHeader
+          eyebrow={profile ? "Bem-vindo de volta" : undefined}
+          title={profile ? profile.nome.split(" ")[0] : "Campeonatos de futevôlei"}
+          description={profile ? `@${profile.username}` : "Encontre e participe dos melhores campeonatos do Brasil."}
+        />
+      </div>
 
-          {/* Carrossel de destaques */}
-          <DestaquesCarousel camps={destaques} />
+      {/* ── Corpo: sheet arredondada no mobile, grid larga no desktop ── */}
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:px-8 md:pb-16 md:shadow-none">
+        <div className="mx-auto max-w-5xl space-y-8 md:max-w-[1600px] md:grid md:grid-cols-3 md:items-start md:gap-8 md:space-y-0">
+          <div className="space-y-8 md:col-span-2">
+            {/* Carrossel de destaques */}
+            <DestaquesCarousel camps={destaques} />
 
-          {/* Campeonatos ao vivo */}
-          {aoVivo.length > 0 && (
-            <section>
-              <div className="mb-3 flex items-center gap-2">
-                <Radio className="size-4 text-red-500 animate-pulse" />
-                <h2 className="text-base font-semibold text-gray-900">Ao vivo agora</h2>
-              </div>
-              <div className="space-y-3">
-                {aoVivo.map((c) => (
-                  <Link
-                    key={c.id}
-                    href={`/campeonatos/${c.id}`}
-                    className="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 ring-1 ring-red-100 hover:bg-red-50 transition-colors"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="size-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-                        <p className="truncate font-semibold text-gray-900">{c.nome}</p>
+            {/* Campeonatos ao vivo */}
+            {aoVivo.length > 0 && (
+              <section>
+                <div className="mb-3 flex items-center gap-2">
+                  <Radio className="size-4 text-red-500 animate-pulse" />
+                  <h2 className="text-base font-semibold text-ink">Ao vivo agora</h2>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {aoVivo.map((c) => (
+                    <Link
+                      key={c.id}
+                      href={`/campeonatos/${c.id}`}
+                      className="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 ring-1 ring-red-100 hover:bg-red-50 transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="size-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+                          <p className="truncate font-semibold text-gray-900">{c.nome}</p>
+                        </div>
+                        <p className="mt-0.5 text-xs text-gray-400">
+                          {formatDateRangeBR(c.dataInicio, c.dataFim)}
+                        </p>
+                        <p className="flex items-center gap-1 text-xs text-gray-400">
+                          <MapPin className="size-3" />
+                          {c.local}, {c.cidade} - {c.estado}
+                        </p>
                       </div>
-                      <p className="mt-0.5 text-xs text-gray-400">
-                        {formatDateRangeBR(c.dataInicio, c.dataFim)}
-                      </p>
-                      <p className="flex items-center gap-1 text-xs text-gray-400">
-                        <MapPin className="size-3" />
-                        {c.local}, {c.cidade} - {c.estado}
-                      </p>
-                    </div>
-                    <ChevronRight className="size-4 shrink-0 text-gray-300" />
-                  </Link>
+                      <ChevronRight className="size-4 shrink-0 text-gray-300" />
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Lista de campeonatos com filtros */}
+            <CampeonatosSection
+              allCamps={todosOrdenados}
+              estados={estados}
+              categorias={categorias}
+              temAoVivo={aoVivo.length > 0}
+            />
+          </div>
+
+          {/* Painel lateral — só links reais de navegação, sem dado inventado */}
+          <aside className="hidden md:block">
+            <Surface padding="md" className="sticky top-24">
+              <p className="mb-3 text-sm font-semibold text-ink">Acesso rápido</p>
+              <ul className="space-y-1">
+                {quickLinks.map(({ href, label, icon: Icon }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-ink-muted transition-colors hover:bg-surface-2 hover:text-ink"
+                    >
+                      <Icon className="size-4 text-blue-600" />
+                      {label}
+                    </Link>
+                  </li>
                 ))}
-              </div>
-            </section>
-          )}
-
-          {/* Lista de campeonatos com filtros */}
-          <CampeonatosSection
-            allCamps={todosOrdenados}
-            estados={estados}
-            categorias={categorias}
-            temAoVivo={aoVivo.length > 0}
-          />
-
+              </ul>
+            </Surface>
+          </aside>
         </div>
       </div>
     </div>

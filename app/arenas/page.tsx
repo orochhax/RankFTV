@@ -3,6 +3,8 @@ import { DestaquesArenasCarousel, type ArenaDestaque } from "@/components/arenas
 import { ArenaSection } from "@/components/arenas/ArenaSection";
 import type { ArenaCardData, ProximaData } from "@/components/arenas/ArenaCard";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { EmptyState } from "@/components/shell/EmptyState";
 
 const DIAS_LABEL = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -109,19 +111,34 @@ export default async function ArenasPage() {
 
   const estados = Array.from(new Set(arenas.map((a) => a.estado))).sort();
 
+  const cabecalho = (
+    <>
+      <div className="bg-[#0f0f13] px-6 pb-10 pt-8 md:hidden">
+        <h1 className="text-2xl font-bold tracking-tight text-white">Arenas</h1>
+        <p className="mt-3 text-sm text-white/50">
+          Alugue uma quadra por hora ou assine um plano mensal de treino.
+        </p>
+      </div>
+      <div className="hidden border-b border-border bg-surface px-8 py-6 md:block">
+        <PageHeader
+          title="Arenas"
+          description="Alugue uma quadra por hora ou assine um plano mensal de treino."
+        />
+      </div>
+    </>
+  );
+
   if (arenas.length === 0) {
     return (
       <div className="min-h-screen">
-        <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
-          <div className="mx-auto max-w-5xl">
-            <h1 className="text-2xl font-bold tracking-tight text-white">Arenas</h1>
-          </div>
-        </div>
-        <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-12 shadow-sm">
-          <div className="mx-auto max-w-5xl py-12 text-center">
-            <Building2 className="mx-auto mb-4 size-12 text-gray-200" />
-            <p className="font-semibold text-gray-700">Nenhuma arena encontrada</p>
-            <p className="mt-1 text-sm text-gray-400">Ainda não há arenas cadastradas na plataforma.</p>
+        {cabecalho}
+        <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-12 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:px-8 md:shadow-none">
+          <div className="mx-auto max-w-5xl md:max-w-[1600px]">
+            <EmptyState
+              icon={Building2}
+              title="Nenhuma arena encontrada"
+              description="Ainda não há arenas cadastradas na plataforma."
+            />
           </div>
         </div>
       </div>
@@ -130,19 +147,11 @@ export default async function ArenasPage() {
 
   return (
     <div className="min-h-screen">
-      {/* ── Cabeçalho preto ── */}
-      <div className="bg-[#0f0f13] px-6 pb-10 pt-8">
-        <div className="mx-auto max-w-5xl">
-          <h1 className="text-2xl font-bold tracking-tight text-white">Arenas</h1>
-          <p className="mt-3 text-sm text-white/50">
-            Alugue uma quadra por hora ou assine um plano mensal de treino.
-          </p>
-        </div>
-      </div>
+      {cabecalho}
 
-      {/* ── Seção branca ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-5xl space-y-8">
+      {/* ── Corpo: sheet arredondada no mobile, largura total no desktop ── */}
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:px-8 md:pb-16 md:shadow-none">
+        <div className="mx-auto max-w-5xl space-y-8 md:max-w-[1600px]">
 
           {/* Destaques — mesmo carrossel dos campeonatos */}
           {destaques.length > 0 && (
