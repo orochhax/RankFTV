@@ -18,6 +18,8 @@ type ExpenseRow = {
   amount_julia: number | string;
   is_paid: boolean;
   paid_at: string | null;
+  due_date: string | null;
+  repeat_group_id: string | null;
 };
 
 type IncomeRow = {
@@ -26,6 +28,7 @@ type IncomeRow = {
   name: string;
   amount_carlos: number | string;
   amount_julia: number | string;
+  repeat_group_id: string | null;
 };
 
 export default async function GastoMensalPage() {
@@ -36,12 +39,12 @@ export default async function GastoMensalPage() {
   const [{ data: expensesData }, { data: incomesData }] = await Promise.all([
     supabase
       .from("monthly_budget_expenses")
-      .select("id, month_key, name, amount_carlos, amount_julia, is_paid, paid_at")
+      .select("id, month_key, name, amount_carlos, amount_julia, is_paid, paid_at, due_date, repeat_group_id")
       .eq("user_id", user.id)
       .order("month_key", { ascending: false }),
     supabase
       .from("monthly_budget_incomes")
-      .select("id, month_key, name, amount_carlos, amount_julia")
+      .select("id, month_key, name, amount_carlos, amount_julia, repeat_group_id")
       .eq("user_id", user.id)
       .order("month_key", { ascending: false }),
   ]);
@@ -55,6 +58,8 @@ export default async function GastoMensalPage() {
     amountJulia: Number(r.amount_julia),
     isPaid: r.is_paid,
     paidAt: r.paid_at,
+    dueDate: r.due_date,
+    repeatGroupId: r.repeat_group_id,
   }));
 
   const incomeRows = (incomesData ?? []) as IncomeRow[];
@@ -64,6 +69,7 @@ export default async function GastoMensalPage() {
     name: r.name,
     amountCarlos: Number(r.amount_carlos),
     amountJulia: Number(r.amount_julia),
+    repeatGroupId: r.repeat_group_id,
   }));
 
   return (

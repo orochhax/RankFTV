@@ -12,11 +12,13 @@ import {
 import { apagarDespesa, apagarReceita, alternarPagoDespesa } from "@/app/admin/gasto-mensal/actions";
 import { DespesaForm } from "@/components/admin/gasto-mensal/DespesaForm";
 import { ReceitaForm } from "@/components/admin/gasto-mensal/ReceitaForm";
-import { formatBRL } from "@/lib/format";
+import { ExcluirEscopoDialog } from "@/components/admin/gasto-mensal/ExcluirEscopoDialog";
+import { formatBRL, formatDateBR } from "@/lib/format";
 import {
   addMonthsToKey, monthLabelLong, itemsOfMonth, filterByPersonParticipation, sortByVisibleAmountDesc,
   amountForFilter, personOfAmounts, resultadoPrevisto, contarPagoPendente, buildExpenseChartPoints,
-  type MonthlyBudgetExpense, type MonthlyBudgetIncome, type PersonFilter, type ExpenseChartPoint,
+  groupMonthBounds, fazParteDeGrupo,
+  type MonthlyBudgetExpense, type MonthlyBudgetIncome, type PersonFilter, type ExpenseChartPoint, type EscopoEdicao,
 } from "@/lib/monthly-budget";
 
 const COR_CARLOS = "#2563eb"; // blue-600
@@ -99,6 +101,8 @@ export function GastoMensalClient({
   const [monthKey, setMonthKey] = useState(initialMonthKey);
   const [despesaForm, setDespesaForm] = useState<{ expense: MonthlyBudgetExpense | null } | null>(null);
   const [receitaForm, setReceitaForm] = useState<{ income: MonthlyBudgetIncome | null } | null>(null);
+  const [excluirDespesaAlvo, setExcluirDespesaAlvo] = useState<MonthlyBudgetExpense | null>(null);
+  const [excluirReceitaAlvo, setExcluirReceitaAlvo] = useState<MonthlyBudgetIncome | null>(null);
   const [apagandoDespesaId, setApagandoDespesaId] = useState<string | null>(null);
   const [apagandoReceitaId, setApagandoReceitaId] = useState<string | null>(null);
   const [alternandoId, setAlternandoId] = useState<string | null>(null);
@@ -147,10 +151,19 @@ export function GastoMensalClient({
   }
 
   function handleApagarDespesa(despesa: MonthlyBudgetExpense) {
+    if (fazParteDeGrupo(expenses, despesa)) {
+      setExcluirDespesaAlvo(despesa);
+      return;
+    }
     if (!confirm(`Excluir a despesa "${despesa.name}"? Essa ação não pode ser desfeita.`)) return;
+    executarExclusaoDespesa(despesa, "esta");
+  }
+
+  function executarExclusaoDespesa(despesa: MonthlyBudgetExpense, escopo: EscopoEdicao) {
+    setExcluirDespesaAlvo(null);
     setApagandoDespesaId(despesa.id);
     startTransition(async () => {
-      await apagarDespesa(despesa.id);
+      await apagarDespesa({ id: despesa.id, escopo });
       setApagandoDespesaId(null);
       setMensagemSucesso("Despesa excluída.");
       router.refresh();
@@ -158,10 +171,19 @@ export function GastoMensalClient({
   }
 
   function handleApagarReceita(income: MonthlyBudgetIncome) {
+    if (fazParteDeGrupo(incomes, income)) {
+      setExcluirReceitaAlvo(income);
+      return;
+    }
     if (!confirm(`Excluir a receita "${income.name}"? Essa ação não pode ser desfeita.`)) return;
+    executarExclusaoReceita(income, "esta");
+  }
+
+  function executarExclusaoReceita(income: MonthlyBudgetIncome, escopo: EscopoEdicao) {
+    setExcluirReceitaAlvo(null);
     setApagandoReceitaId(income.id);
     startTransition(async () => {
-      await apagarReceita(income.id);
+      await apagarReceita({ id: income.id, escopo });
       setApagandoReceitaId(null);
       setMensagemSucesso("Receita excluída.");
       router.refresh();
@@ -283,7 +305,10 @@ export function GastoMensalClient({
 
                 <div className="min-w-0 flex-1 basis-32">
                   <p className={`truncate text-sm font-medium text-gray-900 ${d.isPaid ? "line-through" : ""}`}>{d.name}</p>
-                  <p className="text-xs text-gray-400">{d.isPaid ? "Pago" : "Pendente"}</p>
+                  <p className="text-xs text-gray-400">
+                    {d.isPaid ? "Pago" : "Pendente"}
+                    {d.dueDate && ` · Vence ${formatDateBR(d.dueDate)}`}
+                  </p>
                 </div>
 
                 <span className="shrink-0 text-sm font-semibold text-gray-900">{formatBRL(amountForFilter(d, filtro))}</span>
@@ -390,6 +415,8 @@ export function GastoMensalClient({
         <DespesaForm
           monthKey={monthKey}
           expense={despesaForm.expense}
+          groupStartMonthKey={despesaForm.expense ? groupMonthBounds(expenses, despesaForm.expense).start : undefined}
+          groupEndMonthKey={despesaForm.expense ? groupMonthBounds(expenses, despesaForm.expense).end : undefined}
           onClose={() => setDespesaForm(null)}
           onSaved={() => setMensagemSucesso(despesaForm.expense ? "Despesa atualizada." : "Despesa criada.")}
         />
@@ -399,8 +426,26 @@ export function GastoMensalClient({
         <ReceitaForm
           monthKey={monthKey}
           income={receitaForm.income}
+          groupStartMonthKey={receitaForm.income ? groupMonthBounds(incomes, receitaForm.income).start : undefined}
+          groupEndMonthKey={receitaForm.income ? groupMonthBounds(incomes, receitaForm.income).end : undefined}
           onClose={() => setReceitaForm(null)}
           onSaved={() => setMensagemSucesso(receitaForm.income ? "Receita atualizada." : "Receita criada.")}
+        />
+      )}
+
+      {excluirDespesaAlvo && (
+        <ExcluirEscopoDialog
+          nome={excluirDespesaAlvo.name}
+          onConfirm={(escopo) => executarExclusaoDespesa(excluirDespesaAlvo, escopo)}
+          onCancel={() => setExcluirDespesaAlvo(null)}
+        />
+      )}
+
+      {excluirReceitaAlvo && (
+        <ExcluirEscopoDialog
+          nome={excluirReceitaAlvo.name}
+          onConfirm={(escopo) => executarExclusaoReceita(excluirReceitaAlvo, escopo)}
+          onCancel={() => setExcluirReceitaAlvo(null)}
         />
       )}
     </div>

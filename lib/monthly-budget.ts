@@ -23,6 +23,10 @@ export type MonthlyBudgetExpense = {
   amountJulia: number;
   isPaid: boolean;
   paidAt: string | null;
+  /** Vencimento opcional dessa dívida/despesa nesse mês ("YYYY-MM-DD"). Não obrigatório. */
+  dueDate: string | null;
+  /** Liga linhas criadas juntas via "De/Até" — null quando foi criada só pra um mês. */
+  repeatGroupId: string | null;
 };
 
 export type MonthlyBudgetIncome = {
@@ -31,6 +35,8 @@ export type MonthlyBudgetIncome = {
   name: string;
   amountCarlos: number;
   amountJulia: number;
+  /** Liga linhas criadas juntas via "De/Até" — null quando foi criada só pra um mês. */
+  repeatGroupId: string | null;
 };
 
 type PersonAmounts = { amountCarlos: number; amountJulia: number };
@@ -165,6 +171,264 @@ export function buildExpenseChartPoints(expenses: MonthlyBudgetExpense[], refere
     const julia = doMes.reduce((s, e) => s + e.amountJulia, 0);
     return { monthKey: mk, label: monthLabel(mk), carlos, julia, total: carlos + julia };
   });
+}
+
+// ── Repetir lançamento por vários meses (criação em lote, sem recorrência) ──
+// Cada mês vira uma linha própria e totalmente independente no banco — não é
+// um mecanismo de recorrência virtual como o de /admin/gastos. É só um atalho
+// pra não precisar cadastrar a mesma despesa/receita mês a mês na mão.
+
+/** Limite de segurança pra "repetir até" — evita inserir centenas de linhas por engano
+ *  (60 meses cobre financiamentos típicos de veículo, ex: moto em 48-60x). */
+export const MAX_REPEAT_MONTHS = 60;
+
+function monthIndexOf(monthKey: string): number {
+  const [y, m] = monthKey.split("-").map(Number);
+  return y * 12 + (m - 1);
+}
+
+/** Quantos meses existem entre startMonthKey e endMonthKey, inclusive nas duas pontas. */
+export function monthsBetweenCount(startMonthKey: string, endMonthKey: string): number {
+  return monthIndexOf(endMonthKey) - monthIndexOf(startMonthKey) + 1;
+}
+
+// Proteção contra loop infinito com entrada inválida — o limite real e
+// user-facing (MAX_REPEAT_MONTHS) é validado ANTES de chamar monthKeyRange
+// (ver validarIntervaloRepeticao em app/admin/gasto-mensal/actions.ts).
+const HARD_SAFETY_CAP = 240;
+
+/**
+ * Lista de "YYYY-MM" de startMonthKey até endMonthKey, inclusive. Sem
+ * endMonthKey (ou com endMonthKey <= startMonthKey), retorna só o mês
+ * inicial — repetir "pra trás" não é uma operação válida aqui.
+ */
+export function monthKeyRange(startMonthKey: string, endMonthKey: string | null): string[] {
+  if (!endMonthKey || endMonthKey <= startMonthKey) return [startMonthKey];
+  const keys: string[] = [startMonthKey];
+  let mk = startMonthKey;
+  while (mk < endMonthKey && keys.length < HARD_SAFETY_CAP) {
+    mk = addMonthsToKey(mk, 1);
+    keys.push(mk);
+  }
+  return keys;
+}
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/**
+ * Constrói a data de vencimento de UM mês a partir só do dia (1-31),
+ * clampando no último dia se o mês for mais curto (ex: dia 31 em fevereiro
+ * vira 28). Sem dia informado, retorna null. Cada linha calcula seu PRÓPRIO
+ * vencimento a partir do seu PRÓPRIO mês — nunca "avança" a partir de uma
+ * data anterior, então não tem como acumular deslocamento entre meses.
+ */
+export function dueDateForMonth(monthKey: string, day: number | null): string | null {
+  if (day == null) return null;
+  const [y, m] = monthKey.split("-").map(Number);
+  const ultimoDia = new Date(y, m, 0).getDate();
+  const dia = Math.min(Math.max(1, Math.trunc(day)), ultimoDia);
+  return `${monthKey}-${pad2(dia)}`;
+}
+
+/** Extrai só o dia (1-31) de uma data "YYYY-MM-DD" salva — usado pra preencher o form de edição a partir do due_date já gravado. */
+export function dayOfDate(iso: string | null): number | null {
+  if (!iso) return null;
+  const [, , d] = iso.split("-").map(Number);
+  return d;
+}
+
+export type ExpenseDraft = {
+  monthKey: string;
+  name: string;
+  amountCarlos: number;
+  amountJulia: number;
+  dueDate: string | null;
+};
+
+/**
+ * Gera uma linha de despesa por mês do intervalo. O vencimento é só o dia
+ * (1-31) — cada linha calcula sua própria data a partir do seu próprio mês
+ * (dueDateForMonth), então dá pra escolher "De"/"Até" livremente sem o
+ * vencimento "vazar" pro mês errado. Sem dia informado, todas as linhas
+ * ficam com dueDate null.
+ */
+export function buildExpenseDrafts(input: {
+  startMonthKey: string;
+  endMonthKey: string | null;
+  name: string;
+  amountCarlos: number;
+  amountJulia: number;
+  dueDay: number | null;
+}): ExpenseDraft[] {
+  return monthKeyRange(input.startMonthKey, input.endMonthKey).map((monthKey) => ({
+    monthKey,
+    name: input.name,
+    amountCarlos: input.amountCarlos,
+    amountJulia: input.amountJulia,
+    dueDate: dueDateForMonth(monthKey, input.dueDay),
+  }));
+}
+
+export type IncomeDraft = { monthKey: string; name: string; amountCarlos: number; amountJulia: number };
+
+export function buildIncomeDrafts(input: {
+  startMonthKey: string;
+  endMonthKey: string | null;
+  name: string;
+  amountCarlos: number;
+  amountJulia: number;
+}): IncomeDraft[] {
+  return monthKeyRange(input.startMonthKey, input.endMonthKey).map((monthKey) => ({
+    monthKey,
+    name: input.name,
+    amountCarlos: input.amountCarlos,
+    amountJulia: input.amountJulia,
+  }));
+}
+
+// ── Escopo de edição de um lançamento que faz parte de um grupo "De/Até" ────
+
+export type EscopoEdicao = "esta" | "esta_e_proximas" | "todas";
+
+/**
+ * Dado o grupo inteiro de linhas ligadas pelo mesmo repeat_group_id, resolve
+ * quais ids devem receber a edição, conforme o escopo escolhido: "esta" só a
+ * âncora; "esta_e_proximas" a âncora e tudo com mês >= o dela; "todas" o
+ * grupo inteiro, independente do mês.
+ */
+export function idsNoEscopoDeEdicao<T extends { id: string; monthKey: string }>(
+  grupo: T[],
+  anchorMonthKey: string,
+  escopo: EscopoEdicao,
+): string[] {
+  if (escopo === "todas") return grupo.map((item) => item.id);
+  if (escopo === "esta_e_proximas") return grupo.filter((item) => item.monthKey >= anchorMonthKey).map((item) => item.id);
+  return grupo.filter((item) => item.monthKey === anchorMonthKey).map((item) => item.id);
+}
+
+export type ResolverPeriodoEdicaoInput = {
+  escopo: EscopoEdicao;
+  /** Mês da ocorrência clicada (a que abriu o formulário de edição). */
+  anchorMonthKey: string;
+  /** Menor mês já existente no grupo atual, antes desta edição. */
+  grupoMinAtual: string;
+  /** "De" submetido pelo form — só usado (e livre) no escopo "todas". */
+  monthKeySubmetido: string;
+  /** "Até" submetido pelo form ("" quando não informado). */
+  ateSubmetido: string;
+};
+
+export type ResolverPeriodoEdicaoResult =
+  | { ok: true; novoPrimeiroMes: string; novoUltimoMes: string }
+  | { ok: false; error: string };
+
+/**
+ * Resolve o novo período [De, Até] de uma edição, conforme o escopo:
+ * - "esta_e_proximas": o INÍCIO nunca muda (ignora o que foi submetido, usa
+ *   sempre o menor mês já existente no grupo); o FIM pode mudar, mas nunca
+ *   pode ficar antes do mês que está sendo editado (senão a própria
+ *   ocorrência clicada desapareceria).
+ * - "todas": os dois lados são livres.
+ * Nunca chamar pro escopo "esta" (esse nunca mexe no período).
+ */
+export function resolverPeriodoEdicao(input: ResolverPeriodoEdicaoInput): ResolverPeriodoEdicaoResult {
+  let novoPrimeiroMes: string;
+  let novoUltimoMes: string;
+
+  if (input.escopo === "esta_e_proximas") {
+    novoPrimeiroMes = input.grupoMinAtual;
+    novoUltimoMes = input.ateSubmetido || input.anchorMonthKey;
+    if (!/^\d{4}-\d{2}$/.test(novoUltimoMes)) return { ok: false, error: "Mês final inválido." };
+    if (novoUltimoMes < input.anchorMonthKey) {
+      return { ok: false, error: "O mês final não pode ser antes do mês que você está editando." };
+    }
+  } else {
+    novoPrimeiroMes = input.monthKeySubmetido;
+    novoUltimoMes = input.ateSubmetido || novoPrimeiroMes;
+    if (!/^\d{4}-\d{2}$/.test(novoUltimoMes)) return { ok: false, error: "Mês final inválido." };
+    if (novoUltimoMes < novoPrimeiroMes) {
+      return { ok: false, error: "O mês final precisa ser igual ou depois do mês inicial." };
+    }
+  }
+
+  if (monthsBetweenCount(novoPrimeiroMes, novoUltimoMes) > MAX_REPEAT_MONTHS) {
+    return { ok: false, error: `Intervalo muito longo (máximo de ${MAX_REPEAT_MONTHS} meses).` };
+  }
+  return { ok: true, novoPrimeiroMes, novoUltimoMes };
+}
+
+// ── Mudar o período (De/Até) de um lançamento já existente ──────────────────
+// Reconcilia o grupo atual (linhas já existentes) com o período desejado
+// [novoPrimeiroMes, novoUltimoMes]: cria o que falta, apaga o que sobrou.
+// Funciona pros dois lados — dá pra adiantar/atrasar o início e aumentar/
+// diminuir o fim, inclusive os dois ao mesmo tempo (move o período inteiro).
+
+export type AjusteIntervalo = {
+  /** Meses que precisam virar linha nova (entraram no período e ainda não existem). */
+  mesesParaCriar: string[];
+  /** Ids de linhas existentes que ficaram fora do novo período. */
+  idsParaApagar: string[];
+};
+
+/**
+ * Compara o grupo atual com o período desejado e resolve o que precisa ser
+ * criado ou apagado pra "redesenhar" o período pro novo formato.
+ */
+export function resolverAjusteIntervalo<T extends { id: string; monthKey: string }>(
+  grupoAtual: T[],
+  novoPrimeiroMes: string,
+  novoUltimoMes: string,
+): AjusteIntervalo {
+  if (grupoAtual.length === 0) return { mesesParaCriar: [], idsParaApagar: [] };
+
+  const novoConjunto = new Set(monthKeyRange(novoPrimeiroMes, novoUltimoMes));
+  const mesesExistentes = new Set(grupoAtual.map((g) => g.monthKey));
+
+  const mesesParaCriar = [...novoConjunto].filter((mk) => !mesesExistentes.has(mk)).sort();
+  const idsParaApagar = grupoAtual.filter((g) => !novoConjunto.has(g.monthKey)).map((g) => g.id);
+
+  return { mesesParaCriar, idsParaApagar };
+}
+
+/**
+ * Chave de agrupamento "legado". Lançamentos criados ANTES da coluna
+ * repeat_group_id existir (ex: a Parcela - Moto das primeiras versões) ficaram
+ * sem grupo. Reconhecemos que são o mesmo lançamento repetido pelo nome +
+ * divisão de valor (Carlos/Julia) — mesma regra do backfill em
+ * supabase/monthly-budget.sql, então o comportamento é idêntico com ou sem o
+ * SQL rodado.
+ */
+export function legacyGroupKey(item: { name: string; amountCarlos: number; amountJulia: number }): string {
+  return `${item.name}||${item.amountCarlos}||${item.amountJulia}`;
+}
+
+type GroupableItem = { id: string; monthKey: string; name: string; amountCarlos: number; amountJulia: number; repeatGroupId: string | null };
+
+/**
+ * Todas as linhas do mesmo grupo lógico de `item`: pelo repeatGroupId quando
+ * ele existe; senão (linha legada sem grupo), pelas outras linhas legadas com
+ * a mesma chave (nome + valores). Sempre inclui o próprio `item`.
+ */
+export function siblingsOfGroup<T extends GroupableItem>(allItems: T[], item: T): T[] {
+  if (item.repeatGroupId) return allItems.filter((i) => i.repeatGroupId === item.repeatGroupId);
+  const key = legacyGroupKey(item);
+  return allItems.filter((i) => i.repeatGroupId === null && legacyGroupKey(i) === key);
+}
+
+/** Faz parte de um lançamento que abrange mais de um mês (por grupo ou por chave legada). */
+export function fazParteDeGrupo<T extends GroupableItem>(allItems: T[], item: T): boolean {
+  return siblingsOfGroup(allItems, item).length > 1;
+}
+
+/** Menor e maior mês do grupo de `item` — ou só o próprio mês, se não abranger mais de um. */
+export function groupMonthBounds<T extends GroupableItem>(
+  allItems: T[],
+  item: T,
+): { start: string; end: string } {
+  const meses = siblingsOfGroup(allItems, item).map((i) => i.monthKey).sort();
+  return { start: meses[0] ?? item.monthKey, end: meses[meses.length - 1] ?? item.monthKey };
 }
 
 // ── Validação/recálculo de valores (servidor nunca confia no client) ────────
