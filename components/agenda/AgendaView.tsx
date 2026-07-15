@@ -5,6 +5,10 @@ import Link from "next/link";
 import { CalendarDays, ChevronLeft, ChevronRight, Eye, EyeOff, List, MapPin } from "lucide-react";
 import type { AgendaEvent, AgendaRangeEvent } from "@/lib/agenda";
 import type { ChampionshipStatus } from "@/lib/types";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { Surface } from "@/components/shell/Surface";
+import { EmptyState } from "@/components/shell/EmptyState";
 
 const WEEKDAYS_MIN = ["D", "S", "T", "Q", "Q", "S", "S"];
 const MONTHS = [
@@ -52,16 +56,16 @@ function formatRange(inicio: string, fim: string): string {
 function EventChip({ event }: { event: AgendaEvent }) {
   const local = event.estado ? `${event.cidade} - ${event.estado}` : event.cidade;
   const baseClass =
-    "flex items-center gap-2.5 rounded-xl bg-gray-50 px-3 py-2 ring-1 ring-black/5";
+    "flex items-center gap-2.5 rounded-xl bg-surface-2 px-3 py-2 ring-1 ring-border";
 
   const inner = (
     <>
       <span className={`size-2 shrink-0 rounded-full ${STATUS_STYLE[event.status].dot}`} />
       <span className="min-w-0">
-        <span className="block truncate text-sm font-medium leading-tight text-gray-900">
+        <span className="block truncate text-sm font-medium leading-tight text-ink">
           {event.nome}
         </span>
-        <span className="flex items-center gap-1 text-xs text-gray-500">
+        <span className="flex items-center gap-1 text-xs text-ink-muted">
           <MapPin className="size-3" />
           {local}
         </span>
@@ -71,7 +75,7 @@ function EventChip({ event }: { event: AgendaEvent }) {
 
   if (event.href) {
     return (
-      <Link href={event.href} className={`${baseClass} transition-colors hover:bg-gray-100`}>
+      <Link href={event.href} className={`${baseClass} transition-colors hover:bg-border/40`}>
         {inner}
       </Link>
     );
@@ -122,63 +126,55 @@ export function AgendaView({
   }, [visibleEvents]);
 
   return (
-    <div className="min-h-screen">
-      {/* ── Cabeçalho preto ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
-        <div className="mx-auto max-w-3xl space-y-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold tracking-tight text-white">Agenda</h1>
-            <div className="flex rounded-full bg-white/10 p-1">
-              <button
-                type="button"
-                onClick={() => setView("lista")}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                  view === "lista" ? "bg-white text-gray-900 shadow-sm" : "text-white/60 hover:text-white/80"
-                }`}
-              >
-                <List className="size-4" /> Lista
-              </button>
-              <button
-                type="button"
-                onClick={() => setView("calendario")}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                  view === "calendario" ? "bg-white text-gray-900 shadow-sm" : "text-white/60 hover:text-white/80"
-                }`}
-              >
-                <CalendarDays className="size-4" /> Calendário
-              </button>
-            </div>
-          </div>
-
-          {finishedCount > 0 && (
+    <PageContainer width="form" className="space-y-6 py-8">
+      <PageHeader
+        title="Agenda"
+        actions={
+          <div className="flex rounded-full bg-surface-2 p-1 ring-1 ring-border">
             <button
               type="button"
-              onClick={() => setShowFinished((v) => !v)}
-              aria-pressed={showFinished}
-              className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                showFinished
-                  ? "bg-white text-gray-900"
-                  : "bg-white/10 text-white/70 hover:bg-white/15"
+              onClick={() => setView("lista")}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                view === "lista" ? "bg-blue-600 text-white" : "text-ink-muted hover:text-ink"
               }`}
             >
-              {showFinished ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-              {showFinished ? "Ocultar finalizados" : `Mostrar finalizados (${finishedCount})`}
+              <List className="size-4" /> Lista
             </button>
-          )}
-        </div>
-      </div>
+            <button
+              type="button"
+              onClick={() => setView("calendario")}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                view === "calendario" ? "bg-blue-600 text-white" : "text-ink-muted hover:text-ink"
+              }`}
+            >
+              <CalendarDays className="size-4" /> Calendário
+            </button>
+          </div>
+        }
+      />
 
-      {/* ── Seção branca com curva ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-3xl">
-          {view === "lista" ? (
-            <ListView events={visibleRangeEvents} />
-          ) : (
-            <CalendarView eventsByDate={eventsByDate} />
-          )}
-        </div>
-      </div>
-    </div>
+      {finishedCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowFinished((v) => !v)}
+          aria-pressed={showFinished}
+          className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+            showFinished
+              ? "bg-blue-600 text-white"
+              : "bg-surface-2 text-ink-muted ring-1 ring-border hover:bg-border/40"
+          }`}
+        >
+          {showFinished ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+          {showFinished ? "Ocultar finalizados" : `Mostrar finalizados (${finishedCount})`}
+        </button>
+      )}
+
+      {view === "lista" ? (
+        <ListView events={visibleRangeEvents} />
+      ) : (
+        <CalendarView eventsByDate={eventsByDate} />
+      )}
+    </PageContainer>
   );
 }
 
@@ -187,11 +183,7 @@ export function AgendaView({
 // circuito e o intervalo de datas (ex.: "16/06 ~ 19/06").
 function ListView({ events }: { events: AgendaRangeEvent[] }) {
   if (events.length === 0) {
-    return (
-      <div className="rounded-2xl bg-white p-8 text-center ring-1 ring-black/5">
-        <p className="text-sm text-gray-500">Nenhum evento na agenda ainda.</p>
-      </div>
-    );
+    return <EmptyState icon={CalendarDays} title="Nenhum evento na agenda ainda" />;
   }
 
   // Agrupa por mês (a partir da data de início), preservando a ordem cronológica.
@@ -211,7 +203,7 @@ function ListView({ events }: { events: AgendaRangeEvent[] }) {
     <div className="space-y-7">
       {meses.map((mes) => (
         <section key={mes.key}>
-          <p className="mb-2.5 px-1 text-xs font-semibold uppercase tracking-widest text-gray-400">
+          <p className="mb-2.5 px-1 text-xs font-semibold uppercase tracking-widest text-ink-muted">
             {mes.label}
           </p>
           <div className="grid gap-2.5 sm:grid-cols-2">
@@ -232,18 +224,18 @@ function MiniCard({ event }: { event: AgendaRangeEvent }) {
   const acento = CIRCUITO_BLOCK[event.nome] ?? STATUS_STYLE[event.status].block;
 
   const inner = (
-    <div className="flex items-stretch gap-3 overflow-hidden rounded-2xl bg-white p-3 ring-1 ring-black/5">
+    <div className="flex items-stretch gap-3 overflow-hidden rounded-card-lg bg-surface p-3 shadow-soft ring-1 ring-border">
       {/* Faixa colorida do circuito */}
       <span className={`w-1.5 shrink-0 rounded-full ${acento}`} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold leading-tight text-gray-900">
+        <p className="truncate text-sm font-semibold leading-tight text-ink">
           {event.nome}
         </p>
-        <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-gray-700">
-          <CalendarDays className="size-3.5 text-gray-400" />
+        <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-ink">
+          <CalendarDays className="size-3.5 text-ink-muted" />
           {formatRange(event.dataInicio, event.dataFim)}
         </p>
-        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-400">
+        <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-muted">
           <MapPin className="size-3" />
           {local}
         </p>
@@ -306,19 +298,19 @@ function CalendarView({
         <button
           type="button"
           onClick={goPrev}
-          className="rounded-full p-2 text-gray-500 hover:bg-gray-100"
+          className="rounded-full p-2 text-ink-muted hover:bg-surface-2"
           aria-label="Mês anterior"
         >
           <ChevronLeft className="size-5" />
         </button>
         <div className="flex items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-900">
+          <h2 className="text-base font-semibold text-ink">
             {MONTHS[cursor.month]} {cursor.year}
           </h2>
           <button
             type="button"
             onClick={goToday}
-            className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-200"
+            className="rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-ink-muted hover:bg-border/40"
           >
             Hoje
           </button>
@@ -326,7 +318,7 @@ function CalendarView({
         <button
           type="button"
           onClick={goNext}
-          className="rounded-full p-2 text-gray-500 hover:bg-gray-100"
+          className="rounded-full p-2 text-ink-muted hover:bg-surface-2"
           aria-label="Próximo mês"
         >
           <ChevronRight className="size-5" />
@@ -334,8 +326,8 @@ function CalendarView({
       </div>
 
       {/* Grade do mês */}
-      <div className="rounded-2xl bg-white p-3 ring-1 ring-black/5">
-        <div className="mb-2 grid grid-cols-7 text-center text-xs font-medium text-gray-400">
+      <Surface padding="sm">
+        <div className="mb-2 grid grid-cols-7 text-center text-xs font-medium text-ink-muted">
           {WEEKDAYS_MIN.map((w, i) => (
             <div key={i} className="py-1">{w}</div>
           ))}
@@ -360,8 +352,8 @@ function CalendarView({
                   isSelected
                     ? "bg-blue-600 text-white"
                     : hasEvents
-                      ? "bg-blue-50 text-gray-900 hover:bg-blue-100"
-                      : "text-gray-400"
+                      ? "bg-blue-50 text-ink hover:bg-blue-100"
+                      : "text-ink-muted"
                 } ${isToday && !isSelected ? "ring-1 ring-blue-400" : ""}`}
               >
                 <span className={isToday ? "font-bold" : ""}>{day}</span>
@@ -381,12 +373,12 @@ function CalendarView({
             );
           })}
         </div>
-      </div>
+      </Surface>
 
       {/* Eventos do dia selecionado */}
       {selectedEvents && selectedEvents.length > 0 && (
         <div className="space-y-2">
-          <p className="px-1 text-xs font-semibold uppercase tracking-widest text-gray-400">
+          <p className="px-1 text-xs font-semibold uppercase tracking-widest text-ink-muted">
             {parseDate(selected!).getDate()} de {MONTHS[parseDate(selected!).getMonth()]}
           </p>
           <div className="flex flex-wrap gap-2">
