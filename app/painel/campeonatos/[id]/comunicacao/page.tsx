@@ -1,10 +1,12 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Megaphone } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ComunicacaoClient, type Recipient } from "@/components/painel/ComunicacaoClient";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { EmptyState } from "@/components/shell/EmptyState";
+import { Megaphone } from "lucide-react";
 
 export default async function ComunicacaoPage({
   params,
@@ -52,77 +54,44 @@ export default async function ComunicacaoPage({
 
   const atletaIds = Object.keys(atletaGeneroMap);
 
-  if (atletaIds.length === 0) {
-    return (
-      <div className="min-h-screen">
-        <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-          <div className="mx-auto max-w-2xl space-y-4">
-            <Link href={`/painel/campeonatos/${id}`} className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors">
-              <ArrowLeft className="size-4" /> {camp.nome}
-            </Link>
-            <div className="flex items-center gap-2">
-              <Megaphone className="size-6 text-blue-400" />
-              <h1 className="text-2xl font-bold tracking-tight text-white">Comunicação</h1>
-            </div>
-          </div>
-        </div>
-        <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-          <div className="mx-auto max-w-2xl py-12 text-center">
-            <p className="text-sm text-gray-400">Nenhum atleta inscrito com pagamento confirmado ainda.</p>
-          </div>
-        </div>
-      </div>
+  let recipients: Recipient[] = [];
+  if (atletaIds.length > 0) {
+    // Busca perfis (nome) e emails (via admin)
+    const admin = createAdminClient();
+    const [profilesRes, { data: { users: allAuthUsers } }] = await Promise.all([
+      supabase.from("profiles").select("id, nome").in("id", atletaIds),
+      admin.auth.admin.listUsers({ perPage: 1000 }),
+    ]);
+
+    const profileMap = Object.fromEntries(
+      (profilesRes.data ?? []).map((p) => [p.id, p.nome as string]),
     );
+    const emailMap = Object.fromEntries(
+      allAuthUsers
+        .filter((u) => atletaIds.includes(u.id))
+        .map((u) => [u.id, u.email ?? ""]),
+    );
+
+    recipients = atletaIds
+      .filter((uid) => emailMap[uid])
+      .map((uid) => ({
+        userId: uid,
+        nome: profileMap[uid] ?? "Atleta",
+        email: emailMap[uid],
+        genero: atletaGeneroMap[uid],
+      }))
+      .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
   }
 
-  // Busca perfis (nome) e emails (via admin)
-  const admin = createAdminClient();
-  const [profilesRes, { data: { users: allAuthUsers } }] = await Promise.all([
-    supabase.from("profiles").select("id, nome").in("id", atletaIds),
-    admin.auth.admin.listUsers({ perPage: 1000 }),
-  ]);
-
-  const profileMap = Object.fromEntries(
-    (profilesRes.data ?? []).map((p) => [p.id, p.nome as string]),
-  );
-  const emailMap = Object.fromEntries(
-    allAuthUsers
-      .filter((u) => atletaIds.includes(u.id))
-      .map((u) => [u.id, u.email ?? ""]),
-  );
-
-  const recipients: Recipient[] = atletaIds
-    .filter((uid) => emailMap[uid])
-    .map((uid) => ({
-      userId: uid,
-      nome: profileMap[uid] ?? "Atleta",
-      email: emailMap[uid],
-      genero: atletaGeneroMap[uid],
-    }))
-    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-
   return (
-    <div className="min-h-screen">
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-2xl space-y-4">
-          <Link href={`/painel/campeonatos/${id}`} className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors">
-            <ArrowLeft className="size-4" /> {camp.nome}
-          </Link>
-          <div className="flex items-center gap-2">
-            <Megaphone className="size-6 text-blue-400" />
-            <h1 className="text-2xl font-bold tracking-tight text-white">Comunicação</h1>
-          </div>
-          <p className="text-sm text-white/40">
-            Envie um comunicado por notificação e e-mail para os atletas inscritos.
-          </p>
-        </div>
-      </div>
+    <PageContainer width="form" className="space-y-6 py-8">
+      <PageHeader title="Comunicação" description="Envie um comunicado por notificação e e-mail para os atletas inscritos." />
 
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-2xl">
-          <ComunicacaoClient champId={id} recipients={recipients} />
-        </div>
-      </div>
-    </div>
+      {recipients.length === 0 ? (
+        <EmptyState icon={Megaphone} title="Nenhum atleta inscrito com pagamento confirmado ainda" />
+      ) : (
+        <ComunicacaoClient champId={id} recipients={recipients} />
+      )}
+    </PageContainer>
   );
 }
