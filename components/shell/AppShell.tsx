@@ -1,14 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { isArenaOrganizerRoute } from "@/components/navbar/nav-items";
 import { isFocusedRoute, type AppNavPermissions } from "@/components/shell/app-nav-items";
 import { DesktopSidebar, type SidebarUser } from "@/components/shell/DesktopSidebar";
 import { DesktopTopbar } from "@/components/shell/DesktopTopbar";
 import { FocusedLayout } from "@/components/shell/FocusedLayout";
 
-// Orquestra o shell desktop do site. Rotas focadas seguem limpas e o painel
-// interno da arena continua usando seu proprio shell contextual.
+// Orquestra o shell desktop do site. Rotas focadas seguem limpas; o restante
+// compartilha a mesma barra lateral para a navegacao parecer um painel unico.
 export function AppShell({
   user,
   perms,
@@ -22,7 +21,6 @@ export function AppShell({
 }) {
   const pathname = usePathname();
 
-  if (isArenaOrganizerRoute(pathname)) return <>{children}</>;
   if (isFocusedRoute(pathname)) return <FocusedLayout>{children}</FocusedLayout>;
 
   return (

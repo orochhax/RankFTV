@@ -40,10 +40,53 @@ export function DesktopSidebar({
   const router = useRouter();
   const items = visibleAppNavItems(perms);
   const itemByKey = new Map(items.map((i) => [i.key, i]));
+  const activeKey = items.find((item) => isAppNavItemActive(pathname, item))?.key ?? null;
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [indicator, setIndicator] = useState<{ top: number; left: number; width: number; height: number; ready: boolean }>({
+    top: 0,
+    left: 0,
+    width: 44,
+    height: 44,
+    ready: false,
+  });
+  const navRef = useRef<HTMLElement>(null);
+  const itemRefs = useRef(new Map<string, HTMLAnchorElement>());
   const quickMenuRef = useRef<HTMLDivElement>(null);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function measureActiveItem() {
+      if (!activeKey || !navRef.current) {
+        setIndicator((current) => ({ ...current, ready: false }));
+        return;
+      }
+
+      const node = itemRefs.current.get(activeKey);
+      if (!node) return;
+
+      const navRect = navRef.current.getBoundingClientRect();
+      const itemRect = node.getBoundingClientRect();
+      setIndicator({
+        top: itemRect.top - navRect.top + navRef.current.scrollTop,
+        left: itemRect.left - navRect.left,
+        width: itemRect.width,
+        height: itemRect.height,
+        ready: true,
+      });
+    }
+
+    measureActiveItem();
+    window.addEventListener("resize", measureActiveItem);
+    return () => window.removeEventListener("resize", measureActiveItem);
+  }, [activeKey, items.length]);
+
+  function setItemRef(key: string) {
+    return (node: HTMLAnchorElement | null) => {
+      if (node) itemRefs.current.set(key, node);
+      else itemRefs.current.delete(key);
+    };
+  }
 
   useEffect(() => {
     if (!quickMenuOpen && !accountMenuOpen) return;
@@ -77,7 +120,7 @@ export function DesktopSidebar({
   }
 
   return (
-    <aside className="sticky top-0 z-40 hidden h-screen w-20 shrink-0 flex-col border-r border-border bg-surface px-3 py-4 md:flex">
+    <aside className="sticky top-0 z-40 hidden h-screen w-20 shrink-0 flex-col items-center border-r border-border bg-surface px-3 py-4 md:flex">
       <Link
         href="/"
         aria-label="RankFTV"
@@ -138,32 +181,44 @@ export function DesktopSidebar({
         )}
       </div>
 
-      <nav aria-label="Navegacao principal" className="mt-6 flex-1 overflow-y-auto">
+      <nav ref={navRef} aria-label="Navegacao principal" className="relative mt-6 flex min-h-0 flex-1 flex-col items-center">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute z-0 rounded-2xl bg-blue-600 shadow-soft shadow-blue-600/20 transition-[left,top,width,height,opacity] duration-[260ms] ease-out motion-reduce:transition-none"
+          style={{
+            left: indicator.left,
+            top: indicator.top,
+            width: indicator.width,
+            height: indicator.height,
+            opacity: indicator.ready ? 1 : 0,
+          }}
+        />
         {GROUPS.map((group, index) => {
           const groupItems = group.keys.map((k) => itemByKey.get(k)).filter((i): i is NonNullable<typeof i> => !!i);
           if (groupItems.length === 0) return null;
 
           return (
-            <div key={group.label} className={index > 0 ? "mt-4 border-t border-border pt-4" : undefined}>
-              <ul className="space-y-1">
+            <div key={group.label} className={`flex w-full flex-col items-center ${index > 0 ? "mt-4 border-t border-border pt-4" : ""}`}>
+              <ul className="flex w-full flex-col items-center gap-1">
                 {groupItems.map((item) => {
                   const active = isAppNavItemActive(pathname, item);
                   const Icon = item.icon;
 
                   return (
-                    <li key={item.key}>
+                    <li key={item.key} className="flex w-full justify-center">
                       <Link
+                        ref={setItemRef(item.key)}
                         href={item.href}
                         title={item.label}
                         aria-label={item.label}
                         aria-current={active ? "page" : undefined}
-                        className={`group relative flex size-11 items-center justify-center rounded-2xl transition-colors ${
+                        className={`group relative z-10 flex size-11 items-center justify-center rounded-2xl transition-colors duration-200 ${
                           active
-                            ? "bg-blue-600 text-white shadow-soft shadow-blue-600/20"
+                            ? `${indicator.ready ? "" : "bg-blue-600 shadow-soft shadow-blue-600/20"} text-white`
                             : "text-ink-muted hover:bg-surface-2 hover:text-ink"
                         }`}
                       >
-                        <Icon className="size-5 shrink-0" strokeWidth={2} />
+                        <Icon className="size-5 shrink-0 transition-colors duration-200" strokeWidth={2} />
                         <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 hidden -translate-y-1/2 whitespace-nowrap rounded-lg bg-gray-950 px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg group-hover:block group-focus-visible:block">
                           {item.label}
                         </span>

@@ -52,6 +52,8 @@ export function visibleAppNavItems(perms: AppNavPermissions): AppNavItem[] {
 }
 
 export function isAppNavItemActive(pathname: string, item: AppNavItem): boolean {
+  if (item.key === "campeonatos") return pathname === "/" || pathname.startsWith("/campeonatos");
+  if (item.key === "arena") return pathname === "/arena" || pathname.startsWith("/arena/");
   if (item.matchExact) return pathname === item.href;
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }

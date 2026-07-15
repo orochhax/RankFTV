@@ -46,26 +46,12 @@ export function ArenaShell({
   const title = arenaPageTitle(pathname, arena.handle);
 
   return (
-    <div className="min-h-screen bg-surface-2 md:flex">
+    <div className="min-h-screen bg-surface-2">
       {/* ── Sidebar desktop ── */}
-      <aside className="sticky top-0 hidden h-screen w-20 shrink-0 flex-col border-r border-border bg-surface md:flex">
-        <ArenaNavContent
-          arena={arena}
-          arenas={arenas}
-          user={user}
-          pathname={pathname}
-          collapsed={true}
-          switcherOpen={switcherOpen}
-          onToggleSwitcher={() => setSwitcherOpen((s) => !s)}
-          onNavigate={closeOverlays}
-          onLogout={handleLogout}
-        />
-      </aside>
-
       {/* ── Coluna principal ── */}
       <div className="min-w-0 flex-1">
         {/* Topbar desktop */}
-        <header className="sticky top-0 z-30 hidden h-16 items-center justify-between border-b border-border bg-surface/90 px-6 backdrop-blur md:flex">
+        <header className="hidden">
           <div className="min-w-0">
             <p className="truncate text-xs font-medium text-ink-muted">{arena.nome}</p>
             <h1 className="truncate text-base font-bold text-ink">{title}</h1>
@@ -104,6 +90,8 @@ export function ArenaShell({
             <LayoutDashboard className="size-5" />
           </Link>
         </header>
+
+        <ArenaDesktopSubnav arena={arena} pathname={pathname} onNavigate={closeOverlays} />
 
         <div className="pb-[max(env(safe-area-inset-bottom),16px)] md:pb-8">{children}</div>
       </div>
@@ -145,6 +133,61 @@ export function ArenaShell({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ArenaDesktopSubnav({
+  arena,
+  pathname,
+  onNavigate,
+}: {
+  arena: ArenaSummary;
+  pathname: string;
+  onNavigate: () => void;
+}) {
+  const navItems = ARENA_NAV_GROUPS.flatMap((group) => group.items);
+
+  return (
+    <div className="sticky top-16 z-20 hidden border-b border-border bg-surface/90 px-6 py-3 backdrop-blur md:block">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="min-w-0 shrink-0 pr-2">
+          <p className="truncate text-xs font-medium text-ink-muted">{arena.nome}</p>
+          <p className="truncate text-sm font-bold text-ink">{arenaPageTitle(pathname, arena.handle)}</p>
+        </div>
+        <nav aria-label="Navegacao do painel da arena" className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+          {navItems.map((item) => {
+            const href = item.href(arena.handle);
+            const active = isArenaNavItemActive(pathname, href, item.matchExact);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.key}
+                href={href}
+                onClick={onNavigate}
+                aria-current={active ? "page" : undefined}
+                className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-blue-600 text-white shadow-soft shadow-blue-600/15"
+                    : "text-ink-muted hover:bg-surface-2 hover:text-ink"
+                }`}
+              >
+                <Icon className="size-4" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        <a
+          href={`/arenas/${arena.handle}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-sm font-medium text-ink-muted transition-colors hover:border-blue-300 hover:text-blue-600"
+        >
+          <ExternalLink className="size-4" /> Pagina publica
+        </a>
+      </div>
     </div>
   );
 }
