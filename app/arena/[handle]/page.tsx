@@ -5,13 +5,54 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AceitarAlunoButton } from "@/components/arena/AceitarAlunoButton";
 import { CopyCodeButton } from "@/components/arena/CopyCodeButton";
-import { generateOccurrences, todayISOArena, NIVEL_LABEL, type ArenaClassRow } from "@/lib/arena-dates";
+import {
+  generateOccurrences, todayISOArena, weekRangeISO, weekLabel, dayLabelShort, addDaysISO,
+  NIVEL_LABEL, type ArenaClassRow, type ClassOccurrence,
+} from "@/lib/arena-dates";
 
 type ProfileRow = { nome: string; username: string; foto_url: string | null };
 function perfil(raw: unknown): ProfileRow | null {
   if (!raw) return null;
   if (Array.isArray(raw)) return (raw[0] as ProfileRow) ?? null;
   return raw as ProfileRow;
+}
+
+function AulaCard({
+  aula,
+  confirmados,
+  handle,
+  discreta,
+}: {
+  aula: ClassOccurrence;
+  confirmados: number;
+  handle: string;
+  discreta: boolean;
+}) {
+  const nivelLabel = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : "Todos os níveis";
+  const temLimite = aula.maxAlunos != null;
+  const lotada = temLimite && confirmados >= (aula.maxAlunos as number);
+  return (
+    <Link
+      href={`/arena/${handle}/aula/${aula.classId}?data=${aula.date}`}
+      className={`flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5 transition-colors hover:bg-blue-50 hover:ring-blue-200 ${discreta ? "opacity-60" : ""}`}
+    >
+      <div className="min-w-0">
+        {aula.horaInicio && (
+          <span className="flex items-center gap-1 text-xs font-bold text-blue-600">
+            <Clock className="size-3.5" />
+            {aula.horaInicio}
+            {aula.horaFim && `–${aula.horaFim}`}
+          </span>
+        )}
+        <p className="truncate text-sm font-medium text-gray-900">{aula.titulo}</p>
+        <p className="text-xs text-gray-400">{nivelLabel}</p>
+      </div>
+      <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${lotada ? "bg-red-50 text-red-600" : "bg-white text-gray-500 ring-1 ring-black/5"}`}>
+        {temLimite ? `${confirmados}/${aula.maxAlunos}` : confirmados}
+        {lotada && " · lotada"}
+      </span>
+    </Link>
+  );
 }
 
 export default async function ArenaPainelPage({
@@ -72,18 +113,31 @@ export default async function ArenaPainelPage({
   }));
 
   const hoje = todayISOArena();
-  const aulasHoje = generateOccurrences(classes, hoje, hoje);
+  const { start: inicioSemana, end: fimSemana } = weekRangeISO(hoje);
+  const aulasSemana = generateOccurrences(classes, inicioSemana, fimSemana);
 
+  // Chave composta (aula + data), não só class_id — a mesma aula recorrente
+  // acontece em vários dias da semana, cada um com sua própria ocupação.
   const presencasMap = new Map<string, number>();
-  if (aulasHoje.length > 0) {
+  if (aulasSemana.length > 0) {
     const { data: presencas } = await supabase
       .from("arena_attendance")
-      .select("class_id")
+      .select("class_id, data")
       .eq("arena_id", arena.id)
-      .eq("data", hoje);
+      .gte("data", inicioSemana)
+      .lte("data", fimSemana);
     for (const p of presencas ?? []) {
-      presencasMap.set(p.class_id, (presencasMap.get(p.class_id) ?? 0) + 1);
+      const chave = `${p.class_id}|${p.data}`;
+      presencasMap.set(chave, (presencasMap.get(chave) ?? 0) + 1);
     }
+  }
+
+  // Sete dias, segunda a domingo, cada um com suas ocorrências já ordenadas
+  // (generateOccurrences ordena por data e depois por horário).
+  const diasDaSemana = Array.from({ length: 7 }, (_, i) => addDaysISO(inicioSemana, i));
+  const aulasPorDia = new Map<string, ClassOccurrence[]>(diasDaSemana.map((d) => [d, []]));
+  for (const aula of aulasSemana) {
+    aulasPorDia.get(aula.date)?.push(aula);
   }
 
   return (
@@ -105,19 +159,19 @@ export default async function ArenaPainelPage({
           <p className="mt-1 text-2xl font-bold text-gray-900">{classes.length}</p>
         </div>
         <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
-          <p className="text-xs text-gray-400">Aulas hoje</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">{aulasHoje.length}</p>
+          <p className="text-xs text-gray-400">Aulas na semana</p>
+          <p className="mt-1 text-2xl font-bold text-gray-900">{aulasSemana.length}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          {/* ── Hoje ── */}
+          {/* ── Aulas da semana ── */}
           <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <CalendarDays className="size-4 text-blue-500" />
-                <h2 className="text-sm font-semibold text-gray-700">Hoje</h2>
+                <h2 className="text-sm font-semibold text-gray-700">Aulas da semana</h2>
               </div>
               <Link
                 href={`/arena/${arena.handle}/agenda`}
@@ -126,46 +180,49 @@ export default async function ArenaPainelPage({
                 Ver agenda completa <ChevronRight className="size-3.5" />
               </Link>
             </div>
+            <p className="mb-3 text-xs text-gray-400">{weekLabel(hoje)}</p>
 
-            {aulasHoje.length === 0 ? (
+            {aulasSemana.length === 0 ? (
               <p className="rounded-xl bg-gray-50 px-4 py-6 text-center text-sm text-gray-400 ring-1 ring-black/5">
-                Nenhuma aula hoje.
+                Nenhuma aula cadastrada nesta semana.
               </p>
             ) : (
-              <ul className="space-y-2">
-                {aulasHoje.map((aula) => {
-                  const confirmados = presencasMap.get(aula.classId) ?? 0;
-                  const nivelLabel = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : "Todos os níveis";
-                  const temLimite = aula.maxAlunos != null;
-                  const lotada = temLimite && confirmados >= (aula.maxAlunos as number);
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {diasDaSemana.map((dia) => {
+                  const aulasDoDia = aulasPorDia.get(dia) ?? [];
+                  const isHoje = dia === hoje;
+                  const isPassado = dia < hoje;
                   return (
-                    <li key={`${aula.classId}-${aula.date}`}>
-                      <Link
-                        href={`/arena/${arena.handle}/aula/${aula.classId}?data=${aula.date}`}
-                        className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5 transition-colors hover:bg-blue-50 hover:ring-blue-200"
-                      >
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            {aula.horaInicio && (
-                              <span className="flex items-center gap-1 text-xs font-bold text-blue-600">
-                                <Clock className="size-3.5" />
-                                {aula.horaInicio}
-                                {aula.horaFim && `–${aula.horaFim}`}
-                              </span>
-                            )}
-                          </div>
-                          <p className="truncate text-sm font-medium text-gray-900">{aula.titulo}</p>
-                          <p className="text-xs text-gray-400">{nivelLabel}</p>
-                        </div>
-                        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${lotada ? "bg-red-50 text-red-600" : "bg-white text-gray-500 ring-1 ring-black/5"}`}>
-                          {temLimite ? `${confirmados}/${aula.maxAlunos}` : confirmados}
-                          {lotada && " · lotada"}
-                        </span>
-                      </Link>
-                    </li>
+                    <div
+                      key={dia}
+                      className={`rounded-xl p-3 ring-1 ${
+                        isHoje ? "bg-blue-50 ring-blue-200" : "bg-gray-50/60 ring-black/5"
+                      } ${isPassado && !isHoje ? "opacity-60" : ""}`}
+                    >
+                      <p className={`mb-2 text-xs font-semibold ${isHoje ? "text-blue-700" : "text-gray-500"}`}>
+                        {dayLabelShort(dia)}
+                        {isHoje && <span className="ml-1.5 rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">HOJE</span>}
+                      </p>
+                      {aulasDoDia.length === 0 ? (
+                        <p className="text-xs text-gray-400">Nenhuma aula</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {aulasDoDia.map((aula) => (
+                            <li key={`${aula.classId}-${aula.date}`}>
+                              <AulaCard
+                                aula={aula}
+                                confirmados={presencasMap.get(`${aula.classId}|${aula.date}`) ?? 0}
+                                handle={arena.handle}
+                                discreta={isPassado && !isHoje}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   );
                 })}
-              </ul>
+              </div>
             )}
           </section>
 

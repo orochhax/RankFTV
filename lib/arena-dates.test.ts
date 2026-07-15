@@ -4,6 +4,7 @@ import {
   dowOfISO, addDaysISO, addMonthsISO, addYearsISO, weekRangeISO,
   startOfMonthISO, endOfMonthISO, startOfYearISO, endOfYearISO,
   monthMatrixISO, addMinutesToTime, generateOccurrences, classeCombinaComFiltro,
+  weekLabel, dayLabelShort,
   type ArenaClassRow,
 } from "./arena-dates";
 
@@ -77,6 +78,25 @@ describe("weekRangeISO — semana sempre segunda a domingo", () => {
     const { start, end } = weekRangeISO("2026-12-31"); // quinta
     assert.equal(start, "2026-12-28");
     assert.equal(end, "2027-01-03");
+  });
+});
+
+describe("weekLabel", () => {
+  it("semana dentro do mesmo mês", () => {
+    assert.equal(weekLabel("2026-07-15"), "13 a 19 de Julho, 2026");
+  });
+  it("semana que atravessa dois meses", () => {
+    assert.equal(weekLabel("2026-08-01"), "27 Jul a 2 Ago, 2026");
+  });
+  it("semana que atravessa dois anos", () => {
+    assert.equal(weekLabel("2026-12-31"), "28 Dez/2026 a 3 Jan/2027");
+  });
+});
+
+describe("dayLabelShort", () => {
+  it("formata dia da semana compacto com mês abreviado", () => {
+    assert.equal(dayLabelShort("2026-07-13"), "Segunda, 13 Jul.");
+    assert.equal(dayLabelShort("2026-07-19"), "Domingo, 19 Jul.");
   });
 });
 

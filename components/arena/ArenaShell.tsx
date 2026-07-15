@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Menu, X, ChevronDown, ChevronsLeft, ChevronsRight, ExternalLink, LogOut, Plus, Building2,
+  Menu, X, ChevronDown, ChevronsLeft, ChevronsRight, ExternalLink, LayoutDashboard, LogOut, Plus, Building2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar } from "@/components/ui/Avatar";
@@ -119,6 +119,14 @@ export function ArenaShell({
             <p className="truncate text-sm font-bold leading-tight text-ink">{arena.nome}</p>
             <p className="truncate text-[11px] leading-tight text-ink-muted">{title}</p>
           </div>
+          <Link
+            href="/painel"
+            aria-label="Voltar ao painel geral"
+            title="Voltar ao painel geral"
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl text-ink-muted transition-colors hover:bg-surface-2 active:bg-gray-200"
+          >
+            <LayoutDashboard className="size-5" />
+          </Link>
         </header>
 
         <div className="pb-[max(env(safe-area-inset-bottom),16px)] md:pb-8">{children}</div>
@@ -190,6 +198,21 @@ function ArenaNavContent({
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
+      {/* Marca — deixa claro que o painel da arena é parte do RankFTV */}
+      <Link
+        href="/painel"
+        onClick={onNavigate}
+        title={collapsed ? "RankFTV" : undefined}
+        aria-label={collapsed ? "RankFTV — voltar ao painel geral" : undefined}
+        className={`flex items-center gap-1.5 border-b border-border px-3 py-2.5 text-xs font-bold tracking-tight text-ink-muted transition-colors hover:text-blue-600 ${collapsed ? "justify-center" : ""}`}
+      >
+        {collapsed ? (
+          <span className="text-blue-600">FTV</span>
+        ) : (
+          <>Rank<span className="text-blue-600">FTV</span></>
+        )}
+      </Link>
+
       {/* Trocar de arena */}
       <div className="border-b border-border p-3">
         {outras.length === 0 ? (
@@ -293,6 +316,18 @@ function ArenaNavContent({
             <p className="mb-1.5 px-2.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">Outros</p>
           )}
           <ul className="space-y-0.5">
+            <li>
+              <Link
+                href="/painel"
+                onClick={onNavigate}
+                title={collapsed ? "Voltar ao painel geral" : undefined}
+                aria-label={collapsed ? "Voltar ao painel geral" : undefined}
+                className={`flex items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-2 hover:text-ink ${collapsed ? "justify-center" : ""}`}
+              >
+                <LayoutDashboard className="size-[18px] shrink-0" strokeWidth={2} />
+                {!collapsed && "Voltar ao painel geral"}
+              </Link>
+            </li>
             <li>
               <a
                 href={`/arenas/${arena.handle}`}

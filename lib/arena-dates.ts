@@ -135,6 +135,13 @@ export function dayLabel(iso: string): string {
   return `${DIAS_SEMANA_LONGO[dowOfISO(iso)]}, ${d} de ${MESES_PT[m - 1]}`;
 }
 
+/** Versão compacta pra listas (ex.: "Segunda, 14 jul.") — usada no resumo
+ * semanal, onde `dayLabel` (mês por extenso) ocupa espaço demais. */
+export function dayLabelShort(iso: string): string {
+  const [, m, d] = parts(iso);
+  return `${DIAS_SEMANA_LONGO[dowOfISO(iso)]}, ${d} ${MESES_PT_ABREV[m - 1]}.`;
+}
+
 export const NIVEL_LABEL: Record<string, string> = {
   iniciante: "Iniciante",
   intermediario: "Intermediário",
