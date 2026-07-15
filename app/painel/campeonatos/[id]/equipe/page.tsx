@@ -1,9 +1,11 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { Users, UserCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { EquipeClient, type StaffMember } from "@/components/painel/EquipeClient";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { StatCard } from "@/components/shell/StatCard";
 
 type StaffRow = {
   id: string;
@@ -60,45 +62,15 @@ export default async function EquipePage({
   }));
 
   return (
-    <div className="min-h-screen">
-      {/* ── Cabeçalho preto ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-2xl space-y-4">
-          <Link
-            href={`/painel/campeonatos/${id}`}
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
-          >
-            <ArrowLeft className="size-4" /> {camp.nome}
-          </Link>
+    <PageContainer width="form" className="space-y-6 py-8">
+      <PageHeader title="Equipe" description="Gerencie a equipe de staff deste campeonato." />
 
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Equipe</h1>
-            <p className="mt-1 text-sm text-white/40">
-              Gerencie a equipe de staff deste campeonato
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-white/10 p-4">
-              <p className="text-xs text-white/50">Total</p>
-              <p className="mt-1 text-2xl font-bold text-white">{members.length}</p>
-            </div>
-            <div className="rounded-2xl bg-white/10 p-4">
-              <p className="text-xs text-white/50">Ativos</p>
-              <p className="mt-1 text-2xl font-bold text-white">
-                {members.filter((m) => m.status === "aceito").length}
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 gap-4 sm:max-w-xs">
+        <StatCard label="Total" value={members.length} icon={Users} />
+        <StatCard label="Ativos" value={members.filter((m) => m.status === "aceito").length} icon={UserCheck} tone="success" />
       </div>
 
-      {/* ── Conteúdo branco ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-2xl">
-          <EquipeClient champId={id} members={members} />
-        </div>
-      </div>
-    </div>
+      <EquipeClient champId={id} members={members} />
+    </PageContainer>
   );
 }

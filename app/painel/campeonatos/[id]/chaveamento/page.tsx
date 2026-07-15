@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Trophy } from "lucide-react";
+import { Trophy, Layers, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { BracketClient } from "@/components/chaveamento/BracketClient";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { StatCard } from "@/components/shell/StatCard";
+import { EmptyState } from "@/components/shell/EmptyState";
 
 /* ─── tipos ─── */
 
@@ -198,87 +202,54 @@ export default async function ChaveamentoPage({
   ) : [];
 
   return (
-    <div className="min-h-screen">
+    <PageContainer width="wide" className="space-y-6 py-8">
+      <PageHeader title="Chaveamento" description="Grade e confrontos automáticos por categoria." />
 
-      {/* ── cabeçalho preto ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-4xl space-y-4">
-          <Link
-            href={`/painel/campeonatos/${id}`}
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
-          >
-            <ArrowLeft className="size-4" /> {camp.nome}
-          </Link>
-
-          <h1 className="text-2xl font-bold tracking-tight text-white">Chaveamento</h1>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-white/10 p-4">
-              <p className="text-xs text-white/50">Duplas no bracket</p>
-              <p className="mt-1 text-2xl font-bold text-white">{totalDuplas}</p>
-            </div>
-            <div className="rounded-2xl bg-white/10 p-4">
-              <p className="text-xs text-white/50">Categorias</p>
-              <p className="mt-1 text-2xl font-bold text-white">{categorias.length || "—"}</p>
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 gap-4 sm:max-w-md">
+        <StatCard label="Duplas no bracket" value={totalDuplas} icon={Users} />
+        <StatCard label="Categorias" value={categorias.length || "—"} icon={Layers} />
       </div>
 
-      {/* ── conteúdo branco ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-4xl space-y-6">
-
-          {totalDuplas === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-16 text-center">
-              <div className="flex size-16 items-center justify-center rounded-full bg-gray-100">
-                <Trophy className="size-8 text-gray-300" />
-              </div>
-              <p className="text-sm font-medium text-gray-600">Nenhuma dupla confirmada</p>
-              <p className="max-w-xs text-xs text-gray-400">
-                O chaveamento é gerado automaticamente assim que as primeiras duplas confirmarem pagamento.
-              </p>
-              <Link
-                href={`/painel/campeonatos/${id}/inscricoes`}
-                className="mt-1 text-xs font-medium text-blue-600 hover:text-blue-700"
-              >
-                Ver inscrições →
-              </Link>
+      {totalDuplas === 0 ? (
+        <EmptyState
+          icon={Trophy}
+          title="Nenhuma dupla confirmada"
+          description="O chaveamento é gerado automaticamente assim que as primeiras duplas confirmarem pagamento."
+          actionLabel="Ver inscrições"
+          actionHref={`/painel/campeonatos/${id}/inscricoes`}
+        />
+      ) : (
+        <>
+          {/* filtro por categoria */}
+          {categorias.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {categorias.map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/painel/campeonatos/${id}/chaveamento?cat=${c.id}`}
+                  className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                    activeCatId === c.id
+                      ? "bg-blue-600 text-white"
+                      : "bg-surface-2 text-ink-muted hover:bg-border/60"
+                  }`}
+                >
+                  {c.nome}
+                </Link>
+              ))}
             </div>
-          ) : (
-            <>
-              {/* filtro por categoria */}
-              {categorias.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {categorias.map((c) => (
-                    <Link
-                      key={c.id}
-                      href={`/painel/campeonatos/${id}/chaveamento?cat=${c.id}`}
-                      className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                        activeCatId === c.id
-                          ? "bg-gray-900 text-white"
-                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                      }`}
-                    >
-                      {c.nome}
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              <BracketClient
-                key={activeCatId ?? ""}
-                champId={id}
-                catId={activeCatId ?? ""}
-                rounds={rounds}
-                availableTeams={availableTeams}
-                confirmedAt={confirmedAt}
-                thirdPlaceMatch={thirdPlaceMatch}
-              />
-            </>
           )}
-        </div>
-      </div>
-    </div>
+
+          <BracketClient
+            key={activeCatId ?? ""}
+            champId={id}
+            catId={activeCatId ?? ""}
+            rounds={rounds}
+            availableTeams={availableTeams}
+            confirmedAt={confirmedAt}
+            thirdPlaceMatch={thirdPlaceMatch}
+          />
+        </>
+      )}
+    </PageContainer>
   );
 }

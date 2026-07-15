@@ -1,9 +1,12 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Shirt } from "lucide-react";
+import { Shirt, Users, CheckCircle2, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { CamisasClient } from "@/components/camisas/CamisasClient";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { StatCard } from "@/components/shell/StatCard";
+import { EmptyState } from "@/components/shell/EmptyState";
 
 /* ─── tipos exportados para o client ─── */
 
@@ -94,70 +97,28 @@ export default async function CamisasPage({
   const semTamanho    = athletes.filter((a) => !a.tamanho).length;
 
   return (
-    <div className="min-h-screen">
+    <PageContainer width="wide" className="space-y-6 py-8">
+      <PageHeader title="Camisas / Kit" description="Painel de produção e entrega por tamanho." />
 
-      {/* ── cabeçalho preto ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-4xl space-y-4">
-          <Link
-            href={`/painel/campeonatos/${id}`}
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
-          >
-            <ArrowLeft className="size-4" /> {camp.nome}
-          </Link>
-
-          <h1 className="text-2xl font-bold tracking-tight text-white">Camisas / Kit</h1>
-
-          {athletes.length === 0 ? (
-            <p className="text-sm text-white/40">Nenhum inscrito confirmado ainda.</p>
-          ) : (
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-2xl bg-white/10 p-4">
-                <p className="text-xs text-white/50">Total de atletas</p>
-                <p className="mt-1 text-2xl font-bold text-white">{athletes.length}</p>
-              </div>
-              <div className="rounded-2xl bg-white/10 p-4">
-                <p className="text-xs text-white/50">Prontas</p>
-                <p className="mt-1 text-2xl font-bold text-white">
-                  {totalProduced}
-                  <span className="ml-1 text-sm font-normal text-white/40">/ {athletes.length}</span>
-                </p>
-              </div>
-              <div className="rounded-2xl bg-white/10 p-4">
-                <p className="text-xs text-white/50">Sem tamanho</p>
-                <p className={`mt-1 text-2xl font-bold ${semTamanho > 0 ? "text-amber-400" : "text-white"}`}>
-                  {semTamanho}
-                </p>
-              </div>
-            </div>
-          )}
+      {athletes.length > 0 && (
+        <div className="grid grid-cols-3 gap-4 sm:max-w-xl">
+          <StatCard label="Total de atletas" value={athletes.length} icon={Users} />
+          <StatCard label="Prontas" value={`${totalProduced} / ${athletes.length}`} icon={CheckCircle2} tone="success" />
+          <StatCard label="Sem tamanho" value={semTamanho} icon={AlertTriangle} tone={semTamanho > 0 ? "warning" : "default"} />
         </div>
-      </div>
+      )}
 
-      {/* ── conteúdo branco ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-4xl">
-          {athletes.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-16 text-center">
-              <div className="flex size-16 items-center justify-center rounded-full bg-gray-100">
-                <Shirt className="size-8 text-gray-300" />
-              </div>
-              <p className="text-sm font-medium text-gray-600">Nenhum inscrito confirmado</p>
-              <p className="max-w-xs text-xs text-gray-400">
-                A lista de camisas aparece assim que as primeiras inscrições forem confirmadas.
-              </p>
-              <Link
-                href={`/painel/campeonatos/${id}/inscricoes`}
-                className="mt-1 text-xs font-medium text-blue-600 hover:text-blue-700"
-              >
-                Ver inscrições →
-              </Link>
-            </div>
-          ) : (
-            <CamisasClient champId={id} campNome={camp.nome} athletes={athletes} />
-          )}
-        </div>
-      </div>
-    </div>
+      {athletes.length === 0 ? (
+        <EmptyState
+          icon={Shirt}
+          title="Nenhum inscrito confirmado"
+          description="A lista de camisas aparece assim que as primeiras inscrições forem confirmadas."
+          actionLabel="Ver inscrições"
+          actionHref={`/painel/campeonatos/${id}/inscricoes`}
+        />
+      ) : (
+        <CamisasClient champId={id} campNome={camp.nome} athletes={athletes} />
+      )}
+    </PageContainer>
   );
 }
