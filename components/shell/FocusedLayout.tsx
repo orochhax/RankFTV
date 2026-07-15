@@ -1,9 +1,19 @@
+import Link from "next/link";
+
 // Layout "concentrado" — login, cadastro, pagamento/Pix, convites, termos.
-// Só remove a sidebar/topbar/bottom nav do shell global; cada página mantém
-// seu próprio cabeçalho/fundo (várias já têm uma faixa escura própria com
-// voltar + contexto, adicionar um segundo cabeçalho aqui duplicaria a
-// navegação). Deixa o conteúdo cobrir a tela inteira, sem faixas laterais
-// vazias.
+// Sem sidebar/topbar/bottom nav do shell global, mas com uma faixa mínima
+// com a logo (link pra Home) — sem ela essas páginas ficavam sem NENHUMA
+// forma de navegação de volta pro site (a BottomNav também some aqui).
+// Cada página mantém seu próprio cabeçalho/fundo abaixo dessa faixa.
 export function FocusedLayout({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-screen bg-surface">{children}</div>;
+  return (
+    <div className="min-h-screen bg-surface">
+      <div className="flex h-12 items-center border-b border-border px-6">
+        <Link href="/" className="text-sm font-bold tracking-tight text-ink">
+          Rank<span className="text-blue-600">FTV</span>
+        </Link>
+      </div>
+      {children}
+    </div>
+  );
 }

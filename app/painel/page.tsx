@@ -14,6 +14,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getMyChampionships } from "@/lib/supabase/championships";
 import { AutoRefresh } from "@/components/ui/AutoRefresh";
 import { PainelLandingClient } from "@/components/painel/PainelLandingClient";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { StatCard } from "@/components/shell/StatCard";
 
 function fmt(v: number) {
   return `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -137,27 +139,32 @@ export default async function PainelOrganizadorPage() {
     void totalPendente;
     void totalEstornado;
 
+    const acoesCriacao = (
+      <>
+        <Link
+          href="/perfil/ativar-arena"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-2 md:border-0 md:bg-white/10 md:text-white/80 md:hover:bg-white/15"
+        >
+          <Plus className="size-4" /> Cadastrar arena
+        </Link>
+        <Link
+          href="/painel/novo-campeonato"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500"
+        >
+          <Plus className="size-4" /> Criar campeonato
+        </Link>
+      </>
+    );
+
     return (
       <div className="min-h-screen">
         <AutoRefresh intervalMs={60_000} />
-        {/* ── Cabeçalho preto ── */}
-        <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
+
+        {/* ── Cabeçalho: faixa escura no mobile, claro + StatCards no desktop ── */}
+        <div className="bg-[#0f0f13] px-6 pb-16 pt-8 md:hidden">
           <div className="mx-auto max-w-4xl space-y-5">
             <h1 className="text-2xl font-bold tracking-tight text-white">Painel do organizador</h1>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/perfil/ativar-arena"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/15 transition-colors"
-              >
-                <Plus className="size-4" /> Cadastrar arena
-              </Link>
-              <Link
-                href="/painel/novo-campeonato"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500"
-              >
-                <Plus className="size-4" /> Criar campeonato
-              </Link>
-            </div>
+            <div className="flex items-center gap-2">{acoesCriacao}</div>
 
             {/* Cards de resumo */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -217,9 +224,59 @@ export default async function PainelOrganizadorPage() {
           </div>
         </div>
 
-        {/* ── Seção branca — Painel Geral ── */}
-        <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-          <div className="mx-auto max-w-4xl space-y-8">
+        <div className="hidden border-b border-border bg-surface md:block">
+          <PageContainer width="wide" className="space-y-6 py-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <h1 className="text-2xl font-bold tracking-tight text-ink lg:text-3xl">Painel do organizador</h1>
+              <div className="flex items-center gap-2">{acoesCriacao}</div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4">
+              <StatCard label="Campeonatos" value={todos.length} hint={`${abertos.length} abertos`} icon={Trophy} />
+              <StatCard
+                label="Arenas"
+                value={arenaCount}
+                hint={arenaCount === 0 ? "nenhuma ainda" : arenaCount === 1 ? "ativa" : "ativas"}
+                icon={Building2}
+              />
+              <StatCard label="Saldo de Campeonatos" value={fmt(saldoCampeonatos)} hint="atletas + plateia" tone="success" />
+              <StatCard label="Saldo da Arena" value={fmt(saldoArena)} hint="MRR + aluguéis + diárias" tone="success" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Link
+                href="/arena"
+                className="flex items-center justify-between rounded-card-lg bg-surface-2 px-5 py-4 ring-1 ring-border transition-colors hover:bg-surface"
+              >
+                <div className="flex items-center gap-3">
+                  <Building2 className="size-5 text-blue-600" />
+                  <div>
+                    <p className="font-semibold text-ink">Minhas Arenas</p>
+                    <p className="text-xs text-ink-muted">Alunos, presenças e mensalidades</p>
+                  </div>
+                </div>
+                <ChevronRight className="size-4 text-ink-muted" />
+              </Link>
+              <Link
+                href="/painel/campeonatos"
+                className="flex items-center justify-between rounded-card-lg bg-surface-2 px-5 py-4 ring-1 ring-border transition-colors hover:bg-surface"
+              >
+                <div className="flex items-center gap-3">
+                  <Trophy className="size-5 text-amber-500" />
+                  <div>
+                    <p className="font-semibold text-ink">Meus Campeonatos</p>
+                    <p className="text-xs text-ink-muted">Categorias, inscrições e resultados</p>
+                  </div>
+                </div>
+                <ChevronRight className="size-4 text-ink-muted" />
+              </Link>
+            </div>
+          </PageContainer>
+        </div>
+
+        {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
+        <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:shadow-none">
+          <PageContainer width="form" className="space-y-8">
 
             {/* Receita total consolidada */}
             <section className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 text-white">
@@ -230,43 +287,15 @@ export default async function PainelOrganizadorPage() {
               </p>
             </section>
 
-            {/* Status dos campeonatos */}
-            <section>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Status dos campeonatos</h2>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { valor: campsAbertos,    label: "Inscrições abertas" },
-                  { valor: campsAndamento,  label: "Em andamento" },
-                  { valor: campsEncerrados, label: "Encerrados" },
-                ].map(({ valor, label }) => (
-                  <div
-                    key={label}
-                    className={`rounded-2xl p-4 ring-1 text-center ${
-                      valor > 0
-                        ? "bg-blue-50 ring-blue-100"
-                        : "bg-gray-50 ring-gray-100"
-                    }`}
-                  >
-                    <p className={`text-2xl font-bold ${valor > 0 ? "text-blue-700" : "text-gray-400"}`}>
-                      {valor}
-                    </p>
-                    <p className={`mt-1 text-xs ${valor > 0 ? "text-blue-600" : "text-gray-400"}`}>
-                      {label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Status da arena */}
-            {arenaIds.length > 0 && (
+            <div className="grid gap-8 lg:grid-cols-2">
+              {/* Status dos campeonatos */}
               <section>
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Status da arena</h2>
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Status dos campeonatos</h2>
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { valor: alunosAtivos.length, label: "Alunos mensalistas" },
-                    { valor: rentaisMes.length,   label: "Aluguéis no mês" },
-                    { valor: diariasMes.length,   label: "Diárias no mês" },
+                    { valor: campsAbertos,    label: "Inscrições abertas" },
+                    { valor: campsAndamento,  label: "Em andamento" },
+                    { valor: campsEncerrados, label: "Encerrados" },
                   ].map(({ valor, label }) => (
                     <div
                       key={label}
@@ -286,7 +315,37 @@ export default async function PainelOrganizadorPage() {
                   ))}
                 </div>
               </section>
-            )}
+
+              {/* Status da arena */}
+              {arenaIds.length > 0 && (
+                <section>
+                  <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Status da arena</h2>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { valor: alunosAtivos.length, label: "Alunos mensalistas" },
+                      { valor: rentaisMes.length,   label: "Aluguéis no mês" },
+                      { valor: diariasMes.length,   label: "Diárias no mês" },
+                    ].map(({ valor, label }) => (
+                      <div
+                        key={label}
+                        className={`rounded-2xl p-4 ring-1 text-center ${
+                          valor > 0
+                            ? "bg-blue-50 ring-blue-100"
+                            : "bg-gray-50 ring-gray-100"
+                        }`}
+                      >
+                        <p className={`text-2xl font-bold ${valor > 0 ? "text-blue-700" : "text-gray-400"}`}>
+                          {valor}
+                        </p>
+                        <p className={`mt-1 text-xs ${valor > 0 ? "text-blue-600" : "text-gray-400"}`}>
+                          {label}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
 
             {/* Financeiro por Categoria */}
             <section>
@@ -361,7 +420,7 @@ export default async function PainelOrganizadorPage() {
               <span className="flex-1 text-sm font-medium text-gray-700">Termos de uso</span>
               <ChevronRight className="size-4 shrink-0 text-gray-300" />
             </Link>
-          </div>
+          </PageContainer>
         </div>
       </div>
     );

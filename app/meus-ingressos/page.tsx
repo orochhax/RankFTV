@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Search, AlertCircle } from "lucide-react";
+import { ArrowLeft, Loader2, Search, AlertCircle, Ticket } from "lucide-react";
 import { IngressoCard, type Ingresso } from "@/components/ingressos/IngressoCard";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { Surface } from "@/components/shell/Surface";
+import { EmptyState } from "@/components/shell/EmptyState";
 
 export default function MeusIngressosPage() {
   const [cpf,   setCpf]   = useState("");
@@ -40,7 +44,8 @@ export default function MeusIngressosPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
+      {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
+      <div className="bg-[#0f0f13] px-6 pb-16 pt-8 md:hidden">
         <div className="mx-auto max-w-xl space-y-3">
           <Link
             href="/"
@@ -56,61 +61,79 @@ export default function MeusIngressosPage() {
         </div>
       </div>
 
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-xl space-y-6">
-          <form onSubmit={buscar} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">CPF</label>
-              <input
-                className={`mt-1 ${input}`}
-                value={cpf}
-                onChange={(e) => setCpf(e.target.value)}
-                inputMode="numeric"
-                placeholder="Somente números"
-                maxLength={14}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">E-mail</label>
-              <input
-                className={`mt-1 ${input}`}
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="voce@email.com"
-                required
-              />
-            </div>
-            {error && (
-              <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 ring-1 ring-red-100">
-                <AlertCircle className="size-4 shrink-0" /> {error}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-            >
-              {loading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
-              Buscar meus ingressos
-            </button>
-          </form>
+      <div className="hidden border-b border-border bg-surface md:block">
+        <PageContainer width="form" className="py-8">
+          <PageHeader
+            eyebrow="Meus ingressos"
+            title="Consultar ingresso por CPF"
+            description="Digite o CPF e e-mail usados na compra para encontrar seus ingressos e QR de entrada."
+          />
+        </PageContainer>
+      </div>
+
+      {/* ── Corpo: sheet arredondada no mobile, cartão flutuando num fundo
+          neutro no desktop (nada de página estreita boiando num vazio) ── */}
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:pb-16 md:shadow-none">
+        <PageContainer width="form" className="space-y-8">
+          <Surface padding="lg" className="md:max-w-md">
+            <form onSubmit={buscar} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">CPF</label>
+                <input
+                  className={`mt-1 ${input}`}
+                  value={cpf}
+                  onChange={(e) => setCpf(e.target.value)}
+                  inputMode="numeric"
+                  placeholder="Somente números"
+                  maxLength={14}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">E-mail</label>
+                <input
+                  className={`mt-1 ${input}`}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="voce@email.com"
+                  required
+                />
+              </div>
+              {error && (
+                <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 ring-1 ring-red-100">
+                  <AlertCircle className="size-4 shrink-0" /> {error}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+              >
+                {loading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
+                Buscar meus ingressos
+              </button>
+            </form>
+          </Surface>
 
           {results !== null && (
-            <div className="space-y-4">
+            <div>
               {results.length === 0 ? (
-                <p className="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-500 ring-1 ring-black/5">
-                  Nenhum ingresso encontrado para esse CPF e e-mail.
-                </p>
+                <EmptyState
+                  icon={Ticket}
+                  title="Nenhum ingresso encontrado"
+                  description="Confira se o CPF e o e-mail são os mesmos usados na compra."
+                />
               ) : (
-                results.map((ing) => (
-                  <IngressoCard key={`${ing.tipo}-${ing.ticket_id}`} ingresso={ing} />
-                ))
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {results.map((ing) => (
+                    <IngressoCard key={`${ing.tipo}-${ing.ticket_id}`} ingresso={ing} />
+                  ))}
+                </div>
               )}
             </div>
           )}
-        </div>
+        </PageContainer>
       </div>
     </div>
   );

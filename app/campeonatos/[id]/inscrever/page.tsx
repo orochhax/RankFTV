@@ -8,6 +8,7 @@ import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { InscricaoForm } from "@/components/campeonatos/InscricaoForm";
 import { resolverPrecos } from "@/lib/lotes";
 import type { Genero } from "@/lib/types";
+import { Surface } from "@/components/shell/Surface";
 
 export default async function InscreverPage({
   params,
@@ -30,11 +31,13 @@ export default async function InscreverPage({
 
   if (championship.status !== "inscricoes_abertas") {
     return (
-      <div className="mx-auto max-w-lg px-6 py-8 text-center">
-        <p className="text-gray-500">As inscrições não estão abertas para este campeonato.</p>
-        <Link href={`/campeonatos/${id}`} className="mt-4 inline-block text-sm text-blue-600 hover:underline">
-          Voltar ao campeonato
-        </Link>
+      <div className="flex min-h-[calc(100vh-48px)] items-center justify-center bg-app-bg px-6 py-10">
+        <Surface padding="lg" className="max-w-md text-center">
+          <p className="text-gray-500">As inscrições não estão abertas para este campeonato.</p>
+          <Link href={`/campeonatos/${id}`} className="mt-4 inline-block text-sm text-blue-600 hover:underline">
+            Voltar ao campeonato
+          </Link>
+        </Surface>
       </div>
     );
   }
@@ -72,7 +75,8 @@ export default async function InscreverPage({
     generoCategoria !== meuGenero;
 
   return (
-    <div className="mx-auto max-w-lg space-y-5 px-6 py-8">
+    <div className="min-h-[calc(100vh-48px)] bg-app-bg px-6 py-10">
+    <Surface padding="lg" className="mx-auto max-w-xl space-y-5">
       <Link
         href={`/campeonatos/${id}`}
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
@@ -146,6 +150,7 @@ export default async function InscreverPage({
           userId={user.id}
         />
       )}
+    </Surface>
     </div>
   );
 }

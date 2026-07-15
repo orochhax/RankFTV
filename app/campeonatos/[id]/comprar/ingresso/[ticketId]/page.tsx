@@ -7,6 +7,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { IngressoAtletaPagamento } from "@/components/campeonatos/IngressoAtletaPagamento";
 import { IngressoOpcoesMenu } from "@/components/ingressos/IngressoOpcoesMenu";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
+import { PageContainer } from "@/components/shell/PageContainer";
 
 const AVATAR_COLORS = ["bg-blue-500", "bg-blue-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
 function avatarColor(str: string) {
@@ -77,9 +78,9 @@ export default async function IngressoAtletaPage({
 
   return (
     <div className="min-h-screen">
-      {/* ── Cabeçalho escuro ── */}
+      {/* ── Cabeçalho escuro (mesma largura contida do corpo, em toda tela) ── */}
       <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-lg space-y-5">
+        <PageContainer width="form" className="space-y-5">
           <div className="flex items-center justify-between">
             <Link
               href={backHref}
@@ -136,12 +137,12 @@ export default async function IngressoAtletaPage({
           {t.code && (
             <p className="font-mono text-[11px] tracking-[0.25em] text-white/30">{t.code}</p>
           )}
-        </div>
+        </PageContainer>
       </div>
 
-      {/* ── Área branca ── */}
-      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-lg space-y-6">
+      {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
+      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:shadow-none">
+        <PageContainer width="form" className="space-y-6">
           <IngressoAtletaPagamento
             ticketId={t.id}
             accessToken={accessToken}
@@ -182,7 +183,7 @@ export default async function IngressoAtletaPage({
               </Link>
             </div>
           )}
-        </div>
+        </PageContainer>
       </div>
     </div>
   );

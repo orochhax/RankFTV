@@ -9,6 +9,7 @@ import { formatBRL } from "@/lib/format";
 import { pagarComCartao } from "@/app/campeonatos/[id]/pagamento/[registrationId]/actions";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 import { createClient } from "@/lib/supabase/client";
+import { PageContainer } from "@/components/shell/PageContainer";
 
 const AVATAR_COLORS = ["bg-blue-500","bg-blue-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
 function avatarColor(str: string) {
@@ -329,9 +330,9 @@ export function PaymentUI({
 
   return (
     <div className="min-h-screen">
-      {/* ── Cabeçalho escuro ── */}
+      {/* ── Cabeçalho escuro (mesma largura contida do corpo, em toda tela) ── */}
       <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-lg space-y-5">
+        <PageContainer width="form" className="space-y-5">
           <Link
             href={`/campeonatos/${champId}`}
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
@@ -369,12 +370,12 @@ export function PaymentUI({
             <span className="text-3xl font-bold text-white">{formatBRL(valor)}</span>
             <span className="text-sm text-white/40">por dupla</span>
           </div>
-        </div>
+        </PageContainer>
       </div>
 
-      {/* ── Área branca ── */}
-      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-lg space-y-6">
+      {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
+      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:shadow-none">
+        <PageContainer width="form" className="space-y-6">
 
           {/* Tabs */}
           <div className="flex gap-1 rounded-2xl bg-gray-100 p-1">
@@ -467,7 +468,7 @@ export function PaymentUI({
             <CardForm valor={valor} isElite={isElite} registrationId={registrationId} champId={champId} />
           )}
 
-        </div>
+        </PageContainer>
       </div>
     </div>
   );

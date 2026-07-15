@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronsLeft, ChevronsRight, LogOut } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar } from "@/components/ui/Avatar";
 import {
@@ -11,9 +12,12 @@ import {
 
 export type SidebarUser = { nome: string; username: string; fotoUrl: string | null } | null;
 
+// "perfil" não aparece mais como item de navegação — vive no menu do rodapé,
+// junto de Configurações e Sair (evita repetir "conta do usuário" em dois
+// lugares da sidebar).
 const GROUPS: { label: string; keys: string[] }[] = [
   { label: "Principal", keys: ["campeonatos", "arenas", "agenda", "ingressos"] },
-  { label: "Minha conta", keys: ["inscricoes", "perfil"] },
+  { label: "Minha conta", keys: ["inscricoes"] },
   { label: "Gestão", keys: ["painel", "arena", "staff", "admin"] },
 ];
 
@@ -32,6 +36,16 @@ export function DesktopSidebar({
   const router = useRouter();
   const items = visibleAppNavItems(perms);
   const itemByKey = new Map(items.map((i) => [i.key, i]));
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setAccountMenuOpen(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [accountMenuOpen]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -99,26 +113,70 @@ export function DesktopSidebar({
         })}
       </nav>
 
-      {/* Rodapé — usuário ou entrar/cadastrar */}
+      {/* Rodapé — usuário (com menu de conta) ou entrar/cadastrar */}
       <div className="border-t border-border p-3">
         {user ? (
-          <div className={`flex items-center gap-2.5 ${collapsed ? "justify-center" : ""}`}>
-            <Avatar nome={user.nome} color="bg-blue-600" size="sm" fotoUrl={user.fotoUrl} />
-            {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-ink">{user.nome}</p>
-                <p className="truncate text-xs text-ink-muted">@{user.username}</p>
-              </div>
-            )}
+          <div className="relative">
             <button
               type="button"
-              onClick={handleLogout}
-              aria-label="Sair da conta"
-              title="Sair"
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-danger-bg hover:text-danger"
+              onClick={() => setAccountMenuOpen((o) => !o)}
+              aria-expanded={accountMenuOpen}
+              aria-haspopup="menu"
+              aria-label={collapsed ? `Menu da conta de ${user.nome}` : undefined}
+              className={`flex w-full items-center gap-2.5 rounded-xl p-1.5 transition-colors hover:bg-surface-2 ${collapsed ? "justify-center" : ""}`}
             >
-              <LogOut className="size-4" />
+              <Avatar nome={user.nome} color="bg-blue-600" size="sm" fotoUrl={user.fotoUrl} />
+              {!collapsed && (
+                <>
+                  <div className="min-w-0 flex-1 text-left">
+                    <p className="truncate text-sm font-semibold text-ink">{user.nome}</p>
+                    <p className="truncate text-xs text-ink-muted">@{user.username}</p>
+                  </div>
+                  <ChevronsUpDown className="size-4 shrink-0 text-ink-muted" />
+                </>
+              )}
             </button>
+
+            {accountMenuOpen && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Fechar menu da conta"
+                  onClick={() => setAccountMenuOpen(false)}
+                  className="fixed inset-0 z-40 cursor-default"
+                />
+                <div
+                  role="menu"
+                  aria-label="Menu da conta"
+                  className="absolute bottom-full left-0 z-50 mb-2 w-56 overflow-hidden rounded-2xl bg-surface shadow-elevated ring-1 ring-border"
+                >
+                  <Link
+                    href="/perfil"
+                    role="menuitem"
+                    onClick={() => setAccountMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-3 text-sm text-ink transition-colors hover:bg-surface-2"
+                  >
+                    <User className="size-4 text-ink-muted" /> Perfil
+                  </Link>
+                  <Link
+                    href="/perfil/conta"
+                    role="menuitem"
+                    onClick={() => setAccountMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-3 text-sm text-ink transition-colors hover:bg-surface-2"
+                  >
+                    <Settings className="size-4 text-ink-muted" /> Configurações
+                  </Link>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-sm text-danger transition-colors hover:bg-danger-bg"
+                  >
+                    <LogOut className="size-4" /> Sair
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ) : collapsed ? (
           <Link

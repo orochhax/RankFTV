@@ -6,6 +6,9 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateRangeBR, generoLabel } from "@/lib/format";
 import type { ChampionshipStatus } from "@/lib/types";
 import { InscricaoMenu } from "@/components/inscricoes/InscricaoMenu";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { EmptyState } from "@/components/shell/EmptyState";
 
 type TeamRow = {
   id: string;
@@ -83,8 +86,8 @@ export default async function MinhasInscricoesPage() {
 
   return (
     <div className="min-h-screen">
-      {/* ── Cabeçalho preto ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
+      {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
+      <div className="bg-[#0f0f13] px-6 pb-16 pt-6 md:hidden">
         <div className="mx-auto max-w-2xl space-y-4">
           <Link
             href="/"
@@ -104,29 +107,31 @@ export default async function MinhasInscricoesPage() {
         </div>
       </div>
 
-      {/* ── Conteúdo branco ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-2xl space-y-8">
+      <div className="hidden border-b border-border bg-surface md:block">
+        <PageContainer width="form" className="py-8">
+          <PageHeader
+            title="Minhas inscrições"
+            description={
+              total === 0
+                ? "Você ainda não está inscrito em nenhum campeonato."
+                : `${total} ${total === 1 ? "campeonato" : "campeonatos"}`
+            }
+          />
+        </PageContainer>
+      </div>
+
+      {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:shadow-none">
+        <PageContainer width="form" className="space-y-8">
 
           {total === 0 ? (
-            /* Estado vazio */
-            <div className="flex flex-col items-center gap-4 py-16 text-center">
-              <div className="flex size-16 items-center justify-center rounded-full bg-gray-100">
-                <Trophy className="size-8 text-gray-300" />
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">Nenhuma inscrição ainda</p>
-                <p className="mt-1 text-sm text-gray-500">
-                  Explore os campeonatos e inscreva sua dupla.
-                </p>
-              </div>
-              <Link
-                href="/campeonatos"
-                className="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-500"
-              >
-                Ver campeonatos
-              </Link>
-            </div>
+            <EmptyState
+              icon={Trophy}
+              title="Nenhuma inscrição ainda"
+              description="Explore os campeonatos e inscreva sua dupla."
+              actionLabel="Ver campeonatos"
+              actionHref="/campeonatos"
+            />
           ) : (
             <>
               {/* Ativos / abertos */}
@@ -150,7 +155,7 @@ export default async function MinhasInscricoesPage() {
               )}
             </>
           )}
-        </div>
+        </PageContainer>
       </div>
     </div>
   );

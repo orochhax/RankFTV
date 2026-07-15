@@ -4,6 +4,8 @@ import { ArrowLeft, AlertTriangle, Info } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatBRL, formatDateRangeBR } from "@/lib/format";
 import { ReembolsoForm } from "./ReembolsoForm";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
 
 export default async function ReembolsoPage({
   params,
@@ -60,7 +62,7 @@ export default async function ReembolsoPage({
 
   return (
     <div className="min-h-screen">
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
+      <div className="bg-[#0f0f13] px-6 pb-16 pt-6 md:hidden">
         <div className="mx-auto max-w-md space-y-3">
           <Link
             href={`/minhas-inscricoes/${champId}`}
@@ -73,8 +75,20 @@ export default async function ReembolsoPage({
         </div>
       </div>
 
-      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-md space-y-5">
+      <div className="hidden border-b border-border bg-surface md:block">
+        <PageContainer width="form" className="py-8">
+          <Link
+            href={`/minhas-inscricoes/${champId}`}
+            className="inline-flex items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-ink"
+          >
+            <ArrowLeft className="size-4" /> Voltar
+          </Link>
+          <PageHeader title="Solicitar reembolso" description={champ?.nome} className="mt-3" />
+        </PageContainer>
+      </div>
+
+      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:shadow-none">
+        <PageContainer width="form" className="space-y-5">
 
           {/* Resumo */}
           {champ && cat && (
@@ -132,7 +146,7 @@ export default async function ReembolsoPage({
             valorExibido={dentroDosPrazo7d ? null : valorInscricao}
           />
 
-        </div>
+        </PageContainer>
       </div>
     </div>
   );
