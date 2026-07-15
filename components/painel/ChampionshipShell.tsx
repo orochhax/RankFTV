@@ -20,7 +20,7 @@ export type ChampionshipNavSummary = {
 };
 
 // Navegação contextual de um campeonato, aninhada DENTRO do shell global
-// (sidebar + topbar do app continuam visíveis, com "Organizador" ativo).
+// (a sidebar persiste e mantém "Organizador" ativo).
 //
 // O cabeçalho fica enxuto de propósito: breadcrumb, nome, status, "Página
 // pública" e um único botão "Gerenciar" que abre um menu com todas as

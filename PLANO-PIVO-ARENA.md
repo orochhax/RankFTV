@@ -1,4 +1,52 @@
-# PLANO DE PIVÔ — RankFTV vira plataforma de Organizadores + Arenas
+# Plano de pivô — RankFTV: Organizadores + Arenas (histórico)
+
+> [!IMPORTANT]
+> **DOCUMENTO HISTÓRICO — plano elaborado antes da implementação do módulo
+> Arena.**
+>
+> Estado revisto em **2026-07-15**. Este arquivo continua no repositório para
+> preservar decisões, ordem de implementação e contexto do pivô. Ele não é a
+> fonte do funcionamento atual. Consulte:
+>
+> - [DOCUMENTACAO.md](DOCUMENTACAO.md) para rotas, tabelas e fluxos atuais;
+> - [AUDITORIA-PRODUCAO.md](AUDITORIA-PRODUCAO.md) para segurança e pendências
+>   de produção;
+> - [ftv.md](ftv.md) para a visão atual do produto.
+
+## Estado de execução do plano
+
+| Fase histórica | Estado em 2026-07-15 | Resultado atual |
+|---|---|---|
+| **A — Reposicionamento da casca** | **Concluída** | Home, Campeonatos, Arenas e Painel fazem parte da navegação atual; o desktop usa shell persistente com sidebar preta e o mobile mantém navegação própria |
+| **B — Ingresso de atleta sem login** | **Concluída no código** | `athlete_tickets` foi criado separado de `spectator_tickets`; checkout de visitante e recuperação por CPF + e-mail coexistem com a inscrição autenticada |
+| **C — Núcleo da Arena** | **Concluída no código** | Arena pública, ativação, múltiplas arenas, alunos e painel canônico por `/arena/[handle]` |
+| **D — Presença em treinos** | **Concluída no código** | Aulas recorrentes, agenda semanal de segunda a domingo, confirmação e frequência |
+| **E1 — Arena cobra o aluno** | **Concluída no código; regra/homologação pendentes** | Plano recorrente, aluguel e diária cobram 10% sobre o valor-base; o Pix manual ainda diverge. Financeiro, webhook e repasse existem, mas exigem decisão e homologação |
+| **E2 — RankFTV cobra o dono** | **Pendente** | Estrutura e tela de status existem, mas preço, trial, checkout, inadimplência, cancelamento e gate ainda não foram definidos/implementados por inteiro |
+| **F — Perfil social do aluno** | **Decisão alterada** | O perfil básico e o rating técnico permanecem, mas o ranking nacional e `/perfil/evolucao` foram removidos; não haverá rede social/ranking nacional no lançamento |
+
+### Rotas canônicas atuais do painel da Arena
+
+O painel deixou de depender de rotas globais ambíguas. `/arena` seleciona ou
+redireciona para uma arena; a gestão usa o handle:
+
+```text
+/arena/[handle]
+/arena/[handle]/agenda
+/arena/[handle]/alunos
+/arena/[handle]/financeiro
+/arena/[handle]/planos
+/arena/[handle]/aulas
+/arena/[handle]/aula/[classId]
+/arena/[handle]/relatorios
+/arena/[handle]/assinatura
+/arena/[handle]/configuracoes
+```
+
+Rotas antigas sem `[handle]` foram mantidas somente como redirecionamentos de
+compatibilidade. O plano histórico abaixo deve ser lido à luz desse resultado.
+
+---
 
 > Documento de arquitetura e passo a passo. Gerado pra orientar a implementação
 > incremental (uma fase por vez, commits pequenos). O Sonnet deve seguir as fases
@@ -36,11 +84,12 @@ jogada fora**: ela é **reaproveitada como o perfil do ALUNO dentro da arena**.
 ### Como a plataforma ganha (atualizado)
 
 1. **% por ingresso** de campeonato (split no pagamento — já existe).
-2. **Assinatura mensal do dono de arena** (NOVO — plataforma cobra o dono). **É a ÚNICA
-   receita do módulo arena.** Valores a definir.
-3. A mensalidade que a arena cobra do aluno **repassa 100% pra arena** — a plataforma
-   **não** tira % disso (só o custo do gateway), igual já é com ingresso de plateia.
-   (Decisão D3 fechada.)
+2. **Assinatura mensal do dono de arena** (NOVO — plataforma cobra o dono).
+   Receita planejada, ainda sem preço/checkout final.
+3. **Correção posterior ao plano:** os checkouts atuais de plano do aluno,
+   aluguel e diária somam 10% de taxa de serviço ao comprador e repassam o
+   valor-base à Arena. O Pix manual de mensalidade ainda precisa ser
+   harmonizado com essa regra.
 
 ---
 
@@ -160,8 +209,10 @@ Molde do onboarding: [app/perfil/ativar-organizador](app/perfil/ativar-organizad
 2. **Virar dono de arena**: `app/perfil/ativar-arena/page.tsx` + form (cpf_cnpj, telefone,
    dados da arena). Cria `arenas` + `arena_accounts` (subconta Asaas — reusar o serviço
    que já cria subconta de organizador).
-3. **Painel do dono de arena** `app/arena/page.tsx` (ou `/painel/arena`): lista de alunos,
-   botão de adicionar/convidar aluno, status de cada um.
+3. **Painel do dono de arena**: implementado na rota canônica
+   `/arena/[handle]` ([app/arena/[handle]/page.tsx](app/arena/[handle]/page.tsx));
+   `/arena` funciona como seletor/redirecionamento. O painel lista alunos,
+   pedidos, aulas da semana e os atalhos de gestão.
 4. **Vitrine pública** `/arenas` (lista) + `/arenas/[handle]` (perfil da arena) — molde:
    `app/campeonatos/paginas/[handle]` (páginas públicas já existem).
 5. **Aluno entra na arena**: por código/convite. Vínculo em `arena_students` com
@@ -190,15 +241,17 @@ Duas cobranças recorrentes distintas. Fazer **E1 antes de E2**.
 
 **E1 — Arena cobra o aluno (mensalidade):**
 1. `student_charges` (SQL) + `valor_mensalidade` em `arena_students`.
-2. Integração Asaas **assinatura/recorrência**. **Sem taxa da plataforma**: repassa 100%
-   pra conta do dono (só o custo do gateway), igual ingresso de plateia. A plataforma só
-   facilita a cobrança; não fica com % da mensalidade.
+2. Integração Asaas **assinatura/recorrência**. Na implementação atual, o
+   checkout cobra valor-base + 10% do aluno e o repasse usa o valor-base. A
+   emissão manual de Pix ainda não aplica a mesma composição.
 3. Aluno vê e paga a mensalidade no perfil/painel do aluno; dono vê quem pagou/deve.
 
 **E2 — Plataforma cobra o dono (assinatura da arena):**
 1. `arena_subscriptions` (SQL) com `asaas_subscription_id`, `proximo_vencimento`, `status`.
 2. Gate: arena só fica "ativa" (alunos/cobrança liberados) com assinatura em dia.
-3. Tela de assinatura no painel da arena + webhook que atualiza `status`.
+3. Tela de assinatura em `/arena/[handle]/assinatura` + webhook que atualiza
+   `status`. **Estado atual:** a estrutura/tela existe, mas preço, contratação,
+   trial, inadimplência, cancelamento e gate permanecem pendentes.
 
 **Done quando:** aluno paga mensalidade pela arena via site, e o dono paga a assinatura da
 plataforma — ambos recorrentes.
@@ -207,6 +260,10 @@ plataforma — ambos recorrentes.
 
 ### Fase F — Reaproveitar o perfil social como perfil do aluno
 Leve; pode rodar em paralelo com C/D.
+
+> **Decisão posterior ao plano:** esta fase não foi executada como uma nova
+> rede social por arena. O perfil básico/rating técnico foi preservado, mas o
+> ranking nacional, `/rank` e `/perfil/evolucao` foram removidos do produto.
 
 1. O perfil existente (rating, conquistas, evolução, histórico) passa a ser exibido **no
    contexto da arena** do aluno.
@@ -220,10 +277,10 @@ Leve; pode rodar em paralelo com C/D.
 
 ## 5. O que NÃO apagar (parquear, não deletar)
 
-- `/rank`, `/atletas/[username]`, questionário, motor-categoria, `teams`/`registrations`
-  (fluxo de inscrição com login + convite por @). Tudo isso sai do **foco/menu**, mas o
-  código e os dados ficam — parte vira base do perfil do aluno (Fase F) e o fluxo de
-  inscrição com login pode ser reusado por aluno de arena.
+- O plano originalmente mandava preservar `/rank`, mas uma decisão posterior
+  removeu o ranking nacional e `/perfil/evolucao`. Permaneceram
+  `/atletas/[username]`, questionário, rating técnico, motor-categoria,
+  `teams`/`registrations` e o fluxo de inscrição com login + convite por @.
 - O painel de **Performance** (admin/CEO) que acabamos de construir não é afetado.
 
 ---
@@ -238,18 +295,24 @@ organizador + arena.
 
 ---
 
-## 7. Decisões em aberto (confirmar com o Carlos antes da fase correspondente)
+## 7. Registro das decisões
 
-- **D1 (Fase B):** `athlete_tickets` tabela nova (recomendado) vs. generalizar
-  `spectator_tickets` com coluna `tipo`.
-- **D2 (Fase B):** o fluxo antigo `/inscrever` (login + convite por @) — parquear de vez,
-  ou manter pra aluno de arena se inscrever em torneio interno da arena?
-- **D3 (Fase E1): ✅ FECHADA.** A plataforma **não** fica com % da mensalidade do aluno —
-  repassa 100% pra arena (só custo do gateway). A **assinatura mensal do dono** (E2) é a
-  única receita do módulo arena. Valores a definir depois.
-- **D4 (Fase F):** rank nacional sai de vez ou vira opcional ao lado do rank por arena?
-- **D5 (Arena):** o que mais o dono de arena gerencia além de alunos/presença/mensalidade?
-  (agenda de aulas fixas, turmas, planos diferentes, etc. — detalhar na Fase C/D.)
+- **D1 (Fase B): ✅ FECHADA E IMPLEMENTADA.** Foi criada a tabela separada
+  `athlete_tickets`; `spectator_tickets` continua responsável pela plateia.
+- **D2 (Fase B): ✅ FECHADA E IMPLEMENTADA.** Os dois fluxos coexistem:
+  `/campeonatos/[id]/comprar` atende visitante sem conta e
+  `/campeonatos/[id]/inscrever` mantém a dupla autenticada com convite por @.
+- **D3 (Fase E1): ⚠️ REVISADA PELA IMPLEMENTAÇÃO.** A Arena recebe o
+  valor-base; plano recorrente, aluguel e diária cobram 10% adicionais do
+  cliente como taxa de serviço da plataforma. O Pix manual não está uniforme e
+  a regra comercial precisa ser formalizada antes da produção. A assinatura
+  mensal do dono (E2) continua como receita adicional planejada.
+- **D4 (Fase F): ✅ FECHADA.** O ranking nacional saiu do produto e não foi
+  substituído por ranking público de arena. O rating permanece somente onde é
+  útil à lógica do produto.
+- **D5 (Arena): ✅ FECHADA E IMPLEMENTADA.** O dono gerencia alunos, pedidos,
+  agenda/aulas recorrentes, presença, planos de mensalidade, aluguel, diária,
+  financeiro, relatórios, fotos e configurações.
 
 ---
 
@@ -264,5 +327,3 @@ organizador + arena.
 - UI em pt-BR; código em inglês; `R$ 1.234,56`; Server Components por padrão.
 - Nunca commitar segredo; Asaas/Supabase via `.env.local`.
 - Em mudança de modelo de dados ou nova dependência: explicar o plano e confirmar antes.
-</content>
-</invoke>

@@ -45,7 +45,7 @@ export function isArenaNavItemActive(pathname: string, href: string, matchExact?
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-// Título da topbar/página, derivado da rota ativa.
+// Título contextual da página, derivado da rota ativa.
 export function arenaPageTitle(pathname: string, handle: string): string {
   for (const group of ARENA_NAV_GROUPS) {
     for (const item of group.items) {

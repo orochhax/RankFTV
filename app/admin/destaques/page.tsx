@@ -75,7 +75,7 @@ export default async function AdminDestaquesPage() {
         </div>
       </div>
 
-      <div className="relative -mt-6 rounded-t-3xl bg-white px-6 pb-16 pt-8 shadow-sm">
+      <div className="relative -mt-6 rounded-t-3xl bg-app-bg px-6 pb-16 pt-8 shadow-sm">
         <div className="mx-auto max-w-2xl space-y-12">
 
           {/* Campeonatos */}

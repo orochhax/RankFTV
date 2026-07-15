@@ -6,8 +6,6 @@
 
 export const SIDEBAR_WIDTH_EXPANDED = 264; // px
 export const SIDEBAR_WIDTH_COLLAPSED = 80; // px
-export const TOPBAR_HEIGHT = 64; // px
-
 // Largura máxima de conteúdo "denso" (dashboards, grids, tabelas) em
 // monitores muito grandes — evita linhas de texto/click-targets absurdamente
 // largos em telas 1920px+, sem voltar a travar tudo num tubo estreito.

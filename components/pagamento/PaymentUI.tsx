@@ -374,7 +374,7 @@ export function PaymentUI({
       </div>
 
       {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
-      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:shadow-none">
+      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:shadow-none">
         <PageContainer width="form" className="space-y-6">
 
           {/* Tabs */}

@@ -9,9 +9,10 @@ const SIZE_CLASSES = {
   sm: "size-8 text-xs",
   md: "size-11 text-sm",
   lg: "size-20 text-2xl",
+  xl: "size-[92px] text-3xl",
 } as const;
 
-const IMAGE_SIZE = { sm: 32, md: 44, lg: 80 } as const;
+const IMAGE_SIZE = { sm: 32, md: 44, lg: 80, xl: 92 } as const;
 
 export function Avatar({
   nome,

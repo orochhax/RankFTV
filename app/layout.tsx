@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
 import { BottomNav } from "@/components/navbar/BottomNav";
 import { Footer } from "@/components/Footer";
@@ -31,6 +32,11 @@ export default async function RootLayout({
 }>) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+
+  // Estado recolhido/expandido da sidebar desktop lido no servidor, pra
+  // renderizar já na largura certa (sem flash). Sem cookie = recolhido.
+  const cookieStore = await cookies();
+  const initialSidebarCollapsed = cookieStore.get("sidebar_collapsed")?.value !== "0";
 
   let navUser: { id: string; nome: string; username: string; fotoUrl: string | null } | null = null;
   let isStaff = false;
@@ -80,11 +86,12 @@ export default async function RootLayout({
       lang="pt-BR"
       className={`${inter.variable} h-full antialiased`}
     >
-      <body suppressHydrationWarning className="min-h-full flex flex-col bg-white text-gray-900">
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-app-bg text-gray-900">
         <AppShell
           user={navUser ? { nome: navUser.nome, username: navUser.username, fotoUrl: navUser.fotoUrl } : null}
           perms={{ isLoggedIn: !!navUser, isOrganizer, isArenaOwner, isStaff, isAdmin }}
           notifCount={notifCount}
+          initialSidebarCollapsed={initialSidebarCollapsed}
         >
           {children}
         </AppShell>

@@ -1,271 +1,264 @@
-# CLAUDE.md — RankFTV
+# Visão atual do produto — RankFTV
 
-> Este arquivo é o contexto do projeto. O Claude Code lê ele automaticamente.
-> Mantenha atualizado conforme o projeto evolui.
+> Atualizado em **2026-07-15**.
+>
+> Este documento registra a visão, o posicionamento e as decisões atuais do
+> produto. A implementação técnica detalhada vive em
+> [DOCUMENTACAO.md](DOCUMENTACAO.md), e o que ainda impede uma operação real em
+> produção vive em [AUDITORIA-PRODUCAO.md](AUDITORIA-PRODUCAO.md).
 
-## 1. O que é
+## 1. O que é o RankFTV
 
-**RankFTV** — Plataforma SaaS para **organização de campeonatos de futevôlei** no Brasil.
-Organizador cria o campeonato na plataforma, atletas se inscrevem e pagam online,
-e a plataforma ganha uma **% por transação** (split de pagamento).
+O **RankFTV** é uma plataforma web responsiva para dois negócios ligados ao
+futevôlei e aos esportes de areia:
 
-Formato: **apenas site web** (responsivo, com versão mobile e versão desktop). Não haverá
-app nativo (iOS/Android). Tudo roda no navegador.
+1. **Campeonatos** — criação, venda, operação e gestão financeira de eventos.
+2. **Arenas** — gestão de alunos, planos, aulas, presença, mensalidades,
+   aluguel de quadra e diárias.
 
-O diferencial defensável NÃO é o ticketing (já existe: Letzplay, Arevo, FTV Liga, Fastis).
-O diferencial é a combinação de:
-- **Motor de categoria balanceada** (recomenda a categoria certa pra cada dupla, com base
-  num questionário difícil de burlar + histórico/rating + balanceamento relativo ao field).
-- **Credenciamento multi-perfil** bem feito (check-in por QR, controle de no-show, kit/camisa).
+O produto também atende o atleta ou cliente que quer encontrar um evento,
+comprar um ingresso, entrar em uma arena ou acompanhar o que já comprou.
 
-## 2. Público (perfis)
+O RankFTV não é uma rede social esportiva nem depende de um ranking nacional.
+O foco é resolver operação, cobrança, acesso e gestão com uma experiência
+simples para quem organiza e para quem compra.
 
-Não é conta separada por papel: **qualquer usuário pode ser atleta e organizador ao mesmo
-tempo**, na mesma conta. Não existe escolha de "papel" no cadastro.
+Formato: **somente site web**, completo em desktop e mobile. Não há aplicativo
+nativo para iOS ou Android.
 
-- **Como atleta**: se inscreve, joga, acompanha ranking. Experiência pensada mobile-first
-  (mas o site funciona completo em desktop também).
-- **Como organizador**: qualquer atleta pode criar um campeonato a partir do próprio Perfil.
-  Pra publicar o primeiro campeonato, precisa completar um cadastro extra (CPF/CNPJ + dados
-  bancários, necessário pro split de pagamento). A gestão acontece num **Painel do
-  organizador** separado (ver seção 8.7).
-- **Cargos menores** (árbitro, staff, coach): só credencial + função específica (modo
-  limitado) — ainda não detalhado, fica pra discutir junto da Fase 2.
+## 2. Uma conta, várias capacidades
 
-## 3. Funcionalidades
+Não existe escolha definitiva de “tipo de conta” no cadastro. A mesma pessoa
+pode acumular capacidades conforme usa o produto:
 
-### Atleta
-- Perfil com nível/rating, histórico, conquistas, tamanho de camisa salvo
-- Buscar e se inscrever em campeonatos
-- Ranking (geral / por estado / por gênero)
-- Gestão de dupla (convidar parceiro pelo @usuário, salvar parceiro fixo, autoavaliação de nível)
-- Credenciais e ingressos digitais (QR no celular)
+| Perfil de uso | Login | O que faz |
+|---|---:|---|
+| **Visitante/comprador** | Não | Descobre campeonatos e arenas, compra ingresso de atleta ou plateia e recupera compras por CPF + e-mail |
+| **Atleta/aluno** | Sim | Mantém perfil, participa de dupla, vê inscrições e compras, entra em arena e confirma presença |
+| **Organizador** | Sim | Cria e gerencia campeonatos, inscrições, ingressos, financeiro, check-in, equipe e comunicação |
+| **Dono de arena** | Sim | Gerencia uma ou mais arenas, alunos, agenda, planos, cobranças, presenças e relatórios |
+| **Staff/árbitro** | Sim | Acessa somente as funções liberadas pelo organizador de um campeonato |
+| **Admin/CEO** | Sim | Opera ferramentas internas conforme o role protegido; gestão de usuários é exclusiva de CEO |
 
-### Organizador
-- Pra publicar o primeiro campeonato: completar CPF/CNPJ + dados bancários (split de pagamento)
-- Criar/gerenciar campeonato (categorias, regras, valores)
-- Inscrições com pagamento e split automático
-- Motor de categoria balanceada (diferencial)
-- Chaveamento / grade automática
-- Credenciamento multi-perfil + check-in por QR + controle de no-show
-- Gestão de camisa/kit (painel de produção por tamanho)
-- Financeiro / repasses em tempo real
-- Comunicação com inscritos
-- Resultados ao vivo
-- Destaque pago do campeonato
+A capacidade vem dos vínculos existentes no banco, como
+`organizer_accounts`, arenas de propriedade e convites de staff. Ela não deve
+ser inferida apenas de um campo editável no perfil.
 
-### Motores transversais (o "cérebro")
-- **Rating de habilidade** (algoritmo tipo TrueSkill ou Glicko-2) que alimenta categoria e ranking
-- **Split de pagamento**: a plataforma NUNCA segura o dinheiro de terceiro; o split divide
-  no momento do pagamento (parte do organizador vai pra conta dele, a taxa vai pra plataforma)
-- **IA pontual**: entrevista de nível no WhatsApp, geração de highlights, posts/flyers do evento
+## 3. Produto implementado no código
+
+### 3.1 Campeonatos
+
+- Criação e edição de campeonato, categorias, datas, local, regulamento e
+  publicação.
+- Classificação do evento por tier e motor opcional de recomendação de
+  categoria para atletas com conta.
+- Lotes de preço e cupons de desconto.
+- Inscrição de dupla com conta e convite por `@usuário`.
+- Checkout de visitante, sem conta, para ingresso de atleta e de plateia.
+- Pagamento por Pix ou cartão integrado ao Asaas.
+- Credenciais e ingressos com QR Code, check-in e controle de presença.
+- Financeiro do campeonato, taxas, repasses e reembolsos.
+- Plano de taxas Padrão/Elite por campeonato.
+- Camisas/kit, equipe com permissões, comunicação, plateia e chaveamento.
+- Agenda pública e vitrine de eventos com dados reais.
+
+O fluxo de pagamento e repasse existe no código, mas dinheiro real só pode ser
+recebido depois da configuração e homologação externa descritas na auditoria.
+
+### 3.2 Arenas
+
+- Vitrine pública em `/arenas` e página da arena em `/arenas/[handle]`.
+- Cadastro de arena, fotos, descrição, localização e código de entrada.
+- Gestão de uma ou várias arenas pela mesma conta.
+- Cadastro e aprovação de alunos.
+- Planos de mensalidade, aluguel e diária.
+- Agenda recorrente de aulas, com duração, nível, limite de alunos e
+  visualização da semana de **segunda a domingo**.
+- Confirmação de presença por aula e acompanhamento de frequência.
+- Cobranças de mensalidade, aluguel de quadra e diária, com Pix/cartão.
+- Financeiro e relatórios da arena.
+
+As rotas canônicas de gestão usam o handle:
+
+```text
+/arena/[handle]
+/arena/[handle]/agenda
+/arena/[handle]/alunos
+/arena/[handle]/financeiro
+/arena/[handle]/planos
+/arena/[handle]/aulas
+/arena/[handle]/aula/[classId]
+/arena/[handle]/relatorios
+/arena/[handle]/assinatura
+/arena/[handle]/configuracoes
+```
+
+Rotas antigas como `/arena/planos` e `/arena/financeiro` continuam apenas como
+redirecionamentos de compatibilidade.
+
+### 3.3 Atleta e comprador
+
+- Cadastro e login com uma conta única.
+- Perfil privado e perfil público básico do atleta.
+- Compras e inscrições com status, credencial e reembolso.
+- Consulta pública de ingresso por CPF + e-mail para quem comprou sem conta.
+- Convites de dupla e de staff.
+- Notificações dentro do site e e-mails transacionais.
+
+O **ranking nacional**, `/rank` e `/perfil/evolucao` foram removidos por decisão
+de produto. O rating ainda pode existir como dado técnico para o motor de
+categoria, sem virar uma rede social ou um ranking público nacional.
 
 ## 4. Como a plataforma ganha dinheiro
 
-1. **% por inscrição** (carro-chefe) — taxa dentro do split. Ex.: 8–10% ou R$5 fixo.
-2. **Destaque de campeonato** — organizador paga pra aparecer no topo.
-3. **Assinatura premium do organizador** — recursos extras + taxa menor.
-4. Secundário: ingresso de espectador, camisa extra (não é pilar).
+### Receita implementada no modelo
 
-Decisão de produto: a taxa de inscrição vai **em cima** (atleta paga valor + taxa) ou
-**descontada** do repasse do organizador. Mostrar isso de forma transparente.
+1. **Taxa sobre vendas de campeonatos** — aplicada a inscrições e ingressos,
+   conforme a configuração do plano Padrão ou Elite.
+2. **Plano Elite do campeonato** — reduz taxas e gera a cobrança de ativação
+   definida pelo produto.
+3. **Taxa de serviço da Arena** — os checkouts atuais de plano recorrente,
+   aluguel e diária somam 10% ao valor pago pelo cliente. O valor-base é
+   repassado à Arena e a diferença permanece na plataforma antes dos custos do
+   gateway.
 
-## 5. Stack técnica
+### Receita planejada ou ainda incompleta
 
-- **Frontend + Backend**: Next.js (App Router) + TypeScript + Tailwind CSS
-- **Banco + Auth + Storage**: Supabase (Postgres)
-- **Pagamento + split**: Asaas ou Mercado Pago (integrar só na Fase 1, não na Fase 0)
-- **Deploy**: Vercel
-- **E-mail transacional**: Resend (free tier no começo)
-- (Opcional, fase futura) WhatsApp Business API para o agente de inscrição
+4. **Assinatura mensal do dono de arena** — é uma receita adicional planejada,
+   mas o preço, o checkout, as regras de trial, inadimplência,
+   cancelamento e bloqueio ainda não estão concluídos.
 
-## 6. Modelo de dados (entidades iniciais)
+O valor-base de mensalidade, aluguel e diária pertence à Arena; somente a taxa
+de serviço é receita bruta da plataforma, sujeita a gateway e estornos. A
+emissão manual de Pix de mensalidade ainda não soma os mesmos 10% no ponto em
+que cria a cobrança. Essa divergência deve ser decidida e harmonizada antes da
+operação real.
 
-> Não existe mais `role` fixo no User. Qualquer usuário pode organizar; a capacidade de
-> organizador é dada pela existência de um `OrganizerAccount` habilitado (ver seção 8.6).
+## 5. Experiência visual e navegação atual
 
-- **User** — id, nome, email, **username** (@handle único). Por enquanto é **fixo, sem
-  edição** (simplificação proposital da Fase 0); dá pra liberar troca depois sem migração,
-  porque toda referência interna usa o `id`, nunca o `username` (ver convenção na seção 9).
-- **Profile** (atleta) — user_id, nivel/rating, tamanho_camisa, cidade, estado, telefone,
-  historico, **parceiro_fixo_id** (nullable, referencia outro User)
-- **OrganizerAccount** (novo) — user_id, cpf_cnpj, dados_bancarios (conta de split),
-  habilitado (bool) — só existe quando o usuário ativa o modo organizador
-- **Championship** — id, organizador_id (referencia User), nome, descricao, data_inicio,
-  data_fim, local, status (`rascunho` | `inscricoes_abertas` | `em_andamento` | `encerrado`),
-  taxa_plataforma
-- **Category** — id, championship_id, nome, genero (`masculino` | `feminino` | `mista`),
-  valor_inscricao, corte_rating_min, corte_rating_max
-- **Team (Dupla)** — id, championship_id, category_id, atleta1_id, atleta2_id,
-  status (incluindo `convite_pendente`)
-- **Registration (Inscricao)** — id, team_id, championship_id, category_id, valor,
-  status_pagamento (`pendente` | `pago` | `estornado`), payment_id (do PSP)
-- **Credential** — id, user_id, championship_id, role, qr_token, checked_in (bool), checkin_at
-- (Fase 2) **Match (Jogo)** — championship_id, category_id, dupla_a_id, dupla_b_id, placar, resultado
-- (Fase 2) **RatingHistory** — atleta_id, championship_id, rating_antes, rating_depois
+### Desktop
 
-## 7. Roadmap em fases (CONSTRUIR NESTA ORDEM)
+- O site usa um **shell persistente** com barra lateral preta de largura fixa.
+- A marca “FTV” aparece em um círculo branco com letras azuis.
+- Ícones são claros e o item ativo recebe um indicador azul que desliza entre
+  as posições.
+- Uma luz azul percorre verticalmente a borda direita transparente da sidebar.
+- A barra global que repetia o nome de cada página foi removida.
+- O conteúdo troca por navegação client-side do Next.js, mantendo URL, link
+  direto e histórico do navegador.
+- O sino fica na parte inferior da sidebar e abre uma prévia das notificações;
+  “Ver todas” leva ao feed completo.
 
-### Fase 0 — "de pé" (sem cobrar ainda)
-- Estrutura de navegação: navbar com Home, Campeonatos, Rank, Perfil (flutuante embaixo no
-  mobile, fixo no topo no desktop)
-- Home mostrando campeonatos em destaque (visitante já vê direto, sem landing page separada)
-- Cadastro/login (Supabase Auth): nome, e-mail, senha, @usuário — conta única, sem escolha de papel
-- Organizador: criar campeonato + categorias (CRUD básico)
-- Atleta: listar e ver detalhe dos campeonatos
-- Objetivo: ver o fluxo principal funcionando em tela
+### Mobile
 
-### Fase 1 — MVP cobrável
-- Inscrição de dupla numa categoria (convite por @usuário, parceiro aceita no perfil dele)
-- Pagamento da inscrição com split (Asaas/Mercado Pago) — um dos dois paga o valor cheio da dupla
-- Geração de credencial digital (QR) por inscrição paga
-- Tela de portaria: validar QR + check-in + controle de presença/no-show
-- Categoria definida MANUALMENTE pelo organizador (sem motor ainda)
-- Painel do organizador com financeiro (entrou / taxa / repasse)
-- Objetivo: já dá pra rodar um campeonato real e cobrar a %
+- As páginas gerais preservam a navegação inferior em formato de pílula.
+- Telas focadas, como autenticação, convite e pagamento, usam layout reduzido.
+- O painel de arena usa cabeçalho e drawer próprios no mobile.
+- Home, Arenas e Painel usam a transição entre cabeçalho escuro e conteúdo
+  arredondado; a trilha é transparente e uma luz azul percorre o contorno.
 
-### Fase 2 — o diferencial
-- Motor de categoria: questionário + rating + recomendação de categoria + detecção de sandbagging
-- Chaveamento automático
-- Resultados ao vivo + atualização do rating
-- Ranking público (geral / por estado / por gênero) com perfil público de cada atleta +
-  gráfico de evolução do rating
-- Papel de árbitro/staff/coach (modo limitado: só credencial + função específica)
+### Linguagem visual comum
 
-### Fase 3 — IA e crescimento
-- Entrevista de nível no WhatsApp
-- Highlights automáticos
-- Destaque pago + assinatura premium
+- Fundo geral: `#F3F5FA`, pelo token `app-bg`, em desktop e mobile.
+- Cards, formulários e modais permanecem como superfícies claras sobre o
+  fundo.
+- Azul da marca: `#0000FF`, reservado para ações, seleção e detalhes.
+- Perfil: cabeçalho preto, foto central em destaque e nome com hierarquia
+  maior.
 
-## 8. Especificação detalhada das telas (UI/UX)
+## 6. Navegação principal
 
-> Detalhamento de como cada tela funciona, fechado tela por tela antes de codar.
-> A seção 3 é o "o quê"; esta seção é o "como".
+### Público e conta
 
-### 8.1 Navbar
+```text
+/                         Home/campeonatos em destaque
+/agenda                   Agenda pública
+/campeonatos/*            Lista, detalhe, compra e operação do atleta
+/arenas/*                 Vitrine e serviços públicos de arenas
+/meus-ingressos           Recuperação pública de ingresso
+/perfil                   Conta do usuário
+/minhas-compras           Compras ligadas à conta
+/minhas-inscricoes        Inscrições ligadas à conta
+/notificacoes             Feed completo
+```
 
-- **Mobile**: nav flutuante fixo na parte de baixo da tela, estilo pill. 4 itens: **Home,
-  Campeonatos, Rank, Perfil**. A aba ativa vira uma cápsula azul com ícone + texto; as
-  outras ficam só com ícone.
-- **Desktop**: as mesmas 4 seções, como menu fixo no **topo** da tela (não flutuante).
-- Aparece **sempre**, inclusive pra visitante não logado.
-- Visitante navega livremente em Campeonatos e Rank; só é levado pra tela de login/cadastro
-  ao tentar uma ação que exige conta (se inscrever, abrir Perfil).
+### Organizador, arena, staff e administração
 
-### 8.2 Cadastro / Login
+```text
+/painel
+/painel/campeonatos
+/painel/campeonatos/[id]/*
+/painel/novo-campeonato
+/arena
+/arena/[handle]/*
+/staff/*
+/admin/*
+```
 
-- Cadastro pede só: **nome, e-mail, senha, @usuário** (handle único, tipo Instagram).
-- **Verificação de @usuário duplicado na hora do cadastro**: o sistema confere se aquele
-  @usuário já existe antes de deixar a conta ser criada (não pode ter dois iguais). Ideal
-  avisar em tempo real, enquanto a pessoa digita, e não só depois de tentar enviar o formulário.
-- Todo o resto (telefone, cidade/estado, tamanho de camisa, nível, dados bancários) é
-  preenchido **depois, sob demanda** — só quando o usuário tenta fazer algo que precisa
-  daquele dado (ex.: só pede cidade/nível na hora de se inscrever num campeonato ou de
-  aparecer no Rank).
-- Login só e-mail/senha por enquanto (sem Google OAuth nessa fase).
-- Depois de criar a conta, cai direto na Home — sem onboarding/wizard no meio.
-- `@usuário` fica **fixo por enquanto** (sem tela de edição) — simplificação proposital pra
-  não precisar construir cooldown/regra de troca já de início. Liberar a troca no futuro é
-  fácil (ver convenção na seção 9), então isso pode mudar mais pra frente sem dor.
-- Não existe escolha de "papel" no cadastro — é uma conta só, que pode fazer as duas coisas.
+O painel principal consolida campeonatos e arenas. Dentro de um campeonato,
+`ChampionshipShell` fornece navegação contextual. Dentro de uma arena,
+`ArenaShell` preserva a área atual e troca apenas a seção de conteúdo.
 
-### 8.3 Home
+## 7. Stack e arquitetura
 
-- **Visitante (não logado)**: já mostra conteúdo real — campeonatos em destaque/abertos e
-  uma prévia do Rank. Não é uma landing page de marketing isolada.
-- **Logado**: mostra, sempre todos juntos (sem aba/toggle):
-  - Meus próximos campeonatos inscritos (data, local, contagem regressiva)
-  - Campeonatos em destaque/patrocinados (espaço pago do organizador)
-  - Resumo rápido do meu nível/rating + posição no ranking (com link pra tela Rank completa)
-  - Notificações/avisos recentes (ex.: "sua dupla confirmou", "resultado postado")
-- **Logado, usuário novo (zero inscrição ainda)**: mesma Home, mais um banner de onboarding
-  leve sugerindo completar perfil, acima dos campeonatos em destaque.
-- Home é **igual pra atleta e organizador** — não muda de conteúdo por papel. A parte de
-  organizador vive só no Perfil / Painel do organizador (8.6/8.7).
+- **Frontend e backend:** Next.js 16, App Router, TypeScript e Tailwind CSS 4.
+- **Banco, autenticação e storage:** Supabase/Postgres com RLS.
+- **Pagamentos:** Asaas.
+- **E-mail transacional:** Resend.
+- **Deploy e cron:** Vercel.
+- **Ícones:** Lucide.
+- **Gráficos:** Recharts.
 
-### 8.4 Campeonatos
+Server Components são o padrão. Client Components ficam restritos a
+interatividade, animações e estados locais. Relações internas usam UUID; nome,
+e-mail e `@username` não são chaves de relacionamento.
 
-**Lista/busca:**
-- Filtros: **estado** (não cidade) e **categoria**.
-- Não existe filtro de status que esconde campeonato — todos aparecem (abertos, em
-  andamento, encerrados), mas os com **inscrições abertas vêm sempre primeiro**.
-- Card de cada campeonato mostra: nome + imagem/banner, data e local (preço e vagas só no detalhe).
+## 8. Implementado versus pronto para produção
 
-**Detalhe (ao abrir um campeonato):**
-- Regulamento/regras (texto livre do organizador)
-- Categorias disponíveis com valor de inscrição de cada uma
-- Localização com mapa
-- Lista pública de duplas já inscritas
-- Botão de inscrição
+| Área | Estado |
+|---|---|
+| Navegação, autenticação e telas principais | Implementado no código |
+| Campeonato, checkout, QR, financeiro e repasse | Implementado no código; depende de homologação externa |
+| Arena, aulas, alunos, mensalidades, aluguel e diária | Implementado no código; depende de homologação externa |
+| Segurança, RLS e hardening | Scripts e correções implementados; validar cada ambiente |
+| Assinatura paga do dono da arena | Incompleta |
+| Testes ponta a ponta com Asaas de produção | Pendentes |
+| Configuração de domínio, Auth, Resend, DNS, backups e alertas | Externa e pendente de confirmação |
+| Aviso de privacidade LGPD e processo de incidentes | Pendentes |
+| Recursos de IA/WhatsApp e highlights | Futuro, fora do lançamento inicial |
 
-**Inscrição em dupla:**
-- Convite por **@usuário**: busca o parceiro pelo handle dentro da plataforma e manda convite.
-- Se o parceiro ainda não tem conta, ele cria a conta primeiro (cadastro rápido) e passa o
-  @usuário dele pro amigo mandar o convite.
-- O convidado aceita o convite dentro do próprio perfil dele.
-- Pagamento: **um dos dois paga o valor cheio da dupla**; o outro só confirma/aceita — sem
-  pagamento dividido.
-- Atleta pode salvar um **parceiro fixo** no perfil pra agilizar convite nos próximos
-  campeonatos (não impede jogar com outra pessoa quando quiser).
+“Implementado no código” não significa “configurado em produção”. A fonte
+obrigatória para essa distinção é
+[AUDITORIA-PRODUCAO.md](AUDITORIA-PRODUCAO.md).
 
-### 8.5 Rank
+## 9. Regras de produto e segurança
 
-- Ranking é **por atleta individual** (rating é da pessoa, não da dupla).
-- Filtros: **Brasil todo** ou **por estado**, cruzado com **Geral / Masculina / Feminina**.
-- Clicar num atleta abre o **perfil público** dele.
-- Perfil do atleta mostra **gráfico de evolução do rating** ao longo do tempo (usa o
-  `RatingHistory` do modelo de dados — depende da Fase 2).
+- Não criar conta separada por papel.
+- Não usar dados, atletas, campeonatos ou credenciais falsos em produção.
+- Não expor CPF, telefone, nascimento, tokens privados ou segredos do gateway.
+- Nunca confiar em preço, permissão ou status de pagamento enviado pelo
+  navegador.
+- Toda operação sensível deve validar usuário, posse/permissão e estado do
+  registro também no servidor.
+- Segredos ficam somente em variáveis de ambiente.
+- Interface em português do Brasil e valores em BRL.
 
-### 8.6 Perfil
+## 10. Prioridades atuais
 
-- **Perfil público** (o que qualquer um vê, inclusive a partir do Rank):
-  - Foto, nome e @usuário
-  - Nível/rating atual + categoria
-  - Histórico de campeonatos jogados e resultados
-  - Conquistas/badges
-- **Perfil privado** (só o dono vê): tudo do público + dados de conta, telefone,
-  cidade/estado, tamanho de camisa, parceiro fixo, configurações.
-- **Virar organizador**: qualquer atleta pode criar um campeonato, mas pra publicar o
-  primeiro precisa completar CPF/CNPJ + dados bancários (split de pagamento). Sem isso, não
-  libera a criação.
-- Quem já tem campeonato(s) criado(s) vê, dentro do próprio Perfil, um botão que leva pro
-  **Painel do organizador** (tela separada — ver 8.7).
+1. Concluir a configuração e homologação de produção.
+2. Executar roteiro E2E de cadastro, compra, pagamento, webhook, estorno,
+   check-in, painel e arena.
+3. Decidir e implementar a assinatura do dono da arena ou ocultá-la no
+   lançamento.
+4. Publicar aviso de privacidade e processo operacional de incidentes.
+5. Só depois ampliar automações, IA e canais como WhatsApp.
 
-### 8.7 Painel do organizador
+## 11. Manutenção deste documento
 
-Tela separada, acessada por um botão dentro do Perfil:
-- Criar/gerenciar campeonato (categorias, regras, valores)
-- Inscrições com pagamento e split automático
-- Chaveamento / grade automática (Fase 2)
-- Credenciamento multi-perfil + check-in por QR + controle de no-show
-- Gestão de camisa/kit (painel de produção por tamanho)
-- Financeiro / repasses em tempo real
-- Comunicação com inscritos
-- Resultados ao vivo (Fase 2)
-- Destaque pago do campeonato
-
-### 8.8 Notificações
-
-- Só **dentro do site** por enquanto (sininho/feed na Home) — sem e-mail nem push no
-  navegador nessa fase.
-
-## 9. Convenções
-
-- **Idioma da interface (UI)**: português do Brasil
-- **Código** (variáveis, funções, commits): inglês
-- **Moeda**: BRL, formatar como `R$ 1.234,56`
-- Sempre arredondar valores monetários exibidos
-- Usar Server Components do Next.js por padrão; Client Components só onde precisa de interatividade
-- Campos editáveis pelo usuário (username, nome, email) nunca são chave de relacionamento
-  no banco — relações internas sempre usam o `id`. Isso permite relaxar regras (ex.: liberar
-  troca de @usuário) no futuro sem precisar migrar dados antigos.
-
-## 10. Como trabalhar comigo (instruções pro Claude Code)
-
-- Construir **incremental**, uma funcionalidade por vez. Não tentar fazer tudo de uma vez.
-- Antes de mudanças grandes (mexer em modelo de dados, instalar dependência pesada,
-  mudar estrutura de pastas), explicar o plano e pedir confirmação.
-- Commitar com git em passos pequenos e com mensagens claras.
-- Explicar as decisões em linguagem simples — o dono do projeto tem pouca experiência
-  prática de código, então comentar o "porquê", não só o "o quê".
-- Nunca colocar chaves/segredos (Supabase, PSP) no código — usar variáveis de ambiente (`.env.local`).
+- Mudança de posicionamento ou regra de negócio: atualizar este arquivo.
+- Mudança de rota, arquitetura ou fluxo implementado: atualizar
+  [DOCUMENTACAO.md](DOCUMENTACAO.md).
+- Mudança de risco, configuração externa ou prontidão: atualizar
+  [AUDITORIA-PRODUCAO.md](AUDITORIA-PRODUCAO.md).
+- Planos históricos devem ser mantidos como histórico, sem substituir a
+  documentação do estado atual.

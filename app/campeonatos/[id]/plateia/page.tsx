@@ -69,7 +69,7 @@ export default async function PlateiaPage({
       </div>
 
       {/* ── Conteúdo branco ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-xl">
           {!vendaAberta ? (
             <p className="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-500 ring-1 ring-black/5">

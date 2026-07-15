@@ -46,26 +46,8 @@ export function ArenaShell({
   const title = arenaPageTitle(pathname, arena.handle);
 
   return (
-    <div className="min-h-screen bg-surface-2">
-      {/* ── Sidebar desktop ── */}
-      {/* ── Coluna principal ── */}
+    <div className="min-h-screen bg-app-bg">
       <div className="min-w-0 flex-1">
-        {/* Topbar desktop */}
-        <header className="hidden">
-          <div className="min-w-0">
-            <p className="truncate text-xs font-medium text-ink-muted">{arena.nome}</p>
-            <h1 className="truncate text-base font-bold text-ink">{title}</h1>
-          </div>
-          <a
-            href={`/arenas/${arena.handle}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-blue-300 hover:text-blue-600"
-          >
-            <ExternalLink className="size-3.5" /> Página pública
-          </a>
-        </header>
-
         {/* Header mobile */}
         <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-surface px-3 md:hidden">
           <button
@@ -149,7 +131,7 @@ function ArenaDesktopSubnav({
   const navItems = ARENA_NAV_GROUPS.flatMap((group) => group.items);
 
   return (
-    <div className="sticky top-16 z-20 hidden border-b border-border bg-surface/90 px-6 py-3 backdrop-blur md:block">
+    <div className="sticky top-0 z-20 hidden border-b border-border bg-surface/90 px-6 py-3 backdrop-blur md:block">
       <div className="flex min-w-0 items-center gap-3">
         <div className="min-w-0 shrink-0 pr-2">
           <p className="truncate text-xs font-medium text-ink-muted">{arena.nome}</p>

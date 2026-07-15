@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronRight, LayoutDashboard, Building2, Ticket } from "lucide-react";
+import { criarCampeonatoHref, cadastrarArenaHref } from "@/lib/organizer-entry-links";
 
 type Persona = "atleta" | "organizador" | "arena";
 
@@ -45,7 +46,9 @@ function CTAs({ persona }: { persona: Persona }) {
     return (
       <div className="flex flex-col gap-3">
         <Link
-          href="/cadastro?modo=organizador"
+          // PersonaSwitcher só renderiza pra visitante não autenticado (o
+          // pai só monta isso quando !profile) — sempre manda pra landing.
+          href={criarCampeonatoHref(false)}
           className="flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
         >
           <LayoutDashboard className="size-4" />
@@ -65,7 +68,7 @@ function CTAs({ persona }: { persona: Persona }) {
   return (
     <div className="flex flex-col gap-3">
       <Link
-        href="/painel?tab=arena"
+        href={cadastrarArenaHref(false)}
         className="flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
       >
         <Building2 className="size-4" />

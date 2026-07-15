@@ -88,23 +88,23 @@ export default async function PerfilPage() {
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho azul (contido em toda tela, sem esticar borda a borda) ── */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-700 px-6 pb-16 pt-6 md:pb-10">
+      <div className="bg-black px-6 pb-16 pt-6 md:pb-10">
         <PageContainer width="wide" className="space-y-4">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors w-fit md:hidden">
             <ArrowLeft className="size-4" />
             Início
           </Link>
 
-          <div className="flex flex-col items-center gap-2 pb-2 text-center md:flex-row md:items-center md:text-left">
+          <div className="flex flex-col items-center gap-3 pb-2 text-center md:flex-row md:items-center md:text-left">
             <Avatar
               nome={profile.nome}
               color="bg-white/15 ring-2 ring-white/30"
-              size="lg"
+              size="xl"
               fotoUrl={profile.foto_url}
             />
             <div>
-              <h1 className="text-xl font-bold text-white">{profile.nome}</h1>
-              <p className="text-sm text-blue-100">
+              <h1 className="text-2xl font-bold text-white md:text-3xl">{profile.nome}</h1>
+              <p className="text-sm text-zinc-300">
                 @{profile.username}{localizacao && ` · ${localizacao}`}
               </p>
             </div>
@@ -113,7 +113,7 @@ export default async function PerfilPage() {
       </div>
 
       {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white pb-32 pt-6 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:pb-16 md:shadow-none">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-32 pt-6 shadow-sm md:mt-0 md:rounded-none md:pb-16 md:shadow-none">
         <PageContainer width="wide" className="space-y-5 md:grid md:grid-cols-3 md:items-start md:gap-8 md:space-y-0">
           <div className="space-y-5 md:col-span-2">
 

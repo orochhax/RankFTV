@@ -127,7 +127,8 @@ export default async function Home() {
       </div>
 
       {/* ── Corpo: sheet arredondada no mobile, grid larga no desktop ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:pb-16 md:shadow-none">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:pb-16 md:shadow-none">
+        <span aria-hidden="true" className="mobile-sheet-accent md:hidden" />
         <PageContainer width="wide" className="space-y-8 md:grid md:grid-cols-3 md:items-start md:gap-8 md:space-y-0">
           <div className="space-y-8 md:col-span-2">
             {/* Carrossel de destaques */}
@@ -175,16 +176,25 @@ export default async function Home() {
 
           {/* Painel lateral — só links reais de navegação, sem dado inventado */}
           <aside className="hidden md:block">
-            <Surface padding="md" className="sticky top-24">
-              <p className="mb-3 text-sm font-semibold text-ink">Acesso rápido</p>
+            <Surface padding="md" className="home-quick-access relative sticky top-6 overflow-hidden text-white shadow-soft shadow-black/20">
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 via-blue-400 to-transparent"
+              />
+              <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+                <span aria-hidden="true" className="size-2 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(77,77,255,0.9)]" />
+                Acesso rápido
+              </p>
               <ul className="space-y-1">
                 {quickLinks.map(({ href, label, icon: Icon }) => (
                   <li key={href}>
                     <Link
                       href={href}
-                      className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-ink-muted transition-colors hover:bg-surface-2 hover:text-ink"
+                      className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-blue-950/70 hover:text-white"
                     >
-                      <Icon className="size-4 text-blue-600" />
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400 ring-1 ring-blue-500/20 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                        <Icon className="size-4" />
+                      </span>
                       {label}
                     </Link>
                   </li>

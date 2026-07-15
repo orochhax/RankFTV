@@ -20,10 +20,10 @@ export function isNavItemActive(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
-// Painel do organizador da arena (/arena/...) tem navegação própria (sidebar
-// desktop + drawer mobile) e não deve duplicar TopNav/BottomNav/Footer
-// globais. Exclui as rotas de /arena que na verdade são do ATLETA (marcar
-// presença, pagar mensalidade) — essas continuam com a navegação do site.
+// O painel da arena (/arena/...) usa subnavegação contextual no desktop e
+// drawer próprio no mobile. Por isso a BottomNav mobile não deve ser
+// duplicada nessas rotas. As páginas do ATLETA (presença e mensalidade)
+// continuam com a navegação global normal.
 const ARENA_ATLETA_PREFIXES = ["/arena/presenca", "/arena/mensalidade"];
 
 export function isArenaOrganizerRoute(pathname: string): boolean {

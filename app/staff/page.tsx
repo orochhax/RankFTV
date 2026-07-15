@@ -57,7 +57,7 @@ export default async function StaffPage() {
       </div>
 
       {/* Conteúdo branco */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-2xl">
           {entries.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-16 text-center">

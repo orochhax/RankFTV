@@ -96,7 +96,7 @@ export default async function CategoriasPage({
       </div>
 
       {/* ── Conteúdo branco ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-2xl">
           {precisaQuestionario && (
             <div className="mb-3 rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-800 ring-1 ring-blue-100">

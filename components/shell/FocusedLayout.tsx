@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 // Layout "concentrado" — login, cadastro, pagamento/Pix, convites, termos.
-// Sem sidebar/topbar/bottom nav do shell global, mas com uma faixa mínima
+// Sem a navegação desktop/mobile do shell global, mas com uma faixa mínima
 // com a logo (link pra Home) — sem ela essas páginas ficavam sem NENHUMA
 // forma de navegação de volta pro site (a BottomNav também some aqui).
 // Cada página mantém seu próprio cabeçalho/fundo abaixo dessa faixa.

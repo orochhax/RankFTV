@@ -493,8 +493,8 @@ export function SubscriptionPaymentUI(props: Props) {
         </div>
       </div>
 
-      {/* ── Área branca ── */}
-      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
+      {/* ── Área de conteúdo ── */}
+      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-lg">
 
           {initError && (

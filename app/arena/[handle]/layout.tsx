@@ -7,7 +7,7 @@ import { ArenaShell } from "@/components/arena/ArenaShell";
 // Plano RankFTV, Configurações, detalhe de aula). Cada página ainda revalida a
 // posse da arena por handle+dono_id por conta própria (mesmo padrão já usado
 // em alunos/page.tsx) — o layout só resolve o que é comum: autenticação,
-// dados pra sidebar/topbar e a lista de arenas do dono pro trocador.
+// dados do shell contextual e a lista de arenas do dono para o trocador.
 export default async function ArenaOrganizerLayout({
   children,
   params,

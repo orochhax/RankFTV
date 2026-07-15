@@ -38,7 +38,7 @@ export default async function AulaDetalhePage({
   if (!arena || arena.dono_id !== user.id) redirect("/arena");
 
   // O handle na URL precisa ser o da arena dona da aula — evita mostrar a
-  // sidebar/topbar de uma arena diferente da que a aula pertence quando o
+  // contexto de uma arena diferente daquela à qual a aula pertence quando o
   // dono tem várias arenas e chega aqui com o handle errado.
   if (arena.handle !== handle) {
     const qs = dataParam ? `?data=${dataParam}` : "";

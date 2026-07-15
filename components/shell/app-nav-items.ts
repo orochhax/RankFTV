@@ -58,9 +58,9 @@ export function isAppNavItemActive(pathname: string, item: AppNavItem): boolean 
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-// Rotas que precisam de experiência concentrada (sem sidebar/topbar/bottom
-// nav) — autenticação, pagamento, convites, termos. Prefixo = tudo abaixo
-// também entra.
+// Rotas que precisam de experiência concentrada (sem sidebar e BottomNav) —
+// autenticação, pagamento, convites e termos. Prefixo = tudo abaixo também
+// entra.
 const FOCUSED_PREFIXES = [
   "/login",
   "/cadastro",

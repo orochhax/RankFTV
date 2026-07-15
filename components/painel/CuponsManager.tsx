@@ -145,12 +145,12 @@ export function CuponsManager({ champId, cupons }: { champId: string; cupons: Cu
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 lg:order-2 lg:sticky lg:top-20"
+          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 lg:order-2 lg:sticky lg:top-4"
         >
           <Plus className="size-4" /> Novo cupom
         </button>
       ) : (
-        <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5 lg:order-2 lg:sticky lg:top-20">
+        <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5 lg:order-2 lg:sticky lg:top-4">
           <div className="flex items-center gap-2">
             <Tag className="size-4 text-blue-500" />
             <p className="text-sm font-semibold text-gray-700">Novo cupom</p>

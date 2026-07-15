@@ -94,7 +94,7 @@ export default async function PresencaPage() {
         </div>
       </div>
 
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-xl">
           <PresencaClient
             arenaId={arena.id}

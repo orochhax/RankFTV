@@ -22,6 +22,7 @@ import {
   Building2,
   MapPin,
 } from "lucide-react";
+import { StickyCTA } from "@/components/shell/StickyCTA";
 
 type Tab = "eventos" | "arena";
 
@@ -325,8 +326,8 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   return (
     <div className="min-h-screen bg-[#0f0f13]">
-      {/* ── Header fixo escuro ── */}
-      <div className="sticky top-0 z-40 bg-[#0f0f13] px-6 py-5 md:top-16">
+      {/* ── Header — rola normalmente, só o CTA principal vira fixo ── */}
+      <div className="bg-[#0f0f13] px-6 py-5">
         <div className="mx-auto max-w-3xl space-y-4">
           <div>
             <span className="text-[11px] font-semibold uppercase tracking-widest text-blue-400">
@@ -355,27 +356,26 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
             ))}
           </div>
 
-          {/* Botão de ação — só para visitantes não logados, muda conforme a aba */}
+          {/* Botão de ação — só para visitantes não logados, muda conforme a aba.
+              Fica no fluxo normal; quando sair da viewport, um clone fixo assume o lugar. */}
           {!isLoggedIn && (
-            <div>
-              {tab === "eventos" ? (
-                <Link
-                  href="/cadastro"
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-                >
-                  <Trophy className="size-4" />
-                  Criar Evento
-                </Link>
-              ) : (
-                <Link
-                  href="/cadastro?next=/painel%3Ftab%3Darena"
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-                >
-                  <Building2 className="size-4" />
-                  Gerenciar Arena
-                </Link>
-              )}
-            </div>
+            tab === "eventos" ? (
+              <StickyCTA
+                key="eventos"
+                href="/cadastro"
+                label="Criar Evento"
+                icon={Trophy}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+              />
+            ) : (
+              <StickyCTA
+                key="arena"
+                href="/cadastro?next=/painel%3Ftab%3Darena"
+                label="Gerenciar Arena"
+                icon={Building2}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+              />
+            )
           )}
         </div>
       </div>
@@ -384,7 +384,8 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
       <div className="h-6 bg-[#0f0f13]" />
 
       {/* ── Conteúdo branco ── */}
-      <div className="relative -mt-6 rounded-t-3xl bg-white shadow-sm">
+      <div className="relative -mt-6 rounded-t-3xl bg-app-bg shadow-sm">
+        <span aria-hidden="true" className="mobile-sheet-accent md:hidden" />
         {tab === "eventos" ? (
           <SectionEvento ctaHref={ctaEventoHref} ctaLabel={ctaEventoLabel} />
         ) : (

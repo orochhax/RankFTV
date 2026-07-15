@@ -1,401 +1,481 @@
-# Documentação do RankFTV
+# Documentação técnica do RankFTV
 
-> Documento de referência de **como o app funciona por inteiro**: cada página, o que
-> ela faz e como se conecta com as outras. Mantido em português pra leitura rápida.
+> Fonte técnica canônica do estado atual do repositório em 15/07/2026.
 >
-> Para o "porquê" do produto (visão, regras de negócio, roadmap) veja [ftv.md](ftv.md).
-> Este aqui é o "como está construído hoje".
-
----
-
-## 1. Visão geral
-
-**RankFTV** é uma plataforma web (só site, responsivo — sem app nativo) para
-**organização de campeonatos de futevôlei**. Três grandes usos, todos na mesma conta:
-
-- **Atleta** — descobre campeonatos, inscreve a dupla, paga, recebe credencial (QR).
-- **Organizador** — cria/gerencia campeonatos, recebe inscrições pagas com repasse automático, faz check-in, controla camisas, financeiro.
-- **Admin** (só o dono da plataforma) — gerencia todos os campeonatos, taxas, destaques e usuários.
-
-Não existe "papel" escolhido no cadastro: qualquer conta pode ser atleta e organizador ao mesmo tempo.
-
-### Como a plataforma ganha dinheiro
-Uma **taxa por inscrição paga**, descontada do repasse ao organizador (o atleta paga só o valor da inscrição). Há dois planos de taxa por campeonato: **Padrão** e **Elite** (taxas menores, ativação de R$ 178 — ver seção 8).
-
----
-
-## 2. Stack e integrações
-
-| Camada | Tecnologia |
-|---|---|
-| Front + Back | **Next.js** (App Router, Server Components + Server Actions) + TypeScript + Tailwind |
-| Banco + Auth + Storage | **Supabase** (Postgres, RLS) |
-| Pagamento + split | **Asaas** (cobrança Pix/cartão + transferência Pix de repasse) |
-| E-mail transacional | **Resend** (best-effort, nunca bloqueia o fluxo) |
-| Deploy + Cron | **Vercel** (cron diário de repasse de cartão) |
-
-**Detalhes não óbvios de infra** (chaves novas do Supabase, `proxy.ts` no lugar de `middleware.ts`, grants do `service_role`) estão na memória do projeto, não aqui.
-
-### SQLs de segurança/performance aplicados
-Aplicados em produção em **2026-07-12**:
-- [supabase/fix-security-staff-and-ticket-access.sql](supabase/fix-security-staff-and-ticket-access.sql) — liga RLS em `championship_staff`, adiciona `access_token` nos ingressos de visitante e remove `cpf`/`telefone` antigos de `profiles`.
-- [supabase/add-rate-limits.sql](supabase/add-rate-limits.sql) — cria `rate_limits` + função `check_rate_limit` para endpoints públicos com CPF/e-mail.
-- [supabase/add-performance-indexes.sql](supabase/add-performance-indexes.sql) — adiciona índices para Home/listagens, busca de ingressos e badge de notificações.
-
-O código assume esses SQLs aplicados: ingressos públicos exigem `access_token` e o rate limit falha fechado se a função não existir.
-
-### Variáveis de ambiente principais (`.env.local` + Vercel)
-- `NEXT_PUBLIC_SUPABASE_URL`, anon key, `SUPABASE_SERVICE_ROLE_KEY` (`sb_secret_…`)
-- `ASAAS_BASE_URL`, `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN`
-- `RESEND_API_KEY`, `NEXT_PUBLIC_BASE_URL`
-- `ADMIN_EMAIL` (quem é admin), `CRON_SECRET` (protege o cron de repasse)
-
----
-
-## 3. Mapa de navegação (navbar)
-
-A navbar aparece **sempre**, inclusive para visitante. Mesmos itens no topo (desktop) e numa
-pílula flutuante embaixo (mobile). Definida em [components/navbar/nav-items.ts](components/navbar/nav-items.ts):
-
-| Item | Rota | Quem vê |
-|---|---|---|
-| Campeonatos | `/` | todos (também ativo em `/campeonatos/*`) |
-| Arenas | `/arenas` | todos |
-| Painel | `/painel` | todos (vira landing de conversão pra quem não organiza) |
-| Perfil | `/perfil` | todos |
-
-> Nota: a tabela acima reflete [nav-items.ts](components/navbar/nav-items.ts) hoje. Itens como
-> Agenda e Staff existem como páginas mas não estão na pílula principal da navbar.
-
-Itens extras (fora da pílula), em [TopNav](components/navbar/TopNav.tsx) / [BottomNav](components/navbar/BottomNav.tsx):
-- **Sino 🔔** → `/notificacoes` (com badge de não-lidas; só logado)
-- **Engrenagem ⚙️** → `/perfil` (só desktop)
-- **Chave inglesa 🔧 (âmbar)** → `/admin` (só admin)
-- **Entrar/Sair**
-
-O [layout raiz](app/layout.tsx) carrega o usuário uma vez e calcula: nome/@, se é staff, se é
-admin (`email === ADMIN_EMAIL`) e a contagem do sino (convites de staff pendentes + convites de
-dupla pendentes + notificações não lidas).
-
----
-
-## 4. Áreas do app
-
-```
-PÚBLICO / ATLETA            PAINEL (organizador)        STAFF              ADMIN
-─────────────────          ─────────────────────       ──────────        ──────────
-/                          /painel                     /staff            /admin
-/agenda                    /painel/geral               /staff/[id]       /admin/campeonatos
-/campeonatos               /painel/novo-campeonato        ├ /qrcode      /admin/destaques
-/campeonatos/[id]          /painel/paginas                ├ /inscricoes  /admin/taxas
-/campeonatos/[id]/inscrever  /painel/campeonatos/[id]     └ /chaveamento /admin/usuarios
-/campeonatos/[id]/pagamento/…   ├ /editar  /publicar
-/campeonatos/[id]/chaveamento   ├ /inscricoes /financeiro
-/campeonatos/paginas/[handle]   │    └ /financeiro/[status]  ← pagos/pendentes/estornados
-/atletas/[username]             ├ /checkin /camisas
-                                 ├ /chaveamento /equipe
-/perfil (+ sub-rotas)           ├ /vinculacoes /criado
-/minhas-inscricoes              └ /criado
-  ├ /[champId] (aceitar convite)
-  └ /[champId]/reembolso
-/convite/[teamId]
-/termos
-/notificacoes
-/cadastro · /login · /auth/callback
-```
-
----
-
-## 5. Modelo de dados (tabelas principais)
-
-> Toda referência interna usa o **`id`** (uuid), nunca o `@username` (que pode mudar no futuro).
-
-- **profiles** — `id`, `nome`, `username` (@handle único), `bio`, `foto_url`, `rating`, `genero` (`masculino`/`feminino`/`outro`, coletado obrigatoriamente no cadastro), `questionario` (jsonb das 5 perguntas), `tamanho_camisa`. *Dados públicos.*
-- **profiles_private** — `user_id`, `cpf`, `telefone`. *RLS estrita: só o dono lê (`user_id = auth.uid()`).*
-- **organizer_accounts** — `user_id`, `cpf_cnpj`, `data_nascimento`, `telefone`, `chave_pix` (nullable — só preenchido na hora de publicar campeonato pago), `habilitado`. Criada em `/perfil/ativar-organizador` (CPF/CNPJ + nascimento + telefone, sem Pix); `habilitado = true` é o que libera `/painel/novo-campeonato`.
-- **championships** — `id`, `organizador_id`, `nome`, `descricao`, `regulamento`, datas (`data_inicio/fim`, `prevenda_*`, `inscricoes_*`), `cidade`, `estado`, `local`, `status`, `taxa_plataforma`, `banner_url`, `live_url`, `tier` + `tier_quiz`, **`is_elite`** + **`premium_fee_pendente`**, `page_id`, **`usa_motor_categoria`** (liga/desliga a recomendação de categoria por questionário — ligado por padrão).
-- **championship_categories** — `id`, `championship_id`, `nome`, `genero` (`masculino`/`feminino`/`mista`), `valor_inscricao`, `corte_rating_min/max`, `max_duplas`.
-- **pricing_tiers** ([supabase/add-pricing-tiers.sql](supabase/add-pricing-tiers.sql)) — lotes de preço escalonado ("1º Lote R$50, 2º Lote R$70"). `id`, `category_id` OU `ticket_type_id` (exatamente um dos dois), `nome`, `valor`, `ordem` (menor = primeiro a valer), `quantidade_maxima`, `vendidos`, `data_fim`, `ativo`. O vigente é o de menor `ordem` que ainda não expirou por data nem esgotou por quantidade; reivindicação atômica via `claim_pricing_tier`/`release_pricing_tier`. Sem nenhum lote configurado, vale o valor de tabela normal — mas se os lotes esgotarem (todos), a categoria/ingresso fica **Esgotado**, não volta pro valor de tabela.
-- **coupons** ([supabase/add-coupons.sql](supabase/add-coupons.sql)) — cupom de desconto por campeonato. `id`, `championship_id`, `codigo`, `tipo_desconto` (`percentual`/`valor_fixo`), `valor_desconto`, `aplica_em` (`atleta`/`plateia`/`ambos`), `quantidade_maxima`, `usos_atuais`, `data_inicio/fim`, `ativo`. Desconto aplicado sobre o valor base antes da taxa da plataforma; reivindicação atômica via `claim_coupon_use`/`release_coupon_use`. Rastro de uso em `registrations.cupom_id` / `athlete_tickets.cupom_id` / `spectator_tickets.cupom_id`.
-- **teams** (duplas) — `id`, `championship_id`, `category_id`, `atleta1_id`, `atleta2_id`, `parceiro_username`, `status` (`convite_pendente`/`confirmado`/`cancelado`), `sandbagging_flag`, `rating_dupla`.
-- **registrations** (inscrições) — `id`, `team_id`, `championship_id`, `category_id`, `valor`, `status_pagamento` (`pendente`/`pago`/`estornado`), `billing_type`, `asaas_payment_id`, `pix_copy_paste`, `pix_qr_code_base64`, `invoice_url`, **repasse**: `repasse_status`, `repasse_data_prevista`, `repasse_transfer_id`, `repasse_erro`, `elite_fee_coletada`.
-- **athlete_tickets** — ingressos/inscrições de atleta sem conta. Guarda dados do comprador/parceiro, pagamento, lote/cupom, `qr_token` (credencial de entrada) e **`access_token`** (token privado do link). O `id` do ingresso sozinho não deve abrir dados sensíveis.
-- **spectator_tickets** — ingressos de plateia sem conta. Guarda comprador, itens/quantidade, pagamento, `qr_token` e **`access_token`**. Mesma regra: página pública exige `id + access_token`.
-- **credentials** — `id`, `user_id`, `championship_id`, `role`, `qr_token`, `checked_in`, `checkin_at`.
-- **bracket_matches** — chaveamento (confrontos, placar, vencedor) por categoria. *(Fase 2)*
-- **championship_staff** — `id`, `championship_id`, `user_id`, `invited_by`, `status` (`pendente`/`aceito`), permissões `can_qrcode`/`can_inscricoes`/`can_chaveamento`. RLS ligada: staff vê/atualiza o próprio convite; dono do campeonato gerencia a equipe.
-- **pages** — "páginas" de circuito: `id`, `owner_id`, `nome`, `handle`, `descricao`, banner, `avatar_url`, `social_links`. Agrupam várias edições/etapas.
-- **page_followers** — quem segue cada página (notifica em nova edição).
-- **page_championship_invites** — convite pra vincular um campeonato como etapa de uma página.
-- **notifications** — feed do sininho (`user_id`, `lida`, …).
-- **conquistas** — badges do atleta (`titulo`, `icone`, `cor`, `data_conquistada`).
-- **shirt_production** — produção de camisas por tamanho.
-- **platform_config** (linha única `id=1`) — taxas Padrão e Premium, `atleta_credito_7a12_extra`, `destaques_ids` (3 campeonatos fixados na Home).
-- **rating_history** — evolução do rating ao longo do tempo. *(Fase 2)*
-- **rate_limits** — contador por chave/janela para endpoints públicos sensíveis. A aplicação chama `check_rate_limit` via `service_role`; se a função falhar, o código bloqueia a requisição.
-
----
-
-## 6. Páginas públicas / do atleta
-
-### `/` — Home ([app/page.tsx](app/page.tsx))
-- **Visitante:** hero com CTA "Criar conta grátis" → `/cadastro` e "Entrar" → `/login`.
-- **Logado:** saudação. Usuário novo vê banner de onboarding → `/campeonatos`.
-- **Carrossel de destaques** (os 3 de `platform_config.destaques_ids`, ou os abertos mais recentes) → cada card abre `/campeonatos/[id]`.
-- **Seção "Ao vivo agora"** (campeonatos `em_andamento`) → `/campeonatos/[id]`.
-- Por segurança/performance, a listagem pública busca no máximo 200 campeonatos publicados e até 20 campeonatos ao vivo; os índices de `add-performance-indexes.sql` sustentam essas consultas em produção.
-- **Conexões:** → `/campeonatos`, `/campeonatos/[id]`, `/cadastro`, `/login`, `/notificacoes` (hambúrguer no mobile), `/perfil`.
-
-### `/agenda` — Agenda ([app/agenda/page.tsx](app/agenda/page.tsx))
-- Calendário do mês + lista de eventos (só dias com algo). Hoje alimentada por mock ([lib/agenda.ts](lib/agenda.ts) / [lib/mock/agenda-events.ts](lib/mock/agenda-events.ts)).
-
-### `/campeonatos` — Lista/busca ([app/campeonatos/page.tsx](app/campeonatos/page.tsx))
-- Topo: **carrossel de Páginas** (circuitos) a seguir → `/campeonatos/paginas/[handle]`; "Ver mais" → `/campeonatos/paginas`.
-- Filtros por **estado** e **categoria** (form GET, funciona sem JS → continua Server Component).
-- Lista de cards (só publicados, não rascunho). **Inscrições abertas vêm primeiro.** Cada card → `/campeonatos/[id]`.
-- **Conexões:** → `/campeonatos/[id]`, `/campeonatos/paginas`, `/campeonatos/paginas/[handle]`.
-
-### `/campeonatos/[id]` — Detalhe do campeonato ([app/campeonatos/[id]/page.tsx](app/campeonatos/[id]/page.tsx))
-O coração da experiência do atleta. Mostra:
-- Banner, nome, status, datas, local; botões "Ver chaveamento" (→ `/campeonatos/[id]/chaveamento`, se já existe) e "Ver ao vivo" (link externo `live_url`).
-- **Cronograma** (pré-venda / inscrições / evento).
-- **Regulamento**.
-- **Categorias e inscrição** ([app/campeonatos/[id]/categorias/page.tsx](app/campeonatos/[id]/categorias/page.tsx), aberta pelo botão "Sou atleta") — categorias e valores **sempre visíveis**, sem barreira nenhuma. Se o campeonato tem `usa_motor_categoria` ligado, a categoria **recomendada pelo motor** (rating + gênero do atleta logado) ganha selo azul "Recomendada para você"; se todos os lotes de uma categoria esgotaram, ela vira **Esgotado** (não volta pro valor de tabela). Botão de inscrição → `/campeonatos/[id]/inscrever` (via [InscricaoButton](components/campeonatos/InscricaoButton.tsx)) — se o motor estiver ligado e o atleta ainda não tiver respondido o questionário de nível, passa antes por `/perfil/questionario-nivel`. Aviso âmbar se o campeonato não tem categoria do gênero do atleta.
-- **Duplas inscritas** (só pagas) — cada atleta → `/atletas/[username]`.
-- **Conexões:** ← Home, Campeonatos, página de circuito, busca. → `/inscrever`, `/chaveamento`, `/atletas/[username]`.
-
-### `/campeonatos/[id]/inscrever` — Inscrição da dupla ([page](app/campeonatos/[id]/inscrever/page.tsx) · [actions](app/campeonatos/[id]/inscrever/actions.ts))
-Fluxo central da Fase 1. O atleta:
-1. Escolhe categoria, informa **@ do parceiro** (busca por nome via [UserSearchInput](components/ui/UserSearchInput.tsx) → `/api/users/search`), tamanho de camisa e, se pago, **CPF** + método (Pix/cartão). Aceite dos **Termos de Uso** obrigatório antes de confirmar.
-2. O motor calcula a categoria recomendada com base no rating + gênero (`recomendarCategoria`). A detecção de **sandbagging** (`detectarSandbagging`/`statusCategoria` em [motor-categoria.ts](lib/motor-categoria.ts)) já existe mas **ainda não está ligada em nenhuma tela** — hoje só a recomendação (selo azul) é exibida.
-3. `inscreverDupla` valida (inscrições abertas, prazo, não inscrito ainda, chave Pix do organizador existe), salva tamanho (público) e CPF (privado), cria **team** + **registration**.
-   - **Grátis sem parceiro** → confirma na hora, gera credencial, e-mail de confirmação, vai pra `/minhas-inscricoes/[champId]`.
-   - **Com parceiro** → manda convite por e-mail; parceiro aceita no perfil dele **ou** via **link de convite** copiável ([CopiarLink](components/ui/CopiarLink.tsx)) que aparece no card de inscrição de atleta1 enquanto o convite está pendente. O link leva a `/convite/[teamId]`.
-   - **Paga** → cria cobrança no Asaas e vai pra `/pagamento/[registrationId]`.
-- **Conexões:** ← detalhe do campeonato. → `/pagamento/[registrationId]` ou `/minhas-inscricoes/[champId]`.
-
-### `/campeonatos/[id]/comprar` — Inscrição de atleta **sem conta** ([page](app/campeonatos/[id]/comprar/page.tsx) · [actions](app/campeonatos/[id]/comprar/actions.ts))
-Guest checkout (não exige login; cria só `athlete_tickets`, não usa `profiles`). Fluxo em **3 etapas com barra de progresso** ([IngressoAtletaForm](components/campeonatos/IngressoAtletaForm.tsx)): **Categoria** (clique só seleciona — mostra selo do lote vigente com data-limite se houver, e "Esgotado" se os lotes acabaram) → **Dados dos atletas** (os dois, com opção de trocar a categoria escolhida) → **Pagamento**. Preço sempre resolvido pelo lote vigente no servidor (`resolverEClaimarLote`), nunca confiando em valor vindo do cliente. Não passa pelo motor de categoria (é fluxo sem conta, sem rating salvo em lugar nenhum).
-- Ao criar o ingresso, o servidor gera `access_token` separado do `qr_token` e redireciona para `/campeonatos/[id]/comprar/ingresso/[ticketId]?token=...`. A página do ingresso, o polling de status, alteração de titularidade, cancelamento e pagamento por cartão exigem `id + access_token`.
-
-### `/campeonatos/[id]/plateia/ingresso/[ticketId]` e `/comprar/ingresso/[ticketId]`
-- Páginas privadas por link para visitante sem conta. Mostram Pix, QR de entrada, dados do comprador e opções do ingresso.
-- **Nunca** devem abrir apenas com `ticketId`: se `token` estiver ausente/inválido, retornam `notFound()`.
-- O `qr_token` continua sendo somente a credencial lida no check-in; o `access_token` é o segredo do link para ver/gerenciar o ingresso.
-
-### `/minhas-compras` e `/api/meus-ingressos`
-- Permite localizar ingressos de visitante por CPF + e-mail. A API usa `service_role`, mas devolve somente dados mínimos + `access_token` para montar o link privado; **não devolve `qr_token`, CPF completo extra nem Pix/QR de pagamento**.
-- Rate limit: `15` consultas por minuto por IP (`check_rate_limit`). A rota falha fechada se o rate limiter não estiver disponível.
-- Cada busca retorna no máximo 50 ingressos por origem (comprador atleta, parceiro atleta, plateia), ordenados por mais recentes.
-
-### `/campeonatos/[id]/pagamento/[registrationId]` — Pagamento ([page](app/campeonatos/[id]/pagamento/[registrationId]/page.tsx) · [actions](app/campeonatos/[id]/pagamento/[registrationId]/actions.ts))
-- Mostra **QR Code Pix + copia-e-cola** (gerados na inscrição) ou formulário de **cartão** ([PaymentUI](components/pagamento/PaymentUI.tsx) / `pagarComCartao`).
-- Na aba Pix: indicador visual "Aguardando confirmação" + **polling a cada 3 s no Supabase** — quando o webhook do Asaas confirmar o pagamento, a tela redireciona automaticamente sem o atleta precisar recarregar.
-- **Conexões:** ← inscrição. → `/minhas-inscricoes`.
-
-### `/campeonatos/[id]/chaveamento` — Chaveamento público ([app/campeonatos/[id]/chaveamento/page.tsx](app/campeonatos/[id]/chaveamento/page.tsx))
-- Visualização da chave/resultados ([BracketView](components/chaveamento/BracketView.tsx)). Só aparece quando o organizador gerou a chave. *(Fase 2)*
-
-### `/campeonatos/paginas` e `/campeonatos/paginas/[handle]` — Páginas/circuitos
-- Lista de páginas ([page](app/campeonatos/paginas/page.tsx)) e a **página pública de um circuito** ([handle](app/campeonatos/paginas/[handle]/page.tsx)): banner, bio, redes sociais, botão **Seguir** ([FollowPageButton](components/campeonatos/FollowPageButton.tsx)), etapa atual em destaque e lista de edições (abertas/encerradas) → cada uma abre `/campeonatos/[id]`.
-- **Conexões:** ← Campeonatos, Perfil ("Páginas que sigo"). → `/campeonatos/[id]`.
-
-### `/atletas/[username]` — Perfil público ([app/atletas/[username]/page.tsx](app/atletas/[username]/page.tsx))
-- Foto, nome, @, nível (`A`/`B`/`C` a partir de `profiles.rating`, via `categoriaFromRating`), conquistas. Aberto a partir das duplas inscritas e dos times.
-
-### `/perfil` — Perfil privado ([app/perfil/page.tsx](app/perfil/page.tsx))
-Hub da conta do usuário logado. Cabeçalho azul com avatar, nome, @usuário · cidade/estado.
-Abaixo:
-- **Rating** — card com o valor de `profiles.rating` e uma explicação de que vem do
-  questionário de nível, com link pra responder/refazer (→ `/perfil/questionario-nivel`).
-- **Minhas Compras** (→ `/minhas-compras`), **Gênero** (valor inline → `/perfil/questionario`),
-  **Editar perfil** (→ `/perfil/editar`), **Configurações da conta** (→ `/perfil/conta`).
-- Se for aluno ativo de alguma arena, banner azul "Marcar presença" (→ `/arena/presenca`).
-- **Organizador** — card escuro. Se `organizer_accounts.habilitado`: campeonatos ativos +
-  total arrecadado (atletas + plateia, só pago) → `/painel`. Senão: "Vire organizador" →
-  `/perfil/ativar-organizador`, ou "Conta em análise" se já pediu e ainda não foi aprovada.
-- **Arena** — dono de arena → card com nome + "Ir pro painel da arena" (`/arena`). Sem arena →
-  card tracejado "Criar arena" → `/perfil/ativar-arena`.
-- Sair.
-- **Sub-rotas:**
-  - `/perfil/questionario` — só **gênero** (apesar do nome, não são as 5 perguntas de nível).
-  - `/perfil/questionario-nivel` — as **5 perguntas de nível do atleta** ([PERGUNTAS_NIVEL](lib/motor-categoria.ts)) → calcula e salva `rating`. Aceita `?redirect=` pra voltar pro fluxo de onde veio (normalmente a inscrição de um campeonato) depois de responder. Só é exigido na hora de inscrever quando o campeonato tem `usa_motor_categoria` ligado e o atleta ainda não respondeu — ver seção 9.
-  - `/perfil/editar` — nome, bio, foto.
-  - `/perfil/conta` — e-mail (leitura), telefone/CPF (em `profiles_private`), trocar senha.
-  - `/perfil/ativar-organizador` — CPF/CNPJ + data de nascimento (18+) + telefone → cria/habilita `organizer_accounts`. **Não pede chave Pix** (isso fica pra hora de publicar um campeonato pago). Aceita `?next=` pra voltar pro fluxo de origem depois de ativar (padrão: `/painel/novo-campeonato`).
-  - `/perfil/ativar-arena` — cadastra a arena do usuário (academia/local fixo).
-
-> **Removido:** a página `/rank` (ranking da Liga Brasileira), `/perfil/evolucao` (gráfico de
-> evolução) e os cards de Nível/Ranking/Histórico de campeonatos no Perfil — decisão de produto,
-> a plataforma não vai mais mostrar esse ranking. `lib/niveis.ts`, `lib/supabase/ranking.ts`,
-> `EvolucaoSparkline` e `MeuDesempenho` foram deletados junto.
-
-### `/minhas-inscricoes` e `/minhas-inscricoes/[champId]` ([lista](app/minhas-inscricoes/page.tsx))
-- Lista as duplas do atleta (como atleta1 ou atleta2), agrupadas por status do campeonato, com **status da dupla** e **status de pagamento**. Menu por item ([InscricaoMenu](components/inscricoes/InscricaoMenu.tsx)):
-  - Inscrição **não paga**: opções "Pagar" e "Cancelar".
-  - Inscrição **paga**: opção "Solicitar reembolso" → `/minhas-inscricoes/[champId]/reembolso`.
-- O **detalhe** (`[champId]`) é onde o convidado **aceita/recusa** o convite de dupla.
-- **Conexões:** ← Home, inscrição, e-mails. → detalhe do campeonato, pagamento, reembolso.
-
-### `/minhas-inscricoes/[champId]/reembolso` — Reembolso ([page](app/minhas-inscricoes/[champId]/reembolso/page.tsx) · [actions](app/minhas-inscricoes/[champId]/reembolso/actions.ts))
-- Mostra resumo da inscrição + **valor que será devolvido** (considerando a política abaixo) e botão de confirmação.
-- **Política de reembolso (CDC):** dentro de 7 dias da data do pagamento → reembolso **total**; após 7 dias → reembolso **parcial** (só o valor da inscrição; a taxa de serviço da plataforma não é devolvida).
-- `solicitarReembolso` chama `Asaas /payments/{id}/refund` (com `valorParcial` quando fora do prazo); o webhook `PAYMENT_REFUNDED` atualiza o status para `estornado`.
-- **Conexões:** ← `/minhas-inscricoes/[champId]`.
-
-### `/notificacoes` — Sininho ([app/notificacoes/page.tsx](app/notificacoes/page.tsx))
-- Feed único: **convites de dupla** pendentes (aceitar/recusar — [convite-actions](app/perfil/convite-actions.ts)), **convites de staff** ([staff-actions](app/perfil/staff-actions.ts)) e notificações gerais. Marca todas como lidas.
-- **Regra de produto:** toda notificação aparece aqui; a ação de fato acontece na página de destino, não duplicada.
-
-### `/convite/[teamId]` — Aceite de convite via link ([page](app/convite/[teamId]/page.tsx))
-- Página pública que permite ao parceiro **aceitar o convite de dupla por link** (sem precisar entrar direto pelo Perfil/Notificações).
-- Se não logado, redireciona para `/login?next=/convite/[teamId]`.
-- Formulário ([AceitarConviteViaLink](app/convite/[teamId]/AceitarConviteViaLink.tsx)): confirma aceite + seleciona tamanho de camisa. Associa `atleta2_id` ao team (caso convite ainda esteja aberto sem parceiro definido) e gera credencial se a inscrição já estiver paga.
-- **Conexões:** ← link enviado por e-mail ou copiado na tela de inscrição de atleta1.
-
-### Cadastro / Login / Auth
-- `/cadastro` — nome, e-mail, senha, **@usuário** (checa duplicado em tempo real) e **gênero** (obrigatório, `masculino`/`feminino`/`outro`). Depois cai na Home.
-- Cada campo do formulário de cadastro tem `name`/`autoComplete` explícitos (`name`, `username`, `email`, `new-password`) pra evitar o autofill do navegador confundir e-mail com @usuário — sem isso o Chrome às vezes preenchia o e-mail salvo no campo `@usuário` por heurística de posição/rótulo. O campo `@usuário` também desliga autocapitalize/autocorrect/spellcheck, já que aceita só minúsculas.
-- `/cadastro?modo=organizador` — mesma tela, mais **telefone, CPF/CNPJ e data de nascimento** (18+), pra quem clicou em "organizar evento" sem ter conta ainda. Tudo vai no metadata do `signUp` e é sincronizado (gênero em `profiles`, os dados de organizador em `organizer_accounts` com `habilitado = true`) em `/auth/callback` assim que o e-mail é confirmado — a chave Pix continua de fora, pedida só na publicação.
-- `/cadastro/verificar-email` — aviso pra confirmar o e-mail.
-- `/login` — e-mail/senha.
-- `/auth/callback` ([route](app/auth/callback/route.ts)) — confirma o e-mail aceitando **token_hash (OTP, cross-device)** e **code (PKCE)**, sincroniza o metadata do cadastro (gênero / dados de organizador) e redireciona pro `?next=` informado.
-
----
-
-## 7. Painel do organizador
-
-### `/painel` — Entrada ([app/painel/page.tsx](app/painel/page.tsx))
-- **Quem já organiza** (tem `organizer_accounts` **ou** qualquer campeonato, mesmo rascunho): vê o painel real — contadores, atalhos pra **Painel Geral** e **Minhas Páginas**, e a **lista de campeonatos** filtrável (Todos/Abertos/Rascunhos/Encerrados). Cada item → `/painel/campeonatos/[id]`. Botão "Criar campeonato" → `/painel/novo-campeonato`.
-- **Quem não organiza:** vira uma **landing de conversão** (dores, diferencial de categoria balanceada, features, taxa "risco zero") com CTA → `/painel/novo-campeonato` (logado) ou `/cadastro`.
-
-### `/painel/geral` — Consolidado ([app/painel/geral/page.tsx](app/painel/geral/page.tsx))
-- Financeiro somado de todos os campeonatos (bruto, líquido, pendente, estornado), filtro de período, lista de campeonatos. Exige `organizer_accounts`.
-
-### `/painel/novo-campeonato` — Criação ([page](app/painel/novo-campeonato/page.tsx) · [actions](app/painel/novo-campeonato/actions.ts))
-- **Exige `organizer_accounts.habilitado = true`** — sem isso, a página redireciona pra `/perfil/ativar-organizador?next=/painel/novo-campeonato` (checado de novo dentro de `createChampionship`, defesa em profundidade). Corrige o bug em que uma conta comum conseguia abrir essa tela direto.
-- Formulário multi-seção ([NovoCampeonatoForm](components/painel/NovoCampeonatoForm.tsx)): dados, datas, banner, categorias (o nome da categoria define automaticamente a faixa de rating via `RATING_POR_CATEGORIA`), **quiz de tier do evento** (5 perguntas sobre o campeonato → Local/Open/Elite — **não confundir** com o questionário de nível do atleta, que é outra coisa, em `/perfil/questionario-nivel`) e o **card do plano Elite** ([ElitePlanCard](components/painel/ElitePlanCard.tsx)).
-- Toggle **"Recomendar categoria pro atleta"** (`usa_motor_categoria`, ligado por padrão) — liga/desliga o motor de categoria pra esse campeonato (ver seção 9). Editável depois em `/editar`.
-- Salva como `rascunho` ou já publica. → `/painel/campeonatos/[id]/criado`.
-
-### `/painel/campeonatos/[id]` — Painel do campeonato ([app/painel/campeonatos/[id]/page.tsx](app/painel/campeonatos/[id]/page.tsx))
-Central de gestão de **um** campeonato (só o dono acessa). No topo: badge **Elite/Padrão** + tier + status + botão **Editar** + menu (Vinculações). Logo abaixo, link "Ver página pública" → `/campeonatos/[id]`. Aviso se falta chave Pix. Grade de **Gestão** com cards:
-
-| Card | Rota | O que faz |
-|---|---|---|
-| Inscrições | `/painel/campeonatos/[id]/inscricoes` | Duplas inscritas + status de pagamento (com busca por nome) |
-| Financeiro | `/painel/campeonatos/[id]/financeiro` | Entradas, taxas, repasses + **plano de taxas** (Padrão/Elite) + chave Pix |
-| Check-in | `/painel/campeonatos/[id]/checkin` | Credenciamento por QR + presença/no-show |
-| Camisas / Kit | `/painel/campeonatos/[id]/camisas` | Produção por tamanho |
-| Chaveamento | `/painel/campeonatos/[id]/chaveamento` | Gerar/zerar a chave *(Fase 2)* |
-| Equipe | `/painel/campeonatos/[id]/equipe` | Convidar staff e definir permissões |
-| Comunicação | `/painel/campeonatos/[id]/comunicacao` | Avisar inscritos por e-mail (Resend) |
-| Lotes | `/painel/campeonatos/[id]/lotes` | Preço escalonado por categoria/ingresso: criar lotes (por data e/ou quantidade), editar o valor de tabela, aplicar o mesmo lote a todas as categorias de uma vez, aviso se as datas dos lotes não cobrem todo o período de inscrições |
-| Cupons | `/painel/campeonatos/[id]/cupons` | Criar/gerenciar cupons de desconto (percentual ou valor fixo, atleta/plateia/ambos) |
-
-Outras sub-rotas:
-- **`/editar`** — edita dados/categorias ([EditarCampeonatoForm](components/painel/EditarCampeonatoForm.tsx)).
-- **`/publicar`** ([page](app/painel/campeonatos/[id]/publicar/page.tsx)) — fluxo rascunho → no ar: explica o repasse, mostra o **plano de taxas (Elite/Padrão)** com botão de ativar Elite, coleta só a **chave Pix** se precisar (CPF/CNPJ, nascimento e telefone já vieram de `/perfil/ativar-organizador`). → `/criado`.
-- **`/criado`** — tela de sucesso pós-criação/publicação.
-- **`/financeiro`** ([page](app/painel/campeonatos/[id]/financeiro/page.tsx) · [actions](app/painel/campeonatos/[id]/financeiro/actions.ts)) — totais por status e método, breakdown por categoria, [ChavePixClient](components/painel/ChavePixClient.tsx) e [PlanoTaxas](components/painel/PlanoTaxas.tsx) (ativar Elite). Os cards de **Pagos / Pendentes / Estornados** são clicáveis e levam a:
-  - **`/financeiro/pagos`**, **`/financeiro/pendentes`**, **`/financeiro/estornados`** — lista de duplas filtrada por status, expansível por linha para ver contato dos atletas (telefone com link WhatsApp + e-mail), buscada via admin client.
-- **`/vinculacoes`** — vincular o campeonato a uma página/circuito.
-- **Conexões:** ← `/painel`. → todas as sub-rotas acima e `/campeonatos/[id]` (pública).
-
-### `/painel/paginas` — Páginas/circuitos do organizador
-- Lista ([page](app/painel/paginas/page.tsx)), criar ([nova](app/painel/paginas/nova/page.tsx)), ver/editar ([id]/[editar]). Uma página agrupa edições e ganha seguidores; pode **convidar** campeonatos de outros organizadores como etapa.
-
----
-
-## 8. Pagamento, split e plano Elite
-
-### Fluxo do dinheiro (visão geral)
-1. Atleta paga a inscrição (Pix/cartão) **na conta Asaas da plataforma** ([criarCobranca](lib/asaas.ts)).
-2. O **webhook do Asaas** ([app/api/webhooks/asaas/route.ts](app/api/webhooks/asaas/route.ts)) recebe `PAYMENT_CONFIRMED`/`RECEIVED`: marca a inscrição como paga, confirma a dupla, gera credenciais e **dispara o repasse**.
-3. O repasse desconta a **taxa da plataforma** (Padrão ou Elite, [calcularRepasse](lib/platform-config.ts)) e transfere o líquido pro organizador via **Pix** ([transferirPix](lib/asaas.ts)).
-   - **Pix:** transfere na hora (D+0).
-   - **Cartão (débito D+3 / crédito D+32):** a inscrição fica `aguardando_liquidacao` e o repasse é executado depois pelo **cron** `/api/cron/repasse-liquidacao` ([route](app/api/cron/repasse-liquidacao/route.ts), diário, ver `vercel.json`).
-4. A lógica de repasse é compartilhada por webhook e cron em [lib/repasse.ts](lib/repasse.ts) (`executarRepasse`), com trava de idempotência (status `pendente → processando`) pra nunca repassar em dobro.
-
-### Plano Elite (R$ 178 — exibido como "de R$ 399 por R$ 178")
-- Ativar Elite **não cobra nada na hora**: cria a dívida `premium_fee_pendente = 178`. Na UI o preço é mostrado com o valor original tachado (R$ 399) e o valor promocional (R$ 178) — definido em [lib/elite.ts](lib/elite.ts).
-- A cada repasse, a função atômica `claim_elite_fee` ([supabase/add-elite-fee-collection.sql](supabase/add-elite-fee-collection.sql)) **abate** `min(dívida, repasse)` — se não cobrir os 178, o resto sai das próximas inscrições. `release_elite_fee` devolve em estorno/falha; `registrations.elite_fee_coletada` audita.
-- Só pode ativar com inscrições **abertas** (`rascunho`/`inscricoes_abertas`); depois disso o botão some.
-- UI: [PlanoTaxas](components/painel/PlanoTaxas.tsx) (financeiro/publicar) e [ElitePlanCard](components/painel/ElitePlanCard.tsx) (criação).
-
-> **Atenção (produção):** as chaves Asaas atuais são de **sandbox**. Pra valer de verdade: conta de produção verificada + `ASAAS_BASE_URL=https://api.asaas.com/v3` + chave `$aact_prod_…` + **webhook configurado no painel do Asaas** (`/api/webhooks/asaas` com `asaas-access-token` = `ASAAS_WEBHOOK_TOKEN`, eventos `PAYMENT_CONFIRMED/RECEIVED/REFUNDED/DELETED`).
-
----
-
-## 9. Motores / lógica de negócio
-
-| Motor | Arquivo | O que faz |
-|---|---|---|
-| **Categoria balanceada** | [lib/motor-categoria.ts](lib/motor-categoria.ts) | Calcula `rating` pelo questionário de nível (`/perfil/questionario-nivel`, 5 perguntas — `PERGUNTAS_NIVEL`), recomenda categoria (gênero sempre prevalece). `detectarSandbagging`/`statusCategoria` já existem mas não estão ligados em nenhuma tela ainda. **Opcional por campeonato** via `championships.usa_motor_categoria` (organizador liga/desliga ao criar/editar) — se ligado, o atleta é obrigado a responder o questionário antes de inscrever (mas categorias/valores continuam sempre visíveis sem essa barreira). Faixas em `RATING_POR_CATEGORIA` (Aprendiz→Profissional). |
-| **Rating (Elo)** | [lib/rating.ts](lib/rating.ts) | Elo adaptado a duplas (K=32) pra atualizar rating após jogos. *(Fase 2)* |
-| **Tier do campeonato** | [lib/tier.ts](lib/tier.ts) | Quiz de 5 perguntas **sobre o evento** (duplas esperadas, abrangência, premiação, nível médio, circuito) → Local/Open/Elite (classificação do evento). Respondido pelo **organizador** na criação. **Não confundir com `is_elite`** (plano pago de taxas) nem com o questionário de nível do atleta (`lib/motor-categoria.ts`). |
-| **Lote / preço escalonado** | [lib/lotes.ts](lib/lotes.ts) | Resolve o preço vigente de uma categoria/ingresso pelo lote de menor `ordem` que não expirou nem esgotou (`resolverPrecos`, leitura; `resolverEClaimarLote`, atômico no checkout). Sem lote ativo, esgotados todos → fica **Esgotado**, não volta pro valor de tabela. |
-| **Cupom de desconto** | [lib/cupons.ts](lib/cupons.ts) | Valida cupom (`buscarCupomValido`) e resolve o desconto (`lib/taxas.ts` → `calcularDesconto`) sobre o valor base, antes da taxa da plataforma. Reivindicação atômica no checkout. |
-| **Taxas/repasse** | [lib/platform-config.ts](lib/platform-config.ts) · [lib/repasse.ts](lib/repasse.ts) · [lib/elite.ts](lib/elite.ts) | Cálculo de taxa Padrão/Elite e execução do repasse. |
-
----
-
-## 10. Staff e Admin
-
-### Staff (modo limitado) — `/staff`
-- Aparece na navbar só pra quem é **staff aceito**. Lista os campeonatos onde a pessoa é staff.
-- A tabela `championship_staff` tem RLS ligada: o convidado só vê/atualiza o próprio convite e o dono do campeonato gerencia a equipe. As Server Actions continuam checando permissão, mas o banco também bloqueia acesso indevido.
-- `/staff/[id]` ([page](app/staff/[id]/page.tsx)) mostra só o que as permissões liberam:
-  - `/staff/[id]/qrcode` — escanear QR + presença (se `can_qrcode`).
-  - `/staff/[id]/inscricoes` — ver duplas (se `can_inscricoes`).
-  - `/staff/[id]/chaveamento` — editar confrontos/placares (se `can_chaveamento`).
-- O organizador convida e define permissões em `/painel/campeonatos/[id]/equipe`; o convidado aceita em `/notificacoes`.
-
-### Admin (só `ADMIN_EMAIL`) — `/admin` ([app/admin/page.tsx](app/admin/page.tsx))
-- `/admin/campeonatos` — **todos** os campeonatos (bypassa RLS via admin client): mudar status, excluir (em cascata), ver contato do organizador (@, e-mail, telefone). Tem busca por nome.
-- `/admin/destaques` — escolhe os 3 campeonatos fixados na Home (`platform_config.destaques_ids`).
-- `/admin/taxas` — define as taxas da plataforma (Padrão/Premium).
-- `/admin/usuarios` — gerencia contas e papéis.
-
----
-
-## 11. Sistema de e-mails (Resend)
-
-Disparados como **best-effort** ([lib/email/send.ts](lib/email/send.ts), nunca quebram o fluxo). Templates em [lib/email/templates.ts](lib/email/templates.ts):
-- **Convite de dupla** → parceiro (link `/perfil`).
-- **Inscrição confirmada** / **Pagamento confirmado** → atleta (link `/minhas-inscricoes/[champId]`).
-- **Convite aceito** → atleta1.
-- **Convite de staff** → convidado (link `/notificacoes`).
-- **Convite de página** → organizador do campeonato.
-
----
-
-## 12. Mapa rápido de conexões (quem leva pra onde)
-
-```
-Home ──> Campeonatos ──> Campeonato[id] ──> Inscrever ──> Pagamento (polling 3s) ──> Minhas inscrições
-  │           │                │               │                                          │
-  │           └─> Paginas[handle] ──> Campeonato[id]  └─> link copiável ──> /convite/[teamId]  │
-  │                                                                                    └─> reembolso
-  ├─> Atletas[username]
-  ├─> Perfil ──> Questionario / Questionario-nivel / Editar / Conta / Ativar-organizador
-  │        └─> Painel (se organizador)
-  └─> Notificacoes (convites de dupla e staff)
-
-Painel ──> Campeonatos[id] ──> Inscrições / Financeiro ──> pagos/pendentes/estornados
-  │                       └──> Check-in / Camisas / Chaveamento / Equipe(staff)
-  │                       └──> Editar / Publicar(+Elite) / Vinculacoes
-  ├─> Painel Geral
-  └─> Paginas ──> nova / [id] editar
-
-Admin ──> Campeonatos (todos) / Destaques / Taxas / Usuarios
-Staff ──> [id] ──> QRCode / Inscrições / Chaveamento  (conforme permissões)
-
-Webhook Asaas ──> confirma pagamento ──> repasse Pix (lib/repasse) + abate Elite
-               └─> PAYMENT_REFUNDED ──> status estornado
-Cron diário ─────> repasse de cartão vencido (D+3/D+32)
-```
-
----
-
-*Última atualização: 2026-07-12. Ao mudar fluxos grandes (pagamento, navegação, novas páginas), atualize este arquivo.*
+> Este documento descreve o que está implementado no código. Configurações de
+> serviços externos e riscos que ainda impedem afirmar “100% em produção” ficam
+> em [AUDITORIA-PRODUCAO.md](AUDITORIA-PRODUCAO.md). A visão de produto fica em
+> [ftv.md](ftv.md) e o plano original da Arena é apenas histórico em
+> [PLANO-PIVO-ARENA.md](PLANO-PIVO-ARENA.md).
+
+## 1. Produto e perfis de acesso
+
+RankFTV é uma plataforma web responsiva para campeonatos de futevôlei e gestão
+de arenas. A mesma identidade do Supabase Auth pode acumular capacidades:
+
+- visitante: consulta campeonatos, arenas, agenda, notícias e páginas públicas;
+- atleta autenticado: mantém perfil, participa de duplas, paga inscrições e
+  acompanha ingressos e credenciais;
+- organizador: cria e administra seus campeonatos;
+- dono de arena: administra uma ou mais arenas;
+- staff: acessa somente os campeonatos e funções autorizados no convite;
+- admin/CEO: o proxy exige profiles.role igual a admin ou ceo; algumas ações
+  também aceitam ADMIN_EMAIL como fallback, e /admin/usuarios exige role ceo.
+
+Essas capacidades não são apenas decisões visuais. Páginas, Server Actions,
+RLS, grants, funções SQL e verificações de propriedade continuam responsáveis
+pela autorização efetiva.
+
+## 2. Stack e execução local
+
+| Camada | Implementação |
+| --- | --- |
+| Aplicação | Next.js 16.2.10 com App Router, React 19.2.4 e TypeScript |
+| Interface | Tailwind CSS 4, tokens em app/globals.css e lucide-react |
+| Banco/Auth/Storage | Supabase com Postgres, Auth, Storage, RLS e RPCs |
+| Pagamentos | Asaas para Pix, cartão, assinaturas, webhooks e repasses |
+| E-mail | Resend |
+| Gráficos e documentos | Recharts, qrcode e jsPDF |
+| Deploy e tarefas | Vercel e cron definido em vercel.json |
+
+Requisito local: Node.js 20.9 ou superior.
+
+~~~bash
+npm ci
+npm run dev
+~~~
+
+Verificações de release:
+
+~~~bash
+npm run lint
+npx tsc --noEmit
+npm test
+npm run build
+npm audit --omit=dev
+~~~
+
+### Variáveis de ambiente
+
+| Variável | Escopo | Finalidade |
+| --- | --- | --- |
+| NEXT_PUBLIC_SUPABASE_URL | público | URL do projeto Supabase |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY | público | chave pública/anon |
+| SUPABASE_SERVICE_ROLE_KEY | servidor | operações administrativas autorizadas |
+| NEXT_PUBLIC_BASE_URL | público | origem canônica de links e callbacks |
+| ADMIN_EMAIL | servidor | conta administrativa principal |
+| ASAAS_BASE_URL | servidor | endpoint Sandbox ou produção |
+| ASAAS_API_KEY | servidor | autenticação da API Asaas |
+| ASAAS_WEBHOOK_TOKEN | servidor | validação do webhook |
+| CRON_SECRET | servidor | proteção do cron de liquidação |
+| RESEND_API_KEY | servidor | envio transacional |
+| RESEND_FROM_EMAIL | servidor | remetente verificado |
+| ALLOW_TUNNEL_ORIGIN | desenvolvimento | origem temporária de túnel local |
+
+Somente variáveis com prefixo NEXT_PUBLIC podem chegar ao navegador. Nunca
+versionar arquivos .env nem reutilizar credenciais Sandbox em produção.
+
+## 3. Arquitetura da aplicação
+
+~~~text
+app/           rotas, layouts, Server Components, Server Actions e APIs
+components/    componentes visuais e shells compartilhados
+lib/           integrações e regras de negócio reutilizáveis
+supabase/      SQLs incrementais, RLS, RPCs, hardening e manutenção
+scripts/       operações controladas, como limpeza de dados
+public/        ativos estáticos rastreados
+~~~
+
+O layout raiz em app/layout.tsx resolve no servidor:
+
+- sessão atual;
+- perfil usado na navegação;
+- existência de conta de organizador;
+- propriedade de arena;
+- convites aceitos de staff;
+- exibição do atalho administrativo por ADMIN_EMAIL;
+- soma de notificações, convites de staff e convites de dupla pendentes.
+
+Essas informações são entregues ao AppShell. A navegação interna usa Link e o
+App Router, portanto a URL, links diretos, atualização, voltar e avançar do
+navegador continuam funcionando sem recarregar o documento inteiro.
+
+### 3.1 Shell global
+
+components/shell/AppShell.tsx mantém, no desktop, uma estrutura compartilhada:
+
+- sidebar preta de 80 px, fixa na composição e persistente entre seções;
+- conteúdo principal ocupando o restante da viewport;
+- fundo geral centralizado no token app-bg, atualmente #F3F5FA;
+- nenhuma topbar global repetindo o nome da página;
+- cards e superfícies continuam brancos ou com suas cores específicas.
+
+components/shell/DesktopSidebar.tsx contém:
+
+- logo FTV em círculo branco;
+- itens condicionais por permissão;
+- indicador azul único que desliza até a rota ativa;
+- tooltips, foco visível, aria-label e aria-current;
+- sino no rodapé com mini menu carregado sob demanda;
+- botão “Ver todas” que abre /notificacoes;
+- avatares e ações de sessão no rodapé;
+- feixe azul decorativo que percorre verticalmente a borda direita.
+
+No mobile, components/navbar/BottomNav.tsx continua sendo uma pill flutuante
+inferior. A sidebar desktop e suas mudanças não substituem a navegação mobile.
+
+### 3.2 Rotas focadas
+
+components/shell/FocusedLayout.tsx remove sidebar e BottomNav de fluxos que
+precisam de menos distrações, mantendo uma faixa mínima com link para a Home.
+components/shell/app-nav-items.ts define os prefixos e padrões:
+
+- /login, /cadastro, /convite e /termos;
+- /arena/mensalidade;
+- segmentos de pagamento, compra de ingresso, reembolso e inscrição.
+
+### 3.3 Navegação contextual
+
+- ArenaShell mantém o contexto de /arena/[handle]. No desktop acrescenta a
+  navegação da arena dentro da área de conteúdo; no mobile fornece header e
+  drawer próprios. As rotas canônicas sempre carregam o handle.
+- ChampionshipShell, em /painel/campeonatos/[id]/layout.tsx, mantém os dados e
+  a navegação do campeonato. As ações aparecem abaixo dos cards de métricas,
+  e não em uma topbar global.
+- Rotas antigas de Arena sem handle permanecem somente como compatibilidade ou
+  redirecionamento; novos links devem usar /arena/[handle]/....
+
+### 3.4 Identidade responsiva atual
+
+- fundo de página desktop e mobile: #F3F5FA;
+- sidebar desktop: preta, ícones claros, item ativo azul;
+- cabeçalho do perfil: preto, foto principal de 92 px e nome maior;
+- Home mobile, listagem/página de Arena e entrada do Painel: divisão arredondada
+  com trilha transparente e um feixe azul horizontal;
+- card “Acesso rápido” da Home desktop: preto com detalhe azul;
+- usuários com redução de movimento habilitada recebem a versão sem
+  deslocamento contínuo das animações decorativas.
+
+Os seletores e keyframes ficam em app/globals.css. Alterações visuais globais
+devem reutilizar os tokens existentes e evitar seletores que vazem para
+popovers, modais ou cards.
+
+## 4. Navegação global
+
+Itens declarados em components/shell/app-nav-items.ts:
+
+| Item | Rota | Regra de visibilidade |
+| --- | --- | --- |
+| Campeonatos | / | todos |
+| Arenas | /arenas | todos |
+| Agenda | /agenda | todos |
+| Meus ingressos | /meus-ingressos | todos |
+| Minhas inscrições | /minhas-inscricoes | autenticado |
+| Perfil | /perfil | autenticado |
+| Organizador | /painel | possui organizer_accounts |
+| Minhas arenas | /arena | possui arena |
+| Staff | /staff | possui convite aceito |
+| Administração | /admin | atalho exibido quando o e-mail é ADMIN_EMAIL |
+
+A rota Campeonatos também fica ativa dentro de /campeonatos. Minhas arenas
+fica ativa em /arena e seus descendentes. A rota atual, e não um estado local
+isolado, determina o item selecionado.
+
+O atalho e a autorização administrativa ainda usam fontes diferentes: o layout
+global verifica ADMIN_EMAIL, enquanto proxy.ts exige role admin/ceo. Na prática,
+a conta principal de lançamento deve ter e-mail igual a ADMIN_EMAIL e role ceo.
+Essa regra deve ser unificada antes de delegar administração a outra conta.
+
+## 5. Catálogo de rotas
+
+O catálogo abaixo agrupa rotas relacionadas. Uma rota existir não significa que
+seja pública: cada página aplica sua autenticação e autorização.
+
+### 5.1 Público, autenticação e atleta
+
+| Rota ou grupo | Responsabilidade |
+| --- | --- |
+| / | Home, destaques, acessos rápidos e listagem de campeonatos |
+| /agenda | agenda pública baseada em campeonatos reais |
+| /campeonatos e /campeonatos/ao-vivo | descoberta, busca, filtros e eventos em andamento |
+| /campeonatos/[id] | página pública do campeonato |
+| /campeonatos/[id]/categorias | escolha de categoria |
+| /campeonatos/[id]/inscrever | inscrição de dupla autenticada |
+| /campeonatos/[id]/pagamento/[registrationId] | pagamento da inscrição |
+| /campeonatos/[id]/comprar | ingresso de atleta/visitante |
+| /campeonatos/[id]/comprar/ingresso/[ticketId] | pagamento e credencial do ingresso de atleta |
+| /campeonatos/[id]/plateia | escolha/compra de ingresso de espectador |
+| /campeonatos/[id]/plateia/ingresso/[ticketId] | pagamento e credencial de plateia |
+| /campeonatos/[id]/chaveamento | chaveamento público |
+| /arenas e /arenas/[handle] | descoberta e página pública da arena |
+| /arenas/[handle]/alugar | aluguel de quadra |
+| /arenas/[handle]/diaria | diária avulsa |
+| /arenas/[handle]/assinar/[planId] | adesão a plano da arena |
+| /atletas/[username] | perfil público de atleta |
+| /noticias e /noticias/[id] | listagem e leitura de notícias |
+| /login | autenticação por e-mail e senha |
+| /cadastro e /cadastro/verificar-email | criação e confirmação da conta |
+| /auth/callback | callback de autenticação no servidor |
+| /perfil | visão privada do perfil |
+| /perfil/editar | dados públicos e foto |
+| /perfil/conta | dados privados e credenciais |
+| /perfil/questionario e /perfil/questionario-nivel | gênero e avaliação de nível |
+| /perfil/ativar-organizador | criação da conta de organizador |
+| /perfil/ativar-arena | criação da arena |
+| /meus-ingressos | recuperação/consulta protegida de ingressos |
+| /minhas-compras | compras ligadas à conta |
+| /minhas-inscricoes | inscrições do atleta |
+| /minhas-inscricoes/[champId] | detalhe, dupla e credencial |
+| /minhas-inscricoes/[champId]/reembolso | solicitação de reembolso |
+| /convite/[teamId] | aceite ou recusa de convite da dupla |
+| /notificacoes | feed completo |
+| /termos | termos de uso |
+
+### 5.2 Organizador de campeonato
+
+| Rota ou grupo | Responsabilidade |
+| --- | --- |
+| /painel | entrada do organizador ou landing de ativação |
+| /painel/novo-campeonato | criação de campeonato |
+| /painel/campeonatos | campeonatos do organizador |
+| /painel/campeonatos/[id] | visão geral e métricas |
+| .../editar e .../publicar | edição e publicação |
+| .../criado | confirmação pós-criação |
+| .../inscricoes | duplas e pagamentos |
+| .../financeiro e .../financeiro/[status] | receitas, taxas e repasses |
+| .../checkin | credenciamento |
+| .../chaveamento | grade e confrontos |
+| .../camisas | produção por tamanho |
+| .../equipe | staff e permissões |
+| .../comunicacao | avisos aos inscritos |
+| .../cupons e .../lotes | descontos e preços escalonados |
+| .../plateia | tipos de ingresso |
+| .../plateia/lista | espectadores/ingressos |
+| .../plateia/financeiro | financeiro da plateia |
+| .../plateia/checkin | check-in de espectadores |
+
+Em toda ocorrência acima, “...” representa /painel/campeonatos/[id].
+
+### 5.3 Dono de arena e aluno
+
+| Rota ou grupo | Responsabilidade |
+| --- | --- |
+| /arena | escolhe a arena ou abre a única arena do dono |
+| /arena/[handle] | dashboard e agenda completa da semana, de segunda a domingo |
+| /arena/[handle]/agenda | visualizações e filtros da agenda |
+| /arena/[handle]/alunos | alunos e solicitações |
+| /arena/[handle]/aulas | turmas e horários |
+| /arena/[handle]/aula/[classId] | detalhe da aula e presença |
+| /arena/[handle]/planos | planos, diárias e aluguel |
+| /arena/[handle]/financeiro | cobranças e indicadores |
+| /arena/[handle]/relatorios | relatórios da arena |
+| /arena/[handle]/configuracoes | dados, imagens e regras |
+| /arena/[handle]/assinatura | assinatura da plataforma pela arena |
+| /arena/presenca | confirmação de presença pelo aluno |
+| /arena/mensalidade/[chargeId] | pagamento de mensalidade pelo aluno |
+
+As rotas /arena/assinatura, /arena/aulas, /arena/aula/[classId],
+/arena/configuracoes, /arena/financeiro e /arena/planos existem por
+compatibilidade. Não devem ser usadas para criar navegação nova.
+
+### 5.4 Staff
+
+| Rota | Responsabilidade |
+| --- | --- |
+| /staff | campeonatos nos quais a pessoa integra a equipe |
+| /staff/[id] | painel permitido do campeonato |
+| /staff/[id]/qrcode | leitura/validação de credenciais |
+| /staff/[id]/inscricoes | inscrições, conforme permissão |
+| /staff/[id]/chaveamento | chaveamento, conforme permissão |
+
+### 5.5 Administração
+
+| Rota ou grupo | Responsabilidade |
+| --- | --- |
+| /admin | entrada administrativa |
+| /admin/campeonatos | gestão da vitrine |
+| /admin/campeonatos/novo | novo item da vitrine |
+| /admin/campeonatos/[id]/editar | edição da vitrine |
+| /admin/noticias e /admin/noticias/[id]/editar | conteúdo editorial |
+| /admin/destaques | destaques da Home |
+| /admin/taxas | configuração de taxas |
+| /admin/usuarios | administração de usuários |
+| /admin/gastos e /admin/gasto-mensal | controles internos de gastos |
+| /admin/performance | ferramenta interna de performance |
+
+O proxy protege todo /admin por role admin/ceo. /admin/usuarios é exclusivo de
+role ceo. Helpers de ações administrativas também aceitam ADMIN_EMAIL como
+fallback, mas esse fallback não substitui a verificação anterior do proxy.
+
+### 5.6 APIs
+
+| Endpoint | Função |
+| --- | --- |
+| POST /api/webhooks/asaas | eventos de pagamento do Asaas |
+| POST /api/arena/webhook | handler específico/legado para cobranças mens: |
+| GET /api/cron/repasse-liquidacao | liquidação diária protegida por segredo |
+| POST /api/meus-ingressos | consulta de ingresso sem dados sensíveis na URL |
+| GET /api/ticket-status | atualização protegida do status do ingresso |
+| GET /api/users/search | busca limitada de usuário para convite |
+
+Os métodos efetivos e contratos devem ser consultados nos respectivos route.ts;
+clientes não devem chamar o Supabase service role diretamente.
+
+## 6. Modelo de dados principal
+
+Os SQLs em supabase são incrementais. Eles não formam um único arquivo que
+possa ser executado inteiro e sem verificar dependências.
+
+### Identidade e permissões
+
+- profiles: identidade pública permitida, como nome, username, bio, foto,
+  rating, gênero, cidade, estado e tamanho de camisa para usuários autenticados;
+- profiles_private: CPF, telefone, data de nascimento e questionário, protegidos
+  por RLS;
+- organizer_accounts: dados e habilitação do organizador;
+- championship_staff: vínculo, status e permissões por campeonato;
+- notifications: feed individual.
+
+### Campeonatos
+
+- championships e championship_categories;
+- registrations, teams e credentials;
+- pricing_tiers e coupons;
+- bracket_matches e tabelas auxiliares de chaveamento;
+- spectator_ticket_types e spectator_tickets;
+- athlete_tickets;
+- shirt_production e estruturas de equipe;
+- rating_history, conquistas e resultados.
+
+### Arenas
+
+- arenas e arena_photos;
+- arena_plans e arena_students;
+- arena_classes e arena_attendance;
+- student_charges;
+- arena_rentals e arena_daily_passes;
+- registros de pagamento e assinatura associados à arena.
+
+### Plataforma e conteúdo
+
+- platform_config e configurações de taxas;
+- news e destaques;
+- rate_limits para endpoints públicos sensíveis;
+- tabelas administrativas de gastos e performance.
+
+Referências internas usam UUID. Username e handle são endereços públicos
+mutáveis e não substituem a chave primária nas relações.
+
+## 7. Fluxos essenciais
+
+### 7.1 Inscrição autenticada
+
+1. O atleta escolhe campeonato e categoria.
+2. O servidor valida janela, gênero, vagas, lote/cupom e identidade.
+3. A dupla é criada ou atualizada e o parceiro recebe convite.
+4. A cobrança é criada no Asaas.
+5. Webhook validado atualiza o pagamento.
+6. Credencial e financeiro passam a refletir o estado confirmado.
+
+### 7.2 Ingresso de visitante
+
+1. O comprador informa os dados exigidos no checkout.
+2. O servidor cria ingresso e cobrança.
+3. O link privado usa token de acesso.
+4. A consulta perdida usa POST, rate limit e não devolve QR sem autorização.
+5. Webhook, check-in e repasse reutilizam o registro interno.
+
+### 7.3 Arena
+
+1. O dono cria a arena e configura planos, aulas, horários e regras.
+2. O aluno solicita entrada, adere a um plano, compra diária ou aluga quadra.
+3. As cobranças são conciliadas pelo webhook.
+4. Agenda, vagas, presença, mensalidades e financeiro usam os vínculos da
+   própria arena.
+
+Nos checkouts públicos atuais de adesão ao plano, aluguel e diária, o comprador
+paga o valor-base mais 10% de taxa de serviço; o repasse da Arena usa o
+valor-base. A emissão manual de Pix pelo financeiro da Arena não soma essa taxa
+no mesmo ponto do código. A regra precisa ser harmonizada e homologada antes de
+produção.
+
+### 7.4 Repasse
+
+Eventos Asaas precisam corresponder ao registro interno antes de mudar status.
+Repasses usam reivindicação atômica contra processamento duplicado. O cron
+diário inclui inscrições, ingressos, mensalidades, aluguéis e diárias
+aplicáveis. A homologação real ainda é obrigatória antes de operar em volume.
+
+## 8. Segurança e hardening
+
+Os dois arquivos abaixo compõem uma implantação em duas etapas:
+
+1. supabase/production-security-hardening.sql prepara schema, dados privados,
+   RLS, grants, storage e RPCs compatíveis com o código novo;
+2. supabase/production-security-hardening-after-deploy.sql remove
+   data_nascimento e questionario de profiles e restringe as colunas públicas
+   de profiles e arenas.
+
+O responsável informou que as duas etapas foram executadas, inclusive a segunda
+antes de o deploy compatível terminar. O código atual é compatível com o estado
+final, mas este repositório não comprova sozinho o schema remoto. Antes de abrir
+produção:
+
+- fazer snapshot recuperável;
+- confirmar que os campos privados estão em profiles_private;
+- confirmar que profiles não possui mais os dois campos pessoais;
+- testar grants/RLS como anon, usuário comum, organizador, staff e service_role;
+- verificar que invite_code e tokens não aparecem em consultas públicas;
+- revisar logs do PostgREST e do Auth.
+
+Não reexecute os scripts “por garantia” sem antes inspecionar o estado remoto.
+Em uma base nova, a ordem é etapa 1, deploy Ready, etapa 2 e testes.
+
+next.config.ts adiciona CSP, HSTS em produção, proteção contra iframe,
+nosniff, política de referência e política de permissões. Isso complementa,
+mas não substitui, RLS, autorização de servidor e validação de webhook.
+
+## 9. Estado dos dados
+
+A limpeza operacional registrada em AUDITORIA-PRODUCAO.md removeu contas,
+atletas, campeonatos, arenas e relações de demonstração da base usada, mantendo
+somente a conta correspondente a ADMIN_EMAIL. O script
+scripts/cleanup-production-data.mjs permanece com conferência segura por padrão
+e exclusão somente mediante --execute.
+
+Esse registro não autoriza executar nova limpeza automaticamente em outro
+projeto Supabase. Sempre confirme projeto, backup e conta administrativa antes.
+Arquivos de seed existentes no repositório são scripts históricos/operacionais;
+eles não são executados pelo app durante o deploy.
+
+## 10. Produção
+
+O código local validado é apenas uma parte do release. Ainda precisam ser
+confirmados fora do repositório:
+
+- domínio final e NEXT_PUBLIC_BASE_URL;
+- URLs de Auth, CAPTCHA, política de senha e MFA do admin no Supabase;
+- credenciais de produção, webhook e eventos do Asaas;
+- domínio, SPF/DKIM e remetente do Resend;
+- cron da Vercel, observabilidade e alertas;
+- backups/PITR e processo de restauração;
+- homologação financeira real controlada;
+- aviso de privacidade/LGPD e resposta a incidentes.
+
+As pendências de produto e segurança residuais estão detalhadas em
+AUDITORIA-PRODUCAO.md. Não declarar a plataforma “100% pronta” enquanto os itens
+externos e os testes ponta a ponta continuarem abertos.
+
+## 11. Regras para manutenção
+
+- Ler AGENTS.md e a documentação da versão instalada em
+  node_modules/next/dist/docs antes de alterar Next.js.
+- Preferir Server Components; usar Client Components apenas para interação.
+- Validar autenticação, propriedade e permissões no servidor.
+- Não usar service role no navegador.
+- Preservar navegação por URL e layouts persistentes; não substituir rotas por
+  estado local sem endereço.
+- Reutilizar app-bg e os tokens de app/globals.css.
+- Tratar os SQLs como mudanças incrementais e revisar ordem/dependências.
+- Atualizar este documento junto de alterações de rota, schema, shell ou fluxo.
+- Registrar em AUDITORIA-PRODUCAO.md apenas verificações realmente executadas.

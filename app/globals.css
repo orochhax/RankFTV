@@ -20,7 +20,7 @@
      StatCard, etc). O azul da marca continua reservado pra ações, seleção
      e destaques; fundo/superfície/texto usam esta escala neutra. */
   --color-app-bg:     #f3f5fa; /* fundo geral do desktop — azul-acinzentado bem claro */
-  --color-surface:    #ffffff; /* cards, sidebar, topbar */
+  --color-surface:    #ffffff; /* cards, popovers, modais e campos */
   --color-surface-2:  #f8f9fc; /* superfície secundária (hover sutil, seções internas) */
   --color-border:     #e4e7ef; /* bordas discretas */
   --color-ink:        #10152b; /* texto principal — azul-marinho quase preto */
@@ -40,7 +40,7 @@
 }
 
 :root {
-  --background: #ffffff;
+  --background: #f3f5fa;
   --foreground: #171717;
 }
 
@@ -50,11 +50,135 @@
   --font-sans: var(--font-inter);
 }
 
-/* Sem modo escuro de propósito: o tema é fundo branco fixo, independente do
-   sistema de quem visita. (O bg-white/text-gray-900 do <body> já vem do
-   layout.tsx via Tailwind — não repetir aqui, isso foi o que causou o bug
-   do fundo preto: uma regra "solta", fora de @layer, vence a classe
-   utilitária do Tailwind, não importa a especificidade.) */
+.rankftv-desktop-sidebar {
+  background: #000000 !important;
+  border-right-color: transparent !important;
+}
+
+/* No desktop, somente um feixe azul percorre a borda direita da sidebar.
+   O restante da trilha permanece completamente transparente. */
+.rankftv-desktop-sidebar::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  right: -2px;
+  z-index: 20;
+  width: 4px;
+  height: 100%;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 44%,
+      rgba(0, 0, 255, 0.16) 46%,
+      #0000ff 48%,
+      #4d4dff 50%,
+      #0000ff 52%,
+      rgba(0, 0, 255, 0.16) 54%,
+      transparent 56%,
+      transparent 100%
+    ) 0 100% / 100% 240% no-repeat;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 255, 0.9));
+  animation: desktop-sidebar-accent-sweep 2.8s linear infinite;
+  will-change: background-position;
+}
+
+@keyframes desktop-sidebar-accent-sweep {
+  from {
+    background-position: 0 100%;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+.rankftv-desktop-sidebar__logo {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px !important;
+  background: #ffffff !important;
+  color: #0000ff !important;
+}
+
+.rankftv-desktop-sidebar__button {
+  width: 2.75rem;
+  height: 2.75rem;
+  color: #e5e7eb;
+}
+
+.rankftv-desktop-sidebar__button:hover {
+  background: #18181b;
+  color: #ffffff;
+}
+
+.rankftv-desktop-sidebar__button[aria-current="page"] {
+  color: #ffffff;
+}
+
+.rankftv-desktop-sidebar__divider {
+  border-color: #27272a !important;
+}
+
+.rankftv-desktop-sidebar__nav-scroll {
+  scrollbar-color: #3f3f46 transparent;
+  scrollbar-width: thin;
+}
+
+/* O Surface aplica bg-surface por padrão. Esta variação precisa vencer essa
+   cor sem alterar os demais cards claros do design system. */
+.home-quick-access {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  --tw-ring-color: #27272a !important;
+}
+
+/* Trilha transparente entre o cabecalho e a sheet da home mobile. Somente o
+   feixe azul animado fica visivel enquanto acompanha as duas curvas. */
+.mobile-sheet-accent {
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  height: 1.5rem;
+  border: 4px solid transparent;
+  border-bottom: 0;
+  border-radius: 1.5rem 1.5rem 0 0;
+  background-image:
+    linear-gradient(var(--color-app-bg, #f3f5fa), var(--color-app-bg, #f3f5fa)),
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 44%,
+      rgba(0, 0, 255, 0.16) 46%,
+      #0000ff 48%,
+      #4d4dff 50%,
+      #0000ff 52%,
+      rgba(0, 0, 255, 0.16) 54%,
+      transparent 56%,
+      transparent 100%
+    );
+  background-repeat: no-repeat;
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 240% 100%;
+  animation: mobile-sheet-accent-sweep 2.2s linear infinite;
+  will-change: background-position;
+}
+
+@keyframes mobile-sheet-accent-sweep {
+  from {
+    background-position: 0 0, 100% 0;
+  }
+  to {
+    background-position: 0 0, 0 0;
+  }
+}
+
+/* Sem modo escuro automático: o fundo geral usa app-bg e as superfícies
+   preservam as cores definidas pelos tokens, independentemente do sistema. */
 
 /* Protege imagens: desabilita salvar, arrastar e menu de contexto por toque.
    Mantido de propósito (evita cópia fácil de fotos de perfil/arena/banner). */
@@ -75,8 +199,8 @@ img {
   animation: marquee linear infinite;
 }
 
-/* Reduz movimento pra quem pede — a única animação contínua do site hoje é
-   o marquee da galeria de fotos da arena. */
+/* Reduz transições e o marquee para quem pede menos movimento. Os dois feixes
+   azuis da identidade continuam percorrendo a trilha, porém mais devagar. */
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee {
     animation: none;
@@ -85,5 +209,19 @@ img {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .mobile-sheet-accent {
+    animation-name: mobile-sheet-accent-sweep !important;
+    animation-duration: 2.8s !important;
+    animation-timing-function: linear !important;
+    animation-iteration-count: infinite !important;
+    will-change: background-position;
+  }
+  .rankftv-desktop-sidebar::after {
+    animation-name: desktop-sidebar-accent-sweep !important;
+    animation-duration: 3.4s !important;
+    animation-timing-function: linear !important;
+    animation-iteration-count: infinite !important;
+    will-change: background-position;
   }
 }
