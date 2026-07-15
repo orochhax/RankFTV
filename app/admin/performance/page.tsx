@@ -136,7 +136,7 @@ export default async function PerformancePage() {
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho preto ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
+      <div className="bg-black px-6 pb-16 pt-6">
         <div className="mx-auto max-w-2xl space-y-5">
           <Link href="/admin" className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors">
             <ArrowLeft className="size-4" /> Admin
@@ -254,7 +254,7 @@ export default async function PerformancePage() {
               ) : (
                 <>
                   {/* Veredito */}
-                  <div className={`mt-3 flex items-center gap-2 rounded-xl bg-[#0f0f13] p-4 ${verMap.cls}`}>
+                  <div className={`mt-3 flex items-center gap-2 rounded-xl bg-black p-4 ${verMap.cls}`}>
                     <verMap.Icon className="size-5" />
                     <p className="text-sm">
                       <span className="font-bold">{verMap.label}</span>{" "}

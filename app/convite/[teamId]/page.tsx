@@ -58,7 +58,7 @@ export default async function ConvitePage({
       <div className="w-full max-w-sm space-y-5">
 
         {/* Cabeçalho */}
-        <div className="rounded-3xl bg-[#0f0f13] px-6 py-8 text-center text-white">
+        <div className="rounded-3xl bg-black px-6 py-8 text-center text-white">
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-white/10">
             <Users className="size-7 text-white" />
           </div>

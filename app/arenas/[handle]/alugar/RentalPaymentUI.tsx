@@ -120,7 +120,7 @@ export function RentalPaymentUI({ planId, handle, planNome, valorBase, aceitaCre
       : "";
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#0f0f13] px-6 py-12">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-black px-6 py-12">
         <div className="w-full max-w-sm rounded-3xl bg-white p-10 text-center shadow-xl">
           <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-blue-100">
             <CheckCircle className="size-9 text-blue-500" />
@@ -149,7 +149,7 @@ export function RentalPaymentUI({ planId, handle, planNome, valorBase, aceitaCre
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho escuro ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
+      <div className="bg-black px-6 pb-16 pt-6">
         <div className="mx-auto max-w-lg space-y-4">
           <Link
             href={`/arenas/${handle}`}

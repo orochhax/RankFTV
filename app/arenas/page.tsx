@@ -114,7 +114,7 @@ export default async function ArenasPage() {
 
   const cabecalho = (
     <>
-      <div className="bg-[#0f0f13] px-6 pb-10 pt-8 md:hidden">
+      <div className="bg-black px-6 pb-10 pt-8 md:hidden">
         <h1 className="text-2xl font-bold tracking-tight text-white">Arenas</h1>
         <p className="mt-3 text-sm text-white/50">
           Alugue uma quadra por hora ou assine um plano mensal de treino.

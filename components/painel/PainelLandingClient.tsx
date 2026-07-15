@@ -171,7 +171,7 @@ function SectionEvento({ ctaHref, ctaLabel }: { ctaHref: string; ctaLabel: strin
         </section>
 
         {/* CTA final */}
-        <section className="rounded-3xl bg-[#0f0f13] p-8 text-center">
+        <section className="rounded-3xl bg-black p-8 text-center">
           <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-blue-500/15">
             <MapPin className="size-6 text-blue-400" />
           </div>
@@ -283,7 +283,7 @@ function SectionArena({ ctaHref }: { ctaHref: string }) {
         </section>
 
         {/* CTA final */}
-        <section className="rounded-3xl bg-[#0f0f13] p-8 text-center">
+        <section className="rounded-3xl bg-black p-8 text-center">
           <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-blue-500/15">
             <ShieldCheck className="size-6 text-blue-400" />
           </div>
@@ -325,9 +325,9 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0f0f13]">
+    <div className="min-h-screen bg-black">
       {/* ── Header — rola normalmente, só o CTA principal vira fixo ── */}
-      <div className="bg-[#0f0f13] px-6 py-5">
+      <div className="bg-black px-6 py-5">
         <div className="mx-auto max-w-3xl space-y-4">
           <div>
             <span className="text-[11px] font-semibold uppercase tracking-widest text-blue-400">
@@ -381,7 +381,7 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
       </div>
 
       {/* faixa escura não-sticky — a curva aparece aqui */}
-      <div className="h-6 bg-[#0f0f13]" />
+      <div className="h-6 bg-black" />
 
       {/* ── Conteúdo branco ── */}
       <div className="relative -mt-6 rounded-t-3xl bg-app-bg shadow-sm">

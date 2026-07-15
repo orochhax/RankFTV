@@ -63,7 +63,7 @@ export function IngressoAtletaPagamento({
     const dataUrl = await QRCode.toDataURL(qrToken, {
       width: 280,
       margin: 2,
-      color: { dark: "#0f0f13", light: "#ffffff" },
+      color: { dark: "#000000", light: "#ffffff" },
       errorCorrectionLevel: "M",
     });
     setEntradaQr(dataUrl);

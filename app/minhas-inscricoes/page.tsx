@@ -87,7 +87,7 @@ export default async function MinhasInscricoesPage() {
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6 md:hidden">
+      <div className="bg-black px-6 pb-16 pt-6 md:hidden">
         <div className="mx-auto max-w-2xl space-y-4">
           <Link
             href="/"

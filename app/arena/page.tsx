@@ -20,7 +20,7 @@ export default async function ArenaIndexPage() {
   // Múltiplas arenas — picker
   return (
     <div className="min-h-screen">
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-8">
+      <div className="bg-black px-6 pb-16 pt-8">
         <div className="mx-auto max-w-xl space-y-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
             Minhas arenas

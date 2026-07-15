@@ -42,7 +42,7 @@ export default async function StaffPage() {
   return (
     <div className="min-h-screen">
       {/* Cabeçalho preto */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
+      <div className="bg-black px-6 pb-16 pt-6">
         <div className="mx-auto max-w-2xl space-y-4">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-full bg-white/10">

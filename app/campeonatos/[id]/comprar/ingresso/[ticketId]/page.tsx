@@ -71,7 +71,7 @@ export default async function IngressoAtletaPage({
     entradaQr = await QRCode.toDataURL(t.qr_token, {
       width:                280,
       margin:               2,
-      color:                { dark: "#0f0f13", light: "#ffffff" },
+      color:                { dark: "#000000", light: "#ffffff" },
       errorCorrectionLevel: "M",
     });
   }
@@ -79,7 +79,7 @@ export default async function IngressoAtletaPage({
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho escuro (mesma largura contida do corpo, em toda tela) ── */}
-      <div className="bg-[#0f0f13] pb-16 pt-6">
+      <div className="bg-black pb-16 pt-6">
         <PageContainer width="form" className="space-y-5">
           <div className="flex items-center justify-between">
             <Link

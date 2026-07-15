@@ -28,7 +28,7 @@ export function PlanoCards({ elite, onToggle }: { elite: boolean; onToggle: (v: 
     <div className="space-y-4">
       <ElitePlanCard elite={elite} onToggle={onToggle} />
 
-      <div className="rounded-2xl bg-[#0f0f13] p-5 text-white sm:p-6">
+      <div className="rounded-2xl bg-black p-5 text-white sm:p-6">
         <div className="mb-4">
           <div className="flex items-center gap-2">
             <p className="text-xs font-semibold uppercase tracking-widest text-blue-400">Evento Padrão</p>

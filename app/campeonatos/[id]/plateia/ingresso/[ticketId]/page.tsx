@@ -55,13 +55,13 @@ export default async function IngressoPlateiaPage({
     entradaQr = await QRCode.toDataURL(t.qr_token, {
       width: 280,
       margin: 2,
-      color: { dark: "#0f0f13", light: "#ffffff" },
+      color: { dark: "#000000", light: "#ffffff" },
       errorCorrectionLevel: "M",
     });
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f13]">
+    <div className="min-h-screen bg-black">
       <div className="mx-auto max-w-md px-6 py-8">
         <div className="flex items-center justify-between">
           <Link
@@ -86,7 +86,7 @@ export default async function IngressoPlateiaPage({
 
         <div className="mt-5 overflow-hidden rounded-3xl bg-white shadow-xl">
           {/* Topo */}
-          <div className="bg-[#0f0f13] px-6 py-5 text-center">
+          <div className="bg-black px-6 py-5 text-center">
             {t.code && (
               <p className="mb-1 font-mono text-[10px] tracking-[0.25em] text-white/50">{t.code}</p>
             )}

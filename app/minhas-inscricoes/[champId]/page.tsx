@@ -138,7 +138,7 @@ export default async function IngressoPage({
     qrDataUrl = await QRCode.toDataURL(credential.qr_token, {
       width: 280,
       margin: 2,
-      color: { dark: "#0f0f13", light: "#ffffff" },
+      color: { dark: "#000000", light: "#ffffff" },
       errorCorrectionLevel: "M",
     });
   }
@@ -155,7 +155,7 @@ export default async function IngressoPage({
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho preto ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
+      <div className="bg-black px-6 pb-16 pt-6">
         <div className="mx-auto max-w-md space-y-4">
           <Link
             href="/minhas-inscricoes"
@@ -196,7 +196,7 @@ export default async function IngressoPage({
           {/* ── Ingresso / QR ── */}
           <div className="overflow-hidden rounded-3xl ring-1 ring-black/8 shadow-sm">
             {/* Topo do ingresso */}
-            <div className="bg-[#0f0f13] px-5 py-4">
+            <div className="bg-black px-5 py-4">
               {/* Código curto — discreet, para digitação manual se o QR falhar */}
               {credential?.code && (
                 <p className="mb-2 text-center font-mono text-[10px] tracking-[0.25em] text-white/50">

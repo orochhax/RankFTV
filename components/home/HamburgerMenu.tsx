@@ -76,7 +76,7 @@ export function HamburgerMenu({ unreadCount, organizerHabilitado }: Props) {
         {open ? <X className="size-6" /> : <Menu className="size-6" />}
         {/* Bolinha vermelha externa (quando fechado e tem notificações) */}
         {!open && unreadCount > 0 && (
-          <span className="absolute right-1.5 top-1.5 size-2.5 rounded-full bg-red-500 ring-2 ring-[#0f0f13]" />
+          <span className="absolute right-1.5 top-1.5 size-2.5 rounded-full bg-red-500 ring-2 ring-black" />
         )}
       </button>
 

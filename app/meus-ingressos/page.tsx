@@ -45,7 +45,7 @@ export default function MeusIngressosPage() {
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-8 md:hidden">
+      <div className="bg-black px-6 pb-16 pt-8 md:hidden">
         <div className="mx-auto max-w-xl space-y-3">
           <Link
             href="/"

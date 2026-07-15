@@ -30,7 +30,7 @@ export default async function MensalidadePage({
   const pago = charge.status_pagamento === "pago";
 
   return (
-    <div className="min-h-screen bg-[#0f0f13]">
+    <div className="min-h-screen bg-black">
       <div className="mx-auto max-w-md px-6 py-8">
         <Link
           href="/perfil"
@@ -40,7 +40,7 @@ export default async function MensalidadePage({
         </Link>
 
         <div className="mt-5 overflow-hidden rounded-3xl bg-white shadow-xl">
-          <div className="bg-[#0f0f13] px-6 py-5 text-center">
+          <div className="bg-black px-6 py-5 text-center">
             <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Mensalidade</p>
             <p className="mt-0.5 text-sm font-semibold text-white">{arenaNome}</p>
             <p className="mt-0.5 text-xs text-white/50">

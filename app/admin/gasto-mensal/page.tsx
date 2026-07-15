@@ -75,7 +75,7 @@ export default async function GastoMensalPage() {
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho preto ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
+      <div className="bg-black px-6 pb-16 pt-6">
         <div className="mx-auto max-w-3xl space-y-4">
           <Link href="/admin" className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors">
             <ArrowLeft className="size-4" /> Admin

@@ -51,7 +51,7 @@ export default async function PagamentoPage({
 
   if (isPago) {
     return (
-      <div className="min-h-screen bg-[#0f0f13]">
+      <div className="min-h-screen bg-black">
         <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
           <div className="w-full max-w-sm rounded-3xl bg-white p-10 text-center shadow-xl">
             <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-blue-100">

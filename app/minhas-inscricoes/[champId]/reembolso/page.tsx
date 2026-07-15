@@ -62,7 +62,7 @@ export default async function ReembolsoPage({
 
   return (
     <div className="min-h-screen">
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6 md:hidden">
+      <div className="bg-black px-6 pb-16 pt-6 md:hidden">
         <div className="mx-auto max-w-md space-y-3">
           <Link
             href={`/minhas-inscricoes/${champId}`}

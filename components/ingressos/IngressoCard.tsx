@@ -42,7 +42,7 @@ export function IngressoCard({
       href={href}
       className="block overflow-hidden rounded-2xl ring-1 ring-black/5 transition-shadow hover:shadow-md"
     >
-      <div className="bg-[#0f0f13] px-5 py-4">
+      <div className="bg-black px-5 py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             {isAtleta

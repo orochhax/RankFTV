@@ -89,7 +89,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
-      <div className="bg-[#0f0f13] px-6 pb-10 pt-8 md:hidden">
+      <div className="bg-black px-6 pb-10 pt-8 md:hidden">
         {profile ? (
           <div className="flex items-center gap-4">
             <Avatar
