@@ -135,7 +135,7 @@ export default async function ArenasPage() {
     return (
       <div className="min-h-screen">
         {cabecalho}
-        <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-12 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:shadow-none">
+        <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white pb-24 pt-12 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:shadow-none">
           <PageContainer width="wide">
             <EmptyState
               icon={Building2}
@@ -153,7 +153,7 @@ export default async function ArenasPage() {
       {cabecalho}
 
       {/* ── Corpo: sheet arredondada no mobile, largura total no desktop ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:pb-16 md:shadow-none">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:pb-16 md:shadow-none">
         <PageContainer width="wide" className="space-y-8">
 
           {/* Destaques — mesmo carrossel dos campeonatos */}

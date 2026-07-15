@@ -43,7 +43,14 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
           >
             <div className={`relative h-44 w-1/2 shrink-0 bg-gradient-to-br ${camp.bannerFrom} ${camp.bannerTo}`}>
               {camp.bannerUrl ? (
-                <Image src={camp.bannerUrl} alt={camp.nome} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 512px" />
+                <Image
+                  src={camp.bannerUrl}
+                  alt={camp.nome}
+                  fill
+                  className="object-cover"
+                  style={{ objectPosition: `${camp.bannerPositionX ?? 50}% ${camp.bannerPositionY ?? 50}%` }}
+                  sizes="(max-width: 1024px) 50vw, 512px"
+                />
               ) : (
                 <div className="flex size-full items-center justify-center">
                   <Trophy className="size-12 text-white/90" strokeWidth={1.5} />
@@ -108,7 +115,14 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
               >
                 <div className={`relative flex h-36 items-center justify-center bg-gradient-to-br ${camp.bannerFrom} ${camp.bannerTo}`}>
                   {camp.bannerUrl ? (
-                    <Image src={camp.bannerUrl} alt={camp.nome} fill className="object-cover" sizes="(max-width: 640px) 100vw, 640px" />
+                    <Image
+                      src={camp.bannerUrl}
+                      alt={camp.nome}
+                      fill
+                      className="object-cover"
+                      style={{ objectPosition: `${camp.bannerPositionX ?? 50}% ${camp.bannerPositionY ?? 50}%` }}
+                      sizes="(max-width: 640px) 100vw, 640px"
+                    />
                   ) : (
                     <Trophy className="size-10 text-white/90" strokeWidth={1.5} />
                   )}

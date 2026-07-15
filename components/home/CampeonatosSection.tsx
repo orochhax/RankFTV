@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { ChevronDown, Search, X, Radio, Trophy } from "lucide-react";
 import { ChampionshipCard } from "@/components/campeonatos/ChampionshipCard";
-import { FilterBar } from "@/components/shell/FilterBar";
 import { EmptyState } from "@/components/shell/EmptyState";
 import type { Championship } from "@/lib/types";
 
@@ -63,8 +62,8 @@ export function CampeonatosSection({
         )}
       </div>
 
-      <FilterBar className="mb-4">
-        <div className="relative flex-1 sm:min-w-64">
+      <div className="mb-4 space-y-2">
+        <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
           <input
             value={busca}
@@ -82,37 +81,39 @@ export function CampeonatosSection({
           )}
         </div>
 
-        <select
-          value={estadoFiltro}
-          onChange={(e) => handleEstado(e.target.value)}
-          className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todos os estados</option>
-          {estados.map((uf) => (
-            <option key={uf} value={uf}>{uf}</option>
-          ))}
-        </select>
-
-        <select
-          value={categoriaFiltro}
-          onChange={(e) => handleCategoria(e.target.value)}
-          className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todas as categorias</option>
-          {categorias.map((nome) => (
-            <option key={nome} value={nome}>{nome}</option>
-          ))}
-        </select>
-
-        {temFiltro && (
-          <button
-            onClick={limpar}
-            className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-500 hover:bg-gray-50"
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={estadoFiltro}
+            onChange={(e) => handleEstado(e.target.value)}
+            className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            Limpar
-          </button>
-        )}
-      </FilterBar>
+            <option value="">Todos os estados</option>
+            {estados.map((uf) => (
+              <option key={uf} value={uf}>{uf}</option>
+            ))}
+          </select>
+
+          <select
+            value={categoriaFiltro}
+            onChange={(e) => handleCategoria(e.target.value)}
+            className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Todas as categorias</option>
+            {categorias.map((nome) => (
+              <option key={nome} value={nome}>{nome}</option>
+            ))}
+          </select>
+
+          {temFiltro && (
+            <button
+              onClick={limpar}
+              className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-500 hover:bg-gray-50"
+            >
+              Limpar
+            </button>
+          )}
+        </div>
+      </div>
 
       {filtrados.length === 0 ? (
         <EmptyState

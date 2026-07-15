@@ -42,6 +42,7 @@ export function ChampionshipCard({ championship: c }: { championship: Championsh
             alt={c.nome}
             fill
             className="object-cover"
+            style={{ objectPosition: `${c.bannerPositionX ?? 50}% ${c.bannerPositionY ?? 50}%` }}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"
           />
         ) : (

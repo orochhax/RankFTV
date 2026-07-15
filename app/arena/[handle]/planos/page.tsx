@@ -30,7 +30,7 @@ export default async function PlanosArenaPage({
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 md:px-8 md:py-8">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Planos</h1>
+        <h1 className="text-xl font-bold text-gray-900">Planos para alunos</h1>
         <p className="text-sm text-gray-400">Configure os planos de mensalidade e opção de aluguel da quadra.</p>
       </div>
       <PlanosAdminClient plans={plans ?? []} handle={arena.handle} />

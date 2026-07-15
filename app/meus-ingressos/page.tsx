@@ -73,7 +73,7 @@ export default function MeusIngressosPage() {
 
       {/* ── Corpo: sheet arredondada no mobile, cartão flutuando num fundo
           neutro no desktop (nada de página estreita boiando num vazio) ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:pb-16 md:shadow-none">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:pb-16 md:shadow-none">
         <PageContainer width="form" className="space-y-8">
           <Surface padding="lg" className="md:max-w-md">
             <form onSubmit={buscar} className="space-y-4">

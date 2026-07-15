@@ -148,6 +148,7 @@ export default async function CampeonatoDetalhePage({
               alt={championship.nome}
               fill
               className="object-cover"
+              style={{ objectPosition: `${championship.bannerPositionX ?? 50}% ${championship.bannerPositionY ?? 50}%` }}
               sizes="(max-width: 768px) 100vw, 768px"
             />
           ) : (

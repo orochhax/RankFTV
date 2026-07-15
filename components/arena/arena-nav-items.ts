@@ -26,7 +26,7 @@ export const ARENA_NAV_GROUPS: ArenaNavGroup[] = [
     items: [
       { key: "alunos", label: "Alunos", icon: Users, href: (h) => `/arena/${h}/alunos` },
       { key: "financeiro", label: "Financeiro", icon: DollarSign, href: (h) => `/arena/${h}/financeiro` },
-      { key: "planos", label: "Planos", icon: Tag, href: (h) => `/arena/${h}/planos` },
+      { key: "planos", label: "Planos para alunos", icon: Tag, href: (h) => `/arena/${h}/planos` },
       { key: "aulas", label: "Aulas e horários", icon: Clock, href: (h) => `/arena/${h}/aulas` },
     ],
   },
@@ -34,7 +34,7 @@ export const ARENA_NAV_GROUPS: ArenaNavGroup[] = [
     label: "Administrativo",
     items: [
       { key: "relatorios", label: "Relatórios", icon: BarChart3, href: (h) => `/arena/${h}/relatorios` },
-      { key: "assinatura", label: "Assinatura", icon: CreditCard, href: (h) => `/arena/${h}/assinatura` },
+      { key: "assinatura", label: "Plano RankFTV", icon: CreditCard, href: (h) => `/arena/${h}/assinatura` },
       { key: "configuracoes", label: "Configurações", icon: Settings2, href: (h) => `/arena/${h}/configuracoes` },
     ],
   },

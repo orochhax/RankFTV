@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, Mail, Phone, MapPin, User as UserIcon } from "lucide-react";
+import { Search, Mail, Phone, MapPin, Pencil, User as UserIcon } from "lucide-react";
 import { AdminStatusSelect } from "@/components/admin/AdminStatusSelect";
 import { AdminDeleteCampeonato } from "@/components/admin/AdminDeleteCampeonato";
 
@@ -130,7 +130,17 @@ export function AdminCampeonatosLista({ itens }: { itens: AdminCampItem[] }) {
                     {c.datas}
                   </p>
                 </div>
-                <AdminDeleteCampeonato champId={c.id} champNome={c.nome} />
+                <div className="flex shrink-0 items-center gap-1">
+                  {c.isVitrine && (
+                    <Link
+                      href={`/admin/campeonatos/${c.id}/editar`}
+                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                    >
+                      <Pencil className="size-3.5" /> Editar
+                    </Link>
+                  )}
+                  <AdminDeleteCampeonato champId={c.id} champNome={c.nome} />
+                </div>
               </div>
 
               {/* Contato do organizador */}

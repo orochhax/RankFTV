@@ -48,7 +48,7 @@ export default async function AssinaturaPage({
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 md:px-8 md:py-8">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Assinatura</h1>
+        <h1 className="text-xl font-bold text-gray-900">Plano RankFTV</h1>
         <p className="text-sm text-gray-400">{arena.nome}</p>
       </div>
 
@@ -75,7 +75,7 @@ export default async function AssinaturaPage({
       </div>
 
       <section>
-        <p className="mb-3 text-sm font-semibold text-gray-700">Planos disponíveis</p>
+        <p className="mb-3 text-sm font-semibold text-gray-700">Plano disponível</p>
         <div className="rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5">
           <div className="flex items-start justify-between gap-4">
             <div>

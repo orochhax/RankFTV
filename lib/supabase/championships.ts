@@ -34,6 +34,8 @@ type ChampRow = {
   taxa_plataforma: number;
   live_url: string | null;
   banner_url: string | null;
+  banner_position_x: number | null;
+  banner_position_y: number | null;
   is_vitrine: boolean | null;
   usa_motor_categoria: boolean | null;
   prevenda_inicio: string | null;
@@ -42,7 +44,7 @@ type ChampRow = {
 };
 
 const SELECT =
-  "id, organizador_id, nome, descricao, regulamento, data_inicio, data_fim, cidade, estado, local, status, taxa_plataforma, live_url, banner_url, is_vitrine, usa_motor_categoria, prevenda_inicio, prevenda_fim, championship_categories(id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max, max_duplas)";
+  "id, organizador_id, nome, descricao, regulamento, data_inicio, data_fim, cidade, estado, local, status, taxa_plataforma, live_url, banner_url, banner_position_x, banner_position_y, is_vitrine, usa_motor_categoria, prevenda_inicio, prevenda_fim, championship_categories(id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max, max_duplas)";
 
 const GRADIENTS: [string, string][] = [
   ["from-blue-500", "to-cyan-400"],
@@ -73,6 +75,8 @@ function mapChampionship(row: ChampRow): Championship {
     bannerFrom,
     bannerTo,
     bannerUrl: row.banner_url ?? null,
+    bannerPositionX: row.banner_position_x ?? null,
+    bannerPositionY: row.banner_position_y ?? null,
     liveUrl: row.live_url,
     isVitrine: row.is_vitrine ?? false,
     usaMotorCategoria: row.usa_motor_categoria ?? true,

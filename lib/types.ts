@@ -36,6 +36,9 @@ export type Championship = {
   bannerFrom: string;
   bannerTo: string;
   bannerUrl?: string | null;
+  /** Foco do enquadramento do banner (0–100%); null = centro. */
+  bannerPositionX?: number | null;
+  bannerPositionY?: number | null;
   liveUrl?: string | null;
   isVitrine?: boolean;
   usaMotorCategoria: boolean;

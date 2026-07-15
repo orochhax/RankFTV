@@ -3,8 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { ArenaShell } from "@/components/arena/ArenaShell";
 
 // Shell compartilhado por todas as páginas do painel do organizador
-// (Início, Agenda, Alunos, Financeiro, Planos, Aulas, Relatórios,
-// Assinatura, Configurações, detalhe de aula). Cada página ainda revalida a
+// (Início, Agenda, Alunos, Financeiro, Planos para alunos, Aulas, Relatórios,
+// Plano RankFTV, Configurações, detalhe de aula). Cada página ainda revalida a
 // posse da arena por handle+dono_id por conta própria (mesmo padrão já usado
 // em alunos/page.tsx) — o layout só resolve o que é comum: autenticação,
 // dados pra sidebar/topbar e a lista de arenas do dono pro trocador.
