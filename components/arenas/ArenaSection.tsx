@@ -5,6 +5,7 @@ import { ChevronDown, Search, X, Building2 } from "lucide-react";
 import { ArenaCard, type ArenaCardData } from "./ArenaCard";
 import { FilterBar } from "@/components/shell/FilterBar";
 import { EmptyState } from "@/components/shell/EmptyState";
+import { SectionHeader } from "@/components/shell/SectionHeader";
 
 const PAGE_SIZE = 12;
 
@@ -39,7 +40,7 @@ export function ArenaSection({
 
   return (
     <section>
-      <h2 className="mb-3 text-base font-semibold text-ink">Arenas</h2>
+      <SectionHeader title="Arenas" className="mb-3" />
 
       <FilterBar className="mb-4">
         <div className="relative flex-1 sm:min-w-64">

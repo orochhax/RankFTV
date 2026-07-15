@@ -10,6 +10,8 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDateRangeBR } from "@/lib/format";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Surface } from "@/components/shell/Surface";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { SectionHeader } from "@/components/shell/SectionHeader";
 
 const STATUS_PRIORIDADE: Record<string, number> = {
   inscricoes_abertas: 0, em_andamento: 1, rascunho: 2, encerrado: 3,
@@ -114,17 +116,19 @@ export default async function Home() {
         )}
       </div>
 
-      <div className="hidden border-b border-border bg-surface px-8 py-6 md:block">
-        <PageHeader
-          eyebrow={profile ? "Bem-vindo de volta" : undefined}
-          title={profile ? profile.nome.split(" ")[0] : "Campeonatos de futevôlei"}
-          description={profile ? `@${profile.username}` : "Encontre e participe dos melhores campeonatos do Brasil."}
-        />
+      <div className="hidden border-b border-border bg-surface md:block">
+        <PageContainer width="wide" className="py-6">
+          <PageHeader
+            eyebrow={profile ? "Bem-vindo de volta" : undefined}
+            title={profile ? profile.nome.split(" ")[0] : "Campeonatos de futevôlei"}
+            description={profile ? `@${profile.username}` : "Encontre e participe dos melhores campeonatos do Brasil."}
+          />
+        </PageContainer>
       </div>
 
       {/* ── Corpo: sheet arredondada no mobile, grid larga no desktop ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:px-8 md:pb-16 md:shadow-none">
-        <div className="mx-auto max-w-5xl space-y-8 md:max-w-[1600px] md:grid md:grid-cols-3 md:items-start md:gap-8 md:space-y-0">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:pb-16 md:shadow-none">
+        <PageContainer width="wide" className="space-y-8 md:grid md:grid-cols-3 md:items-start md:gap-8 md:space-y-0">
           <div className="space-y-8 md:col-span-2">
             {/* Carrossel de destaques */}
             <DestaquesCarousel camps={destaques} />
@@ -132,10 +136,7 @@ export default async function Home() {
             {/* Campeonatos ao vivo */}
             {aoVivo.length > 0 && (
               <section>
-                <div className="mb-3 flex items-center gap-2">
-                  <Radio className="size-4 text-red-500 animate-pulse" />
-                  <h2 className="text-base font-semibold text-ink">Ao vivo agora</h2>
-                </div>
+                <SectionHeader icon={Radio} iconClassName="size-4 text-red-500 animate-pulse" title="Ao vivo agora" className="mb-3" />
                 <div className="grid gap-3 md:grid-cols-2">
                   {aoVivo.map((c) => (
                     <Link
@@ -191,7 +192,7 @@ export default async function Home() {
               </ul>
             </Surface>
           </aside>
-        </div>
+        </PageContainer>
       </div>
     </div>
   );

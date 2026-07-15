@@ -5,12 +5,15 @@ import { ChevronRight } from "lucide-react";
 // grid, com um link "Ver todos" opcional à direita).
 export function SectionHeader({
   icon: Icon,
+  iconClassName = "size-4 text-blue-600",
   title,
   actionLabel,
   actionHref,
   className = "",
 }: {
   icon?: React.ComponentType<{ className?: string }>;
+  /** Sobrescreve o estilo padrão do ícone (ex.: vermelho pulsante pra "ao vivo"). */
+  iconClassName?: string;
   title: string;
   actionLabel?: string;
   actionHref?: string;
@@ -19,7 +22,7 @@ export function SectionHeader({
   return (
     <div className={`flex items-center justify-between gap-3 ${className}`}>
       <div className="flex items-center gap-2">
-        {Icon && <Icon className="size-4 text-blue-600" />}
+        {Icon && <Icon className={iconClassName} />}
         <h2 className="text-base font-semibold text-ink">{title}</h2>
       </div>
       {actionLabel && actionHref && (

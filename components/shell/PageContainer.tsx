@@ -15,8 +15,10 @@ type PageContainerProps = {
 };
 
 export function PageContainer({ width = "wide", className = "", children }: PageContainerProps) {
+  // px-6 no mobile/tablet mantém o gutter já usado no resto do site
+  // (dark headers, sheets arredondadas); só cresce em telas grandes.
   return (
-    <div className={`mx-auto w-full px-4 sm:px-6 lg:px-8 ${MAX_WIDTH[width]} ${className}`}>
+    <div className={`mx-auto w-full px-6 lg:px-8 ${MAX_WIDTH[width]} ${className}`}>
       {children}
     </div>
   );

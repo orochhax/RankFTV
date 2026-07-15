@@ -5,6 +5,7 @@ import type { ArenaCardData, ProximaData } from "@/components/arenas/ArenaCard";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { EmptyState } from "@/components/shell/EmptyState";
+import { PageContainer } from "@/components/shell/PageContainer";
 
 const DIAS_LABEL = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -119,11 +120,13 @@ export default async function ArenasPage() {
           Alugue uma quadra por hora ou assine um plano mensal de treino.
         </p>
       </div>
-      <div className="hidden border-b border-border bg-surface px-8 py-6 md:block">
-        <PageHeader
-          title="Arenas"
-          description="Alugue uma quadra por hora ou assine um plano mensal de treino."
-        />
+      <div className="hidden border-b border-border bg-surface md:block">
+        <PageContainer width="wide" className="py-6">
+          <PageHeader
+            title="Arenas"
+            description="Alugue uma quadra por hora ou assine um plano mensal de treino."
+          />
+        </PageContainer>
       </div>
     </>
   );
@@ -132,14 +135,14 @@ export default async function ArenasPage() {
     return (
       <div className="min-h-screen">
         {cabecalho}
-        <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-12 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:px-8 md:shadow-none">
-          <div className="mx-auto max-w-5xl md:max-w-[1600px]">
+        <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-12 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:shadow-none">
+          <PageContainer width="wide">
             <EmptyState
               icon={Building2}
               title="Nenhuma arena encontrada"
               description="Ainda não há arenas cadastradas na plataforma."
             />
-          </div>
+          </PageContainer>
         </div>
       </div>
     );
@@ -150,8 +153,8 @@ export default async function ArenasPage() {
       {cabecalho}
 
       {/* ── Corpo: sheet arredondada no mobile, largura total no desktop ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:px-8 md:pb-16 md:shadow-none">
-        <div className="mx-auto max-w-5xl space-y-8 md:max-w-[1600px]">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:bg-app-bg md:pb-16 md:shadow-none">
+        <PageContainer width="wide" className="space-y-8">
 
           {/* Destaques — mesmo carrossel dos campeonatos */}
           {destaques.length > 0 && (
@@ -161,7 +164,7 @@ export default async function ArenasPage() {
           {/* Filtros + lista completa */}
           <ArenaSection allArenas={arenas} estados={estados} />
 
-        </div>
+        </PageContainer>
       </div>
     </div>
   );
