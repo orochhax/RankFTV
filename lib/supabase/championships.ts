@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type {
   Category,
@@ -136,9 +137,12 @@ export async function getMyChampionships(userId: string): Promise<Championship[]
 
 // IDs de campeonato no banco são UUIDs; validamos antes de consultar para não
 // enviar uma entrada inválida ao Postgres.
-export async function getDbChampionshipById(
+// Envolvida em React cache() pra dedupar dentro da mesma requisição — o
+// layout do painel do campeonato e a página dentro dele podem chamar essa
+// função sem disparar duas consultas ao Postgres.
+export const getDbChampionshipById = cache(async (
   id: string,
-): Promise<Championship | null> {
+): Promise<Championship | null> => {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
     return null;
   }
@@ -150,4 +154,4 @@ export async function getDbChampionshipById(
     .maybeSingle();
   if (error || !data) return null;
   return mapChampionship(data as ChampRow);
-}
+});

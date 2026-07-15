@@ -30,14 +30,14 @@ export function VagasProgressBar({ duplasPagas, vagasTotais, totalArrecadado, to
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between text-xs text-white/50">
+      <div className="flex items-center justify-between text-xs text-ink-muted">
         <span>{labelEsquerda}</span>
         {totalArrecadado > 0 && (
           <div className="flex items-center gap-1.5">
             <span>{labelDireita}</span>
             <button
               onClick={() => setMostrar((v) => !v)}
-              className="text-white/30 hover:text-white/70 transition-colors"
+              className="text-ink-muted/60 hover:text-ink transition-colors"
               aria-label={mostrar ? "Ocultar valor" : "Mostrar valor"}
             >
               {mostrar ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
@@ -45,7 +45,7 @@ export function VagasProgressBar({ duplasPagas, vagasTotais, totalArrecadado, to
           </div>
         )}
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
         <div
           className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
           style={{ width: barWidth }}
