@@ -1,11 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { formatBRL } from "@/lib/format";
 import { InscricaoExpandivel } from "@/components/painel/InscricaoExpandivel";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { EmptyState } from "@/components/shell/EmptyState";
 
 type StatusSlug = "pagos" | "pendentes" | "estornados";
 
@@ -135,49 +137,38 @@ export default async function FinanceiroStatusPage({
   });
 
   return (
-    <div className="min-h-screen">
-      {/* Cabeçalho */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-2xl space-y-3">
-          <Link
-            href={`/painel/campeonatos/${id}/financeiro`}
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
-          >
-            <ArrowLeft className="size-4" /> Financeiro
-          </Link>
-          <h1 className="text-2xl font-bold text-white">{cfg.titulo}</h1>
-          <p className="text-sm text-white/40">{camp.nome}</p>
+    <PageContainer width="form" className="space-y-4 py-8">
+      <Link
+        href={`/painel/campeonatos/${id}/financeiro`}
+        className="inline-flex items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-blue-600"
+      >
+        <ArrowLeft className="size-4" /> Financeiro
+      </Link>
+      <div>
+        <h1 className="text-xl font-bold text-ink">{cfg.titulo}</h1>
+        <p className="text-sm text-ink-muted">{camp.nome}</p>
+      </div>
 
-          {/* Resumo rápido */}
-          <div className={`inline-flex items-center gap-3 rounded-2xl px-4 py-3 ring-1 ${cfg.bg} ${cfg.ring}`}>
-            <span className={`text-2xl font-bold ${cfg.text}`}>{lista.length}</span>
-            <div>
-              <p className={`text-xs font-semibold ${cfg.text}`}>
-                {lista.length === 1 ? "dupla" : "duplas"}
-              </p>
-              <p className={`text-xs ${cfg.text} opacity-70`}>{formatBRL(totalValor)}</p>
-            </div>
-          </div>
+      {/* Resumo rápido */}
+      <div className={`inline-flex items-center gap-3 rounded-card-lg px-4 py-3 ring-1 ${cfg.bg} ${cfg.ring}`}>
+        <span className={`text-2xl font-bold ${cfg.text}`}>{lista.length}</span>
+        <div>
+          <p className={`text-xs font-semibold ${cfg.text}`}>
+            {lista.length === 1 ? "dupla" : "duplas"}
+          </p>
+          <p className={`text-xs ${cfg.text} opacity-70`}>{formatBRL(totalValor)}</p>
         </div>
       </div>
 
-      {/* Lista */}
-      <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-2xl">
-          {lista.length === 0 ? (
-            <div className="rounded-2xl bg-gray-50 px-4 py-16 text-center ring-1 ring-black/5">
-              <p className="text-sm text-gray-400">{cfg.descricao}</p>
-              <p className="mt-1 text-xs text-gray-300">Nenhuma inscrição aqui ainda.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100 overflow-hidden rounded-2xl ring-1 ring-black/5">
-              {lista.map((ins) => (
-                <InscricaoExpandivel key={ins.regId} inscricao={ins} />
-              ))}
-            </div>
-          )}
+      {lista.length === 0 ? (
+        <EmptyState icon={Wallet} title="Nenhuma inscrição aqui ainda" description={cfg.descricao} />
+      ) : (
+        <div className="divide-y divide-border overflow-hidden rounded-card-lg ring-1 ring-border">
+          {lista.map((ins) => (
+            <InscricaoExpandivel key={ins.regId} inscricao={ins} />
+          ))}
         </div>
-      </div>
-    </div>
+      )}
+    </PageContainer>
   );
 }

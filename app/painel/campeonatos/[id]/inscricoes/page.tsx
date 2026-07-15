@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Info, User, Users } from "lucide-react";
+import { User, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { InscricoesBuscaLista } from "@/components/inscricoes/InscricoesBuscaLista";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { StatCard } from "@/components/shell/StatCard";
+import { EmptyState } from "@/components/shell/EmptyState";
 
 type RegRow = {
   id: string;
@@ -118,103 +122,57 @@ export default async function InscricoesPage({
   const totalAtletas  = duplas.reduce((s, d) => s + (d.a2 ? 2 : 1), 0);
 
   return (
-    <div className="min-h-screen">
-      {/* ── Cabeçalho preto ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-3xl space-y-4">
-          <Link
-            href={`/painel/campeonatos/${id}`}
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
-          >
-            <ArrowLeft className="size-4" /> {camp.nome}
-          </Link>
+    <PageContainer width="wide" className="space-y-6 py-8">
+      <PageHeader title="Inscrições" description="Duplas inscritas com pagamento confirmado nesse campeonato." />
 
-          <h1 className="text-2xl font-bold tracking-tight text-white">Inscrições</h1>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-white/10 p-4">
-              <div className="flex items-center gap-1.5 text-white/50">
-                <Users className="size-4" />
-                <p className="text-xs">Total de duplas</p>
-              </div>
-              <p className="mt-1 text-2xl font-bold text-white">{totalDuplas}</p>
-            </div>
-            <div className="rounded-2xl bg-white/10 p-4">
-              <div className="flex items-center gap-1.5 text-white/50">
-                <User className="size-4" />
-                <p className="text-xs">Total de atletas</p>
-              </div>
-              <p className="mt-1 text-2xl font-bold text-white">{totalAtletas}</p>
-            </div>
-          </div>
-
-          {/* Aviso */}
-          <div className="flex items-start gap-2 rounded-xl bg-white/5 px-3 py-2.5">
-            <Info className="mt-0.5 size-3.5 shrink-0 text-white/30" />
-            <p className="text-xs leading-relaxed text-white/30">
-              Exibindo apenas duplas com pagamento confirmado.
-            </p>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 gap-4 sm:max-w-md">
+        <StatCard label="Total de duplas" value={totalDuplas} icon={Users} />
+        <StatCard label="Total de atletas" value={totalAtletas} icon={User} />
       </div>
 
-      {/* ── Conteúdo branco ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-3xl space-y-4">
-
-          {totalDuplas === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-16 text-center">
-              <div className="flex size-16 items-center justify-center rounded-full bg-gray-100">
-                <Users className="size-8 text-gray-300" />
-              </div>
-              <p className="text-sm text-gray-400">Nenhuma inscrição ainda.</p>
-            </div>
-          ) : (
-            <>
-              {/* Filtro por categoria */}
-              {categorias.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-1">
+      {totalDuplas === 0 ? (
+        <EmptyState icon={Users} title="Nenhuma inscrição ainda" description="Assim que uma dupla pagar a inscrição, ela aparece aqui." />
+      ) : (
+        <>
+          {/* Filtro por categoria */}
+          {categorias.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              <Link
+                href={`/painel/campeonatos/${id}/inscricoes`}
+                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  filtroAtivo === "todos"
+                    ? "bg-blue-600 text-white"
+                    : "bg-surface-2 text-ink-muted hover:bg-border/60"
+                }`}
+              >
+                Todos ({totalDuplas})
+              </Link>
+              {categorias.map((c) => {
+                const count = duplas.filter((d) => d.catId === c.id).length;
+                return (
                   <Link
-                    href={`/painel/campeonatos/${id}/inscricoes`}
+                    key={c.id}
+                    href={`/painel/campeonatos/${id}/inscricoes?cat=${c.id}`}
                     className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                      filtroAtivo === "todos"
-                        ? "bg-gray-900 text-white"
-                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      filtroAtivo === c.id
+                        ? "bg-blue-600 text-white"
+                        : "bg-surface-2 text-ink-muted hover:bg-border/60"
                     }`}
                   >
-                    Todos ({totalDuplas})
+                    {c.nome} ({count})
                   </Link>
-                  {categorias.map((c) => {
-                    const count = duplas.filter((d) => d.catId === c.id).length;
-                    return (
-                      <Link
-                        key={c.id}
-                        href={`/painel/campeonatos/${id}/inscricoes?cat=${c.id}`}
-                        className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                          filtroAtivo === c.id
-                            ? "bg-gray-900 text-white"
-                            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                        }`}
-                      >
-                        {c.nome} ({count})
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Busca por nome + lista em ordem alfabética */}
-              {lista.length === 0 ? (
-                <div className="rounded-2xl bg-gray-50 p-6 text-center ring-1 ring-black/5">
-                  <p className="text-sm text-gray-400">Nenhuma dupla nesta categoria.</p>
-                </div>
-              ) : (
-                <InscricoesBuscaLista lista={lista} />
-              )}
-            </>
+                );
+              })}
+            </div>
           )}
-        </div>
-      </div>
-    </div>
+
+          {lista.length === 0 ? (
+            <EmptyState icon={Users} title="Nenhuma dupla nesta categoria" />
+          ) : (
+            <InscricoesBuscaLista lista={lista} />
+          )}
+        </>
+      )}
+    </PageContainer>
   );
 }

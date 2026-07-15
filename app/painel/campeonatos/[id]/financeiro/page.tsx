@@ -1,11 +1,11 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { FinanceiroConteudoClient } from "@/components/painel/FinanceiroConteudoClient";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { ChavePixClient } from "@/components/painel/ChavePixClient";
 import { PlanoTaxas } from "@/components/painel/PlanoTaxas";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
 
 type RegRow = {
   id: string;
@@ -167,35 +167,23 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   }));
 
   return (
-    <div className="min-h-screen">
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-3xl space-y-4">
-          <Link href={`/painel/campeonatos/${id}`} className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors">
-            <ArrowLeft className="size-4" /> {camp.nome}
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Financeiro</h1>
-          <ChavePixClient chavePix={chavePix} />
-        </div>
-      </div>
-
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-3xl space-y-8">
-          <FinanceiroConteudoClient
-            champId={id}
-            repasseLiquido={repasseLiquido}
-            statusCards={STATUS_CARDS}
-            totalPix={totalPix}
-            totalCredito={totalCredito}
-            totalDebito={totalDebito}
-            categorias={categorias}
-            catMap={catMap}
-            isElite={isElite}
-            feePendente={feePendente}
-            vendasDiarias={vendasDiarias}
-          />
-          <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} permitirCancelar />
-        </div>
-      </div>
-    </div>
+    <PageContainer width="form" className="space-y-6 py-8">
+      <PageHeader title="Financeiro" description="Entradas, taxas e repasses desse campeonato." />
+      <ChavePixClient chavePix={chavePix} />
+      <FinanceiroConteudoClient
+        champId={id}
+        repasseLiquido={repasseLiquido}
+        statusCards={STATUS_CARDS}
+        totalPix={totalPix}
+        totalCredito={totalCredito}
+        totalDebito={totalDebito}
+        categorias={categorias}
+        catMap={catMap}
+        isElite={isElite}
+        feePendente={feePendente}
+        vendasDiarias={vendasDiarias}
+      />
+      <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} permitirCancelar />
+    </PageContainer>
   );
 }

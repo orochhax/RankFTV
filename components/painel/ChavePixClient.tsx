@@ -103,14 +103,14 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
         </div>
       )}
 
-      <div className="mt-4 rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
-        <div className="flex items-center gap-2 mb-3">
-          <QrCode className="size-4 text-white/50" />
-          <p className="text-sm font-medium text-white/70">Chave Pix para recebimento</p>
+      <div className="rounded-card-lg bg-surface-2 p-4 ring-1 ring-border">
+        <div className="mb-3 flex items-center gap-2">
+          <QrCode className="size-4 text-ink-muted" />
+          <p className="text-sm font-medium text-ink">Chave Pix para recebimento</p>
           {chavePix && !editando && (
             <button
               onClick={() => { setEditando(true); setNovaChave(chavePix ?? ""); }}
-              className="ml-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-white/50 hover:bg-white/10 hover:text-white transition-colors"
+              className="ml-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-ink-muted transition-colors hover:bg-surface hover:text-ink"
             >
               <Pencil className="size-3" /> Alterar
             </button>
@@ -119,16 +119,16 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
 
         {!editando && chavePix ? (
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="size-4 shrink-0 text-blue-400" />
-            <p className="font-mono text-sm text-white">{mascarar(chavePix)}</p>
+            <CheckCircle2 className="size-4 shrink-0 text-blue-600" />
+            <p className="font-mono text-sm text-ink">{mascarar(chavePix)}</p>
             {sucesso && (
-              <span className="ml-auto text-xs text-blue-400">Salvo!</span>
+              <span className="ml-auto text-xs text-blue-600">Salvo!</span>
             )}
           </div>
         ) : (
           <div className="space-y-2">
             {!chavePix && (
-              <p className="text-xs text-amber-300">
+              <p className="text-xs text-warning">
                 Configure sua chave Pix para receber os repasses das inscrições.
               </p>
             )}
@@ -138,7 +138,7 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
                 value={novaChave}
                 onChange={(e) => { setNovaChave(e.target.value); setErro(null); }}
                 placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória"
-                className="flex-1 rounded-xl bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                className="flex-1 rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:ring-1 focus:ring-blue-400"
               />
               <button
                 onClick={handleSalvar}
@@ -150,18 +150,18 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
               {chavePix && (
                 <button
                   onClick={() => { setEditando(false); setNovaChave(""); setErro(null); }}
-                  className="rounded-xl bg-white/10 p-2 text-white/50 hover:bg-white/20 hover:text-white transition-colors"
+                  className="rounded-xl bg-surface p-2 text-ink-muted ring-1 ring-border hover:bg-border/40 hover:text-ink transition-colors"
                 >
                   <X className="size-4" />
                 </button>
               )}
             </div>
             {tipoDetectado && novaChave.trim() && (
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-ink-muted">
                 Tipo detectado: {TIPO_LABEL[tipoDetectado]}
               </p>
             )}
-            {erro && <p className="text-xs text-red-400">{erro}</p>}
+            {erro && <p className="text-xs text-danger">{erro}</p>}
           </div>
         )}
       </div>

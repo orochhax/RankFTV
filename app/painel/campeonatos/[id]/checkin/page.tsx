@@ -1,10 +1,16 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Users } from "lucide-react";
+import { Users, UserCheck, UserX } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CheckinClient } from "@/components/checkin/CheckinClient";
 import { PresenceItem } from "@/components/checkin/PresenceItem";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { StatCard } from "@/components/shell/StatCard";
+import { SectionHeader } from "@/components/shell/SectionHeader";
+import { EmptyState } from "@/components/shell/EmptyState";
+import { Surface } from "@/components/shell/Surface";
 
 type CredentialRow = {
   id: string;
@@ -104,130 +110,92 @@ export default async function CheckinPage({
   ];
 
   return (
-    <div className="min-h-screen">
-      {/* ── Cabeçalho preto ── */}
-      <div className="bg-[#0f0f13] px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-2xl space-y-4">
-          <Link
-            href={`/painel/campeonatos/${id}`}
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
-          >
-            <ArrowLeft className="size-4" /> {camp.nome}
-          </Link>
+    <PageContainer width="form" className="space-y-6 py-8">
+      <PageHeader title="Check-in" description="Portaria · credenciamento e controle de presença." />
 
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Check-in</h1>
-            <p className="mt-1 text-sm text-white/40">Portaria · credenciamento</p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3 pt-1">
-            <div className="rounded-2xl bg-white/10 p-4">
-              <div className="flex items-center gap-1.5 text-white/50">
-                <Users className="size-4" />
-                <p className="text-xs">Total</p>
-              </div>
-              <p className="mt-1 text-2xl font-bold text-white">{total}</p>
-            </div>
-            <div className="rounded-2xl bg-blue-500/20 p-4">
-              <div className="flex items-center gap-1.5 text-blue-400">
-                <p className="text-xs">Confirmados</p>
-              </div>
-              <p className="mt-1 text-2xl font-bold text-blue-300">{confirmados}</p>
-            </div>
-            <div className="rounded-2xl bg-white/10 p-4">
-              <div className="flex items-center gap-1.5 text-white/50">
-                <p className="text-xs">Pendentes</p>
-              </div>
-              <p className="mt-1 text-2xl font-bold text-white">{pendentes}</p>
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-3 gap-4">
+        <StatCard label="Total" value={total} icon={Users} />
+        <StatCard label="Confirmados" value={confirmados} icon={UserCheck} tone="success" />
+        <StatCard label="Pendentes" value={pendentes} icon={UserX} tone={pendentes > 0 ? "warning" : "default"} />
       </div>
 
-      {/* ── Conteúdo branco ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-white px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-2xl space-y-6">
+      <Surface padding="md">
+        <CheckinClient championshipId={id} />
+      </Surface>
 
-          <section>
-            <CheckinClient championshipId={id} />
-          </section>
+      <section>
+        <SectionHeader title="Lista de presença" />
 
-          <section>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
-              Lista de presença
-            </h2>
+        {total > 0 && (
+          <div className="mb-4 mt-3 flex gap-2 overflow-x-auto pb-1">
+            {FILTROS.map(({ key, label }) => (
+              <Link
+                key={key}
+                href={
+                  key === "todos"
+                    ? `/painel/campeonatos/${id}/checkin`
+                    : `/painel/campeonatos/${id}/checkin?filtro=${key}`
+                }
+                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  filtroAtivo === key
+                    ? "bg-blue-600 text-white"
+                    : "bg-surface-2 text-ink-muted hover:bg-border/60"
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        )}
 
-            {total > 0 && (
-              <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-                {FILTROS.map(({ key, label }) => (
-                  <Link
-                    key={key}
-                    href={
-                      key === "todos"
-                        ? `/painel/campeonatos/${id}/checkin`
-                        : `/painel/campeonatos/${id}/checkin?filtro=${key}`
-                    }
-                    className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                      filtroAtivo === key
-                        ? "bg-gray-900 text-white"
-                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                    }`}
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            {total === 0 ? (
-              <div className="rounded-2xl bg-gray-50 p-8 text-center ring-1 ring-black/5">
-                <p className="text-sm text-gray-400">
-                  Nenhuma credencial emitida ainda.
-                  <br />
-                  As credenciais são geradas após o pagamento da inscrição.
-                </p>
-              </div>
-            ) : lista.length === 0 ? (
-              <div className="rounded-2xl bg-gray-50 p-6 text-center ring-1 ring-black/5">
-                <p className="text-sm text-gray-400">
-                  {filtroAtivo === "presentes" ? "Nenhum atleta confirmado ainda." : "Todos confirmados!"}
-                </p>
-              </div>
-            ) : (
-              <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-                {lista.map((c) =>
-                  c.checked_in && c.checkin_at ? (
-                    // Presente — clicável, mostra quem escaneou
-                    <PresenceItem
-                      key={c.id}
-                      nome={c.nome}
-                      username={c.username}
-                      checkinAt={c.checkin_at}
-                      scannerNome={c.scannerNome}
-                    />
-                  ) : (
-                    // Pendente — linha simples
-                    <li key={c.id} className="flex items-center gap-3 px-4 py-3">
-                      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
-                        <span className="text-xs font-bold text-gray-400">?</span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-gray-900">{c.nome}</p>
-                        {c.username && (
-                          <p className="text-xs text-gray-400">@{c.username}</p>
-                        )}
-                      </div>
-                      <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500">
-                        Pendente
-                      </span>
-                    </li>
-                  )
-                )}
-              </ol>
-            )}
-          </section>
-        </div>
-      </div>
-    </div>
+        {total === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="Nenhuma credencial emitida ainda"
+            description="As credenciais são geradas após o pagamento da inscrição."
+            className="mt-3"
+          />
+        ) : lista.length === 0 ? (
+          <EmptyState
+            icon={filtroAtivo === "presentes" ? UserCheck : UserX}
+            title={filtroAtivo === "presentes" ? "Nenhum atleta confirmado ainda" : "Todos confirmados!"}
+            className="mt-3"
+          />
+        ) : (
+          <Surface padding="none" className="mt-3 overflow-hidden">
+            <ol className="divide-y divide-border">
+              {lista.map((c) =>
+                c.checked_in && c.checkin_at ? (
+                  // Presente — clicável, mostra quem escaneou
+                  <PresenceItem
+                    key={c.id}
+                    nome={c.nome}
+                    username={c.username}
+                    checkinAt={c.checkin_at}
+                    scannerNome={c.scannerNome}
+                  />
+                ) : (
+                  // Pendente — linha simples
+                  <li key={c.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2">
+                      <span className="text-xs font-bold text-ink-muted">?</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-ink">{c.nome}</p>
+                      {c.username && (
+                        <p className="text-xs text-ink-muted">@{c.username}</p>
+                      )}
+                    </div>
+                    <span className="shrink-0 rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-ink-muted">
+                      Pendente
+                    </span>
+                  </li>
+                )
+              )}
+            </ol>
+          </Surface>
+        )}
+      </section>
+    </PageContainer>
   );
 }
