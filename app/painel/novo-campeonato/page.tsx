@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { NovoCampeonatoSection } from "@/components/painel/NovoCampeonatoSection";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
 
 export default async function NovoCampeonatoPage() {
   const supabase = await createClient();
@@ -15,15 +17,12 @@ export default async function NovoCampeonatoPage() {
   if (!conta?.habilitado) redirect("/perfil/ativar-organizador?next=%2Fpainel%2Fnovo-campeonato");
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8">
-      <h1 className="text-2xl font-semibold text-gray-900">Criar Evento</h1>
-      <p className="mt-1 text-sm text-gray-500">
-        Escolha o que vai vender e preencha os dados. Dá pra salvar como rascunho e publicar depois.
-      </p>
-
-      <div className="mt-6">
-        <NovoCampeonatoSection />
-      </div>
-    </div>
+    <PageContainer width="form" className="space-y-6 py-8">
+      <PageHeader
+        title="Criar campeonato"
+        description="Escolha o que vai vender e preencha os dados. Dá pra salvar como rascunho e publicar depois."
+      />
+      <NovoCampeonatoSection />
+    </PageContainer>
   );
 }

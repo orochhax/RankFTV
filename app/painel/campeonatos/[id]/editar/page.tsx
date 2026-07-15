@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { EditarCampeonatoForm } from "@/components/painel/EditarCampeonatoForm";
 import { ExcluirCampeonatoButton } from "@/components/painel/ExcluirCampeonatoButton";
 import { ChampBannerForm } from "@/components/painel/ChampBannerForm";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
 import type { GeneroCategoria } from "@/lib/types";
 
 export default async function EditarCampeonatoPage({
@@ -69,44 +69,30 @@ export default async function EditarCampeonatoPage({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-[#0f0f13] px-6 pb-14 pt-6">
-        <div className="mx-auto max-w-2xl space-y-3">
-          <Link
-            href={`/painel/campeonatos/${id}`}
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
-          >
-            <ArrowLeft className="size-4" /> {champ.nome}
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Editar campeonato</h1>
-        </div>
+    <PageContainer width="form" className="space-y-8 py-8">
+      <PageHeader title="Editar campeonato" />
+
+      <div className="space-y-2">
+        <p className="text-sm font-semibold text-ink">Banner do campeonato</p>
+        <ChampBannerForm
+          champId={id}
+          initialBannerUrl={(c.banner_url as string | null) ?? null}
+          bannerFrom="from-blue-500"
+          bannerTo="to-cyan-400"
+        />
       </div>
 
-      <div className="relative -mt-6 rounded-t-3xl bg-gray-50 px-6 pb-8 pt-8 shadow-sm">
-        <div className="mx-auto max-w-2xl space-y-10">
-          <div className="space-y-2">
-            <p className="text-sm font-semibold text-gray-700">Banner do campeonato</p>
-            <ChampBannerForm
-              champId={id}
-              initialBannerUrl={(c.banner_url as string | null) ?? null}
-              bannerFrom="from-blue-500"
-              bannerTo="to-cyan-400"
-            />
-          </div>
+      <EditarCampeonatoForm champId={id} initial={initial} />
 
-          <EditarCampeonatoForm champId={id} initial={initial} />
-
-          {/* Zona de exclusão */}
-          <div className="rounded-2xl border border-red-100 bg-red-50/50 p-5">
-            <h3 className="mb-1 text-sm font-semibold text-red-700">Zona de perigo</h3>
-            <p className="mb-4 text-xs text-red-600">
-              Excluir apaga o campeonato permanentemente — inscrições, chaveamento e resultados
-              não poderão mais ser acessados pelos atletas.
-            </p>
-            <ExcluirCampeonatoButton champId={id} champNome={champ.nome} />
-          </div>
-        </div>
+      {/* Zona de exclusão */}
+      <div className="rounded-card-lg border border-danger/20 bg-danger-bg p-5">
+        <h3 className="mb-1 text-sm font-semibold text-danger">Zona de perigo</h3>
+        <p className="mb-4 text-xs text-danger/80">
+          Excluir apaga o campeonato permanentemente — inscrições, chaveamento e resultados
+          não poderão mais ser acessados pelos atletas.
+        </p>
+        <ExcluirCampeonatoButton champId={id} champNome={champ.nome} />
       </div>
-    </div>
+    </PageContainer>
   );
 }
