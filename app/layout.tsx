@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { cookies } from "next/headers";
 import "./globals.css";
 import { BottomNav } from "@/components/navbar/BottomNav";
 import { Footer } from "@/components/Footer";
@@ -76,9 +75,6 @@ export default async function RootLayout({
     isArenaOwner = (arenaRes.count ?? 0) > 0;
   }
 
-  const cookieStore = await cookies();
-  const initialCollapsed = cookieStore.get("sidebar_collapsed")?.value === "1";
-
   return (
     <html
       lang="pt-BR"
@@ -89,7 +85,6 @@ export default async function RootLayout({
           user={navUser ? { nome: navUser.nome, username: navUser.username, fotoUrl: navUser.fotoUrl } : null}
           perms={{ isLoggedIn: !!navUser, isOrganizer, isArenaOwner, isStaff, isAdmin }}
           notifCount={notifCount}
-          initialCollapsed={initialCollapsed}
         >
           {children}
         </AppShell>

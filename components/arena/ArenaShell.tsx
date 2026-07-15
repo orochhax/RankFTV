@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Menu, X, ChevronDown, ChevronsLeft, ChevronsRight, ExternalLink, LayoutDashboard, LogOut, Plus, Building2,
+  Menu, X, ChevronDown, ExternalLink, LayoutDashboard, LogOut, Plus, Building2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar } from "@/components/ui/Avatar";
@@ -26,7 +26,6 @@ export function ArenaShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
@@ -35,10 +34,6 @@ export function ArenaShell({
   function closeOverlays() {
     setDrawerOpen(false);
     setSwitcherOpen(false);
-  }
-
-  function toggleCollapsed() {
-    setCollapsed((prev) => !prev);
   }
 
   async function handleLogout() {
@@ -53,37 +48,18 @@ export function ArenaShell({
   return (
     <div className="min-h-screen bg-surface-2 md:flex">
       {/* ── Sidebar desktop ── */}
-      <aside
-        className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-200 md:flex ${
-          collapsed ? "w-[76px]" : "w-[264px]"
-        }`}
-      >
+      <aside className="sticky top-0 hidden h-screen w-20 shrink-0 flex-col border-r border-border bg-surface md:flex">
         <ArenaNavContent
           arena={arena}
           arenas={arenas}
           user={user}
           pathname={pathname}
-          collapsed={collapsed}
+          collapsed={true}
           switcherOpen={switcherOpen}
           onToggleSwitcher={() => setSwitcherOpen((s) => !s)}
           onNavigate={closeOverlays}
           onLogout={handleLogout}
         />
-        <button
-          type="button"
-          onClick={toggleCollapsed}
-          aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-          className="flex items-center justify-center gap-2 border-t border-border py-3 text-ink-muted transition-colors hover:bg-surface-2 hover:text-ink"
-        >
-          {collapsed ? (
-            <ChevronsRight className="size-4" />
-          ) : (
-            <>
-              <ChevronsLeft className="size-4" />
-              <span className="text-xs font-medium">Recolher</span>
-            </>
-          )}
-        </button>
       </aside>
 
       {/* ── Coluna principal ── */}
@@ -225,6 +201,16 @@ function ArenaNavContent({
               </div>
             )}
           </div>
+        ) : collapsed ? (
+          <Link
+            href="/arena"
+            onClick={onNavigate}
+            title="Minhas arenas"
+            aria-label="Minhas arenas"
+            className="flex items-center justify-center rounded-xl px-2 py-1.5 transition-colors hover:bg-surface-2"
+          >
+            <Avatar nome={arena.nome} color="bg-blue-600" size="sm" fotoUrl={arena.avatarUrl} />
+          </Link>
         ) : (
           <>
             <button
