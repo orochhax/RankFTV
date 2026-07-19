@@ -16,10 +16,14 @@ const OPCOES: { v: EscopoEdicao; label: string; desc: string }[] = [
  */
 export function ExcluirEscopoDialog({
   nome,
+  contagens,
   onConfirm,
   onCancel,
 }: {
   nome: string;
+  /** Opcional: quantos registros cada escopo afeta (ex.: { esta: 1, esta_e_proximas: 3, todas: 5 }).
+   *  Quando informado, aparece como "(N lançamentos)" ao lado de cada opção. */
+  contagens?: Partial<Record<EscopoEdicao, number>>;
   onConfirm: (escopo: EscopoEdicao) => void;
   onCancel: () => void;
 }) {
@@ -41,17 +45,27 @@ export function ExcluirEscopoDialog({
         </p>
 
         <div className="space-y-2">
-          {OPCOES.map((o) => (
-            <button
-              key={o.v}
-              type="button"
-              onClick={() => onConfirm(o.v)}
-              className="block w-full rounded-xl border border-gray-200 px-4 py-2.5 text-left transition-colors hover:border-red-300 hover:bg-red-50"
-            >
-              <p className="text-sm font-semibold text-gray-900">{o.label}</p>
-              <p className="text-xs text-gray-400">{o.desc}</p>
-            </button>
-          ))}
+          {OPCOES.map((o) => {
+            const n = contagens?.[o.v];
+            return (
+              <button
+                key={o.v}
+                type="button"
+                onClick={() => onConfirm(o.v)}
+                className="block w-full rounded-xl border border-gray-200 px-4 py-2.5 text-left transition-colors hover:border-red-300 hover:bg-red-50"
+              >
+                <p className="text-sm font-semibold text-gray-900">
+                  {o.label}
+                  {n != null && (
+                    <span className="ml-1.5 font-normal text-gray-400">
+                      ({n} {n === 1 ? "lançamento" : "lançamentos"})
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-gray-400">{o.desc}</p>
+              </button>
+            );
+          })}
         </div>
 
         <button

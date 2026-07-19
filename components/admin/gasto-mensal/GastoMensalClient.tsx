@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
 import {
   Plus, ListPlus, ChevronLeft, ChevronRight, Wallet, TrendingDown, Scale, Inbox,
-  Pencil, Trash2, Loader2, CheckCircle2,
+  Pencil, Trash2, Loader2, CheckCircle2, ReceiptText,
 } from "lucide-react";
 import { apagarDespesa, apagarReceita, alternarPagoDespesa } from "@/app/admin/gasto-mensal/actions";
 import { DespesaForm } from "@/components/admin/gasto-mensal/DespesaForm";
@@ -257,6 +258,12 @@ export function GastoMensalClient({
         >
           <Plus className="size-4" /> Adicionar receita
         </button>
+        <Link
+          href="/admin/gasto-mensal/extrato"
+          className="flex items-center gap-1.5 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-colors"
+        >
+          <ReceiptText className="size-4" /> Extrato
+        </Link>
       </div>
 
       {/* ── Checklist de despesas ── */}

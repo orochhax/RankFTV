@@ -27,6 +27,10 @@ export type MonthlyBudgetExpense = {
   dueDate: string | null;
   /** Liga linhas criadas juntas via "De/Até" — null quando foi criada só pra um mês. */
   repeatGroupId: string | null;
+  /** Quando a linha foi cadastrada (timestamptz do banco) — nunca muda numa edição. */
+  createdAt: string;
+  /** Quando a linha foi alterada pela última vez — igual a createdAt se nunca foi editada. */
+  updatedAt: string;
 };
 
 export type MonthlyBudgetIncome = {
@@ -37,6 +41,10 @@ export type MonthlyBudgetIncome = {
   amountJulia: number;
   /** Liga linhas criadas juntas via "De/Até" — null quando foi criada só pra um mês. */
   repeatGroupId: string | null;
+  /** Quando a linha foi cadastrada (timestamptz do banco) — nunca muda numa edição. */
+  createdAt: string;
+  /** Quando a linha foi alterada pela última vez — igual a createdAt se nunca foi editada. */
+  updatedAt: string;
 };
 
 type PersonAmounts = { amountCarlos: number; amountJulia: number };
@@ -479,4 +487,363 @@ export function resolverValoresOrcamento(input: ResolverValoresInput): ResolverV
   }
   const split = splitAmountEqually(input.amountTotal);
   return { ok: true, valores: { amountCarlos: split.carlos, amountJulia: split.julia } };
+}
+
+// ── Datas em Bahia (usadas pelo histórico) ───────────────────────────────────
+
+/** Formata um timestamptz ISO em "dd/MM/yyyy HH:mm", sempre no fuso de Bahia —
+ *  independe do fuso do servidor/navegador que estiver rodando. Usa
+ *  formatToParts (não toLocaleString direto) pra garantir esse formato exato,
+ *  sem depender de como a implementação de Intl da plataforma pontua a data. */
+export function formatDateTimeBahia(iso: string): string {
+  const partes = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Bahia",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(iso));
+  const valor = (tipo: string) => partes.find((p) => p.type === tipo)?.value ?? "";
+  return `${valor("day")}/${valor("month")}/${valor("year")} ${valor("hour")}:${valor("minute")}`;
+}
+
+/** Só a parte "YYYY-MM-DD" de um timestamptz, no fuso de Bahia — usado pro
+ *  filtro de intervalo de data do evento (compara datas civis, não instantes). */
+export function createdAtDateKeyBahia(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Bahia" });
+}
+
+/**
+ * Conta quantos registros cada escopo de exclusão/edição afeta — pra mostrar
+ * no diálogo de exclusão/edição do lançamento atual (ex.: "Apagar todos os
+ * meses (5 lançamentos)"). Puro wrapper sobre idsNoEscopoDeEdicao.
+ */
+export function contagensDoEscopo<T extends { id: string; monthKey: string }>(
+  grupo: T[],
+  anchorMonthKey: string,
+): Record<EscopoEdicao, number> {
+  return {
+    esta: idsNoEscopoDeEdicao(grupo, anchorMonthKey, "esta").length,
+    esta_e_proximas: idsNoEscopoDeEdicao(grupo, anchorMonthKey, "esta_e_proximas").length,
+    todas: idsNoEscopoDeEdicao(grupo, anchorMonthKey, "todas").length,
+  };
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// Histórico de eventos (/admin/gasto-mensal/extrato)
+// ═════════════════════════════════════════════════════════════════════════
+// O Extrato é uma timeline de AÇÕES sobre monthly_budget_expenses/incomes —
+// criar, editar, excluir, marcar pago/pendente — nunca uma listagem de cada
+// ocorrência mensal. Uma série "De/Até" de 12 meses gera UM evento "created",
+// nunca 12. Os eventos em si são imutáveis: uma nova edição gera outro
+// evento, nunca reescreve o anterior (ver supabase/monthly-budget.sql —
+// monthly_budget_history_events, sem policy de UPDATE/DELETE).
+//
+// A mutação da tabela mensal e a criação do evento acontecem atomicamente
+// dentro de uma função SQL (RPC) — as Server Actions só montam os parâmetros
+// (before/after snapshot, quais ids inserir/atualizar/apagar) usando os
+// helpers puros abaixo, e chamam supabase.rpc(...). Nada aqui toca no banco.
+
+export type HistoryEntityKind = "income" | "expense";
+export type HistoryAction = "created" | "updated" | "deleted" | "payment_changed" | "imported";
+
+/** Uma ocorrência mensal dentro de um snapshot — o bastante pra reconstruir
+ *  a linha que existiu (ou passou a existir) naquele mês específico. */
+export type MonthlyBudgetOccurrenceSnapshot = {
+  id: string;
+  monthKey: string;
+  amountCarlos: number;
+  amountJulia: number;
+  /** Os três campos abaixo só existem pra despesa. */
+  dueDate?: string | null;
+  isPaid?: boolean;
+  paidAt?: string | null;
+};
+
+/** Antes/depois de um evento: nome, pessoa, valores, período e só as
+ *  ocorrências que ESSE evento especificamente afetou — uma edição de
+ *  "somente este mês" tem 1 ocorrência aqui, nunca a série inteira. */
+export type MonthlyBudgetEventSnapshot = {
+  name: string;
+  person: PersonSelecao;
+  amountCarlos: number;
+  amountJulia: number;
+  amountTotal: number;
+  periodStart: string; // monthKey
+  periodEnd: string;   // monthKey
+  monthsCount: number;
+  /** Só despesa — dia do vencimento (1-31), quando configurado. */
+  dueDay?: number | null;
+  occurrences: MonthlyBudgetOccurrenceSnapshot[];
+};
+
+export type MonthlyBudgetHistoryEvent = {
+  id: string;
+  entityKind: HistoryEntityKind;
+  action: HistoryAction;
+  entityGroupId: string | null;
+  anchorEntryId: string | null;
+  anchorMonthKey: string; // "YYYY-MM"
+  editScope: EscopoEdicao | null;
+  previousEventId: string | null;
+  occurredAt: string; // ISO
+  beforeSnapshot: MonthlyBudgetEventSnapshot | null;
+  afterSnapshot: MonthlyBudgetEventSnapshot | null;
+  affectedMonths: string[]; // "YYYY-MM"[]
+  metadata: Record<string, unknown>;
+};
+
+/**
+ * Monta o snapshot (antes OU depois) de um evento a partir das ocorrências
+ * que aquela ação especificamente tocou. `name` vem à parte porque a
+ * ocorrência não guarda nome — ele é uma propriedade do lançamento inteiro,
+ * uma vez por snapshot, não repetido em cada mês. O dia de vencimento
+ * (dueDay) é derivado da primeira ocorrência com due_date — nunca recebido
+ * à parte, pra não arriscar divergir do que as ocorrências realmente têm.
+ */
+export function buildEventSnapshot(
+  name: string,
+  occurrences: MonthlyBudgetOccurrenceSnapshot[],
+): MonthlyBudgetEventSnapshot | null {
+  if (occurrences.length === 0) return null;
+  const ordenadas = [...occurrences].sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+  const { amountCarlos, amountJulia } = ordenadas[0];
+  const comVencimento = ordenadas.find((o) => o.dueDate);
+  return {
+    name,
+    person: personOfAmounts({ amountCarlos, amountJulia }),
+    amountCarlos,
+    amountJulia,
+    amountTotal: amountCarlos + amountJulia,
+    periodStart: ordenadas[0].monthKey,
+    periodEnd: ordenadas[ordenadas.length - 1].monthKey,
+    monthsCount: ordenadas.length,
+    dueDay: comVencimento?.dueDate ? dayOfDate(comVencimento.dueDate) : null,
+    occurrences: ordenadas,
+  };
+}
+
+const MESES_ABREV_ANO4 = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+function mesAbrevAno4(monthKey: string): string {
+  const [y, m] = monthKey.split("-").map(Number);
+  return `${MESES_ABREV_ANO4[m - 1]}/${y}`;
+}
+
+/** "ago/2026 até dez/2026 · 5 meses" (ou "ago/2026 · 1 mês" pra um só mês). */
+export function periodoResumoLabel(
+  snapshot: Pick<MonthlyBudgetEventSnapshot, "periodStart" | "periodEnd" | "monthsCount">,
+): string {
+  if (snapshot.periodStart === snapshot.periodEnd) return `${mesAbrevAno4(snapshot.periodStart)} · 1 mês`;
+  const meses = snapshot.monthsCount === 1 ? "mês" : "meses";
+  return `${mesAbrevAno4(snapshot.periodStart)} até ${mesAbrevAno4(snapshot.periodEnd)} · ${snapshot.monthsCount} ${meses}`;
+}
+
+export function personSelecaoLabel(pessoa: PersonSelecao): string {
+  return pessoa === "carlos" ? "Carlos" : pessoa === "julia" ? "Julia" : "Carlos e Julia";
+}
+
+/** Quais campos mudaram entre dois snapshots — pra destacar só o que de fato
+ *  foi alterado numa edição (nome, valores, vencimento, período). */
+export type EventSnapshotDiff = {
+  name: boolean;
+  amountCarlos: boolean;
+  amountJulia: boolean;
+  dueDay: boolean;
+  period: boolean;
+};
+
+export function diffEventSnapshots(
+  before: MonthlyBudgetEventSnapshot | null,
+  after: MonthlyBudgetEventSnapshot | null,
+): EventSnapshotDiff {
+  if (!before || !after) {
+    return { name: false, amountCarlos: false, amountJulia: false, dueDay: false, period: false };
+  }
+  return {
+    name: before.name !== after.name,
+    amountCarlos: before.amountCarlos !== after.amountCarlos,
+    amountJulia: before.amountJulia !== after.amountJulia,
+    dueDay: (before.dueDay ?? null) !== (after.dueDay ?? null),
+    period: before.periodStart !== after.periodStart || before.periodEnd !== after.periodEnd,
+  };
+}
+
+// ── Montagem dos parâmetros da RPC ───────────────────────────────────────────
+// As Server Actions montam esses parâmetros e chamam supabase.rpc(...); esta
+// função só formata pro shape jsonb que mb_write_*_event/mb_toggle_expense_paid
+// esperam (datas de mês viram "YYYY-MM-DD", campos vazios viram "").
+
+export type HistoryEventInput = {
+  action: HistoryAction;
+  entityGroupId: string | null;
+  anchorEntryId: string | null;
+  anchorMonthKey: string;
+  editScope: EscopoEdicao | null;
+  beforeSnapshot: MonthlyBudgetEventSnapshot | null;
+  afterSnapshot: MonthlyBudgetEventSnapshot | null;
+  affectedMonths: string[];
+  metadata?: Record<string, unknown>;
+};
+
+export function historyEventToRpcPayload(input: HistoryEventInput): Record<string, unknown> {
+  return {
+    action: input.action,
+    entity_group_id: input.entityGroupId ?? "",
+    anchor_entry_id: input.anchorEntryId ?? "",
+    anchor_month_key: monthKeyToDbDate(input.anchorMonthKey),
+    edit_scope: input.editScope ?? "",
+    before_snapshot: input.beforeSnapshot,
+    after_snapshot: input.afterSnapshot,
+    affected_months: input.affectedMonths.map(monthKeyToDbDate),
+    metadata: input.metadata ?? {},
+  };
+}
+
+// ── Mapeamento da linha crua do banco ────────────────────────────────────────
+
+export type HistoryEventRow = {
+  id: string;
+  entity_kind: string;
+  action: string;
+  entity_group_id: string | null;
+  anchor_entry_id: string | null;
+  anchor_month_key: string; // date
+  edit_scope: string | null;
+  previous_event_id: string | null;
+  occurred_at: string;
+  before_snapshot: MonthlyBudgetEventSnapshot | null;
+  after_snapshot: MonthlyBudgetEventSnapshot | null;
+  affected_months: string[] | null; // date[]
+  metadata: Record<string, unknown> | null;
+};
+
+export function mapHistoryEventRow(row: HistoryEventRow): MonthlyBudgetHistoryEvent {
+  return {
+    id: row.id,
+    entityKind: row.entity_kind as HistoryEntityKind,
+    action: row.action as HistoryAction,
+    entityGroupId: row.entity_group_id,
+    anchorEntryId: row.anchor_entry_id,
+    anchorMonthKey: dbDateToMonthKey(row.anchor_month_key),
+    editScope: (row.edit_scope as EscopoEdicao | null) || null,
+    previousEventId: row.previous_event_id,
+    occurredAt: row.occurred_at,
+    beforeSnapshot: row.before_snapshot,
+    afterSnapshot: row.after_snapshot,
+    affectedMonths: (row.affected_months ?? []).map(dbDateToMonthKey),
+    metadata: row.metadata ?? {},
+  };
+}
+
+// ── Agrupar eventos por lançamento (entity_group_id) ─────────────────────────
+
+export type HistoryGroupState = {
+  entityGroupId: string;
+  /** Do mais recente pro mais antigo. */
+  events: MonthlyBudgetHistoryEvent[];
+  latestEvent: MonthlyBudgetHistoryEvent;
+  /** true quando o evento mais recente da cadeia é 'deleted' — o lançamento
+   *  não existe mais na página principal. */
+  isDeleted: boolean;
+};
+
+/**
+ * Agrupa eventos pelo mesmo entity_group_id — cada grupo é a cadeia de um
+ * lançamento ao longo do tempo (nunca agrupar por nome/valor/data). Eventos
+ * sem entity_group_id viram grupo de 1 evento, usando o próprio id como
+ * chave (não deveria acontecer na prática, mas evita perder o evento).
+ */
+export function groupHistoryEventsByEntity(events: MonthlyBudgetHistoryEvent[]): HistoryGroupState[] {
+  const porGrupo = new Map<string, MonthlyBudgetHistoryEvent[]>();
+  for (const evento of events) {
+    const chave = evento.entityGroupId ?? evento.id;
+    const lista = porGrupo.get(chave) ?? [];
+    lista.push(evento);
+    porGrupo.set(chave, lista);
+  }
+  return Array.from(porGrupo.entries()).map(([entityGroupId, eventosDoGrupo]) => {
+    const ordenados = [...eventosDoGrupo].sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
+    return {
+      entityGroupId,
+      events: ordenados,
+      latestEvent: ordenados[0],
+      isDeleted: ordenados[0].action === "deleted",
+    };
+  });
+}
+
+// ── Filtros da timeline ───────────────────────────────────────────────────
+
+export type HistoryTipoFiltro = "todos" | HistoryEntityKind;
+export type HistoryAcaoFiltro = "todos" | HistoryAction;
+
+export type HistoryFiltros = {
+  tipo: HistoryTipoFiltro;
+  acao: HistoryAcaoFiltro;
+  pessoa: PersonFilter;
+  busca: string;
+  /** "" = todos os meses — casa quando o mês está em affectedMonths. */
+  monthKey: string;
+  /** "YYYY-MM-DD" ou "" — filtra pela data (civil, fuso Bahia) de occurred_at. */
+  dataInicio: string;
+  dataFim: string;
+};
+
+export const HISTORY_FILTROS_VAZIOS: HistoryFiltros = {
+  tipo: "todos",
+  acao: "todos",
+  pessoa: "todos",
+  busca: "",
+  monthKey: "",
+  dataInicio: "",
+  dataFim: "",
+};
+
+function eventoNome(evento: MonthlyBudgetHistoryEvent): string {
+  return evento.afterSnapshot?.name ?? evento.beforeSnapshot?.name ?? "";
+}
+
+function eventoValores(evento: MonthlyBudgetHistoryEvent): PersonAmounts | null {
+  const snap = evento.afterSnapshot ?? evento.beforeSnapshot;
+  return snap ? { amountCarlos: snap.amountCarlos, amountJulia: snap.amountJulia } : null;
+}
+
+/**
+ * Aplica todos os filtros da timeline de uma vez (tipo, ação, pessoa, nome,
+ * mês afetado e intervalo de data do evento). Pura — não ordena; use
+ * sortHistoryByOccurredAtDesc separadamente.
+ */
+export function filtrarHistorico(events: MonthlyBudgetHistoryEvent[], filtros: HistoryFiltros): MonthlyBudgetHistoryEvent[] {
+  return events.filter((evento) => {
+    if (filtros.tipo !== "todos" && evento.entityKind !== filtros.tipo) return false;
+    if (filtros.acao !== "todos" && evento.action !== filtros.acao) return false;
+
+    if (filtros.pessoa !== "todos") {
+      const valores = eventoValores(evento);
+      if (!valores || !participaDoFiltro(valores, filtros.pessoa)) return false;
+    }
+
+    if (filtros.busca.trim()) {
+      const termo = filtros.busca.trim().toLowerCase();
+      if (!eventoNome(evento).toLowerCase().includes(termo)) return false;
+    }
+
+    if (filtros.monthKey && !evento.affectedMonths.includes(filtros.monthKey)) return false;
+
+    if (filtros.dataInicio || filtros.dataFim) {
+      const dataEvento = createdAtDateKeyBahia(evento.occurredAt);
+      if (filtros.dataInicio && dataEvento < filtros.dataInicio) return false;
+      if (filtros.dataFim && dataEvento > filtros.dataFim) return false;
+    }
+
+    return true;
+  });
+}
+
+/** Mais recente primeiro — ordem padrão da timeline do Extrato. */
+export function sortHistoryByOccurredAtDesc(events: MonthlyBudgetHistoryEvent[]): MonthlyBudgetHistoryEvent[] {
+  return [...events].sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
 }

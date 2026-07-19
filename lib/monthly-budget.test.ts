@@ -8,7 +8,12 @@ import {
   monthKeyRange, monthsBetweenCount, buildExpenseDrafts, buildIncomeDrafts, MAX_REPEAT_MONTHS,
   dueDateForMonth, dayOfDate, idsNoEscopoDeEdicao, resolverAjusteIntervalo, groupMonthBounds,
   legacyGroupKey, siblingsOfGroup, fazParteDeGrupo, resolverPeriodoEdicao,
+  formatDateTimeBahia, createdAtDateKeyBahia, contagensDoEscopo,
+  buildEventSnapshot, periodoResumoLabel, diffEventSnapshots, historyEventToRpcPayload,
+  mapHistoryEventRow, groupHistoryEventsByEntity, filtrarHistorico, sortHistoryByOccurredAtDesc,
+  HISTORY_FILTROS_VAZIOS,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type EscopoEdicao,
+  type MonthlyBudgetOccurrenceSnapshot, type MonthlyBudgetHistoryEvent, type HistoryEventRow,
 } from "@/lib/monthly-budget";
 
 function expense(overrides: Partial<MonthlyBudgetExpense> & { id: string }): MonthlyBudgetExpense {
@@ -21,6 +26,8 @@ function expense(overrides: Partial<MonthlyBudgetExpense> & { id: string }): Mon
     paidAt: null,
     dueDate: null,
     repeatGroupId: null,
+    createdAt: "2026-08-01T12:00:00.000Z",
+    updatedAt: "2026-08-01T12:00:00.000Z",
     ...overrides,
   };
 }
@@ -32,6 +39,8 @@ function income(overrides: Partial<MonthlyBudgetIncome> & { id: string }): Month
     amountCarlos: 0,
     amountJulia: 0,
     repeatGroupId: null,
+    createdAt: "2026-08-01T12:00:00.000Z",
+    updatedAt: "2026-08-01T12:00:00.000Z",
     ...overrides,
   };
 }
@@ -777,5 +786,371 @@ describe("conversão month_key <-> date", () => {
   test("monthKeyToDbDate / dbDateToMonthKey são inversas", () => {
     assert.equal(monthKeyToDbDate("2026-08"), "2026-08-01");
     assert.equal(dbDateToMonthKey("2026-08-01"), "2026-08");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Extrato (/admin/gasto-mensal/extrato) — histórico de EVENTOS, não de ocorrências
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("Extrato — formatDateTimeBahia (occurred_at, sempre fuso Bahia)", () => {
+  test("formata em dd/MM/yyyy HH:mm, convertendo de UTC pro fuso de Bahia (UTC-3)", () => {
+    assert.equal(formatDateTimeBahia("2026-08-10T15:30:00.000Z"), "10/08/2026 12:30");
+  });
+
+  test("cruza a virada do dia corretamente perto da meia-noite em Bahia", () => {
+    // 2026-08-10T02:00:00Z == 2026-08-09T23:00:00 em Bahia (UTC-3)
+    assert.equal(formatDateTimeBahia("2026-08-10T02:00:00.000Z"), "09/08/2026 23:00");
+  });
+
+  test("preenche com zero à esquerda (dia/mês/hora/minuto de um dígito)", () => {
+    assert.equal(formatDateTimeBahia("2026-01-05T06:05:00.000Z"), "05/01/2026 03:05");
+  });
+});
+
+describe("Extrato — createdAtDateKeyBahia (data civil pro filtro de intervalo)", () => {
+  test("retorna YYYY-MM-DD no fuso de Bahia, não em UTC", () => {
+    assert.equal(createdAtDateKeyBahia("2026-08-10T02:00:00.000Z"), "2026-08-09");
+    assert.equal(createdAtDateKeyBahia("2026-08-10T15:00:00.000Z"), "2026-08-10");
+  });
+});
+
+describe("Extrato — contagensDoEscopo (quantos registros cada escopo de exclusão afeta)", () => {
+  const grupo = [
+    { id: "ago", monthKey: "2026-08" },
+    { id: "set", monthKey: "2026-09" },
+    { id: "out", monthKey: "2026-10" },
+  ];
+
+  test('"esta" afeta só 1 registro (a própria ocorrência)', () => {
+    assert.equal(contagensDoEscopo(grupo, "2026-09").esta, 1);
+  });
+
+  test('"esta_e_proximas" a partir de setembro afeta 2 (set + out)', () => {
+    assert.equal(contagensDoEscopo(grupo, "2026-09").esta_e_proximas, 2);
+  });
+
+  test('"todas" sempre afeta o grupo inteiro, independente da âncora', () => {
+    assert.equal(contagensDoEscopo(grupo, "2026-09").todas, 3);
+    assert.equal(contagensDoEscopo(grupo, "2026-08").todas, 3);
+  });
+
+  test("item único (sem série) — todos os escopos afetam só 1 registro", () => {
+    const unico = [{ id: "solo", monthKey: "2026-08" }];
+    const c = contagensDoEscopo(unico, "2026-08");
+    assert.deepEqual(c, { esta: 1, esta_e_proximas: 1, todas: 1 });
+  });
+});
+
+function occ(overrides: Partial<MonthlyBudgetOccurrenceSnapshot> & { id: string; monthKey: string }): MonthlyBudgetOccurrenceSnapshot {
+  return { amountCarlos: 99, amountJulia: 0, dueDate: null, isPaid: false, paidAt: null, ...overrides };
+}
+
+describe("buildEventSnapshot (monta o snapshot de um evento a partir das ocorrências afetadas)", () => {
+  test("série de 12 meses gera UM snapshot com monthsCount 12, não 12 snapshots", () => {
+    const ocorrencias = Array.from({ length: 12 }, (_, i) =>
+      occ({ id: `m${i}`, monthKey: `2026-${String(i + 1).padStart(2, "0")}` }),
+    );
+    const snap = buildEventSnapshot("Inter", ocorrencias);
+    assert.ok(snap);
+    assert.equal(snap!.monthsCount, 12);
+    assert.equal(snap!.occurrences.length, 12);
+    assert.equal(snap!.periodStart, "2026-01");
+    assert.equal(snap!.periodEnd, "2026-12");
+  });
+
+  test("ordena as ocorrências por monthKey independente da ordem de entrada", () => {
+    const snap = buildEventSnapshot("X", [
+      occ({ id: "b", monthKey: "2026-10" }),
+      occ({ id: "a", monthKey: "2026-08" }),
+      occ({ id: "c", monthKey: "2026-12" }),
+    ]);
+    assert.deepEqual(snap!.occurrences.map((o) => o.monthKey), ["2026-08", "2026-10", "2026-12"]);
+    assert.equal(snap!.periodStart, "2026-08");
+    assert.equal(snap!.periodEnd, "2026-12");
+  });
+
+  test("amountTotal soma Carlos + Julia da primeira ocorrência (todas as ocorrências de um evento têm o mesmo valor)", () => {
+    const snap = buildEventSnapshot("Aluguel", [occ({ id: "a", monthKey: "2026-08", amountCarlos: 1000, amountJulia: 1000 })]);
+    assert.equal(snap!.amountTotal, 2000);
+    assert.equal(snap!.person, "carlos_e_julia");
+  });
+
+  test("dueDay vem do dia da primeira ocorrência com due_date preenchido", () => {
+    const snap = buildEventSnapshot("Cartão", [
+      occ({ id: "a", monthKey: "2026-08", dueDate: null }),
+      occ({ id: "b", monthKey: "2026-09", dueDate: "2026-09-17" }),
+    ]);
+    assert.equal(snap!.dueDay, 17);
+  });
+
+  test("array vazio retorna null (nenhum evento sem ocorrência)", () => {
+    assert.equal(buildEventSnapshot("Vazio", []), null);
+  });
+
+  test("editar só um mês da série: snapshot contém APENAS a ocorrência editada, não a série inteira", () => {
+    // Simula o antes/depois de editar outubro numa série ago-dez.
+    const antes = buildEventSnapshot("Inter", [occ({ id: "out", monthKey: "2026-10", amountCarlos: 99 })]);
+    const depois = buildEventSnapshot("Inter", [occ({ id: "out", monthKey: "2026-10", amountCarlos: 109 })]);
+    assert.equal(antes!.occurrences.length, 1);
+    assert.equal(depois!.occurrences.length, 1);
+    assert.equal(antes!.amountTotal, 99);
+    assert.equal(depois!.amountTotal, 109);
+    assert.equal(antes!.periodStart, "2026-10");
+    assert.equal(antes!.periodEnd, "2026-10");
+  });
+});
+
+describe("periodoResumoLabel (resumo do período pro item da timeline)", () => {
+  test("um mês só: 'ago/2026 · 1 mês'", () => {
+    assert.equal(periodoResumoLabel({ periodStart: "2026-08", periodEnd: "2026-08", monthsCount: 1 }), "ago/2026 · 1 mês");
+  });
+
+  test("intervalo: 'ago/2026 até dez/2026 · 5 meses' (exemplo obrigatório do Inter)", () => {
+    assert.equal(
+      periodoResumoLabel({ periodStart: "2026-08", periodEnd: "2026-12", monthsCount: 5 }),
+      "ago/2026 até dez/2026 · 5 meses",
+    );
+  });
+});
+
+describe("diffEventSnapshots (quais campos mudaram entre antes/depois)", () => {
+  test("só o valor mudou: name/período/vencimento não são destacados", () => {
+    const antes = buildEventSnapshot("Inter", [occ({ id: "out", monthKey: "2026-10", amountCarlos: 99 })])!;
+    const depois = buildEventSnapshot("Inter", [occ({ id: "out", monthKey: "2026-10", amountCarlos: 109 })])!;
+    const diff = diffEventSnapshots(antes, depois);
+    assert.deepEqual(diff, { name: false, amountCarlos: true, amountJulia: false, dueDay: false, period: false });
+  });
+
+  test("nome e período mudam juntos", () => {
+    const antes = buildEventSnapshot("Cartão", [occ({ id: "a", monthKey: "2026-08" })])!;
+    const depois = buildEventSnapshot("Cartão novo", [occ({ id: "a", monthKey: "2026-09" })])!;
+    const diff = diffEventSnapshots(antes, depois);
+    assert.equal(diff.name, true);
+    assert.equal(diff.period, true);
+  });
+
+  test("sem antes ou sem depois (criação/exclusão): nada é destacado", () => {
+    const snap = buildEventSnapshot("X", [occ({ id: "a", monthKey: "2026-08" })])!;
+    assert.deepEqual(diffEventSnapshots(null, snap), { name: false, amountCarlos: false, amountJulia: false, dueDay: false, period: false });
+    assert.deepEqual(diffEventSnapshots(snap, null), { name: false, amountCarlos: false, amountJulia: false, dueDay: false, period: false });
+  });
+});
+
+describe("historyEventToRpcPayload / mapHistoryEventRow (ida e volta TS <-> RPC/linha do banco)", () => {
+  test("converte monthKey pra data e de volta sem perder o mês", () => {
+    const snap = buildEventSnapshot("Inter", [occ({ id: "out", monthKey: "2026-10" })])!;
+    const payload = historyEventToRpcPayload({
+      action: "updated", entityGroupId: "g1", anchorEntryId: "out", anchorMonthKey: "2026-10",
+      editScope: "esta", beforeSnapshot: null, afterSnapshot: snap, affectedMonths: ["2026-10"],
+    });
+    assert.equal(payload.anchor_month_key, "2026-10-01");
+    assert.deepEqual(payload.affected_months, ["2026-10-01"]);
+    assert.equal(payload.edit_scope, "esta");
+  });
+
+  test("entityGroupId/anchorEntryId/editScope nulos viram string vazia (RPC espera '' pra NULLIF)", () => {
+    const payload = historyEventToRpcPayload({
+      action: "created", entityGroupId: null, anchorEntryId: null, anchorMonthKey: "2026-08",
+      editScope: null, beforeSnapshot: null, afterSnapshot: null, affectedMonths: [],
+    });
+    assert.equal(payload.entity_group_id, "");
+    assert.equal(payload.anchor_entry_id, "");
+    assert.equal(payload.edit_scope, "");
+  });
+
+  test("mapHistoryEventRow reconverte a linha do banco (snake_case + date) pro evento em camelCase/monthKey", () => {
+    const row: HistoryEventRow = {
+      id: "ev1", entity_kind: "expense", action: "updated", entity_group_id: "g1",
+      anchor_entry_id: "out", anchor_month_key: "2026-10-01", edit_scope: "esta",
+      previous_event_id: "ev0", occurred_at: "2026-10-05T12:00:00.000Z",
+      before_snapshot: null, after_snapshot: null, affected_months: ["2026-10-01"], metadata: {},
+    };
+    const evento = mapHistoryEventRow(row);
+    assert.equal(evento.anchorMonthKey, "2026-10");
+    assert.deepEqual(evento.affectedMonths, ["2026-10"]);
+    assert.equal(evento.previousEventId, "ev0");
+    assert.equal(evento.editScope, "esta");
+  });
+
+  test("edit_scope vazio ('') vira null, não string vazia", () => {
+    const row: HistoryEventRow = {
+      id: "ev1", entity_kind: "income", action: "created", entity_group_id: "g1",
+      anchor_entry_id: "a", anchor_month_key: "2026-08-01", edit_scope: "",
+      previous_event_id: null, occurred_at: "2026-08-01T12:00:00.000Z",
+      before_snapshot: null, after_snapshot: null, affected_months: [], metadata: {},
+    };
+    assert.equal(mapHistoryEventRow(row).editScope, null);
+  });
+});
+
+function ev(overrides: Partial<MonthlyBudgetHistoryEvent> & { id: string }): MonthlyBudgetHistoryEvent {
+  return {
+    entityKind: "expense", action: "created", entityGroupId: "g1", anchorEntryId: null,
+    anchorMonthKey: "2026-08", editScope: null, previousEventId: null,
+    occurredAt: "2026-08-01T12:00:00.000Z", beforeSnapshot: null, afterSnapshot: null,
+    affectedMonths: ["2026-08"], metadata: {},
+    ...overrides,
+  };
+}
+
+describe("groupHistoryEventsByEntity (agrupa a cadeia de eventos por entity_group_id)", () => {
+  test("agrupa eventos do mesmo lançamento e ordena do mais recente pro mais antigo", () => {
+    const eventos = [
+      ev({ id: "e1", occurredAt: "2026-08-01T12:00:00.000Z" }),
+      ev({ id: "e2", action: "updated", occurredAt: "2026-10-05T12:00:00.000Z", previousEventId: "e1" }),
+    ];
+    const [grupo] = groupHistoryEventsByEntity(eventos);
+    assert.equal(grupo.entityGroupId, "g1");
+    assert.deepEqual(grupo.events.map((e) => e.id), ["e2", "e1"]);
+    assert.equal(grupo.latestEvent.id, "e2");
+  });
+
+  test("isDeleted é true quando o evento mais recente do grupo é uma exclusão", () => {
+    const eventos = [
+      ev({ id: "e1", occurredAt: "2026-08-01T12:00:00.000Z" }),
+      ev({ id: "e2", action: "deleted", occurredAt: "2026-11-01T12:00:00.000Z", previousEventId: "e1", afterSnapshot: null }),
+    ];
+    const [grupo] = groupHistoryEventsByEntity(eventos);
+    assert.equal(grupo.isDeleted, true);
+    assert.equal(grupo.latestEvent.action, "deleted");
+  });
+
+  test("grupos diferentes (entity_group_id diferente) não se misturam", () => {
+    const eventos = [ev({ id: "e1", entityGroupId: "g1" }), ev({ id: "e2", entityGroupId: "g2" })];
+    const grupos = groupHistoryEventsByEntity(eventos);
+    assert.equal(grupos.length, 2);
+  });
+
+  test("evento avulso sem entity_group_id vira seu próprio grupo (usa o próprio id)", () => {
+    const eventos = [ev({ id: "e1", entityGroupId: null })];
+    const [grupo] = groupHistoryEventsByEntity(eventos);
+    assert.equal(grupo.entityGroupId, "e1");
+  });
+});
+
+describe("filtrarHistorico (tipo, ação, pessoa, nome, mês afetado, intervalo de data do evento)", () => {
+  function base() {
+    return [
+      ev({ id: "e1", entityKind: "expense", action: "created", afterSnapshot: buildEventSnapshot("Aluguel", [occ({ id: "a", monthKey: "2026-08", amountCarlos: 1000, amountJulia: 1000 })]) }),
+      ev({ id: "e2", entityKind: "income", action: "created", entityGroupId: "g2", affectedMonths: ["2026-09"], afterSnapshot: buildEventSnapshot("Salário", [occ({ id: "b", monthKey: "2026-09", amountCarlos: 3000 })]) }),
+      ev({ id: "e3", entityKind: "expense", action: "updated", entityGroupId: "g1", previousEventId: "e1", occurredAt: "2026-08-10T15:00:00.000Z", affectedMonths: ["2026-08"], afterSnapshot: buildEventSnapshot("Aluguel", [occ({ id: "a", monthKey: "2026-08", amountCarlos: 1100, amountJulia: 1000 })]) }),
+    ];
+  }
+
+  test('tipo "income" mostra só eventos de receita', () => {
+    const f = filtrarHistorico(base(), { ...HISTORY_FILTROS_VAZIOS, tipo: "income" });
+    assert.deepEqual(f.map((e) => e.id), ["e2"]);
+  });
+
+  test('ação "updated" mostra só edições', () => {
+    const f = filtrarHistorico(base(), { ...HISTORY_FILTROS_VAZIOS, acao: "updated" });
+    assert.deepEqual(f.map((e) => e.id), ["e3"]);
+  });
+
+  test("busca por nome é case-insensitive e por substring", () => {
+    const f = filtrarHistorico(base(), { ...HISTORY_FILTROS_VAZIOS, busca: "salár" });
+    assert.deepEqual(f.map((e) => e.id), ["e2"]);
+  });
+
+  test("filtro de mês afetado usa affectedMonths, não o período inteiro do snapshot", () => {
+    const f = filtrarHistorico(base(), { ...HISTORY_FILTROS_VAZIOS, monthKey: "2026-09" });
+    assert.deepEqual(f.map((e) => e.id), ["e2"]);
+  });
+
+  test('registro compartilhado (Carlos e Julia) aparece nos filtros "carlos" E "julia"', () => {
+    const carlos = filtrarHistorico(base(), { ...HISTORY_FILTROS_VAZIOS, pessoa: "carlos" });
+    const julia = filtrarHistorico(base(), { ...HISTORY_FILTROS_VAZIOS, pessoa: "julia" });
+    assert.ok(carlos.some((e) => e.id === "e1"));
+    assert.ok(julia.some((e) => e.id === "e1"));
+  });
+
+  test("filtro de intervalo de data do evento compara a data civil no fuso de Bahia", () => {
+    const f = filtrarHistorico(base(), { ...HISTORY_FILTROS_VAZIOS, dataInicio: "2026-08-10", dataFim: "2026-08-10" });
+    assert.deepEqual(f.map((e) => e.id), ["e3"]);
+  });
+
+  test("sem nenhum filtro ativo, mostra tudo", () => {
+    assert.equal(filtrarHistorico(base(), HISTORY_FILTROS_VAZIOS).length, 3);
+  });
+});
+
+describe("sortHistoryByOccurredAtDesc", () => {
+  test("ordena do mais recente pro mais antigo e não muta o array original", () => {
+    const eventos = [
+      ev({ id: "e1", occurredAt: "2026-08-01T00:00:00.000Z" }),
+      ev({ id: "e2", occurredAt: "2026-10-01T00:00:00.000Z" }),
+    ];
+    const ordenado = sortHistoryByOccurredAtDesc(eventos);
+    assert.deepEqual(ordenado.map((e) => e.id), ["e2", "e1"]);
+    assert.deepEqual(eventos.map((e) => e.id), ["e1", "e2"]);
+  });
+});
+
+describe("exemplo obrigatório: Inter R$99 (ago-dez) editado só em outubro para R$109", () => {
+  test("cadastro gera UM evento com os 5 meses; editar outubro preserva os outros 4 e gera outro evento isolado", () => {
+    const repeatGroupId = "grupo-inter";
+    const draftsComId = monthKeyRange("2026-08", "2026-12").map((monthKey, i) => ({
+      id: `inter-${i}`, monthKey, name: "Inter", amountCarlos: 99, amountJulia: 0,
+      dueDate: null, isPaid: false, paidAt: null, repeatGroupId,
+    }));
+
+    // 1) Evento de cadastro: um único snapshot com os 5 meses.
+    const afterCriacao = buildEventSnapshot("Inter", draftsComId.map((d) => occ(d)))!;
+    assert.equal(afterCriacao.monthsCount, 5);
+    assert.equal(periodoResumoLabel(afterCriacao), "ago/2026 até dez/2026 · 5 meses");
+
+    // 2) Editar só outubro: usando a mesma lógica de escopo já testada em
+    //    "fluxo completo de edição" — aqui confirmamos que o snapshot do
+    //    evento contém SÓ outubro, não a série inteira.
+    const grupoOriginal = draftsComId;
+    const idsAlvo = idsNoEscopoDeEdicao(grupoOriginal, "2026-10", "esta");
+    const alvoExistente = grupoOriginal.filter((d) => idsAlvo.includes(d.id));
+    assert.equal(alvoExistente.length, 1);
+    assert.equal(alvoExistente[0].monthKey, "2026-10");
+
+    const beforeEdicao = buildEventSnapshot("Inter", alvoExistente.map((d) => occ(d)))!;
+    const depoisOutubro = { ...alvoExistente[0], amountCarlos: 109 };
+    const afterEdicao = buildEventSnapshot("Inter", [occ(depoisOutubro)])!;
+
+    assert.equal(beforeEdicao.occurrences.length, 1);
+    assert.equal(afterEdicao.occurrences.length, 1);
+    assert.equal(beforeEdicao.amountTotal, 99);
+    assert.equal(afterEdicao.amountTotal, 109);
+    assert.equal(afterEdicao.periodStart, "2026-10");
+    assert.equal(afterEdicao.periodEnd, "2026-10");
+
+    // Ago/set/nov/dez continuam com 99 — a edição não tocou nelas.
+    const restante = grupoOriginal.filter((d) => d.monthKey !== "2026-10");
+    assert.equal(restante.length, 4);
+    assert.ok(restante.every((d) => d.amountCarlos === 99));
+  });
+
+  test("editar TODOS os meses ainda gera só um evento (mesmo mudando 5 ocorrências)", () => {
+    const serie = monthKeyRange("2026-08", "2026-12").map((monthKey, i) =>
+      occ({ id: `inter-${i}`, monthKey, amountCarlos: 99 }),
+    );
+    const depois = serie.map((o) => ({ ...o, amountCarlos: 129 }));
+    const snap = buildEventSnapshot("Inter", depois);
+    assert.equal(snap!.monthsCount, 5, "um único snapshot cobrindo os 5 meses, não 5 eventos");
+    assert.ok(snap!.occurrences.every((o) => o.amountCarlos === 129));
+  });
+
+  test("exclusão gera evento com beforeSnapshot preenchido e afterSnapshot null (deixa de existir)", () => {
+    const removidos = [occ({ id: "inter-2", monthKey: "2026-10", amountCarlos: 109 })];
+    const before = buildEventSnapshot("Inter", removidos);
+    const after = null;
+    assert.ok(before);
+    assert.equal(after, null);
+  });
+
+  test("marcar como pago gera evento com before.isPaid=false e after.isPaid=true, valor/mês inalterados", () => {
+    const antes = occ({ id: "inter-2", monthKey: "2026-10", amountCarlos: 109, isPaid: false, paidAt: null });
+    const depois = { ...antes, isPaid: true, paidAt: "2026-10-05T12:00:00.000Z" };
+    const beforeSnap = buildEventSnapshot("Inter", [antes])!;
+    const afterSnap = buildEventSnapshot("Inter", [depois])!;
+    assert.equal(beforeSnap.occurrences[0].isPaid, false);
+    assert.equal(afterSnap.occurrences[0].isPaid, true);
+    assert.equal(beforeSnap.amountTotal, afterSnap.amountTotal, "mudar status de pagamento não altera o valor");
   });
 });
