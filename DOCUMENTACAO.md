@@ -1,6 +1,6 @@
 # Documentação técnica do RankFTV
 
-> Fonte técnica canônica do estado atual do repositório em 15/07/2026.
+> Fonte técnica canônica do estado atual do repositório em 20/07/2026.
 >
 > Este documento descreve o que está implementado no código. Configurações de
 > serviços externos e riscos que ainda impedem afirmar “100% em produção” ficam
@@ -18,6 +18,10 @@ de arenas. A mesma identidade do Supabase Auth pode acumular capacidades:
   acompanha ingressos e credenciais;
 - organizador: cria e administra seus campeonatos;
 - dono de arena: administra uma ou mais arenas;
+- staff de arena (professor/gerente): vínculo em arena_staff, adicionado
+  diretamente pelo dono (sem convite pendente). Professor finaliza presença e
+  cobrança das aulas em que está designado; gerente tem as mesmas permissões
+  do dono sobre aulas, presenças e financeiro da arena;
 - staff: acessa somente os campeonatos e funções autorizados no convite;
 - admin/CEO: o proxy exige profiles.role igual a admin ou ceo; algumas ações
   também aceitam ADMIN_EMAIL como fallback, e /admin/usuarios exige role ceo.
@@ -207,10 +211,12 @@ seja pública: cada página aplica sua autenticação e autorização.
 | /campeonatos/[id]/plateia | escolha/compra de ingresso de espectador |
 | /campeonatos/[id]/plateia/ingresso/[ticketId] | pagamento e credencial de plateia |
 | /campeonatos/[id]/chaveamento | chaveamento público |
-| /arenas e /arenas/[handle] | descoberta e página pública da arena |
+| /arenas e /arenas/[handle] | descoberta e página pública da arena, com agenda de aulas e área do aluno |
 | /arenas/[handle]/alugar | aluguel de quadra |
 | /arenas/[handle]/diaria | diária avulsa |
 | /arenas/[handle]/assinar/[planId] | adesão a plano da arena |
+| /arenas/[handle]/minhas-aulas | relatório do aluno: data, horário, professor, público e status de cada presença |
+| /arenas/[handle]/financeiro | financeiro do aluno: cartão padrão salvo e histórico de mensalidades/aulas avulsas |
 | /atletas/[username] | perfil público de atleta |
 | /noticias e /noticias/[id] | listagem e leitura de notícias |
 | /login | autenticação por e-mail e senha |
@@ -264,19 +270,27 @@ Em toda ocorrência acima, “...” representa /painel/campeonatos/[id].
 | /arena/[handle] | dashboard e agenda completa da semana, de segunda a domingo |
 | /arena/[handle]/agenda | visualizações e filtros da agenda |
 | /arena/[handle]/alunos | alunos e solicitações |
-| /arena/[handle]/aulas | turmas e horários |
-| /arena/[handle]/aula/[classId] | detalhe da aula e presença |
-| /arena/[handle]/planos | planos, diárias e aluguel |
-| /arena/[handle]/financeiro | cobranças e indicadores |
-| /arena/[handle]/relatorios | relatórios da arena |
+| /arena/[handle]/aulas | turmas, horário de início/término, público, preço avulso e equipe (professor/gerente) — dono ou gerente |
+| /arena/[handle]/aula/[classId] | lista da aula: quem reservou, finalizar presente/ausente e tentar cobrança de novo — dono, professor da aula ou gerente |
+| /arena/[handle]/planos | catálogo de planos (mensalidade/aluguel/diária) — nunca cobrança individual por aluno |
+| /arena/[handle]/relatorios | faturamento previsto, receita, presença e ranking (agregado, só leitura) |
 | /arena/[handle]/configuracoes | dados, imagens e regras |
 | /arena/[handle]/assinatura | assinatura da plataforma pela arena |
 | /arena/presenca | confirmação de presença pelo aluno |
 | /arena/mensalidade/[chargeId] | pagamento de mensalidade pelo aluno |
 
+**`/arena/[handle]/financeiro` não existe mais.** Essa rota deixava o
+organizador escolher um aluno, digitar um `valor_mensalidade` arbitrário e
+emitir uma cobrança manual — uma cobrança nunca escolhida nem confirmada
+pelo aluno. A página, suas actions (`definirValorMensalidade`,
+`emitirMensalidade`) e o componente cliente foram removidos do código;
+acessar a URL retorna 404. O organizador só cadastra e gerencia o catálogo
+de planos em `/arena/[handle]/planos` — quem decide contratar, ver o preço e
+confirmar é sempre o aluno, em `/arenas/[handle]/assinar/[planId]`. Ver 7.3.4.
+
 As rotas /arena/assinatura, /arena/aulas, /arena/aula/[classId],
-/arena/configuracoes, /arena/financeiro e /arena/planos existem por
-compatibilidade. Não devem ser usadas para criar navegação nova.
+/arena/configuracoes e /arena/planos existem por compatibilidade. Não devem
+ser usadas para criar navegação nova.
 
 ### 5.4 Staff
 
@@ -350,8 +364,17 @@ possa ser executado inteiro e sem verificar dependências.
 ### Arenas
 
 - arenas e arena_photos;
-- arena_plans e arena_students;
-- arena_classes e arena_attendance;
+- arena_plans (catálogo, versionado — ver 7.3.4: arquivado_em,
+  versao_anterior_id) e arena_students (vínculo aluno-arena; access_until,
+  renovacao_ativa, plano_encerrado_em e renovacao_cancelamento_erro separam
+  o período pago do estado ao vivo do plano — ver 7.3.4/7.3.5);
+- arena_staff (professor/gerente da arena, adicionado pelo dono);
+- arena_classes (inclui hora_inicio, hora_fim, publico, valor_avulso e
+  professor_id — horario/duracao_minutos ficam no schema só por
+  compatibilidade, sem uso no código) e arena_attendance (status
+  reservado/presente/ausente/cancelada, tipo_cobranca credito/avulsa,
+  pagamento_status e campos de repasse — ver 7.3);
+- arena_student_cards (cartão tokenizado do aluno, por arena);
 - student_charges;
 - arena_rentals e arena_daily_passes;
 - registros de pagamento e assinatura associados à arena.
@@ -399,12 +422,144 @@ valor-base. A emissão manual de Pix pelo financeiro da Arena não soma essa tax
 no mesmo ponto do código. A regra precisa ser harmonizada e homologada antes de
 produção.
 
+#### 7.3.1 Aulas: horário, público e equipe
+
+Cada aula (arena_classes) tem hora_inicio/hora_fim (exibidos como
+"HH:mm - HH:mm"), validados no cliente e no servidor
+(lib/arena-dates.ts#validarIntervaloHorario — mesma função nos dois lados,
+pra nunca divergir) e publico (misto por padrão, masculino ou feminino).
+O dono pode designar um professor por aula a partir da equipe da arena
+(arena_staff, papéis professor/gerente, adicionados diretamente pelo dono
+em /arena/[handle]/aulas). Gerente tem as mesmas permissões do dono sobre
+aulas, presenças e financeiro da arena; professor só sobre as aulas em que
+está designado.
+
+#### 7.3.2 Restrição de presença por gênero
+
+profiles.genero é a fonte oficial. Aula mista aceita qualquer perfil. Aula
+masculina/feminina só aceita perfil com genero igual ao público da aula —
+avaliado em app/arena/actions.ts#confirmarPresenca via
+lib/arena-attendance.ts#elegibilidadeGenero, sempre no servidor (o cliente só
+usa o mesmo resultado pra desenhar o botão). Perfil sem genero preenchido
+recebe o código PERFIL_SEM_GENERO, tratado na UI como link pra completar o
+perfil; perfil preenchido mas incompatível recebe uma mensagem direta — são
+os dois estados "sem_genero" e "genero_incompativel" do tipo
+ElegibilidadeGenero.
+
+#### 7.3.3 Crédito, aula avulsa e cobrança
+
+O crédito do aluno é a franquia semanal do próprio plano
+(arena_plans.aulas_por_semana; sem limite = ilimitado), mas só conta pra
+quem tem acesso pago válido AGORA — ver 7.3.5. Ao confirmar presença, o
+servidor decide crédito x avulsa
+(lib/arena-attendance.ts#decidirTipoCobranca) com base numa contagem em
+tempo real da semana — nunca num valor vindo do cliente — e a reserva em si
+(checar vaga/crédito + INSERT) é atômica dentro da função SQL
+arena_confirm_attendance (advisory lock por aula/data e por aluno/arena),
+pra duplo clique ou abas concorrentes nunca reservarem 2 vezes.
+
+Quando não há crédito e a aula tem valor_avulso configurado, a UI mostra o
+valor e só confirma depois de um segundo clique — reforçado no servidor via
+o parâmetro avulsaConfirmada de confirmarPresenca (que devolve
+AVULSA_PREVIEW e o valor sem gravar nada na 1ª chamada); sem valor_avulso
+configurado ou sem crédito nenhum, a confirmação é bloqueada. Aula avulsa
+exige cartão salvo (arena_student_cards) antes de reservar — sem cartão, a
+UI direciona pra /arenas/[handle]/financeiro.
+
+A cobrança em si só acontece quando o professor/gerente/dono finaliza a
+presença como "presente" (arena_finalize_attendance, idempotente via
+finalized_at). Presença "ausente" ou reserva cancelada pelo aluno antes do
+prazo nunca gera cobrança e libera o crédito/vaga (contagem de crédito só
+considera status reservado/presente). A cobrança em si roda em
+app/arena/actions.ts#processarCobrancaAvulsa: reivindica atomicamente via
+arena_claim_attendance_charge (pendente/falhou → processando — só quem
+reivindica chama o Asaas), cobra com o token salvo
+(lib/asaas.ts#cobrarComToken) e resolve o resultado via
+arena_resolve_attendance_charge. Falha (sem cartão, cartão removido antes da
+confirmação de presença, ou recusa do Asaas) marca pagamento_status='falhou',
+nunca perde o histórico, e notifica o aluno e os responsáveis da arena (dono
++ gerentes) — o que atualiza o contador do sino automaticamente, já que ele
+soma notifications não lidas. Uma ação de "tentar cobrança novamente"
+(tentarCobrancaNovamente) está disponível pro aluno e pra quem finaliza a
+aula, passando pelo mesmo reivindicar/resolver.
+
+O aluno acompanha tudo em /arenas/[handle]/minhas-aulas (status de presença
+separado de status de pagamento) e /arenas/[handle]/financeiro (cartão
+salvo + histórico unindo mensalidades e aulas avulsas — ver
+lib/arena-cobranca.ts).
+
+#### 7.3.4 Planos: catálogo do organizador, contratação do aluno
+
+O organizador só cadastra e gerencia o catálogo de planos em
+/arena/[handle]/planos (app/arena/planos/actions.ts): nome, descrição,
+valor, aulas por semana, formas de pagamento aceitas, dia de vencimento.
+Ele nunca escolhe um aluno e emite uma cobrança — isso foi
+/arena/[handle]/financeiro, removida (ver 5.3). Uma cobrança de mensalidade
+só nasce quando o próprio aluno abre /arenas/[handle]/assinar/[planId], vê
+preço e condições, confirma e completa o checkout no Asaas
+(app/arenas/[handle]/assinar/[planId]/actions.ts#assinarPlano/assinarGratuito).
+
+Mudar o preço de um plano de mensalidade nunca muda o que quem já assinou
+está pagando. updatePlan (app/arena/planos/actions.ts) compara o valor novo
+com o atual: se for igual, edita nome/descrição/aulas-por-semana na mesma
+linha; se o valor mudou, a linha atual é arquivada
+(arena_plans.ativo=false, arquivado_em=now()) com nome/valor/condições
+intactos pra auditoria, e uma linha nova assume o valor novo
+(versao_anterior_id aponta pra qual ela substituiu) — só essa nova aparece
+pro catálogo público. arquivarPlano faz o mesmo sem criar substituto
+(exclusão lógica: nunca DELETE). Nos dois casos, quem já estava na versão
+anterior tem a assinatura cancelada no Asaas
+(lib/asaas.ts#cancelarAssinatura, chamada por
+cancelarRenovacoesDoPlano) — renovacao_ativa vira false e
+plano_encerrado_em é gravado, mas access_until (o período já pago) não é
+tocado. Se o cancelamento no Asaas falhar pra algum aluno, essa linha
+continua com renovacao_ativa=true e o erro fica registrado em
+renovacao_cancelamento_erro — nunca reporta "cancelado" no banco enquanto o
+Asaas ainda pode cobrar de novo.
+
+Plano de aluguel/diária não tem assinatura recorrente (cada compra é uma
+cobrança avulsa nova), então editar o preço é sempre uma atualização direta
+na mesma linha.
+
+#### 7.3.5 Acesso do aluno: separado do estado ao vivo do plano
+
+Nunca decida se um aluno pode marcar presença olhando só arena_students.plan_id
+ou o estado atual do plano — ele pode ter sido arquivado ou reprecificado
+sem tirar, na hora, um direito já pago. A fonte de verdade é
+access_until: até quando o período pago cobre o uso. O webhook
+(app/api/webhooks/asaas/route.ts, prefixo "arena_student:") grava
+access_until = addMonthsISO(payment.dueDate, 1) a cada PAYMENT_CONFIRMED, e
+zera no PAYMENT_REFUNDED. access_until nulo é o estado legado/plano
+gratuito (sem assinatura Asaas rastreável, portanto sem webhook pra avançar
+essa data) — nesse caso o acesso continua liberado enquanto
+status='ativo', preservando o comportamento anterior a esta migração.
+
+lib/arena-attendance.ts#temAcessoAoPlano é a checagem usada em
+confirmarPresenca; lib/arena-attendance.ts#estadoPlanoAluno deriva o estado
+pra UI: "ativo" (renovação em dia, dentro do período), "encerrado_com_acesso"
+(renovação parada mas access_until ainda não passou — a página pública
+mostra "Plano encerrado — acesso válido até {data}") e "encerrado_sem_acesso"
+(sem plano, pode contratar de novo). Exemplo: aluno paga em 20/07 pra usar
+até 20/08; organizador reprecifica ou arquiva o plano em 25/07 — nenhuma
+cobrança nova acontece, o aluno mantém acesso e crédito normalmente até
+20/08, e só a partir de 21/08 fica sem plano.
+
 ### 7.4 Repasse
 
 Eventos Asaas precisam corresponder ao registro interno antes de mudar status.
 Repasses usam reivindicação atômica contra processamento duplicado. O cron
-diário inclui inscrições, ingressos, mensalidades, aluguéis e diárias
-aplicáveis. A homologação real ainda é obrigatória antes de operar em volume.
+diário inclui inscrições, ingressos, mensalidades, aluguéis, diárias e aulas
+avulsas aplicáveis. A homologação real ainda é obrigatória antes de operar em
+volume.
+
+O webhook (app/api/webhooks/asaas/route.ts) trata aula avulsa pelo prefixo
+externalReference "arena_class_charge:<attendanceId>" — confirma/estorna e
+dispara o repasse igual às demais fontes de receita de arena, usando
+arena_attendance.repasse_status/repasse_data_prevista (mesmas colunas e
+mesmo padrão de student_charges/arena_rentals/arena_daily_passes). A
+liquidação diferida de aula avulsa no cron usa pagamento_status, não
+status_pagamento — é a única tabela de arena com esse nome de coluna
+diferente (documentado no próprio arquivo do cron).
 
 ## 8. Segurança e hardening
 

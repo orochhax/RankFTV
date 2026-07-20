@@ -132,7 +132,8 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
         const json = JSON.parse(text) as { errors?: { description: string }[] };
         if (json.errors?.[0]?.description) msg = json.errors[0].description;
       } catch { /* usa msg padrão */ }
-      await admin.from("arena_daily_passes").delete().eq("id", passe.id);
+      // Recusa explícita do Asaas (não ambígua).
+      await admin.from("arena_daily_passes").update({ status_pagamento: "cancelado" }).eq("id", passe.id);
       return { ok: false, error: msg };
     }
 
@@ -155,8 +156,9 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
 
     return { ok: true, pago };
   } catch (e) {
-    await admin.from("arena_daily_passes").delete().eq("id", passe.id);
+    // Exceção aqui é rede/timeout — AMBÍGUO: nunca apaga o registro (webhook
+    // ainda pode reconciliar via externalReference se a cobrança passou).
     const msg = e instanceof Error ? e.message : "Erro ao processar pagamento.";
-    return { ok: false, error: msg };
+    return { ok: false, error: `${msg} Se o valor foi cobrado, sua diária será confirmada automaticamente — senão, tente de novo.` };
   }
 }

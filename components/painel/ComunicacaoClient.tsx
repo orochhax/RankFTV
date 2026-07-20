@@ -81,7 +81,7 @@ export function ComunicacaoClient({
 
     setEnviando(true);
     try {
-      const res = await enviarComunicado(champId, titulo, mensagem, destinatariosSelecionados);
+      const res = await enviarComunicado(champId, titulo, mensagem, destinatariosSelecionados.map((d) => d.userId));
       if (res.ok) {
         setResultado({ ok: true, msg: `Comunicado enviado para ${res.enviados} atleta${res.enviados !== 1 ? "s" : ""}!` });
         setTitulo("");

@@ -1,12 +1,14 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { criarOuBuscarCliente, criarCobranca } from "@/lib/asaas";
 import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
 import { buscarCupomValido } from "@/lib/cupons";
 import { resolverPrecos, resolverEClaimarLote } from "@/lib/lotes";
 import { gerarTicketAccessToken } from "@/lib/ticket-access";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export type ComprarState = { error?: string };
 
@@ -37,6 +39,15 @@ export async function comprarIngresso(
   if (!email || !email.includes("@")) return { error: "Informe um e-mail válido." };
   if (pedido.length === 0) return { error: "Escolha pelo menos um ingresso." };
 
+  // Checkout de visitante (sem login) — rate limit por IP e por e-mail contra
+  // scraping de inventário/abuso automatizado.
+  const ip = getClientIp(await headers());
+  const [okIp, okEmail] = await Promise.all([
+    checkRateLimit(`plateia:ip:${ip}`, 8, 600),
+    checkRateLimit(`plateia:email:${email.toLowerCase()}`, 5, 600),
+  ]);
+  if (!okIp || !okEmail) return { error: "Muitas tentativas. Aguarde alguns minutos e tente de novo." };
+
   const supabase = createAdminClient();
 
   const [{ data: tipos }, { data: champ }] = await Promise.all([
@@ -58,13 +69,21 @@ export async function comprarIngresso(
 
   const tipoMap = new Map((tipos ?? []).map((t) => [t.id, t]));
 
+  // Soma quantidades repetidas do mesmo tipo ANTES de aplicar o teto — senão
+  // dava pra mandar o mesmo ticketTypeId várias vezes no pedido e furar o
+  // limite de 20 por tipo.
+  const qtyPorTipo = new Map<string, number>();
+  for (const item of pedido) {
+    if (!tipoMap.has(item.ticketTypeId)) continue;
+    qtyPorTipo.set(item.ticketTypeId, (qtyPorTipo.get(item.ticketTypeId) ?? 0) + Math.floor(Number(item.qty)));
+  }
+
   // Monta as linhas do pedido a partir dos tipos válidos (preço "de tabela",
   // ainda sem lote resolvido)
   const linhasBase: { id: string; tipo_nome: string; qty: number; valorBase: number }[] = [];
-  for (const item of pedido) {
-    const t = tipoMap.get(item.ticketTypeId);
-    if (!t) continue;
-    const qty = Math.min(20, Math.max(1, Math.floor(Number(item.qty))));
+  for (const [typeId, qtySoma] of qtyPorTipo) {
+    const t = tipoMap.get(typeId)!;
+    const qty = Math.min(20, Math.max(1, qtySoma));
     linhasBase.push({ id: t.id, tipo_nome: t.nome, qty, valorBase: Number(t.valor) });
   }
   if (linhasBase.length === 0) return { error: "Ingresso indisponível." };
@@ -105,15 +124,31 @@ export async function comprarIngresso(
       return { error: "O organizador ainda não ativou o recebimento. Tente mais tarde." };
   }
 
-  // ── Reivindica o lote de CADA linha do carrinho (atômico). Se alguma
-  // linha falhar (esgotou entre o preview e agora), desfaz as anteriores.
+  // ── Reivindica quantidade (max_quantidade) e lote de CADA linha do
+  // carrinho (atômico). Se alguma linha falhar (esgotou entre o preview e
+  // agora), desfaz as anteriores. Quantidade é reivindicada ANTES do lote —
+  // é o limite estrutural do tipo de ingresso (ex: "VIP, só 50"),
+  // independente de ter lote configurado ou não.
+  const tiposClaimed: { typeId: string; qty: number }[] = [];
   const lotesClaimed: { loteId: string; qty: number }[] = [];
   const linhas: { id: string; tipo_nome: string; qty: number; valor_unit: number; lote_nome: string | null }[] = [];
 
+  async function liberarTudo() {
+    for (const c of lotesClaimed) await supabase.rpc("release_pricing_tier", { p_tier_id: c.loteId, p_qty: c.qty });
+    for (const c of tiposClaimed) await supabase.rpc("release_ticket_type_quantity", { p_type_id: c.typeId, p_qty: c.qty });
+  }
+
   for (const l of linhasBase) {
+    const { data: qtyClaimed } = await supabase.rpc("claim_ticket_type_quantity", { p_type_id: l.id, p_qty: l.qty });
+    if (!qtyClaimed) {
+      await liberarTudo();
+      return { error: `${l.tipo_nome}: esgotado.` };
+    }
+    tiposClaimed.push({ typeId: l.id, qty: l.qty });
+
     const claim = await resolverEClaimarLote("ticket_type", l.id, l.valorBase, l.qty);
     if (!claim.ok) {
-      for (const c of lotesClaimed) await supabase.rpc("release_pricing_tier", { p_tier_id: c.loteId, p_qty: c.qty });
+      await liberarTudo();
       return { error: `${l.tipo_nome}: ${claim.error}` };
     }
     if (claim.loteId) lotesClaimed.push({ loteId: claim.loteId, qty: l.qty });
@@ -126,9 +161,7 @@ export async function comprarIngresso(
     });
   }
 
-  async function liberarLotes() {
-    for (const c of lotesClaimed) await supabase.rpc("release_pricing_tier", { p_tier_id: c.loteId, p_qty: c.qty });
-  }
+  const liberarLotes = liberarTudo;
 
   const totalBase  = linhas.reduce((s, l) => s + l.valor_unit * l.qty, 0);
   const quantidade = linhas.reduce((s, l) => s + l.qty, 0);

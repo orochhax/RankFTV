@@ -1,8 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { hhmm } from "@/lib/arena-dates";
 
-// Dados financeiros/analíticos da arena — usado tanto por /financeiro
-// (cobranças do mês) quanto por /relatorios (gráficos), pra não duplicar as
-// mesmas queries e cálculos nas duas páginas.
+// Dados financeiros/analíticos agregados da arena — usado por /relatorios
+// (faturamento previsto, receita, presença, ranking). Só leitura/agregação;
+// nenhuma escrita e nenhum dado que permita cobrar um aluno individualmente
+// mora aqui (isso é /arenas/[handle]/financeiro, do próprio aluno).
 
 const DIAS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
@@ -15,15 +17,8 @@ export type ArenaFinanceiroData = {
   numAlunos: number;
   receitaMensal: { label: string; valor: number }[];
   presencasSemanal: { dow: number; label: string; count: number }[];
-  classesPorDia: { dow: number; classes: { id: string; titulo: string; horario: string | null; totalPresencas: number }[] }[];
+  classesPorDia: { dow: number; classes: { id: string; titulo: string; horaInicio: string | null; totalPresencas: number }[] }[];
   rankingAlunos: { userId: string; nome: string; username: string; totalAulas: number; trend: "up" | "down" | "same" | "new" }[];
-  alunosComSituacao: {
-    id: string;
-    nome: string;
-    username: string;
-    valorMensalidade: number | null;
-    cobranca: { id: string; status: string; competencia: string } | null;
-  }[];
 };
 
 export async function getArenaFinanceiroData(
@@ -45,18 +40,13 @@ export async function getArenaFinanceiroData(
   d60.setDate(d60.getDate() - 60);
   const sixtyDaysAgo = d60.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
 
-  const [alunosRes, cobMesRes, chargesRes, attendanceRes, classesRes] = await Promise.all([
+  const [alunosRes, chargesRes, attendanceRes, classesRes] = await Promise.all([
     supabase
       .from("arena_students")
       .select("id, user_id, valor_mensalidade, status")
       .eq("arena_id", arenaId)
       .eq("status", "ativo")
       .order("created_at", { ascending: true }),
-    supabase
-      .from("student_charges")
-      .select("id, arena_student_id, competencia, valor, status_pagamento")
-      .eq("arena_id", arenaId)
-      .eq("competencia", mesAtual),
     supabase
       .from("student_charges")
       .select("competencia, valor")
@@ -70,15 +60,15 @@ export async function getArenaFinanceiroData(
       .gte("data", sixtyDaysAgo),
     supabase
       .from("arena_classes")
-      .select("id, titulo, horario, dias_semana")
+      .select("id, titulo, hora_inicio, dias_semana")
       .eq("arena_id", arenaId)
       .eq("ativo", true)
-      .order("horario", { ascending: true }),
+      .order("hora_inicio", { ascending: true }),
   ]);
 
   const alunosRaw = alunosRes.data ?? [];
   const attendance = attendanceRes.data ?? [];
-  const classes = (classesRes.data ?? []) as { id: string; titulo: string; horario: string | null; dias_semana: number[] | null }[];
+  const classes = (classesRes.data ?? []) as { id: string; titulo: string; hora_inicio: string | null; dias_semana: number[] | null }[];
 
   const userIds = alunosRaw.map((a) => a.user_id as string).filter(Boolean);
   const { data: profilesData } = userIds.length
@@ -134,7 +124,7 @@ export async function getArenaFinanceiroData(
       classes: classesDay.map((cl) => ({
         id: cl.id,
         titulo: cl.titulo,
-        horario: cl.horario,
+        horaInicio: hhmm(cl.hora_inicio),
         totalPresencas: att30.filter((a) => a.class_id === cl.id).length,
       })),
     };
@@ -169,19 +159,6 @@ export async function getArenaFinanceiroData(
     })
     .sort((a, b) => b.totalAulas - a.totalAulas);
 
-  const cobMap = Object.fromEntries((cobMesRes.data ?? []).map((c) => [c.arena_student_id, c]));
-  const alunosComSituacao = alunos.map((a) => {
-    const p = a.profiles;
-    const cob = cobMap[a.id];
-    return {
-      id: a.id,
-      nome: p?.nome ?? "—",
-      username: p?.username ?? "",
-      valorMensalidade: a.valor_mensalidade ? Number(a.valor_mensalidade) : null,
-      cobranca: cob ? { id: cob.id, status: cob.status_pagamento, competencia: cob.competencia } : null,
-    };
-  });
-
   return {
     mesAtual,
     faturamentoPrevisto,
@@ -190,6 +167,5 @@ export async function getArenaFinanceiroData(
     presencasSemanal,
     classesPorDia,
     rankingAlunos,
-    alunosComSituacao,
   };
 }

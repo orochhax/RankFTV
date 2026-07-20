@@ -4,9 +4,24 @@ import {
   dowOfISO, addDaysISO, addMonthsISO, addYearsISO, weekRangeISO,
   startOfMonthISO, endOfMonthISO, startOfYearISO, endOfYearISO,
   monthMatrixISO, addMinutesToTime, generateOccurrences, classeCombinaComFiltro,
-  weekLabel, dayLabelShort,
+  weekLabel, dayLabelShort, horarioLabel, hhmm,
   type ArenaClassRow,
 } from "./arena-dates";
+
+describe("hhmm (normaliza o retorno de colunas `time` do Postgres)", () => {
+  it("corta os segundos de 'HH:MM:SS' vindo do Supabase", () => {
+    assert.equal(hhmm("06:00:00"), "06:00");
+    assert.equal(hhmm("19:30:00"), "19:30");
+  });
+  it("já normalizado (HH:MM) passa direto", () => {
+    assert.equal(hhmm("06:00"), "06:00");
+  });
+  it("null/undefined/vazio vira null", () => {
+    assert.equal(hhmm(null), null);
+    assert.equal(hhmm(undefined), null);
+    assert.equal(hhmm(""), null);
+  });
+});
 
 describe("dowOfISO", () => {
   it("domingo = 0, segunda = 1 ... sábado = 6", () => {
@@ -137,6 +152,18 @@ describe("addMinutesToTime", () => {
   });
 });
 
+describe("horarioLabel", () => {
+  it("formata início e fim como 'HH:mm - HH:mm'", () => {
+    assert.equal(horarioLabel("19:00", "20:00"), "19:00 - 20:00");
+  });
+  it("sem horário nenhum retorna null", () => {
+    assert.equal(horarioLabel(null, null), null);
+  });
+  it("aula legada sem hora_fim salva mostra só o início", () => {
+    assert.equal(horarioLabel("19:00", null), "19:00");
+  });
+});
+
 describe("classeCombinaComFiltro", () => {
   it("todos aceita qualquer nível, incluindo nulo", () => {
     assert.equal(classeCombinaComFiltro(null, "todos"), true);
@@ -154,9 +181,9 @@ describe("classeCombinaComFiltro", () => {
 
 describe("generateOccurrences", () => {
   const classes: ArenaClassRow[] = [
-    { id: "a", titulo: "Treino técnico", horario: "19:00", duracaoMinutos: 60, diasSemana: [1, 3], nivel: "iniciante", maxAlunos: 10, ativo: true },
-    { id: "b", titulo: "Aula livre", horario: "07:00", duracaoMinutos: 90, diasSemana: [0, 6], nivel: null, maxAlunos: null, ativo: true },
-    { id: "c", titulo: "Inativa", horario: "08:00", duracaoMinutos: 60, diasSemana: [1], nivel: null, maxAlunos: null, ativo: false },
+    { id: "a", titulo: "Treino técnico", horaInicio: "19:00", horaFim: "20:00", diasSemana: [1, 3], nivel: "iniciante", maxAlunos: 10, ativo: true, publico: "misto" },
+    { id: "b", titulo: "Aula livre", horaInicio: "07:00", horaFim: "08:30", diasSemana: [0, 6], nivel: null, maxAlunos: null, ativo: true, publico: "feminino" },
+    { id: "c", titulo: "Inativa", horaInicio: "08:00", horaFim: "09:00", diasSemana: [1], nivel: null, maxAlunos: null, ativo: false, publico: "misto" },
   ];
 
   it("gera só ocorrências dentro do intervalo pedido, ignorando aulas inativas", () => {
@@ -166,10 +193,15 @@ describe("generateOccurrences", () => {
     assert.deepEqual(occ.map((o) => o.date).sort(), ["2026-07-13", "2026-07-15", "2026-07-18", "2026-07-19"]);
   });
 
-  it("calcula hora de fim a partir da duração", () => {
+  it("usa o horário de início/fim salvo na aula, sem recalcular a partir de duração", () => {
     const occ = generateOccurrences(classes, "2026-07-13", "2026-07-13");
     assert.equal(occ[0].horaInicio, "19:00");
     assert.equal(occ[0].horaFim, "20:00");
+  });
+
+  it("propaga o público da aula pra cada ocorrência", () => {
+    const occ = generateOccurrences(classes, "2026-07-18", "2026-07-18"); // sábado, aula "b"
+    assert.equal(occ[0].publico, "feminino");
   });
 
   it("intervalo invertido não gera nada e não trava", () => {

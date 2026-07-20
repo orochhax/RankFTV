@@ -26,8 +26,21 @@ export async function salvarQuestionarioNivel(formData: FormData) {
   const rating = calcularRatingQuestionario(respostas);
   const admin = createAdminClient();
 
+  // O questionário só define o nível autodeclarado inicial. Depois da
+  // primeira partida com resultado (rating_history com linha pra esse
+  // atleta), o rating vira competitivo/oficial e o questionário deixa de
+  // poder sobrescrevê-lo — senão dava pra "resetar" o rating pra sandbaguear
+  // categoria depois de já ter jogado.
+  const { count: partidasJogadas } = await supabase
+    .from("rating_history")
+    .select("id", { count: "exact", head: true })
+    .eq("atleta_id", user.id);
+  const ratingEhCompetitivo = (partidasJogadas ?? 0) > 0;
+
   const [{ error: ratingError }, { error: questionnaireError }] = await Promise.all([
-    admin.from("profiles").update({ rating }).eq("id", user.id),
+    ratingEhCompetitivo
+      ? Promise.resolve({ error: null })
+      : admin.from("profiles").update({ rating }).eq("id", user.id),
     supabase
       .from("profiles_private")
       .upsert(

@@ -5,7 +5,7 @@ import { TrendingUp, TrendingDown, Minus, Users, DollarSign, CalendarDays, Clock
 
 type ReceitaMes = { label: string; valor: number };
 type PresencaDia = { dow: number; label: string; count: number };
-type ClasseDetalhe = { id: string; titulo: string; horario: string | null; totalPresencas: number };
+type ClasseDetalhe = { id: string; titulo: string; horaInicio: string | null; totalPresencas: number };
 type ClassePorDia = { dow: number; classes: ClasseDetalhe[] };
 type AlunoRanking = {
   userId: string;
@@ -194,7 +194,7 @@ export function FinanceiroDashboard({
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-medium text-gray-800">{cl.titulo}</span>
                         <span className="text-gray-500">
-                          {cl.horario && <span className="mr-2 text-gray-400">{cl.horario}</span>}
+                          {cl.horaInicio && <span className="mr-2 text-gray-400">{cl.horaInicio}</span>}
                           {cl.totalPresencas} presença{cl.totalPresencas !== 1 ? "s" : ""}
                         </span>
                       </div>

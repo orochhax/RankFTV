@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Home, CalendarDays, Users, DollarSign, Tag, Clock, BarChart3, CreditCard, Settings2 } from "lucide-react";
+import { Home, CalendarDays, Users, Tag, Clock, BarChart3, CreditCard, Settings2 } from "lucide-react";
 
 export type ArenaNavItem = {
   key: string;
@@ -25,7 +25,6 @@ export const ARENA_NAV_GROUPS: ArenaNavGroup[] = [
     label: "Gestão",
     items: [
       { key: "alunos", label: "Alunos", icon: Users, href: (h) => `/arena/${h}/alunos` },
-      { key: "financeiro", label: "Financeiro", icon: DollarSign, href: (h) => `/arena/${h}/financeiro` },
       { key: "planos", label: "Planos para alunos", icon: Tag, href: (h) => `/arena/${h}/planos` },
       { key: "aulas", label: "Aulas e horários", icon: Clock, href: (h) => `/arena/${h}/aulas` },
     ],

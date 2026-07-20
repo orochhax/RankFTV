@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, FileText, ChevronRight } from "lucide-react";
+import { ChevronLeft, FileText, ShieldCheck, ChevronRight } from "lucide-react";
 import { AccountSettingsForm } from "@/components/perfil/AccountSettingsForm";
+import { PrivacyActions } from "@/components/perfil/PrivacyActions";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DadosContaPage() {
@@ -44,6 +45,20 @@ export default async function DadosContaPage() {
         <span className="flex-1 text-sm font-medium text-gray-700">Termos de uso</span>
         <ChevronRight className="size-4 shrink-0 text-gray-300" />
       </Link>
+
+      <Link
+        href="/privacidade"
+        className="flex items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-colors hover:bg-gray-50"
+      >
+        <ShieldCheck className="size-5 shrink-0 text-gray-400" />
+        <span className="flex-1 text-sm font-medium text-gray-700">Política de privacidade</span>
+        <ChevronRight className="size-4 shrink-0 text-gray-300" />
+      </Link>
+
+      <div className="pt-2">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Seus dados</p>
+        <PrivacyActions />
+      </div>
     </div>
   );
 }

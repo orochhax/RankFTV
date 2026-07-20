@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { executarRepasse, executarRepasseEspectador, executarRepasseAtletaTicket } from "@/lib/repasse";
 import { enviarConviteDupla } from "@/lib/email/send";
+import { addMonthsISO } from "@/lib/arena-dates";
+import { pixKeyEmCooldown } from "@/lib/pix";
 
 const EVENTOS_CONFIRMADO = new Set(["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"]);
 const EVENTOS_ESTORNADO  = new Set(["PAYMENT_REFUNDED", "PAYMENT_DELETED"]);
@@ -19,6 +21,7 @@ type AsaasPayment = {
   value: number;
   billingType: string;
   subscription?: string;
+  dueDate?: string;
 };
 
 type AsaasWebhookBody = {
@@ -69,13 +72,22 @@ export async function POST(req: NextRequest) {
   }
 
   async function processarRepasseArena(
-    table: "student_charges" | "arena_rentals" | "arena_daily_passes",
+    table: "student_charges" | "arena_rentals" | "arena_daily_passes" | "arena_attendance",
     id: string,
     valor: number,
     chavePix: string | undefined,
     descricao: string,
+    chavePixAtualizadaEm?: string | null,
   ) {
     if (!chavePix || valor <= 0) return;
+    if (pixKeyEmCooldown(chavePixAtualizadaEm ?? null)) {
+      await supabase
+        .from(table)
+        .update({ repasse_erro: "Chave Pix da arena alterada recentemente — repasse retido em segurança." })
+        .eq("id", id)
+        .eq("repasse_status", "pendente");
+      return;
+    }
     const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
 
     if (dias > 0) {
@@ -135,9 +147,17 @@ export async function POST(req: NextRequest) {
     }
 
     if (EVENTOS_CONFIRMADO.has(event)) {
+      // access_until = até quando esse pagamento cobre o uso — a próxima
+      // cobrança do ciclo mensal (payment.dueDate + 1 mês). Sempre estende,
+      // mesmo se a assinatura já tiver sido cancelada nesse meio-tempo (o
+      // pagamento em si já foi feito, o período correspondente é do aluno).
+      const acessoAte = payment.dueDate ? addMonthsISO(payment.dueDate, 1) : null;
       await supabase
         .from("arena_students")
-        .update({ status: "ativo" })
+        .update({
+          status: "ativo",
+          ...(acessoAte ? { access_until: acessoAte } : {}),
+        })
         .eq("id", studentId);
 
       const now = new Date();
@@ -162,7 +182,7 @@ export async function POST(req: NextRequest) {
 
       const { data: arenaAccount } = await supabase
         .from("arena_accounts")
-        .select("chave_pix")
+        .select("chave_pix, chave_pix_atualizada_em")
         .eq("arena_id", student.arena_id)
         .maybeSingle();
 
@@ -175,12 +195,16 @@ export async function POST(req: NextRequest) {
           valorBase,
           chavePix,
           `Mensalidade arena ${competencia}`,
+          arenaAccount?.chave_pix_atualizada_em ?? null,
         );
       }
     }
 
     if (EVENTOS_ESTORNADO.has(event)) {
-      await supabase.from("arena_students").update({ status: "pendente" }).eq("id", studentId);
+      // Pagamento estornado: o período que ele cobria deixa de valer — não
+      // é só "status pendente", o acesso pago também precisa ser revertido,
+      // senão o aluno continua com crédito de um período que foi devolvido.
+      await supabase.from("arena_students").update({ status: "pendente", access_until: null }).eq("id", studentId);
       await supabase
         .from("student_charges")
         .update({ status_pagamento: "estornado", repasse_status: "estornado" })
@@ -208,7 +232,7 @@ export async function POST(req: NextRequest) {
       if (charge) {
         const { data: account } = await supabase
           .from("arena_accounts")
-          .select("chave_pix")
+          .select("chave_pix, chave_pix_atualizada_em")
           .eq("arena_id", charge.arena_id)
           .maybeSingle();
         await processarRepasseArena(
@@ -217,6 +241,7 @@ export async function POST(req: NextRequest) {
           Number(charge.valor ?? 0),
           account?.chave_pix as string | undefined,
           `Mensalidade arena ${charge.id}`,
+          account?.chave_pix_atualizada_em ?? null,
         );
       }
     } else {
@@ -250,7 +275,7 @@ export async function POST(req: NextRequest) {
       if (rental) {
         const { data: arenaAccount } = await supabase
           .from("arena_accounts")
-          .select("chave_pix")
+          .select("chave_pix, chave_pix_atualizada_em")
           .eq("arena_id", rental.arena_id)
           .maybeSingle();
 
@@ -262,6 +287,7 @@ export async function POST(req: NextRequest) {
           valorBase,
           chavePix,
           `Aluguel quadra ${rentalId}`,
+          arenaAccount?.chave_pix_atualizada_em ?? null,
         );
       }
     }
@@ -297,7 +323,7 @@ export async function POST(req: NextRequest) {
       if (passe) {
         const { data: arenaAccount } = await supabase
           .from("arena_accounts")
-          .select("chave_pix")
+          .select("chave_pix, chave_pix_atualizada_em")
           .eq("arena_id", passe.arena_id)
           .maybeSingle();
 
@@ -309,6 +335,7 @@ export async function POST(req: NextRequest) {
           valorBase,
           chavePix,
           `Diaria arena ${passId}`,
+          arenaAccount?.chave_pix_atualizada_em ?? null,
         );
       }
     }
@@ -321,6 +348,60 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ ok: true, tipo: "arena_daily" });
+  }
+
+  // ── Aula avulsa (externalReference "arena_class_charge:<attendanceId>") ──
+  // A cobrança já foi criada e resolvida de forma síncrona em
+  // processarCobrancaAvulsa (app/arena/actions.ts) — este handler é a
+  // confirmação/estorno assíncrona que o Asaas manda depois, mantendo o
+  // status final consistente mesmo se a resposta síncrona tiver falhado
+  // (timeout de rede, etc.) e disparando o repasse pro dono da arena.
+  if (registrationId.startsWith("arena_class_charge:")) {
+    const attendanceId = registrationId.slice("arena_class_charge:".length);
+    if (!(await paymentBelongsToRecord("arena_attendance", attendanceId)))
+      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+
+    if (EVENTOS_CONFIRMADO.has(event)) {
+      await supabase
+        .from("arena_attendance")
+        .update({ pagamento_status: "pago", charged_at: new Date().toISOString(), repasse_status: "pendente" })
+        .eq("id", attendanceId)
+        .neq("pagamento_status", "pago");
+
+      const { data: presenca } = await supabase
+        .from("arena_attendance")
+        .select("arena_id, valor_avulso")
+        .eq("id", attendanceId)
+        .single();
+
+      if (presenca) {
+        const { data: arenaAccount } = await supabase
+          .from("arena_accounts")
+          .select("chave_pix, chave_pix_atualizada_em")
+          .eq("arena_id", presenca.arena_id)
+          .maybeSingle();
+
+        const chavePix  = arenaAccount?.chave_pix as string | undefined;
+        const valorBase = Number(presenca.valor_avulso ?? 0);
+        await processarRepasseArena(
+          "arena_attendance",
+          attendanceId,
+          valorBase,
+          chavePix,
+          `Aula avulsa ${attendanceId}`,
+          arenaAccount?.chave_pix_atualizada_em ?? null,
+        );
+      }
+    }
+
+    if (EVENTOS_ESTORNADO.has(event)) {
+      await supabase
+        .from("arena_attendance")
+        .update({ pagamento_status: "estornado", repasse_status: "estornado" })
+        .eq("id", attendanceId);
+    }
+
+    return NextResponse.json({ ok: true, tipo: "arena_class_charge" });
   }
 
   // ── Ingresso de ATLETA avulso (externalReference "athl:<ticketId>") ──
@@ -361,7 +442,7 @@ export async function POST(req: NextRequest) {
       if (champAth) {
         const { data: orgAth } = await supabase
           .from("organizer_accounts")
-          .select("chave_pix")
+          .select("chave_pix, chave_pix_atualizada_em")
           .eq("user_id", champAth.organizador_id)
           .single();
         const chavePix = orgAth?.chave_pix as string | undefined;
@@ -379,7 +460,7 @@ export async function POST(req: NextRequest) {
             if (claimed && claimed.length > 0) {
               await executarRepasseAtletaTicket(
                 supabase,
-                { ticketId, champNome: champAth.nome, chavePix, valor },
+                { ticketId, champNome: champAth.nome, chavePix, chavePixAtualizadaEm: orgAth?.chave_pix_atualizada_em ?? null, valor },
                 "pendente",
               );
             }
@@ -436,7 +517,7 @@ export async function POST(req: NextRequest) {
       if (champ) {
         const { data: org } = await supabase
           .from("organizer_accounts")
-          .select("chave_pix")
+          .select("chave_pix, chave_pix_atualizada_em")
           .eq("user_id", champ.organizador_id)
           .single();
         const chavePix = org?.chave_pix as string | undefined;
@@ -454,7 +535,7 @@ export async function POST(req: NextRequest) {
             if (claimed && claimed.length > 0) {
               await executarRepasseEspectador(
                 supabase,
-                { ticketId, champNome: champ.nome, chavePix, valor },
+                { ticketId, champNome: champ.nome, chavePix, chavePixAtualizadaEm: org?.chave_pix_atualizada_em ?? null, valor },
                 "pendente",
               );
             }
@@ -588,7 +669,7 @@ export async function POST(req: NextRequest) {
     if (champ) {
       const orgAccountRes = await supabase
         .from("organizer_accounts")
-        .select("chave_pix")
+        .select("chave_pix, chave_pix_atualizada_em")
         .eq("user_id", champ.organizador_id)
         .single();
 
@@ -624,6 +705,7 @@ export async function POST(req: NextRequest) {
                 isElite,
                 feePendente:    Number(champ.premium_fee_pendente ?? 0),
                 chavePix,
+                chavePixAtualizadaEm: orgAccountRes.data?.chave_pix_atualizada_em ?? null,
                 repasseBase,
               },
               "pendente",

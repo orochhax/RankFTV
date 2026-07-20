@@ -3,9 +3,28 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { PRECO_ELITE } from "@/lib/elite";
+import { registrarAuditoria } from "@/lib/audit";
+import { compararTitularidadePix } from "@/lib/pix";
+import { consultarCpfCnpjTitularPix } from "@/lib/asaas";
 
+/**
+ * Troca a chave Pix de recebimento do organizador.
+ *
+ * Trocar uma chave EXISTENTE (não o primeiro cadastro) exige confirmar a
+ * senha atual — reautenticação recente contra sequestro de sessão — e fica
+ * auditada em security_audit_log. Antes de gravar, consulta a titularidade
+ * da chave na API oficial da Asaas (GET /pix/addressKeys/external) e
+ * compara com o CPF/CNPJ já cadastrado do organizador: só bloqueia quando a
+ * resposta é inequívoca (CPF/CNPJ completo, não mascarado) e não bate — dado
+ * ambíguo/mascarado (comum em sandbox) não bloqueia, só fica sem essa camada
+ * extra. A RPC atualizar_chave_pix_organizador também carimba
+ * chave_pix_atualizada_em, que segura qualquer repasse por
+ * PIX_COOLDOWN_HORAS (lib/pix.ts) — a proteção de fato pra quando a
+ * titularidade não dá pra confirmar.
+ */
 export async function salvarChavePix(
   chave: string,
+  senha?: string,
 ): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -14,11 +33,53 @@ export async function salvarChavePix(
   const chaveClean = chave.trim();
   if (!chaveClean) return { ok: false, error: "Informe a chave Pix." };
 
-  const { error } = await supabase
+  const { data: contaAtual } = await supabase
     .from("organizer_accounts")
-    .upsert({ user_id: user.id, chave_pix: chaveClean }, { onConflict: "user_id" });
+    .select("chave_pix, cpf_cnpj")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const trocandoChaveExistente = !!contaAtual?.chave_pix;
 
+  if (trocandoChaveExistente) {
+    if (!senha) return { ok: false, error: "Confirme sua senha pra trocar a chave Pix." };
+    if (!user.email) return { ok: false, error: "Conta sem e-mail — não é possível reautenticar." };
+    const { error: authError } = await supabase.auth.signInWithPassword({ email: user.email, password: senha });
+    if (authError) {
+      await registrarAuditoria({
+        actorId: user.id,
+        acao: "chave_pix_troca_senha_invalida",
+        alvoTabela: "organizer_accounts",
+        alvoId: user.id,
+      });
+      return { ok: false, error: "Senha incorreta." };
+    }
+  }
+
+  const cpfCnpjTitular = await consultarCpfCnpjTitularPix(chaveClean);
+  const titularidade = compararTitularidadePix(cpfCnpjTitular, contaAtual?.cpf_cnpj ?? null);
+  if (titularidade === "nao_confere") {
+    await registrarAuditoria({
+      actorId: user.id,
+      acao: "chave_pix_titularidade_nao_confere",
+      alvoTabela: "organizer_accounts",
+      alvoId: user.id,
+    });
+    return {
+      ok: false,
+      error: "Essa chave Pix está cadastrada em nome de outra pessoa/CNPJ. Use uma chave no seu próprio nome.",
+    };
+  }
+
+  const { error } = await supabase.rpc("atualizar_chave_pix_organizador", { p_chave: chaveClean });
   if (error) return { ok: false, error: "Erro ao salvar chave Pix." };
+
+  await registrarAuditoria({
+    actorId: user.id,
+    acao: trocandoChaveExistente ? "chave_pix_alterada" : "chave_pix_cadastrada",
+    alvoTabela: "organizer_accounts",
+    alvoId: user.id,
+    detalhes: { titularidadeVerificada: titularidade },
+  });
 
   revalidatePath("/painel/campeonatos", "layout");
   return { ok: true };
@@ -38,31 +99,16 @@ export async function tornarCampeonatoElite(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Não autenticado." };
 
-  // Só o dono do campeonato pode ativar o Elite.
-  const { data: champ } = await supabase
-    .from("championships")
-    .select("organizador_id, is_elite, status")
-    .eq("id", champId)
-    .single();
-  if (!champ || champ.organizador_id !== user.id)
-    return { ok: false, error: "Sem permissão." };
-  if (champ.is_elite) return { ok: true }; // já é elite
+  // is_elite/premium_fee_pendente são protegidos por trigger contra escrita
+  // direta do client (ver harden-championship-financial-fields.sql) — a RPC
+  // reaplica a mesma checagem de dono e regra de negócio, mas grava como
+  // service_role.
+  const { error } = await supabase.rpc("ativar_championship_elite", {
+    p_champ_id: champId,
+    p_preco_elite: PRECO_ELITE,
+  });
 
-  // Depois que as inscrições fecham, não dá mais pra virar Elite (a cobrança
-  // depende de inscrições futuras pra abater a dívida).
-  if (champ.status !== "rascunho" && champ.status !== "inscricoes_abertas") {
-    return {
-      ok: false,
-      error: "O Elite só pode ser ativado enquanto as inscrições estão abertas.",
-    };
-  }
-
-  const { error } = await supabase
-    .from("championships")
-    .update({ is_elite: true, premium_fee_pendente: PRECO_ELITE })
-    .eq("id", champId);
-
-  if (error) return { ok: false, error: "Erro ao ativar o Elite." };
+  if (error) return { ok: false, error: error.message || "Erro ao ativar o Elite." };
 
   revalidatePath(`/painel/campeonatos/${champId}`, "layout");
   revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
@@ -87,27 +133,15 @@ export async function cancelarCampeonatoElite(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Não autenticado." };
 
-  const { data: champ } = await supabase
-    .from("championships")
-    .select("organizador_id, is_elite")
-    .eq("id", champId)
-    .single();
-  if (!champ || champ.organizador_id !== user.id)
-    return { ok: false, error: "Sem permissão." };
-  if (!champ.is_elite) return { ok: true }; // já não é elite
+  const { error } = await supabase.rpc("cancelar_championship_elite", {
+    p_champ_id: champId,
+    p_preco_elite: PRECO_ELITE,
+  });
 
-  const { data: cancelado } = await supabase
-    .from("championships")
-    .update({ is_elite: false, premium_fee_pendente: 0 })
-    .eq("id", champId)
-    .eq("is_elite", true)
-    .gte("premium_fee_pendente", PRECO_ELITE)
-    .select("id");
-
-  if (!cancelado || cancelado.length === 0) {
+  if (error) {
     return {
       ok: false,
-      error: "O Plano Elite já começou a ser cobrado e não pode mais ser cancelado.",
+      error: error.message || "O Plano Elite já começou a ser cobrado e não pode mais ser cancelado.",
     };
   }
 

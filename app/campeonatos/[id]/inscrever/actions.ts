@@ -8,6 +8,7 @@ import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
 import { buscarCupomValido, type CupomValido } from "@/lib/cupons";
 import { resolverPrecos, resolverEClaimarLote } from "@/lib/lotes";
 import { enviarConviteDupla, enviarInscricaoConfirmada } from "@/lib/email/send";
+import { checarElegibilidadeCategoria, resolverCpfInscricao, podeConvidarComoParceiro } from "@/lib/inscricao-elegibilidade";
 
 export type InscreverState = { error?: string };
 
@@ -33,11 +34,19 @@ export async function inscreverDupla(
   if (!tamanhoCamisa) return { error: "Selecione o tamanho da camisa." };
 
   // ── Carrega perfil, campeonato e categoria em paralelo ────────
+  // category_id é filtrado por championship_id aqui (defesa em profundidade
+  // além da FK composta no banco — ver harden-championship-registration-
+  // security.sql): sem isso, um category_id de outro campeonato (ex: mais
+  // barato ou gratuito) passava direto.
   const [{ data: profile }, { data: priv }, { data: champ }, { data: cat }] = await Promise.all([
-    supabase.from("profiles").select("nome, username").eq("id", user.id).single(),
+    supabase.from("profiles").select("nome, username, rating, genero").eq("id", user.id).single(),
     supabase.from("profiles_private").select("cpf").eq("user_id", user.id).maybeSingle(),
-    supabase.from("championships").select("id, nome, taxa_plataforma, organizador_id, status, inscricoes_fim, is_elite").eq("id", championshipId).single(),
-    supabase.from("championship_categories").select("id, nome, valor_inscricao").eq("id", categoryId).single(),
+    supabase.from("championships").select("id, nome, taxa_plataforma, organizador_id, status, inscricoes_fim, is_elite, usa_motor_categoria").eq("id", championshipId).single(),
+    supabase.from("championship_categories")
+      .select("id, nome, valor_inscricao, genero, corte_rating_min, corte_rating_max")
+      .eq("id", categoryId)
+      .eq("championship_id", championshipId)
+      .single(),
   ]);
 
   const cpfSalvo = priv?.cpf ?? "";
@@ -47,6 +56,16 @@ export async function inscreverDupla(
   if (!cat)     return { error: "Categoria não encontrada." };
   if (champ.status !== "inscricoes_abertas")
     return { error: "As inscrições não estão abertas para este campeonato." };
+
+  // ── Elegibilidade de gênero e rating — sempre a partir do perfil salvo,
+  // nunca de valor que o navegador manda (não existe campo de gênero/rating
+  // no FormData desta ação, mas isso vale mesmo se um dia adicionarem).
+  const elegibilidade = checarElegibilidadeCategoria(
+    { genero: profile.genero, rating: profile.rating },
+    { genero: cat.genero, corteRatingMin: cat.corte_rating_min, corteRatingMax: cat.corte_rating_max },
+    champ.usa_motor_categoria ?? true,
+  );
+  if (!elegibilidade.ok) return { error: elegibilidade.error };
 
   const hoje = new Date().toISOString().split("T")[0];
   if (champ.inscricoes_fim && champ.inscricoes_fim < hoje)
@@ -89,7 +108,7 @@ export async function inscreverDupla(
     : 0;
   const isGratisPreview = Math.max(0, valorLotePreview - descontoPreview) === 0;
 
-  const cpf = cpfInput || cpfSalvo || "";
+  const cpf = resolverCpfInscricao(cpfSalvo, cpfInput);
 
   // CPF só é obrigatório para inscrições pagas (Asaas exige)
   if (!isGratisPreview && (!cpf || cpf.length !== 11)) {
@@ -122,6 +141,8 @@ export async function inscreverDupla(
       .single();
     if (!parceiro)
       return { error: `Usuário @${parceiroUsername} não encontrado.` };
+    const podeConvidar = podeConvidarComoParceiro(parceiro.id, user.id);
+    if (!podeConvidar.ok) return { error: podeConvidar.error };
     atleta2Id = parceiro.id;
 
     const admin = createAdminClient();
@@ -190,6 +211,13 @@ export async function inscreverDupla(
     .single();
   if (teamError || !team) {
     await liberarReivindicacoes();
+    // 23505 (unique_violation) no índice teams_one_active_per_atleta1 =
+    // clique duplo/retry criou uma segunda tentativa concorrente pra mesma
+    // pessoa neste campeonato — a primeira já passou. Nunca chega a chamar
+    // o Asaas nesta segunda tentativa.
+    if (teamError?.code === "23505") {
+      return { error: "Você já está inscrito neste campeonato." };
+    }
     return { error: "Erro ao criar dupla." };
   }
 

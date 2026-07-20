@@ -7,6 +7,7 @@ import {
   conviteAceitoHtml,
   pagamentoConfirmadoHtml,
   conviteStaffHtml,
+  recuperacaoIngressoHtml,
 } from "./templates";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
@@ -99,6 +100,18 @@ export async function enviarConviteStaff(opts: {
       permissoes:       opts.permissoes,
       notificacoesUrl:  `${BASE_URL}/notificacoes`,
     }),
+  );
+}
+
+export async function enviarCodigoRecuperacaoIngresso(opts: {
+  email: string;
+  codigo: string;
+  validadeMinutos: number;
+}) {
+  await send(
+    opts.email,
+    "Seu código de acesso — RankFTV",
+    recuperacaoIngressoHtml({ codigo: opts.codigo, validadeMinutos: opts.validadeMinutos }),
   );
 }
 

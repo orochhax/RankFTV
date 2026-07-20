@@ -3,6 +3,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { Loader2, Trash2, Plus, Pencil, X } from "lucide-react";
 import { criarAula, editarAula, removerAula, type AulaState } from "@/app/arena/aulas/actions";
+import { PUBLICO_LABEL, horarioLabel, validarIntervaloHorario, type PublicoAula } from "@/lib/arena-dates";
 
 const DIAS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -12,21 +13,84 @@ const NIVEL_LABEL: Record<string, string> = {
   avancado:      "Avançado",
 };
 
+export type StaffOpcao = { userId: string; nome: string };
+
 type Aula = {
   id: string;
   titulo: string;
-  horario: string | null;
-  duracao_minutos: number;
+  hora_inicio: string | null;
+  hora_fim: string | null;
   dias_semana: number[] | null;
   ativo: boolean;
   nivel: string | null;
+  publico: PublicoAula;
   max_alunos: number | null;
+  valor_avulso: number | null;
+  professor_id: string | null;
 };
 
 const inputCls =
   "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
 const selectCls =
   "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
+
+
+const HORAS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTOS_PADRAO = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
+
+// Dois selects (hora/minuto) em vez do <input type="time"> nativo — o widget
+// nativo do navegador (roda de rolagem) é feio e inconsistente entre
+// browsers. Minutos ficam em passos de 5 (granularidade normal de aula),
+// mas se o valor salvo não cair num múltiplo de 5 (dado legado), o próprio
+// minuto é injetado na lista pra nunca ser silenciosamente arredondado.
+function TimeSelect({
+  name,
+  value,
+  onChange,
+}: {
+  name: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [hora, minuto] = value ? value.split(":") : ["", ""];
+  const minutos = minuto && !MINUTOS_PADRAO.includes(minuto)
+    ? [...MINUTOS_PADRAO, minuto].sort()
+    : MINUTOS_PADRAO;
+
+  function mudarHora(novaHora: string) {
+    if (!novaHora) { onChange(""); return; }
+    onChange(`${novaHora}:${minuto || "00"}`);
+  }
+  function mudarMinuto(novoMinuto: string) {
+    if (!hora) return;
+    onChange(`${hora}:${novoMinuto}`);
+  }
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <select
+        aria-label="Hora"
+        value={hora}
+        onChange={(e) => mudarHora(e.target.value)}
+        className={selectCls}
+      >
+        <option value="">--</option>
+        {HORAS.map((h) => <option key={h} value={h}>{h}h</option>)}
+      </select>
+      <select
+        aria-label="Minuto"
+        value={minuto}
+        onChange={(e) => mudarMinuto(e.target.value)}
+        disabled={!hora}
+        className={`${selectCls} disabled:cursor-not-allowed disabled:opacity-50`}
+      >
+        <option value="">--</option>
+        {minutos.map((m) => <option key={m} value={m}>{m}</option>)}
+      </select>
+      <input type="hidden" name={name} value={value} />
+    </div>
+  );
+}
 
 function DiasSemanaField({ defaultDias }: { defaultDias: number[] }) {
   return (
@@ -44,7 +108,11 @@ function DiasSemanaField({ defaultDias }: { defaultDias: number[] }) {
   );
 }
 
-function CamposAula({ aula }: { aula?: Aula }) {
+function CamposAula({ aula, staff }: { aula?: Aula; staff: StaffOpcao[] }) {
+  const [horaInicio, setHoraInicio] = useState(aula?.hora_inicio ?? "");
+  const [horaFim, setHoraFim] = useState(aula?.hora_fim ?? "");
+  const erroHorario = validarIntervaloHorario(horaInicio, horaFim);
+
   return (
     <>
       <div>
@@ -54,24 +122,29 @@ function CamposAula({ aula }: { aula?: Aula }) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Horário</label>
-          <input name="horario" type="time" defaultValue={aula?.horario ?? ""} className={`mt-1 ${inputCls}`} />
+          <label className="block text-sm font-medium text-gray-700">Horário de início</label>
+          <div className="mt-1">
+            <TimeSelect name="hora_inicio" value={horaInicio} onChange={setHoraInicio} />
+          </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Duração (min)</label>
-          <input
-            name="duracao_minutos"
-            type="number"
-            min={15}
-            max={480}
-            step={5}
-            defaultValue={aula?.duracao_minutos ?? 60}
-            className={`mt-1 ${inputCls}`}
-          />
+          <label className="block text-sm font-medium text-gray-700">Horário de término</label>
+          <div className="mt-1">
+            <TimeSelect name="hora_fim" value={horaFim} onChange={setHoraFim} />
+          </div>
         </div>
       </div>
+      {erroHorario && <p className="text-xs text-red-600">{erroHorario}</p>}
 
       <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Público</label>
+          <select name="publico" defaultValue={aula?.publico ?? "misto"} className={`mt-1 ${selectCls}`}>
+            <option value="misto">{PUBLICO_LABEL.misto}</option>
+            <option value="masculino">{PUBLICO_LABEL.masculino}</option>
+            <option value="feminino">{PUBLICO_LABEL.feminino}</option>
+          </select>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Nível</label>
           <select name="nivel" defaultValue={aula?.nivel ?? ""} className={`mt-1 ${selectCls}`}>
@@ -80,6 +153,27 @@ function CamposAula({ aula }: { aula?: Aula }) {
             <option value="intermediario">Intermediário</option>
             <option value="avancado">Avançado</option>
           </select>
+        </div>
+      </div>
+      <p className="-mt-2 text-xs text-gray-400">
+        Público restringe a confirmação de presença ao gênero cadastrado no perfil do aluno.
+      </p>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Preço da aula avulsa <span className="font-normal text-gray-400">(opcional)</span>
+          </label>
+          <input
+            name="valor_avulso"
+            type="number"
+            min={0}
+            step="0.01"
+            inputMode="decimal"
+            defaultValue={aula?.valor_avulso ?? ""}
+            placeholder="Sem cobrança avulsa"
+            className={`mt-1 ${inputCls}`}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -96,13 +190,30 @@ function CamposAula({ aula }: { aula?: Aula }) {
           />
         </div>
       </div>
+      <p className="-mt-2 text-xs text-gray-400">
+        Preço avulso é cobrado do aluno sem crédito de plano disponível. Vazio = só alunos com plano.
+      </p>
+
+      {aula && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Professor <span className="font-normal text-gray-400">(opcional)</span>
+          </label>
+          <select name="professor_id" defaultValue={aula.professor_id ?? ""} className={`mt-1 ${selectCls}`}>
+            <option value="">Sem professor designado</option>
+            {staff.map((s) => (
+              <option key={s.userId} value={s.userId}>{s.nome}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <DiasSemanaField defaultDias={aula?.dias_semana ?? []} />
     </>
   );
 }
 
-function EditarAulaForm({ aula, arenaId, onClose }: { aula: Aula; arenaId: string; onClose: () => void }) {
+function EditarAulaForm({ aula, arenaId, staff, onClose }: { aula: Aula; arenaId: string; staff: StaffOpcao[]; onClose: () => void }) {
   const [state, formAction, pending] = useActionState<AulaState, FormData>(async (_prev, formData) => {
     const result = await editarAula(_prev, formData);
     if (!result.error) {
@@ -125,7 +236,7 @@ function EditarAulaForm({ aula, arenaId, onClose }: { aula: Aula; arenaId: strin
       <input type="hidden" name="arena_id" value={arenaId} />
       <input type="hidden" name="ativo" value="true" />
 
-      <CamposAula aula={aula} />
+      <CamposAula aula={aula} staff={staff} />
 
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
 
@@ -150,7 +261,7 @@ function EditarAulaForm({ aula, arenaId, onClose }: { aula: Aula; arenaId: strin
   );
 }
 
-export function AulasManager({ aulas, arenaId }: { aulas: Aula[]; arenaId: string }) {
+export function AulasManager({ aulas, arenaId, staff = [] }: { aulas: Aula[]; arenaId: string; staff?: StaffOpcao[] }) {
   const [state, formAction, pending] = useActionState<AulaState, FormData>(criarAula, {});
   const [removing, startRemove] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -167,7 +278,7 @@ export function AulasManager({ aulas, arenaId }: { aulas: Aula[]; arenaId: strin
           {aulas.map((a) =>
             editingId === a.id ? (
               <li key={a.id}>
-                <EditarAulaForm aula={a} arenaId={arenaId} onClose={() => setEditingId(null)} />
+                <EditarAulaForm aula={a} arenaId={arenaId} staff={staff} onClose={() => setEditingId(null)} />
               </li>
             ) : (
               <li
@@ -175,18 +286,24 @@ export function AulasManager({ aulas, arenaId }: { aulas: Aula[]; arenaId: strin
                 className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 ring-1 ring-black/5"
               >
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <p className="text-sm font-medium text-gray-900">{a.titulo}</p>
                     {a.nivel && (
                       <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
                         {NIVEL_LABEL[a.nivel] ?? a.nivel}
                       </span>
                     )}
+                    {a.publico !== "misto" && (
+                      <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-600">
+                        {PUBLICO_LABEL[a.publico]}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-gray-400">
                     {(a.dias_semana ?? []).map((d) => DIAS[d]).join(", ")}
-                    {a.horario && ` · ${a.horario} (${a.duracao_minutos} min)`}
+                    {horarioLabel(a.hora_inicio, a.hora_fim) && ` · ${horarioLabel(a.hora_inicio, a.hora_fim)}`}
                     {a.max_alunos && ` · máx. ${a.max_alunos} alunos`}
+                    {a.valor_avulso != null && ` · avulsa R$ ${a.valor_avulso.toFixed(2).replace(".", ",")}`}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
@@ -219,7 +336,7 @@ export function AulasManager({ aulas, arenaId }: { aulas: Aula[]; arenaId: strin
         <p className="text-sm font-semibold text-gray-700">Nova aula</p>
         <input type="hidden" name="arena_id" value={arenaId} />
 
-        <CamposAula />
+        <CamposAula staff={staff} />
 
         {state.error && (
           <p className="text-sm text-red-600">{state.error}</p>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, CalendarCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PresencaClient } from "@/components/arena/PresencaClient";
+import { hhmm } from "@/lib/arena-dates";
 
 export default async function PresencaPage() {
   const supabase = await createClient();
@@ -47,11 +48,11 @@ export default async function PresencaPage() {
   // Aulas ativas desta arena que ocorrem hoje
   const { data: aulasHoje } = await supabase
     .from("arena_classes")
-    .select("id, titulo, horario")
+    .select("id, titulo, hora_inicio")
     .eq("arena_id", arena.id)
     .eq("ativo", true)
     .contains("dias_semana", [diaSemana])
-    .order("horario", { ascending: true });
+    .order("hora_inicio", { ascending: true });
 
   // Presenças que o aluno já registrou hoje
   const classIds = (aulasHoje ?? []).map((a) => a.id);
@@ -101,7 +102,7 @@ export default async function PresencaPage() {
             aulasHoje={(aulasHoje ?? []).map((a) => ({
               id:      a.id,
               titulo:  a.titulo,
-              horario: a.horario,
+              horario: hhmm(a.hora_inicio),
               jaFez:   presencasSet.has(a.id),
             }))}
             historico={(historico ?? []).map((h) => ({

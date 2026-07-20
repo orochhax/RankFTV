@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Plus, Trash2, Power, Pencil, Check, X, CreditCard, Settings2 } from "lucide-react";
-import { addPlan, togglePlan, deletePlan, updatePlan, updatePlanPaymentConfig } from "@/app/arena/planos/actions";
+import { useActionState, useState, useTransition } from "react";
+import { Plus, Archive, Power, Pencil, Check, X, CreditCard, Settings2, AlertTriangle } from "lucide-react";
+import { addPlan, togglePlan, arquivarPlano, updatePlan, updatePlanPaymentConfig } from "@/app/arena/planos/actions";
+
+type PlanFormState = { error?: string };
 
 type Plan = {
   id: string;
@@ -15,6 +17,7 @@ type Plan = {
   aceita_debito: boolean | null;
   dia_vencimento: number | null;
   aulas_por_semana: number | null;
+  arquivadoEm: string | null;
 };
 
 function fmt(v: number) {
@@ -25,28 +28,38 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
   const [editing,       setEditing]       = useState(false);
   const [editingConfig, setEditingConfig] = useState(false);
   const [pending, startTransition]        = useTransition();
+  const [arquivarMsg, setArquivarMsg]     = useState<string | null>(null);
 
   // Local state for payment config toggles
   const [credito, setCredito]    = useState(plan.aceita_credito ?? true);
   const [debito,  setDebito]     = useState(plan.aceita_debito ?? false);
   const [diaVenc, setDiaVenc]    = useState(plan.dia_vencimento ?? 10);
 
+  const [updateState, updateAction, updatePending] = useActionState<PlanFormState, FormData>(
+    async (_prev, formData) => {
+      const result = await updatePlan(formData);
+      if (!result.error) setEditing(false);
+      return result;
+    },
+    {},
+  );
+
   function handleToggle() {
     startTransition(() => togglePlan(plan.id, !plan.ativo, handle));
   }
 
-  function handleDelete() {
-    if (!confirm("Remover este plano?")) return;
-    startTransition(() => deletePlan(plan.id, handle));
+  function handleArquivar() {
+    if (!confirm("Arquivar este plano? Ele some das novas contratações. Quem já assinou mantém o acesso até o fim do período pago, sem renovar de novo.")) return;
+    setArquivarMsg(null);
+    startTransition(async () => {
+      const r = await arquivarPlano(plan.id, handle);
+      if (r.error) setArquivarMsg(r.error);
+    });
   }
 
   if (editing) {
     return (
-      <form
-        action={updatePlan}
-        onSubmit={() => setEditing(false)}
-        className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 space-y-3"
-      >
+      <form action={updateAction} className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 space-y-3">
         <input type="hidden" name="handle" value={handle} />
         <input type="hidden" name="planId" value={plan.id} />
         <input type="hidden" name="tipo"   value={plan.tipo} />
@@ -63,16 +76,23 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
           className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           placeholder="Descrição (opcional)"
         />
-        <input
-          name="valor"
-          type="number"
-          step="0.01"
-          min="0"
-          defaultValue={plan.valor}
-          required
-          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          placeholder="Valor (R$)"
-        />
+        <div>
+          <input
+            name="valor"
+            type="number"
+            step="0.01"
+            min="0"
+            defaultValue={plan.valor}
+            required
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="Valor (R$)"
+          />
+          {plan.tipo === "mensalidade" && (
+            <p className="mt-1 text-[11px] text-gray-400">
+              Mudar o valor só vale pra novas contratações — quem já assinou continua pagando o valor atual até o fim do período, sem renovar sob o preço novo.
+            </p>
+          )}
+        </div>
         {plan.tipo === "mensalidade" && (
           <div>
             <input
@@ -88,10 +108,16 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
             </p>
           </div>
         )}
+        {updateState.error && (
+          <p className="flex items-start gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 ring-1 ring-amber-100">
+            <AlertTriangle className="mt-0.5 size-3.5 shrink-0" /> {updateState.error}
+          </p>
+        )}
         <div className="flex gap-2">
           <button
             type="submit"
-            className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            disabled={updatePending}
+            className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
           >
             <Check className="size-4" /> Salvar
           </button>
@@ -198,7 +224,12 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
       }`}
     >
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-gray-900 text-sm">{plan.nome}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="font-semibold text-gray-900 text-sm">{plan.nome}</p>
+          {plan.arquivadoEm && (
+            <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-semibold text-gray-600">Arquivado</span>
+          )}
+        </div>
         {plan.descricao && <p className="text-xs text-gray-400 mt-0.5">{plan.descricao}</p>}
         <p className="mt-1 text-base font-black text-blue-600">{fmt(plan.valor)}</p>
 
@@ -227,37 +258,40 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
       <div className="flex gap-1 shrink-0">
         <button
           onClick={() => setEditing(true)}
-          disabled={pending}
-          title="Editar"
-          className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          disabled={pending || !!plan.arquivadoEm}
+          title={plan.arquivadoEm ? "Plano arquivado — sem edição" : "Editar"}
+          className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-40"
         >
           <Pencil className="size-4" />
         </button>
         <button
           onClick={() => setEditingConfig(true)}
-          disabled={pending}
+          disabled={pending || !!plan.arquivadoEm}
           title="Configurar pagamento"
-          className="rounded-lg p-2 text-indigo-400 hover:bg-indigo-50 hover:text-indigo-600"
+          className="rounded-lg p-2 text-indigo-400 hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-40"
         >
           <Settings2 className="size-4" />
         </button>
         <button
           onClick={handleToggle}
-          disabled={pending}
+          disabled={pending || !!plan.arquivadoEm}
           title={plan.ativo ? "Desativar" : "Ativar"}
-          className={`rounded-lg p-2 ${plan.ativo ? "text-blue-500 hover:bg-blue-50" : "text-gray-400 hover:bg-gray-100"}`}
+          className={`rounded-lg p-2 disabled:opacity-40 ${plan.ativo ? "text-blue-500 hover:bg-blue-50" : "text-gray-400 hover:bg-gray-100"}`}
         >
           <Power className="size-4" />
         </button>
         <button
-          onClick={handleDelete}
-          disabled={pending}
-          title="Remover"
-          className="rounded-lg p-2 text-red-400 hover:bg-red-50"
+          onClick={handleArquivar}
+          disabled={pending || !!plan.arquivadoEm}
+          title={plan.arquivadoEm ? "Já arquivado" : "Arquivar"}
+          className="rounded-lg p-2 text-red-400 hover:bg-red-50 disabled:opacity-40"
         >
-          <Trash2 className="size-4" />
+          <Archive className="size-4" />
         </button>
       </div>
+      {arquivarMsg && (
+        <p className="mt-2 basis-full text-xs text-amber-700">{arquivarMsg}</p>
+      )}
     </div>
   );
 }
@@ -329,6 +363,10 @@ export function PlanosAdminClient({ plans, handle }: { plans: Plan[]; handle: st
   const mensalidade = plans.filter((p) => p.tipo === "mensalidade");
   const aluguel     = plans.filter((p) => p.tipo === "aluguel");
   const diaria      = plans.filter((p) => p.tipo === "diaria");
+  // Aluguel/diária são "singleton" (0 ou 1 plano) — um arquivado não deve
+  // impedir o botão "Habilitar" de reaparecer pra cadastrar outro.
+  const aluguelAtivo = aluguel.filter((p) => !p.arquivadoEm);
+  const diariaAtivo  = diaria.filter((p) => !p.arquivadoEm);
 
   return (
     <div className="space-y-8">
@@ -370,7 +408,7 @@ export function PlanosAdminClient({ plans, handle }: { plans: Plan[]; handle: st
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-gray-800">Aluguel da quadra</h2>
-          {aluguel.length === 0 && !addingAluguel && (
+          {aluguelAtivo.length === 0 && !addingAluguel && (
             <button
               onClick={() => setAddingAluguel(true)}
               className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
@@ -380,7 +418,7 @@ export function PlanosAdminClient({ plans, handle }: { plans: Plan[]; handle: st
           )}
         </div>
 
-        {aluguel.length === 0 && !addingAluguel && (
+        {aluguelAtivo.length === 0 && !addingAluguel && (
           <p className="text-sm text-gray-400">Aluguel desabilitado. Clique em Habilitar para configurar.</p>
         )}
 
@@ -403,7 +441,7 @@ export function PlanosAdminClient({ plans, handle }: { plans: Plan[]; handle: st
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-gray-800">Diária de treino</h2>
-          {diaria.length === 0 && !addingDiaria && (
+          {diariaAtivo.length === 0 && !addingDiaria && (
             <button
               onClick={() => setAddingDiaria(true)}
               className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
@@ -413,7 +451,7 @@ export function PlanosAdminClient({ plans, handle }: { plans: Plan[]; handle: st
           )}
         </div>
 
-        {diaria.length === 0 && !addingDiaria && (
+        {diariaAtivo.length === 0 && !addingDiaria && (
           <p className="text-sm text-gray-400">Diária desabilitada. Clique em Habilitar para configurar.</p>
         )}
 

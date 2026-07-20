@@ -1,5 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { transferirPix } from "./asaas";
+import { pixKeyEmCooldown } from "./pix";
+
+const COOLDOWN_ERRO = "Chave Pix alterada recentemente — repasse retido em segurança, tenta de novo depois.";
 
 // Lógica de repasse compartilhada entre o webhook (Pix imediato) e o cron de
 // liquidação diferida (cartão D+3/D+32). O chamador é responsável por já ter
@@ -14,10 +17,15 @@ import { transferirPix } from "./asaas";
  */
 export async function executarRepasseEspectador(
   supabase: SupabaseClient,
-  ctx: { ticketId: string; champNome: string; chavePix: string; valor: number },
+  ctx: { ticketId: string; champNome: string; chavePix: string; chavePixAtualizadaEm?: string | null; valor: number },
   revertStatus: "pendente" | "aguardando_liquidacao",
 ): Promise<{ ok: boolean; transferId?: string | null; error?: string }> {
   const valor = parseFloat(Number(ctx.valor).toFixed(2));
+  if (pixKeyEmCooldown(ctx.chavePixAtualizadaEm ?? null)) {
+    await supabase.from("spectator_tickets")
+      .update({ repasse_status: revertStatus, repasse_erro: COOLDOWN_ERRO }).eq("id", ctx.ticketId);
+    return { ok: false, error: COOLDOWN_ERRO };
+  }
   try {
     let transferId: string | null = null;
     if (valor > 0) {
@@ -52,10 +60,15 @@ export async function executarRepasseEspectador(
  */
 export async function executarRepasseAtletaTicket(
   supabase: SupabaseClient,
-  ctx: { ticketId: string; champNome: string; chavePix: string; valor: number },
+  ctx: { ticketId: string; champNome: string; chavePix: string; chavePixAtualizadaEm?: string | null; valor: number },
   revertStatus: "pendente" | "aguardando_liquidacao",
 ): Promise<{ ok: boolean; transferId?: string | null; error?: string }> {
   const valor = parseFloat(Number(ctx.valor).toFixed(2));
+  if (pixKeyEmCooldown(ctx.chavePixAtualizadaEm ?? null)) {
+    await supabase.from("athlete_tickets")
+      .update({ repasse_status: revertStatus, repasse_erro: COOLDOWN_ERRO }).eq("id", ctx.ticketId);
+    return { ok: false, error: COOLDOWN_ERRO };
+  }
   try {
     let transferId: string | null = null;
     if (valor > 0) {
@@ -90,6 +103,7 @@ export type RepasseCtx = {
   /** Quanto da ativação Elite (R$178) ainda falta abater. */
   feePendente:    number;
   chavePix:       string;
+  chavePixAtualizadaEm?: string | null;
   /** Repasse já calculado com a taxa do plano correto (Elite ou Padrão). */
   repasseBase:    number;
 };
@@ -108,6 +122,12 @@ export async function executarRepasse(
   ctx: RepasseCtx,
   revertStatus: "pendente" | "aguardando_liquidacao",
 ): Promise<RepasseResult> {
+  if (pixKeyEmCooldown(ctx.chavePixAtualizadaEm ?? null)) {
+    await supabase.from("registrations")
+      .update({ repasse_status: revertStatus, repasse_erro: COOLDOWN_ERRO }).eq("id", ctx.registrationId);
+    return { ok: false, error: COOLDOWN_ERRO };
+  }
+
   // Abate a dívida de ativação Elite (R$178), se houver. claim_elite_fee é
   // atômico (FOR UPDATE) → duas inscrições simultâneas não descontam em dobro.
   let descontoElite = 0;

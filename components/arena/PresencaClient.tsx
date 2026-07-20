@@ -1,11 +1,28 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { CheckCircle2, Circle, Loader2, CalendarDays } from "lucide-react";
 import { marcarPresenca } from "@/app/arena/presenca/actions";
 
 type AulaHoje = { id: string; titulo: string; horario: string | null; jaFez: boolean };
 type HistoricoItem = { data: string; titulo: string };
+
+// confirmarPresenca devolve alguns erros como código, não texto pronto —
+// os dois exigem uma ação (link), não só uma frase, então tratamos à parte
+// do texto genérico de erro.
+function mensagemErro(codigo: string): React.ReactNode {
+  if (codigo === "PERFIL_SEM_GENERO") {
+    return <>Esta aula é restrita por gênero. <Link href="/perfil/questionario" className="font-semibold underline">Complete seu perfil</Link> pra confirmar presença.</>;
+  }
+  if (codigo === "CARTAO_NECESSARIO") {
+    return "Você não tem crédito de plano disponível e precisa de um cartão salvo pra confirmar aulas avulsas. Cadastre um cartão no Financeiro da arena (acessível pela página pública da arena).";
+  }
+  if (codigo === "AVULSA_PREVIEW") {
+    return "Você não tem crédito de plano disponível — esta seria uma aula avulsa, cobrada só se você comparecer. Confirme pela agenda completa na página da arena, onde você vê o valor antes de confirmar.";
+  }
+  return codigo;
+}
 
 export function PresencaClient({
   arenaId,
@@ -19,13 +36,13 @@ export function PresencaClient({
   hoje: string;
 }) {
   const [pending, startTransition] = useTransition();
-  const [erro, setErro] = useState<string | null>(null);
+  const [erro, setErro] = useState<React.ReactNode | null>(null);
 
   function marcar(classId: string) {
     setErro(null);
     startTransition(async () => {
       const r = await marcarPresenca(classId, arenaId);
-      if (r?.error) setErro(r.error);
+      if (r?.error) setErro(mensagemErro(r.error));
     });
   }
 

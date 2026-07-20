@@ -43,18 +43,16 @@ export default async function ArenasPage() {
   const rows = arenaRows.data ?? [];
   const arenaIds = rows.map((r) => r.id);
 
-  // Busca contagem de alunos e dias de aula em paralelo
-  const [counts, classesRows, photosRows] = await Promise.all([
-    Promise.all(
-      rows.map(async (a) => {
-        const { count } = await supabase
+  // Busca contagem de alunos e dias de aula em paralelo — uma query só pra
+  // TODAS as arenas (não uma por arena, que virava N+1 nessa listagem).
+  const [studentsRows, classesRows, photosRows] = await Promise.all([
+    arenaIds.length > 0
+      ? supabase
           .from("arena_students")
-          .select("id", { count: "exact", head: true })
-          .eq("arena_id", a.id)
-          .eq("status", "ativo");
-        return { id: a.id, alunos: count ?? 0 };
-      }),
-    ),
+          .select("arena_id")
+          .in("arena_id", arenaIds)
+          .eq("status", "ativo")
+      : { data: [] as { arena_id: string }[] },
     arenaIds.length > 0
       ? supabase
           .from("arena_classes")
@@ -71,7 +69,10 @@ export default async function ArenasPage() {
       : { data: [] as { arena_id: string; url: string }[] },
   ]);
 
-  const countMap = Object.fromEntries(counts.map((c) => [c.id, c.alunos]));
+  const countMap: Record<string, number> = {};
+  for (const s of (studentsRows.data ?? []) as { arena_id: string }[]) {
+    countMap[s.arena_id] = (countMap[s.arena_id] ?? 0) + 1;
+  }
 
   // Primeira foto de cada arena (menor ordem)
   const firstPhotoMap: Record<string, string> = {};

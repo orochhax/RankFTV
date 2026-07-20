@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarDays, CheckCircle2, Clock, Loader2, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, Loader2, Users, ChevronDown, ChevronUp, AlertCircle, CreditCard } from "lucide-react";
 import { confirmarPresenca, desmarcarPresenca } from "@/app/arena/actions";
 import { Avatar } from "@/components/ui/Avatar";
+import { horarioLabel, PUBLICO_LABEL, type PublicoAula } from "@/lib/arena-dates";
+import { formatBRL } from "@/lib/format";
 
 const NIVEL_LABEL: Record<string, string> = {
   iniciante:     "Iniciante",
@@ -15,11 +18,16 @@ const NIVEL_LABEL: Record<string, string> = {
 export type AulaAgenda = {
   id: string;
   titulo: string;
-  horario: string | null;
+  horaInicio: string | null;
+  horaFim: string | null;
   nivel: string | null;
+  publico: PublicoAula;
   maxAlunos: number | null;
+  valorAvulso: number | null;
   confirmados: number;
   minha: boolean;          // eu já confirmei presença nessa aula/dia
+  minhaTipoCobranca: "credito" | "avulsa" | null;
+  minhaPagamentoStatus: "nao_aplicavel" | "pendente" | "processando" | "pago" | "falhou" | null;
   passou: boolean;         // horário já começou (não dá mais pra confirmar)
   podeDesmarcar: boolean;  // dentro do prazo de cancelamento
   nomes: { nome: string; fotoUrl: string | null }[]; // vazio pra visitante
@@ -35,15 +43,24 @@ export type DiaAgenda = {
 
 export function AgendaPresenca({
   arenaId,
+  handle,
   isAluno,
   planoLimite,
   usadasSemana,
+  creditoDisponivel,
+  temCartaoSalvo,
+  generoPerfil,
   dias,
 }: {
   arenaId: string;
+  handle: string;
   isAluno: boolean;
   planoLimite: number | null;
   usadasSemana: number;
+  /** Se o aluno tem crédito de plano disponível AGORA (mesma regra em toda a arena). */
+  creditoDisponivel: boolean;
+  temCartaoSalvo: boolean;
+  generoPerfil: "masculino" | "feminino" | "outro" | null;
   dias: DiaAgenda[];
 }) {
   const router = useRouter();
@@ -51,22 +68,54 @@ export function AgendaPresenca({
   const [agindo, setAgindo] = useState<string | null>(null);   // `${classId}|${date}` em andamento
   const [erros, setErros] = useState<Record<string, string>>({});
   const [aberta, setAberta] = useState<string | null>(null);   // lista de confirmados expandida
+  const [confirmandoAvulsa, setConfirmandoAvulsa] = useState<string | null>(null); // aguardando 2º clique
 
-  function agir(aula: AulaAgenda, date: string) {
+  function elegivelGenero(publico: PublicoAula): boolean {
+    return publico === "misto" || generoPerfil === publico;
+  }
+
+  // avulsaConfirmada só é true quando esta chamada vem do botão "Sim,
+  // confirmar" do preview — o servidor também reforça essa regra (nunca
+  // reserva avulsa sem confirmação explícita), então mesmo se o palpite do
+  // cliente sobre ter crédito estiver desatualizado (corrida com outra
+  // aba), a resposta AVULSA_PREVIEW reabre o preview em vez de cobrar direto.
+  function agir(aula: AulaAgenda, date: string, avulsaConfirmada = false) {
     const chave = `${aula.id}|${date}`;
     setAgindo(chave);
     setErros((e) => ({ ...e, [chave]: "" }));
     startTransition(async () => {
       const r = aula.minha
         ? await desmarcarPresenca(arenaId, aula.id, date)
-        : await confirmarPresenca(arenaId, aula.id, date);
-      if (r.error) {
+        : await confirmarPresenca(arenaId, aula.id, date, avulsaConfirmada);
+      if (r.error === "AVULSA_PREVIEW") {
+        setConfirmandoAvulsa(chave);
+      } else if (r.error === "PERFIL_SEM_GENERO" || r.error === "CARTAO_NECESSARIO") {
+        setErros((e) => ({ ...e, [chave]: r.error! }));
+      } else if (r.error) {
         setErros((e) => ({ ...e, [chave]: r.error! }));
       } else {
+        setConfirmandoAvulsa(null);
         router.refresh();
       }
       setAgindo(null);
     });
+  }
+
+  function clicarConfirmar(aula: AulaAgenda, date: string) {
+    const chave = `${aula.id}|${date}`;
+    const precisaAvulsa = !creditoDisponivel && aula.valorAvulso != null;
+    if (precisaAvulsa && !temCartaoSalvo) {
+      // Sem crédito e sem cartão salvo: nem adianta mostrar o preview de
+      // valor — direciona direto pro Financeiro, igual ao erro do servidor.
+      setErros((e) => ({ ...e, [chave]: "CARTAO_NECESSARIO" }));
+      return;
+    }
+    if (precisaAvulsa && confirmandoAvulsa !== chave) {
+      // Primeiro clique de uma aula avulsa: só mostra o valor, não confirma ainda.
+      setConfirmandoAvulsa(chave);
+      return;
+    }
+    agir(aula, date, confirmandoAvulsa === chave);
   }
 
   return (
@@ -80,7 +129,9 @@ export function AgendaPresenca({
           <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
             {planoLimite != null
               ? `Esta semana: ${usadasSemana}/${planoLimite} aulas`
-              : "Aulas ilimitadas"}
+              : planoLimite === null && creditoDisponivel
+              ? "Aulas ilimitadas"
+              : "Sem plano ativo"}
           </span>
         )}
       </div>
@@ -115,6 +166,14 @@ export function AgendaPresenca({
                   const lotada = aula.maxAlunos != null && aula.confirmados >= aula.maxAlunos && !aula.minha;
                   const nivelLabel = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : "Todos os níveis";
                   const expandida = aberta === chave;
+                  const restritaGenero = aula.publico !== "misto" && !aula.minha;
+                  const semAcessoGenero = restritaGenero && !elegivelGenero(aula.publico);
+                  const semCredito = !creditoDisponivel && !aula.minha;
+                  const seriaAvulsa = semCredito && aula.valorAvulso != null;
+                  const bloqueadaSemPlano = semCredito && aula.valorAvulso == null;
+                  const aguardandoConfirmacaoAvulsa = confirmandoAvulsa === chave;
+                  const horario = horarioLabel(aula.horaInicio, aula.horaFim);
+
                   return (
                     <div
                       key={aula.id}
@@ -127,11 +186,11 @@ export function AgendaPresenca({
                       <div className="flex items-center gap-2">
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                            {aula.horario && (
+                            {horario && (
                               <span className={`flex items-center gap-1 text-xs font-bold ${
                                 aula.minha ? "text-blue-100" : "text-blue-600"
                               }`}>
-                                <Clock className="size-3.5" /> {aula.horario}
+                                <Clock className="size-3.5" /> {horario}
                               </span>
                             )}
                             <span className={`text-sm font-semibold ${aula.minha ? "text-white" : "text-gray-800"}`}>
@@ -150,6 +209,12 @@ export function AgendaPresenca({
                                 ? `${aula.confirmados}/${aula.maxAlunos}${lotada ? " · lotada" : ""}`
                                 : `${aula.confirmados} confirmado${aula.confirmados === 1 ? "" : "s"}`}
                             </span>
+                            {aula.publico !== "misto" && (
+                              <>
+                                <span className={aula.minha ? "text-blue-300" : "text-gray-300"}>·</span>
+                                <span className="font-semibold">{PUBLICO_LABEL[aula.publico]}</span>
+                              </>
+                            )}
                           </div>
                         </div>
 
@@ -172,14 +237,18 @@ export function AgendaPresenca({
                                 <CheckCircle2 className="size-3.5" /> Confirmado
                               </span>
                             )
+                          ) : semAcessoGenero || bloqueadaSemPlano ? (
+                            <span className="shrink-0 text-[11px] font-semibold text-gray-400">
+                              {semAcessoGenero ? "Aula restrita" : "Requer plano"}
+                            </span>
                           ) : (
                             <button
-                              onClick={() => agir(aula, dia.date)}
+                              onClick={() => clicarConfirmar(aula, dia.date)}
                               disabled={(pending && agindo === chave) || lotada}
                               className="flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               {pending && agindo === chave && <Loader2 className="size-3.5 animate-spin" />}
-                              {lotada ? "Lotada" : "Confirmar presença"}
+                              {lotada ? "Lotada" : seriaAvulsa ? "Confirmar (avulsa)" : "Confirmar presença"}
                             </button>
                           )
                         )}
@@ -190,7 +259,67 @@ export function AgendaPresenca({
                         )}
                       </div>
 
-                      {erros[chave] && (
+                      {/* Preview de aula avulsa — precisa de um segundo clique pra confirmar */}
+                      {aguardandoConfirmacaoAvulsa && aula.valorAvulso != null && (
+                        <div className="mt-2 rounded-lg bg-white/10 px-2.5 py-2 text-xs">
+                          <p className={aula.minha ? "text-white" : "text-gray-700"}>
+                            Você não tem crédito de plano disponível — esta será uma{" "}
+                            <strong>aula avulsa de {formatBRL(aula.valorAvulso)}</strong>, cobrada só se você
+                            comparecer e o professor confirmar sua presença.
+                          </p>
+                          <div className="mt-2 flex gap-2">
+                            <button
+                              onClick={() => agir(aula, dia.date, true)}
+                              disabled={pending && agindo === chave}
+                              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                            >
+                              {pending && agindo === chave && <Loader2 className="size-3.5 animate-spin" />}
+                              Sim, confirmar
+                            </button>
+                            <button
+                              onClick={() => setConfirmandoAvulsa(null)}
+                              className="rounded-lg bg-black/10 px-3 py-1.5 font-medium text-gray-700 hover:bg-black/20"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Meu status financeiro, quando essa reserva é avulsa */}
+                      {aula.minha && aula.minhaTipoCobranca === "avulsa" && aula.minhaPagamentoStatus && aula.minhaPagamentoStatus !== "nao_aplicavel" && (
+                        <p className="mt-2 text-[11px] font-semibold text-blue-100">
+                          {aula.minhaPagamentoStatus === "pago" && "Aula avulsa paga"}
+                          {aula.minhaPagamentoStatus === "pendente" && "Aula avulsa · cobrança pendente"}
+                          {aula.minhaPagamentoStatus === "processando" && "Aula avulsa · cobrando…"}
+                          {aula.minhaPagamentoStatus === "falhou" && (
+                            <>
+                              Pagamento falhou —{" "}
+                              <Link href={`/arenas/${handle}/financeiro`} className="underline">resolver no Financeiro</Link>
+                            </>
+                          )}
+                        </p>
+                      )}
+
+                      {erros[chave] === "PERFIL_SEM_GENERO" && (
+                        <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs text-red-600 ring-1 ring-red-100">
+                          <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
+                          <span>
+                            Esta aula é restrita por gênero. Complete seu perfil pra confirmar presença —{" "}
+                            <Link href="/perfil/questionario" className="font-semibold underline">completar perfil</Link>.
+                          </span>
+                        </p>
+                      )}
+                      {erros[chave] === "CARTAO_NECESSARIO" && (
+                        <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs text-red-600 ring-1 ring-red-100">
+                          <CreditCard className="mt-0.5 size-3.5 shrink-0" />
+                          <span>
+                            Você precisa de um cartão salvo pra confirmar aulas avulsas —{" "}
+                            <Link href={`/arenas/${handle}/financeiro`} className="font-semibold underline">cadastrar cartão</Link>.
+                          </span>
+                        </p>
+                      )}
+                      {erros[chave] && erros[chave] !== "PERFIL_SEM_GENERO" && erros[chave] !== "CARTAO_NECESSARIO" && (
                         <p className="mt-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs text-red-600 ring-1 ring-red-100">
                           {erros[chave]}
                         </p>

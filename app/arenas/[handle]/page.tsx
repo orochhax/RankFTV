@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Building2, MapPin, Users, Trophy, Tag, CalendarCheck, CalendarDays, CreditCard } from "lucide-react";
+import { ArrowLeft, Building2, MapPin, Users, Trophy, Tag, CalendarCheck, CalendarDays, CreditCard, ClipboardList, Wallet, ChevronRight } from "lucide-react";
 import { ArenaPhotoGallery } from "@/components/arena/ArenaPhotoGallery";
 import { Avatar } from "@/components/ui/Avatar";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +8,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { EntrarNaArenaButtons } from "@/components/arena/EntrarNaArenaButtons";
 import { MeuPlanoCard } from "@/components/arena/MeuPlanoCard";
 import { AgendaPresenca, type DiaAgenda } from "@/components/arena/AgendaPresenca";
+import { hhmm, type PublicoAula } from "@/lib/arena-dates";
+import { estadoPlanoAluno, temAcessoAoPlano } from "@/lib/arena-attendance";
 
 const DIAS_PT  = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
@@ -82,21 +84,25 @@ export default async function ArenaPublicaPage({
     .eq("arena_id", arena.id)
     .order("ordem", { ascending: true });
 
-  // Planos da arena (públicos)
-  const { data: plans } = await supabase
+  // Planos da arena — busca TODOS (inclusive arquivados): o catálogo público
+  // só mostra os ativos, mas "meu plano atual" precisa achar o plano mesmo
+  // se ele já foi arquivado/reprecificado, senão um aluno com acesso pago
+  // ainda válido apareceria como se não tivesse plano nenhum.
+  const { data: allPlans } = await supabase
     .from("arena_plans")
     .select("id, tipo, nome, descricao, valor, ativo, aceita_credito, aceita_debito")
     .eq("arena_id", arena.id)
-    .eq("ativo", true)
     .order("ordem", { ascending: true })
     .order("created_at", { ascending: true });
 
+  const plans = (allPlans ?? []).filter((p) => p.ativo);
+
   // Mensalidades sempre ordenadas por preço, do menor pro maior
-  const mensalidadePlans = (plans ?? [])
+  const mensalidadePlans = plans
     .filter((p) => p.tipo === "mensalidade")
     .sort((a, b) => Number(a.valor) - Number(b.valor));
-  const aluguelPlan      = (plans ?? []).find((p) => p.tipo === "aluguel") ?? null;
-  const diariaPlan       = (plans ?? []).find((p) => p.tipo === "diaria") ?? null;
+  const aluguelPlan      = plans.find((p) => p.tipo === "aluguel") ?? null;
+  const diariaPlan       = plans.find((p) => p.tipo === "diaria") ?? null;
 
   // Frequência semanal dos planos — query separada e tolerante: se a migração
   // add-arena-presenca-planos.sql ainda não rodou, tudo fica "ilimitado".
@@ -110,11 +116,11 @@ export default async function ArenaPublicaPage({
   }
 
   // Verifica vínculo do usuário logado (com o plano atual)
-  let vinculo: { status: string; plan_id?: string | null } | null = null;
+  let vinculo: { status: string; plan_id?: string | null; access_until?: string | null; renovacao_ativa?: boolean } | null = null;
   if (user) {
     const { data: v } = await supabase
       .from("arena_students")
-      .select("status, plan_id")
+      .select("status, plan_id, access_until, renovacao_ativa")
       .eq("arena_id", arena.id)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -122,18 +128,46 @@ export default async function ArenaPublicaPage({
   }
 
   const isAluno = vinculo?.status === "ativo";
+  // Busca no catálogo COMPLETO (allPlans), não só nos ativos — um plano
+  // arquivado/reprecificado ainda precisa aparecer aqui pra quem já
+  // contratou, com o nome/valor que a pessoa efetivamente contratou.
   const planoAtual = isAluno && vinculo?.plan_id
-    ? mensalidadePlans.find((p) => p.id === vinculo!.plan_id) ?? null
+    ? (allPlans ?? []).find((p) => p.id === vinculo!.plan_id) ?? null
     : null;
+  const hojeParaAcesso = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+  const estadoPlano = estadoPlanoAluno({
+    planId: vinculo?.plan_id ?? null,
+    renovacaoAtiva: vinculo?.renovacao_ativa ?? true,
+    accessUntil: vinculo?.access_until ?? null,
+    hoje: hojeParaAcesso,
+  });
+  const temAcessoPlano = temAcessoAoPlano({
+    planId: vinculo?.plan_id ?? null,
+    accessUntil: vinculo?.access_until ?? null,
+    hoje: hojeParaAcesso,
+  });
 
   // ── Agenda de aulas: hoje + 6 dias, com presenças confirmadas ──────────────
   const { data: classesRaw } = await supabase
     .from("arena_classes")
-    .select("id, titulo, horario, dias_semana, nivel, max_alunos")
+    .select("id, titulo, hora_inicio, hora_fim, dias_semana, nivel, publico, max_alunos, valor_avulso")
     .eq("arena_id", arena.id)
     .eq("ativo", true)
-    .order("horario", { ascending: true });
+    .order("hora_inicio", { ascending: true });
   const classes = classesRaw ?? [];
+
+  // Gênero do perfil (fonte oficial da restrição de aula) e cartão salvo
+  // nesta arena — só busca quando faz diferença (usuário logado e é aluno).
+  let generoPerfil: "masculino" | "feminino" | "outro" | null = null;
+  let temCartaoSalvo = false;
+  if (user && isAluno) {
+    const [{ data: perfilGenero }, { data: cartao }] = await Promise.all([
+      supabase.from("profiles").select("genero").eq("id", user.id).maybeSingle(),
+      supabase.from("arena_student_cards").select("id").eq("arena_id", arena.id).eq("user_id", user.id).maybeSingle(),
+    ]);
+    generoPerfil = (perfilGenero?.genero ?? null) as typeof generoPerfil;
+    temCartaoSalvo = !!cartao;
+  }
 
   const agora = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
   const hojeISO = isoDate(agora);
@@ -147,15 +181,21 @@ export default async function ArenaPublicaPage({
 
   // Presenças da janela via admin: o RLS esconde as linhas dos outros alunos,
   // mas a contagem é pública e os nomes só vão pra quem é aluno da arena.
+  // Só conta status "ativo" (reservado/presente) — ausente/cancelada liberam
+  // a vaga e não aparecem como confirmados.
   const countMap = new Map<string, number>();          // `${classId}|${data}` → confirmados
-  const minhasChaves = new Set<string>();              // aulas que EU confirmei
+  const minhasChaves = new Set<string>();               // aulas que EU confirmei (ainda ativas)
+  const minhaTipoMap = new Map<string, "credito" | "avulsa">();
+  const minhaPagtoMap = new Map<string, "nao_aplicavel" | "pendente" | "processando" | "pago" | "falhou">();
+  const minhaStatusMap = new Map<string, string>();
   const nomesMap = new Map<string, { nome: string; fotoUrl: string | null }[]>();
   if (classes.length > 0) {
     const admin = createAdminClient();
     const { data: presencas } = await admin
       .from("arena_attendance")
-      .select("class_id, data, user_id")
+      .select("class_id, data, user_id, status, tipo_cobranca, pagamento_status")
       .eq("arena_id", arena.id)
+      .in("status", ["reservado", "presente"])
       .gte("data", datasJanela[0])
       .lte("data", datasJanela[datasJanela.length - 1]);
 
@@ -172,7 +212,12 @@ export default async function ArenaPublicaPage({
     for (const p of presencas ?? []) {
       const chave = `${p.class_id}|${p.data}`;
       countMap.set(chave, (countMap.get(chave) ?? 0) + 1);
-      if (user && p.user_id === user.id) minhasChaves.add(chave);
+      if (user && p.user_id === user.id) {
+        minhasChaves.add(chave);
+        minhaTipoMap.set(chave, p.tipo_cobranca as "credito" | "avulsa");
+        minhaPagtoMap.set(chave, p.pagamento_status as "nao_aplicavel" | "pendente" | "processando" | "pago" | "falhou");
+        minhaStatusMap.set(chave, p.status);
+      }
       if (isAluno) {
         const perfil = perfilMap.get(p.user_id);
         if (perfil) {
@@ -184,7 +229,7 @@ export default async function ArenaPublicaPage({
     }
   }
 
-  // Uso da semana atual (seg–dom) pro chip "2/3 aulas"
+  // Uso da semana atual (seg–dom) pro chip "2/3 aulas" — só crédito/presente contam.
   const { ini: semanaIni, fim: semanaFim } = semanaDe(hojeISO);
   let usadasSemana = 0;
   if (isAluno && user) {
@@ -193,10 +238,18 @@ export default async function ArenaPublicaPage({
       .select("id", { count: "exact", head: true })
       .eq("arena_id", arena.id)
       .eq("user_id", user.id)
+      .in("status", ["reservado", "presente"])
       .gte("data", semanaIni)
       .lte("data", semanaFim);
     usadasSemana = count ?? 0;
   }
+  // Crédito disponível AGORA: mesma regra usada no servidor pra decidir
+  // crédito x avulsa em confirmarPresenca — plano sem limite é ilimitado,
+  // sem acesso pago válido é zero (temAcessoPlano, não só ter um plan_id:
+  // um plano arquivado/reprecificado não dá mais crédito depois que o
+  // período pago acaba, mesmo que plan_id continue apontando pra ele).
+  const limiteSemanaAtual = vinculo?.plan_id ? (freqMap.get(vinculo.plan_id) ?? null) : null;
+  const creditoDisponivel = temAcessoPlano && (limiteSemanaAtual == null || usadasSemana < limiteSemanaAtual);
   const fmtDiaMes = (iso: string) => {
     const [, mm, dd] = iso.split("-");
     return `${dd}/${mm}`;
@@ -221,25 +274,32 @@ export default async function ArenaPublicaPage({
       .filter((c) => (c.dias_semana ?? []).includes(dow))
       .filter(
         (c, idx, arr) =>
-          arr.findIndex((x) => x.titulo === c.titulo && x.horario === c.horario) === idx,
+          arr.findIndex((x) => x.titulo === c.titulo && x.hora_inicio === c.hora_inicio) === idx,
       )
       .map((c) => {
         const chave = `${c.id}|${date}`;
         const minha = minhasChaves.has(chave);
-        const passou = i === 0 && !!c.horario
-          ? agora >= new Date(`${date}T${c.horario}:00`)
+        const horaInicio = hhmm(c.hora_inicio);
+        const horaFim = hhmm(c.hora_fim);
+        const passou = i === 0 && !!horaInicio
+          ? agora >= new Date(`${date}T${horaInicio}:00`)
           : false;
-        const podeDesmarcar = minha && (!c.horario
+        const podeDesmarcar = minha && minhaStatusMap.get(chave) === "reservado" && (!horaInicio
           ? date >= hojeISO
-          : agora <= new Date(new Date(`${date}T${c.horario}:00`).getTime() - cancelHoras * 3600_000));
+          : agora <= new Date(new Date(`${date}T${horaInicio}:00`).getTime() - cancelHoras * 3600_000));
         return {
           id: c.id,
           titulo: c.titulo,
-          horario: c.horario,
+          horaInicio,
+          horaFim,
           nivel: c.nivel,
+          publico: (c.publico ?? "misto") as PublicoAula,
           maxAlunos: c.max_alunos,
+          valorAvulso: c.valor_avulso != null ? Number(c.valor_avulso) : null,
           confirmados: countMap.get(chave) ?? 0,
           minha,
+          minhaTipoCobranca: minha ? (minhaTipoMap.get(chave) ?? null) : null,
+          minhaPagamentoStatus: minha ? (minhaPagtoMap.get(chave) ?? null) : null,
           passou,
           podeDesmarcar,
           nomes: nomesMap.get(chave) ?? [],
@@ -305,8 +365,17 @@ export default async function ArenaPublicaPage({
             </p>
           )}
 
+          {/* ── Plano encerrado, mas ainda dentro do período pago ── */}
+          {estadoPlano.estado === "encerrado_com_acesso" && (
+            <div className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-100">
+              Plano encerrado — acesso válido até{" "}
+              <strong>{new Date(estadoPlano.accessUntil + "T12:00:00").toLocaleDateString("pt-BR")}</strong>.
+              Depois dessa data você pode contratar um plano novo.
+            </div>
+          )}
+
           {/* ── Aluguel / Diária / Seu plano — lado a lado quando couber ── */}
-          {(aluguelPlan || diariaPlan || planoAtual) && (
+          {(aluguelPlan || diariaPlan || (planoAtual && estadoPlano.estado === "ativo")) && (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 
           {aluguelPlan && (
@@ -358,8 +427,8 @@ export default async function ArenaPublicaPage({
             </section>
           )}
 
-          {/* ── Seu plano (aluno já assinante) ── */}
-          {planoAtual && (
+          {/* ── Seu plano (aluno já assinante, em dia) ── */}
+          {planoAtual && estadoPlano.estado === "ativo" && (
             <MeuPlanoCard
               handle={arena.handle}
               planoAtual={planoResumo(planoAtual)}
@@ -374,8 +443,8 @@ export default async function ArenaPublicaPage({
           </div>
           )}
 
-          {/* ── Planos de mensalidade (aluno ainda sem plano) ── */}
-          {!planoAtual && mensalidadePlans.length > 0 && (
+          {/* ── Planos de mensalidade (aluno sem plano, ou plano encerrado) ── */}
+          {estadoPlano.estado !== "ativo" && mensalidadePlans.length > 0 && (
             <section className="space-y-3">
               <div className="flex items-center gap-2">
                 <Tag className="size-4 text-blue-500" />
@@ -410,13 +479,49 @@ export default async function ArenaPublicaPage({
             </section>
           )}
 
+          {/* ── Área do aluno: acesso rápido a Minhas aulas / Financeiro ── */}
+          {isAluno && (
+            <section className="grid grid-cols-2 gap-3">
+              <Link
+                href={`/arenas/${arena.handle}/minhas-aulas`}
+                className="flex items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-colors hover:ring-blue-200"
+              >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <ClipboardList className="size-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-gray-900">Minhas aulas</span>
+                  <span className="block text-xs text-gray-400">Presenças e status</span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-gray-300" />
+              </Link>
+              <Link
+                href={`/arenas/${arena.handle}/financeiro`}
+                className="flex items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-colors hover:ring-blue-200"
+              >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <Wallet className="size-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-gray-900">Financeiro</span>
+                  <span className="block text-xs text-gray-400">Cartão e cobranças</span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-gray-300" />
+              </Link>
+            </section>
+          )}
+
           {/* ── Agenda de aulas + presença ── */}
           {classes.length > 0 && (
             <AgendaPresenca
               arenaId={arena.id}
+              handle={arena.handle}
               isAluno={isAluno}
-              planoLimite={planoAtual ? (freqMap.get(planoAtual.id) ?? null) : null}
+              planoLimite={temAcessoPlano ? limiteSemanaAtual : null}
               usadasSemana={usadasSemana}
+              creditoDisponivel={creditoDisponivel}
+              temCartaoSalvo={temCartaoSalvo}
+              generoPerfil={generoPerfil}
               dias={diasAgenda}
             />
           )}

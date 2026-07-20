@@ -26,10 +26,15 @@ function mascarar(chave: string): string {
 export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
   const [editando, setEditando]       = useState(!chavePix);
   const [novaChave, setNovaChave]     = useState("");
+  const [senha, setSenha]             = useState("");
   const [showModal, setShowModal]     = useState(false);
   const [erro, setErro]               = useState<string | null>(null);
   const [sucesso, setSucesso]         = useState(false);
   const [pending, startTransition]    = useTransition();
+
+  // Trocar uma chave já cadastrada exige confirmar a senha (reautenticação
+  // recente) — primeiro cadastro (sem chave anterior) não precisa.
+  const precisaSenha = !!chavePix;
 
   function handleSalvar() {
     if (!novaChave.trim()) { setErro("Informe a chave Pix."); return; }
@@ -38,9 +43,10 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
   }
 
   function confirmar() {
+    if (precisaSenha && !senha) { setErro("Confirme sua senha pra trocar a chave Pix."); return; }
     setShowModal(false);
     startTransition(async () => {
-      const res = await salvarChavePix(novaChave.trim());
+      const res = await salvarChavePix(novaChave.trim(), senha || undefined);
       if (!res.ok) {
         setErro(res.error ?? "Erro ao salvar.");
         return;
@@ -48,6 +54,7 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
       setSucesso(true);
       setEditando(false);
       setNovaChave("");
+      setSenha("");
       setTimeout(() => setSucesso(false), 3000);
     });
   }
@@ -83,10 +90,25 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
               <p className="font-mono text-sm font-semibold text-gray-900 break-all">{novaChave.trim()}</p>
             </div>
 
+            {precisaSenha && (
+              <div className="mb-5">
+                <label className="mb-1 block text-xs font-medium text-gray-500">
+                  Confirme sua senha pra trocar a chave
+                </label>
+                <input
+                  type="password"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  placeholder="Sua senha atual"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                />
+              </div>
+            )}
+
             <div className="flex flex-col gap-2">
               <button
                 onClick={confirmar}
-                disabled={pending}
+                disabled={pending || (precisaSenha && !senha)}
                 className="w-full rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
               >
                 {pending ? "Salvando…" : "Sim, usar esta chave"}

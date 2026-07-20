@@ -1,12 +1,14 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { criarOuBuscarCliente, criarCobranca } from "@/lib/asaas";
 import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
 import { buscarCupomValido } from "@/lib/cupons";
 import { resolverEClaimarLote } from "@/lib/lotes";
 import { gerarTicketAccessToken } from "@/lib/ticket-access";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export type ComprarAtletaState = { error?: string };
 
@@ -44,6 +46,14 @@ export async function comprarIngressoAtleta(
   if (!pCpf || pCpf.length !== 11)        return { error: "CPF do parceiro inválido (11 dígitos)." };
   if (cpf === pCpf)                        return { error: "O CPF do parceiro não pode ser igual ao seu." };
   if (!categoryId)                         return { error: "Selecione uma categoria." };
+
+  // Checkout de visitante (sem login) — rate limit por IP e por e-mail.
+  const ip = getClientIp(await headers());
+  const [okIp, okEmail] = await Promise.all([
+    checkRateLimit(`athl-ticket:ip:${ip}`, 8, 600),
+    checkRateLimit(`athl-ticket:email:${email.toLowerCase()}`, 5, 600),
+  ]);
+  if (!okIp || !okEmail) return { error: "Muitas tentativas. Aguarde alguns minutos e tente de novo." };
 
   const supabase = createAdminClient();
 

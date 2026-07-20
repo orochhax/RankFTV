@@ -22,7 +22,7 @@ export default async function PlanosArenaPage({
 
   const { data: plans } = await supabase
     .from("arena_plans")
-    .select("id, tipo, nome, descricao, valor, ativo, ordem, aceita_credito, aceita_debito, dia_vencimento, aulas_por_semana")
+    .select("id, tipo, nome, descricao, valor, ativo, ordem, aceita_credito, aceita_debito, dia_vencimento, aulas_por_semana, arquivado_em")
     .eq("arena_id", arena.id)
     .order("ordem", { ascending: true })
     .order("created_at", { ascending: true });
@@ -33,7 +33,10 @@ export default async function PlanosArenaPage({
         <h1 className="text-xl font-bold text-gray-900">Planos para alunos</h1>
         <p className="text-sm text-gray-400">Configure os planos de mensalidade e opção de aluguel da quadra.</p>
       </div>
-      <PlanosAdminClient plans={plans ?? []} handle={arena.handle} />
+      <PlanosAdminClient
+        plans={(plans ?? []).map((p) => ({ ...p, arquivadoEm: p.arquivado_em }))}
+        handle={arena.handle}
+      />
     </div>
   );
 }

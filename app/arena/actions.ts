@@ -3,22 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { notificarArena, notificarResponsaveisArena } from "@/lib/arena-notify";
+import { valorAvulsaComTaxa, interpretarErroRpc } from "@/lib/arena-attendance";
 
-// Notificação in-app (best-effort — nunca bloqueia o fluxo principal).
-async function notificar(userId: string, titulo: string, mensagem: string) {
-  try {
-    const admin = createAdminClient();
-    await admin.from("notifications").insert({
-      user_id: userId,
-      championship_id: null,
-      tipo: "arena",
-      titulo,
-      mensagem,
-    });
-  } catch {
-    console.error("[arena] falha ao criar notificação para", userId);
-  }
-}
+// Mantido por compatibilidade com o resto deste arquivo (aceitarAluno etc.);
+// notificarArena é a mesma função, movida pra lib/ pra ser reaproveitada
+// pelas actions de presença/cobrança sem duplicar o insert.
+const notificar = notificarArena;
 
 export async function aceitarAluno(alunoId: string, arenaId: string) {
   const supabase = await createClient();
@@ -137,195 +128,101 @@ export async function entrarNaArena(arenaId: string) {
 }
 
 // ── Presença com regras de plano ─────────────────────────────────────────────
+// Toda a regra de negócio (gênero, vaga, crédito semanal, prazo de
+// cancelamento) mora agora dentro das funções SQL SECURITY DEFINER em
+// supabase/harden-arena-attendance-security.sql — nada disso é recalculado
+// aqui. Isso elimina a necessidade das funções de data/semana que existiam
+// só pra alimentar esses cálculos em TypeScript.
 
-const pad = (n: number) => String(n).padStart(2, "0");
-const isoDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+export type PresencaResult = {
+  ok?: boolean;
+  error?: string;
+  /** Só quando ok e a reserva virou aula avulsa — usado pra confirmar o valor na UI. */
+  avulsaValor?: number;
+};
 
-// "Agora" no fuso de Brasília, como Date naive (comparável com data+horario da aula).
-function agoraSP(): Date {
-  return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-}
-
-// Semana seg–dom que contém a data (o limite do plano conta dentro dela).
-function semanaDe(dataISO: string): { ini: string; fim: string } {
-  const d = new Date(dataISO + "T12:00:00");
-  const diffSegunda = (d.getDay() + 6) % 7; // seg=0 … dom=6
-  const seg = new Date(d);
-  seg.setDate(d.getDate() - diffSegunda);
-  const dom = new Date(seg);
-  dom.setDate(seg.getDate() + 6);
-  return { ini: isoDate(seg), fim: isoDate(dom) };
-}
-
-export type PresencaResult = { ok?: boolean; error?: string };
+// Mensagens de erro que as funções de banco levantam (RAISE EXCEPTION) e que
+// o usuário não deve ver cruas são mapeadas pra texto amigável por
+// lib/arena-attendance.ts#interpretarErroRpc (fica lá, não aqui, porque um
+// arquivo "use server" só pode exportar async function — não dava pra
+// testar essa função unitariamente se ficasse neste módulo).
 
 /**
- * Confirma presença numa aula em um dia específico (hoje até hoje+6).
- * Valida: aluno ativo, aula do dia, horário ainda não passou, vaga disponível
- * e limite semanal do plano (aulas_por_semana; sem limite = ilimitado).
- * Pode marcar mais de uma aula no mesmo dia, desde que caiba na semana.
+ * Confirma presença numa aula em um dia específico. TODA a regra de negócio
+ * (aluno ativo, gênero, vaga, crédito semanal, cartão salvo, prazo) é
+ * decidida DENTRO da função SQL arena_confirm_attendance
+ * (supabase/harden-arena-attendance-security.sql), que deriva tudo do banco
+ * a partir de auth.uid() e só recebe class_id/data/confirmação do preview —
+ * nunca arena_id, tipo de cobrança, limite ou valor vindos do cliente. Isso
+ * fecha o caminho de alguém chamar a RPC direto (fora do Next.js) com
+ * parâmetros forjados pra reservar crédito ou aula avulsa sem pagar.
  */
 export async function confirmarPresenca(
-  arenaId: string,
+  _arenaId: string,
   classId: string,
   data: string,
+  avulsaConfirmada = false,
 ): Promise<PresencaResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Faça login para confirmar presença." };
-
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return { error: "Data inválida." };
 
-  // Janela: hoje até hoje+6 (Brasília)
-  const agora = agoraSP();
-  const hoje = isoDate(agora);
-  const limite = new Date(agora);
-  limite.setDate(agora.getDate() + 6);
-  if (data < hoje || data > isoDate(limite)) {
-    return { error: "Só é possível confirmar presença até 6 dias à frente." };
-  }
-
-  // Aluno ativo da arena (traz o plano junto)
-  const { data: vinculo } = await supabase
-    .from("arena_students")
-    .select("id, plan_id")
-    .eq("arena_id", arenaId)
-    .eq("user_id", user.id)
-    .eq("status", "ativo")
-    .maybeSingle();
-  if (!vinculo) return { error: "Você não é aluno ativo desta arena." };
-
-  // Aula válida naquele dia da semana
-  const { data: aula } = await supabase
-    .from("arena_classes")
-    .select("id, titulo, horario, dias_semana, max_alunos")
-    .eq("id", classId)
-    .eq("arena_id", arenaId)
-    .eq("ativo", true)
-    .maybeSingle();
-  if (!aula) return { error: "Aula não encontrada." };
-
-  const dow = new Date(data + "T12:00:00").getDay();
-  if (!(aula.dias_semana ?? []).includes(dow)) {
-    return { error: "Essa aula não acontece nesse dia." };
-  }
-
-  // Aula de hoje que já começou não aceita mais confirmação
-  if (data === hoje && aula.horario) {
-    const inicio = new Date(`${data}T${aula.horario}:00`);
-    if (agora >= inicio) return { error: "Essa aula já começou." };
-  }
-
-  const admin = createAdminClient();
-
-  // Vagas (contagem via admin — o RLS esconde as presenças dos outros alunos)
-  if (aula.max_alunos != null) {
-    const { count } = await admin
-      .from("arena_attendance")
-      .select("id", { count: "exact", head: true })
-      .eq("class_id", classId)
-      .eq("data", data);
-    if ((count ?? 0) >= aula.max_alunos) {
-      return { error: "Essa aula já está lotada." };
-    }
-  }
-
-  // Limite semanal do plano (seg a dom da semana da aula)
-  if (vinculo.plan_id) {
-    const { data: plano } = await admin
-      .from("arena_plans")
-      .select("aulas_por_semana")
-      .eq("id", vinculo.plan_id)
-      .maybeSingle();
-    const limiteSemana = plano?.aulas_por_semana ?? null;
-    if (limiteSemana != null) {
-      const { ini, fim } = semanaDe(data);
-      const { count } = await supabase
-        .from("arena_attendance")
-        .select("id", { count: "exact", head: true })
-        .eq("arena_id", arenaId)
-        .eq("user_id", user.id)
-        .gte("data", ini)
-        .lte("data", fim);
-      if ((count ?? 0) >= limiteSemana) {
-        return {
-          error: `Seu plano dá direito a ${limiteSemana} aula${limiteSemana > 1 ? "s" : ""} por semana — você já usou todas nesta semana.`,
-        };
-      }
-    }
-  }
-
-  const { error } = await supabase.from("arena_attendance").insert({
-    class_id: classId,
-    arena_id: arenaId,
-    user_id: user.id,
-    data,
+  const { data: resultado, error } = await supabase.rpc("arena_confirm_attendance", {
+    p_class_id: classId,
+    p_data: data,
+    p_avulsa_confirmada: avulsaConfirmada,
   });
-  if (error) {
-    if (error.code === "23505") return { error: "Você já confirmou presença nessa aula." };
-    return { error: "Erro ao confirmar presença. Tente novamente." };
+
+  if (error || !resultado) {
+    if (error?.code === "23505") return { error: "Você já confirmou presença nessa aula." };
+    const { mensagem, valor } = interpretarErroRpc(error?.message ?? "");
+    return { error: mensagem, avulsaValor: valor ? Number(valor) : undefined };
   }
 
   revalidatePath("/arena/presenca");
-  return { ok: true };
+  revalidatePath(`/arenas`, "layout");
+  const r = resultado as { tipo_cobranca: string; valor_avulso: number | null };
+  return { ok: true, avulsaValor: r.tipo_cobranca === "avulsa" ? (r.valor_avulso ?? undefined) : undefined };
 }
 
 /**
- * Desmarca uma presença confirmada — devolve o crédito da semana e libera a
- * vaga. Só até `cancel_horas_antes` horas antes da aula (configurado pelo dono).
+ * Desmarca uma presença ainda "reservada" — devolve o crédito da semana e
+ * libera a vaga. O prazo mínimo (cancel_horas_antes) é conferido DENTRO de
+ * arena_cancel_attendance, não mais em TypeScript — o valor configurado
+ * pela arena é lido do banco na própria função.
  */
 export async function desmarcarPresenca(
-  arenaId: string,
+  _arenaId: string,
   classId: string,
   data: string,
 ): Promise<PresencaResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Faça login." };
-
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return { error: "Data inválida." };
 
-  const { data: aula } = await supabase
-    .from("arena_classes")
-    .select("id, horario")
-    .eq("id", classId)
-    .eq("arena_id", arenaId)
-    .maybeSingle();
-  if (!aula) return { error: "Aula não encontrada." };
-
-  // Antecedência mínima configurada pelo dono (padrão 2h se a migração não rodou)
-  let cancelHoras = 2;
-  const { data: cfgArena } = await supabase
-    .from("arenas")
-    .select("cancel_horas_antes")
-    .eq("id", arenaId)
-    .maybeSingle();
-  if (typeof cfgArena?.cancel_horas_antes === "number") {
-    cancelHoras = cfgArena.cancel_horas_antes;
-  }
-
-  const agora = agoraSP();
-  if (aula.horario) {
-    const inicio = new Date(`${data}T${aula.horario}:00`);
-    const prazo = new Date(inicio.getTime() - cancelHoras * 3600_000);
-    if (agora > prazo) {
-      return {
-        error: `O prazo pra desmarcar já passou — só até ${cancelHoras}h antes da aula.`,
-      };
-    }
-  } else if (data < isoDate(agora)) {
-    return { error: "Essa aula já passou." };
-  }
-
-  const { error } = await supabase
+  const { data: attendance } = await supabase
     .from("arena_attendance")
-    .delete()
+    .select("id")
     .eq("class_id", classId)
     .eq("user_id", user.id)
-    .eq("data", data);
-  if (error) return { error: "Erro ao desmarcar. Tente novamente." };
+    .eq("data", data)
+    .eq("status", "reservado")
+    .maybeSingle();
+  if (!attendance) return { error: "Presença não encontrada ou já finalizada." };
+
+  const { data: cancelado, error } = await supabase.rpc("arena_cancel_attendance", {
+    p_attendance_id: attendance.id,
+  });
+  if (error) {
+    const { mensagem } = interpretarErroRpc(error.message ?? "");
+    return { error: mensagem };
+  }
+  if (!cancelado) return { error: "Erro ao desmarcar. Tente novamente." };
 
   revalidatePath("/arena/presenca");
+  revalidatePath(`/arenas`, "layout");
   return { ok: true };
 }
 
@@ -370,4 +267,194 @@ export async function entrarComCodigo(arenaId: string, codigo: string) {
   revalidatePath(`/arenas`);
   revalidatePath("/perfil");
   return { ok: true };
+}
+
+// ── Finalização da lista pelo professor/gerente/dono ─────────────────────────
+
+export type FinalizeResult = { ok?: boolean; error?: string };
+
+/**
+ * Marca presente/ausente numa presença reservada. Idempotente: cliques
+ * repetidos ou requisições concorrentes batem na trava finalized_at dentro
+ * de arena_finalize_attendance (SECURITY DEFINER — reautoriza professor da
+ * aula, gerente ou dono) e nunca repetem efeito. Quando marca "presente"
+ * numa reserva avulsa ainda pendente, dispara a cobrança em seguida.
+ */
+export async function finalizarPresenca(
+  attendanceId: string,
+  status: "presente" | "ausente",
+): Promise<FinalizeResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Faça login." };
+
+  const { data, error } = await supabase.rpc("arena_finalize_attendance", {
+    p_attendance_id: attendanceId,
+    p_status: status,
+  });
+  if (error) {
+    if (error.message?.includes("not authorized")) {
+      return { error: "Você não tem permissão pra finalizar essa presença." };
+    }
+    return { error: "Erro ao finalizar presença. Tente novamente." };
+  }
+
+  const resultado = data as {
+    status: string; tipo_cobranca: string; pagamento_status: string;
+    valor_avulso: number | null; arena_id: string; user_id: string; ja_estava_finalizada: boolean;
+  };
+
+  if (
+    !resultado.ja_estava_finalizada &&
+    resultado.status === "presente" &&
+    resultado.tipo_cobranca === "avulsa" &&
+    resultado.pagamento_status === "pendente"
+  ) {
+    await processarCobrancaAvulsa(attendanceId);
+  }
+
+  revalidatePath("/arena/[handle]/aula/[classId]", "page");
+  revalidatePath("/arenas/[handle]/minhas-aulas", "page");
+  revalidatePath(`/arenas`, "layout");
+  return { ok: true };
+}
+
+/**
+ * Reivindica e executa a cobrança de uma presença avulsa — chamada tanto
+ * pelo finalize (primeira tentativa, já autorizado por
+ * arena_finalize_attendance) quanto pelo retry manual (tentarCobrancaNovamente,
+ * que autoriza antes de chamar esta função). arena_claim_attendance_charge e
+ * arena_resolve_attendance_charge só podem ser executadas por service_role
+ * (GRANT restrito na migration) — nenhum aluno consegue concluir a própria
+ * cobrança chamando a RPC direto, então usamos o client admin aqui, DEPOIS
+ * de já termos autorizado o chamador em TypeScript. Idempotente: uma
+ * tentativa concorrente sempre vê `claimed: false` e não chama o Asaas de
+ * novo. Falha nunca é silenciosa — fica registrada em pagamento_erro e gera
+ * notificação pro aluno e pros responsáveis da arena.
+ */
+async function processarCobrancaAvulsa(attendanceId: string): Promise<{ ok: boolean; error?: string }> {
+  const admin = createAdminClient();
+
+  const { data: claim, error: claimErr } = await admin.rpc("arena_claim_attendance_charge", {
+    p_attendance_id: attendanceId,
+  });
+  if (claimErr || !claim) return { ok: false, error: "Erro ao iniciar a cobrança." };
+
+  const info = claim as {
+    claimed: boolean; id: string; user_id: string; arena_id: string;
+    valor_avulso: number | null; pagamento_status: string;
+  };
+  if (!info.claimed) {
+    // Já paga, já em outra tentativa concorrente, ou não é mais elegível — nunca repete o efeito.
+    return { ok: info.pagamento_status === "pago" };
+  }
+
+  async function resolver(sucesso: boolean, paymentId: string | null, customerId: string | null, erro: string | null) {
+    await admin.rpc("arena_resolve_attendance_charge", {
+      p_attendance_id: attendanceId,
+      p_sucesso: sucesso,
+      p_asaas_payment_id: paymentId,
+      p_asaas_customer_id: customerId,
+      p_erro: erro,
+    });
+  }
+
+  if (info.valor_avulso == null) {
+    await resolver(false, null, null, "Aula sem valor avulso configurado.");
+    return { ok: false, error: "Aula sem valor avulso configurado." };
+  }
+
+  const { data: cartao } = await admin
+    .from("arena_student_cards")
+    .select("asaas_customer_id, asaas_card_token")
+    .eq("arena_id", info.arena_id)
+    .eq("user_id", info.user_id)
+    .maybeSingle();
+
+  if (!cartao) {
+    await resolver(false, null, null, "Nenhum cartão válido cadastrado.");
+    await notificarResponsaveisArena(
+      info.arena_id,
+      "Cobrança de aula avulsa pendente",
+      "Um aluno confirmou presença como aula avulsa, mas não há mais cartão cadastrado. A cobrança ficou pendente.",
+    );
+    await notificarArena(
+      info.user_id,
+      "Pagamento pendente",
+      "Sua aula avulsa não pôde ser cobrada porque não há cartão cadastrado. Cadastre um cartão no Financeiro da arena e tente novamente.",
+    );
+    return { ok: false, error: "Nenhum cartão válido cadastrado." };
+  }
+
+  const valorTotal = valorAvulsaComTaxa(Number(info.valor_avulso));
+
+  try {
+    const { cobrarComToken } = await import("@/lib/asaas");
+    const pagamento = await cobrarComToken({
+      customerId:        cartao.asaas_customer_id,
+      creditCardToken:   cartao.asaas_card_token,
+      valorBase:         valorTotal,
+      descricao:         "Aula avulsa",
+      externalReference: `arena_class_charge:${attendanceId}`,
+    });
+
+    await resolver(
+      pagamento.paga, pagamento.id, cartao.asaas_customer_id,
+      pagamento.paga ? null : `Status Asaas: ${pagamento.status}`,
+    );
+
+    if (!pagamento.paga) {
+      await notificarResponsaveisArena(
+        info.arena_id, "Cobrança de aula avulsa pendente",
+        "Uma cobrança de aula avulsa não foi confirmada de imediato pelo Asaas. Acompanhe o status na lista da aula.",
+      );
+      await notificarArena(
+        info.user_id, "Pagamento pendente",
+        "O pagamento da sua aula avulsa ainda não foi confirmado. Você pode tentar novamente no Financeiro da arena.",
+      );
+    }
+
+    return { ok: pagamento.paga, error: pagamento.paga ? undefined : `Pagamento com status ${pagamento.status}.` };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Erro ao processar o pagamento.";
+    await resolver(false, null, cartao.asaas_customer_id, msg.slice(0, 300));
+    await notificarResponsaveisArena(
+      info.arena_id, "Cobrança de aula avulsa falhou",
+      `A cobrança de uma aula avulsa falhou: ${msg.slice(0, 200)}`,
+    );
+    await notificarArena(
+      info.user_id, "Pagamento falhou",
+      "Não conseguimos cobrar sua aula avulsa. Tente novamente no Financeiro da arena ou atualize seu cartão.",
+    );
+    return { ok: false, error: msg };
+  }
+}
+
+/**
+ * Ação segura pra tentar cobrar de novo uma presença avulsa cujo pagamento
+ * falhou/ficou pendente — chamável pelo próprio aluno (self-service) ou por
+ * quem tem autorização de finalizar a aula (professor/gerente/dono).
+ * arena_claim_attendance_charge não reautoriza mais sozinha (é só
+ * service_role agora) — a autorização é feita aqui, em TypeScript, ANTES de
+ * chamar o client admin: a leitura usa o client do PRÓPRIO usuário, então
+ * RLS de arena_attendance (dono/professor-da-aula/gerente/dono-da-reserva)
+ * já decide sozinha se a linha é visível — se vier vazia, não autoriza.
+ */
+export async function tentarCobrancaNovamente(attendanceId: string): Promise<FinalizeResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Faça login." };
+
+  const { data: attendance } = await supabase
+    .from("arena_attendance")
+    .select("id, tipo_cobranca")
+    .eq("id", attendanceId)
+    .maybeSingle();
+  if (!attendance) return { error: "Cobrança não encontrada ou sem permissão." };
+  if (attendance.tipo_cobranca !== "avulsa") return { error: "Essa presença não tem cobrança avulsa." };
+
+  const resultado = await processarCobrancaAvulsa(attendanceId);
+  revalidatePath(`/arenas`, "layout");
+  revalidatePath("/arena/[handle]/aula/[classId]", "page");
+  return resultado.ok ? { ok: true } : { error: resultado.error ?? "Não foi possível concluir a cobrança." };
 }

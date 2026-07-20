@@ -57,7 +57,7 @@ const SECOES: Secao[] = [
   {
     titulo: "Informações gerais",
     blocos: [
-      { p: "Estes Termos de Uso (“Termos”) regulam o acesso e a utilização da Plataforma RankFTV, mantida por Carlos Gregório Rocha Batista, inscrito no CPF sob o nº 070.460.265-21, com sede na Travessa da Roda, nº 52, Stela Reis, Eunápolis/BA (“RankFTV”, “nós”)." },
+      { p: "Estes Termos de Uso (“Termos”) regulam o acesso e a utilização da Plataforma RankFTV [PENDENTE: substituir por identificação empresarial — razão social e CNPJ, ou nome completo do responsável sem CPF/endereço residencial público — e endereço de contato que não seja residencial] (“RankFTV”, “nós”)." },
       { p: "A Plataforma RankFTV oferece: (i) ferramentas para o Organizador criar, divulgar e gerenciar campeonatos de futevôlei; (ii) inscrição online de atletas e duplas em categorias; (iii) venda de ingressos de plateia ao público; (iv) credenciamento e check-in por QR Code; e (v) processamento de pagamentos com repasse ao Organizador, por meio de processador de pagamentos parceiro." },
       { p: "A RankFTV é uma intermediadora de tecnologia e de pagamentos. Os campeonatos e seus dados (datas, local, regras, valores, premiação) são de responsabilidade exclusiva do Organizador, único responsável por realizar o evento conforme anunciado." },
       { p: "A Plataforma é apresentada da maneira como está disponível e pode passar por melhorias e atualizações contínuas. A RankFTV empenha-se em manter as funcionalidades acessíveis, com layout claro e usável." },

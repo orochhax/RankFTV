@@ -1,5 +1,20 @@
 // Templates de e-mail em HTML simples. Sem libs de template — só string pura.
 // O estilo inline é necessário para compatibilidade com clientes de e-mail.
+//
+// Todo valor dinâmico (nome, título, mensagem — em especial o comunicado
+// livre do organizador, que chega direto do formulário) tem que passar por
+// escapeHtml antes de entrar no template. Sem isso, `titulo`/`mensagem` do
+// comunicado viram injeção de HTML/phishing pra centenas de inscritos de
+// uma vez só — e-mail renderiza HTML igual navegador.
+
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 function base(titulo: string, corpo: string): string {
   return `<!DOCTYPE html>
@@ -59,11 +74,11 @@ export function conviteDuplaHtml(opts: {
   perfilUrl: string;
 }): string {
   const corpo = `
-    ${p(`Oi, <strong>${opts.nomeConvidado}</strong>!`)}
-    ${p(`<strong>@${opts.usernameAtleta1}</strong> te convidou para jogar como dupla no campeonato:`)}
+    ${p(`Oi, <strong>${escapeHtml(opts.nomeConvidado)}</strong>!`)}
+    ${p(`<strong>@${escapeHtml(opts.usernameAtleta1)}</strong> te convidou para jogar como dupla no campeonato:`)}
     <div style="margin:16px 0;padding:16px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;">
-      <p style="margin:0;font-size:16px;font-weight:700;color:#1e3a8a;">${opts.nomeCampeonato}</p>
-      <p style="margin:4px 0 0;font-size:13px;color:#3b82f6;">Categoria: ${opts.nomeCategoria}</p>
+      <p style="margin:0;font-size:16px;font-weight:700;color:#1e3a8a;">${escapeHtml(opts.nomeCampeonato)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#3b82f6;">Categoria: ${escapeHtml(opts.nomeCategoria)}</p>
     </div>
     ${p("Acesse seu perfil para aceitar ou recusar o convite.")}
     ${btn("Ver convite no perfil", opts.perfilUrl)}
@@ -78,11 +93,11 @@ export function inscricaoConfirmadaHtml(opts: {
   inscricoesUrl: string;
 }): string {
   const corpo = `
-    ${p(`Oi, <strong>${opts.nomeAtleta}</strong>!`)}
+    ${p(`Oi, <strong>${escapeHtml(opts.nomeAtleta)}</strong>!`)}
     ${p("Sua inscrição foi confirmada. Até o campeonato!")}
     <div style="margin:16px 0;padding:16px;background:#f0fdf4;border-radius:10px;border-left:4px solid #16a34a;">
-      <p style="margin:0;font-size:16px;font-weight:700;color:#14532d;">${opts.nomeCampeonato}</p>
-      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Categoria: ${opts.nomeCategoria}</p>
+      <p style="margin:0;font-size:16px;font-weight:700;color:#14532d;">${escapeHtml(opts.nomeCampeonato)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Categoria: ${escapeHtml(opts.nomeCategoria)}</p>
     </div>
     ${p("Sua credencial digital estará disponível no link abaixo.")}
     ${btn("Ver minha inscrição", opts.inscricoesUrl)}
@@ -99,11 +114,11 @@ export function conviteAceitoHtml(opts: {
   inscricoesUrl: string;
 }): string {
   const corpo = `
-    ${p(`Oi, <strong>${opts.nomeAtleta1}</strong>!`)}
-    ${p(`<strong>@${opts.usernameAtleta2}</strong> aceitou seu convite. A dupla está formada!`)}
+    ${p(`Oi, <strong>${escapeHtml(opts.nomeAtleta1)}</strong>!`)}
+    ${p(`<strong>@${escapeHtml(opts.usernameAtleta2)}</strong> aceitou seu convite. A dupla está formada!`)}
     <div style="margin:16px 0;padding:16px;background:#f0fdf4;border-radius:10px;border-left:4px solid #16a34a;">
-      <p style="margin:0;font-size:16px;font-weight:700;color:#14532d;">${opts.nomeCampeonato}</p>
-      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Categoria: ${opts.nomeCategoria}</p>
+      <p style="margin:0;font-size:16px;font-weight:700;color:#14532d;">${escapeHtml(opts.nomeCampeonato)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Categoria: ${escapeHtml(opts.nomeCategoria)}</p>
     </div>
     ${btn("Ver minha inscrição", opts.inscricoesUrl)}
   `;
@@ -118,11 +133,11 @@ export function conviteStaffHtml(opts: {
   notificacoesUrl: string;
 }): string {
   const corpo = `
-    ${p(`Oi, <strong>${opts.nomeConvidado}</strong>!`)}
-    ${p(`<strong>${opts.nomeOrganizador}</strong> te convidou para fazer parte da equipe de staff do campeonato:`)}
+    ${p(`Oi, <strong>${escapeHtml(opts.nomeConvidado)}</strong>!`)}
+    ${p(`<strong>${escapeHtml(opts.nomeOrganizador)}</strong> te convidou para fazer parte da equipe de staff do campeonato:`)}
     <div style="margin:16px 0;padding:16px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;">
-      <p style="margin:0;font-size:16px;font-weight:700;color:#1e3a8a;">${opts.nomeCampeonato}</p>
-      <p style="margin:4px 0 0;font-size:13px;color:#3b82f6;">Acesso: ${opts.permissoes}</p>
+      <p style="margin:0;font-size:16px;font-weight:700;color:#1e3a8a;">${escapeHtml(opts.nomeCampeonato)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#3b82f6;">Acesso: ${escapeHtml(opts.permissoes)}</p>
     </div>
     ${p("Acesse suas notificações para aceitar ou recusar o convite.")}
     ${btn("Ver convite", opts.notificacoesUrl)}
@@ -138,12 +153,12 @@ export function pagamentoConfirmadoHtml(opts: {
   inscricoesUrl: string;
 }): string {
   const corpo = `
-    ${p(`Oi, <strong>${opts.nomeAtleta}</strong>!`)}
+    ${p(`Oi, <strong>${escapeHtml(opts.nomeAtleta)}</strong>!`)}
     ${p("Recebemos seu pagamento. Você está oficialmente inscrito!")}
     <div style="margin:16px 0;padding:16px;background:#f0fdf4;border-radius:10px;border-left:4px solid #16a34a;">
-      <p style="margin:0;font-size:16px;font-weight:700;color:#14532d;">${opts.nomeCampeonato}</p>
-      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Categoria: ${opts.nomeCategoria}</p>
-      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Valor pago: ${opts.valorFormatado}</p>
+      <p style="margin:0;font-size:16px;font-weight:700;color:#14532d;">${escapeHtml(opts.nomeCampeonato)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Categoria: ${escapeHtml(opts.nomeCategoria)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Valor pago: ${escapeHtml(opts.valorFormatado)}</p>
     </div>
     ${btn("Ver minha credencial", opts.inscricoesUrl)}
   `;
@@ -156,13 +171,29 @@ export function comunicadoHtml(opts: {
   titulo: string;
   mensagem: string;
 }): string {
+  const tituloSeguro = escapeHtml(opts.titulo);
   const corpo = `
-    ${p(`Oi, <strong>${opts.nomeAtleta}</strong>!`)}
-    ${p(`O organizador do <strong>${opts.nomeCampeonato}</strong> enviou um comunicado:`)}
+    ${p(`Oi, <strong>${escapeHtml(opts.nomeAtleta)}</strong>!`)}
+    ${p(`O organizador do <strong>${escapeHtml(opts.nomeCampeonato)}</strong> enviou um comunicado:`)}
     <div style="margin:16px 0;padding:20px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;">
-      <p style="margin:0 0 10px;font-size:16px;font-weight:700;color:#1e3a8a;">${opts.titulo}</p>
-      <p style="margin:0;font-size:14px;color:#374151;line-height:1.7;white-space:pre-line;">${opts.mensagem}</p>
+      <p style="margin:0 0 10px;font-size:16px;font-weight:700;color:#1e3a8a;">${tituloSeguro}</p>
+      <p style="margin:0;font-size:14px;color:#374151;line-height:1.7;white-space:pre-line;">${escapeHtml(opts.mensagem)}</p>
     </div>
   `;
-  return base(opts.titulo, corpo);
+  return base(tituloSeguro, corpo);
+}
+
+export function recuperacaoIngressoHtml(opts: {
+  codigo: string;
+  validadeMinutos: number;
+}): string {
+  const corpo = `
+    ${p("Alguém pediu pra ver os ingressos ligados a este e-mail no RankFTV.")}
+    <div style="margin:20px 0;padding:24px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;text-align:center;">
+      <p style="margin:0;font-size:32px;font-weight:800;letter-spacing:6px;color:#1e3a8a;">${escapeHtml(opts.codigo)}</p>
+    </div>
+    ${p(`Esse código vale por ${opts.validadeMinutos} minutos e só pode ser usado uma vez.`)}
+    ${p("Se você não pediu isso, pode ignorar este e-mail — ninguém consegue ver seus ingressos sem esse código.")}
+  `;
+  return base("Seu código de acesso", corpo);
 }

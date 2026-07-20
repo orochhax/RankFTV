@@ -90,7 +90,15 @@ export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
     .select("id")
     .single();
 
-  if (insErr || !rental) return { ok: false, error: "Erro ao criar reserva." };
+  if (insErr || !rental) {
+    // 23505 = unique_violation no índice arena_rentals_one_active_per_slot —
+    // outra reserva pegou este horário entre a checagem de disponibilidade
+    // e este INSERT (ou foi clique duplo). Nunca chega a chamar o Asaas.
+    if (insErr?.code === "23505") {
+      return { ok: false, error: "Esse horário acabou de ser reservado por outra pessoa. Escolha outro." };
+    }
+    return { ok: false, error: "Erro ao criar reserva." };
+  }
 
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 1);
@@ -136,8 +144,8 @@ export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
         const json = JSON.parse(text) as { errors?: { description: string }[] };
         if (json.errors?.[0]?.description) msg = json.errors[0].description;
       } catch { /* usa msg padrão */ }
-      // Remove reserva que não foi paga
-      await admin.from("arena_rentals").delete().eq("id", rental.id);
+      // Recusa explícita do Asaas (não ambígua) — libera o horário.
+      await admin.from("arena_rentals").update({ status_pagamento: "cancelado" }).eq("id", rental.id);
       return { ok: false, error: msg };
     }
 
@@ -160,8 +168,13 @@ export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
 
     return { ok: true, pago };
   } catch (e) {
-    await admin.from("arena_rentals").delete().eq("id", rental.id);
+    // Exceção aqui é rede/timeout — AMBÍGUO: o Asaas pode ter processado a
+    // cobrança mesmo sem a resposta chegar. Nunca apaga o registro nesse
+    // caso — fica 'pendente' (estado inicial) pro webhook conseguir achar
+    // via externalReference e reconciliar se a cobrança realmente foi
+    // efetivada. Apagar aqui já causou perda de reserva com cobrança
+    // fantasma (cliente cobrado, sem reserva nenhuma pra mostrar).
     const msg = e instanceof Error ? e.message : "Erro ao processar pagamento.";
-    return { ok: false, error: msg };
+    return { ok: false, error: `${msg} Se o valor foi cobrado no seu cartão, sua reserva será confirmada automaticamente — senão, tente de novo.` };
   }
 }

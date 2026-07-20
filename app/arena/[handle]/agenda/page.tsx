@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ArenaAgendaClient } from "@/components/arena/ArenaAgendaClient";
 import {
   todayISOArena, weekRangeISO, startOfYearISO, endOfYearISO,
-  monthMatrixISO, generateOccurrences, classeCombinaComFiltro,
+  monthMatrixISO, generateOccurrences, classeCombinaComFiltro, hhmm,
   type ArenaClassRow, type NivelFiltro,
 } from "@/lib/arena-dates";
 
@@ -52,20 +52,21 @@ export default async function ArenaAgendaPage({
 
   const { data: aulasRaw } = await supabase
     .from("arena_classes")
-    .select("id, titulo, horario, duracao_minutos, dias_semana, nivel, max_alunos, ativo")
+    .select("id, titulo, hora_inicio, hora_fim, dias_semana, nivel, publico, max_alunos, ativo")
     .eq("arena_id", arena.id)
     .eq("ativo", true)
-    .order("horario", { ascending: true });
+    .order("hora_inicio", { ascending: true });
 
   const classes: ArenaClassRow[] = (aulasRaw ?? []).map((c) => ({
     id: c.id,
     titulo: c.titulo,
-    horario: c.horario,
-    duracaoMinutos: c.duracao_minutos ?? 60,
+    horaInicio: hhmm(c.hora_inicio),
+    horaFim: hhmm(c.hora_fim),
     diasSemana: c.dias_semana ?? [],
     nivel: c.nivel,
     maxAlunos: c.max_alunos,
     ativo: c.ativo,
+    publico: (c.publico ?? "misto") as ArenaClassRow["publico"],
   }));
 
   // Intervalo visível — determina tanto a geração de ocorrências (derivada,

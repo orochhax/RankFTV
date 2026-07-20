@@ -164,15 +164,59 @@ export function classeCombinaComFiltro(nivel: string | null, filtro: NivelFiltro
   return nivel === filtro;
 }
 
+export type PublicoAula = "misto" | "masculino" | "feminino";
+
 export type ArenaClassRow = {
   id: string;
   titulo: string;
-  horario: string | null;
-  duracaoMinutos: number;
+  horaInicio: string | null;
+  horaFim: string | null;
   diasSemana: number[];
   nivel: string | null;
   maxAlunos: number | null;
   ativo: boolean;
+  publico?: PublicoAula;
+};
+
+/**
+ * Colunas `time` do Postgres voltam do Supabase como "HH:MM:SS", não
+ * "HH:MM" — normaliza no primeiro ponto de leitura de arena_classes
+ * (hora_inicio/hora_fim), antes de qualquer exibição ou de montar um Date
+ * pra comparação de horário. Sem isso, tanto a UI mostra os segundos quanto
+ * `new Date(`${data}T${hora}:00`)` monta uma string de data inválida.
+ */
+export function hhmm(v: string | null | undefined): string | null {
+  if (!v) return null;
+  return v.slice(0, 5);
+}
+
+/** "HH:mm - HH:mm", ou só o início se não houver término salvo (dados legados). */
+export function horarioLabel(horaInicio: string | null, horaFim: string | null): string | null {
+  if (!horaInicio) return null;
+  return horaFim ? `${horaInicio} - ${horaFim}` : horaInicio;
+}
+
+/**
+ * Regra única de validação do horário da aula, usada no cliente
+ * (AulasManager) e no servidor (criarAula/editarAula) — os dois precisam
+ * concordar, senão o cliente aceita algo que o servidor rejeita ou vice-versa.
+ * Retorna a mensagem de erro, ou null se válido. Os dois campos vazios
+ * também é válido (aula sem horário fixo).
+ */
+export function validarIntervaloHorario(horaInicio: string, horaFim: string): string | null {
+  if ((horaInicio && !horaFim) || (!horaInicio && horaFim)) {
+    return "Informe o horário de início e de término, ou deixe os dois em branco.";
+  }
+  if (horaInicio && horaFim && horaFim <= horaInicio) {
+    return "O horário de término precisa ser depois do horário de início.";
+  }
+  return null;
+}
+
+export const PUBLICO_LABEL: Record<PublicoAula, string> = {
+  misto: "Misto",
+  masculino: "Masculino",
+  feminino: "Feminino",
 };
 
 export type ClassOccurrence = {
@@ -183,6 +227,7 @@ export type ClassOccurrence = {
   horaFim: string | null;
   nivel: string | null;
   maxAlunos: number | null;
+  publico: PublicoAula;
 };
 
 /** Gera as ocorrências de aulas recorrentes dentro de [startISO, endISO],
@@ -206,10 +251,11 @@ export function generateOccurrences(
         classId: c.id,
         date: cur,
         titulo: c.titulo,
-        horaInicio: c.horario,
-        horaFim: c.horario ? addMinutesToTime(c.horario, c.duracaoMinutos) : null,
+        horaInicio: c.horaInicio,
+        horaFim: c.horaFim,
         nivel: c.nivel,
         maxAlunos: c.maxAlunos,
+        publico: c.publico ?? "misto",
       });
     }
     cur = addDaysISO(cur, 1);

@@ -28,13 +28,15 @@ export async function aceitarConvite(formData: FormData) {
 
   // Se convite aberto (atleta2_id null), associa o usuário atual como parceiro
   if (team.atleta2_id === null) {
-    await admin.from("teams").update({ atleta2_id: user.id }).eq("id", teamId);
+    const { error: assocError } = await admin.from("teams").update({ atleta2_id: user.id }).eq("id", teamId);
+    if (assocError) return;
   }
 
-  await admin
+  const { error: statusError } = await admin
     .from("teams")
     .update({ status: "confirmado" })
     .eq("id", teamId);
+  if (statusError) return;
 
   // Busca inscrição, atleta1 e atleta2 em paralelo (profiles não tem e-mail).
   const [{ data: reg }, { data: atleta1Profile }, { data: atleta2Profile }, { data: champ }] =
@@ -145,10 +147,11 @@ export async function recusarConvite(formData: FormData) {
 
   if (!team || team.atleta2_id !== user.id || team.status !== "convite_pendente") return;
 
-  await createAdminClient()
+  const { error: recusarError } = await createAdminClient()
     .from("teams")
     .update({ status: "recusado" })
     .eq("id", teamId);
+  if (recusarError) return;
 
   revalidatePath("/perfil");
   revalidatePath("/notificacoes");

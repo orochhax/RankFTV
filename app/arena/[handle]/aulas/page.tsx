@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { Clock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AulasManager } from "@/components/arena/AulasManager";
+import { EquipeManager } from "@/components/arena/EquipeManager";
 import { salvarCancelHoras } from "@/app/arena/aulas/actions";
+import { hhmm } from "@/lib/arena-dates";
 
 export default async function AulasPage({
   params,
@@ -16,18 +18,51 @@ export default async function AulasPage({
 
   const { data: arena } = await supabase
     .from("arenas")
-    .select("id, nome, cancel_horas_antes")
+    .select("id, nome, cancel_horas_antes, dono_id")
     .eq("handle", handle)
-    .eq("dono_id", user.id)
     .maybeSingle();
   if (!arena) redirect("/arena");
 
-  const { data: aulas } = await supabase
-    .from("arena_classes")
-    .select("id, titulo, horario, duracao_minutos, dias_semana, ativo, nivel, max_alunos")
-    .eq("arena_id", arena.id)
-    .eq("ativo", true)
-    .order("created_at", { ascending: false });
+  const isDono = arena.dono_id === user.id;
+  if (!isDono) {
+    const { data: staffAuth } = await supabase
+      .from("arena_staff")
+      .select("id")
+      .eq("arena_id", arena.id)
+      .eq("user_id", user.id)
+      .eq("papel", "gerente")
+      .eq("status", "aceito")
+      .maybeSingle();
+    if (!staffAuth) redirect("/arena");
+  }
+
+  const [{ data: aulas }, { data: staffRows }] = await Promise.all([
+    supabase
+      .from("arena_classes")
+      .select("id, titulo, hora_inicio, hora_fim, dias_semana, ativo, nivel, publico, max_alunos, valor_avulso, professor_id")
+      .eq("arena_id", arena.id)
+      .eq("ativo", true)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("arena_staff")
+      .select("id, user_id, papel, profiles(nome, username)")
+      .eq("arena_id", arena.id)
+      .eq("status", "aceito"),
+  ]);
+
+  type StaffProfile = { nome: string; username: string };
+  function perfilDe(raw: unknown): StaffProfile | null {
+    if (!raw) return null;
+    return Array.isArray(raw) ? (raw[0] as StaffProfile) ?? null : (raw as StaffProfile);
+  }
+  const staffList = (staffRows ?? []).map((s) => ({
+    id: s.id,
+    userId: s.user_id as string,
+    papel: s.papel as "professor" | "gerente",
+    nome: perfilDe(s.profiles)?.nome ?? "—",
+    username: perfilDe(s.profiles)?.username ?? "",
+  }));
+  const professorOpcoes = staffList.map((s) => ({ userId: s.userId, nome: s.nome }));
 
   const cancelHoras = arena.cancel_horas_antes ?? 2;
 
@@ -38,9 +73,17 @@ export default async function AulasPage({
         <p className="text-sm text-gray-400">Horários recorrentes usados na Agenda do painel.</p>
       </div>
 
-      <AulasManager aulas={aulas ?? []} arenaId={arena.id} />
+      <AulasManager
+        aulas={(aulas ?? []).map((a) => ({ ...a, hora_inicio: hhmm(a.hora_inicio), hora_fim: hhmm(a.hora_fim) }))}
+        arenaId={arena.id}
+        staff={professorOpcoes}
+      />
+
+      {/* Equipe: professores e gerentes autorizados — só o dono gerencia */}
+      {isDono && <EquipeManager arenaId={arena.id} equipe={staffList} />}
 
       {/* Regras de presença */}
+      {isDono && (
       <section className="rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5">
         <div className="flex items-center gap-2">
           <Clock className="size-4 text-blue-500" />
@@ -73,6 +116,7 @@ export default async function AulasPage({
           </p>
         </form>
       </section>
+      )}
     </div>
   );
 }
