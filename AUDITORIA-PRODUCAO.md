@@ -1,6 +1,22 @@
 # Auditoria de seguranca e prontidao para producao - RankFTV
 
 Data da revisao: 14/07/2026
+Ultima atualizacao: 21/07/2026
+
+## Atualizacao 21/07/2026
+
+- Sequencia obrigatoria do primeiro deploy CONCLUIDA: backup do Supabase, execucao
+  de `production-security-hardening.sql`, deploy do codigo e execucao de
+  `production-security-hardening-after-deploy.sql`. Verificado que usuario comum
+  nao altera role, rating, pagamento nem dados de outra conta.
+- CAPTCHA (Cloudflare Turnstile) implementado nas telas de login e cadastro: o
+  token e enviado ao Supabase em `signInWithPassword`/`signUp`, com reset a cada
+  falha (uso unico). CSP liberou `challenges.cloudflare.com`.
+- Fluxo de recuperacao de senha criado: `/recuperar-senha` (envia o e-mail, com
+  captcha) e `/recuperar-senha/atualizar` (define a nova senha). O link do e-mail
+  reaproveita o `/auth/callback` via token_hash.
+- Supabase Auth: Site URL (`https://www.rankftv.com`), Redirect URLs e captcha
+  configurados no painel. Falta ainda a politica de senha/MFA do admin.
 
 ## Resultado executivo
 
@@ -69,6 +85,8 @@ operacional.
 
 ## Sequencia obrigatoria do primeiro deploy
 
+> CONCLUIDA em 21/07/2026 (ver secao "Atualizacao 21/07/2026").
+
 1. Fazer um backup/snapshot do Supabase.
 2. No SQL Editor, executar `supabase/production-security-hardening.sql`.
 3. Fazer o deploy deste codigo e aguardar o status Ready.
@@ -91,7 +109,7 @@ pode interromper cadastro, convite, arena e perfil.
 | Webhook Asaas | nao validado em producao | Apontar para `https://DOMINIO/api/webhooks/asaas` e habilitar eventos de pagamento confirmado, recebido, estornado e excluido |
 | `CRON_SECRET` | presente | Confirmar o cron diario da Vercel e monitorar respostas/falhas |
 | Resend | chave presente, remetente de teste | Verificar o dominio, criar SPF/DKIM e definir `RESEND_FROM_EMAIL` |
-| Supabase Auth | requer revisao no painel | Definir Site URL, Redirect URLs do dominio final, CAPTCHA, protecao anti-bot e politica de senha/MFA do admin |
+| Supabase Auth | Site URL, Redirect URLs e CAPTCHA configurados (21/07) | Falta definir politica de senha/MFA do admin |
 | DNS/HTTPS | nao verificavel localmente | Configurar dominio, HTTPS e somente depois habilitar HSTS preload |
 | Backups/alertas | nao verificavel localmente | Ativar PITR/backups, alertas de erro, logs de webhook e conciliacao financeira |
 
