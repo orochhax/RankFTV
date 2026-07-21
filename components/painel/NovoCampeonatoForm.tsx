@@ -124,8 +124,14 @@ export function NovoCampeonatoForm() {
     }
     if (stepKey === "dados") {
       if (!nome.trim()) return fail("Dê um nome ao evento.");
-      if (!dataInicio || !dataFim) return fail("Informe as datas de início e fim.");
-      if (dataFim < dataInicio) return fail("A data de fim não pode ser antes do início.");
+      if (!dataInicio || !dataFim) return fail("Informe as datas de início e fim do evento.");
+      if (dataFim < dataInicio) return fail("A data de fim do evento não pode ser antes do início.");
+      if (!inscricoesInicio || !inscricoesFim) return fail("Informe a abertura e o encerramento das inscrições.");
+      if (inscricoesFim < inscricoesInicio) return fail("O encerramento das inscrições não pode ser antes da abertura.");
+      if ((prevendaInicio && !prevendaFim) || (!prevendaInicio && prevendaFim))
+        return fail("Preencha as duas datas da pré-venda, ou deixe as duas em branco.");
+      if (prevendaInicio && prevendaFim && prevendaFim < prevendaInicio)
+        return fail("A data de fim da pré-venda não pode ser antes do início.");
       if (!cidade.trim() || !estado.trim()) return fail("Informe a cidade e o estado.");
       if (vender.atleta) {
         if (!quizCompleto) return fail("Responda as 5 perguntas do nível.");
@@ -148,6 +154,14 @@ export function NovoCampeonatoForm() {
   function submit() {
     setError(null);
     if (!vender.atleta && !vender.plateia) return fail("Escolha o que vai vender: atletas, plateia ou os dois.");
+    if (!dataInicio || !dataFim) return fail("Informe as datas de início e fim do evento.");
+    if (dataFim < dataInicio) return fail("A data de fim do evento não pode ser antes do início.");
+    if (!inscricoesInicio || !inscricoesFim) return fail("Informe a abertura e o encerramento das inscrições.");
+    if (inscricoesFim < inscricoesInicio) return fail("O encerramento das inscrições não pode ser antes da abertura.");
+    if ((prevendaInicio && !prevendaFim) || (!prevendaInicio && prevendaFim))
+      return fail("Preencha as duas datas da pré-venda, ou deixe as duas em branco.");
+    if (prevendaInicio && prevendaFim && prevendaFim < prevendaInicio)
+      return fail("A data de fim da pré-venda não pode ser antes do início.");
     if (vender.atleta && !categorias.some((c) => c.nome.trim())) return fail("Adicione pelo menos uma categoria.");
     if (vender.atleta && !quizCompleto) return fail("Responda as 5 perguntas do nível.");
     if (vender.plateia && !ingressos.some((i) => i.nome.trim())) return fail("Adicione pelo menos um ingresso de plateia.");
@@ -302,31 +316,42 @@ export function NovoCampeonatoForm() {
             <h2 className="text-sm font-semibold text-gray-800">Datas</h2>
             <div>
               <p className="text-xs font-medium text-gray-500 mb-2">Evento</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="min-w-0">
                   <label className={labelClass} htmlFor="dataInicio">Início *</label>
                   <input id="dataInicio" type="date" className={inputClass} value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <label className={labelClass} htmlFor="dataFim">Fim *</label>
                   <input id="dataFim" type="date" className={inputClass} value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
                 </div>
               </div>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-2">Pré-venda</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className={labelClass}>Início</label><input type="date" className={inputClass} value={prevendaInicio} onChange={(e) => setPrevendaInicio(e.target.value)} /></div>
-                <div><label className={labelClass}>Fim</label><input type="date" className={inputClass} value={prevendaFim} onChange={(e) => setPrevendaFim(e.target.value)} /></div>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-xs font-medium text-gray-500">Pré-venda</p>
+                {(prevendaInicio || prevendaFim) && (
+                  <button
+                    type="button"
+                    onClick={() => { setPrevendaInicio(""); setPrevendaFim(""); }}
+                    className="text-xs font-medium text-red-500 hover:text-red-600"
+                  >
+                    Remover data
+                  </button>
+                )}
               </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="min-w-0"><label className={labelClass}>Início</label><input type="date" className={inputClass} value={prevendaInicio} onChange={(e) => setPrevendaInicio(e.target.value)} /></div>
+                <div className="min-w-0"><label className={labelClass}>Fim</label><input type="date" className={inputClass} value={prevendaFim} onChange={(e) => setPrevendaFim(e.target.value)} /></div>
+              </div>
+              <p className="mt-1.5 text-xs text-gray-400">Opcional. Se preencher, informe as duas datas.</p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 mb-2">{vender.atleta ? "Inscrições" : "Vendas"}</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className={labelClass} htmlFor="inscricoesInicio">Abertura</label><input id="inscricoesInicio" type="date" className={inputClass} value={inscricoesInicio} onChange={(e) => setInscricoesInicio(e.target.value)} /></div>
-                <div><label className={labelClass} htmlFor="inscricoesFim">Encerramento</label><input id="inscricoesFim" type="date" className={inputClass} value={inscricoesFim} onChange={(e) => setInscricoesFim(e.target.value)} /></div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="min-w-0"><label className={labelClass} htmlFor="inscricoesInicio">Abertura *</label><input id="inscricoesInicio" type="date" className={inputClass} value={inscricoesInicio} onChange={(e) => setInscricoesInicio(e.target.value)} /></div>
+                <div className="min-w-0"><label className={labelClass} htmlFor="inscricoesFim">Encerramento *</label><input id="inscricoesFim" type="date" className={inputClass} value={inscricoesFim} onChange={(e) => setInscricoesFim(e.target.value)} /></div>
               </div>
-              <p className="mt-1.5 text-xs text-gray-400">Opcional. Controla quando as vendas abrem automaticamente.</p>
             </div>
           </div>
 

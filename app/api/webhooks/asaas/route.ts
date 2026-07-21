@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { executarRepasse, executarRepasseEspectador, executarRepasseAtletaTicket } from "@/lib/repasse";
-import { enviarConviteDupla } from "@/lib/email/send";
+import { executarRepasseEspectador, executarRepasseAtletaTicket } from "@/lib/repasse";
+import { confirmarInscricaoPaga, estornarInscricao } from "@/lib/pagamento-inscricao";
 import { addMonthsISO } from "@/lib/arena-dates";
 import { pixKeyEmCooldown } from "@/lib/pix";
 
@@ -558,203 +558,17 @@ export async function POST(req: NextRequest) {
   if (!(await paymentBelongsToRecord("registrations", registrationId)))
     return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
 
-  // 2. Atualiza status do pagamento
-  const { error: updateError } = await supabase
-    .from("registrations")
-    .update({
-      status_pagamento: novoStatus,
-      ...(novoStatus === "pago" ? { billing_type: payment.billingType } : {}),
-    })
-    .eq("id", registrationId);
+  // 2/3/4. Atualiza status, ativa dupla/credenciais/repasse (pago) ou reverte
+  // (estornado) — lógica compartilhada com a reconciliação manual do painel
+  // (app/painel/campeonatos/[id]/financeiro/actions.ts#reconciliarInscricao)
+  // em lib/pagamento-inscricao.ts, pros dois caminhos nunca divergirem.
+  const resultado = novoStatus === "pago"
+    ? await confirmarInscricaoPaga(supabase, registrationId, { id: payment.id, billingType: payment.billingType })
+    : await estornarInscricao(supabase, registrationId);
 
-  if (updateError) {
-    console.error("[webhook] Erro ao atualizar inscrição:", updateError);
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
-  }
-
-  // 3. Pagamento confirmado → ativa dupla + credenciais + repasse
-  if (novoStatus === "pago") {
-    // Busca inscrição + time + campeonato
-    const { data: reg } = await supabase
-      .from("registrations")
-      .select("id, valor, team_id, championship_id, category_id")
-      .eq("id", registrationId)
-      .single();
-
-    if (!reg) return NextResponse.json({ ok: true });
-
-    // Busca dados do campeonato (organizador + taxa da plataforma + plano Elite)
-    const { data: champ } = await supabase
-      .from("championships")
-      .select("nome, organizador_id, taxa_plataforma, is_elite, premium_fee_pendente")
-      .eq("id", reg.championship_id)
-      .single();
-
-    // Ativa a dupla e busca atletas
-    const { data: team } = await supabase
-      .from("teams")
-      .select("atleta1_id, atleta2_id, status")
-      .eq("id", reg.team_id)
-      .single();
-
-    if (team) {
-      // aguardandoPagamento: parceiro já definido mas convite SÓ agora é enviado
-      //   (inscrição paga — o convite foi segurado até o pagamento ser confirmado).
-      // parceiroPendente: convite já foi enviado mas parceiro ainda não aceitou.
-      const aguardandoPagamento = !!team.atleta2_id && team.status === "aguardando_pagamento";
-      const parceiroPendente    = !!team.atleta2_id && team.status === "convite_pendente";
-
-      if (aguardandoPagamento) {
-        // Pagamento OK → agora sim manda o convite e muda status para convite_pendente
-        await supabase
-          .from("teams")
-          .update({ status: "convite_pendente" })
-          .eq("id", reg.team_id);
-
-        // Busca dados necessários para o e-mail de convite
-        const [{ data: a1Prof }, { data: a2Prof }, { data: catRow }] = await Promise.all([
-          supabase.from("profiles").select("nome, username").eq("id", team.atleta1_id).single(),
-          supabase.from("profiles").select("nome").eq("id", team.atleta2_id!).single(),
-          reg.category_id
-            ? supabase.from("championship_categories").select("nome").eq("id", reg.category_id).single()
-            : Promise.resolve({ data: null }),
-        ]);
-        const { data: a2Auth } = await supabase.auth.admin.getUserById(team.atleta2_id!);
-        const atleta2Email = a2Auth?.user?.email ?? null;
-
-        if (atleta2Email && a1Prof && a2Prof && champ) {
-          await enviarConviteDupla({
-            emailConvidado:  atleta2Email,
-            nomeConvidado:   a2Prof.nome,
-            nomeAtleta1:     a1Prof.nome,
-            usernameAtleta1: a1Prof.username ?? "",
-            nomeCampeonato:  champ.nome,
-            nomeCategoria:   catRow?.nome ?? "",
-          });
-        }
-      } else if (!parceiroPendente) {
-        // Sem parceiro pendente → confirma a dupla imediatamente
-        await supabase
-          .from("teams")
-          .update({ status: "confirmado" })
-          .eq("id", reg.team_id);
-      }
-
-      // Credencial só para atleta1 enquanto parceiro não aceitou (aguardando ou pendente);
-      // quando não há parceiro, gera para todos agora.
-      const atletasParaCredencial = (aguardandoPagamento || parceiroPendente)
-        ? [team.atleta1_id]
-        : [team.atleta1_id, team.atleta2_id].filter(Boolean) as string[];
-      for (const atletaId of atletasParaCredencial) {
-        const { data: credExistente } = await supabase
-          .from("credentials")
-          .select("id")
-          .eq("user_id", atletaId)
-          .eq("championship_id", reg.championship_id)
-          .maybeSingle();
-
-        if (!credExistente) {
-          await supabase.from("credentials").insert({
-            user_id:         atletaId,
-            championship_id: reg.championship_id,
-            role:            "atleta",
-            qr_token:        crypto.randomUUID(),
-            checked_in:      false,
-          });
-        }
-      }
-    }
-
-    // Repasse ao organizador via Pix
-    if (champ) {
-      const orgAccountRes = await supabase
-        .from("organizer_accounts")
-        .select("chave_pix, chave_pix_atualizada_em")
-        .eq("user_id", champ.organizador_id)
-        .single();
-
-      const chavePix = orgAccountRes.data?.chave_pix as string | undefined;
-      const isElite  = !!champ.is_elite;
-
-      // A taxa é paga pelo comprador (somada na cobrança) → o organizador recebe
-      // o VALOR CHEIO do ingresso. A dívida Elite (R$178) ainda é abatida daqui.
-      const repasseBase = Number(reg.valor ?? 0);
-
-      if (chavePix && repasseBase > 0) {
-        const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
-
-        if (dias === 0) {
-          // Trava de idempotência: marca 'processando' SÓ se ainda estiver
-          // 'pendente'. Como é um UPDATE condicional atômico, um webhook
-          // duplicado (ou PAYMENT_CONFIRMED + PAYMENT_RECEIVED) não consegue
-          // reivindicar de novo → evita repasse em dobro.
-          const { data: claimed } = await supabase
-            .from("registrations")
-            .update({ repasse_status: "processando" })
-            .eq("id", registrationId)
-            .eq("repasse_status", "pendente")
-            .select("id");
-
-          if (claimed && claimed.length > 0) {
-            await executarRepasse(
-              supabase,
-              {
-                registrationId,
-                championshipId: reg.championship_id,
-                champNome:      champ.nome,
-                isElite,
-                feePendente:    Number(champ.premium_fee_pendente ?? 0),
-                chavePix,
-                chavePixAtualizadaEm: orgAccountRes.data?.chave_pix_atualizada_em ?? null,
-                repasseBase,
-              },
-              "pendente",
-            );
-          }
-          // Se não reivindicou (0 linhas), já foi repassado/está processando → não faz nada.
-        } else {
-          // Crédito/débito: liquidação diferida (D+3/D+32). O repasse e o
-          // abatimento da dívida Elite acontecem quando a transferência
-          // diferida for executada (job futuro). Até lá a dívida segue
-          // pendente e é abatida nos próximos repasses Pix.
-          const dataRepasse = new Date();
-          dataRepasse.setDate(dataRepasse.getDate() + dias);
-
-          // Idempotente: agenda só se ainda estiver pendente.
-          await supabase
-            .from("registrations")
-            .update({
-              repasse_status:        "aguardando_liquidacao",
-              repasse_data_prevista: dataRepasse.toISOString(),
-            })
-            .eq("id", registrationId)
-            .eq("repasse_status", "pendente");
-        }
-      }
-    }
-  }
-
-  // 4. Estorno
-  if (novoStatus === "estornado") {
-    // Se esta inscrição tinha abatido parte da dívida Elite, devolve à dívida
-    // (o dinheiro que pagou os R$178 veio dessa inscrição, agora estornada).
-    const { data: regEst } = await supabase
-      .from("registrations")
-      .select("championship_id, elite_fee_coletada")
-      .eq("id", registrationId)
-      .single();
-
-    if (regEst && Number(regEst.elite_fee_coletada ?? 0) > 0) {
-      await supabase.rpc("release_elite_fee", {
-        p_champ_id: regEst.championship_id,
-        p_amount:   Number(regEst.elite_fee_coletada),
-      });
-    }
-
-    await supabase
-      .from("registrations")
-      .update({ repasse_status: "estornado", elite_fee_coletada: 0 })
-      .eq("id", registrationId);
+  if (!resultado.ok) {
+    console.error("[webhook] Erro ao processar inscrição:", resultado.error);
+    return NextResponse.json({ error: resultado.error }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, status: novoStatus });

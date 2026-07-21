@@ -4,8 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { ChavePixClient } from "@/components/painel/ChavePixClient";
 import { PlanoTaxas } from "@/components/painel/PlanoTaxas";
+import { ReconciliarInscricaoButton } from "@/components/painel/ReconciliarInscricaoButton";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
+import { Surface } from "@/components/shell/Surface";
+import { formatBRL } from "@/lib/format";
 
 type RegRow = {
   id: string;
@@ -44,7 +47,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const isElite     = !!champExtra?.is_elite;
   const feePendente = Number(champExtra?.premium_fee_pendente ?? 0);
 
-  const [{ data: rawRegs }, { data: champDates }] = await Promise.all([
+  const [{ data: rawRegs }, { data: champDates }, { data: rawPendentes }] = await Promise.all([
     supabase
       .from("registrations")
       .select(`id, valor, status_pagamento, billing_type, category_id, created_at, championship_categories(id, nome, genero)`)
@@ -54,9 +57,26 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
       .select("prevenda_inicio, inscricoes_inicio, data_inicio")
       .eq("id", id)
       .single(),
+    // Pendentes com cobrança já criada no Asaas — candidatas a reconciliação
+    // manual (webhook que talvez nunca tenha chegado). Ver 7.4/Bug 3.
+    supabase
+      .from("registrations")
+      .select("id, valor, created_at, teams(atleta1_id)")
+      .eq("championship_id", id)
+      .eq("status_pagamento", "pendente")
+      .not("asaas_payment_id", "is", null)
+      .order("created_at", { ascending: true }),
   ]);
 
   const regs: RegRow[] = (rawRegs ?? []) as unknown as RegRow[];
+
+  type PendenteRow = { id: string; valor: number; created_at: string; teams: { atleta1_id: string } | null };
+  const pendentesComCobranca = (rawPendentes ?? []) as unknown as PendenteRow[];
+  const atleta1IdsPendentes = [...new Set(pendentesComCobranca.map((p) => p.teams?.atleta1_id).filter(Boolean))] as string[];
+  const { data: profilesPendentes } = atleta1IdsPendentes.length > 0
+    ? await supabase.from("profiles").select("id, nome").in("id", atleta1IdsPendentes)
+    : { data: [] };
+  const nomeAtleta1Map = Object.fromEntries((profilesPendentes ?? []).map((p) => [p.id, p.nome]));
 
   const totalPago      = regs.filter((r) => r.status_pagamento === "pago").reduce((s, r) => s + Number(r.valor), 0);
   const totalPendente  = regs.filter((r) => r.status_pagamento === "pendente").reduce((s, r) => s + Number(r.valor), 0);
@@ -170,6 +190,33 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     <PageContainer width="form" className="space-y-6 py-8">
       <PageHeader title="Financeiro" description="Entradas, taxas e repasses desse campeonato." />
       <ChavePixClient chavePix={chavePix} />
+
+      {pendentesComCobranca.length > 0 && (
+        <Surface padding="md" className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold text-ink">Pendentes com cobrança gerada</h2>
+            <p className="text-xs text-ink-muted">
+              Pagamento pode ter sido feito mas a confirmação automática (webhook) ainda não
+              chegou. Verifique o status real no Asaas antes de considerar como falha — isso
+              nunca edita o registro na mão, só atualiza conforme a resposta do Asaas.
+            </p>
+          </div>
+          <div className="divide-y divide-border">
+            {pendentesComCobranca.map((p) => (
+              <div key={p.id} className="flex items-center justify-between gap-3 py-2.5">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-ink">
+                    {p.teams?.atleta1_id ? (nomeAtleta1Map[p.teams.atleta1_id] ?? "Atleta") : "Atleta"}
+                  </p>
+                  <p className="text-xs text-ink-muted">{formatBRL(Number(p.valor))}</p>
+                </div>
+                <ReconciliarInscricaoButton champId={id} registrationId={p.id} />
+              </div>
+            ))}
+          </div>
+        </Surface>
+      )}
+
       <FinanceiroConteudoClient
         champId={id}
         repasseLiquido={repasseLiquido}

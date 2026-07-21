@@ -4,39 +4,76 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enviarConviteAceito, enviarInscricaoConfirmada } from "@/lib/email/send";
+import { checarElegibilidadeCategoria } from "@/lib/inscricao-elegibilidade";
 
-export async function aceitarConvite(formData: FormData) {
+export type AceitarConviteResult = { ok: boolean; error?: string };
+
+export async function aceitarConvite(formData: FormData): Promise<AceitarConviteResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) return { ok: false, error: "Você precisa estar logado." };
 
   const teamId = formData.get("team_id") as string;
-  const inviteToken = formData.get("invite_token") as string;
+  const inviteToken = ((formData.get("invite_token") as string) ?? "").trim();
   const admin = createAdminClient();
-  if (!/^[0-9a-f-]{36}$/i.test(inviteToken ?? "")) return;
 
-  // Garante que só o atleta2 pode aceitar, e só se ainda estiver pendente.
-  // atleta2_id null = convite aberto (link direto sem @usuário especificado).
+  // Convite nomeado (atleta2_id já resolvido, ex: convite enviado por
+  // @username na inscrição) não tem invite_token no formulário — quem já é
+  // o atleta2 designado já prova autorização por si só. Convite aberto
+  // (link compartilhável, atleta2_id null) só tem o token como prova de
+  // posse do link, então esse caso exige o token bater.
   const { data: team } = await admin
     .from("teams")
-    .select("id, atleta1_id, atleta2_id, championship_id, status")
+    .select("id, atleta1_id, atleta2_id, championship_id, category_id, invite_token, status")
     .eq("id", teamId)
-    .eq("invite_token", inviteToken)
     .single();
 
-  if (!team || (team.atleta2_id !== null && team.atleta2_id !== user.id) || team.status !== "convite_pendente") return;
+  if (!team || team.status !== "convite_pendente") {
+    return { ok: false, error: "Convite não encontrado ou já respondido." };
+  }
+
+  const isConviteAberto = team.atleta2_id === null;
+  if (isConviteAberto) {
+    if (!/^[0-9a-f-]{36}$/i.test(inviteToken) || team.invite_token !== inviteToken) {
+      return { ok: false, error: "Link de convite inválido ou expirado." };
+    }
+  } else if (team.atleta2_id !== user.id) {
+    return { ok: false, error: "Este convite não é para você." };
+  }
+
+  // ── Elegibilidade de gênero/rating de quem está aceitando ──────────
+  // Mesma regra aplicada em inscreverDupla (app/campeonatos/[id]/inscrever/
+  // actions.ts) — o atleta1 nunca valida o parceiro no convite por link
+  // aberto (não sabe quem vai aceitar), então essa checagem só acontece
+  // aqui, no momento em que o parceiro é conhecido.
+  if (team.category_id) {
+    const [{ data: perfil }, { data: champ }, { data: cat }] = await Promise.all([
+      supabase.from("profiles").select("genero, rating").eq("id", user.id).single(),
+      supabase.from("championships").select("usa_motor_categoria").eq("id", team.championship_id).single(),
+      supabase.from("championship_categories").select("genero, corte_rating_min, corte_rating_max").eq("id", team.category_id).single(),
+    ]);
+
+    if (perfil && cat) {
+      const elegibilidade = checarElegibilidadeCategoria(
+        { genero: perfil.genero, rating: perfil.rating },
+        { genero: cat.genero, corteRatingMin: cat.corte_rating_min, corteRatingMax: cat.corte_rating_max },
+        champ?.usa_motor_categoria ?? true,
+      );
+      if (!elegibilidade.ok) return { ok: false, error: elegibilidade.error };
+    }
+  }
 
   // Se convite aberto (atleta2_id null), associa o usuário atual como parceiro
-  if (team.atleta2_id === null) {
+  if (isConviteAberto) {
     const { error: assocError } = await admin.from("teams").update({ atleta2_id: user.id }).eq("id", teamId);
-    if (assocError) return;
+    if (assocError) return { ok: false, error: "Erro ao processar o convite." };
   }
 
   const { error: statusError } = await admin
     .from("teams")
     .update({ status: "confirmado" })
     .eq("id", teamId);
-  if (statusError) return;
+  if (statusError) return { ok: false, error: "Erro ao processar o convite." };
 
   // Busca inscrição, atleta1 e atleta2 em paralelo (profiles não tem e-mail).
   const [{ data: reg }, { data: atleta1Profile }, { data: atleta2Profile }, { data: champ }] =
@@ -130,6 +167,7 @@ export async function aceitarConvite(formData: FormData) {
 
   revalidatePath("/perfil");
   revalidatePath("/notificacoes");
+  return { ok: true };
 }
 
 export async function recusarConvite(formData: FormData) {

@@ -2,9 +2,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Bell, ShieldCheck, Users, Link2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { aceitarConvite, recusarConvite } from "@/app/perfil/convite-actions";
+import { recusarConvite } from "@/app/perfil/convite-actions";
 import { aceitarConviteStaff, recusarConviteStaff } from "@/app/perfil/staff-actions";
 import { marcarTodasLidas } from "./actions";
+import { AceitarConviteDuplaButton } from "./AceitarConviteDuplaButton";
 
 type StaffRow = {
   id: string;
@@ -185,13 +186,8 @@ export default async function NotificacoesPage() {
                       )}
                     </div>
                   </div>
-                  <div className="mt-4 flex gap-2">
-                    <form action={aceitarConvite}>
-                      <input type="hidden" name="team_id" value={c.id} />
-                      <button type="submit" className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-                        Aceitar
-                      </button>
-                    </form>
+                  <div className="mt-4 flex flex-wrap items-start gap-2">
+                    <AceitarConviteDuplaButton teamId={c.id} />
                     <form action={recusarConvite}>
                       <input type="hidden" name="team_id" value={c.id} />
                       <button type="submit" className="rounded-xl bg-white px-5 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50">

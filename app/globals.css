@@ -50,6 +50,38 @@
   --font-sans: var(--font-inter);
 }
 
+/* ── Zoom automático ao focar campo no mobile (Safari/iOS) ──────────────
+   iOS Safari dá zoom automático quando o campo focado tem fonte computada
+   menor que 16px. O app usa text-sm (14px) e text-xs (12px) em quase todo
+   input/select/textarea — em vez de trocar centenas de ocorrências,
+   fixamos aqui globalmente, só até o breakpoint md (768px, onde o layout
+   já vira desktop). !important é necessário pra vencer a especificidade
+   das classes utilitárias do Tailwind (.text-sm etc. são seletores de
+   classe, mais específicos que o seletor de elemento `input`).
+   viewport (app/layout.tsx) mantém maximumScale=5 — isso aqui evita o
+   zoom AUTOMÁTICO, não bloqueia o zoom manual do usuário (WCAG 1.4.4). */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ── <input type="date/time/…"> soma dentro de CSS Grid no Safari ───────
+   O controle nativo de data/hora do WebKit tem uma peculiaridade: dentro
+   de grid-cols-2 (Início/Fim lado a lado), o item de grid não encolhe
+   (min-width: auto é o padrão), e o par de campos aparece sobreposto/
+   colapsado em vez de ocupar cada um sua metade. min-width: 0 no próprio
+   controle resolve — é o fix padrão documentado pra esse bug do WebKit. */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"] {
+  min-width: 0;
+}
+
 .rankftv-desktop-sidebar {
   background: #000000 !important;
   border-right-color: transparent !important;

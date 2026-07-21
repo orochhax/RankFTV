@@ -242,6 +242,23 @@ export async function reembolsarPagamento(
   });
 }
 
+// ── Consulta de status de cobrança ────────────────────────────────────────────
+// GET /payments/{id} — usado pela reconciliação manual (o organizador pede
+// pra conferir uma inscrição travada em "pendente" contra o status real no
+// Asaas, em vez de qualquer edição manual do registro no banco).
+
+export type StatusCobranca = {
+  id: string;
+  status: string; // PENDING | CONFIRMED | RECEIVED | OVERDUE | REFUNDED | ...
+  billingType: string;
+  value: number;
+  dueDate?: string;
+};
+
+export async function consultarCobranca(asaasPaymentId: string): Promise<StatusCobranca> {
+  return request<StatusCobranca>(`/payments/${asaasPaymentId}`);
+}
+
 // ── Consulta de titularidade de chave Pix ────────────────────────────────────
 // GET /pix/addressKeys/external (docs.asaas.com/reference/consultar-chave-pix)
 // — identifica o titular de uma chave antes de transferir. Rate limit

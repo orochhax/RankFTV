@@ -146,9 +146,19 @@ export function InscricaoForm({
       </label>
 
       {state.error && (
-        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-          {state.error}
-        </p>
+        <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <p>{state.error}</p>
+          {state.error.includes("questionário") && (
+            <Link
+              href={`/perfil/questionario-nivel?redirect=${encodeURIComponent(
+                `/campeonatos/${championshipId}/inscrever?categoria=${categoryId}`
+              )}`}
+              className="mt-2 inline-block font-semibold text-red-700 underline"
+            >
+              Responder questionário de nível
+            </Link>
+          )}
+        </div>
       )}
 
       <button

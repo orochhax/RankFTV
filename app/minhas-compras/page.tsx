@@ -8,39 +8,38 @@ import type { Ingresso } from "@/components/ingressos/IngressoCard";
 
 // "Minhas Compras": ingressos (atleta/plateia) do usuário logado.
 //
-// O sistema não vincula ticket a user_id (checkout de visitante) — o dono do
-// ingresso é definido pelo E-MAIL usado na compra, não por quem pagou nem
-// pelo CPF. Ex.: se um amigo te inscreve num campeonato e coloca o SEU
-// e-mail nos dados do atleta 2, o ingresso (e o QR) vai pro seu e-mail — e é
-// nele que deve aparecer aqui, mesmo que o CPF de quem pagou seja diferente
-// do seu.
+// O vínculo é feito por user_id (auth.uid()), nunca por e-mail — e-mail não
+// é uma identidade autenticada nesse ponto (quem cria conta com um e-mail
+// que apareceu num checkout de visitante não prova que comprou aquilo). Ver
+// harden-ticket-user-linking.sql e Bug 4 do relatório de correções. Compras
+// antigas sem user_id (feitas antes desta correção) só aparecem depois que
+// o próprio dono as vincula explicitamente em /meus-ingressos, provando
+// posse via o código OTP que já existe pra recuperação de ingresso.
 export default async function MinhasComprasPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const email = (user.email ?? "").trim().toLowerCase();
-
   let ingressos: Ingresso[] = [];
 
-  if (email) {
+  {
     const admin = createAdminClient();
 
     const [ath1, ath2, plateia] = await Promise.all([
       admin
         .from("athlete_tickets")
         .select("id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)")
-        .eq("comprador_email", email)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
       admin
         .from("athlete_tickets")
         .select("id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)")
-        .eq("parceiro_email", email)
+        .eq("parceiro_user_id", user.id)
         .order("created_at", { ascending: false }),
       admin
         .from("spectator_tickets")
         .select("id, championship_id, tipo_nome, comprador_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)")
-        .eq("comprador_email", email)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
     ]);
 

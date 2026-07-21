@@ -1,21 +1,28 @@
-# Pendências pós-auditoria de segurança (20/07/2026)
+# Pendências pós-auditoria de segurança (atualizado 21/07/2026)
 
 > Checklist de tudo que ficou pendente depois da rodada de correções de
-> segurança/autorização/pagamentos/privacidade/concorrência. Cada item tem o
-> passo a passo pra quando você for resolver. Itens de código já estão
-> prontos — o que falta aqui é ação externa (painel, dado da empresa,
-> decisão) ou é uma limitação conhecida que ficou documentada em vez de
-> corrigida.
+> segurança/autorização/pagamentos/privacidade/concorrência — mais o que
+> mudou depois da mesclagem com o trabalho feito em outra máquina
+> (captcha/recuperação de senha/deploy de hardening). Cada item tem o passo
+> a passo pra quando você for resolver. Itens de código já estão prontos —
+> o que falta aqui é ação externa (painel, dado da empresa, decisão) ou é
+> uma limitação conhecida que ficou documentada em vez de corrigida.
 >
 > Ver também `AUDITORIA-PRODUCAO.md` (checklist geral de produção, mais
-> amplo que este) e `DOCUMENTACAO.md` (arquitetura atual).
+> amplo que este), `CAPTCHA.md` (setup do Turnstile) e `DOCUMENTACAO.md`
+> (arquitetura atual).
 
 ---
 
-## 1. Aplicar as migrations SQL novas — ✅ aplicadas em 20/07/2026
+## 1. Aplicar as migrations SQL novas — ✅ aplicadas e confirmadas em 21/07/2026
 
-Todas as 12 já foram rodadas. Falta só confirmar (ver checklist abaixo) e
-ficar de olho nos dois pontos que avisam de dado pré-existente conflitante.
+Todas as 12 já foram rodadas. A nº 2
+(`harden-championship-registration-security.sql`) tinha um bug de
+idempotência (um `DROP CONSTRAINT` sem `CASCADE` num índice que outras FKs
+já dependiam, então rodar duas vezes falhava) — já corrigido no arquivo.
+Reaplicada com sucesso, confirmado que não havia dado duplicado (0 duplas e
+0 inscrições com categoria de outro campeonato) e as duas FKs compostas já
+foram validadas (`VALIDATE CONSTRAINT`, deixaram de ser `NOT VALID`).
 
 <details>
 <summary>Passo a passo original (referência)</summary>
@@ -53,22 +60,22 @@ Antes de aplicar em produção:
 
 </details>
 
-### Checklist de confirmação (fazer agora que já rodou)
+### Checklist de confirmação
 
-- [ ] **Reveja a aba de mensagens/resultado de cada execução no SQL
-      Editor** — em especial dos arquivos nº 2
-      (`harden-championship-registration-security.sql`) e nº 12
-      (`harden-registration-idempotency.sql`). Se algum `RAISE NOTICE`
-      avisou de linha duplicada (dupla repetida no mesmo campeonato, ou
-      dois aluguéis ativos no mesmo horário), o índice/constraint
-      correspondente **não foi criado** — precisa resolver a duplicata
-      manualmente e rodar aquele arquivo de novo. Se não apareceu nenhum
-      aviso, está tudo certo.
+- [x] **Migration nº 2** (`harden-championship-registration-security.sql`):
+      confirmado sem dado duplicado e as duas FKs compostas
+      (`teams_category_championship_fkey`,
+      `registrations_category_championship_fkey`) já validadas.
+- [x] **Migration nº 12** (`harden-registration-idempotency.sql`):
+      confirmado 0 duplas repetidas no mesmo campeonato e 0 aluguéis
+      conflitantes no mesmo horário — os dois índices únicos
+      (`teams_one_active_per_atleta1`, `arena_rentals_one_active_per_slot`)
+      foram criados sem nenhum dado pré-existente pra resolver.
 - [ ] Teste rápido: um login, uma inscrição em campeonato, uma presença de
       aula de arena e uma troca de chave Pix (essa última deve pedir senha
       se já existir uma chave cadastrada).
-- [ ] Confirme no painel (Table Editor) que `security_audit_log` e
-      `ticket_recovery_codes` existem — são tabelas novas.
+- [x] Confirmado que `security_audit_log` e `ticket_recovery_codes` existem
+      (as duas tabelas novas de auditoria/OTP).
 
 ---
 
@@ -96,41 +103,7 @@ mexer em mais nada — o resto dos Termos/Política já está escrito.
 
 ---
 
-## 3. Rate limit e CAPTCHA em login/cadastro
-
-Login (`app/login/page.tsx`) e cadastro (`app/cadastro/page.tsx`) chamam
-`supabase.auth.signInWithPassword`/`signUp` **direto do navegador** — não
-existe nenhum código meu no meio do caminho pra colocar rate limit. Isso só
-se resolve em duas frentes, uma sem código e uma com:
-
-### 3.1 Sem código — painel do Supabase (faça isso primeiro, é o mais importante)
-
-1. Supabase Dashboard → seu projeto → **Authentication → Rate Limits**:
-   confirme/ajuste os limites de sign-in, sign-up e envio de e-mail (os
-   valores padrão já ajudam; aperte se achar necessário).
-2. **Authentication → Attack Protection**: ative a proteção contra senha
-   vazada (se disponível no seu plano) e veja a opção de CAPTCHA.
-
-### 3.2 Com CAPTCHA de verdade (hCaptcha ou Cloudflare Turnstile)
-
-1. Crie uma conta em [hCaptcha](https://www.hcaptcha.com/) ou
-   [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/)
-   (Turnstile é gratuito e mais simples de configurar).
-2. Cadastre o domínio do RankFTV lá e pegue duas chaves: **site key**
-   (pública) e **secret key** (privada).
-3. No Supabase Dashboard → **Authentication → Attack Protection → Enable
-   CAPTCHA protection**: cole a secret key.
-4. Me avise quando tiver a site key — nesse ponto eu preciso:
-   - Adicionar o widget do CAPTCHA (hCaptcha/Turnstile) nos formulários de
-     `app/login/page.tsx` e `app/cadastro/page.tsx`;
-   - Passar o token resolvido em `options.captchaToken` nas chamadas
-     `signInWithPassword`/`signUp`.
-   Sem a site key eu não tenho como fazer essa parte — é literalmente a
-   credencial que falta.
-
----
-
-## 4. Limitações conhecidas desta rodada (documentadas, não corrigidas)
+## 3. Limitações conhecidas desta rodada (documentadas, não corrigidas)
 
 Coisas que identifiquei mas não implementei — não são vulnerabilidade
 aberta, mas valem uma correção futura se o produto crescer nessa direção.
@@ -174,7 +147,7 @@ aberta, mas valem uma correção futura se o produto crescer nessa direção.
 
 ---
 
-## 5. Homologação e configuração externa (herdado de `AUDITORIA-PRODUCAO.md`)
+## 4. Homologação e configuração externa (herdado de `AUDITORIA-PRODUCAO.md`)
 
 Continua tudo pendente, independente desta rodada de segurança — o código
 já é compatível, falta configurar/testar de verdade:
@@ -191,8 +164,10 @@ já é compatível, falta configurar/testar de verdade:
 - [ ] Resend com domínio verificado, SPF/DKIM e `RESEND_FROM_EMAIL` de
       produção — os e-mails de código de recuperação de ingresso e de
       código Pix dependem disso pra chegar de verdade.
-- [ ] Supabase Auth: Site URL, Redirect URLs, política de senha, MFA da
-      conta admin.
+- [x] Supabase Auth: Site URL (`https://www.rankftv.com`), Redirect URLs e
+      CAPTCHA configurados e testados (confirmado 21/07 — captcha, rate
+      limit e fluxo de recuperação de senha, tudo funcionando). Falta só:
+      política de senha e MFA da conta admin.
 - [ ] Backup/PITR ativado e testado.
 - [ ] Homologação financeira real (Pix, cartão aprovado/recusado,
       parcelamento, estorno, assinatura) com valor baixo antes de abrir pra
@@ -203,30 +178,26 @@ já é compatível, falta configurar/testar de verdade:
 
 ---
 
+## 5. Branches: master e redesign/organizer-championships unificados — ✅ feito em 21/07/2026
+
+As duas máquinas estavam commitando em branches diferentes sem nunca trocar
+trabalho entre si (`master` recebia captcha/recuperação de senha/deploy
+direto; `redesign/organizer-championships` tinha o redesign + a auditoria
+de segurança). Mesclei os dois: `master` e `redesign/organizer-championships`
+agora apontam pro mesmo commit, local e no GitHub. Nada a fazer aqui, só
+registrando — mas vale escolher um branch só pra continuar trabalhando daqui
+pra frente, pra não repetir a divergência.
+
+---
+
 ## 6. Ordem recomendada pra resolver o que resta
 
 1. ~~Migrations~~ — ✅ feito. Só falta o checklist de confirmação da seção 1
    (avisos de duplicata, teste rápido) e conferir o bucket `avatars` na
-   seção 4.
+   seção 3.
 2. Dados da empresa nos Termos/Privacidade (seção 2) — rápido, sem
    dependência externa.
-3. Rate limit no painel do Supabase (seção 3.1) — rápido, sem dependência
-   externa.
-4. CAPTCHA (seção 3.2) — precisa criar conta em provedor externo antes.
-5. Homologação e configuração externa (seção 5) — é o bloco maior, trata
+3. Homologação e configuração externa (seção 4) — é o bloco maior, trata
    como o gate final antes de aceitar dinheiro real.
-6. Limitações conhecidas (seção 4) — só se/quando virar prioridade de
+4. Limitações conhecidas (seção 3) — só se/quando virar prioridade de
    produto.
-
-## 7. Implementacao do CAPTCHA - codigo concluido
-
-O codigo de Turnstile foi implementado em `components/auth/TurnstileCaptcha.tsx`.
-O cadastro e a recuperacao de senha exigem um token; o login exige o token
-depois de tres falhas consecutivas na mesma sessao do navegador. A pagina de
-recuperacao agora existe em `/recuperar-senha` e `/recuperar-senha/atualizar`.
-
-Ainda falta a configuracao externa: criar o widget Cloudflare, preencher
-`NEXT_PUBLIC_TURNSTILE_SITE_KEY`, colar a secret key em `Authentication > Attack
-Protection` no Supabase, ajustar os limites em `Authentication > Rate Limits` e
-cadastrar `/recuperar-senha/atualizar` nas Redirect URLs. O passo a passo
-completo esta em `CAPTCHA.md`.

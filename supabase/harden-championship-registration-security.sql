@@ -32,26 +32,42 @@ BEGIN
   END IF;
 END $$;
 
-ALTER TABLE championship_categories
-  DROP CONSTRAINT IF EXISTS championship_categories_id_champ_uniq;
-ALTER TABLE championship_categories
-  ADD CONSTRAINT championship_categories_id_champ_uniq UNIQUE (id, championship_id);
+-- Cria só se ainda não existir — nunca DROP+ADD aqui. Na primeira execução
+-- o índice único ainda não tem nada dependendo dele, mas depois que as duas
+-- FKs compostas abaixo existem, elas passam a depender dele; um DROP
+-- CONSTRAINT (mesmo IF EXISTS) sem CASCADE falha numa segunda execução —
+-- e CASCADE destruiria as FKs (e qualquer VALIDATE CONSTRAINT que você já
+-- tenha rodado manualmente) sem necessidade nenhuma, já que o índice nunca
+-- muda de definição depois de criado.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'championship_categories_id_champ_uniq'
+  ) THEN
+    ALTER TABLE championship_categories
+      ADD CONSTRAINT championship_categories_id_champ_uniq UNIQUE (id, championship_id);
+  END IF;
 
-ALTER TABLE teams
-  DROP CONSTRAINT IF EXISTS teams_category_championship_fkey;
-ALTER TABLE teams
-  ADD CONSTRAINT teams_category_championship_fkey
-  FOREIGN KEY (category_id, championship_id)
-  REFERENCES championship_categories (id, championship_id)
-  NOT VALID;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'teams_category_championship_fkey'
+  ) THEN
+    ALTER TABLE teams
+      ADD CONSTRAINT teams_category_championship_fkey
+      FOREIGN KEY (category_id, championship_id)
+      REFERENCES championship_categories (id, championship_id)
+      NOT VALID;
+  END IF;
 
-ALTER TABLE registrations
-  DROP CONSTRAINT IF EXISTS registrations_category_championship_fkey;
-ALTER TABLE registrations
-  ADD CONSTRAINT registrations_category_championship_fkey
-  FOREIGN KEY (category_id, championship_id)
-  REFERENCES championship_categories (id, championship_id)
-  NOT VALID;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'registrations_category_championship_fkey'
+  ) THEN
+    ALTER TABLE registrations
+      ADD CONSTRAINT registrations_category_championship_fkey
+      FOREIGN KEY (category_id, championship_id)
+      REFERENCES championship_categories (id, championship_id)
+      NOT VALID;
+  END IF;
+END $$;
 
 -- Depois de confirmar (pela NOTICE acima, ou reconsultando as duas queries
 -- do DO block) que não há linha ruim, rode manualmente pra travar de vez

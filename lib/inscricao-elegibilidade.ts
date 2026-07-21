@@ -24,11 +24,13 @@ export type ResultadoElegibilidade = { ok: true } | { ok: false; error: string }
  * não se encaixa em nenhuma categoria de gênero fechado — precisa completar
  * o perfil primeiro).
  *
- * Corte de rating só é aplicado quando o campeonato usa o motor de
- * categoria (organizador pode desligar pra deixar as categorias abertas
- * independente de rating). Rating 0 (perfil nunca avaliado) é tratado como
- * qualquer outro valor: só passa em categoria com corte_rating_min = 0 — é
- * isso que impede sandbagging via perfil sem avaliação.
+ * Quando o campeonato usa o motor de categoria (organizador pode desligar
+ * pra deixar as categorias abertas independente de rating):
+ *  - rating 0 (perfil nunca respondeu o questionário de nível) é bloqueado
+ *    ANTES de checar o corte — sem isso, um perfil nunca avaliado passava
+ *    livre em qualquer categoria com corte_rating_min = 0, sem nunca ter
+ *    respondido o questionário que o organizador pediu.
+ *  - com rating > 0, aplica o corte normal da categoria.
  */
 export function checarElegibilidadeCategoria(
   perfil: PerfilElegibilidade,
@@ -46,6 +48,12 @@ export function checarElegibilidadeCategoria(
 
   if (motorLigado) {
     const rating = perfil.rating ?? 0;
+    if (rating === 0) {
+      return {
+        ok: false,
+        error: "Responda o questionário de nível no seu perfil antes de se inscrever neste campeonato.",
+      };
+    }
     if (rating < categoria.corteRatingMin || rating > categoria.corteRatingMax) {
       return { ok: false, error: "Seu rating atual não se enquadra no corte desta categoria." };
     }

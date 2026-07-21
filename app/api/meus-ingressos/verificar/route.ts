@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
-import { compararHashOtp } from "@/lib/otp";
+import { verificarCodigoRecuperacao } from "@/lib/ticket-recovery";
 
 const PRIVATE_RESPONSE_HEADERS = { "Cache-Control": "no-store, private" };
 const MAX_TENTATIVAS = 5;
@@ -37,30 +37,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: ERRO_GENERICO }, { status: 400, headers: PRIVATE_RESPONSE_HEADERS });
   }
 
+  const codigoValido = await verificarCodigoRecuperacao(cpf, email, codigo);
+  if (!codigoValido) {
+    return NextResponse.json({ error: ERRO_GENERICO }, { status: 400, headers: PRIVATE_RESPONSE_HEADERS });
+  }
+
   const supabase = createAdminClient();
-
-  const { data: pendente } = await supabase
-    .from("ticket_recovery_codes")
-    .select("id, codigo_hash, tentativas, usado_em, expira_em")
-    .eq("cpf", cpf)
-    .eq("email", email)
-    .is("usado_em", null)
-    .gt("expira_em", new Date().toISOString())
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!pendente || pendente.tentativas >= MAX_TENTATIVAS) {
-    return NextResponse.json({ error: ERRO_GENERICO }, { status: 400, headers: PRIVATE_RESPONSE_HEADERS });
-  }
-
-  if (!compararHashOtp(codigo, pendente.codigo_hash)) {
-    await supabase.from("ticket_recovery_codes").update({ tentativas: pendente.tentativas + 1 }).eq("id", pendente.id);
-    return NextResponse.json({ error: ERRO_GENERICO }, { status: 400, headers: PRIVATE_RESPONSE_HEADERS });
-  }
-
-  // Código de uso único — marca usado antes de devolver qualquer dado.
-  await supabase.from("ticket_recovery_codes").update({ usado_em: new Date().toISOString() }).eq("id", pendente.id);
 
   const [ath1, ath2, plateia] = await Promise.all([
     supabase

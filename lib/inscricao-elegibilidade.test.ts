@@ -7,14 +7,17 @@ import {
 describe("checarElegibilidadeCategoria (gênero e rating vêm do perfil, nunca do FormData)", () => {
   const categoriaAberta = { genero: "mista", corteRatingMin: 0, corteRatingMax: 9999 };
 
+  // rating: 1000 (não-zero) nos testes de gênero abaixo — isolam a checagem
+  // de gênero da checagem de "questionário pendente" (rating 0), testada à
+  // parte mais adiante.
   test("categoria mista aceita qualquer gênero, mesmo perfil sem gênero preenchido", () => {
-    const r = checarElegibilidadeCategoria({ genero: null, rating: 0 }, categoriaAberta, true);
+    const r = checarElegibilidadeCategoria({ genero: null, rating: 1000 }, categoriaAberta, true);
     assert.equal(r.ok, true);
   });
 
   test("categoria masculina bloqueia perfil feminino", () => {
     const r = checarElegibilidadeCategoria(
-      { genero: "feminino", rating: 0 },
+      { genero: "feminino", rating: 1000 },
       { genero: "masculino", corteRatingMin: 0, corteRatingMax: 9999 },
       true,
     );
@@ -24,7 +27,7 @@ describe("checarElegibilidadeCategoria (gênero e rating vêm do perfil, nunca d
 
   test("categoria feminina aceita perfil feminino", () => {
     const r = checarElegibilidadeCategoria(
-      { genero: "feminino", rating: 0 },
+      { genero: "feminino", rating: 1000 },
       { genero: "feminino", corteRatingMin: 0, corteRatingMax: 9999 },
       true,
     );
@@ -78,16 +81,34 @@ describe("checarElegibilidadeCategoria (gênero e rating vêm do perfil, nunca d
     assert.equal(r.ok, true);
   });
 
-  test("rating nulo/zero (perfil nunca avaliado) só passa na categoria de corte mínimo 0", () => {
+  test("rating nulo/zero (perfil nunca respondeu o questionário) é bloqueado mesmo na categoria de corte mínimo 0", () => {
     const semAvaliacao = { genero: "masculino", rating: null };
-    assert.equal(
-      checarElegibilidadeCategoria(semAvaliacao, { genero: "masculino", corteRatingMin: 0, corteRatingMax: 1500 }, true).ok,
+    const r1 = checarElegibilidadeCategoria(semAvaliacao, { genero: "masculino", corteRatingMin: 0, corteRatingMax: 1500 }, true);
+    assert.equal(r1.ok, false);
+    if (!r1.ok) assert.match(r1.error, /Responda o questionário/);
+
+    const r2 = checarElegibilidadeCategoria(semAvaliacao, { genero: "masculino", corteRatingMin: 1500, corteRatingMax: 9999 }, true);
+    assert.equal(r2.ok, false);
+    if (!r2.ok) assert.match(r2.error, /Responda o questionário/);
+  });
+
+  test("rating explicitamente 0 (não só null) também é bloqueado com o motor ligado", () => {
+    const r = checarElegibilidadeCategoria(
+      { genero: "masculino", rating: 0 },
+      { genero: "masculino", corteRatingMin: 0, corteRatingMax: 9999 },
       true,
     );
-    assert.equal(
-      checarElegibilidadeCategoria(semAvaliacao, { genero: "masculino", corteRatingMin: 1500, corteRatingMax: 9999 }, true).ok,
+    assert.equal(r.ok, false);
+    if (!r.ok) assert.match(r.error, /Responda o questionário/);
+  });
+
+  test("motor de categoria desligado: rating nulo/zero não é bloqueado (questionário não é exigido)", () => {
+    const r = checarElegibilidadeCategoria(
+      { genero: "masculino", rating: null },
+      { genero: "masculino", corteRatingMin: 0, corteRatingMax: 9999 },
       false,
     );
+    assert.equal(r.ok, true);
   });
 
   test("motor de categoria desligado (usa_motor_categoria=false): corte de rating não é aplicado", () => {

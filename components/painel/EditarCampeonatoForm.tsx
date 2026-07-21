@@ -205,6 +205,36 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
   const confirmarSalvar = useCallback(() => {
     setShowConfirm(false);
     setError(null);
+    if (!dataInicio || !dataFim) {
+      setError("Informe as datas de início e fim do evento.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    if (dataFim < dataInicio) {
+      setError("A data de fim do evento não pode ser antes do início.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    if (!inscricoesInicio || !inscricoesFim) {
+      setError("Informe a abertura e o encerramento das inscrições.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    if (inscricoesFim < inscricoesInicio) {
+      setError("O encerramento das inscrições não pode ser antes da abertura.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    if ((prevendaInicio && !prevendaFim) || (!prevendaInicio && prevendaFim)) {
+      setError("Preencha as duas datas da pré-venda, ou deixe as duas em branco.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    if (prevendaInicio && prevendaFim && prevendaFim < prevendaInicio) {
+      setError("A data de fim da pré-venda não pode ser antes do início.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     startTransition(async () => {
       let regulamentoPdfUrl: string | null = pdfUrl;
       if (pdfFile) {
@@ -412,12 +442,12 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
 
         <div>
           <p className="mb-2 text-xs font-medium text-gray-500">Campeonato</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="min-w-0">
               <label className={labelClass}>Início *</label>
               <input type="date" className={inputClass} value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className={labelClass}>Fim *</label>
               <input type="date" className={inputClass} value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
             </div>
@@ -425,28 +455,40 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
         </div>
 
         <div>
-          <p className="mb-2 text-xs font-medium text-gray-500">Pré-venda</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-xs font-medium text-gray-500">Pré-venda</p>
+            {(prevendaInicio || prevendaFim) && (
+              <button
+                type="button"
+                onClick={() => { setPrevendaInicio(""); setPrevendaFim(""); }}
+                className="text-xs font-medium text-red-500 hover:text-red-600"
+              >
+                Remover data
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="min-w-0">
               <label className={labelClass}>Início</label>
               <input type="date" className={inputClass} value={prevendaInicio} onChange={(e) => setPrevendaInicio(e.target.value)} />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className={labelClass}>Fim</label>
               <input type="date" className={inputClass} value={prevendaFim} onChange={(e) => setPrevendaFim(e.target.value)} />
             </div>
           </div>
+          <p className="mt-1.5 text-xs text-gray-400">Opcional. Se preencher, informe as duas datas.</p>
         </div>
 
         <div>
           <p className="mb-2 text-xs font-medium text-gray-500">Inscrições</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Abertura</label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="min-w-0">
+              <label className={labelClass}>Abertura *</label>
               <input type="date" className={inputClass} value={inscricoesInicio} onChange={(e) => setInscricoesInicio(e.target.value)} />
             </div>
-            <div>
-              <label className={labelClass}>Encerramento</label>
+            <div className="min-w-0">
+              <label className={labelClass}>Encerramento *</label>
               <input type="date" className={inputClass} value={inscricoesFim} onChange={(e) => setInscricoesFim(e.target.value)} />
             </div>
           </div>

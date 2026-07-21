@@ -55,7 +55,7 @@ export default function RecuperarSenhaPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-48px)] items-center justify-center px-6 py-10">
+    <div className="flex min-h-[calc(100dvh-48px)] items-center justify-center px-6 py-10">
       <Surface padding="lg" className="w-full max-w-md">
         <h1 className="text-2xl font-semibold text-gray-900">Recuperar senha</h1>
         <p className="mt-2 text-sm text-gray-500">

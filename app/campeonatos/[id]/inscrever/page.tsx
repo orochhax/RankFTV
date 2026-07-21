@@ -31,7 +31,7 @@ export default async function InscreverPage({
 
   if (championship.status !== "inscricoes_abertas") {
     return (
-      <div className="flex min-h-[calc(100vh-48px)] items-center justify-center bg-app-bg px-6 py-10">
+      <div className="flex min-h-[calc(100dvh-48px)] items-center justify-center bg-app-bg px-6 py-10">
         <Surface padding="lg" className="max-w-md text-center">
           <p className="text-gray-500">As inscrições não estão abertas para este campeonato.</p>
           <Link href={`/campeonatos/${id}`} className="mt-4 inline-block text-sm text-blue-600 hover:underline">
@@ -75,7 +75,7 @@ export default async function InscreverPage({
     generoCategoria !== meuGenero;
 
   return (
-    <div className="min-h-[calc(100vh-48px)] bg-app-bg px-6 py-10">
+    <div className="min-h-[calc(100dvh-48px)] bg-app-bg px-6 py-10">
     <Surface padding="lg" className="mx-auto max-w-xl space-y-5">
       <Link
         href={`/campeonatos/${id}`}

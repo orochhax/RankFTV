@@ -127,6 +127,14 @@ export async function updateChampionship(
     return { ok: false, error: "Informe as datas de início e fim." };
   if (input.dataFim < input.dataInicio)
     return { ok: false, error: "A data de fim não pode ser antes do início." };
+  if (!input.inscricoesInicio || !input.inscricoesFim)
+    return { ok: false, error: "Informe a abertura e o encerramento das inscrições." };
+  if (input.inscricoesFim < input.inscricoesInicio)
+    return { ok: false, error: "O encerramento das inscrições não pode ser antes da abertura." };
+  if ((input.prevendaInicio && !input.prevendaFim) || (!input.prevendaInicio && input.prevendaFim))
+    return { ok: false, error: "Preencha as duas datas da pré-venda, ou deixe as duas em branco." };
+  if (input.prevendaInicio && input.prevendaFim && input.prevendaFim < input.prevendaInicio)
+    return { ok: false, error: "A data de fim da pré-venda não pode ser antes do início." };
   if (!input.cidade?.trim() || !input.estado?.trim())
     return { ok: false, error: "Informe a cidade e o estado." };
 

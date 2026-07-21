@@ -16,6 +16,8 @@ O RankFTV usa Cloudflare Turnstile integrado ao Supabase Auth.
 
 - Cadastro: sempre exige verificacao.
 - Recuperacao de senha: sempre exige verificacao antes do envio do e-mail.
-- Login: aparece depois de tres falhas consecutivas na mesma sessao do navegador.
+- Login: sempre exige verificacao (nao ha mais o comportamento antigo de só pedir depois de tentativas falhas).
 
-O token e temporario e e enviado ao Supabase em `options.captchaToken`. O frontend nunca conhece a secret key. Sem a site key configurada, os formularios protegidos permanecem bloqueados e exibem uma mensagem de configuracao, evitando que a protecao seja acidentalmente desativada em producao.
+O token e temporario e e enviado ao Supabase em `options.captchaToken`, com reset do widget a cada tentativa que falha (token de uso unico). O frontend nunca conhece a secret key.
+
+**Atencao (comportamento fail-open):** sem `NEXT_PUBLIC_TURNSTILE_SITE_KEY` configurada, o componente `components/auth/Turnstile.tsx` nao renderiza nada e os formularios **nao exigem** captcha — eles simplesmente enviam a chamada sem `captchaToken`. Isso so continua funcionando se `Authentication > Attack Protection` no Supabase tambem estiver com CAPTCHA desligado; se o Supabase exigir captcha do lado do servidor e o frontend nao mandar token nenhum (site key ausente), login/cadastro/recuperacao de senha simplesmente **param de funcionar** para todo mundo, com erro generico. As duas configuracoes (site key aqui e o toggle no Supabase) precisam estar sincronizadas — nunca uma sem a outra.

@@ -31,7 +31,7 @@ export function BottomNav({
     : base;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-1.5 pb-4 md:hidden bg-gradient-to-t from-white via-white/95 to-transparent pt-6">
+    <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-1.5 pb-[calc(1rem+env(safe-area-inset-bottom))] md:hidden bg-gradient-to-t from-white via-white/95 to-transparent pt-6">
       {/* Logo + sino acima da pill de navegação */}
       <div className="flex items-center gap-2">
         <Link

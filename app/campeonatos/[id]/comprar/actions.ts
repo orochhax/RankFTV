@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { criarOuBuscarCliente, criarCobranca } from "@/lib/asaas";
 import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
@@ -54,6 +55,12 @@ export async function comprarIngressoAtleta(
     checkRateLimit(`athl-ticket:email:${email.toLowerCase()}`, 5, 600),
   ]);
   if (!okIp || !okEmail) return { error: "Muitas tentativas. Aguarde alguns minutos e tente de novo." };
+
+  // Captura o vínculo com a conta quando o comprador já está logado (esse
+  // checkout também aceita visitante sem sessão). Nunca resolve o e-mail
+  // digitado pra um user_id — só a sessão atual do próprio comprador conta.
+  const sessionClient = await createClient();
+  const { data: { user: buyerUser } } = await sessionClient.auth.getUser();
 
   const supabase = createAdminClient();
 
@@ -155,6 +162,7 @@ export async function comprarIngressoAtleta(
       billing_type:         isGratis ? null : "PIX",
       code,
       access_token:         accessToken,
+      user_id:              buyerUser?.id ?? null,
     })
     .select("id")
     .single();

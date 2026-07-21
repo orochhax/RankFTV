@@ -136,13 +136,27 @@ export async function inscreverDupla(
   if (parceiroUsername) {
     const { data: parceiro } = await supabase
       .from("profiles")
-      .select("id, nome")
+      .select("id, nome, rating, genero")
       .eq("username", parceiroUsername)
       .single();
     if (!parceiro)
       return { error: `Usuário @${parceiroUsername} não encontrado.` };
     const podeConvidar = podeConvidarComoParceiro(parceiro.id, user.id);
     if (!podeConvidar.ok) return { error: podeConvidar.error };
+
+    // Mesma regra de gênero/rating do atleta1, agora pro parceiro convidado
+    // por @username — sem isso, uma dupla masculino+feminino passava direto
+    // numa categoria masculina, já que só o atleta1 (quem submete) era
+    // validado. Convite por link aberto (sem username aqui) é validado
+    // depois, no aceite (aceitarConvite), quando o parceiro é conhecido.
+    const elegibilidadeParceiro = checarElegibilidadeCategoria(
+      { genero: parceiro.genero, rating: parceiro.rating },
+      { genero: cat.genero, corteRatingMin: cat.corte_rating_min, corteRatingMax: cat.corte_rating_max },
+      champ.usa_motor_categoria ?? true,
+    );
+    if (!elegibilidadeParceiro.ok)
+      return { error: `@${parceiroUsername}: ${elegibilidadeParceiro.error}` };
+
     atleta2Id = parceiro.id;
 
     const admin = createAdminClient();

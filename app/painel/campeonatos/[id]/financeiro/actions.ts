@@ -2,10 +2,83 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { PRECO_ELITE } from "@/lib/elite";
 import { registrarAuditoria } from "@/lib/audit";
 import { compararTitularidadePix } from "@/lib/pix";
-import { consultarCpfCnpjTitularPix } from "@/lib/asaas";
+import { consultarCpfCnpjTitularPix, consultarCobranca } from "@/lib/asaas";
+import { confirmarInscricaoPaga, estornarInscricao } from "@/lib/pagamento-inscricao";
+
+const STATUS_CONFIRMADO = new Set(["CONFIRMED", "RECEIVED"]);
+const STATUS_ESTORNADO  = new Set(["REFUNDED", "REFUND_REQUESTED", "CHARGEBACK_REQUESTED", "CHARGEBACK_DISPUTE"]);
+
+export type ReconciliarResultado = { ok: boolean; message: string };
+
+/**
+ * Reconcilia uma inscrição travada em "pendente" contra o status real da
+ * cobrança no Asaas — pro caso do webhook nunca ter chegado (rede, deploy
+ * fora do ar no momento, etc). Nunca edita status_pagamento na mão: só muda
+ * de acordo com o que o Asaas responde, e reusa a mesma lógica de
+ * ativação/repasse do webhook (lib/pagamento-inscricao.ts), pra não existir
+ * dois caminhos divergentes pra "inscrição confirmada".
+ */
+export async function reconciliarInscricao(
+  champId: string,
+  registrationId: string,
+): Promise<ReconciliarResultado> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Não autenticado." };
+
+  const { data: champ } = await supabase
+    .from("championships")
+    .select("organizador_id")
+    .eq("id", champId)
+    .single();
+  if (!champ || champ.organizador_id !== user.id) return { ok: false, message: "Sem permissão." };
+
+  const admin = createAdminClient();
+  const { data: reg } = await admin
+    .from("registrations")
+    .select("id, championship_id, status_pagamento, asaas_payment_id")
+    .eq("id", registrationId)
+    .maybeSingle();
+
+  if (!reg || reg.championship_id !== champId) return { ok: false, message: "Inscrição não encontrada." };
+  if (!reg.asaas_payment_id) return { ok: false, message: "Essa inscrição não tem cobrança gerada no Asaas." };
+  if (reg.status_pagamento !== "pendente") return { ok: false, message: "Essa inscrição já não está pendente." };
+
+  let cobranca;
+  try {
+    cobranca = await consultarCobranca(reg.asaas_payment_id);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Erro desconhecido";
+    return { ok: false, message: `Erro ao consultar o Asaas: ${msg}` };
+  }
+
+  if (STATUS_CONFIRMADO.has(cobranca.status)) {
+    const resultado = await confirmarInscricaoPaga(admin, registrationId, {
+      id: cobranca.id,
+      billingType: cobranca.billingType,
+    });
+    revalidatePath(`/painel/campeonatos/${champId}`);
+    revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+    revalidatePath(`/painel/campeonatos/${champId}/inscricoes`);
+    return resultado.ok
+      ? { ok: true, message: "Pagamento confirmado no Asaas — inscrição atualizada." }
+      : { ok: false, message: `Encontrado como pago no Asaas, mas falhou ao atualizar: ${resultado.error}` };
+  }
+
+  if (STATUS_ESTORNADO.has(cobranca.status)) {
+    const resultado = await estornarInscricao(admin, registrationId);
+    revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+    return resultado.ok
+      ? { ok: true, message: "Cobrança estornada/reembolsada no Asaas — inscrição atualizada." }
+      : { ok: false, message: `Falhou ao estornar: ${resultado.error}` };
+  }
+
+  return { ok: false, message: `Ainda pendente no Asaas (status: ${cobranca.status}).` };
+}
 
 /**
  * Troca a chave Pix de recebimento do organizador.
