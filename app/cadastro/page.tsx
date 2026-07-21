@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { validaCpfCnpj, idadeEm, soDigitos } from "@/lib/validacao";
 import type { Genero } from "@/lib/types";
 import { Surface } from "@/components/shell/Surface";
+import { TurnstileCaptcha } from "@/components/auth/TurnstileCaptcha";
 
 const GENEROS: { valor: Genero; texto: string }[] = [
   { valor: "masculino", texto: "Masculino" },
@@ -33,6 +34,8 @@ function CadastroForm() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
 
   // Só coletados quando vem do fluxo "organizar evento" sem conta ainda.
   const [telefone, setTelefone] = useState("");
@@ -64,6 +67,7 @@ function CadastroForm() {
     statusUsername === "ok" &&
     !!genero &&
     (!modoOrganizador || (telefone.trim().length > 0 && cpfCnpj.trim().length > 0 && nascimento.trim().length > 0)) &&
+    !!captchaToken &&
     !loading;
 
   async function handleSubmit(e: FormEvent) {
@@ -91,6 +95,12 @@ function CadastroForm() {
 
     setLoading(true);
 
+    if (!captchaToken) {
+      setErro("Confirme a verificacao de seguranca antes de criar sua conta.");
+      setLoading(false);
+      return;
+    }
+
     const metadata: Record<string, string> = { nome, username, genero };
     if (modoOrganizador) {
       metadata.modo = "organizador";
@@ -114,6 +124,7 @@ function CadastroForm() {
       options: {
         data: metadata,
         emailRedirectTo: callbackUrl.toString(),
+        captchaToken,
       },
     });
 
@@ -126,6 +137,8 @@ function CadastroForm() {
           ? "Erro ao enviar o e-mail de confirmação. Verifique as configurações de SMTP."
           : msg || "Erro ao criar conta. Tente novamente."
       );
+      setCaptchaToken(null);
+      setCaptchaResetKey((key) => key + 1);
       setLoading(false);
     } else {
       router.push(`/cadastro/verificar-email?email=${encodeURIComponent(email)}`);
@@ -328,6 +341,13 @@ function CadastroForm() {
             </div>
           </>
         )}
+
+        <TurnstileCaptcha
+          key={captchaResetKey}
+          action="signup"
+          token={captchaToken}
+          onTokenChange={setCaptchaToken}
+        />
 
         <button
           type="submit"

@@ -217,3 +217,16 @@ já é compatível, falta configurar/testar de verdade:
    como o gate final antes de aceitar dinheiro real.
 6. Limitações conhecidas (seção 4) — só se/quando virar prioridade de
    produto.
+
+## 7. Implementacao do CAPTCHA - codigo concluido
+
+O codigo de Turnstile foi implementado em `components/auth/TurnstileCaptcha.tsx`.
+O cadastro e a recuperacao de senha exigem um token; o login exige o token
+depois de tres falhas consecutivas na mesma sessao do navegador. A pagina de
+recuperacao agora existe em `/recuperar-senha` e `/recuperar-senha/atualizar`.
+
+Ainda falta a configuracao externa: criar o widget Cloudflare, preencher
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY`, colar a secret key em `Authentication > Attack
+Protection` no Supabase, ajustar os limites em `Authentication > Rate Limits` e
+cadastrar `/recuperar-senha/atualizar` nas Redirect URLs. O passo a passo
+completo esta em `CAPTCHA.md`.

@@ -6,6 +6,10 @@ import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Surface } from "@/components/shell/Surface";
+import { TurnstileCaptcha, turnstileConfigured } from "@/components/auth/TurnstileCaptcha";
+
+const LOGIN_FAILURE_LIMIT = 3;
+const LOGIN_FAILURES_KEY = "rankftv-login-failures";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,21 +25,68 @@ export default function LoginPage() {
       : null
   );
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
+  const [failedAttempts, setFailedAttempts] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    const storedFailures = Number(window.sessionStorage.getItem(LOGIN_FAILURES_KEY) ?? 0);
+    return Number.isFinite(storedFailures) ? storedFailures : 0;
+  });
+
+  const captchaRequired = failedAttempts >= LOGIN_FAILURE_LIMIT;
+
+  function registerFailure() {
+    const next = failedAttempts + 1;
+    setFailedAttempts(next);
+    window.sessionStorage.setItem(LOGIN_FAILURES_KEY, String(next));
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setErro(null);
 
+    if (captchaRequired && (!turnstileConfigured || !captchaToken)) {
+      setErro(
+        turnstileConfigured
+          ? "Confirme a verificacao de seguranca antes de continuar."
+          : "A protecao anti-bot precisa ser configurada antes de novas tentativas.",
+      );
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password: senha,
+      options: captchaToken ? { captchaToken } : undefined,
     });
 
     if (error) {
-      setErro("E-mail ou senha incorretos.");
+      const errorMessage = error.message.toLowerCase();
+      const captchaError =
+        errorMessage.includes("captcha") ||
+        errorMessage.includes("challenge") ||
+        errorMessage.includes("turnstile");
+      const rateLimitError =
+        errorMessage.includes("rate limit") ||
+        errorMessage.includes("too many") ||
+        errorMessage.includes("429");
+
+      // A falha do CAPTCHA nao deve consumir outra tentativa de senha.
+      if (!captchaError) registerFailure();
+      setCaptchaToken(null);
+      setCaptchaResetKey((key) => key + 1);
+      setErro(
+        captchaError
+          ? "A verificacao de seguranca expirou ou foi rejeitada. Resolva o CAPTCHA novamente."
+          : rateLimitError
+          ? "Muitas tentativas. Aguarde alguns minutos e tente novamente."
+          : "E-mail ou senha incorretos.",
+      );
       setLoading(false);
     } else {
+      window.sessionStorage.removeItem(LOGIN_FAILURES_KEY);
       const requestedNext = searchParams.get("next");
       const next =
         requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
@@ -90,6 +141,14 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+          {captchaRequired && (
+            <TurnstileCaptcha
+              key={captchaResetKey}
+              action="login"
+              token={captchaToken}
+              onTokenChange={setCaptchaToken}
+            />
+          )}
           <button
             type="submit"
             disabled={loading || !email || !senha}
@@ -98,6 +157,13 @@ export default function LoginPage() {
             {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
+
+        <p className="mt-4 text-center text-sm text-gray-500">
+          Esqueceu sua senha?{" "}
+          <Link href="/recuperar-senha" className="font-medium text-blue-600 hover:underline">
+            Recuperar acesso
+          </Link>
+        </p>
 
         <p className="mt-4 text-center text-sm text-gray-500">
           Não tem conta?{" "}
