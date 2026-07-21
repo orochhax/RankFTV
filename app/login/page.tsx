@@ -1,10 +1,14 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Turnstile, { type TurnstileHandle } from "@/components/auth/Turnstile";
+
+// Quando a site key existe, o Supabase está com captcha ligado e exige o token.
+const captchaEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,20 +24,30 @@ export default function LoginPage() {
       : null
   );
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileHandle>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (captchaEnabled && !captchaToken) {
+      setErro("Confirme que você não é um robô.");
+      return;
+    }
     setLoading(true);
     setErro(null);
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password: senha,
+      options: captchaToken ? { captchaToken } : undefined,
     });
 
     if (error) {
       setErro("E-mail ou senha incorretos.");
       setLoading(false);
+      // Token é de uso único: gera um novo pra próxima tentativa.
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
     } else {
       const requestedNext = searchParams.get("next");
       const next =
@@ -88,9 +102,11 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+        <Turnstile ref={captchaRef} onToken={setCaptchaToken} />
+
         <button
           type="submit"
-          disabled={loading || !email || !senha}
+          disabled={loading || !email || !senha || (captchaEnabled && !captchaToken)}
           className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {loading ? "Entrando..." : "Entrar"}
