@@ -114,7 +114,7 @@ export default function LoginPage() {
       </form>
 
       <p className="mt-4 text-center text-sm">
-        <Link href="/esqueci-senha" className="font-medium text-blue-600 hover:underline">
+        <Link href="/recuperar-senha" className="font-medium text-blue-600 hover:underline">
           Esqueci minha senha
         </Link>
       </p>

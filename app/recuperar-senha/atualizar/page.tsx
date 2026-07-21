@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-export default function RedefinirSenhaPage() {
+export default function AtualizarSenhaPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
@@ -64,7 +64,7 @@ export default function RedefinirSenhaPage() {
           Esse link de recuperação é inválido ou já expirou. Peça um novo.
         </p>
         <p className="mt-4 text-center text-sm text-gray-500">
-          <Link href="/esqueci-senha" className="font-medium text-blue-600 hover:underline">
+          <Link href="/recuperar-senha" className="font-medium text-blue-600 hover:underline">
             Pedir novo link
           </Link>
         </p>

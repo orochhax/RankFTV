@@ -9,7 +9,7 @@ import Turnstile, { type TurnstileHandle } from "@/components/auth/Turnstile";
 // também no envio do e-mail de recuperação.
 const captchaEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
-export default function EsqueciSenhaPage() {
+export default function RecuperarSenhaPage() {
   const supabase = createClient();
 
   const [email, setEmail] = useState("");
@@ -31,7 +31,7 @@ export default function EsqueciSenhaPage() {
     // O link do e-mail cai no /auth/callback (que já valida o token) e de lá é
     // redirecionado pra tela de definir a nova senha.
     const redirectTo = new URL("/auth/callback", window.location.origin);
-    redirectTo.searchParams.set("next", "/redefinir-senha");
+    redirectTo.searchParams.set("next", "/recuperar-senha/atualizar");
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectTo.toString(),
@@ -71,7 +71,7 @@ export default function EsqueciSenhaPage() {
 
   return (
     <div className="mx-auto max-w-md px-6 py-10">
-      <h1 className="text-2xl font-semibold text-gray-900">Esqueci minha senha</h1>
+      <h1 className="text-2xl font-semibold text-gray-900">Recuperar senha</h1>
       <p className="mt-1 text-sm text-gray-500">
         Informe seu e-mail e enviaremos um link pra criar uma nova senha.
       </p>
