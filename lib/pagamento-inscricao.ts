@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { executarRepasse } from "@/lib/repasse";
+import { executarRepasse, executarRepasseAtletaTicket } from "@/lib/repasse";
 import { enviarConviteDupla } from "@/lib/email/send";
 
 // Confirmação/estorno de inscrição de campeonato (tabela `registrations`) —
@@ -184,6 +184,90 @@ export async function confirmarInscricaoPaga(
   }
 
   return { ok: true };
+}
+
+/**
+ * Confirma pagamento de ingresso de atleta avulso (checkout de visitante,
+ * botão "Sou atleta" -> /campeonatos/[id]/comprar, tabela athlete_tickets).
+ * Espelha o bloco "athl:" do webhook do Asaas — reusado também pela
+ * reconciliação manual do painel financeiro.
+ */
+export async function confirmarAthleteTicketPago(
+  supabase: SupabaseClient,
+  ticketId: string,
+  payment: PagamentoInfo,
+): Promise<ConfirmarInscricaoResultado> {
+  const { error: updateError } = await supabase
+    .from("athlete_tickets")
+    .update({ status_pagamento: "pago", billing_type: payment.billingType })
+    .eq("id", ticketId);
+
+  if (updateError) return { ok: false, error: updateError.message };
+
+  const { data: athTicket } = await supabase
+    .from("athlete_tickets")
+    .select("id, championship_id, valor")
+    .eq("id", ticketId)
+    .single();
+
+  if (!athTicket) return { ok: true };
+
+  const { data: champAth } = await supabase
+    .from("championships")
+    .select("nome, organizador_id")
+    .eq("id", athTicket.championship_id)
+    .single();
+
+  if (!champAth) return { ok: true };
+
+  const { data: orgAth } = await supabase
+    .from("organizer_accounts")
+    .select("chave_pix, chave_pix_atualizada_em")
+    .eq("user_id", champAth.organizador_id)
+    .single();
+  const chavePix = orgAth?.chave_pix as string | undefined;
+  const valor    = Number(athTicket.valor ?? 0);
+
+  if (chavePix && valor > 0) {
+    const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
+    if (dias === 0) {
+      const { data: claimed } = await supabase
+        .from("athlete_tickets")
+        .update({ repasse_status: "processando" })
+        .eq("id", ticketId)
+        .eq("repasse_status", "pendente")
+        .select("id");
+      if (claimed && claimed.length > 0) {
+        await executarRepasseAtletaTicket(
+          supabase,
+          { ticketId, champNome: champAth.nome, chavePix, chavePixAtualizadaEm: orgAth?.chave_pix_atualizada_em ?? null, valor },
+          "pendente",
+        );
+      }
+    } else {
+      const dataRepasse = new Date();
+      dataRepasse.setDate(dataRepasse.getDate() + dias);
+      await supabase
+        .from("athlete_tickets")
+        .update({ repasse_status: "aguardando_liquidacao", repasse_data_prevista: dataRepasse.toISOString() })
+        .eq("id", ticketId)
+        .eq("repasse_status", "pendente");
+    }
+  }
+
+  return { ok: true };
+}
+
+/** Estorna ingresso de atleta avulso — espelha o bloco "athl:" do webhook. */
+export async function estornarAthleteTicket(
+  supabase: SupabaseClient,
+  ticketId: string,
+): Promise<ConfirmarInscricaoResultado> {
+  const { error } = await supabase
+    .from("athlete_tickets")
+    .update({ status_pagamento: "estornado", repasse_status: "estornado" })
+    .eq("id", ticketId);
+  return error ? { ok: false, error: error.message } : { ok: true };
 }
 
 /** Estorna a inscrição — espelha o passo 4 do webhook do Asaas. */

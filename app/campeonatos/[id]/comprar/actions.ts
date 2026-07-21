@@ -10,6 +10,24 @@ import { buscarCupomValido } from "@/lib/cupons";
 import { resolverEClaimarLote } from "@/lib/lotes";
 import { gerarTicketAccessToken } from "@/lib/ticket-access";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { checarElegibilidadeCategoria } from "@/lib/inscricao-elegibilidade";
+import { PERGUNTAS_NIVEL, calcularRatingQuestionario, type RespostasQuestionario } from "@/lib/motor-categoria";
+
+// Lê e valida as 5 respostas do questionário de nível de UM dos atletas
+// (prefixo "comprador_quiz_" ou "parceiro_quiz_" no FormData) e devolve o
+// rating calculado — mesma fórmula usada em /perfil/questionario-nivel.
+// Esse fluxo é de visitante (sem conta na maioria das vezes), então não há
+// profiles.rating pra consultar: o rating nasce aqui e fica só nesta linha
+// do ingresso, nunca sobrescrevendo o rating competitivo de uma conta real.
+function calcularRatingDoFormulario(formData: FormData, prefixo: string): number | null {
+  const raw: Record<string, string> = {};
+  for (const p of PERGUNTAS_NIVEL) {
+    const valor = formData.get(`${prefixo}${p.key}`);
+    if (typeof valor !== "string" || !valor) return null;
+    raw[p.key] = valor;
+  }
+  return calcularRatingQuestionario(raw as unknown as RespostasQuestionario);
+}
 
 export type ComprarAtletaState = { error?: string };
 
@@ -67,12 +85,12 @@ export async function comprarIngressoAtleta(
   const [{ data: champ }, { data: cat }] = await Promise.all([
     supabase
       .from("championships")
-      .select("nome, status, organizador_id, is_elite")
+      .select("nome, status, organizador_id, is_elite, usa_motor_categoria")
       .eq("id", championshipId)
       .maybeSingle(),
     supabase
       .from("championship_categories")
-      .select("valor_inscricao")
+      .select("valor_inscricao, genero, corte_rating_min, corte_rating_max")
       .eq("id", categoryId)
       .eq("championship_id", championshipId)
       .maybeSingle(),
@@ -82,6 +100,45 @@ export async function comprarIngressoAtleta(
   if (!cat)   return { error: "Categoria não encontrada." };
   if (champ.status !== "inscricoes_abertas" && champ.status !== "em_andamento")
     return { error: "As inscrições não estão abertas." };
+
+  // ── Gênero e nível — este é o checkout de visitante (botão "Sou atleta"
+  // da página pública do campeonato). Sem conta/profile pra consultar, o
+  // gênero e o rating vêm do que foi digitado/respondido aqui mesmo — mas
+  // ainda assim precisam bater com a categoria escolhida, senão uma dupla
+  // masculino+feminino passa direto numa categoria fechada. O rating só
+  // entra na conta quando o motor de categoria está ligado (questionário
+  // de 5 perguntas obrigatório pros dois atletas nesse caso).
+  const motorLigado = champ.usa_motor_categoria ?? true;
+  const categoriaElegibilidade = {
+    genero: cat.genero as string,
+    corteRatingMin: Number(cat.corte_rating_min ?? 0),
+    corteRatingMax: Number(cat.corte_rating_max ?? 9999),
+  };
+
+  let compradorRating: number | null = null;
+  let parceiroRating: number | null = null;
+  if (motorLigado) {
+    compradorRating = calcularRatingDoFormulario(formData, "comprador_quiz_");
+    if (compradorRating === null)
+      return { error: "Responda as 5 perguntas de nível do atleta 1 (você) antes de continuar." };
+    parceiroRating = calcularRatingDoFormulario(formData, "parceiro_quiz_");
+    if (parceiroRating === null)
+      return { error: "Responda as 5 perguntas de nível do parceiro antes de continuar." };
+  }
+
+  const elegibilidadeComprador = checarElegibilidadeCategoria(
+    { genero, rating: compradorRating },
+    categoriaElegibilidade,
+    motorLigado,
+  );
+  if (!elegibilidadeComprador.ok) return { error: `Você (atleta 1): ${elegibilidadeComprador.error}` };
+
+  const elegibilidadeParceiro = checarElegibilidadeCategoria(
+    { genero: pGenero, rating: parceiroRating },
+    categoriaElegibilidade,
+    motorLigado,
+  );
+  if (!elegibilidadeParceiro.ok) return { error: `Parceiro: ${elegibilidadeParceiro.error}` };
 
   // ── Cupom de desconto (opcional) — só valida aqui (preview), sem
   // reivindicar. A reivindicação de verdade (lote + cupom) só acontece
@@ -163,6 +220,8 @@ export async function comprarIngressoAtleta(
       code,
       access_token:         accessToken,
       user_id:              buyerUser?.id ?? null,
+      comprador_rating:     compradorRating,
+      parceiro_rating:      parceiroRating,
     })
     .select("id")
     .single();

@@ -47,17 +47,29 @@ export default async function InscricoesPage({
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
 
-  const { data: rawRegs } = await supabase
-    .from("registrations")
-    .select(`
-      id, category_id, status_pagamento,
-      teams(id, atleta1_id, atleta2_id),
-      championship_categories(id, nome, genero)
-    `)
-    .eq("championship_id", id)
-    .eq("status_pagamento", "pago");
+  const [{ data: rawRegs }, { data: rawTickets }] = await Promise.all([
+    supabase
+      .from("registrations")
+      .select(`
+        id, category_id, status_pagamento,
+        teams(id, atleta1_id, atleta2_id),
+        championship_categories(id, nome, genero)
+      `)
+      .eq("championship_id", id)
+      .eq("status_pagamento", "pago"),
+    // Checkout de visitante (botão "Sou atleta" -> /comprar) — hoje é o
+    // fluxo realmente usado; sem isso a lista ficava vazia mesmo com
+    // pagamentos confirmados (ver Bug 3 do relatório de correções).
+    supabase
+      .from("athlete_tickets")
+      .select("id, category_id, categoria_nome, comprador_nome, parceiro_nome")
+      .eq("championship_id", id)
+      .eq("status_pagamento", "pago"),
+  ]);
 
   const regs: RegRow[] = (rawRegs ?? []) as unknown as RegRow[];
+  type TicketRow = { id: string; category_id: string | null; categoria_nome: string | null; comprador_nome: string; parceiro_nome: string | null };
+  const tickets: TicketRow[] = (rawTickets ?? []) as unknown as TicketRow[];
 
   // Batch-fetch perfis
   const athleteIds = [
@@ -81,8 +93,10 @@ export default async function InscricoesPage({
     );
   }
 
-  // Monta lista de duplas com nomes resolvidos
-  const duplas: DuplaDisplay[] = regs
+  // Monta lista de duplas com nomes resolvidos (registrations: dupla
+  // autenticada) + duplas do checkout de visitante (athlete_tickets, botão
+  // "Sou atleta" -> /comprar — hoje é o fluxo realmente usado no app).
+  const duplasRegs: DuplaDisplay[] = regs
     .map((reg) => {
       const team = reg.teams;
       const cat  = reg.championship_categories;
@@ -99,17 +113,30 @@ export default async function InscricoesPage({
         catNome: cat.nome,
       } satisfies DuplaDisplay;
     })
-    .filter((d): d is DuplaDisplay => d !== null)
+    .filter((d): d is DuplaDisplay => d !== null);
+
+  const duplasTickets: DuplaDisplay[] = tickets.map((t) => ({
+    id:      t.id,
+    a1:      { nome: t.comprador_nome, nivel: null },
+    a2:      t.parceiro_nome ? { nome: t.parceiro_nome, nivel: null } : null,
+    catId:   t.category_id ?? "",
+    catNome: t.categoria_nome ?? "—",
+  }));
+
+  const duplas = [...duplasRegs, ...duplasTickets]
     .sort((a, b) => a.a1.nome.localeCompare(b.a1.nome, "pt-BR"));
 
-  // Categorias únicas para o filtro
-  const categorias = Array.from(
-    new Map(
-      regs
-        .filter((r) => r.championship_categories)
-        .map((r) => [r.championship_categories!.id, r.championship_categories!]),
-    ).values(),
-  ).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  // Categorias únicas para o filtro (das duas fontes)
+  const categoriasMap = new Map<string, { id: string; nome: string; genero: string }>();
+  for (const r of regs) {
+    if (r.championship_categories) categoriasMap.set(r.championship_categories.id, r.championship_categories);
+  }
+  for (const t of tickets) {
+    if (t.category_id && !categoriasMap.has(t.category_id)) {
+      categoriasMap.set(t.category_id, { id: t.category_id, nome: t.categoria_nome ?? "—", genero: "" });
+    }
+  }
+  const categorias = Array.from(categoriasMap.values()).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 
   const filtroAtivo = cat && categorias.some((c) => c.id === cat) ? cat : "todos";
 

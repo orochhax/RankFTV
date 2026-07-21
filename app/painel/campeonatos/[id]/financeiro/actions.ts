@@ -7,7 +7,10 @@ import { PRECO_ELITE } from "@/lib/elite";
 import { registrarAuditoria } from "@/lib/audit";
 import { compararTitularidadePix } from "@/lib/pix";
 import { consultarCpfCnpjTitularPix, consultarCobranca } from "@/lib/asaas";
-import { confirmarInscricaoPaga, estornarInscricao } from "@/lib/pagamento-inscricao";
+import {
+  confirmarInscricaoPaga, estornarInscricao,
+  confirmarAthleteTicketPago, estornarAthleteTicket,
+} from "@/lib/pagamento-inscricao";
 
 const STATUS_CONFIRMADO = new Set(["CONFIRMED", "RECEIVED"]);
 const STATUS_ESTORNADO  = new Set(["REFUNDED", "REFUND_REQUESTED", "CHARGEBACK_REQUESTED", "CHARGEBACK_DISPUTE"]);
@@ -74,6 +77,66 @@ export async function reconciliarInscricao(
     revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
     return resultado.ok
       ? { ok: true, message: "Cobrança estornada/reembolsada no Asaas — inscrição atualizada." }
+      : { ok: false, message: `Falhou ao estornar: ${resultado.error}` };
+  }
+
+  return { ok: false, message: `Ainda pendente no Asaas (status: ${cobranca.status}).` };
+}
+
+// Mesma reconciliação, pro checkout de visitante (athlete_tickets, botão
+// "Sou atleta" -> /comprar) — hoje é o fluxo realmente usado no app.
+export async function reconciliarIngressoAtleta(
+  champId: string,
+  ticketId: string,
+): Promise<ReconciliarResultado> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Não autenticado." };
+
+  const { data: champ } = await supabase
+    .from("championships")
+    .select("organizador_id")
+    .eq("id", champId)
+    .single();
+  if (!champ || champ.organizador_id !== user.id) return { ok: false, message: "Sem permissão." };
+
+  const admin = createAdminClient();
+  const { data: ticket } = await admin
+    .from("athlete_tickets")
+    .select("id, championship_id, status_pagamento, asaas_payment_id")
+    .eq("id", ticketId)
+    .maybeSingle();
+
+  if (!ticket || ticket.championship_id !== champId) return { ok: false, message: "Ingresso não encontrado." };
+  if (!ticket.asaas_payment_id) return { ok: false, message: "Esse ingresso não tem cobrança gerada no Asaas." };
+  if (ticket.status_pagamento !== "pendente") return { ok: false, message: "Esse ingresso já não está pendente." };
+
+  let cobranca;
+  try {
+    cobranca = await consultarCobranca(ticket.asaas_payment_id);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Erro desconhecido";
+    return { ok: false, message: `Erro ao consultar o Asaas: ${msg}` };
+  }
+
+  if (STATUS_CONFIRMADO.has(cobranca.status)) {
+    const resultado = await confirmarAthleteTicketPago(admin, ticketId, {
+      id: cobranca.id,
+      billingType: cobranca.billingType,
+    });
+    revalidatePath(`/painel/campeonatos/${champId}`);
+    revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+    revalidatePath(`/painel/campeonatos/${champId}/inscricoes`);
+    return resultado.ok
+      ? { ok: true, message: "Pagamento confirmado no Asaas — ingresso atualizado." }
+      : { ok: false, message: `Encontrado como pago no Asaas, mas falhou ao atualizar: ${resultado.error}` };
+  }
+
+  if (STATUS_ESTORNADO.has(cobranca.status)) {
+    const resultado = await estornarAthleteTicket(admin, ticketId);
+    revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+    return resultado.ok
+      ? { ok: true, message: "Cobrança estornada/reembolsada no Asaas — ingresso atualizado." }
       : { ok: false, message: `Falhou ao estornar: ${resultado.error}` };
   }
 

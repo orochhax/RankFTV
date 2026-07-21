@@ -7,6 +7,7 @@ import { formatBRL } from "@/lib/format";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 import { CupomInput, type CupomAplicado } from "@/components/ui/CupomInput";
 import type { LoteComStatus } from "@/lib/lotes";
+import { PERGUNTAS_NIVEL } from "@/lib/motor-categoria";
 
 export type CategoriaOpcao = {
   id: string;
@@ -60,14 +61,46 @@ function BarraDeProgresso({ etapa }: { etapa: Etapa }) {
   );
 }
 
+// Bloco do questionário de 5 perguntas pra UM atleta — usado duas vezes
+// (comprador e parceiro) quando o campeonato tem o motor de categoria
+// ligado. Os names ficam prefixados ("comprador_quiz_"/"parceiro_quiz_")
+// pro server action calcular o rating de cada um separadamente.
+function QuestionarioNivel({ prefixo, titulo }: { prefixo: string; titulo: string }) {
+  const select =
+    "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
+  return (
+    <section className="space-y-3 rounded-2xl bg-blue-50/60 p-4 ring-1 ring-blue-100">
+      <div>
+        <p className="text-sm font-semibold text-gray-800">{titulo}</p>
+        <p className="text-xs text-gray-500">
+          Este campeonato recomenda a categoria pelo nível — responda as 5 perguntas abaixo.
+        </p>
+      </div>
+      {PERGUNTAS_NIVEL.map((p) => (
+        <div key={p.key}>
+          <label className="block text-sm font-medium text-gray-700">{p.pergunta}</label>
+          <select name={`${prefixo}${p.key}`} className={`mt-1 ${select}`} defaultValue="" required>
+            <option value="" disabled>Selecione</option>
+            {p.opcoes.map((o) => (
+              <option key={o.valor} value={o.valor}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export function IngressoAtletaForm({
   championshipId,
   categorias,
   isElite,
+  usaMotorCategoria,
 }: {
   championshipId: string;
   categorias: CategoriaOpcao[];
   isElite: boolean;
+  usaMotorCategoria: boolean;
 }) {
   const [etapa, setEtapa] = useState<Etapa>("categoria");
   const [catSelecionada, setCat] = useState<CategoriaOpcao | null>(null);
@@ -218,12 +251,17 @@ export function IngressoAtletaForm({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Gênero</label>
-                <select name="comprador_genero" className={`mt-1 ${select}`}>
-                  <option value="">Não informar</option>
+                <select name="comprador_genero" className={`mt-1 ${select}`} defaultValue="" required>
+                  <option value="" disabled>Selecione</option>
                   <option value="masculino">Masculino</option>
                   <option value="feminino">Feminino</option>
                   <option value="outro">Outro</option>
                 </select>
+                <p className="mt-1 text-xs text-gray-400">
+                  {catSelecionada.genero !== "mista"
+                    ? `Categoria restrita ao gênero ${catSelecionada.genero === "masculino" ? "masculino" : "feminino"}.`
+                    : "Categoria mista — aceita qualquer gênero."}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Camisa (kit)</label>
@@ -234,6 +272,8 @@ export function IngressoAtletaForm({
               </div>
             </div>
           </section>
+
+          {usaMotorCategoria && <QuestionarioNivel prefixo="comprador_quiz_" titulo="Nível do atleta 1 (você)" />}
 
           {/* Dados do parceiro */}
           <section className="space-y-3">
@@ -260,12 +300,17 @@ export function IngressoAtletaForm({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Gênero</label>
-                <select name="parceiro_genero" className={`mt-1 ${select}`}>
-                  <option value="">Não informar</option>
+                <select name="parceiro_genero" className={`mt-1 ${select}`} defaultValue="" required>
+                  <option value="" disabled>Selecione</option>
                   <option value="masculino">Masculino</option>
                   <option value="feminino">Feminino</option>
                   <option value="outro">Outro</option>
                 </select>
+                <p className="mt-1 text-xs text-gray-400">
+                  {catSelecionada.genero !== "mista"
+                    ? `Categoria restrita ao gênero ${catSelecionada.genero === "masculino" ? "masculino" : "feminino"}.`
+                    : "Categoria mista — aceita qualquer gênero."}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Camisa (kit)</label>
@@ -276,6 +321,8 @@ export function IngressoAtletaForm({
               </div>
             </div>
           </section>
+
+          {usaMotorCategoria && <QuestionarioNivel prefixo="parceiro_quiz_" titulo="Nível do parceiro (atleta 2)" />}
 
           {/* Cupom de desconto */}
           {valor > 0 && (

@@ -16,7 +16,7 @@ export default async function ComprarAtletaPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome, cidade, estado, status, is_elite")
+    .select("nome, cidade, estado, status, is_elite, usa_motor_categoria")
     .eq("id", id)
     .maybeSingle();
   if (!champ) notFound();
@@ -91,6 +91,7 @@ export default async function ComprarAtletaPage({
                 championshipId={id}
                 categorias={categorias}
                 isElite={!!champ.is_elite}
+                usaMotorCategoria={champ.usa_motor_categoria ?? true}
               />
             </div>
           )}

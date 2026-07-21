@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { executarRepasseEspectador, executarRepasseAtletaTicket } from "@/lib/repasse";
-import { confirmarInscricaoPaga, estornarInscricao } from "@/lib/pagamento-inscricao";
+import { executarRepasseEspectador } from "@/lib/repasse";
+import {
+  confirmarInscricaoPaga, estornarInscricao,
+  confirmarAthleteTicketPago, estornarAthleteTicket,
+} from "@/lib/pagamento-inscricao";
 import { addMonthsISO } from "@/lib/arena-dates";
 import { pixKeyEmCooldown } from "@/lib/pix";
 
@@ -412,69 +415,13 @@ export async function POST(req: NextRequest) {
     if (!(await paymentBelongsToRecord("athlete_tickets", ticketId)))
       return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
 
-    await supabase
-      .from("athlete_tickets")
-      .update({
-        status_pagamento: novoStatus,
-        ...(novoStatus === "pago" ? { billing_type: payment.billingType } : {}),
-      })
-      .eq("id", ticketId);
+    const resultado = novoStatus === "pago"
+      ? await confirmarAthleteTicketPago(supabase, ticketId, { id: payment.id, billingType: payment.billingType })
+      : await estornarAthleteTicket(supabase, ticketId);
 
-    if (novoStatus === "estornado") {
-      await supabase.from("athlete_tickets").update({ repasse_status: "estornado" }).eq("id", ticketId);
-      return NextResponse.json({ ok: true, tipo: "atleta_ticket", status: novoStatus });
-    }
-
-    // Pago → repasse integral pra chave Pix do organizador
-    const { data: athTicket } = await supabase
-      .from("athlete_tickets")
-      .select("id, championship_id, valor")
-      .eq("id", ticketId)
-      .single();
-
-    if (athTicket) {
-      const { data: champAth } = await supabase
-        .from("championships")
-        .select("nome, organizador_id")
-        .eq("id", athTicket.championship_id)
-        .single();
-
-      if (champAth) {
-        const { data: orgAth } = await supabase
-          .from("organizer_accounts")
-          .select("chave_pix, chave_pix_atualizada_em")
-          .eq("user_id", champAth.organizador_id)
-          .single();
-        const chavePix = orgAth?.chave_pix as string | undefined;
-        const valor    = Number(athTicket.valor ?? 0);
-
-        if (chavePix && valor > 0) {
-          const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
-          if (dias === 0) {
-            const { data: claimed } = await supabase
-              .from("athlete_tickets")
-              .update({ repasse_status: "processando" })
-              .eq("id", ticketId)
-              .eq("repasse_status", "pendente")
-              .select("id");
-            if (claimed && claimed.length > 0) {
-              await executarRepasseAtletaTicket(
-                supabase,
-                { ticketId, champNome: champAth.nome, chavePix, chavePixAtualizadaEm: orgAth?.chave_pix_atualizada_em ?? null, valor },
-                "pendente",
-              );
-            }
-          } else {
-            const dataRepasse = new Date();
-            dataRepasse.setDate(dataRepasse.getDate() + dias);
-            await supabase
-              .from("athlete_tickets")
-              .update({ repasse_status: "aguardando_liquidacao", repasse_data_prevista: dataRepasse.toISOString() })
-              .eq("id", ticketId)
-              .eq("repasse_status", "pendente");
-          }
-        }
-      }
+    if (!resultado.ok) {
+      console.error("[webhook] Erro ao processar ingresso de atleta:", resultado.error);
+      return NextResponse.json({ error: resultado.error }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, tipo: "atleta_ticket", status: novoStatus });

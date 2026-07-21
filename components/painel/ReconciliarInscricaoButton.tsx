@@ -2,14 +2,17 @@
 
 import { useState, useTransition } from "react";
 import { RefreshCw } from "lucide-react";
-import { reconciliarInscricao } from "@/app/painel/campeonatos/[id]/financeiro/actions";
+import { reconciliarInscricao, reconciliarIngressoAtleta } from "@/app/painel/campeonatos/[id]/financeiro/actions";
 
 export function ReconciliarInscricaoButton({
   champId,
   registrationId,
+  tipo = "registration",
 }: {
   champId: string;
   registrationId: string;
+  /** "registration" = dupla autenticada; "athlete_ticket" = checkout de visitante (/comprar). */
+  tipo?: "registration" | "athlete_ticket";
 }) {
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{ ok: boolean; message: string } | null>(null);
@@ -17,7 +20,9 @@ export function ReconciliarInscricaoButton({
   function reconciliar() {
     setFeedback(null);
     startTransition(async () => {
-      const resultado = await reconciliarInscricao(champId, registrationId);
+      const resultado = tipo === "athlete_ticket"
+        ? await reconciliarIngressoAtleta(champId, registrationId)
+        : await reconciliarInscricao(champId, registrationId);
       setFeedback(resultado);
     });
   }
