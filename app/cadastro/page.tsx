@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect, useMemo, type FormEvent } from "react";
+import { Suspense, useRef, useState, useEffect, useMemo, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, XCircle, Loader2, Eye, EyeOff } from "lucide-react";
@@ -8,7 +8,10 @@ import { createClient } from "@/lib/supabase/client";
 import { validaCpfCnpj, idadeEm, soDigitos } from "@/lib/validacao";
 import type { Genero } from "@/lib/types";
 import { Surface } from "@/components/shell/Surface";
-import { TurnstileCaptcha } from "@/components/auth/TurnstileCaptcha";
+import Turnstile, { type TurnstileHandle } from "@/components/auth/Turnstile";
+
+// Quando a site key existe, o Supabase está com captcha ligado e exige o token.
+const captchaEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 const GENEROS: { valor: Genero; texto: string }[] = [
   { valor: "masculino", texto: "Masculino" },
@@ -35,7 +38,7 @@ function CadastroForm() {
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [captchaResetKey, setCaptchaResetKey] = useState(0);
+  const captchaRef = useRef<TurnstileHandle>(null);
 
   // Só coletados quando vem do fluxo "organizar evento" sem conta ainda.
   const [telefone, setTelefone] = useState("");
@@ -67,7 +70,7 @@ function CadastroForm() {
     statusUsername === "ok" &&
     !!genero &&
     (!modoOrganizador || (telefone.trim().length > 0 && cpfCnpj.trim().length > 0 && nascimento.trim().length > 0)) &&
-    !!captchaToken &&
+    (!captchaEnabled || !!captchaToken) &&
     !loading;
 
   async function handleSubmit(e: FormEvent) {
@@ -124,7 +127,7 @@ function CadastroForm() {
       options: {
         data: metadata,
         emailRedirectTo: callbackUrl.toString(),
-        captchaToken,
+        ...(captchaToken ? { captchaToken } : {}),
       },
     });
 
@@ -137,9 +140,10 @@ function CadastroForm() {
           ? "Erro ao enviar o e-mail de confirmação. Verifique as configurações de SMTP."
           : msg || "Erro ao criar conta. Tente novamente."
       );
-      setCaptchaToken(null);
-      setCaptchaResetKey((key) => key + 1);
       setLoading(false);
+      // Token é de uso único: gera um novo pra próxima tentativa.
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
     } else {
       router.push(`/cadastro/verificar-email?email=${encodeURIComponent(email)}`);
     }
@@ -342,12 +346,7 @@ function CadastroForm() {
           </>
         )}
 
-        <TurnstileCaptcha
-          key={captchaResetKey}
-          action="signup"
-          token={captchaToken}
-          onTokenChange={setCaptchaToken}
-        />
+        <Turnstile ref={captchaRef} onToken={setCaptchaToken} />
 
         <button
           type="submit"

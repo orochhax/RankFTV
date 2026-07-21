@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Surface } from "@/components/shell/Surface";
-import { TurnstileCaptcha, turnstileConfigured } from "@/components/auth/TurnstileCaptcha";
+import Turnstile, { type TurnstileHandle } from "@/components/auth/Turnstile";
 
-const LOGIN_FAILURE_LIMIT = 3;
-const LOGIN_FAILURES_KEY = "rankftv-login-failures";
+// Quando a site key existe, o Supabase está com captcha ligado e exige o token.
+const captchaEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,35 +26,16 @@ export default function LoginPage() {
   );
   const [loading, setLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [captchaResetKey, setCaptchaResetKey] = useState(0);
-  const [failedAttempts, setFailedAttempts] = useState(() => {
-    if (typeof window === "undefined") return 0;
-    const storedFailures = Number(window.sessionStorage.getItem(LOGIN_FAILURES_KEY) ?? 0);
-    return Number.isFinite(storedFailures) ? storedFailures : 0;
-  });
-
-  const captchaRequired = failedAttempts >= LOGIN_FAILURE_LIMIT;
-
-  function registerFailure() {
-    const next = failedAttempts + 1;
-    setFailedAttempts(next);
-    window.sessionStorage.setItem(LOGIN_FAILURES_KEY, String(next));
-  }
+  const captchaRef = useRef<TurnstileHandle>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    setErro(null);
-
-    if (captchaRequired && (!turnstileConfigured || !captchaToken)) {
-      setErro(
-        turnstileConfigured
-          ? "Confirme a verificacao de seguranca antes de continuar."
-          : "A protecao anti-bot precisa ser configurada antes de novas tentativas.",
-      );
-      setLoading(false);
+    if (captchaEnabled && !captchaToken) {
+      setErro("Confirme que você não é um robô.");
       return;
     }
+    setLoading(true);
+    setErro(null);
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -63,30 +44,12 @@ export default function LoginPage() {
     });
 
     if (error) {
-      const errorMessage = error.message.toLowerCase();
-      const captchaError =
-        errorMessage.includes("captcha") ||
-        errorMessage.includes("challenge") ||
-        errorMessage.includes("turnstile");
-      const rateLimitError =
-        errorMessage.includes("rate limit") ||
-        errorMessage.includes("too many") ||
-        errorMessage.includes("429");
-
-      // A falha do CAPTCHA nao deve consumir outra tentativa de senha.
-      if (!captchaError) registerFailure();
-      setCaptchaToken(null);
-      setCaptchaResetKey((key) => key + 1);
-      setErro(
-        captchaError
-          ? "A verificacao de seguranca expirou ou foi rejeitada. Resolva o CAPTCHA novamente."
-          : rateLimitError
-          ? "Muitas tentativas. Aguarde alguns minutos e tente novamente."
-          : "E-mail ou senha incorretos.",
-      );
+      setErro("E-mail ou senha incorretos.");
       setLoading(false);
+      // Token é de uso único: gera um novo pra próxima tentativa.
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
     } else {
-      window.sessionStorage.removeItem(LOGIN_FAILURES_KEY);
       const requestedNext = searchParams.get("next");
       const next =
         requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
@@ -141,17 +104,12 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
-          {captchaRequired && (
-            <TurnstileCaptcha
-              key={captchaResetKey}
-              action="login"
-              token={captchaToken}
-              onTokenChange={setCaptchaToken}
-            />
-          )}
+
+          <Turnstile ref={captchaRef} onToken={setCaptchaToken} />
+
           <button
             type="submit"
-            disabled={loading || !email || !senha}
+            disabled={loading || !email || !senha || (captchaEnabled && !captchaToken)}
             className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {loading ? "Entrando..." : "Entrar"}

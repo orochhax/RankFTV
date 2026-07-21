@@ -1,220 +1,228 @@
-# Auditoria de segurança e prontidão para produção — RankFTV
+# Auditoria de seguranca e prontidao para producao - RankFTV
 
-Data da revisão: 15/07/2026
+Data da revisao: 14/07/2026
+Ultima atualizacao: 21/07/2026
+
+## Atualizacao 21/07/2026
+
+- Sequencia obrigatoria do primeiro deploy CONCLUIDA: backup do Supabase, execucao
+  de `production-security-hardening.sql`, deploy do codigo e execucao de
+  `production-security-hardening-after-deploy.sql`. Verificado que usuario comum
+  nao altera role, rating, pagamento nem dados de outra conta.
+- CAPTCHA (Cloudflare Turnstile) implementado nas telas de login e cadastro: o
+  token e enviado ao Supabase em `signInWithPassword`/`signUp`, com reset a cada
+  falha (uso unico). CSP liberou `challenges.cloudflare.com`.
+- Fluxo de recuperacao de senha criado: `/recuperar-senha` (envia o e-mail, com
+  captcha) e `/recuperar-senha/atualizar` (define a nova senha). O link do e-mail
+  reaproveita o `/auth/callback` via token_hash.
+- Supabase Auth: Site URL (`https://www.rankftv.com`), Redirect URLs e captcha
+  configurados no painel. Falta ainda a politica de senha/MFA do admin.
+
+## Atualizacao 21/07/2026 (auditoria de seguranca de ponta a ponta)
+
+Segunda rodada de auditoria, em paralelo a atualizacao acima (branches
+diferentes, mesclados depois). Cobriu autorizacao, pagamentos, concorrencia e
+privacidade em codigo — nao so recomendacao. Resumo; detalhe completo e
+passo a passo de aplicacao ficaram em `PENDENCIAS.md`.
+
+- Presenca de aula de arena passou a ser feita só por RPC atômica (gênero,
+  vaga e crédito derivados no banco); fim da escrita direta na tabela pelo
+  client.
+- Inscrição em campeonato: FK composta trava category_id de outro
+  campeonato; rating/gênero de elegibilidade vêm sempre do perfil salvo,
+  nunca do FormData; CPF salvo sempre vence sobre o do formulário; bloqueio
+  de autoconvite; índice único trava clique duplo/retry criando inscrição
+  ou cobrança duplicada.
+- Elo/rating: ledger idempotente (editar placar reverte o delta anterior
+  antes de aplicar o novo); questionário de nível para de sobrescrever
+  rating competitivo depois da primeira partida.
+- Campos financeiros/administrativos (`is_elite`, taxa da plataforma, chave
+  Pix, dados de repasse, habilitação): trigger bloqueia escrita direta pelo
+  client, RPCs dedicadas assumem essas mudanças.
+- Chave Pix: reautenticação por senha ao trocar uma chave existente,
+  auditoria em `security_audit_log`, cooldown de 48h no repasse após troca,
+  e consulta de titularidade na API oficial da Asaas antes de aceitar a
+  troca.
+- Comunicação de campeonato: destinatários sempre recalculados no servidor
+  a partir de quem tem inscrição paga; HTML escapado em todos os templates
+  de e-mail (o comunicado livre do organizador era o maior risco de
+  injeção/phishing).
+- Cartão salvo de aluno de arena: token de cobrança reutilizável sem SELECT
+  para o usuário — só service_role lê; browser só recebe bandeira/últimos
+  dígitos/validade.
+- Estoque de ingresso de plateia: `max_quantidade` por tipo passou a ser
+  aplicado de fato; pedido Pix pendente sem pagamento em 24h expira e
+  devolve lote/cupom/vaga automaticamente (cron diário); rate limit por
+  IP/e-mail nos checkouts de visitante.
+- **Recuperação de ingresso por CPF+e-mail deixou de devolver o
+  `access_token` direto — agora manda um código de 6 dígitos de uso único
+  pro e-mail (item 4 antigo desta lista, ver abaixo).**
+- Bucket de notícias restrito a admin/ceo (estava aberto a qualquer
+  authenticated); bucket `avatars` passou a ter definição em SQL rastreada
+  (antes só existia criado direto no painel); limites de tamanho/MIME.
+- Fechado IDOR em `notifications` que permitia inserir notificação pra
+  `user_id` arbitrário.
+- N+1 corrigido na contagem de alunos da listagem de arenas.
+- **LGPD: CPF pessoal e endereço residencial removidos dos Termos de Uso
+  (ficou placeholder `[PENDENTE]` até ter o dado empresarial correto — ver
+  `PENDENCIAS.md`); Política de Privacidade criada em `/privacidade`;
+  exportação de dados e solicitação de exclusão de conta implementadas em
+  `/perfil/conta` (item 6 antigo desta lista, ver abaixo).**
+
+Migrations novas em `supabase/harden-*.sql`, `supabase/add-security-audit-log.sql`
+e `supabase/add-ticket-recovery-otp.sql` — já aplicadas no banco em 20-21/07.
+Pendências reais (dado de empresa pros Termos, CAPTCHA/rate limit de
+login-cadastro no painel do Supabase, limitações conhecidas) estão todas em
+`PENDENCIAS.md`, com passo a passo.
 
 ## Resultado executivo
 
-O código recebeu hardening de autorização, privacidade, pagamentos, uploads e
-headers, e a limpeza registrada da base removeu os dados de demonstração,
-preservando somente a conta administrativa configurada em ADMIN_EMAIL.
-Antes da produção, essa conta também deve ter profiles.role igual a ceo, pois o
-proxy administrativo exige role mesmo quando algumas ações aceitam o e-mail.
+O codigo foi revisado, corrigido e validado, e a base Supabase real foi limpa. A
+conferencia final encontrou zero contas alem da conta administrativa. Tambem
+foram removidos da base campeonatos, atletas externos, resultados, inscricoes,
+duplas, ingressos, arenas, alunos, cobrancas, credenciais, notificacoes,
+noticias e demais conteudos de demonstracao.
 
-O responsável informou que executou as duas etapas de hardening do Supabase. A
-segunda etapa foi executada antes de o deploy compatível terminar. O código
-atual já usa o schema final, porém o repositório não consegue provar sozinho o
-estado do projeto Supabase remoto; grants, RLS, colunas e logs ainda devem ser
-conferidos no painel correto.
+O site ainda nao deve receber dinheiro real antes da sequencia de migracao e
+configuracao descrita abaixo. O arquivo local de ambiente continua apontando a
+URL publica para desenvolvimento e o Asaas para Sandbox.
 
-O site não deve receber dinheiro real enquanto as configurações externas e a
-homologação financeira descritas abaixo estiverem pendentes. Em particular, o
-ambiente revisado ainda apontava a URL pública para desenvolvimento e o Asaas
-para Sandbox.
+Nenhuma auditoria de codigo garante risco zero. Este documento separa o que foi
+corrigido do que ainda depende de configuracao, decisao comercial ou validacao
+operacional.
 
-Nenhuma revisão elimina todo risco. Este documento separa:
+## Correcoes aplicadas
 
-- o que foi corrigido no código e nos SQLs;
-- o que foi reportado como executado na base;
-- o que depende de painel externo, decisão comercial ou teste operacional.
+- Corrigidas permissoes que permitiam forjar credenciais, historico de rating,
+  inscricoes pagas, duplas, alunos ativos, assinaturas e reservas.
+- Role e rating passaram a ser campos de sistema; o usuario nao pode
+  promover a propria conta nem escolher o proprio rating via API.
+- CPF, nascimento e questionario de nivel foram removidos das consultas
+  publicas e migrados para `profiles_private`.
+- Codigo de convite de arena e token de convite de dupla deixaram de ser dados
+  publicos. Convites abertos agora exigem um token aleatorio separado do UUID
+  publico da dupla.
+- Corrigidos IDORs em planos, lotes, categorias, chaveamento, pagamentos e
+  convidados de campeonato.
+- Webhooks Asaas agora validam o token, o ID da cobranca/assinatura e o registro
+  interno antes de alterar status.
+- Repasses Pix usam reivindicacao atomica contra eventos duplicados. O cron de
+  liquidacao agora inclui inscricoes, ingressos de atleta/plateia, mensalidades,
+  alugueis e diarias no cartao.
+- Checkouts de cartao deixaram de enviar CEP e numero ficticios e passaram a
+  exigir os dados reais do titular.
+- Consultas publicas de ingresso passaram de query string para POST, com
+  `no-store` e rate limit. QR e status privados exigem token de acesso.
+- Corrigidos redirecionamentos abertos em login, cadastro e callback de Auth.
+- Uploads de imagem/PDF passaram a usar pasta por usuario, limites de tamanho e
+  tipos MIME permitidos.
+- Adicionados CSP, HSTS, protecao contra iframe, `nosniff`, politica de
+  referencia e de permissoes.
+- Next.js foi atualizado para 16.2.10; o PostCSS vulneravel foi substituido por
+  8.5.10.
+- A agenda deixou de usar eventos mockados e passou a consultar campeonatos
+  reais. O historico publico de rating foi implementado.
+- Corrigida a rota ausente `/arena/[handle]/alunos` e a exclusao completa de
+  campeonatos sob as novas permissoes.
 
-## Escopo revisado
+## Limpeza executada na base real
 
-- App Router, Server Components, Server Actions e APIs;
-- autenticação, autorização, propriedade e navegação condicionada;
-- RLS, grants, RPCs, storage e separação de dados privados;
-- inscrições, ingressos, check-in, webhooks, cobranças e repasses;
-- gestão de Arena, campeonato, Staff e Admin;
-- headers, dependências, rate limit e exposição de dados;
-- shell responsivo e refatoração visual desta branch;
-- dados de demonstração e scripts de limpeza;
-- documentação e checklist de deploy.
+- 103 contas de Auth removidas; a conta correspondente a `ADMIN_EMAIL` foi
+  preservada.
+- 7 campeonatos, 20 inscricoes, 20 duplas, 40 credenciais e 4 partidas
+  removidos.
+- 1 arena, 32 alunos, 180 cobrancas, 1.428 presencas, 8 turmas e 7 planos/fotos
+  removidos.
+- Ingressos, categorias, lotes, cupons, notificacoes, noticias, conquistas,
+  resultados e rankings externos de demonstracao removidos.
+- Seeds explicitamente falsos e credenciais de teste foram retirados do
+  repositorio. O script de manutencao ficou em
+  `scripts/cleanup-production-data.mjs`, com modo seguro de conferencia por
+  padrao e exclusao somente com `--execute`.
 
-## Correções aplicadas
+## Sequencia obrigatoria do primeiro deploy
 
-- Role e rating são campos de sistema; o usuário não pode promover a própria
-  conta nem definir o próprio rating por uma atualização comum.
-- CPF, telefone, nascimento e questionário foram retirados das consultas
-  públicas e centralizados em profiles_private.
-- Código de convite de arena e token de convite de dupla deixaram de ser
-  colunas públicas. Convites abertos usam token aleatório separado do UUID.
-- Foram corrigidos caminhos de IDOR em planos, lotes, categorias, chaveamento,
-  pagamentos, convidados e relações de campeonato/arena.
-- Políticas passaram a impedir a criação ou alteração indevida de credenciais,
-  histórico de rating, inscrições pagas, duplas, alunos, assinaturas e reservas.
-- Webhooks Asaas validam token, identificador externo e registro interno antes
-  de alterar status.
-- Repasses usam reivindicação atômica contra eventos duplicados. O cron abrange
-  inscrições, ingressos, mensalidades, aluguéis e diárias aplicáveis.
-- Checkouts deixaram de enviar endereço fictício e exigem os dados reais
-  necessários do titular.
-- Consulta pública de ingresso usa POST, no-store e rate limit. QR e status
-  privados exigem token de acesso.
-- Redirecionamentos de login, cadastro e callback foram limitados.
-- Uploads usam pasta por usuário, limites de tamanho e MIME permitido.
-- next.config.ts configura CSP, HSTS em produção, proteção contra iframe,
-  nosniff, política de referência e política de permissões.
-- Next.js está em 16.2.10 e o override do PostCSS usa 8.5.10.
-- A agenda consulta campeonatos reais; a rota /arena/[handle]/alunos e a
-  exclusão autorizada de campeonato foram corrigidas.
+> CONCLUIDA em 21/07/2026 (ver secao "Atualizacao 21/07/2026").
 
-## Refatoração visual e de navegação desta branch
+1. Fazer um backup/snapshot do Supabase.
+2. No SQL Editor, executar `supabase/production-security-hardening.sql`.
+3. Fazer o deploy deste codigo e aguardar o status Ready.
+4. Imediatamente depois, executar
+   `supabase/production-security-hardening-after-deploy.sql`.
+5. Confirmar que um usuario comum nao consegue atualizar `role`, `rating`,
+   status de pagamento, credenciais ou dados de outra conta.
 
-- A topbar global desktop foi removida.
-- O desktop usa sidebar preta persistente, navegação client-side e conteúdo em
-  layout compartilhado.
-- O sino abre um mini menu de notificações na sidebar; “Ver todas” preserva a
-  página completa.
-- Arena e campeonato mantêm navegação contextual dentro do shell.
-- O fundo geral desktop/mobile foi centralizado em app-bg (#F3F5FA), sem
-  alterar cards e modais.
-- A rota ativa usa indicador azul compartilhado e os detalhes luminosos são
-  decorativos.
-- A revisão não altera schema, RLS, Supabase, APIs nem regra financeira.
+A etapa 1 cria as colunas e permissoes exigidas pelo codigo novo. A etapa 2
+remove os campos pessoais antigos e esconde colunas publicas. Inverter a ordem
+pode interromper cadastro, convite, arena e perfil.
 
-Antes do release, esta branch deve continuar passando por teclado, zoom,
-viewport baixo, mobile e reduced motion, além das verificações automatizadas.
+## Configuracao externa ainda pendente
 
-## Limpeza registrada da base
-
-O procedimento anterior registrou:
-
-- remoção de 103 contas de Auth, preservando a conta de ADMIN_EMAIL;
-- remoção de 7 campeonatos, 20 inscrições, 20 duplas, 40 credenciais e
-  4 partidas;
-- remoção de 1 arena, 32 alunos, 180 cobranças, 1.428 presenças, 8 turmas e
-  7 planos/fotos;
-- remoção de ingressos, categorias, lotes, cupons, notificações, notícias,
-  conquistas, resultados e rankings externos de demonstração;
-- nova conferência sem contas adicionais a remover além do admin preservado.
-
-scripts/cleanup-production-data.mjs permanece como ferramenta operacional. O
-modo padrão é apenas conferência e a exclusão exige --execute.
-
-Esses números são o registro da execução na base usada naquela operação. Antes
-de repetir em qualquer ambiente, confirmar projeto, snapshot e ADMIN_EMAIL.
-
-## Estado das duas etapas de hardening
-
-### O que cada etapa faz
-
-1. supabase/production-security-hardening.sql prepara as colunas privadas,
-   políticas, grants, RPCs e compatibilidade do código novo.
-2. supabase/production-security-hardening-after-deploy.sql remove
-   data_nascimento e questionario de profiles e restringe as colunas
-   selecionáveis de profiles e arenas.
-
-### Estado reportado
-
-As duas etapas foram executadas, mas a etapa 2 ocorreu antes de o deploy do
-código compatível ficar Ready. Não é necessário reexecutá-la cegamente agora:
-o caminho seguro é terminar o deploy compatível e auditar o estado final.
-
-Conferir no Supabase:
-
-- profiles_private possui data_nascimento e questionario;
-- profiles não possui mais essas duas colunas;
-- anon só lê as colunas públicas autorizadas de profiles;
-- authenticated não altera role, rating, pagamento, credencial ou dados de
-  outra pessoa;
-- invite_code de arenas não aparece em consultas públicas;
-- cadastro, perfil, convite, arena e checkout não registram erro de coluna ou
-  permissão;
-- o cache do PostgREST foi recarregado.
-
-Para um projeto novo, a ordem obrigatória continua sendo snapshot, etapa 1,
-deploy Ready, etapa 2 e testes de permissão.
-
-## Configuração externa ainda pendente
-
-| Item | Estado conhecido | Ação para produção |
+| Item | Estado atual | Acao para producao |
 | --- | --- | --- |
-| NEXT_PUBLIC_BASE_URL | desenvolvimento | definir o domínio HTTPS final |
-| ASAAS_BASE_URL | Sandbox | trocar endpoint e chave para produção |
-| Webhook Asaas | não homologado em produção | cadastrar /api/webhooks/asaas, token e eventos corretos |
-| CRON_SECRET/Vercel Cron | segredo presente, execução externa não confirmada | validar agenda, autenticação, logs e alertas |
-| Resend | remetente de teste | verificar domínio, SPF/DKIM e RESEND_FROM_EMAIL |
-| Supabase Auth | requer painel | revisar Site URL, Redirect URLs, senha, CAPTCHA e MFA do admin |
-| DNS/HTTPS | não verificável localmente | configurar domínio e certificado antes de considerar preload |
-| Backups | não verificável localmente | ativar PITR/snapshots e testar restauração |
-| Monitoramento | incompleto/não verificável | alertas de erro, webhook, cron e conciliação |
+| `NEXT_PUBLIC_BASE_URL` | desenvolvimento | Definir `https://` com o dominio final |
+| `ASAAS_BASE_URL` | Sandbox | Trocar para a API de producao e usar uma chave de producao |
+| `ASAAS_WEBHOOK_TOKEN` | presente | Cadastrar o mesmo token no webhook de producao |
+| Webhook Asaas | nao validado em producao | Apontar para `https://DOMINIO/api/webhooks/asaas` e habilitar eventos de pagamento confirmado, recebido, estornado e excluido |
+| `CRON_SECRET` | presente | Confirmar o cron diario da Vercel e monitorar respostas/falhas |
+| Resend | chave presente, remetente de teste | Verificar o dominio, criar SPF/DKIM e definir `RESEND_FROM_EMAIL` |
+| Supabase Auth | Site URL, Redirect URLs e CAPTCHA configurados (21/07) | Falta definir politica de senha/MFA do admin |
+| DNS/HTTPS | nao verificavel localmente | Configurar dominio, HTTPS e somente depois habilitar HSTS preload |
+| Backups/alertas | nao verificavel localmente | Ativar PITR/backups, alertas de erro, logs de webhook e conciliacao financeira |
 
-Nunca expor SUPABASE_SERVICE_ROLE_KEY, ASAAS_API_KEY, CRON_SECRET ou o token do
-webhook ao navegador.
+Nunca copiar a chave Sandbox para producao nem expor `SUPABASE_SERVICE_ROLE_KEY`,
+`ASAAS_API_KEY`, `CRON_SECRET` ou o token do webhook no navegador.
 
-## Funcionalidades e riscos ainda abertos
+## Funcionalidades que ainda nao estao 100% prontas
 
-1. A assinatura paga da própria plataforma para donos de arena continua sem
-   preço e checkout definitivos. Decidir preço, trial, inadimplência e
-   cancelamento, implementar e homologar; ou retirar a oferta do lançamento.
-2. Os checkouts de plano recorrente, aluguel e diária somam 10% de taxa de
-   serviço e repassam o valor-base à Arena. A emissão manual de Pix de
-   mensalidade não soma a taxa no mesmo ponto do código. Definir a regra
-   comercial, uniformizar todos os métodos e refletir a cobrança nos termos.
-3. A autorização Admin usa fontes diferentes: a navegação verifica ADMIN_EMAIL,
-   o proxy exige role admin/ceo, ações aceitam role ou e-mail e a gestão de
-   usuários exige ceo. Unificar a regra; até lá, verificar que a conta principal
-   possui simultaneamente ADMIN_EMAIL e role ceo.
-4. Falta um teste controlado no Asaas de produção cobrindo Pix, cartão aprovado
-   e recusado, parcelamento, duplicidade de evento, timeout, estorno, assinatura
-   e execução real do cron.
-5. A criação de cobrança por cartão ainda precisa de trava persistente contra o
-   intervalo entre a resposta do Asaas e a gravação local. A interface evita
-   duplo clique e webhooks/repasses são idempotentes, mas isso não cobre todo
-   timeout de rede.
-6. A recuperação de ingresso por CPF e e-mail é limitada e protegida, mas um
-   link mágico/OTP seria uma camada mais forte em escala.
-7. O CSP ainda usa unsafe-inline por compatibilidade. Migrar para nonce quando a
-   estratégia de renderização permitir.
-8. Existem termos de uso, mas falta aviso de privacidade LGPD completo, canal
-   de direitos do titular, retenção/exclusão e procedimento de incidente.
-9. Os testes locais cobrem regras importantes, mas ainda não existe suíte E2E
-   para cadastro, convite, pagamento, webhook, check-in, Painel e Arena.
+1. A assinatura paga da propria plataforma para donos de arena esta
+   deliberadamente incompleta: a tela mostra preco "A definir" e nao possui
+   botao de contratacao. E preciso decidir preco, periodo de teste, inadimplencia
+   e cancelamento e entao implementar/testar esse checkout; ou remover essa
+   oferta do menu no lancamento.
+2. Falta um teste ponta a ponta no Asaas de producao controlada: cobranca de
+   baixo valor, cartao recusado, Pix, parcelamento, evento duplicado, estorno,
+   timeout, assinatura recorrente e execucao real do cron de repasse.
+3. A criacao de cobranca por cartao ainda precisa de uma trava persistente de
+   tentativa para cobrir timeout entre a chamada ao Asaas e a gravacao do ID.
+   A interface bloqueia clique repetido e os webhooks/repasses sao idempotentes,
+   mas uma repeticao de rede nesse intervalo deve ser conciliada antes de operar
+   em volume. Uma alternativa e usar o Checkout hospedado/tokenizado do Asaas.
+   **Parcialmente melhorado em 21/07/2026**: aluguel de quadra e diária de
+   arena pararam de apagar o registro local quando a chamada ao Asaas falha
+   por timeout de rede (falha ambígua) — ficam pendentes pro webhook
+   reconciliar, em vez de virar cobrança fantasma sem registro. Reserva de
+   horário de aluguel também ganhou índice único contra corrida de clique
+   duplo. A Asaas não oferece cabeçalho de idempotência nativo em
+   `POST /payments` (confirmado na doc oficial) — o restante do item segue
+   pendente.
+4. ~~A busca de ingressos por CPF + e-mail...~~ **RESOLVIDO em 21/07/2026**:
+   `/api/meus-ingressos` agora só manda um código de 6 dígitos de uso único
+   pro e-mail informado; o ingresso só é devolvido depois de confirmar esse
+   código em `/api/meus-ingressos/verificar`.
+5. O CSP usa `unsafe-inline` para compatibilidade com a renderizacao atual. Um
+   CSP estrito com nonce deve ser a proxima camada de hardening.
+6. ~~Ha termos de uso, mas falta publicar um aviso de privacidade LGPD...~~
+   **PARCIALMENTE RESOLVIDO em 21/07/2026**: Política de Privacidade
+   publicada em `/privacidade` (finalidades, compartilhamento, retenção,
+   direitos do titular) e exportação/exclusão de conta implementadas em
+   `/perfil/conta`. Ainda falta: dado de identificação empresarial real nos
+   Termos/Privacidade (hoje é um placeholder `[PENDENTE]`, ver
+   `PENDENCIAS.md`) e um procedimento formal de resposta a incidentes.
+7. Os testes atuais cobrem a logica financeira local, mas nao ha suite E2E para
+   cadastro, convite, pagamento, webhook, check-in, painel de organizador e
+   arena. Esses fluxos precisam de um roteiro de homologacao antes da abertura.
 
-## Checklist para autorizar dinheiro real
+## Validacoes executadas
 
-### Código e banco
+Re-executadas em 21/07/2026 depois de mesclar as duas branches de trabalho
+(hardening/captcha/recuperação de senha + auditoria de segurança de ponta a
+ponta) na árvore final:
 
-- [ ] Revisar o diff final e garantir que não há segredo nem ativo duplicado.
-- [ ] Criar snapshot recuperável.
-- [ ] Confirmar o estado final das duas etapas de hardening.
-- [ ] Testar RLS/grants como anon, usuário, organizador, staff e service_role.
-- [ ] Executar lint, TypeScript, testes, build, audit e diff-check.
-
-### Serviços
-
-- [ ] Configurar domínio, Auth, Asaas, webhook, Resend e cron de produção.
-- [ ] Ativar backups, observabilidade, alertas e conciliação.
-- [ ] Proteger a conta administrativa com MFA e confirmar role ceo.
-
-### Homologação
-
-- [ ] Testar cadastro, login, recuperação, perfil e permissões.
-- [ ] Testar campeonato, dupla, pagamento, credencial, check-in e reembolso.
-- [ ] Testar Arena, aluno, aula, presença, mensalidade, diária e aluguel.
-- [ ] Realizar transação real controlada de baixo valor.
-- [ ] Validar desktop, mobile, teclado, zoom, links diretos e voltar/avançar.
-- [ ] Publicar privacidade/LGPD e procedimento de incidente.
-
-## Validações locais
-
-Executadas no fechamento desta branch em 15/07/2026:
-
-- npm run lint: aprovado;
-- npx tsc --noEmit: aprovado;
-- npm test: 151/151 testes aprovados em 49 suítes;
-- npm run build: aprovado no Next.js 16.2.10, com geração estática 49/49;
-- npm audit --omit=dev: zero vulnerabilidades conhecidas;
-- git diff --check: executar novamente depois da revisão/staging final.
-
-Essas verificações cobrem o repositório local. Elas não substituem os testes
-E2E, a auditoria do Supabase remoto nem a homologação do Asaas de produção.
+- `npm run lint`: aprovado, sem avisos.
+- `npx tsc --noEmit`: aprovado.
+- `npm test`: 290 de 290 testes aprovados (86 suítes).
+- `npm run build`: aprovado no Next.js 16.2.10; 53 páginas geradas.
+- `npm audit --omit=dev`: zero vulnerabilidades conhecidas.
+- Nova conferencia da base: zero contas a remover alem do admin preservado
+  (validado antes da mesclagem; não é reconferido pela mesclagem em si).

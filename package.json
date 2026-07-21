@@ -10,7 +10,6 @@
     "test": "node --import tsx --test lib/**/*.test.ts"
   },
   "dependencies": {
-    "@marsidev/react-turnstile": "^1.5.3",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
     "@types/qrcode": "^1.5.6",
