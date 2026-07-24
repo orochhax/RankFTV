@@ -6,7 +6,7 @@ import {
   sortByVisibleAmountDesc, sumVisibleAmount, classificarResultado, resultadoPrevisto,
   contarPagoPendente, lastFourMonthKeys, buildExpenseChartPoints, resolverValoresOrcamento,
   monthKeyRange, monthsBetweenCount, buildExpenseDrafts, buildIncomeDrafts, MAX_REPEAT_MONTHS,
-  dueDateForMonth, dayOfDate, idsNoEscopoDeEdicao, resolverAjusteIntervalo, groupMonthBounds,
+  dueDateForMonth, dayOfDate, dueDateStatus, idsNoEscopoDeEdicao, resolverAjusteIntervalo, groupMonthBounds,
   legacyGroupKey, siblingsOfGroup, fazParteDeGrupo, resolverPeriodoEdicao,
   formatDateTimeBahia, createdAtDateKeyBahia, contagensDoEscopo,
   buildEventSnapshot, periodoResumoLabel, diffEventSnapshots, historyEventToRpcPayload,
@@ -362,6 +362,27 @@ describe("dueDateForMonth / dayOfDate (vencimento por dia, sem deslocar mês)", 
     const monthKey = "2026-11";
     const day = 5;
     assert.equal(dayOfDate(dueDateForMonth(monthKey, day)), day);
+  });
+});
+
+describe("dueDateStatus (alerta visual de vencimento)", () => {
+  test("fica normal quando faltam mais de 5 dias", () => {
+    assert.equal(dueDateStatus("2026-08-12", "2026-08-06"), "normal");
+  });
+
+  test("fica próximo do vencimento entre 5 dias antes e a véspera", () => {
+    assert.equal(dueDateStatus("2026-08-12", "2026-08-07"), "due-soon");
+    assert.equal(dueDateStatus("2026-08-12", "2026-08-11"), "due-soon");
+  });
+
+  test("fica vencido no próprio dia e depois dele", () => {
+    assert.equal(dueDateStatus("2026-08-12", "2026-08-12"), "due-or-overdue");
+    assert.equal(dueDateStatus("2026-08-12", "2026-08-13"), "due-or-overdue");
+  });
+
+  test("calcula corretamente na virada do mês e do ano", () => {
+    assert.equal(dueDateStatus("2027-01-03", "2026-12-29"), "due-soon");
+    assert.equal(dueDateStatus("2027-01-03", "2026-12-28"), "normal");
   });
 });
 

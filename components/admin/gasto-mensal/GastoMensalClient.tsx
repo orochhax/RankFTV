@@ -19,7 +19,7 @@ import { formatBRL, formatDateBR } from "@/lib/format";
 import {
   addMonthsToKey, monthLabelLong, itemsOfMonth, filterByPersonParticipation, sortByVisibleAmountDesc,
   amountForFilter, personOfAmounts, resultadoPrevisto, contarPagoPendente, buildExpenseChartPoints,
-  groupMonthBounds, fazParteDeGrupo,
+  groupMonthBounds, fazParteDeGrupo, dueDateStatus,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type PersonFilter, type ExpenseChartPoint, type EscopoEdicao,
 } from "@/lib/monthly-budget";
 
@@ -65,6 +65,16 @@ function PessoaDots({ item }: { item: { amountCarlos: number; amountJulia: numbe
   );
 }
 
+function expenseNameClass(expense: MonthlyBudgetExpense, todayDateKey: string): string {
+  if (expense.isPaid) return "text-gray-900 line-through";
+  if (!expense.dueDate) return "text-gray-900";
+
+  const status = dueDateStatus(expense.dueDate, todayDateKey);
+  if (status === "due-or-overdue") return "text-red-600";
+  if (status === "due-soon") return "text-yellow-500";
+  return "text-gray-900";
+}
+
 function ChartTooltip({ active, payload, filtro }: { active?: boolean; payload?: { payload: ExpenseChartPoint }[]; filtro: PersonFilter }) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
@@ -91,11 +101,13 @@ export function GastoMensalClient({
   incomes,
   initialMonthKey,
   todayMonthKey,
+  todayDateKey,
 }: {
   expenses: MonthlyBudgetExpense[];
   incomes: MonthlyBudgetIncome[];
   initialMonthKey: string;
   todayMonthKey: string;
+  todayDateKey: string;
 }) {
   const router = useRouter();
 
@@ -302,7 +314,7 @@ export function GastoMensalClient({
                 <PessoaDots item={d} />
 
                 <div className="min-w-0 flex-1 basis-32">
-                  <p className={`truncate text-sm font-medium text-gray-900 ${d.isPaid ? "line-through" : ""}`}>{d.name}</p>
+                  <p className={`truncate text-sm font-medium ${expenseNameClass(d, todayDateKey)}`}>{d.name}</p>
                   <p className="text-xs text-gray-400">
                     {d.isPaid ? "Pago" : "Pendente"}
                     {d.dueDate && ` · Vence ${formatDateBR(d.dueDate)}`}
