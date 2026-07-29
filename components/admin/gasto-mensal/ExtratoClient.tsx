@@ -18,6 +18,7 @@ import {
   groupHistoryEventsByEntity, filtrarHistorico, HISTORY_FILTROS_VAZIOS,
   groupMonthBounds, fazParteDeGrupo, siblingsOfGroup, contagensDoEscopo,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type MonthlyBudgetHistoryEvent,
+  type MonthlyBudgetCategory,
   type MonthlyBudgetEventSnapshot, type HistoryFiltros, type HistoryTipoFiltro, type HistoryAcaoFiltro,
   type HistoryAction, type HistoryEntityKind, type PersonFilter, type EscopoEdicao,
 } from "@/lib/monthly-budget";
@@ -104,10 +105,12 @@ export function ExtratoClient({
   events,
   expenses,
   incomes,
+  categories,
 }: {
   events: MonthlyBudgetHistoryEvent[];
   expenses: MonthlyBudgetExpense[];
   incomes: MonthlyBudgetIncome[];
+  categories: MonthlyBudgetCategory[];
 }) {
   const router = useRouter();
 
@@ -415,6 +418,7 @@ export function ExtratoClient({
       {/* ── Edição do lançamento atual — reaproveita os mesmos formulários da página principal ── */}
       {despesaAlvo && (
         <DespesaForm
+          categories={categories}
           monthKey={despesaAlvo.monthKey}
           expense={despesaAlvo}
           groupStartMonthKey={groupMonthBounds(expenses, despesaAlvo).start}
@@ -425,6 +429,7 @@ export function ExtratoClient({
       )}
       {receitaAlvo && (
         <ReceitaForm
+          categories={categories}
           monthKey={receitaAlvo.monthKey}
           income={receitaAlvo}
           groupStartMonthKey={groupMonthBounds(incomes, receitaAlvo).start}
@@ -522,12 +527,13 @@ function SnapshotResumo({
 }: {
   snapshot: MonthlyBudgetEventSnapshot;
   kind: HistoryEntityKind;
-  diff?: { name: boolean; amountCarlos: boolean; amountJulia: boolean; dueDay: boolean; period: boolean };
+  diff?: { name: boolean; amountCarlos: boolean; amountJulia: boolean; dueDay: boolean; period: boolean; category: boolean };
 }) {
   const compartilhado = snapshot.person === "carlos_e_julia";
   return (
     <div className="space-y-1.5 rounded-xl bg-gray-50 p-3 text-sm ring-1 ring-black/5">
       <CampoDiff label="Nome" valor={snapshot.name} mudou={!!diff?.name} />
+      <CampoDiff label="Categoria" valor={snapshot.categoryName ?? "Sem categoria"} mudou={!!diff?.category} />
       <p className="flex items-center gap-1.5 text-gray-600">
         <PessoaDots person={snapshot.person} /> {personSelecaoLabel(snapshot.person)}
       </p>

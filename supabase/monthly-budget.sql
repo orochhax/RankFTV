@@ -100,6 +100,44 @@ ALTER TABLE monthly_budget_expenses
 ALTER TABLE monthly_budget_incomes
   ADD COLUMN IF NOT EXISTS repeat_group_id uuid;
 
+-- Categorias são apenas agrupadores opcionais. Desativar uma categoria solta
+-- os lançamentos, preservando-os intactos.
+CREATE TABLE IF NOT EXISTS monthly_budget_categories (
+  id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id    uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  name       text NOT NULL,
+  active     boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE monthly_budget_expenses ADD COLUMN IF NOT EXISTS category_id uuid;
+ALTER TABLE monthly_budget_incomes ADD COLUMN IF NOT EXISTS category_id uuid;
+CREATE INDEX IF NOT EXISTS idx_mb_expenses_category_id ON monthly_budget_expenses(category_id);
+CREATE INDEX IF NOT EXISTS idx_mb_incomes_category_id ON monthly_budget_incomes(category_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mb_categories_user_name_active
+  ON monthly_budget_categories(user_id, lower(name)) WHERE active;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'mb_expenses_category_fk') THEN
+    ALTER TABLE monthly_budget_expenses ADD CONSTRAINT mb_expenses_category_fk
+      FOREIGN KEY (category_id) REFERENCES monthly_budget_categories(id) ON DELETE SET NULL;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'mb_incomes_category_fk') THEN
+    ALTER TABLE monthly_budget_incomes ADD CONSTRAINT mb_incomes_category_fk
+      FOREIGN KEY (category_id) REFERENCES monthly_budget_categories(id) ON DELETE SET NULL;
+  END IF;
+END $$;
+
+ALTER TABLE monthly_budget_categories ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS monthly_budget_categories_owner_select ON monthly_budget_categories;
+CREATE POLICY monthly_budget_categories_owner_select ON monthly_budget_categories FOR SELECT USING (user_id = auth.uid());
+DROP POLICY IF EXISTS monthly_budget_categories_owner_insert ON monthly_budget_categories;
+CREATE POLICY monthly_budget_categories_owner_insert ON monthly_budget_categories FOR INSERT WITH CHECK (user_id = auth.uid());
+DROP POLICY IF EXISTS monthly_budget_categories_owner_update ON monthly_budget_categories;
+CREATE POLICY monthly_budget_categories_owner_update ON monthly_budget_categories FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+GRANT SELECT, INSERT, UPDATE ON monthly_budget_categories TO authenticated;
+
 CREATE INDEX IF NOT EXISTS idx_mb_expenses_repeat_group_id ON monthly_budget_expenses(repeat_group_id);
 CREATE INDEX IF NOT EXISTS idx_mb_incomes_repeat_group_id  ON monthly_budget_incomes(repeat_group_id);
 
@@ -263,7 +301,7 @@ BEGIN
   END IF;
 
   IF p_rows_to_insert IS NOT NULL AND jsonb_array_length(p_rows_to_insert) > 0 THEN
-    INSERT INTO monthly_budget_expenses (id, user_id, month_key, name, amount_carlos, amount_julia, due_date, repeat_group_id)
+    INSERT INTO monthly_budget_expenses (id, user_id, month_key, name, amount_carlos, amount_julia, due_date, repeat_group_id, category_id)
     SELECT
       (r->>'id')::uuid,
       v_uid,
@@ -272,7 +310,8 @@ BEGIN
       (r->>'amount_carlos')::numeric,
       (r->>'amount_julia')::numeric,
       NULLIF(r->>'due_date', '')::date,
-      (r->>'repeat_group_id')::uuid
+      (r->>'repeat_group_id')::uuid,
+      NULLIF(r->>'category_id', '')::uuid
     FROM jsonb_array_elements(p_rows_to_insert) r;
   END IF;
 
@@ -283,6 +322,7 @@ BEGIN
           amount_carlos = (v_row->>'amount_carlos')::numeric,
           amount_julia = (v_row->>'amount_julia')::numeric,
           due_date = NULLIF(v_row->>'due_date', '')::date,
+          category_id = NULLIF(v_row->>'category_id', '')::uuid,
           updated_at = now()
       WHERE id = (v_row->>'id')::uuid AND user_id = v_uid;
     END LOOP;
@@ -346,7 +386,7 @@ BEGIN
   END IF;
 
   IF p_rows_to_insert IS NOT NULL AND jsonb_array_length(p_rows_to_insert) > 0 THEN
-    INSERT INTO monthly_budget_incomes (id, user_id, month_key, name, amount_carlos, amount_julia, repeat_group_id)
+    INSERT INTO monthly_budget_incomes (id, user_id, month_key, name, amount_carlos, amount_julia, repeat_group_id, category_id)
     SELECT
       (r->>'id')::uuid,
       v_uid,
@@ -354,7 +394,8 @@ BEGIN
       r->>'name',
       (r->>'amount_carlos')::numeric,
       (r->>'amount_julia')::numeric,
-      (r->>'repeat_group_id')::uuid
+      (r->>'repeat_group_id')::uuid,
+      NULLIF(r->>'category_id', '')::uuid
     FROM jsonb_array_elements(p_rows_to_insert) r;
   END IF;
 
@@ -364,6 +405,7 @@ BEGIN
       SET name = v_row->>'name',
           amount_carlos = (v_row->>'amount_carlos')::numeric,
           amount_julia = (v_row->>'amount_julia')::numeric,
+          category_id = NULLIF(v_row->>'category_id', '')::uuid,
           updated_at = now()
       WHERE id = (v_row->>'id')::uuid AND user_id = v_uid;
     END LOOP;
@@ -566,5 +608,27 @@ JOIN agg g USING (user_id, repeat_group_id)
 WHERE NOT EXISTS (
   SELECT 1 FROM monthly_budget_history_events h WHERE h.entity_group_id = a.repeat_group_id
 );
+
+CREATE OR REPLACE FUNCTION mb_remove_monthly_category(p_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_uid uuid := auth.uid();
+  v_updated int;
+BEGIN
+  IF v_uid IS NULL THEN RAISE EXCEPTION 'not authenticated'; END IF;
+  UPDATE monthly_budget_expenses SET category_id = NULL, updated_at = now()
+    WHERE category_id = p_id AND user_id = v_uid;
+  UPDATE monthly_budget_incomes SET category_id = NULL, updated_at = now()
+    WHERE category_id = p_id AND user_id = v_uid;
+  UPDATE monthly_budget_categories SET active = false, updated_at = now()
+    WHERE id = p_id AND user_id = v_uid AND active = true;
+  GET DIAGNOSTICS v_updated = ROW_COUNT;
+  IF v_updated = 0 THEN RAISE EXCEPTION 'category not found'; END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION mb_remove_monthly_category(uuid) TO authenticated;
 
 NOTIFY pgrst, 'reload schema';
