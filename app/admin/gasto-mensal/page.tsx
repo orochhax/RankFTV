@@ -4,7 +4,7 @@ import { ArrowLeft, CalendarRange } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { GastoMensalClient } from "@/components/admin/gasto-mensal/GastoMensalClient";
 import {
-  dbDateToMonthKey, defaultMonthKey, monthKeyNowBahia,
+  dbDateToMonthKey, defaultMonthKey, hojeISOBahia,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type MonthlyBudgetCategory,
 } from "@/lib/monthly-budget";
 
@@ -41,6 +41,7 @@ export default async function GastoMensalPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
+  const todayDateKey = hojeISOBahia();
 
   const [{ data: expensesData, error: expensesError }, { data: incomesData, error: incomesError }, { data: categoriesData }] = await Promise.all([
     supabase
@@ -127,7 +128,8 @@ export default async function GastoMensalPage() {
             expenses={expenses}
             incomes={incomes}
             initialMonthKey={defaultMonthKey()}
-            todayMonthKey={monthKeyNowBahia()}
+            todayMonthKey={todayDateKey.slice(0, 7)}
+            todayDateKey={todayDateKey}
             categories={categories}
           />
         </div>

@@ -19,7 +19,7 @@ import { formatBRL, formatDateBR } from "@/lib/format";
 import {
   addMonthsToKey, monthLabelLong, itemsOfMonth,
   amountForFilter, personOfAmounts, resultadoPrevisto, contarPagoPendente, buildExpenseChartPoints,
-  groupMonthBounds, fazParteDeGrupo, groupBudgetItemsByCategory,
+  groupMonthBounds, fazParteDeGrupo, dueDateStatus, groupBudgetItemsByCategory,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type MonthlyBudgetCategory, type PersonFilter, type ExpenseChartPoint, type EscopoEdicao,
 } from "@/lib/monthly-budget";
 import { CategoriasMensaisPainel } from "@/components/admin/gasto-mensal/CategoriasMensaisPainel";
@@ -66,6 +66,16 @@ function PessoaDots({ item }: { item: { amountCarlos: number; amountJulia: numbe
   );
 }
 
+function expenseNameClass(expense: MonthlyBudgetExpense, todayDateKey: string): string {
+  if (expense.isPaid) return "text-gray-900 line-through";
+  if (!expense.dueDate) return "text-gray-900";
+
+  const status = dueDateStatus(expense.dueDate, todayDateKey);
+  if (status === "due-or-overdue") return "text-red-600";
+  if (status === "due-soon") return "text-yellow-500";
+  return "text-gray-900";
+}
+
 function ChartTooltip({ active, payload, filtro }: { active?: boolean; payload?: { payload: ExpenseChartPoint }[]; filtro: PersonFilter }) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
@@ -93,12 +103,14 @@ export function GastoMensalClient({
   initialMonthKey,
   todayMonthKey,
   categories,
+  todayDateKey,
 }: {
   expenses: MonthlyBudgetExpense[];
   incomes: MonthlyBudgetIncome[];
   initialMonthKey: string;
   todayMonthKey: string;
   categories: MonthlyBudgetCategory[];
+  todayDateKey: string;
 }) {
   const router = useRouter();
 
@@ -300,7 +312,7 @@ export function GastoMensalClient({
                 {categoriasExpandidas.has(row.categoryId) && <ul className="divide-y divide-gray-100 border-t border-gray-100 bg-gray-50/60">{row.items.map((d) => (
                   <li key={d.id} className={`flex flex-wrap items-center gap-3 px-4 py-3 pl-12 ${d.isPaid ? "opacity-60" : ""}`}>
                     <button type="button" onClick={() => handleTogglePago(d)} disabled={alternandoId === d.id} className={`flex size-6 shrink-0 items-center justify-center rounded-full border-2 ${d.isPaid ? "border-emerald-500 bg-emerald-500 text-white" : "border-gray-300 text-transparent"}`} title={d.isPaid ? "Desfazer pagamento" : "Marcar como paga"}>{alternandoId === d.id ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-4" />}</button>
-                    <PessoaDots item={d} /><div className="min-w-0 flex-1 basis-32"><p className="truncate text-sm font-medium text-gray-900">{d.name}</p><p className="text-xs text-gray-400">{d.isPaid ? "Pago" : "Pendente"}{d.dueDate && ` · Vence ${formatDateBR(d.dueDate)}`}</p></div><span className="shrink-0 text-sm font-semibold text-gray-900">{formatBRL(amountForFilter(d, filtro))}</span>
+                    <PessoaDots item={d} /><div className="min-w-0 flex-1 basis-32"><p className={`truncate text-sm font-medium ${expenseNameClass(d, todayDateKey)}`}>{d.name}</p><p className="text-xs text-gray-400">{d.isPaid ? "Pago" : "Pendente"}{d.dueDate && ` · Vence ${formatDateBR(d.dueDate)}`}</p></div><span className="shrink-0 text-sm font-semibold text-gray-900">{formatBRL(amountForFilter(d, filtro))}</span>
                     <button type="button" onClick={() => setDespesaForm({ expense: d })} className="rounded-lg p-1.5 text-gray-300 hover:text-blue-600" title="Editar"><Pencil className="size-4" /></button><button type="button" onClick={() => handleApagarDespesa(d)} className="rounded-lg p-1.5 text-gray-300 hover:text-red-500" title="Excluir"><Trash2 className="size-4" /></button>
                   </li>
                 ))}</ul>}
@@ -324,7 +336,7 @@ export function GastoMensalClient({
                 <PessoaDots item={d} />
 
                 <div className="min-w-0 flex-1 basis-32">
-                  <p className={`truncate text-sm font-medium text-gray-900 ${d.isPaid ? "line-through" : ""}`}>{d.name}</p>
+                  <p className={`truncate text-sm font-medium ${expenseNameClass(d, todayDateKey)}`}>{d.name}</p>
                   <p className="text-xs text-gray-400">
                     {d.isPaid ? "Pago" : "Pendente"}
                     {d.dueDate && ` · Vence ${formatDateBR(d.dueDate)}`}

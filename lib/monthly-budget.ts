@@ -309,6 +309,25 @@ export function dayOfDate(iso: string | null): number | null {
   return d;
 }
 
+export type DueDateStatus = "normal" | "due-soon" | "due-or-overdue";
+
+/**
+ * Classifica um vencimento por dias civis, sem depender do fuso do navegador.
+ * No dia do vencimento (ou depois) fica vencido; nos 5 dias anteriores fica
+ * próximo do vencimento.
+ */
+export function dueDateStatus(dueDate: string, todayDate: string): DueDateStatus {
+  const toUtcDay = (date: string) => {
+    const [year, month, day] = date.split("-").map(Number);
+    return Date.UTC(year, month - 1, day) / 86_400_000;
+  };
+
+  const daysUntilDue = toUtcDay(dueDate) - toUtcDay(todayDate);
+  if (daysUntilDue <= 0) return "due-or-overdue";
+  if (daysUntilDue <= 5) return "due-soon";
+  return "normal";
+}
+
 export type ExpenseDraft = {
   monthKey: string;
   name: string;
