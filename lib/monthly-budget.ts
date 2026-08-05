@@ -27,6 +27,7 @@ export type MonthlyBudgetExpense = {
   dueDate: string | null;
   /** Liga linhas criadas juntas via "De/Até" — null quando foi criada só pra um mês. */
   repeatGroupId: string | null;
+  categoryId: string | null;
   /** Quando a linha foi cadastrada (timestamptz do banco) — nunca muda numa edição. */
   createdAt: string;
   /** Quando a linha foi alterada pela última vez — igual a createdAt se nunca foi editada. */
@@ -41,9 +42,18 @@ export type MonthlyBudgetIncome = {
   amountJulia: number;
   /** Liga linhas criadas juntas via "De/Até" — null quando foi criada só pra um mês. */
   repeatGroupId: string | null;
+  categoryId: string | null;
   /** Quando a linha foi cadastrada (timestamptz do banco) — nunca muda numa edição. */
   createdAt: string;
   /** Quando a linha foi alterada pela última vez — igual a createdAt se nunca foi editada. */
+  updatedAt: string;
+};
+
+export type MonthlyBudgetCategory = {
+  id: string;
+  name: string;
+  active: boolean;
+  createdAt: string;
   updatedAt: string;
 };
 
@@ -115,6 +125,58 @@ export function sortByVisibleAmountDesc<T extends PersonAmounts>(items: T[], fil
 
 export function sumVisibleAmount<T extends PersonAmounts>(items: T[], filtro: PersonFilter): number {
   return items.reduce((s, item) => s + amountForFilter(item, filtro), 0);
+}
+
+export type CategorizedBudgetItem = PersonAmounts & { categoryId: string | null };
+
+export type BudgetDisplayRow<T> =
+  | { kind: "category"; categoryId: string; categoryName: string; items: T[]; amountCarlos: number; amountJulia: number }
+  | { kind: "item"; item: T };
+
+/**
+ * Cria as linhas visuais da tela sem transformar o agrupador em lançamento.
+ * A soma continua sendo feita a partir dos itens filhos, então a categoria
+ * nunca é contada duas vezes nos cards, resultado ou gráfico.
+ */
+export function groupBudgetItemsByCategory<T extends CategorizedBudgetItem>(
+  items: T[],
+  categories: MonthlyBudgetCategory[],
+  filtro: PersonFilter,
+): BudgetDisplayRow<T>[] {
+  const categoryNames = new Map(categories.filter((c) => c.active).map((c) => [c.id, c.name]));
+  const visible = filterByPersonParticipation(items, filtro);
+  const grouped = new Map<string, T[]>();
+  const loose: T[] = [];
+
+  for (const item of visible) {
+    if (item.categoryId && categoryNames.has(item.categoryId)) {
+      const group = grouped.get(item.categoryId) ?? [];
+      group.push(item);
+      grouped.set(item.categoryId, group);
+    } else {
+      loose.push(item);
+    }
+  }
+
+  const rows: BudgetDisplayRow<T>[] = [];
+  for (const [categoryId, categoryItems] of grouped) {
+    const ordered = sortByVisibleAmountDesc(categoryItems, filtro);
+    rows.push({
+      kind: "category",
+      categoryId,
+      categoryName: categoryNames.get(categoryId)!,
+      items: ordered,
+      amountCarlos: ordered.reduce((sum, item) => sum + item.amountCarlos, 0),
+      amountJulia: ordered.reduce((sum, item) => sum + item.amountJulia, 0),
+    });
+  }
+  for (const item of sortByVisibleAmountDesc(loose, filtro)) rows.push({ kind: "item", item });
+
+  return rows.sort((a, b) => {
+    const amountA = a.kind === "category" ? amountForFilter(a, filtro) : amountForFilter(a.item, filtro);
+    const amountB = b.kind === "category" ? amountForFilter(b, filtro) : amountForFilter(b.item, filtro);
+    return amountB - amountA;
+  });
 }
 
 // ── Resultado do mês ─────────────────────────────────────────────────────────
@@ -593,6 +655,8 @@ export type MonthlyBudgetEventSnapshot = {
   periodStart: string; // monthKey
   periodEnd: string;   // monthKey
   monthsCount: number;
+  categoryId?: string | null;
+  categoryName?: string | null;
   /** Só despesa — dia do vencimento (1-31), quando configurado. */
   dueDay?: number | null;
   occurrences: MonthlyBudgetOccurrenceSnapshot[];
@@ -625,6 +689,7 @@ export type MonthlyBudgetHistoryEvent = {
 export function buildEventSnapshot(
   name: string,
   occurrences: MonthlyBudgetOccurrenceSnapshot[],
+  category?: { id: string | null; name: string | null } | null,
 ): MonthlyBudgetEventSnapshot | null {
   if (occurrences.length === 0) return null;
   const ordenadas = [...occurrences].sort((a, b) => a.monthKey.localeCompare(b.monthKey));
@@ -639,6 +704,8 @@ export function buildEventSnapshot(
     periodStart: ordenadas[0].monthKey,
     periodEnd: ordenadas[ordenadas.length - 1].monthKey,
     monthsCount: ordenadas.length,
+    categoryId: category?.id ?? null,
+    categoryName: category?.name ?? null,
     dueDay: comVencimento?.dueDate ? dayOfDate(comVencimento.dueDate) : null,
     occurrences: ordenadas,
   };
@@ -672,6 +739,7 @@ export type EventSnapshotDiff = {
   amountJulia: boolean;
   dueDay: boolean;
   period: boolean;
+  category: boolean;
 };
 
 export function diffEventSnapshots(
@@ -679,7 +747,7 @@ export function diffEventSnapshots(
   after: MonthlyBudgetEventSnapshot | null,
 ): EventSnapshotDiff {
   if (!before || !after) {
-    return { name: false, amountCarlos: false, amountJulia: false, dueDay: false, period: false };
+    return { name: false, amountCarlos: false, amountJulia: false, dueDay: false, period: false, category: false };
   }
   return {
     name: before.name !== after.name,
@@ -687,6 +755,7 @@ export function diffEventSnapshots(
     amountJulia: before.amountJulia !== after.amountJulia,
     dueDay: (before.dueDay ?? null) !== (after.dueDay ?? null),
     period: before.periodStart !== after.periodStart || before.periodEnd !== after.periodEnd,
+    category: (before.categoryId ?? null) !== (after.categoryId ?? null),
   };
 }
 

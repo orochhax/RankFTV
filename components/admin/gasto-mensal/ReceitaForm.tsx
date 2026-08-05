@@ -7,7 +7,7 @@ import { criarReceita, editarReceita } from "@/app/admin/gasto-mensal/actions";
 import { inputCls, labelCls, PersonAmountFields } from "@/components/admin/gasto-mensal/PersonAmountFields";
 import {
   formatBRLInput, personOfAmounts, totalAmount, monthLabelLong,
-  type MonthlyBudgetIncome, type PersonSelecao, type SplitMode, type EscopoEdicao,
+  type MonthlyBudgetCategory, type MonthlyBudgetIncome, type PersonSelecao, type SplitMode, type EscopoEdicao,
 } from "@/lib/monthly-budget";
 
 const initialState = { error: undefined as string | undefined };
@@ -23,6 +23,7 @@ const lockedFieldCls = `${inputCls} cursor-not-allowed bg-gray-50 text-gray-400`
 export function ReceitaForm({
   monthKey,
   income,
+  categories,
   groupStartMonthKey,
   groupEndMonthKey,
   onClose,
@@ -30,6 +31,7 @@ export function ReceitaForm({
 }: {
   monthKey: string;
   income?: MonthlyBudgetIncome | null;
+  categories: MonthlyBudgetCategory[];
   groupStartMonthKey?: string;
   groupEndMonthKey?: string;
   onClose: () => void;
@@ -119,6 +121,14 @@ export function ReceitaForm({
               </div>
 
               <div>
+                <label className={labelCls}>Categoria (opcional)</label>
+                <select name="category_id" defaultValue={income?.categoryId ?? ""} className={inputCls}>
+                  <option value="">Sem categoria</option>
+                  {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                </select>
+              </div>
+
+              <div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className={labelCls}>De (mês inicial)</label>
@@ -167,6 +177,14 @@ export function ReceitaForm({
               <div>
                 <label className={labelCls}>Nome</label>
                 <input name="name" required className={inputCls} placeholder="Ex: Salário líquido" />
+              </div>
+
+              <div>
+                <label className={labelCls}>Categoria (opcional)</label>
+                <select name="category_id" defaultValue="" className={inputCls}>
+                  <option value="">Sem categoria</option>
+                  {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-2">

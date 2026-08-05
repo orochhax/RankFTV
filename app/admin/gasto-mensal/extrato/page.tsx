@@ -6,6 +6,7 @@ import { ExtratoClient } from "@/components/admin/gasto-mensal/ExtratoClient";
 import {
   dbDateToMonthKey, mapHistoryEventRow, sortHistoryByOccurredAtDesc,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type HistoryEventRow,
+  type MonthlyBudgetCategory,
 } from "@/lib/monthly-budget";
 
 export const metadata = { title: "Extrato — Gasto mensal — Admin" };
@@ -22,6 +23,7 @@ type ExpenseRow = {
   repeat_group_id: string | null;
   created_at: string;
   updated_at: string;
+  category_id: string | null;
 };
 
 type IncomeRow = {
@@ -33,6 +35,7 @@ type IncomeRow = {
   repeat_group_id: string | null;
   created_at: string;
   updated_at: string;
+  category_id: string | null;
 };
 
 // O Extrato é uma timeline de EVENTOS (monthly_budget_history_events) — não
@@ -47,7 +50,7 @@ export default async function ExtratoGastoMensalPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
 
-  const [{ data: eventsData }, { data: expensesData }, { data: incomesData }] = await Promise.all([
+  const [{ data: eventsData }, { data: expensesData, error: expensesError }, { data: incomesData, error: incomesError }, { data: categoriesData }] = await Promise.all([
     supabase
       .from("monthly_budget_history_events")
       .select("id, entity_kind, action, entity_group_id, anchor_entry_id, anchor_month_key, edit_scope, previous_event_id, occurred_at, before_snapshot, after_snapshot, affected_months, metadata")
@@ -55,19 +58,32 @@ export default async function ExtratoGastoMensalPage() {
       .order("occurred_at", { ascending: false }),
     supabase
       .from("monthly_budget_expenses")
-      .select("id, month_key, name, amount_carlos, amount_julia, is_paid, paid_at, due_date, repeat_group_id, created_at, updated_at")
+      .select("id, month_key, name, amount_carlos, amount_julia, is_paid, paid_at, due_date, repeat_group_id, category_id, created_at, updated_at")
       .eq("user_id", user.id),
     supabase
       .from("monthly_budget_incomes")
-      .select("id, month_key, name, amount_carlos, amount_julia, repeat_group_id, created_at, updated_at")
+      .select("id, month_key, name, amount_carlos, amount_julia, repeat_group_id, category_id, created_at, updated_at")
       .eq("user_id", user.id),
+    supabase.from("monthly_budget_categories").select("id, name, active, created_at, updated_at")
+      .eq("user_id", user.id).eq("active", true).order("name"),
   ]);
+
+  const expensesFallback = expensesError
+    ? (await supabase.from("monthly_budget_expenses")
+      .select("id, month_key, name, amount_carlos, amount_julia, is_paid, paid_at, due_date, repeat_group_id, created_at, updated_at")
+      .eq("user_id", user.id)).data
+    : expensesData;
+  const incomesFallback = incomesError
+    ? (await supabase.from("monthly_budget_incomes")
+      .select("id, month_key, name, amount_carlos, amount_julia, repeat_group_id, created_at, updated_at")
+      .eq("user_id", user.id)).data
+    : incomesData;
 
   const events = sortHistoryByOccurredAtDesc(
     ((eventsData ?? []) as HistoryEventRow[]).map(mapHistoryEventRow),
   );
 
-  const expenseRows = (expensesData ?? []) as ExpenseRow[];
+  const expenseRows = (expensesFallback ?? []) as ExpenseRow[];
   const expenses: MonthlyBudgetExpense[] = expenseRows.map((r) => ({
     id: r.id,
     monthKey: dbDateToMonthKey(r.month_key),
@@ -80,9 +96,10 @@ export default async function ExtratoGastoMensalPage() {
     repeatGroupId: r.repeat_group_id,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    categoryId: r.category_id,
   }));
 
-  const incomeRows = (incomesData ?? []) as IncomeRow[];
+  const incomeRows = (incomesFallback ?? []) as IncomeRow[];
   const incomes: MonthlyBudgetIncome[] = incomeRows.map((r) => ({
     id: r.id,
     monthKey: dbDateToMonthKey(r.month_key),
@@ -92,6 +109,10 @@ export default async function ExtratoGastoMensalPage() {
     repeatGroupId: r.repeat_group_id,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    categoryId: r.category_id,
+  }));
+  const categories: MonthlyBudgetCategory[] = (categoriesData ?? []).map((r) => ({
+    id: r.id, name: r.name, active: r.active, createdAt: r.created_at, updatedAt: r.updated_at,
   }));
 
   return (
@@ -115,7 +136,7 @@ export default async function ExtratoGastoMensalPage() {
       {/* ── Conteúdo branco ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
         <div className="mx-auto max-w-5xl">
-          <ExtratoClient events={events} expenses={expenses} incomes={incomes} />
+          <ExtratoClient events={events} expenses={expenses} incomes={incomes} categories={categories} />
         </div>
       </div>
     </div>

@@ -7,7 +7,7 @@ import { criarDespesa, editarDespesa } from "@/app/admin/gasto-mensal/actions";
 import { inputCls, labelCls, PersonAmountFields } from "@/components/admin/gasto-mensal/PersonAmountFields";
 import {
   formatBRLInput, personOfAmounts, totalAmount, dayOfDate, monthLabelLong,
-  type MonthlyBudgetExpense, type PersonSelecao, type SplitMode, type EscopoEdicao,
+  type MonthlyBudgetCategory, type MonthlyBudgetExpense, type PersonSelecao, type SplitMode, type EscopoEdicao,
 } from "@/lib/monthly-budget";
 
 const initialState = { error: undefined as string | undefined };
@@ -23,6 +23,7 @@ const lockedFieldCls = `${inputCls} cursor-not-allowed bg-gray-50 text-gray-400`
 export function DespesaForm({
   monthKey,
   expense,
+  categories,
   groupStartMonthKey,
   groupEndMonthKey,
   onClose,
@@ -30,6 +31,7 @@ export function DespesaForm({
 }: {
   monthKey: string;
   expense?: MonthlyBudgetExpense | null;
+  categories: MonthlyBudgetCategory[];
   /** Menor/maior mês da série desse lançamento (ou o próprio mês, se ainda for só uma ocorrência). Só relevante na edição. */
   groupStartMonthKey?: string;
   groupEndMonthKey?: string;
@@ -126,6 +128,14 @@ export function DespesaForm({
                 <input name="name" required defaultValue={expense?.name} className={inputCls} placeholder="Ex: Aluguel" />
               </div>
 
+              <div>
+                <label className={labelCls}>Categoria (opcional)</label>
+                <select name="category_id" defaultValue={expense?.categoryId ?? ""} className={inputCls}>
+                  <option value="">Sem categoria</option>
+                  {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                </select>
+              </div>
+
               {/* ── Período — sempre visível; travado ou editável conforme o escopo ── */}
               <div>
                 <div className="grid grid-cols-2 gap-2">
@@ -176,6 +186,14 @@ export function DespesaForm({
               <div>
                 <label className={labelCls}>Nome</label>
                 <input name="name" required className={inputCls} placeholder="Ex: Aluguel" />
+              </div>
+
+              <div>
+                <label className={labelCls}>Categoria (opcional)</label>
+                <select name="category_id" defaultValue="" className={inputCls}>
+                  <option value="">Sem categoria</option>
+                  {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-2">

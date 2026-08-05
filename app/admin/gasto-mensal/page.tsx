@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { GastoMensalClient } from "@/components/admin/gasto-mensal/GastoMensalClient";
 import {
   dbDateToMonthKey, defaultMonthKey, hojeISOBahia,
-  type MonthlyBudgetExpense, type MonthlyBudgetIncome,
+  type MonthlyBudgetExpense, type MonthlyBudgetIncome, type MonthlyBudgetCategory,
 } from "@/lib/monthly-budget";
 
 export const metadata = { title: "Gasto mensal — Admin" };
@@ -22,6 +22,7 @@ type ExpenseRow = {
   repeat_group_id: string | null;
   created_at: string;
   updated_at: string;
+  category_id: string | null;
 };
 
 type IncomeRow = {
@@ -33,6 +34,7 @@ type IncomeRow = {
   repeat_group_id: string | null;
   created_at: string;
   updated_at: string;
+  category_id: string | null;
 };
 
 export default async function GastoMensalPage() {
@@ -41,20 +43,35 @@ export default async function GastoMensalPage() {
   if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
   const todayDateKey = hojeISOBahia();
 
-  const [{ data: expensesData }, { data: incomesData }] = await Promise.all([
+  const [{ data: expensesData, error: expensesError }, { data: incomesData, error: incomesError }, { data: categoriesData }] = await Promise.all([
     supabase
       .from("monthly_budget_expenses")
-      .select("id, month_key, name, amount_carlos, amount_julia, is_paid, paid_at, due_date, repeat_group_id, created_at, updated_at")
+      .select("id, month_key, name, amount_carlos, amount_julia, is_paid, paid_at, due_date, repeat_group_id, category_id, created_at, updated_at")
       .eq("user_id", user.id)
       .order("month_key", { ascending: false }),
     supabase
       .from("monthly_budget_incomes")
-      .select("id, month_key, name, amount_carlos, amount_julia, repeat_group_id, created_at, updated_at")
+      .select("id, month_key, name, amount_carlos, amount_julia, repeat_group_id, category_id, created_at, updated_at")
       .eq("user_id", user.id)
       .order("month_key", { ascending: false }),
+    supabase.from("monthly_budget_categories").select("id, name, active, created_at, updated_at")
+      .eq("user_id", user.id).eq("active", true).order("name"),
   ]);
 
-  const expenseRows = (expensesData ?? []) as ExpenseRow[];
+  // Compatibilidade durante a aplicação da migração de categorias: nunca
+  // transforma uma falha da nova coluna em uma tela vazia.
+  const expensesFallback = expensesError
+    ? (await supabase.from("monthly_budget_expenses")
+      .select("id, month_key, name, amount_carlos, amount_julia, is_paid, paid_at, due_date, repeat_group_id, created_at, updated_at")
+      .eq("user_id", user.id).order("month_key", { ascending: false })).data
+    : expensesData;
+  const incomesFallback = incomesError
+    ? (await supabase.from("monthly_budget_incomes")
+      .select("id, month_key, name, amount_carlos, amount_julia, repeat_group_id, created_at, updated_at")
+      .eq("user_id", user.id).order("month_key", { ascending: false })).data
+    : incomesData;
+
+  const expenseRows = (expensesFallback ?? []) as ExpenseRow[];
   const expenses: MonthlyBudgetExpense[] = expenseRows.map((r) => ({
     id: r.id,
     monthKey: dbDateToMonthKey(r.month_key),
@@ -67,9 +84,10 @@ export default async function GastoMensalPage() {
     repeatGroupId: r.repeat_group_id,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    categoryId: r.category_id,
   }));
 
-  const incomeRows = (incomesData ?? []) as IncomeRow[];
+  const incomeRows = (incomesFallback ?? []) as IncomeRow[];
   const incomes: MonthlyBudgetIncome[] = incomeRows.map((r) => ({
     id: r.id,
     monthKey: dbDateToMonthKey(r.month_key),
@@ -79,6 +97,10 @@ export default async function GastoMensalPage() {
     repeatGroupId: r.repeat_group_id,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    categoryId: r.category_id,
+  }));
+  const categories: MonthlyBudgetCategory[] = (categoriesData ?? []).map((r) => ({
+    id: r.id, name: r.name, active: r.active, createdAt: r.created_at, updatedAt: r.updated_at,
   }));
 
   return (
@@ -108,6 +130,7 @@ export default async function GastoMensalPage() {
             initialMonthKey={defaultMonthKey()}
             todayMonthKey={todayDateKey.slice(0, 7)}
             todayDateKey={todayDateKey}
+            categories={categories}
           />
         </div>
       </div>

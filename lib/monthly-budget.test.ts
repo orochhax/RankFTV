@@ -28,6 +28,7 @@ function expense(overrides: Partial<MonthlyBudgetExpense> & { id: string }): Mon
     repeatGroupId: null,
     createdAt: "2026-08-01T12:00:00.000Z",
     updatedAt: "2026-08-01T12:00:00.000Z",
+    categoryId: null,
     ...overrides,
   };
 }
@@ -41,6 +42,7 @@ function income(overrides: Partial<MonthlyBudgetIncome> & { id: string }): Month
     repeatGroupId: null,
     createdAt: "2026-08-01T12:00:00.000Z",
     updatedAt: "2026-08-01T12:00:00.000Z",
+    categoryId: null,
     ...overrides,
   };
 }
@@ -940,7 +942,7 @@ describe("diffEventSnapshots (quais campos mudaram entre antes/depois)", () => {
     const antes = buildEventSnapshot("Inter", [occ({ id: "out", monthKey: "2026-10", amountCarlos: 99 })])!;
     const depois = buildEventSnapshot("Inter", [occ({ id: "out", monthKey: "2026-10", amountCarlos: 109 })])!;
     const diff = diffEventSnapshots(antes, depois);
-    assert.deepEqual(diff, { name: false, amountCarlos: true, amountJulia: false, dueDay: false, period: false });
+    assert.deepEqual(diff, { name: false, amountCarlos: true, amountJulia: false, dueDay: false, period: false, category: false });
   });
 
   test("nome e período mudam juntos", () => {
@@ -953,8 +955,8 @@ describe("diffEventSnapshots (quais campos mudaram entre antes/depois)", () => {
 
   test("sem antes ou sem depois (criação/exclusão): nada é destacado", () => {
     const snap = buildEventSnapshot("X", [occ({ id: "a", monthKey: "2026-08" })])!;
-    assert.deepEqual(diffEventSnapshots(null, snap), { name: false, amountCarlos: false, amountJulia: false, dueDay: false, period: false });
-    assert.deepEqual(diffEventSnapshots(snap, null), { name: false, amountCarlos: false, amountJulia: false, dueDay: false, period: false });
+    assert.deepEqual(diffEventSnapshots(null, snap), { name: false, amountCarlos: false, amountJulia: false, dueDay: false, period: false, category: false });
+    assert.deepEqual(diffEventSnapshots(snap, null), { name: false, amountCarlos: false, amountJulia: false, dueDay: false, period: false, category: false });
   });
 });
 

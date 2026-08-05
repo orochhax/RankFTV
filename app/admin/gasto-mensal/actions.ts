@@ -37,12 +37,14 @@ function reval() {
 type CamposValidados = {
   monthKey: string;
   name: string;
+  categoryId: string | null;
   valores: { amountCarlos: number; amountJulia: number };
 };
 
 function validarCampos(formData: FormData): { ok: true; campos: CamposValidados } | { ok: false; error: string } {
   const monthKey = ((formData.get("month_key") as string) ?? "").trim();
   const name = ((formData.get("name") as string) ?? "").trim();
+  const categoryId = ((formData.get("category_id") as string) ?? "").trim() || null;
   const pessoa = formData.get("person") as string;
   const splitMode = formData.get("split_mode") as string;
 
@@ -67,7 +69,37 @@ function validarCampos(formData: FormData): { ok: true; campos: CamposValidados 
   });
   if (!resolved.ok) return { ok: false, error: resolved.error };
 
-  return { ok: true, campos: { monthKey, name, valores: resolved.valores } };
+  return { ok: true, campos: { monthKey, name, categoryId, valores: resolved.valores } };
+}
+
+type CategoryValue = { id: string; name: string } | null;
+
+async function validarCategoria(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  categoryId: string | null,
+): Promise<{ ok: true; category: CategoryValue } | { ok: false; error: string }> {
+  if (!categoryId) return { ok: true, category: null };
+  const { data } = await supabase
+    .from("monthly_budget_categories")
+    .select("id, name")
+    .eq("id", categoryId)
+    .eq("user_id", userId)
+    .eq("active", true)
+    .maybeSingle<{ id: string; name: string }>();
+  if (!data) return { ok: false, error: "Categoria invÃ¡lida ou indisponÃ­vel." };
+  return { ok: true, category: data };
+}
+
+async function buscarCategoria(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  categoryId: string | null,
+): Promise<CategoryValue> {
+  if (!categoryId) return null;
+  const { data } = await supabase.from("monthly_budget_categories").select("id, name")
+    .eq("id", categoryId).eq("user_id", userId).maybeSingle<{ id: string; name: string }>();
+  return data ?? { id: categoryId, name: "Sem categoria" };
 }
 
 /**
@@ -135,9 +167,10 @@ type ExpenseGroupRow = {
   is_paid: boolean;
   paid_at: string | null;
   repeat_group_id: string | null;
+  category_id: string | null;
 };
 
-const EXPENSE_GROUP_COLS = "id, month_key, name, amount_carlos, amount_julia, due_date, is_paid, paid_at, repeat_group_id";
+const EXPENSE_GROUP_COLS = "id, month_key, name, amount_carlos, amount_julia, due_date, is_paid, paid_at, repeat_group_id, category_id";
 
 type GrupoDespesaItem = {
   id: string;
@@ -148,6 +181,7 @@ type GrupoDespesaItem = {
   dueDate: string | null;
   isPaid: boolean;
   paidAt: string | null;
+  categoryId: string | null;
 };
 
 function toExpenseOccurrenceSnapshot(item: GrupoDespesaItem): MonthlyBudgetOccurrenceSnapshot {
@@ -184,17 +218,20 @@ async function buscarGrupoDespesas(
     dueDate: r.due_date,
     isPaid: r.is_paid,
     paidAt: r.paid_at,
+    categoryId: r.category_id,
   }));
 }
 
 export async function criarDespesa(formData: FormData): Promise<Res> {
   const ctx = await requireAdmin();
   if (!ctx) return { ok: false, error: "Acesso negado." };
-  const { supabase } = ctx;
+  const { supabase, user } = ctx;
 
   const validado = validarCampos(formData);
   if (!validado.ok) return { ok: false, error: validado.error };
-  const { monthKey, name, valores } = validado.campos;
+  const { monthKey, name, categoryId, valores } = validado.campos;
+  const categoriaValidada = await validarCategoria(supabase, user.id, categoryId);
+  if (!categoriaValidada.ok) return { ok: false, error: categoriaValidada.error };
 
   const validadoDia = validarDiaVencimento(formData);
   if (!validadoDia.ok) return { ok: false, error: validadoDia.error };
@@ -228,6 +265,7 @@ export async function criarDespesa(formData: FormData): Promise<Res> {
     amount_julia: d.amountJulia,
     due_date: d.dueDate ?? "",
     repeat_group_id: repeatGroupId,
+    category_id: categoryId ?? "",
   }));
 
   const afterSnapshot = buildEventSnapshot(
@@ -236,6 +274,7 @@ export async function criarDespesa(formData: FormData): Promise<Res> {
       id: d.id, monthKey: d.monthKey, amountCarlos: d.amountCarlos, amountJulia: d.amountJulia,
       dueDate: d.dueDate, isPaid: false, paidAt: null,
     })),
+    categoriaValidada.category,
   );
 
   const { error } = await supabase.rpc("mb_write_expense_event", {
@@ -272,7 +311,9 @@ export async function editarDespesa(formData: FormData): Promise<Res> {
   // Em edição, "monthKey" é o novo mês INICIAL submetido (campo "De") — só é
   // usado de fato quando o período é mostrado no form; fora isso, chega aqui
   // com o próprio mês da linha (campo escondido), sem efeito nenhum.
-  const { monthKey: novoPrimeiroMesSubmetido, name, valores } = validado.campos;
+  const { monthKey: novoPrimeiroMesSubmetido, name, categoryId, valores } = validado.campos;
+  const categoriaValidada = await validarCategoria(supabase, user.id, categoryId);
+  if (!categoriaValidada.ok) return { ok: false, error: categoriaValidada.error };
 
   const validadoDia = validarDiaVencimento(formData);
   if (!validadoDia.ok) return { ok: false, error: validadoDia.error };
@@ -338,6 +379,7 @@ export async function editarDespesa(formData: FormData): Promise<Res> {
   const beforeSnapshot = buildEventSnapshot(
     originalRaw.name,
     grupoOriginal.filter((g) => idsAfetadosAntes.has(g.id)).map(toExpenseOccurrenceSnapshot),
+    await buscarCategoria(supabase, user.id, originalRaw.category_id),
   );
 
   // ── Snapshot DEPOIS: novo estado das mesmas linhas existentes + as recém-
@@ -354,7 +396,7 @@ export async function editarDespesa(formData: FormData): Promise<Res> {
       dueDate: dueDateForMonth(m.monthKey, validadoDia.dueDay), isPaid: false, paidAt: null,
     })),
   ];
-  const afterSnapshot = buildEventSnapshot(name, afterOccorrencias);
+  const afterSnapshot = buildEventSnapshot(name, afterOccorrencias, categoriaValidada.category);
 
   const affectedMonths = Array.from(new Set([
     ...(beforeSnapshot?.occurrences.map((o) => o.monthKey) ?? []),
@@ -372,6 +414,7 @@ export async function editarDespesa(formData: FormData): Promise<Res> {
           amount_julia: valores.amountJulia,
           due_date: dueDateForMonth(m.monthKey, validadoDia.dueDay) ?? "",
           repeat_group_id: groupId,
+          category_id: categoryId ?? "",
         }))
       : null,
     p_updates: alvoExistente.length > 0
@@ -381,6 +424,7 @@ export async function editarDespesa(formData: FormData): Promise<Res> {
           amount_carlos: valores.amountCarlos,
           amount_julia: valores.amountJulia,
           due_date: dueDateForMonth(g.monthKey, validadoDia.dueDay) ?? "",
+          category_id: categoryId ?? "",
         }))
       : null,
     p_event: historyEventToRpcPayload({
@@ -423,7 +467,7 @@ export async function apagarDespesa(input: ApagarDespesaInput): Promise<Res> {
   const idsAlvoSet = new Set(idsAlvo);
   const removidos = grupo.filter((g) => idsAlvoSet.has(g.id));
 
-  const beforeSnapshot = buildEventSnapshot(originalRaw.name, removidos.map(toExpenseOccurrenceSnapshot));
+  const beforeSnapshot = buildEventSnapshot(originalRaw.name, removidos.map(toExpenseOccurrenceSnapshot), await buscarCategoria(supabase, user.id, originalRaw.category_id));
 
   const { error } = await supabase.rpc("mb_write_expense_event", {
     p_ids_to_delete: idsAlvo,
@@ -479,8 +523,8 @@ export async function alternarPagoDespesa(id: string, pago: boolean): Promise<Re
       anchorEntryId: id,
       anchorMonthKey,
       editScope: null,
-      beforeSnapshot: buildEventSnapshot(originalRaw.name, [antes]),
-      afterSnapshot: buildEventSnapshot(originalRaw.name, [depois]),
+      beforeSnapshot: buildEventSnapshot(originalRaw.name, [antes], await buscarCategoria(supabase, user.id, originalRaw.category_id)),
+      afterSnapshot: buildEventSnapshot(originalRaw.name, [depois], await buscarCategoria(supabase, user.id, originalRaw.category_id)),
       affectedMonths: [anchorMonthKey],
     }),
   });
@@ -499,9 +543,10 @@ type IncomeGroupRow = {
   amount_carlos: number | string;
   amount_julia: number | string;
   repeat_group_id: string | null;
+  category_id: string | null;
 };
 
-const INCOME_GROUP_COLS = "id, month_key, name, amount_carlos, amount_julia, repeat_group_id";
+const INCOME_GROUP_COLS = "id, month_key, name, amount_carlos, amount_julia, repeat_group_id, category_id";
 
 type GrupoReceitaItem = {
   id: string;
@@ -509,6 +554,7 @@ type GrupoReceitaItem = {
   name: string;
   amountCarlos: number;
   amountJulia: number;
+  categoryId: string | null;
 };
 
 function toIncomeOccurrenceSnapshot(item: GrupoReceitaItem): MonthlyBudgetOccurrenceSnapshot {
@@ -533,6 +579,7 @@ async function buscarGrupoReceitas(
     name: r.name,
     amountCarlos: Number(r.amount_carlos),
     amountJulia: Number(r.amount_julia),
+    categoryId: r.category_id,
   }));
 }
 
@@ -543,7 +590,9 @@ export async function criarReceita(formData: FormData): Promise<Res> {
 
   const validado = validarCampos(formData);
   if (!validado.ok) return { ok: false, error: validado.error };
-  const { monthKey, name, valores } = validado.campos;
+  const { monthKey, name, categoryId, valores } = validado.campos;
+  const categoriaValidada = await validarCategoria(supabase, ctx.user.id, categoryId);
+  if (!categoriaValidada.ok) return { ok: false, error: categoriaValidada.error };
 
   const validadoIntervalo = validarIntervaloRepeticao(formData, monthKey);
   if (!validadoIntervalo.ok) return { ok: false, error: validadoIntervalo.error };
@@ -568,13 +617,14 @@ export async function criarReceita(formData: FormData): Promise<Res> {
     amount_carlos: d.amountCarlos,
     amount_julia: d.amountJulia,
     repeat_group_id: repeatGroupId,
+    category_id: categoryId ?? "",
   }));
 
   const afterSnapshot = buildEventSnapshot(
     name,
     draftsComId.map((d): MonthlyBudgetOccurrenceSnapshot => ({
       id: d.id, monthKey: d.monthKey, amountCarlos: d.amountCarlos, amountJulia: d.amountJulia,
-    })),
+    })), categoriaValidada.category,
   );
 
   const { error } = await supabase.rpc("mb_write_income_event", {
@@ -608,7 +658,9 @@ export async function editarReceita(formData: FormData): Promise<Res> {
 
   const validado = validarCampos(formData);
   if (!validado.ok) return { ok: false, error: validado.error };
-  const { monthKey: novoPrimeiroMesSubmetido, name, valores } = validado.campos;
+  const { monthKey: novoPrimeiroMesSubmetido, name, categoryId, valores } = validado.campos;
+  const categoriaValidada = await validarCategoria(supabase, user.id, categoryId);
+  if (!categoriaValidada.ok) return { ok: false, error: categoriaValidada.error };
 
   const { data: originalRaw } = await supabase
     .from("monthly_budget_incomes")
@@ -659,6 +711,7 @@ export async function editarReceita(formData: FormData): Promise<Res> {
   const beforeSnapshot = buildEventSnapshot(
     originalRaw.name,
     grupoOriginal.filter((g) => idsAfetadosAntes.has(g.id)).map(toIncomeOccurrenceSnapshot),
+    await buscarCategoria(supabase, user.id, originalRaw.category_id),
   );
 
   const afterOccorrencias: MonthlyBudgetOccurrenceSnapshot[] = [
@@ -669,7 +722,7 @@ export async function editarReceita(formData: FormData): Promise<Res> {
       id: m.id, monthKey: m.monthKey, amountCarlos: valores.amountCarlos, amountJulia: valores.amountJulia,
     })),
   ];
-  const afterSnapshot = buildEventSnapshot(name, afterOccorrencias);
+  const afterSnapshot = buildEventSnapshot(name, afterOccorrencias, categoriaValidada.category);
 
   const affectedMonths = Array.from(new Set([
     ...(beforeSnapshot?.occurrences.map((o) => o.monthKey) ?? []),
@@ -686,11 +739,12 @@ export async function editarReceita(formData: FormData): Promise<Res> {
           amount_carlos: valores.amountCarlos,
           amount_julia: valores.amountJulia,
           repeat_group_id: groupId,
+          category_id: categoryId ?? "",
         }))
       : null,
     p_updates: alvoExistente.length > 0
       ? alvoExistente.map((g) => ({
-          id: g.id, name, amount_carlos: valores.amountCarlos, amount_julia: valores.amountJulia,
+          id: g.id, name, amount_carlos: valores.amountCarlos, amount_julia: valores.amountJulia, category_id: categoryId ?? "",
         }))
       : null,
     p_event: historyEventToRpcPayload({
@@ -733,7 +787,7 @@ export async function apagarReceita(input: ApagarReceitaInput): Promise<Res> {
   const idsAlvoSet = new Set(idsAlvo);
   const removidos = grupo.filter((g) => idsAlvoSet.has(g.id));
 
-  const beforeSnapshot = buildEventSnapshot(originalRaw.name, removidos.map(toIncomeOccurrenceSnapshot));
+  const beforeSnapshot = buildEventSnapshot(originalRaw.name, removidos.map(toIncomeOccurrenceSnapshot), await buscarCategoria(supabase, user.id, originalRaw.category_id));
 
   const { error } = await supabase.rpc("mb_write_income_event", {
     p_ids_to_delete: idsAlvo,
@@ -752,6 +806,44 @@ export async function apagarReceita(input: ApagarReceitaInput): Promise<Res> {
   });
   if (error) return { ok: false, error: error.message };
 
+  reval();
+  return { ok: true };
+}
+
+export async function criarCategoriaMensal(nameInput: string): Promise<Res> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const name = nameInput.trim();
+  if (!name || name.length > 80) return { ok: false, error: "Informe uma categoria de até 80 caracteres." };
+  const { data: existing } = await ctx.supabase.from("monthly_budget_categories").select("id")
+    .eq("user_id", ctx.user.id).eq("active", true).ilike("name", name).maybeSingle();
+  if (existing) return { ok: false, error: "Essa categoria já existe." };
+  const { error } = await ctx.supabase.from("monthly_budget_categories").insert({ user_id: ctx.user.id, name });
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function renomearCategoriaMensal(id: string, nameInput: string): Promise<Res> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const name = nameInput.trim();
+  if (!id || !name || name.length > 80) return { ok: false, error: "Nome de categoria inválido." };
+  const { data: existing } = await ctx.supabase.from("monthly_budget_categories").select("id")
+    .eq("user_id", ctx.user.id).eq("active", true).ilike("name", name).neq("id", id).maybeSingle();
+  if (existing) return { ok: false, error: "Essa categoria já existe." };
+  const { error } = await ctx.supabase.from("monthly_budget_categories").update({ name, updated_at: new Date().toISOString() })
+    .eq("id", id).eq("user_id", ctx.user.id).eq("active", true);
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function removerCategoriaMensal(id: string): Promise<Res> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { error } = await ctx.supabase.rpc("mb_remove_monthly_category", { p_id: id });
+  if (error) return { ok: false, error: error.message };
   reval();
   return { ok: true };
 }

@@ -8,7 +8,7 @@ import {
 } from "recharts";
 import {
   Plus, ListPlus, ChevronLeft, ChevronRight, Wallet, TrendingDown, Scale, Inbox,
-  Pencil, Trash2, Loader2, CheckCircle2, ReceiptText,
+  Pencil, Trash2, Loader2, CheckCircle2, ReceiptText, ChevronDown, Tags,
 } from "lucide-react";
 import { apagarDespesa, apagarReceita, alternarPagoDespesa } from "@/app/admin/gasto-mensal/actions";
 import { DespesaForm } from "@/components/admin/gasto-mensal/DespesaForm";
@@ -17,11 +17,12 @@ import { ExcluirEscopoDialog } from "@/components/admin/gasto-mensal/ExcluirEsco
 import { ConfirmarExclusaoDialog } from "@/components/admin/gasto-mensal/ConfirmarExclusaoDialog";
 import { formatBRL, formatDateBR } from "@/lib/format";
 import {
-  addMonthsToKey, monthLabelLong, itemsOfMonth, filterByPersonParticipation, sortByVisibleAmountDesc,
+  addMonthsToKey, monthLabelLong, itemsOfMonth,
   amountForFilter, personOfAmounts, resultadoPrevisto, contarPagoPendente, buildExpenseChartPoints,
-  groupMonthBounds, fazParteDeGrupo, dueDateStatus,
-  type MonthlyBudgetExpense, type MonthlyBudgetIncome, type PersonFilter, type ExpenseChartPoint, type EscopoEdicao,
+  groupMonthBounds, fazParteDeGrupo, dueDateStatus, groupBudgetItemsByCategory,
+  type MonthlyBudgetExpense, type MonthlyBudgetIncome, type MonthlyBudgetCategory, type PersonFilter, type ExpenseChartPoint, type EscopoEdicao,
 } from "@/lib/monthly-budget";
+import { CategoriasMensaisPainel } from "@/components/admin/gasto-mensal/CategoriasMensaisPainel";
 
 const COR_CARLOS = "#2563eb"; // blue-600
 const COR_JULIA  = "#f43f5e"; // rose-500
@@ -101,12 +102,14 @@ export function GastoMensalClient({
   incomes,
   initialMonthKey,
   todayMonthKey,
+  categories,
   todayDateKey,
 }: {
   expenses: MonthlyBudgetExpense[];
   incomes: MonthlyBudgetIncome[];
   initialMonthKey: string;
   todayMonthKey: string;
+  categories: MonthlyBudgetCategory[];
   todayDateKey: string;
 }) {
   const router = useRouter();
@@ -121,6 +124,8 @@ export function GastoMensalClient({
   const [apagandoReceitaId, setApagandoReceitaId] = useState<string | null>(null);
   const [alternandoId, setAlternandoId] = useState<string | null>(null);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
+  const [categoriasAberta, setCategoriasAberta] = useState(false);
+  const [categoriasExpandidas, setCategoriasExpandidas] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -132,14 +137,8 @@ export function GastoMensalClient({
   const despesasDoMes = useMemo(() => itemsOfMonth(expenses, monthKey), [expenses, monthKey]);
   const receitasDoMes = useMemo(() => itemsOfMonth(incomes, monthKey), [incomes, monthKey]);
 
-  const despesasFiltradas = useMemo(
-    () => sortByVisibleAmountDesc(filterByPersonParticipation(despesasDoMes, filtro), filtro),
-    [despesasDoMes, filtro],
-  );
-  const receitasFiltradas = useMemo(
-    () => sortByVisibleAmountDesc(filterByPersonParticipation(receitasDoMes, filtro), filtro),
-    [receitasDoMes, filtro],
-  );
+  const despesasLinhas = useMemo(() => groupBudgetItemsByCategory(despesasDoMes, categories, filtro), [despesasDoMes, categories, filtro]);
+  const receitasLinhas = useMemo(() => groupBudgetItemsByCategory(receitasDoMes, categories, filtro), [receitasDoMes, categories, filtro]);
 
   const resultado = useMemo(() => resultadoPrevisto(incomes, expenses, monthKey, filtro), [incomes, expenses, monthKey, filtro]);
   const { pagas, pendentes } = useMemo(() => contarPagoPendente(expenses, monthKey, filtro), [expenses, monthKey, filtro]);
@@ -192,6 +191,10 @@ export function GastoMensalClient({
       setMensagemSucesso("Receita excluída.");
       router.refresh();
     });
+  }
+
+  function alternarCategoria(id: string) {
+    setCategoriasExpandidas((old) => { const next = new Set(old); if (next.has(id)) next.delete(id); else next.add(id); return next; });
   }
 
   return (
@@ -276,6 +279,9 @@ export function GastoMensalClient({
         >
           <ReceiptText className="size-4" /> Extrato
         </Link>
+        <button type="button" onClick={() => setCategoriasAberta(true)} className="flex items-center gap-1.5 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-colors">
+          <Tags className="size-4" /> Categorias
+        </button>
       </div>
 
       {/* ── Checklist de despesas ── */}
@@ -289,14 +295,30 @@ export function GastoMensalClient({
           </p>
         </div>
 
-        {despesasFiltradas.length === 0 ? (
+        {despesasLinhas.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-2xl bg-gray-50 p-8 text-center ring-1 ring-black/5">
             <Inbox className="size-8 text-gray-300" />
             <p className="text-sm text-gray-400">Nenhuma despesa cadastrada para esse mês.</p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-            {despesasFiltradas.map((d) => (
+            {despesasLinhas.map((row) => row.kind === "category" ? (
+              <li key={`cat-${row.categoryId}`} className="border-b border-gray-100 last:border-0">
+                <button type="button" onClick={() => alternarCategoria(row.categoryId)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50">
+                  <ChevronDown className={`size-4 text-gray-400 transition-transform ${categoriasExpandidas.has(row.categoryId) ? "rotate-180" : ""}`} />
+                  <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-gray-900">{row.categoryName}</span><span className="text-xs text-gray-400">{row.items.length} lançamentos</span></span>
+                  <PessoaDots item={row} /><span className="shrink-0 text-sm font-bold text-gray-900">{formatBRL(amountForFilter(row, filtro))}</span>
+                </button>
+                {categoriasExpandidas.has(row.categoryId) && <ul className="divide-y divide-gray-100 border-t border-gray-100 bg-gray-50/60">{row.items.map((d) => (
+                  <li key={d.id} className={`flex flex-wrap items-center gap-3 px-4 py-3 pl-12 ${d.isPaid ? "opacity-60" : ""}`}>
+                    <button type="button" onClick={() => handleTogglePago(d)} disabled={alternandoId === d.id} className={`flex size-6 shrink-0 items-center justify-center rounded-full border-2 ${d.isPaid ? "border-emerald-500 bg-emerald-500 text-white" : "border-gray-300 text-transparent"}`} title={d.isPaid ? "Desfazer pagamento" : "Marcar como paga"}>{alternandoId === d.id ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-4" />}</button>
+                    <PessoaDots item={d} /><div className="min-w-0 flex-1 basis-32"><p className={`truncate text-sm font-medium ${expenseNameClass(d, todayDateKey)}`}>{d.name}</p><p className="text-xs text-gray-400">{d.isPaid ? "Pago" : "Pendente"}{d.dueDate && ` · Vence ${formatDateBR(d.dueDate)}`}</p></div><span className="shrink-0 text-sm font-semibold text-gray-900">{formatBRL(amountForFilter(d, filtro))}</span>
+                    <button type="button" onClick={() => setDespesaForm({ expense: d })} className="rounded-lg p-1.5 text-gray-300 hover:text-blue-600" title="Editar"><Pencil className="size-4" /></button><button type="button" onClick={() => handleApagarDespesa(d)} className="rounded-lg p-1.5 text-gray-300 hover:text-red-500" title="Excluir"><Trash2 className="size-4" /></button>
+                  </li>
+                ))}</ul>}
+              </li>
+            ) : (
+              (() => { const d = row.item; return (
               <li key={d.id} className={`flex flex-wrap items-center gap-3 px-4 py-3 ${d.isPaid ? "opacity-60" : ""}`}>
                 <button
                   type="button"
@@ -341,6 +363,7 @@ export function GastoMensalClient({
                   {apagandoDespesaId === d.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
                 </button>
               </li>
+              ); })()
             ))}
           </ul>
         )}
@@ -352,14 +375,17 @@ export function GastoMensalClient({
           Receitas — {monthLabelLong(monthKey)}
         </h2>
 
-        {receitasFiltradas.length === 0 ? (
+        {receitasLinhas.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-2xl bg-gray-50 p-6 text-center ring-1 ring-black/5">
             <Inbox className="size-6 text-gray-300" />
             <p className="text-sm text-gray-400">Nenhuma receita cadastrada para esse mês.</p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-            {receitasFiltradas.map((r) => (
+            {receitasLinhas.map((row) => row.kind === "category" ? (
+              <li key={`income-cat-${row.categoryId}`} className="border-b border-gray-100 last:border-0"><button type="button" onClick={() => alternarCategoria(`income-${row.categoryId}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50"><ChevronDown className={`size-4 text-gray-400 ${categoriasExpandidas.has(`income-${row.categoryId}`) ? "rotate-180" : ""}`} /><span className="min-w-0 flex-1 text-sm font-semibold text-gray-900">{row.categoryName}<span className="ml-2 text-xs font-normal text-gray-400">{row.items.length} lançamentos</span></span><PessoaDots item={row} /><span className="text-sm font-bold text-emerald-600">{formatBRL(amountForFilter(row, filtro))}</span></button>{categoriasExpandidas.has(`income-${row.categoryId}`) && <ul className="divide-y divide-gray-100 border-t border-gray-100 bg-gray-50/60">{row.items.map((r) => <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5 pl-12"><PessoaDots item={r} /><p className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">{r.name}</p><span className="text-sm font-semibold text-emerald-600">{formatBRL(amountForFilter(r, filtro))}</span><button type="button" onClick={() => setReceitaForm({ income: r })} className="rounded-lg p-1.5 text-gray-300 hover:text-blue-600" title="Editar"><Pencil className="size-4" /></button><button type="button" onClick={() => handleApagarReceita(r)} className="rounded-lg p-1.5 text-gray-300 hover:text-red-500" title="Excluir"><Trash2 className="size-4" /></button></li>)}</ul>}</li>
+            ) : (
+              (() => { const r = row.item; return (
               <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
                 <PessoaDots item={r} />
                 <p className="min-w-0 flex-1 basis-32 truncate text-sm font-medium text-gray-900">{r.name}</p>
@@ -382,6 +408,7 @@ export function GastoMensalClient({
                   {apagandoReceitaId === r.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
                 </button>
               </li>
+              ); })()
             ))}
           </ul>
         )}
@@ -425,6 +452,7 @@ export function GastoMensalClient({
         <DespesaForm
           monthKey={monthKey}
           expense={despesaForm.expense}
+          categories={categories}
           groupStartMonthKey={despesaForm.expense ? groupMonthBounds(expenses, despesaForm.expense).start : undefined}
           groupEndMonthKey={despesaForm.expense ? groupMonthBounds(expenses, despesaForm.expense).end : undefined}
           onClose={() => setDespesaForm(null)}
@@ -436,6 +464,7 @@ export function GastoMensalClient({
         <ReceitaForm
           monthKey={monthKey}
           income={receitaForm.income}
+          categories={categories}
           groupStartMonthKey={receitaForm.income ? groupMonthBounds(incomes, receitaForm.income).start : undefined}
           groupEndMonthKey={receitaForm.income ? groupMonthBounds(incomes, receitaForm.income).end : undefined}
           onClose={() => setReceitaForm(null)}
@@ -476,6 +505,7 @@ export function GastoMensalClient({
           />
         )
       )}
+      {categoriasAberta && <CategoriasMensaisPainel categories={categories} onClose={() => setCategoriasAberta(false)} />}
     </div>
   );
 }
