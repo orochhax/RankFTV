@@ -151,6 +151,22 @@ export async function removerHabito(id: string): Promise<Res> {
   return { ok: true };
 }
 
+export async function reativarHabito(id: string): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { error } = await ctx.supabase.from("perf_habit").update({ ativo: true }).eq("id", id).eq("user_id", ctx.user.id);
+  if (error) return { ok: false, error: error.message };
+  reval(); return { ok: true };
+}
+
+export async function excluirHabito(id: string): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const { error } = await ctx.supabase.from("perf_habit").delete().eq("id", id).eq("user_id", ctx.user.id);
+  if (error) return { ok: false, error: error.message };
+  reval(); return { ok: true };
+}
+
 // ── Peso ─────────────────────────────────────────────────────────────────────
 export async function registrarPeso(formData: FormData): Promise<Res> {
   const ctx = await requireCeo();

@@ -85,6 +85,7 @@ export default async function RootLayout({
     <html
       lang="pt-BR"
       className={`${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-app-bg text-gray-900">
         <AppShell

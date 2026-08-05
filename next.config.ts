@@ -24,10 +24,12 @@ const contentSecurityPolicy = [
 // origin nativa das Server Actions.
 const nextConfig: NextConfig = {
   experimental: {
-    serverActions:
-      process.env.ALLOW_TUNNEL_ORIGIN === "1"
+    serverActions: {
+      bodySizeLimit: "8mb",
+      ...(process.env.ALLOW_TUNNEL_ORIGIN === "1"
         ? { allowedOrigins: ["*.trycloudflare.com"] }
-        : undefined,
+        : {}),
+    },
   },
   images: {
     remotePatterns: [

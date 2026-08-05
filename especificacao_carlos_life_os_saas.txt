@@ -1,0 +1,2022 @@
+ESPECIFICAÇÃO FUNCIONAL DO SAAS
+CARLOS LIFE OS
+
+Versão: 1.0
+Objetivo deste documento:
+Descrever de forma clara e completa o aplicativo que deverá ser desenvolvido para substituir o sistema inicialmente pensado no Notion. Este arquivo deve servir como documento de referência para programadores, designers e demais pessoas envolvidas no desenvolvimento.
+
+============================================================
+1. VISÃO GERAL DO PRODUTO
+============================================================
+
+Nome provisório:
+Carlos Life OS
+
+Tipo de produto:
+SaaS pessoal de organização, acompanhamento de hábitos, rotina, estudos, atividades físicas, trabalho, metas e investimentos.
+
+Conceito principal:
+O sistema deve funcionar como um “sistema operacional pessoal”, reunindo em um único lugar a agenda diária, os hábitos, as atividades executadas, as metas, os aportes financeiros e os insights gerados por inteligência artificial.
+
+A proposta não é criar um aplicativo de produtividade excessivamente complexo. O foco é registrar apenas informações que ajudem o usuário a:
+
+- Tomar decisões.
+- Identificar erros.
+- Acompanhar evolução.
+- Perceber áreas negligenciadas.
+- Corrigir a rotina.
+- Projetar quando uma meta poderá ser alcançada.
+- Evitar falsa produtividade.
+
+Frase principal do produto:
+“Execução diária, evolução real e decisões por dados.”
+
+Princípio central:
+Se uma informação não ajuda o usuário a decidir, corrigir ou acompanhar uma meta, ela não deve ser obrigatória.
+
+Tempo máximo desejado para uso diário:
+Entre 2 e 4 minutos para registrar informações básicas.
+
+Tempo desejado para revisão semanal:
+Entre 5 e 15 minutos.
+
+============================================================
+2. OBJETIVOS DO SISTEMA
+============================================================
+
+O sistema deverá permitir que o usuário:
+
+1. Visualize toda a agenda do dia em ordem cronológica.
+2. Veja automaticamente a duração de cada evento.
+3. Sincronize eventos do Google Calendar.
+4. Cadastre hábitos recorrentes.
+5. Marque hábitos como concluídos diariamente.
+6. Visualize constância por meio de heatmap semelhante ao GitHub.
+7. Registre atividades de academia, futevôlei, estudos e trabalho.
+8. Acompanhe metas mensuráveis.
+9. Registre aportes e retiradas.
+10. Informe manualmente o valor atual da carteira de investimentos.
+11. Veja se a carteira aumentou ou diminuiu.
+12. Veja a variação em reais e em porcentagem.
+13. Receba insights automáticos da inteligência artificial.
+14. Receba projeções baseadas no ritmo atual.
+15. Use o sistema com facilidade no computador e no celular.
+16. Tenha acesso rápido às ações mais frequentes.
+17. Visualize todas as áreas importantes da vida em um único painel.
+
+============================================================
+3. PERFIL DO USUÁRIO PRINCIPAL
+============================================================
+
+Usuário principal:
+Pessoa que deseja controlar a rotina e acompanhar evolução pessoal sem utilizar vários aplicativos diferentes.
+
+Áreas principais monitoradas no MVP:
+
+- Academia.
+- Futevôlei.
+- Estudos.
+- Trabalho.
+- Investimentos.
+- Hábitos.
+- Agenda.
+- Metas.
+- Revisões.
+- Insights da IA.
+
+Exemplo de perfil:
+Pessoa que trabalha, estuda, treina, pratica esporte, investe mensalmente e quer usar dados para melhorar sua vida.
+
+============================================================
+4. PRINCÍPIOS DE EXPERIÊNCIA DO USUÁRIO
+============================================================
+
+4.1. Simplicidade
+
+O aplicativo não pode exigir muitos campos para cada registro.
+
+A maioria das ações deve ser concluída em poucos cliques.
+
+Exemplos:
+
+- Marcar hábito: 1 clique.
+- Registrar aporte: no máximo 3 campos obrigatórios.
+- Registrar atividade: no máximo 5 campos obrigatórios.
+- Criar evento: nome, início e fim.
+- Atualizar carteira: data e valor atual.
+
+4.2. Uso rápido
+
+A página inicial deve resolver a maior parte das necessidades diárias.
+
+O usuário não deve precisar navegar por várias telas para:
+
+- Ver a agenda.
+- Marcar hábitos.
+- Criar uma atividade.
+- Registrar um aporte.
+- Atualizar a carteira.
+
+4.3. Sem falsa produtividade
+
+O aplicativo não deve incentivar o usuário a registrar dados desnecessários.
+
+Campos detalhados devem ser opcionais.
+
+4.4. Decisão baseada em dados
+
+Os relatórios e gráficos devem responder perguntas práticas, como:
+
+- Estou estudando o suficiente?
+- Estou treinando com consistência?
+- Qual área da minha vida está sendo negligenciada?
+- Estou cumprindo meus hábitos?
+- Mantendo esse ritmo, quando termino meu roadmap?
+- Mantendo esse aporte, quando alcanço minha meta?
+- Estou sobrecarregando minha agenda?
+- Meu desempenho melhorou ou piorou?
+
+============================================================
+5. ESTRUTURA GERAL DO APLICATIVO
+============================================================
+
+O SaaS deverá possuir as seguintes áreas:
+
+1. Dashboard / Página inicial.
+2. Agenda.
+3. Hábitos.
+4. Academia.
+5. Futevôlei.
+6. Estudos.
+7. Trabalho.
+8. Metas.
+9. Investimentos.
+10. Revisões.
+11. Insights da IA.
+12. Configurações.
+13. Integrações.
+
+A aplicação deve ser responsiva e funcionar como web app.
+
+No futuro, poderá ser convertida em PWA ou aplicativo mobile.
+
+============================================================
+6. DASHBOARD / PÁGINA INICIAL
+============================================================
+
+A página inicial será a tela mais importante do sistema.
+
+Ela deverá apresentar apenas informações relevantes para o dia e para o acompanhamento geral.
+
+------------------------------------------------------------
+6.1. Cabeçalho
+------------------------------------------------------------
+
+Elementos:
+
+- Saudação personalizada.
+- Nome do usuário.
+- Data atual.
+- Dia da semana.
+- Frase principal do sistema.
+- Foto ou avatar do usuário.
+- Botão de configurações.
+- Botão para abrir notificações.
+
+Exemplo:
+“Olá, Carlos Rocha!”
+“Quarta-feira, 5 de agosto de 2026”
+
+------------------------------------------------------------
+6.2. Ações rápidas
+------------------------------------------------------------
+
+Criar uma área com botões grandes e fáceis de localizar.
+
+Botões:
+
+- Novo evento.
+- Registrar atividade.
+- Marcar hábitos.
+- Registrar aporte.
+- Atualizar carteira.
+- Fazer revisão.
+- Ver insight da IA.
+
+Esses botões podem abrir modal, drawer lateral ou página específica.
+
+------------------------------------------------------------
+6.3. Agenda de hoje
+------------------------------------------------------------
+
+A agenda deve mostrar apenas os eventos do dia atual.
+
+Formato desejado:
+
+06:00 – 07:00 | Academia | 1 hora
+07:00 – 07:20 | Banho | 20 minutos
+08:00 – 12:00 | Trabalho | 4 horas
+14:00 – 16:00 | Estudo de Python | 2 horas
+
+Cada evento deve exibir:
+
+- Horário inicial.
+- Horário final.
+- Nome do evento.
+- Duração calculada.
+- Categoria.
+- Status.
+- Origem do evento.
+- Ícone da categoria.
+
+A duração deverá ser calculada automaticamente.
+
+Exemplos:
+
+- 20 minutos.
+- 1 hora.
+- 1 hora e 30 minutos.
+- 4 horas.
+
+Os eventos devem ser ordenados por horário inicial.
+
+Possíveis status:
+
+- Planejado.
+- Em andamento.
+- Concluído.
+- Cancelado.
+
+Possíveis origens:
+
+- Manual.
+- Google Calendar.
+- Sistema.
+- Rotina recorrente.
+
+O usuário deve poder:
+
+- Criar evento.
+- Editar evento.
+- Excluir evento.
+- Marcar como concluído.
+- Abrir descrição.
+- Copiar evento.
+- Tornar recorrente.
+
+------------------------------------------------------------
+6.4. Hábitos do dia
+------------------------------------------------------------
+
+A home deverá mostrar o checklist de hábitos planejados para o dia atual.
+
+Exemplo:
+
+[ ] Tomar creatina
+[ ] Estudar Dados e IA
+[ ] Cumprir meta de água
+[ ] Treinar
+[ ] Revisar agenda
+
+O usuário deve conseguir marcar ou desmarcar o hábito diretamente na home.
+
+Após concluir:
+
+- O hábito deverá mudar de aparência.
+- O progresso do dia deverá ser atualizado.
+- O heatmap deverá ser atualizado.
+- A sequência do hábito deverá ser recalculada.
+
+A página inicial poderá separar os hábitos em:
+
+- Manhã.
+- Tarde.
+- Noite.
+- Qualquer horário.
+
+------------------------------------------------------------
+6.5. Progresso do dia
+------------------------------------------------------------
+
+Mostrar um resumo com:
+
+- Hábitos concluídos.
+- Hábitos pendentes.
+- Eventos concluídos.
+- Eventos restantes.
+- Percentual do dia concluído.
+- Atividade principal pendente.
+- Horas planejadas.
+- Horas executadas.
+
+Exemplo:
+“4 de 6 hábitos concluídos”
+“67% do dia concluído”
+
+------------------------------------------------------------
+6.6. Metas prioritárias
+------------------------------------------------------------
+
+Mostrar as metas mais importantes.
+
+Cada card deverá exibir:
+
+- Nome da meta.
+- Área.
+- Valor atual.
+- Valor-alvo.
+- Unidade.
+- Barra de progresso.
+- Prazo.
+- Status.
+- Projeção de conclusão.
+
+Exemplo:
+“Roadmap de Dados e IA”
+“42% concluído”
+“Previsão atual: 15 de fevereiro de 2027”
+
+------------------------------------------------------------
+6.7. Constância
+------------------------------------------------------------
+
+Exibir um heatmap semelhante ao GitHub.
+
+Cada quadrado representa um dia.
+
+A intensidade da cor deve representar o desempenho do dia.
+
+Opções de visualização:
+
+- Semana.
+- Mês.
+- Trimestre.
+- Ano.
+
+Métricas possíveis:
+
+- Percentual de hábitos concluídos.
+- Quantidade de hábitos concluídos.
+- Pontuação diária.
+- Atividades executadas.
+- Constância geral.
+
+Exibir também:
+
+- Sequência atual.
+- Maior sequência.
+- Dias perfeitos.
+- Média semanal.
+- Média mensal.
+- Hábito mais consistente.
+- Hábito mais negligenciado.
+
+------------------------------------------------------------
+6.8. Resumo das áreas
+------------------------------------------------------------
+
+Criar cards para:
+
+- Academia.
+- Futevôlei.
+- Estudos.
+- Trabalho.
+- Investimentos.
+
+Cada card deverá mostrar de 2 a 4 indicadores.
+
+Exemplo Academia:
+
+- Treinos da semana.
+- Meta semanal.
+- Duração total.
+- Último treino.
+
+Exemplo Estudos:
+
+- Horas da semana.
+- Meta semanal.
+- Progresso do roadmap.
+- Última sessão.
+
+Exemplo Investimentos:
+
+- Aporte do mês.
+- Valor atual da carteira.
+- Variação percentual.
+- Última atualização.
+
+------------------------------------------------------------
+6.9. Insight da IA
+------------------------------------------------------------
+
+Mostrar no dashboard o insight mais recente.
+
+Estrutura:
+
+- Principal erro.
+- Área negligenciada.
+- Risco.
+- Ação recomendada.
+- Projeção.
+
+Exemplo:
+
+“Você estudou 3h20 nos últimos 7 dias, contra uma meta de 10 horas.
+Mantendo esse ritmo, seu roadmap terminará aproximadamente 14 semanas depois do previsto.
+Ação recomendada: reservar 90 minutos de estudo hoje entre 14:00 e 15:30.”
+
+============================================================
+7. MÓDULO AGENDA
+============================================================
+
+------------------------------------------------------------
+7.1. Objetivo
+------------------------------------------------------------
+
+Organizar eventos, compromissos, blocos de tempo e rotinas.
+
+------------------------------------------------------------
+7.2. Visualizações
+------------------------------------------------------------
+
+- Dia.
+- Semana.
+- Mês.
+- Lista.
+- Linha do tempo.
+
+------------------------------------------------------------
+7.3. Campos do evento
+------------------------------------------------------------
+
+Obrigatórios:
+
+- Nome.
+- Data.
+- Hora inicial.
+- Hora final.
+
+Opcionais:
+
+- Categoria.
+- Descrição.
+- Local.
+- Link.
+- Status.
+- Recorrência.
+- Cor.
+- Notificação.
+- Origem.
+- ID externo.
+- Integração Google Calendar.
+
+------------------------------------------------------------
+7.4. Categorias sugeridas
+------------------------------------------------------------
+
+- Academia.
+- Futevôlei.
+- Estudos.
+- Trabalho.
+- Saúde.
+- Pessoal.
+- Finanças.
+- Lazer.
+- Sono.
+- Alimentação.
+- Compromisso.
+
+------------------------------------------------------------
+7.5. Cálculo da duração
+------------------------------------------------------------
+
+Duração em minutos:
+
+hora_final - hora_inicial
+
+Formato exibido:
+
+- Menos de 60 minutos: “X minutos”.
+- 60 minutos: “1 hora”.
+- Mais de 60 minutos e múltiplo de 60: “X horas”.
+- Horas e minutos: “X horas e Y minutos”.
+
+------------------------------------------------------------
+7.6. Integração com Google Calendar
+------------------------------------------------------------
+
+O usuário deverá poder conectar sua conta do Google.
+
+A integração deve:
+
+- Importar eventos.
+- Sincronizar nome.
+- Sincronizar horário inicial.
+- Sincronizar horário final.
+- Sincronizar descrição.
+- Sincronizar local.
+- Sincronizar status.
+- Sincronizar ID do evento.
+- Evitar duplicações.
+- Atualizar eventos alterados.
+- Remover ou marcar eventos cancelados.
+- Permitir escolher quais calendários serão sincronizados.
+
+Sincronização inicial recomendada:
+Unidirecional.
+
+Google Calendar -> Carlos Life OS
+
+Motivo:
+Reduz risco de eventos duplicados, conflitos e alterações em ciclo.
+
+Em uma versão futura, poderá existir sincronização bidirecional.
+
+------------------------------------------------------------
+7.7. Regras importantes
+------------------------------------------------------------
+
+- Eventos importados devem possuir ID externo único.
+- Eventos não podem ser duplicados.
+- Alterações devem respeitar o fuso horário.
+- Eventos recorrentes devem ser tratados corretamente.
+- Eventos de dia inteiro devem ser exibidos em uma área separada.
+- Eventos cancelados devem ser ocultados ou identificados.
+
+============================================================
+8. MÓDULO DE HÁBITOS
+============================================================
+
+------------------------------------------------------------
+8.1. Cadastro de hábitos
+------------------------------------------------------------
+
+Campos:
+
+- Nome do hábito.
+- Descrição.
+- Categoria.
+- Período do dia.
+- Frequência.
+- Dias da semana.
+- Meta semanal.
+- Data de início.
+- Data de encerramento.
+- Status ativo/inativo.
+- Cor.
+- Ícone.
+- Prioridade.
+- Lembrete.
+
+------------------------------------------------------------
+8.2. Frequências
+------------------------------------------------------------
+
+- Todos os dias.
+- Dias úteis.
+- Finais de semana.
+- Dias personalizados.
+- X vezes por semana.
+- X vezes por mês.
+
+------------------------------------------------------------
+8.3. Registro diário
+------------------------------------------------------------
+
+O sistema deve gerar automaticamente os hábitos planejados para cada dia.
+
+Cada registro deverá possuir:
+
+- Data.
+- Hábito.
+- Status concluído/não concluído.
+- Horário da conclusão.
+- Observação.
+- Pontuação.
+- Usuário.
+
+------------------------------------------------------------
+8.4. Métricas
+------------------------------------------------------------
+
+- Percentual semanal.
+- Percentual mensal.
+- Sequência atual.
+- Maior sequência.
+- Total de conclusões.
+- Dias perfeitos.
+- Dias perdidos.
+- Melhor dia da semana.
+- Pior dia da semana.
+- Hábito mais consistente.
+- Hábito mais abandonado.
+
+------------------------------------------------------------
+8.5. Heatmap
+------------------------------------------------------------
+
+O heatmap deverá:
+
+- Mostrar um quadrado por dia.
+- Permitir filtro por hábito.
+- Permitir visão geral.
+- Utilizar intensidade de cor.
+- Exibir tooltip ao passar o mouse.
+- Mostrar percentual ou quantidade concluída.
+- Funcionar no mobile.
+
+============================================================
+9. MÓDULO DE ATIVIDADES
+============================================================
+
+O sistema utilizará uma estrutura central de atividades.
+
+Áreas:
+
+- Academia.
+- Futevôlei.
+- Estudos.
+- Trabalho.
+
+Campos gerais:
+
+- Título.
+- Data.
+- Área.
+- Tipo.
+- Duração.
+- Intensidade.
+- Status.
+- Resultado.
+- Aprendizado.
+- Nota pessoal.
+- Evidência.
+- Meta relacionada.
+- Observações.
+
+Status:
+
+- Planejada.
+- Concluída.
+- Parcial.
+- Cancelada.
+
+============================================================
+10. MÓDULO ACADEMIA
+============================================================
+
+------------------------------------------------------------
+10.1. Objetivo
+------------------------------------------------------------
+
+Acompanhar frequência, intensidade, duração e evolução sem exigir o registro detalhado de todas as séries.
+
+------------------------------------------------------------
+10.2. Registro de treino
+------------------------------------------------------------
+
+Campos:
+
+- Data.
+- Nome do treino.
+- Grupo muscular.
+- Duração.
+- Intensidade percebida de 1 a 10.
+- Status.
+- Resultado.
+- Observações.
+- Dor ou desconforto.
+- Fadiga.
+- Nota do treino.
+- Principais cargas, opcional.
+- Recorde pessoal, opcional.
+
+------------------------------------------------------------
+10.3. Grupos musculares
+------------------------------------------------------------
+
+- Peito.
+- Costas.
+- Pernas.
+- Ombros.
+- Bíceps.
+- Tríceps.
+- Abdômen.
+- Corpo inteiro.
+- Cardio.
+
+------------------------------------------------------------
+10.4. Métricas
+------------------------------------------------------------
+
+- Treinos por semana.
+- Meta semanal.
+- Duração total.
+- Intensidade média.
+- Frequência mensal.
+- Grupo muscular mais treinado.
+- Grupo muscular negligenciado.
+- Evolução de cargas principais.
+- Recordes pessoais.
+- Dias sem treinar.
+- Consistência.
+
+------------------------------------------------------------
+10.5. Dados corporais opcionais
+------------------------------------------------------------
+
+- Peso.
+- Percentual de gordura.
+- Medidas.
+- Foto de progresso.
+- Data da medição.
+
+Esses campos devem ser opcionais.
+
+============================================================
+11. MÓDULO FUTEVÔLEI
+============================================================
+
+------------------------------------------------------------
+11.1. Registro
+------------------------------------------------------------
+
+Campos:
+
+- Data.
+- Tipo: treino, aula ou partida.
+- Duração.
+- Intensidade.
+- Quantidade de partidas.
+- Vitórias.
+- Derrotas.
+- Fundamento trabalhado.
+- Principal dificuldade.
+- Evolução percebida.
+- Nota da sessão.
+- Dor ou fadiga.
+- Observação.
+
+------------------------------------------------------------
+11.2. Fundamentos
+------------------------------------------------------------
+
+- Recepção.
+- Passe.
+- Ataque.
+- Defesa.
+- Saque.
+- Posicionamento.
+- Tomada de decisão.
+- Comunicação.
+
+------------------------------------------------------------
+11.3. Avaliação técnica
+------------------------------------------------------------
+
+Permitir avaliação periódica de 0 a 10 para cada fundamento.
+
+------------------------------------------------------------
+11.4. Métricas
+------------------------------------------------------------
+
+- Sessões por semana.
+- Horas jogadas.
+- Intensidade média.
+- Vitórias e derrotas.
+- Evolução por fundamento.
+- Fundamento mais forte.
+- Fundamento mais fraco.
+- Consistência.
+- Frequência mensal.
+
+============================================================
+12. MÓDULO ESTUDOS
+============================================================
+
+------------------------------------------------------------
+12.1. Objetivo
+------------------------------------------------------------
+
+Acompanhar o estudo prático de Dados e IA e outros conteúdos.
+
+------------------------------------------------------------
+12.2. Registro de estudo
+------------------------------------------------------------
+
+Campos:
+
+- Data.
+- Título.
+- Tema.
+- Módulo.
+- Tipo.
+- Duração.
+- Status.
+- Nota de entendimento de 0 a 5.
+- Dificuldade.
+- Aprendizado.
+- Evidência.
+- Próxima ação.
+- Meta relacionada.
+- Observação.
+
+------------------------------------------------------------
+12.3. Tipos
+------------------------------------------------------------
+
+- Teoria.
+- Exercício.
+- Projeto.
+- Revisão.
+- Aula.
+- Leitura.
+- Prática.
+- Simulado.
+- Documentação.
+
+------------------------------------------------------------
+12.4. Regra principal
+------------------------------------------------------------
+
+Sempre que possível, um estudo deve gerar uma evidência:
+
+- Código.
+- Exercício.
+- Consulta SQL.
+- Notebook.
+- Projeto.
+- Documento.
+- Resumo.
+- Explicação própria.
+- Link do GitHub.
+- Certificado.
+
+------------------------------------------------------------
+12.5. Roadmap
+------------------------------------------------------------
+
+O sistema deverá permitir cadastrar um roadmap.
+
+Estrutura:
+
+- Roadmap.
+- Fases.
+- Semanas.
+- Módulos.
+- Aulas.
+- Tarefas.
+- Projetos.
+- Status.
+- Percentual concluído.
+- Data prevista.
+- Data projetada.
+
+------------------------------------------------------------
+12.6. Métricas
+------------------------------------------------------------
+
+- Horas da semana.
+- Meta semanal.
+- Média diária.
+- Sessões concluídas.
+- Progresso do roadmap.
+- Ritmo atual.
+- Ritmo necessário.
+- Data projetada de conclusão.
+- Conteúdo com maior dificuldade.
+- Conteúdo mais estudado.
+- Quantidade de evidências.
+- Dias sem estudar.
+
+------------------------------------------------------------
+12.7. Projeção
+------------------------------------------------------------
+
+O sistema deve calcular uma previsão de conclusão.
+
+Exemplo:
+
+Total de horas restantes / média semanal atual = semanas restantes
+
+Data atual + semanas restantes = data projetada
+
+A interface deverá informar claramente que é uma estimativa.
+
+============================================================
+13. MÓDULO TRABALHO
+============================================================
+
+------------------------------------------------------------
+13.1. Objetivo
+------------------------------------------------------------
+
+Registrar apenas acontecimentos profissionais relevantes.
+
+Não deve ser um gerenciador de todas as tarefas do trabalho.
+
+------------------------------------------------------------
+13.2. Tipos de registro
+------------------------------------------------------------
+
+- Problema resolvido.
+- Incidente.
+- Aprendizado.
+- Conquista.
+- Feedback.
+- Melhoria implementada.
+- Nova responsabilidade.
+- Tecnologia utilizada.
+- Documento criado.
+- Curso concluído.
+
+------------------------------------------------------------
+13.3. Campos
+------------------------------------------------------------
+
+- Data.
+- Título.
+- Tipo.
+- Contexto.
+- Problema.
+- Ação realizada.
+- Resultado.
+- Aprendizado.
+- Tecnologia.
+- Impacto.
+- Evidência.
+- Nota.
+- Competência relacionada.
+
+------------------------------------------------------------
+13.4. Uso futuro
+------------------------------------------------------------
+
+Os dados poderão ser utilizados para:
+
+- Currículo.
+- LinkedIn.
+- Entrevistas.
+- Promoções.
+- Avaliações de desempenho.
+- Portfólio.
+- Transição de carreira.
+
+------------------------------------------------------------
+13.5. Métricas
+------------------------------------------------------------
+
+- Problemas resolvidos.
+- Aprendizados do mês.
+- Tecnologias utilizadas.
+- Conquistas.
+- Competências desenvolvidas.
+- Evolução profissional.
+
+============================================================
+14. MÓDULO DE METAS
+============================================================
+
+------------------------------------------------------------
+14.1. Campos
+------------------------------------------------------------
+
+- Nome.
+- Descrição.
+- Área.
+- Valor inicial.
+- Valor atual.
+- Valor-alvo.
+- Unidade.
+- Data de início.
+- Prazo.
+- Prioridade.
+- Status.
+- Progresso.
+- Ritmo atual.
+- Ritmo necessário.
+- Data projetada.
+- Observação.
+
+------------------------------------------------------------
+14.2. Status
+------------------------------------------------------------
+
+- Não iniciada.
+- Em andamento.
+- Em risco.
+- Concluída.
+- Pausada.
+- Cancelada.
+
+------------------------------------------------------------
+14.3. Progresso
+------------------------------------------------------------
+
+Fórmula:
+
+(valor_atual - valor_inicial) / (valor_alvo - valor_inicial)
+
+O valor deverá ser limitado entre 0% e 100%, salvo metas que possam superar o objetivo.
+
+------------------------------------------------------------
+14.4. Projeção
+------------------------------------------------------------
+
+O sistema deverá comparar:
+
+- Ritmo atual.
+- Ritmo necessário.
+- Prazo.
+- Progresso.
+
+Exemplo:
+
+“Você precisa estudar 10 horas por semana.”
+“Média atual: 6 horas.”
+“Seu ritmo está 40% abaixo do necessário.”
+
+------------------------------------------------------------
+14.5. Tipos de meta
+------------------------------------------------------------
+
+- Quantidade.
+- Frequência.
+- Valor financeiro.
+- Percentual.
+- Horas.
+- Peso.
+- Data.
+- Projeto.
+- Sequência.
+
+============================================================
+15. MÓDULO INVESTIMENTOS
+============================================================
+
+O sistema não precisa substituir o Investidor10.
+
+O objetivo é manter apenas uma visão simples.
+
+------------------------------------------------------------
+15.1. Aportes e retiradas
+------------------------------------------------------------
+
+Campos:
+
+- Data.
+- Tipo.
+- Valor.
+- Instituição.
+- Objetivo.
+- Observação.
+
+Tipos:
+
+- Aporte.
+- Retirada.
+
+Valor líquido:
+
+- Aporte: positivo.
+- Retirada: negativo.
+
+------------------------------------------------------------
+15.2. Histórico da carteira
+------------------------------------------------------------
+
+O usuário informará manualmente o valor total da carteira.
+
+Campos:
+
+- Data.
+- Valor atual da carteira.
+- Valor anterior.
+- Variação em reais.
+- Variação percentual.
+- Movimento.
+- Observação.
+
+------------------------------------------------------------
+15.3. Cálculos
+------------------------------------------------------------
+
+Variação em reais:
+
+valor_atual - valor_anterior
+
+Variação percentual:
+
+((valor_atual - valor_anterior) / valor_anterior) * 100
+
+Movimento:
+
+- Subiu.
+- Desceu.
+- Estável.
+
+------------------------------------------------------------
+15.4. Aportes líquidos
+------------------------------------------------------------
+
+Aportes líquidos:
+
+total_aportes - total_retiradas
+
+------------------------------------------------------------
+15.5. Diferença entre carteira e aportes
+------------------------------------------------------------
+
+Resultado estimado:
+
+valor_atual_carteira - aportes_líquidos
+
+Essa informação deverá ser apresentada como estimativa, pois poderá existir histórico anterior não cadastrado.
+
+------------------------------------------------------------
+15.6. Dashboard financeiro
+------------------------------------------------------------
+
+Mostrar:
+
+- Valor atual da carteira.
+- Total aportado.
+- Total retirado.
+- Aporte líquido.
+- Aporte do mês.
+- Variação em reais.
+- Variação percentual.
+- Última atualização.
+- Meta financeira.
+- Projeção.
+
+------------------------------------------------------------
+15.7. Cenários de projeção
+------------------------------------------------------------
+
+Permitir simulações:
+
+- Mantendo o aporte atual.
+- Aumentando o aporte em 10%.
+- Aumentando o aporte em 20%.
+- Sem rendimento.
+- Com rendimento estimado.
+
+Toda projeção deverá ser identificada como estimativa.
+
+============================================================
+16. MÓDULO DE REVISÕES
+============================================================
+
+------------------------------------------------------------
+16.1. Tipos
+------------------------------------------------------------
+
+- Semanal.
+- Mensal.
+- Trimestral.
+- Anual.
+
+------------------------------------------------------------
+16.2. Perguntas principais
+------------------------------------------------------------
+
+- O que avançou?
+- O que ficou abaixo do esperado?
+- Qual foi o principal erro?
+- Qual área foi negligenciada?
+- Qual risco merece atenção?
+- O que será ajustado?
+- Qual é a prioridade do próximo período?
+- Qual foi a nota do período?
+
+------------------------------------------------------------
+16.3. Campos
+------------------------------------------------------------
+
+- Data.
+- Tipo.
+- Período inicial.
+- Período final.
+- Nota.
+- Avanços.
+- Falhas.
+- Principal erro.
+- Risco.
+- Área negligenciada.
+- Ajuste.
+- Prioridade.
+- Status.
+- Insight da IA relacionado.
+
+============================================================
+17. MÓDULO DE INTELIGÊNCIA ARTIFICIAL
+============================================================
+
+------------------------------------------------------------
+17.1. Objetivo
+------------------------------------------------------------
+
+Analisar os dados recentes e gerar recomendações práticas.
+
+------------------------------------------------------------
+17.2. Frequências
+------------------------------------------------------------
+
+- Diário.
+- Semanal.
+- Mensal.
+- Sob demanda.
+
+------------------------------------------------------------
+17.3. Relatório diário
+------------------------------------------------------------
+
+Horário sugerido:
+06:00.
+
+Analisar:
+
+- Agenda de hoje.
+- Hábitos dos últimos 7 dias.
+- Atividades dos últimos 7 dias.
+- Metas ativas.
+- Estudos.
+- Treinos.
+- Futevôlei.
+- Trabalho.
+- Investimentos recentes.
+- Revisões anteriores.
+
+------------------------------------------------------------
+17.4. Formato do relatório diário
+------------------------------------------------------------
+
+1. Resumo da agenda.
+2. Conflitos.
+3. Área negligenciada.
+4. Principal erro.
+5. Risco.
+6. Ação concreta para hoje.
+7. Projeção.
+
+Limite recomendado:
+No máximo 5 insights principais.
+
+Não utilizar elogios genéricos.
+
+------------------------------------------------------------
+17.5. Exemplo de insight
+------------------------------------------------------------
+
+“Você estudou 3h20 nos últimos sete dias, contra uma meta de 10 horas.
+
+Mantendo esse ritmo, o roadmap poderá terminar 14 semanas depois da data planejada.
+
+Hoje há uma janela livre entre 14:00 e 16:00.
+
+Ação recomendada:
+Realizar 90 minutos do módulo de SQL nesse horário.”
+
+------------------------------------------------------------
+17.6. Diferenciar falta de dados
+------------------------------------------------------------
+
+A IA não poderá interpretar ausência de registro como desempenho ruim sem avisar.
+
+Exemplo correto:
+“Não há registros suficientes de futevôlei nos últimos 7 dias.”
+
+Exemplo incorreto:
+“Seu desempenho no futevôlei caiu.”
+
+------------------------------------------------------------
+17.7. Histórico de insights
+------------------------------------------------------------
+
+Campos:
+
+- Data.
+- Tipo.
+- Período analisado.
+- Área principal.
+- Diagnóstico.
+- Principal erro.
+- Risco.
+- Ação recomendada.
+- Projeção.
+- Prioridade.
+- Status.
+- Feedback do usuário.
+
+------------------------------------------------------------
+17.8. Feedback da IA
+------------------------------------------------------------
+
+O usuário poderá marcar:
+
+- Útil.
+- Não útil.
+- Já sabia.
+- Informação incorreta.
+- Aplicado.
+- Ignorado.
+
+Isso poderá melhorar relatórios futuros.
+
+============================================================
+18. PÁGINA MOBILE / EXPERIÊNCIA MOBILE
+============================================================
+
+No celular, a aplicação deverá priorizar:
+
+1. Agenda de hoje.
+2. Hábitos de hoje.
+3. Ações rápidas.
+4. Próxima atividade.
+5. Meta prioritária.
+6. Insight principal.
+7. Resumo financeiro.
+
+Elementos secundários podem ficar escondidos.
+
+O mobile não deve mostrar tabelas grandes.
+
+Padrões recomendados:
+
+- Cards verticais.
+- Bottom navigation.
+- Botão flutuante de adicionar.
+- Modais simples.
+- Swipe opcional.
+- Componentes grandes para toque.
+
+============================================================
+19. DESIGN E IDENTIDADE VISUAL
+============================================================
+
+Estilo desejado:
+Hybrid Premium Dark.
+
+Características:
+
+- Tema escuro.
+- Aparência premium.
+- Organização clara.
+- Pouca poluição.
+- Cards bem separados.
+- Interface moderna.
+- Dados fáceis de localizar.
+- Uso moderado de cores.
+
+Paleta sugerida:
+
+- Fundo principal: preto ou grafite.
+- Superfície: cinza escuro.
+- Destaque principal: marrom, bronze ou caramelo escuro.
+- Hábitos e saúde: verde.
+- Estudos e IA: roxo.
+- Futevôlei: azul.
+- Trabalho: cinza.
+- Revisões: laranja.
+- Alertas: amarelo.
+- Erros e riscos: vermelho.
+
+Tipografia:
+
+- Títulos fortes.
+- Texto legível.
+- Números e métricas em destaque.
+- Evitar fontes decorativas em excesso.
+
+Componentes:
+
+- Cards.
+- Gráficos.
+- Heatmap.
+- Barras de progresso.
+- Badges.
+- Tooltips.
+- Modais.
+- Drawers.
+- Tabs.
+- Calendário.
+- Timeline.
+- Checklist.
+- Gráficos de linha.
+- Gráficos de barras.
+- Gráfico radar opcional.
+
+============================================================
+20. NAVEGAÇÃO
+============================================================
+
+Desktop:
+
+Menu lateral com:
+
+- Dashboard.
+- Agenda.
+- Hábitos.
+- Academia.
+- Futevôlei.
+- Estudos.
+- Trabalho.
+- Metas.
+- Investimentos.
+- Revisões.
+- Insights.
+- Configurações.
+
+Mobile:
+
+Bottom navigation com:
+
+- Início.
+- Agenda.
+- Registrar.
+- Progresso.
+- Perfil.
+
+============================================================
+21. NOTIFICAÇÕES
+============================================================
+
+Notificações opcionais:
+
+- Evento próximo.
+- Hábito pendente.
+- Meta em risco.
+- Falta de registro.
+- Revisão semanal.
+- Atualização da carteira.
+- Insight diário disponível.
+
+Canais futuros:
+
+- Push.
+- E-mail.
+- WhatsApp.
+- Telegram.
+
+No MVP, e-mail e notificações internas podem ser suficientes.
+
+============================================================
+22. CONFIGURAÇÕES
+============================================================
+
+Configurações do usuário:
+
+- Nome.
+- Foto.
+- Fuso horário.
+- Formato de data.
+- Primeiro dia da semana.
+- Tema.
+- Horário do insight diário.
+- Calendários conectados.
+- Hábitos ativos.
+- Categorias.
+- Notificações.
+- Privacidade.
+- Exportação de dados.
+- Exclusão da conta.
+
+============================================================
+23. AUTENTICAÇÃO E CONTA
+============================================================
+
+O sistema deverá possuir:
+
+- Cadastro por e-mail.
+- Login.
+- Recuperação de senha.
+- Login com Google.
+- Logout.
+- Alteração de senha.
+- Confirmação de e-mail.
+
+Futuro:
+
+- Login com Apple.
+- Autenticação em duas etapas.
+
+============================================================
+24. MODELO DE DADOS SUGERIDO
+============================================================
+
+Entidades principais:
+
+users
+- id
+- name
+- email
+- password_hash
+- avatar_url
+- timezone
+- created_at
+- updated_at
+
+events
+- id
+- user_id
+- title
+- description
+- start_at
+- end_at
+- duration_minutes
+- category_id
+- status
+- source
+- external_id
+- location
+- link
+- recurrence_rule
+- created_at
+- updated_at
+
+categories
+- id
+- user_id
+- name
+- color
+- icon
+- type
+
+habits
+- id
+- user_id
+- name
+- description
+- category_id
+- period
+- frequency_type
+- weekly_target
+- start_date
+- end_date
+- active
+- color
+- icon
+- priority
+- reminder_time
+
+habit_weekdays
+- id
+- habit_id
+- weekday
+
+habit_logs
+- id
+- user_id
+- habit_id
+- date
+- completed
+- completed_at
+- note
+- points
+
+activities
+- id
+- user_id
+- title
+- date
+- area
+- type
+- duration_minutes
+- intensity
+- status
+- result
+- learning
+- rating
+- evidence_url
+- goal_id
+- notes
+
+goals
+- id
+- user_id
+- name
+- description
+- area
+- initial_value
+- current_value
+- target_value
+- unit
+- start_date
+- deadline
+- priority
+- status
+- projected_date
+- created_at
+- updated_at
+
+investments_transactions
+- id
+- user_id
+- date
+- type
+- amount
+- institution
+- goal_id
+- note
+
+portfolio_snapshots
+- id
+- user_id
+- date
+- total_value
+- previous_value
+- variation_amount
+- variation_percentage
+- note
+
+reviews
+- id
+- user_id
+- type
+- start_date
+- end_date
+- rating
+- progress
+- failures
+- main_error
+- risk
+- neglected_area
+- adjustment
+- priority
+- status
+
+ai_insights
+- id
+- user_id
+- type
+- analysis_start
+- analysis_end
+- main_area
+- diagnosis
+- main_error
+- risk
+- recommended_action
+- projection
+- priority
+- feedback
+- created_at
+
+google_calendar_connections
+- id
+- user_id
+- google_account_id
+- access_token_encrypted
+- refresh_token_encrypted
+- expires_at
+- sync_direction
+- last_sync_at
+- active
+
+============================================================
+25. AUTOMAÇÕES
+============================================================
+
+Automação 1:
+Gerar registros de hábitos diariamente.
+
+Horário:
+00:01 ou horário configurável.
+
+Automação 2:
+Sincronizar Google Calendar.
+
+Frequência:
+A cada poucos minutos ou por webhook.
+
+Automação 3:
+Gerar insight diário.
+
+Horário padrão:
+06:00.
+
+Automação 4:
+Gerar resumo semanal.
+
+Horário sugerido:
+Domingo à noite ou segunda pela manhã.
+
+Automação 5:
+Atualizar status de metas.
+
+Automação 6:
+Avisar metas em risco.
+
+Automação 7:
+Recalcular sequências e métricas.
+
+============================================================
+26. REGRAS DE NEGÓCIO IMPORTANTES
+============================================================
+
+1. Um hábito não pode gerar dois registros para a mesma data e usuário.
+2. Um evento do Google não pode ser duplicado.
+3. Eventos devem respeitar fuso horário.
+4. Duração não pode ser negativa.
+5. Data final não pode ser anterior à inicial.
+6. Progresso da meta deve ser calculado automaticamente.
+7. Aportes e retiradas devem ser diferenciados.
+8. Variação percentual não deve ser calculada quando o valor anterior for zero.
+9. A IA deve informar quando não houver dados suficientes.
+10. Insights devem gerar ações concretas.
+11. O usuário deve poder corrigir dados importados sem perder a referência externa.
+12. Dados sensíveis devem ser protegidos.
+13. Tokens do Google devem ser criptografados.
+14. O usuário deve poder exportar seus dados.
+15. O usuário deve poder excluir seus dados.
+
+============================================================
+27. RELATÓRIOS E GRÁFICOS
+============================================================
+
+Relatórios principais:
+
+- Constância de hábitos.
+- Horas estudadas.
+- Progresso do roadmap.
+- Frequência de academia.
+- Frequência de futevôlei.
+- Intensidade média.
+- Aportes mensais.
+- Evolução da carteira.
+- Planejado versus executado.
+- Distribuição de tempo.
+- Progresso das metas.
+- Áreas negligenciadas.
+- Ritmo atual versus necessário.
+
+Gráficos recomendados:
+
+- Heatmap.
+- Linha.
+- Barras.
+- Rosca.
+- Radar.
+- Cards numéricos.
+- Barra de progresso.
+
+============================================================
+28. MVP
+============================================================
+
+O MVP deverá incluir:
+
+1. Cadastro e login.
+2. Dashboard.
+3. Agenda manual.
+4. Integração Google Calendar unidirecional.
+5. Cadastro de hábitos.
+6. Checklist diário.
+7. Heatmap de constância.
+8. Registro de atividades.
+9. Academia.
+10. Futevôlei.
+11. Estudos.
+12. Trabalho.
+13. Metas.
+14. Aportes e retiradas.
+15. Atualização manual da carteira.
+16. Cálculo de variação.
+17. Revisão semanal.
+18. Insight diário da IA.
+19. Layout responsivo.
+20. Configurações básicas.
+
+============================================================
+29. FUNCIONALIDADES FUTURAS
+============================================================
+
+- Aplicativo nativo.
+- PWA.
+- Sincronização bidirecional com Google Calendar.
+- Integração com Apple Calendar.
+- Integração com Microsoft Outlook.
+- Integração com Investidor10.
+- Integração com smartwatch.
+- Integração com Strava.
+- Integração com academias.
+- Integração com GitHub.
+- Integração com LinkedIn.
+- Assistente por voz.
+- Relatórios compartilháveis.
+- Modo casal ou família.
+- Plano de equipes.
+- Gamificação.
+- Pontos e níveis.
+- Comunidade.
+- Marketplace de templates.
+- Múltiplos roadmaps.
+- Exportação PDF.
+- Exportação CSV.
+- Backup automático.
+- API pública.
+
+============================================================
+30. REQUISITOS NÃO FUNCIONAIS
+============================================================
+
+Performance:
+
+- Dashboard deve carregar rapidamente.
+- Dados recentes devem ser priorizados.
+- Gráficos devem ser responsivos.
+- Sincronizações não devem travar a interface.
+
+Segurança:
+
+- Senhas com hash seguro.
+- HTTPS.
+- Tokens criptografados.
+- Controle de acesso por usuário.
+- Proteção contra ataques comuns.
+- Logs de auditoria para integrações.
+
+Privacidade:
+
+- Cada usuário acessa apenas seus dados.
+- Possibilidade de exportação.
+- Possibilidade de exclusão.
+- Consentimento para uso de IA.
+- Política de privacidade.
+
+Escalabilidade:
+
+- Estrutura preparada para múltiplos usuários.
+- Tarefas assíncronas.
+- Filas para sincronizações e IA.
+- Cache para dashboard.
+- Banco relacional.
+
+Responsividade:
+
+- Desktop.
+- Tablet.
+- Celular.
+
+Acessibilidade:
+
+- Contraste adequado.
+- Navegação por teclado.
+- Labels em formulários.
+- Textos alternativos.
+- Botões com área de toque adequada.
+
+============================================================
+31. STACK SUGERIDA
+============================================================
+
+Esta seção é apenas uma sugestão.
+
+Frontend:
+
+- Next.js.
+- React.
+- TypeScript.
+- Tailwind CSS.
+- Shadcn UI.
+- Recharts.
+- FullCalendar.
+
+Backend:
+
+Opção 1:
+- Next.js full stack.
+
+Opção 2:
+- Node.js com NestJS.
+
+Banco de dados:
+
+- PostgreSQL.
+
+ORM:
+
+- Prisma.
+
+Autenticação:
+
+- NextAuth / Auth.js.
+- Clerk.
+- Supabase Auth.
+
+Infraestrutura:
+
+- Vercel para frontend.
+- Supabase ou Neon para PostgreSQL.
+- Railway ou Render para backend e workers.
+
+Filas:
+
+- BullMQ.
+- Upstash QStash.
+- Trigger.dev.
+- Inngest.
+
+IA:
+
+- API da OpenAI.
+
+Integração Google Calendar:
+
+- Google Calendar API.
+- OAuth 2.0.
+- Webhooks quando possível.
+
+Armazenamento:
+
+- Supabase Storage.
+- Cloudflare R2.
+- AWS S3.
+
+Monitoramento:
+
+- Sentry.
+- PostHog.
+- Logtail ou Better Stack.
+
+============================================================
+32. CRITÉRIOS DE ACEITAÇÃO DO MVP
+============================================================
+
+O MVP será considerado funcional quando:
+
+1. O usuário conseguir criar uma conta.
+2. O usuário conseguir entrar no sistema.
+3. O dashboard exibir dados do dia.
+4. A agenda calcular duração corretamente.
+5. Os eventos do Google Calendar forem importados sem duplicação.
+6. Os hábitos do dia forem gerados automaticamente.
+7. O usuário conseguir marcar hábitos.
+8. O heatmap for atualizado.
+9. O usuário conseguir registrar atividades.
+10. As áreas filtrarem corretamente os registros.
+11. As metas calcularem progresso.
+12. A projeção de metas funcionar.
+13. O usuário conseguir registrar aporte e retirada.
+14. O sistema calcular aporte líquido.
+15. O usuário conseguir informar a carteira.
+16. O sistema calcular variação.
+17. A IA gerar um relatório diário.
+18. O relatório diferenciar falta de dados de desempenho ruim.
+19. O sistema funcionar no celular.
+20. O usuário conseguir exportar os principais dados.
+
+============================================================
+33. FLUXO DIÁRIO DO USUÁRIO
+============================================================
+
+Ao abrir o sistema pela manhã:
+
+1. O usuário vê a agenda do dia.
+2. O usuário vê seus hábitos.
+3. O usuário recebe o insight da IA.
+4. O usuário identifica a prioridade principal.
+5. Durante o dia, marca hábitos.
+6. Registra uma atividade quando necessário.
+7. Registra aporte quando ocorrer.
+8. Atualiza a carteira quando consultar o saldo.
+9. No final da semana, faz uma revisão.
+
+============================================================
+34. RESUMO FINAL PARA O PROGRAMADOR
+============================================================
+
+O Carlos Life OS deve ser um SaaS pessoal de acompanhamento de rotina e evolução.
+
+A aplicação deve reunir:
+
+- Agenda sincronizada com Google Calendar.
+- Checklist de hábitos.
+- Heatmap de constância.
+- Academia.
+- Futevôlei.
+- Estudos.
+- Trabalho.
+- Metas.
+- Investimentos simplificados.
+- Revisões.
+- Insights de inteligência artificial.
+- Projeções baseadas no ritmo real.
+
+O foco não é registrar tudo.
+
+O foco é transformar dados simples em decisões práticas.
+
+A página inicial deve mostrar:
+
+- O que o usuário precisa fazer hoje.
+- O que já foi concluído.
+- Onde ele está falhando.
+- Qual área está sendo negligenciada.
+- Qual é a próxima ação recomendada.
+- Quando poderá alcançar suas metas mantendo o ritmo atual.
+
+O sistema deve ser simples, visual, responsivo, rápido e útil no dia a dia.
+
+FIM DO DOCUMENTO
