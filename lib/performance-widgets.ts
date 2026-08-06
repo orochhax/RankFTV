@@ -1,8 +1,12 @@
 import { addDays } from "@/lib/performance";
 
 export type MetricActivity = { date: string; durationMinutes: number | null; status?: string; area?: string };
-export type StudyRoadmapItem = { id: string; roadmapId: string; section: string | null; title: string; description: string | null; orderIndex: number; estimatedMinutes: number | null; status: "pending" | "in_progress" | "completed"; completedAt: string | null; scheduledDate?: string | null; itemKind?: "core" | "reinforcement" | "challenge" | "check" | "criterion" | "general" };
-export type StudyRoadmap = { id: string; title: string; description: string | null; status: "active" | "completed" | "archived"; startDate: string; targetDate: string | null };
+export type StudyItemKind = "core" | "reinforcement" | "challenge" | "check" | "criterion" | "general" | "reading" | "video" | "practice" | "quiz" | "project" | "checkpoint";
+export type StudyRoadmapItem = { id: string; roadmapId: string; moduleId?: string | null; section: string | null; title: string; description: string | null; instructions?: string | null; completionCriteria?: string | null; resourceTitle?: string | null; resourceUrl?: string | null; resourceChannel?: string | null; orderIndex: number; estimatedMinutes: number | null; status: "pending" | "in_progress" | "completed"; completedAt: string | null; scheduledDate?: string | null; itemKind?: StudyItemKind };
+export type StudyRoadmap = { id: string; title: string; description: string | null; status: "active" | "completed" | "archived"; startDate: string; targetDate: string | null; source?: "manual" | "import" | "ai"; difficultyLevel?: "introductory" | "intermediate" | "advanced" | "mixed" | null; qualityScore?: number | null; workloadScore?: number | null; totalEstimatedMinutes?: number | null; createdAt?: string };
+export type StudyRoadmapModule = { id: string; roadmapId: string; title: string; objective: string | null; successCriteria: string | null; topics: string[]; orderIndex: number; estimatedMinutes: number | null };
+export type StudyAssessmentQuestion = { id: string; itemId: string; prompt: string; options: string[]; orderIndex: number };
+export type StudyAssessmentAttempt = { id: string; itemId: string; score: number; correctCount: number; totalCount: number; submittedAt: string };
 export type InvestmentContribution = { id: string; date: string; amount: number; institution: string | null; notes: string | null; source?: string };
 export type InvestmentSnapshot = { date: string; totalValue: number };
 export type InvestmentWithdrawal = { date: string; amount: number };

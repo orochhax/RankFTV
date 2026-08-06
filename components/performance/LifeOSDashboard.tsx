@@ -16,7 +16,7 @@ import { PesoCorpo } from "@/components/performance/PesoCorpo";
 import { FutevoleiSection } from "@/components/performance/FutevoleiSection";
 import { TreinosSection } from "@/components/performance/TreinosSection";
 import { CalendarClient } from "@/components/performance/CalendarClient";
-import { academyStreak, averageDuration, cumulativeContributions, investmentSummary, nextStudyItem, roadmapProgress, studyWeeklyStats, type InvestmentContribution, type StudyRoadmap, type StudyRoadmapItem } from "@/lib/performance-widgets";
+import { academyStreak, averageDuration, cumulativeContributions, investmentSummary, nextStudyItem, roadmapProgress, studyWeeklyStats, type InvestmentContribution, type StudyAssessmentAttempt, type StudyAssessmentQuestion, type StudyRoadmap, type StudyRoadmapItem, type StudyRoadmapModule } from "@/lib/performance-widgets";
 import { HabitAnalytics } from "@/components/performance/HabitAnalytics";
 import { AcademyWorkspace } from "@/components/performance/AcademyWorkspace";
 import { StudiesWorkspace } from "@/components/performance/StudiesWorkspace";
@@ -40,7 +40,7 @@ export type LifeOSProps = {
   trainings: { id: string; data: string; tipo: string; duracao_min: number | null; obs: string | null }[];
   tests: { id: string; data: string; tipo_teste: string; valor: number; unidade: string | null }[];
   events: LifeEvent[]; activities: ActivityRow[]; goals: LifeGoal[]; snapshots: PortfolioSnapshot[]; withdrawals: WithdrawalRow[]; insights: LifeInsight[]; categories: LifeCategory[];
-  contributions: InvestmentContribution[]; studyRoadmap: StudyRoadmap | null; studyItems: StudyRoadmapItem[]; range: DashboardRange; taskOccurrences: TaskOccurrence[]; consistency: ConsistencyStatus; schemaReady: boolean;
+  contributions: InvestmentContribution[]; studyRoadmap: StudyRoadmap | null; studyRoadmaps: StudyRoadmap[]; studyItems: StudyRoadmapItem[]; studyModules: StudyRoadmapModule[]; studyQuestions: StudyAssessmentQuestion[]; studyAttempts: StudyAssessmentAttempt[]; studyV2Ready: boolean; range: DashboardRange; taskOccurrences: TaskOccurrence[]; consistency: ConsistencyStatus; schemaReady: boolean;
 };
 
 const nav: { id: LifeOSView; label: string; icon: typeof CalendarDays }[] = [
@@ -68,7 +68,7 @@ export function LifeOSDashboard(props: LifeOSProps) {
   const progress = dayProgress(props.habits, props.logs, props.today);
   const todayEvents = props.events.filter((event) => event.startAt.slice(0, 10) === props.today).sort((a, b) => a.startAt.localeCompare(b.startAt));
   const ActivitiesView: React.FC<{ activities?: ActivityRow[] }> = () => <AcademyWorkspace activities={props.activities} weights={props.weights} today={props.today} heightCm={props.alturaCm} currentWeight={props.pesoAtual} targetWeight={props.profile?.peso_meta ?? null} />;
-  const GoalsView: React.FC<{ goals?: LifeGoal[]; today?: string; onNew?: () => void }> = () => <StudiesWorkspace roadmap={props.studyRoadmap} items={props.studyItems} activities={props.activities} today={props.today} monday={props.monday} />;
+  const GoalsView: React.FC<{ goals?: LifeGoal[]; today?: string; onNew?: () => void }> = () => <StudiesWorkspace roadmaps={props.studyRoadmaps} items={props.studyItems} modules={props.studyModules} questions={props.studyQuestions} attempts={props.studyAttempts} activities={props.activities} today={props.today} monday={props.monday} v2Ready={props.studyV2Ready} />;
   const InvestmentsView: React.FC<{ snapshots?: PortfolioSnapshot[]; withdrawals?: WithdrawalRow[]; contributions?: InvestmentContribution[] }> = () => <InvestmentsWorkspace snapshots={props.snapshots} withdrawals={props.withdrawals} contributions={props.contributions} today={props.today} />;
   const MetasDoDia: React.FC<{ habits: Habit[]; valoresIniciais: Record<string, number>; hoje: string }> = (input) => <><MetasDoDiaBase {...input} /><HabitAnalytics habits={props.habits} logs={props.logs} today={props.today} /></>;
   const LegacyAgenda: React.FC<{ events: LifeEvent[]; onNew?: () => void }> = ({ events }) => <CalendarClient events={events} embedded initialDate={props.today} />;
@@ -359,7 +359,8 @@ function LifeOSWidgets(props: LifeOSProps) {
   const studies = props.activities.filter((item) => item.area === "estudos" && item.status === "completed");
   const studyStats = studyWeeklyStats(studies, props.monday, props.today);
   const investment = investmentSummary(props.contributions, props.snapshots, props.withdrawals);
-  const next = nextStudyItem(props.studyItems);
+  const primaryItems = props.studyRoadmap ? props.studyItems.filter((item) => item.roadmapId === props.studyRoadmap?.id) : [];
+  const next = nextStudyItem(primaryItems);
   const academyDays = new Set(academy.map((item) => item.date));
   return <section className="grid gap-4 sm:grid-cols-2">
     <WidgetShell title="Academia" icon={<Flame className="size-4 text-orange-500" />} onOpen={() => router.replace("/admin/performance?view=activities", { scroll: false })}>
@@ -368,7 +369,7 @@ function LifeOSWidgets(props: LifeOSProps) {
     </WidgetShell>
     <WidgetShell title="Estudos" icon={<Lightbulb className="size-4 text-amber-500" />} onOpen={() => router.replace("/admin/performance?view=goals", { scroll: false })}>
       <div className="grid grid-cols-2 gap-3 text-sm"><div><p className="text-xs text-gray-400">Media diaria</p><p className="mt-1 font-semibold">{minutesText(studyStats.averageMinutes)}</p></div><div><p className="text-xs text-gray-400">Semana</p><p className="mt-1 font-semibold">{minutesText(studyStats.totalMinutes)}</p></div></div>
-      <p className="mt-4 truncate text-sm text-gray-600">Proximo: <b>{next?.title ?? "Nenhum assunto definido"}</b></p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100"><div className="h-full bg-amber-500" style={{ width: `${roadmapProgress(props.studyItems)}%` }} /></div>
+      <p className="mt-4 truncate text-sm text-gray-600">Proximo: <b>{next?.title ?? "Nenhum assunto definido"}</b></p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100"><div className="h-full bg-amber-500" style={{ width: `${roadmapProgress(primaryItems)}%` }} /></div>
     </WidgetShell>
     <WidgetShell title="Investimentos" icon={<Wallet className="size-4 text-emerald-600" />} onOpen={() => router.replace("/admin/performance?view=investments", { scroll: false })}>
       <div className="grid grid-cols-2 gap-3 text-sm"><div><p className="text-xs text-gray-400">Aportado</p><p className="mt-1 font-semibold">{formatBRL(investment.totalContributed)}</p></div><div><p className="text-xs text-gray-400">Carteira</p><p className="mt-1 font-semibold">{props.snapshots.length ? formatBRL(investment.currentValue) : "Nao atualizada"}</p></div></div>

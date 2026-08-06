@@ -21,7 +21,14 @@ export type HabitChartPoint = {
 export type ParsedRoadmapItem = {
   section: string;
   title: string;
+  description?: string | null;
+  instructions?: string | null;
+  completionCriteria?: string | null;
+  resourceTitle?: string | null;
+  resourceUrl?: string | null;
+  resourceChannel?: string | null;
   scheduledDate: string | null;
+  estimatedMinutes?: number | null;
   itemKind: "core" | "reinforcement" | "challenge" | "check" | "criterion" | "general";
   orderIndex: number;
 };
