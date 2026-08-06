@@ -79,7 +79,10 @@ Nunca versione `.env.local`. Variáveis sem o prefixo `NEXT_PUBLIC_` são exclus
 | `ASAAS_BASE_URL` | Servidor | Endpoint da API Asaas do ambiente atual. |
 | `ASAAS_API_KEY` | Servidor | Credencial da API Asaas. |
 | `ASAAS_WEBHOOK_TOKEN` | Servidor | Autentica os webhooks recebidos do Asaas. |
-| `CRON_SECRET` | Servidor | Protege `/api/cron/repasse-liquidacao`. |
+| `CRON_SECRET` | Servidor | Protege os endpoints em `/api/cron/*`. |
+| `OPENAI_API_KEY` | Servidor | Gera roadmaps e a analise diaria do Life OS. |
+| `OPENAI_ROADMAP_MODEL` | Servidor | Modelo usado para roadmaps de estudo. |
+| `OPENAI_LIFE_OS_MODEL` | Servidor | Modelo usado na leitura diaria das 05:00. |
 | `RESEND_API_KEY` | Servidor | Envio de e-mails transacionais. |
 | `RESEND_FROM_EMAIL` | Servidor | Remetente em domínio verificado; obrigatório para envio real. |
 | `ALLOW_TUNNEL_ORIGIN` | Desenvolvimento | Libera origem temporária do Cloudflare Tunnel; não definir em produção. |

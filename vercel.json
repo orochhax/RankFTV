@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/repasse-liquidacao",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/life-os-daily-analysis",
+      "schedule": "0 8 * * *"
     }
   ]
 }

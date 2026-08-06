@@ -1,6 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildRoadmapPlan, roadmapAiAnswersSchema, roadmapHorizon, roadmapPromptInput, roadmapSetupStatus, type GeneratedRoadmap } from "./study-roadmap-ai";
+import {
+  buildImportedRoadmapPlan,
+  buildRoadmapPlan,
+  prepareRoadmapImportSource,
+  roadmapAiAnswersSchema,
+  roadmapDraftStats,
+  roadmapGenerationPlanSchema,
+  roadmapHorizon,
+  roadmapPromptInput,
+  roadmapSetupStatus,
+  type GeneratedRoadmap,
+} from "./study-roadmap-ai";
 
 const answers = roadmapAiAnswersSchema.parse({
   subject: "Ciencia de dados",
@@ -32,6 +43,8 @@ function generatedStep(overrides: Partial<GeneratedRoadmap["modules"][number]["s
     title: "Analisar um CSV",
     type: "practice",
     whyItMatters: "Transforma conceitos em uma analise observavel.",
+    requirements: "Um arquivo CSV e um editor de planilhas.",
+    workspace: "Google Sheets no navegador.",
     instructions: "1. Abra o arquivo.\n2. Limpe os dados.\n3. Registre tres conclusoes.",
     expectedOutcome: "Entregar uma tabela limpa e tres conclusoes justificadas.",
     estimatedMinutes: 45,
@@ -74,6 +87,14 @@ test("roadmapSetupStatus aumenta definicao e carga conforme as escolhas", () => 
   assert.equal(detailed.qualityLabel, "Sob medida");
 });
 
+test("prepareRoadmapImportSource limpa o arquivo sem interpretar seu conteudo", () => {
+  assert.equal(
+    prepareRoadmapImportSource('{\n  "title": "Plano",\n  "sections": []\n}\0'),
+    '{"title":"Plano","sections":[]}',
+  );
+  assert.throws(() => prepareRoadmapImportSource("  \0  "), /EMPTY_IMPORT_FILE/);
+});
+
 test("buildRoadmapPlan cria modulos sem datas, remove repeticao e valida recursos", () => {
   const result = buildRoadmapPlan(generatedRoadmap([{
     title: "Fundamentos",
@@ -97,7 +118,7 @@ test("buildRoadmapPlan cria modulos sem datas, remove repeticao e valida recurso
         title: "Prova de fundamentos",
         type: "quiz",
         estimatedMinutes: 90,
-        questions: [{ prompt: "Qual etapa vem antes da analise?", options: ["Limpeza", "Publicacao", "Design"], correctOptionIndex: 0, explanation: "Dados inconsistentes comprometem a analise." }],
+        questions: [{ questionType: "multiple_choice", prompt: "Qual etapa vem antes da analise?", options: ["Limpeza", "Publicacao", "Design"], correctOptionIndex: 0, correctOrder: [], explanation: "Dados inconsistentes comprometem a analise." }],
       }),
     ],
   }]), answers);
@@ -108,7 +129,76 @@ test("buildRoadmapPlan cria modulos sem datas, remove repeticao e valida recurso
   assert.equal(result.modules[0].steps[2].resourceUrl, null);
   assert.equal(result.modules[0].steps[3].estimatedMinutes, 60);
   assert.equal(result.modules[0].steps[3].questions.length, 1);
+  assert.equal(result.modules[0].steps[0].requirements, "Um arquivo CSV e um editor de planilhas.");
+  assert.equal(result.modules[0].steps[0].workspace, "Google Sheets no navegador.");
   assert.equal("scheduledDate" in result.modules[0].steps[0], false);
+});
+
+test("buildRoadmapPlan resume competencias e calcula o tempo do modulo pelas etapas", () => {
+  const result = buildRoadmapPlan(generatedRoadmap([{
+    title: "Modulo executavel",
+    objective: "Entregar dois exercicios verificaveis.",
+    successCriteria: "Executar e explicar os dois resultados.",
+    topics: ["Python", "VS Code", "Git", "GitHub", "Tipos", "Condicionais", "Funcoes", "Testes", "README", "Terminal"],
+    steps: [generatedStep({ title: "Etapa um", estimatedMinutes: 30 }), generatedStep({ title: "Etapa dois", estimatedMinutes: 45 })],
+  }]), answers);
+
+  assert.equal(result.modules[0].topics.length, 8);
+  assert.equal(result.modules[0].estimatedMinutes, 75);
+  assert.equal(result.totalEstimatedMinutes, 75);
+});
+
+test("buildRoadmapPlan preserva perguntas de ordenacao validas", () => {
+  const result = buildRoadmapPlan(generatedRoadmap([{
+    title: "Fluxo de analise",
+    objective: "Executar uma analise na ordem correta.",
+    successCriteria: "Justificar cada etapa do fluxo.",
+    topics: ["Processo"],
+    steps: [generatedStep({
+      questions: [{
+        questionType: "ordering",
+        prompt: "Ordene o fluxo de tratamento dos dados.",
+        options: ["Publicar", "Importar", "Validar", "Limpar"],
+        correctOptionIndex: null,
+        correctOrder: [1, 3, 2, 0],
+        explanation: "Primeiro os dados entram, depois sao limpos e validados antes da publicacao.",
+      }],
+    })],
+  }]), answers);
+
+  assert.deepEqual(result.modules[0].steps[0].questions[0], {
+    questionType: "ordering",
+    prompt: "Ordene o fluxo de tratamento dos dados.",
+    options: ["Publicar", "Importar", "Validar", "Limpar"],
+    correctOptionIndex: null,
+    correctOrder: [1, 3, 2, 0],
+    explanation: "Primeiro os dados entram, depois sao limpos e validados antes da publicacao.",
+  });
+});
+
+test("roadmapGenerationPlanSchema mantem rascunhos antigos compativeis", () => {
+  const current = buildRoadmapPlan(generatedRoadmap([{
+    title: "Fundamentos",
+    objective: "Aprender o fluxo.",
+    successCriteria: "Executar o fluxo.",
+    topics: ["Fluxo"],
+    steps: [generatedStep({
+      questions: [{ questionType: "multiple_choice", prompt: "Qual vem primeiro?", options: ["Importar", "Publicar"], correctOptionIndex: 0, correctOrder: [], explanation: "Primeiro importe." }],
+    })],
+  }]), answers);
+  const legacy = structuredClone(current) as unknown as Record<string, unknown>;
+  const legacyStep = ((legacy.modules as Array<{ steps: Array<Record<string, unknown>> }>)[0].steps[0]);
+  delete legacyStep.requirements;
+  delete legacyStep.workspace;
+  const legacyQuestion = (legacyStep.questions as Array<Record<string, unknown>>)[0];
+  delete legacyQuestion.questionType;
+  delete legacyQuestion.correctOrder;
+
+  const parsed = roadmapGenerationPlanSchema.parse(legacy);
+  assert.equal(parsed.modules[0].steps[0].requirements, "");
+  assert.equal(parsed.modules[0].steps[0].workspace, "");
+  assert.equal(parsed.modules[0].steps[0].questions[0].questionType, "multiple_choice");
+  assert.deepEqual(parsed.modules[0].steps[0].questions[0].correctOrder, []);
 });
 
 test("buildRoadmapPlan limita o total da geracao a 240 passos", () => {
@@ -122,4 +212,33 @@ test("buildRoadmapPlan limita o total da geracao a 240 passos", () => {
   const result = buildRoadmapPlan(generatedRoadmap(modules), answers);
   assert.equal(result.modules.flatMap((module) => module.steps).length, 240);
   assert.equal(result.modules.length, 6);
+});
+
+test("buildImportedRoadmapPlan preserva recurso seguro e cria uma janela sem datas por aula", () => {
+  const imported = buildImportedRoadmapPlan(generatedRoadmap([{
+    title: "Documentacao essencial",
+    objective: "Compreender a fonte principal.",
+    successCriteria: "Aplicar a documentacao em um exemplo.",
+    topics: ["Documentacao"],
+    steps: [generatedStep({
+      title: "Ler o guia oficial",
+      type: "reading",
+      estimatedMinutes: 300,
+      resource: { title: "Guia oficial", url: "https://example.com/guia", channel: "Documentacao" },
+    })],
+  }]), "2026-08-03", "a.md");
+
+  assert.equal(imported.modules[0].steps[0].resourceUrl, "https://example.com/guia");
+  assert.equal(imported.modules[0].steps[0].estimatedMinutes, 300);
+  assert.deepEqual(imported.selectedFormats, ["reading"]);
+  assert.equal(imported.totalWeeks, 2);
+  assert.equal(imported.targetDate, "2026-08-16");
+  assert.equal("scheduledDate" in imported.modules[0].steps[0], false);
+  assert.deepEqual(roadmapDraftStats(imported), {
+    title: "Dados na pratica",
+    description: "Curriculo para aprender por meio de analises reais.",
+    moduleCount: 1,
+    stepCount: 1,
+    totalEstimatedMinutes: 300,
+  });
 });

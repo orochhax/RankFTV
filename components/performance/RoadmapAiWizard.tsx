@@ -6,6 +6,7 @@ import {
   Check,
   CircleHelp,
   ExternalLink,
+  FileCheck2,
   FolderKanban,
   Gauge,
   Loader2,
@@ -16,7 +17,7 @@ import {
 } from "lucide-react";
 import { confirmarRoadmapGeradoLifeOS, gerarRoadmapComIALifeOS } from "@/app/admin/performance/life-os-actions";
 import { formatDateBR } from "@/lib/format";
-import { roadmapSetupStatus, type RoadmapGenerationPlan } from "@/lib/study-roadmap-ai";
+import { roadmapSetupStatus, type RoadmapAiAnswers, type RoadmapDraftDetail, type RoadmapGenerationPlan } from "@/lib/study-roadmap-ai";
 
 const inputClass = "mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500";
 const weekdays = [
@@ -26,10 +27,10 @@ const weekdays = [
 const learningFormats = [
   { value: "reading", label: "Leituras", detail: "Textos com objetivo e anotacoes", icon: BookOpen },
   { value: "video", label: "Videoaulas", detail: "Links gratuitos e diretos do YouTube", icon: PlayCircle },
-  { value: "practice", label: "Atividades", detail: "Exercicios com entrega concreta", icon: Wrench },
+  { value: "practice", label: "Atividades", detail: "Questoes de marcar e ordenar etapas", icon: Wrench },
   { value: "quiz", label: "Provas", detail: "Perguntas corrigidas pelo sistema", icon: CircleHelp },
-  { value: "challenge", label: "Desafios", detail: "Problemas com menos orientacao", icon: Swords },
-  { value: "project", label: "Projetos", detail: "Aplicacoes completas e progressivas", icon: FolderKanban },
+  { value: "challenge", label: "Desafios", detail: "Problemas guiados com requisitos e entrega", icon: Swords },
+  { value: "project", label: "Projetos", detail: "Entregas completas que integram habilidades", icon: FolderKanban },
 ] as const;
 
 const materialOptions = [
@@ -88,8 +89,15 @@ type FormState = {
   contextNotes: string;
 };
 
-export function RoadmapAiWizard({ today, onDone, onClose }: { today: string; onDone: () => void; onClose: () => void }) {
-  const [draft, setDraft] = useState<FormState>({
+function initialFormState(today: string, answers?: RoadmapAiAnswers | null): FormState {
+  if (answers) return {
+    ...answers,
+    availableDays: [...answers.availableDays],
+    learningFormats: [...answers.learningFormats],
+    requiredMaterials: [...answers.requiredMaterials],
+    finalOutcomes: [...answers.finalOutcomes],
+  };
+  return {
     subject: "",
     goal: "career",
     goalDetail: "",
@@ -112,8 +120,25 @@ export function RoadmapAiWizard({ today, onDone, onClose }: { today: string; onD
     projectMode: "guided",
     knownTopics: "",
     contextNotes: "",
-  });
-  const [preview, setPreview] = useState<PreviewState | null>(null);
+  };
+}
+
+export function RoadmapAiWizard({
+  today,
+  onDone,
+  onClose,
+  initialDraft,
+  onDraftSaved,
+}: {
+  today: string;
+  onDone: () => void;
+  onClose: () => void;
+  initialDraft?: RoadmapDraftDetail | null;
+  onDraftSaved?: () => void;
+}) {
+  const [draft, setDraft] = useState<FormState>(() => initialFormState(today, initialDraft?.answers));
+  const [preview, setPreview] = useState<PreviewState | null>(() => initialDraft ? { generationId: initialDraft.generationId, plan: initialDraft.plan } : null);
+  const [editingAnswers, setEditingAnswers] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [operation, setOperation] = useState<"generate" | "confirm" | null>(null);
   const [pending, startTransition] = useTransition();
@@ -125,6 +150,7 @@ export function RoadmapAiWizard({ today, onDone, onClose }: { today: string; onD
     && draft.requiredMaterials.length > 0
     && draft.finalOutcomes.length > 0
     && (draft.timelineMode === "duration" || Boolean(draft.deadline));
+  const canAdjust = !initialDraft || initialDraft.origin === "ai" && Boolean(initialDraft.answers);
 
   const setField = <K extends keyof FormState>(key: K, value: FormState[K]) => setDraft((current) => ({ ...current, [key]: value }));
   const toggleList = (field: ListField, value: string) => setDraft((current) => {
@@ -132,12 +158,17 @@ export function RoadmapAiWizard({ today, onDone, onClose }: { today: string; onD
     return { ...current, [field]: values.includes(value) ? values.filter((item) => item !== value) : [...values, value] };
   });
 
-  if (preview) {
+  if (preview && !editingAnswers) {
     return <RoadmapPreview
       preview={preview.plan}
       pending={pending && operation === "confirm"}
       error={error}
-      onBack={() => { setPreview(null); setError(null); }}
+      backLabel={canAdjust ? "Ajustar respostas" : "Fechar"}
+      onBack={() => {
+        setError(null);
+        if (canAdjust) setEditingAnswers(true);
+        else onClose();
+      }}
       onConfirm={() => {
         setError(null);
         setOperation("confirm");
@@ -159,10 +190,15 @@ export function RoadmapAiWizard({ today, onDone, onClose }: { today: string; onD
     startTransition(async () => {
       const result = await gerarRoadmapComIALifeOS(data);
       if (!result.ok || !result.generationId || !result.preview) setError(result.error ?? "Nao foi possivel gerar o roadmap.");
-      else setPreview({ generationId: result.generationId, plan: result.preview });
+      else {
+        setPreview({ generationId: result.generationId, plan: result.preview });
+        setEditingAnswers(false);
+        onDraftSaved?.();
+      }
       setOperation(null);
     });
   }} className="space-y-6">
+    {preview && <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-emerald-800"><div className="flex items-center gap-2"><FileCheck2 className="size-4" /><div><p className="text-sm font-semibold">A versao anterior esta salva</p><p className="text-xs text-emerald-700/70">Gerar novamente criara outro rascunho sem apagar este.</p></div></div><button type="button" onClick={() => setEditingAnswers(false)} className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">Ver versao salva</button></section>}
     <RoadmapStatus status={setup} formatCount={draft.learningFormats.length} />
 
     <fieldset className="space-y-4">
@@ -268,7 +304,7 @@ export function RoadmapAiWizard({ today, onDone, onClose }: { today: string; onD
       <p className="text-[11px] text-gray-400">A geracao usa a API da OpenAI. A busca de videos pode ter custo adicional.</p>
       <div className="flex gap-2">
         <button type="button" onClick={onClose} disabled={pending} className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">Cancelar</button>
-        <button disabled={pending || !canGenerate} className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{pending && operation === "generate" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}{pending && operation === "generate" ? "Montando curriculo..." : "Gerar previa"}</button>
+        <button disabled={pending || !canGenerate} className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{pending && operation === "generate" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}{pending && operation === "generate" ? "Montando curriculo..." : "Gerar e salvar rascunho"}</button>
       </div>
     </div>
   </form>;
@@ -292,13 +328,14 @@ function StatusBar({ label, value, color }: { label: string; value: number; colo
   return <div><div className="flex justify-between text-xs"><span className="text-white/55">{label}</span><b>{value}%</b></div><div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10"><div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${value}%` }} /></div></div>;
 }
 
-function RoadmapPreview({ preview, pending, error, onBack, onConfirm }: { preview: RoadmapGenerationPlan; pending: boolean; error: string | null; onBack: () => void; onConfirm: () => void }) {
+function RoadmapPreview({ preview, pending, error, backLabel, onBack, onConfirm }: { preview: RoadmapGenerationPlan; pending: boolean; error: string | null; backLabel: string; onBack: () => void; onConfirm: () => void }) {
   const totals = useMemo(() => {
     const steps = preview.modules.flatMap((module) => module.steps);
     return { steps: steps.length, hours: Math.round((preview.totalEstimatedMinutes / 60) * 10) / 10 };
   }, [preview]);
 
   return <div className="space-y-5">
+    <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700"><FileCheck2 className="size-4" />Este resultado ja esta salvo em Rascunhos.</div>
     <div><h3 className="text-xl font-bold">{preview.title}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{preview.description}</p></div>
     <div className="grid grid-cols-2 divide-x divide-y divide-gray-100 rounded-lg border border-gray-200 sm:grid-cols-4 sm:divide-y-0">
       <Metric value={preview.modules.length} label="modulos" />
@@ -308,9 +345,9 @@ function RoadmapPreview({ preview, pending, error, onBack, onConfirm }: { previe
     </div>
     <div className="rounded-lg bg-amber-50 p-3"><p className="text-xs font-semibold uppercase text-amber-700">Diagnostico e cadencia</p><p className="mt-1 text-sm leading-6 text-amber-900">{preview.diagnosis}</p><p className="mt-2 text-xs leading-5 text-amber-800">{preview.recommendedCadence}</p></div>
     <div className="flex items-center justify-between text-xs text-gray-400"><span>{formatDateBR(preview.startDate)}</span><span>janela estimada</span><span>{formatDateBR(preview.targetDate)}</span></div>
-    <div className="max-h-[50vh] space-y-2 overflow-y-auto pr-1">{preview.modules.map((module, moduleIndex) => <details key={`${module.title}-${moduleIndex}`} open={moduleIndex === 0} className="rounded-lg border border-gray-200"><summary className="cursor-pointer px-3 py-3"><span className="font-semibold">Modulo {moduleIndex + 1}: {module.title}</span><span className="ml-2 text-xs text-gray-400">{module.steps.length} passos</span><p className="mt-1 text-xs font-normal leading-5 text-gray-500">{module.objective}</p></summary><div className="border-t border-gray-100 px-3">{module.steps.map((step, stepIndex) => <div key={`${step.title}-${stepIndex}`} className="flex gap-3 border-b border-gray-100 py-3 last:border-0"><span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-gray-100 text-[10px] font-bold text-gray-500">{stepIndex + 1}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium text-gray-800">{step.title}</p><span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600">{itemLabels[step.type] ?? step.type}</span></div><p className="mt-1 text-xs leading-5 text-gray-500">{step.description}</p><p className="mt-1 text-[11px] text-gray-400">{step.estimatedMinutes} min{step.questions.length ? ` - ${step.questions.length} perguntas` : ""}</p>{step.resourceUrl && <a href={step.resourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-red-600">{step.resourceTitle}<ExternalLink className="size-3" /></a>}</div></div>)}</div></details>)}</div>
+    <div className="max-h-[50vh] space-y-2 overflow-y-auto pr-1">{preview.modules.map((module, moduleIndex) => <details key={`${module.title}-${moduleIndex}`} open={moduleIndex === 0} className="rounded-lg border border-gray-200"><summary className="cursor-pointer px-3 py-3"><span className="font-semibold">Modulo {moduleIndex + 1}: {module.title}</span><span className="ml-2 text-xs text-gray-400">{module.steps.length} passos</span><p className="mt-1 text-xs font-normal leading-5 text-gray-500">{module.objective}</p></summary><div className="border-t border-gray-100 px-3">{module.steps.map((step, stepIndex) => <div key={`${step.title}-${stepIndex}`} className="flex gap-3 border-b border-gray-100 py-3 last:border-0"><span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-gray-100 text-[10px] font-bold text-gray-500">{stepIndex + 1}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium text-gray-800">{step.title}</p><span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600">{itemLabels[step.type] ?? step.type}</span></div><p className="mt-1 text-xs leading-5 text-gray-500">{step.description}</p><p className="mt-1 text-[11px] text-gray-400">{step.estimatedMinutes} min{step.questions.length ? ` - ${step.questions.length} perguntas` : ""}{step.questions.some((question) => question.questionType === "ordering") ? " - inclui ordenacao" : ""}</p>{(step.requirements || step.workspace) && <details className="mt-2 text-xs"><summary className="cursor-pointer font-semibold text-gray-500">Ver preparacao e entrega</summary><div className="mt-2 space-y-2 border-l-2 border-gray-200 pl-3 text-gray-600">{step.requirements && <p><b>Precisa:</b> {step.requirements}</p>}{step.workspace && <p><b>Onde:</b> {step.workspace}</p>}<p><b>Resultado:</b> {step.completionCriteria}</p></div></details>}{step.resourceUrl && <a href={step.resourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-red-600">{step.resourceTitle}<ExternalLink className="size-3" /></a>}</div></div>)}</div></details>)}</div>
     {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</p>}
-    <div className="flex flex-wrap justify-end gap-2"><button type="button" onClick={onBack} disabled={pending} className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">Ajustar respostas</button><button type="button" onClick={onConfirm} disabled={pending} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}{pending ? "Salvando..." : "Salvar roadmap"}</button></div>
+    <div className="flex flex-wrap justify-end gap-2"><button type="button" onClick={onBack} disabled={pending} className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">{backLabel}</button><button type="button" onClick={onConfirm} disabled={pending} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}{pending ? "Salvando..." : "Salvar roadmap"}</button></div>
   </div>;
 }
 

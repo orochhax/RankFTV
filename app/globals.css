@@ -231,6 +231,85 @@ img {
   animation: marquee linear infinite;
 }
 
+/* Life OS usa uma paleta escura propria sem alterar as paginas publicas do RankFTV. */
+.life-os-theme {
+  color-scheme: dark;
+  background: #0b0d10;
+  color: #f5f7fa;
+}
+
+.life-os-theme .bg-white { background-color: #15191f !important; }
+.life-os-theme .bg-gray-50 { background-color: #11151a !important; }
+.life-os-theme .bg-gray-100,
+.life-os-theme .bg-gray-200 { background-color: #20262e !important; }
+.life-os-theme .text-gray-900,
+.life-os-theme .text-gray-800 { color: rgba(255, 255, 255, 0.92) !important; }
+.life-os-theme .text-gray-700 { color: rgba(255, 255, 255, 0.76) !important; }
+.life-os-theme .text-gray-600 { color: rgba(255, 255, 255, 0.64) !important; }
+.life-os-theme .text-gray-500 { color: rgba(255, 255, 255, 0.5) !important; }
+.life-os-theme .text-gray-400 { color: rgba(255, 255, 255, 0.36) !important; }
+.life-os-theme .text-gray-300 { color: rgba(255, 255, 255, 0.26) !important; }
+.life-os-theme .border-gray-50,
+.life-os-theme .border-gray-100,
+.life-os-theme .border-gray-200,
+.life-os-theme .border-gray-300 { border-color: rgba(255, 255, 255, 0.1) !important; }
+.life-os-theme .ring-gray-100,
+.life-os-theme .ring-gray-200,
+.life-os-theme .ring-gray-300,
+.life-os-theme .ring-black\/5 { --tw-ring-color: rgba(255, 255, 255, 0.1) !important; }
+.life-os-theme .divide-gray-100 > :not(:last-child),
+.life-os-theme .divide-gray-200 > :not(:last-child) { border-color: rgba(255, 255, 255, 0.1) !important; }
+.life-os-theme .hover\:bg-gray-50:hover,
+.life-os-theme .hover\:bg-gray-100:hover,
+.life-os-theme .hover\:bg-gray-200:hover { background-color: rgba(255, 255, 255, 0.06) !important; }
+
+.life-os-theme .bg-blue-50,
+.life-os-theme .bg-blue-100,
+.life-os-theme .bg-blue-50\/50 { background-color: rgba(59, 130, 246, 0.12) !important; }
+.life-os-theme .bg-gray-50\/60 { background-color: rgba(255, 255, 255, 0.035) !important; }
+.life-os-theme .bg-red-50,
+.life-os-theme .bg-red-100 { background-color: rgba(248, 113, 113, 0.12) !important; }
+.life-os-theme .bg-amber-50,
+.life-os-theme .bg-amber-100 { background-color: rgba(251, 191, 36, 0.12) !important; }
+.life-os-theme .bg-emerald-50,
+.life-os-theme .bg-emerald-100 { background-color: rgba(52, 211, 153, 0.12) !important; }
+.life-os-theme .bg-violet-50,
+.life-os-theme .bg-violet-100 { background-color: rgba(167, 139, 250, 0.12) !important; }
+.life-os-theme .bg-sky-50,
+.life-os-theme .bg-cyan-50 { background-color: rgba(56, 189, 248, 0.12) !important; }
+.life-os-theme .text-blue-600,
+.life-os-theme .text-blue-700,
+.life-os-theme .text-blue-800,
+.life-os-theme .text-blue-900 { color: #93c5fd !important; }
+.life-os-theme .text-red-500,
+.life-os-theme .text-red-600,
+.life-os-theme .text-red-700,
+.life-os-theme .text-red-800 { color: #fca5a5 !important; }
+.life-os-theme .text-amber-600,
+.life-os-theme .text-amber-700,
+.life-os-theme .text-amber-800,
+.life-os-theme .text-amber-900 { color: #fcd34d !important; }
+.life-os-theme .text-emerald-600,
+.life-os-theme .text-emerald-700,
+.life-os-theme .text-emerald-800,
+.life-os-theme .text-emerald-900 { color: #6ee7b7 !important; }
+.life-os-theme .text-violet-600,
+.life-os-theme .text-violet-700 { color: #c4b5fd !important; }
+.life-os-theme .text-sky-600,
+.life-os-theme .text-sky-700,
+.life-os-theme .text-cyan-600,
+.life-os-theme .text-cyan-700 { color: #7dd3fc !important; }
+
+.life-os-theme :where(input, select, textarea):not([type="checkbox"]):not([type="radio"]) {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background-color: #0f1318 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+.life-os-theme :where(input, textarea)::placeholder { color: rgba(255, 255, 255, 0.28); }
+.life-os-theme option { background: #11151a; color: #f5f7fa; }
+.life-os-theme :where(input, select, textarea):focus { border-color: #4d4dff !important; }
+.life-os-theme * { scrollbar-color: #343b45 transparent; }
+
 /* Reduz transições e o marquee para quem pede menos movimento. Os dois feixes
    azuis da identidade continuam percorrendo a trilha, porém mais devagar. */
 @media (prefers-reduced-motion: reduce) {

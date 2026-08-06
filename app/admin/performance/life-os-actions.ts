@@ -5,26 +5,32 @@ import { revalidatePath } from "next/cache";
 import { zodTextFormat } from "openai/helpers/zod";
 import { createClient } from "@/lib/supabase/server";
 import { addDays, hojeISO } from "@/lib/performance";
-import { buildDeterministicInsights, portfolioVariation, type LifeEvent, type LifeGoal } from "@/lib/performance-life-os";
-import type { Habit, HabitLog } from "@/lib/performance";
+import { portfolioVariation } from "@/lib/performance-life-os";
 import { getOpenAIClient } from "@/lib/openai";
+import { generateDailyLifeAnalysis } from "@/lib/daily-life-analysis-service";
+import { isStudyAnswerCorrect, validStudyAnswer, type SubmittedStudyAnswer } from "@/lib/study-assessment";
 import {
-  parseStudyRoadmapMarkdown,
   ROADMAP_IMPORT_MAX_BYTES,
-  ROADMAP_IMPORT_MAX_ITEMS,
-  type ParsedRoadmap,
 } from "@/lib/performance-analytics";
 import {
+  buildImportedRoadmapPlan,
   buildRoadmapPlan,
   generatedRoadmapSchema,
   ROADMAP_AI_DAILY_LIMIT,
   ROADMAP_AI_PROMPT_VERSION,
+  ROADMAP_IMPORT_AI_MAX_CHARS,
+  ROADMAP_IMPORT_PROMPT_VERSION,
+  prepareRoadmapImportSource,
   roadmapAiAnswersSchema,
+  roadmapDraftStats,
   roadmapGenerationPlanSchema,
   roadmapHorizon,
+  roadmapImportPromptInput,
+  roadmapImportSystemInstructions,
   roadmapPromptInput,
   roadmapSystemInstructions,
   type GenerateRoadmapResult,
+  type RoadmapDraftDetail,
 } from "@/lib/study-roadmap-ai";
 
 type Res = { ok: boolean; error?: string };
@@ -56,6 +62,36 @@ function text(formData: FormData, key: string, max = 200): string | null {
 function number(formData: FormData, key: string): number | null {
   const value = Number(String(formData.get(key) ?? "").replace(",", "."));
   return Number.isFinite(value) ? value : null;
+}
+
+async function setActiveStudyRoadmap(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  roadmapId: string,
+): Promise<Res> {
+  const { data: target, error: targetError } = await supabase
+    .from("perf_study_roadmap")
+    .select("id")
+    .eq("id", roadmapId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (targetError || !target) return { ok: false, error: targetError?.message ?? "Roadmap nao encontrado." };
+
+  const { error: archiveError } = await supabase
+    .from("perf_study_roadmap")
+    .update({ status: "archived", updated_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .neq("id", roadmapId);
+  if (archiveError) return { ok: false, error: archiveError.message };
+
+  const { error: activateError } = await supabase
+    .from("perf_study_roadmap")
+    .update({ status: "active", updated_at: new Date().toISOString() })
+    .eq("id", roadmapId)
+    .eq("user_id", userId);
+  if (activateError) return { ok: false, error: activateError.message };
+  return { ok: true };
 }
 
 export async function criarEventoLifeOS(formData: FormData): Promise<Res> {
@@ -255,9 +291,22 @@ export async function criarRoadmapEstudosLifeOS(formData: FormData): Promise<Res
   if (!ctx) return { ok: false, error: "Acesso negado." };
   const title = text(formData, "title", 160);
   if (!title) return { ok: false, error: "Informe o nome do roadmap." };
-  const { data, error } = await ctx.supabase.from("perf_study_roadmap").insert({ user_id: ctx.user.id, title, description: text(formData, "description", 2000), status: "active", source: "manual", start_date: text(formData, "start_date", 10) ?? hojeISO(), target_date: text(formData, "target_date", 10) }).select("id").single();
+  const { data, error } = await ctx.supabase.from("perf_study_roadmap").insert({ user_id: ctx.user.id, title, description: text(formData, "description", 2000), status: "archived", source: "manual", start_date: text(formData, "start_date", 10) ?? hojeISO(), target_date: text(formData, "target_date", 10) }).select("id").single();
   if (error) return { ok: false, error: error.message };
+  const activation = await setActiveStudyRoadmap(ctx.supabase, ctx.user.id, data.id);
+  if (!activation.ok) {
+    await ctx.supabase.from("perf_study_roadmap").delete().eq("id", data.id).eq("user_id", ctx.user.id);
+    return activation;
+  }
   reval(); return { ok: true, id: data.id };
+}
+
+export async function ativarRoadmapEstudosLifeOS(id: string): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx || !id) return { ok: false, error: "Roadmap invalido." };
+  const result = await setActiveStudyRoadmap(ctx.supabase, ctx.user.id, id);
+  if (result.ok) reval();
+  return result;
 }
 
 export async function criarItemEstudoLifeOS(roadmapId: string, formData: FormData): Promise<Res> {
@@ -302,71 +351,121 @@ export async function removerItemEstudoLifeOS(id: string): Promise<Res> {
 
 const STUDY_ITEM_KINDS = new Set(["core", "reinforcement", "challenge", "check", "criterion", "general", "reading", "video", "practice", "quiz", "project", "checkpoint"]);
 
-export async function importarRoadmapEstudosLifeOS(payload: string): Promise<Res> {
-  const ctx = await requireCeo();
-  if (!ctx) return { ok: false, error: "Acesso negado." };
-  if (Buffer.byteLength(payload, "utf8") > ROADMAP_IMPORT_MAX_BYTES) {
-    return { ok: false, error: "O arquivo excede o limite de 5 MB." };
-  }
-  let parsed: ParsedRoadmap;
-  if (payload.trimStart().startsWith("{")) {
-    let json: { title?: unknown; description?: unknown; sections?: unknown };
-    try { json = JSON.parse(payload) as typeof json; } catch { return { ok: false, error: "JSON invalido." }; }
-    if (typeof json.title !== "string" || !json.title.trim() || !Array.isArray(json.sections)) return { ok: false, error: "Formato de roadmap invalido." };
-    const items: ParsedRoadmap["items"] = [];
-    json.sections.forEach((section) => {
-      if (!section || typeof section !== "object") return;
-      const value = section as { title?: unknown; items?: unknown };
-      if (!Array.isArray(value.items)) return;
-      value.items.forEach((item) => {
-        if (!item || typeof item !== "object") return;
-        const entry = item as { title?: unknown; description?: unknown; instructions?: unknown; completionCriteria?: unknown; resourceTitle?: unknown; resourceUrl?: unknown; resourceChannel?: unknown; scheduledDate?: unknown; estimatedMinutes?: unknown; itemKind?: unknown };
-        if (typeof entry.title === "string" && entry.title.trim()) {
-          const estimatedMinutes = typeof entry.estimatedMinutes === "number" && Number.isFinite(entry.estimatedMinutes) && entry.estimatedMinutes > 0
-            ? Math.min(1440, Math.round(entry.estimatedMinutes))
-            : null;
-          items.push({
-            section: typeof value.title === "string" ? value.title : "Geral",
-            title: entry.title.trim(),
-            description: typeof entry.description === "string" ? entry.description : null,
-            instructions: typeof entry.instructions === "string" ? entry.instructions : null,
-            completionCriteria: typeof entry.completionCriteria === "string" ? entry.completionCriteria : null,
-            resourceTitle: typeof entry.resourceTitle === "string" ? entry.resourceTitle : null,
-            resourceUrl: typeof entry.resourceUrl === "string" ? entry.resourceUrl : null,
-            resourceChannel: typeof entry.resourceChannel === "string" ? entry.resourceChannel : null,
-            scheduledDate: typeof entry.scheduledDate === "string" ? entry.scheduledDate : null,
-            estimatedMinutes,
-            itemKind: typeof entry.itemKind === "string" && STUDY_ITEM_KINDS.has(entry.itemKind) ? entry.itemKind as ParsedRoadmap["items"][number]["itemKind"] : "general",
-            orderIndex: items.length,
-          });
-        }
-      });
-    });
-    parsed = { title: json.title.trim(), description: typeof json.description === "string" ? json.description : null, items };
-  } else parsed = parseStudyRoadmapMarkdown(payload);
-  if (!parsed.items.length) return { ok: false, error: "Nenhuma atividade com checkbox foi encontrada no arquivo." };
-  if (parsed.items.length > ROADMAP_IMPORT_MAX_ITEMS) {
-    return { ok: false, error: `O roadmap tem ${parsed.items.length} atividades. O limite por importacao e ${ROADMAP_IMPORT_MAX_ITEMS}.` };
+export async function importarRoadmapEstudosLifeOS(payload: string, filename = "roadmap.md"): Promise<GenerateRoadmapResult> {
+  const ctx = await requireRoadmapAiUser();
+  if (!ctx) return { ok: false, error: "A importacao com IA ainda nao esta liberada para este usuario." };
+  if (Buffer.byteLength(payload, "utf8") > ROADMAP_IMPORT_MAX_BYTES) return { ok: false, error: "O arquivo excede o limite de 5 MB." };
+
+  const safeFilename = filename.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 180) || "roadmap.md";
+  if (!/\.(md|markdown|txt|json)$/i.test(safeFilename)) return { ok: false, error: "Use um arquivo Markdown, TXT ou JSON." };
+  let source: string;
+  try {
+    source = prepareRoadmapImportSource(payload);
+  } catch (error) {
+    return { ok: false, error: roadmapAiError(error) };
   }
 
-  const firstDate = parsed.items.map((item) => item.scheduledDate).filter((value): value is string => Boolean(value)).sort()[0] ?? hojeISO();
-  const { data: created, error: roadmapError } = await ctx.supabase.from("perf_study_roadmap").insert({ user_id: ctx.user.id, title: parsed.title.slice(0, 160), description: parsed.description?.slice(0, 2000) ?? null, status: "active", source: "import", start_date: firstDate }).select("id").single();
-  if (roadmapError || !created) return { ok: false, error: roadmapError?.message ?? "Nao foi possivel criar o roadmap." };
-  const rows = parsed.items.map((item) => ({ user_id: ctx.user.id, roadmap_id: created.id, section: item.section.slice(0, 160), title: item.title.slice(0, 500), description: item.description?.slice(0, 2000) ?? null, instructions: item.instructions?.slice(0, 5000) ?? null, completion_criteria: item.completionCriteria?.slice(0, 1500) ?? null, resource_title: item.resourceTitle?.slice(0, 500) ?? null, resource_url: item.resourceUrl?.slice(0, 1000) ?? null, resource_channel: item.resourceChannel?.slice(0, 300) ?? null, order_index: item.orderIndex, estimated_minutes: item.estimatedMinutes ?? null, scheduled_date: item.scheduledDate, item_kind: item.itemKind }));
-  for (let start = 0; start < rows.length; start += 500) {
-    const { error: itemError } = await ctx.supabase.from("perf_study_roadmap_item").insert(rows.slice(start, start + 500));
-    if (itemError) {
-      await ctx.supabase.from("perf_study_roadmap").delete().eq("id", created.id).eq("user_id", ctx.user.id);
-      return { ok: false, error: itemError.message };
-    }
+  const gateError = await roadmapGenerationGate(ctx);
+  if (gateError) return { ok: false, error: gateError };
+  const model = process.env.OPENAI_ROADMAP_MODEL?.trim() || "gpt-5.6-sol";
+  const sourceSha256 = createHash("sha256").update(source).digest("hex");
+  const { data: generation, error: generationError } = await ctx.supabase.from("perf_study_roadmap_generation").insert({
+    user_id: ctx.user.id,
+    status: "generating",
+    answers: { source: "import", filename: safeFilename, characterCount: source.length },
+    origin: "import",
+    original_filename: safeFilename,
+    source_sha256: sourceSha256,
+    model,
+    prompt_version: ROADMAP_IMPORT_PROMPT_VERSION,
+  }).select("id").single();
+  if (generationError || !generation) return { ok: false, error: generationError?.message ?? "Nao foi possivel iniciar a importacao." };
+
+  try {
+    const response = await getOpenAIClient().responses.parse({
+      model,
+      reasoning: { effort: "medium" },
+      instructions: roadmapImportSystemInstructions,
+      input: roadmapImportPromptInput(source, safeFilename),
+      text: { format: zodTextFormat(generatedRoadmapSchema, "imported_study_roadmap") },
+      max_output_tokens: 30_000,
+      safety_identifier: createHash("sha256").update(ctx.user.id).digest("hex"),
+      store: false,
+    });
+    if (!response.output_parsed) throw new Error("EMPTY_STRUCTURED_OUTPUT");
+    const preview = buildImportedRoadmapPlan(response.output_parsed, hojeISO("America/Bahia"), safeFilename);
+    if (!preview.modules.length || !preview.modules.some((roadmapModule) => roadmapModule.steps.length)) throw new Error("EMPTY_ROADMAP");
+    const readyError = await persistRoadmapDraft(ctx, generation.id, preview, response, 0);
+    if (readyError) return { ok: false, error: readyError };
+    reval();
+    return { ok: true, generationId: generation.id, preview };
+  } catch (error) {
+    const message = roadmapAiError(error);
+    await ctx.supabase.from("perf_study_roadmap_generation").update({ status: "failed", error_message: message, updated_at: new Date().toISOString() }).eq("id", generation.id).eq("user_id", ctx.user.id);
+    return { ok: false, error: message };
   }
-  reval(); return { ok: true };
+}
+
+type RoadmapAiContext = NonNullable<Awaited<ReturnType<typeof requireRoadmapAiUser>>>;
+
+async function roadmapGenerationGate(ctx: RoadmapAiContext): Promise<string | null> {
+  const today = hojeISO("America/Bahia");
+  const tomorrow = addDays(today, 1);
+  const [modulesCheck, draftsCheck, itemDetailsCheck, questionTypesCheck, countResult] = await Promise.all([
+    ctx.supabase.from("perf_study_roadmap_module").select("id").eq("user_id", ctx.user.id).limit(1),
+    ctx.supabase.from("perf_study_roadmap_generation").select("id, origin, preview_title").eq("user_id", ctx.user.id).limit(1),
+    ctx.supabase.from("perf_study_roadmap_item").select("id, requirements, workspace").eq("user_id", ctx.user.id).limit(1),
+    ctx.supabase.from("perf_study_assessment_question").select("id, question_type, correct_order").eq("user_id", ctx.user.id).limit(1),
+    ctx.supabase
+      .from("perf_study_roadmap_generation")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", ctx.user.id)
+      .in("status", ["generating", "ready", "accepted"])
+      .gte("created_at", `${today}T00:00:00-03:00`)
+      .lt("created_at", `${tomorrow}T00:00:00-03:00`),
+  ]);
+  if (modulesCheck.error) return "Execute a migration performance-study-modules.sql antes de gerar um novo roadmap.";
+  if (draftsCheck.error) return "Execute a migration performance-roadmap-drafts.sql antes de gerar ou importar um roadmap.";
+  if (itemDetailsCheck.error || questionTypesCheck.error) return "Execute a migration performance-study-question-types.sql antes de gerar ou importar um roadmap.";
+  if (countResult.error) return "Nao foi possivel verificar o limite diario de geracoes.";
+  if ((countResult.count ?? 0) >= ROADMAP_AI_DAILY_LIMIT) return `Limite de ${ROADMAP_AI_DAILY_LIMIT} geracoes por dia atingido.`;
+  return null;
+}
+
+async function persistRoadmapDraft(
+  ctx: RoadmapAiContext,
+  generationId: string,
+  preview: NonNullable<GenerateRoadmapResult["preview"]>,
+  response: { id: string; usage?: { input_tokens?: number; output_tokens?: number } | null },
+  webSearchCalls: number,
+): Promise<string | null> {
+  const stats = roadmapDraftStats(preview);
+  const { error } = await ctx.supabase.from("perf_study_roadmap_generation").update({
+    status: "ready",
+    generated_plan: preview,
+    preview_title: stats.title,
+    preview_description: stats.description,
+    module_count: stats.moduleCount,
+    step_count: stats.stepCount,
+    total_estimated_minutes: stats.totalEstimatedMinutes,
+    provider_response_id: response.id,
+    input_tokens: response.usage?.input_tokens ?? null,
+    output_tokens: response.usage?.output_tokens ?? null,
+    web_search_calls: webSearchCalls,
+    error_message: null,
+    updated_at: new Date().toISOString(),
+  }).eq("id", generationId).eq("user_id", ctx.user.id);
+  return error?.message ?? null;
 }
 
 function roadmapAiError(error: unknown): string {
   if (error instanceof Error && error.message === "OPENAI_API_KEY_NOT_CONFIGURED") return "A chave da OpenAI ainda nao foi configurada no servidor.";
+  if (error instanceof Error && error.message === "EMPTY_IMPORT_FILE") return "O arquivo esta vazio.";
+  if (error instanceof Error && error.message === "IMPORT_CONTEXT_TOO_LARGE") return `O texto util do arquivo ultrapassa ${Math.round(ROADMAP_IMPORT_AI_MAX_CHARS / 1_000_000)} milhoes de caracteres. Divida o roadmap em dois arquivos para a IA conseguir revisar tudo sem cortar conteudo.`;
+  if (error instanceof Error && error.message === "EMPTY_ROADMAP") return "A IA nao encontrou conteudo suficiente para montar um roadmap.";
   const status = typeof error === "object" && error && "status" in error ? Number(error.status) : null;
   if (status === 401) return "A chave da OpenAI foi recusada. Verifique a configuracao do projeto.";
+  if (status === 400) return "A OpenAI recusou o conteudo. Verifique o formato ou reduza o tamanho do arquivo.";
   if (status === 429) return "A OpenAI atingiu o limite de uso. Aguarde um pouco ou verifique seus creditos.";
   if (status && status >= 500) return "A OpenAI esta temporariamente indisponivel. Tente novamente em alguns minutos.";
   if (error instanceof Error && error.message === "NO_AVAILABLE_DATES") return "Nenhum dia disponivel foi encontrado no periodo escolhido.";
@@ -404,26 +503,15 @@ export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<Gener
   if (!parsedAnswers.success) return { ok: false, error: parsedAnswers.error.issues[0]?.message ?? "Revise as respostas do questionario." };
   if (!roadmapHorizon(parsedAnswers.data).availableDates.length) return { ok: false, error: "Escolha ao menos um dia disponivel dentro do periodo." };
 
-  const { error: modulesSchemaError } = await ctx.supabase.from("perf_study_roadmap_module").select("id").eq("user_id", ctx.user.id).limit(1);
-  if (modulesSchemaError) return { ok: false, error: "Execute a migration performance-study-modules.sql antes de gerar um novo roadmap." };
-
-  const today = hojeISO("America/Bahia");
-  const tomorrow = addDays(today, 1);
-  const { count, error: countError } = await ctx.supabase
-    .from("perf_study_roadmap_generation")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", ctx.user.id)
-    .in("status", ["generating", "ready", "accepted"])
-    .gte("created_at", `${today}T00:00:00-03:00`)
-    .lt("created_at", `${tomorrow}T00:00:00-03:00`);
-  if (countError) return { ok: false, error: "Execute a migration performance-roadmap-ai.sql no Supabase." };
-  if ((count ?? 0) >= ROADMAP_AI_DAILY_LIMIT) return { ok: false, error: `Limite de ${ROADMAP_AI_DAILY_LIMIT} geracoes por dia atingido.` };
+  const gateError = await roadmapGenerationGate(ctx);
+  if (gateError) return { ok: false, error: gateError };
 
   const model = process.env.OPENAI_ROADMAP_MODEL?.trim() || "gpt-5.6-sol";
   const { data: generation, error: generationError } = await ctx.supabase.from("perf_study_roadmap_generation").insert({
     user_id: ctx.user.id,
     status: "generating",
     answers: parsedAnswers.data,
+    origin: "ai",
     model,
     prompt_version: ROADMAP_AI_PROMPT_VERSION,
   }).select("id").single();
@@ -453,20 +541,11 @@ export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<Gener
     });
     if (!response.output_parsed) throw new Error("EMPTY_STRUCTURED_OUTPUT");
     const preview = buildRoadmapPlan(response.output_parsed, parsedAnswers.data);
-    if (!preview.modules.length || !preview.modules.some((module) => module.steps.length)) throw new Error("EMPTY_ROADMAP");
+    if (!preview.modules.length || !preview.modules.some((roadmapModule) => roadmapModule.steps.length)) throw new Error("EMPTY_ROADMAP");
     const webSearchCalls = response.output.filter((item) => item.type === "web_search_call").length;
-
-    const { error: readyError } = await ctx.supabase.from("perf_study_roadmap_generation").update({
-      status: "ready",
-      generated_plan: preview,
-      provider_response_id: response.id,
-      input_tokens: response.usage?.input_tokens ?? null,
-      output_tokens: response.usage?.output_tokens ?? null,
-      web_search_calls: webSearchCalls,
-      error_message: null,
-      updated_at: new Date().toISOString(),
-    }).eq("id", generation.id).eq("user_id", ctx.user.id);
-    if (readyError) return { ok: false, error: readyError.message };
+    const readyError = await persistRoadmapDraft(ctx, generation.id, preview, response, webSearchCalls);
+    if (readyError) return { ok: false, error: readyError };
+    reval();
     return { ok: true, generationId: generation.id, preview };
   } catch (error) {
     const message = roadmapAiError(error);
@@ -482,10 +561,18 @@ export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promis
   const { data: existing } = await ctx.supabase.from("perf_study_roadmap").select("id").eq("user_id", ctx.user.id).eq("generation_id", generationId).maybeSingle();
   if (existing?.id) {
     await ctx.supabase.from("perf_study_roadmap_generation").update({ status: "accepted", accepted_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", generationId).eq("user_id", ctx.user.id);
+    const activation = await setActiveStudyRoadmap(ctx.supabase, ctx.user.id, existing.id);
+    if (!activation.ok) return activation;
     reval(); return { ok: true, id: existing.id };
   }
 
-  const { data: generation, error: generationError } = await ctx.supabase.from("perf_study_roadmap_generation").select("id, status, generated_plan").eq("id", generationId).eq("user_id", ctx.user.id).maybeSingle();
+  const [itemDetailsCheck, questionTypesCheck] = await Promise.all([
+    ctx.supabase.from("perf_study_roadmap_item").select("id, requirements, workspace").eq("user_id", ctx.user.id).limit(1),
+    ctx.supabase.from("perf_study_assessment_question").select("id, question_type, correct_order").eq("user_id", ctx.user.id).limit(1),
+  ]);
+  if (itemDetailsCheck.error || questionTypesCheck.error) return { ok: false, error: "Execute a migration performance-study-question-types.sql antes de salvar este roadmap." };
+
+  const { data: generation, error: generationError } = await ctx.supabase.from("perf_study_roadmap_generation").select("id, status, generated_plan, origin").eq("id", generationId).eq("user_id", ctx.user.id).maybeSingle();
   if (generationError || !generation || generation.status !== "ready") return { ok: false, error: "A previa nao esta disponivel para confirmacao." };
   const parsedPlan = roadmapGenerationPlanSchema.safeParse(generation.generated_plan);
   if (!parsedPlan.success) return { ok: false, error: "O roadmap gerado nao passou na validacao." };
@@ -495,8 +582,8 @@ export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promis
     user_id: ctx.user.id,
     title: plan.title,
     description: plan.description,
-    status: "active",
-    source: "ai",
+    status: "archived",
+    source: generation.origin === "import" ? "import" : "ai",
     generation_id: generationId,
     start_date: plan.startDate,
     target_date: plan.targetDate,
@@ -533,6 +620,8 @@ export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promis
       section: roadmapModule.title,
       title: step.title,
       description: step.description,
+      requirements: step.requirements || null,
+      workspace: step.workspace || null,
       instructions: step.instructions,
       completion_criteria: step.completionCriteria,
       order_index: order,
@@ -555,9 +644,11 @@ export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promis
       return step.questions.map((question, questionIndex) => ({
         user_id: ctx.user.id,
         item_id: itemId,
+        question_type: question.questionType,
         prompt: question.prompt,
         options: question.options,
         correct_option: question.correctOptionIndex,
+        correct_order: question.correctOrder,
         explanation: question.explanation,
         order_index: questionIndex,
       }));
@@ -571,18 +662,61 @@ export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promis
     }
   }
 
+  const activation = await setActiveStudyRoadmap(ctx.supabase, ctx.user.id, created.id);
+  if (!activation.ok) {
+    await ctx.supabase.from("perf_study_roadmap").delete().eq("id", created.id).eq("user_id", ctx.user.id);
+    return activation;
+  }
   await ctx.supabase.from("perf_study_roadmap_generation").update({ status: "accepted", accepted_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", generationId).eq("user_id", ctx.user.id);
   reval(); return { ok: true, id: created.id };
 }
 
-export async function enviarAvaliacaoEstudoLifeOS(itemId: string, submittedAnswers: Record<string, number>): Promise<{
+export async function obterRascunhoRoadmapLifeOS(generationId: string): Promise<{ ok: boolean; error?: string; draft?: RoadmapDraftDetail }> {
+  const ctx = await requireRoadmapAiUser();
+  if (!ctx || !generationId) return { ok: false, error: "Rascunho invalido." };
+  const { data, error } = await ctx.supabase.from("perf_study_roadmap_generation").select(
+    "id, status, origin, original_filename, answers, generated_plan, preview_title, preview_description, module_count, step_count, total_estimated_minutes, created_at",
+  ).eq("id", generationId).eq("user_id", ctx.user.id).eq("status", "ready").maybeSingle();
+  if (error || !data) return { ok: false, error: error?.message ?? "Rascunho nao encontrado." };
+  const parsedPlan = roadmapGenerationPlanSchema.safeParse(data.generated_plan);
+  if (!parsedPlan.success) return { ok: false, error: "O arquivo salvo deste rascunho esta invalido." };
+  const stats = roadmapDraftStats(parsedPlan.data);
+  const parsedAnswers = data.origin === "ai" ? roadmapAiAnswersSchema.safeParse(data.answers) : null;
+  return {
+    ok: true,
+    draft: {
+      generationId: data.id,
+      origin: data.origin === "import" ? "import" : "ai",
+      originalFilename: data.original_filename ?? null,
+      title: data.preview_title ?? stats.title,
+      description: data.preview_description ?? stats.description,
+      moduleCount: Number(data.module_count ?? stats.moduleCount),
+      stepCount: Number(data.step_count ?? stats.stepCount),
+      totalEstimatedMinutes: Number(data.total_estimated_minutes ?? stats.totalEstimatedMinutes),
+      createdAt: data.created_at,
+      plan: parsedPlan.data,
+      answers: parsedAnswers?.success ? parsedAnswers.data : null,
+    },
+  };
+}
+
+export async function removerRascunhoRoadmapLifeOS(generationId: string): Promise<Res> {
+  const ctx = await requireRoadmapAiUser();
+  if (!ctx || !generationId) return { ok: false, error: "Rascunho invalido." };
+  const { error } = await ctx.supabase.from("perf_study_roadmap_generation").delete().eq("id", generationId).eq("user_id", ctx.user.id).eq("status", "ready");
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function enviarAvaliacaoEstudoLifeOS(itemId: string, submittedAnswers: Record<string, SubmittedStudyAnswer>): Promise<{
   ok: boolean;
   error?: string;
   score?: number;
   correctCount?: number;
   totalCount?: number;
   passed?: boolean;
-  feedback?: Array<{ questionId: string; correct: boolean; correctOptionIndex: number; explanation: string }>;
+  feedback?: Array<{ questionId: string; questionType: "multiple_choice" | "ordering"; correct: boolean; correctOptionIndex: number | null; correctOrder: number[]; explanation: string }>;
 }> {
   const ctx = await requireCeo();
   if (!ctx || !itemId) return { ok: false, error: "Avaliacao invalida." };
@@ -590,22 +724,46 @@ export async function enviarAvaliacaoEstudoLifeOS(itemId: string, submittedAnswe
 
   const { data: item } = await ctx.supabase.from("perf_study_roadmap_item").select("id").eq("id", itemId).eq("user_id", ctx.user.id).maybeSingle();
   if (!item) return { ok: false, error: "Etapa nao encontrada." };
-  const { data: questions, error: questionsError } = await ctx.supabase.from("perf_study_assessment_question").select("id, options, correct_option, explanation").eq("item_id", itemId).eq("user_id", ctx.user.id).order("order_index").limit(20);
-  if (questionsError) return { ok: false, error: questionsError.message };
+  let questionsResult = await ctx.supabase.from("perf_study_assessment_question").select("id, question_type, options, correct_option, correct_order, explanation").eq("item_id", itemId).eq("user_id", ctx.user.id).order("order_index").limit(20);
+  if (questionsResult.error) {
+    const legacyResult = await ctx.supabase.from("perf_study_assessment_question").select("id, options, correct_option, explanation").eq("item_id", itemId).eq("user_id", ctx.user.id).order("order_index").limit(20);
+    if (legacyResult.error) return { ok: false, error: legacyResult.error.message };
+    questionsResult = {
+      ...legacyResult,
+      data: (legacyResult.data ?? []).map((question) => ({ ...question, question_type: "multiple_choice", correct_order: [] })),
+    };
+  }
+  const questions = questionsResult.data ?? [];
   if (!questions?.length) return { ok: false, error: "Esta etapa nao possui perguntas." };
 
   for (const question of questions) {
     const answer = submittedAnswers[question.id];
     const optionCount = Array.isArray(question.options) ? question.options.length : 0;
-    if (!Number.isInteger(answer) || answer < 0 || answer >= optionCount) return { ok: false, error: "Responda todas as perguntas antes de enviar." };
+    const questionType: "multiple_choice" | "ordering" = question.question_type === "ordering" ? "ordering" : "multiple_choice";
+    if (!validStudyAnswer(answer, { questionType, optionCount })) return { ok: false, error: questionType === "ordering" ? "Ordene todas as opcoes antes de enviar." : "Responda todas as perguntas antes de enviar." };
   }
 
-  const feedback = questions.map((question) => ({
-    questionId: question.id,
-    correct: submittedAnswers[question.id] === Number(question.correct_option),
-    correctOptionIndex: Number(question.correct_option),
-    explanation: String(question.explanation),
-  }));
+  const feedback = questions.map((question) => {
+    const questionType: "multiple_choice" | "ordering" = question.question_type === "ordering" ? "ordering" : "multiple_choice";
+    const correctOrder = Array.isArray(question.correct_order)
+      ? question.correct_order.map(Number).filter(Number.isInteger)
+      : [];
+    const answer = submittedAnswers[question.id];
+    const gradableQuestion = {
+      questionType,
+      optionCount: Array.isArray(question.options) ? question.options.length : 0,
+      correctOptionIndex: questionType === "multiple_choice" ? Number(question.correct_option) : null,
+      correctOrder: questionType === "ordering" ? correctOrder : [],
+    };
+    return {
+      questionId: question.id,
+      questionType,
+      correct: isStudyAnswerCorrect(answer, gradableQuestion),
+      correctOptionIndex: gradableQuestion.correctOptionIndex,
+      correctOrder: gradableQuestion.correctOrder,
+      explanation: String(question.explanation),
+    };
+  });
   const correctCount = feedback.filter((entry) => entry.correct).length;
   const totalCount = questions.length;
   const score = Math.round((correctCount / totalCount) * 10_000) / 100;
@@ -729,22 +887,11 @@ export async function salvarFeedbackInsightLifeOS(id: string, feedback: string):
 export async function gerarInsightLifeOS(): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx) return { ok: false, error: "Acesso negado." };
-  const today = hojeISO();
-  const [habitsRes, logsRes, goalsRes, eventsRes] = await Promise.all([
-    ctx.supabase.from("perf_habit").select("*").eq("user_id", ctx.user.id).eq("ativo", true).order("ordem"),
-    ctx.supabase.from("perf_habit_log").select("habit_id, data, valor").eq("user_id", ctx.user.id).gte("data", addDays(today, -6)),
-    ctx.supabase.from("perf_goal").select("*").eq("user_id", ctx.user.id).eq("active", true),
-    ctx.supabase.from("perf_event").select("*").eq("user_id", ctx.user.id).eq("active", true).gte("start_at", `${today}T00:00:00.000Z`).lt("start_at", `${addDays(today, 1)}T00:00:00.000Z`),
-  ]);
-  const errors = [habitsRes.error, logsRes.error, goalsRes.error, eventsRes.error].filter(Boolean);
-  if (errors.length) return { ok: false, error: errors[0]?.message ?? "Não foi possível ler os dados." };
-  const habits = (habitsRes.data ?? []) as Habit[];
-  const logs = (logsRes.data ?? []).map((row) => ({ habit_id: row.habit_id, data: row.data, valor: Number(row.valor) })) as HabitLog[];
-  const goals = (goalsRes.data ?? []).map((row) => ({ id: row.id, name: row.name, description: row.description, area: row.area, goalType: row.goal_type, initialValue: Number(row.initial_value), currentValue: Number(row.current_value), targetValue: Number(row.target_value), unit: row.unit, startDate: row.start_date, deadline: row.deadline, priority: Number(row.priority), status: row.status, allowOverTarget: Boolean(row.allow_over_target) })) as LifeGoal[];
-  const events = (eventsRes.data ?? []).map((row) => ({ id: row.id, title: row.title, description: row.description, startAt: row.start_at, endAt: row.end_at, allDay: Boolean(row.all_day), status: row.status, source: row.source, categoryId: row.category_id, location: row.location, link: row.link, active: row.active })) as LifeEvent[];
-  const insights = buildDeterministicInsights({ todayISO: today, habits, logs, goals, events });
-  if (!insights.length) return { ok: false, error: "Ainda não há dados suficientes para gerar um insight." };
-  const { error } = await ctx.supabase.from("perf_ai_insight").insert(insights.map((insight) => ({ user_id: ctx.user.id, type: insight.type, analysis_start: insight.analysisStart, analysis_end: insight.analysisEnd, main_area: insight.mainArea, diagnosis: insight.diagnosis, main_error: insight.mainError, risk: insight.risk, recommended_action: insight.recommendedAction, projection: insight.projection, priority: insight.priority, status: insight.status })));
-  if (error) return { ok: false, error: error.message };
-  reval(); return { ok: true };
+  try {
+    await generateDailyLifeAnalysis({ supabase: ctx.supabase, userId: ctx.user.id, timezone: "America/Bahia", force: true });
+    reval();
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Nao foi possivel gerar a analise diaria." };
+  }
 }

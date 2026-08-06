@@ -64,6 +64,10 @@ ALTER TABLE perf_study_roadmap_item
 ALTER TABLE perf_study_roadmap_item
   ADD COLUMN IF NOT EXISTS instructions text;
 ALTER TABLE perf_study_roadmap_item
+  ADD COLUMN IF NOT EXISTS requirements text;
+ALTER TABLE perf_study_roadmap_item
+  ADD COLUMN IF NOT EXISTS workspace text;
+ALTER TABLE perf_study_roadmap_item
   ADD COLUMN IF NOT EXISTS resource_title text;
 ALTER TABLE perf_study_roadmap_item
   ADD COLUMN IF NOT EXISTS resource_url text;
@@ -86,21 +90,63 @@ CREATE TABLE IF NOT EXISTS perf_study_assessment_question (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   item_id uuid NOT NULL REFERENCES perf_study_roadmap_item(id) ON DELETE CASCADE,
+  question_type text NOT NULL DEFAULT 'multiple_choice',
   prompt text NOT NULL,
   options jsonb NOT NULL,
-  correct_option integer NOT NULL,
+  correct_option integer,
+  correct_order jsonb NOT NULL DEFAULT '[]'::jsonb,
   explanation text NOT NULL,
   order_index integer NOT NULL DEFAULT 0 CHECK (order_index >= 0),
   created_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT perf_study_question_options_valid CHECK (
     jsonb_typeof(options) = 'array'
-    AND jsonb_array_length(options) BETWEEN 2 AND 6
+    AND jsonb_array_length(options) BETWEEN 2 AND 8
   ),
   CONSTRAINT perf_study_question_answer_valid CHECK (
-    correct_option >= 0 AND correct_option < jsonb_array_length(options)
+    (question_type = 'multiple_choice'
+      AND correct_option >= 0
+      AND correct_option < jsonb_array_length(options)
+      AND correct_order = '[]'::jsonb)
+    OR
+    (question_type = 'ordering'
+      AND correct_option IS NULL
+      AND jsonb_typeof(correct_order) = 'array'
+      AND jsonb_array_length(correct_order) = jsonb_array_length(options))
   ),
+  CONSTRAINT perf_study_question_type_valid CHECK (question_type IN ('multiple_choice', 'ordering')),
   CONSTRAINT perf_study_question_item_order_unique UNIQUE (item_id, order_index)
 );
+ALTER TABLE perf_study_assessment_question
+  ADD COLUMN IF NOT EXISTS question_type text NOT NULL DEFAULT 'multiple_choice';
+ALTER TABLE perf_study_assessment_question
+  ADD COLUMN IF NOT EXISTS correct_order jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE perf_study_assessment_question
+  ALTER COLUMN correct_option DROP NOT NULL;
+ALTER TABLE perf_study_assessment_question
+  DROP CONSTRAINT IF EXISTS perf_study_question_options_valid;
+ALTER TABLE perf_study_assessment_question
+  DROP CONSTRAINT IF EXISTS perf_study_question_answer_valid;
+ALTER TABLE perf_study_assessment_question
+  DROP CONSTRAINT IF EXISTS perf_study_question_type_valid;
+ALTER TABLE perf_study_assessment_question
+  ADD CONSTRAINT perf_study_question_options_valid CHECK (
+    jsonb_typeof(options) = 'array'
+    AND jsonb_array_length(options) BETWEEN 2 AND 8
+  );
+ALTER TABLE perf_study_assessment_question
+  ADD CONSTRAINT perf_study_question_type_valid CHECK (question_type IN ('multiple_choice', 'ordering'));
+ALTER TABLE perf_study_assessment_question
+  ADD CONSTRAINT perf_study_question_answer_valid CHECK (
+    (question_type = 'multiple_choice'
+      AND correct_option >= 0
+      AND correct_option < jsonb_array_length(options)
+      AND correct_order = '[]'::jsonb)
+    OR
+    (question_type = 'ordering'
+      AND correct_option IS NULL
+      AND jsonb_typeof(correct_order) = 'array'
+      AND jsonb_array_length(correct_order) = jsonb_array_length(options))
+  );
 CREATE INDEX IF NOT EXISTS perf_study_question_user_item_idx
   ON perf_study_assessment_question(user_id, item_id, order_index);
 
