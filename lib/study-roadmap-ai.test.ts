@@ -77,6 +77,8 @@ test("roadmapPromptInput limita o plano a uma etapa relevante por sessao", () =>
   assert.equal(input.capacity.availableSessions, 6);
   assert.equal(input.capacity.maximumSteps, 6);
   assert.equal(input.capacity.targetPlannedMinutes, 288);
+  assert.match(input.learner.digitalLiteracy, /instrucoes literais/);
+  assert.equal(input.learner.mainDevice, "Windows");
 });
 
 test("roadmapSetupStatus aumenta definicao e carga conforme as escolhas", () => {
@@ -201,7 +203,7 @@ test("roadmapGenerationPlanSchema mantem rascunhos antigos compativeis", () => {
   assert.deepEqual(parsed.modules[0].steps[0].questions[0].correctOrder, []);
 });
 
-test("buildRoadmapPlan limita o total da geracao a 240 passos", () => {
+test("buildRoadmapPlan limita as etapas a quantidade de sessoes informada", () => {
   const modules = Array.from({ length: 8 }, (_, moduleIndex) => ({
     title: `Modulo ${moduleIndex + 1}`,
     objective: "Objetivo",
@@ -210,8 +212,9 @@ test("buildRoadmapPlan limita o total da geracao a 240 passos", () => {
     steps: Array.from({ length: 40 }, (_, stepIndex) => generatedStep({ title: `Atividade ${moduleIndex + 1}-${stepIndex + 1}` })),
   }));
   const result = buildRoadmapPlan(generatedRoadmap(modules), answers);
-  assert.equal(result.modules.flatMap((module) => module.steps).length, 240);
-  assert.equal(result.modules.length, 6);
+  assert.equal(result.modules.flatMap((module) => module.steps).length, 6);
+  assert.equal(result.modules.length, 1);
+  assert.ok(result.totalEstimatedMinutes <= roadmapHorizon(answers).capacityMinutes);
 });
 
 test("buildImportedRoadmapPlan preserva recurso seguro e cria uma janela sem datas por aula", () => {

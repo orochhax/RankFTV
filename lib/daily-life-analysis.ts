@@ -2,7 +2,7 @@ import { z } from "zod";
 import { addDays, parseISO } from "@/lib/performance";
 
 export const DAILY_LIFE_ANALYSIS_TYPE = "daily_life_review";
-export const DAILY_LIFE_ANALYSIS_PROMPT_VERSION = "daily-life-review-v2";
+export const DAILY_LIFE_ANALYSIS_PROMPT_VERSION = "daily-life-review-v3";
 
 const analysisAreaSchema = z.enum([
   "consistencia",
@@ -456,8 +456,14 @@ export function buildFallbackDailyLifeNarrative(metrics: DailyLifeMetricsSnapsho
 
 export function dailyLifeSystemInstructions(): string {
   return [
-    "Voce e o analista diario de um sistema pessoal de produtividade e evolucao.",
-    "Escreva em portugues do Brasil, com tom direto, humano, respeitoso e exigente.",
+    "Voce e um coach pessoal de evolucao, produtividade e constancia.",
+    "Escreva em portugues do Brasil com energia, entusiasmo e proximidade.",
+    "Comemore conquistas reais e destaque claramente qualquer evolucao comprovada pelos dados.",
+    "Faca o usuario terminar a leitura com vontade de agir imediatamente.",
+    "Quando houver queda de rendimento, seja firme e puxe a responsabilidade, mas sempre mostre que e possivel recuperar.",
+    "Transforme pontos negativos em desafios claros e alcancaveis para hoje.",
+    "Use linguagem natural, encorajadora e empolgada, sem parecer artificial.",
+    "Nunca use motivacao vazia: conecte cada incentivo a um numero, tarefa, habito ou resultado presente nas metricas.",
     "Aponte queda de rendimento ou falta de constancia quando os numeros sustentarem isso, sem humilhar, diagnosticar ou dramatizar.",
     "Toda afirmacao deve ser sustentada exclusivamente pelo JSON de metricas. Nunca invente rotina, causa, sentimento, renda, saude ou resultado.",
     "Quando faltarem dados, diga claramente que faltam dados. Ausencia de registro nao prova que a atividade nao aconteceu.",
@@ -466,7 +472,7 @@ export function dailyLifeSystemInstructions(): string {
     "Compare os ultimos 7 dias encerrados ontem com os 7 anteriores. A nota e a tendencia ja foram calculadas pelo sistema e nao podem ser alteradas.",
     "Priorize no maximo tres acoes pequenas, especificas e executaveis hoje. Nao recomende aumentar o volume apenas para parecer produtivo.",
     "Nao ofereca aconselhamento medico ou recomendacao de investimento. Dados corporais e financeiros servem apenas para acompanhamento descritivo.",
-    "Evite frases motivacionais genericas. Seja curto, concreto e cite numeros ou nomes presentes nos dados em cada evidencia.",
+    "Seja curto, concreto e cite numeros ou nomes presentes nos dados em cada evidencia.",
     "O headline deve expressar a decisao principal do dia. Nao repita literalmente nota, status ou tendencia no headline.",
   ].join("\n");
 }

@@ -19,7 +19,8 @@ import { confirmarRoadmapGeradoLifeOS, gerarRoadmapComIALifeOS } from "@/app/adm
 import { formatDateBR } from "@/lib/format";
 import { roadmapSetupStatus, type RoadmapAiAnswers, type RoadmapDraftDetail, type RoadmapGenerationPlan } from "@/lib/study-roadmap-ai";
 
-const inputClass = "mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500";
+const inputClass = "mt-1 w-full rounded-lg border border-white/10 bg-[#0f1318] px-3 py-2 text-sm text-white outline-none focus:border-blue-500";
+const darkContentClass = "text-white [&_.border-gray-100]:!border-white/10 [&_.border-gray-200]:!border-white/10 [&_.border-gray-300]:!border-white/15 [&_.border-emerald-200]:!border-emerald-400/25 [&_.bg-white]:!bg-[#15191f] [&_.bg-gray-100]:!bg-white/10 [&_.bg-blue-50]:!bg-blue-400/10 [&_.bg-emerald-50]:!bg-emerald-400/10 [&_.bg-amber-50]:!bg-amber-400/10 [&_.bg-red-50]:!bg-red-400/10 [&_.text-gray-300]:!text-white/25 [&_.text-gray-400]:!text-white/35 [&_.text-gray-500]:!text-white/45 [&_.text-gray-600]:!text-white/60 [&_.text-gray-700]:!text-white/70 [&_.text-gray-800]:!text-white/85 [&_.text-gray-900]:!text-white [&_.text-blue-700]:!text-blue-300 [&_.text-emerald-700]:!text-emerald-300 [&_.text-emerald-800]:!text-emerald-200 [&_.text-amber-700]:!text-amber-300 [&_.text-amber-800]:!text-amber-200 [&_.text-amber-900]:!text-amber-100 [&_.text-red-600]:!text-red-300";
 const weekdays = [
   ["1", "Seg"], ["2", "Ter"], ["3", "Qua"], ["4", "Qui"], ["5", "Sex"], ["6", "Sab"], ["0", "Dom"],
 ] as const;
@@ -69,6 +70,8 @@ type FormState = {
   goal: string;
   goalDetail: string;
   currentLevel: string;
+  digitalLiteracy: string;
+  mainDevice: string;
   useContext: string;
   targetLevel: string;
   mainObstacle: string;
@@ -102,6 +105,8 @@ function initialFormState(today: string, answers?: RoadmapAiAnswers | null): For
     goal: "career",
     goalDetail: "",
     currentLevel: "unknown",
+    digitalLiteracy: "needs_guidance",
+    mainDevice: "windows",
     useContext: "new_career",
     targetLevel: "autonomous",
     mainObstacle: "direction",
@@ -197,7 +202,7 @@ export function RoadmapAiWizard({
       }
       setOperation(null);
     });
-  }} className="space-y-6">
+  }} className={`space-y-6 ${darkContentClass}`}>
     {preview && <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-emerald-800"><div className="flex items-center gap-2"><FileCheck2 className="size-4" /><div><p className="text-sm font-semibold">A versao anterior esta salva</p><p className="text-xs text-emerald-700/70">Gerar novamente criara outro rascunho sem apagar este.</p></div></div><button type="button" onClick={() => setEditingAnswers(false)} className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">Ver versao salva</button></section>}
     <RoadmapStatus status={setup} formatCount={draft.learningFormats.length} />
 
@@ -225,6 +230,12 @@ export function RoadmapAiWizard({
         <SelectField name="current_level" label="Nivel atual" value={draft.currentLevel} onChange={(value) => setField("currentLevel", value)} options={[
           ["unknown", "Nao sei meu nivel"], ["beginner", "Nunca estudei"], ["basic", "Conheco o basico"], ["intermediate", "Ja pratico"], ["advanced", "Tenho experiencia"],
         ]} />
+        <SelectField name="digital_literacy" label="Autonomia com tecnologia" value={draft.digitalLiteracy} onChange={(value) => setField("digitalLiteracy", value)} options={[
+          ["needs_guidance", "Preciso do passo a passo"], ["basic", "Uso o computador, mas preciso de ajuda"], ["comfortable", "Instalo e configuro ferramentas"], ["advanced", "Domino terminal e ambientes"],
+        ]} />
+        <SelectField name="main_device" label="Dispositivo principal" value={draft.mainDevice} onChange={(value) => setField("mainDevice", value)} options={[
+          ["windows", "Computador Windows"], ["mac", "Mac"], ["linux", "Computador Linux"], ["chromebook", "Chromebook"], ["mobile", "Celular ou tablet"],
+        ]} />
         <SelectField name="target_level" label="Nivel desejado" value={draft.targetLevel} onChange={(value) => setField("targetLevel", value)} options={[
           ["foundation", "Entender fundamentos"], ["functional", "Usar com orientacao"], ["autonomous", "Trabalhar com autonomia"], ["professional", "Atuar profissionalmente"],
         ]} />
@@ -248,8 +259,8 @@ export function RoadmapAiWizard({
       <input type="hidden" name="timeline_mode" value={draft.timelineMode} />
       {draft.timelineMode === "deadline" && <input type="hidden" name="duration_weeks" value={draft.durationWeeks} />}
       <div className="inline-flex rounded-lg bg-gray-100 p-1">
-        <button type="button" onClick={() => setField("timelineMode", "duration")} className={`rounded-md px-3 py-2 text-xs font-semibold ${draft.timelineMode === "duration" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Por duracao</button>
-        <button type="button" onClick={() => setField("timelineMode", "deadline")} className={`rounded-md px-3 py-2 text-xs font-semibold ${draft.timelineMode === "deadline" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Ate uma data</button>
+        <button type="button" onClick={() => setField("timelineMode", "duration")} className={`rounded-md px-3 py-2 text-xs font-semibold ${draft.timelineMode === "duration" ? "bg-blue-600 text-white" : "text-white/40"}`}>Por duracao</button>
+        <button type="button" onClick={() => setField("timelineMode", "deadline")} className={`rounded-md px-3 py-2 text-xs font-semibold ${draft.timelineMode === "deadline" ? "bg-blue-600 text-white" : "text-white/40"}`}>Ate uma data</button>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <label className="text-xs font-medium text-gray-500">Inicio
@@ -270,7 +281,7 @@ export function RoadmapAiWizard({
       </div>
       <div>
         <p className="text-xs font-medium text-gray-500">Dias que normalmente consegue estudar</p>
-        <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">{weekdays.map(([value, label]) => <label key={value} className={`flex cursor-pointer items-center justify-center rounded-lg border px-2 py-2 text-xs font-semibold ${draft.availableDays.includes(value) ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-500"}`}><input type="checkbox" name="available_days" value={value} checked={draft.availableDays.includes(value)} onChange={() => toggleList("availableDays", value)} className="sr-only" />{label}</label>)}</div>
+        <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">{weekdays.map(([value, label]) => <label key={value} className={`flex cursor-pointer items-center justify-center rounded-lg border px-2 py-2 text-xs font-semibold ${draft.availableDays.includes(value) ? "border-blue-400/50 bg-blue-400/10 text-blue-300" : "border-white/10 text-white/40"}`}><input type="checkbox" name="available_days" value={value} checked={draft.availableDays.includes(value)} onChange={() => toggleList("availableDays", value)} className="sr-only" />{label}</label>)}</div>
         <p className="mt-2 text-[11px] text-gray-400">Esses dias calculam a carga do plano. Os modulos nao ficarao presos a datas.</p>
       </div>
     </fieldset>
@@ -279,7 +290,7 @@ export function RoadmapAiWizard({
       <legend className="font-semibold text-gray-900">4. O que deve existir no roadmap</legend>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{learningFormats.map(({ value, label, detail, icon: Icon }) => {
         const selected = draft.learningFormats.includes(value);
-        return <label key={value} className={`cursor-pointer rounded-lg border p-3 ${selected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}><input type="checkbox" name="learning_formats" value={value} checked={selected} onChange={() => toggleList("learningFormats", value)} className="sr-only" /><span className="flex items-start gap-3"><span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${selected ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500"}`}><Icon className="size-4" /></span><span><b className="block text-sm text-gray-800">{label}</b><span className="mt-1 block text-xs leading-5 text-gray-400">{detail}</span></span></span></label>;
+        return <label key={value} className={`cursor-pointer rounded-lg border p-3 ${selected ? "border-blue-400/50 bg-blue-400/10" : "border-white/10 hover:border-white/20"}`}><input type="checkbox" name="learning_formats" value={value} checked={selected} onChange={() => toggleList("learningFormats", value)} className="sr-only" /><span className="flex items-start gap-3"><span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${selected ? "bg-blue-600 text-white" : "bg-white/10 text-white/45"}`}><Icon className="size-4" /></span><span><b className="block text-sm text-white/85">{label}</b><span className="mt-1 block text-xs leading-5 text-white/35">{detail}</span></span></span></label>;
       })}</div>
       <div className="grid gap-4 sm:grid-cols-3">
         <SelectField name="pace" label="Ritmo" value={draft.pace} onChange={(value) => setField("pace", value)} options={[
@@ -334,7 +345,7 @@ function RoadmapPreview({ preview, pending, error, backLabel, onBack, onConfirm 
     return { steps: steps.length, hours: Math.round((preview.totalEstimatedMinutes / 60) * 10) / 10 };
   }, [preview]);
 
-  return <div className="space-y-5">
+  return <div className={`space-y-5 ${darkContentClass}`}>
     <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700"><FileCheck2 className="size-4" />Este resultado ja esta salvo em Rascunhos.</div>
     <div><h3 className="text-xl font-bold">{preview.title}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{preview.description}</p></div>
     <div className="grid grid-cols-2 divide-x divide-y divide-gray-100 rounded-lg border border-gray-200 sm:grid-cols-4 sm:divide-y-0">

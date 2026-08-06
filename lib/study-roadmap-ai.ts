@@ -1,13 +1,15 @@
 import { z } from "zod";
 import { addDays, parseISO } from "@/lib/performance";
 
-export const ROADMAP_AI_PROMPT_VERSION = "roadmap-v5";
+export const ROADMAP_AI_PROMPT_VERSION = "roadmap-v7";
 export const ROADMAP_IMPORT_PROMPT_VERSION = "roadmap-import-v2";
 export const ROADMAP_AI_DAILY_LIMIT = 3;
 export const ROADMAP_IMPORT_AI_MAX_CHARS = 3_000_000;
 
 export const roadmapGoalValues = ["career", "exam", "project", "academic", "personal"] as const;
 export const roadmapLevelValues = ["unknown", "beginner", "basic", "intermediate", "advanced"] as const;
+export const roadmapDigitalLiteracyValues = ["needs_guidance", "basic", "comfortable", "advanced"] as const;
+export const roadmapDeviceValues = ["windows", "mac", "linux", "chromebook", "mobile"] as const;
 export const roadmapTimelineValues = ["duration", "deadline"] as const;
 export const roadmapWeekdayValues = ["0", "1", "2", "3", "4", "5", "6"] as const;
 export const roadmapLearningFormatValues = ["reading", "video", "practice", "quiz", "challenge", "project"] as const;
@@ -29,6 +31,8 @@ export const roadmapAiAnswersSchema = z.object({
   goal: z.enum(roadmapGoalValues),
   goalDetail: z.string().trim().min(10, "Descreva o resultado pratico que voce espera.").max(1500),
   currentLevel: z.enum(roadmapLevelValues),
+  digitalLiteracy: z.enum(roadmapDigitalLiteracyValues).default("needs_guidance"),
+  mainDevice: z.enum(roadmapDeviceValues).default("windows"),
   useContext: z.enum(roadmapContextValues),
   targetLevel: z.enum(roadmapTargetLevelValues),
   mainObstacle: z.enum(roadmapObstacleValues),
@@ -66,6 +70,8 @@ export type RoadmapSetupDraft = {
   goal?: string;
   goalDetail?: string;
   currentLevel?: string;
+  digitalLiteracy?: string;
+  mainDevice?: string;
   useContext?: string;
   targetLevel?: string;
   mainObstacle?: string;
@@ -103,6 +109,8 @@ export function roadmapSetupStatus(draft: RoadmapSetupDraft): RoadmapSetupStatus
   if (draft.goal) completeness += 5;
   if ((draft.goalDetail?.trim().length ?? 0) >= 10) completeness += 12;
   if (draft.currentLevel) completeness += 5;
+  if (draft.digitalLiteracy) completeness += 4;
+  if (draft.mainDevice) completeness += 3;
   if (draft.useContext) completeness += 5;
   if (draft.targetLevel) completeness += 5;
   if (draft.mainObstacle) completeness += 4;
@@ -337,7 +345,9 @@ export function buildRoadmapPlan(
   const setup = roadmapSetupStatus(answers);
   const selectedTypes = new Set<string>([...answers.learningFormats, "checkpoint"]);
   const seenSteps = new Set<string>();
-  let stepsRemaining = 240;
+  // One planned step must fit in one declared study session. This makes the
+  // final workload deterministic even when the model ignores the prompt limit.
+  let stepsRemaining = Math.min(96, Math.max(1, horizon.availableDates.length));
   let totalEstimatedMinutes = 0;
   const modules: RoadmapGenerationPlan["modules"] = [];
 
@@ -494,6 +504,8 @@ export function roadmapImportPromptInput(source: string, filename: string): stri
 const labels = {
   goals: { career: "carreira ou emprego", exam: "prova ou certificacao", project: "construir um projeto", academic: "formacao academica", personal: "conhecimento pessoal" },
   levels: { unknown: "nao sabe o nivel", beginner: "iniciante", basic: "basico", intermediate: "intermediario", advanced: "avancado" },
+  digitalLiteracy: { needs_guidance: "precisa de instrucoes literais para usar computador, terminal e instalar ferramentas", basic: "usa o computador no dia a dia, mas precisa de ajuda com ferramentas tecnicas", comfortable: "instala programas e usa terminal com alguma autonomia", advanced: "domina ambiente, terminal e configuracoes tecnicas" },
+  devices: { windows: "Windows", mac: "macOS", linux: "Linux", chromebook: "Chromebook", mobile: "celular ou tablet como dispositivo principal" },
   contexts: { current_job: "trabalho atual", new_career: "transicao de carreira", freelance: "servicos freelance", exam: "prova ou certificacao", academic: "faculdade ou escola", personal_project: "projeto pessoal" },
   targets: { foundation: "compreender fundamentos", functional: "usar com orientacao", autonomous: "trabalhar com autonomia", professional: "nivel profissional" },
   obstacles: { direction: "falta de direcao", time: "pouco tempo", consistency: "dificuldade de manter constancia", theory: "excesso de teoria", practice: "falta de pratica", none: "nenhum obstaculo principal" },
@@ -508,13 +520,15 @@ function mapLabels<T extends readonly string[]>(values: T, dictionary: Record<st
 
 export function roadmapPromptInput(answers: RoadmapAiAnswers): string {
   const horizon = roadmapHorizon(answers);
-  const maximumSteps = Math.min(96, Math.max(4, horizon.availableDates.length));
+  const maximumSteps = Math.min(96, Math.max(1, horizon.availableDates.length));
   return JSON.stringify({
     learner: {
       subject: answers.subject,
       primaryGoal: labels.goals[answers.goal],
       practicalGoal: answers.goalDetail,
       currentLevel: labels.levels[answers.currentLevel],
+      digitalLiteracy: labels.digitalLiteracy[answers.digitalLiteracy],
+      mainDevice: labels.devices[answers.mainDevice],
       useContext: labels.contexts[answers.useContext],
       targetLevel: labels.targets[answers.targetLevel],
       mainObstacle: labels.obstacles[answers.mainObstacle],
@@ -549,6 +563,8 @@ REGRAS DE QUALIDADE
 - Organize os modulos em ordem de pre-requisitos. Cada modulo deve preparar o seguinte.
 - Evite topicos, titulos ou atividades repetitivas. Cada passo deve adicionar uma habilidade nova ou testar uma habilidade anterior.
 - Nao use instrucoes vagas como "estude o assunto", "assista a uma aula", "crie alguns programas" ou "pratique". Cada etapa deve ser autoexplicativa e executavel sem o usuario precisar perguntar o que construir.
+- Adapte cada instrucao ao nivel de autonomia digital e ao dispositivo principal informados. Para quem precisa de orientacao ou conhece apenas o basico, nao presuma que terminal, editor, extensao ou ambiente ja estejam instalados: diga onde clicar, qual aplicativo abrir, o comando exato, o que deve aparecer e como corrigir os erros comuns. No Windows, por exemplo, use instrucoes literais como "abra o menu Iniciar, procure Prompt de Comando e execute ..." quando isso for necessario.
+- Diferencie nivel no assunto de autonomia digital. Um iniciante no assunto que domina terminal pode receber instrucoes tecnicas concisas; alguem experiente no assunto mas sem autonomia digital ainda precisa de orientacao operacional.
 - Em instructions, escreva de 4 a 10 passos atomicos, um por linha, no formato "1. acao concreta". Informe nomes de arquivos, campos, entradas, regras, limites, quantidade de exemplos, comandos ou telas sempre que forem relevantes.
 - Para programacao, diga exatamente qual programa sera criado, o nome do arquivo, suas entradas, regras na ordem correta, saidas, validacoes, casos de borda e evidencias que devem entrar no README. Nunca resuma isso como "implemente um programa".
 - Preencha requirements com versoes, conhecimentos, arquivos, dados, contas, programas e materiais necessarios. Preencha workspace com uma opcao recomendada e ate duas alternativas reais, por exemplo "VS Code com extensao Python (recomendado), PyCharm Community ou Replit". Diga quando usar terminal, navegador, notebook ou aplicativo desktop. Quando nao se aplicar, use string vazia.

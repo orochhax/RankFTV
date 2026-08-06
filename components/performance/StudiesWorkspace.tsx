@@ -17,6 +17,7 @@ import {
   Loader2,
   MapPin,
   Pause,
+  Pencil,
   Play,
   PlayCircle,
   Plus,
@@ -31,13 +32,17 @@ import {
 import {
   ativarRoadmapEstudosLifeOS,
   atualizarStatusEstudoLifeOS,
-  criarAtividadeLifeOS,
   criarItemEstudoLifeOS,
   criarRoadmapEstudosLifeOS,
+  editarSessaoEstudoLifeOS,
   enviarAvaliacaoEstudoLifeOS,
   importarRoadmapEstudosLifeOS,
   obterRascunhoRoadmapLifeOS,
+  reiniciarAvaliacaoEstudoLifeOS,
   removerRascunhoRoadmapLifeOS,
+  removerRoadmapEstudosLifeOS,
+  removerSessaoEstudoLifeOS,
+  salvarSessaoEstudoLifeOS,
 } from "@/app/admin/performance/life-os-actions";
 import { RoadmapAiWizard } from "@/components/performance/RoadmapAiWizard";
 import { formatDateBR } from "@/lib/format";
@@ -53,9 +58,10 @@ import {
   type StudyRoadmap,
   type StudyRoadmapItem,
   type StudyRoadmapModule,
+  type StudySessionMetadata,
 } from "@/lib/performance-widgets";
 
-type StudyActivity = { id: string; title: string; date: string; area: string; durationMinutes: number | null; status: string };
+type StudyActivity = { id: string; title: string; date: string; area: string; durationMinutes: number | null; status: string; notes: string | null; studySession: StudySessionMetadata | null };
 type PomodoroMode = "focus" | "short" | "long";
 type PomodoroSettings = { focus: number; short: number; long: number; cycles: number };
 type ModuleView = { id: string; title: string; objective: string | null; successCriteria: string | null; topics: string[]; estimatedMinutes: number | null; orderIndex: number; items: StudyRoadmapItem[]; legacy: boolean };
@@ -163,9 +169,8 @@ export function StudiesWorkspace({
     {!v2Ready && <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Execute <b>performance-study-modules.sql</b> para liberar modulos, provas e multiplos roadmaps. O conteudo atual continua visivel.</p>}
     {!draftsReady && <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Execute <b>performance-roadmap-drafts.sql</b> para salvar e recuperar rascunhos gerados pela IA.</p>}
     {!enhancementsReady && <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Execute <b>performance-study-question-types.sql</b> para liberar desafios detalhados e atividades de ordenacao. Roadmaps e perguntas anteriores continuam preservados.</p>}
-    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
-      <div className="space-y-5">
-        <section className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
+    <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+        <section className="flex min-h-[530px] flex-col rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div><h2 className="font-semibold">Roadmaps de estudo</h2><p className="mt-1 text-xs text-gray-400">Escolha um plano e avance pelos modulos no seu ritmo.</p></div>
             <RoadmapActions
@@ -228,8 +233,11 @@ export function StudiesWorkspace({
             </span>
           </label>}
           {roadmapError && <p role="alert" className="mt-2 text-xs text-red-400">{roadmapError}</p>}
-          {roadmap ? <RoadmapSummary roadmap={roadmap} items={items} moduleCount={moduleViews.length} /> : <CreateRoadmap onDone={() => router.refresh()} />}
+          <div className="flex-1">{roadmap ? <RoadmapSummary roadmap={roadmap} items={items} moduleCount={moduleViews.length} /> : <CreateRoadmap onDone={() => router.refresh()} />}</div>
         </section>
+
+      <PomodoroTimer roadmap={roadmap} modules={moduleViews} today={today} onSaved={() => router.refresh()} />
+    </div>
 
         {roadmap && <section className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -245,24 +253,32 @@ export function StudiesWorkspace({
             onRefresh={() => router.refresh()}
           />)}{!moduleViews.length && <p className="rounded-lg border border-dashed border-white/15 p-5 text-center text-sm text-white/40">Este roadmap ainda nao possui modulos.</p>}</div>
         </section>}
-      </div>
-
-      <PomodoroTimer />
-    </div>
 
     <section className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-semibold">Sessoes realizadas</h3><p className="mt-1 text-xs text-gray-400">{weekly.totalMinutes} minutos nesta semana - media de {weekly.averageMinutes} minutos por dia</p></div></div>
-      <div className="mt-4"><StudySessionForm today={today} onDone={() => router.refresh()} /></div>
-      <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{activities.filter((item) => item.area === "estudos").slice(0, 9).map((item) => <div key={item.id} className="border-l border-white/10 px-3 py-2"><p className="truncate text-sm font-medium text-white/80">{item.title}</p><p className="mt-1 text-xs text-white/35">{formatDateBR(item.date)} - {item.durationMinutes ?? 0} min</p></div>)}</div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-semibold">Sessoes realizadas</h3><p className="mt-1 text-xs text-gray-400">{weekly.totalMinutes} minutos de foco nesta semana - media de {weekly.averageMinutes} minutos por dia</p></div></div>
+      <StudySessions activities={activities.filter((item) => item.area === "estudos")} roadmap={roadmap} modules={moduleViews} today={today} onDone={() => router.refresh()} />
     </section>
 
     {newItem && roadmap && <Modal title="Nova etapa" onClose={() => setNewItem(false)}><NewStudyItem roadmapId={roadmap.id} sections={moduleViews.map((module) => module.title)} order={items.length} onDone={() => { setNewItem(false); router.refresh(); }} /></Modal>}
     {aiWizard && <Modal title="Criar roadmap com IA" wide onClose={() => setAiWizard(false)}><RoadmapAiWizard today={today} onClose={() => setAiWizard(false)} onDraftSaved={() => router.refresh()} onDone={() => { setAiWizard(false); setPreferredRoadmapId(""); router.refresh(); }} /></Modal>}
     {openedDraft && <Modal title={openedDraft.origin === "import" ? "Roadmap ajustado pela IA" : "Rascunho de roadmap"} wide onClose={() => setOpenedDraft(null)}><RoadmapAiWizard today={today} initialDraft={openedDraft} onClose={() => setOpenedDraft(null)} onDraftSaved={() => router.refresh()} onDone={() => { setOpenedDraft(null); setDraftLibrary(false); setPreferredRoadmapId(""); router.refresh(); }} /></Modal>}
-    {draftLibrary && <Modal title="Rascunhos de roadmap" wide onClose={() => setDraftLibrary(false)}><DraftLibrary
+    {draftLibrary && <Modal title="Meus Roadmaps" wide onClose={() => setDraftLibrary(false)}><RoadmapLibrary
+      roadmaps={roadmaps}
       drafts={drafts}
       pending={draftPending}
       error={draftError}
+      onActivate={(roadmapId) => startDraftTransition(async () => {
+        setDraftError(null);
+        const result = await ativarRoadmapEstudosLifeOS(roadmapId);
+        if (!result.ok) setDraftError(result.error ?? "Nao foi possivel ativar o roadmap.");
+        else { setPreferredRoadmapId(roadmapId); setDraftLibrary(false); router.refresh(); }
+      })}
+      onDeleteRoadmap={(roadmapId) => startDraftTransition(async () => {
+        setDraftError(null);
+        const result = await removerRoadmapEstudosLifeOS(roadmapId);
+        if (!result.ok) setDraftError(result.error ?? "Nao foi possivel excluir o roadmap.");
+        else { setPreferredRoadmapId(""); router.refresh(); }
+      })}
       onOpen={(generationId) => startDraftTransition(async () => {
         setDraftError(null);
         const result = await obterRascunhoRoadmapLifeOS(generationId);
@@ -306,26 +322,34 @@ function buildModuleViews(roadmapId: string, modules: StudyRoadmapModule[], item
 
 function RoadmapActions({ importPending, canExport, draftCount, draftsReady, onAi, onDrafts, onExport, onImport }: { importPending: boolean; canExport: boolean; draftCount: number; draftsReady: boolean; onAi: () => void; onDrafts: () => void; onExport: () => void; onImport: (file: File) => void }) {
   return <div className="flex flex-wrap gap-2">
-    <label className={`inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 ${importPending || !draftsReady ? "pointer-events-none opacity-50" : "cursor-pointer"}`}>
+    <label className={`inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white/75 ${importPending || !draftsReady ? "pointer-events-none opacity-50" : "cursor-pointer"}`}>
       {importPending ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}{importPending ? "Ajustando com IA..." : "Importar"}
       <input type="file" accept=".md,.markdown,.txt,.json,text/markdown,application/json" className="hidden" disabled={importPending || !draftsReady} onChange={(event) => { const input = event.currentTarget; const file = input.files?.[0]; input.value = ""; if (file) onImport(file); }} />
     </label>
     <button type="button" onClick={onAi} disabled={!draftsReady} className="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white disabled:opacity-40"><Sparkles className="size-4" />Criar com IA</button>
-    <button type="button" onClick={onDrafts} disabled={!draftsReady} className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 disabled:opacity-40"><FileClock className="size-4" />Rascunhos{draftCount > 0 ? ` (${draftCount})` : ""}</button>
+    <button type="button" onClick={onDrafts} disabled={!draftsReady} className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white/75 disabled:opacity-40"><FileClock className="size-4" />Meus Roadmaps{draftCount > 0 ? ` (${draftCount} rasc.)` : ""}</button>
     <button type="button" onClick={onExport} disabled={!canExport} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-40"><Download className="size-4" />Exportar</button>
   </div>;
 }
 
-function DraftLibrary({ drafts, pending, error, onOpen, onDelete }: { drafts: RoadmapDraftSummary[]; pending: boolean; error: string | null; onOpen: (generationId: string) => void; onDelete: (generationId: string) => void }) {
+function RoadmapLibrary({ roadmaps, drafts, pending, error, onActivate, onDeleteRoadmap, onOpen, onDelete }: { roadmaps: StudyRoadmap[]; drafts: RoadmapDraftSummary[]; pending: boolean; error: string | null; onActivate: (roadmapId: string) => void; onDeleteRoadmap: (roadmapId: string) => void; onOpen: (generationId: string) => void; onDelete: (generationId: string) => void }) {
   return <div className="space-y-4">
-    <p className="text-sm leading-6 text-gray-500">Toda resposta concluida pela IA fica aqui ate ser salva como roadmap ou descartada por voce.</p>
-    {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</p>}
-    {!drafts.length ? <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center"><FileClock className="mx-auto size-6 text-gray-300" /><p className="mt-2 text-sm text-gray-400">Nenhum rascunho salvo.</p></div> : <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">{drafts.map((draft) => <article key={draft.generationId} className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 p-3">
-      <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${draft.origin === "import" ? "bg-sky-50 text-sky-600" : "bg-violet-50 text-violet-600"}`}>{draft.origin === "import" ? <Upload className="size-4" /> : <Sparkles className="size-4" />}</span>
-      <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-gray-800">{draft.title}</p><p className="mt-1 text-xs text-gray-400">{draft.origin === "import" ? `Importado${draft.originalFilename ? ` de ${draft.originalFilename}` : ""}` : "Criado com IA"} - {draft.moduleCount} modulos - {draft.stepCount} etapas - {formatDraftDate(draft.createdAt)}</p></div>
-      <button type="button" disabled={pending} onClick={() => onOpen(draft.generationId)} className="rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Abrir</button>
-      <button type="button" disabled={pending} onClick={() => { if (window.confirm("Descartar este rascunho?")) onDelete(draft.generationId); }} title="Descartar rascunho" className="flex size-8 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 disabled:opacity-50"><Trash2 className="size-4" /></button>
-    </article>)}</div>}
+    <p className="text-sm leading-6 text-white/50">Ative uma trilha anterior, retome um rascunho ou exclua definitivamente o que nao faz mais sentido.</p>
+    {error && <p role="alert" className="rounded-lg bg-red-400/10 p-3 text-sm text-red-300">{error}</p>}
+    <div className="max-h-[64vh] space-y-5 overflow-y-auto pr-1">
+      <section><h3 className="mb-2 text-xs font-semibold uppercase text-white/35">Roadmaps salvos</h3><div className="space-y-2">{roadmaps.map((roadmap) => <article key={roadmap.id} className={`flex flex-wrap items-center gap-3 rounded-lg border p-3 ${roadmap.status === "active" ? "border-blue-400/40 bg-blue-400/10" : "border-white/10 bg-white/[0.02]"}`}>
+        <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${roadmap.status === "active" ? "bg-blue-500 text-white" : "bg-white/[0.06] text-white/45"}`}><BookOpen className="size-4" /></span>
+        <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-white/85">{roadmap.title}</p><p className="mt-1 text-xs text-white/35">{roadmap.status === "active" ? "Ativo agora" : roadmap.status === "completed" ? "Concluido" : "Arquivado"} - {roadmap.source === "ai" ? "Criado com IA" : roadmap.source === "import" ? "Importado" : "Manual"} - {roadmap.createdAt ? formatDraftDate(roadmap.createdAt) : formatDateBR(roadmap.startDate)}</p></div>
+        {roadmap.status !== "active" && <button type="button" disabled={pending} onClick={() => onActivate(roadmap.id)} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Ativar</button>}
+        <button type="button" disabled={pending} onClick={() => { if (window.confirm(`Excluir \"${roadmap.title}\" definitivamente? Modulos, respostas e progresso serao apagados. Esta acao nao pode ser desfeita.`)) onDeleteRoadmap(roadmap.id); }} title="Excluir roadmap" className="flex size-8 items-center justify-center rounded-lg text-white/25 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-50"><Trash2 className="size-4" /></button>
+      </article>)}{!roadmaps.length && <p className="rounded-lg border border-dashed border-white/10 p-5 text-center text-sm text-white/35">Nenhum roadmap salvo.</p>}</div></section>
+      <section><h3 className="mb-2 text-xs font-semibold uppercase text-white/35">Rascunhos</h3><div className="space-y-2">{drafts.map((draft) => <article key={draft.generationId} className="flex flex-wrap items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+        <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${draft.origin === "import" ? "bg-sky-400/10 text-sky-300" : "bg-violet-400/10 text-violet-300"}`}>{draft.origin === "import" ? <Upload className="size-4" /> : <Sparkles className="size-4" />}</span>
+        <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-white/85">{draft.title}</p><p className="mt-1 text-xs text-white/35">{draft.origin === "import" ? `Importado${draft.originalFilename ? ` de ${draft.originalFilename}` : ""}` : "Criado com IA"} - {draft.moduleCount} modulos - {draft.stepCount} etapas - {formatDraftDate(draft.createdAt)}</p></div>
+        <button type="button" disabled={pending} onClick={() => onOpen(draft.generationId)} className="rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Abrir</button>
+        <button type="button" disabled={pending} onClick={() => { if (window.confirm("Descartar este rascunho definitivamente?")) onDelete(draft.generationId); }} title="Descartar rascunho" className="flex size-8 items-center justify-center rounded-lg text-white/25 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-50"><Trash2 className="size-4" /></button>
+      </article>)}{!drafts.length && <p className="rounded-lg border border-dashed border-white/10 p-5 text-center text-sm text-white/35">Nenhum rascunho salvo.</p>}</div></section>
+    </div>
   </div>;
 }
 
@@ -413,7 +437,7 @@ function StudyStep({ item, number, defaultOpen = false, questions, attempts, onR
       {item.instructions && <div className="mt-4"><p className="text-xs font-semibold uppercase text-white/35">{instructionTitle}</p><InstructionChecklist value={item.instructions} /></div>}
       {item.resourceUrl && <a href={item.resourceUrl} target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-red-400/20 bg-red-400/10 p-3 text-red-200"><span className="min-w-0"><span className="block truncate text-sm font-semibold">{item.resourceTitle ?? "Abrir videoaula"}</span>{item.resourceChannel && <span className="mt-0.5 block text-xs text-red-300/70">{item.resourceChannel}</span>}</span><ExternalLink className="size-4 shrink-0" /></a>}
       {item.completionCriteria && <div className="mt-4 border-l-2 border-emerald-500 pl-3"><p className="text-xs font-semibold uppercase text-emerald-300">{outcomeTitle}</p><p className="mt-1 text-sm leading-6 text-emerald-100/80">{item.completionCriteria}</p></div>}
-      {hasAssessment && <AssessmentPanel itemId={item.id} itemKind={item.itemKind ?? "general"} questions={questions} onRefresh={() => { router.refresh(); onRefresh(); }} />}
+      {hasAssessment && <AssessmentPanel key={latestAttempt?.id ?? "new-attempt"} itemId={item.id} itemKind={item.itemKind ?? "general"} questions={questions} latestAttempt={latestAttempt} onRefresh={() => { router.refresh(); onRefresh(); }} />}
     </div>}
   </section>;
 }
@@ -435,9 +459,13 @@ function initialAssessmentAnswers(questions: StudyAssessmentQuestion[]): Record<
   return Object.fromEntries(questions.filter((question) => question.questionType === "ordering").map((question) => [question.id, question.options.map((_, index) => index)]));
 }
 
-function AssessmentPanel({ itemId, itemKind, questions, onRefresh }: { itemId: string; itemKind: StudyItemKind; questions: StudyAssessmentQuestion[]; onRefresh: () => void }) {
-  const [answers, setAnswers] = useState<Record<string, AssessmentAnswer>>(() => initialAssessmentAnswers(questions));
-  const [result, setResult] = useState<Awaited<ReturnType<typeof enviarAvaliacaoEstudoLifeOS>> | null>(null);
+function persistedAssessmentResult(attempt?: StudyAssessmentAttempt): AssessmentResult | null {
+  return attempt ? { ok: true, score: attempt.score, correctCount: attempt.correctCount, totalCount: attempt.totalCount, passed: attempt.score >= 70, feedback: attempt.feedback } : null;
+}
+
+function AssessmentPanel({ itemId, itemKind, questions, latestAttempt, onRefresh }: { itemId: string; itemKind: StudyItemKind; questions: StudyAssessmentQuestion[]; latestAttempt?: StudyAssessmentAttempt; onRefresh: () => void }) {
+  const [answers, setAnswers] = useState<Record<string, AssessmentAnswer>>(() => latestAttempt?.answers ?? initialAssessmentAnswers(questions));
+  const [result, setResult] = useState<AssessmentResult | null>(() => persistedAssessmentResult(latestAttempt));
   const [pending, startTransition] = useTransition();
   const feedbackByQuestion = new Map(result?.feedback?.map((entry) => [entry.questionId, entry]) ?? []);
   const complete = questions.every((question) => {
@@ -458,60 +486,82 @@ function AssessmentPanel({ itemId, itemKind, questions, onRefresh }: { itemId: s
     });
   };
 
-  return <div className="mt-5 border-t border-gray-100 pt-4">
-    <div className="flex items-center justify-between gap-3"><div><p className="font-semibold text-gray-900">{panelTitle}</p><p className="mt-1 text-xs text-gray-400">Responda tudo e envie para receber a correcao.</p></div>{result?.score != null && <span className={`rounded-md px-2 py-1 text-sm font-bold ${result.passed ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{result.score}%</span>}</div>
+  return <div className="mt-5 border-t border-white/10 pt-4">
+    <div className="flex items-center justify-between gap-3"><div><p className="font-semibold text-white/90">{panelTitle}</p><p className="mt-1 text-xs text-white/35">Responda tudo e envie para receber a correcao.</p></div>{result?.score != null && <span className={`rounded-md px-2 py-1 text-sm font-bold ${result.passed ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"}`}>{result.score}%</span>}</div>
     <div className="mt-4 space-y-5">{questions.map((question, questionIndex) => {
       const feedback = feedbackByQuestion.get(question.id);
       if (question.questionType === "ordering") {
         const order = Array.isArray(answers[question.id]) ? answers[question.id] as number[] : question.options.map((_, index) => index);
         return <OrderingQuestion key={question.id} question={question} questionIndex={questionIndex} order={order} feedback={feedback} disabled={Boolean(result)} onMove={(position, direction) => moveOption(question, position, direction)} />;
       }
-      return <fieldset key={question.id}><legend className="text-sm font-medium text-gray-800">{questionIndex + 1}. {question.prompt}</legend><div className="mt-2 space-y-2">{question.options.map((option, optionIndex) => {
+      return <fieldset key={question.id}><legend className="text-sm font-medium text-white/80">{questionIndex + 1}. {question.prompt}</legend><div className="mt-2 space-y-2">{question.options.map((option, optionIndex) => {
         const selected = answers[question.id] === optionIndex;
         const isCorrectAnswer = feedback?.correctOptionIndex === optionIndex;
         const isWrongSelection = Boolean(feedback && selected && !feedback.correct);
-        return <label key={`${question.id}-${optionIndex}`} className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 text-sm ${isCorrectAnswer ? "border-emerald-300 bg-emerald-50 text-emerald-800" : isWrongSelection ? "border-red-300 bg-red-50 text-red-700" : selected ? "border-blue-400 bg-blue-50 text-blue-800" : "border-gray-200 text-gray-600"}`}><input type="radio" name={`question-${question.id}`} checked={selected} disabled={Boolean(result)} onChange={() => setAnswers((current) => ({ ...current, [question.id]: optionIndex }))} className="mt-0.5 accent-blue-600" />{option}</label>;
-      })}</div>{feedback && <p className={`mt-2 text-xs leading-5 ${feedback.correct ? "text-emerald-700" : "text-red-600"}`}>{feedback.correct ? "Resposta correta. " : "Resposta incorreta. "}{feedback.explanation}</p>}</fieldset>;
+        return <label key={`${question.id}-${optionIndex}`} className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 text-sm ${isCorrectAnswer ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-200" : isWrongSelection ? "border-red-400/40 bg-red-400/10 text-red-200" : selected ? "border-blue-400/50 bg-blue-400/10 text-blue-200" : "border-white/10 text-white/55"}`}><input type="radio" name={`question-${question.id}`} checked={selected} disabled={Boolean(result)} onChange={() => setAnswers((current) => ({ ...current, [question.id]: optionIndex }))} className="mt-0.5 accent-blue-500" />{option}</label>;
+      })}</div>{feedback && <p className={`mt-2 text-xs leading-5 ${feedback.correct ? "text-emerald-300" : "text-red-300"}`}>{feedback.correct ? "Resposta correta. " : "Resposta incorreta. "}{feedback.explanation}</p>}</fieldset>;
     })}</div>
-    {result?.error && <p className="mt-3 text-sm text-red-600">{result.error}</p>}
-    <div className="mt-5 flex justify-end">{result ? <button type="button" onClick={() => { setAnswers(initialAssessmentAnswers(questions)); setResult(null); }} className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-600">Tentar novamente</button> : <button type="button" disabled={pending || !complete} onClick={() => startTransition(async () => { const response = await enviarAvaliacaoEstudoLifeOS(itemId, answers); setResult(response); if (response.ok) onRefresh(); })} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}{pending ? "Corrigindo..." : "Enviar respostas"}</button>}</div>
+    {result?.error && <p className="mt-3 text-sm text-red-300">{result.error}</p>}
+    <div className="mt-5 flex justify-end">{result ? <button type="button" disabled={pending} onClick={() => startTransition(async () => { const response = await reiniciarAvaliacaoEstudoLifeOS(itemId); if (!response.ok) setResult({ ok: false, error: response.error }); else { setAnswers(initialAssessmentAnswers(questions)); setResult(null); onRefresh(); } })} className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white/70 disabled:opacity-50">{pending && <Loader2 className="size-4 animate-spin" />}Tentar novamente</button> : <button type="button" disabled={pending || !complete} onClick={() => startTransition(async () => { const response = await enviarAvaliacaoEstudoLifeOS(itemId, answers); setResult(response); if (response.ok) onRefresh(); })} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}{pending ? "Corrigindo..." : "Enviar respostas"}</button>}</div>
   </div>;
 }
 
 function OrderingQuestion({ question, questionIndex, order, feedback, disabled, onMove }: { question: StudyAssessmentQuestion; questionIndex: number; order: number[]; feedback?: AssessmentFeedback; disabled: boolean; onMove: (position: number, direction: -1 | 1) => void }) {
   const correctSequence = feedback?.correctOrder.map((optionIndex) => question.options[optionIndex]).filter(Boolean) ?? [];
   return <fieldset>
-    <legend className="text-sm font-medium text-gray-800">{questionIndex + 1}. {question.prompt}</legend>
-    <p className="mt-1 text-xs text-gray-400">Organize os itens na sequencia correta.</p>
-    <ol className={`mt-2 divide-y overflow-hidden rounded-lg border ${feedback ? feedback.correct ? "border-emerald-300" : "border-red-300" : "border-gray-200"}`}>
-      {order.map((optionIndex, position) => <li key={`${question.id}-${optionIndex}`} className="flex min-h-11 items-center gap-2 bg-white px-2.5 py-2 text-sm text-gray-700">
-        <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-gray-100 text-[10px] font-bold text-gray-500">{position + 1}</span>
+    <legend className="text-sm font-medium text-white/80">{questionIndex + 1}. {question.prompt}</legend>
+    <p className="mt-1 text-xs text-white/35">Organize os itens na sequencia correta.</p>
+    <ol className={`mt-2 divide-y divide-white/10 overflow-hidden rounded-lg border ${feedback ? feedback.correct ? "border-emerald-400/40" : "border-red-400/40" : "border-white/10"}`}>
+      {order.map((optionIndex, position) => <li key={`${question.id}-${optionIndex}`} className="flex min-h-11 items-center gap-2 bg-white/[0.02] px-2.5 py-2 text-sm text-white/65">
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-white/[0.06] text-[10px] font-bold text-white/45">{position + 1}</span>
         <span className="min-w-0 flex-1">{question.options[optionIndex]}</span>
-        <button type="button" disabled={disabled || position === 0} onClick={() => onMove(position, -1)} className="flex size-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-20" title="Mover para cima" aria-label={`Mover ${question.options[optionIndex]} para cima`}><ArrowUp className="size-3.5" /></button>
-        <button type="button" disabled={disabled || position === order.length - 1} onClick={() => onMove(position, 1)} className="flex size-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-20" title="Mover para baixo" aria-label={`Mover ${question.options[optionIndex]} para baixo`}><ArrowDown className="size-3.5" /></button>
+        <button type="button" disabled={disabled || position === 0} onClick={() => onMove(position, -1)} className="flex size-7 shrink-0 items-center justify-center rounded-md text-white/35 hover:bg-white/10 hover:text-white disabled:opacity-20" title="Mover para cima" aria-label={`Mover ${question.options[optionIndex]} para cima`}><ArrowUp className="size-3.5" /></button>
+        <button type="button" disabled={disabled || position === order.length - 1} onClick={() => onMove(position, 1)} className="flex size-7 shrink-0 items-center justify-center rounded-md text-white/35 hover:bg-white/10 hover:text-white disabled:opacity-20" title="Mover para baixo" aria-label={`Mover ${question.options[optionIndex]} para baixo`}><ArrowDown className="size-3.5" /></button>
       </li>)}
     </ol>
-    {feedback && <div className={`mt-2 text-xs leading-5 ${feedback.correct ? "text-emerald-700" : "text-red-600"}`}><p>{feedback.correct ? "Ordem correta. " : "Ordem incorreta. "}{feedback.explanation}</p>{!feedback.correct && correctSequence.length > 0 && <p className="mt-1 font-medium">Sequencia correta: {correctSequence.join(" -> ")}</p>}</div>}
+    {feedback && <div className={`mt-2 text-xs leading-5 ${feedback.correct ? "text-emerald-300" : "text-red-300"}`}><p>{feedback.correct ? "Ordem correta. " : "Ordem incorreta. "}{feedback.explanation}</p>{!feedback.correct && correctSequence.length > 0 && <p className="mt-1 font-medium">Sequencia correta: {correctSequence.join(" -> ")}</p>}</div>}
   </fieldset>;
 }
 
-function PomodoroTimer() {
+type SessionEditorValue = {
+  source: "pomodoro" | "manual";
+  title: string;
+  date: string;
+  notes: string;
+  focusMinutes: number;
+  shortBreakMinutes: number;
+  longBreakMinutes: number;
+  cyclesCompleted: number;
+  roadmapId: string | null;
+  moduleIds: string[];
+  itemIds: string[];
+  startedAt: string | null;
+  endedAt: string | null;
+};
+
+function roundedSessionMinutes(seconds: number, minimum = 0): number {
+  if (seconds <= 0) return minimum;
+  return Math.max(minimum, Math.round(seconds / 60));
+}
+
+function PomodoroTimer({ roadmap, modules, today, onSaved }: { roadmap: StudyRoadmap | null; modules: ModuleView[]; today: string; onSaved: () => void }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [mode, setMode] = useState<PomodoroMode>("focus");
   const [remaining, setRemaining] = useState(DEFAULT_SETTINGS.focus * 60);
   const [running, setRunning] = useState(false);
   const [cycles, setCycles] = useState(0);
-  const [totalSeconds, setTotalSeconds] = useState(0);
+  const [elapsed, setElapsed] = useState<Record<PomodoroMode, number>>({ focus: 0, short: 0, long: 0 });
+  const [startedAt, setStartedAt] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showSave, setShowSave] = useState(false);
 
   const durationFor = (value: PomodoroMode, config = settings) => config[value] * 60;
   useEffect(() => {
     if (!running) return;
     const timer = window.setInterval(() => {
-      setTotalSeconds((value) => value + 1);
+      setElapsed((value) => ({ ...value, [mode]: value[mode] + 1 }));
       setRemaining((value) => {
         if (value > 1) return value - 1;
-        setRunning(false);
         if (mode === "focus") {
           const nextCycle = cycles + 1;
           setCycles(nextCycle);
@@ -526,18 +576,50 @@ function PomodoroTimer() {
     return () => window.clearInterval(timer);
   }, [cycles, mode, running, settings]);
 
-  const selectMode = (value: PomodoroMode) => { setMode(value); setRemaining(durationFor(value)); setRunning(false); };
+  const selectMode = (value: PomodoroMode) => { setMode(value); setRemaining(durationFor(value)); };
+  const startOrPause = () => {
+    if (!startedAt) setStartedAt(new Date().toISOString());
+    setRunning((value) => !value);
+  };
+  const resetSession = () => {
+    setRunning(false);
+    setMode("focus");
+    setRemaining(settings.focus * 60);
+    setCycles(0);
+    setElapsed({ focus: 0, short: 0, long: 0 });
+    setStartedAt(null);
+    setShowSave(false);
+  };
   const display = `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`;
+  const totalSeconds = elapsed.focus + elapsed.short + elapsed.long;
   const total = `${Math.floor(totalSeconds / 3600)}h ${String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0")}min`;
+  const sessionValue: SessionEditorValue = {
+    source: "pomodoro",
+    title: "",
+    date: today,
+    notes: "",
+    focusMinutes: roundedSessionMinutes(elapsed.focus, 1),
+    shortBreakMinutes: roundedSessionMinutes(elapsed.short),
+    longBreakMinutes: roundedSessionMinutes(elapsed.long),
+    cyclesCompleted: cycles,
+    roadmapId: roadmap?.id ?? null,
+    moduleIds: [],
+    itemIds: [],
+    startedAt,
+    endedAt: new Date().toISOString(),
+  };
 
-  return <section className="sticky top-5 rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
+  return <section className="flex min-h-[530px] flex-col rounded-lg border border-white/10 bg-[#15191f] p-5 text-white lg:sticky lg:top-5">
     <div className="flex items-start justify-between"><div><h2 className="font-semibold">Pomodoro</h2><p className="mt-1 text-xs text-white/40">Foco com pausas intencionais.</p></div><button type="button" onClick={() => setShowSettings(true)} className="rounded-md p-2 text-white/45 hover:bg-white/10 hover:text-white" title="Configurar"><Settings2 className="size-4" /></button></div>
     <div className="mt-5 grid grid-cols-3 rounded-lg bg-black/20 p-1">{(["focus", "short", "long"] as PomodoroMode[]).map((value) => <button key={value} type="button" onClick={() => selectMode(value)} className={`rounded-md px-2 py-2 text-xs font-semibold ${mode === value ? "bg-white text-gray-900" : "text-white/50"}`}>{value === "focus" ? "Pomodoro" : value === "short" ? "Pausa rapida" : "Pausa longa"}</button>)}</div>
     <p className="mt-8 text-center text-6xl font-semibold tabular-nums sm:text-7xl">{display}</p>
-    <div className="mt-7 flex justify-center gap-2"><button type="button" onClick={() => setRunning((value) => !value)} className="inline-flex min-w-36 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold">{running ? <Pause className="size-5" /> : <Play className="size-5" />}{running ? "Pausar" : "Iniciar"}</button><button type="button" onClick={() => { setRunning(false); setRemaining(durationFor(mode)); }} className="rounded-lg bg-white/10 p-3 text-white/60" title="Reiniciar"><RotateCcw className="size-5" /></button></div>
-    <div className="mt-7 grid grid-cols-2 divide-x divide-white/10 border-t border-white/10 pt-4 text-center"><div><p className="text-xs text-white/40">Ciclo atual</p><p className="mt-1 font-semibold">{Math.min((cycles % settings.cycles) + 1, settings.cycles)} de {settings.cycles}</p></div><div><p className="text-xs text-white/40">Tempo total</p><p className="mt-1 font-semibold">{total}</p></div></div>
-    <p className="mt-4 text-center text-[11px] text-white/35">O tempo total inclui foco e pausas. Concluir atividades continua sendo a medida principal.</p>
+    <div className="mt-7 flex justify-center gap-2"><button type="button" onClick={startOrPause} className="inline-flex min-w-36 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold">{running ? <Pause className="size-5" /> : <Play className="size-5" />}{running ? "Pausar" : startedAt ? "Continuar" : "Iniciar"}</button><button type="button" onClick={() => setRemaining(durationFor(mode))} className="rounded-lg bg-white/10 p-3 text-white/60" title="Reiniciar periodo atual"><RotateCcw className="size-5" /></button></div>
+    <div className="mt-7 grid grid-cols-2 divide-x divide-white/10 border-t border-white/10 pt-4 text-center"><div><p className="text-xs text-white/40">Ciclos concluidos</p><p className="mt-1 font-semibold">{cycles} / {settings.cycles}</p></div><div><p className="text-xs text-white/40">Tempo total</p><p className="mt-1 font-semibold">{total}</p></div></div>
+    <div className="mt-auto pt-5">
+      {startedAt ? <div className="grid grid-cols-2 gap-2"><button type="button" onClick={() => { setRunning(false); setShowSave(true); }} className="rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white">Salvar sessao</button><button type="button" onClick={() => { if (window.confirm("Descartar todo o tempo desta sessao?")) resetSession(); }} className="rounded-lg bg-white/10 px-3 py-2.5 text-sm font-semibold text-white/60">Descartar</button></div> : <p className="text-center text-[11px] text-white/35">Ao iniciar, o tempo de foco e cada pausa passam a ser contabilizados.</p>}
+    </div>
     {showSettings && <Modal title="Configurar Pomodoro" onClose={() => setShowSettings(false)}><PomodoroSettingsForm settings={settings} onSave={(next) => { setSettings(next); setRemaining(next[mode] * 60); setRunning(false); setShowSettings(false); }} /></Modal>}
+    {showSave && <Modal title="Salvar sessao de estudo" wide onClose={() => setShowSave(false)}><StudySessionEditor initial={sessionValue} roadmap={roadmap} modules={modules} submitLabel="Salvar sessao" action={salvarSessaoEstudoLifeOS} onDone={() => { resetSession(); onSaved(); }} /></Modal>}
   </section>;
 }
 
@@ -545,10 +627,115 @@ function PomodoroSettingsForm({ settings, onSave }: { settings: PomodoroSettings
   return <form onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); onSave({ focus: Math.max(1, Number(data.get("focus"))), short: Math.max(1, Number(data.get("short"))), long: Math.max(1, Number(data.get("long"))), cycles: Math.max(1, Number(data.get("cycles"))) }); }} className="space-y-3"><div className="grid grid-cols-2 gap-3"><Field name="focus" label="Pomodoro (min)" type="number" defaultValue={String(settings.focus)} /><Field name="short" label="Pausa rapida (min)" type="number" defaultValue={String(settings.short)} /><Field name="long" label="Pausa longa (min)" type="number" defaultValue={String(settings.long)} /><Field name="cycles" label="Ciclos ate pausa longa" type="number" defaultValue={String(settings.cycles)} /></div><button className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white">Aplicar</button></form>;
 }
 
+function StudySessionEditor({ initial, roadmap, modules, submitLabel, action, onDone }: { initial: SessionEditorValue; roadmap: StudyRoadmap | null; modules: ModuleView[]; submitLabel: string; action: (data: FormData) => Promise<{ ok: boolean; error?: string }>; onDone: () => void }) {
+  const [title, setTitle] = useState(initial.title);
+  const [focus, setFocus] = useState(initial.focusMinutes);
+  const [shortBreak, setShortBreak] = useState(initial.shortBreakMinutes);
+  const [longBreak, setLongBreak] = useState(initial.longBreakMinutes);
+  const [moduleIds, setModuleIds] = useState(initial.moduleIds);
+  const [itemIds, setItemIds] = useState(initial.itemIds);
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const availableItems = modules.flatMap((module) => module.items.map((item) => ({ ...item, moduleTitle: module.title })));
+  const selectedLabels = [
+    ...modules.filter((module) => moduleIds.includes(module.id)).map((module) => module.title),
+    ...availableItems.filter((item) => itemIds.includes(item.id)).map((item) => item.title),
+  ];
+  const canSubmit = focus >= 1 && (title.trim().length > 0 || selectedLabels.length > 0);
+  const toggle = (values: string[], value: string, update: (values: string[]) => void) => update(values.includes(value) ? values.filter((entry) => entry !== value) : [...values, value]);
+
+  return <form onSubmit={(event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    setError(null);
+    startTransition(async () => {
+      const result = await action(data);
+      if (!result.ok) setError(result.error ?? "Nao foi possivel salvar a sessao.");
+      else onDone();
+    });
+  }} className="space-y-5">
+    <input type="hidden" name="source" value={initial.source} />
+    <input type="hidden" name="roadmap_id" value={initial.roadmapId ?? roadmap?.id ?? ""} />
+    <input type="hidden" name="started_at" value={initial.startedAt ?? ""} />
+    <input type="hidden" name="ended_at" value={initial.endedAt ?? ""} />
+    <input type="hidden" name="cycles_completed" value={initial.cyclesCompleted} />
+    {moduleIds.filter((id) => !id.startsWith("legacy:")).map((id) => <input key={id} type="hidden" name="module_ids" value={id} />)}
+    {itemIds.map((id) => <input key={id} type="hidden" name="item_ids" value={id} />)}
+    {selectedLabels.map((label, index) => <input key={`${label}-${index}`} type="hidden" name="subject_labels" value={label} />)}
+
+    <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_180px]">
+      <label className="text-xs font-medium text-white/45">Assunto livre
+        <input name="title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={240} placeholder="Ex.: Revisao de arvore de decisao" className={inputClass} />
+      </label>
+      <label className="text-xs font-medium text-white/45">Data
+        <input name="date" type="date" required defaultValue={initial.date} className={inputClass} />
+      </label>
+    </div>
+
+    {roadmap && modules.length > 0 && <section className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+      <div><p className="text-sm font-semibold text-white/80">Vincular ao roadmap ativo</p><p className="mt-1 text-xs text-white/35">Escolha um modulo inteiro, varios assuntos, ou mantenha apenas o nome livre.</p></div>
+      <div className="mt-4 max-h-64 space-y-3 overflow-y-auto pr-1">{modules.map((module) => <div key={module.id} className="rounded-lg border border-white/10 p-3">
+        {!module.legacy && <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-white/75"><input type="checkbox" checked={moduleIds.includes(module.id)} onChange={() => toggle(moduleIds, module.id, setModuleIds)} className="size-4 accent-blue-500" />Modulo inteiro: {module.title}</label>}
+        <div className={`${module.legacy ? "" : "mt-3 border-t border-white/10 pt-3"} grid gap-2 sm:grid-cols-2`}>{module.items.map((item) => <label key={item.id} className="flex cursor-pointer items-start gap-2 text-xs leading-5 text-white/50"><input type="checkbox" checked={itemIds.includes(item.id)} onChange={() => toggle(itemIds, item.id, setItemIds)} className="mt-0.5 size-4 shrink-0 accent-blue-500" /><span>{item.title}</span></label>)}</div>
+      </div>)}</div>
+    </section>}
+
+    <div className="grid gap-3 sm:grid-cols-3">
+      <label className="text-xs font-medium text-white/45">Pomodoro / foco (min)<input name="focus_minutes" type="number" min="1" required value={focus} onChange={(event) => setFocus(Math.max(0, Number(event.target.value)))} className={inputClass} /></label>
+      <label className="text-xs font-medium text-white/45">Pausa rapida (min)<input name="short_break_minutes" type="number" min="0" required value={shortBreak} onChange={(event) => setShortBreak(Math.max(0, Number(event.target.value)))} className={inputClass} /></label>
+      <label className="text-xs font-medium text-white/45">Pausa longa (min)<input name="long_break_minutes" type="number" min="0" required value={longBreak} onChange={(event) => setLongBreak(Math.max(0, Number(event.target.value)))} className={inputClass} /></label>
+    </div>
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-400/20 bg-blue-400/10 px-4 py-3"><p className="text-sm text-blue-100">Foco <b>{focus} min</b> + pausas <b>{shortBreak + longBreak} min</b></p><p className="font-semibold text-blue-200">Total {focus + shortBreak + longBreak} min</p></div>
+    <label className="text-xs font-medium text-white/45">Observacoes <span className="font-normal text-white/25">Opcional</span><textarea name="notes" rows={2} defaultValue={initial.notes} maxLength={2000} className={inputClass} /></label>
+    {error && <p role="alert" className="rounded-lg bg-red-400/10 p-3 text-sm text-red-300">{error}</p>}
+    <div className="flex justify-end"><button disabled={pending || !canSubmit} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}{pending ? "Salvando..." : submitLabel}</button></div>
+  </form>;
+}
+
+function activitySessionValue(activity: StudyActivity, today: string): SessionEditorValue {
+  const session = activity.studySession;
+  return {
+    source: session?.source ?? "manual",
+    title: activity.title,
+    date: activity.date || today,
+    notes: activity.notes ?? "",
+    focusMinutes: Math.max(1, session?.focusMinutes ?? activity.durationMinutes ?? 1),
+    shortBreakMinutes: session?.shortBreakMinutes ?? 0,
+    longBreakMinutes: session?.longBreakMinutes ?? 0,
+    cyclesCompleted: session?.cyclesCompleted ?? 0,
+    roadmapId: session?.roadmapId ?? null,
+    moduleIds: session?.moduleIds ?? [],
+    itemIds: session?.itemIds ?? [],
+    startedAt: session?.startedAt ?? null,
+    endedAt: session?.endedAt ?? null,
+  };
+}
+
+function StudySessions({ activities, roadmap, modules, today, onDone }: { activities: StudyActivity[]; roadmap: StudyRoadmap | null; modules: ModuleView[]; today: string; onDone: () => void }) {
+  const [editor, setEditor] = useState<StudyActivity | "new" | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const manualInitial: SessionEditorValue = { source: "manual", title: "", date: today, notes: "", focusMinutes: 25, shortBreakMinutes: 0, longBreakMinutes: 0, cyclesCompleted: 0, roadmapId: roadmap?.id ?? null, moduleIds: [], itemIds: [], startedAt: null, endedAt: null };
+  return <div className="mt-4">
+    <div className="flex justify-end"><button type="button" onClick={() => setEditor("new")} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white"><Plus className="size-4" />Lancamento manual</button></div>
+    {error && <p role="alert" className="mt-3 rounded-lg bg-red-400/10 p-3 text-sm text-red-300">{error}</p>}
+    <div className="mt-4 max-h-[430px] divide-y divide-white/10 overflow-y-auto rounded-lg border border-white/10">{activities.map((activity) => {
+      const session = activity.studySession;
+      const totalMinutes = session?.totalMinutes ?? activity.durationMinutes ?? 0;
+      return <article key={activity.id} className="flex items-center gap-3 bg-white/[0.015] px-3 py-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-400/10 text-blue-300"><BookOpen className="size-4" /></span>
+        <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-white/80">{activity.title}</p><p className="mt-1 text-xs text-white/35">{formatDateBR(activity.date)} - foco {session?.focusMinutes ?? activity.durationMinutes ?? 0} min{session && session.shortBreakMinutes + session.longBreakMinutes > 0 ? ` - pausas ${session.shortBreakMinutes + session.longBreakMinutes} min` : ""} - total {totalMinutes} min</p>{session?.subjectLabels.length ? <p className="mt-1 truncate text-[11px] text-blue-300/60">{session.subjectLabels.join(" - ")}</p> : null}</div>
+        <button type="button" onClick={() => setEditor(activity)} title="Editar sessao" className="flex size-8 items-center justify-center rounded-md text-white/30 hover:bg-white/10 hover:text-white"><Pencil className="size-4" /></button>
+        <button type="button" disabled={pending} onClick={() => { if (!window.confirm("Excluir esta sessao de estudo?")) return; setError(null); setPendingId(activity.id); startTransition(async () => { const result = await removerSessaoEstudoLifeOS(activity.id); if (!result.ok) setError(result.error ?? "Nao foi possivel excluir."); else onDone(); setPendingId(null); }); }} title="Excluir sessao" className="flex size-8 items-center justify-center rounded-md text-white/25 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-40">{pending && pendingId === activity.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}</button>
+      </article>;
+    })}{!activities.length && <p className="p-8 text-center text-sm text-white/35">Nenhuma sessao registrada ainda.</p>}</div>
+    {editor && <Modal title={editor === "new" ? "Registrar sessao de estudo" : "Editar sessao de estudo"} wide onClose={() => setEditor(null)}><StudySessionEditor initial={editor === "new" ? manualInitial : activitySessionValue(editor, today)} roadmap={roadmap} modules={modules} submitLabel={editor === "new" ? "Salvar sessao" : "Salvar alteracoes"} action={editor === "new" ? salvarSessaoEstudoLifeOS : (data) => editarSessaoEstudoLifeOS(editor.id, data)} onDone={() => { setEditor(null); onDone(); }} /></Modal>}
+  </div>;
+}
+
 function CreateRoadmap({ onDone }: { onDone: () => void }) { return <div className="mt-5"><AsyncForm action={criarRoadmapEstudosLifeOS} onDone={onDone}><Field name="title" label="Nome do roadmap" required /><Field name="start_date" label="Data inicial" type="date" /><p className="text-xs text-gray-400">Voce tambem pode importar um arquivo ou criar um plano completo com IA.</p></AsyncForm></div>; }
 function NewStudyItem({ roadmapId, sections, order, onDone }: { roadmapId: string; sections: string[]; order: number; onDone: () => void }) { return <AsyncForm action={(data) => criarItemEstudoLifeOS(roadmapId, data)} onDone={onDone}><Field name="title" label="Nome da etapa" required /><label className="block text-xs font-medium text-gray-500">Modulo<select name="section" defaultValue={sections[0] ?? "Geral"} className={`${inputClass} mt-1`}>{(sections.length ? sections : ["Geral"]).map((section) => <option key={section}>{section}</option>)}</select></label><Field name="estimated_minutes" label="Tempo estimado (min)" type="number" /><input type="hidden" name="order_index" value={order} /><input type="hidden" name="item_kind" value="general" /></AsyncForm>; }
-function StudySessionForm({ today, onDone }: { today: string; onDone: () => void }) { return <AsyncForm action={criarAtividadeLifeOS} onDone={onDone}><input type="hidden" name="area" value="estudos" /><div className="grid gap-3 sm:grid-cols-3"><Field name="title" label="Assunto estudado" required /><Field name="date" label="Data" type="date" defaultValue={today} required /><Field name="duration_minutes" label="Tempo de foco (min)" type="number" required /></div></AsyncForm>; }
-
-function AsyncForm({ action, onDone, children }: { action: (data: FormData) => Promise<{ ok: boolean; error?: string }>; onDone: () => void; children: React.ReactNode }) { const [pending, startTransition] = useTransition(); const [error, setError] = useState<string | null>(null); return <form onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); setError(null); startTransition(async () => { const result = await action(data); if (!result.ok) setError(result.error ?? "Nao foi possivel salvar."); else onDone(); }); }} className="space-y-3">{children}{error && <p className="text-xs text-red-600">{error}</p>}<button disabled={pending} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}Salvar</button></form>; }
-function Field({ name, label, type = "text", defaultValue, required }: { name: string; label: string; type?: string; defaultValue?: string; required?: boolean }) { return <label className="block text-xs font-medium text-gray-500">{label}<input name={name} type={type} defaultValue={defaultValue} required={required} min={type === "number" ? 1 : undefined} className={`${inputClass} mt-1`} /></label>; }
-function Modal({ title, onClose, children, wide = false }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) { return <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 p-3 sm:items-center"><div className={`max-h-[94vh] w-full overflow-y-auto rounded-lg bg-white p-5 text-gray-900 ${wide ? "max-w-5xl" : "max-w-lg"}`}><div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-bold">{title}</h2><button type="button" onClick={onClose} className="text-sm text-gray-500">Fechar</button></div>{children}</div></div>; }
+function AsyncForm({ action, onDone, children }: { action: (data: FormData) => Promise<{ ok: boolean; error?: string }>; onDone: () => void; children: React.ReactNode }) { const [pending, startTransition] = useTransition(); const [error, setError] = useState<string | null>(null); return <form onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); setError(null); startTransition(async () => { const result = await action(data); if (!result.ok) setError(result.error ?? "Nao foi possivel salvar."); else onDone(); }); }} className="space-y-3">{children}{error && <p className="text-xs text-red-300">{error}</p>}<button disabled={pending} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}Salvar</button></form>; }
+function Field({ name, label, type = "text", defaultValue, required }: { name: string; label: string; type?: string; defaultValue?: string; required?: boolean }) { return <label className="block text-xs font-medium text-white/45">{label}<input name={name} type={type} defaultValue={defaultValue} required={required} min={type === "number" ? 1 : undefined} className={`${inputClass} mt-1`} /></label>; }
+function Modal({ title, onClose, children, wide = false }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) { return <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/75 p-3 backdrop-blur-sm sm:items-center"><div className={`max-h-[94vh] w-full overflow-y-auto rounded-lg border border-white/10 bg-[#15191f] p-5 text-white shadow-2xl ${wide ? "max-w-5xl" : "max-w-lg"}`}><div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-bold">{title}</h2><button type="button" onClick={onClose} className="rounded-md px-2 py-1 text-sm text-white/45 hover:bg-white/10 hover:text-white">Fechar</button></div>{children}</div></div>; }

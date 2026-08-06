@@ -67,7 +67,7 @@ function EmptyAnalysis() {
           Visão diária
         </div>
         <h2 className="mt-3 text-xl font-semibold">Sua primeira leitura será preparada às 05:00</h2>
-        <p className="mt-2 text-sm leading-6 text-white/55">O sistema vai comparar seus compromissos concluídos, estudos, treinos, metas e demais dados registrados. Enquanto isso, você pode gerar a primeira leitura agora.</p>
+        <p className="mt-2 text-sm leading-6 text-white/55">O sistema vai comparar seus compromissos concluídos, estudos, treinos, metas e demais dados registrados.</p>
         <AnalysisAction />
       </div>
       <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/20">

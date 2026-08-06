@@ -3,14 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hojeISO } from "@/lib/performance";
+import { isPerformanceOwner } from "@/lib/performance-owner";
 
-type Res = { ok: boolean; error?: string };
+type Res = { ok: boolean; error?: string; message?: string };
 
-// Só o CEO (ADMIN_EMAIL) mexe no painel de performance.
+// O modulo Performance e pessoal e pertence somente ao ADMIN_EMAIL.
 async function requireCeo() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) return null;
+  if (!user || !(await isPerformanceOwner(supabase, user))) return null;
   return { supabase, user };
 }
 
@@ -18,49 +19,37 @@ function reval() {
   revalidatePath("/admin/performance");
 }
 
-// ── Perfil base (+ peso atual de hoje, se informado) ──────────────────────────
+// Perfil de conta do Life OS. Dados publicos e privados continuam separados.
 export async function salvarPerfil(formData: FormData): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx) return { ok: false, error: "Acesso negado." };
   const { supabase, user } = ctx;
 
-  const num = (k: string) => {
-    const v = parseFloat(formData.get(k) as string);
-    return Number.isFinite(v) ? v : null;
-  };
-  const str = (k: string) => {
-    const v = (formData.get(k) as string)?.trim();
-    return v ? v : null;
-  };
+  const firstName = String(formData.get("first_name") ?? "").trim().replace(/\s+/g, " ").slice(0, 80);
+  const lastName = String(formData.get("last_name") ?? "").trim().replace(/\s+/g, " ").slice(0, 120);
+  const email = String(formData.get("email") ?? "").trim().toLocaleLowerCase("pt-BR").slice(0, 254);
+  const phone = String(formData.get("telefone") ?? "").replace(/\D/g, "").slice(0, 13);
+  const birthDate = String(formData.get("data_nascimento") ?? "").trim();
+  const photoUrl = String(formData.get("foto_url") ?? "").trim().slice(0, 1000) || null;
+  if (firstName.length < 2 || lastName.length < 2) return { ok: false, error: "Informe nome e sobrenome." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Informe um e-mail valido." };
+  if (phone.length < 10) return { ok: false, error: "Informe um WhatsApp com DDD." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || birthDate > hojeISO()) return { ok: false, error: "Informe uma data de nascimento valida." };
 
-  const { error } = await supabase.from("perf_profile").upsert(
-    {
-      user_id:         user.id,
-      altura_cm:       num("altura_cm"),
-      data_nascimento: str("data_nascimento"),
-      lado:            str("lado"),
-      pe_dominante:    str("pe_dominante"),
-      peso_meta:       num("peso_meta"),
-      rating_meta:     num("rating_meta"),
-      treinos_semana_meta: num("treinos_semana_meta"),
-      updated_at:      new Date().toISOString(),
-    },
-    { onConflict: "user_id" },
-  );
-  if (error) return { ok: false, error: error.message };
+  const { error: profileError } = await supabase.from("profiles").update({ nome: `${firstName} ${lastName}`, foto_url: photoUrl }).eq("id", user.id);
+  if (profileError) return { ok: false, error: profileError.message };
+  const { error: privateError } = await supabase.from("profiles_private").upsert({ user_id: user.id, telefone: phone, data_nascimento: birthDate }, { onConflict: "user_id" });
+  if (privateError) return { ok: false, error: privateError.message };
 
-  // Peso atual → registra (ou atualiza) o de hoje.
-  const peso = num("peso_atual");
-  if (peso != null && peso > 0) {
-    const { error: pErr } = await supabase.from("perf_weight").upsert(
-      { user_id: user.id, data: hojeISO(), peso_kg: peso },
-      { onConflict: "user_id,data" },
-    );
-    if (pErr) return { ok: false, error: pErr.message };
+  let message = "Perfil atualizado.";
+  if (email !== user.email?.toLocaleLowerCase("pt-BR")) {
+    const { error: emailError } = await supabase.auth.updateUser({ email });
+    if (emailError) return { ok: false, error: emailError.message };
+    message = "Perfil atualizado. Confirme a troca de e-mail pelas mensagens enviadas pelo Supabase.";
   }
 
   reval();
-  return { ok: true };
+  return { ok: true, message };
 }
 
 // ── Hábitos (metas do dia) ────────────────────────────────────────────────────

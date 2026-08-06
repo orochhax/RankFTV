@@ -27,19 +27,19 @@ export function HabitAnalytics({ habits, logs, today }: { habits: Habit[]; logs:
   });
 
   return <div className="mt-5 space-y-5">
-    <section className="rounded-lg bg-white p-5 text-gray-900">
+    <section className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-semibold">Evolucao dos habitos</h2>
-          <p className="mt-1 text-xs text-gray-400">{chartLabel(period)}. As linhas mostram conclusoes reais, nao tempo gasto no aplicativo.</p>
+          <p className="mt-1 text-xs text-white/35">{chartLabel(period)}. As linhas mostram conclusoes reais, nao tempo gasto no aplicativo.</p>
         </div>
-        <div className="flex rounded-lg bg-gray-100 p-1">
-          {(["week", "month", "year"] as HabitChartPeriod[]).map((value) => <button key={value} type="button" onClick={() => setPeriod(value)} className={`rounded-md px-3 py-1.5 text-xs font-semibold ${period === value ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>{value === "week" ? "Semana" : value === "month" ? "Mes" : "Ano"}</button>)}
+        <div className="flex rounded-lg bg-black/20 p-1">
+          {(["week", "month", "year"] as HabitChartPeriod[]).map((value) => <button key={value} type="button" onClick={() => setPeriod(value)} className={`rounded-md px-3 py-1.5 text-xs font-semibold ${period === value ? "bg-white/10 text-white" : "text-white/40"}`}>{value === "week" ? "Semana" : value === "month" ? "Mes" : "Ano"}</button>)}
         </div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2" aria-label="Filtrar linhas do grafico">
-        {active.map((habit, index) => <button key={habit.id} type="button" onClick={() => toggle(habit.id)} className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs ${visible.has(habit.id) ? "border-gray-200 bg-white text-gray-700" : "border-transparent bg-gray-100 text-gray-400"}`}>
+        {active.map((habit, index) => <button key={habit.id} type="button" onClick={() => toggle(habit.id)} className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs ${visible.has(habit.id) ? "border-white/15 bg-white/[0.04] text-white/70" : "border-transparent bg-white/[0.02] text-white/30"}`}>
           <span className="size-2 rounded-full" style={{ backgroundColor: visible.has(habit.id) ? COLORS[index % COLORS.length] : "#d1d5db" }} />{habit.label}
         </button>)}
       </div>
@@ -47,14 +47,14 @@ export function HabitAnalytics({ habits, logs, today }: { habits: Habit[]; logs:
       <div className="mt-5 h-72 min-w-0">
         {data.length && active.length ? <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
-            <CartesianGrid stroke="#eef0f3" vertical={false} />
-            <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
-            <Tooltip contentStyle={{ borderRadius: 8, borderColor: "#e5e7eb", fontSize: 12 }} />
+            <CartesianGrid stroke="#2a3038" vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#7f8996" }} axisLine={false} tickLine={false} />
+            <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "#7f8996" }} axisLine={false} tickLine={false} />
+            <Tooltip contentStyle={{ borderRadius: 8, borderColor: "#303741", background: "#11151a", color: "#f8fafc", fontSize: 12 }} />
             <Legend content={() => null} />
             {active.map((habit, index) => visible.has(habit.id) && <Line key={habit.id} type="monotone" dataKey={habit.id} name={habit.label} stroke={COLORS[index % COLORS.length]} strokeWidth={1.75} dot={{ r: 2 }} activeDot={{ r: 4 }} />)}
           </LineChart>
-        </ResponsiveContainer> : <div className="flex h-full items-center justify-center text-sm text-gray-400">Registre seus habitos para formar o grafico.</div>}
+        </ResponsiveContainer> : <div className="flex h-full items-center justify-center text-sm text-white/35">Registre seus habitos para formar o grafico.</div>}
       </div>
     </section>
 
@@ -80,7 +80,7 @@ function HabitDetail({ habit, logs, today, color }: { habit: Habit; logs: HabitL
   const bestDay = habitBestWeekday(habit, logs);
   const streak = habitCurrentStreak(habit, logs, today);
 
-  return <article className="rounded-lg bg-white p-5 text-gray-900">
+  return <article className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
     <div className="flex items-center gap-2"><span className="size-2.5 rounded-full" style={{ backgroundColor: color }} /><h3 className="flex-1 font-semibold">{habit.label}</h3><span className="text-sm font-bold" style={{ color }}>{rate}%</span></div>
     <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
       <Metric icon={Flame} label="Sequencia" value={`${streak}d`} />
@@ -91,7 +91,7 @@ function HabitDetail({ habit, logs, today, color }: { habit: Habit; logs: HabitL
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
           <XAxis dataKey="label" hide /><YAxis domain={[0, 1]} hide />
-          <Tooltip labelFormatter={(_, payload) => payload?.[0]?.payload?.date ?? ""} formatter={(value) => [Number(value) ? "Feito" : "Pendente", habit.label]} contentStyle={{ borderRadius: 8, fontSize: 12 }} />
+          <Tooltip labelFormatter={(_, payload) => payload?.[0]?.payload?.date ?? ""} formatter={(value) => [Number(value) ? "Feito" : "Pendente", habit.label]} contentStyle={{ borderRadius: 8, borderColor: "#303741", background: "#11151a", color: "#f8fafc", fontSize: 12 }} />
           <Area type="stepAfter" dataKey="done" stroke={color} fill={color} fillOpacity={0.12} strokeWidth={1.5} />
         </AreaChart>
       </ResponsiveContainer>
@@ -100,5 +100,5 @@ function HabitDetail({ habit, logs, today, color }: { habit: Habit; logs: HabitL
 }
 
 function Metric({ icon: Icon, label, value }: { icon: typeof TrendingUp; label: string; value: string }) {
-  return <div className="min-w-0"><Icon className="size-3.5 text-gray-400" /><p className="mt-1 truncate text-gray-400">{label}</p><p className="mt-0.5 truncate font-semibold text-gray-700">{value}</p></div>;
+  return <div className="min-w-0"><Icon className="size-3.5 text-white/35" /><p className="mt-1 truncate text-white/35">{label}</p><p className="mt-0.5 truncate font-semibold text-white/75">{value}</p></div>;
 }

@@ -7,7 +7,22 @@ export type StudyRoadmapItem = { id: string; roadmapId: string; moduleId?: strin
 export type StudyRoadmap = { id: string; title: string; description: string | null; status: "active" | "completed" | "archived"; startDate: string; targetDate: string | null; source?: "manual" | "import" | "ai"; difficultyLevel?: "introductory" | "intermediate" | "advanced" | "mixed" | null; qualityScore?: number | null; workloadScore?: number | null; totalEstimatedMinutes?: number | null; createdAt?: string };
 export type StudyRoadmapModule = { id: string; roadmapId: string; title: string; objective: string | null; successCriteria: string | null; topics: string[]; orderIndex: number; estimatedMinutes: number | null };
 export type StudyAssessmentQuestion = { id: string; itemId: string; prompt: string; options: string[]; orderIndex: number; questionType: StudyQuestionType };
-export type StudyAssessmentAttempt = { id: string; itemId: string; score: number; correctCount: number; totalCount: number; submittedAt: string };
+export type StudyAssessmentFeedback = { questionId: string; questionType: StudyQuestionType; correct: boolean; correctOptionIndex: number | null; correctOrder: number[]; explanation: string };
+export type StudyAssessmentAttempt = { id: string; itemId: string; score: number; correctCount: number; totalCount: number; submittedAt: string; answers: Record<string, number | number[]>; feedback: StudyAssessmentFeedback[] };
+export type StudySessionMetadata = {
+  source: "pomodoro" | "manual";
+  focusMinutes: number;
+  shortBreakMinutes: number;
+  longBreakMinutes: number;
+  totalMinutes: number;
+  cyclesCompleted: number;
+  roadmapId: string | null;
+  moduleIds: string[];
+  itemIds: string[];
+  subjectLabels: string[];
+  startedAt: string | null;
+  endedAt: string | null;
+};
 export type InvestmentContribution = { id: string; date: string; amount: number; institution: string | null; notes: string | null; source?: string };
 export type InvestmentSnapshot = { date: string; totalValue: number };
 export type InvestmentWithdrawal = { date: string; amount: number };

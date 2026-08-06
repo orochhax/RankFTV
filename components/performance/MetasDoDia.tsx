@@ -42,17 +42,17 @@ export function MetasDoDia({ habits, valoresIniciais, hoje }: Props) {
   }
 
   return (
-    <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+    <section className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-semibold text-gray-900">Metas do dia</h2>
-          <p className="text-xs text-gray-400">
-            Marque o que fez — meio-feito conta como meio.
+          <h2 className="font-semibold text-white">Habitos de hoje</h2>
+          <p className="text-xs text-white/35">
+            Marque o que fez; meio feito conta como meio.
           </p>
         </div>
         <button
           onClick={() => setEditMode((v) => !v)}
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100"
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-white/45 hover:bg-white/[0.06] hover:text-white"
         >
           {editMode ? <X className="size-3.5" /> : <Settings2 className="size-3.5" />}
           {editMode ? "Fechar" : "Editar lista"}
@@ -63,18 +63,18 @@ export function MetasDoDia({ habits, valoresIniciais, hoje }: Props) {
         <>
           {/* Aderência do dia */}
           <div className="mt-4 flex items-center gap-3">
-            <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
               <div
                 className={`h-full rounded-full transition-all ${corBarra(dayAdh)}`}
                 style={{ width: `${pct(dayAdh)}%` }}
               />
             </div>
-            <span className="w-12 text-right text-sm font-bold text-gray-900">{pct(dayAdh)}%</span>
-            {isPending && <Loader2 className="size-4 animate-spin text-gray-300" />}
+            <span className="w-12 text-right text-sm font-bold text-white">{pct(dayAdh)}%</span>
+            {isPending && <Loader2 className="size-4 animate-spin text-white/25" />}
           </div>
 
           {/* Itens */}
-          <ul className="mt-4 space-y-3">
+          <ul className={`mt-4 grid gap-x-8 gap-y-1 ${ativos.length > 5 ? "lg:grid-cols-2" : "grid-cols-1"}`}>
             {ativos.map((h) => (
               <li key={h.id}>
                 {h.tipo === "binario" ? (
@@ -105,14 +105,14 @@ function BinarioRow({
   return (
     <button
       onClick={() => onToggle(habit.id, feito ? 0 : 1)}
-      className="flex w-full items-center gap-3 text-left"
+      className="flex min-h-10 w-full items-center gap-3 border-b border-white/[0.06] py-1.5 text-left last:border-0"
     >
       <span className={`flex size-6 shrink-0 items-center justify-center rounded-md ring-1 transition-colors ${
-        feito ? "bg-blue-500 ring-blue-500" : "bg-white ring-gray-300"
+        feito ? "bg-blue-500 ring-blue-500" : "bg-transparent ring-white/20"
       }`}>
         {feito && <Check className="size-4 text-white" />}
       </span>
-      <span className={`text-sm ${feito ? "font-medium text-gray-900" : "text-gray-600"}`}>
+      <span className={`text-sm ${feito ? "font-medium text-white" : "text-white/60"}`}>
         {habit.label}
       </span>
     </button>
@@ -133,9 +133,9 @@ function NumericoRow({
   }
 
   return (
-    <div>
+    <div className="min-h-10 border-b border-white/[0.06] py-1.5 last:border-0">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm text-gray-700">{habit.label}</span>
+        <span className="text-sm text-white/70">{habit.label}</span>
         <div className="flex items-center gap-1.5 text-sm">
           <input
             type="number"
@@ -146,16 +146,16 @@ function NumericoRow({
             onChange={(e) => setDraft(e.target.value)}
             onBlur={salvar}
             onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-            className="w-16 rounded-lg border border-gray-200 px-2 py-1 text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-16 rounded-lg border border-white/10 bg-[#0f1318] px-2 py-1 text-right text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <span className="text-gray-400">/ {habit.alvo}{habit.unidade ? ` ${habit.unidade}` : ""}</span>
+          <span className="text-white/35">/ {habit.alvo}{habit.unidade ? ` ${habit.unidade}` : ""}</span>
         </div>
       </div>
       <div className="mt-1.5 flex items-center gap-2">
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
           <div className={`h-full rounded-full ${corBarra(a)}`} style={{ width: `${pct(a)}%` }} />
         </div>
-        <span className="w-9 text-right text-xs text-gray-400">{pct(a)}%</span>
+        <span className="w-9 text-right text-xs text-white/35">{pct(a)}%</span>
       </div>
     </div>
   );
@@ -166,8 +166,8 @@ function EmptyState() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   return (
-    <div className="mt-4 rounded-xl bg-gray-50 p-4 text-center">
-      <p className="text-sm text-gray-500">Você ainda não montou sua lista de metas.</p>
+    <div className="mt-4 rounded-lg border border-dashed border-white/10 p-4 text-center">
+      <p className="text-sm text-white/45">Voce ainda nao montou sua lista de habitos.</p>
       <button
         onClick={() => startTransition(async () => { await criarHabitosSugeridos(); router.refresh(); })}
         disabled={isPending}
@@ -194,29 +194,29 @@ function Editor({ habits, fecharEditor }: { habits: Habit[]; fecharEditor?: () =
 
   return (
     <div className="mt-4 space-y-3">
-      <ul className="divide-y divide-gray-100 rounded-xl ring-1 ring-black/5">
+      <ul className="divide-y divide-white/[0.06] rounded-lg border border-white/10">
         {habits.map((h) => (
           <li key={h.id} className="flex items-center justify-between px-3 py-2.5">
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-gray-900">{h.label}</p>
-              <p className="text-xs text-gray-400">
+              <p className="truncate text-sm font-medium text-white/80">{h.label}</p>
+              <p className="text-xs text-white/35">
                 {h.tipo === "numerico" ? `Meta: ${h.alvo}${h.unidade ? ` ${h.unidade}` : ""}` : "Sim / não"}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1">
               <button onClick={() => { setEditing(h); setShowForm(false); }}
-                className="flex size-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700">
+                className="flex size-8 items-center justify-center rounded-lg text-white/35 hover:bg-white/[0.06] hover:text-white">
                 <Pencil className="size-4" />
               </button>
               <button onClick={() => remover(h.id)} disabled={isPending}
-                className="flex size-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600">
+                className="flex size-8 items-center justify-center rounded-lg text-white/35 hover:bg-red-400/10 hover:text-red-300">
                 <Trash2 className="size-4" />
               </button>
             </div>
           </li>
         ))}
         {habits.length === 0 && (
-          <li className="px-3 py-3 text-sm text-gray-400">Nenhum hábito ainda.</li>
+          <li className="px-3 py-3 text-sm text-white/35">Nenhum habito ainda.</li>
         )}
       </ul>
 
@@ -228,8 +228,8 @@ function Editor({ habits, fecharEditor }: { habits: Habit[]; fecharEditor?: () =
         <HabitForm onDone={() => { setShowForm(false); fecharEditor?.(); }} />
       ) : (
         <button onClick={() => setShowForm(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-50">
-          <Plus className="size-4" /> Adicionar hábito
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/15 py-2.5 text-sm font-medium text-white/45 hover:bg-white/[0.04] hover:text-white">
+          <Plus className="size-4" /> Adicionar habito
         </button>
       ))}
     </div>
@@ -251,15 +251,15 @@ function HabitForm({ habit, onDone }: { habit?: Habit; onDone: () => void }) {
     });
   }
 
-  const input = "w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+  const input = "w-full rounded-lg border border-white/10 bg-[#0f1318] px-3 py-2 text-sm text-white outline-none placeholder:text-white/25 focus:ring-2 focus:ring-blue-500 [&>option]:bg-[#15191f]";
 
   return (
-    <form action={action} className="space-y-3 rounded-xl bg-gray-50 p-4 ring-1 ring-black/5">
+    <form action={action} className="space-y-3 rounded-lg border border-white/10 bg-black/15 p-4">
       {habit && <input type="hidden" name="id" value={habit.id} />}
       <input name="label" defaultValue={habit?.label} placeholder="Nome (ex.: Sono)" required className={input} />
       <div className="flex gap-2">
         <select name="tipo" value={tipo} onChange={(e) => setTipo(e.target.value as "binario" | "numerico")}
-          className={`${input} bg-white`}>
+          className={input}>
           <option value="numerico">Meta numérica (alvo)</option>
           <option value="binario">Sim / não</option>
         </select>
@@ -272,7 +272,7 @@ function HabitForm({ habit, onDone }: { habit?: Habit; onDone: () => void }) {
             placeholder="Unidade (h, min, L)" className={input} />
         </div>
       )}
-      {erro && <p className="text-xs text-red-600">{erro}</p>}
+      {erro && <p className="text-xs text-red-300">{erro}</p>}
       <div className="flex gap-2">
         <button type="submit" disabled={isPending}
           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-60">
@@ -280,7 +280,7 @@ function HabitForm({ habit, onDone }: { habit?: Habit; onDone: () => void }) {
           Salvar
         </button>
         <button type="button" onClick={onDone}
-          className="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100">
+          className="rounded-lg px-3 py-2 text-sm font-medium text-white/45 hover:bg-white/[0.06]">
           Cancelar
         </button>
       </div>

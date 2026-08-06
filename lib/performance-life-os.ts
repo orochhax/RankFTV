@@ -1,6 +1,6 @@
 import { addDays, parseISO, type Habit, type HabitLog } from "@/lib/performance";
 
-export type LifeOSView = "today" | "agenda" | "habits" | "activities" | "goals" | "investments" | "reviews" | "insights" | "settings";
+export type LifeOSView = "today" | "agenda" | "habits" | "activities" | "goals" | "investments" | "settings";
 export type EventStatus = "planned" | "in_progress" | "completed" | "cancelled";
 export type ActivityStatus = "planned" | "completed" | "partial" | "cancelled";
 

@@ -9,6 +9,7 @@ import { portfolioVariation } from "@/lib/performance-life-os";
 import { getOpenAIClient } from "@/lib/openai";
 import { generateDailyLifeAnalysis } from "@/lib/daily-life-analysis-service";
 import { isStudyAnswerCorrect, validStudyAnswer, type SubmittedStudyAnswer } from "@/lib/study-assessment";
+import { isPerformanceOwner } from "@/lib/performance-owner";
 import {
   ROADMAP_IMPORT_MAX_BYTES,
 } from "@/lib/performance-analytics";
@@ -38,17 +39,12 @@ type Res = { ok: boolean; error?: string };
 async function requireCeo() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) return null;
+  if (!user || !(await isPerformanceOwner(supabase, user))) return null;
   return { supabase, user };
 }
 
 async function requireRoadmapAiUser() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const enabledIds = new Set((process.env.ROADMAP_AI_ENABLED_USER_IDS ?? "").split(",").map((value) => value.trim()).filter(Boolean));
-  if (!enabledIds.has("*") && !enabledIds.has(user.id)) return null;
-  return { supabase, user };
+  return requireCeo();
 }
 
 function reval() {
@@ -62,6 +58,15 @@ function text(formData: FormData, key: string, max = 200): string | null {
 function number(formData: FormData, key: string): number | null {
   const value = Number(String(formData.get(key) ?? "").replace(",", "."));
   return Number.isFinite(value) ? value : null;
+}
+
+function integer(formData: FormData, key: string, minimum = 0): number | null {
+  const value = number(formData, key);
+  return value != null && Number.isInteger(value) && value >= minimum ? value : null;
+}
+
+function formValues(formData: FormData, key: string, max = 100): string[] {
+  return [...new Set(formData.getAll(key).map(String).map((value) => value.trim()).filter(Boolean))].slice(0, max);
 }
 
 async function setActiveStudyRoadmap(
@@ -234,6 +239,100 @@ export async function removerAtividadeLifeOS(id: string): Promise<Res> {
   reval(); return { ok: true };
 }
 
+async function studySessionPayload(
+  ctx: NonNullable<Awaited<ReturnType<typeof requireCeo>>>,
+  formData: FormData,
+): Promise<{ ok: true; value: Record<string, unknown> } | { ok: false; error: string }> {
+  const date = text(formData, "date", 10);
+  const source = text(formData, "source", 20) === "pomodoro" ? "pomodoro" : "manual";
+  const focusMinutes = integer(formData, "focus_minutes", 1);
+  const shortBreakMinutes = integer(formData, "short_break_minutes", 0);
+  const longBreakMinutes = integer(formData, "long_break_minutes", 0);
+  const cyclesCompleted = integer(formData, "cycles_completed", 0);
+  const moduleIds = formValues(formData, "module_ids", 30);
+  const itemIds = formValues(formData, "item_ids", 100);
+  const subjectLabels = formValues(formData, "subject_labels", 30).map((value) => value.slice(0, 160));
+  const roadmapId = text(formData, "roadmap_id", 36);
+  const customTitle = text(formData, "title", 240);
+  const title = customTitle ?? subjectLabels.join(", ").slice(0, 240);
+  if (!title || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, error: "Informe o assunto e uma data valida." };
+  if (focusMinutes == null || shortBreakMinutes == null || longBreakMinutes == null || cyclesCompleted == null) return { ok: false, error: "Os tempos da sessao precisam ser numeros inteiros validos." };
+
+  if (roadmapId) {
+    const { data: roadmap } = await ctx.supabase.from("perf_study_roadmap").select("id").eq("id", roadmapId).eq("user_id", ctx.user.id).maybeSingle();
+    if (!roadmap) return { ok: false, error: "O roadmap selecionado nao pertence a esta conta." };
+  }
+  if (moduleIds.length) {
+    const { data } = await ctx.supabase.from("perf_study_roadmap_module").select("id").eq("user_id", ctx.user.id).in("id", moduleIds);
+    if ((data ?? []).length !== moduleIds.length) return { ok: false, error: "Um dos modulos selecionados nao foi encontrado." };
+  }
+  if (itemIds.length) {
+    const { data } = await ctx.supabase.from("perf_study_roadmap_item").select("id").eq("user_id", ctx.user.id).in("id", itemIds);
+    if ((data ?? []).length !== itemIds.length) return { ok: false, error: "Um dos assuntos selecionados nao foi encontrado." };
+  }
+
+  const totalMinutes = focusMinutes + shortBreakMinutes + longBreakMinutes;
+  return {
+    ok: true,
+    value: {
+      title,
+      date,
+      area: "estudos",
+      type: source,
+      duration_minutes: focusMinutes,
+      status: "completed",
+      notes: text(formData, "notes", 2000),
+      metadata: {
+        study_session: {
+          source,
+          focus_minutes: focusMinutes,
+          short_break_minutes: shortBreakMinutes,
+          long_break_minutes: longBreakMinutes,
+          total_minutes: totalMinutes,
+          cycles_completed: cyclesCompleted,
+          roadmap_id: roadmapId,
+          module_ids: moduleIds,
+          item_ids: itemIds,
+          subject_labels: subjectLabels,
+          started_at: text(formData, "started_at", 40),
+          ended_at: text(formData, "ended_at", 40),
+        },
+      },
+    },
+  };
+}
+
+export async function salvarSessaoEstudoLifeOS(formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const payload = await studySessionPayload(ctx, formData);
+  if (!payload.ok) return payload;
+  const { error } = await ctx.supabase.from("perf_activity").insert({ user_id: ctx.user.id, ...payload.value });
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function editarSessaoEstudoLifeOS(id: string, formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx || !id) return { ok: false, error: "Sessao invalida." };
+  const payload = await studySessionPayload(ctx, formData);
+  if (!payload.ok) return payload;
+  const { error } = await ctx.supabase.from("perf_activity").update({ ...payload.value, updated_at: new Date().toISOString() }).eq("id", id).eq("user_id", ctx.user.id).eq("area", "estudos");
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function removerSessaoEstudoLifeOS(id: string): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx || !id) return { ok: false, error: "Sessao invalida." };
+  const { error } = await ctx.supabase.from("perf_activity").delete().eq("id", id).eq("user_id", ctx.user.id).eq("area", "estudos");
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
 export async function criarTreinoAcademiaLifeOS(formData: FormData): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx) return { ok: false, error: "Acesso negado." };
@@ -307,6 +406,21 @@ export async function ativarRoadmapEstudosLifeOS(id: string): Promise<Res> {
   const result = await setActiveStudyRoadmap(ctx.supabase, ctx.user.id, id);
   if (result.ok) reval();
   return result;
+}
+
+export async function removerRoadmapEstudosLifeOS(id: string): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx || !id) return { ok: false, error: "Roadmap invalido." };
+  const { data: roadmap, error: lookupError } = await ctx.supabase.from("perf_study_roadmap").select("id, status").eq("id", id).eq("user_id", ctx.user.id).maybeSingle();
+  if (lookupError || !roadmap) return { ok: false, error: lookupError?.message ?? "Roadmap nao encontrado." };
+  const { error } = await ctx.supabase.from("perf_study_roadmap").delete().eq("id", id).eq("user_id", ctx.user.id);
+  if (error) return { ok: false, error: error.message };
+  if (roadmap.status === "active") {
+    const { data: replacement } = await ctx.supabase.from("perf_study_roadmap").select("id").eq("user_id", ctx.user.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (replacement?.id) await setActiveStudyRoadmap(ctx.supabase, ctx.user.id, replacement.id);
+  }
+  reval();
+  return { ok: true };
 }
 
 export async function criarItemEstudoLifeOS(roadmapId: string, formData: FormData): Promise<Res> {
@@ -428,7 +542,7 @@ async function roadmapGenerationGate(ctx: RoadmapAiContext): Promise<string | nu
   if (draftsCheck.error) return "Execute a migration performance-roadmap-drafts.sql antes de gerar ou importar um roadmap.";
   if (itemDetailsCheck.error || questionTypesCheck.error) return "Execute a migration performance-study-question-types.sql antes de gerar ou importar um roadmap.";
   if (countResult.error) return "Nao foi possivel verificar o limite diario de geracoes.";
-  if ((countResult.count ?? 0) >= ROADMAP_AI_DAILY_LIMIT) return `Limite de ${ROADMAP_AI_DAILY_LIMIT} geracoes por dia atingido.`;
+  if ((countResult.count ?? 0) >= ROADMAP_AI_DAILY_LIMIT) return `Limite de seguranca de ${ROADMAP_AI_DAILY_LIMIT} geracoes por dia atingido.`;
   return null;
 }
 
@@ -481,6 +595,8 @@ export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<Gener
     goal: text(formData, "goal", 30) ?? "",
     goalDetail: text(formData, "goal_detail", 1500) ?? "",
     currentLevel: text(formData, "current_level", 30) ?? "",
+    digitalLiteracy: text(formData, "digital_literacy", 30) ?? "needs_guidance",
+    mainDevice: text(formData, "main_device", 30) ?? "windows",
     useContext: text(formData, "use_context", 30) ?? "",
     targetLevel: text(formData, "target_level", 30) ?? "",
     mainObstacle: text(formData, "main_obstacle", 30) ?? "",
@@ -786,6 +902,19 @@ export async function enviarAvaliacaoEstudoLifeOS(itemId: string, submittedAnswe
   if (itemError) return { ok: false, error: itemError.message };
   reval();
   return { ok: true, score, correctCount, totalCount, passed, feedback };
+}
+
+export async function reiniciarAvaliacaoEstudoLifeOS(itemId: string): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx || !itemId) return { ok: false, error: "Avaliacao invalida." };
+  const { data: item } = await ctx.supabase.from("perf_study_roadmap_item").select("id").eq("id", itemId).eq("user_id", ctx.user.id).maybeSingle();
+  if (!item) return { ok: false, error: "Etapa nao encontrada." };
+  const { error: attemptsError } = await ctx.supabase.from("perf_study_assessment_attempt").delete().eq("item_id", itemId).eq("user_id", ctx.user.id);
+  if (attemptsError) return { ok: false, error: attemptsError.message };
+  const { error: itemError } = await ctx.supabase.from("perf_study_roadmap_item").update({ status: "in_progress", completed_at: null, updated_at: new Date().toISOString() }).eq("id", itemId).eq("user_id", ctx.user.id);
+  if (itemError) return { ok: false, error: itemError.message };
+  reval();
+  return { ok: true };
 }
 
 export async function criarAporteLifeOS(formData: FormData): Promise<Res> {

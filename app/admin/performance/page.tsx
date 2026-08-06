@@ -8,6 +8,9 @@ import { expandTaskOccurrences, resolveDashboardRange, type DashboardPeriod, typ
 import { consistencyStatus } from "@/lib/performance-analytics";
 import type { RoadmapDraftSummary } from "@/lib/study-roadmap-ai";
 import { DAILY_LIFE_ANALYSIS_TYPE, parseDailyLifeAnalysis } from "@/lib/daily-life-analysis";
+import { isStudyAnswerCorrect, type SubmittedStudyAnswer } from "@/lib/study-assessment";
+import type { StudySessionMetadata } from "@/lib/performance-widgets";
+import { isPerformanceOwner } from "@/lib/performance-owner";
 
 export const metadata = { title: "Carlos Life OS" };
 export const maxDuration = 300;
@@ -22,10 +25,43 @@ function chunkValues<T>(values: T[], size = 50): T[][] {
   return chunks;
 }
 
+function assessmentAnswers(value: unknown): Record<string, SubmittedStudyAnswer> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const result: Record<string, SubmittedStudyAnswer> = {};
+  Object.entries(value).forEach(([key, answer]) => {
+    if (typeof answer === "number" && Number.isInteger(answer)) result[key] = answer;
+    else if (Array.isArray(answer) && answer.every((entry) => typeof entry === "number" && Number.isInteger(entry))) result[key] = answer as number[];
+  });
+  return result;
+}
+
+function studySessionMetadata(value: unknown): StudySessionMetadata | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const session = (value as Record<string, unknown>).study_session;
+  if (!session || typeof session !== "object" || Array.isArray(session)) return null;
+  const row = session as Record<string, unknown>;
+  const strings = (key: string) => Array.isArray(row[key]) ? (row[key] as unknown[]).filter((entry): entry is string => typeof entry === "string") : [];
+  const numeric = (key: string) => Number.isFinite(Number(row[key])) ? Math.max(0, Math.round(Number(row[key]))) : 0;
+  return {
+    source: row.source === "pomodoro" ? "pomodoro" : "manual",
+    focusMinutes: numeric("focus_minutes"),
+    shortBreakMinutes: numeric("short_break_minutes"),
+    longBreakMinutes: numeric("long_break_minutes"),
+    totalMinutes: numeric("total_minutes"),
+    cyclesCompleted: numeric("cycles_completed"),
+    roadmapId: typeof row.roadmap_id === "string" ? row.roadmap_id : null,
+    moduleIds: strings("module_ids"),
+    itemIds: strings("item_ids"),
+    subjectLabels: strings("subject_labels"),
+    startedAt: typeof row.started_at === "string" ? row.started_at : null,
+    endedAt: typeof row.ended_at === "string" ? row.ended_at : null,
+  };
+}
+
 export default async function PerformancePage({ searchParams }: { searchParams?: Promise<Record<string, string | string[] | undefined>> }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
+  if (!user || !(await isPerformanceOwner(supabase, user))) redirect("/");
 
   const today = todayDateInBahia();
   const params = (await searchParams) ?? {};
@@ -33,9 +69,10 @@ export default async function PerformancePage({ searchParams }: { searchParams?:
   const range = resolveDashboardRange(periodValue, today, typeof params.from === "string" ? params.from : undefined, typeof params.to === "string" ? params.to : undefined);
   const monday = segundaDaSemana(today);
 
-  const [profileRes, publicProfileRes, habitsRes, allHabitsRes, logsRes, weightsRes, currentReportRes, reportHistoryRes, ratingsRes, matchesRes, trainingsRes, testsRes, categoriesRes, eventsRes, activitiesRes, goalsRes, snapshotsRes, withdrawalsRes, insightsRes, dailyInsightRes, contributionsRes, tasksRes, taskLogsRes] = await Promise.all([
+  const [profileRes, publicProfileRes, privateProfileRes, habitsRes, allHabitsRes, logsRes, weightsRes, currentReportRes, reportHistoryRes, ratingsRes, matchesRes, trainingsRes, testsRes, categoriesRes, eventsRes, activitiesRes, goalsRes, snapshotsRes, withdrawalsRes, insightsRes, dailyInsightRes, contributionsRes, tasksRes, taskLogsRes] = await Promise.all([
     supabase.from("perf_profile").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("profiles").select("nome, username, foto_url").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles_private").select("telefone, data_nascimento").eq("user_id", user.id).maybeSingle(),
     supabase.from("perf_habit").select("*").eq("user_id", user.id).eq("ativo", true).order("ordem"),
     supabase.from("perf_habit").select("*").eq("user_id", user.id).order("ordem"),
     supabase.from("perf_habit_log").select("habit_id, data, valor").eq("user_id", user.id).gte("data", addDays(today, -730)).lte("data", range.to),
@@ -80,14 +117,14 @@ export default async function PerformancePage({ searchParams }: { searchParams?:
   const itemIdChunks = chunkValues(studyItemIds);
   const enhancedQuestionResults = await Promise.all(itemIdChunks.map((ids) => supabase
     .from("perf_study_assessment_question")
-    .select("id, item_id, question_type, prompt, options, order_index")
+    .select("id, item_id, question_type, prompt, options, order_index, correct_option, correct_order, explanation")
     .eq("user_id", user.id)
     .in("item_id", ids)
     .order("order_index")));
   const enhancedQuestionError = enhancedQuestionResults.find((result) => result.error)?.error ?? null;
   const legacyQuestionResults = enhancedQuestionError ? await Promise.all(itemIdChunks.map((ids) => supabase
     .from("perf_study_assessment_question")
-    .select("id, item_id, prompt, options, order_index")
+    .select("id, item_id, prompt, options, order_index, correct_option, explanation")
     .eq("user_id", user.id)
     .in("item_id", ids)
     .order("order_index"))) : [];
@@ -95,7 +132,7 @@ export default async function PerformancePage({ searchParams }: { searchParams?:
   const studyQuestionRows = (enhancedQuestionError ? legacyQuestionResults : enhancedQuestionResults).flatMap((result) => result.data ?? []);
   const studyAttemptResults = await Promise.all(itemIdChunks.map((ids) => supabase
     .from("perf_study_assessment_attempt")
-    .select("id, item_id, score, correct_count, total_count, submitted_at")
+    .select("id, item_id, answers, score, correct_count, total_count, submitted_at")
     .eq("user_id", user.id)
     .in("item_id", ids)
     .order("submitted_at", { ascending: false })));
@@ -141,10 +178,16 @@ export default async function PerformancePage({ searchParams }: { searchParams?:
     createdAt: row.created_at,
   }));
   const primaryRoadmap = studyRoadmaps.find((roadmap) => roadmap.status === "active") ?? studyRoadmaps[0] ?? null;
+  const privateQuestionsByItem = new Map<string, typeof studyQuestionRows>();
+  studyQuestionRows.forEach((question) => privateQuestionsByItem.set(question.item_id, [...(privateQuestionsByItem.get(question.item_id) ?? []), question]));
 
   return <LifeOSDashboard
     today={today}
     monday={monday}
+    userId={user.id}
+    email={user.email ?? ""}
+    telefone={privateProfileRes.data?.telefone ?? null}
+    dataNascimento={privateProfileRes.data?.data_nascimento ?? profileData?.data_nascimento ?? null}
     nome={publicProfileRes.data?.nome ?? "Carlos"}
     username={publicProfileRes.data?.username ?? null}
     fotoUrl={publicProfileRes.data?.foto_url ?? null}
@@ -164,7 +207,7 @@ export default async function PerformancePage({ searchParams }: { searchParams?:
     tests={(testsRes.data ?? []).map((row) => ({ id: row.id, data: row.data, tipo_teste: row.tipo_teste, valor: Number(row.valor), unidade: row.unidade }))}
     events={events}
     categories={(categoriesRes.data ?? []).map((row) => ({ id: row.id, name: row.name, type: row.type, area: row.area, color: row.color, active: Boolean(row.active) }))}
-    activities={(activitiesRes.data ?? []).map((row) => { const metadata = row.metadata && typeof row.metadata === "object" ? row.metadata as { muscle_groups?: unknown } : {}; return { id: row.id, title: row.title, date: row.date, area: row.area, type: row.type, durationMinutes: asNumber(row.duration_minutes), status: row.status, notes: row.notes, muscleGroups: Array.isArray(metadata.muscle_groups) ? metadata.muscle_groups.filter((value): value is string => typeof value === "string") : [] }; })}
+    activities={(activitiesRes.data ?? []).map((row) => { const metadata = row.metadata && typeof row.metadata === "object" ? row.metadata as { muscle_groups?: unknown } : {}; return { id: row.id, title: row.title, date: row.date, area: row.area, type: row.type, durationMinutes: asNumber(row.duration_minutes), status: row.status, notes: row.notes, muscleGroups: Array.isArray(metadata.muscle_groups) ? metadata.muscle_groups.filter((value): value is string => typeof value === "string") : [], studySession: studySessionMetadata(row.metadata) }; })}
     goals={goals}
     snapshots={snapshots}
     withdrawals={(withdrawalsRes.data ?? []).map((row) => ({ id: row.id, date: row.date, amount: Number(row.amount), institution: row.institution, notes: row.notes }))}
@@ -175,7 +218,18 @@ export default async function PerformancePage({ searchParams }: { searchParams?:
     studyItems={(studyItemsRes.data ?? []).map((row) => { const details = itemDetailsById.get(row.id) as (typeof studyItemDetailRows)[number] & { requirements?: string | null; workspace?: string | null } | undefined; return { id: row.id, roadmapId: row.roadmap_id, moduleId: details?.module_id ?? null, section: row.section, title: row.title, description: row.description, requirements: details?.requirements ?? null, workspace: details?.workspace ?? null, instructions: details?.instructions ?? null, completionCriteria: details?.completion_criteria ?? null, resourceTitle: details?.resource_title ?? null, resourceUrl: details?.resource_url ?? null, resourceChannel: details?.resource_channel ?? null, orderIndex: Number(row.order_index), estimatedMinutes: asNumber(row.estimated_minutes), status: row.status, completedAt: row.completed_at, scheduledDate: row.scheduled_date, itemKind: row.item_kind }; })}
     studyModules={(studyModulesRes.data ?? []).map((row) => ({ id: row.id, roadmapId: row.roadmap_id, title: row.title, objective: row.objective, successCriteria: row.success_criteria, topics: Array.isArray(row.topics) ? row.topics.filter((value): value is string => typeof value === "string") : [], orderIndex: Number(row.order_index), estimatedMinutes: asNumber(row.estimated_minutes) }))}
     studyQuestions={studyQuestionRows.map((row) => { const enhanced = row as typeof row & { question_type?: string }; return { id: row.id, itemId: row.item_id, prompt: row.prompt, options: Array.isArray(row.options) ? row.options.filter((value): value is string => typeof value === "string") : [], orderIndex: Number(row.order_index), questionType: enhanced.question_type === "ordering" ? "ordering" as const : "multiple_choice" as const }; })}
-    studyAttempts={studyAttemptRows.map((row) => ({ id: row.id, itemId: row.item_id, score: Number(row.score), correctCount: Number(row.correct_count), totalCount: Number(row.total_count), submittedAt: row.submitted_at }))}
+    studyAttempts={studyAttemptRows.map((row) => {
+      const answers = assessmentAnswers(row.answers);
+      const feedback = (privateQuestionsByItem.get(row.item_id) ?? []).map((question) => {
+        const enhanced = question as typeof question & { question_type?: string; correct_option?: number | null; correct_order?: unknown; explanation?: string | null };
+        const questionType = enhanced.question_type === "ordering" ? "ordering" as const : "multiple_choice" as const;
+        const options = Array.isArray(question.options) ? question.options : [];
+        const correctOrder = Array.isArray(enhanced.correct_order) ? enhanced.correct_order.map(Number).filter(Number.isInteger) : [];
+        const correctOptionIndex = questionType === "multiple_choice" && enhanced.correct_option != null && Number.isInteger(Number(enhanced.correct_option)) ? Number(enhanced.correct_option) : null;
+        return { questionId: question.id, questionType, correct: isStudyAnswerCorrect(answers[question.id], { questionType, optionCount: options.length, correctOptionIndex, correctOrder }), correctOptionIndex, correctOrder, explanation: enhanced.explanation ?? "Revise a explicacao da etapa antes de tentar novamente." };
+      });
+      return { id: row.id, itemId: row.item_id, score: Number(row.score), correctCount: Number(row.correct_count), totalCount: Number(row.total_count), submittedAt: row.submitted_at, answers, feedback };
+    })}
     studyDrafts={studyDrafts}
     studyDraftsReady={!studyDraftsRes.error}
     studyEnhancementsReady={studyEnhancementsReady}

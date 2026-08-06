@@ -1,203 +1,96 @@
-# Pendências pós-auditoria de segurança (atualizado 21/07/2026)
+# Pendencias tecnicas do RankFTV
 
-> Checklist de tudo que ficou pendente depois da rodada de correções de
-> segurança/autorização/pagamentos/privacidade/concorrência — mais o que
-> mudou depois da mesclagem com o trabalho feito em outra máquina
-> (captcha/recuperação de senha/deploy de hardening). Cada item tem o passo
-> a passo pra quando você for resolver. Itens de código já estão prontos —
-> o que falta aqui é ação externa (painel, dado da empresa, decisão) ou é
-> uma limitação conhecida que ficou documentada em vez de corrigida.
->
-> Ver também `AUDITORIA-PRODUCAO.md` (checklist geral de produção, mais
-> amplo que este), `CAPTCHA.md` (setup do Turnstile) e `DOCUMENTACAO.md`
-> (arquitetura atual).
+Auditoria atualizada em 06/08/2026. Este documento cobre somente a plataforma Rank Futevolei: atletas, organizadores, campeonatos, ingressos, plateia, arenas, alunos e operacao financeira. As paginas pessoais `/admin/performance`, `/admin/gastos` e `/admin/gasto-mensal` nao fazem parte do produto RankFTV.
 
----
+Configuracoes externas e decisoes do responsavel estao em `PENDENCIAS-MANUAIS.md`. A arquitetura pessoal do Performance e sua futura extracao estao em `PERFORMANCE.md`.
 
-## 1. Aplicar as migrations SQL novas — ✅ aplicadas e confirmadas em 21/07/2026
+## Bloqueadores para trafego e dinheiro reais
 
-Todas as 12 já foram rodadas. A nº 2
-(`harden-championship-registration-security.sql`) tinha um bug de
-idempotência (um `DROP CONSTRAINT` sem `CASCADE` num índice que outras FKs
-já dependiam, então rodar duas vezes falhava) — já corrigido no arquivo.
-Reaplicada com sucesso, confirmado que não havia dado duplicado (0 duplas e
-0 inscrições com categoria de outro campeonato) e as duas FKs compostas já
-foram validadas (`VALIDATE CONSTRAINT`, deixaram de ser `NOT VALID`).
+1. **Atualizar dependencias vulneraveis.** `npm audit --omit=dev` encontrou 4 pacotes afetados: Next.js, PostCSS e Sharp com severidade alta, alem de DOMPurify com severidade baixa. Atualizar `next`, `eslint-config-next` e dependencias transitivas somente depois de ler os guias da versao instalada e executar regressao completa.
+2. **Criar idempotencia financeira duravel.** Ainda existe uma janela ambigua entre enviar uma cobranca ao Asaas e persistir o ID retornado. Implementar operacao/outbox, chave interna unica, estados de tentativa e reconciliacao por `externalReference` para inscricoes, ingressos, mensalidades, aluguel, diaria e aula avulsa.
+3. **Normalizar os itens dos pedidos de plateia.** Pedidos com varios tipos guardam parte dos itens em JSON. Quando um Pix multi-item expira, o cupom e liberado, mas o estoque por tipo pode continuar reservado. Criar `spectator_ticket_items`, migrar dados e reservar/liberar cada item atomicamente.
+4. **Reduzir card testing e o escopo PCI.** Os checkouts publicos iniciais possuem rate limit, mas as acoes que enviam cartao ao Asaas precisam de limite por IP, usuario, pedido e identificador mascarado, cooldown progressivo e alerta de recusas. Preferir checkout hospedado ou tokenizacao direta quando o provedor oferecer suporte adequado.
 
-<details>
-<summary>Passo a passo original (referência)</summary>
+## Produto e escala
 
-Antes de aplicar em produção:
+5. **Finalizar ou ocultar a assinatura da plataforma para arenas.** `/arena/[handle]/assinatura` ainda mostra valor "A definir" e nao oferece contratacao real. Integrar um produto homologado ou remover a oferta das rotas de producao ate a decisao comercial.
+6. **Adicionar paginacao server-side.** A listagem publica de arenas ainda carrega o conjunto inteiro para filtrar no cliente. Paginar no servidor, preservar busca e filtros na URL e revisar outras listas grandes para evitar consultas ilimitadas ou N+1.
+7. **Implantar CSP com nonce.** O cabecalho ainda permite `unsafe-inline` em scripts e estilos. Migrar para nonce por requisicao sem quebrar Next.js, Tailwind, Turnstile, Supabase ou imagens.
+8. **Criar observabilidade operacional.** Adicionar rastreamento de erros, health checks, logs estruturados sem PII, alertas para webhook/cron/repasse, identificador de correlacao e painel de conciliacao.
 
-1. Faça um snapshot/backup recuperável do banco.
-2. Rode no **SQL Editor do Supabase**, uma de cada vez, nesta ordem (todas
-   são idempotentes — seguro rodar de novo se precisar):
+## Qualidade antes do lancamento
 
-   1. `supabase/harden-arena-attendance-security.sql`
-   2. `supabase/harden-championship-registration-security.sql`
-   3. `supabase/harden-rating-ledger-idempotency.sql`
-   4. `supabase/add-security-audit-log.sql`
-   5. `supabase/harden-championship-financial-fields.sql`
-   6. `supabase/harden-payout-account-security.sql`
-   7. `supabase/harden-card-token-security.sql`
-   8. `supabase/harden-ticket-inventory-security.sql`
-   9. `supabase/add-ticket-recovery-otp.sql`
-   10. `supabase/harden-storage-buckets.sql`
-   11. `supabase/harden-notifications-insert.sql`
-   12. `supabase/harden-registration-idempotency.sql`
+9. **Criar suite E2E com Playwright.** Cobrir cadastro, login, campeonato, inscricao, Pix, cartao, estorno, ingressos, check-in, equipes, arena, mensalidade, aluguel, diaria e repasse.
+10. **Criar testes de contrato do Asaas.** Usar fixtures assinadas e sandbox para eventos duplicados, fora de ordem, invalidos, recusas, estornos, timeout e reconciliacao.
+11. **Adicionar gates de deploy.** A CI deve executar lint, TypeScript, testes unitarios, E2E critico, build e `npm audit --omit=dev`, bloqueando deploy quando houver falha relevante.
 
-3. Depois de rodar o nº 2 e o nº 12, os dois arquivos avisam via `RAISE
-   NOTICE` se já existir dado duplicado que impediria os índices/constraints
-   novos de serem criados (ex: alguém já inscrito duas vezes no mesmo
-   campeonato, ou dois aluguéis ativos no mesmo horário). Leia a aba de
-   mensagens do SQL Editor — se aparecer aviso, resolva manualmente
-   (cancelar a dupla/reserva extra) antes de rodar de novo.
-4. Depois de tudo aplicado: recarregue o schema cache do PostgREST (os
-   arquivos já mandam `NOTIFY pgrst, 'reload schema'`, mas confirme no
-   painel Settings → API se não tiver certeza) e teste um login/cadastro,
-   uma inscrição, uma presença de aula e uma troca de chave Pix pra
-   confirmar que nada quebrou.
+## Prompt completo para executar tudo
 
-</details>
+```text
+Trabalhe no repositorio RankFTV e resolva todas as pendencias tecnicas descritas em PENDENCIAS.md, de ponta a ponta. Antes de editar, leia AGENTS.md, CLAUDE.md, DOCUMENTACAO.md, AUDITORIA-PRODUCAO.md, PENDENCIAS-MANUAIS.md e os guias relevantes da versao instalada em node_modules/next/dist/docs/. O projeto pode ter alteracoes locais: preserve tudo que nao for seu e nao reverta trabalho existente.
 
-### Checklist de confirmação
+Escopo obrigatorio: somente o produto Rank Futevolei, incluindo atletas, organizadores, campeonatos, inscricoes, ingressos de atleta e plateia, check-in, equipes, arenas, alunos, planos de arena, cobrancas e repasses. Nao altere `/admin/performance`, `/admin/gastos`, `/admin/gasto-mensal`, tabelas `perf_*` ou tabelas financeiras pessoais.
 
-- [x] **Migration nº 2** (`harden-championship-registration-security.sql`):
-      confirmado sem dado duplicado e as duas FKs compostas
-      (`teams_category_championship_fkey`,
-      `registrations_category_championship_fkey`) já validadas.
-- [x] **Migration nº 12** (`harden-registration-idempotency.sql`):
-      confirmado 0 duplas repetidas no mesmo campeonato e 0 aluguéis
-      conflitantes no mesmo horário — os dois índices únicos
-      (`teams_one_active_per_atleta1`, `arena_rentals_one_active_per_slot`)
-      foram criados sem nenhum dado pré-existente pra resolver.
-- [ ] Teste rápido: um login, uma inscrição em campeonato, uma presença de
-      aula de arena e uma troca de chave Pix (essa última deve pedir senha
-      se já existir uma chave cadastrada).
-- [x] Confirmado que `security_audit_log` e `ticket_recovery_codes` existem
-      (as duas tabelas novas de auditoria/OTP).
+Objetivo: deixar o RankFTV tecnicamente pronto para trafego e pagamentos reais, sem inventar credenciais, dados empresariais ou configuracoes externas.
 
----
+1. Dependencias e framework
+- Rode npm audit --omit=dev e atualize Next.js, eslint-config-next e dependencias transitivas para versoes corrigidas e compativeis.
+- Leia os guias locais da nova versao antes de adaptar APIs.
+- Garanta zero vulnerabilidades altas ou criticas e documente qualquer excecao restante.
 
-## 2. Dados da empresa pros Termos e Política de Privacidade
+2. Operacoes financeiras idempotentes
+- Modele uma tabela de operacoes/outbox com chave interna unica, external_reference, fluxo, registro relacionado, estado, tentativas, erro sanitizado, provider_payment_id e timestamps.
+- Refatore todos os pontos que criam cobranca: inscricao, ingresso atleta, ingresso plateia, mensalidade, aluguel, diaria e aula avulsa.
+- Um retry nunca pode criar duas cobrancas. Timeout ambiguo deve manter a operacao conciliavel e nunca liberar estoque prematuramente.
+- Crie reconciliador seguro por externalReference e integre-o ao cron ou a uma rota administrativa protegida.
+- Preserve idempotencia de webhook, estorno e repasse.
 
-Removi o CPF pessoal e o endereço residencial do Carlos que estavam
-públicos nos Termos de Uso — ficaram placeholders `[PENDENTE: ...]` em 3
-lugares até você decidir o que colocar no lugar.
+3. Pedido multi-item de plateia
+- Crie migration aditiva e idempotente para spectator_ticket_items com ticket_id, ticket_type_id, nome fotografado, valor unitario, quantidade, indices e FKs.
+- Faca backfill do JSON quando o tipo puder ser identificado sem ambiguidade e gere relatorio para casos nao migraveis.
+- Reserve e libere estoque por item em transacao/RPC atomica.
+- Atualize checkout, exibicao, webhook, cancelamento, estorno e expiracao de Pix.
+- Garanta que cupom e estoque sejam liberados exatamente uma vez.
 
-**O que decidir:** razão social + CNPJ (se você abrir empresa) OU seu nome
-completo sem CPF nem endereço residencial; e um canal de contato oficial
-(e-mail, não precisa ser endereço físico).
+4. Protecao contra card testing e reducao de escopo PCI
+- Aplique rate limit duravel nas acoes que enviam cartao ao Asaas, combinando IP, usuario, pedido e identificador mascarado sem persistir PAN ou CVV.
+- Implemente cooldown progressivo, limite de recusas, bloqueio temporario e alerta operacional.
+- Prefira checkout hospedado ou tokenizacao direta do Asaas quando a documentacao e a conta vigente oferecerem essa opcao.
+- Caso nao seja possivel, mantenha PAN/CVV apenas em memoria pelo menor tempo, nunca registre esses campos e documente os controles aplicaveis.
+- Adicione testes de limite, concorrencia, desbloqueio e mascaramento de logs.
 
-**Onde editar:**
+5. Assinatura da plataforma de arenas
+- Localize `/arena/[handle]/assinatura`. Implemente o produto usando preco centralizado e cobranca confiavel, ou remova/oculte completamente a oferta enquanto o preco estiver indefinido.
+- Nao deixe texto "A definir", botao falso ou promessa de cobranca em producao.
 
-| Arquivo | Linha | O que tem lá hoje |
-| --- | --- | --- |
-| `app/termos/page.tsx` | 60 | Identificação de quem mantém a plataforma |
-| `app/privacidade/page.tsx` | 24 | Mesma identificação, na Política de Privacidade |
-| `app/privacidade/page.tsx` | 99 | Canal de contato pra dúvida sobre dados/privacidade |
+6. Paginacao e indices
+- Implemente paginacao server-side na listagem de arenas, com busca/filtros na URL, total e estados vazios.
+- Audite listagens de campeonatos, plateia, alunos e paineis para evitar carregamento ilimitado e N+1.
+- Adicione indices SQL com justificativa e testes para as consultas alteradas.
 
-Passo a passo: abra os 3 arquivos, busque por `PENDENTE`, substitua o texto
-entre colchetes pelo dado real (mantendo o resto da frase). Não precisa
-mexer em mais nada — o resto dos Termos/Política já está escrito.
+7. CSP e headers
+- Implemente nonce por requisicao conforme a documentacao oficial do Next.js instalado.
+- Remova unsafe-inline de script-src e, quando tecnicamente possivel, de style-src.
+- Preserve Turnstile, Supabase, fontes, imagens e desenvolvimento sem abrir wildcards desnecessarios.
+- Crie testes de headers para paginas publicas, autenticadas e respostas de erro.
 
----
+8. Observabilidade
+- Integre um provedor configuravel de erros e performance.
+- Use logs JSON com correlation_id, fluxo e registro, mascarando CPF, telefone, e-mail, tokens, chaves Pix e dados de cartao.
+- Crie `/api/health` sem segredos, alertas para falha de webhook/cron/repasse e politica de retencao.
 
-## 3. Limitações conhecidas desta rodada (documentadas, não corrigidas)
+9. Testes e CI
+- Adicione Playwright e cubra os fluxos criticos do RankFTV com usuarios e dados descartaveis.
+- Crie fixtures de webhook Asaas para eventos duplicados, fora de ordem, invalidos, estorno e timeout.
+- Configure CI para executar lint, npx tsc --noEmit, npm test, E2E, npm run build e npm audit --omit=dev.
+- Nao use mocks para a logica central; use sandbox e fixtures somente nas fronteiras externas.
 
-Coisas que identifiquei mas não implementei — não são vulnerabilidade
-aberta, mas valem uma correção futura se o produto crescer nessa direção.
-
-- **Ingresso de plateia com vários tipos no mesmo pedido**
-  (`spectator_tickets` com `itens` jsonb): quando um pedido Pix pendente com
-  **mais de um tipo de ingresso** expira sem pagamento, o cupom é liberado
-  mas a **quantidade reservada de cada tipo não é** (falta guardar o
-  `ticket_type_id` por linha do pedido — hoje só fica salvo o nome). Pedido
-  de 1 tipo só (o caso mais comum) já libera certo. Se isso virar um
-  problema real (tipo "VIP" ficando preso por pedidos multi-item
-  abandonados), a correção é criar uma tabela `spectator_ticket_items` com
-  uma linha por tipo/quantidade, em vez do jsonb atual.
-
-- **Bucket `avatars` no Supabase Storage**: ele nunca teve definição em SQL
-  neste repositório (foi criado direto no painel, em algum momento). A
-  migration `harden-storage-buckets.sql` cria as policies corretas (só o
-  dono grava, na própria pasta), mas **não consegue saber nem remover**
-  policies antigas que porventura já existam com outro nome. Depois de
-  rodar a migration, confira manualmente em **Storage → avatars →
-  Policies** no painel do Supabase se sobrou alguma policy antiga mais
-  permissiva e apague.
-
-- **Paginação server-side de campeonatos/arenas**: a listagem de arenas
-  (`app/arenas/page.tsx`) teve o N+1 de contagem de alunos corrigido (uma
-  query em vez de uma por arena), mas a lista completa ainda é carregada
-  inteira e filtrada no cliente (`ArenaSection`). Em campeonatos a busca já
-  tinha paginação; arenas não. Não é um risco de segurança, é escala — vale
-  revisitar se o número de arenas crescer bastante (dezenas → centenas).
-
-- **Preferência de visibilidade de perfil** (cidade, ranking, histórico
-  público/privado): não implementei — hoje o perfil público mostra os
-  mesmos campos pra todo mundo. Se quiser esse controle granular, é uma
-  feature nova (coluna de preferência + filtro nas páginas públicas de
-  perfil/ranking), não uma correção de bug.
-
-- **Retenção/limpeza automática de PII em log**: não criei uma rotina
-  configurável de expurgo de log. Confirmei que os fluxos de pagamento não
-  logam PAN/CVV/corpo de requisição (só mensagem de erro tratada), mas não
-  existe uma política formal de "log antigo se apaga depois de X dias".
-
----
-
-## 4. Homologação e configuração externa (herdado de `AUDITORIA-PRODUCAO.md`)
-
-Continua tudo pendente, independente desta rodada de segurança — o código
-já é compatível, falta configurar/testar de verdade:
-
-- [ ] `NEXT_PUBLIC_BASE_URL` apontando pro domínio final (hoje é
-      desenvolvimento).
-- [ ] `ASAAS_BASE_URL`/`ASAAS_API_KEY` trocados de Sandbox pra produção.
-- [ ] Webhook do Asaas cadastrado em produção
-      (`/api/webhooks/asaas`), com `ASAAS_WEBHOOK_TOKEN` correto.
-- [ ] Cron da Vercel (`vercel.json` → `/api/cron/repasse-liquidacao`)
-      confirmado rodando com `CRON_SECRET` certo — esse cron agora também
-      expira pedido Pix abandonado, então ele ficou mais importante do que
-      antes.
-- [ ] Resend com domínio verificado, SPF/DKIM e `RESEND_FROM_EMAIL` de
-      produção — os e-mails de código de recuperação de ingresso e de
-      código Pix dependem disso pra chegar de verdade.
-- [x] Supabase Auth: Site URL (`https://www.rankftv.com`), Redirect URLs e
-      CAPTCHA configurados e testados (confirmado 21/07 — captcha, rate
-      limit e fluxo de recuperação de senha, tudo funcionando). Falta só:
-      política de senha e MFA da conta admin.
-- [ ] Backup/PITR ativado e testado.
-- [ ] Homologação financeira real (Pix, cartão aprovado/recusado,
-      parcelamento, estorno, assinatura) com valor baixo antes de abrir pra
-      valer.
-- [ ] Confirmar que a conta principal tem `ADMIN_EMAIL` **e**
-      `profiles.role = 'ceo'` simultaneamente (o proxy exige role; o atalho
-      de navegação usa e-mail — precisam bater na mesma conta).
-
----
-
-## 5. Branches: master e redesign/organizer-championships unificados — ✅ feito em 21/07/2026
-
-As duas máquinas estavam commitando em branches diferentes sem nunca trocar
-trabalho entre si (`master` recebia captcha/recuperação de senha/deploy
-direto; `redesign/organizer-championships` tinha o redesign + a auditoria
-de segurança). Mesclei os dois: `master` e `redesign/organizer-championships`
-agora apontam pro mesmo commit, local e no GitHub. Nada a fazer aqui, só
-registrando — mas vale escolher um branch só pra continuar trabalhando daqui
-pra frente, pra não repetir a divergência.
-
----
-
-## 6. Ordem recomendada pra resolver o que resta
-
-1. ~~Migrations~~ — ✅ feito. Só falta o checklist de confirmação da seção 1
-   (avisos de duplicata, teste rápido) e conferir o bucket `avatars` na
-   seção 3.
-2. Dados da empresa nos Termos/Privacidade (seção 2) — rápido, sem
-   dependência externa.
-3. Homologação e configuração externa (seção 4) — é o bloco maior, trata
-   como o gate final antes de aceitar dinheiro real.
-4. Limitações conhecidas (seção 3) — só se/quando virar prioridade de
-   produto.
+Requisitos gerais:
+- Use migrations aditivas, idempotentes e com RLS minimo necessario.
+- Nunca exponha service role, chave Asaas, CRON_SECRET ou tokens no navegador.
+- Nao altere as paginas e dados pessoais hospedados temporariamente no projeto.
+- Atualize .env.example e a documentacao sem colocar segredos reais.
+- Preserve dados existentes e descreva backfill e rollback.
+- Antes de concluir, rode todos os gates e corrija falhas reais sem desativar regras.
+- Entregue resumo por bloco, migrations criadas, configuracoes manuais restantes e resultados exatos dos testes.
+```
