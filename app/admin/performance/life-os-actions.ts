@@ -1,9 +1,10 @@
 "use server";
 
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { zodTextFormat } from "openai/helpers/zod";
+import type { Response as OpenAIResponse } from "openai/resources/responses/responses";
 import { createClient } from "@/lib/supabase/server";
 import { addDays, hojeISO } from "@/lib/performance";
 import { portfolioVariation } from "@/lib/performance-life-os";
@@ -601,13 +602,34 @@ function roadmapAiError(error: unknown): string {
   if (error instanceof Error && error.message === "EMPTY_IMPORT_FILE") return "O arquivo esta vazio.";
   if (error instanceof Error && error.message === "IMPORT_CONTEXT_TOO_LARGE") return `O texto util do arquivo ultrapassa ${Math.round(ROADMAP_IMPORT_AI_MAX_CHARS / 1_000_000)} milhoes de caracteres. Divida o roadmap em dois arquivos para a IA conseguir revisar tudo sem cortar conteudo.`;
   if (error instanceof Error && error.message === "EMPTY_ROADMAP") return "A IA nao encontrou conteudo suficiente para montar um roadmap.";
+  if (error instanceof Error && error.message === "EMPTY_STRUCTURED_OUTPUT") return "A IA concluiu a solicitacao, mas nao devolveu um roadmap valido. Tente novamente.";
+  if (error instanceof Error && error.message === "INVALID_STRUCTURED_OUTPUT") return "A IA devolveu um roadmap fora do formato esperado. Tente novamente; suas respostas continuam salvas.";
+  if (error instanceof Error && error.message === "ROADMAP_OUTPUT_LIMIT") return "O roadmap ficou maior que o limite de resposta da IA. Reduza a carga do plano ou divida o objetivo em duas trilhas.";
+  if (error instanceof Error && error.message === "ROADMAP_CONTENT_FILTER") return "A resposta foi interrompida pelo filtro de seguranca da OpenAI. Revise o objetivo informado e tente novamente.";
+  if (error instanceof Error && error.message === "PROVIDER_RESPONSE_CANCELLED") return "A geracao foi cancelada antes de terminar. Tente novamente.";
+  if (error instanceof Error && error.message === "DRAFT_PERSIST_FAILED") return "A IA terminou o roadmap, mas o site nao conseguiu salvar o rascunho. Tente novamente.";
+  if (error instanceof Error && (error.name === "APIConnectionTimeoutError" || /timed out|timeout/i.test(error.message))) return "A geracao ultrapassou o tempo de conexao com a OpenAI. Tente novamente; suas respostas continuam salvas.";
   const status = typeof error === "object" && error && "status" in error ? Number(error.status) : null;
+  const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
   if (status === 401) return "A chave da OpenAI foi recusada. Verifique a configuracao do projeto.";
-  if (status === 400) return "A OpenAI recusou o conteudo. Verifique o formato ou reduza o tamanho do arquivo.";
-  if (status === 429) return "A OpenAI atingiu o limite de uso. Aguarde um pouco ou verifique seus creditos.";
+  if (status === 400 || code === "invalid_prompt") return "A OpenAI recusou o conteudo enviado. Revise o objetivo e tente novamente.";
+  if (code === "insufficient_quota") return "O projeto da OpenAI esta sem saldo disponivel ou com a cobranca bloqueada.";
+  if (status === 429 || code === "rate_limit_exceeded") return "A OpenAI recebeu muitas solicitacoes ao mesmo tempo. Aguarde um pouco e tente novamente.";
   if (status && status >= 500) return "A OpenAI esta temporariamente indisponivel. Tente novamente em alguns minutos.";
   if (error instanceof Error && error.message === "NO_AVAILABLE_DATES") return "Nenhum dia disponivel foi encontrado no periodo escolhido.";
   return "Nao foi possivel gerar o roadmap agora.";
+}
+
+function roadmapGenerationDiagnostic(error: unknown) {
+  if (!(error instanceof Error)) return { value: String(error) };
+  const details = error as Error & { status?: number; code?: string; type?: string };
+  return {
+    name: details.name,
+    message: details.message,
+    status: details.status ?? null,
+    code: details.code ?? null,
+    type: details.type ?? null,
+  };
 }
 
 function roadmapGenerationTitle(answers: RoadmapAiAnswers): string {
@@ -615,17 +637,71 @@ function roadmapGenerationTitle(answers: RoadmapAiAnswers): string {
   return `Roadmap de ${subject}`.trim().slice(0, 160);
 }
 
+function providerResponseError(response: OpenAIResponse): Error | null {
+  if (response.status === "completed") return null;
+  if (response.status === "queued" || response.status === "in_progress") return null;
+  if (response.status === "incomplete") {
+    return new Error(response.incomplete_details?.reason === "max_output_tokens" ? "ROADMAP_OUTPUT_LIMIT" : "ROADMAP_CONTENT_FILTER");
+  }
+  if (response.status === "cancelled") return new Error("PROVIDER_RESPONSE_CANCELLED");
+  const error = new Error(response.error?.message || "PROVIDER_RESPONSE_FAILED") as Error & { code?: string };
+  error.code = response.error?.code;
+  return error;
+}
+
+function parseProviderRoadmap(response: OpenAIResponse) {
+  const responseError = providerResponseError(response);
+  if (responseError) throw responseError;
+  if (response.status !== "completed" || !response.output_text) throw new Error("EMPTY_STRUCTURED_OUTPUT");
+  let raw: unknown;
+  try {
+    raw = JSON.parse(response.output_text);
+  } catch {
+    throw new Error("INVALID_STRUCTURED_OUTPUT");
+  }
+  const parsed = generatedRoadmapSchema.safeParse(raw);
+  if (!parsed.success) throw new Error("INVALID_STRUCTURED_OUTPUT");
+  return parsed.data;
+}
+
+async function finalizeRoadmapProviderResponse(
+  ctx: RoadmapAiContext,
+  generationId: string,
+  answers: RoadmapAiAnswers,
+  response: OpenAIResponse,
+): Promise<boolean> {
+  if (response.status === "queued" || response.status === "in_progress") return false;
+  const generated = parseProviderRoadmap(response);
+  const preview = buildRoadmapPlan(generated, answers);
+  if (!preview.modules.length || !preview.modules.some((roadmapModule) => roadmapModule.steps.length)) throw new Error("EMPTY_ROADMAP");
+  const webSearchCalls = response.output.filter((item) => item.type === "web_search_call").length;
+  const readyError = await persistRoadmapDraft(ctx, generationId, preview, response, webSearchCalls);
+  if (readyError) throw new Error("DRAFT_PERSIST_FAILED");
+  return true;
+}
+
+async function failRoadmapGeneration(ctx: RoadmapAiContext, generationId: string, error: unknown): Promise<void> {
+  console.error("[roadmap-ai] generation failed", generationId, roadmapGenerationDiagnostic(error));
+  const message = roadmapAiError(error);
+  await ctx.supabase.from("perf_study_roadmap_generation").update({
+    status: "failed",
+    error_message: message,
+    updated_at: new Date().toISOString(),
+  }).eq("id", generationId).eq("user_id", ctx.user.id);
+}
+
 async function processRoadmapGeneration(
   ctx: RoadmapAiContext,
   generationId: string,
   answers: RoadmapAiAnswers,
   model: string,
+  attemptId: string,
 ): Promise<void> {
   try {
     const shouldSearchVideos = answers.learningFormats.includes("video");
     const shouldSearchExternalMaterials = answers.requiredMaterials.some((material) => ["course", "book"].includes(material));
     const shouldSearchResources = shouldSearchVideos || shouldSearchExternalMaterials;
-    const response = await getOpenAIClient().responses.parse({
+    const response = await getOpenAIClient().responses.create({
       model,
       reasoning: { effort: "medium" },
       instructions: answers.roadmapType === "language" ? languageRoadmapSystemInstructions : roadmapSystemInstructions,
@@ -643,17 +719,22 @@ async function processRoadmapGeneration(
       } : {}),
       max_output_tokens: 30_000,
       safety_identifier: createHash("sha256").update(ctx.user.id).digest("hex"),
-      store: false,
+      background: true,
+      store: true,
+      metadata: { generation_id: generationId },
+    }, {
+      timeout: 60_000,
+      maxRetries: 1,
+      idempotencyKey: `roadmap-${generationId}-${attemptId}`,
     });
-    if (!response.output_parsed) throw new Error("EMPTY_STRUCTURED_OUTPUT");
-    const preview = buildRoadmapPlan(response.output_parsed, answers);
-    if (!preview.modules.length || !preview.modules.some((roadmapModule) => roadmapModule.steps.length)) throw new Error("EMPTY_ROADMAP");
-    const webSearchCalls = response.output.filter((item) => item.type === "web_search_call").length;
-    const readyError = await persistRoadmapDraft(ctx, generationId, preview, response, webSearchCalls);
-    if (readyError) throw new Error("DRAFT_PERSIST_FAILED");
+    const { error: providerIdError } = await ctx.supabase.from("perf_study_roadmap_generation").update({
+      provider_response_id: response.id,
+      updated_at: new Date().toISOString(),
+    }).eq("id", generationId).eq("user_id", ctx.user.id).eq("status", "generating");
+    if (providerIdError) throw new Error("DRAFT_PERSIST_FAILED");
+    await finalizeRoadmapProviderResponse(ctx, generationId, answers, response);
   } catch (error) {
-    const message = roadmapAiError(error);
-    await ctx.supabase.from("perf_study_roadmap_generation").update({ status: "failed", error_message: message, updated_at: new Date().toISOString() }).eq("id", generationId).eq("user_id", ctx.user.id);
+    await failRoadmapGeneration(ctx, generationId, error);
   } finally {
     reval();
   }
@@ -707,6 +788,7 @@ export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<Gener
     languageExposure: text(formData, "language_exposure", 30) ?? "none",
     languageObstacle: text(formData, "language_obstacle", 30) ?? "consistency",
     languagePracticeAccess: formValues(formData, "language_practice_access", 20),
+    languageContexts: formValues(formData, "language_contexts", 20),
     languageSituations: text(formData, "language_situations", 2000) ?? "",
     languageInterests: text(formData, "language_interests", 2000) ?? "",
   });
@@ -729,9 +811,106 @@ export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<Gener
   }).select("id").single();
   if (generationError || !generation) return { ok: false, error: generationError?.message ?? "Nao foi possivel iniciar a geracao." };
 
-  after(() => processRoadmapGeneration(ctx, generation.id, parsedAnswers.data, model));
+  after(() => processRoadmapGeneration(ctx, generation.id, parsedAnswers.data, model, randomUUID()));
   reval();
   return { ok: true, generationId: generation.id, queued: true, title: generationTitle };
+}
+
+export async function sincronizarGeracoesRoadmapLifeOS(): Promise<Res & { updated?: number }> {
+  const ctx = await requireRoadmapAiUser();
+  if (!ctx) return { ok: false, error: "A geracao com IA ainda nao esta liberada para este usuario." };
+
+  const { data: generations, error } = await ctx.supabase
+    .from("perf_study_roadmap_generation")
+    .select("id, answers, provider_response_id")
+    .eq("user_id", ctx.user.id)
+    .eq("origin", "ai")
+    .eq("status", "generating")
+    .not("provider_response_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(5);
+  if (error) return { ok: false, error: "Nao foi possivel consultar as geracoes em andamento." };
+
+  let updated = 0;
+  for (const generation of generations ?? []) {
+    const parsedAnswers = roadmapAiAnswersSchema.safeParse(generation.answers);
+    if (!parsedAnswers.success) {
+      await failRoadmapGeneration(ctx, generation.id, new Error("INVALID_SAVED_ANSWERS"));
+      updated += 1;
+      continue;
+    }
+
+    let response: OpenAIResponse;
+    try {
+      response = await getOpenAIClient().responses.retrieve(generation.provider_response_id, {}, {
+        timeout: 30_000,
+        maxRetries: 1,
+      });
+    } catch (retrieveError) {
+      const status = typeof retrieveError === "object" && retrieveError && "status" in retrieveError ? Number(retrieveError.status) : null;
+      if (status === 401 || status === 403 || status === 404) {
+        await failRoadmapGeneration(ctx, generation.id, retrieveError);
+        updated += 1;
+      } else {
+        console.warn("[roadmap-ai] provider status unavailable", generation.id, roadmapGenerationDiagnostic(retrieveError));
+      }
+      continue;
+    }
+
+    if (response.status === "queued" || response.status === "in_progress") continue;
+    try {
+      await finalizeRoadmapProviderResponse(ctx, generation.id, parsedAnswers.data, response);
+    } catch (finalizeError) {
+      await failRoadmapGeneration(ctx, generation.id, finalizeError);
+    }
+    updated += 1;
+  }
+
+  if (updated) reval();
+  return { ok: true, updated };
+}
+
+export async function tentarNovamenteGeracaoRoadmapLifeOS(generationId: string): Promise<GenerateRoadmapResult> {
+  const ctx = await requireRoadmapAiUser();
+  if (!ctx || !generationId) return { ok: false, error: "Geracao invalida." };
+
+  const { data: generation, error } = await ctx.supabase
+    .from("perf_study_roadmap_generation")
+    .select("id, status, origin, answers, model, preview_title")
+    .eq("id", generationId)
+    .eq("user_id", ctx.user.id)
+    .maybeSingle();
+  if (error || !generation || generation.status !== "failed" || generation.origin !== "ai") {
+    return { ok: false, error: "Esta geracao nao esta disponivel para uma nova tentativa." };
+  }
+
+  const parsedAnswers = roadmapAiAnswersSchema.safeParse(generation.answers);
+  if (!parsedAnswers.success) return { ok: false, error: "As respostas salvas desta geracao nao sao mais validas." };
+  const gateError = await roadmapGenerationGate(ctx);
+  if (gateError) return { ok: false, error: gateError };
+
+  const model = process.env.OPENAI_ROADMAP_MODEL?.trim() || generation.model || "gpt-5.6-sol";
+  const { error: updateError } = await ctx.supabase.from("perf_study_roadmap_generation").update({
+    status: "generating",
+    model,
+    prompt_version: ROADMAP_AI_PROMPT_VERSION,
+    provider_response_id: null,
+    input_tokens: null,
+    output_tokens: null,
+    web_search_calls: 0,
+    error_message: null,
+    updated_at: new Date().toISOString(),
+  }).eq("id", generationId).eq("user_id", ctx.user.id).eq("status", "failed");
+  if (updateError) return { ok: false, error: "Nao foi possivel reiniciar esta geracao." };
+
+  after(() => processRoadmapGeneration(ctx, generationId, parsedAnswers.data, model, randomUUID()));
+  reval();
+  return {
+    ok: true,
+    generationId,
+    queued: true,
+    title: generation.preview_title ?? roadmapGenerationTitle(parsedAnswers.data),
+  };
 }
 
 export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promise<Res & { id?: string }> {

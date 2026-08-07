@@ -47,6 +47,8 @@ import {
   renomearRascunhoRoadmapLifeOS,
   renomearRoadmapEstudosLifeOS,
   salvarSessaoEstudoLifeOS,
+  sincronizarGeracoesRoadmapLifeOS,
+  tentarNovamenteGeracaoRoadmapLifeOS,
 } from "@/app/admin/performance/life-os-actions";
 import { RoadmapAiWizard } from "@/components/performance/RoadmapAiWizard";
 import { usePerformanceConfirm } from "@/components/performance/PerformanceConfirmDialog";
@@ -132,8 +134,9 @@ export function StudiesWorkspace({
   const [draftError, setDraftError] = useState<string | null>(null);
   const [draftPending, startDraftTransition] = useTransition();
   const [roadmapPending, startRoadmapTransition] = useTransition();
-  const [, startGenerationTransition] = useTransition();
+  const [generationPending, startGenerationTransition] = useTransition();
   const [roadmapError, setRoadmapError] = useState<string | null>(null);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const [recentGeneration, setRecentGeneration] = useState<{ generationId: string; title: string } | null>(null);
   const [dismissedGenerationIds, setDismissedGenerationIds] = useState<Set<string>>(() => new Set());
 
@@ -148,8 +151,30 @@ export function StudiesWorkspace({
 
   useEffect(() => {
     if (!shouldPollGeneration) return;
-    const interval = window.setInterval(() => router.refresh(), 4_000);
-    return () => window.clearInterval(interval);
+    let syncing = false;
+    let disposed = false;
+    const synchronize = async () => {
+      if (syncing || disposed) return;
+      syncing = true;
+      try {
+        const result = await sincronizarGeracoesRoadmapLifeOS();
+        if (!disposed) {
+          if (!result.ok) setGenerationError(result.error ?? "Nao foi possivel atualizar o andamento da geracao.");
+          else setGenerationError(null);
+          router.refresh();
+        }
+      } catch {
+        if (!disposed) setGenerationError("A conexao com o servidor falhou ao consultar o roadmap. A geracao continua salva.");
+      } finally {
+        syncing = false;
+      }
+    };
+    void synchronize();
+    const interval = window.setInterval(synchronize, 5_000);
+    return () => {
+      disposed = true;
+      window.clearInterval(interval);
+    };
   }, [router, shouldPollGeneration]);
 
   const dismissGenerationFailure = (generationId: string) => {
@@ -260,9 +285,19 @@ export function StudiesWorkspace({
         openRoadmapDraft(readyRecentDraft.generationId);
       }}
       onDismiss={dismissGenerationFailure}
+      actionError={generationError}
+      retryPending={generationPending}
       onRetry={(generationId) => {
-        dismissGenerationFailure(generationId);
-        setAiWizard(true);
+        setGenerationError(null);
+        startGenerationTransition(async () => {
+          const result = await tentarNovamenteGeracaoRoadmapLifeOS(generationId);
+          if (!result.ok || !result.generationId) {
+            setGenerationError(result.error ?? "Nao foi possivel tentar novamente.");
+            return;
+          }
+          setRecentGeneration({ generationId: result.generationId, title: result.title ?? "Novo roadmap" });
+          router.refresh();
+        });
       }}
     />
     <div className="grid min-w-0 items-stretch gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
@@ -399,6 +434,8 @@ function RoadmapGenerationPanel({
   onOpenReady,
   onDismiss,
   onRetry,
+  actionError,
+  retryPending,
 }: {
   jobs: RoadmapGenerationJob[];
   recentGeneration: { generationId: string; title: string } | null;
@@ -406,6 +443,8 @@ function RoadmapGenerationPanel({
   onOpenReady: () => void;
   onDismiss: (generationId: string) => void;
   onRetry: (generationId: string) => void;
+  actionError: string | null;
+  retryPending: boolean;
 }) {
   const [messageIndex, setMessageIndex] = useState(0);
   const hasTrackedJob = recentGeneration ? jobs.some((job) => job.generationId === recentGeneration.generationId) : false;
@@ -420,9 +459,10 @@ function RoadmapGenerationPanel({
     return () => window.clearInterval(interval);
   }, [hasGenerating]);
 
-  if (!visibleJobs.length && !readyDraft) return null;
+  if (!visibleJobs.length && !readyDraft && !actionError) return null;
 
   return <div className="space-y-3">
+    {actionError && <p role="alert" className="rounded-lg border border-red-400/25 bg-red-400/[0.06] px-4 py-3 text-xs text-red-200">{actionError}</p>}
     {readyDraft && <section className="flex flex-wrap items-center gap-4 rounded-lg border border-emerald-400/25 bg-emerald-400/[0.07] p-4 text-white">
       <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-300"><Check className="size-5" /></span>
       <div className="min-w-0 flex-1"><p className="text-xs font-semibold uppercase text-emerald-300">Roadmap pronto</p><h3 className="mt-1 truncate text-sm font-semibold text-white">{readyDraft.title}</h3><p className="mt-1 text-xs text-white/40">A geracao terminou e o resultado esta salvo em Meus Roadmaps.</p></div>
@@ -439,8 +479,8 @@ function RoadmapGenerationPanel({
       <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-400/15 text-red-300"><CircleHelp className="size-5" /></span>
       <div className="min-w-0 flex-1"><p className="text-xs font-semibold uppercase text-red-300">Nao foi possivel concluir</p><h3 className="mt-1 break-words text-sm font-semibold text-white">{job.title}</h3><p className="mt-1 text-xs leading-5 text-white/45">{job.error ?? "A geracao encontrou um erro inesperado."}</p></div>
       <div className="flex items-center gap-2">
-        <button type="button" onClick={() => onRetry(job.generationId)} className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/15"><Sparkles className="size-4" />Tentar novamente</button>
-        <button type="button" onClick={() => onDismiss(job.generationId)} aria-label="Fechar aviso" title="Fechar aviso" className="flex size-8 items-center justify-center rounded-lg text-white/40 hover:bg-white/10 hover:text-white"><X className="size-4" /></button>
+        <button type="button" disabled={retryPending} onClick={() => onRetry(job.generationId)} className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/15 disabled:opacity-50">{retryPending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}Tentar novamente</button>
+        <button type="button" disabled={retryPending} onClick={() => onDismiss(job.generationId)} aria-label="Fechar aviso" title="Fechar aviso" className="flex size-8 items-center justify-center rounded-lg text-white/40 hover:bg-white/10 hover:text-white disabled:opacity-50"><X className="size-4" /></button>
       </div>
     </section>)}
   </div>;

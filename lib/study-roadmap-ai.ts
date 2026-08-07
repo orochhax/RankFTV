@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { addDays, parseISO } from "@/lib/performance";
 
-export const ROADMAP_AI_PROMPT_VERSION = "roadmap-v11-objective-assessments";
+export const ROADMAP_AI_PROMPT_VERSION = "roadmap-v12-language-contexts";
 export const ROADMAP_IMPORT_PROMPT_VERSION = "roadmap-import-v3-reference-standard";
 export const ROADMAP_AI_DAILY_LIMIT = 3;
 export const ROADMAP_IMPORT_AI_MAX_CHARS = 3_000_000;
@@ -38,6 +38,7 @@ export const roadmapLanguageActivityValues = ["guided_writing", "conversation", 
 export const roadmapLanguageExposureValues = ["none", "occasional", "weekly", "daily"] as const;
 export const roadmapLanguageObstacleValues = ["speaking_anxiety", "listening_speed", "vocabulary", "grammar", "pronunciation", "consistency", "none"] as const;
 export const roadmapLanguagePracticeValues = ["solo", "ai", "partner", "tutor", "community"] as const;
+export const roadmapLanguageContextValues = ["meetings", "job_interviews", "presentations", "messages", "customer_service", "travel_services", "casual_conversation", "academic", "proficiency_exam", "media"] as const;
 
 export const roadmapAiAnswersSchema = z.object({
   roadmapType: z.enum(roadmapTypeValues).default("skill"),
@@ -79,6 +80,7 @@ export const roadmapAiAnswersSchema = z.object({
   languageExposure: z.enum(roadmapLanguageExposureValues).default("none"),
   languageObstacle: z.enum(roadmapLanguageObstacleValues).default("consistency"),
   languagePracticeAccess: z.array(z.enum(roadmapLanguagePracticeValues)).default(["solo"]),
+  languageContexts: z.array(z.enum(roadmapLanguageContextValues)).default([]),
   languageSituations: z.string().trim().max(2000).default(""),
   languageInterests: z.string().trim().max(2000).default(""),
 }).superRefine((value, context) => {
@@ -100,7 +102,7 @@ export const roadmapAiAnswersSchema = z.object({
     if (!value.languageSkills.length) context.addIssue({ code: "custom", path: ["languageSkills"], message: "Escolha ao menos uma habilidade para priorizar." });
     if (value.languageActivities.length < 2) context.addIssue({ code: "custom", path: ["languageActivities"], message: "Escolha ao menos dois metodos de aprendizagem." });
     if (!value.languagePracticeAccess.length) context.addIssue({ code: "custom", path: ["languagePracticeAccess"], message: "Informe como voce consegue praticar conversacao." });
-    if (value.languageSituations.length < 10) context.addIssue({ code: "custom", path: ["languageSituations"], message: "Descreva ao menos uma situacao real em que deseja usar o idioma." });
+    if (!value.languageContexts.length && value.languageSituations.length < 3) context.addIssue({ code: "custom", path: ["languageContexts"], message: "Escolha ao menos uma situacao em que usara o idioma." });
     if (value.languageInterests.length < 3) context.addIssue({ code: "custom", path: ["languageInterests"], message: "Informe temas que tornam o estudo interessante para voce." });
     if (["unknown", "zero"].includes(value.languageTargetLevel)) context.addIssue({ code: "custom", path: ["languageTargetLevel"], message: "Escolha um nivel CEFR desejado entre A1 e C2." });
     const currentRank = roadmapLanguageLevelValues.indexOf(value.languageCurrentLevel);
@@ -153,6 +155,7 @@ export type RoadmapSetupDraft = {
   languageExposure?: string;
   languageObstacle?: string;
   languagePracticeAccess?: string[];
+  languageContexts?: string[];
   languageSituations?: string;
   languageInterests?: string;
 };
@@ -212,7 +215,8 @@ export function roadmapSetupStatus(draft: RoadmapSetupDraft): RoadmapSetupStatus
     if (draft.languageTargetLevel) completeness += 6;
     completeness += Math.min(12, (draft.languageSkills?.length ?? 0) * 3);
     completeness += Math.min(15, (draft.languageActivities?.length ?? 0) * 3);
-    if ((draft.languageSituations?.trim().length ?? 0) >= 10) completeness += 8;
+    completeness += Math.min(8, (draft.languageContexts?.length ?? 0) * 2);
+    if ((draft.languageSituations?.trim().length ?? 0) >= 3) completeness += 2;
     if ((draft.languageInterests?.trim().length ?? 0) >= 3) completeness += 5;
     if (draft.languageExposure) completeness += 3;
     if (draft.languageObstacle) completeness += 4;
@@ -712,6 +716,7 @@ const labels = {
   languageExposure: { none: "quase nenhum contato atual", occasional: "contato ocasional", weekly: "contato algumas vezes por semana", daily: "contato diario" },
   languageObstacles: { speaking_anxiety: "trava ou ansiedade para falar", listening_speed: "dificuldade para entender fala natural", vocabulary: "falta de vocabulario ativo", grammar: "dificuldade de formar frases", pronunciation: "inseguranca com pronuncia", consistency: "dificuldade de manter constancia", none: "nenhum obstaculo principal" },
   languagePractice: { solo: "pratica individual", ai: "conversacao com IA", partner: "parceiro de conversa", tutor: "professor ou tutor", community: "grupo ou comunidade" },
+  languageContexts: { meetings: "reunioes e videochamadas", job_interviews: "entrevistas de emprego", presentations: "apresentacoes", messages: "e-mails e mensagens", customer_service: "atendimento, vendas ou negociacao", travel_services: "aeroportos, hoteis, restaurantes e outros servicos de viagem", casual_conversation: "conversas informais", academic: "aulas, pesquisas e leitura academica", proficiency_exam: "provas de proficiencia", media: "filmes, videos, podcasts e musica" },
 } as const;
 
 function mapLabels<T extends readonly string[]>(values: T, dictionary: Record<string, string>): string[] {
@@ -745,8 +750,9 @@ export function roadmapPromptInput(answers: RoadmapAiAnswers): string {
         currentLevel: labels.languageLevels[answers.languageCurrentLevel],
         targetLevel: labels.languageLevels[answers.languageTargetLevel],
         primaryPurpose: labels.languagePurposes[answers.languagePurpose],
-        practicalGoal: answers.goalDetail,
-        realSituations: answers.languageSituations,
+        concreteOutcome: answers.goalDetail,
+        usageContexts: mapLabels(answers.languageContexts, labels.languageContexts),
+        specificSituation: answers.languageSituations || "nenhuma situacao adicional informada",
         currentAbilitiesAndPriorKnowledge: answers.knownTopics || "nao informado; inclua diagnostico inicial curto",
         interests: answers.languageInterests,
         currentExposure: labels.languageExposure[answers.languageExposure],
@@ -888,6 +894,7 @@ PRINCIPIOS DE APRENDIZAGEM
 
 PERSONALIZACAO OBRIGATORIA
 - Use objetivos, interesses e situacoes reais do aluno nos dialogos, temas, textos, audios e entregas. Nao use exemplos aleatorios quando houver contexto pessoal disponivel.
+- Trate concreteOutcome como o resultado mensuravel da trilha. Use usageContexts para distribuir cenarios concretos entre os modulos e specificSituation apenas como complemento; nao repita o mesmo exercicio trocando somente o vocabulario.
 - Ajuste a quantidade de apoio ao nivel: iniciantes recebem modelo, vocabulario essencial, traducao pontual e roteiro; niveis intermediarios recebem menos apoio; avancados trabalham com linguagem autentica, nuances e restricoes.
 - Informe qual variante foi usada quando o aluno pedir sotaque ou regiao especifica. Nao trate outras variantes corretas como erro.
 - Para quem nao tem parceiro, transforme conversacao em gravacao individual, simulacao com IA ou resposta a prompts. Quando houver parceiro, tutor ou comunidade, entregue um roteiro objetivo para a interacao.

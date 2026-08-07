@@ -67,6 +67,7 @@ const languageAnswers = roadmapAiAnswersSchema.parse({
   languageExposure: "occasional",
   languageObstacle: "speaking_anxiety",
   languagePracticeAccess: ["solo", "ai"],
+  languageContexts: ["meetings", "presentations", "travel_services"],
   languageSituations: "Reunioes por video, apresentacoes curtas e conversas durante viagens.",
   languageInterests: "Tecnologia, futevolei, negocios e viagens.",
   learningFormats: ["video", "practice", "challenge"],
@@ -162,9 +163,10 @@ test("roadmap de idioma exige perfil linguistico util", () => {
   assert.equal(languageAnswers.roadmapType, "language");
   assert.throws(() => roadmapAiAnswersSchema.parse({
     ...languageAnswers,
-    languageActivities: ["video"],
-    languageSituations: "viajar",
+    languageContexts: [],
+    languageSituations: "",
   }));
+  assert.doesNotThrow(() => roadmapAiAnswersSchema.parse({ ...languageAnswers, languageContexts: [], languageSituations: "Entrevista para uma vaga internacional" }));
 });
 
 test("metodos de idioma sao convertidos para formatos suportados pelo site", () => {
@@ -179,7 +181,8 @@ test("roadmapPromptInput envia contexto linguistico personalizado", () => {
   assert.equal(input.learningTrack, "language");
   assert.equal(input.learner.targetLanguage, "Ingles");
   assert.equal(input.learner.currentLevel, "A1 - iniciante");
-  assert.match(input.learner.realSituations, /Reunioes/);
+  assert.ok(input.learner.usageContexts.includes("reunioes e videochamadas"));
+  assert.match(input.learner.specificSituation, /Reunioes/);
   assert.ok(input.preferences.learningMethods.includes("escrita guiada e reescrita"));
   assert.ok(input.preferences.prioritySkills.includes("fala"));
   assert.equal("digitalLiteracy" in input.learner, false);

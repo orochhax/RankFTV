@@ -62,6 +62,19 @@ const languagePracticeOptions = [
   ["solo", "Consigo praticar sozinho e gravar minha voz"], ["ai", "Posso conversar com uma IA"], ["partner", "Tenho parceiro de conversa"], ["tutor", "Tenho professor ou tutor"], ["community", "Participo de grupo ou comunidade"],
 ] as const;
 
+const languageContextOptions = [
+  ["meetings", "Reunioes e videochamadas"],
+  ["job_interviews", "Entrevistas de emprego"],
+  ["presentations", "Apresentacoes"],
+  ["messages", "E-mails e mensagens"],
+  ["customer_service", "Atendimento, vendas ou negociacao"],
+  ["travel_services", "Aeroportos, hoteis e restaurantes"],
+  ["casual_conversation", "Conversas informais"],
+  ["academic", "Aulas e ambiente academico"],
+  ["proficiency_exam", "Provas de proficiencia"],
+  ["media", "Filmes, videos, podcasts e musica"],
+] as const;
+
 const materialOptions = [
   ["official", "Fontes oficiais"],
   ["documentation", "Documentacao tecnica"],
@@ -89,7 +102,7 @@ const itemLabels: Record<string, string> = {
 };
 
 type PreviewState = { generationId: string; plan: RoadmapGenerationPlan };
-type ListField = "availableDays" | "learningFormats" | "requiredMaterials" | "languageSkills" | "languageActivities" | "languagePracticeAccess";
+type ListField = "availableDays" | "learningFormats" | "requiredMaterials" | "languageSkills" | "languageActivities" | "languagePracticeAccess" | "languageContexts";
 
 type FormState = {
   roadmapType: "skill" | "language";
@@ -130,6 +143,7 @@ type FormState = {
   languageExposure: string;
   languageObstacle: string;
   languagePracticeAccess: string[];
+  languageContexts: string[];
   languageSituations: string;
   languageInterests: string;
 };
@@ -158,6 +172,7 @@ function initialFormState(today: string, answers?: RoadmapAiAnswers | null): For
       languageSkills: [...answers.languageSkills],
       languageActivities: [...answers.languageActivities],
       languagePracticeAccess: [...answers.languagePracticeAccess],
+      languageContexts: [...answers.languageContexts],
     };
   }
   return {
@@ -199,6 +214,7 @@ function initialFormState(today: string, answers?: RoadmapAiAnswers | null): For
     languageExposure: "none",
     languageObstacle: "consistency",
     languagePracticeAccess: ["solo", "ai"],
+    languageContexts: [],
     languageSituations: "",
     languageInterests: "",
   };
@@ -237,7 +253,7 @@ export function RoadmapAiWizard({
       && draft.languageSkills.length > 0
       && draft.languageActivities.length >= 2
       && draft.languagePracticeAccess.length > 0
-      && draft.languageSituations.trim().length >= 10
+      && (draft.languageContexts.length > 0 || draft.languageSituations.trim().length >= 3)
       && draft.languageInterests.trim().length >= 3
     : draft.subject.trim().length >= 3 && draft.learningFormats.length > 0);
   const canAdjust = !initialDraft || initialDraft.origin === "ai" && Boolean(initialDraft.answers);
@@ -383,11 +399,23 @@ export function RoadmapAiWizard({
         <label className="text-xs font-medium text-gray-500">Variante ou sotaque <span className="font-normal text-gray-400">Opcional</span>
           <input name="language_variant" maxLength={100} value={draft.languageVariant} onChange={(event) => setField("languageVariant", event.target.value)} placeholder="Ex.: ingles americano ou espanhol da Argentina" className={inputClass} />
         </label>
-        <label className="text-xs font-medium text-gray-500 sm:col-span-2">O que voce precisa conseguir fazer no idioma?
-          <textarea name="goal_detail" required rows={3} minLength={10} maxLength={1500} value={draft.goalDetail} onChange={(event) => setField("goalDetail", event.target.value)} placeholder="Ex.: participar de reunioes, explicar meu trabalho e conversar sem traduzir cada frase na cabeca" className={inputClass} />
+        <label className="text-xs font-medium text-gray-500 sm:col-span-2">Qual resultado concreto voce quer alcancar?
+          <textarea name="goal_detail" required rows={3} minLength={10} maxLength={1500} value={draft.goalDetail} onChange={(event) => setField("goalDetail", event.target.value)} placeholder="Ex.: conduzir uma reuniao de 30 minutos em ingles, explicar meu trabalho e responder perguntas sem usar um roteiro" className={inputClass} />
         </label>
-        <label className="text-xs font-medium text-gray-500 sm:col-span-2">Em quais situacoes reais voce quer usar o idioma?
-          <textarea name="language_situations" required rows={3} minLength={10} maxLength={2000} value={draft.languageSituations} onChange={(event) => setField("languageSituations", event.target.value)} placeholder="Ex.: reunioes por video, viagens, entrevistas de emprego e conversas sobre tecnologia" className={inputClass} />
+        <fieldset className="sm:col-span-2">
+          <legend className="text-xs font-medium text-gray-500">Onde voce usara o idioma?</legend>
+          <p className="mt-1 text-[11px] text-white/30">Escolha todos os cenarios que precisam aparecer nas atividades.</p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">{languageContextOptions.map(([value, label]) => {
+            const selected = draft.languageContexts.includes(value);
+            return <label key={value} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors ${selected ? "border-blue-400/45 bg-blue-400/10 text-blue-200" : "border-white/10 text-white/55 hover:border-white/20"}`}>
+              <input type="checkbox" name="language_contexts" value={value} checked={selected} onChange={() => toggleList("languageContexts", value)} className="sr-only" />
+              <span className={`flex size-5 shrink-0 items-center justify-center rounded border ${selected ? "border-blue-400 bg-blue-500 text-white" : "border-white/20"}`}>{selected && <Check className="size-3.5" />}</span>
+              <span>{label}</span>
+            </label>;
+          })}</div>
+        </fieldset>
+        <label className="text-xs font-medium text-gray-500 sm:col-span-2">Alguma situacao especifica? <span className="font-normal text-gray-400">Opcional</span>
+          <textarea name="language_situations" rows={2} maxLength={2000} value={draft.languageSituations} onChange={(event) => setField("languageSituations", event.target.value)} placeholder="Ex.: apresentar resultados de dados para clientes dos Estados Unidos" className={inputClass} />
         </label>
       </div>
     </fieldset>
