@@ -4,20 +4,28 @@ import { useMemo, useState, useTransition } from "react";
 import {
   BookOpen,
   Check,
-  CircleHelp,
   ExternalLink,
   FileCheck2,
-  FolderKanban,
+  Film,
   Gauge,
+  Globe,
+  Headphones,
+  Languages,
   Loader2,
+  MessageCircle,
+  Mic,
+  Music,
+  PenLine,
   PlayCircle,
+  Repeat2,
   Sparkles,
   Swords,
+  TextCursorInput,
   Wrench,
 } from "lucide-react";
 import { confirmarRoadmapGeradoLifeOS, gerarRoadmapComIALifeOS } from "@/app/admin/performance/life-os-actions";
 import { formatDateBR } from "@/lib/format";
-import { roadmapSetupStatus, type RoadmapAiAnswers, type RoadmapDraftDetail, type RoadmapGenerationPlan } from "@/lib/study-roadmap-ai";
+import { roadmapLanguageFormats, roadmapSetupStatus, studyClockToMinutes, studyMinutesToClock, type RoadmapAiAnswers, type RoadmapDraftDetail, type RoadmapGenerationPlan } from "@/lib/study-roadmap-ai";
 
 const inputClass = "mt-1 w-full rounded-lg border border-white/10 bg-[#0f1318] px-3 py-2 text-sm text-white outline-none focus:border-blue-500";
 const darkContentClass = "text-white [&_.border-gray-100]:!border-white/10 [&_.border-gray-200]:!border-white/10 [&_.border-gray-300]:!border-white/15 [&_.border-emerald-200]:!border-emerald-400/25 [&_.bg-white]:!bg-[#15191f] [&_.bg-gray-100]:!bg-white/10 [&_.bg-blue-50]:!bg-blue-400/10 [&_.bg-emerald-50]:!bg-emerald-400/10 [&_.bg-amber-50]:!bg-amber-400/10 [&_.bg-red-50]:!bg-red-400/10 [&_.text-gray-300]:!text-white/25 [&_.text-gray-400]:!text-white/35 [&_.text-gray-500]:!text-white/45 [&_.text-gray-600]:!text-white/60 [&_.text-gray-700]:!text-white/70 [&_.text-gray-800]:!text-white/85 [&_.text-gray-900]:!text-white [&_.text-blue-700]:!text-blue-300 [&_.text-emerald-700]:!text-emerald-300 [&_.text-emerald-800]:!text-emerald-200 [&_.text-amber-700]:!text-amber-300 [&_.text-amber-800]:!text-amber-200 [&_.text-amber-900]:!text-amber-100 [&_.text-red-600]:!text-red-300";
@@ -28,28 +36,46 @@ const weekdays = [
 const learningFormats = [
   { value: "reading", label: "Leituras", detail: "Textos com objetivo e anotacoes", icon: BookOpen },
   { value: "video", label: "Videoaulas", detail: "Links gratuitos e diretos do YouTube", icon: PlayCircle },
-  { value: "practice", label: "Atividades", detail: "Questoes de marcar e ordenar etapas", icon: Wrench },
-  { value: "quiz", label: "Provas", detail: "Perguntas corrigidas pelo sistema", icon: CircleHelp },
+  { value: "practice", label: "Exercicios e atividades", detail: "Questoes, ordenacao e pratica guiada", icon: Wrench },
   { value: "challenge", label: "Desafios", detail: "Problemas guiados com requisitos e entrega", icon: Swords },
-  { value: "project", label: "Projetos", detail: "Entregas completas que integram habilidades", icon: FolderKanban },
+] as const;
+
+const languageActivities = [
+  { value: "guided_writing", label: "Escrita guiada", detail: "Textos, revisao e reescrita com objetivo real", icon: PenLine },
+  { value: "conversation", label: "Conversacao", detail: "Dialogos, simulacoes e gravacoes", icon: MessageCircle },
+  { value: "video", label: "Videos", detail: "Escuta ativa com conteudo gratuito", icon: PlayCircle },
+  { value: "film_series", label: "Filmes e series", detail: "Cenas, contexto e linguagem natural", icon: Film },
+  { value: "music", label: "Musicas", detail: "Escuta, pronuncia e expressoes", icon: Music },
+  { value: "sentence_completion", label: "Completar frases", detail: "Lacunas contextualizadas e corrigidas", icon: TextCursorInput },
+  { value: "shadowing", label: "Shadowing", detail: "Imitacao de ritmo, som e entonacao", icon: Mic },
+  { value: "dictation", label: "Ditado", detail: "Transcricao e analise dos erros de escuta", icon: Headphones },
+  { value: "graded_reading", label: "Leitura graduada", detail: "Textos adequados ao seu nivel", icon: BookOpen },
+  { value: "spaced_repetition", label: "Revisao espacada", detail: "Recuperacao ativa sem decorar listas", icon: Repeat2 },
+  { value: "real_life_tasks", label: "Tarefas reais", detail: "Entrevistas, viagens, reunioes e imersao", icon: Globe },
+] as const;
+
+const languageSkillOptions = [
+  ["speaking", "Fala"], ["listening", "Compreensao auditiva"], ["reading", "Leitura"], ["writing", "Escrita"], ["pronunciation", "Pronuncia"], ["grammar", "Gramatica em contexto"], ["vocabulary", "Vocabulario ativo"],
+] as const;
+
+const languagePracticeOptions = [
+  ["solo", "Consigo praticar sozinho e gravar minha voz"], ["ai", "Posso conversar com uma IA"], ["partner", "Tenho parceiro de conversa"], ["tutor", "Tenho professor ou tutor"], ["community", "Participo de grupo ou comunidade"],
 ] as const;
 
 const materialOptions = [
-  ["free", "Somente materiais gratuitos"],
   ["official", "Fontes oficiais"],
   ["documentation", "Documentacao tecnica"],
-  ["course", "Curso estruturado"],
+  ["course", "Cursos completos"],
   ["book", "Livro ou apostila"],
-  ["own_material", "Material que ja possuo"],
+  ["own_material", "Materiais que ja possuo"],
 ] as const;
 
-const outcomeOptions = [
-  ["knowledge", "Dominar os conceitos"],
-  ["portfolio", "Criar item de portfolio"],
-  ["real_project", "Concluir um projeto real"],
-  ["exam_ready", "Ficar pronto para uma prova"],
-  ["job_ready", "Ficar pronto para atuar"],
-  ["teach", "Conseguir ensinar o assunto"],
+const languageMaterialOptions = [
+  ["official", "Dicionarios e fontes reconhecidas"],
+  ["documentation", "Gramaticas e guias de referencia"],
+  ["course", "Cursos completos"],
+  ["book", "Livro ou leitura graduada"],
+  ["own_material", "Filmes, musicas ou materiais que ja possuo"],
 ] as const;
 
 const itemLabels: Record<string, string> = {
@@ -63,9 +89,10 @@ const itemLabels: Record<string, string> = {
 };
 
 type PreviewState = { generationId: string; plan: RoadmapGenerationPlan };
-type ListField = "availableDays" | "learningFormats" | "requiredMaterials" | "finalOutcomes";
+type ListField = "availableDays" | "learningFormats" | "requiredMaterials" | "languageSkills" | "languageActivities" | "languagePracticeAccess";
 
 type FormState = {
+  roadmapType: "skill" | "language";
   subject: string;
   goal: string;
   goalDetail: string;
@@ -78,29 +105,63 @@ type FormState = {
   startDate: string;
   timelineMode: "duration" | "deadline";
   deadline: string;
-  durationWeeks: number;
+  durationMonths: number;
   availableDays: string[];
   minutesPerDay: number;
   learningFormats: string[];
   contentDepth: string;
   pace: string;
   requiredMaterials: string[];
+  materialBudget: string;
+  ownedMaterials: string;
   finalOutcomes: string[];
   assessmentPreference: string;
   projectMode: string;
   knownTopics: string;
   contextNotes: string;
+  nativeLanguage: string;
+  targetLanguage: string;
+  languageVariant: string;
+  languageCurrentLevel: string;
+  languageTargetLevel: string;
+  languagePurpose: string;
+  languageSkills: string[];
+  languageActivities: string[];
+  languageExposure: string;
+  languageObstacle: string;
+  languagePracticeAccess: string[];
+  languageSituations: string;
+  languageInterests: string;
 };
 
+function monthsFromWeeks(weeks: number): number {
+  return Math.max(1, Math.min(12, Math.round(weeks / (52 / 12))));
+}
+
+function weeksFromMonths(months: number): number {
+  return Math.max(1, Math.min(52, Math.round(months * (52 / 12))));
+}
+
 function initialFormState(today: string, answers?: RoadmapAiAnswers | null): FormState {
-  if (answers) return {
-    ...answers,
-    availableDays: [...answers.availableDays],
-    learningFormats: [...answers.learningFormats],
-    requiredMaterials: [...answers.requiredMaterials],
-    finalOutcomes: [...answers.finalOutcomes],
-  };
+  if (answers) {
+    const preferredMaterials = answers.requiredMaterials.filter((material) => material !== "free");
+    const visibleFormats = answers.learningFormats.filter((format) => !["quiz", "project"].includes(format));
+    return {
+      ...answers,
+      durationMonths: answers.durationMonths ?? monthsFromWeeks(answers.durationWeeks),
+      availableDays: [...answers.availableDays],
+      learningFormats: visibleFormats.length ? visibleFormats : ["practice"],
+      requiredMaterials: preferredMaterials.length ? preferredMaterials : ["official"],
+      materialBudget: answers.requiredMaterials.includes("free") ? "free_only" : answers.materialBudget ?? "free_only",
+      ownedMaterials: answers.ownedMaterials ?? "",
+      finalOutcomes: [],
+      languageSkills: [...answers.languageSkills],
+      languageActivities: [...answers.languageActivities],
+      languagePracticeAccess: [...answers.languagePracticeAccess],
+    };
+  }
   return {
+    roadmapType: "skill",
     subject: "",
     goal: "career",
     goalDetail: "",
@@ -113,18 +174,33 @@ function initialFormState(today: string, answers?: RoadmapAiAnswers | null): For
     startDate: today,
     timelineMode: "duration",
     deadline: "",
-    durationWeeks: 12,
+    durationMonths: 3,
     availableDays: ["1", "2", "3", "4", "5"],
     minutesPerDay: 60,
-    learningFormats: ["reading", "video", "practice", "quiz"],
+    learningFormats: ["reading", "video", "practice"],
     contentDepth: "balanced",
     pace: "steady",
-    requiredMaterials: ["free", "official"],
-    finalOutcomes: ["real_project"],
+    requiredMaterials: ["official"],
+    materialBudget: "free_only",
+    ownedMaterials: "",
+    finalOutcomes: [],
     assessmentPreference: "mixed",
     projectMode: "guided",
     knownTopics: "",
     contextNotes: "",
+    nativeLanguage: "Portugues (Brasil)",
+    targetLanguage: "",
+    languageVariant: "",
+    languageCurrentLevel: "unknown",
+    languageTargetLevel: "b1",
+    languagePurpose: "conversation",
+    languageSkills: ["speaking", "listening", "vocabulary"],
+    languageActivities: ["conversation", "video", "guided_writing", "sentence_completion", "spaced_repetition"],
+    languageExposure: "none",
+    languageObstacle: "consistency",
+    languagePracticeAccess: ["solo", "ai"],
+    languageSituations: "",
+    languageInterests: "",
   };
 }
 
@@ -133,13 +209,13 @@ export function RoadmapAiWizard({
   onDone,
   onClose,
   initialDraft,
-  onDraftSaved,
+  onGenerationStarted,
 }: {
   today: string;
   onDone: () => void;
   onClose: () => void;
   initialDraft?: RoadmapDraftDetail | null;
-  onDraftSaved?: () => void;
+  onGenerationStarted?: (generation: { generationId: string; title: string }) => void;
 }) {
   const [draft, setDraft] = useState<FormState>(() => initialFormState(today, initialDraft?.answers));
   const [preview, setPreview] = useState<PreviewState | null>(() => initialDraft ? { generationId: initialDraft.generationId, plan: initialDraft.plan } : null);
@@ -148,20 +224,39 @@ export function RoadmapAiWizard({
   const [operation, setOperation] = useState<"generate" | "confirm" | null>(null);
   const [pending, startTransition] = useTransition();
   const setup = useMemo(() => roadmapSetupStatus(draft), [draft]);
-  const canGenerate = draft.subject.trim().length >= 3
-    && draft.goalDetail.trim().length >= 10
+  const commonRequirementsReady = draft.goalDetail.trim().length >= 10
     && draft.availableDays.length > 0
-    && draft.learningFormats.length > 0
+    && draft.minutesPerDay >= 30
+    && draft.minutesPerDay <= 480
     && draft.requiredMaterials.length > 0
-    && draft.finalOutcomes.length > 0
-    && (draft.timelineMode === "duration" || Boolean(draft.deadline));
+    && (!draft.requiredMaterials.includes("own_material") || draft.ownedMaterials.trim().length >= 3)
+    && (draft.timelineMode === "duration" ? draft.durationMonths >= 1 : Boolean(draft.deadline));
+  const canGenerate = commonRequirementsReady && (draft.roadmapType === "language"
+    ? draft.targetLanguage.trim().length >= 2
+      && draft.nativeLanguage.trim().length >= 2
+      && draft.languageSkills.length > 0
+      && draft.languageActivities.length >= 2
+      && draft.languagePracticeAccess.length > 0
+      && draft.languageSituations.trim().length >= 10
+      && draft.languageInterests.trim().length >= 3
+    : draft.subject.trim().length >= 3 && draft.learningFormats.length > 0);
   const canAdjust = !initialDraft || initialDraft.origin === "ai" && Boolean(initialDraft.answers);
 
   const setField = <K extends keyof FormState>(key: K, value: FormState[K]) => setDraft((current) => ({ ...current, [key]: value }));
   const toggleList = (field: ListField, value: string) => setDraft((current) => {
     const values = current[field];
-    return { ...current, [field]: values.includes(value) ? values.filter((item) => item !== value) : [...values, value] };
+    const updated = values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
+    return field === "languageActivities"
+      ? { ...current, [field]: updated, learningFormats: roadmapLanguageFormats(updated) }
+      : { ...current, [field]: updated };
   });
+  const selectRoadmapType = (roadmapType: FormState["roadmapType"]) => setDraft((current) => ({
+    ...current,
+    roadmapType,
+    learningFormats: roadmapType === "language"
+      ? roadmapLanguageFormats(current.languageActivities)
+      : current.learningFormats.length ? current.learningFormats : ["reading", "video", "practice"],
+  }));
 
   if (preview && !editingAnswers) {
     return <RoadmapPreview
@@ -194,29 +289,48 @@ export function RoadmapAiWizard({
     setOperation("generate");
     startTransition(async () => {
       const result = await gerarRoadmapComIALifeOS(data);
-      if (!result.ok || !result.generationId || !result.preview) setError(result.error ?? "Nao foi possivel gerar o roadmap.");
-      else {
+      if (!result.ok || !result.generationId) setError(result.error ?? "Nao foi possivel iniciar a geracao do roadmap.");
+      else if (result.queued) {
+        setOperation(null);
+        onGenerationStarted?.({ generationId: result.generationId, title: result.title ?? "Novo roadmap" });
+        onClose();
+        return;
+      } else if (result.preview) {
         setPreview({ generationId: result.generationId, plan: result.preview });
         setEditingAnswers(false);
-        onDraftSaved?.();
-      }
+      } else setError("A geracao foi iniciada, mas o status nao pode ser identificado.");
       setOperation(null);
     });
   }} className={`space-y-6 ${darkContentClass}`}>
+    <input type="hidden" name="roadmap_type" value={draft.roadmapType} />
+    {draft.roadmapType === "language" && <>
+      <input type="hidden" name="goal" value="personal" />
+      <input type="hidden" name="use_context" value="personal_project" />
+      <input type="hidden" name="current_level" value="unknown" />
+      <input type="hidden" name="digital_literacy" value="basic" />
+      <input type="hidden" name="main_device" value="mobile" />
+      <input type="hidden" name="target_level" value="autonomous" />
+      <input type="hidden" name="main_obstacle" value="practice" />
+    </>}
     {preview && <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-emerald-800"><div className="flex items-center gap-2"><FileCheck2 className="size-4" /><div><p className="text-sm font-semibold">A versao anterior esta salva</p><p className="text-xs text-emerald-700/70">Gerar novamente criara outro rascunho sem apagar este.</p></div></div><button type="button" onClick={() => setEditingAnswers(false)} className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">Ver versao salva</button></section>}
-    <RoadmapStatus status={setup} formatCount={draft.learningFormats.length} />
+    <fieldset>
+      <legend className="text-xs font-semibold uppercase text-white/35">Tipo de trilha</legend>
+      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+        <button type="button" onClick={() => selectRoadmapType("skill")} className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${draft.roadmapType === "skill" ? "border-blue-400/50 bg-blue-400/10" : "border-white/10 hover:border-white/20"}`}><span className={`flex size-9 items-center justify-center rounded-md ${draft.roadmapType === "skill" ? "bg-blue-600 text-white" : "bg-white/10 text-white/40"}`}><Wrench className="size-4" /></span><span><b className="block text-sm text-white/85">Habilidade ou profissao</b><span className="mt-0.5 block text-xs text-white/35">Tecnologia, carreira, prova ou projeto</span></span></button>
+        <button type="button" onClick={() => selectRoadmapType("language")} className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${draft.roadmapType === "language" ? "border-emerald-400/50 bg-emerald-400/10" : "border-white/10 hover:border-white/20"}`}><span className={`flex size-9 items-center justify-center rounded-md ${draft.roadmapType === "language" ? "bg-emerald-600 text-white" : "bg-white/10 text-white/40"}`}><Languages className="size-4" /></span><span><b className="block text-sm text-white/85">Idioma</b><span className="mt-0.5 block text-xs text-white/35">Comunicacao, imersao e pratica real</span></span></button>
+      </div>
+    </fieldset>
+    <RoadmapStatus status={setup} selectionCount={draft.roadmapType === "language" ? draft.languageActivities.length : draft.learningFormats.length} selectionLabel={draft.roadmapType === "language" ? "metodos selecionados" : "formatos selecionados"} languageMode={draft.roadmapType === "language"} />
 
+    {draft.roadmapType === "skill" ? <>
     <fieldset className="space-y-4">
       <legend className="font-semibold text-gray-900">1. Objetivo real</legend>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="text-xs font-medium text-gray-500 sm:col-span-2">O que voce quer aprender?
           <input name="subject" required maxLength={300} value={draft.subject} onChange={(event) => setField("subject", event.target.value)} placeholder="Ex.: Power BI para analise comercial" className={inputClass} />
         </label>
-        <SelectField name="goal" label="Objetivo principal" value={draft.goal} onChange={(value) => setField("goal", value)} options={[
-          ["career", "Carreira ou emprego"], ["exam", "Prova ou certificacao"], ["project", "Construir um projeto"], ["academic", "Formacao academica"], ["personal", "Conhecimento pessoal"],
-        ]} />
-        <SelectField name="use_context" label="Onde vai usar" value={draft.useContext} onChange={(value) => setField("useContext", value)} options={[
-          ["current_job", "No trabalho atual"], ["new_career", "Em uma nova carreira"], ["freelance", "Em trabalhos freelance"], ["exam", "Em prova ou certificacao"], ["academic", "Na faculdade ou escola"], ["personal_project", "Em projeto pessoal"],
+        <SelectField name="use_context" label="Para que voce quer aprender isso?" value={draft.useContext} onChange={(value) => setField("useContext", value)} className="sm:col-span-2" options={[
+          ["current_job", "Aplicar no trabalho atual"], ["new_career", "Entrar ou mudar de carreira"], ["freelance", "Trabalhar como freelancer"], ["exam", "Fazer uma prova ou certificacao"], ["academic", "Usar na faculdade"], ["personal_project", "Construir um projeto pessoal"], ["personal_learning", "Aprender por interesse pessoal"],
         ]} />
         <label className="text-xs font-medium text-gray-500 sm:col-span-2">O que voce precisa conseguir fazer no final?
           <textarea name="goal_detail" required rows={3} minLength={10} maxLength={1500} value={draft.goalDetail} onChange={(event) => setField("goalDetail", event.target.value)} placeholder="Ex.: conectar dados de vendas, criar medidas DAX e publicar um dashboard que ajude a decidir quais produtos priorizar" className={inputClass} />
@@ -236,9 +350,6 @@ export function RoadmapAiWizard({
         <SelectField name="main_device" label="Dispositivo principal" value={draft.mainDevice} onChange={(value) => setField("mainDevice", value)} options={[
           ["windows", "Computador Windows"], ["mac", "Mac"], ["linux", "Computador Linux"], ["chromebook", "Chromebook"], ["mobile", "Celular ou tablet"],
         ]} />
-        <SelectField name="target_level" label="Nivel desejado" value={draft.targetLevel} onChange={(value) => setField("targetLevel", value)} options={[
-          ["foundation", "Entender fundamentos"], ["functional", "Usar com orientacao"], ["autonomous", "Trabalhar com autonomia"], ["professional", "Atuar profissionalmente"],
-        ]} />
         <SelectField name="main_obstacle" label="Maior dificuldade" value={draft.mainObstacle} onChange={(value) => setField("mainObstacle", value)} options={[
           ["direction", "Nao sei por onde seguir"], ["time", "Tenho pouco tempo"], ["consistency", "Perco a constancia"], ["theory", "Fico preso na teoria"], ["practice", "Falta pratica"], ["none", "Nenhuma especifica"],
         ]} />
@@ -253,11 +364,74 @@ export function RoadmapAiWizard({
         </label>
       </div>
     </fieldset>
+    </> : <>
+    <fieldset className="space-y-4">
+      <legend className="font-semibold text-gray-900">1. Idioma e objetivo real</legend>
+      <datalist id="roadmap-language-options">
+        <option value="Ingles" /><option value="Espanhol" /><option value="Frances" /><option value="Alemao" /><option value="Italiano" /><option value="Japones" /><option value="Mandarim" /><option value="Coreano" /><option value="Portugues" /><option value="Libras" />
+      </datalist>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="text-xs font-medium text-gray-500">Qual idioma voce quer aprender?
+          <input name="target_language" list="roadmap-language-options" required maxLength={100} value={draft.targetLanguage} onChange={(event) => setField("targetLanguage", event.target.value)} placeholder="Ex.: Ingles" className={inputClass} />
+        </label>
+        <label className="text-xs font-medium text-gray-500">Seu idioma principal
+          <input name="native_language" list="roadmap-language-options" required maxLength={100} value={draft.nativeLanguage} onChange={(event) => setField("nativeLanguage", event.target.value)} placeholder="Ex.: Portugues (Brasil)" className={inputClass} />
+        </label>
+        <SelectField name="language_purpose" label="Objetivo principal" value={draft.languagePurpose} onChange={(value) => setField("languagePurpose", value)} options={[
+          ["conversation", "Conversar com naturalidade"], ["travel", "Viajar"], ["work", "Usar no trabalho"], ["exam", "Prova de proficiencia"], ["relocation", "Morar em outro pais"], ["academic", "Estudo academico"], ["culture", "Filmes, musica e cultura"], ["relationships", "Amigos, familia ou parceiro"],
+        ]} />
+        <label className="text-xs font-medium text-gray-500">Variante ou sotaque <span className="font-normal text-gray-400">Opcional</span>
+          <input name="language_variant" maxLength={100} value={draft.languageVariant} onChange={(event) => setField("languageVariant", event.target.value)} placeholder="Ex.: ingles americano ou espanhol da Argentina" className={inputClass} />
+        </label>
+        <label className="text-xs font-medium text-gray-500 sm:col-span-2">O que voce precisa conseguir fazer no idioma?
+          <textarea name="goal_detail" required rows={3} minLength={10} maxLength={1500} value={draft.goalDetail} onChange={(event) => setField("goalDetail", event.target.value)} placeholder="Ex.: participar de reunioes, explicar meu trabalho e conversar sem traduzir cada frase na cabeca" className={inputClass} />
+        </label>
+        <label className="text-xs font-medium text-gray-500 sm:col-span-2">Em quais situacoes reais voce quer usar o idioma?
+          <textarea name="language_situations" required rows={3} minLength={10} maxLength={2000} value={draft.languageSituations} onChange={(event) => setField("languageSituations", event.target.value)} placeholder="Ex.: reunioes por video, viagens, entrevistas de emprego e conversas sobre tecnologia" className={inputClass} />
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset className="space-y-5 border-t border-gray-100 pt-5">
+      <legend className="font-semibold text-gray-900">2. Seu ponto de partida</legend>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SelectField name="language_current_level" label="Nivel atual" value={draft.languageCurrentLevel} onChange={(value) => setField("languageCurrentLevel", value)} options={[
+          ["unknown", "Nao sei meu nivel"], ["zero", "Zero: nunca estudei"], ["a1", "A1: iniciante"], ["a2", "A2: basico"], ["b1", "B1: intermediario"], ["b2", "B2: intermediario avancado"], ["c1", "C1: avancado"], ["c2", "C2: proficiente"],
+        ]} />
+        <SelectField name="language_target_level" label="Nivel que quer atingir" value={draft.languageTargetLevel} onChange={(value) => setField("languageTargetLevel", value)} options={[
+          ["a1", "A1: sobrevivencia"], ["a2", "A2: comunicacao basica"], ["b1", "B1: autonomia cotidiana"], ["b2", "B2: fluidez funcional"], ["c1", "C1: dominio avancado"], ["c2", "C2: proficiencia plena"],
+        ]} />
+        <SelectField name="language_exposure" label="Contato atual com o idioma" value={draft.languageExposure} onChange={(value) => setField("languageExposure", value)} options={[
+          ["none", "Quase nenhum"], ["occasional", "Ocasional"], ["weekly", "Algumas vezes por semana"], ["daily", "Todos os dias"],
+        ]} />
+        <SelectField name="language_obstacle" label="Maior dificuldade" value={draft.languageObstacle} onChange={(value) => setField("languageObstacle", value)} options={[
+          ["speaking_anxiety", "Travo para falar"], ["listening_speed", "Nao entendo fala natural"], ["vocabulary", "Falta vocabulario"], ["grammar", "Nao consigo montar frases"], ["pronunciation", "Tenho inseguranca na pronuncia"], ["consistency", "Perco a constancia"], ["none", "Nenhuma especifica"],
+        ]} />
+        <SelectField name="content_depth" label="Profundidade" value={draft.contentDepth} onChange={(value) => setField("contentDepth", value)} options={[
+          ["essential", "Comunicacao essencial"], ["balanced", "Equilibrada"], ["deep", "Aprofundada"],
+        ]} />
+        <label className="text-xs font-medium text-gray-500 sm:col-span-2 lg:col-span-3">O que voce ja consegue fazer hoje? <span className="font-normal text-gray-400">Opcional se nao souber</span>
+          <textarea name="known_topics" rows={2} maxLength={2000} value={draft.knownTopics} onChange={(event) => setField("knownTopics", event.target.value)} placeholder="Ex.: entendo videos lentos com legenda, consigo me apresentar, mas travo para responder perguntas" className={inputClass} />
+        </label>
+        <label className="text-xs font-medium text-gray-500 sm:col-span-2">Temas e interesses que devem aparecer nas aulas
+          <textarea name="language_interests" required rows={2} minLength={3} maxLength={2000} value={draft.languageInterests} onChange={(event) => setField("languageInterests", event.target.value)} placeholder="Ex.: futevolei, tecnologia, viagens, negocios e filmes de ficcao" className={inputClass} />
+        </label>
+        <label className="text-xs font-medium text-gray-500 sm:col-span-2">Contexto que a IA precisa respeitar <span className="font-normal text-gray-400">Opcional</span>
+          <textarea name="context_notes" rows={2} maxLength={2000} value={draft.contextNotes} onChange={(event) => setField("contextNotes", event.target.value)} placeholder="Ex.: tenho vergonha de gravar voz no inicio e estudo quase sempre pelo celular" className={inputClass} />
+        </label>
+      </div>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <MultiChoiceGroup title="Habilidades que precisam de prioridade" name="language_skills" values={draft.languageSkills} options={languageSkillOptions} onToggle={(value) => toggleList("languageSkills", value)} />
+        <MultiChoiceGroup title="Como voce consegue praticar fala" name="language_practice_access" values={draft.languagePracticeAccess} options={languagePracticeOptions} onToggle={(value) => toggleList("languagePracticeAccess", value)} />
+      </div>
+    </fieldset>
+    </>}
 
     <fieldset className="space-y-4 border-t border-gray-100 pt-5">
       <legend className="font-semibold text-gray-900">3. Tempo disponivel</legend>
       <input type="hidden" name="timeline_mode" value={draft.timelineMode} />
-      {draft.timelineMode === "deadline" && <input type="hidden" name="duration_weeks" value={draft.durationWeeks} />}
+      <input type="hidden" name="duration_weeks" value={weeksFromMonths(draft.durationMonths)} />
+      {draft.timelineMode === "deadline" && <input type="hidden" name="duration_months" value={draft.durationMonths} />}
       <div className="inline-flex rounded-lg bg-gray-100 p-1">
         <button type="button" onClick={() => setField("timelineMode", "duration")} className={`rounded-md px-3 py-2 text-xs font-semibold ${draft.timelineMode === "duration" ? "bg-blue-600 text-white" : "text-white/40"}`}>Por duracao</button>
         <button type="button" onClick={() => setField("timelineMode", "deadline")} className={`rounded-md px-3 py-2 text-xs font-semibold ${draft.timelineMode === "deadline" ? "bg-blue-600 text-white" : "text-white/40"}`}>Ate uma data</button>
@@ -266,17 +440,14 @@ export function RoadmapAiWizard({
         <label className="text-xs font-medium text-gray-500">Inicio
           <input name="start_date" type="date" required value={draft.startDate} onChange={(event) => setField("startDate", event.target.value)} className={inputClass} />
         </label>
-        {draft.timelineMode === "duration" ? <label className="text-xs font-medium text-gray-500">Duracao estimada
-          <select name="duration_weeks" value={draft.durationWeeks} onChange={(event) => setField("durationWeeks", Number(event.target.value))} className={inputClass}>
-            <option value="4">4 semanas</option><option value="8">8 semanas</option><option value="12">12 semanas</option><option value="16">16 semanas</option><option value="24">24 semanas</option><option value="36">36 semanas</option><option value="52">52 semanas</option>
-          </select>
+        {draft.timelineMode === "duration" ? <label className="text-xs font-medium text-gray-500">Duracao em meses
+          <input name="duration_months" type="number" required min={1} max={12} step={1} value={draft.durationMonths} onChange={(event) => setField("durationMonths", Number(event.target.value))} className={inputClass} />
         </label> : <label className="text-xs font-medium text-gray-500">Data final
           <input name="deadline" type="date" required min={draft.startDate || today} value={draft.deadline} onChange={(event) => setField("deadline", event.target.value)} className={inputClass} />
         </label>}
-        <label className="text-xs font-medium text-gray-500">Tempo por sessao
-          <select name="minutes_per_day" value={draft.minutesPerDay} onChange={(event) => setField("minutesPerDay", Number(event.target.value))} className={inputClass}>
-            <option value="30">30 minutos</option><option value="45">45 minutos</option><option value="60">1 hora</option><option value="90">1h30</option><option value="120">2 horas</option><option value="180">3 horas</option>
-          </select>
+        <label className="text-xs font-medium text-gray-500">Tempo por dia de estudo (HH:MM)
+          <input name="study_time_per_day" type="time" required min="00:30" max="08:00" step={300} value={studyMinutesToClock(draft.minutesPerDay)} onChange={(event) => setField("minutesPerDay", studyClockToMinutes(event.target.value) ?? 0)} className={inputClass} />
+          <input name="minutes_per_day" type="hidden" value={draft.minutesPerDay} />
         </label>
       </div>
       <div>
@@ -287,51 +458,66 @@ export function RoadmapAiWizard({
     </fieldset>
 
     <fieldset className="space-y-4 border-t border-gray-100 pt-5">
-      <legend className="font-semibold text-gray-900">4. O que deve existir no roadmap</legend>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{learningFormats.map(({ value, label, detail, icon: Icon }) => {
+      <legend className="font-semibold text-gray-900">4. {draft.roadmapType === "language" ? "Como voce quer aprender" : "O que deve existir no roadmap"}</legend>
+      {draft.roadmapType === "language" ? <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{languageActivities.map(({ value, label, detail, icon: Icon }) => {
+        const selected = draft.languageActivities.includes(value);
+        return <label key={value} className={`cursor-pointer rounded-lg border p-3 ${selected ? "border-emerald-400/50 bg-emerald-400/10" : "border-white/10 hover:border-white/20"}`}><input type="checkbox" name="language_activities" value={value} checked={selected} onChange={() => toggleList("languageActivities", value)} className="sr-only" /><span className="flex items-start gap-3"><span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${selected ? "bg-emerald-600 text-white" : "bg-white/10 text-white/45"}`}><Icon className="size-4" /></span><span><b className="block text-sm text-white/85">{label}</b><span className="mt-1 block text-xs leading-5 text-white/35">{detail}</span></span></span></label>;
+      })}</div> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{learningFormats.map(({ value, label, detail, icon: Icon }) => {
         const selected = draft.learningFormats.includes(value);
         return <label key={value} className={`cursor-pointer rounded-lg border p-3 ${selected ? "border-blue-400/50 bg-blue-400/10" : "border-white/10 hover:border-white/20"}`}><input type="checkbox" name="learning_formats" value={value} checked={selected} onChange={() => toggleList("learningFormats", value)} className="sr-only" /><span className="flex items-start gap-3"><span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${selected ? "bg-blue-600 text-white" : "bg-white/10 text-white/45"}`}><Icon className="size-4" /></span><span><b className="block text-sm text-white/85">{label}</b><span className="mt-1 block text-xs leading-5 text-white/35">{detail}</span></span></span></label>;
-      })}</div>
+      })}</div>}
       <div className="grid gap-4 sm:grid-cols-3">
         <SelectField name="pace" label="Ritmo" value={draft.pace} onChange={(value) => setField("pace", value)} options={[
           ["light", "Leve e sustentavel"], ["steady", "Constante"], ["intensive", "Intensivo"],
         ]} />
-        <SelectField name="assessment_preference" label="Como avaliar" value={draft.assessmentPreference} onChange={(value) => setField("assessmentPreference", value)} options={[
-          ["none", "Sem provas"], ["quick_quizzes", "Quizzes rapidos"], ["module_exams", "Prova por modulo"], ["practical", "Somente avaliacao pratica"], ["mixed", "Provas e pratica"],
+        <SelectField name="assessment_preference" label="Como quer ser avaliado?" value={draft.assessmentPreference} onChange={(value) => setField("assessmentPreference", value)} options={[
+          ["none", "Sem avaliacoes"], ["quick_quizzes", "Questoes rapidas nos modulos"], ["module_exams", "Avaliacao ao final de cada modulo"], ["practical", "Avaliacao pratica"], ["mixed", "Questoes e pratica"],
         ]} />
-        <SelectField name="project_mode" label="Projetos" value={draft.projectMode} onChange={(value) => setField("projectMode", value)} options={[
-          ["none", "Sem projeto"], ["guided", "Um projeto guiado"], ["per_module", "Projeto por modulo"], ["capstone", "Projeto final completo"],
+        <SelectField name="project_mode" label={draft.roadmapType === "language" ? "Projeto de imersao" : "Projetos"} value={draft.projectMode} onChange={(value) => setField("projectMode", value)} options={draft.roadmapType === "language" ? [
+          ["none", "Sem projeto de imersao"], ["guided", "Um projeto guiado"], ["per_module", "Uma entrega por modulo"], ["capstone", "Imersao final completa"],
+        ] : [
+          ["none", "Sem projeto"], ["guided", "Um projeto guiado"], ["per_module", "Uma entrega por modulo"], ["capstone", "Projeto final completo"],
         ]} />
       </div>
     </fieldset>
 
-    <fieldset className="grid gap-5 border-t border-gray-100 pt-5 lg:grid-cols-2">
-      <MultiChoiceGroup title="5. Fontes permitidas" name="required_materials" values={draft.requiredMaterials} options={materialOptions} onToggle={(value) => toggleList("requiredMaterials", value)} />
-      <MultiChoiceGroup title="6. Resultado final" name="final_outcomes" values={draft.finalOutcomes} options={outcomeOptions} onToggle={(value) => toggleList("finalOutcomes", value)} />
+    <fieldset className="space-y-4 border-t border-gray-100 pt-5">
+      <legend className="font-semibold text-gray-900">5. Materiais e fontes</legend>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <SelectField name="material_budget" label="Orcamento para materiais" value={draft.materialBudget} onChange={(value) => setField("materialBudget", value)} options={[
+          ["free_only", "Somente materiais gratuitos"], ["paid_allowed", "Aceito recomendacoes de materiais ou cursos pagos"],
+        ]} />
+        <MultiChoiceGroup title="Fontes preferidas" name="required_materials" values={draft.requiredMaterials} options={draft.roadmapType === "language" ? languageMaterialOptions : materialOptions} onToggle={(value) => toggleList("requiredMaterials", value)} />
+      </div>
+      {draft.requiredMaterials.includes("own_material") && <label className="block text-xs font-medium text-gray-500">Quais materiais voce ja possui?
+        <textarea name="owned_materials" required rows={3} minLength={3} maxLength={3000} value={draft.ownedMaterials} onChange={(event) => setField("ownedMaterials", event.target.value)} placeholder={draft.roadmapType === "language" ? "Ex.: Netflix, livro English Grammar in Use e curso de ingles da plataforma X" : "Ex.: curso Data Science Academy, livro Python para Analise de Dados e apostila da faculdade"} className={inputClass} />
+      </label>}
+      {!draft.requiredMaterials.includes("own_material") && <input type="hidden" name="owned_materials" value="" />}
+      <p className="text-[11px] leading-5 text-gray-400">Cursos completos podem ser gratuitos ou pagos. A IA respeitara o orcamento escolhido e priorizara as fontes marcadas.</p>
     </fieldset>
 
     {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</p>}
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-5">
-      <p className="text-[11px] text-gray-400">A geracao usa a API da OpenAI. A busca de videos pode ter custo adicional.</p>
+      <p className="text-[11px] text-gray-400">A geracao usa a API da OpenAI. A busca de videos, cursos e livros pode ter custo adicional.</p>
       <div className="flex gap-2">
         <button type="button" onClick={onClose} disabled={pending} className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">Cancelar</button>
-        <button disabled={pending || !canGenerate} className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{pending && operation === "generate" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}{pending && operation === "generate" ? "Montando curriculo..." : "Gerar e salvar rascunho"}</button>
+        <button disabled={pending || !canGenerate} className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{pending && operation === "generate" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}{pending && operation === "generate" ? "Iniciando geracao..." : "Gerar e acompanhar"}</button>
       </div>
     </div>
   </form>;
 }
 
-function RoadmapStatus({ status, formatCount }: { status: ReturnType<typeof roadmapSetupStatus>; formatCount: number }) {
+function RoadmapStatus({ status, selectionCount, selectionLabel, languageMode }: { status: ReturnType<typeof roadmapSetupStatus>; selectionCount: number; selectionLabel: string; languageMode: boolean }) {
   return <section className="rounded-lg bg-gray-900 p-4 text-white">
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="flex items-center gap-2"><Gauge className="size-5 text-blue-400" /><div><p className="text-sm font-semibold">Status do planejamento</p><p className="text-xs text-white/45">{formatCount} formatos selecionados</p></div></div>
+      <div className="flex items-center gap-2"><Gauge className="size-5 text-blue-400" /><div><p className="text-sm font-semibold">Status do planejamento</p><p className="text-xs text-white/45">{selectionCount} {selectionLabel}</p></div></div>
       <div className="text-right"><p className="text-sm font-semibold text-blue-300">{status.qualityLabel}</p><p className="text-xs text-white/45">Carga {status.workloadLabel.toLowerCase()}</p></div>
     </div>
     <div className="mt-4 grid gap-3 sm:grid-cols-2">
       <StatusBar label="Definicao do plano" value={status.completeness} color="bg-blue-500" />
       <StatusBar label="Nivel de exigencia" value={status.workload} color="bg-amber-400" />
     </div>
-    <p className="mt-3 text-[11px] leading-5 text-white/40">Mais formatos, provas e projetos aumentam a carga. A qualidade cresce principalmente quando o objetivo final fica especifico.</p>
+    <p className="mt-3 text-[11px] leading-5 text-white/40">{languageMode ? "Situacoes reais, interesses, habilidades e formas de pratica tornam a trilha mais pessoal. Escolha apenas metodos que voce realmente consegue manter." : "Mais formatos, avaliacoes e projetos aumentam a carga. A qualidade cresce principalmente quando o resultado pratico fica especifico."}</p>
   </section>;
 }
 
@@ -356,10 +542,43 @@ function RoadmapPreview({ preview, pending, error, backLabel, onBack, onConfirm 
     </div>
     <div className="rounded-lg bg-amber-50 p-3"><p className="text-xs font-semibold uppercase text-amber-700">Diagnostico e cadencia</p><p className="mt-1 text-sm leading-6 text-amber-900">{preview.diagnosis}</p><p className="mt-2 text-xs leading-5 text-amber-800">{preview.recommendedCadence}</p></div>
     <div className="flex items-center justify-between text-xs text-gray-400"><span>{formatDateBR(preview.startDate)}</span><span>janela estimada</span><span>{formatDateBR(preview.targetDate)}</span></div>
-    <div className="max-h-[50vh] space-y-2 overflow-y-auto pr-1">{preview.modules.map((module, moduleIndex) => <details key={`${module.title}-${moduleIndex}`} open={moduleIndex === 0} className="rounded-lg border border-gray-200"><summary className="cursor-pointer px-3 py-3"><span className="font-semibold">Modulo {moduleIndex + 1}: {module.title}</span><span className="ml-2 text-xs text-gray-400">{module.steps.length} passos</span><p className="mt-1 text-xs font-normal leading-5 text-gray-500">{module.objective}</p></summary><div className="border-t border-gray-100 px-3">{module.steps.map((step, stepIndex) => <div key={`${step.title}-${stepIndex}`} className="flex gap-3 border-b border-gray-100 py-3 last:border-0"><span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-gray-100 text-[10px] font-bold text-gray-500">{stepIndex + 1}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium text-gray-800">{step.title}</p><span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600">{itemLabels[step.type] ?? step.type}</span></div><p className="mt-1 text-xs leading-5 text-gray-500">{step.description}</p><p className="mt-1 text-[11px] text-gray-400">{step.estimatedMinutes} min{step.questions.length ? ` - ${step.questions.length} perguntas` : ""}{step.questions.some((question) => question.questionType === "ordering") ? " - inclui ordenacao" : ""}</p>{(step.requirements || step.workspace) && <details className="mt-2 text-xs"><summary className="cursor-pointer font-semibold text-gray-500">Ver preparacao e entrega</summary><div className="mt-2 space-y-2 border-l-2 border-gray-200 pl-3 text-gray-600">{step.requirements && <p><b>Precisa:</b> {step.requirements}</p>}{step.workspace && <p><b>Onde:</b> {step.workspace}</p>}<p><b>Resultado:</b> {step.completionCriteria}</p></div></details>}{step.resourceUrl && <a href={step.resourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-red-600">{step.resourceTitle}<ExternalLink className="size-3" /></a>}</div></div>)}</div></details>)}</div>
+    <div className="max-h-[50vh] space-y-2 overflow-y-auto pr-1">{preview.modules.map((module, moduleIndex) => <RoadmapPreviewModule key={`${module.title}-${moduleIndex}`} module={module} moduleIndex={moduleIndex} />)}</div>
     {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</p>}
     <div className="flex flex-wrap justify-end gap-2"><button type="button" onClick={onBack} disabled={pending} className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-600 disabled:opacity-50">{backLabel}</button><button type="button" onClick={onConfirm} disabled={pending} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}{pending ? "Salvando..." : "Salvar roadmap"}</button></div>
   </div>;
+}
+
+function RoadmapPreviewModule({ module, moduleIndex }: { module: RoadmapGenerationPlan["modules"][number]; moduleIndex: number }) {
+  return <details open={moduleIndex === 0} className="rounded-lg border border-gray-200">
+    <summary className="cursor-pointer px-3 py-3"><span className="font-semibold">Modulo {moduleIndex + 1}: {module.title}</span><span className="ml-2 text-xs text-gray-400">{module.steps.length} passos</span><p className="mt-1 text-xs font-normal leading-5 text-gray-500">{module.objective}</p></summary>
+    <div className="border-t border-gray-100 px-3">{module.steps.map((step, stepIndex) => {
+      const guidedCount = step.preparationSteps.length + step.practiceExercises.length + step.completionChecklist.length;
+      return <div key={`${step.title}-${stepIndex}`} className="flex gap-3 border-b border-gray-100 py-3 last:border-0">
+        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-gray-100 text-[10px] font-bold text-gray-500">{stepIndex + 1}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium text-gray-800">{step.title}</p><span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600">{itemLabels[step.type] ?? step.type}</span></div>
+          <p className="mt-1 text-xs leading-5 text-gray-500">{step.description}</p>
+          <p className="mt-1 text-[11px] text-gray-400">{step.estimatedMinutes} min{guidedCount ? ` - ${guidedCount} itens guiados` : ""}{step.questions.length ? ` - ${step.questions.length} perguntas interativas` : ""}</p>
+          <details className="mt-2 text-xs"><summary className="cursor-pointer font-semibold text-gray-500">Ver roteiro completo</summary><div className="mt-2 space-y-3 border-l-2 border-gray-200 pl-3 text-gray-600">
+            {step.requirements && <p><b>Precisa:</b> {step.requirements}</p>}
+            {step.workspace && <p><b>Onde:</b> {step.workspace}</p>}
+            <PreviewList title="Preparacao" items={step.preparationSteps} />
+            {step.instructions && <div><b>Passo a passo:</b><p className="mt-1 whitespace-pre-line leading-5">{step.instructions}</p></div>}
+            <PreviewList title="Pratica sem consulta" items={step.practiceExercises} />
+            <PreviewList title="Criterios objetivos" items={step.completionChecklist} />
+            <p><b>Resultado:</b> {step.completionCriteria}</p>
+            {step.evidence && <p><b>Evidencia:</b> {step.evidence}</p>}
+          </div></details>
+          {step.resourceUrl && <a href={step.resourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-red-600">{step.resourceTitle}<ExternalLink className="size-3" /></a>}
+        </div>
+      </div>;
+    })}</div>
+  </details>;
+}
+
+function PreviewList({ title, items }: { title: string; items: string[] }) {
+  if (!items.length) return null;
+  return <div><b>{title}:</b><ol className="mt-1 list-decimal space-y-1 pl-4 leading-5">{items.map((item, index) => <li key={`${title}-${index}-${item}`}>{item}</li>)}</ol></div>;
 }
 
 function Metric({ value, label }: { value: string | number; label: string }) {
@@ -370,6 +589,6 @@ function MultiChoiceGroup({ title, name, values, options, onToggle }: { title: s
   return <fieldset><legend className="font-semibold text-gray-900">{title}</legend><div className="mt-3 space-y-2">{options.map(([value, label]) => <label key={value} className="flex cursor-pointer items-center gap-2 text-sm text-gray-600"><input type="checkbox" name={name} value={value} checked={values.includes(value)} onChange={() => onToggle(value)} className="size-4 rounded accent-blue-600" />{label}</label>)}</div></fieldset>;
 }
 
-function SelectField({ name, label, value, options, onChange }: { name: string; label: string; value: string; options: ReadonlyArray<readonly [string, string]>; onChange: (value: string) => void }) {
-  return <label className="text-xs font-medium text-gray-500">{label}<select name={name} value={value} onChange={(event) => onChange(event.target.value)} className={inputClass}>{options.map(([optionValue, text]) => <option key={optionValue} value={optionValue}>{text}</option>)}</select></label>;
+function SelectField({ name, label, value, options, onChange, className = "" }: { name: string; label: string; value: string; options: ReadonlyArray<readonly [string, string]>; onChange: (value: string) => void; className?: string }) {
+  return <label className={`text-xs font-medium text-gray-500 ${className}`}>{label}<select name={name} value={value} onChange={(event) => onChange(event.target.value)} className={inputClass}>{options.map(([optionValue, text]) => <option key={optionValue} value={optionValue}>{text}</option>)}</select></label>;
 }

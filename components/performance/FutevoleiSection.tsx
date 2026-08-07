@@ -9,6 +9,7 @@ import {
   adicionarJogo,
   removerJogo,
 } from "@/app/admin/performance/actions";
+import { usePerformanceConfirm } from "@/components/performance/PerformanceConfirmDialog";
 
 type RatingEntry = { id: string; data: string; rating: number };
 
@@ -329,10 +330,12 @@ function AdicionarJogoForm({ hoje }: { hoje: string }) {
 // ── Item da lista de jogos ────────────────────────────────────────────────────
 function JogoItem({ jogo }: { jogo: Jogo }) {
   const router = useRouter();
+  const confirm = usePerformanceConfirm();
   const [isPending, startTransition] = useTransition();
 
-  function excluir() {
-    if (!confirm("Remover este jogo?")) return;
+  async function excluir() {
+    const approved = await confirm({ title: "Excluir jogo?", description: "Este jogo e o resultado registrado serao removidos definitivamente.", confirmLabel: "Excluir jogo" });
+    if (!approved) return;
     startTransition(async () => { await removerJogo(jogo.id); router.refresh(); });
   }
 

@@ -9,6 +9,7 @@ import {
 import {
   registrarHabito, criarHabito, editarHabito, removerHabito, criarHabitosSugeridos,
 } from "@/app/admin/performance/actions";
+import { usePerformanceConfirm } from "@/components/performance/PerformanceConfirmDialog";
 
 type Props = {
   habits: Habit[];
@@ -183,13 +184,15 @@ function EmptyState() {
 // ── Editor da lista ───────────────────────────────────────────────────────────
 function Editor({ habits, fecharEditor }: { habits: Habit[]; fecharEditor?: () => void }) {
   const router = useRouter();
+  const confirm = usePerformanceConfirm();
   const [isPending, startTransition] = useTransition();
   const [editing, setEditing] = useState<Habit | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  function remover(id: string) {
-    if (!confirm("Remover este hábito da lista? O histórico já registrado é mantido.")) return;
-    startTransition(async () => { await removerHabito(id); router.refresh(); });
+  async function remover(habit: Habit) {
+    const approved = await confirm({ title: "Arquivar habito?", description: `“${habit.label}” saira da sua lista diaria, mas todo o historico registrado sera preservado.`, confirmLabel: "Arquivar habito", tone: "primary" });
+    if (!approved) return;
+    startTransition(async () => { await removerHabito(habit.id); router.refresh(); });
   }
 
   return (
@@ -208,7 +211,7 @@ function Editor({ habits, fecharEditor }: { habits: Habit[]; fecharEditor?: () =
                 className="flex size-8 items-center justify-center rounded-lg text-white/35 hover:bg-white/[0.06] hover:text-white">
                 <Pencil className="size-4" />
               </button>
-              <button onClick={() => remover(h.id)} disabled={isPending}
+              <button onClick={() => remover(h)} disabled={isPending}
                 className="flex size-8 items-center justify-center rounded-lg text-white/35 hover:bg-red-400/10 hover:text-red-300">
                 <Trash2 className="size-4" />
               </button>

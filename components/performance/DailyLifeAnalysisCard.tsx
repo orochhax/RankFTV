@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { BrainCircuit, CheckCircle2, Flame, Minus, RefreshCw, Sparkles, Target, TrendingDown, TrendingUp, TriangleAlert } from "lucide-react";
+import { BrainCircuit, CheckCircle2, ChevronDown, ChevronUp, Flame, Minus, RefreshCw, Sparkles, Target, TrendingDown, TrendingUp, TriangleAlert } from "lucide-react";
 import { gerarInsightLifeOS } from "@/app/admin/performance/life-os-actions";
 import type { DailyLifeAnalysis, DailyLifeStatus } from "@/lib/daily-life-analysis";
 import type { ConsistencyStatus } from "@/lib/performance-analytics";
@@ -78,6 +78,8 @@ function EmptyAnalysis() {
 }
 
 export function DailyLifeAnalysisCard({ analysis, consistency }: Props) {
+  const [expanded, setExpanded] = useState(true);
+
   if (!analysis) return <EmptyAnalysis />;
 
   const status = statusCopy[analysis.status];
@@ -91,11 +93,26 @@ export function DailyLifeAnalysisCard({ analysis, consistency }: Props) {
         <span aria-hidden="true">·</span>
         <span>{generatedLabel(analysis.generatedAt)}</span>
         <span className="rounded-md border border-white/10 px-2 py-1 text-[11px] text-white/55">{analysis.generation.mode === "ai" ? "Análise com IA" : "Leitura local"}</span>
-        <div className="ml-auto"><AnalysisAction compact /></div>
+        {!expanded && <span className={`font-semibold ${status.color}`}>{status.label} · {analysis.score ?? "--"}/100</span>}
+        <div className="ml-auto flex items-center gap-1">
+          <AnalysisAction compact />
+          <button
+            type="button"
+            onClick={() => setExpanded((value) => !value)}
+            className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/55 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+            title={expanded ? "Minimizar análise" : "Expandir análise"}
+            aria-label={expanded ? "Minimizar análise" : "Expandir análise"}
+            aria-expanded={expanded}
+            aria-controls="daily-life-analysis-content"
+          >
+            {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          </button>
+        </div>
       </div>
     </div>
 
-    <div className="grid lg:grid-cols-[190px_minmax(0,1fr)]">
+    <div id="daily-life-analysis-content" className={expanded ? "" : "hidden"}>
+      <div className="grid lg:grid-cols-[190px_minmax(0,1fr)]">
       <div className="border-b border-white/10 p-5 sm:p-6 lg:border-b-0 lg:border-r">
         <p className={`text-xs font-semibold uppercase ${status.color}`}>{status.label}</p>
         <div className="mt-2 flex items-end gap-1">
@@ -121,9 +138,9 @@ export function DailyLifeAnalysisCard({ analysis, consistency }: Props) {
           <p>{analysis.comparison}</p>
         </div>
       </div>
-    </div>
+      </div>
 
-    <div className="grid border-t border-white/10 lg:grid-cols-3">
+      <div className="grid border-t border-white/10 lg:grid-cols-3">
       <div className="p-5 sm:p-6">
         <h3 className="flex items-center gap-2 text-sm font-semibold"><CheckCircle2 className="size-4 text-emerald-300" />O que avançou</h3>
         <div className="mt-4 space-y-4">
@@ -154,11 +171,12 @@ export function DailyLifeAnalysisCard({ analysis, consistency }: Props) {
           </li>)}
         </ol>
       </div>
-    </div>
+      </div>
 
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-black/10 px-5 py-3 text-xs text-white/40 sm:px-6">
-      <p>{analysis.closingMessage}</p>
-      <p>{analysis.coverage.available.length} áreas com dados{analysis.coverage.missing.length ? ` · faltando: ${analysis.coverage.missing.join(", ")}` : ""}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-black/10 px-5 py-3 text-xs text-white/40 sm:px-6">
+        <p>{analysis.closingMessage}</p>
+        <p>{analysis.coverage.available.length} áreas com dados{analysis.coverage.missing.length ? ` · faltando: ${analysis.coverage.missing.join(", ")}` : ""}</p>
+      </div>
     </div>
   </section>;
 }

@@ -8,6 +8,7 @@ import { criarTreinoAcademiaLifeOS, editarTreinoAcademiaLifeOS, removerTreinoAca
 import { formatDateBR } from "@/lib/format";
 import { addDays } from "@/lib/performance";
 import { academyStreak, averageDuration } from "@/lib/performance-widgets";
+import { usePerformanceConfirm } from "@/components/performance/PerformanceConfirmDialog";
 
 export type AcademyActivity = {
   id: string;
@@ -36,6 +37,7 @@ function minutesLabel(value: number): string {
 
 export function AcademyWorkspace({ activities: allActivities, weights, today, heightCm, currentWeight, targetWeight }: { activities: AcademyActivity[]; weights: { data: string; peso_kg: number }[]; today: string; heightCm: number | null; currentWeight: number | null; targetWeight: number | null }) {
   const router = useRouter();
+  const confirm = usePerformanceConfirm();
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<AcademyActivity | null>(null);
   const [editingData, setEditingData] = useState(false);
@@ -45,13 +47,13 @@ export function AcademyWorkspace({ activities: allActivities, weights, today, he
   const muscleFrequency = new Map<string, number>();
   completed.filter((item) => item.date >= recentStart && item.date <= today).forEach((item) => item.muscleGroups.forEach((muscle) => muscleFrequency.set(muscle, (muscleFrequency.get(muscle) ?? 0) + 1)));
 
-  return <section className="space-y-5">
+  return <section className="min-w-0 space-y-5">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div><h2 className="text-xl font-bold">Academia</h2><p className="mt-1 text-sm text-white/45">Treino, recuperacao muscular e evolucao corporal.</p></div>
       <button type="button" onClick={() => setEditingData(true)} className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2 text-sm font-semibold text-white"><Database className="size-4" />Dados</button>
     </div>
 
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <DarkMetric icon={Flame} title="Sequencia" value={`${academyStreak(completed.map((item) => item.date), today)} dias`} />
       <DarkMetric icon={Dumbbell} title="Tempo medio de treino" value={minutesLabel(averageDuration(completed))} />
       <div className="rounded-lg border border-white/10 bg-[#15191f] p-4 text-white">
@@ -63,21 +65,21 @@ export function AcademyWorkspace({ activities: allActivities, weights, today, he
       </div>
     </div>
 
-    <div className="grid items-start gap-5 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)]">
-      <section className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
+    <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)]">
+      <section className="min-w-0 rounded-lg border border-white/10 bg-[#15191f] p-4 text-white sm:p-5">
         <div><h3 className="font-semibold">Mapa muscular</h3><p className="mt-1 text-xs text-white/35">Grupos treinados nos ultimos 7 dias. Quanto mais azul, maior a frequencia.</p></div>
         <div className="mt-4"><MuscleBodyMap frequency={muscleFrequency} /></div>
         <div className="mt-4 flex flex-wrap gap-2">{MUSCLES.filter(([id]) => muscleFrequency.has(id)).map(([id, label]) => <span key={id} className="rounded-md bg-blue-400/10 px-2 py-1 text-xs text-blue-300">{label} {muscleFrequency.get(id)}x</span>)}</div>
         {!muscleFrequency.size && <p className="mt-4 text-center text-sm text-white/35">O mapa ganha cor conforme os treinos forem registrados.</p>}
       </section>
 
-      <section className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
-        <div className="flex items-center justify-between gap-3"><div><h3 className="font-semibold">Historico de treinos</h3><p className="mt-1 text-xs text-white/35">{activities.length} registros</p></div><button type="button" onClick={() => setCreating(true)} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white"><Plus className="size-4" />Novo treino</button></div>
+      <section className="min-w-0 rounded-lg border border-white/10 bg-[#15191f] p-4 text-white sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-semibold">Historico de treinos</h3><p className="mt-1 text-xs text-white/35">{activities.length} registros</p></div><button type="button" onClick={() => setCreating(true)} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white"><Plus className="size-4" />Novo treino</button></div>
         <div className="mt-4 max-h-[560px] overflow-y-auto pr-1">
           {activities.map((item) => <div key={item.id} className="flex items-start gap-3 border-b border-white/[0.06] py-3 last:border-0">
             <div className="min-w-0 flex-1"><p className="font-medium text-white/85">{item.title}</p><p className="mt-0.5 text-xs text-white/35">{formatDateBR(item.date)} · {item.durationMinutes ? minutesLabel(item.durationMinutes) : "Sem duracao"}</p><div className="mt-2 flex flex-wrap gap-1">{item.muscleGroups.map((id) => <span key={id} className="rounded bg-white/[0.05] px-1.5 py-0.5 text-[10px] text-white/40">{MUSCLES.find(([value]) => value === id)?.[1] ?? id}</span>)}</div></div>
             <button type="button" onClick={() => setEditing(item)} className="rounded-md p-1.5 text-white/35 hover:bg-white/[0.06] hover:text-blue-400" title="Editar treino"><Pencil className="size-4" /></button>
-            <button type="button" onClick={async () => { if (window.confirm("Excluir este treino?")) { await removerTreinoAcademiaLifeOS(item.id); router.refresh(); } }} className="rounded-md p-1.5 text-white/25 hover:bg-red-400/10 hover:text-red-300" title="Excluir treino"><Trash2 className="size-4" /></button>
+            <button type="button" onClick={async () => { const approved = await confirm({ title: "Excluir treino?", description: `O treino “${item.title}” e seus dados musculares serao removidos definitivamente.`, confirmLabel: "Excluir treino" }); if (!approved) return; await removerTreinoAcademiaLifeOS(item.id); router.refresh(); }} className="rounded-md p-1.5 text-white/25 hover:bg-red-400/10 hover:text-red-300" title="Excluir treino"><Trash2 className="size-4" /></button>
           </div>)}
           {!activities.length && <p className="rounded-lg border border-dashed border-white/10 p-5 text-center text-sm text-white/35">Nenhum treino registrado.</p>}
         </div>
@@ -166,5 +168,5 @@ function Field({ name, label, type = "text", defaultValue, required, step }: { n
 }
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-3 sm:items-center"><div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-white/10 bg-[#15191f] p-5 text-white"><div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-bold">{title}</h2><button type="button" onClick={onClose} className="text-sm text-white/45">Fechar</button></div>{children}</div></div>;
+  return <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-3 sm:items-center"><div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-white/10 bg-[#15191f] p-4 text-white sm:p-5"><div className="mb-4 flex items-center justify-between gap-3"><h2 className="min-w-0 text-lg font-bold">{title}</h2><button type="button" onClick={onClose} className="shrink-0 text-sm text-white/45">Fechar</button></div>{children}</div></div>;
 }

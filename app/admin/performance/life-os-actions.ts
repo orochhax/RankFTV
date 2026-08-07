@@ -2,6 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { zodTextFormat } from "openai/helpers/zod";
 import { createClient } from "@/lib/supabase/server";
 import { addDays, hojeISO } from "@/lib/performance";
@@ -17,20 +18,25 @@ import {
   buildImportedRoadmapPlan,
   buildRoadmapPlan,
   generatedRoadmapSchema,
+  languageRoadmapSystemInstructions,
   ROADMAP_AI_DAILY_LIMIT,
   ROADMAP_AI_PROMPT_VERSION,
   ROADMAP_IMPORT_AI_MAX_CHARS,
   ROADMAP_IMPORT_PROMPT_VERSION,
   prepareRoadmapImportSource,
   roadmapAiAnswersSchema,
+  roadmapDailyLimitReached,
   roadmapDraftStats,
   roadmapGenerationPlanSchema,
+  roadmapGoalFromContext,
   roadmapHorizon,
   roadmapImportPromptInput,
   roadmapImportSystemInstructions,
+  roadmapLanguageFormats,
   roadmapPromptInput,
   roadmapSystemInstructions,
   type GenerateRoadmapResult,
+  type RoadmapAiAnswers,
   type RoadmapDraftDetail,
 } from "@/lib/study-roadmap-ai";
 
@@ -40,7 +46,7 @@ async function requireCeo() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || !(await isPerformanceOwner(supabase, user))) return null;
-  return { supabase, user };
+  return { supabase, user, isAdmin: true as const };
 }
 
 async function requireRoadmapAiUser() {
@@ -67,6 +73,11 @@ function integer(formData: FormData, key: string, minimum = 0): number | null {
 
 function formValues(formData: FormData, key: string, max = 100): string[] {
   return [...new Set(formData.getAll(key).map(String).map((value) => value.trim()).filter(Boolean))].slice(0, max);
+}
+
+function normalizedRoadmapTitle(value: string): string | null {
+  const title = value.trim().replace(/\s+/g, " ").slice(0, 160);
+  return title.length >= 3 ? title : null;
 }
 
 async function setActiveStudyRoadmap(
@@ -408,6 +419,17 @@ export async function ativarRoadmapEstudosLifeOS(id: string): Promise<Res> {
   return result;
 }
 
+export async function renomearRoadmapEstudosLifeOS(id: string, value: string): Promise<Res> {
+  const ctx = await requireRoadmapAiUser();
+  const title = normalizedRoadmapTitle(value);
+  if (!ctx || !id) return { ok: false, error: "Roadmap invalido." };
+  if (!title) return { ok: false, error: "Informe um nome com pelo menos 3 caracteres." };
+  const { data, error } = await ctx.supabase.from("perf_study_roadmap").update({ title, updated_at: new Date().toISOString() }).eq("id", id).eq("user_id", ctx.user.id).select("id").maybeSingle();
+  if (error || !data) return { ok: false, error: error?.message ?? "Roadmap nao encontrado." };
+  reval();
+  return { ok: true };
+}
+
 export async function removerRoadmapEstudosLifeOS(id: string): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx || !id) return { ok: false, error: "Roadmap invalido." };
@@ -525,10 +547,11 @@ type RoadmapAiContext = NonNullable<Awaited<ReturnType<typeof requireRoadmapAiUs
 async function roadmapGenerationGate(ctx: RoadmapAiContext): Promise<string | null> {
   const today = hojeISO("America/Bahia");
   const tomorrow = addDays(today, 1);
-  const [modulesCheck, draftsCheck, itemDetailsCheck, questionTypesCheck, countResult] = await Promise.all([
+  const [modulesCheck, draftsCheck, itemDetailsCheck, referenceStandardCheck, questionTypesCheck, countResult] = await Promise.all([
     ctx.supabase.from("perf_study_roadmap_module").select("id").eq("user_id", ctx.user.id).limit(1),
     ctx.supabase.from("perf_study_roadmap_generation").select("id, origin, preview_title").eq("user_id", ctx.user.id).limit(1),
     ctx.supabase.from("perf_study_roadmap_item").select("id, requirements, workspace").eq("user_id", ctx.user.id).limit(1),
+    ctx.supabase.from("perf_study_roadmap_item").select("id, preparation_steps, practice_exercises, reflection_questions, completion_checklist, evidence_prompt").eq("user_id", ctx.user.id).limit(1),
     ctx.supabase.from("perf_study_assessment_question").select("id, question_type, correct_order").eq("user_id", ctx.user.id).limit(1),
     ctx.supabase
       .from("perf_study_roadmap_generation")
@@ -541,8 +564,9 @@ async function roadmapGenerationGate(ctx: RoadmapAiContext): Promise<string | nu
   if (modulesCheck.error) return "Execute a migration performance-study-modules.sql antes de gerar um novo roadmap.";
   if (draftsCheck.error) return "Execute a migration performance-roadmap-drafts.sql antes de gerar ou importar um roadmap.";
   if (itemDetailsCheck.error || questionTypesCheck.error) return "Execute a migration performance-study-question-types.sql antes de gerar ou importar um roadmap.";
-  if (countResult.error) return "Nao foi possivel verificar o limite diario de geracoes.";
-  if ((countResult.count ?? 0) >= ROADMAP_AI_DAILY_LIMIT) return `Limite de seguranca de ${ROADMAP_AI_DAILY_LIMIT} geracoes por dia atingido.`;
+  if (referenceStandardCheck.error) return "Execute a migration performance-study-reference-standard.sql antes de gerar ou importar um novo roadmap.";
+  if (!ctx.isAdmin && countResult.error) return "Nao foi possivel verificar o limite diario de geracoes.";
+  if (roadmapDailyLimitReached(countResult.count ?? 0, ctx.isAdmin)) return `Limite de seguranca de ${ROADMAP_AI_DAILY_LIMIT} geracoes por dia atingido.`;
   return null;
 }
 
@@ -586,65 +610,31 @@ function roadmapAiError(error: unknown): string {
   return "Nao foi possivel gerar o roadmap agora.";
 }
 
-export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<GenerateRoadmapResult> {
-  const ctx = await requireRoadmapAiUser();
-  if (!ctx) return { ok: false, error: "A geracao com IA ainda nao esta liberada para este usuario." };
+function roadmapGenerationTitle(answers: RoadmapAiAnswers): string {
+  const subject = answers.roadmapType === "language" ? answers.targetLanguage : answers.subject;
+  return `Roadmap de ${subject}`.trim().slice(0, 160);
+}
 
-  const parsedAnswers = roadmapAiAnswersSchema.safeParse({
-    subject: text(formData, "subject", 300) ?? "",
-    goal: text(formData, "goal", 30) ?? "",
-    goalDetail: text(formData, "goal_detail", 1500) ?? "",
-    currentLevel: text(formData, "current_level", 30) ?? "",
-    digitalLiteracy: text(formData, "digital_literacy", 30) ?? "needs_guidance",
-    mainDevice: text(formData, "main_device", 30) ?? "windows",
-    useContext: text(formData, "use_context", 30) ?? "",
-    targetLevel: text(formData, "target_level", 30) ?? "",
-    mainObstacle: text(formData, "main_obstacle", 30) ?? "",
-    startDate: text(formData, "start_date", 10) ?? "",
-    timelineMode: text(formData, "timeline_mode", 20) ?? "",
-    deadline: text(formData, "deadline", 10) ?? "",
-    durationWeeks: formData.get("duration_weeks"),
-    availableDays: formData.getAll("available_days").map(String),
-    minutesPerDay: formData.get("minutes_per_day"),
-    learningFormats: formData.getAll("learning_formats").map(String),
-    contentDepth: text(formData, "content_depth", 30) ?? "",
-    pace: text(formData, "pace", 30) ?? "",
-    requiredMaterials: formData.getAll("required_materials").map(String),
-    finalOutcomes: formData.getAll("final_outcomes").map(String),
-    assessmentPreference: text(formData, "assessment_preference", 30) ?? "",
-    projectMode: text(formData, "project_mode", 30) ?? "",
-    knownTopics: text(formData, "known_topics", 2000) ?? "",
-    contextNotes: text(formData, "context_notes", 2000) ?? "",
-  });
-  if (!parsedAnswers.success) return { ok: false, error: parsedAnswers.error.issues[0]?.message ?? "Revise as respostas do questionario." };
-  if (!roadmapHorizon(parsedAnswers.data).availableDates.length) return { ok: false, error: "Escolha ao menos um dia disponivel dentro do periodo." };
-
-  const gateError = await roadmapGenerationGate(ctx);
-  if (gateError) return { ok: false, error: gateError };
-
-  const model = process.env.OPENAI_ROADMAP_MODEL?.trim() || "gpt-5.6-sol";
-  const { data: generation, error: generationError } = await ctx.supabase.from("perf_study_roadmap_generation").insert({
-    user_id: ctx.user.id,
-    status: "generating",
-    answers: parsedAnswers.data,
-    origin: "ai",
-    model,
-    prompt_version: ROADMAP_AI_PROMPT_VERSION,
-  }).select("id").single();
-  if (generationError || !generation) return { ok: false, error: generationError?.message ?? "Nao foi possivel iniciar a geracao." };
-
+async function processRoadmapGeneration(
+  ctx: RoadmapAiContext,
+  generationId: string,
+  answers: RoadmapAiAnswers,
+  model: string,
+): Promise<void> {
   try {
-    const shouldSearchVideos = parsedAnswers.data.learningFormats.includes("video");
+    const shouldSearchVideos = answers.learningFormats.includes("video");
+    const shouldSearchExternalMaterials = answers.requiredMaterials.some((material) => ["course", "book"].includes(material));
+    const shouldSearchResources = shouldSearchVideos || shouldSearchExternalMaterials;
     const response = await getOpenAIClient().responses.parse({
       model,
       reasoning: { effort: "medium" },
-      instructions: roadmapSystemInstructions,
-      input: roadmapPromptInput(parsedAnswers.data),
+      instructions: answers.roadmapType === "language" ? languageRoadmapSystemInstructions : roadmapSystemInstructions,
+      input: roadmapPromptInput(answers),
       text: { format: zodTextFormat(generatedRoadmapSchema, "study_roadmap") },
-      ...(shouldSearchVideos ? {
+      ...(shouldSearchResources ? {
         tools: [{
           type: "web_search" as const,
-          filters: { allowed_domains: ["youtube.com", "youtu.be"] },
+          ...(!shouldSearchExternalMaterials ? { filters: { allowed_domains: ["youtube.com", "youtu.be"] } } : {}),
           search_context_size: "medium" as const,
           user_location: { type: "approximate" as const, country: "BR", timezone: "America/Bahia" },
         }],
@@ -656,18 +646,92 @@ export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<Gener
       store: false,
     });
     if (!response.output_parsed) throw new Error("EMPTY_STRUCTURED_OUTPUT");
-    const preview = buildRoadmapPlan(response.output_parsed, parsedAnswers.data);
+    const preview = buildRoadmapPlan(response.output_parsed, answers);
     if (!preview.modules.length || !preview.modules.some((roadmapModule) => roadmapModule.steps.length)) throw new Error("EMPTY_ROADMAP");
     const webSearchCalls = response.output.filter((item) => item.type === "web_search_call").length;
-    const readyError = await persistRoadmapDraft(ctx, generation.id, preview, response, webSearchCalls);
-    if (readyError) return { ok: false, error: readyError };
-    reval();
-    return { ok: true, generationId: generation.id, preview };
+    const readyError = await persistRoadmapDraft(ctx, generationId, preview, response, webSearchCalls);
+    if (readyError) throw new Error("DRAFT_PERSIST_FAILED");
   } catch (error) {
     const message = roadmapAiError(error);
-    await ctx.supabase.from("perf_study_roadmap_generation").update({ status: "failed", error_message: message, updated_at: new Date().toISOString() }).eq("id", generation.id).eq("user_id", ctx.user.id);
-    return { ok: false, error: message };
+    await ctx.supabase.from("perf_study_roadmap_generation").update({ status: "failed", error_message: message, updated_at: new Date().toISOString() }).eq("id", generationId).eq("user_id", ctx.user.id);
+  } finally {
+    reval();
   }
+}
+
+export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<GenerateRoadmapResult> {
+  const ctx = await requireRoadmapAiUser();
+  if (!ctx) return { ok: false, error: "A geracao com IA ainda nao esta liberada para este usuario." };
+
+  const roadmapType = text(formData, "roadmap_type", 20) ?? "skill";
+  const targetLanguage = text(formData, "target_language", 100) ?? "";
+  const languageActivities = formValues(formData, "language_activities", 20);
+  const useContext = roadmapType === "language" ? "personal_learning" : text(formData, "use_context", 30) ?? "new_career";
+  const parsedAnswers = roadmapAiAnswersSchema.safeParse({
+    roadmapType,
+    subject: roadmapType === "language" ? `Idioma ${targetLanguage}` : text(formData, "subject", 300) ?? "",
+    goal: roadmapGoalFromContext(useContext),
+    goalDetail: text(formData, "goal_detail", 1500) ?? "",
+    currentLevel: text(formData, "current_level", 30) ?? "",
+    digitalLiteracy: text(formData, "digital_literacy", 30) ?? "needs_guidance",
+    mainDevice: text(formData, "main_device", 30) ?? "windows",
+    useContext,
+    targetLevel: "autonomous",
+    mainObstacle: text(formData, "main_obstacle", 30) ?? "",
+    startDate: text(formData, "start_date", 10) ?? "",
+    timelineMode: text(formData, "timeline_mode", 20) ?? "",
+    deadline: text(formData, "deadline", 10) ?? "",
+    durationWeeks: formData.get("duration_weeks"),
+    durationMonths: formData.get("duration_months"),
+    availableDays: formData.getAll("available_days").map(String),
+    minutesPerDay: formData.get("minutes_per_day"),
+    learningFormats: roadmapType === "language" ? roadmapLanguageFormats(languageActivities) : formValues(formData, "learning_formats", 10),
+    contentDepth: text(formData, "content_depth", 30) ?? "",
+    pace: text(formData, "pace", 30) ?? "",
+    requiredMaterials: formData.getAll("required_materials").map(String),
+    materialBudget: text(formData, "material_budget", 30) ?? "free_only",
+    ownedMaterials: text(formData, "owned_materials", 3000) ?? "",
+    finalOutcomes: [],
+    assessmentPreference: text(formData, "assessment_preference", 30) ?? "",
+    projectMode: text(formData, "project_mode", 30) ?? "",
+    knownTopics: text(formData, "known_topics", 2000) ?? "",
+    contextNotes: text(formData, "context_notes", 2000) ?? "",
+    nativeLanguage: text(formData, "native_language", 100) ?? "Portugues (Brasil)",
+    targetLanguage,
+    languageVariant: text(formData, "language_variant", 100) ?? "",
+    languageCurrentLevel: text(formData, "language_current_level", 20) ?? "unknown",
+    languageTargetLevel: text(formData, "language_target_level", 20) ?? "b1",
+    languagePurpose: text(formData, "language_purpose", 30) ?? "conversation",
+    languageSkills: formValues(formData, "language_skills", 20),
+    languageActivities,
+    languageExposure: text(formData, "language_exposure", 30) ?? "none",
+    languageObstacle: text(formData, "language_obstacle", 30) ?? "consistency",
+    languagePracticeAccess: formValues(formData, "language_practice_access", 20),
+    languageSituations: text(formData, "language_situations", 2000) ?? "",
+    languageInterests: text(formData, "language_interests", 2000) ?? "",
+  });
+  if (!parsedAnswers.success) return { ok: false, error: parsedAnswers.error.issues[0]?.message ?? "Revise as respostas do questionario." };
+  if (!roadmapHorizon(parsedAnswers.data).availableDates.length) return { ok: false, error: "Escolha ao menos um dia disponivel dentro do periodo." };
+
+  const gateError = await roadmapGenerationGate(ctx);
+  if (gateError) return { ok: false, error: gateError };
+
+  const model = process.env.OPENAI_ROADMAP_MODEL?.trim() || "gpt-5.6-sol";
+  const generationTitle = roadmapGenerationTitle(parsedAnswers.data);
+  const { data: generation, error: generationError } = await ctx.supabase.from("perf_study_roadmap_generation").insert({
+    user_id: ctx.user.id,
+    status: "generating",
+    answers: parsedAnswers.data,
+    origin: "ai",
+    model,
+    prompt_version: ROADMAP_AI_PROMPT_VERSION,
+    preview_title: generationTitle,
+  }).select("id").single();
+  if (generationError || !generation) return { ok: false, error: generationError?.message ?? "Nao foi possivel iniciar a geracao." };
+
+  after(() => processRoadmapGeneration(ctx, generation.id, parsedAnswers.data, model));
+  reval();
+  return { ok: true, generationId: generation.id, queued: true, title: generationTitle };
 }
 
 export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promise<Res & { id?: string }> {
@@ -682,11 +746,13 @@ export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promis
     reval(); return { ok: true, id: existing.id };
   }
 
-  const [itemDetailsCheck, questionTypesCheck] = await Promise.all([
+  const [itemDetailsCheck, referenceStandardCheck, questionTypesCheck] = await Promise.all([
     ctx.supabase.from("perf_study_roadmap_item").select("id, requirements, workspace").eq("user_id", ctx.user.id).limit(1),
+    ctx.supabase.from("perf_study_roadmap_item").select("id, preparation_steps, practice_exercises, reflection_questions, completion_checklist, evidence_prompt").eq("user_id", ctx.user.id).limit(1),
     ctx.supabase.from("perf_study_assessment_question").select("id, question_type, correct_order").eq("user_id", ctx.user.id).limit(1),
   ]);
   if (itemDetailsCheck.error || questionTypesCheck.error) return { ok: false, error: "Execute a migration performance-study-question-types.sql antes de salvar este roadmap." };
+  if (referenceStandardCheck.error) return { ok: false, error: "Execute a migration performance-study-reference-standard.sql antes de salvar este roadmap." };
 
   const { data: generation, error: generationError } = await ctx.supabase.from("perf_study_roadmap_generation").select("id, status, generated_plan, origin").eq("id", generationId).eq("user_id", ctx.user.id).maybeSingle();
   if (generationError || !generation || generation.status !== "ready") return { ok: false, error: "A previa nao esta disponivel para confirmacao." };
@@ -738,7 +804,12 @@ export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promis
       description: step.description,
       requirements: step.requirements || null,
       workspace: step.workspace || null,
+      preparation_steps: step.preparationSteps,
       instructions: step.instructions,
+      practice_exercises: step.practiceExercises,
+      reflection_questions: [],
+      completion_checklist: step.completionChecklist,
+      evidence_prompt: step.evidence || null,
       completion_criteria: step.completionCriteria,
       order_index: order,
       estimated_minutes: step.estimatedMinutes,
@@ -816,10 +887,35 @@ export async function obterRascunhoRoadmapLifeOS(generationId: string): Promise<
   };
 }
 
+export async function renomearRascunhoRoadmapLifeOS(generationId: string, value: string): Promise<Res> {
+  const ctx = await requireRoadmapAiUser();
+  const title = normalizedRoadmapTitle(value);
+  if (!ctx || !generationId) return { ok: false, error: "Rascunho invalido." };
+  if (!title) return { ok: false, error: "Informe um nome com pelo menos 3 caracteres." };
+  const { data, error } = await ctx.supabase.from("perf_study_roadmap_generation").select("id, generated_plan").eq("id", generationId).eq("user_id", ctx.user.id).eq("status", "ready").maybeSingle();
+  if (error || !data) return { ok: false, error: error?.message ?? "Rascunho nao encontrado." };
+  const parsedPlan = roadmapGenerationPlanSchema.safeParse(data.generated_plan);
+  if (!parsedPlan.success) return { ok: false, error: "O arquivo salvo deste rascunho esta invalido." };
+  const generatedPlan = roadmapGenerationPlanSchema.parse({ ...parsedPlan.data, title });
+  const { data: updated, error: updateError } = await ctx.supabase.from("perf_study_roadmap_generation").update({ preview_title: title, generated_plan: generatedPlan, updated_at: new Date().toISOString() }).eq("id", generationId).eq("user_id", ctx.user.id).eq("status", "ready").select("id").maybeSingle();
+  if (updateError || !updated) return { ok: false, error: updateError?.message ?? "Rascunho nao encontrado." };
+  reval();
+  return { ok: true };
+}
+
 export async function removerRascunhoRoadmapLifeOS(generationId: string): Promise<Res> {
   const ctx = await requireRoadmapAiUser();
   if (!ctx || !generationId) return { ok: false, error: "Rascunho invalido." };
   const { error } = await ctx.supabase.from("perf_study_roadmap_generation").delete().eq("id", generationId).eq("user_id", ctx.user.id).eq("status", "ready");
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function dispensarFalhaGeracaoRoadmapLifeOS(generationId: string): Promise<Res> {
+  const ctx = await requireRoadmapAiUser();
+  if (!ctx || !generationId) return { ok: false, error: "Geracao invalida." };
+  const { error } = await ctx.supabase.from("perf_study_roadmap_generation").delete().eq("id", generationId).eq("user_id", ctx.user.id).eq("status", "failed");
   if (error) return { ok: false, error: error.message };
   reval();
   return { ok: true };

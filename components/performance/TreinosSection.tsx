@@ -10,6 +10,7 @@ import {
   registrarTreino, removerTreino, definirMetaTreinos,
   registrarTeste, removerTeste,
 } from "@/app/admin/performance/actions";
+import { usePerformanceConfirm } from "@/components/performance/PerformanceConfirmDialog";
 
 type Treino = {
   id: string; data: string; tipo: string;
@@ -113,6 +114,7 @@ export function TreinosSection({ treinos, testes, treinosMeta, hoje, segunda }: 
 // ── Item de treino ────────────────────────────────────────────────────────────
 function TreinoItem({ treino }: { treino: Treino }) {
   const router = useRouter();
+  const confirm = usePerformanceConfirm();
   const [isPending, startTransition] = useTransition();
   const dataFmt = `${treino.data.slice(8)}/${treino.data.slice(5, 7)}`;
 
@@ -127,8 +129,9 @@ function TreinoItem({ treino }: { treino: Treino }) {
         {treino.obs && <> · <span className="text-gray-500 truncate">{treino.obs}</span></>}
       </p>
       <button
-        onClick={() => {
-          if (!confirm("Remover este treino?")) return;
+        onClick={async () => {
+          const approved = await confirm({ title: "Excluir treino?", description: "Este registro de treino sera removido definitivamente.", confirmLabel: "Excluir treino" });
+          if (!approved) return;
           startTransition(async () => { await removerTreino(treino.id); router.refresh(); });
         }}
         disabled={isPending}
@@ -167,6 +170,7 @@ function TesteGrupo({ tipo, entries }: { tipo: string; entries: Teste[] }) {
 
 function TesteItem({ teste }: { teste: Teste }) {
   const router = useRouter();
+  const confirm = usePerformanceConfirm();
   const [isPending, startTransition] = useTransition();
   const dataFmt = `${teste.data.slice(8)}/${teste.data.slice(5, 7)}`;
 
@@ -177,8 +181,9 @@ function TesteItem({ teste }: { teste: Teste }) {
         {teste.valor}{teste.unidade ? ` ${teste.unidade}` : ""}
       </span>
       <button
-        onClick={() => {
-          if (!confirm("Remover este teste?")) return;
+        onClick={async () => {
+          const approved = await confirm({ title: "Excluir teste?", description: "Este resultado de teste sera removido definitivamente.", confirmLabel: "Excluir teste" });
+          if (!approved) return;
           startTransition(async () => { await removerTeste(teste.id); router.refresh(); });
         }}
         disabled={isPending}

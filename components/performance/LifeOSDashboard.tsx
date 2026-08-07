@@ -21,12 +21,10 @@ import { StudiesWorkspace } from "@/components/performance/StudiesWorkspace";
 import { InvestmentsWorkspace } from "@/components/performance/InvestmentsWorkspace";
 import { AcademyDashboardWidget, FinanceDashboardWidget, StudyDashboardWidget } from "@/components/performance/DashboardMetricWidgets";
 import type { ConsistencyStatus } from "@/lib/performance-analytics";
-import type { RoadmapDraftSummary } from "@/lib/study-roadmap-ai";
+import type { RoadmapDraftSummary, RoadmapGenerationJob } from "@/lib/study-roadmap-ai";
 import type { DailyLifeAnalysis } from "@/lib/daily-life-analysis";
 import { DailyLifeAnalysisCard } from "@/components/performance/DailyLifeAnalysisCard";
-
-/* The legacy view dispatcher is intentionally kept inline to preserve its existing URL behavior. */
-/* eslint-disable react-hooks/static-components */
+import { usePerformanceConfirm } from "@/components/performance/PerformanceConfirmDialog";
 
 type ActivityRow = { id: string; title: string; date: string; area: string; type: string | null; durationMinutes: number | null; status: string; notes: string | null; muscleGroups: string[]; studySession: StudySessionMetadata | null };
 type WithdrawalRow = { id: string; date: string; amount: number; institution: string | null; notes: string | null };
@@ -42,7 +40,7 @@ export type LifeOSProps = {
   trainings: { id: string; data: string; tipo: string; duracao_min: number | null; obs: string | null }[];
   tests: { id: string; data: string; tipo_teste: string; valor: number; unidade: string | null }[];
   events: LifeEvent[]; activities: ActivityRow[]; goals: LifeGoal[]; snapshots: PortfolioSnapshot[]; withdrawals: WithdrawalRow[]; insights: LifeInsight[]; categories: LifeCategory[];
-  contributions: InvestmentContribution[]; studyRoadmap: StudyRoadmap | null; studyRoadmaps: StudyRoadmap[]; studyItems: StudyRoadmapItem[]; studyModules: StudyRoadmapModule[]; studyQuestions: StudyAssessmentQuestion[]; studyAttempts: StudyAssessmentAttempt[]; studyDrafts: RoadmapDraftSummary[]; studyDraftsReady: boolean; studyEnhancementsReady: boolean; studyV2Ready: boolean; range: DashboardRange; taskOccurrences: TaskOccurrence[]; consistency: ConsistencyStatus; dailyAnalysis: DailyLifeAnalysis | null; schemaReady: boolean;
+  contributions: InvestmentContribution[]; studyRoadmap: StudyRoadmap | null; studyRoadmaps: StudyRoadmap[]; studyItems: StudyRoadmapItem[]; studyModules: StudyRoadmapModule[]; studyQuestions: StudyAssessmentQuestion[]; studyAttempts: StudyAssessmentAttempt[]; studyDrafts: RoadmapDraftSummary[]; studyGenerationJobs: RoadmapGenerationJob[]; studyDraftsReady: boolean; studyEnhancementsReady: boolean; studyReferenceStandardReady: boolean; studyV2Ready: boolean; range: DashboardRange; taskOccurrences: TaskOccurrence[]; consistency: ConsistencyStatus; dailyAnalysis: DailyLifeAnalysis | null; schemaReady: boolean;
 };
 
 const nav: { id: LifeOSView; label: string; icon: typeof CalendarDays }[] = [
@@ -69,31 +67,24 @@ export function LifeOSDashboard(props: LifeOSProps) {
   const go = (next: LifeOSView) => router.replace(`/admin/performance?view=${next}`, { scroll: false });
   const progress = dayProgress(props.habits, props.logs, props.today);
   const todayEvents = props.events.filter((event) => event.startAt.slice(0, 10) === props.today).sort((a, b) => a.startAt.localeCompare(b.startAt));
-  const ActivitiesView: React.FC<{ activities?: ActivityRow[] }> = () => <AcademyWorkspace activities={props.activities} weights={props.weights} today={props.today} heightCm={props.alturaCm} currentWeight={props.pesoAtual} targetWeight={props.profile?.peso_meta ?? null} />;
-  const GoalsView: React.FC<{ goals?: LifeGoal[]; today?: string; onNew?: () => void }> = () => <StudiesWorkspace roadmaps={props.studyRoadmaps} items={props.studyItems} modules={props.studyModules} questions={props.studyQuestions} attempts={props.studyAttempts} drafts={props.studyDrafts} activities={props.activities} today={props.today} monday={props.monday} v2Ready={props.studyV2Ready} draftsReady={props.studyDraftsReady} enhancementsReady={props.studyEnhancementsReady} />;
-  const InvestmentsView: React.FC<{ snapshots?: PortfolioSnapshot[]; withdrawals?: WithdrawalRow[]; contributions?: InvestmentContribution[] }> = () => <InvestmentsWorkspace snapshots={props.snapshots} withdrawals={props.withdrawals} contributions={props.contributions} today={props.today} />;
-  const MetasDoDia: React.FC<{ habits: Habit[]; valoresIniciais: Record<string, number>; hoje: string }> = (input) => <><MetasDoDiaBase {...input} /><HabitAnalytics habits={props.habits} logs={props.logs} today={props.today} /></>;
-  const LegacyAgenda: React.FC<{ events: LifeEvent[]; onNew?: () => void }> = ({ events }) => <CalendarClient events={events} embedded initialDate={props.today} />;
-  const DashboardView = () => <DashboardViewLegacy {...props} progress={progress} todayEvents={todayEvents} onQuick={setQuick} />;
-
-  return <div className="life-os-theme min-h-screen bg-[#0b0d10] text-white">
-    <header className="border-b border-white/10 bg-[#0b0d10] px-4 pb-5 pt-4 sm:px-6">
-      <div className="mx-auto max-w-7xl">
+  return <div className="life-os-theme min-h-screen w-full min-w-0 overflow-x-hidden bg-[#0b0d10] text-white">
+    <header className="border-b border-white/10 bg-[#0b0d10] px-3 pb-5 pt-4 sm:px-4 lg:px-6 2xl:px-8">
+      <div className="w-full min-w-0">
         <div className="flex items-center justify-between gap-4">
-          <div><p className="text-xs uppercase text-white/40">Life OS</p><h1 className="mt-1 text-2xl font-bold">Ola, {props.nome.split(" ")[0]}</h1><p className="mt-1 text-sm text-white/50">{isoDateToLabel(props.today)} · evolucao real e decisoes por dados.</p></div>
-          {props.fotoUrl ? <Image src={props.fotoUrl} alt={props.nome} width={44} height={44} className="size-11 rounded-full object-cover" /> : <div className="flex size-11 items-center justify-center rounded-full bg-blue-600 font-bold">{props.nome.split(" ").map((part) => part[0]).slice(0, 2).join("")}</div>}
+          <div className="min-w-0"><p className="text-xs uppercase text-white/40">Life OS</p><h1 className="mt-1 truncate text-2xl font-bold">Ola, {props.nome.split(" ")[0]}</h1><p className="mt-1 text-sm text-white/50">{isoDateToLabel(props.today)} · evolucao real e decisoes por dados.</p></div>
+          {props.fotoUrl ? <Image src={props.fotoUrl} alt={props.nome} width={44} height={44} className="size-11 shrink-0 rounded-full object-cover" /> : <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-blue-600 font-bold">{props.nome.split(" ").map((part) => part[0]).slice(0, 2).join("")}</div>}
         </div>
         <nav className="mt-5 flex gap-1 overflow-x-auto pb-1" aria-label="Life OS">{nav.map(({ id, label, icon: Icon }) => <button key={id} type="button" onClick={() => go(id)} className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium ${view === id ? "bg-white text-gray-900" : "text-white/55 hover:bg-white/10 hover:text-white"}`}><Icon className="size-4" />{label}</button>)}</nav>
       </div>
     </header>
-    <main className="mx-auto max-w-7xl px-4 py-5 pb-24 sm:px-6">
+    <main className="w-full min-w-0 px-3 py-5 pb-24 sm:px-4 lg:px-6 2xl:px-8">
       {!props.schemaReady && <p className="mb-4 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Ha uma migracao do Life OS aguardando aplicacao. Seus dados atuais continuam preservados.</p>}
-      {view === "today" && <DashboardView />}
-      {view === "agenda" && <LegacyAgenda events={props.events} onNew={() => setQuick("event")} />}
-      {view === "habits" && <MetasDoDia habits={props.habits} valoresIniciais={props.valoresHoje} hoje={props.today} />}
-      {view === "activities" && <ActivitiesView activities={props.activities} />}
-      {view === "goals" && <GoalsView goals={props.goals} today={props.today} onNew={() => setQuick("goal")} />}
-      {view === "investments" && <InvestmentsView snapshots={props.snapshots} withdrawals={props.withdrawals} contributions={props.contributions} />}
+      {view === "today" && <DashboardViewLegacy {...props} progress={progress} todayEvents={todayEvents} onQuick={setQuick} />}
+      {view === "agenda" && <CalendarClient events={props.events} embedded initialDate={props.today} />}
+      {view === "habits" && <><MetasDoDiaBase habits={props.habits} valoresIniciais={props.valoresHoje} hoje={props.today} /><HabitAnalytics habits={props.habits} logs={props.logs} today={props.today} /></>}
+      {view === "activities" && <AcademyWorkspace activities={props.activities} weights={props.weights} today={props.today} heightCm={props.alturaCm} currentWeight={props.pesoAtual} targetWeight={props.profile?.peso_meta ?? null} />}
+      {view === "goals" && <StudiesWorkspace roadmaps={props.studyRoadmaps} items={props.studyItems} modules={props.studyModules} questions={props.studyQuestions} attempts={props.studyAttempts} drafts={props.studyDrafts} generationJobs={props.studyGenerationJobs} activities={props.activities} today={props.today} monday={props.monday} v2Ready={props.studyV2Ready} draftsReady={props.studyDraftsReady} enhancementsReady={props.studyEnhancementsReady} referenceStandardReady={props.studyReferenceStandardReady} />}
+      {view === "investments" && <InvestmentsWorkspace snapshots={props.snapshots} withdrawals={props.withdrawals} contributions={props.contributions} today={props.today} />}
       {view === "settings" && <SettingsView {...props} />}
     </main>
     {quick === "event" && <Modal title="Novo evento" onClose={() => setQuick(null)}><EventForm onDone={() => setQuick(null)} /></Modal>}
@@ -105,6 +96,7 @@ export function LifeOSDashboard(props: LifeOSProps) {
 
 function DashboardViewLegacy({ ...p }: LifeOSProps & { progress: ReturnType<typeof dayProgress>; todayEvents: LifeEvent[]; onQuick: (quick: "event" | "activity" | "goal" | "portfolio" | null) => void }) {
   const router = useRouter();
+  const confirm = usePerformanceConfirm();
   const [taskForm, setTaskForm] = useState<TaskOccurrence | null>(null);
   const [habit, setHabit] = useState<Habit | null>(null);
   const [manageHabits, setManageHabits] = useState(false);
@@ -120,13 +112,13 @@ function DashboardViewLegacy({ ...p }: LifeOSProps & { progress: ReturnType<type
 
     <section className="flex flex-wrap items-center gap-3 rounded-lg border border-white/10 bg-[#15191f] p-3">
       <div className="flex flex-wrap gap-1">{[["today", "Hoje"], ["week", "Semana"], ["month", "Mes"], ["custom", "Personalizado"]].map(([value, label]) => <button type="button" key={value} onClick={() => apply(value)} className={`rounded-lg px-3 py-2 text-sm ${p.range.period === value ? "bg-white text-gray-900" : "text-white/60 hover:bg-white/10"}`}>{label}</button>)}</div>
-      <span className="ml-auto text-xs text-white/45">{formatDateBR(p.range.from)} - {formatDateBR(p.range.to)}</span>
-      {p.range.period === "custom" && <div className="flex w-full flex-wrap items-end gap-2 border-t border-white/10 pt-3"><Field name="from" title="De" type="date" value={from} onChange={setFrom} /><Field name="to" title="Ate" type="date" value={to} onChange={setTo} /><button type="button" onClick={applyCustom} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold">Aplicar</button></div>}
+      <span className="w-full text-xs text-white/45 sm:ml-auto sm:w-auto">{formatDateBR(p.range.from)} - {formatDateBR(p.range.to)}</span>
+      {p.range.period === "custom" && <div className="grid w-full gap-2 border-t border-white/10 pt-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"><Field name="from" title="De" type="date" value={from} onChange={setFrom} /><Field name="to" title="Ate" type="date" value={to} onChange={setTo} /><button type="button" onClick={applyCustom} className="w-full rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold sm:w-auto">Aplicar</button></div>}
     </section>
 
-    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.62fr)]">
-      <div className="space-y-5">
-        <TaskPanel occurrences={p.taskOccurrences} progress={progress} onNew={() => setTaskForm({ id: "", title: "", startDate: p.today, recurrenceType: "none", recurrenceEndDate: null, active: true, occurrenceDate: p.today, completed: false, completedAt: null })} onEdit={setTaskForm} onToggle={async (item) => { await registrarTarefaLifeOS(item.id, item.occurrenceDate, !item.completed); router.refresh(); }} onDelete={async (id) => { if (window.confirm("Excluir esta tarefa?")) { await removerTarefaLifeOS(id); router.refresh(); } }} />
+    <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.42fr)]">
+      <div className="min-w-0 space-y-5">
+        <TaskPanel occurrences={p.taskOccurrences} progress={progress} onNew={() => setTaskForm({ id: "", title: "", startDate: p.today, recurrenceType: "none", recurrenceEndDate: null, active: true, occurrenceDate: p.today, completed: false, completedAt: null })} onEdit={setTaskForm} onToggle={async (item) => { await registrarTarefaLifeOS(item.id, item.occurrenceDate, !item.completed); router.refresh(); }} onDelete={async (id) => { const approved = await confirm({ title: "Excluir tarefa?", description: "A tarefa e todas as ocorrencias dela serao removidas definitivamente.", confirmLabel: "Excluir tarefa" }); if (!approved) return; await removerTarefaLifeOS(id); router.refresh(); }} />
         <HabitPanel habits={p.habits} logs={p.logs} today={p.today} onManage={() => setManageHabits(true)} onOpen={setHabit} onToggle={async (item, done) => { await registrarHabito(item.id, done ? (item.alvo ?? 1) : 0, p.today); router.refresh(); }} />
         <LifeOSWidgets {...p} />
       </div>
@@ -222,6 +214,7 @@ function eventLocalFields(value: string): { date: string; time: string } {
 
 function EventForm({ onDone, initialDate, event }: { onDone: () => void; initialDate?: string; event?: LifeEvent }) {
   const router = useRouter();
+  const confirm = usePerformanceConfirm();
   const initialStart = event ? eventLocalFields(event.startAt) : { date: initialDate ?? "", time: "09:00" };
   const initialEnd = event ? eventLocalFields(event.endAt) : { date: initialDate ?? "", time: "10:00" };
   const [date, setDate] = useState(initialStart.date);
@@ -251,8 +244,9 @@ function EventForm({ onDone, initialDate, event }: { onDone: () => void; initial
     </ActionForm>
     {event && <div className="mt-5 border-t border-gray-100 pt-4">
       {deleteError && <p className="mb-2 text-xs text-red-600">{deleteError}</p>}
-      <button type="button" disabled={deletePending} onClick={() => {
-        if (!window.confirm("Excluir este evento?")) return;
+      <button type="button" disabled={deletePending} onClick={async () => {
+        const approved = await confirm({ title: "Excluir evento?", description: `O evento “${event.title}” sera removido da agenda definitivamente.`, confirmLabel: "Excluir evento" });
+        if (!approved) return;
         setDeleteError(null);
         startDelete(async () => {
           const result = await removerEventoLifeOS(event.id);
@@ -301,7 +295,7 @@ function TimelinePanel({ events, onNew, onCalendar }: { events: LifeEvent[]; onN
     monthGroups.set(monthKey, month);
   });
 
-  return <section className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white lg:min-h-[620px]">
+  return <section className="min-w-0 rounded-lg border border-white/10 bg-[#15191f] p-4 text-white sm:p-5 xl:min-h-[620px]">
     <div className="flex items-center justify-between">
       <div><h2 className="font-semibold">Eventos</h2><p className="text-xs text-white/40">Linha do tempo completa</p></div>
       <div className="flex gap-1">
@@ -357,7 +351,17 @@ function HabitPanel({ habits, logs, today, onManage, onOpen, onToggle }: { habit
   </section>;
 }
 
-function HabitManagerModal({ habits, onClose }: { habits: Habit[]; onClose: () => void }) { const router = useRouter(); return <Modal title="Editar habitos" onClose={onClose}><ActionForm action={criarHabito} onDone={() => router.refresh()}><Field name="label" title="Novo habito" required /><input type="hidden" name="tipo" value="binario" /></ActionForm><div className="mt-5 space-y-2">{habits.map((habit) => <div key={habit.id} className="rounded-lg border border-gray-100 p-3"><div className="flex items-center gap-2"><span className="flex-1 text-sm">{habit.label}</span>{habit.ativo ? <><button type="button" onClick={async () => { const data = new FormData(); data.set("id", habit.id); data.set("label", window.prompt("Nome", habit.label) ?? habit.label); data.set("tipo", habit.tipo); await editarHabito(data); router.refresh(); }} title="Editar"><Pencil className="size-4" /></button><button type="button" onClick={async () => { await removerHabito(habit.id); router.refresh(); }} className="text-xs text-amber-600">Arquivar</button></> : <><button type="button" onClick={async () => { await reativarHabito(habit.id); router.refresh(); }} className="text-xs text-blue-600">Reativar</button><button type="button" onClick={async () => { if (window.confirm("Excluir historico?")) { await excluirHabito(habit.id); router.refresh(); } }}><Trash2 className="size-4 text-red-500" /></button></>}</div></div>)}</div></Modal>; }
+function HabitManagerModal({ habits, onClose }: { habits: Habit[]; onClose: () => void }) {
+  const router = useRouter();
+  const confirm = usePerformanceConfirm();
+  const [editing, setEditing] = useState<Habit | null>(null);
+
+  return <Modal title="Editar habitos" onClose={onClose}>
+    <ActionForm action={criarHabito} onDone={() => router.refresh()}><Field name="label" title="Novo habito" required /><input type="hidden" name="tipo" value="binario" /></ActionForm>
+    <div className="mt-5 space-y-2">{habits.map((habit) => <div key={habit.id} className="rounded-lg border border-gray-100 p-3"><div className="flex items-center gap-2"><span className="flex-1 text-sm">{habit.label}</span>{habit.ativo ? <><button type="button" onClick={() => setEditing(habit)} title="Editar"><Pencil className="size-4" /></button><button type="button" onClick={async () => { await removerHabito(habit.id); router.refresh(); }} className="text-xs text-amber-600">Arquivar</button></> : <><button type="button" onClick={async () => { await reativarHabito(habit.id); router.refresh(); }} className="text-xs text-blue-600">Reativar</button><button type="button" onClick={async () => { const approved = await confirm({ title: "Excluir historico do habito?", description: `Todos os registros de “${habit.label}” serao apagados definitivamente.`, confirmLabel: "Excluir historico" }); if (!approved) return; await excluirHabito(habit.id); router.refresh(); }} title="Excluir historico"><Trash2 className="size-4 text-red-500" /></button></>}</div></div>)}</div>
+    {editing && <Modal title="Editar habito" onClose={() => setEditing(null)}><ActionForm action={editarHabito} onDone={() => setEditing(null)}><input type="hidden" name="id" value={editing.id} /><input type="hidden" name="tipo" value={editing.tipo} /><Field name="label" title="Nome" value={editing.label} required /></ActionForm></Modal>}
+  </Modal>;
+}
 
 function HabitConstancyModal({ habit, logs, today, onClose }: { habit: Habit; logs: HabitLog[]; today: string; onClose: () => void }) { const [month, setMonth] = useState(today.slice(0, 7)); const stats = habitMonthStats(habit, logs, month, today); const current = today.slice(0, 7); const weeks = monthGrid(month); const title = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(month + "-01T12:00:00Z")); return <Modal title={habit.label} onClose={onClose}><div className="flex items-center justify-between"><button type="button" onClick={() => setMonth(previousMonth(month))}><ChevronLeft className="size-5" /></button><div className="text-center"><p className="font-semibold capitalize">{title}</p><p className={stats.status === "good" ? "text-sm text-emerald-600" : stats.status === "bad" ? "text-sm text-red-600" : "text-sm text-gray-400"}>{stats.status === "good" ? "Bom" : stats.status === "bad" ? "Ruim" : "Sem dados"} · {stats.percent}%</p></div><button type="button" disabled={month >= current} onClick={() => setMonth(nextMonth(month))}><ChevronRight className="size-5" /></button></div><div className="mt-4 grid grid-cols-7 gap-1 text-center text-[10px] text-gray-400">{["S", "T", "Q", "Q", "S", "S", "D"].map((day, index) => <span key={index}>{day}</span>)}</div><div className="mt-1 space-y-1">{weeks.map((week, index) => <div key={index} className="grid grid-cols-7 gap-1">{week.map((date, dayIndex) => { if (!date) return <span key={dayIndex} className="aspect-square" />; const value = logs.find((log) => log.habit_id === habit.id && log.data === date)?.valor; const done = value != null && (habit.tipo === "binario" ? value >= 1 : habit.alvo ? value >= habit.alvo : value > 0); return <span key={date} title={formatDateBR(date)} className={`aspect-square rounded-sm ${done ? "bg-emerald-500" : "bg-gray-100"}`} />; })}</div>)}</div><p className="mt-4 text-center text-sm text-gray-500">{stats.completed} de {stats.eligible} dias concluidos</p></Modal>; }
 
