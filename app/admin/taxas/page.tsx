@@ -15,7 +15,7 @@ export default async function AdminTaxasPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-black px-6 pb-12 pt-6">
-        <div className="mx-auto max-w-2xl">
+        <div className="w-full">
           <Link href="/admin" className="mb-4 flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors w-fit">
             <ArrowLeft className="size-4" />
             Admin
@@ -29,7 +29,7 @@ export default async function AdminTaxasPage() {
       </div>
 
       <div className="relative -mt-6 rounded-t-3xl bg-gray-50 px-6 pb-24 pt-8">
-        <div className="mx-auto max-w-2xl space-y-4">
+        <div className="w-full space-y-4">
           <PlanoCard titulo="Padrão" pix={padrao.pix} cartao={padrao.cartao} minimo={minimo} />
           <PlanoCard titulo="Elite" pix={elite.pix} cartao={elite.cartao} minimo={minimo} destaque />
 

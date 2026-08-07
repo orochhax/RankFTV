@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { executarRepasseEspectador } from "@/lib/repasse";
 import {
@@ -7,9 +8,18 @@ import {
 } from "@/lib/pagamento-inscricao";
 import { addMonthsISO } from "@/lib/arena-dates";
 import { pixKeyEmCooldown } from "@/lib/pix";
+import { executeArenaPayout } from "@/lib/arena-payout";
+import { reportOperationalEvent } from "@/lib/observability";
+import {
+  ASAAS_CONFIRMED_EVENTS,
+  ASAAS_REFUNDED_EVENTS,
+  asaasEventDomainStatus,
+  asaasEventRank,
+  asaasWebhookEventId,
+  isValidAsaasWebhookPayload,
+  type AsaasWebhookPayload,
+} from "@/lib/asaas-webhook-core";
 
-const EVENTOS_CONFIRMADO = new Set(["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"]);
-const EVENTOS_ESTORNADO  = new Set(["PAYMENT_REFUNDED", "PAYMENT_DELETED"]);
 
 const DIAS_LIQUIDACAO: Record<string, number> = {
   PIX:         0,
@@ -17,22 +27,7 @@ const DIAS_LIQUIDACAO: Record<string, number> = {
   CREDIT_CARD: 32,
 };
 
-type AsaasPayment = {
-  id: string;
-  externalReference?: string;
-  status: string;
-  value: number;
-  billingType: string;
-  subscription?: string;
-  dueDate?: string;
-};
-
-type AsaasWebhookBody = {
-  event: string;
-  payment: AsaasPayment;
-};
-
-export async function POST(req: NextRequest) {
+async function handleAsaasWebhook(req: NextRequest) {
   try {
   // 1. Autentica o webhook
   const token = req.headers.get("asaas-access-token");
@@ -40,7 +35,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: AsaasWebhookBody;
+  let body: AsaasWebhookPayload;
   try {
     body = await req.json();
   } catch {
@@ -49,7 +44,7 @@ export async function POST(req: NextRequest) {
 
   const { event, payment } = body;
 
-  if (!EVENTOS_CONFIRMADO.has(event) && !EVENTOS_ESTORNADO.has(event)) {
+  if (!ASAAS_CONFIRMED_EVENTS.has(event) && !ASAAS_REFUNDED_EVENTS.has(event)) {
     return NextResponse.json({ ok: true, ignored: true });
   }
 
@@ -59,7 +54,7 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = createAdminClient();
-  const novoStatus = EVENTOS_CONFIRMADO.has(event) ? "pago" : "estornado";
+  const novoStatus = asaasEventDomainStatus(event) ?? "estornado";
 
   async function paymentBelongsToRecord(table: string, id: string): Promise<boolean> {
     const { data, error } = await supabase
@@ -68,7 +63,13 @@ export async function POST(req: NextRequest) {
       .eq("id", id)
       .maybeSingle();
     if (error || !data || data.asaas_payment_id !== payment.id) {
-      console.error(`[webhook] Pagamento ${payment.id} nao pertence a ${table}:${id}`);
+      await reportOperationalEvent({
+        level: "error",
+        event: "webhook.payment_ownership_mismatch",
+        message: "Provider payment does not belong to the referenced record",
+        context: { paymentId: payment.id, sourceTable: table, recordId: id },
+        alert: true,
+      });
       return false;
     }
     return true;
@@ -115,26 +116,15 @@ export async function POST(req: NextRequest) {
       .select("id");
     if (!claimed || claimed.length === 0) return;
 
-    try {
-      const { transferirPix } = await import("@/lib/asaas");
-      const transferencia = await transferirPix({ valor, chavePix, descricao });
-      await supabase
-        .from(table)
-        .update({
-          repasse_status: "concluido",
-          repasse_transfer_id: transferencia.id,
-          repasse_erro: null,
-        })
-        .eq("id", id);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      await supabase
-        .from(table)
-        .update({ repasse_status: "pendente", repasse_erro: msg.slice(0, 300) })
-        .eq("id", id)
-        .eq("repasse_status", "processando");
-      console.error(`[webhook] Falha no repasse ${table}:${id}:`, msg);
-    }
+    await executeArenaPayout({
+      supabase,
+      table,
+      recordId: id,
+      amount: valor,
+      pixKey: chavePix,
+      description: descricao,
+      revertStatus: "pendente",
+    });
   }
 
   // ── Mensalidade de ARENA (externalReference "arena_student:<studentId>") ──
@@ -149,7 +139,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Assinatura nao confere" }, { status: 409 });
     }
 
-    if (EVENTOS_CONFIRMADO.has(event)) {
+    if (ASAAS_CONFIRMED_EVENTS.has(event)) {
       // access_until = até quando esse pagamento cobre o uso — a próxima
       // cobrança do ciclo mensal (payment.dueDate + 1 mês). Sempre estende,
       // mesmo se a assinatura já tiver sido cancelada nesse meio-tempo (o
@@ -203,7 +193,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (EVENTOS_ESTORNADO.has(event)) {
+    if (ASAAS_REFUNDED_EVENTS.has(event)) {
       // Pagamento estornado: o período que ele cobria deixa de valer — não
       // é só "status pendente", o acesso pago também precisa ser revertido,
       // senão o aluno continua com crédito de um período que foi devolvido.
@@ -224,7 +214,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
     }
 
-    if (EVENTOS_CONFIRMADO.has(event)) {
+    if (ASAAS_CONFIRMED_EVENTS.has(event)) {
       const { data: charge } = await supabase
         .from("student_charges")
         .update({ status_pagamento: "pago", pago_em: new Date().toISOString() })
@@ -263,7 +253,7 @@ export async function POST(req: NextRequest) {
     if (!(await paymentBelongsToRecord("arena_rentals", rentalId)))
       return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
 
-    if (EVENTOS_CONFIRMADO.has(event)) {
+    if (ASAAS_CONFIRMED_EVENTS.has(event)) {
       await supabase
         .from("arena_rentals")
         .update({ status_pagamento: "pago", billing_type: payment.billingType })
@@ -295,7 +285,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (EVENTOS_ESTORNADO.has(event)) {
+    if (ASAAS_REFUNDED_EVENTS.has(event)) {
       await supabase
         .from("arena_rentals")
         .update({ status_pagamento: "estornado", repasse_status: "estornado" })
@@ -311,7 +301,7 @@ export async function POST(req: NextRequest) {
     if (!(await paymentBelongsToRecord("arena_daily_passes", passId)))
       return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
 
-    if (EVENTOS_CONFIRMADO.has(event)) {
+    if (ASAAS_CONFIRMED_EVENTS.has(event)) {
       await supabase
         .from("arena_daily_passes")
         .update({ status_pagamento: "pago", billing_type: payment.billingType })
@@ -343,7 +333,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (EVENTOS_ESTORNADO.has(event)) {
+    if (ASAAS_REFUNDED_EVENTS.has(event)) {
       await supabase
         .from("arena_daily_passes")
         .update({ status_pagamento: "estornado", repasse_status: "estornado" })
@@ -364,7 +354,7 @@ export async function POST(req: NextRequest) {
     if (!(await paymentBelongsToRecord("arena_attendance", attendanceId)))
       return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
 
-    if (EVENTOS_CONFIRMADO.has(event)) {
+    if (ASAAS_CONFIRMED_EVENTS.has(event)) {
       await supabase
         .from("arena_attendance")
         .update({ pagamento_status: "pago", charged_at: new Date().toISOString(), repasse_status: "pendente" })
@@ -397,7 +387,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (EVENTOS_ESTORNADO.has(event)) {
+    if (ASAAS_REFUNDED_EVENTS.has(event)) {
       await supabase
         .from("arena_attendance")
         .update({ pagamento_status: "estornado", repasse_status: "estornado" })
@@ -420,8 +410,15 @@ export async function POST(req: NextRequest) {
       : await estornarAthleteTicket(supabase, ticketId);
 
     if (!resultado.ok) {
-      console.error("[webhook] Erro ao processar ingresso de atleta:", resultado.error);
-      return NextResponse.json({ error: resultado.error }, { status: 500 });
+      await reportOperationalEvent({
+        level: "error",
+        event: "webhook.athlete_ticket_failed",
+        message: "Athlete ticket webhook processing failed",
+        context: { recordId: ticketId },
+        error: resultado.error,
+        alert: true,
+      });
+      return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, tipo: "atleta_ticket", status: novoStatus });
@@ -443,7 +440,13 @@ export async function POST(req: NextRequest) {
       .eq("id", ticketId);
 
     if (novoStatus === "estornado") {
-      await supabase.from("spectator_tickets").update({ repasse_status: "estornado" }).eq("id", ticketId);
+      const { error: releaseError } = await supabase.rpc("release_spectator_ticket_order", {
+        p_ticket_id: ticketId,
+        p_target_status: "estornado",
+      });
+      if (releaseError) {
+        return NextResponse.json({ error: "Falha ao liberar inventario do pedido" }, { status: 500 });
+      }
       return NextResponse.json({ ok: true, tipo: "espectador", status: novoStatus });
     }
 
@@ -514,14 +517,130 @@ export async function POST(req: NextRequest) {
     : await estornarInscricao(supabase, registrationId);
 
   if (!resultado.ok) {
-    console.error("[webhook] Erro ao processar inscrição:", resultado.error);
-    return NextResponse.json({ error: resultado.error }, { status: 500 });
+    await reportOperationalEvent({
+      level: "error",
+      event: "webhook.registration_failed",
+      message: "Registration webhook processing failed",
+      context: { recordId: registrationId },
+      error: resultado.error,
+      alert: true,
+    });
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, status: novoStatus });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[webhook] ERRO FATAL:", msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    await reportOperationalEvent({
+      level: "critical",
+      event: "webhook.unhandled_processing_error",
+      message: "Unhandled Asaas webhook processing error",
+      error: err,
+      alert: true,
+    });
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
+}
+
+function secureTokenEquals(received: string | null, expected: string | undefined): boolean {
+  if (!received || !expected) return false;
+  const left = Buffer.from(received);
+  const right = Buffer.from(expected);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+
+export async function POST(req: NextRequest) {
+  if (!secureTokenEquals(req.headers.get("asaas-access-token"), process.env.ASAAS_WEBHOOK_TOKEN)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const raw = await req.text();
+  if (!raw || raw.length > 128_000) {
+    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  }
+
+  let body: AsaasWebhookPayload;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!isValidAsaasWebhookPayload(parsed)) throw new Error("invalid_schema");
+    body = parsed;
+  } catch {
+    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  }
+
+  const rank = asaasEventRank(body.event);
+  if (rank == null || asaasEventDomainStatus(body.event) == null) {
+    return NextResponse.json({ ok: true, ignored: true });
+  }
+
+  const correlationId = (
+    req.headers.get("x-request-id")
+    ?? req.headers.get("x-correlation-id")
+    ?? randomUUID()
+  ).slice(0, 120);
+  const eventId = asaasWebhookEventId(body);
+  const sourceHeader = req.headers.get("x-rankftv-event-source");
+  const source = sourceHeader === "reconciliation" || sourceHeader === "fixture" ? sourceHeader : "webhook";
+  const admin = createAdminClient();
+  const { data: claim, error: claimError } = await admin.rpc("claim_asaas_webhook_event", {
+    p_event_id: eventId,
+    p_payment_id: body.payment.id,
+    p_event_type: body.event,
+    p_event_rank: rank,
+    p_external_reference: body.payment.externalReference ?? null,
+    p_source: source,
+    p_correlation_id: correlationId,
+    p_provider_created_at: body.dateCreated ?? null,
+  });
+
+  if (claimError || !claim) {
+    await reportOperationalEvent({
+      level: "critical",
+      event: "webhook.ledger_unavailable",
+      message: "Asaas webhook ledger is unavailable",
+      requestId: correlationId,
+      context: { eventId, paymentId: body.payment.id, eventType: body.event },
+      error: claimError,
+      alert: true,
+    });
+    return NextResponse.json({ error: "Webhook ledger unavailable" }, { status: 503 });
+  }
+
+  const claimed = claim as unknown as { shouldProcess?: boolean; reason?: string };
+  if (!claimed.shouldProcess) {
+    return NextResponse.json({ ok: true, ignored: true, reason: claimed.reason ?? "duplicate" });
+  }
+
+  const forwarded = new NextRequest(req.url, {
+    method: "POST",
+    headers: req.headers,
+    body: raw,
+  });
+  let response: NextResponse;
+  try {
+    response = await handleAsaasWebhook(forwarded);
+  } catch (error) {
+    await admin.rpc("complete_asaas_webhook_event", {
+      p_event_id: eventId,
+      p_success: false,
+      p_error: "unhandled_processing_error",
+    });
+    await reportOperationalEvent({
+      level: "critical",
+      event: "webhook.dispatch_failed",
+      message: "Claimed Asaas webhook could not be dispatched",
+      requestId: correlationId,
+      context: { eventId, paymentId: body.payment.id, eventType: body.event },
+      error,
+      alert: true,
+    });
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
+  }
+
+  const success = response.status < 400;
+  await admin.rpc("complete_asaas_webhook_event", {
+    p_event_id: eventId,
+    p_success: success,
+    p_error: success ? null : `http_${response.status}`,
+  });
+  return response;
 }

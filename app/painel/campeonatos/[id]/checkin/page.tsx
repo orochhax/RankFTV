@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Users, UserCheck, UserX } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, UserCheck, UserX } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CheckinClient } from "@/components/checkin/CheckinClient";
 import { PresenceItem } from "@/components/checkin/PresenceItem";
@@ -23,27 +23,37 @@ type CredentialRow = {
   checked_in_by: string | null;
 };
 
-type ProfileRow = {
-  id: string;
-  nome: string;
-  username: string;
-};
-
 type CredentialDisplay = CredentialRow & {
   nome: string;
   username: string;
   scannerNome: string | null;
 };
 
+const PAGE_SIZE = 50;
+
+function checkinHref(championshipId: string, filter: string, page: number) {
+  const params = new URLSearchParams();
+  if (filter !== "todos") params.set("filtro", filter);
+  if (page > 1) params.set("page", String(page));
+  const query = params.toString();
+  return `/painel/campeonatos/${championshipId}/checkin${query ? `?${query}` : ""}`;
+}
+
 export default async function CheckinPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ filtro?: string }>;
+  searchParams: Promise<{ filtro?: string; page?: string }>;
 }) {
   const { id } = await params;
-  const { filtro } = await searchParams;
+  const { filtro, page: pageParam } = await searchParams;
+  const filtroAtivo =
+    filtro === "presentes" ? "presentes" :
+    filtro === "pendentes" ? "pendentes" :
+    "todos";
+  const requestedPage = Number.parseInt(String(pageParam ?? "1"), 10);
+  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
 
   const supabase = await createClient();
   const {
@@ -55,53 +65,33 @@ export default async function CheckinPage({
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
 
-  // Busca credenciais com as novas colunas
-  const { data: rawCreds } = await supabase
-    .from("credentials")
-    .select("id, user_id, role, qr_token, code, checked_in, checkin_at, checked_in_by")
-    .eq("championship_id", id);
-
-  const creds: CredentialRow[] = rawCreds ?? [];
-
-  // IDs únicos: atletas + scanners
-  const athleteIds  = [...new Set(creds.map((c) => c.user_id))];
-  const scannerIds  = [...new Set(creds.map((c) => c.checked_in_by).filter(Boolean))] as string[];
-  const allIds      = [...new Set([...athleteIds, ...scannerIds])];
-
-  let profiles: ProfileRow[] = [];
-  if (allIds.length > 0) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, nome, username")
-      .in("id", allIds);
-    profiles = (data ?? []) as ProfileRow[];
-  }
-
-  const profileMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
-
-  // Monta lista com nome + scanner + ordem alfabética
-  const allList: CredentialDisplay[] = creds
-    .map((c) => ({
-      ...c,
-      nome:        profileMap[c.user_id]?.nome     ?? "Atleta",
-      username:    profileMap[c.user_id]?.username ?? "",
-      scannerNome: c.checked_in_by ? (profileMap[c.checked_in_by]?.nome ?? null) : null,
-    }))
-    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-
-  const total       = allList.length;
-  const confirmados = allList.filter((c) => c.checked_in).length;
+  const { data: directoryData } = await supabase.rpc("organizer_credential_directory", {
+    p_championship_id: id,
+    p_filter: filtroAtivo,
+    p_limit: PAGE_SIZE,
+    p_offset: (page - 1) * PAGE_SIZE,
+  });
+  type CredentialDirectoryRow = CredentialRow & {
+    nome: string;
+    username: string;
+    scanner_nome: string | null;
+  };
+  const directory = (directoryData ?? {}) as unknown as {
+    items?: CredentialDirectoryRow[];
+    total?: number;
+    confirmed?: number;
+    filteredTotal?: number;
+  };
+  const lista: CredentialDisplay[] = (directory.items ?? []).map((item) => ({
+    ...item,
+    scannerNome: item.scanner_nome,
+  }));
+  const total = Number(directory.total ?? 0);
+  const confirmados = Number(directory.confirmed ?? 0);
   const pendentes   = total - confirmados;
-
-  const filtroAtivo =
-    filtro === "presentes" ? "presentes" :
-    filtro === "pendentes" ? "pendentes" :
-    "todos";
-
-  const lista =
-    filtroAtivo === "presentes" ? allList.filter((c) =>  c.checked_in) :
-    filtroAtivo === "pendentes" ? allList.filter((c) => !c.checked_in) :
-    allList;
+  const filteredTotal = Number(directory.filteredTotal ?? 0);
+  const totalPages = Math.max(1, Math.ceil(filteredTotal / PAGE_SIZE));
+  if (page > totalPages) redirect(checkinHref(id, filtroAtivo, totalPages));
 
   const FILTROS = [
     { key: "todos",     label: `Todos (${total})` },
@@ -110,7 +100,7 @@ export default async function CheckinPage({
   ];
 
   return (
-    <PageContainer width="form" className="space-y-6 py-8">
+    <PageContainer width="wide" className="space-y-6 py-8">
       <PageHeader title="Check-in" description="Portaria · credenciamento e controle de presença." />
 
       <div className="grid grid-cols-3 gap-4">
@@ -131,11 +121,7 @@ export default async function CheckinPage({
             {FILTROS.map(({ key, label }) => (
               <Link
                 key={key}
-                href={
-                  key === "todos"
-                    ? `/painel/campeonatos/${id}/checkin`
-                    : `/painel/campeonatos/${id}/checkin?filtro=${key}`
-                }
+                href={checkinHref(id, key, 1)}
                 className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                   filtroAtivo === key
                     ? "bg-blue-600 text-white"
@@ -194,6 +180,23 @@ export default async function CheckinPage({
               )}
             </ol>
           </Surface>
+        )}
+        {filteredTotal > 0 && totalPages > 1 && (
+          <nav className="mt-4 flex items-center justify-between border-t border-border pt-4" aria-label="Paginacao do check-in">
+            <span className="text-sm text-ink-muted">Pagina {page} de {totalPages}</span>
+            <div className="flex gap-2">
+              {page > 1 && (
+                <Link href={checkinHref(id, filtroAtivo, page - 1)} className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm text-ink">
+                  <ChevronLeft className="size-4" /> Anterior
+                </Link>
+              )}
+              {page < totalPages && (
+                <Link href={checkinHref(id, filtroAtivo, page + 1)} className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm text-ink">
+                  Proxima <ChevronRight className="size-4" />
+                </Link>
+              )}
+            </div>
+          </nav>
         )}
       </section>
     </PageContainer>

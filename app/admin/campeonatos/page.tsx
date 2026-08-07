@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { formatDateRangeBR } from "@/lib/format";
 import {
   AdminCampeonatosLista,
@@ -10,6 +9,7 @@ import {
 } from "@/components/admin/AdminCampeonatosLista";
 
 export const dynamic = "force-dynamic";
+const PAGE_SIZE = 25;
 
 type ChampRow = {
   id: string;
@@ -22,41 +22,37 @@ type ChampRow = {
   data_inicio: string;
   data_fim: string;
   created_at: string;
+  organizer_name: string | null;
+  organizer_username: string | null;
+  organizer_phone: string | null;
+  organizer_email: string | null;
 };
 
-export default async function AdminCampeonatosPage() {
+export default async function AdminCampeonatosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const query = await searchParams;
+  const requestedPage = Number.parseInt(String(query.page ?? "1"), 10);
+  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
 
-  const admin = createAdminClient();
+  // Diretório privilegiado e paginado, incluindo rascunhos.
+  const { data: directoryData } = await supabase.rpc("admin_championship_directory", {
+    p_limit: PAGE_SIZE,
+    p_offset: (page - 1) * PAGE_SIZE,
+  });
+  const directory = (directoryData ?? {}) as unknown as { items?: ChampRow[]; total?: number };
+  const champs = directory.items ?? [];
+  const total = Number(directory.total ?? 0);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (page > totalPages) redirect(`/admin/campeonatos?page=${totalPages}`);
 
-  // Todos os campeonatos (admin client ignora RLS, então vê rascunhos de todos)
-  const { data: rawChamps } = await admin
-    .from("championships")
-    .select("id, nome, status, is_vitrine, organizador_id, cidade, estado, data_inicio, data_fim, created_at")
-    .order("created_at", { ascending: false });
-
-  const champs: ChampRow[] = (rawChamps ?? []) as ChampRow[];
-  const organizadorIds = [...new Set(champs.map((c) => c.organizador_id))];
-
-  // Contatos do organizador: nome/@ (profiles), telefone (organizer_accounts), email (auth)
-  const [{ data: profiles }, { data: orgAccounts }, authData] = await Promise.all([
-    organizadorIds.length
-      ? admin.from("profiles").select("id, nome, username").in("id", organizadorIds)
-      : Promise.resolve({ data: [] as { id: string; nome: string; username: string }[] }),
-    organizadorIds.length
-      ? admin.from("organizer_accounts").select("user_id, telefone").in("user_id", organizadorIds)
-      : Promise.resolve({ data: [] as { user_id: string; telefone: string }[] }),
-    admin.auth.admin.listUsers({ perPage: 1000 }),
-  ]);
-
-  const profMap  = new Map((profiles ?? []).map((p) => [p.id, p]));
-  const foneMap  = new Map((orgAccounts ?? []).map((o) => [o.user_id, o.telefone]));
-  const emailMap = new Map(authData.data?.users.map((u) => [u.id, u.email ?? ""]));
-
+  // Os contatos chegam na mesma consulta para evitar N+1 em auth.users.
   const itens: AdminCampItem[] = champs.map((c) => {
-    const prof = profMap.get(c.organizador_id);
     return {
       id:     c.id,
       nome:   c.nome,
@@ -66,16 +62,16 @@ export default async function AdminCampeonatosPage() {
       estado: c.estado,
       datas:  formatDateRangeBR(c.data_inicio, c.data_fim),
       org: {
-        nome:     prof?.nome ?? "—",
-        username: prof?.username ?? null,
-        email:    emailMap.get(c.organizador_id) ?? "—",
-        fone:     foneMap.get(c.organizador_id) ?? null,
+        nome:     c.organizer_name ?? "—",
+        username: c.organizer_username,
+        email:    c.organizer_email ?? "—",
+        fone:     c.organizer_phone,
       },
     };
   });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+    <div className="w-full space-y-6 px-6 py-8">
       <Link
         href="/admin"
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
@@ -88,7 +84,7 @@ export default async function AdminCampeonatosPage() {
           <h1 className="text-2xl font-semibold text-gray-900">Campeonatos</h1>
           <p className="mt-1 text-sm text-gray-500">
             Todos os campeonatos da plataforma. Mude o status, exclua ou veja o
-            contato do organizador. {champs.length} no total.
+            contato do organizador. {total} no total.
           </p>
         </div>
         <Link
@@ -100,6 +96,24 @@ export default async function AdminCampeonatosPage() {
       </div>
 
       <AdminCampeonatosLista itens={itens} />
+
+      {total > 0 && (
+        <nav className="flex items-center justify-between border-t border-gray-200 pt-4" aria-label="Paginacao dos campeonatos do admin">
+          <span className="text-sm text-gray-500">Pagina {page} de {totalPages}</span>
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Link href={`/admin/campeonatos?page=${page - 1}`} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                <ChevronLeft className="size-4" /> Anterior
+              </Link>
+            )}
+            {page < totalPages && (
+              <Link href={`/admin/campeonatos?page=${page + 1}`} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                Proxima <ChevronRight className="size-4" />
+              </Link>
+            )}
+          </div>
+        </nav>
+      )}
     </div>
   );
 }

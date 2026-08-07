@@ -1,113 +1,116 @@
-"use client";
-
-import { useState, useMemo } from "react";
-import { ChevronDown, Search, X, Building2 } from "lucide-react";
+import Link from "next/link";
+import { Building2, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { ArenaCard, type ArenaCardData } from "./ArenaCard";
-import { FilterBar } from "@/components/shell/FilterBar";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { SectionHeader } from "@/components/shell/SectionHeader";
 
-const PAGE_SIZE = 12;
+function pageHref(page: number, query: string, state: string): string {
+  const params = new URLSearchParams();
+  if (query) params.set("q", query);
+  if (state) params.set("estado", state);
+  if (page > 1) params.set("page", String(page));
+  const suffix = params.toString();
+  return suffix ? `/arenas?${suffix}` : "/arenas";
+}
 
 export function ArenaSection({
-  allArenas,
+  arenas,
   estados,
+  query,
+  estado,
+  page,
+  pageSize,
+  total,
 }: {
-  allArenas: ArenaCardData[];
+  arenas: ArenaCardData[];
   estados: string[];
+  query: string;
+  estado: string;
+  page: number;
+  pageSize: number;
+  total: number;
 }) {
-  const [busca, setBusca] = useState("");
-  const [estadoFiltro, setEstadoFiltro] = useState("");
-  const [visible, setVisible] = useState(PAGE_SIZE);
-
-  const filtrados = useMemo(() => {
-    let list = allArenas;
-    if (busca.trim()) {
-      const q = busca.trim().toLowerCase();
-      list = list.filter((a) => a.nome.toLowerCase().includes(q));
-    }
-    if (estadoFiltro) list = list.filter((a) => a.estado === estadoFiltro);
-    return list;
-  }, [allArenas, busca, estadoFiltro]);
-
-  function handleEstado(v: string) { setEstadoFiltro(v); setVisible(PAGE_SIZE); }
-  function handleBusca(v: string) { setBusca(v); setVisible(PAGE_SIZE); }
-  function limpar() { setBusca(""); setEstadoFiltro(""); setVisible(PAGE_SIZE); }
-
-  const temFiltro = busca || estadoFiltro;
-  const exibidos = filtrados.slice(0, visible);
-  const temMais = visible < filtrados.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const hasFilter = Boolean(query || estado);
 
   return (
     <section>
       <SectionHeader title="Arenas" className="mb-3" />
 
-      <FilterBar className="mb-4">
-        <div className="relative flex-1 sm:min-w-64">
+      <form action="/arenas" method="get" className="mb-4 flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-3 sm:flex-row">
+        <label className="relative min-w-0 flex-1 sm:min-w-64">
+          <span className="sr-only">Buscar arena pelo nome</span>
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
           <input
-            value={busca}
-            onChange={(e) => handleBusca(e.target.value)}
-            placeholder="Buscar arena pelo nome…"
-            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-9 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            name="q"
+            defaultValue={query}
+            placeholder="Buscar arena pelo nome..."
+            maxLength={80}
+            className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          {busca && (
-            <button
-              onClick={() => handleBusca("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-gray-400 hover:text-gray-700"
-            >
-              <X className="size-4" />
-            </button>
-          )}
-        </div>
+        </label>
 
-        <select
-          value={estadoFiltro}
-          onChange={(e) => handleEstado(e.target.value)}
-          className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todos os estados</option>
-          {estados.map((uf) => (
-            <option key={uf} value={uf}>{uf}</option>
-          ))}
-        </select>
-
-        {temFiltro && (
-          <button
-            onClick={limpar}
-            className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-500 hover:bg-gray-50"
+        <label>
+          <span className="sr-only">Filtrar por estado</span>
+          <select
+            name="estado"
+            defaultValue={estado}
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto"
           >
-            Limpar
-          </button>
-        )}
-      </FilterBar>
+            <option value="">Todos os estados</option>
+            {estados.map((uf) => <option key={uf} value={uf}>{uf}</option>)}
+          </select>
+        </label>
 
-      {filtrados.length === 0 ? (
+        <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
+          <Search className="size-4" /> Buscar
+        </button>
+        {hasFilter && (
+          <Link
+            href="/arenas"
+            title="Limpar filtros"
+            className="inline-flex size-10 items-center justify-center self-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50"
+          >
+            <X className="size-4" />
+            <span className="sr-only">Limpar filtros</span>
+          </Link>
+        )}
+      </form>
+
+      {arenas.length === 0 ? (
         <EmptyState
           icon={Building2}
           title="Nenhuma arena encontrada"
-          description="Tente outro nome ou remova o filtro de estado."
+          description={hasFilter ? "Tente outro nome ou remova o filtro de estado." : "Ainda nao ha arenas cadastradas na plataforma."}
         />
       ) : (
-        <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {exibidos.map((a) => (
-              <ArenaCard key={a.id} arena={a} />
-            ))}
-          </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+          {arenas.map((arena) => <ArenaCard key={arena.id} arena={arena} />)}
+        </div>
+      )}
 
-          {temMais && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setVisible((v) => v + PAGE_SIZE)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                <ChevronDown className="size-4" />
-                Ver mais ({filtrados.length - visible} restantes)
-              </button>
-            </div>
-          )}
-        </>
+      {total > 0 && (
+        <nav aria-label="Paginacao de arenas" className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-gray-200 pt-4 sm:flex-row">
+          <p className="text-sm text-gray-500">
+            Pagina {Math.min(page, totalPages)} de {totalPages} - {total} {total === 1 ? "arena" : "arenas"}
+          </p>
+          <div className="flex items-center gap-2">
+            {page > 1 ? (
+              <Link href={pageHref(page - 1, query, estado)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <ChevronLeft className="size-4" /> Anterior
+              </Link>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-lg border border-gray-100 px-3 py-2 text-sm text-gray-300"><ChevronLeft className="size-4" /> Anterior</span>
+            )}
+            {page < totalPages ? (
+              <Link href={pageHref(page + 1, query, estado)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Proxima <ChevronRight className="size-4" />
+              </Link>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-lg border border-gray-100 px-3 py-2 text-sm text-gray-300">Proxima <ChevronRight className="size-4" /></span>
+            )}
+          </div>
+        </nav>
       )}
     </section>
   );

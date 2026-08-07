@@ -119,7 +119,7 @@ export default async function ExtratoGastoMensalPage() {
     <div className="min-h-screen">
       {/* ── Cabeçalho preto — mesmo padrão visual da página Gasto mensal ── */}
       <div className="bg-black px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-3xl space-y-4">
+        <div className="w-full space-y-4">
           <Link href="/admin/gasto-mensal" className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors">
             <ArrowLeft className="size-4" /> Gasto mensal
           </Link>
@@ -135,7 +135,7 @@ export default async function ExtratoGastoMensalPage() {
 
       {/* ── Conteúdo branco ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-5xl">
+        <div className="w-full">
           <ExtratoClient events={events} expenses={expenses} incomes={incomes} categories={categories} />
         </div>
       </div>

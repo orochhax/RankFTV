@@ -1,5 +1,13 @@
 import { addDays, parseISO, type Habit, type HabitLog } from "@/lib/performance";
 
+const BAHIA_CLOCK_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/Bahia",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
+
 export type LifeOSView = "today" | "agenda" | "habits" | "activities" | "goals" | "investments" | "settings";
 export type EventStatus = "planned" | "in_progress" | "completed" | "cancelled";
 export type ActivityStatus = "planned" | "completed" | "partial" | "cancelled";
@@ -125,6 +133,13 @@ export function buildDeterministicInsights(input: {
 
 export function todayDateInBahia(now = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bahia", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
+
+export function minutesSinceMidnightInBahia(value: Date | string): number {
+  const date = typeof value === "string" ? new Date(value) : value;
+  const parts = Object.fromEntries(BAHIA_CLOCK_FORMATTER.formatToParts(date).map((part) => [part.type, part.value]));
+  const hours = Number(parts.hour) % 24;
+  return hours * 60 + Number(parts.minute) + Number(parts.second) / 60;
 }
 
 export function isoDateToLabel(iso: string): string {

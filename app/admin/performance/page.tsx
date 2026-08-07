@@ -7,7 +7,8 @@ import { type LifeEvent, type LifeGoal, type LifeInsight, type PortfolioSnapshot
 import type { WeeklyReport } from "@/components/performance/RelatorioSemanal";
 import { expandTaskOccurrences, resolveDashboardRange, type DashboardPeriod, type Task } from "@/lib/performance-dashboard";
 import { consistencyStatus } from "@/lib/performance-analytics";
-import type { RoadmapDraftSummary, RoadmapGenerationJob } from "@/lib/study-roadmap-ai";
+import { roadmapAiAnswersSchema, type RoadmapDraftSummary, type RoadmapGenerationJob } from "@/lib/study-roadmap-ai";
+import type { StudyOrganizationProfile } from "@/lib/study-organization";
 import { DAILY_LIFE_ANALYSIS_TYPE, parseDailyLifeAnalysis } from "@/lib/daily-life-analysis";
 import { isStudyAnswerCorrect, type SubmittedStudyAnswer } from "@/lib/study-assessment";
 import type { StudySessionMetadata } from "@/lib/performance-widgets";
@@ -101,9 +102,10 @@ export default async function PerformancePage({ searchParams }: { searchParams?:
     supabase.from("perf_task").select("*").eq("user_id", user.id).eq("active", true).lte("start_date", range.to).order("start_date"),
     supabase.from("perf_task_log").select("task_id, occurrence_date, completed, completed_at").eq("user_id", user.id).gte("occurrence_date", addDays(today, -730)).lte("occurrence_date", range.to > today ? range.to : today),
   ]);
-  const [roadmapsRes, roadmapMetaRes, studyDraftsRes, studyGenerationJobsRes, investmentContributionsRes] = await Promise.all([
+  const [roadmapsRes, roadmapMetaRes, roadmapAnswersRes, studyDraftsRes, studyGenerationJobsRes, investmentContributionsRes] = await Promise.all([
     supabase.from("perf_study_roadmap").select("id, title, description, status, start_date, target_date, source, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
-    supabase.from("perf_study_roadmap").select("id, difficulty_level, quality_score, workload_score, total_estimated_minutes").eq("user_id", user.id),
+    supabase.from("perf_study_roadmap").select("id, generation_id, difficulty_level, quality_score, workload_score, total_estimated_minutes").eq("user_id", user.id),
+    supabase.from("perf_study_roadmap_generation").select("id, answers").eq("user_id", user.id).eq("status", "accepted"),
     supabase.from("perf_study_roadmap_generation").select("id, origin, original_filename, preview_title, preview_description, module_count, step_count, total_estimated_minutes, created_at").eq("user_id", user.id).eq("status", "ready").order("created_at", { ascending: false }).limit(20),
     supabase.from("perf_study_roadmap_generation").select("id, status, preview_title, error_message, created_at").eq("user_id", user.id).in("status", ["generating", "failed"]).gte("created_at", recentGenerationSince).order("created_at", { ascending: false }).limit(5),
     supabase.from("perf_investment_contribution").select("id, date, amount, institution, notes, source").eq("user_id", user.id).order("date", { ascending: true }),
@@ -176,10 +178,25 @@ export default async function PerformancePage({ searchParams }: { searchParams?:
   const consistencyOccurrences = expandTaskOccurrences(tasks, taskLogs, { period: "custom", from: addDays(today, -730), to: today });
   const consistency = consistencyStatus(habits, logs, consistencyOccurrences, today);
   const roadmapMetaById = new Map((roadmapMetaRes.data ?? []).map((row) => [row.id, row]));
+  const roadmapOrganizationProfiles = new Map<string, StudyOrganizationProfile>();
+  (roadmapAnswersRes.data ?? []).forEach((row) => {
+    const parsed = roadmapAiAnswersSchema.safeParse(row.answers);
+    // Roadmaps de idioma anteriores usavam "mobile" como valor tecnico sem
+    // perguntar o dispositivo ao usuario, portanto nao tratamos isso como resposta.
+    if (!parsed.success || (parsed.data.roadmapType === "language" && !parsed.data.organizationProfileCollected)) return;
+    roadmapOrganizationProfiles.set(row.id, {
+      roadmapType: parsed.data.roadmapType,
+      subject: parsed.data.subject,
+      targetLanguage: parsed.data.targetLanguage,
+      availableDevices: parsed.data.availableDevices,
+      digitalLiteracy: parsed.data.digitalLiteracy,
+    });
+  });
   const itemDetailsById = new Map(studyItemDetailRows.map((row) => [row.id, row]));
   const studyRoadmaps = (roadmapsRes.data ?? []).map((row) => {
     const meta = roadmapMetaById.get(row.id);
-    return { id: row.id, title: row.title, description: row.description, status: row.status, startDate: row.start_date, targetDate: row.target_date, source: row.source, difficultyLevel: meta?.difficulty_level ?? null, qualityScore: asNumber(meta?.quality_score), workloadScore: asNumber(meta?.workload_score), totalEstimatedMinutes: asNumber(meta?.total_estimated_minutes), createdAt: row.created_at };
+    const organizationProfile = typeof meta?.generation_id === "string" ? roadmapOrganizationProfiles.get(meta.generation_id) ?? null : null;
+    return { id: row.id, title: row.title, description: row.description, status: row.status, startDate: row.start_date, targetDate: row.target_date, source: row.source, difficultyLevel: meta?.difficulty_level ?? null, qualityScore: asNumber(meta?.quality_score), workloadScore: asNumber(meta?.workload_score), totalEstimatedMinutes: asNumber(meta?.total_estimated_minutes), createdAt: row.created_at, organizationProfile };
   });
   const studyDrafts: RoadmapDraftSummary[] = (studyDraftsRes.data ?? []).filter((row) => Boolean(row.preview_title)).map((row) => ({
     generationId: row.id,

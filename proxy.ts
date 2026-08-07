@@ -1,11 +1,45 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  applyRequestSecurityHeaders,
+  buildContentSecurityPolicy,
+  createRequestId,
+  createRequestNonce,
+} from "@/lib/security-headers";
 
 // Rotas que exigem role admin ou ceo
 const ADMIN_ROUTES = ["/admin"];
 
 export async function proxy(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  const development = process.env.NODE_ENV === "development";
+  const nonce = createRequestNonce();
+  const requestId = createRequestId();
+  const csp = buildContentSecurityPolicy(nonce, { development });
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("x-request-id", requestId);
+  requestHeaders.set("Content-Security-Policy", csp);
+
+  const createNextResponse = () =>
+    NextResponse.next({ request: { headers: requestHeaders } });
+  let supabaseResponse = createNextResponse();
+
+  const secure = (response: NextResponse) => {
+    applyRequestSecurityHeaders(response.headers, {
+      csp,
+      requestId,
+      production: !development,
+    });
+    return response;
+  };
+
+  const secureRedirect = (url: URL) => {
+    const response = NextResponse.redirect(url);
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      response.cookies.set(cookie);
+    }
+    return secure(response);
+  };
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +53,7 @@ export async function proxy(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse = createNextResponse();
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -29,9 +63,15 @@ export async function proxy(request: NextRequest) {
   );
 
   // Renova o token — sempre necessário
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: { id: string } | null = null;
+  try {
+    const auth = await supabase.auth.getUser();
+    user = auth.data.user;
+  } catch {
+    // Public pages and security headers remain available during a temporary
+    // auth-provider outage. Protected routes still fail closed below.
+    user = null;
+  }
 
   const { pathname } = request.nextUrl;
 
@@ -39,7 +79,7 @@ export async function proxy(request: NextRequest) {
   const needsAdmin = ADMIN_ROUTES.some((r) => pathname.startsWith(r));
   if (needsAdmin) {
     if (!user) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return secureRedirect(new URL("/login", request.url));
     }
     const { data: profile } = await supabase
       .from("profiles")
@@ -48,7 +88,7 @@ export async function proxy(request: NextRequest) {
       .single();
 
     if (!profile || !["admin", "ceo"].includes(profile.role)) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return secureRedirect(new URL("/", request.url));
     }
   }
 
@@ -58,7 +98,7 @@ export async function proxy(request: NextRequest) {
   // token estava expirado, a segunda renovação usava um refresh token que a
   // primeira já tinha rotacionado — falhava e mandava pro login à toa.
 
-  return supabaseResponse;
+  return secure(supabaseResponse);
 }
 
 export const config = {

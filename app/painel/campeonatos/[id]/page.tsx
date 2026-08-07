@@ -49,16 +49,9 @@ export default async function PainelCampeonatoPage({
   // botão "Sou atleta" -> /campeonatos/[id]/comprar). Esta segunda é hoje
   // o fluxo realmente usado pelo botão público — sem somar aqui o painel
   // mostrava R$0/zero inscrições mesmo com Pix confirmado.
-  const [tierRes, paidRegRes, paidTicketRes, orgAccountRes] = await Promise.all([
+  const [tierRes, financialMetricsRes, orgAccountRes] = await Promise.all([
     supabase.from("championships").select("tier_quiz, is_elite").eq("id", id).maybeSingle(),
-    supabase.from("registrations")
-      .select("valor")
-      .eq("championship_id", id)
-      .eq("status_pagamento", "pago"),
-    supabase.from("athlete_tickets")
-      .select("valor")
-      .eq("championship_id", id)
-      .eq("status_pagamento", "pago"),
+    supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
     supabase.from("organizer_accounts")
       .select("chave_pix")
       .eq("user_id", user.id)
@@ -66,9 +59,12 @@ export default async function PainelCampeonatoPage({
   ]);
   const tierQuiz    = (tierRes.data?.tier_quiz ?? null) as Partial<QuizAnswers> | null;
   const isElite     = !!tierRes.data?.is_elite;
-  const paidRows    = [...(paidRegRes.data ?? []), ...(paidTicketRes.data ?? [])] as { valor: number }[];
-  const duplasPagas = paidRows.length;
-  const totalArrecadado = paidRows.reduce((s, r) => s + Number(r.valor), 0);
+  const financialMetrics = (financialMetricsRes.data ?? {}) as {
+    statuses?: Array<{ status: string; count: number; total: number }>;
+  };
+  const paidMetric = financialMetrics.statuses?.find((item) => item.status === "pago");
+  const duplasPagas = Number(paidMetric?.count ?? 0);
+  const totalArrecadado = Number(paidMetric?.total ?? 0);
   const temChavePix = !!orgAccountRes.data?.chave_pix;
   const temCategoriaPaga = camp.categorias.some((c) => (c.valorInscricao ?? 0) > 0);
 

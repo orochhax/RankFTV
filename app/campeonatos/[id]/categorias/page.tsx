@@ -77,7 +77,7 @@ export default async function CategoriasPage({
     <div className="min-h-screen">
       {/* ── Cabeçalho preto ── */}
       <div className="bg-black px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-2xl space-y-4">
+        <div className="w-full space-y-4">
           <Link
             href={`/campeonatos/${id}`}
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
@@ -97,7 +97,7 @@ export default async function CategoriasPage({
 
       {/* ── Conteúdo branco ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-2xl">
+        <div className="w-full">
           {precisaQuestionario && (
             <div className="mb-3 rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-800 ring-1 ring-blue-100">
               <p className="font-semibold">Esse campeonato recomenda a categoria pra você</p>

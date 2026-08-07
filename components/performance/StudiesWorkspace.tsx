@@ -52,6 +52,7 @@ import {
 } from "@/app/admin/performance/life-os-actions";
 import { RoadmapAiWizard } from "@/components/performance/RoadmapAiWizard";
 import { usePerformanceConfirm } from "@/components/performance/PerformanceConfirmDialog";
+import { StudyOrganizationGuide } from "@/components/performance/StudyOrganizationGuide";
 import { formatDateBR } from "@/lib/format";
 import { ROADMAP_IMPORT_MAX_BYTES } from "@/lib/performance-analytics";
 import { roadmapDraftStats, type RoadmapDraftDetail, type RoadmapDraftSummary, type RoadmapGenerationJob } from "@/lib/study-roadmap-ai";
@@ -347,6 +348,12 @@ export function StudiesWorkspace({
             key={module.id}
             module={module}
             number={index + 1}
+            organizationGuide={index === 0 ? <StudyOrganizationGuide
+              roadmapId={roadmap.id}
+              roadmapTitle={roadmap.title}
+              moduleTitles={moduleViews.map((entry) => entry.title)}
+              profile={roadmap.organizationProfile ?? null}
+            /> : null}
             questions={questions}
             attempts={attempts}
             onRefresh={() => router.refresh()}
@@ -605,7 +612,7 @@ function RoadmapSummary({ roadmap, items, moduleCount }: { roadmap: StudyRoadmap
   </div>;
 }
 
-function StudyModule({ module, number, questions, attempts, onRefresh }: { module: ModuleView; number: number; questions: StudyAssessmentQuestion[]; attempts: StudyAssessmentAttempt[]; onRefresh: () => void }) {
+function StudyModule({ module, number, organizationGuide, questions, attempts, onRefresh }: { module: ModuleView; number: number; organizationGuide?: React.ReactNode; questions: StudyAssessmentQuestion[]; attempts: StudyAssessmentAttempt[]; onRefresh: () => void }) {
   const completed = module.items.filter((item) => item.status === "completed").length;
   const progress = module.items.length ? Math.round((completed / module.items.length) * 100) : 0;
   const estimatedMinutes = moduleDuration(module);
@@ -620,6 +627,7 @@ function StudyModule({ module, number, questions, attempts, onRefresh }: { modul
       <ChevronDown className={`size-4 text-white/35 transition-transform ${open ? "rotate-180" : ""}`} />
     </button>
     {open && <div className="border-t border-white/10 p-4">
+      {organizationGuide}
       {(module.objective || module.successCriteria) && <div className="grid gap-4 border-b border-white/10 pb-4 text-xs sm:grid-cols-2"><div><p className="font-semibold uppercase text-blue-300/70">Missao do modulo</p><p className="mt-1.5 leading-5 text-white/60">{module.objective ?? "Concluir as etapas deste modulo."}</p></div><div><p className="font-semibold uppercase text-emerald-300/70">Resultado esperado</p><p className="mt-1.5 leading-5 text-white/60">{module.successCriteria ?? "Aplicar o conteudo sem depender do passo a passo."}</p></div></div>}
       {visibleTopics.length > 0 && <div className="my-4 flex flex-wrap items-center gap-1.5"><span className="mr-1 text-[10px] font-semibold uppercase text-white/30">Competencias</span>{visibleTopics.map((topic) => <span key={topic} className="rounded bg-white/[0.05] px-2 py-1 text-[11px] text-white/55 ring-1 ring-white/10">{topic}</span>)}{hiddenTopicCount > 0 && <span title={module.topics.slice(visibleTopics.length).join(", ")} className="rounded px-2 py-1 text-[11px] text-white/35 ring-1 ring-white/10">+{hiddenTopicCount}</span>}</div>}
       <div className="space-y-2">{module.items.map((item, index) => <StudyStep key={item.id} item={item} number={index + 1} defaultOpen={index === 0 && item.status !== "completed"} questions={questions.filter((question) => question.itemId === item.id)} attempts={attempts.filter((attempt) => attempt.itemId === item.id)} onRefresh={onRefresh} />)}{!module.items.length && <p className="rounded-lg border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">As etapas deste modulo nao foram carregadas. Troque o roadmap ativo e abra-o novamente.</p>}</div>

@@ -53,39 +53,24 @@ export async function enviarComunicado(
   if (userIds.length === 0) return { ok: false, enviados: 0, error: "Selecione ao menos um destinatário." };
 
   const admin = createAdminClient();
-
-  // Conjunto real de elegíveis: atletas com inscrição paga neste campeonato.
-  // A seleção do organizador (userIds) é interseccionada com isso — não dá
-  // pra mandar comunicado (nem notificação) pra ninguém fora dessa lista.
-  const { data: regs } = await admin
-    .from("registrations")
-    .select("teams(atleta1_id, atleta2_id)")
-    .eq("championship_id", champId)
-    .eq("status_pagamento", "pago");
-
-  const elegiveis = new Set<string>();
-  for (const reg of regs ?? []) {
-    const team = reg.teams as unknown as { atleta1_id: string; atleta2_id: string | null } | null;
-    if (!team) continue;
-    elegiveis.add(team.atleta1_id);
-    if (team.atleta2_id) elegiveis.add(team.atleta2_id);
+  const idsSolicitados = [...new Set(userIds)].slice(0, MAX_DESTINATARIOS);
+  const { data: eligibleRows, error: recipientsError } = await supabase.rpc(
+    "organizer_championship_recipients",
+    { p_championship_id: champId, p_user_ids: idsSolicitados }
+  );
+  if (recipientsError) {
+    return { ok: false, enviados: 0, error: "Nao foi possivel validar os destinatarios." };
   }
 
-  const idsValidos = [...new Set(userIds)].filter((id) => elegiveis.has(id)).slice(0, MAX_DESTINATARIOS);
-  if (idsValidos.length === 0) return { ok: false, enviados: 0, error: "Nenhum destinatário válido selecionado." };
-
-  const [{ data: profiles }, { data: { users: allAuthUsers } }] = await Promise.all([
-    admin.from("profiles").select("id, nome").in("id", idsValidos),
-    admin.auth.admin.listUsers({ perPage: 1000 }),
-  ]);
-  const nomeMap  = Object.fromEntries((profiles ?? []).map((p) => [p.id, p.nome as string]));
-  const emailMap = Object.fromEntries(
-    allAuthUsers.filter((u) => idsValidos.includes(u.id)).map((u) => [u.id, u.email ?? ""]),
-  );
-
-  const destinatarios: Destinatario[] = idsValidos
-    .filter((id) => emailMap[id])
-    .map((id) => ({ userId: id, email: emailMap[id], nome: nomeMap[id] ?? "Atleta" }));
+  const destinatarios: Destinatario[] = ((eligibleRows ?? []) as Array<{
+    user_id: string;
+    email: string;
+    nome: string;
+  }>).map((recipient) => ({
+    userId: recipient.user_id,
+    email: recipient.email,
+    nome: recipient.nome,
+  }));
 
   if (destinatarios.length === 0) return { ok: false, enviados: 0, error: "Nenhum destinatário válido selecionado." };
 

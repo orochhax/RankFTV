@@ -1,8 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Wallet } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { formatBRL } from "@/lib/format";
 import { InscricaoExpandivel } from "@/components/painel/InscricaoExpandivel";
@@ -43,10 +42,15 @@ const CONFIG: Record<StatusSlug, { titulo: string; bg: string; text: string; rin
 
 export default async function FinanceiroStatusPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; status: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { id, status: statusSlug } = await params;
+  const query = await searchParams;
+  const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
+  const pageSize = 30;
 
   if (!Object.keys(SLUG_TO_STATUS).includes(statusSlug)) notFound();
   const slug   = statusSlug as StatusSlug;
@@ -62,12 +66,16 @@ export default async function FinanceiroStatusPage({
   if (camp.organizadorId !== user.id) notFound();
 
   // Busca inscrições com o status filtrado
-  const { data: rawRegs } = await supabase
+  const [{ data: rawRegs, count }, { data: metricData }] = await Promise.all([
+    supabase
     .from("registrations")
-    .select(`id, valor, created_at, team_id, championship_categories(nome), teams(atleta1_id, atleta2_id)`)
+    .select(`id, valor, created_at, team_id, championship_categories(nome), teams(atleta1_id, atleta2_id)`, { count: "exact" })
     .eq("championship_id", id)
     .eq("status_pagamento", status)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range((page - 1) * pageSize, page * pageSize - 1),
+    supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
+  ]);
 
   const regs = rawRegs ?? [];
 
@@ -82,33 +90,28 @@ export default async function FinanceiroStatusPage({
 
   // Perfis publicos (nome, username) + telefone privado via admin apos validar dono.
   const perfilMap: Record<string, { nome: string; username: string; telefone: string | null }> = {};
-  if (ids.length > 0) {
-    const { data: perfis } = await supabase
-      .from("profiles")
-      .select("id, nome, username")
-      .in("id", ids);
-    for (const p of perfis ?? []) perfilMap[p.id] = { ...p, telefone: null };
-  }
-
-  // E-mails e telefones via admin
   const emailMap: Record<string, string | null> = {};
   if (ids.length > 0) {
-    const admin = createAdminClient();
-    const [{ data: privRows }] = await Promise.all([
-      admin.from("profiles_private").select("user_id, telefone").in("user_id", ids),
-      Promise.all(
-        ids.map(async (uid) => {
-          const { data } = await admin.auth.admin.getUserById(uid);
-          emailMap[uid] = data?.user?.email ?? null;
-        }),
-      ),
-    ]);
-    for (const row of privRows ?? []) {
-      if (perfilMap[row.user_id]) perfilMap[row.user_id].telefone = row.telefone ?? null;
+    const { data: contacts } = await supabase.rpc("organizer_profile_contacts", {
+      p_championship_id: id,
+      p_user_ids: ids,
+    });
+    for (const contact of (contacts ?? []) as Array<{ id: string; nome: string; username: string; telefone: string | null; email: string | null }>) {
+      perfilMap[contact.id] = { nome: contact.nome, username: contact.username, telefone: contact.telefone };
+      emailMap[contact.id] = contact.email;
     }
   }
 
-  const totalValor = regs.reduce((s, r) => s + Number(r.valor), 0);
+  const metrics = (metricData ?? {}) as {
+    statuses?: Array<{ status: string; count: number; total: number }>;
+  };
+  const statusMetric = metrics.statuses?.find((item) => item.status === status);
+  const totalRows = Number(statusMetric?.count ?? count ?? 0);
+  const totalValor = Number(statusMetric?.total ?? 0);
+  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+  if (page > totalPages) {
+    redirect(`/painel/campeonatos/${id}/financeiro/${slug}?page=${totalPages}`);
+  }
 
   type InscricaoDetalhe = {
     regId:     string;
@@ -137,7 +140,7 @@ export default async function FinanceiroStatusPage({
   });
 
   return (
-    <PageContainer width="form" className="space-y-4 py-8">
+    <PageContainer width="wide" className="space-y-4 py-8">
       <Link
         href={`/painel/campeonatos/${id}/financeiro`}
         className="inline-flex items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-blue-600"
@@ -151,10 +154,10 @@ export default async function FinanceiroStatusPage({
 
       {/* Resumo rápido */}
       <div className={`inline-flex items-center gap-3 rounded-card-lg px-4 py-3 ring-1 ${cfg.bg} ${cfg.ring}`}>
-        <span className={`text-2xl font-bold ${cfg.text}`}>{lista.length}</span>
+        <span className={`text-2xl font-bold ${cfg.text}`}>{totalRows}</span>
         <div>
           <p className={`text-xs font-semibold ${cfg.text}`}>
-            {lista.length === 1 ? "dupla" : "duplas"}
+            {totalRows === 1 ? "dupla" : "duplas"}
           </p>
           <p className={`text-xs ${cfg.text} opacity-70`}>{formatBRL(totalValor)}</p>
         </div>
@@ -163,11 +166,32 @@ export default async function FinanceiroStatusPage({
       {lista.length === 0 ? (
         <EmptyState icon={Wallet} title="Nenhuma inscrição aqui ainda" description={cfg.descricao} />
       ) : (
-        <div className="divide-y divide-border overflow-hidden rounded-card-lg ring-1 ring-border">
-          {lista.map((ins) => (
-            <InscricaoExpandivel key={ins.regId} inscricao={ins} />
-          ))}
-        </div>
+        <>
+          <div className="divide-y divide-border overflow-hidden rounded-card-lg ring-1 ring-border">
+            {lista.map((ins) => (
+              <InscricaoExpandivel key={ins.regId} inscricao={ins} />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <nav className="flex items-center justify-between text-sm" aria-label="Paginacao de pagamentos">
+              <Link
+                href={`/painel/campeonatos/${id}/financeiro/${slug}?page=${Math.max(1, page - 1)}`}
+                aria-disabled={page <= 1}
+                className={`inline-flex items-center gap-1 ${page <= 1 ? "pointer-events-none text-ink-muted/40" : "text-blue-600"}`}
+              >
+                <ChevronLeft className="size-4" /> Anterior
+              </Link>
+              <span className="text-ink-muted">Pagina {Math.min(page, totalPages)} de {totalPages}</span>
+              <Link
+                href={`/painel/campeonatos/${id}/financeiro/${slug}?page=${Math.min(totalPages, page + 1)}`}
+                aria-disabled={page >= totalPages}
+                className={`inline-flex items-center gap-1 ${page >= totalPages ? "pointer-events-none text-ink-muted/40" : "text-blue-600"}`}
+              >
+                Proxima <ChevronRight className="size-4" />
+              </Link>
+            </nav>
+          )}
+        </>
       )}
     </PageContainer>
   );

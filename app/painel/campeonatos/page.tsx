@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, FileText, ChevronRight, Trophy, CalendarCheck, FilePenLine, Archive } from "lucide-react";
+import { Plus, FileText, ChevronLeft, ChevronRight, Trophy, CalendarCheck, FilePenLine, Archive } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getMyChampionships } from "@/lib/supabase/championships";
+import { getMyChampionshipsPage, type OrganizerChampionshipFilter } from "@/lib/supabase/championships";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { StatCard } from "@/components/shell/StatCard";
@@ -12,29 +12,27 @@ import { MeusCampeonatosGrid, type OrganizerChampSummary } from "@/components/pa
 export default async function MeusCampeonatosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filtro?: string }>;
+  searchParams: Promise<{ filtro?: string; page?: string }>;
 }) {
-  const { filtro } = await searchParams;
+  const { filtro, page: pageParam } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const todos = await getMyChampionships(user.id);
-
-  const abertos    = todos.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento");
-  const rascunhos  = todos.filter((c) => c.status === "rascunho");
-  const encerrados = todos.filter((c) => c.status === "encerrado");
-
-  const filtroAtivo =
+  const filtroAtivo: OrganizerChampionshipFilter =
     filtro === "rascunho"  ? "rascunho"  :
     filtro === "encerrado" ? "encerrado" :
     filtro === "todos"     ? "todos"     : "aberto";
 
-  const lista =
-    filtroAtivo === "rascunho"  ? rascunhos :
-    filtroAtivo === "encerrado" ? [...encerrados].sort((a, b) => b.dataInicio.localeCompare(a.dataInicio)) :
-    filtroAtivo === "todos"     ? [...todos].sort((a, b) => a.dataInicio.localeCompare(b.dataInicio)) :
-    [...abertos].sort((a, b) => a.dataInicio.localeCompare(b.dataInicio));
+  const parsedPage = Number.parseInt(String(pageParam ?? "1"), 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const pageSize = 12;
+  const result = await getMyChampionshipsPage(user.id, filtroAtivo, page, pageSize);
+  const lista = result.items;
+  const totalPages = Math.max(1, Math.ceil(result.total / pageSize));
+  if (page > totalPages) {
+    redirect(`/painel/campeonatos?filtro=${filtroAtivo}&page=${totalPages}`);
+  }
 
   const resumo: OrganizerChampSummary[] = lista.map((c) => ({
     id: c.id,
@@ -51,10 +49,10 @@ export default async function MeusCampeonatosPage({
   }));
 
   const FILTROS = [
-    { key: "aberto",    label: "Abertos",    count: abertos.length },
-    { key: "todos",     label: "Todos",      count: todos.length },
-    { key: "rascunho",  label: "Rascunhos",  count: rascunhos.length },
-    { key: "encerrado", label: "Encerrados", count: encerrados.length },
+    { key: "aberto",    label: "Abertos",    count: result.counts.open },
+    { key: "todos",     label: "Todos",      count: result.counts.all },
+    { key: "rascunho",  label: "Rascunhos",  count: result.counts.draft },
+    { key: "encerrado", label: "Encerrados", count: result.counts.closed },
   ];
 
   return (
@@ -73,10 +71,10 @@ export default async function MeusCampeonatosPage({
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Total de campeonatos" value={todos.length} icon={Trophy} />
-        <StatCard label="Inscrições abertas / em andamento" value={abertos.length} icon={CalendarCheck} tone="success" />
-        <StatCard label="Rascunhos" value={rascunhos.length} icon={FilePenLine} tone="warning" />
-        <StatCard label="Encerrados" value={encerrados.length} icon={Archive} />
+        <StatCard label="Total de campeonatos" value={result.counts.all} icon={Trophy} />
+        <StatCard label="Inscrições abertas / em andamento" value={result.counts.open} icon={CalendarCheck} tone="success" />
+        <StatCard label="Rascunhos" value={result.counts.draft} icon={FilePenLine} tone="warning" />
+        <StatCard label="Encerrados" value={result.counts.closed} icon={Archive} />
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1">
@@ -109,6 +107,24 @@ export default async function MeusCampeonatosPage({
         />
       ) : (
         <MeusCampeonatosGrid campeonatos={resumo} />
+      )}
+
+      {result.total > 0 && (
+        <nav className="flex items-center justify-between border-t border-border pt-4" aria-label="Paginacao dos campeonatos">
+          <span className="text-sm text-ink-muted">Pagina {Math.min(page, totalPages)} de {totalPages}</span>
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Link href={`/painel/campeonatos?filtro=${filtroAtivo}&page=${page - 1}`} className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm text-ink">
+                <ChevronLeft className="size-4" /> Anterior
+              </Link>
+            )}
+            {page < totalPages && (
+              <Link href={`/painel/campeonatos?filtro=${filtroAtivo}&page=${page + 1}`} className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm text-ink">
+                Proxima <ChevronRight className="size-4" />
+              </Link>
+            )}
+          </div>
+        </nav>
       )}
 
       <Link

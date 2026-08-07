@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { criarOuBuscarCliente, tokenizarCartao } from "@/lib/asaas";
+import { AsaasApiError, criarOuBuscarCliente, tokenizarCartao } from "@/lib/asaas";
+import {
+  beginCardPaymentAttempt,
+  cardBlockedMessage,
+  finishCardPaymentAttempt,
+} from "@/lib/payment-security";
 
 export type SalvarCartaoInput = {
   arenaId:        string;
@@ -59,6 +64,14 @@ export async function salvarCartaoArena(input: SalvarCartaoInput): Promise<Salva
   const { data: profile } = await supabase.from("profiles").select("nome").eq("id", user.id).single();
   if (!profile) return { ok: false, error: "Perfil não encontrado." };
 
+  const attempt = await beginCardPaymentAttempt({
+    flow: "arena_card_registration",
+    orderReference: `${input.arenaId}:${user.id}`,
+    actorId: user.id,
+    cardNumber: digits,
+  });
+  if (!attempt.allowed) return { ok: false, error: cardBlockedMessage(attempt.retryAfterSeconds) };
+
   try {
     const customer = await criarOuBuscarCliente({ name: profile.nome, email: user.email!, cpfCnpj: cpfNum });
     const cartao = await tokenizarCartao({
@@ -101,9 +114,15 @@ export async function salvarCartaoArena(input: SalvarCartaoInput): Promise<Salva
       supabase.from("profiles_private").upsert({ user_id: user.id, cpf: cpfNum }, { onConflict: "user_id" }),
     ]);
 
+    await finishCardPaymentAttempt(attempt.attemptId, "success", "tokenized");
     revalidatePath(`/arenas/${input.handle}/financeiro`);
     return { ok: true };
   } catch (e) {
+    await finishCardPaymentAttempt(
+      attempt.attemptId,
+      e instanceof AsaasApiError && e.ambiguous ? "ambiguous" : "declined",
+      e instanceof AsaasApiError ? e.code : "unexpected_error",
+    );
     const msg = e instanceof Error ? e.message : "Erro ao registrar o cartão.";
     return { ok: false, error: msg.includes("Asaas") ? "Não foi possível registrar o cartão. Confira os dados e tente de novo." : msg };
   }

@@ -84,7 +84,7 @@ export function ArenaAgendaClient({
     anchorDate.slice(0, 4);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-4 md:px-8 md:py-6">
+    <div className="w-full px-4 py-4 md:px-8 md:py-6">
       {/* ── Barra de controle: desktop ── */}
       <div className="mb-4 hidden flex-wrap items-center justify-between gap-3 md:flex">
         <div className="flex items-center gap-3">

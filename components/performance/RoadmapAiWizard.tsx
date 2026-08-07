@@ -3,7 +3,9 @@
 import { useMemo, useState, useTransition } from "react";
 import {
   BookOpen,
+  CalendarClock,
   Check,
+  CircleCheckBig,
   ExternalLink,
   FileCheck2,
   Film,
@@ -21,16 +23,25 @@ import {
   Sparkles,
   Swords,
   TextCursorInput,
+  TriangleAlert,
   Wrench,
 } from "lucide-react";
 import { confirmarRoadmapGeradoLifeOS, gerarRoadmapComIALifeOS } from "@/app/admin/performance/life-os-actions";
 import { formatDateBR } from "@/lib/format";
-import { roadmapLanguageFormats, roadmapSetupStatus, studyClockToMinutes, studyMinutesToClock, type RoadmapAiAnswers, type RoadmapDraftDetail, type RoadmapGenerationPlan } from "@/lib/study-roadmap-ai";
+import { roadmapLanguageFormats, roadmapSetupStatus, roadmapTimeFeasibility, studyClockToMinutes, studyMinutesToClock, type RoadmapAiAnswers, type RoadmapDraftDetail, type RoadmapGenerationPlan } from "@/lib/study-roadmap-ai";
 
 const inputClass = "mt-1 w-full rounded-lg border border-white/10 bg-[#0f1318] px-3 py-2 text-sm text-white outline-none focus:border-blue-500";
 const darkContentClass = "text-white [&_.border-gray-100]:!border-white/10 [&_.border-gray-200]:!border-white/10 [&_.border-gray-300]:!border-white/15 [&_.border-emerald-200]:!border-emerald-400/25 [&_.bg-white]:!bg-[#15191f] [&_.bg-gray-100]:!bg-white/10 [&_.bg-blue-50]:!bg-blue-400/10 [&_.bg-emerald-50]:!bg-emerald-400/10 [&_.bg-amber-50]:!bg-amber-400/10 [&_.bg-red-50]:!bg-red-400/10 [&_.text-gray-300]:!text-white/25 [&_.text-gray-400]:!text-white/35 [&_.text-gray-500]:!text-white/45 [&_.text-gray-600]:!text-white/60 [&_.text-gray-700]:!text-white/70 [&_.text-gray-800]:!text-white/85 [&_.text-gray-900]:!text-white [&_.text-blue-700]:!text-blue-300 [&_.text-emerald-700]:!text-emerald-300 [&_.text-emerald-800]:!text-emerald-200 [&_.text-amber-700]:!text-amber-300 [&_.text-amber-800]:!text-amber-200 [&_.text-amber-900]:!text-amber-100 [&_.text-red-600]:!text-red-300";
 const weekdays = [
   ["1", "Seg"], ["2", "Ter"], ["3", "Qua"], ["4", "Qui"], ["5", "Sex"], ["6", "Sab"], ["0", "Dom"],
+] as const;
+
+const deviceOptions = [
+  ["windows", "Computador Windows"],
+  ["mac", "Mac"],
+  ["linux", "Computador Linux"],
+  ["chromebook", "Chromebook"],
+  ["mobile", "Celular ou tablet"],
 ] as const;
 
 const learningFormats = [
@@ -102,7 +113,7 @@ const itemLabels: Record<string, string> = {
 };
 
 type PreviewState = { generationId: string; plan: RoadmapGenerationPlan };
-type ListField = "availableDays" | "learningFormats" | "requiredMaterials" | "languageSkills" | "languageActivities" | "languagePracticeAccess" | "languageContexts";
+type ListField = "availableDevices" | "availableDays" | "learningFormats" | "requiredMaterials" | "languageSkills" | "languageActivities" | "languagePracticeAccess" | "languageContexts";
 
 type FormState = {
   roadmapType: "skill" | "language";
@@ -111,7 +122,7 @@ type FormState = {
   goalDetail: string;
   currentLevel: string;
   digitalLiteracy: string;
-  mainDevice: string;
+  availableDevices: string[];
   useContext: string;
   targetLevel: string;
   mainObstacle: string;
@@ -158,10 +169,18 @@ function weeksFromMonths(months: number): number {
 
 function initialFormState(today: string, answers?: RoadmapAiAnswers | null): FormState {
   if (answers) {
+    const storedAnswers = answers as RoadmapAiAnswers & { availableDevices?: string[]; mainDevice?: string };
+    const storedDevices = storedAnswers.availableDevices?.length
+      ? storedAnswers.availableDevices
+      : storedAnswers.mainDevice
+        ? [storedAnswers.mainDevice]
+        : [];
+    const availableDevices = [...new Set(storedDevices.filter((device) => deviceOptions.some(([value]) => value === device)))];
     const preferredMaterials = answers.requiredMaterials.filter((material) => material !== "free");
     const visibleFormats = answers.learningFormats.filter((format) => !["quiz", "project"].includes(format));
     return {
       ...answers,
+      availableDevices,
       durationMonths: answers.durationMonths ?? monthsFromWeeks(answers.durationWeeks),
       availableDays: [...answers.availableDays],
       learningFormats: visibleFormats.length ? visibleFormats : ["practice"],
@@ -182,7 +201,7 @@ function initialFormState(today: string, answers?: RoadmapAiAnswers | null): For
     goalDetail: "",
     currentLevel: "unknown",
     digitalLiteracy: "needs_guidance",
-    mainDevice: "windows",
+    availableDevices: [],
     useContext: "new_career",
     targetLevel: "autonomous",
     mainObstacle: "direction",
@@ -240,7 +259,10 @@ export function RoadmapAiWizard({
   const [operation, setOperation] = useState<"generate" | "confirm" | null>(null);
   const [pending, startTransition] = useTransition();
   const setup = useMemo(() => roadmapSetupStatus(draft), [draft]);
+  const timeFeasibility = useMemo(() => roadmapTimeFeasibility(draft), [draft]);
   const commonRequirementsReady = draft.goalDetail.trim().length >= 10
+    && Boolean(timeFeasibility?.plannedMinutes)
+    && draft.availableDevices.length > 0
     && draft.availableDays.length > 0
     && draft.minutesPerDay >= 30
     && draft.minutesPerDay <= 480
@@ -300,6 +322,10 @@ export function RoadmapAiWizard({
 
   return <form onSubmit={(event) => {
     event.preventDefault();
+    if (!draft.availableDevices.length) {
+      setError("Escolha ao menos um aparelho que voce pode usar para estudar.");
+      return;
+    }
     const data = new FormData(event.currentTarget);
     setError(null);
     setOperation("generate");
@@ -323,8 +349,6 @@ export function RoadmapAiWizard({
       <input type="hidden" name="goal" value="personal" />
       <input type="hidden" name="use_context" value="personal_project" />
       <input type="hidden" name="current_level" value="unknown" />
-      <input type="hidden" name="digital_literacy" value="basic" />
-      <input type="hidden" name="main_device" value="mobile" />
       <input type="hidden" name="target_level" value="autonomous" />
       <input type="hidden" name="main_obstacle" value="practice" />
     </>}
@@ -363,15 +387,13 @@ export function RoadmapAiWizard({
         <SelectField name="digital_literacy" label="Autonomia com tecnologia" value={draft.digitalLiteracy} onChange={(value) => setField("digitalLiteracy", value)} options={[
           ["needs_guidance", "Preciso do passo a passo"], ["basic", "Uso o computador, mas preciso de ajuda"], ["comfortable", "Instalo e configuro ferramentas"], ["advanced", "Domino terminal e ambientes"],
         ]} />
-        <SelectField name="main_device" label="Dispositivo principal" value={draft.mainDevice} onChange={(value) => setField("mainDevice", value)} options={[
-          ["windows", "Computador Windows"], ["mac", "Mac"], ["linux", "Computador Linux"], ["chromebook", "Chromebook"], ["mobile", "Celular ou tablet"],
-        ]} />
         <SelectField name="main_obstacle" label="Maior dificuldade" value={draft.mainObstacle} onChange={(value) => setField("mainObstacle", value)} options={[
           ["direction", "Nao sei por onde seguir"], ["time", "Tenho pouco tempo"], ["consistency", "Perco a constancia"], ["theory", "Fico preso na teoria"], ["practice", "Falta pratica"], ["none", "Nenhuma especifica"],
         ]} />
         <SelectField name="content_depth" label="Profundidade" value={draft.contentDepth} onChange={(value) => setField("contentDepth", value)} options={[
           ["essential", "Somente o essencial"], ["balanced", "Equilibrada"], ["deep", "Aprofundada"],
         ]} />
+        <AvailableDevicesField values={draft.availableDevices} onToggle={(value) => toggleList("availableDevices", value)} />
         <label className="text-xs font-medium text-gray-500 sm:col-span-2">O que voce ja conhece? <span className="font-normal text-gray-400">Opcional</span>
           <textarea name="known_topics" rows={2} maxLength={2000} value={draft.knownTopics} onChange={(event) => setField("knownTopics", event.target.value)} placeholder="Ex.: Excel, tabelas dinamicas e conceitos basicos de banco de dados" className={inputClass} />
         </label>
@@ -435,9 +457,13 @@ export function RoadmapAiWizard({
         <SelectField name="language_obstacle" label="Maior dificuldade" value={draft.languageObstacle} onChange={(value) => setField("languageObstacle", value)} options={[
           ["speaking_anxiety", "Travo para falar"], ["listening_speed", "Nao entendo fala natural"], ["vocabulary", "Falta vocabulario"], ["grammar", "Nao consigo montar frases"], ["pronunciation", "Tenho inseguranca na pronuncia"], ["consistency", "Perco a constancia"], ["none", "Nenhuma especifica"],
         ]} />
+        <SelectField name="digital_literacy" label="Autonomia com tecnologia" value={draft.digitalLiteracy} onChange={(value) => setField("digitalLiteracy", value)} options={[
+          ["needs_guidance", "Preciso do passo a passo"], ["basic", "Uso o computador, mas preciso de ajuda"], ["comfortable", "Instalo e configuro ferramentas"], ["advanced", "Domino terminal e ambientes"],
+        ]} />
         <SelectField name="content_depth" label="Profundidade" value={draft.contentDepth} onChange={(value) => setField("contentDepth", value)} options={[
           ["essential", "Comunicacao essencial"], ["balanced", "Equilibrada"], ["deep", "Aprofundada"],
         ]} />
+        <AvailableDevicesField values={draft.availableDevices} onToggle={(value) => toggleList("availableDevices", value)} />
         <label className="text-xs font-medium text-gray-500 sm:col-span-2 lg:col-span-3">O que voce ja consegue fazer hoje? <span className="font-normal text-gray-400">Opcional se nao souber</span>
           <textarea name="known_topics" rows={2} maxLength={2000} value={draft.knownTopics} onChange={(event) => setField("knownTopics", event.target.value)} placeholder="Ex.: entendo videos lentos com legenda, consigo me apresentar, mas travo para responder perguntas" className={inputClass} />
         </label>
@@ -456,7 +482,47 @@ export function RoadmapAiWizard({
     </>}
 
     <fieldset className="space-y-4 border-t border-gray-100 pt-5">
-      <legend className="font-semibold text-gray-900">3. Tempo disponivel</legend>
+      <legend className="font-semibold text-gray-900">3. {draft.roadmapType === "language" ? "Como voce quer aprender" : "O que deve existir no roadmap"}</legend>
+      {draft.roadmapType === "language" ? <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{languageActivities.map(({ value, label, detail, icon: Icon }) => {
+        const selected = draft.languageActivities.includes(value);
+        return <label key={value} className={`cursor-pointer rounded-lg border p-3 ${selected ? "border-emerald-400/50 bg-emerald-400/10" : "border-white/10 hover:border-white/20"}`}><input type="checkbox" name="language_activities" value={value} checked={selected} onChange={() => toggleList("languageActivities", value)} className="sr-only" /><span className="flex items-start gap-3"><span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${selected ? "bg-emerald-600 text-white" : "bg-white/10 text-white/45"}`}><Icon className="size-4" /></span><span><b className="block text-sm text-white/85">{label}</b><span className="mt-1 block text-xs leading-5 text-white/35">{detail}</span></span></span></label>;
+      })}</div> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{learningFormats.map(({ value, label, detail, icon: Icon }) => {
+        const selected = draft.learningFormats.includes(value);
+        return <label key={value} className={`cursor-pointer rounded-lg border p-3 ${selected ? "border-blue-400/50 bg-blue-400/10" : "border-white/10 hover:border-white/20"}`}><input type="checkbox" name="learning_formats" value={value} checked={selected} onChange={() => toggleList("learningFormats", value)} className="sr-only" /><span className="flex items-start gap-3"><span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${selected ? "bg-blue-600 text-white" : "bg-white/10 text-white/45"}`}><Icon className="size-4" /></span><span><b className="block text-sm text-white/85">{label}</b><span className="mt-1 block text-xs leading-5 text-white/35">{detail}</span></span></span></label>;
+      })}</div>}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <SelectField name="pace" label="Ritmo" value={draft.pace} onChange={(value) => setField("pace", value)} options={[
+          ["light", "Leve e sustentavel"], ["steady", "Constante"], ["intensive", "Intensivo"],
+        ]} />
+        <SelectField name="assessment_preference" label="Como quer ser avaliado?" value={draft.assessmentPreference} onChange={(value) => setField("assessmentPreference", value)} options={[
+          ["none", "Sem avaliacoes"], ["quick_quizzes", "Questoes rapidas nos modulos"], ["module_exams", "Avaliacao ao final de cada modulo"], ["practical", "Avaliacao pratica"], ["mixed", "Questoes e pratica"],
+        ]} />
+        <SelectField name="project_mode" label={draft.roadmapType === "language" ? "Projeto de imersao" : "Projetos"} value={draft.projectMode} onChange={(value) => setField("projectMode", value)} options={draft.roadmapType === "language" ? [
+          ["none", "Sem projeto de imersao"], ["guided", "Um projeto guiado"], ["per_module", "Uma entrega por modulo"], ["capstone", "Imersao final completa"],
+        ] : [
+          ["none", "Sem projeto"], ["guided", "Um projeto guiado"], ["per_module", "Uma entrega por modulo"], ["capstone", "Projeto final completo"],
+        ]} />
+      </div>
+    </fieldset>
+
+    <fieldset className="space-y-4 border-t border-gray-100 pt-5">
+      <legend className="font-semibold text-gray-900">4. Materiais e fontes</legend>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <SelectField name="material_budget" label="Orcamento para materiais" value={draft.materialBudget} onChange={(value) => setField("materialBudget", value)} options={[
+          ["free_only", "Somente materiais gratuitos"], ["paid_allowed", "Aceito recomendacoes de materiais ou cursos pagos"],
+        ]} />
+        <MultiChoiceGroup title="Fontes preferidas" name="required_materials" values={draft.requiredMaterials} options={draft.roadmapType === "language" ? languageMaterialOptions : materialOptions} onToggle={(value) => toggleList("requiredMaterials", value)} />
+      </div>
+      {draft.requiredMaterials.includes("own_material") && <label className="block text-xs font-medium text-gray-500">Quais materiais voce ja possui?
+        <textarea name="owned_materials" required rows={3} minLength={3} maxLength={3000} value={draft.ownedMaterials} onChange={(event) => setField("ownedMaterials", event.target.value)} placeholder={draft.roadmapType === "language" ? "Ex.: Netflix, livro English Grammar in Use e curso de ingles da plataforma X" : "Ex.: curso Data Science Academy, livro Python para Analise de Dados e apostila da faculdade"} className={inputClass} />
+      </label>}
+      {!draft.requiredMaterials.includes("own_material") && <input type="hidden" name="owned_materials" value="" />}
+      <p className="text-[11px] leading-5 text-gray-400">Cursos completos podem ser gratuitos ou pagos. A IA respeitara o orcamento escolhido e priorizara as fontes marcadas.</p>
+    </fieldset>
+
+    <fieldset className="space-y-4 border-t border-gray-100 pt-5">
+      <legend className="font-semibold text-gray-900">5. Tempo disponivel</legend>
+      <p className="text-xs leading-5 text-white/40">Agora que objetivo, profundidade e ritmo estao definidos, confira se o prazo comporta o escopo desejado.</p>
       <input type="hidden" name="timeline_mode" value={draft.timelineMode} />
       <input type="hidden" name="duration_weeks" value={weeksFromMonths(draft.durationMonths)} />
       {draft.timelineMode === "deadline" && <input type="hidden" name="duration_months" value={draft.durationMonths} />}
@@ -483,45 +549,7 @@ export function RoadmapAiWizard({
         <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">{weekdays.map(([value, label]) => <label key={value} className={`flex cursor-pointer items-center justify-center rounded-lg border px-2 py-2 text-xs font-semibold ${draft.availableDays.includes(value) ? "border-blue-400/50 bg-blue-400/10 text-blue-300" : "border-white/10 text-white/40"}`}><input type="checkbox" name="available_days" value={value} checked={draft.availableDays.includes(value)} onChange={() => toggleList("availableDays", value)} className="sr-only" />{label}</label>)}</div>
         <p className="mt-2 text-[11px] text-gray-400">Esses dias calculam a carga do plano. Os modulos nao ficarao presos a datas.</p>
       </div>
-    </fieldset>
-
-    <fieldset className="space-y-4 border-t border-gray-100 pt-5">
-      <legend className="font-semibold text-gray-900">4. {draft.roadmapType === "language" ? "Como voce quer aprender" : "O que deve existir no roadmap"}</legend>
-      {draft.roadmapType === "language" ? <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{languageActivities.map(({ value, label, detail, icon: Icon }) => {
-        const selected = draft.languageActivities.includes(value);
-        return <label key={value} className={`cursor-pointer rounded-lg border p-3 ${selected ? "border-emerald-400/50 bg-emerald-400/10" : "border-white/10 hover:border-white/20"}`}><input type="checkbox" name="language_activities" value={value} checked={selected} onChange={() => toggleList("languageActivities", value)} className="sr-only" /><span className="flex items-start gap-3"><span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${selected ? "bg-emerald-600 text-white" : "bg-white/10 text-white/45"}`}><Icon className="size-4" /></span><span><b className="block text-sm text-white/85">{label}</b><span className="mt-1 block text-xs leading-5 text-white/35">{detail}</span></span></span></label>;
-      })}</div> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{learningFormats.map(({ value, label, detail, icon: Icon }) => {
-        const selected = draft.learningFormats.includes(value);
-        return <label key={value} className={`cursor-pointer rounded-lg border p-3 ${selected ? "border-blue-400/50 bg-blue-400/10" : "border-white/10 hover:border-white/20"}`}><input type="checkbox" name="learning_formats" value={value} checked={selected} onChange={() => toggleList("learningFormats", value)} className="sr-only" /><span className="flex items-start gap-3"><span className={`flex size-8 shrink-0 items-center justify-center rounded-md ${selected ? "bg-blue-600 text-white" : "bg-white/10 text-white/45"}`}><Icon className="size-4" /></span><span><b className="block text-sm text-white/85">{label}</b><span className="mt-1 block text-xs leading-5 text-white/35">{detail}</span></span></span></label>;
-      })}</div>}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <SelectField name="pace" label="Ritmo" value={draft.pace} onChange={(value) => setField("pace", value)} options={[
-          ["light", "Leve e sustentavel"], ["steady", "Constante"], ["intensive", "Intensivo"],
-        ]} />
-        <SelectField name="assessment_preference" label="Como quer ser avaliado?" value={draft.assessmentPreference} onChange={(value) => setField("assessmentPreference", value)} options={[
-          ["none", "Sem avaliacoes"], ["quick_quizzes", "Questoes rapidas nos modulos"], ["module_exams", "Avaliacao ao final de cada modulo"], ["practical", "Avaliacao pratica"], ["mixed", "Questoes e pratica"],
-        ]} />
-        <SelectField name="project_mode" label={draft.roadmapType === "language" ? "Projeto de imersao" : "Projetos"} value={draft.projectMode} onChange={(value) => setField("projectMode", value)} options={draft.roadmapType === "language" ? [
-          ["none", "Sem projeto de imersao"], ["guided", "Um projeto guiado"], ["per_module", "Uma entrega por modulo"], ["capstone", "Imersao final completa"],
-        ] : [
-          ["none", "Sem projeto"], ["guided", "Um projeto guiado"], ["per_module", "Uma entrega por modulo"], ["capstone", "Projeto final completo"],
-        ]} />
-      </div>
-    </fieldset>
-
-    <fieldset className="space-y-4 border-t border-gray-100 pt-5">
-      <legend className="font-semibold text-gray-900">5. Materiais e fontes</legend>
-      <div className="grid gap-5 lg:grid-cols-2">
-        <SelectField name="material_budget" label="Orcamento para materiais" value={draft.materialBudget} onChange={(value) => setField("materialBudget", value)} options={[
-          ["free_only", "Somente materiais gratuitos"], ["paid_allowed", "Aceito recomendacoes de materiais ou cursos pagos"],
-        ]} />
-        <MultiChoiceGroup title="Fontes preferidas" name="required_materials" values={draft.requiredMaterials} options={draft.roadmapType === "language" ? languageMaterialOptions : materialOptions} onToggle={(value) => toggleList("requiredMaterials", value)} />
-      </div>
-      {draft.requiredMaterials.includes("own_material") && <label className="block text-xs font-medium text-gray-500">Quais materiais voce ja possui?
-        <textarea name="owned_materials" required rows={3} minLength={3} maxLength={3000} value={draft.ownedMaterials} onChange={(event) => setField("ownedMaterials", event.target.value)} placeholder={draft.roadmapType === "language" ? "Ex.: Netflix, livro English Grammar in Use e curso de ingles da plataforma X" : "Ex.: curso Data Science Academy, livro Python para Analise de Dados e apostila da faculdade"} className={inputClass} />
-      </label>}
-      {!draft.requiredMaterials.includes("own_material") && <input type="hidden" name="owned_materials" value="" />}
-      <p className="text-[11px] leading-5 text-gray-400">Cursos completos podem ser gratuitos ou pagos. A IA respeitara o orcamento escolhido e priorizara as fontes marcadas.</p>
+      {timeFeasibility && <TimeFeasibilityStatus status={timeFeasibility} depth={draft.contentDepth} pace={draft.pace} />}
     </fieldset>
 
     {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</p>}
@@ -533,6 +561,102 @@ export function RoadmapAiWizard({
       </div>
     </div>
   </form>;
+}
+
+type TimeFeasibility = NonNullable<ReturnType<typeof roadmapTimeFeasibility>>;
+
+function formatRoadmapDuration(weeks: number, months?: number): string {
+  if (weeks < 9) return `${weeks} ${weeks === 1 ? "semana" : "semanas"}`;
+  const totalMonths = months ?? Math.max(1, Math.round(weeks / (52 / 12)));
+  return `${totalMonths} ${totalMonths === 1 ? "mes" : "meses"}`;
+}
+
+function formatStudyHours(minutes: number): string {
+  const hours = Math.round((minutes / 60) * 10) / 10;
+  return `${hours.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}h`;
+}
+
+function TimeFeasibilityStatus({ status, depth, pace }: { status: TimeFeasibility; depth: string; pace: string }) {
+  const presentation = {
+    very_short: {
+      title: "Tempo muito curto",
+      frame: "border-red-400/30 bg-red-400/10",
+      icon: "bg-red-400/15 text-red-300",
+      accent: "text-red-200",
+    },
+    tight: {
+      title: "Prazo apertado",
+      frame: "border-amber-400/30 bg-amber-400/10",
+      icon: "bg-amber-400/15 text-amber-300",
+      accent: "text-amber-200",
+    },
+    balanced: {
+      title: "Prazo equilibrado",
+      frame: "border-blue-400/30 bg-blue-400/10",
+      icon: "bg-blue-400/15 text-blue-300",
+      accent: "text-blue-200",
+    },
+    comfortable: {
+      title: "Prazo confortavel",
+      frame: "border-emerald-400/30 bg-emerald-400/10",
+      icon: "bg-emerald-400/15 text-emerald-300",
+      accent: "text-emerald-200",
+    },
+  }[status.level];
+  const depthLabel = { essential: "essencial", balanced: "equilibrada", deep: "aprofundada" }[depth] ?? depth;
+  const paceLabel = { light: "leve", steady: "constante", intensive: "intensivo" }[pace] ?? pace;
+  const requestedDuration = formatRoadmapDuration(status.requestedWeeks);
+  const needsMoreTime = status.recommendedWeeks > status.requestedWeeks;
+  const recommendedDuration = needsMoreTime
+    ? formatRoadmapDuration(status.recommendedWeeks, status.recommendedMonths)
+    : formatRoadmapDuration(status.recommendedWeeks);
+  const hasNoSessions = status.plannedMinutes === 0;
+  const visibleCoverage = Math.min(100, status.coveragePercent);
+  const coverageLabel = status.coveragePercent > 200 ? "mais de 200%" : `${status.coveragePercent}%`;
+  const scopeImpact = hasNoSessions
+    ? "Nenhum dos dias selecionados ocorre dentro do prazo informado. Ajuste as datas ou escolha um dia de estudo que exista nesse intervalo."
+    : status.level === "very_short"
+      ? `A capacidade estimada cobre cerca de ${visibleCoverage}% do escopo. A IA precisara priorizar os fundamentos, e muitos assuntos complementares e praticas podem ficar de fora.`
+      : status.level === "tight"
+        ? `A capacidade estimada cobre cerca de ${visibleCoverage}% do escopo. Alguns aprofundamentos, revisoes ou praticas provavelmente precisarao ser reduzidos.`
+        : status.level === "balanced"
+          ? "A carga disponivel esta alinhada ao escopo e preserva espaco para pratica, revisao e imprevistos."
+          : status.coveragePercent > 200
+            ? "Ha ampla margem sobre a carga estimada, o que permite estudar com mais folga ou aprofundar pontos importantes."
+            : `Ha cerca de ${Math.max(1, status.coveragePercent - 100)}% de margem sobre a carga estimada, o que permite estudar com mais folga ou aprofundar pontos importantes.`;
+  const recommendation = hasNoSessions
+    ? "Inclua ao menos uma sessao de estudo no intervalo para gerar o roadmap."
+    : status.exceedsMaximumWindow
+      ? `Prazo ideal estimado: ${recommendedDuration}. Como ele ultrapassa o limite de 12 meses, aumente os dias ou minutos de estudo, reduza a profundidade ou divida a meta em etapas.`
+      : status.level === "very_short" || status.level === "tight" || needsMoreTime
+        ? `Recomendacao: reserve ${recommendedDuration} para manter esse ritmo e essa profundidade.`
+        : `Seu prazo ja atende a faixa recomendada, estimada em ${recommendedDuration}.`;
+
+  return <section role="status" aria-live="polite" className={`rounded-xl border p-4 ${presentation.frame}`}>
+    <div className="flex items-start gap-3">
+      <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${presentation.icon}`}>
+        {status.level === "very_short" || status.level === "tight" ? <TriangleAlert className="size-4" /> : status.level === "comfortable" ? <CircleCheckBig className="size-4" /> : <CalendarClock className="size-4" />}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div><p className={`text-sm font-semibold ${presentation.accent}`}>{hasNoSessions ? "Nenhuma sessao no prazo" : presentation.title}</p><p className="mt-0.5 text-[11px] text-white/40">Estimativa para profundidade {depthLabel} e ritmo {paceLabel}</p></div>
+          <p className={`text-sm font-bold ${presentation.accent}`}>{coverageLabel} do escopo</p>
+        </div>
+        <p className="mt-3 text-xs leading-5 text-white/65">{scopeImpact}</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <TimeMetric label="Prazo informado" value={requestedDuration} />
+          <TimeMetric label="Carga util / estimada" value={`${formatStudyHours(status.plannedMinutes)} / ${formatStudyHours(status.estimatedMinutes)}`} />
+          <TimeMetric label="Prazo recomendado" value={recommendedDuration} />
+        </div>
+        <p className="mt-3 text-[11px] font-medium leading-5 text-white/60">{recommendation}</p>
+        <p className="mt-1 text-[10px] leading-4 text-white/30">Estimativa inicial baseada nas suas escolhas; nao e uma promessa de dominio total do assunto.</p>
+      </div>
+    </div>
+  </section>;
+}
+
+function TimeMetric({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-lg bg-black/10 px-3 py-2"><p className="text-[10px] uppercase tracking-wide text-white/35">{label}</p><p className="mt-1 text-xs font-semibold text-white/80">{value}</p></div>;
 }
 
 function RoadmapStatus({ status, selectionCount, selectionLabel, languageMode }: { status: ReturnType<typeof roadmapSetupStatus>; selectionCount: number; selectionLabel: string; languageMode: boolean }) {
@@ -615,6 +739,24 @@ function Metric({ value, label }: { value: string | number; label: string }) {
 
 function MultiChoiceGroup({ title, name, values, options, onToggle }: { title: string; name: string; values: string[]; options: ReadonlyArray<readonly [string, string]>; onToggle: (value: string) => void }) {
   return <fieldset><legend className="font-semibold text-gray-900">{title}</legend><div className="mt-3 space-y-2">{options.map(([value, label]) => <label key={value} className="flex cursor-pointer items-center gap-2 text-sm text-gray-600"><input type="checkbox" name={name} value={value} checked={values.includes(value)} onChange={() => onToggle(value)} className="size-4 rounded accent-blue-600" />{label}</label>)}</div></fieldset>;
+}
+
+function AvailableDevicesField({ values, onToggle }: { values: string[]; onToggle: (value: string) => void }) {
+  const helperId = "roadmap-available-devices-help";
+  return <fieldset className="sm:col-span-2 lg:col-span-4" aria-describedby={helperId}>
+    <legend className="text-xs font-medium text-gray-500">Quais aparelhos voce pode usar para estudar?</legend>
+    <p id={helperId} className="mt-1 text-[11px] leading-5 text-white/35">Marque todos os que estarao disponiveis. A IA escolhera o mais adequado para cada atividade.</p>
+    <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      {deviceOptions.map(([value, label]) => {
+        const selected = values.includes(value);
+        return <label key={value} className={`flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors focus-within:ring-2 focus-within:ring-blue-400 ${selected ? "border-blue-400/50 bg-blue-400/10 text-blue-200" : "border-white/10 text-white/50 hover:border-white/20"}`}>
+          <input type="checkbox" name="available_devices" value={value} checked={selected} onChange={() => onToggle(value)} className="size-4 shrink-0 rounded accent-blue-600" />
+          <span>{label}</span>
+        </label>;
+      })}
+    </div>
+    {!values.length && <p className="mt-2 text-[11px] text-amber-300">Escolha ao menos um aparelho para gerar um plano executavel.</p>}
+  </fieldset>;
 }
 
 function SelectField({ name, label, value, options, onChange, className = "" }: { name: string; label: string; value: string; options: ReadonlyArray<readonly [string, string]>; onChange: (value: string) => void; className?: string }) {

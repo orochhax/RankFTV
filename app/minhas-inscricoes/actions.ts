@@ -51,14 +51,32 @@ export async function cancelarInscricao(
     return { ok: false, error: "Inscrição já cancelada." };
 
   const admin = createAdminClient();
-  await admin.from("teams").update({ status: "cancelado" }).eq("id", teamId);
 
-  // Cancela somente inscrições ainda pendentes (não reverte pagamentos já confirmados)
-  await admin
+  // Pedidos pendentes ou gratuitos podem ser cancelados aqui. Uma inscricao
+  // paga exige o fluxo dedicado de reembolso.
+  const { data: cancellableRegistrations, error: pendingError } = await admin
     .from("registrations")
-    .update({ status_pagamento: "estornado" })
+    .select("id, status_pagamento, valor, asaas_payment_id")
     .eq("team_id", teamId)
-    .eq("status_pagamento", "pendente");
+    .in("status_pagamento", ["pendente", "pago"]);
+
+  if (pendingError) return { ok: false, error: "Nao foi possivel cancelar agora." };
+  if ((cancellableRegistrations ?? []).some((registration) =>
+    registration.status_pagamento === "pago"
+    && (Boolean(registration.asaas_payment_id) || Number(registration.valor) > 0)
+  )) {
+    return { ok: false, error: "Esta inscricao foi paga. Use a opcao de solicitar reembolso." };
+  }
+
+  for (const registration of cancellableRegistrations ?? []) {
+    const { error } = await admin.rpc("release_registration_inventory", {
+      p_registration_id: registration.id,
+      p_target_status: "estornado",
+    });
+    if (error) return { ok: false, error: "Nao foi possivel liberar a vaga da inscricao." };
+  }
+
+  await admin.from("teams").update({ status: "cancelado" }).eq("id", teamId);
 
   revalidatePath("/minhas-inscricoes");
   return { ok: true };

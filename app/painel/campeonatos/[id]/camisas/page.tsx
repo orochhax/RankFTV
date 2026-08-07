@@ -41,7 +41,8 @@ export default async function CamisasPage({
     .from("registrations")
     .select("teams(atleta1_id, atleta2_id)")
     .eq("championship_id", id)
-    .eq("status_pagamento", "pago");
+    .eq("status_pagamento", "pago")
+    .limit(1000);
 
   /* ── IDs únicos de atletas ── */
   const athleteIdSet = new Set<string>();
@@ -60,7 +61,8 @@ export default async function CamisasPage({
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, nome, tamanho_camisa")
-      .in("id", athleteIds);
+      .in("id", athleteIds)
+      .limit(2000);
     profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p as ProfileRow]));
   }
 
@@ -68,7 +70,8 @@ export default async function CamisasPage({
   const { data: prodRows } = await supabase
     .from("shirt_production")
     .select("athlete_id, produced, retirado_por, data_retirada")
-    .eq("championship_id", id);
+    .eq("championship_id", id)
+    .limit(2000);
 
   const prodMap = Object.fromEntries(
     (prodRows ?? []).map((r) => [

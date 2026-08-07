@@ -5,18 +5,19 @@ import {
   executarRepasseAtletaTicket,
   executarRepasseEspectador,
 } from "@/lib/repasse";
-import { transferirPix } from "@/lib/asaas";
 import { pixKeyEmCooldown } from "@/lib/pix";
+import { executeArenaPayout } from "@/lib/arena-payout";
+import { reportOperationalEvent } from "@/lib/observability";
 
 export const dynamic = "force-dynamic";
 
 // Job de liquidação diferida do repasse de cartão (crédito D+32 / débito D+3).
-// O webhook só transfere Pix na hora; cartão fica 'aguardando_liquidacao' até a
-// data prevista. Este cron roda diariamente (ver vercel.json), pega o que já
-// venceu e transfere ao organizador via Pix — abatendo a dívida Elite igual ao
-// fluxo imediato (mesmo helper executarRepasse).
+// O webhook tenta transferir Pix na hora; falhas terminais voltam a 'pendente'
+// e entram novamente neste cron com uma referencia de retry. Cartao fica em
+// 'aguardando_liquidacao' ate D+3/D+32. O helper de repasse e o mesmo nos dois
+// caminhos, inclusive para o abatimento Elite.
 
-export async function GET(req: NextRequest) {
+async function runSettlement(req: NextRequest) {
   // Auth: a Vercel envia Authorization: Bearer ${CRON_SECRET} nas chamadas de cron.
   const auth = req.headers.get("authorization");
   if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -24,6 +25,7 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = createAdminClient();
+  const requestId = req.headers.get("x-request-id");
   const agora    = new Date().toISOString();
 
   // ── Expira pedidos Pix pendentes abandonados (ninguém pagou em 24h) ──────
@@ -34,106 +36,108 @@ export async function GET(req: NextRequest) {
   const PIX_PENDENTE_EXPIRA_HORAS = 24;
   const corte = new Date(Date.now() - PIX_PENDENTE_EXPIRA_HORAS * 60 * 60 * 1000).toISOString();
   let expirados = 0;
+  let falhas = 0;
 
   {
-    const { data: regsExpiradas } = await supabase
+    const { data: regsExpiradas, error: expirationError } = await supabase
       .from("registrations")
       .select("id, lote_id, cupom_id")
       .eq("status_pagamento", "pendente")
       .eq("billing_type", "PIX")
-      .lt("created_at", corte);
+      .lt("created_at", corte)
+      .limit(200);
+    if (expirationError) throw new Error(`registration_expiration_query_${expirationError.code ?? "failed"}`);
     for (const r of regsExpiradas ?? []) {
-      const { data: claimed } = await supabase
-        .from("registrations")
-        .update({ status_pagamento: "expirado" })
-        .eq("id", r.id)
-        .eq("status_pagamento", "pendente")
-        .select("id");
-      if (!claimed || claimed.length === 0) continue;
-      if (r.lote_id)  await supabase.rpc("release_pricing_tier", { p_tier_id: r.lote_id, p_qty: 1 });
-      if (r.cupom_id) await supabase.rpc("release_coupon_use", { p_coupon_id: r.cupom_id });
-      expirados++;
+      const { data: released, error } = await supabase.rpc("release_registration_inventory", {
+        p_registration_id: r.id,
+        p_target_status: "expirado",
+      });
+      if (error) falhas++;
+      else if (released) expirados++;
     }
   }
 
   {
-    const { data: athExpirados } = await supabase
+    const { data: athExpirados, error: expirationError } = await supabase
       .from("athlete_tickets")
       .select("id, lote_id, cupom_id")
       .eq("status_pagamento", "pendente")
       .eq("billing_type", "PIX")
-      .lt("created_at", corte);
+      .lt("created_at", corte)
+      .limit(200);
+    if (expirationError) throw new Error(`athlete_expiration_query_${expirationError.code ?? "failed"}`);
     for (const t of athExpirados ?? []) {
-      const { data: claimed } = await supabase
-        .from("athlete_tickets")
-        .update({ status_pagamento: "expirado" })
-        .eq("id", t.id)
-        .eq("status_pagamento", "pendente")
-        .select("id");
-      if (!claimed || claimed.length === 0) continue;
-      if (t.lote_id)  await supabase.rpc("release_pricing_tier", { p_tier_id: t.lote_id, p_qty: 1 });
-      if (t.cupom_id) await supabase.rpc("release_coupon_use", { p_coupon_id: t.cupom_id });
-      expirados++;
+      const { data: released, error } = await supabase.rpc("release_athlete_ticket_inventory", {
+        p_ticket_id: t.id,
+        p_target_status: "expirado",
+      });
+      if (error) falhas++;
+      else if (released) expirados++;
     }
   }
 
   {
-    // spectator_tickets pode ter vários tipos por pedido (itens jsonb) — o
-    // id do lote por linha não fica salvo, então só dá pra liberar a
-    // quantidade do tipo quando o pedido tinha 1 item só (ticket_type_id
-    // preenchido). Pedidos com múltiplos tipos expiram e liberam o cupom,
-    // mas não a quantidade — limitação conhecida, registrada em
-    // AUDITORIA-PRODUCAO.md pra uma migration futura guardar o id por linha.
-    const { data: specExpirados } = await supabase
+    // A RPC normalizada devolve todos os tipos, lotes e o cupom exatamente uma
+    // vez. Pedido legado ambiguo permanece intacto e entra na contagem de falha.
+    const { data: specExpirados, error: expirationError } = await supabase
       .from("spectator_tickets")
-      .select("id, ticket_type_id, quantidade, cupom_id")
+      .select("id")
       .eq("status_pagamento", "pendente")
       .eq("billing_type", "PIX")
-      .lt("created_at", corte);
+      .lt("created_at", corte)
+      .limit(200);
+    if (expirationError) throw new Error(`spectator_expiration_query_${expirationError.code ?? "failed"}`);
     for (const t of specExpirados ?? []) {
-      const { data: claimed } = await supabase
-        .from("spectator_tickets")
-        .update({ status_pagamento: "expirado" })
-        .eq("id", t.id)
-        .eq("status_pagamento", "pendente")
-        .select("id");
-      if (!claimed || claimed.length === 0) continue;
-      if (t.cupom_id) await supabase.rpc("release_coupon_use", { p_coupon_id: t.cupom_id });
-      if (t.ticket_type_id) {
-        await supabase.rpc("release_ticket_type_quantity", { p_type_id: t.ticket_type_id, p_qty: t.quantidade ?? 1 });
-      }
-      expirados++;
+      const { data: released, error } = await supabase.rpc("release_spectator_ticket_order", {
+        p_ticket_id: t.id,
+        p_target_status: "expirado",
+      });
+      if (error) falhas++;
+      else if (released) expirados++;
     }
   }
 
   // Inscrições pagas cujo repasse já venceu a liquidação.
-  const { data: due } = await supabase
-    .from("registrations")
-    .select("id, valor, billing_type, championship_id")
-    .eq("status_pagamento", "pago")
-    .eq("repasse_status", "aguardando_liquidacao")
-    .lte("repasse_data_prevista", agora)
-    .limit(200);
+  const [scheduledRegistrations, immediatePixRegistrations] = await Promise.all([
+    supabase
+      .from("registrations")
+      .select("id, valor, billing_type, championship_id, repasse_status")
+      .eq("status_pagamento", "pago")
+      .eq("repasse_status", "aguardando_liquidacao")
+      .lte("repasse_data_prevista", agora)
+      .limit(200),
+    supabase
+      .from("registrations")
+      .select("id, valor, billing_type, championship_id, repasse_status")
+      .eq("status_pagamento", "pago")
+      .eq("repasse_status", "pendente")
+      .eq("billing_type", "PIX")
+      .limit(200),
+  ]);
+  if (scheduledRegistrations.error || immediatePixRegistrations.error) {
+    throw new Error(`registration_payout_query_${scheduledRegistrations.error?.code ?? immediatePixRegistrations.error?.code ?? "failed"}`);
+  }
+  const due = [...(scheduledRegistrations.data ?? []), ...(immediatePixRegistrations.data ?? [])];
 
   let repassados = 0;
-  let falhas     = 0;
   let pulados    = 0;
   let vencidosTotal = due?.length ?? 0;
 
   for (const reg of due ?? []) {
-    // Reivindica atomicamente: só processa se ainda estiver aguardando.
+    const originalStatus = reg.repasse_status === "pendente" ? "pendente" : "aguardando_liquidacao";
+    // Reivindica atomicamente a partir do mesmo estado lido.
     const { data: claimed } = await supabase
       .from("registrations")
       .update({ repasse_status: "processando" })
       .eq("id", reg.id)
-      .eq("repasse_status", "aguardando_liquidacao")
+      .eq("repasse_status", originalStatus)
       .select("id");
     if (!claimed || claimed.length === 0) continue; // outro processo pegou
 
     const revert = async (erro?: string) =>
       supabase
         .from("registrations")
-        .update({ repasse_status: "aguardando_liquidacao", ...(erro ? { repasse_erro: erro } : {}) })
+        .update({ repasse_status: originalStatus, ...(erro ? { repasse_erro: erro } : {}) })
         .eq("id", reg.id);
 
     const { data: champ } = await supabase
@@ -171,7 +175,7 @@ export async function GET(req: NextRequest) {
         chavePixAtualizadaEm: org?.chave_pix_atualizada_em ?? null,
         repasseBase,
       },
-      "aguardando_liquidacao",
+      originalStatus,
     );
     if (res.ok) repassados++; else falhas++;
   }
@@ -189,28 +193,42 @@ export async function GET(req: NextRequest) {
   ];
 
   for (const source of ticketSources) {
-    const { data: tickets } = await supabase
-      .from(source.table)
-      .select("id, championship_id, valor")
-      .eq("status_pagamento", "pago")
-      .eq("repasse_status", "aguardando_liquidacao")
-      .lte("repasse_data_prevista", agora)
-      .limit(200);
+    const [scheduledTickets, immediatePixTickets] = await Promise.all([
+      supabase
+        .from(source.table)
+        .select("id, championship_id, valor, repasse_status")
+        .eq("status_pagamento", "pago")
+        .eq("repasse_status", "aguardando_liquidacao")
+        .lte("repasse_data_prevista", agora)
+        .limit(200),
+      supabase
+        .from(source.table)
+        .select("id, championship_id, valor, repasse_status")
+        .eq("status_pagamento", "pago")
+        .eq("repasse_status", "pendente")
+        .eq("billing_type", "PIX")
+        .limit(200),
+    ]);
+    if (scheduledTickets.error || immediatePixTickets.error) {
+      throw new Error(`${source.table}_payout_query_${scheduledTickets.error?.code ?? immediatePixTickets.error?.code ?? "failed"}`);
+    }
+    const tickets = [...(scheduledTickets.data ?? []), ...(immediatePixTickets.data ?? [])];
     vencidosTotal += tickets?.length ?? 0;
 
     for (const ticket of tickets ?? []) {
+      const originalStatus = ticket.repasse_status === "pendente" ? "pendente" : "aguardando_liquidacao";
       const { data: claimed } = await supabase
         .from(source.table)
         .update({ repasse_status: "processando" })
         .eq("id", ticket.id)
-        .eq("repasse_status", "aguardando_liquidacao")
+        .eq("repasse_status", originalStatus)
         .select("id");
       if (!claimed || claimed.length === 0) continue;
 
       const revert = async (erro: string) =>
         supabase
           .from(source.table)
-          .update({ repasse_status: "aguardando_liquidacao", repasse_erro: erro.slice(0, 300) })
+          .update({ repasse_status: originalStatus, repasse_erro: erro.slice(0, 300) })
           .eq("id", ticket.id);
 
       const { data: champ } = await supabase
@@ -237,7 +255,7 @@ export async function GET(req: NextRequest) {
           chavePixAtualizadaEm: org?.chave_pix_atualizada_em ?? null,
           valor: Number(ticket.valor ?? 0),
         },
-        "aguardando_liquidacao",
+        originalStatus,
       );
       if (res.ok) repassados++; else falhas++;
     }
@@ -251,13 +269,14 @@ export async function GET(req: NextRequest) {
   ];
 
   for (const source of arenaSources) {
-    const { data: itens } = await supabase
+    const { data: itens, error: payoutQueryError } = await supabase
       .from(source.table)
       .select("id, arena_id, valor")
       .eq("status_pagamento", "pago")
       .eq("repasse_status", "aguardando_liquidacao")
       .lte("repasse_data_prevista", agora)
       .limit(200);
+    if (payoutQueryError) throw new Error(`${source.table}_payout_query_${payoutQueryError.code ?? "failed"}`);
     vencidosTotal += itens?.length ?? 0;
 
     for (const item of itens ?? []) {
@@ -291,33 +310,19 @@ export async function GET(req: NextRequest) {
         continue;
       }
 
-      try {
-        const valor = Number(item.valor ?? 0);
-        if (valor <= 0) {
-          await supabase.from(source.table).update({ repasse_status: "concluido" }).eq("id", item.id);
-          pulados++;
-          continue;
-        }
-        const transferencia = await transferirPix({
-          valor,
-          chavePix,
-          descricao: `${source.descricao} RankFTV`,
-        });
-        await supabase
-          .from(source.table)
-          .update({
-            repasse_status: "concluido",
-            repasse_transfer_id: transferencia.id,
-            repasse_erro: null,
-          })
-          .eq("id", item.id);
-        repassados++;
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        await supabase
-          .from(source.table)
-          .update({ repasse_status: "aguardando_liquidacao", repasse_erro: msg.slice(0, 300) })
-          .eq("id", item.id);
+      const valor = Number(item.valor ?? 0);
+      const result = await executeArenaPayout({
+        supabase,
+        table: source.table,
+        recordId: item.id,
+        amount: valor,
+        pixKey: chavePix,
+        description: `${source.descricao} RankFTV`,
+        revertStatus: "aguardando_liquidacao",
+      });
+      if (result.ok) {
+        if (valor <= 0) pulados++; else repassados++;
+      } else if (!result.pendingReconciliation) {
         falhas++;
       }
     }
@@ -327,13 +332,14 @@ export async function GET(req: NextRequest) {
   // se chama pagamento_status (não status_pagamento) — por isso um bloco à
   // parte em vez de entrar em arenaSources.
   {
-    const { data: itens } = await supabase
+    const { data: itens, error: payoutQueryError } = await supabase
       .from("arena_attendance")
       .select("id, arena_id, valor_avulso")
       .eq("pagamento_status", "pago")
       .eq("repasse_status", "aguardando_liquidacao")
       .lte("repasse_data_prevista", agora)
       .limit(200);
+    if (payoutQueryError) throw new Error(`arena_attendance_payout_query_${payoutQueryError.code ?? "failed"}`);
     vencidosTotal += itens?.length ?? 0;
 
     for (const item of itens ?? []) {
@@ -367,36 +373,55 @@ export async function GET(req: NextRequest) {
         continue;
       }
 
-      try {
-        const valor = Number(item.valor_avulso ?? 0);
-        if (valor <= 0) {
-          await supabase.from("arena_attendance").update({ repasse_status: "concluido" }).eq("id", item.id);
-          pulados++;
-          continue;
-        }
-        const transferencia = await transferirPix({ valor, chavePix, descricao: "Aula avulsa RankFTV" });
-        await supabase
-          .from("arena_attendance")
-          .update({ repasse_status: "concluido", repasse_transfer_id: transferencia.id, repasse_erro: null })
-          .eq("id", item.id);
-        repassados++;
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        await supabase
-          .from("arena_attendance")
-          .update({ repasse_status: "aguardando_liquidacao", repasse_erro: msg.slice(0, 300) })
-          .eq("id", item.id);
+      const valor = Number(item.valor_avulso ?? 0);
+      const result = await executeArenaPayout({
+        supabase,
+        table: "arena_attendance",
+        recordId: item.id,
+        amount: valor,
+        pixKey: chavePix,
+        description: "Aula avulsa RankFTV",
+        revertStatus: "aguardando_liquidacao",
+      });
+      if (result.ok) {
+        if (valor <= 0) pulados++; else repassados++;
+      } else if (!result.pendingReconciliation) {
         falhas++;
       }
     }
   }
 
-  return NextResponse.json({
+  const result = {
     ok: true,
     vencidos: vencidosTotal,
     repassados,
     falhas,
     pulados,
     expirados,
+  };
+  await reportOperationalEvent({
+    level: falhas > 0 ? "error" : "info",
+    event: "cron.payout_settlement_completed",
+    message: falhas > 0 ? "Some due payouts failed" : undefined,
+    requestId,
+    context: result,
+    alert: falhas > 0,
   });
+  return NextResponse.json(result);
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    return await runSettlement(req);
+  } catch (error) {
+    await reportOperationalEvent({
+      level: "critical",
+      event: "cron.payout_settlement_failed",
+      message: "Payout settlement cron failed",
+      requestId: req.headers.get("x-request-id"),
+      error,
+      alert: true,
+    });
+    return NextResponse.json({ ok: false, error: "Payout settlement failed" }, { status: 500 });
+  }
 }

@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notificarArena, notificarResponsaveisArena } from "@/lib/arena-notify";
 import { valorAvulsaComTaxa, interpretarErroRpc } from "@/lib/arena-attendance";
+import { createIdempotentStoredCardCharge } from "@/lib/payment-flows";
+import { beginStoredCardPaymentAttempt, finishCardPaymentAttempt } from "@/lib/payment-security";
 
 // Mantido por compatibilidade com o resto deste arquivo (aceitarAluno etc.);
 // notificarArena é a mesma função, movida pra lib/ pra ser reaproveitada
@@ -366,7 +368,7 @@ async function processarCobrancaAvulsa(attendanceId: string): Promise<{ ok: bool
 
   const { data: cartao } = await admin
     .from("arena_student_cards")
-    .select("asaas_customer_id, asaas_card_token")
+    .select("asaas_customer_id, asaas_card_token, last4")
     .eq("arena_id", info.arena_id)
     .eq("user_id", info.user_id)
     .maybeSingle();
@@ -388,22 +390,41 @@ async function processarCobrancaAvulsa(attendanceId: string): Promise<{ ok: bool
 
   const valorTotal = valorAvulsaComTaxa(Number(info.valor_avulso));
 
-  try {
-    const { cobrarComToken } = await import("@/lib/asaas");
-    const pagamento = await cobrarComToken({
-      customerId:        cartao.asaas_customer_id,
-      creditCardToken:   cartao.asaas_card_token,
-      valorBase:         valorTotal,
-      descricao:         "Aula avulsa",
-      externalReference: `arena_class_charge:${attendanceId}`,
-    });
+  const attempt = await beginStoredCardPaymentAttempt({
+    flow: "arena_class",
+    orderReference: attendanceId,
+    actorId: info.user_id,
+    providerToken: cartao.asaas_card_token,
+    last4: cartao.last4,
+  });
+  if (!attempt.allowed) {
+    await resolver(false, null, cartao.asaas_customer_id, "Tentativas temporariamente bloqueadas.");
+    return { ok: false, error: "Muitas tentativas de cobrança. Aguarde antes de tentar novamente." };
+  }
+
+  const result = await createIdempotentStoredCardCharge({
+    flow: "arena_class",
+    recordId: attendanceId,
+    externalReference: `arena_class_charge:${attendanceId}`,
+    amount: valorTotal,
+    customerId: cartao.asaas_customer_id,
+    creditCardToken: cartao.asaas_card_token,
+    description: "Aula avulsa",
+    actorId: info.user_id,
+    metadata: { arenaId: info.arena_id },
+  });
+
+  if (result.ok) {
+    const pagamento = result.provider;
+    const paga = pagamento.paga ?? ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status ?? "");
 
     await resolver(
-      pagamento.paga, pagamento.id, cartao.asaas_customer_id,
-      pagamento.paga ? null : `Status Asaas: ${pagamento.status}`,
+      paga, pagamento.id, cartao.asaas_customer_id,
+      paga ? null : `Status Asaas: ${pagamento.status ?? "pendente"}`,
     );
+    await finishCardPaymentAttempt(attempt.attemptId, "success", pagamento.status);
 
-    if (!pagamento.paga) {
+    if (!paga) {
       await notificarResponsaveisArena(
         info.arena_id, "Cobrança de aula avulsa pendente",
         "Uma cobrança de aula avulsa não foi confirmada de imediato pelo Asaas. Acompanhe o status na lista da aula.",
@@ -414,20 +435,25 @@ async function processarCobrancaAvulsa(attendanceId: string): Promise<{ ok: bool
       );
     }
 
-    return { ok: pagamento.paga, error: pagamento.paga ? undefined : `Pagamento com status ${pagamento.status}.` };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erro ao processar o pagamento.";
-    await resolver(false, null, cartao.asaas_customer_id, msg.slice(0, 300));
+    return { ok: paga, error: paga ? undefined : `Pagamento com status ${pagamento.status ?? "pendente"}.` };
+  }
+
+  await finishCardPaymentAttempt(
+    attempt.attemptId,
+    result.ambiguous || result.inProgress ? "ambiguous" : "declined",
+  );
+  await resolver(false, null, cartao.asaas_customer_id, result.error.slice(0, 300));
+  if (!result.ambiguous && !result.inProgress) {
     await notificarResponsaveisArena(
       info.arena_id, "Cobrança de aula avulsa falhou",
-      `A cobrança de uma aula avulsa falhou: ${msg.slice(0, 200)}`,
+      `A cobrança de uma aula avulsa falhou: ${result.error.slice(0, 200)}`,
     );
     await notificarArena(
       info.user_id, "Pagamento falhou",
       "Não conseguimos cobrar sua aula avulsa. Tente novamente no Financeiro da arena ou atualize seu cartão.",
     );
-    return { ok: false, error: msg };
   }
+  return { ok: false, error: result.error };
 }
 
 /**

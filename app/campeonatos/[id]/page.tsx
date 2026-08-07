@@ -132,7 +132,7 @@ export default async function CampeonatoDetalhePage({
   const temIngressoPlateia = (ingressoPlateiaCount ?? 0) > 0;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 px-6 py-8">
+    <div className="w-full space-y-8 px-6 py-8">
       <Link
         href={backHref}
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
@@ -141,7 +141,7 @@ export default async function CampeonatoDetalhePage({
       </Link>
 
       <div>
-        <div className="relative h-32 overflow-hidden rounded-2xl">
+        <div className="relative h-32 overflow-hidden rounded-2xl md:aspect-[6/1] md:h-auto">
           {championship.bannerUrl ? (
             <Image
               src={championship.bannerUrl}
@@ -149,7 +149,7 @@ export default async function CampeonatoDetalhePage({
               fill
               className="object-cover"
               style={{ objectPosition: `${championship.bannerPositionX ?? 50}% ${championship.bannerPositionY ?? 50}%` }}
-              sizes="(max-width: 768px) 100vw, 768px"
+              sizes="(max-width: 767px) calc(100vw - 3rem), calc(100vw - 8rem)"
             />
           ) : (
             <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${championship.bannerFrom} ${championship.bannerTo}`} />

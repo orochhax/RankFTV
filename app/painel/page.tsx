@@ -11,7 +11,6 @@ import {
   CalendarCheck,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getMyChampionships } from "@/lib/supabase/championships";
 import { AutoRefresh } from "@/components/ui/AutoRefresh";
 import { PainelLandingClient } from "@/components/painel/PainelLandingClient";
 import { PageContainer } from "@/components/shell/PageContainer";
@@ -24,115 +23,80 @@ function fmtMedia(v: number) {
   return `~R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+type OrganizerMetrics = {
+  championshipTotal: number;
+  championshipOpen: number;
+  championshipRegistrationsOpen: number;
+  championshipInProgress: number;
+  championshipClosed: number;
+  arenaCount: number;
+  registrationPaidCount: number;
+  registrationPaidValue: number;
+  registrationPendingValue: number;
+  registrationRefundedValue: number;
+  spectatorPaidValue: number;
+  spectatorPaidQuantity: number;
+  activeStudentCount: number;
+  activeMrr: number;
+  rentalMonthCount: number;
+  rentalMonthValue: number;
+  rentalPaidValue: number;
+  dailyMonthCount: number;
+  dailyMonthValue: number;
+  dailyPaidValue: number;
+  chargePaidValue: number;
+};
+
+function metricNumber(value: unknown): number {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export default async function PainelOrganizadorPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   let isOrganizer = false;
-  let todos: Awaited<ReturnType<typeof getMyChampionships>> = [];
-  let arenaCount = 0;
+  let metrics: OrganizerMetrics | null = null;
   if (user) {
-    const [orgRes, champs, arenaRes] = await Promise.all([
+    const [orgRes, metricsRes] = await Promise.all([
       supabase.from("organizer_accounts").select("id").eq("user_id", user.id).maybeSingle(),
-      getMyChampionships(user.id),
-      supabase.from("arenas").select("id", { count: "exact", head: true }).eq("dono_id", user.id),
+      supabase.rpc("organizer_dashboard_metrics", { p_user_id: user.id }),
     ]);
     isOrganizer = !!orgRes.data;
-    todos = champs;
-    arenaCount = arenaRes.count ?? 0;
+    metrics = metricsRes.data as unknown as OrganizerMetrics | null;
   }
 
-  if (user && (isOrganizer || todos.length > 0)) {
-    const abertos         = todos.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento");
-    const campsAbertos    = todos.filter((c) => c.status === "inscricoes_abertas").length;
-    const campsAndamento  = todos.filter((c) => c.status === "em_andamento").length;
-    const campsEncerrados = todos.filter((c) => c.status === "encerrado").length;
-
-    const champIds = todos.map((c) => c.id);
-
-    // Busca arenas do organizador
-    const { data: arenaRows } = await supabase
-      .from("arenas")
-      .select("id")
-      .eq("dono_id", user.id);
-    const arenaIds = (arenaRows ?? []).map((a) => a.id);
-
-    // Datas do mês corrente
-    const hoje     = new Date();
-    const inicioMs = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split("T")[0];
-    const fimMs    = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().split("T")[0];
-
-    // Busca todos os dados financeiros em paralelo
-    const [
-      regsData,
-      ticketsData,
-      studentsData,
-      rentalsData,
-      dailiesData,
-      chargesData,
-    ] = await Promise.all([
-      champIds.length > 0
-        ? supabase.from("registrations").select("valor, status_pagamento").in("championship_id", champIds)
-        : Promise.resolve({ data: [] as { valor: number; status_pagamento: string }[] }),
-      champIds.length > 0
-        ? supabase.from("spectator_tickets").select("valor, status_pagamento, quantidade").in("championship_id", champIds)
-        : Promise.resolve({ data: [] as { valor: number; status_pagamento: string; quantidade: number | null }[] }),
-      arenaIds.length > 0
-        ? supabase.from("arena_students").select("valor_mensalidade, status").in("arena_id", arenaIds)
-        : Promise.resolve({ data: [] as { valor_mensalidade: number | null; status: string }[] }),
-      arenaIds.length > 0
-        ? supabase.from("arena_rentals").select("valor, status_pagamento, data").in("arena_id", arenaIds)
-        : Promise.resolve({ data: [] as { valor: number; status_pagamento: string; data: string }[] }),
-      arenaIds.length > 0
-        ? supabase.from("arena_daily_passes").select("valor, status_pagamento, data").in("arena_id", arenaIds)
-        : Promise.resolve({ data: [] as { valor: number; status_pagamento: string; data: string }[] }),
-      arenaIds.length > 0
-        ? supabase.from("student_charges").select("valor, status_pagamento").in("arena_id", arenaIds)
-        : Promise.resolve({ data: [] as { valor: number; status_pagamento: string }[] }),
-    ]);
-
-    // ── Campeonatos ──
-    const regs           = regsData.data ?? [];
-    const regsPagas      = regs.filter((r) => r.status_pagamento === "pago");
-    const regsPendente   = regs.filter((r) => r.status_pagamento === "pendente");
-    const regsEstornado  = regs.filter((r) => r.status_pagamento === "estornado");
-    const totalAtletas   = regsPagas.reduce((s, r) => s + Number(r.valor), 0);
-    const totalPendente  = regsPendente.reduce((s, r) => s + Number(r.valor), 0);
-    const totalEstornado = regsEstornado.reduce((s, r) => s + Number(r.valor), 0);
+  if (user && metrics && (isOrganizer || metricNumber(metrics.championshipTotal) > 0)) {
+    const todos = { length: metricNumber(metrics.championshipTotal) };
+    const abertos = { length: metricNumber(metrics.championshipOpen) };
+    const campsAbertos = metricNumber(metrics.championshipRegistrationsOpen);
+    const campsAndamento = metricNumber(metrics.championshipInProgress);
+    const campsEncerrados = metricNumber(metrics.championshipClosed);
+    const arenaCount = metricNumber(metrics.arenaCount);
+    const arenaIds = { length: arenaCount };
+    const regsPagas = { length: metricNumber(metrics.registrationPaidCount) };
+    const totalAtletas = metricNumber(metrics.registrationPaidValue);
+    const totalPendente = metricNumber(metrics.registrationPendingValue);
+    const totalEstornado = metricNumber(metrics.registrationRefundedValue);
     const ticketAtletas  = regsPagas.length > 0 ? totalAtletas / regsPagas.length : 0;
 
-    // ── Plateia ──
-    const tickets        = ticketsData.data ?? [];
-    const ticketsPagos   = tickets.filter((t) => t.status_pagamento === "pago");
-    const totalPlateia   = ticketsPagos.reduce((s, t) => s + Number(t.valor), 0);
-    const qtdIngressos   = ticketsPagos.reduce((s, t) => s + Number(t.quantidade ?? 1), 0);
+    const totalPlateia = metricNumber(metrics.spectatorPaidValue);
+    const qtdIngressos = metricNumber(metrics.spectatorPaidQuantity);
     const ticketPlateia  = qtdIngressos > 0 ? totalPlateia / qtdIngressos : 0;
-
-    // ── Saldo de Campeonatos (card 3) ──
     const saldoCampeonatos = totalAtletas + totalPlateia;
 
-    // ── Arena ──
-    const students       = studentsData.data ?? [];
-    const alunosAtivos   = students.filter((s) => s.status === "ativo");
-    const totalMRR       = alunosAtivos.reduce((s, a) => s + Number(a.valor_mensalidade ?? 0), 0);
-
-    const rentals        = rentalsData.data ?? [];
-    const rentaisMes     = rentals.filter((r) => r.status_pagamento === "pago" && r.data >= inicioMs && r.data <= fimMs);
-    const totalAluguelMs = rentaisMes.reduce((s, r) => s + Number(r.valor), 0);
-
-    const dailies        = dailiesData.data ?? [];
-    const diariasMes     = dailies.filter((d) => d.status_pagamento === "pago" && d.data >= inicioMs && d.data <= fimMs);
-    const totalDiariasMs = diariasMes.reduce((s, d) => s + Number(d.valor), 0);
-
-    // ── Saldo da Arena (card 4) ──
+    const alunosAtivos = { length: metricNumber(metrics.activeStudentCount) };
+    const totalMRR = metricNumber(metrics.activeMrr);
+    const rentaisMes = { length: metricNumber(metrics.rentalMonthCount) };
+    const totalAluguelMs = metricNumber(metrics.rentalMonthValue);
+    const diariasMes = { length: metricNumber(metrics.dailyMonthCount) };
+    const totalDiariasMs = metricNumber(metrics.dailyMonthValue);
     const saldoArena = totalMRR + totalAluguelMs + totalDiariasMs;
 
-    // ── Receita total consolidada ──
-    const charges         = chargesData.data ?? [];
-    const chargesPagas    = charges.filter((c) => c.status_pagamento === "pago");
-    const totalCharges    = chargesPagas.reduce((s, c) => s + Number(c.valor), 0);
-    const totalAluguelAll = rentals.filter((r) => r.status_pagamento === "pago").reduce((s, r) => s + Number(r.valor), 0);
-    const totalDiariasAll = dailies.filter((d) => d.status_pagamento === "pago").reduce((s, d) => s + Number(d.valor), 0);
+    const totalCharges = metricNumber(metrics.chargePaidValue);
+    const totalAluguelAll = metricNumber(metrics.rentalPaidValue);
+    const totalDiariasAll = metricNumber(metrics.dailyPaidValue);
     const receitaTotal    = totalAtletas + totalPlateia + totalCharges + totalAluguelAll + totalDiariasAll;
 
     // suppress unused-var warnings for pending/estornado (kept for future use)
@@ -162,7 +126,7 @@ export default async function PainelOrganizadorPage() {
 
         {/* ── Cabeçalho: faixa escura no mobile, claro + StatCards no desktop ── */}
         <div className="bg-black px-6 pb-16 pt-8 md:hidden">
-          <div className="mx-auto max-w-4xl space-y-5">
+          <div className="w-full space-y-5">
             <h1 className="text-2xl font-bold tracking-tight text-white">Painel do organizador</h1>
             <div className="flex items-center gap-2">{acoesCriacao}</div>
 
@@ -277,7 +241,7 @@ export default async function PainelOrganizadorPage() {
         {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
         <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:shadow-none">
           <span aria-hidden="true" className="mobile-sheet-accent md:hidden" />
-          <PageContainer width="form" className="space-y-8">
+          <PageContainer width="wide" className="space-y-8">
 
             {/* Receita total consolidada */}
             <section className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 text-white">

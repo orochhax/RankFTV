@@ -88,7 +88,7 @@ export default async function MinhasInscricoesPage() {
     <div className="min-h-screen">
       {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
       <div className="bg-black px-6 pb-16 pt-6 md:hidden">
-        <div className="mx-auto max-w-2xl space-y-4">
+        <div className="w-full space-y-4">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
@@ -108,7 +108,7 @@ export default async function MinhasInscricoesPage() {
       </div>
 
       <div className="hidden border-b border-border bg-surface md:block">
-        <PageContainer width="form" className="py-8">
+        <PageContainer width="wide" className="py-8">
           <PageHeader
             title="Minhas inscrições"
             description={
@@ -122,7 +122,7 @@ export default async function MinhasInscricoesPage() {
 
       {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:shadow-none">
-        <PageContainer width="form" className="space-y-8">
+        <PageContainer width="wide" className="space-y-8">
 
           {total === 0 ? (
             <EmptyState

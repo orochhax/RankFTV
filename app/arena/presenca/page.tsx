@@ -21,7 +21,7 @@ export default async function PresencaPage() {
 
   if (!vinculo) {
     return (
-      <div className="mx-auto max-w-xl px-6 py-16 text-center">
+      <div className="w-full px-6 py-16 text-center">
         <CalendarCheck className="mx-auto mb-4 size-12 text-gray-200" />
         <p className="font-semibold text-gray-700">Você não está matriculado em nenhuma arena</p>
         <p className="mt-2 text-sm text-gray-400">
@@ -83,7 +83,7 @@ export default async function PresencaPage() {
   return (
     <div className="min-h-screen">
       <div className="bg-black px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-xl space-y-2">
+        <div className="w-full space-y-2">
           <Link
             href="/perfil"
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
@@ -96,7 +96,7 @@ export default async function PresencaPage() {
       </div>
 
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-xl">
+        <div className="w-full">
           <PresencaClient
             arenaId={arena.id}
             aulasHoje={(aulasHoje ?? []).map((a) => ({

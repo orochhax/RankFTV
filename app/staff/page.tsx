@@ -43,7 +43,7 @@ export default async function StaffPage() {
     <div className="min-h-screen">
       {/* Cabeçalho preto */}
       <div className="bg-black px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-2xl space-y-4">
+        <div className="w-full space-y-4">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-full bg-white/10">
               <ShieldCheck className="size-5 text-white" />
@@ -58,7 +58,7 @@ export default async function StaffPage() {
 
       {/* Conteúdo branco */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-2xl">
+        <div className="w-full">
           {entries.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
               <div className="flex size-16 items-center justify-center rounded-full bg-gray-100">

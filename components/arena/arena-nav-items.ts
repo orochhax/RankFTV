@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Home, CalendarDays, Users, Tag, Clock, BarChart3, CreditCard, Settings2 } from "lucide-react";
+import { Home, CalendarDays, Users, Tag, Clock, BarChart3, Settings2 } from "lucide-react";
 
 export type ArenaNavItem = {
   key: string;
@@ -33,7 +33,6 @@ export const ARENA_NAV_GROUPS: ArenaNavGroup[] = [
     label: "Administrativo",
     items: [
       { key: "relatorios", label: "Relatórios", icon: BarChart3, href: (h) => `/arena/${h}/relatorios` },
-      { key: "assinatura", label: "Plano RankFTV", icon: CreditCard, href: (h) => `/arena/${h}/assinatura` },
       { key: "configuracoes", label: "Configurações", icon: Settings2, href: (h) => `/arena/${h}/configuracoes` },
     ],
   },

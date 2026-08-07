@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Activity, CalendarDays, Check, ChevronLeft, ChevronRight, Clock3, Flame, Goal, ListChecks, Loader2, Pencil, Plus, Settings2, Trash2, Wallet } from "lucide-react";
@@ -25,6 +25,7 @@ import type { RoadmapDraftSummary, RoadmapGenerationJob } from "@/lib/study-road
 import type { DailyLifeAnalysis } from "@/lib/daily-life-analysis";
 import { DailyLifeAnalysisCard } from "@/components/performance/DailyLifeAnalysisCard";
 import { usePerformanceConfirm } from "@/components/performance/PerformanceConfirmDialog";
+import { AllDayEventRows, BAHIA_TIME_LABEL_FORMATTER, CurrentDayTimeline, dateKeyInBahia } from "@/components/performance/PerformanceTimeline";
 
 type ActivityRow = { id: string; title: string; date: string; area: string; type: string | null; durationMinutes: number | null; status: string; notes: string | null; muscleGroups: string[]; studySession: StudySessionMetadata | null };
 type WithdrawalRow = { id: string; date: string; amount: number; institution: string | null; notes: string | null };
@@ -122,7 +123,7 @@ function DashboardViewLegacy({ ...p }: LifeOSProps & { progress: ReturnType<type
         <HabitPanel habits={p.habits} logs={p.logs} today={p.today} onManage={() => setManageHabits(true)} onOpen={setHabit} onToggle={async (item, done) => { await registrarHabito(item.id, done ? (item.alvo ?? 1) : 0, p.today); router.refresh(); }} />
         <LifeOSWidgets {...p} />
       </div>
-      <TimelinePanel events={events} onNew={() => p.onQuick("event")} onCalendar={() => router.push("/admin/performance?view=agenda")} />
+      <TimelinePanel events={events} today={p.today} onNew={() => p.onQuick("event")} onCalendar={() => router.push("/admin/performance?view=agenda")} />
     </div>
 
     {taskForm && <Modal title={taskForm.id ? "Editar tarefa" : "Nova tarefa"} onClose={() => setTaskForm(null)}><TaskForm task={taskForm} onDone={() => { setTaskForm(null); router.refresh(); }} /></Modal>}
@@ -262,14 +263,69 @@ function EventForm({ onDone, initialDate, event }: { onDone: () => void; initial
 
 function TaskForm({ task, onDone }: { task: TaskOccurrence; onDone: () => void }) { const [repeat, setRepeat] = useState(task.recurrenceType === "daily"); const action = task.id ? (data: FormData) => editarTarefaLifeOS(task.id, data) : criarTarefaLifeOS; return <ActionForm action={action} onDone={onDone}><Field name="title" title="Nome" value={task.title} required /><Field name="start_date" title="Data" type="date" value={task.startDate} required /><label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="recurrence_type" value="daily" checked={repeat} onChange={(event) => setRepeat(event.target.checked)} />Repetir diariamente</label>{repeat && <Field name="recurrence_end_date" title="Repetir ate" type="date" value={task.recurrenceEndDate ?? task.startDate} required />}</ActionForm>; }
 
-function TimelinePanel({ events, onNew, onCalendar }: { events: LifeEvent[]; onNew: () => void; onCalendar: () => void }) {
+function shiftDateKey(dateKey: string, days: number): string {
+  const date = new Date(`${dateKey}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function compareDatesAroundCurrent(left: string, right: string, current: string): number {
+  if (left === right) return 0;
+  if (left === current) return -1;
+  if (right === current) return 1;
+  const leftIsFuture = left > current;
+  const rightIsFuture = right > current;
+  if (leftIsFuture !== rightIsFuture) return leftIsFuture ? -1 : 1;
+  return leftIsFuture ? left.localeCompare(right) : right.localeCompare(left);
+}
+
+function useCurrentBahiaDate(initialDate: string) {
+  const [dateKey, setDateKey] = useState(initialDate);
+
+  useEffect(() => {
+    const update = () => setDateKey(dateKeyInBahia(new Date()));
+    update();
+    const interval = window.setInterval(update, 1_000);
+    const synchronize = () => { if (!document.hidden) update(); };
+    document.addEventListener("visibilitychange", synchronize);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", synchronize);
+    };
+  }, []);
+
+  return dateKey;
+}
+
+function CompactDayTimeline({ events, onEvent }: { events: LifeEvent[]; onEvent: (event: LifeEvent) => void }) {
+  const allDayEvents = events.filter((event) => event.allDay);
+  const timedEvents = events.filter((event) => !event.allDay);
+
+  return <>
+    <AllDayEventRows events={allDayEvents} onEvent={onEvent} />
+    {timedEvents.length > 0 && <div className="relative space-y-3 before:absolute before:bottom-3 before:left-[52px] before:top-3 before:w-px before:bg-white/20">
+    {timedEvents.map((event) => <div key={event.id} className="relative flex items-center gap-3">
+      <div className="z-10 flex w-12 shrink-0 flex-col items-center">
+        <span className="mt-1 flex size-7 items-center justify-center rounded-full bg-blue-600"><Clock3 className="size-3.5" /></span>
+        <span className="mt-1 w-full text-center text-[10px] tabular-nums text-white/45">{BAHIA_TIME_LABEL_FORMATTER.format(new Date(event.startAt))}</span>
+      </div>
+      <div className="flex min-w-0 flex-1 items-start gap-2 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">{event.title}</p>
+          <p className="mt-1 text-xs text-white/45">{durationLabel(durationMinutes(event.startAt, event.endAt))} · {event.status === "completed" ? "Concluido" : "Planejado"}</p>
+        </div>
+        <button type="button" onClick={() => onEvent(event)} className="shrink-0 rounded-md p-1.5 text-white/40 hover:bg-white/10 hover:text-white" title="Editar evento" aria-label={`Editar ${event.title}`}>
+          <Pencil className="size-4" />
+        </button>
+      </div>
+    </div>)}
+    </div>}
+  </>;
+}
+
+function TimelinePanel({ events, today, onNew, onCalendar }: { events: LifeEvent[]; today: string; onNew: () => void; onCalendar: () => void }) {
   const [selectedEvent, setSelectedEvent] = useState<LifeEvent | null>(null);
-  const dateKeyFormatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Bahia",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+  const currentDateKey = useCurrentBahiaDate(today);
   const monthLabelFormatter = new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Bahia",
     month: "long",
@@ -285,8 +341,7 @@ function TimelinePanel({ events, onNew, onCalendar }: { events: LifeEvent[]; onN
 
   events.forEach((event) => {
     const eventDate = new Date(event.startAt);
-    const parts = Object.fromEntries(dateKeyFormatter.formatToParts(eventDate).map((part) => [part.type, part.value]));
-    const dateKey = `${parts.year}-${parts.month}-${parts.day}`;
+    const dateKey = dateKeyInBahia(eventDate);
     const monthKey = dateKey.slice(0, 7);
     const month = monthGroups.get(monthKey) ?? { label: monthLabelFormatter.format(eventDate), days: new Map() };
     const day = month.days.get(dateKey) ?? { label: dayLabelFormatter.format(eventDate), events: [] };
@@ -294,6 +349,26 @@ function TimelinePanel({ events, onNew, onCalendar }: { events: LifeEvent[]; onN
     month.days.set(dateKey, day);
     monthGroups.set(monthKey, month);
   });
+
+  const currentDate = new Date(`${currentDateKey}T12:00:00-03:00`);
+  const currentMonthKey = currentDateKey.slice(0, 7);
+  const currentMonth = monthGroups.get(currentMonthKey) ?? { label: monthLabelFormatter.format(currentDate), days: new Map() };
+  if (!currentMonth.days.has(currentDateKey)) {
+    currentMonth.days.set(currentDateKey, { label: dayLabelFormatter.format(currentDate), events: [] });
+  }
+  const currentDay = currentMonth.days.get(currentDateKey)!;
+  const currentDayStart = new Date(`${currentDateKey}T00:00:00-03:00`).getTime();
+  const nextDayStart = new Date(`${shiftDateKey(currentDateKey, 1)}T00:00:00-03:00`).getTime();
+  const currentDayEventIds = new Set(currentDay.events.map((event: LifeEvent) => event.id));
+  events.forEach((event) => {
+    const eventStart = new Date(event.startAt).getTime();
+    const eventEnd = new Date(event.endAt).getTime();
+    if (eventStart < nextDayStart && eventEnd > currentDayStart && !currentDayEventIds.has(event.id)) {
+      currentDay.events.push(event);
+      currentDayEventIds.add(event.id);
+    }
+  });
+  monthGroups.set(currentMonthKey, currentMonth);
 
   return <section className="min-w-0 rounded-lg border border-white/10 bg-[#15191f] p-4 text-white sm:p-5 xl:min-h-[620px]">
     <div className="flex items-center justify-between">
@@ -304,35 +379,24 @@ function TimelinePanel({ events, onNew, onCalendar }: { events: LifeEvent[]; onN
       </div>
     </div>
     <div className="mt-5 space-y-7">
-      {[...monthGroups].map(([monthKey, month]) => <section key={monthKey}>
+      {[...monthGroups].sort(([left], [right]) => compareDatesAroundCurrent(left, right, currentMonthKey)).map(([monthKey, month]) => <section key={monthKey}>
         <div className="mb-4 flex items-center gap-2 border-b border-white/10 pb-2">
           <CalendarDays className="size-4 text-blue-400" />
           <h3 className="text-sm font-semibold capitalize text-white">{month.label}</h3>
         </div>
         <div className="space-y-6">
-          {[...month.days].map(([dateKey, day]) => <div key={dateKey}>
-            <p className="mb-3 text-xs font-semibold capitalize text-white/55">{day.label}</p>
-            <div className="relative space-y-3 before:absolute before:bottom-3 before:left-[52px] before:top-3 before:w-px before:bg-white/20">
-              {day.events.map((event) => <div key={event.id} className="relative flex items-center gap-3">
-                <div className="z-10 flex w-12 shrink-0 flex-col items-center">
-                  <span className="mt-1 flex size-7 items-center justify-center rounded-full bg-blue-600"><Clock3 className="size-3.5" /></span>
-                  <span className="mt-1 w-full text-center text-[10px] tabular-nums text-white/45">{new Date(event.startAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Bahia" })}</span>
-                </div>
-                <div className="flex min-w-0 flex-1 items-start gap-2 rounded-lg border border-white/10 bg-white/[0.03] p-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium">{event.title}</p>
-                    <p className="mt-1 text-xs text-white/45">{durationLabel(durationMinutes(event.startAt, event.endAt))} · {event.status === "completed" ? "Concluido" : "Planejado"}</p>
-                  </div>
-                  <button type="button" onClick={() => setSelectedEvent(event)} className="shrink-0 rounded-md p-1.5 text-white/40 hover:bg-white/10 hover:text-white" title="Editar evento" aria-label={`Editar ${event.title}`}>
-                    <Pencil className="size-4" />
-                  </button>
-                </div>
-              </div>)}
-            </div>
-          </div>)}
+          {[...month.days].sort(([left], [right]) => compareDatesAroundCurrent(left, right, currentDateKey)).map(([dateKey, day]) => {
+            const orderedEvents = [...day.events].sort((left, right) => new Date(left.startAt).getTime() - new Date(right.startAt).getTime());
+
+            return <div key={dateKey}>
+              <p className="mb-3 flex items-center gap-2 text-xs font-semibold capitalize text-white/55">{day.label}{dateKey === currentDateKey && <span className="inline-flex items-center gap-1 text-[10px] font-semibold normal-case text-red-400"><span className="size-1.5 rounded-full bg-red-500 motion-safe:animate-pulse" />Agora</span>}</p>
+              {dateKey === currentDateKey
+                ? <CurrentDayTimeline dateKey={dateKey} events={orderedEvents} onEvent={setSelectedEvent} />
+                : <CompactDayTimeline events={orderedEvents} onEvent={setSelectedEvent} />}
+            </div>;
+          })}
         </div>
       </section>)}
-      {!events.length && <p className="rounded-lg border border-dashed border-white/15 p-5 text-center text-sm text-white/40">Nenhum evento cadastrado.</p>}
     </div>
     {selectedEvent && <Modal title="Editar evento" onClose={() => setSelectedEvent(null)}>
       <EventForm event={selectedEvent} onDone={() => setSelectedEvent(null)} />

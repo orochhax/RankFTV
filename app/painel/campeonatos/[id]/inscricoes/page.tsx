@@ -56,7 +56,8 @@ export default async function InscricoesPage({
         championship_categories(id, nome, genero)
       `)
       .eq("championship_id", id)
-      .eq("status_pagamento", "pago"),
+      .eq("status_pagamento", "pago")
+      .limit(1000),
     // Checkout de visitante (botão "Sou atleta" -> /comprar) — hoje é o
     // fluxo realmente usado; sem isso a lista ficava vazia mesmo com
     // pagamentos confirmados (ver Bug 3 do relatório de correções).
@@ -64,7 +65,8 @@ export default async function InscricoesPage({
       .from("athlete_tickets")
       .select("id, category_id, categoria_nome, comprador_nome, parceiro_nome")
       .eq("championship_id", id)
-      .eq("status_pagamento", "pago"),
+      .eq("status_pagamento", "pago")
+      .limit(1000),
   ]);
 
   const regs: RegRow[] = (rawRegs ?? []) as unknown as RegRow[];
@@ -87,7 +89,8 @@ export default async function InscricoesPage({
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, nome")
-      .in("id", athleteIds);
+      .in("id", athleteIds)
+      .limit(2000);
     profileMap = Object.fromEntries(
       (profiles ?? []).map((p) => [p.id, { ...p, nivel: null } as ProfileRow]),
     );

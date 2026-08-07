@@ -1,7 +1,95 @@
 # Auditoria de seguranca e prontidao para producao - RankFTV
 
 Data da revisao: 14/07/2026
-Ultima atualizacao: 21/07/2026
+Ultima atualizacao: 07/08/2026
+
+## Atualizacao 07/08/2026 - hardening para trafego e pagamentos reais
+
+Esta atualizacao substitui o estado tecnico dos itens historicos de 21/07 sobre
+idempotencia financeira, card testing, CSP, paginacao, assinatura indefinida e
+E2E. A aplicacao das migrations no Supabase remoto e a homologacao com servicos
+externos continuam manuais e nao foram presumidas.
+
+### Implementado no codigo
+
+- Next.js e `eslint-config-next` atualizados para 16.3.0. Overrides fixam
+  DOMPurify 3.4.13, PostCSS 8.5.26 e Sharp 0.35.3.
+- Toda criacao de cobranca do RankFTV usa operacao duravel com chave unica,
+  `externalReference`, lease, outbox e reconciliacao. Abrange inscricao,
+  ingresso de atleta, plateia, assinatura de aluno, aluguel, diaria e aula
+  avulsa. Timeout ambiguo nao apaga pedido nem libera estoque.
+- Estorno, webhook e repasse usam estado monotono e repeticao segura. Repasse
+  so finaliza quando a transferencia chega a `DONE`.
+- Pedido de plateia foi normalizado em itens, com backfill conservador e
+  relatorio para linhas legadas ambiguas. Reserva/liberacao de tipo, lote e
+  cupom acontece em RPC atomica e exatamente uma vez.
+- Guard duravel contra card testing combina IP, usuario, pedido e fingerprint
+  HMAC mascarado, com cooldown progressivo, bloqueio e alerta. PAN/CVV nao sao
+  persistidos nem enviados a observabilidade.
+- A assinatura paga da propria plataforma para arenas foi retirada da
+  navegacao e suas duas rotas retornam 404 enquanto produto e preco nao forem
+  definidos. Planos vendidos pelas arenas aos alunos permanecem ativos.
+- Arenas, campeonatos, plateia, alunos, check-ins e paineis principais usam
+  paginacao/aggregates no servidor; foram adicionados indices para os filtros e
+  ordenacoes correspondentes, evitando cargas ilimitadas e N+1 conhecidos.
+- `proxy.ts` gera nonce por requisicao. `script-src` nao usa `unsafe-inline`;
+  `style-src` conserva a excecao necessaria aos estilos inline atuais, sem
+  wildcard de origem. Headers sao aplicados tambem a redirect e erro.
+- Observabilidade configuravel, logs JSON sanitizados, correlation ID,
+  `/api/health`, alertas operacionais e retencao automatizada foram adicionados.
+- Playwright, fixtures Asaas, testes sandbox condicionais e CI com audit, lint,
+  tipos, testes, build e navegador foram adicionados.
+
+### Migrations deste release
+
+1. `supabase/financial-operations.sql`
+2. `supabase/payment-card-attempt-security.sql`
+3. `supabase/production-spectator-ticket-items.sql`
+4. `supabase/production-order-inventory-release.sql`
+5. `supabase/asaas-webhook-idempotency.sql`
+6. `supabase/production-query-indexes.sql`
+7. `supabase/production-data-retention.sql`
+
+Ordem, consultas de validacao, backfill, deploy e rollback estao em
+`RUNBOOK-PRODUCAO.md`. O que exige conta, segredo ou decisao do responsavel esta
+em `PENDENCIAS-MANUAIS.md`.
+
+### Validacoes locais de 07/08/2026
+
+- `npm run audit:prod`: aprovado, zero vulnerabilidades.
+- `npm ci --dry-run`: aprovado; `package.json` e `package-lock.json` estao
+  sincronizados.
+- `npm run lint`: aprovado com zero erros e um aviso preexistente em
+  `app/convite/[teamId]/AceitarConviteViaLink.tsx` sobre navegacao com
+  `window.location.href`.
+- TypeScript isolado do produto RankFTV: aprovado, sem erros.
+- `npm run typecheck`: o escopo RankFTV passa, mas a verificacao global atual
+  para em dois fixtures pessoais de `lib/study-organization.test.ts`, que nao
+  informam o novo campo obrigatorio `availableDevices`. Esse modulo e
+  explicitamente externo ao escopo deste release e nao foi alterado.
+- Suite unitaria exclusiva do RankFTV: 165/165 testes aprovados.
+- `npm test`: 385/387 aprovados. As duas falhas sao do modulo pessoal
+  `study-roadmap-ai`, explicitamente fora do escopo deste release:
+  `roadmapPromptInput limita o plano a uma etapa relevante por sessao` e
+  `roadmapPromptInput envia contexto linguistico personalizado`. Nenhuma regra
+  foi desativada e esses arquivos nao foram alterados para esconder a falha.
+- `npm run build`: a compilacao de producao no Next.js 16.3.0 foi concluida;
+  a etapa TypeScript parou nos mesmos dois fixtures pessoais acima. Antes das
+  alteracoes pessoais concorrentes, este build havia sido concluido com 54
+  paginas estaticas.
+- `npm run test:e2e`: 4 aprovados e 6 ignorados por falta de credenciais/dados
+  mutaveis de sandbox. Execucao adicional do webhook com token local: 2
+  aprovados e 1 mutante de ledger ignorado.
+- `GET /api/health`: HTTP 200, servico `rankftv` e banco `ok`, sem segredos no
+  payload.
+- Playwright Chromium instalado. Os testes mutantes de ledger e card guard
+  permanecem condicionados a uma base sandbox descartavel.
+- `git diff --check`: aprovado, sem erro de whitespace (somente avisos locais
+  de conversao LF/CRLF do Git no Windows).
+
+Nao foi executado SQL contra o Supabase remoto nem teste destrutivo contra o
+Asaas. Portanto, o codigo esta preparado, mas pagamentos reais permanecem
+bloqueados ate concluir o runbook e todas as pendencias manuais.
 
 ## Atualizacao 21/07/2026
 
@@ -173,7 +261,10 @@ pode interromper cadastro, convite, arena e perfil.
 Nunca copiar a chave Sandbox para producao nem expor `SUPABASE_SERVICE_ROLE_KEY`,
 `ASAAS_API_KEY`, `CRON_SECRET` ou o token do webhook no navegador.
 
-## Funcionalidades que ainda nao estao 100% prontas
+## Funcionalidades que ainda nao estavam 100% prontas em 21/07/2026
+
+> Registro historico. Os itens 1, 3, 5 e 7 abaixo foram tecnicamente resolvidos
+> na atualizacao de 07/08/2026. A homologacao externa continua pendente.
 
 1. A assinatura paga da propria plataforma para donos de arena esta
    deliberadamente incompleta: a tela mostra preco "A definir" e nao possui

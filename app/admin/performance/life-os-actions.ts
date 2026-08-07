@@ -747,6 +747,7 @@ export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<Gener
   const roadmapType = text(formData, "roadmap_type", 20) ?? "skill";
   const targetLanguage = text(formData, "target_language", 100) ?? "";
   const languageActivities = formValues(formData, "language_activities", 20);
+  const availableDevices = formValues(formData, "available_devices", 5);
   const useContext = roadmapType === "language" ? "personal_learning" : text(formData, "use_context", 30) ?? "new_career";
   const parsedAnswers = roadmapAiAnswersSchema.safeParse({
     roadmapType,
@@ -755,7 +756,9 @@ export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<Gener
     goalDetail: text(formData, "goal_detail", 1500) ?? "",
     currentLevel: text(formData, "current_level", 30) ?? "",
     digitalLiteracy: text(formData, "digital_literacy", 30) ?? "needs_guidance",
-    mainDevice: text(formData, "main_device", 30) ?? "windows",
+    availableDevices,
+    mainDevice: availableDevices[0] ?? "windows",
+    organizationProfileCollected: true,
     useContext,
     targetLevel: "autonomous",
     mainObstacle: text(formData, "main_obstacle", 30) ?? "",

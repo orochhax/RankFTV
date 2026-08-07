@@ -88,13 +88,15 @@ export default async function ArenaPainelPage({
       .from("arena_students")
       .select("id, status, data_entrada, valor_mensalidade, profiles(nome, username, foto_url)")
       .eq("arena_id", arena.id)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(250),
     supabase
       .from("arena_classes")
       .select("id, titulo, hora_inicio, hora_fim, dias_semana, nivel, publico, max_alunos, ativo")
       .eq("arena_id", arena.id)
       .eq("ativo", true)
-      .order("hora_inicio", { ascending: true }),
+      .order("hora_inicio", { ascending: true })
+      .limit(200),
   ]);
 
   const alunos    = alunosRes.data ?? [];
@@ -126,7 +128,8 @@ export default async function ArenaPainelPage({
       .select("class_id, data")
       .eq("arena_id", arena.id)
       .gte("data", inicioSemana)
-      .lte("data", fimSemana);
+      .lte("data", fimSemana)
+      .limit(5000);
     for (const p of presencas ?? []) {
       const chave = `${p.class_id}|${p.data}`;
       presencasMap.set(chave, (presencasMap.get(chave) ?? 0) + 1);
@@ -142,7 +145,7 @@ export default async function ArenaPainelPage({
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full space-y-6 px-4 py-6 md:px-8 md:py-8">
       {/* ── Cards de resumo ── */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">

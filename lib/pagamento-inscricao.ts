@@ -263,6 +263,11 @@ export async function estornarAthleteTicket(
   supabase: SupabaseClient,
   ticketId: string,
 ): Promise<ConfirmarInscricaoResultado> {
+  const { error: releaseError } = await supabase.rpc("release_athlete_ticket_inventory", {
+    p_ticket_id: ticketId,
+    p_target_status: "estornado",
+  });
+  if (releaseError) return { ok: false, error: releaseError.message };
   const { error } = await supabase
     .from("athlete_tickets")
     .update({ status_pagamento: "estornado", repasse_status: "estornado" })
@@ -275,27 +280,19 @@ export async function estornarInscricao(
   supabase: SupabaseClient,
   registrationId: string,
 ): Promise<ConfirmarInscricaoResultado> {
-  const { error: updateError } = await supabase
-    .from("registrations")
-    .update({ status_pagamento: "estornado" })
-    .eq("id", registrationId);
+  const { error: updateError } = await supabase.rpc("release_registration_inventory", {
+    p_registration_id: registrationId,
+    p_target_status: "estornado",
+  });
 
   if (updateError) {
     return { ok: false, error: updateError.message };
   }
 
-  const { data: regEst } = await supabase
-    .from("registrations")
-    .select("championship_id, elite_fee_coletada")
-    .eq("id", registrationId)
-    .single();
-
-  if (regEst && Number(regEst.elite_fee_coletada ?? 0) > 0) {
-    await supabase.rpc("release_elite_fee", {
-      p_champ_id: regEst.championship_id,
-      p_amount:   Number(regEst.elite_fee_coletada),
-    });
-  }
+  const { error: eliteError } = await supabase.rpc("release_registration_elite_fee_once", {
+    p_registration_id: registrationId,
+  });
+  if (eliteError) return { ok: false, error: eliteError.message };
 
   await supabase
     .from("registrations")

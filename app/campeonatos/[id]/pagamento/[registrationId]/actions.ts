@@ -4,6 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { criarOuBuscarCliente } from "@/lib/asaas";
 import { calcularTotalComprador } from "@/lib/taxas";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createIdempotentCardCharge } from "@/lib/payment-flows";
+import {
+  beginCardPaymentAttempt,
+  cardBlockedMessage,
+  finishCardPaymentAttempt,
+} from "@/lib/payment-security";
 
 export type CardPaymentInput = {
   registrationId: string;
@@ -71,75 +77,63 @@ export async function pagarComCartao(
   // Comprador paga valor + taxa de cartão (10% Padrão / 9% Elite, mín. R$3,99).
   const valorTotal  = calcularTotalComprador(valorBase, input.tipo, !!champRes.data?.is_elite);
 
-  const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 1);
+  const attempt = await beginCardPaymentAttempt({
+    flow: "registration",
+    orderReference: input.registrationId,
+    actorId: user.id,
+    cardNumber: input.numero,
+  });
+  if (!attempt.allowed) return { ok: false, error: cardBlockedMessage(attempt.retryAfterSeconds) };
 
-  const cardData = {
-    holderName:  input.nomeTitular.toUpperCase(),
-    number:      input.numero.replace(/\s/g, ""),
-    expiryMonth: input.mesValidade,
-    expiryYear:  input.anoValidade,
-    ccv:         input.cvv,
-  };
-
-  const holderInfo = {
-    name:          profileRes.data.nome,
-    email:         user.email!,
-    cpfCnpj:       cpf,
-    postalCode:    cep,
-    addressNumber: numeroEndereco,
-  };
-
-  const body: Record<string, unknown> = {
-    customer:          customer.id,
-    billingType,
-    value:             valorTotal,
-    dueDate:           dueDate.toISOString().split("T")[0],
-    description:       `Inscrição ${champRes.data?.nome ?? "Campeonato"} — ${catRes.data?.nome ?? "Categoria"}`,
+  const result = await createIdempotentCardCharge({
+    flow: "registration",
+    recordId: input.registrationId,
     externalReference: input.registrationId,
-    creditCard:        cardData,
-    creditCardHolderInfo: holderInfo,
-  };
+    amount: valorTotal,
+    customerId: customer.id,
+    billingType,
+    description: `Inscrição ${champRes.data?.nome ?? "Campeonato"} — ${catRes.data?.nome ?? "Categoria"}`,
+    card: {
+      holderName: input.nomeTitular,
+      number: input.numero,
+      expiryMonth: input.mesValidade,
+      expiryYear: input.anoValidade,
+      ccv: input.cvv,
+    },
+    holder: {
+      name: profileRes.data.nome,
+      email: user.email!,
+      cpfCnpj: cpf,
+      postalCode: cep,
+      addressNumber: numeroEndereco,
+    },
+    installments: input.tipo === "credito" ? input.parcelas : 1,
+    actorId: user.id,
+    metadata: { championshipId: regRes.data.championship_id },
+  });
 
-  // Parcelamento só no crédito — usuário escolhe
-  if (input.tipo === "credito" && input.parcelas > 1) {
-    body.installmentCount = input.parcelas;
-    body.installmentValue = parseFloat((valorTotal / input.parcelas).toFixed(2));
+  if (!result.ok) {
+    await finishCardPaymentAttempt(
+      attempt.attemptId,
+      result.ambiguous || result.inProgress ? "ambiguous" : "declined",
+      result.ambiguous ? "ambiguous" : "declined",
+    );
+    return { ok: false, error: result.error };
   }
 
-  const baseUrl = process.env.ASAAS_BASE_URL;
-  const apiKey  = process.env.ASAAS_API_KEY;
-  if (!baseUrl || !apiKey) return { ok: false, error: "Configuração de pagamento indisponível." };
-
-  try {
-    const res = await fetch(`${baseUrl}/payments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "access_token": apiKey },
-      body:    JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      let msg = "Erro ao processar o cartão.";
-      try {
-        const json = JSON.parse(text) as { errors?: { description: string }[] };
-        if (json.errors?.[0]?.description) msg = json.errors[0].description;
-      } catch { /* usa msg padrão */ }
-      return { ok: false, error: msg };
-    }
-
-    const pagamento = await res.json() as { id: string; status: string; invoiceUrl?: string };
-    const pago = ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status);
-
-    await createAdminClient().from("registrations").update({
-      asaas_payment_id:  pagamento.id,
-      status_pagamento:  pago ? "pago" : "pendente",
-      invoice_url:       pagamento.invoiceUrl ?? null,
-    }).eq("id", input.registrationId);
-
-    return { ok: true, pago };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erro ao processar pagamento.";
-    return { ok: false, error: msg };
+  const pagamento = result.provider;
+  if (pagamento.billingType && pagamento.billingType !== billingType) {
+    await finishCardPaymentAttempt(attempt.attemptId, "error", "payment_method_conflict");
+    return { ok: false, error: "Já existe uma cobrança por outro meio de pagamento para esta inscrição." };
   }
+
+  const pago = pagamento.paga ?? ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status ?? "");
+  await createAdminClient().from("registrations").update({
+    asaas_payment_id: pagamento.id,
+    status_pagamento: pago ? "pago" : "pendente",
+    invoice_url: pagamento.invoiceUrl ?? null,
+    billing_type: billingType,
+  }).eq("id", input.registrationId);
+  await finishCardPaymentAttempt(attempt.attemptId, "success", pagamento.status);
+  return { ok: true, pago };
 }

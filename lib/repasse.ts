@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { transferirPix } from "./asaas";
+import { transferIdempotently } from "./payment-flows";
 import { pixKeyEmCooldown } from "./pix";
+import { reportOperationalEvent } from "./observability";
 
 const COOLDOWN_ERRO = "Chave Pix alterada recentemente — repasse retido em segurança, tenta de novo depois.";
 
@@ -29,12 +30,25 @@ export async function executarRepasseEspectador(
   try {
     let transferId: string | null = null;
     if (valor > 0) {
-      const t = await transferirPix({
-        valor,
-        chavePix:  ctx.chavePix,
-        descricao: `Repasse plateia RankFTV — ${ctx.champNome}`,
+      const result = await transferIdempotently({
+        flow: "payout",
+        recordId: ctx.ticketId,
+        externalReference: `payout:spectator:${ctx.ticketId}`,
+        amount: valor,
+        pixKey: ctx.chavePix,
+        description: `Repasse plateia RankFTV - ${ctx.champNome}`,
+        metadata: { sourceTable: "spectator_tickets" },
       });
-      transferId = t.id;
+      if (!result.ok) {
+        if (result.ambiguous || result.inProgress) {
+          await supabase.from("spectator_tickets")
+            .update({ repasse_status: "processando", repasse_erro: "Transferencia em reconciliacao automatica." })
+            .eq("id", ctx.ticketId);
+          return { ok: false, error: result.error };
+        }
+        throw new Error(result.error);
+      }
+      transferId = result.provider.id;
     }
     await supabase
       .from("spectator_tickets")
@@ -43,7 +57,14 @@ export async function executarRepasseEspectador(
     return { ok: true, transferId };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[repasse-plateia] Erro ao transferir Pix:", msg);
+    await reportOperationalEvent({
+      level: "error",
+      event: "payout.spectator_failed",
+      message: "Spectator payout failed",
+      error: err,
+      context: { recordId: ctx.ticketId },
+      alert: true,
+    });
     await supabase
       .from("spectator_tickets")
       .update({ repasse_status: revertStatus, repasse_erro: msg.slice(0, 300) })
@@ -72,12 +93,25 @@ export async function executarRepasseAtletaTicket(
   try {
     let transferId: string | null = null;
     if (valor > 0) {
-      const t = await transferirPix({
-        valor,
-        chavePix:  ctx.chavePix,
-        descricao: `Repasse ingresso atleta RankFTV — ${ctx.champNome}`,
+      const result = await transferIdempotently({
+        flow: "payout",
+        recordId: ctx.ticketId,
+        externalReference: `payout:athlete:${ctx.ticketId}`,
+        amount: valor,
+        pixKey: ctx.chavePix,
+        description: `Repasse ingresso atleta RankFTV - ${ctx.champNome}`,
+        metadata: { sourceTable: "athlete_tickets" },
       });
-      transferId = t.id;
+      if (!result.ok) {
+        if (result.ambiguous || result.inProgress) {
+          await supabase.from("athlete_tickets")
+            .update({ repasse_status: "processando", repasse_erro: "Transferencia em reconciliacao automatica." })
+            .eq("id", ctx.ticketId);
+          return { ok: false, error: result.error };
+        }
+        throw new Error(result.error);
+      }
+      transferId = result.provider.id;
     }
     await supabase
       .from("athlete_tickets")
@@ -86,7 +120,14 @@ export async function executarRepasseAtletaTicket(
     return { ok: true, transferId };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[repasse-atleta-ticket] Erro ao transferir Pix:", msg);
+    await reportOperationalEvent({
+      level: "error",
+      event: "payout.athlete_ticket_failed",
+      message: "Athlete ticket payout failed",
+      error: err,
+      context: { recordId: ctx.ticketId },
+      alert: true,
+    });
     await supabase
       .from("athlete_tickets")
       .update({ repasse_status: revertStatus, repasse_erro: msg.slice(0, 300) })
@@ -128,13 +169,13 @@ export async function executarRepasse(
     return { ok: false, error: COOLDOWN_ERRO };
   }
 
-  // Abate a dívida de ativação Elite (R$178), se houver. claim_elite_fee é
-  // atômico (FOR UPDATE) → duas inscrições simultâneas não descontam em dobro.
+  // Abate a divida Elite e registra o valor na propria inscricao na mesma
+  // transacao; retries e inscricoes simultaneas nao descontam em dobro.
   let descontoElite = 0;
   if (ctx.isElite && ctx.feePendente > 0) {
-    const { data: deduzido, error: feeErr } = await supabase.rpc("claim_elite_fee", {
-      p_champ_id: ctx.championshipId,
-      p_max:      ctx.repasseBase,
+    const { data: deduzido, error: feeErr } = await supabase.rpc("claim_registration_elite_fee_once", {
+      p_registration_id: ctx.registrationId,
+      p_max: ctx.repasseBase,
     });
     if (!feeErr) descontoElite = Number(deduzido ?? 0);
   }
@@ -145,12 +186,29 @@ export async function executarRepasse(
     // Se o repasse inteiro foi pra quitar os R$178, não há transferência.
     let transferId: string | null = null;
     if (repasseFinal > 0) {
-      const transferencia = await transferirPix({
-        valor:     repasseFinal,
-        chavePix:  ctx.chavePix,
-        descricao: `Repasse RankFTV — ${ctx.champNome}`,
+      const result = await transferIdempotently({
+        flow: "payout",
+        recordId: ctx.registrationId,
+        externalReference: `payout:registration:${ctx.registrationId}`,
+        amount: repasseFinal,
+        pixKey: ctx.chavePix,
+        description: `Repasse RankFTV - ${ctx.champNome}`,
+        metadata: { sourceTable: "registrations", eliteDiscount: descontoElite },
       });
-      transferId = transferencia.id;
+      if (!result.ok) {
+        if (result.ambiguous || result.inProgress) {
+          await supabase.from("registrations")
+            .update({
+              repasse_status: "processando",
+              repasse_erro: "Transferencia em reconciliacao automatica.",
+              elite_fee_coletada: descontoElite,
+            })
+            .eq("id", ctx.registrationId);
+          return { ok: false, error: result.error };
+        }
+        throw new Error(result.error);
+      }
+      transferId = result.provider.id;
     }
 
     await supabase
@@ -166,12 +224,18 @@ export async function executarRepasse(
     return { ok: true, transferId, descontoElite };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[repasse] Erro ao transferir Pix:", msg);
+    await reportOperationalEvent({
+      level: "error",
+      event: "payout.registration_failed",
+      message: "Registration payout failed",
+      error: err,
+      context: { recordId: ctx.registrationId, championshipId: ctx.championshipId },
+      alert: true,
+    });
     // Devolve a dívida Elite abatida e volta a inscrição pra nova tentativa.
     if (descontoElite > 0) {
-      await supabase.rpc("release_elite_fee", {
-        p_champ_id: ctx.championshipId,
-        p_amount:   descontoElite,
+      await supabase.rpc("release_registration_elite_fee_once", {
+        p_registration_id: ctx.registrationId,
       });
     }
     await supabase

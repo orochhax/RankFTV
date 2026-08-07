@@ -27,25 +27,24 @@ export default async function GestaoEspectadoresPage({
   if (!champ) notFound();
   if (champ.organizador_id !== user.id) notFound();
 
-  const [{ data: tipos }, { data: tickets }] = await Promise.all([
+  const [{ data: tipos }, { data: metricData }] = await Promise.all([
     supabase
       .from("spectator_ticket_types")
       .select("id, nome, valor, ativo")
       .eq("championship_id", id)
       .order("ordem", { ascending: true })
       .order("created_at", { ascending: true }),
-    supabase
-      .from("spectator_tickets")
-      .select("status_pagamento, valor, checked_in, quantidade")
-      .eq("championship_id", id),
+    supabase.rpc("organizer_spectator_financial_metrics", { p_championship_id: id }),
   ]);
 
-  const lista = tickets ?? [];
-  const pagos       = lista.filter((t) => t.status_pagamento === "pago");
-  const faturamento = pagos.reduce((s, t) => s + Number(t.valor), 0);
+  const metrics = (metricData ?? {}) as {
+    statuses?: Array<{ status: string; quantity: number; total: number; checkedIn?: number }>;
+  };
+  const paidMetric = metrics.statuses?.find((item) => item.status === "pago");
+  const faturamento = Number(paidMetric?.total ?? 0);
   // quantidade = ingressos por pedido (um pedido pode ter vários)
-  const ingressosPagos = pagos.reduce((s, t) => s + Number(t.quantidade ?? 1), 0);
-  const presentes      = pagos.filter((t) => t.checked_in).reduce((s, t) => s + Number(t.quantidade ?? 1), 0);
+  const ingressosPagos = Number(paidMetric?.quantity ?? 0);
+  const presentes = Number(paidMetric?.checkedIn ?? 0);
 
   return (
     <PageContainer width="wide" className="space-y-6 py-8">

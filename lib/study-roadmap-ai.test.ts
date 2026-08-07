@@ -14,6 +14,7 @@ import {
   roadmapPromptInput,
   roadmapSetupStatus,
   roadmapSystemInstructions,
+  roadmapTimeFeasibility,
   studyClockToMinutes,
   studyMinutesToClock,
   type GeneratedRoadmap,
@@ -119,7 +120,9 @@ test("roadmapPromptInput limita o plano a uma etapa relevante por sessao", () =>
   assert.equal(input.capacity.targetPlannedMinutes, 270);
   assert.equal(input.capacity.capacityUsagePercent, 75);
   assert.match(input.learner.digitalLiteracy, /instrucoes literais/);
-  assert.equal(input.learner.mainDevice, "Windows");
+  assert.deepEqual(input.learner.availableDevices, ["PC Windows"]);
+  assert.equal(input.learner.deviceMode, "single_device");
+  assert.equal("mainDevice" in input.learner, false);
   assert.equal("primaryGoal" in input.learner, false);
   assert.equal("targetLevel" in input.learner, false);
   assert.equal("finalOutcomes" in input.preferences, false);
@@ -130,6 +133,126 @@ test("roadmapHorizon usa meses reais sem alterar roadmaps antigos em semanas", (
   const monthlyAnswers = roadmapAiAnswersSchema.parse({ ...answers, durationMonths: 6 });
   assert.equal(roadmapHorizon(monthlyAnswers).targetDate, "2027-02-02");
   assert.equal(roadmapHorizon(answers).targetDate, "2026-08-16");
+});
+
+test("viabilidade distingue prazo muito curto de uma janela equilibrada", () => {
+  const short = roadmapTimeFeasibility(answers);
+  const adequate = roadmapTimeFeasibility({ ...answers, durationMonths: 7 });
+
+  assert.ok(short);
+  assert.ok(adequate);
+  assert.equal(short.level, "very_short");
+  assert.equal(short.plannedMinutes, 270);
+  assert.equal(short.requestedWeeks, 2);
+  assert.equal(adequate.level, "balanced");
+  assert.equal(adequate.recommendedWeeks, 29);
+  assert.equal(adequate.recommendedMonths, 7);
+  assert.ok(adequate.coveragePercent > short.coveragePercent);
+});
+
+test("profundidade aumenta a demanda e ritmo aumenta a capacidade util", () => {
+  const essential = roadmapTimeFeasibility({ ...answers, contentDepth: "essential", durationMonths: 6 });
+  const deep = roadmapTimeFeasibility({ ...answers, contentDepth: "deep", durationMonths: 6 });
+  const light = roadmapTimeFeasibility({ ...answers, pace: "light", durationMonths: 6 });
+  const steady = roadmapTimeFeasibility({ ...answers, pace: "steady", durationMonths: 6 });
+  const intensive = roadmapTimeFeasibility({ ...answers, pace: "intensive", durationMonths: 6 });
+
+  assert.ok(essential && deep && light && steady && intensive);
+  assert.ok(deep.estimatedMinutes > essential.estimatedMinutes);
+  assert.equal(light.estimatedMinutes, steady.estimatedMinutes);
+  assert.equal(steady.estimatedMinutes, intensive.estimatedMinutes);
+  assert.ok(light.plannedMinutes < steady.plannedMinutes);
+  assert.ok(steady.plannedMinutes < intensive.plannedMinutes);
+  assert.ok(light.recommendedWeeks > steady.recommendedWeeks);
+  assert.ok(steady.recommendedWeeks > intensive.recommendedWeeks);
+});
+
+test("nivel inicial, projeto e avaliacao ajustam a demanda sem depender da capacidade", () => {
+  const advanced = roadmapTimeFeasibility({ ...answers, currentLevel: "advanced", projectMode: "none", assessmentPreference: "none" });
+  const beginner = roadmapTimeFeasibility({ ...answers, currentLevel: "beginner", projectMode: "none", assessmentPreference: "none" });
+  const complete = roadmapTimeFeasibility({ ...answers, currentLevel: "beginner", projectMode: "capstone", assessmentPreference: "mixed" });
+
+  assert.ok(advanced && beginner && complete);
+  assert.ok(advanced.estimatedMinutes < beginner.estimatedMinutes);
+  assert.ok(beginner.estimatedMinutes < complete.estimatedMinutes);
+});
+
+test("saltos CEFR maiores exigem mais tempo sem depender do prazo escolhido", () => {
+  const sameLevel = roadmapTimeFeasibility({ ...languageAnswers, languageTargetLevel: "a1", durationMonths: 6 });
+  const oneLevel = roadmapTimeFeasibility({ ...languageAnswers, languageTargetLevel: "a2", durationMonths: 6 });
+  const twoLevels = roadmapTimeFeasibility({ ...languageAnswers, languageTargetLevel: "b1", durationMonths: 6 });
+  const fourLevels = roadmapTimeFeasibility({ ...languageAnswers, languageTargetLevel: "c1", durationMonths: 6 });
+  const reversed = roadmapTimeFeasibility({ ...languageAnswers, languageCurrentLevel: "b2", languageTargetLevel: "b1", durationMonths: 6 });
+
+  assert.ok(sameLevel && oneLevel && twoLevels && fourLevels);
+  assert.ok(sameLevel.estimatedMinutes > 0);
+  assert.equal(sameLevel.estimatedMinutes, oneLevel.estimatedMinutes);
+  assert.ok(oneLevel.estimatedMinutes < twoLevels.estimatedMinutes);
+  assert.ok(twoLevels.estimatedMinutes < fourLevels.estimatedMinutes);
+  assert.equal(reversed, null);
+});
+
+test("viabilidade por deadline usa a mesma janela inclusiva de roadmapHorizon", () => {
+  const byDuration = roadmapTimeFeasibility({ ...answers, durationWeeks: 4 });
+  const byDeadline = roadmapTimeFeasibility({ ...answers, timelineMode: "deadline", deadline: "2026-08-30" });
+
+  assert.ok(byDuration && byDeadline);
+  assert.equal(byDeadline.requestedWeeks, 4);
+  assert.equal(byDeadline.plannedMinutes, byDuration.plannedMinutes);
+  assert.equal(byDeadline.coveragePercent, byDuration.coveragePercent);
+});
+
+test("ritmo vale exatamente na janela minima e prazo sem sessao informa zero por cento", () => {
+  const oneLightSession = roadmapTimeFeasibility({
+    ...answers,
+    timelineMode: "deadline",
+    deadline: answers.startDate,
+    availableDays: ["1", "1"],
+    minutesPerDay: 30,
+    pace: "light",
+  });
+  const noSession = roadmapTimeFeasibility({
+    ...answers,
+    timelineMode: "deadline",
+    deadline: answers.startDate,
+    availableDays: ["2"],
+    minutesPerDay: 30,
+    pace: "light",
+  });
+
+  assert.ok(oneLightSession && noSession);
+  assert.equal(oneLightSession.plannedMinutes, 18);
+  assert.equal(noSession.plannedMinutes, 0);
+  assert.equal(noSession.coveragePercent, 0);
+  assert.equal(noSession.level, "very_short");
+});
+
+test("viabilidade aguarda dados validos de tempo, profundidade e ritmo", () => {
+  assert.equal(roadmapTimeFeasibility({}), null);
+  assert.equal(roadmapTimeFeasibility({ ...answers, pace: "" }), null);
+  assert.equal(roadmapTimeFeasibility({ ...answers, contentDepth: "" }), null);
+  assert.equal(roadmapTimeFeasibility({ ...answers, availableDays: [] }), null);
+  assert.equal(roadmapTimeFeasibility({ ...answers, durationMonths: 0 }), null);
+  assert.equal(roadmapTimeFeasibility({ ...answers, timelineMode: "deadline", deadline: "2026-02-30" }), null);
+});
+
+test("recomendacao pode ultrapassar doze meses sem ser truncada", () => {
+  const result = roadmapTimeFeasibility({
+    ...languageAnswers,
+    contentDepth: "deep",
+    pace: "light",
+    durationMonths: 12,
+    availableDays: ["0"],
+    minutesPerDay: 30,
+    languageCurrentLevel: "zero",
+    languageTargetLevel: "c2",
+    projectMode: "capstone",
+  });
+
+  assert.ok(result);
+  assert.ok(result.recommendedWeeks > 52);
+  assert.ok(result.recommendedMonths > 12);
+  assert.equal(result.exceedsMaximumWindow, true);
 });
 
 test("questionario exige ao menos 30 minutos e identifica material proprio", () => {
@@ -153,14 +276,56 @@ test("a IA nunca recebe permissao para criar respostas abertas", () => {
   assert.match(languageRoadmapSystemInstructions, /reflectionQuestions deve ser sempre um array vazio/);
 });
 
+test("normaliza dispositivos antigos, rejeita lista vazia e remove repeticoes", () => {
+  const legacyAnswers: Record<string, unknown> = { ...answers };
+  delete legacyAnswers.availableDevices;
+  const legacyMac = roadmapAiAnswersSchema.parse({ ...legacyAnswers, mainDevice: "mac" });
+  const multiple = roadmapAiAnswersSchema.parse({
+    ...answers,
+    availableDevices: ["windows", "mobile", "windows"],
+    organizationProfileCollected: true,
+  });
+
+  assert.deepEqual(legacyMac.availableDevices, ["mac"]);
+  assert.equal(legacyMac.mainDevice, "mac");
+  assert.deepEqual(multiple.availableDevices, ["windows", "mobile"]);
+  assert.equal(multiple.mainDevice, "windows");
+  assert.throws(() => roadmapAiAnswersSchema.parse({ ...answers, availableDevices: [] }));
+  assert.throws(() => roadmapAiAnswersSchema.parse({ ...answers, availableDevices: ["console"] }));
+});
+
+test("prompt trata dispositivos como conjunto disponivel por atividade", () => {
+  const multiInput = JSON.parse(roadmapPromptInput(roadmapAiAnswersSchema.parse({
+    ...answers,
+    availableDevices: ["windows", "mobile"],
+  })));
+  const mobileInput = JSON.parse(roadmapPromptInput(roadmapAiAnswersSchema.parse({
+    ...answers,
+    availableDevices: ["mobile"],
+  })));
+
+  assert.deepEqual(multiInput.learner.availableDevices, ["PC Windows", "celular ou tablet"]);
+  assert.equal(multiInput.learner.deviceMode, "multi_device");
+  assert.equal(mobileInput.learner.deviceMode, "mobile_only");
+  for (const instructions of [roadmapSystemInstructions, languageRoadmapSystemInstructions]) {
+    assert.match(instructions, /availableDevices e uma lista fechada/);
+    assert.match(instructions, /Em mobile_only/);
+    assert.match(instructions, /macOS nao e Linux/);
+    assert.match(instructions, /WSL2/);
+  }
+});
+
 test("roadmaps antigos continuam sendo interpretados como trilha de habilidade", () => {
   assert.equal(answers.roadmapType, "skill");
   assert.equal(answers.targetLanguage, "");
   assert.deepEqual(answers.languageActivities, []);
+  assert.equal(answers.organizationProfileCollected, false);
+  assert.deepEqual(answers.availableDevices, ["windows"]);
 });
 
 test("roadmap de idioma exige perfil linguistico util", () => {
   assert.equal(languageAnswers.roadmapType, "language");
+  assert.equal(roadmapAiAnswersSchema.parse({ ...languageAnswers, organizationProfileCollected: true }).organizationProfileCollected, true);
   assert.throws(() => roadmapAiAnswersSchema.parse({
     ...languageAnswers,
     languageContexts: [],
@@ -185,7 +350,9 @@ test("roadmapPromptInput envia contexto linguistico personalizado", () => {
   assert.match(input.learner.specificSituation, /Reunioes/);
   assert.ok(input.preferences.learningMethods.includes("escrita guiada e reescrita"));
   assert.ok(input.preferences.prioritySkills.includes("fala"));
-  assert.equal("digitalLiteracy" in input.learner, false);
+  assert.match(input.learner.digitalLiteracy, /instrucoes literais/);
+  assert.deepEqual(input.learner.availableDevices, ["PC Windows"]);
+  assert.equal(input.learner.deviceMode, "single_device");
   assert.match(languageRoadmapSystemInstructions, /Escrita guiada/);
   assert.match(languageRoadmapSystemInstructions, /completar frases/i);
   assert.match(languageRoadmapSystemInstructions, /filme ou serie/i);

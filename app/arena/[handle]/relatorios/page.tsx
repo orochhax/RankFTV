@@ -26,7 +26,7 @@ export default async function RelatoriosArenaPage({
   } = await getArenaFinanceiroData(supabase, arena.id);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full space-y-6 px-4 py-6 md:px-8 md:py-8">
       <div>
         <h1 className="text-xl font-bold text-gray-900">Relatórios</h1>
         <p className="text-sm text-gray-400">Faturamento, presença e ranking de alunos.</p>

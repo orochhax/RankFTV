@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { criarOuBuscarCliente, criarCobranca } from "@/lib/asaas";
+import { criarOuBuscarCliente } from "@/lib/asaas";
+import { createIdempotentCharge } from "@/lib/payment-flows";
 import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
 import { buscarCupomValido } from "@/lib/cupons";
 import { resolverEClaimarLote } from "@/lib/lotes";
@@ -239,13 +240,27 @@ export async function comprarIngressoAtleta(
   try {
     const customer      = await criarOuBuscarCliente({ name: nome, email, cpfCnpj: cpf });
     const totalComprador = calcularTotalComprador(valorFinal, "pix", !!champ.is_elite);
-    const cobranca      = await criarCobranca({
+    const operacao      = await createIdempotentCharge({
+      flow:              "athlete_ticket",
+      recordId:          ticket.id,
       customerId:        customer.id,
-      valorBase:         totalComprador,
-      metodo:            "pix",
-      descricao:         `Ingresso atleta ${champ.nome} — ${categoriaNome ?? "dupla"} (${nome} + ${pNome})`,
+      amount:            totalComprador,
+      method:            "pix",
+      description:       `Ingresso atleta ${champ.nome} — ${categoriaNome ?? "dupla"} (${nome} + ${pNome})`,
       externalReference: `athl:${ticket.id}`,
+      actorId:            buyerUser?.id ?? null,
+      metadata:           { championshipId, categoryId },
     });
+
+    if (!operacao.ok) {
+      if (!operacao.ambiguous && !operacao.inProgress) {
+        await liberarReivindicacoes();
+        await supabase.from("athlete_tickets").update({ status_pagamento: "expirado" }).eq("id", ticket.id);
+      }
+      return { error: operacao.error };
+    }
+
+    const cobranca = operacao.provider;
 
     await supabase
       .from("athlete_tickets")
@@ -256,10 +271,8 @@ export async function comprarIngressoAtleta(
         invoice_url:        cobranca.invoiceUrl ?? null,
       })
       .eq("id", ticket.id);
-  } catch (err) {
-    await liberarReivindicacoes();
-    const msg = err instanceof Error ? err.message : "Erro desconhecido";
-    return { error: `Erro ao gerar o Pix: ${msg}` };
+  } catch {
+    return { error: "Não foi possível iniciar o pagamento. Tente novamente em instantes." };
   }
 
   redirect(`/campeonatos/${championshipId}/comprar/ingresso/${ticket.id}?token=${accessToken}`);

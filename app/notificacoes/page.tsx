@@ -91,7 +91,7 @@ export default async function NotificacoesPage() {
   const total = staffConvites.length + convites.length + notifs.length;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-6 py-8 pb-32">
+    <div className="w-full space-y-6 px-6 py-8 pb-32">
       <div className="flex items-center gap-3">
         <div className="flex size-10 items-center justify-center rounded-full bg-blue-100">
           <Bell className="size-5 text-blue-600" />

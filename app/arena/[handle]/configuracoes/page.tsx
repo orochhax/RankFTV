@@ -27,7 +27,7 @@ export default async function ConfiguracoesArenaPage({
     .order("ordem", { ascending: true });
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full space-y-6 px-4 py-6 md:px-8 md:py-8">
       <div>
         <h1 className="text-xl font-bold text-gray-900">Configurações</h1>
         <p className="text-sm text-gray-400">Fotos, nome, descrição e localização.</p>

@@ -192,7 +192,7 @@ export default async function StaffChaveamentoPage({
   return (
     <div className="min-h-screen">
       <div className="bg-black px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-4xl space-y-4">
+        <div className="w-full space-y-4">
           <Link
             href={`/staff/${id}`}
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
@@ -216,7 +216,7 @@ export default async function StaffChaveamentoPage({
       </div>
 
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-4xl space-y-6">
+        <div className="w-full space-y-6">
 
           {totalDuplas === 0 ? (
             <div className="flex flex-col items-center gap-3 py-16 text-center">

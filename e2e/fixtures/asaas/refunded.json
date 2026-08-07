@@ -1,0 +1,12 @@
+{
+  "id": "fixture-payment-refunded-v1",
+  "dateCreated": "2026-08-07T09:00:00Z",
+  "event": "PAYMENT_REFUNDED",
+  "payment": {
+    "id": "__PAYMENT_ID__",
+    "externalReference": "__EXTERNAL_REFERENCE__",
+    "status": "REFUNDED",
+    "value": 150,
+    "billingType": "PIX"
+  }
+}

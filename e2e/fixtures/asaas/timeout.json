@@ -1,0 +1,7 @@
+{
+  "scenario": "provider_timeout_after_write",
+  "externalReference": "__EXTERNAL_REFERENCE__",
+  "expectedOperationStatus": "provider_pending",
+  "retryCreatesNewCharge": false,
+  "reconcileBy": "externalReference"
+}

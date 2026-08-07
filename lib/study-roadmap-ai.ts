@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { addDays, parseISO } from "@/lib/performance";
 
-export const ROADMAP_AI_PROMPT_VERSION = "roadmap-v12-language-contexts";
+export const ROADMAP_AI_PROMPT_VERSION = "roadmap-v13-multi-device";
 export const ROADMAP_IMPORT_PROMPT_VERSION = "roadmap-import-v3-reference-standard";
 export const ROADMAP_AI_DAILY_LIMIT = 3;
 export const ROADMAP_IMPORT_AI_MAX_CHARS = 3_000_000;
@@ -48,6 +48,8 @@ export const roadmapAiAnswersSchema = z.object({
   currentLevel: z.enum(roadmapLevelValues),
   digitalLiteracy: z.enum(roadmapDigitalLiteracyValues).default("needs_guidance"),
   mainDevice: z.enum(roadmapDeviceValues).default("windows"),
+  availableDevices: z.array(z.enum(roadmapDeviceValues)).max(roadmapDeviceValues.length).optional(),
+  organizationProfileCollected: z.boolean().default(false),
   useContext: z.enum(roadmapContextValues).default("new_career"),
   targetLevel: z.enum(roadmapTargetLevelValues).default("autonomous"),
   mainObstacle: z.enum(roadmapObstacleValues),
@@ -84,6 +86,9 @@ export const roadmapAiAnswersSchema = z.object({
   languageSituations: z.string().trim().max(2000).default(""),
   languageInterests: z.string().trim().max(2000).default(""),
 }).superRefine((value, context) => {
+  if (value.availableDevices && value.availableDevices.length === 0) {
+    context.addIssue({ code: "custom", path: ["availableDevices"], message: "Escolha ao menos um dispositivo que voce pode usar." });
+  }
   if (value.timelineMode === "deadline" && !value.deadline) {
     context.addIssue({ code: "custom", path: ["deadline"], message: "Informe a data final do roadmap." });
   }
@@ -111,6 +116,16 @@ export const roadmapAiAnswersSchema = z.object({
       context.addIssue({ code: "custom", path: ["languageTargetLevel"], message: "O nivel desejado nao pode ser inferior ao nivel atual." });
     }
   }
+}).transform((value) => {
+  // Answers saved before multi-device support only have mainDevice. Preserve
+  // those roadmaps while making every parsed answer expose one normalized list.
+  const availableDevices = [...new Set(value.availableDevices ?? [value.mainDevice])];
+  return {
+    ...value,
+    availableDevices,
+    // Deprecated compatibility alias for older readers. New decisions use the list.
+    mainDevice: availableDevices[0] ?? value.mainDevice,
+  };
 });
 
 export type RoadmapAiAnswers = z.infer<typeof roadmapAiAnswersSchema>;
@@ -123,6 +138,7 @@ export type RoadmapSetupDraft = {
   currentLevel?: string;
   digitalLiteracy?: string;
   mainDevice?: string;
+  availableDevices?: string[];
   useContext?: string;
   targetLevel?: string;
   mainObstacle?: string;
@@ -167,6 +183,17 @@ export type RoadmapSetupStatus = {
   workloadLabel: "Leve" | "Moderado" | "Exigente" | "Intenso";
 };
 
+export type RoadmapTimeFeasibility = {
+  level: "very_short" | "tight" | "balanced" | "comfortable";
+  coveragePercent: number;
+  plannedMinutes: number;
+  estimatedMinutes: number;
+  requestedWeeks: number;
+  recommendedWeeks: number;
+  recommendedMonths: number;
+  exceedsMaximumWindow: boolean;
+};
+
 function clampScore(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
@@ -206,6 +233,9 @@ export function roadmapLanguageFormats(activities: readonly string[]): RoadmapLe
 export function roadmapSetupStatus(draft: RoadmapSetupDraft): RoadmapSetupStatus {
   let completeness = 0;
   const languageMode = draft.roadmapType === "language";
+  const hasAvailableDevice = draft.availableDevices
+    ? draft.availableDevices.length > 0
+    : Boolean(draft.mainDevice);
   if (languageMode) {
     if ((draft.targetLanguage?.trim().length ?? 0) >= 2) completeness += 10;
     if ((draft.nativeLanguage?.trim().length ?? 0) >= 2) completeness += 5;
@@ -222,12 +252,14 @@ export function roadmapSetupStatus(draft: RoadmapSetupDraft): RoadmapSetupStatus
     if (draft.languageObstacle) completeness += 4;
     if (draft.languagePracticeAccess?.length) completeness += 5;
     if ((draft.knownTopics?.trim().length ?? 0) >= 3) completeness += 3;
+    if (draft.digitalLiteracy) completeness += 4;
+    if (hasAvailableDevice) completeness += 4;
   } else {
     if ((draft.subject?.trim().length ?? 0) >= 3) completeness += 10;
     if ((draft.goalDetail?.trim().length ?? 0) >= 10) completeness += 15;
     if (draft.currentLevel) completeness += 8;
     if (draft.digitalLiteracy) completeness += 6;
-    if (draft.mainDevice) completeness += 4;
+    if (hasAvailableDevice) completeness += 4;
     if (draft.useContext) completeness += 8;
     if (draft.mainObstacle) completeness += 6;
     if ((draft.knownTopics?.trim().length ?? 0) >= 3) completeness += 5;
@@ -424,11 +456,14 @@ function paceCapacityRatio(pace: RoadmapAiAnswers["pace"]): number {
   return 0.75;
 }
 
-function targetPlannedMinutes(answers: RoadmapAiAnswers, capacityMinutes: number): number {
+function targetPlannedMinutes(answers: Pick<RoadmapAiAnswers, "pace">, capacityMinutes: number): number {
   return Math.min(capacityMinutes, Math.max(30, Math.round(capacityMinutes * paceCapacityRatio(answers.pace))));
 }
 
-export function roadmapHorizon(answers: RoadmapAiAnswers): { targetDate: string; totalWeeks: number; availableDates: string[]; capacityMinutes: number } {
+type RoadmapHorizonInput = Pick<RoadmapAiAnswers, "startDate" | "timelineMode" | "deadline" | "durationWeeks" | "durationMonths" | "availableDays" | "minutesPerDay">;
+type RoadmapHorizonResult = { targetDate: string; totalWeeks: number; availableDates: string[]; capacityMinutes: number };
+
+function calculateRoadmapHorizon(answers: RoadmapHorizonInput): RoadmapHorizonResult {
   const fallbackTarget = answers.durationMonths
     ? addDays(addCalendarMonths(answers.startDate, answers.durationMonths), -1)
     : addDays(answers.startDate, answers.durationWeeks * 7 - 1);
@@ -440,6 +475,162 @@ export function roadmapHorizon(answers: RoadmapAiAnswers): { targetDate: string;
     if (allowed.has(parseISO(date).getDay())) availableDates.push(date);
   }
   return { targetDate, totalWeeks, availableDates, capacityMinutes: availableDates.length * answers.minutesPerDay };
+}
+
+export function roadmapHorizon(answers: RoadmapAiAnswers): RoadmapHorizonResult {
+  return calculateRoadmapHorizon(answers);
+}
+
+function isExactIsoDate(value: unknown): value is string {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && addDays(value, 0) === value;
+}
+
+// Referencia heuristica para estimar o tamanho inicial do roadmap. Ela serve
+// para avisar sobre recortes antes da geracao, nao para prometer dominio total.
+const roadmapDepthDemandMinutes: Record<typeof roadmapDepthValues[number], number> = {
+  essential: 30 * 60,
+  balanced: 55 * 60,
+  deep: 90 * 60,
+};
+
+const roadmapSkillLevelDemandRatio: Record<typeof roadmapLevelValues[number], number> = {
+  unknown: 1.1,
+  beginner: 1,
+  basic: 0.85,
+  intermediate: 0.65,
+  advanced: 0.5,
+};
+
+const roadmapProjectDemandMinutes: Record<typeof roadmapProjectModeValues[number], number> = {
+  none: 0,
+  guided: 3 * 60,
+  per_module: 6 * 60,
+  capstone: 10 * 60,
+};
+
+const roadmapAssessmentDemandMinutes: Record<typeof roadmapAssessmentValues[number], number> = {
+  none: 0,
+  quick_quizzes: 60,
+  module_exams: 3 * 60,
+  practical: 4 * 60,
+  mixed: 5 * 60,
+};
+
+const languageLevelRank: Record<typeof roadmapLanguageLevelValues[number], number> = {
+  unknown: 0,
+  zero: 0,
+  a1: 1,
+  a2: 2,
+  b1: 3,
+  b2: 4,
+  c1: 5,
+  c2: 6,
+};
+
+function uniqueKnownValues(values: readonly string[] | undefined, knownValues: readonly string[]): number {
+  const known = new Set(knownValues);
+  return new Set((values ?? []).filter((value) => known.has(value))).size;
+}
+
+function roadmapEstimatedDemandMinutes(draft: RoadmapSetupDraft, depth: typeof roadmapDepthValues[number]): number | null {
+  const baseMinutes = roadmapDepthDemandMinutes[depth];
+  let adjustedBaseMinutes: number;
+  let varietyCount: number;
+
+  if (draft.roadmapType === "language") {
+    const currentLevel = draft.languageCurrentLevel ?? "unknown";
+    const targetLevel = draft.languageTargetLevel ?? "b1";
+    if (!(currentLevel in languageLevelRank) || !(targetLevel in languageLevelRank) || ["unknown", "zero"].includes(targetLevel)) return null;
+    const currentRank = languageLevelRank[currentLevel as keyof typeof languageLevelRank];
+    const targetRank = languageLevelRank[targetLevel as keyof typeof languageLevelRank];
+    if (targetRank < currentRank) return null;
+    const cefrJump = Math.max(1, targetRank - currentRank);
+    adjustedBaseMinutes = baseMinutes * (1 + (cefrJump - 1) * 0.35);
+    varietyCount = uniqueKnownValues(draft.languageActivities, roadmapLanguageActivityValues);
+  } else {
+    const currentLevel = draft.currentLevel && draft.currentLevel in roadmapSkillLevelDemandRatio
+      ? draft.currentLevel as keyof typeof roadmapSkillLevelDemandRatio
+      : "unknown";
+    adjustedBaseMinutes = baseMinutes * roadmapSkillLevelDemandRatio[currentLevel];
+    varietyCount = uniqueKnownValues(
+      draft.learningFormats?.filter((format) => !["quiz", "project"].includes(format)),
+      roadmapLearningFormatValues,
+    );
+  }
+
+  const projectMinutes = draft.projectMode && draft.projectMode in roadmapProjectDemandMinutes
+    ? roadmapProjectDemandMinutes[draft.projectMode as keyof typeof roadmapProjectDemandMinutes]
+    : 0;
+  const assessmentMinutes = draft.assessmentPreference && draft.assessmentPreference in roadmapAssessmentDemandMinutes
+    ? roadmapAssessmentDemandMinutes[draft.assessmentPreference as keyof typeof roadmapAssessmentDemandMinutes]
+    : 0;
+  const varietyMinutes = Math.max(0, varietyCount - 1) * 30;
+  return Math.round(adjustedBaseMinutes + projectMinutes + assessmentMinutes + varietyMinutes);
+}
+
+export function roadmapTimeFeasibility(draft: RoadmapSetupDraft): RoadmapTimeFeasibility | null {
+  if (!isExactIsoDate(draft.startDate)) return null;
+  if (draft.timelineMode !== "duration" && draft.timelineMode !== "deadline") return null;
+  if (!roadmapDepthValues.includes(draft.contentDepth as typeof roadmapDepthValues[number])) return null;
+  if (!roadmapPaceValues.includes(draft.pace as typeof roadmapPaceValues[number])) return null;
+  if (!Number.isInteger(draft.minutesPerDay) || (draft.minutesPerDay ?? 0) < 30 || (draft.minutesPerDay ?? 0) > 480) return null;
+  if (!draft.availableDays?.length || draft.availableDays.some((day) => !roadmapWeekdayValues.includes(day as typeof roadmapWeekdayValues[number]))) return null;
+
+  let durationMonths: number | undefined;
+  let durationWeeks = 1;
+  let deadline = "";
+  if (draft.timelineMode === "duration") {
+    if (draft.durationMonths !== undefined) {
+      if (!Number.isInteger(draft.durationMonths) || draft.durationMonths < 1 || draft.durationMonths > 12) return null;
+      durationMonths = draft.durationMonths;
+    } else {
+      if (!Number.isInteger(draft.durationWeeks) || (draft.durationWeeks ?? 0) < 1 || (draft.durationWeeks ?? 0) > 52) return null;
+      durationWeeks = draft.durationWeeks!;
+    }
+  } else {
+    if (!isExactIsoDate(draft.deadline) || draft.deadline < draft.startDate) return null;
+    if (draft.deadline > addDays(addCalendarMonths(draft.startDate, 12), -1)) return null;
+    deadline = draft.deadline;
+  }
+
+  const depth = draft.contentDepth as typeof roadmapDepthValues[number];
+  const pace = draft.pace as typeof roadmapPaceValues[number];
+  const minutesPerDay = draft.minutesPerDay!;
+  const availableDays = [...new Set(draft.availableDays)] as RoadmapAiAnswers["availableDays"];
+  const horizon = calculateRoadmapHorizon({
+    startDate: draft.startDate,
+    timelineMode: draft.timelineMode,
+    deadline,
+    durationWeeks,
+    durationMonths,
+    availableDays,
+    minutesPerDay,
+  });
+  const estimatedMinutes = roadmapEstimatedDemandMinutes(draft, depth);
+  if (!estimatedMinutes) return null;
+  const plannedMinutes = Math.round(horizon.capacityMinutes * paceCapacityRatio(pace));
+  const coveragePercent = Math.round(plannedMinutes / estimatedMinutes * 100);
+  const weeklyUsefulMinutes = minutesPerDay * availableDays.length * paceCapacityRatio(pace);
+  const recommendedWeeks = Math.ceil(estimatedMinutes / weeklyUsefulMinutes);
+  const recommendedMonths = Math.ceil(recommendedWeeks / (52 / 12));
+  const level = coveragePercent < 65
+    ? "very_short"
+    : coveragePercent < 85
+      ? "tight"
+      : coveragePercent <= 120
+        ? "balanced"
+        : "comfortable";
+
+  return {
+    level,
+    coveragePercent,
+    plannedMinutes,
+    estimatedMinutes,
+    requestedWeeks: horizon.totalWeeks,
+    recommendedWeeks,
+    recommendedMonths,
+    exceedsMaximumWindow: recommendedWeeks > 52,
+  };
 }
 
 function normalizeText(value: string, fallback: string, max: number): string {
@@ -699,7 +890,7 @@ const labels = {
   goals: { career: "carreira ou emprego", exam: "prova ou certificacao", project: "construir um projeto", academic: "formacao academica", personal: "conhecimento pessoal" },
   levels: { unknown: "nao sabe o nivel", beginner: "iniciante", basic: "basico", intermediate: "intermediario", advanced: "avancado" },
   digitalLiteracy: { needs_guidance: "precisa de instrucoes literais para usar computador, terminal e instalar ferramentas", basic: "usa o computador no dia a dia, mas precisa de ajuda com ferramentas tecnicas", comfortable: "instala programas e usa terminal com alguma autonomia", advanced: "domina ambiente, terminal e configuracoes tecnicas" },
-  devices: { windows: "Windows", mac: "macOS", linux: "Linux", chromebook: "Chromebook", mobile: "celular ou tablet como dispositivo principal" },
+  devices: { windows: "PC Windows", mac: "Mac com macOS", linux: "computador com Linux", chromebook: "Chromebook", mobile: "celular ou tablet" },
   contexts: { current_job: "aplicar no trabalho atual", new_career: "entrar ou mudar de carreira", freelance: "trabalhar como freelancer", exam: "fazer uma prova ou certificacao", academic: "usar na faculdade ou escola", personal_project: "construir um projeto pessoal", personal_learning: "aprender por interesse pessoal" },
   targets: { foundation: "compreender fundamentos", functional: "usar com orientacao", autonomous: "trabalhar com autonomia", professional: "nivel profissional" },
   obstacles: { direction: "falta de direcao", time: "pouco tempo", consistency: "dificuldade de manter constancia", theory: "excesso de teoria", practice: "falta de pratica", none: "nenhum obstaculo principal" },
@@ -729,6 +920,12 @@ export function roadmapPromptInput(answers: RoadmapAiAnswers): string {
   const materialBudget = answers.requiredMaterials.includes("free") ? "free_only" : answers.materialBudget;
   const materialSources = answers.requiredMaterials.filter((material) => material !== "free");
   const learningFormats = answers.learningFormats.filter((format) => !["quiz", "project"].includes(format));
+  const availableDevices = mapLabels(answers.availableDevices, labels.devices);
+  const deviceMode = answers.availableDevices.length > 1
+    ? "multi_device"
+    : answers.availableDevices[0] === "mobile"
+      ? "mobile_only"
+      : "single_device";
   const capacity = {
     totalWeeks: horizon.totalWeeks,
     studyDaysPerWeek: answers.availableDays.length,
@@ -757,6 +954,9 @@ export function roadmapPromptInput(answers: RoadmapAiAnswers): string {
         interests: answers.languageInterests,
         currentExposure: labels.languageExposure[answers.languageExposure],
         mainObstacle: labels.languageObstacles[answers.languageObstacle],
+        digitalLiteracy: labels.digitalLiteracy[answers.digitalLiteracy],
+        availableDevices,
+        deviceMode,
         additionalContext: answers.contextNotes || "nao informado",
       },
       preferences: {
@@ -782,7 +982,8 @@ export function roadmapPromptInput(answers: RoadmapAiAnswers): string {
       practicalGoal: answers.goalDetail,
       currentLevel: labels.levels[answers.currentLevel],
       digitalLiteracy: labels.digitalLiteracy[answers.digitalLiteracy],
-      mainDevice: labels.devices[answers.mainDevice],
+      availableDevices,
+      deviceMode,
       useContext: labels.contexts[answers.useContext],
       mainObstacle: labels.obstacles[answers.mainObstacle],
       knownTopics: answers.knownTopics || "nao informado",
@@ -824,15 +1025,27 @@ evidence: "Arquivo executavel, tabela com resultados esperados e obtidos, README
 
 Use esse exemplo como referencia de profundidade, nao como conteudo para repetir. Adapte arquivos, ferramentas, testes, perguntas e evidencias ao assunto real de cada etapa.`;
 
+const roadmapDeviceRules = `DISPOSITIVOS E AMBIENTES
+- availableDevices e uma lista fechada dos aparelhos que o aluno realmente pode usar. Nunca exija, recomende comprar, pegar emprestado ou usar um aparelho fora dessa lista.
+- Escolha o aparelho mais adequado separadamente para cada etapa. Comece workspace com "Dispositivo recomendado: <um nome de availableDevices> —" e informe o aplicativo, site, pasta ou ambiente exato. requirements, preparationSteps, instructions e evidence devem ser compativeis com essa escolha.
+- Em multi_device, use cada aparelho onde ele trouxer vantagem real e evite trocas desnecessarias. Celular ou tablet costuma ser melhor para gravacao, audio, foto, revisao e pratica curta; um computador disponivel costuma ser melhor para codigo, terminal, arquivos extensos e aplicativos desktop. Se houver troca, explique como salvar, sincronizar e abrir o mesmo artefato no outro aparelho.
+- Em mobile_only, todas as etapas precisam ser concluidas por toque em navegador ou aplicativo movel. Diga onde tocar, onde salvar ou exportar e como conferir o resultado. Nao use VS Code desktop, CMD, PowerShell, WSL, maquina virtual ou Docker local, terminal de computador, servidor local nem atalhos de teclado. Como o aparelho pode ser Android ou iOS, nao dependa de Termux, iSH ou instalacao lateral sem oferecer uma rota compativel com ambos.
+- Para aprender Linux, prefira nesta ordem: computador Linux disponivel; ambiente Linux real via WSL2 ou maquina virtual em um computador disponivel; laboratorio Linux pelo navegador. No Chromebook, use o ambiente de desenvolvimento Linux somente depois de uma etapa explicita para verificar se ele esta disponivel; caso contrario, use laboratorio web.
+- macOS e semelhante a Unix e serve para shell, Git e conceitos POSIX portaveis, mas macOS nao e Linux. Nao o use como substituto de Linux para apt, systemd, kernel, drivers, rede ou inicializacao. Se Windows e Mac estiverem disponiveis sem Linux nativo, escolha WSL2, maquina virtual ou laboratorio web conforme o topico; nao escolha Mac automaticamente.
+- Se o objetivo completo nao puder ser executado nos aparelhos informados, declare a limitacao no diagnosis e monte uma base que seja realmente executavel agora. Um requisito futuro pode ser explicado como opcional, mas nao pode bloquear a conclusao do roadmap atual.
+- Adapte a orientacao operacional a digitalLiteracy. Nao presuma instalacoes, contas, permissoes ou ambientes ja configurados; quando forem necessarios, crie antes uma etapa segura de verificacao e configuracao.`;
+
 export const roadmapSystemInstructions = `Voce e um arquiteto de curriculos praticos. Crie um caminho de aprendizagem que produza dominio observavel, nao uma lista decorativa de tarefas.
 
 ${roadmapReferenceStandard}
+
+${roadmapDeviceRules}
 
 REGRAS DE QUALIDADE
 - Organize os modulos em ordem de pre-requisitos. Cada modulo deve preparar o seguinte.
 - Evite topicos, titulos ou atividades repetitivas. Cada passo deve adicionar uma habilidade nova ou testar uma habilidade anterior.
 - Nao use instrucoes vagas como "estude o assunto", "assista a uma aula", "crie alguns programas" ou "pratique". Cada etapa deve ser autoexplicativa e executavel sem o usuario precisar perguntar o que construir.
-- Adapte cada instrucao ao nivel de autonomia digital e ao dispositivo principal informados. Para quem precisa de orientacao ou conhece apenas o basico, nao presuma que terminal, editor, extensao ou ambiente ja estejam instalados: diga onde clicar, qual aplicativo abrir, o comando exato, o que deve aparecer e como corrigir os erros comuns. No Windows, por exemplo, use instrucoes literais como "abra o menu Iniciar, procure Prompt de Comando e execute ..." quando isso for necessario.
+- Adapte cada instrucao ao nivel de autonomia digital e ao aparelho escolhido para a etapa. Para quem precisa de orientacao ou conhece apenas o basico, nao presuma que terminal, editor, extensao ou ambiente ja estejam instalados: diga onde clicar, qual aplicativo abrir, o comando exato, o que deve aparecer e como corrigir os erros comuns. No Windows, por exemplo, use instrucoes literais como "abra o menu Iniciar, procure Prompt de Comando e execute ..." quando isso for necessario.
 - Diferencie nivel no assunto de autonomia digital. Um iniciante no assunto que domina terminal pode receber instrucoes tecnicas concisas; alguem experiente no assunto mas sem autonomia digital ainda precisa de orientacao operacional.
 - Infira o nivel de dominio necessario a partir de useContext, practicalGoal e contentDepth. Trabalho atual, transicao de carreira, freelance, prova, faculdade e interesse pessoal exigem evidencias e profundidades diferentes; nao invente um nivel generico desconectado do uso real.
 - Em instructions, escreva de 4 a 10 passos atomicos, um por linha, no formato "1. acao concreta". Informe nomes de arquivos, campos, entradas, regras, limites, quantidade de exemplos, comandos ou telas sempre que forem relevantes.
@@ -882,6 +1095,8 @@ DESAFIOS E PROJETOS
 Escreva todo o conteudo em portugues do Brasil e respeite estritamente o schema de saida.`;
 
 export const languageRoadmapSystemInstructions = `Voce e um especialista em aquisicao de idiomas, desenho curricular e pratica deliberada. Crie uma trilha personalizada que leve o aluno a usar o idioma em situacoes reais. O resultado nao pode ser uma lista generica de gramatica, aplicativos ou tarefas repetidas.
+
+${roadmapDeviceRules}
 
 PRINCIPIOS DE APRENDIZAGEM
 - Use os niveis do CEFR apenas como referencia de progressao. Converta o nivel desejado em comportamentos observaveis de fala, escuta, leitura e escrita.

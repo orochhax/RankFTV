@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { criarOuBuscarCliente, criarCobranca, type MetodoPagamento } from "@/lib/asaas";
+import { criarOuBuscarCliente, type MetodoPagamento } from "@/lib/asaas";
+import { createIdempotentCharge } from "@/lib/payment-flows";
 import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
 import { buscarCupomValido, type CupomValido } from "@/lib/cupons";
 import { resolverPrecos, resolverEClaimarLote } from "@/lib/lotes";
@@ -306,15 +307,29 @@ export async function inscreverDupla(
     // O comprador paga valor + taxa (a taxa fica com a plataforma).
     const totalComprador = calcularTotalComprador(valorInscricao, metodo, !!champ.is_elite);
 
-    const cobranca = await criarCobranca({
+    const operacao = await createIdempotentCharge({
+      flow:              "registration",
+      recordId:          reg.id,
       customerId:        customer.id,
-      valorBase:         totalComprador,
-      metodo,
-      descricao:         `Inscrição ${champ.nome} — ${cat.nome}`,
+      amount:            totalComprador,
+      method:            metodo,
+      description:       `Inscrição ${champ.nome} — ${cat.nome}`,
       externalReference: reg.id,
+      actorId:            user.id,
+      metadata:           { championshipId, categoryId },
     });
 
-    await createAdminClient()
+    if (!operacao.ok) {
+      if (!operacao.ambiguous && !operacao.inProgress) {
+        await liberarReivindicacoes();
+        await admin.from("registrations").update({ status_pagamento: "expirado" }).eq("id", reg.id);
+      }
+      return { error: operacao.error };
+    }
+
+    const cobranca = operacao.provider;
+
+    await admin
       .from("registrations")
       .update({
         asaas_payment_id:   cobranca.id,
@@ -323,10 +338,8 @@ export async function inscreverDupla(
         invoice_url:        cobranca.invoiceUrl ?? null,
       })
       .eq("id", reg.id);
-  } catch (err) {
-    await liberarReivindicacoes();
-    const msg = err instanceof Error ? err.message : "Erro desconhecido";
-    return { error: `Erro ao gerar Pix: ${msg}` };
+  } catch {
+    return { error: "Não foi possível iniciar o pagamento. Tente novamente em instantes." };
   }
 
   redirect(`/campeonatos/${championshipId}/pagamento/${reg.id}`);

@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserRole, isCeo } from "@/lib/supabase/roles";
 import { RoleSelector } from "@/components/admin/RoleSelector";
 
@@ -11,8 +10,25 @@ const ROLE_COLORS: Record<string, string> = {
   admin: "bg-blue-100 text-blue-800",
   ceo:   "bg-yellow-100 text-yellow-800",
 };
+const PAGE_SIZE = 25;
 
-export default async function AdminUsuariosPage() {
+type DirectoryUser = {
+  id: string;
+  nome: string;
+  username: string;
+  role: string;
+  created_at: string;
+  email: string | null;
+};
+
+export default async function AdminUsuariosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const query = await searchParams;
+  const requestedPage = Number.parseInt(String(query.page ?? "1"), 10);
+  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const role = await getUserRole(supabase);
@@ -20,32 +36,27 @@ export default async function AdminUsuariosPage() {
   // Só CEO acessa essa página
   if (!user || !isCeo(role)) redirect("/");
 
-  const admin = createAdminClient();
-
-  // Busca perfis + emails do auth.users em paralelo
-  const [{ data: profiles }, { data: authData }] = await Promise.all([
-    admin
-      .from("profiles")
-      .select("id, nome, username, role, created_at")
-      .order("created_at", { ascending: false }),
-    admin.auth.admin.listUsers({ perPage: 1000 }),
-  ]);
-
-  const emailMap = new Map(authData?.users.map((u) => [u.id, u.email ?? ""]));
-
-  const usuarios = profiles?.map((p) => ({
-    ...p,
-    email: emailMap.get(p.id) ?? "",
-  })) ?? [];
-
-  const counts = {
-    total: usuarios.length,
-    admins: usuarios.filter((u) => u.role === "admin").length,
-    ceos:   usuarios.filter((u) => u.role === "ceo").length,
+  const { data: directoryData } = await supabase.rpc("admin_user_directory", {
+    p_limit: PAGE_SIZE,
+    p_offset: (page - 1) * PAGE_SIZE,
+  });
+  const directory = (directoryData ?? {}) as unknown as {
+    items?: DirectoryUser[];
+    total?: number;
+    admins?: number;
+    ceos?: number;
   };
+  const usuarios = directory.items ?? [];
+  const counts = {
+    total: Number(directory.total ?? 0),
+    admins: Number(directory.admins ?? 0),
+    ceos: Number(directory.ceos ?? 0),
+  };
+  const totalPages = Math.max(1, Math.ceil(counts.total / PAGE_SIZE));
+  if (page > totalPages) redirect(`/admin/usuarios?page=${totalPages}`);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+    <div className="w-full space-y-6 px-6 py-8">
       <Link
         href="/admin"
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
@@ -75,7 +86,7 @@ export default async function AdminUsuariosPage() {
       </div>
 
       {/* Tabela de usuários */}
-      <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
+      <div className="overflow-x-auto rounded-2xl bg-white ring-1 ring-black/5">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase tracking-wide text-gray-400">
@@ -108,6 +119,24 @@ export default async function AdminUsuariosPage() {
           </tbody>
         </table>
       </div>
+
+      {counts.total > 0 && (
+        <nav className="flex items-center justify-between border-t border-gray-200 pt-4" aria-label="Paginacao de usuarios">
+          <span className="text-sm text-gray-500">Pagina {page} de {totalPages}</span>
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Link href={`/admin/usuarios?page=${page - 1}`} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                <ChevronLeft className="size-4" /> Anterior
+              </Link>
+            )}
+            {page < totalPages && (
+              <Link href={`/admin/usuarios?page=${page + 1}`} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                Proxima <ChevronRight className="size-4" />
+              </Link>
+            )}
+          </div>
+        </nav>
+      )}
     </div>
   );
 }

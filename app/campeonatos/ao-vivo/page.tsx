@@ -9,7 +9,7 @@ export default async function AoVivoPage() {
   return (
     <div className="min-h-screen">
       <div className="bg-black px-6 pb-16 pt-8">
-        <div className="mx-auto max-w-5xl space-y-3">
+        <div className="w-full space-y-3">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
@@ -29,7 +29,7 @@ export default async function AoVivoPage() {
       </div>
 
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
-        <div className="mx-auto max-w-5xl">
+        <div className="w-full">
           {camps.length === 0 ? (
             <div className="py-16 text-center">
               <Radio className="mx-auto mb-4 size-10 text-gray-200" />

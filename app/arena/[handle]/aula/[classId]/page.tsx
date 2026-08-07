@@ -116,7 +116,7 @@ export default async function AulaDetalhePage({
   const publico = (aula.publico ?? "misto") as PublicoAula;
 
   return (
-    <div className="mx-auto max-w-xl space-y-5 px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full space-y-5 px-4 py-6 md:px-8 md:py-8">
       <div>
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-xl font-bold text-gray-900">{aula.titulo}</h1>

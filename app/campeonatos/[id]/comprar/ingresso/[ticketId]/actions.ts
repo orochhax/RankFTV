@@ -2,9 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { criarOuBuscarCliente, reembolsarPagamento } from "@/lib/asaas";
+import { criarOuBuscarCliente } from "@/lib/asaas";
 import { calcularTotalComprador } from "@/lib/taxas";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
+import { createIdempotentCardCharge, refundIdempotently } from "@/lib/payment-flows";
+import {
+  beginCardPaymentAttempt,
+  cardBlockedMessage,
+  finishCardPaymentAttempt,
+} from "@/lib/payment-security";
+import { estornarAthleteTicket } from "@/lib/pagamento-inscricao";
 
 export type CardPaymentInput = {
   ticketId:    string;
@@ -71,79 +78,64 @@ export async function pagarIngressoAtletaComCartao(
   // Comprador paga valor + taxa de cartão (10% Padrão / 9% Elite, mín. R$3,99).
   const valorTotal   = calcularTotalComprador(valorBase, input.tipo, !!champ?.is_elite);
 
-  const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 1);
+  const attempt = await beginCardPaymentAttempt({
+    flow: "athlete_ticket",
+    orderReference: ticket.id,
+    cardNumber: input.numero,
+  });
+  if (!attempt.allowed) return { ok: false, error: cardBlockedMessage(attempt.retryAfterSeconds) };
 
-  const cardData = {
-    holderName:  input.nomeTitular.toUpperCase(),
-    number:      input.numero.replace(/\s/g, ""),
-    expiryMonth: input.mesValidade,
-    expiryYear:  input.anoValidade,
-    ccv:         input.cvv,
-  };
-
-  const holderInfo = {
-    name:          ticket.comprador_nome,
-    email:         ticket.comprador_email,
-    cpfCnpj:       ticket.comprador_cpf,
-    postalCode:    cep,
-    addressNumber: numeroEndereco,
-  };
-
-  const body: Record<string, unknown> = {
-    customer:          customer.id,
-    billingType,
-    value:             valorTotal,
-    dueDate:           dueDate.toISOString().split("T")[0],
-    description:       `Ingresso atleta ${champ?.nome ?? "Campeonato"}`,
+  const result = await createIdempotentCardCharge({
+    flow: "athlete_ticket",
+    recordId: ticket.id,
     externalReference: `athl:${ticket.id}`,
-    creditCard:        cardData,
-    creditCardHolderInfo: holderInfo,
-  };
+    amount: valorTotal,
+    customerId: customer.id,
+    billingType,
+    description: `Ingresso atleta ${champ?.nome ?? "Campeonato"}`,
+    card: {
+      holderName: input.nomeTitular,
+      number: input.numero,
+      expiryMonth: input.mesValidade,
+      expiryYear: input.anoValidade,
+      ccv: input.cvv,
+    },
+    holder: {
+      name: ticket.comprador_nome,
+      email: ticket.comprador_email,
+      cpfCnpj: ticket.comprador_cpf,
+      postalCode: cep,
+      addressNumber: numeroEndereco,
+    },
+    installments: input.tipo === "credito" ? input.parcelas : 1,
+    metadata: { championshipId: ticket.championship_id },
+  });
 
-  if (input.tipo === "credito" && input.parcelas > 1) {
-    body.installmentCount = input.parcelas;
-    body.installmentValue = parseFloat((valorTotal / input.parcelas).toFixed(2));
+  if (!result.ok) {
+    await finishCardPaymentAttempt(
+      attempt.attemptId,
+      result.ambiguous || result.inProgress ? "ambiguous" : "declined",
+    );
+    return { ok: false, error: result.error };
   }
 
-  const baseUrl = process.env.ASAAS_BASE_URL;
-  const apiKey  = process.env.ASAAS_API_KEY;
-  if (!baseUrl || !apiKey) return { ok: false, error: "Configuração de pagamento indisponível." };
-
-  try {
-    const res = await fetch(`${baseUrl}/payments`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json", "access_token": apiKey },
-      body:    JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      let msg = "Erro ao processar o cartão.";
-      try {
-        const json = JSON.parse(text) as { errors?: { description: string }[] };
-        if (json.errors?.[0]?.description) msg = json.errors[0].description;
-      } catch { /* usa msg padrão */ }
-      return { ok: false, error: msg };
-    }
-
-    const pagamento = await res.json() as { id: string; status: string; invoiceUrl?: string };
-    const pago = ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status);
-
-    await admin.from("athlete_tickets").update({
-      asaas_payment_id: pagamento.id,
-      status_pagamento: pago ? "pago" : "pendente",
-      invoice_url:      pagamento.invoiceUrl ?? null,
-      billing_type:     billingType,
-    })
-      .eq("id", input.ticketId)
-      .eq("access_token", accessToken);
-
-    return { ok: true, pago };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erro ao processar pagamento.";
-    return { ok: false, error: msg };
+  const pagamento = result.provider;
+  if (pagamento.billingType && pagamento.billingType !== billingType) {
+    await finishCardPaymentAttempt(attempt.attemptId, "error", "payment_method_conflict");
+    return { ok: false, error: "Já existe uma cobrança por outro meio de pagamento para este ingresso." };
   }
+
+  const pago = pagamento.paga ?? ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status ?? "");
+  await admin.from("athlete_tickets").update({
+    asaas_payment_id: pagamento.id,
+    status_pagamento: pago ? "pago" : "pendente",
+    invoice_url: pagamento.invoiceUrl ?? null,
+    billing_type: billingType,
+  })
+    .eq("id", input.ticketId)
+    .eq("access_token", accessToken);
+  await finishCardPaymentAttempt(attempt.attemptId, "success", pagamento.status);
+  return { ok: true, pago };
 }
 
 // ── Alterar titularidade ────────────────────────────────────────────────────
@@ -274,26 +266,16 @@ export async function cancelarIngressoAtleta(
 
   // Ainda não pago — cancela sem mexer em pagamento nenhum.
   if (ticket.status_pagamento === "pendente") {
-    await admin
-      .from("athlete_tickets")
-      .update({ status_pagamento: "estornado" })
-      .eq("id", ticketId)
-      .eq("access_token", accessToken)
-      .eq("status_pagamento", "pendente");
+    const cancelled = await estornarAthleteTicket(admin, ticketId);
+    if (!cancelled.ok) return { ok: false, error: "Nao foi possivel cancelar agora." };
     revalidatePath(path);
     return { ok: true };
   }
 
   // Pago, mas grátis ou sem cobrança real no Asaas — só marca cancelado.
   if (!ticket.asaas_payment_id || Number(ticket.valor) <= 0) {
-    const { data: claimed } = await admin
-      .from("athlete_tickets")
-      .update({ status_pagamento: "estornado" })
-      .eq("id", ticketId)
-      .eq("access_token", accessToken)
-      .eq("status_pagamento", "pago")
-      .select("id");
-    if (!claimed || claimed.length === 0) return { ok: false, error: "Esse cancelamento já foi solicitado." };
+    const cancelled = await estornarAthleteTicket(admin, ticketId);
+    if (!cancelled.ok) return { ok: false, error: "Nao foi possivel cancelar agora." };
     revalidatePath(path);
     return { ok: true };
   }
@@ -303,25 +285,34 @@ export async function cancelarIngressoAtleta(
   const dentroDoPrazo   = diasDesdeCompra <= 7;
   const valorParcial    = dentroDoPrazo ? undefined : Number(ticket.valor);
 
-  // Trava de idempotência: reivindica o cancelamento antes de chamar o Asaas.
+  // Confirma que o pedido segue pago sem alterar seu estado antes de o
+  // provedor aceitar o reembolso. A operacao financeira faz a trava duravel.
   const { data: claimed } = await admin
     .from("athlete_tickets")
-    .update({ status_pagamento: "estornado" })
+    .select("id")
     .eq("id", ticketId)
     .eq("access_token", accessToken)
-    .eq("status_pagamento", "pago")
-    .select("id");
+    .eq("status_pagamento", "pago");
 
   if (!claimed || claimed.length === 0) return { ok: false, error: "Esse cancelamento já foi solicitado." };
 
-  try {
-    await reembolsarPagamento(ticket.asaas_payment_id, valorParcial);
-  } catch (err) {
-    await admin.from("athlete_tickets").update({ status_pagamento: "pago" }).eq("id", ticketId).eq("access_token", accessToken);
-    const msg = err instanceof Error ? err.message : "Erro desconhecido";
-    return { ok: false, error: `Erro ao processar o estorno: ${msg}` };
+  const refund = await refundIdempotently({
+    flow: "athlete_ticket",
+    recordId: ticketId,
+    originalPaymentId: ticket.asaas_payment_id,
+    amount: valorParcial,
+  });
+  if (!refund.ok) {
+    if (refund.ambiguous || refund.inProgress) {
+      return { ok: false, error: "O reembolso esta sendo confirmado. Nao repita a solicitacao." };
+    }
+    return { ok: false, error: refund.error };
   }
 
+  const cancelled = await estornarAthleteTicket(admin, ticketId);
+  if (!cancelled.ok) {
+    return { ok: false, error: "O reembolso foi aceito, mas o status aguarda reconciliacao." };
+  }
   revalidatePath(path);
   return { ok: true };
 }

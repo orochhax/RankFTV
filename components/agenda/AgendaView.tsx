@@ -126,7 +126,7 @@ export function AgendaView({
   }, [visibleEvents]);
 
   return (
-    <PageContainer width="form" className="space-y-6 py-8">
+    <PageContainer width="wide" className="space-y-6 py-8">
       <PageHeader
         title="Agenda"
         actions={

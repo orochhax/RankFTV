@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Search, CheckCircle2, Loader2, Undo2 } from "lucide-react";
 import { checkinEspectador } from "@/app/painel/campeonatos/[id]/plateia/actions";
@@ -14,20 +14,27 @@ export type CheckinItem = {
   checked_in: boolean;
 };
 
-function norm(s: string) {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-}
-
-export function PlateiaCheckin({ champId, itens }: { champId: string; itens: CheckinItem[] }) {
+export function PlateiaCheckin({
+  champId,
+  itens,
+  initialSearch = "",
+}: {
+  champId: string;
+  itens: CheckinItem[];
+  initialSearch?: string;
+}) {
   const router = useRouter();
-  const [busca, setBusca] = useState("");
+  const [busca, setBusca] = useState(initialSearch);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  const q = norm(busca.trim());
-  const filtrados = q
-    ? itens.filter((i) => norm(i.comprador_nome).includes(q) || (i.code ? norm(i.code).includes(q) : false))
-    : itens;
+  const filtrados = itens;
+
+  function submitSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const query = busca.trim();
+    router.push(`/painel/campeonatos/${champId}/plateia/checkin${query ? `?q=${encodeURIComponent(query)}` : ""}`);
+  }
 
   function toggle(id: string, presente: boolean) {
     setPendingId(id);
@@ -40,19 +47,22 @@ export function PlateiaCheckin({ champId, itens }: { champId: string; itens: Che
 
   return (
     <div className="space-y-4">
-      <div className="relative">
+      <form onSubmit={submitSearch} className="relative">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
         <input
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por nome ou código..."
-          className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-11 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-      </div>
+        <button type="submit" title="Buscar" className="absolute right-1.5 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100">
+          <Search className="size-4" />
+        </button>
+      </form>
 
       {filtrados.length === 0 ? (
         <p className="rounded-2xl bg-gray-50 p-6 text-center text-sm text-gray-400 ring-1 ring-black/5">
-          {itens.length === 0 ? "Nenhum ingresso pago ainda." : "Nenhum resultado pra essa busca."}
+          {initialSearch ? "Nenhum resultado pra essa busca." : "Nenhum ingresso pago ainda."}
         </p>
       ) : (
         <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">

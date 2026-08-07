@@ -10,16 +10,6 @@ import { PageHeader } from "@/components/shell/PageHeader";
 import { Surface } from "@/components/shell/Surface";
 import { formatBRL } from "@/lib/format";
 
-type RegRow = {
-  id: string;
-  valor: number;
-  status_pagamento: "pago" | "pendente" | "estornado";
-  billing_type: string | null;
-  category_id: string;
-  created_at: string;
-  championship_categories: { id: string; nome: string; genero: string } | null;
-};
-
 export type DiaVenda = {
   data: string;   // "2026-06-01"
   label: string;  // "01/06"
@@ -47,18 +37,8 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const isElite     = !!champExtra?.is_elite;
   const feePendente = Number(champExtra?.premium_fee_pendente ?? 0);
 
-  const [{ data: rawRegs }, { data: rawTickets }, { data: champDates }, { data: rawPendentes }, { data: rawPendentesTickets }] = await Promise.all([
-    supabase
-      .from("registrations")
-      .select(`id, valor, status_pagamento, billing_type, category_id, created_at, championship_categories(id, nome, genero)`)
-      .eq("championship_id", id),
-    // Checkout de visitante (botão "Sou atleta" -> /comprar) — hoje é o
-    // fluxo realmente usado; sem somar aqui o financeiro ficava com R$0
-    // mesmo com pagamentos confirmados (ver Bug 3 do relatório).
-    supabase
-      .from("athlete_tickets")
-      .select("id, valor, status_pagamento, billing_type, category_id, categoria_nome, created_at")
-      .eq("championship_id", id),
+  const [{ data: metricData }, { data: champDates }, { data: rawPendentes }, { data: rawPendentesTickets }] = await Promise.all([
+    supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
     supabase
       .from("championships")
       .select("prevenda_inicio, inscricoes_inicio, data_inicio")
@@ -72,35 +52,28 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
       .eq("championship_id", id)
       .eq("status_pagamento", "pendente")
       .not("asaas_payment_id", "is", null)
-      .order("created_at", { ascending: true }),
+      .order("created_at", { ascending: true })
+      .limit(50),
     supabase
       .from("athlete_tickets")
       .select("id, valor, created_at, comprador_nome")
       .eq("championship_id", id)
       .eq("status_pagamento", "pendente")
       .not("asaas_payment_id", "is", null)
-      .order("created_at", { ascending: true }),
+      .order("created_at", { ascending: true })
+      .limit(50),
   ]);
 
-  const regs: RegRow[] = (rawRegs ?? []) as unknown as RegRow[];
-  type TicketFinRow = { id: string; valor: number; status_pagamento: "pago" | "pendente" | "estornado"; billing_type: string | null; category_id: string | null; categoria_nome: string | null; created_at: string };
-  const ticketsFin = (rawTickets ?? []) as unknown as TicketFinRow[];
-
-  // Linha financeira comum às duas fontes (registrations + athlete_tickets)
-  // pra somar tudo com a mesma lógica de agregação abaixo.
-  type Linha = { valor: number; status_pagamento: string; billing_type: string | null; category_id: string | null; created_at: string; catNome: string | null; catGenero: string | null };
-  const linhas: Linha[] = [
-    ...regs.map((r): Linha => ({
-      valor: r.valor, status_pagamento: r.status_pagamento, billing_type: r.billing_type,
-      category_id: r.category_id, created_at: r.created_at,
-      catNome: r.championship_categories?.nome ?? null, catGenero: r.championship_categories?.genero ?? null,
-    })),
-    ...ticketsFin.map((t): Linha => ({
-      valor: t.valor, status_pagamento: t.status_pagamento, billing_type: t.billing_type,
-      category_id: t.category_id, created_at: t.created_at,
-      catNome: t.categoria_nome, catGenero: null,
-    })),
-  ];
+  type StatusMetric = { status: string; count: number; total: number };
+  type BillingMetric = { type: string | null; total: number };
+  type CategoryMetric = { id: string; name: string; gender: string | null; count: number; total: number };
+  type DailyMetric = { day: string; count: number; total: number };
+  const metrics = (metricData ?? {}) as {
+    statuses?: StatusMetric[];
+    billing?: BillingMetric[];
+    categories?: CategoryMetric[];
+    daily?: DailyMetric[];
+  };
 
   type PendenteRow = { id: string; valor: number; created_at: string; teams: { atleta1_id: string } | null };
   const pendentesComCobranca = (rawPendentes ?? []) as unknown as PendenteRow[];
@@ -113,31 +86,33 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   type PendenteTicketRow = { id: string; valor: number; created_at: string; comprador_nome: string };
   const pendentesTicketsComCobranca = (rawPendentesTickets ?? []) as unknown as PendenteTicketRow[];
 
-  const totalPago      = linhas.filter((r) => r.status_pagamento === "pago").reduce((s, r) => s + Number(r.valor), 0);
-  const totalPendente  = linhas.filter((r) => r.status_pagamento === "pendente").reduce((s, r) => s + Number(r.valor), 0);
-  const totalEstornado = linhas.filter((r) => r.status_pagamento === "estornado").reduce((s, r) => s + Number(r.valor), 0);
+  const statusMetric = (status: string) => metrics.statuses?.find((item) => item.status === status);
+  const totalPago = Number(statusMetric("pago")?.total ?? 0);
+  const totalPendente = Number(statusMetric("pendente")?.total ?? 0);
+  const totalEstornado = Number(statusMetric("estornado")?.total ?? 0);
   // Elite: a ativação é descontada dos repasses — saldo pode ficar negativo até quitar.
   const repasseLiquido = isElite ? totalPago - feePendente : totalPago;
 
   type CatSummary = { nome: string; genero: string; count: number; total: number };
-  const catMap: Record<string, CatSummary> = {};
-  for (const r of linhas) {
-    if (!r.category_id || !r.catNome) continue;
-    const catId = r.category_id;
-    if (!catMap[catId]) catMap[catId] = { nome: r.catNome, genero: r.catGenero ?? "", count: 0, total: 0 };
-    if (r.status_pagamento === "pago") { catMap[catId].count += 1; catMap[catId].total += Number(r.valor); }
-  }
+  const catMap: Record<string, CatSummary> = Object.fromEntries(
+    (metrics.categories ?? []).map((category) => [category.id, {
+      nome: category.name,
+      genero: category.gender ?? "",
+      count: Number(category.count),
+      total: Number(category.total),
+    }])
+  );
 
-  const pagas = linhas.filter((r) => r.status_pagamento === "pago");
-  const totalPix     = pagas.filter((r) => r.billing_type === "PIX").reduce((s, r) => s + Number(r.valor), 0);
-  const totalCredito = pagas.filter((r) => r.billing_type === "CREDIT_CARD").reduce((s, r) => s + Number(r.valor), 0);
-  const totalDebito  = pagas.filter((r) => r.billing_type === "DEBIT_CARD").reduce((s, r) => s + Number(r.valor), 0);
+  const billingTotal = (type: string) => Number(metrics.billing?.find((item) => item.type === type)?.total ?? 0);
+  const totalPix = billingTotal("PIX");
+  const totalCredito = billingTotal("CREDIT_CARD");
+  const totalDebito = billingTotal("DEBIT_CARD");
 
   const STATUS_CARDS = [
     {
       slug:  "pagos",
       label: "Pagos",
-      count: linhas.filter((r) => r.status_pagamento === "pago").length,
+      count: Number(statusMetric("pago")?.count ?? 0),
       valor: totalPago,
       bg:    "bg-blue-50",
       ring:  "ring-blue-200",
@@ -146,7 +121,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     {
       slug:  "pendentes",
       label: "Pendentes",
-      count: linhas.filter((r) => r.status_pagamento === "pendente").length,
+      count: Number(statusMetric("pendente")?.count ?? 0),
       valor: totalPendente,
       bg:    "bg-amber-50",
       ring:  "ring-amber-200",
@@ -155,7 +130,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     {
       slug:  "estornados",
       label: "Estornados",
-      count: linhas.filter((r) => r.status_pagamento === "estornado").length,
+      count: Number(statusMetric("estornado")?.count ?? 0),
       valor: totalEstornado,
       bg:    "bg-red-50",
       ring:  "ring-red-200",
@@ -173,15 +148,13 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   }
 
   const vendasDiarias: DiaVenda[] = (() => {
-    const pagasSorted = linhas
-      .filter((r) => r.status_pagamento === "pago")
-      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+    const dailyMetrics = metrics.daily ?? [];
 
     // Início: prevenda_inicio → inscricoes_inicio → primeira venda → hoje
     const candidatos = [
       champDates?.prevenda_inicio,
       champDates?.inscricoes_inicio,
-      pagasSorted[0]?.created_at.slice(0, 10),
+      dailyMetrics[0]?.day.slice(0, 10),
     ].filter(Boolean) as string[];
 
     const hoje = new Date();
@@ -196,11 +169,9 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     if (inicio > hoje) return [];
 
     const diasMap: Record<string, { total: number; count: number }> = {};
-    for (const r of pagasSorted) {
-      const dia = r.created_at.slice(0, 10);
-      if (!diasMap[dia]) diasMap[dia] = { total: 0, count: 0 };
-      diasMap[dia].total += Number(r.valor);
-      diasMap[dia].count += 1;
+    for (const item of dailyMetrics) {
+      const day = item.day.slice(0, 10);
+      diasMap[day] = { total: Number(item.total), count: Number(item.count) };
     }
 
     const result: DiaVenda[] = [];
@@ -222,7 +193,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   }));
 
   return (
-    <PageContainer width="form" className="space-y-6 py-8">
+    <PageContainer width="wide" className="space-y-6 py-8">
       <PageHeader title="Financeiro" description="Entradas, taxas e repasses desse campeonato." />
       <ChavePixClient chavePix={chavePix} />
 

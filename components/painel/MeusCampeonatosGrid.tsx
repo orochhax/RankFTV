@@ -74,7 +74,13 @@ function OrganizerChampCard({ c }: { c: OrganizerChampSummary }) {
     <div className="overflow-hidden rounded-card-lg bg-surface ring-1 ring-border shadow-soft transition-shadow hover:shadow-elevated">
       <Link href={overviewHref} className={`relative block h-28 bg-gradient-to-br ${c.bannerFrom} ${c.bannerTo}`}>
         {c.bannerUrl ? (
-          <Image src={c.bannerUrl} alt={c.nome} fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
+          <Image
+            src={c.bannerUrl}
+            alt={c.nome}
+            fill
+            className="object-cover"
+            sizes="(max-width: 639px) calc(100vw - 3rem), (max-width: 1279px) 50vw, 33vw"
+          />
         ) : (
           <div className="flex size-full items-center justify-center">
             <Trophy className="size-8 text-white/60" strokeWidth={1.5} />

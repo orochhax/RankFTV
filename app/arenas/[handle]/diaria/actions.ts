@@ -3,6 +3,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { criarOuBuscarCliente } from "@/lib/asaas";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createIdempotentCardCharge } from "@/lib/payment-flows";
+import {
+  beginCardPaymentAttempt,
+  cardBlockedMessage,
+  finishCardPaymentAttempt,
+} from "@/lib/payment-security";
 
 export type DiariaInput = {
   planId:      string;
@@ -73,6 +79,14 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
   const valorBase  = Number(plan.valor);
   const valorTotal = parseFloat((valorBase * (1 + TAXA)).toFixed(2));
 
+  const attempt = await beginCardPaymentAttempt({
+    flow: "arena_daily_pass",
+    orderReference: `${plan.id}:${user.id}:${input.data}`,
+    actorId: user.id,
+    cardNumber: input.numero,
+  });
+  if (!attempt.allowed) return { ok: false, error: cardBlockedMessage(attempt.retryAfterSeconds) };
+
   const { data: passe, error: insErr } = await admin
     .from("arena_daily_passes")
     .insert({
@@ -87,78 +101,60 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
     .select("id")
     .single();
 
-  if (insErr || !passe) return { ok: false, error: "Erro ao criar diária." };
+  if (insErr || !passe) {
+    await finishCardPaymentAttempt(attempt.attemptId, "error", insErr?.code ?? "daily_pass_insert_failed");
+    return { ok: false, error: "Erro ao criar diária." };
+  }
 
-  const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 1);
   const billingType = input.tipo === "credito" ? "CREDIT_CARD" : "DEBIT_CARD";
 
-  const baseUrl = process.env.ASAAS_BASE_URL;
-  const apiKey  = process.env.ASAAS_API_KEY;
-  if (!baseUrl || !apiKey) return { ok: false, error: "Configuração de pagamento indisponível." };
+  const result = await createIdempotentCardCharge({
+    flow: "arena_daily_pass",
+    recordId: passe.id,
+    externalReference: `arena_daily:${passe.id}`,
+    amount: valorTotal,
+    customerId: customer.id,
+    billingType,
+    description: `Diária de treino — ${input.data}`,
+    card: {
+      holderName: input.nomeTitular,
+      number: input.numero,
+      expiryMonth: input.mesValidade,
+      expiryYear: input.anoValidade,
+      ccv: input.cvv,
+    },
+    holder: {
+      name: profile.nome,
+      email: user.email!,
+      cpfCnpj: cpfNum,
+      postalCode: cep,
+      addressNumber: numeroEndereco,
+    },
+    actorId: user.id,
+    metadata: { arenaId: plan.arena_id, planId: plan.id },
+  });
 
-  try {
-    const res = await fetch(`${baseUrl}/payments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "access_token": apiKey },
-      body: JSON.stringify({
-        customer:          customer.id,
-        billingType,
-        value:             valorTotal,
-        dueDate:           dueDate.toISOString().split("T")[0],
-        description:       `Diária de treino — ${input.data}`,
-        externalReference: `arena_daily:${passe.id}`,
-        creditCard: {
-          holderName:  input.nomeTitular.toUpperCase(),
-          number:      input.numero.replace(/\s/g, ""),
-          expiryMonth: input.mesValidade,
-          expiryYear:  input.anoValidade,
-          ccv:         input.cvv,
-        },
-        creditCardHolderInfo: {
-          name:          profile.nome,
-          email:         user.email!,
-          cpfCnpj:       cpfNum,
-          postalCode:    cep,
-          addressNumber: numeroEndereco,
-        },
-      }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      let msg = "Erro ao processar o cartão.";
-      try {
-        const json = JSON.parse(text) as { errors?: { description: string }[] };
-        if (json.errors?.[0]?.description) msg = json.errors[0].description;
-      } catch { /* usa msg padrão */ }
-      // Recusa explícita do Asaas (não ambígua).
+  if (!result.ok) {
+    await finishCardPaymentAttempt(
+      attempt.attemptId,
+      result.ambiguous || result.inProgress ? "ambiguous" : "declined",
+    );
+    if (!result.ambiguous && !result.inProgress) {
       await admin.from("arena_daily_passes").update({ status_pagamento: "cancelado" }).eq("id", passe.id);
-      return { ok: false, error: msg };
     }
-
-    const pagamento = await res.json() as { id: string; status: string };
-    const pago = ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status);
-
-    await Promise.all([
-      admin
-        .from("arena_daily_passes")
-        .update({
-          asaas_payment_id: pagamento.id,
-          billing_type:     billingType,
-          ...(pago ? { status_pagamento: "pago" } : {}),
-        })
-        .eq("id", passe.id),
-      supabase
-        .from("profiles_private")
-        .upsert({ user_id: user.id, cpf: cpfNum }, { onConflict: "user_id" }),
-    ]);
-
-    return { ok: true, pago };
-  } catch (e) {
-    // Exceção aqui é rede/timeout — AMBÍGUO: nunca apaga o registro (webhook
-    // ainda pode reconciliar via externalReference se a cobrança passou).
-    const msg = e instanceof Error ? e.message : "Erro ao processar pagamento.";
-    return { ok: false, error: `${msg} Se o valor foi cobrado, sua diária será confirmada automaticamente — senão, tente de novo.` };
+    return { ok: false, error: result.error };
   }
+
+  const pagamento = result.provider;
+  const pago = pagamento.paga ?? ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status ?? "");
+  await Promise.all([
+    admin.from("arena_daily_passes").update({
+      asaas_payment_id: pagamento.id,
+      billing_type: billingType,
+      ...(pago ? { status_pagamento: "pago" } : {}),
+    }).eq("id", passe.id),
+    supabase.from("profiles_private").upsert({ user_id: user.id, cpf: cpfNum }, { onConflict: "user_id" }),
+  ]);
+  await finishCardPaymentAttempt(attempt.attemptId, "success", pagamento.status);
+  return { ok: true, pago };
 }

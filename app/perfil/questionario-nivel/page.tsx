@@ -16,7 +16,7 @@ export default async function QuestionarioNivelPage({
   if (!user) redirect("/login");
 
   return (
-    <div className="mx-auto max-w-lg space-y-6 px-6 py-8">
+    <div className="w-full space-y-6 px-6 py-8">
       <Link
         href="/perfil"
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"

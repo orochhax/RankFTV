@@ -62,7 +62,7 @@ export default async function EquipePage({
   }));
 
   return (
-    <PageContainer width="form" className="space-y-6 py-8">
+    <PageContainer width="wide" className="space-y-6 py-8">
       <PageHeader title="Equipe" description="Gerencie a equipe de staff deste campeonato." />
 
       <div className="grid grid-cols-2 gap-4 sm:max-w-xs">

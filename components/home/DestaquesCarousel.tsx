@@ -49,7 +49,7 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
                   fill
                   className="object-cover"
                   style={{ objectPosition: `${camp.bannerPositionX ?? 50}% ${camp.bannerPositionY ?? 50}%` }}
-                  sizes="(max-width: 1024px) 50vw, 512px"
+                  sizes="(max-width: 1023px) 50vw, 33vw"
                 />
               ) : (
                 <div className="flex size-full items-center justify-center">

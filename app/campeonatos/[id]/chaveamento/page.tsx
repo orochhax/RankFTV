@@ -148,7 +148,7 @@ export default async function ChaveamentoPublicPage({
     categories.find((c) => c.id === cat) ?? categories[0];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 px-6 py-8 pb-24">
+    <div className="w-full space-y-8 px-6 py-8 pb-24">
       <div>
         <Link
           href={`/campeonatos/${id}`}

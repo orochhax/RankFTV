@@ -39,7 +39,20 @@ export default async function IngressoPlateiaPage({
     .maybeSingle();
   if (!t) notFound();
 
-  const itens = (t.itens as { tipo_nome: string; qty: number; valor_unit: number }[] | null) ?? [];
+  const { data: normalizedItems } = await supabase
+    .from("spectator_ticket_items")
+    .select("id, tipo_nome_snapshot, valor_unitario, quantidade")
+    .eq("ticket_id", ticketId)
+    .order("line_number", { ascending: true });
+  const itens = normalizedItems?.length
+    ? normalizedItems.map((item) => ({
+        key: item.id,
+        tipo_nome: item.tipo_nome_snapshot,
+        qty: Number(item.quantidade),
+        valor_unit: Number(item.valor_unitario),
+      }))
+    : ((t.itens as { tipo_nome: string; qty: number; valor_unit: number }[] | null) ?? [])
+        .map((item, index) => ({ ...item, key: `legacy-${index}` }));
 
   const { data: champ } = await supabase
     .from("championships")
@@ -99,8 +112,8 @@ export default async function IngressoPlateiaPage({
           {/* Itens do pedido */}
           {itens.length > 0 && (
             <ul className="divide-y divide-gray-100 border-b border-gray-100 px-6 py-2 text-sm">
-              {itens.map((it, i) => (
-                <li key={i} className="flex items-center justify-between py-1.5">
+              {itens.map((it) => (
+                <li key={it.key} className="flex items-center justify-between py-1.5">
                   <span className="text-gray-600">{it.qty}× {it.tipo_nome}</span>
                   <span className="font-medium text-gray-900">
                     {Number(it.valor_unit) === 0 ? "Grátis" : formatBRL(Number(it.valor_unit) * it.qty)}

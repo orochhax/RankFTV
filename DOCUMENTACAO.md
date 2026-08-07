@@ -1,6 +1,6 @@
 # Documentação técnica do RankFTV
 
-> Fonte técnica canônica do estado atual do repositório em 20/07/2026.
+> Fonte técnica canônica do estado atual do repositório em 07/08/2026.
 >
 > Este documento descreve o que está implementado no código. Configurações de
 > serviços externos e riscos que ainda impedem afirmar “100% em produção” ficam
@@ -34,7 +34,7 @@ pela autorização efetiva.
 
 | Camada | Implementação |
 | --- | --- |
-| Aplicação | Next.js 16.2.10 com App Router, React 19.2.4 e TypeScript |
+| Aplicação | Next.js 16.3.0 com App Router, React 19.2.4 e TypeScript |
 | Interface | Tailwind CSS 4, tokens em app/globals.css e lucide-react |
 | Banco/Auth/Storage | Supabase com Postgres, Auth, Storage, RLS e RPCs |
 | Pagamentos | Asaas para Pix, cartão, assinaturas, webhooks e repasses |
@@ -53,10 +53,11 @@ Verificações de release:
 
 ~~~bash
 npm run lint
-npx tsc --noEmit
+npm run typecheck
 npm test
 npm run build
 npm audit --omit=dev
+npm run test:e2e
 ~~~
 
 ### Variáveis de ambiente
@@ -71,9 +72,14 @@ npm audit --omit=dev
 | ASAAS_BASE_URL | servidor | endpoint Sandbox ou produção |
 | ASAAS_API_KEY | servidor | autenticação da API Asaas |
 | ASAAS_WEBHOOK_TOKEN | servidor | validação do webhook |
+| PAYMENT_FINGERPRINT_SECRET | servidor | HMAC dos escopos antifraude de cartão |
 | CRON_SECRET | servidor | proteção do cron de liquidação |
 | RESEND_API_KEY | servidor | envio transacional |
 | RESEND_FROM_EMAIL | servidor | remetente verificado |
+| OBSERVABILITY_HTTP_ENDPOINT | servidor | coletor configurável de erros e métricas |
+| OBSERVABILITY_HTTP_TOKEN | servidor | autenticação do coletor |
+| OPERATIONS_ALERT_WEBHOOK_URL | servidor | canal operacional de alertas |
+| APP_VERSION | servidor | versão exibida no health check e telemetria |
 | ALLOW_TUNNEL_ORIGIN | desenvolvimento | origem temporária de túnel local |
 
 Somente variáveis com prefixo NEXT_PUBLIC podem chegar ao navegador. Nunca
@@ -275,7 +281,7 @@ Em toda ocorrência acima, “...” representa /painel/campeonatos/[id].
 | /arena/[handle]/planos | catálogo de planos (mensalidade/aluguel/diária) — nunca cobrança individual por aluno |
 | /arena/[handle]/relatorios | faturamento previsto, receita, presença e ranking (agregado, só leitura) |
 | /arena/[handle]/configuracoes | dados, imagens e regras |
-| /arena/[handle]/assinatura | assinatura da plataforma pela arena |
+| /arena/[handle]/assinatura | oferta da plataforma desativada; retorna 404 |
 | /arena/presenca | confirmação de presença pelo aluno |
 | /arena/mensalidade/[chargeId] | pagamento de mensalidade pelo aluno |
 
@@ -288,9 +294,11 @@ acessar a URL retorna 404. O organizador só cadastra e gerencia o catálogo
 de planos em `/arena/[handle]/planos` — quem decide contratar, ver o preço e
 confirmar é sempre o aluno, em `/arenas/[handle]/assinar/[planId]`. Ver 7.3.4.
 
-As rotas /arena/assinatura, /arena/aulas, /arena/aula/[classId],
-/arena/configuracoes e /arena/planos existem por compatibilidade. Não devem
-ser usadas para criar navegação nova.
+As rotas `/arena/assinatura` e `/arena/[handle]/assinatura` retornam 404 e a
+oferta não aparece na navegação enquanto preço e produto não forem definidos.
+Isso não afeta os planos que cada arena vende aos próprios alunos. As rotas
+/arena/aulas, /arena/aula/[classId], /arena/configuracoes e /arena/planos
+existem por compatibilidade. Não devem ser usadas para criar navegação nova.
 
 ### 5.4 Staff
 
@@ -552,6 +560,54 @@ diário inclui inscrições, ingressos, mensalidades, aluguéis, diárias e aula
 avulsas aplicáveis. A homologação real ainda é obrigatória antes de operar em
 volume.
 
+### 7.5 Operações financeiras, outbox e conciliação
+
+Toda criação de cobrança do RankFTV passa por `financial_operations`, com ID
+interno e a combinação `operation_type + external_reference` única. O fluxo cobre inscrição,
+ingresso de atleta, ingresso de plateia, mensalidade, aluguel, diária e aula
+avulsa. A linha é criada antes da chamada ao Asaas e registra tentativas,
+estado, ID do provedor e erro sanitizado.
+
+Falha definitivamente anterior à escrita no provedor pode ser repetida. Timeout
+ou falha de rede ambígua mantém a operação e sua reserva em conciliação; o
+servidor consulta o Asaas por `externalReference` antes de considerar nova
+criação. `financial_outbox` usa claim com bloqueio e reagendamento para que
+processos concorrentes não executem o mesmo trabalho.
+
+O reconciliador protegido roda em `/api/cron/financial-reconciliation`. O
+webhook possui ledger próprio em `asaas_webhook_events`, rejeita payload
+inválido, trata repetição e impede que evento antigo faça um pagamento terminal
+regredir. Estorno, liberação de estoque e cupom e repasse são idempotentes;
+transferência só termina quando o provedor informa `DONE`.
+Uma transferência encerrada pelo provedor recebe uma nova geração
+`externalReference:retry:N` na tentativa seguinte; estado pendente ou ambíguo
+continua preso à referência original.
+
+### 7.6 Pedido de plateia normalizado
+
+Pedidos novos gravam uma linha por item em `spectator_ticket_items`, incluindo
+tipo, lote fotografado, valor unitário e quantidade. A RPC de checkout bloqueia
+tipos/lotes relevantes, valida cupom e reserva tudo na mesma transação. A RPC
+de liberação devolve estoque e cupom exatamente uma vez em cancelamento,
+estorno ou expiração de Pix.
+
+O JSON legado permanece disponível durante a transição. A migration faz
+backfill apenas quando identifica o tipo sem ambiguidade e registra o restante
+em `spectator_ticket_items_backfill_report`; casos parciais ou não migrados
+exigem revisão humana antes de uma liberação automática.
+
+### 7.7 Proteção de cartão e escopo PCI
+
+Chamadas que enviam cartão ao Asaas passam por um guard durável que combina IP,
+usuário, pedido e fingerprint HMAC de dados mascarados. O banco registra apenas
+escopo, resultado, contadores e bloqueio; PAN e CVV ficam somente em memória no
+tempo da chamada e nunca entram em banco, observabilidade ou mensagem de erro.
+Recusas geram cooldown progressivo, bloqueio temporário e alerta operacional.
+
+Enquanto a conta vigente não oferecer checkout hospedado ou tokenização direta
+compatível com todos os fluxos, a confirmação do escopo PCI/SAQ aplicável
+continua sendo uma tarefa manual obrigatória.
+
 O webhook (app/api/webhooks/asaas/route.ts) trata aula avulsa pelo prefixo
 externalReference "arena_class_charge:<attendanceId>" — confirma/estorna e
 dispara o repasse igual às demais fontes de receita de arena, usando
@@ -586,9 +642,35 @@ produção:
 Não reexecute os scripts “por garantia” sem antes inspecionar o estado remoto.
 Em uma base nova, a ordem é etapa 1, deploy Ready, etapa 2 e testes.
 
-next.config.ts adiciona CSP, HSTS em produção, proteção contra iframe,
-nosniff, política de referência e política de permissões. Isso complementa,
-mas não substitui, RLS, autorização de servidor e validação de webhook.
+`proxy.ts` cria um nonce criptográfico por requisição e aplica CSP, HSTS em
+produção, proteção contra iframe, `nosniff`, política de referência e política
+de permissões inclusive em redirecionamentos e erros. `script-src` não usa
+`unsafe-inline`. `style-src` ainda usa `unsafe-inline` porque React/Recharts e a
+camada visual atual emitem estilos inline; a exceção é documentada e não abre
+wildcard de origem. Isso complementa, mas não substitui, RLS, autorização de
+servidor e validação de webhook.
+
+Logs operacionais são JSON e recebem `correlation_id`, fluxo e registro. A
+sanitização mascara e-mail, telefone, CPF, tokens, chaves Pix e dados de cartão.
+`/api/health` expõe somente estado, versão e dependências sem segredos. O
+provedor de observabilidade e o canal de alerta são configuráveis por ambiente.
+
+### 8.1 Migrations do release de 07/08/2026
+
+Aplicar exatamente na ordem de `RUNBOOK-PRODUCAO.md`:
+
+1. `financial-operations.sql`;
+2. `payment-card-attempt-security.sql`;
+3. `production-spectator-ticket-items.sql`;
+4. `production-order-inventory-release.sql`;
+5. `asaas-webhook-idempotency.sql`;
+6. `production-query-indexes.sql`;
+7. `production-data-retention.sql`.
+
+As migrations são aditivas e idempotentes, têm RLS mínimo e preservam dados
+existentes. Backfill, validação, implantação gradual e rollback estão no
+runbook; configurações que dependem do responsável estão em
+`PENDENCIAS-MANUAIS.md`.
 
 ## 9. Estado dos dados
 
@@ -612,14 +694,15 @@ confirmados fora do repositório:
 - URLs de Auth, CAPTCHA, política de senha e MFA do admin no Supabase;
 - credenciais de produção, webhook e eventos do Asaas;
 - domínio, SPF/DKIM e remetente do Resend;
-- cron da Vercel, observabilidade e alertas;
+- crons da Vercel, coletor de observabilidade e canal de alertas;
 - backups/PITR e processo de restauração;
 - homologação financeira real controlada;
 - aviso de privacidade/LGPD e resposta a incidentes.
 
-As pendências de produto e segurança residuais estão detalhadas em
-AUDITORIA-PRODUCAO.md. Não declarar a plataforma “100% pronta” enquanto os itens
-externos e os testes ponta a ponta continuarem abertos.
+As configurações externas restantes estão em `PENDENCIAS-MANUAIS.md`; o
+procedimento de liberação está em `RUNBOOK-PRODUCAO.md`. Não declarar a
+plataforma “100% pronta” enquanto as migrations remotas e a homologação sandbox
+completa não estiverem comprovadas.
 
 ## 11. Regras para manutenção
 

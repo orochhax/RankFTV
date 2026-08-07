@@ -130,9 +130,56 @@ export async function getMyChampionships(userId: string): Promise<Championship[]
     .from("championships")
     .select(SELECT)
     .eq("organizador_id", userId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(200);
   if (error || !data) return [];
   return (data as ChampRow[]).map(mapChampionship);
+}
+
+export type OrganizerChampionshipFilter = "aberto" | "rascunho" | "encerrado" | "todos";
+
+export async function getMyChampionshipsPage(
+  userId: string,
+  filter: OrganizerChampionshipFilter,
+  page: number,
+  pageSize = 12,
+): Promise<{
+  items: Championship[];
+  total: number;
+  counts: { all: number; open: number; draft: number; closed: number };
+}> {
+  const supabase = await createClient();
+  const countBase = () => supabase.from("championships").select("id", { count: "exact", head: true }).eq("organizador_id", userId);
+  const [all, open, draft, closed] = await Promise.all([
+    countBase(),
+    countBase().in("status", ["inscricoes_abertas", "em_andamento"]),
+    countBase().eq("status", "rascunho"),
+    countBase().eq("status", "encerrado"),
+  ]);
+
+  let request = supabase
+    .from("championships")
+    .select(SELECT, { count: "exact" })
+    .eq("organizador_id", userId);
+  if (filter === "aberto") request = request.in("status", ["inscricoes_abertas", "em_andamento"]);
+  if (filter === "rascunho") request = request.eq("status", "rascunho");
+  if (filter === "encerrado") request = request.eq("status", "encerrado");
+
+  const from = (Math.max(page, 1) - 1) * pageSize;
+  const { data, count } = await request
+    .order(filter === "encerrado" ? "data_inicio" : "created_at", { ascending: false })
+    .range(from, from + pageSize - 1);
+
+  return {
+    items: ((data ?? []) as ChampRow[]).map(mapChampionship),
+    total: count ?? 0,
+    counts: {
+      all: all.count ?? 0,
+      open: open.count ?? 0,
+      draft: draft.count ?? 0,
+      closed: closed.count ?? 0,
+    },
+  };
 }
 
 // IDs de campeonato no banco são UUIDs; validamos antes de consultar para não

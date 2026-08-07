@@ -3,6 +3,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { criarOuBuscarCliente } from "@/lib/asaas";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createIdempotentSubscription } from "@/lib/payment-flows";
+import {
+  beginCardPaymentAttempt,
+  cardBlockedMessage,
+  finishCardPaymentAttempt,
+} from "@/lib/payment-security";
 
 export type AssinarInput = {
   planId:      string;
@@ -103,66 +109,54 @@ export async function assinarPlano(input: AssinarInput): Promise<AssinarResult> 
   if (nextDue <= now) nextDue.setMonth(nextDue.getMonth() + 1);
   const nextDueDate  = nextDue.toISOString().split("T")[0];
 
-  const baseUrl = process.env.ASAAS_BASE_URL;
-  const apiKey  = process.env.ASAAS_API_KEY;
-  if (!baseUrl || !apiKey) return { ok: false, error: "Configuração de pagamento indisponível." };
+  const attempt = await beginCardPaymentAttempt({
+    flow: "arena_subscription",
+    orderReference: studentId,
+    actorId: user.id,
+    cardNumber: input.numero,
+  });
+  if (!attempt.allowed) return { ok: false, error: cardBlockedMessage(attempt.retryAfterSeconds) };
 
-  try {
-    const res = await fetch(`${baseUrl}/subscriptions`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "access_token": apiKey },
-      body: JSON.stringify({
-        customer:          customer.id,
-        billingType:       "CREDIT_CARD",
-        value:             valorTotal,
-        nextDueDate,
-        cycle:             "MONTHLY",
-        description:       `Mensalidade ${plan.nome}`,
-        externalReference: `arena_student:${studentId}`,
-        creditCard: {
-          holderName:  input.nomeTitular.toUpperCase(),
-          number:      input.numero.replace(/\s/g, ""),
-          expiryMonth: input.mesValidade,
-          expiryYear:  input.anoValidade,
-          ccv:         input.cvv,
-        },
-        creditCardHolderInfo: {
-          name:          profile.nome,
-          email:         user.email!,
-          cpfCnpj:       cpfNum,
-          postalCode:    cep,
-          addressNumber: numeroEndereco,
-        },
-      }),
-    });
+  const result = await createIdempotentSubscription({
+    flow: "arena_subscription",
+    recordId: studentId,
+    externalReference: `arena_student:${studentId}`,
+    amount: valorTotal,
+    customerId: customer.id,
+    nextDueDate,
+    description: `Mensalidade ${plan.nome}`,
+    card: {
+      holderName: input.nomeTitular,
+      number: input.numero,
+      expiryMonth: input.mesValidade,
+      expiryYear: input.anoValidade,
+      ccv: input.cvv,
+    },
+    holder: {
+      name: profile.nome,
+      email: user.email!,
+      cpfCnpj: cpfNum,
+      postalCode: cep,
+      addressNumber: numeroEndereco,
+    },
+    actorId: user.id,
+    metadata: { arenaId: plan.arena_id, planId: plan.id },
+  });
 
-    if (!res.ok) {
-      const text = await res.text();
-      let msg = "Erro ao processar o cartão.";
-      try {
-        const json = JSON.parse(text) as { errors?: { description: string }[] };
-        if (json.errors?.[0]?.description) msg = json.errors[0].description;
-      } catch { /* usa msg padrão */ }
-      return { ok: false, error: msg };
-    }
-
-    const sub = await res.json() as { id: string };
-
-    await Promise.all([
-      admin
-        .from("arena_students")
-        .update({ asaas_subscription_id: sub.id })
-        .eq("id", studentId),
-      supabase
-        .from("profiles_private")
-        .upsert({ user_id: user.id, cpf: cpfNum }, { onConflict: "user_id" }),
-    ]);
-
-    return { ok: true };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erro ao processar pagamento.";
-    return { ok: false, error: msg };
+  if (!result.ok) {
+    await finishCardPaymentAttempt(
+      attempt.attemptId,
+      result.ambiguous || result.inProgress ? "ambiguous" : "declined",
+    );
+    return { ok: false, error: result.error };
   }
+
+  await Promise.all([
+    admin.from("arena_students").update({ asaas_subscription_id: result.provider.id }).eq("id", studentId),
+    supabase.from("profiles_private").upsert({ user_id: user.id, cpf: cpfNum }, { onConflict: "user_id" }),
+  ]);
+  await finishCardPaymentAttempt(attempt.attemptId, "success", result.provider.status);
+  return { ok: true };
 }
 
 // ── Plano gratuito (valor = 0) ────────────────────────────────────────────────

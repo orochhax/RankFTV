@@ -82,7 +82,7 @@ export default async function MeusIngressosPage() {
     <div className="min-h-screen">
       {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
       <div className="bg-black px-6 pb-16 pt-8 md:hidden">
-        <div className="mx-auto max-w-xl space-y-3">
+        <div className="w-full space-y-3">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-sm text-white/50 transition-colors hover:text-white/80"
@@ -102,7 +102,7 @@ export default async function MeusIngressosPage() {
       </div>
 
       <div className="hidden border-b border-border bg-surface md:block">
-        <PageContainer width="form" className="py-8">
+        <PageContainer width="wide" className="py-8">
           <PageHeader
             eyebrow="Meus ingressos"
             title={user ? "Seus ingressos" : "Consultar ingresso por CPF"}
@@ -118,7 +118,7 @@ export default async function MeusIngressosPage() {
       {/* ── Corpo: sheet arredondada no mobile, cartão flutuando num fundo
           neutro no desktop (nada de página estreita boiando num vazio) ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:pb-16 md:shadow-none">
-        <PageContainer width="form" className="space-y-6">
+        <PageContainer width="wide" className="space-y-6">
           {user ? (
             <>
               {ingressos && ingressos.length > 0 ? (

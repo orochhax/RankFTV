@@ -43,7 +43,7 @@ export function ChampionshipCard({ championship: c }: { championship: Championsh
             fill
             className="object-cover"
             style={{ objectPosition: `${c.bannerPositionX ?? 50}% ${c.bannerPositionY ?? 50}%` }}
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"
+            sizes="(max-width: 1023px) 50vw, 33vw"
           />
         ) : (
           <div className="flex size-full items-center justify-center">

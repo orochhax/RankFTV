@@ -324,7 +324,7 @@ export default async function ArenaPublicaPage({
   return (
     <div className="min-h-screen">
       <div className="bg-black px-6 pb-16 pt-6">
-        <div className="mx-auto max-w-xl space-y-4">
+        <div className="w-full space-y-4">
           <Link
             href="/arenas"
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
@@ -357,7 +357,7 @@ export default async function ArenaPublicaPage({
 
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
         <span aria-hidden="true" className="mobile-sheet-accent md:hidden" />
-        <div className="mx-auto max-w-xl space-y-6">
+        <div className="w-full space-y-6">
 
           {arena.descricao && (
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">

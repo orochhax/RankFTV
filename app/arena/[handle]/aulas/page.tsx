@@ -67,7 +67,7 @@ export default async function AulasPage({
   const cancelHoras = arena.cancel_horas_antes ?? 2;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 px-4 py-6 md:px-8 md:py-8">
+    <div className="w-full space-y-8 px-4 py-6 md:px-8 md:py-8">
       <div>
         <h1 className="text-xl font-bold text-gray-900">Aulas e treinos</h1>
         <p className="text-sm text-gray-400">Horários recorrentes usados na Agenda do painel.</p>

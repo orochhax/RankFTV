@@ -56,7 +56,7 @@ export default async function AdminDestaquesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-black px-6 pb-14 pt-8">
-        <div className="mx-auto max-w-2xl space-y-3">
+        <div className="w-full space-y-3">
           <Link
             href="/admin"
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
@@ -76,7 +76,7 @@ export default async function AdminDestaquesPage() {
       </div>
 
       <div className="relative -mt-6 rounded-t-3xl bg-app-bg px-6 pb-16 pt-8 shadow-sm">
-        <div className="mx-auto max-w-2xl space-y-12">
+        <div className="w-full space-y-12">
 
           {/* Campeonatos */}
           <section>

@@ -43,7 +43,7 @@ export default async function PerfilPublicoPage({
   const estado = profile.estado ?? null;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 px-6 py-8 pb-32">
+    <div className="w-full space-y-8 px-6 py-8 pb-32">
       <div className="flex items-center gap-4">
         <Avatar
           nome={profile.nome}

@@ -61,7 +61,7 @@ export default async function AdminPage() {
   if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
+    <div className="w-full px-6 py-10">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Painel Admin</h1>
         <p className="mt-1 text-sm text-gray-500">{user.email}</p>

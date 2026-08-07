@@ -15,6 +15,38 @@
 // projeta pra mostrar ao usuário final.
 import "server-only"; // build quebra se isso for importado por um Client Component
 import { detectarTipoChavePix } from "@/lib/pix";
+import { isAmbiguousAsaasFailure } from "@/lib/asaas-errors";
+
+const ASAAS_TIMEOUT_MS = 15_000;
+
+export class AsaasApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number | null,
+    readonly code: string,
+    readonly ambiguous: boolean,
+  ) {
+    super(message);
+    this.name = "AsaasApiError";
+  }
+}
+
+function sanitizeAsaasMessage(value: unknown): string {
+  const text = typeof value === "string" ? value : "Falha ao processar a operacao no Asaas.";
+  return text
+    .replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[email]")
+    .replace(/\b\d{11,16}\b/g, "[dado-mascarado]")
+    .slice(0, 300);
+}
+
+function errorDescription(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { errors?: Array<{ description?: string; code?: string }> };
+    return sanitizeAsaasMessage(parsed.errors?.[0]?.description);
+  } catch {
+    return "O provedor recusou a operacao financeira.";
+  }
+}
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const baseUrl = process.env.ASAAS_BASE_URL;
@@ -24,18 +56,36 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new Error("ASAAS_BASE_URL ou ASAAS_API_KEY não configurados no .env.local");
   }
 
-  const res = await fetch(`${baseUrl}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      "access_token": apiKey,
-      ...(options.headers ?? {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}${path}`, {
+      ...options,
+      signal: options.signal ?? AbortSignal.timeout(ASAAS_TIMEOUT_MS),
+      headers: {
+        "Content-Type": "application/json",
+        "access_token": apiKey,
+        ...(options.headers ?? {}),
+      },
+    });
+  } catch (error) {
+    const timeout = error instanceof Error && (error.name === "AbortError" || error.name === "TimeoutError");
+    throw new AsaasApiError(
+      timeout ? "O Asaas demorou para responder." : "Nao foi possivel confirmar a resposta do Asaas.",
+      null,
+      timeout ? "timeout" : "network_error",
+      true,
+    );
+  }
 
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Asaas ${res.status} em ${path}: ${body}`);
+    const ambiguous = isAmbiguousAsaasFailure(res.status);
+    throw new AsaasApiError(
+      errorDescription(body),
+      res.status,
+      `http_${res.status}`,
+      ambiguous,
+    );
   }
 
   return res.json() as Promise<T>;
@@ -82,6 +132,8 @@ export type CobrancaInput = {
 export type CobrancaCriada = {
   id:         string;
   invoiceUrl: string;
+  status?: string;
+  billingType?: string;
   pixQrCode?: { encodedImage: string; payload: string };
 };
 
@@ -105,12 +157,17 @@ export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriad
     externalReference: input.externalReference,
   };
 
-  const pagamento = await request<{ id: string; invoiceUrl: string }>("/payments", {
+  const pagamento = await request<{ id: string; invoiceUrl: string; status?: string; billingType?: string }>("/payments", {
     method: "POST",
     body:   JSON.stringify(body),
   });
 
-  const resultado: CobrancaCriada = { id: pagamento.id, invoiceUrl: pagamento.invoiceUrl };
+  const resultado: CobrancaCriada = {
+    id: pagamento.id,
+    invoiceUrl: pagamento.invoiceUrl,
+    status: pagamento.status,
+    billingType: pagamento.billingType ?? billingType,
+  };
 
   if (input.metodo === "pix") {
     const qr = await request<{ encodedImage: string; payload: string }>(
@@ -120,6 +177,98 @@ export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriad
   }
 
   return resultado;
+}
+
+export type CobrancaCartaoInput = {
+  customerId: string;
+  valor: number;
+  billingType: "CREDIT_CARD" | "DEBIT_CARD";
+  descricao: string;
+  externalReference: string;
+  cartao: CartaoInput;
+  titular: TitularInput;
+  parcelas?: number;
+};
+
+export type CobrancaCartaoResultado = {
+  id: string;
+  status: string;
+  invoiceUrl?: string;
+  billingType: string;
+  paga: boolean;
+};
+
+export async function criarCobrancaCartao(input: CobrancaCartaoInput): Promise<CobrancaCartaoResultado> {
+  const dueDate = new Date();
+  dueDate.setDate(dueDate.getDate() + 1);
+  const valor = Number(input.valor.toFixed(2));
+  const body: Record<string, unknown> = {
+    customer: input.customerId,
+    billingType: input.billingType,
+    value: valor,
+    dueDate: dueDate.toISOString().slice(0, 10),
+    description: input.descricao,
+    externalReference: input.externalReference,
+    creditCard: {
+      holderName: input.cartao.holderName.toUpperCase(),
+      number: input.cartao.number.replace(/\D/g, ""),
+      expiryMonth: input.cartao.expiryMonth,
+      expiryYear: input.cartao.expiryYear,
+      ccv: input.cartao.ccv,
+    },
+    creditCardHolderInfo: input.titular,
+  };
+
+  const parcelas = Math.max(1, Math.floor(input.parcelas ?? 1));
+  if (input.billingType === "CREDIT_CARD" && parcelas > 1) {
+    body.installmentCount = parcelas;
+    body.installmentValue = Number((valor / parcelas).toFixed(2));
+  }
+
+  const payment = await request<{ id: string; status: string; invoiceUrl?: string; billingType?: string }>(
+    "/payments",
+    { method: "POST", body: JSON.stringify(body) },
+  );
+  return {
+    id: payment.id,
+    status: payment.status,
+    invoiceUrl: payment.invoiceUrl,
+    billingType: payment.billingType ?? input.billingType,
+    paga: ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(payment.status),
+  };
+}
+
+export type AssinaturaCartaoResultado = { id: string; status?: string };
+
+export async function criarAssinaturaCartao(input: {
+  customerId: string;
+  valor: number;
+  nextDueDate: string;
+  descricao: string;
+  externalReference: string;
+  cartao: CartaoInput;
+  titular: TitularInput;
+}): Promise<AssinaturaCartaoResultado> {
+  return request<AssinaturaCartaoResultado>("/subscriptions", {
+    method: "POST",
+    body: JSON.stringify({
+      customer: input.customerId,
+      billingType: "CREDIT_CARD",
+      value: Number(input.valor.toFixed(2)),
+      nextDueDate: input.nextDueDate,
+      cycle: "MONTHLY",
+      description: input.descricao,
+      externalReference: input.externalReference,
+      creditCard: {
+        holderName: input.cartao.holderName.toUpperCase(),
+        number: input.cartao.number.replace(/\D/g, ""),
+        expiryMonth: input.cartao.expiryMonth,
+        expiryYear: input.cartao.expiryYear,
+        ccv: input.cartao.ccv,
+      },
+      creditCardHolderInfo: input.titular,
+    }),
+  });
 }
 
 // ── Cartão salvo (tokenização) ────────────────────────────────────────────────
@@ -253,10 +402,37 @@ export type StatusCobranca = {
   billingType: string;
   value: number;
   dueDate?: string;
+  invoiceUrl?: string;
+  externalReference?: string;
+  subscription?: string;
 };
 
 export async function consultarCobranca(asaasPaymentId: string): Promise<StatusCobranca> {
   return request<StatusCobranca>(`/payments/${asaasPaymentId}`);
+}
+
+export async function buscarCobrancaPorReferencia(externalReference: string): Promise<StatusCobranca | null> {
+  const result = await request<{ data?: StatusCobranca[] }>(
+    `/payments?externalReference=${encodeURIComponent(externalReference)}&limit=1`,
+  );
+  return result.data?.[0] ?? null;
+}
+
+export async function consultarPixQrCode(asaasPaymentId: string): Promise<{ encodedImage: string; payload: string }> {
+  return request<{ encodedImage: string; payload: string }>(`/payments/${asaasPaymentId}/pixQrCode`);
+}
+
+export type StatusAssinatura = {
+  id: string;
+  status?: string;
+  externalReference?: string;
+};
+
+export async function buscarAssinaturaPorReferencia(externalReference: string): Promise<StatusAssinatura | null> {
+  const result = await request<{ data?: StatusAssinatura[] }>(
+    `/subscriptions?externalReference=${encodeURIComponent(externalReference)}&limit=1`,
+  );
+  return result.data?.[0] ?? null;
 }
 
 // ── Consulta de titularidade de chave Pix ────────────────────────────────────
@@ -287,6 +463,7 @@ export async function transferirPix(input: {
   valor:     number;
   chavePix:  string;
   descricao: string;
+  externalReference?: string;
 }): Promise<{ id: string; status: string }> {
   const tipo = detectarTipoChavePix(input.chavePix);
 
@@ -298,6 +475,35 @@ export async function transferirPix(input: {
       pixAddressKey:      input.chavePix,
       pixAddressKeyType:  tipo,
       description:        input.descricao,
+      externalReference:  input.externalReference,
     }),
   });
+}
+
+export type StatusTransferencia = {
+  id: string;
+  status: string;
+  externalReference?: string;
+};
+
+// The transfer list has no documented externalReference filter. Reconciliation
+// scans a bounded recent window and never creates a second transfer when the
+// first request had an ambiguous response.
+export async function buscarTransferenciaPorReferencia(
+  externalReference: string,
+  since = new Date(Date.now() - 90 * 86_400_000),
+): Promise<StatusTransferencia | null> {
+  const limit = 100;
+  for (let offset = 0; offset < 1_000; offset += limit) {
+    const query = new URLSearchParams({
+      limit: String(limit),
+      offset: String(offset),
+      "dateCreated[ge]": since.toISOString().slice(0, 10),
+    });
+    const page = await request<{ data?: StatusTransferencia[]; hasMore?: boolean }>(`/transfers?${query}`);
+    const found = page.data?.find((transfer) => transfer.externalReference === externalReference);
+    if (found) return found;
+    if (!page.hasMore || (page.data?.length ?? 0) < limit) return null;
+  }
+  return null;
 }

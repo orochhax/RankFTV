@@ -1,37 +1,46 @@
 # Pendencias manuais do RankFTV
 
-Auditoria atualizada em 06/08/2026. Este documento cobre somente a plataforma Rank Futevolei. O modulo pessoal Performance esta documentado separadamente em `PERFORMANCE.md`.
+Atualizado em 07/08/2026. Somente o responsavel pelas contas, dominio e dados legais pode concluir os itens abaixo. O passo a passo de deploy, validacao, backfill e rollback esta em `RUNBOOK-PRODUCAO.md`.
+
+## Release tecnico atual
+
+- [ ] Fazer snapshot recuperavel do Supabase e confirmar que as migrations-base citadas no runbook ja existem no projeto remoto.
+- [ ] Aplicar, na ordem do runbook, `financial-operations.sql`, `payment-card-attempt-security.sql`, `production-spectator-ticket-items.sql`, `production-order-inventory-release.sql`, `asaas-webhook-idempotency.sql`, `production-query-indexes.sql` e `production-data-retention.sql`.
+- [ ] Conferir `spectator_ticket_items_backfill_report`. Todo item `partial` ou `unmigrated` deve ser analisado antes de liberar expiracao/estorno de pedidos legados.
+- [ ] Configurar os novos segredos e endpoints: `PAYMENT_FINGERPRINT_SECRET`, `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN` e `OPERATIONS_ALERT_WEBHOOK_URL`.
+- [ ] Confirmar no Vercel os crons de repasse, conciliacao financeira e retencao; testar cada rota com `CRON_SECRET` e conferir o alerta de falha.
+- [ ] Executar Playwright com contas e dados descartaveis de atleta/organizador. Ativar os testes mutantes de Asaas e card guard somente em Supabase/Asaas sandbox.
+- [ ] Fazer deploy em Preview, validar `/api/health`, CSP, login, painel e pagamentos sandbox; so depois promover exatamente o mesmo commit.
 
 ## Antes de receber trafego real
 
-- [ ] **Identidade legal:** definir razao social ou responsavel, CNPJ quando houver e e-mail oficial de privacidade. Substituir os marcadores `[PENDENTE]` em `app/termos/page.tsx` e `app/privacidade/page.tsx`. Validar termos, privacidade, cancelamento, estorno e atendimento com orientacao juridica e contabil.
-- [ ] **Dominio e Vercel:** conectar `rankftv.com`, confirmar HTTPS, configurar `NEXT_PUBLIC_BASE_URL`, revisar Preview/Production e impedir credenciais de sandbox em producao.
-- [ ] **Supabase:** ativar backup/PITR, testar restauracao, revisar alertas de consumo, manter MFA administrativa e conferir as migrations de producao em backup recente.
+- [ ] **Identidade legal:** definir razao social ou responsavel, CNPJ quando houver e e-mail oficial de privacidade. Substituir `[PENDENTE]` em `app/termos/page.tsx` e `app/privacidade/page.tsx`; validar termos, cancelamento, estorno e atendimento com orientacao juridica/contabil.
+- [ ] **Dominio e Vercel:** conectar `rankftv.com`, confirmar HTTPS, definir `NEXT_PUBLIC_BASE_URL`, separar Preview/Production e impedir credenciais sandbox em producao.
+- [ ] **Supabase:** ativar backup/PITR, testar restauracao, alertas de consumo e MFA administrativo; revisar RLS com anon, atleta, organizador, staff, dono de arena e service role.
 - [ ] **Storage:** conferir policies, MIME e tamanho dos buckets de banners, noticias, arenas, camisas e avatares; remover policies antigas permissivas.
-- [ ] **Turnstile e Auth:** confirmar Site URL, Redirect URLs, dominio do Turnstile, protecao de login/cadastro e recuperacao de senha no ambiente final.
+- [ ] **Turnstile/Auth:** confirmar Site URL, Redirect URLs, dominio do Turnstile, politica de senha, recuperacao e protecao contra abuso no ambiente final.
 
 ## Pagamentos e repasses
 
-- [ ] **Conta Asaas de producao:** concluir KYC, habilitar Pix, cartao, parcelamento, estorno, assinaturas e transferencias Pix. Guardar a nova API key somente no cofre da Vercel.
-- [ ] **Conformidade de cartao:** confirmar com o Asaas e um especialista qual SAQ/escopo PCI se aplica aos fluxos atuais. Aprovar checkout hospedado ou tokenizacao direta se disponivel e definir resposta a card testing.
-- [ ] **Webhook Asaas:** cadastrar `https://rankftv.com/api/webhooks/asaas`, definir um `ASAAS_WEBHOOK_TOKEN` forte e habilitar os eventos usados. Confirmar entregas HTTP 2xx e remover webhooks antigos de tunnel/sandbox.
-- [ ] **Homologacao financeira:** com valores baixos e dados autorizados, testar Pix, cartao aprovado/recusado, parcelamento, timeout, duplicidade, estorno, inadimplencia, cancelamento e repasse. Conciliar Asaas, banco e interface.
-- [ ] **Chaves Pix:** testar titularidade, cooldown apos troca, conta sem chave e falha de transferencia. Definir procedimento humano para repasse preso ou divergente.
-- [ ] **Preco da plataforma para arenas:** decidir valor, periodo de teste, carencia, inadimplencia, cancelamento e se a oferta sera lancada ou retirada temporariamente.
+- [ ] **Conta Asaas de producao:** concluir KYC e habilitar Pix, cartao, parcelamento, estorno, assinaturas e transferencias. Guardar a chave apenas no cofre da Vercel.
+- [ ] **Conformidade de cartao:** confirmar com Asaas/especialista o SAQ e escopo PCI aplicavel. Verificar se a conta vigente oferece checkout hospedado ou tokenizacao direta capaz de reduzir o escopo atual.
+- [ ] **Webhook:** cadastrar `https://rankftv.com/api/webhooks/asaas`, usar `ASAAS_WEBHOOK_TOKEN` forte e habilitar confirmacao, recebimento, solicitacao de estorno, estorno, exclusao e chargeback. Remover URLs antigas de tunnel/sandbox.
+- [ ] **Homologacao:** com valores baixos e autorizados, testar Pix, cartao aprovado/recusado, parcelamento, timeout apos escrita, clique repetido, evento duplicado/fora de ordem, estorno, assinatura, inadimplencia e repasse. Conciliar Asaas, ledger, pedido e interface.
+- [ ] **Chaves Pix:** testar titularidade, cooldown apos troca, falta de chave e transferencia recusada. Definir procedimento humano para outbox/repasse preso.
+- [ ] **Assinatura da plataforma para arenas:** a oferta esta oculta e as rotas retornam 404. Antes de reativa-la, decidir preco, teste, carencia, inadimplencia e cancelamento e implementar um produto financeiro separado.
 
-## Comunicacao e operacao
+## Operacao e comunicacao
 
-- [ ] **Resend:** verificar dominio, publicar SPF/DKIM/DMARC, definir `RESEND_FROM_EMAIL` e testar Gmail, Outlook e spam. Criar enderecos oficiais de suporte e privacidade.
-- [ ] **Cron de repasse:** definir `CRON_SECRET`, confirmar `/api/cron/repasse-liquidacao` e criar alerta para falhas.
-- [ ] Criar contas de teste para atleta, organizador, dono de arena, aluno e equipe.
-- [ ] Executar o fluxo completo em celular e desktop: cadastro, campeonato, inscricao, pagamento, ingresso, check-in, chaveamento, comunicacao, arena e cobrancas.
-- [ ] Definir canal e prazo de suporte para pagamentos, estornos, ingresso nao recebido, conta bloqueada e exclusao de dados.
-- [ ] Definir responsavel por conciliacao diaria e incidentes de seguranca/LGPD.
-- [ ] Configurar monitoramento externo, alertas e contato de emergencia.
-- [ ] Fazer backup final, registrar o commit implantado e preparar rollback antes de abrir pagamentos.
+- [ ] Verificar dominio do Resend, publicar SPF/DKIM/DMARC, definir `RESEND_FROM_EMAIL` e testar Gmail/Outlook/spam.
+- [ ] Criar contas sandbox de atleta, organizador, dono de arena, aluno e staff e preencher as variaveis `E2E_*` somente no ambiente de CI apropriado.
+- [ ] Configurar monitoramento externo em `/api/health`, coleta no provedor escolhido e canal de emergencia para `OPERATIONS_ALERT_WEBHOOK_URL`.
+- [ ] Definir responsavel, SLA e roteiro para conciliacao diaria, estorno, ingresso nao recebido, conta bloqueada, incidente de seguranca e solicitacao LGPD.
+- [ ] Fazer backup final, registrar commit/migrations implantados e ensaiar rollback antes de abrir pagamentos.
 
-## Variaveis do RankFTV em producao
+## Variaveis do RankFTV
 
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_BASE_URL`, `ADMIN_EMAIL`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `ASAAS_BASE_URL`, `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL` e `CRON_SECRET`.
+Publicas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_BASE_URL` e `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
 
-Nunca colocar `SUPABASE_SERVICE_ROLE_KEY`, `ASAAS_API_KEY`, `CRON_SECRET` ou tokens de webhook em variaveis `NEXT_PUBLIC_*`.
+Privadas: `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAIL`, `ASAAS_BASE_URL`, `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN`, `PAYMENT_FINGERPRINT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `CRON_SECRET`, `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN`, `OPERATIONS_ALERT_WEBHOOK_URL` e, opcionalmente, `APP_VERSION`.
+
+Nunca usar prefixo `NEXT_PUBLIC_` em service role, chave Asaas, fingerprint secret, cron, observabilidade ou token de webhook.
