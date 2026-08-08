@@ -810,6 +810,16 @@ function aiWarning(error: unknown): string {
     typeof error === "object" && error && "status" in error
       ? Number(error.status)
       : null;
+  const code =
+    typeof error === "object" && error && "code" in error
+      ? String(error.code)
+      : null;
+  const type =
+    typeof error === "object" && error && "type" in error
+      ? String(error.type)
+      : null;
+  if (code === "credit_balance_exhausted" || type === "insufficient_quota")
+    return "Creditos da OpenAI esgotados; foi usada a leitura local.";
   if (status === 429)
     return "Limite da OpenAI atingido; foi usada a leitura local.";
   if (status && status >= 500)

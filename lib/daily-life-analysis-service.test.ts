@@ -155,6 +155,9 @@ test("daily idempotency is keyed by evaluated day and current prompt version", (
     /promptVersion: DAILY_LIFE_ANALYSIS_PROMPT_VERSION/,
   );
   assert.match(serviceSource, /warning,/);
+  assert.match(serviceSource, /credit_balance_exhausted/);
+  assert.match(serviceSource, /insufficient_quota/);
+  assert.match(serviceSource, /Creditos da OpenAI esgotados/);
 });
 
 test("cron requires the configured email to also own a CEO profile and reports failures as 500", () => {
