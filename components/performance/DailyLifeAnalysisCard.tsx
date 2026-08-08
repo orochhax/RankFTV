@@ -32,6 +32,29 @@ function generatedLabel(value: string): string {
   }).format(date).replace(".", "");
 }
 
+function evaluationLabel(value: string): string {
+  const date = new Date(`${value}T12:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function storedStreak(analysis: DailyLifeAnalysis): number | null | undefined {
+  if (!analysis.metrics || typeof analysis.metrics !== "object")
+    return undefined;
+  const consistency = (analysis.metrics as Record<string, unknown>).consistency;
+  if (!consistency || typeof consistency !== "object") return undefined;
+  const value = (consistency as Record<string, unknown>).streak;
+  if (value === null) return null;
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.floor(value)
+    : undefined;
+}
+
 function AnalysisAction({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -47,7 +70,7 @@ function AnalysisAction({ compact = false }: { compact?: boolean }) {
         if (!result.ok) setError(result.error ?? "Não foi possível atualizar a análise.");
         else router.refresh();
       })}
-      className={`inline-flex items-center gap-2 rounded-lg border border-white/10 font-semibold text-white transition hover:border-white/20 hover:bg-white/10 disabled:opacity-50 ${compact ? "size-9 justify-center p-0" : "px-3 py-2 text-sm"}`}
+      className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/10 font-semibold text-white transition hover:border-white/20 hover:bg-white/10 disabled:opacity-50 ${compact ? "size-11 justify-center p-0" : "px-3 py-2 text-sm"}`}
       title="Atualizar análise agora"
       aria-label="Atualizar análise agora"
     >
@@ -85,6 +108,9 @@ export function DailyLifeAnalysisCard({ analysis, consistency }: Props) {
   const status = statusCopy[analysis.status];
   const TrendIcon = analysis.trend === "up" ? TrendingUp : analysis.trend === "down" ? TrendingDown : Minus;
   const trendColor = analysis.trend === "up" ? "text-emerald-300" : analysis.trend === "down" ? "text-red-300" : "text-white/45";
+  const persistedStreak = storedStreak(analysis);
+  const analysisStreak =
+    persistedStreak === undefined ? consistency.streak : persistedStreak;
 
   return <section className={`overflow-hidden rounded-lg border bg-[#15191f] text-white ${status.border}`}>
     <div className="border-b border-white/10 px-5 py-4 sm:px-6">
@@ -92,14 +118,17 @@ export function DailyLifeAnalysisCard({ analysis, consistency }: Props) {
         <span className="inline-flex items-center gap-1.5 font-semibold uppercase text-blue-300"><BrainCircuit className="size-4" />Visão diária</span>
         <span aria-hidden="true">·</span>
         <span>{generatedLabel(analysis.generatedAt)}</span>
+        <span aria-hidden="true">·</span>
+        <span>Dados até {evaluationLabel(analysis.evaluationDate)}</span>
         <span className="rounded-md border border-white/10 px-2 py-1 text-[11px] text-white/55">{analysis.generation.mode === "ai" ? "Análise com IA" : "Leitura local"}</span>
+        {analysis.generation.warning && <span className="rounded-md border border-amber-300/20 bg-amber-300/5 px-2 py-1 text-[11px] text-amber-200" title={analysis.generation.warning}>Fallback registrado</span>}
         {!expanded && <span className={`font-semibold ${status.color}`}>{status.label} · {analysis.score ?? "--"}/100</span>}
         <div className="ml-auto flex items-center gap-1">
           <AnalysisAction compact />
           <button
             type="button"
             onClick={() => setExpanded((value) => !value)}
-            className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/55 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+            className="flex size-11 items-center justify-center rounded-lg border border-white/10 text-white/55 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
             title={expanded ? "Minimizar análise" : "Expandir análise"}
             aria-label={expanded ? "Minimizar análise" : "Expandir análise"}
             aria-expanded={expanded}
@@ -124,8 +153,8 @@ export function DailyLifeAnalysisCard({ analysis, consistency }: Props) {
           <span>{analysis.trend === "up" ? "Ritmo em alta" : analysis.trend === "down" ? "Ritmo em queda" : analysis.trend === "stable" ? "Ritmo estável" : "Sem comparação"}</span>
         </div>
         <div className="mt-3 flex items-center gap-2 text-xs text-white/55">
-          <Flame className={`size-4 ${consistency.streak ? "fill-orange-400 text-orange-400" : "text-white/25"}`} />
-          <span><b className="text-white">{consistency.streak}</b> {consistency.streak === 1 ? "dia" : "dias"} de constância</span>
+          <Flame className={`size-4 ${analysisStreak ? "fill-orange-400 text-orange-400" : "text-white/25"}`} />
+          <span>{analysisStreak == null ? "Constância sem base" : <><b className="text-white">{analysisStreak}</b> {analysisStreak === 1 ? "dia" : "dias"} de constância</>}</span>
         </div>
         <p className="mt-4 text-[11px] leading-5 text-white/35" title={`A nota usa somente: ${analysis.coverage.scoreBasis.join(", ") || "nenhuma area mensuravel"}.`}>Base: {analysis.coverage.scoreBasis.length ? analysis.coverage.scoreBasis.join(" + ") : "dados insuficientes"}</p>
       </div>

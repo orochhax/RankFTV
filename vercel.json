@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/financial-reconciliation",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 10 * * *"
     },
     {
       "path": "/api/cron/data-retention",

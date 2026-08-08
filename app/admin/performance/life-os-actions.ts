@@ -1295,7 +1295,13 @@ export async function gerarInsightLifeOS(): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx) return { ok: false, error: "Acesso negado." };
   try {
-    await generateDailyLifeAnalysis({ supabase: ctx.supabase, userId: ctx.user.id, timezone: "America/Bahia", force: true });
+    const { data: performanceProfile, error: profileError } = await ctx.supabase
+      .from("perf_profile")
+      .select("timezone")
+      .eq("user_id", ctx.user.id)
+      .maybeSingle();
+    if (profileError) return { ok: false, error: profileError.message };
+    await generateDailyLifeAnalysis({ supabase: ctx.supabase, userId: ctx.user.id, timezone: performanceProfile?.timezone ?? "America/Bahia", force: true });
     reval();
     return { ok: true };
   } catch (error) {

@@ -69,6 +69,7 @@ export async function criarHabitosSugeridos(): Promise<Res> {
   const rows = SUGERIDOS.map((h, i) => ({
     user_id: user.id, label: h.label, tipo: h.tipo,
     alvo: h.alvo, unidade: h.unidade, ordem: i,
+    start_date: hojeISO("America/Bahia"),
   }));
   const { error } = await supabase.from("perf_habit").insert(rows);
   if (error) return { ok: false, error: error.message };
@@ -97,6 +98,7 @@ export async function criarHabito(formData: FormData): Promise<Res> {
 
   const { error } = await supabase.from("perf_habit").insert({
     user_id: user.id, label, tipo, alvo, unidade, ordem,
+    start_date: hojeISO("America/Bahia"),
   });
   if (error) return { ok: false, error: error.message };
   reval();
@@ -133,8 +135,10 @@ export async function removerHabito(id: string): Promise<Res> {
   const { supabase, user } = ctx;
   // Desativa (não apaga) pra preservar o histórico dos logs já registrados.
   const { error } = await supabase
-    .from("perf_habit").update({ ativo: false })
-    .eq("id", id).eq("user_id", user.id);
+    .from("perf_habit")
+    .update({ ativo: false, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("user_id", user.id);
   if (error) return { ok: false, error: error.message };
   reval();
   return { ok: true };
@@ -143,7 +147,16 @@ export async function removerHabito(id: string): Promise<Res> {
 export async function reativarHabito(id: string): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx) return { ok: false, error: "Acesso negado." };
-  const { error } = await ctx.supabase.from("perf_habit").update({ ativo: true }).eq("id", id).eq("user_id", ctx.user.id);
+  const { error } = await ctx.supabase
+    .from("perf_habit")
+    .update({
+      ativo: true,
+      start_date: hojeISO("America/Bahia"),
+      end_date: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("user_id", ctx.user.id);
   if (error) return { ok: false, error: error.message };
   reval(); return { ok: true };
 }

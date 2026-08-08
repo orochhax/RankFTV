@@ -7,9 +7,11 @@ export async function isPerformanceOwner(
   user: Pick<User, "id" | "email">,
 ): Promise<boolean> {
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLocaleLowerCase("pt-BR");
-  if (adminEmail && user.email?.trim().toLocaleLowerCase("pt-BR") === adminEmail) return true;
+  const userEmail = user.email?.trim().toLocaleLowerCase("pt-BR");
+  if (!adminEmail || userEmail !== adminEmail) return false;
 
-  // Mantem o acesso do proprietario se ele trocar o e-mail pelo proprio perfil.
+  // ADMIN_EMAIL identifica a conta operacional, mas nunca substitui a
+  // autorizacao persistida que tambem e verificada pelas RPCs do modulo.
   const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
   return data?.role === "ceo";
 }

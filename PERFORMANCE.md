@@ -7,7 +7,7 @@ Performance e um modulo pessoal de desenvolvimento e organizacao hospedado tempo
 Estado atual:
 
 - Rota principal: `/admin/performance`.
-- Acesso exclusivo da conta definida por `ADMIN_EMAIL`; o papel unico `ceo` funciona como fallback para que uma troca de e-mail no Perfil nao bloqueie o proprietario.
+- Acesso exclusivo da conta identificada por `ADMIN_EMAIL` e confirmada com `profiles.role = 'ceo'`. O e-mail sozinho nunca ignora a autorização persistida; ao trocar o e-mail da conta, `ADMIN_EMAIL` também precisa ser atualizado.
 - Dados associados ao `user_id` do proprietario e protegidos por RLS.
 - Sem planos, assinatura, checkout, gateway ou webhook proprio.
 - Sem limite comercial mensal de roadmaps.
@@ -25,10 +25,52 @@ As paginas `/admin/gastos` e `/admin/gasto-mensal` tambem sao pessoais, mas nao 
 - **Habitos:** registro diario, progresso, historico, arquivamento e graficos de constancia.
 - **Academia:** treinos, duracao, peso, meta e mapa dos grupos musculares.
 - **Estudos:** roadmaps manuais, importados e gerados por IA, modulos, etapas, avaliacoes, Pomodoro e sessoes.
-- **Investimentos:** aportes, valor real da carteira, retiradas e graficos de evolucao.
+- **Investimentos / Carteira em Rota:** meta patrimonial principal, plano versionado, check-ins do valor total, aportes, retiradas, trajetória realizada e projeções por cenários.
 - **Perfil:** nome, sobrenome, foto, e-mail, WhatsApp e nascimento.
 
 Revisoes e Insights nao existem mais como abas separadas. A leitura inteligente fica no Dashboard.
+
+## Visao diaria das 05:00
+
+O job diario roda pelo cron `0 8 * * *`, equivalente a 05:00 em
+`America/Bahia`. A analise fecha os dados ate ontem: registros do novo dia
+servem apenas para sugerir a proxima acao e nunca reduzem a nota da manha.
+
+A versao `daily-life-review-v4` le, com paginacao e ordem deterministica:
+
+- compromissos e logs de habitos e tarefas, inclusive a vigencia historica de
+  itens arquivados;
+- treinos, duracao, tipo, titulo, grupos musculares, meta semanal e peso;
+- roadmap, etapas, prazo, estimativas, sessoes, aprendizados e tentativas de
+  avaliacao de estudos;
+- eventos e metas;
+- snapshots, aportes, retiradas, plano e todas as revisoes da Carteira em Rota.
+
+Investimentos reutilizam a mesma engine da Carteira em Rota, com data de corte
+em ontem. A leitura distingue saldo observado de saldo estimado por fluxos,
+desconta aportes e retiradas ao decompor o resultado e nunca recomenda ativos.
+Uma fonte com erro, schema ausente ou leitura parcial fica indisponivel e nao e
+convertida em desempenho zero. Se a chamada da OpenAI falhar, a leitura local e
+salva com o motivo do fallback para diagnostico no Dashboard.
+
+## Carteira em Rota
+
+A área de investimentos funciona como um GPS patrimonial pessoal. Ela compara o patrimônio observado nos check-ins, o ritmo real dos aportes e o plano vigente para explicar se a meta continua na rota e qual ação controlável merece atenção no mês.
+
+Fontes canonicas:
+
+- `perf_portfolio_snapshot`: valor total observado nos check-ins;
+- `perf_investment_contribution`: aportes manuais ou preservados do controle financeiro;
+- `perf_investment_withdrawal`: retiradas;
+- `perf_investment_plan` e `perf_investment_plan_revision`: identidade do plano e histórico imutável das premissas.
+
+O plano aceita valores reais ou nominais. No modo real, valor-alvo, aporte e taxas representam poder de compra da data-base informada. No modo nominal, os valores permanecem nominais. As linhas conservadora, base e favorável são cenários determinísticos configurados pelo proprietário; não representam probabilidade, garantia de retorno nem recomendação de investimento.
+
+O CDI usado em `/admin/gastos` não é extrapolado automaticamente para o horizonte de longo prazo. A Carteira em Rota possui uma engine mensal independente, pura e testada. Resultado inferido entre dois check-ins é chamado de resultado residual da carteira, pois também pode incluir taxas, impostos, ativos não cadastrados ou ajustes no valor informado.
+
+A primeira versão do plano nunca é reescrita. Alterações de alvo, prazo, aporte ou premissas criam revisões, permitindo reconstruir o plano aplicável a cada período e formar o diário de bordo.
+
+Concluir e arquivar possuem contratos diferentes. O arquivamento é uma decisão voluntária. A conclusão é validada atomicamente no banco: usa o alvo da revisão vigente hoje, o check-in mais recente e os aportes e retiradas posteriores até hoje. No modo real, cada valor observado é convertido pela própria data para a data de referência do plano. Revisões futuras não podem antecipar a conclusão.
 
 ## Roadmaps com IA
 
@@ -66,6 +108,9 @@ As tabelas do modulo usam principalmente o prefixo `perf_`. Para uma instalacao 
 7. `supabase/performance-roadmap-drafts.sql`
 8. `supabase/performance-study-question-types.sql`
 9. `supabase/performance-daily-life-analysis.sql`
+10. `supabase/performance-investment-route.sql`
+
+As migrações são aplicadas manualmente somente em um ambiente autorizado e com backup. A aplicação não executa `performance-investment-route.sql` automaticamente.
 
 `supabase/performance-product.sql` nao faz parte do projeto atual e nao deve ser aplicado.
 
@@ -74,6 +119,7 @@ Dependencias que precisam ser desacopladas antes da extracao:
 - identidade em `auth.users`, `profiles` e `profiles_private`;
 - foto no bucket `avatars`;
 - investimentos lidos de `personal_finance_entries`;
+- plano e revisões da Carteira em Rota em `perf_investment_plan` e `perf_investment_plan_revision`;
 - configuracao global `ADMIN_EMAIL`;
 - cron dentro do deploy do RankFTV;
 - componentes, actions e bibliotecas dentro dos diretorios compartilhados do RankFTV.

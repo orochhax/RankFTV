@@ -185,6 +185,12 @@ cartao e corpo integral da requisicao nunca devem aparecer nelas ou nos logs.
    liquidacao/repasse e retencao.
 10. Promover o mesmo commit e repetir health check e smoke tests sem mutacoes.
 
+No plano Hobby da Vercel, todas as expressoes em `vercel.json` precisam executar
+no maximo uma vez por dia. A conciliacao financeira fica agendada diariamente
+as 10:00 UTC; tentar restaurar `*/10 * * * *` nesse plano bloqueia o deploy
+inteiro. Para reconciliacao subdiaria, primeiro migrar o projeto para Vercel Pro
+ou configurar um agendador externo autenticado com `CRON_SECRET`.
+
 ## 5. Monitoramento e alertas
 
 - Monitorar `/api/health` externamente sem enviar credenciais.

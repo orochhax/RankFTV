@@ -24,7 +24,7 @@ export type StudySessionMetadata = {
   startedAt: string | null;
   endedAt: string | null;
 };
-export type InvestmentContribution = { id: string; date: string; amount: number; institution: string | null; notes: string | null; source?: string };
+export type InvestmentContribution = { id: string; date: string; amount: number; institution: string | null; notes: string | null; source?: string; sourceEntryId?: string | null };
 export type InvestmentSnapshot = { date: string; totalValue: number };
 export type InvestmentWithdrawal = { date: string; amount: number };
 export type PortfolioChartPeriod = "day" | "week" | "month";

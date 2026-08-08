@@ -65,7 +65,7 @@ export function AcademyDashboardWidget({ activities, today, weights }: { activit
   </section>;
 }
 
-export function FinanceDashboardWidget({ contributions, snapshots, withdrawals }: { contributions: InvestmentContribution[]; snapshots: PortfolioSnapshot[]; withdrawals: InvestmentWithdrawal[] }) {
+export function FinanceDashboardWidget({ contributions, snapshots, withdrawals, dataReady = true }: { contributions: InvestmentContribution[]; snapshots: PortfolioSnapshot[]; withdrawals: InvestmentWithdrawal[]; dataReady?: boolean }) {
   const router = useRouter();
   const [period, setPeriod] = useState<PortfolioChartPeriod>("month");
   const summary = investmentSummary(contributions, snapshots, withdrawals);
@@ -77,12 +77,12 @@ export function FinanceDashboardWidget({ contributions, snapshots, withdrawals }
     <WidgetHeader title="Investimentos" subtitle="Evolucao da carteira" icon={<Wallet className="size-4 text-emerald-400" />} onOpen={() => router.replace("/admin/performance?view=investments", { scroll: false })} />
 
     <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
-      <div><p className="text-xs text-white/35">Valor atual</p><strong className="mt-1 block text-3xl font-semibold leading-none tabular-nums">{snapshots.length ? formatBRL(summary.currentValue) : "Nao atualizada"}</strong></div>
-      <div className="text-right"><p className={`text-base font-semibold tabular-nums ${variation ? positive ? "text-emerald-400" : "text-red-400" : "text-white/35"}`}>{variation?.percent == null ? "Sem comparacao" : `${positive ? "+" : ""}${variation.percent.toFixed(2)}%`}</p><p className="mt-0.5 text-[10px] uppercase text-white/30">no periodo</p></div>
+      <div><p className="text-xs text-white/35">Valor atual</p><strong className="mt-1 block text-3xl font-semibold leading-none tabular-nums">{!dataReady ? "Indisponivel" : snapshots.length ? formatBRL(summary.currentValue) : "Nao atualizada"}</strong></div>
+      <div className="text-right"><p className={`text-base font-semibold tabular-nums ${variation ? positive ? "text-emerald-400" : "text-red-400" : "text-white/35"}`}>{!dataReady ? "Indisponivel" : variation?.percent == null ? "Sem comparacao" : `${positive ? "+" : ""}${variation.percent.toFixed(2)}%`}</p><p className="mt-0.5 text-[10px] uppercase text-white/30">no periodo</p></div>
     </div>
 
     <div className="mt-4 h-36" role="img" aria-label="Evolucao do valor da carteira">
-      {chart.length ? <ResponsiveContainer width="100%" height="100%">
+      {!dataReady ? <EmptyChart text="Nao foi possivel carregar os dados financeiros com seguranca." /> : chart.length ? <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chart} margin={{ top: 8, right: 3, left: 0, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="#ffffff" strokeOpacity={0.06} />
           <XAxis dataKey="label" axisLine={false} tickLine={false} minTickGap={18} tick={{ fontSize: 10, fill: "rgba(255,255,255,0.38)" }} />
@@ -98,9 +98,9 @@ export function FinanceDashboardWidget({ contributions, snapshots, withdrawals }
     </div>
 
     <div className="mt-4 grid grid-cols-3 divide-x divide-white/10 border-t border-white/10 pt-4 text-center">
-      <FinanceMetric label="Aportado" value={formatBRL(summary.netInvested)} />
-      <FinanceMetric label="Resultado" value={formatBRL(summary.result)} tone={summary.result < 0 ? "negative" : "positive"} />
-      <FinanceMetric label="Retorno" value={summary.returnPercent == null ? "Sem base" : `${summary.returnPercent >= 0 ? "+" : ""}${summary.returnPercent.toFixed(1)}%`} tone={summary.returnPercent != null && summary.returnPercent < 0 ? "negative" : "positive"} />
+      <FinanceMetric label="Aportado" value={dataReady ? formatBRL(summary.totalContributed) : "Indisponivel"} />
+      <FinanceMetric label="Aportes liquidos" value={dataReady ? formatBRL(summary.netInvested) : "Indisponivel"} />
+      <FinanceMetric label="Retirado" value={dataReady ? formatBRL(summary.totalWithdrawn) : "Indisponivel"} />
     </div>
   </section>;
 }
