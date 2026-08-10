@@ -16,6 +16,7 @@ import { CopiarLink } from "@/components/ui/CopiarLink";
 import { TamanhoCamisaPicker } from "@/components/inscricoes/TamanhoCamisaPicker";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
+import { resolveBaseUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateRangeBR, formatBRL, generoLabel } from "@/lib/format";
@@ -387,7 +388,7 @@ export default async function IngressoPage({
                   </div>
                 </div>
                 <CopiarLink
-                  link={`${process.env.NEXT_PUBLIC_BASE_URL}/convite/${team.id}?token=${inviteToken}`}
+                  link={`${resolveBaseUrl()}/convite/${team.id}?token=${inviteToken}`}
                 />
                 {team.parceiro_username && (
                   <p className="text-center text-xs text-gray-400">

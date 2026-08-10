@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
+import { resolveBaseUrl } from "@/lib/site-url";
 
-const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.rankftv.com").replace(/\/+$/, "");
+const BASE_URL = resolveBaseUrl();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

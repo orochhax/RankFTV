@@ -10,8 +10,9 @@ import {
   recuperacaoIngressoHtml,
 } from "./templates";
 import { reportOperationalEvent } from "@/lib/observability";
+import { resolveBaseUrl } from "@/lib/site-url";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+const BASE_URL = resolveBaseUrl(process.env.NEXT_PUBLIC_BASE_URL, "http://localhost:3000");
 
 // Não lança erro — e-mail é best-effort; nunca bloqueia o fluxo principal.
 async function send(to: string, subject: string, html: string) {
@@ -97,7 +98,6 @@ export async function enviarConviteStaff(opts: {
   nomeCampeonato: string;
   permissoes: string;
 }) {
-  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
   await send(
     opts.emailConvidado,
     `${opts.nomeOrganizador} te convidou para ser staff em ${opts.nomeCampeonato}`,

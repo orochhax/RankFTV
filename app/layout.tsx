@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { AppShell } from "@/components/shell/AppShell";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRole, type UserRole } from "@/lib/supabase/roles";
+import { resolveBaseUrl } from "@/lib/site-url";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -14,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL((process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.rankftv.com").replace(/\/+$/, "")),
+  metadataBase: new URL(resolveBaseUrl()),
   title: {
     default: "RankFTV — Campeonatos de futevôlei",
     template: "%s | RankFTV",
