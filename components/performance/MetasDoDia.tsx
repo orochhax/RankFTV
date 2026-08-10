@@ -3,9 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Loader2, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
-import {
-  adherence, pct, type Habit,
-} from "@/lib/performance";
+import { adherence, habitEndSummary, habitScheduleSummary, pct, scheduledHabits, type Habit } from "@/lib/performance";
+import { HabitScheduleFields } from "@/components/performance/HabitScheduleFields";
 import {
   registrarHabito, criarHabito, editarHabito, removerHabito, criarHabitosSugeridos,
 } from "@/app/admin/performance/actions";
@@ -29,9 +28,10 @@ export function MetasDoDia({ habits, valoresIniciais, hoje }: Props) {
   const [isPending, startTransition] = useTransition();
   const [editMode, setEditMode] = useState(false);
 
-  const ativos = habits.filter((h) => h.ativo);
-  const dayAdh = ativos.length
-    ? ativos.reduce((s, h) => s + adherence(h, valores[h.id]), 0) / ativos.length
+  const habitosDeHoje = scheduledHabits(habits, hoje);
+  const todosAtivos = habits.filter((habit) => habit.ativo);
+  const dayAdh = habitosDeHoje.length
+    ? habitosDeHoje.reduce((s, h) => s + adherence(h, valores[h.id]), 0) / habitosDeHoje.length
     : 0;
 
   function commit(habitId: string, valor: number) {
@@ -60,7 +60,7 @@ export function MetasDoDia({ habits, valoresIniciais, hoje }: Props) {
         </button>
       </div>
 
-      {!editMode && ativos.length > 0 && (
+      {!editMode && habitosDeHoje.length > 0 && (
         <>
           {/* Aderência do dia */}
           <div className="mt-4 flex items-center gap-3">
@@ -75,8 +75,8 @@ export function MetasDoDia({ habits, valoresIniciais, hoje }: Props) {
           </div>
 
           {/* Itens */}
-          <ul className={`mt-4 grid gap-x-8 gap-y-1 ${ativos.length > 5 ? "lg:grid-cols-2" : "grid-cols-1"}`}>
-            {ativos.map((h) => (
+          <ul className={`mt-4 grid gap-x-8 gap-y-1 ${habitosDeHoje.length > 5 ? "lg:grid-cols-2" : "grid-cols-1"}`}>
+            {habitosDeHoje.map((h) => (
               <li key={h.id}>
                 {h.tipo === "binario" ? (
                   <BinarioRow habit={h} valor={valores[h.id] ?? 0} onToggle={commit} />
@@ -89,11 +89,11 @@ export function MetasDoDia({ habits, valoresIniciais, hoje }: Props) {
         </>
       )}
 
-      {!editMode && ativos.length === 0 && (
+      {!editMode && habitosDeHoje.length === 0 && (
         <EmptyState />
       )}
 
-      {editMode && <Editor habits={ativos} fecharEditor={() => setEditMode(false)} />}
+      {editMode && <Editor habits={todosAtivos} fecharEditor={() => setEditMode(false)} />}
     </section>
   );
 }
@@ -203,7 +203,7 @@ function Editor({ habits, fecharEditor }: { habits: Habit[]; fecharEditor?: () =
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-white/80">{h.label}</p>
               <p className="text-xs text-white/35">
-                {h.tipo === "numerico" ? `Meta: ${h.alvo}${h.unidade ? ` ${h.unidade}` : ""}` : "Sim / não"}
+                {h.tipo === "numerico" ? `Meta: ${h.alvo}${h.unidade ? ` ${h.unidade}` : ""}` : "Sim / não"} · {habitScheduleSummary(h)}{habitEndSummary(h.endDate) ? ` · ${habitEndSummary(h.endDate)}` : ""}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1">
@@ -275,6 +275,7 @@ function HabitForm({ habit, onDone }: { habit?: Habit; onDone: () => void }) {
             placeholder="Unidade (h, min, L)" className={input} />
         </div>
       )}
+      <HabitScheduleFields habit={habit} />
       {erro && <p className="text-xs text-red-300">{erro}</p>}
       <div className="flex gap-2">
         <button type="submit" disabled={isPending}

@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/navbar/BottomNav";
 import { Footer } from "@/components/Footer";
 import { AppShell } from "@/components/shell/AppShell";
 import { createClient } from "@/lib/supabase/server";
+import { isAdminRole, type UserRole } from "@/lib/supabase/roles";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -13,8 +14,28 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "RankFTV",
+  metadataBase: new URL((process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.rankftv.com").replace(/\/+$/, "")),
+  title: {
+    default: "RankFTV — Campeonatos de futevôlei",
+    template: "%s | RankFTV",
+  },
   description: "Organize e participe de campeonatos de futevôlei.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "RankFTV",
+    title: "RankFTV — Campeonatos de futevôlei",
+    description: "Organize e participe de campeonatos de futevôlei.",
+    url: "/",
+    images: [{ url: "/rankftv-mockup.png", alt: "Plataforma RankFTV" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RankFTV — Campeonatos de futevôlei",
+    description: "Organize e participe de campeonatos de futevôlei.",
+    images: ["/rankftv-mockup.png"],
+  },
 };
 
 // maximumScale/userScalable travados em 1x bloqueava o pinch-zoom do
@@ -46,9 +67,8 @@ export default async function RootLayout({
   let notifCount = 0;
 
   if (user) {
-    isAdmin = user.email === process.env.ADMIN_EMAIL;
     const [profileRes, staffRes, pendingStaffRes, pendingTeamRes, notifRes, organizerRes, arenaRes] = await Promise.all([
-      supabase.from("profiles").select("nome, username, foto_url").eq("id", user.id).single(),
+      supabase.from("profiles").select("nome, username, foto_url, role").eq("id", user.id).single(),
       supabase
         .from("championship_staff")
         .select("id", { count: "exact", head: true })
@@ -74,6 +94,7 @@ export default async function RootLayout({
     ]);
     if (profileRes.data) {
       navUser = { id: user.id, nome: profileRes.data.nome, username: profileRes.data.username, fotoUrl: profileRes.data.foto_url };
+      isAdmin = isAdminRole((profileRes.data.role as UserRole) ?? null);
     }
     isStaff = (staffRes.count ?? 0) > 0;
     notifCount = (pendingStaffRes.count ?? 0) + (pendingTeamRes.count ?? 0) + (notifRes.count ?? 0);

@@ -13,6 +13,7 @@ import { reportOperationalEvent } from "@/lib/observability";
 import {
   ASAAS_CONFIRMED_EVENTS,
   ASAAS_REFUNDED_EVENTS,
+  asaasBillingCompetence,
   asaasEventDomainStatus,
   asaasEventRank,
   asaasWebhookEventId,
@@ -144,17 +145,27 @@ async function handleAsaasWebhook(req: NextRequest) {
       // cobrança do ciclo mensal (payment.dueDate + 1 mês). Sempre estende,
       // mesmo se a assinatura já tiver sido cancelada nesse meio-tempo (o
       // pagamento em si já foi feito, o período correspondente é do aluno).
-      const acessoAte = payment.dueDate ? addMonthsISO(payment.dueDate, 1) : null;
+      const competencia = asaasBillingCompetence(payment.dueDate);
+      if (!competencia || !payment.dueDate) {
+        await reportOperationalEvent({
+          level: "error",
+          event: "webhook.arena_subscription_invalid_due_date",
+          message: "Arena subscription payment has no valid provider due date",
+          context: { paymentId: payment.id, recordId: studentId },
+          alert: true,
+        });
+        return NextResponse.json({ error: "Vencimento da assinatura invalido" }, { status: 422 });
+      }
+      const acessoAte = addMonthsISO(payment.dueDate, 1);
       await supabase
         .from("arena_students")
         .update({
           status: "ativo",
-          ...(acessoAte ? { access_until: acessoAte } : {}),
+          access_until: acessoAte,
         })
         .eq("id", studentId);
 
       const now = new Date();
-      const competencia = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
       const { data: charge } = await supabase
         .from("student_charges")
         .upsert(

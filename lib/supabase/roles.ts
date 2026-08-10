@@ -32,19 +32,15 @@ export function isCeo(role: UserRole | null): boolean {
 }
 
 /**
- * Verificação única de acesso admin, usada por todas as actions do /admin.
- * Autoriza se o usuário tem role admin/ceo (igual ao middleware) OU se o e-mail
- * bate com ADMIN_EMAIL. Aceitar os dois evita qualquer risco de travar o acesso
- * do admin atual e ainda unifica a regra num só lugar.
- * Retorna true se autorizado.
+ * Verificação única do acesso comercial ao /admin.
+ * A fonte de verdade é profiles.role, igual ao Proxy. ADMIN_EMAIL identifica
+ * somente o dono dos módulos pessoais e nunca concede acesso comercial.
  */
 export async function isAdminUser(supabase: SupabaseClient): Promise<boolean> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return false;
-
-  if (user.email && user.email === process.env.ADMIN_EMAIL) return true;
 
   const { data } = await supabase
     .from("profiles")

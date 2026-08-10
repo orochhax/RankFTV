@@ -14,7 +14,22 @@ test("public, protected and error responses receive request CSP", async ({ reque
     expect(scriptDirective(csp)).toContain("'nonce-");
     expect(scriptDirective(csp)).not.toContain("'unsafe-inline'");
     expect(response.headers()["x-content-type-options"]).toBe("nosniff");
+    if (path === "/login" || path === "/admin") {
+      expect(response.headers()["x-robots-tag"]).toBe("noindex, nofollow");
+    }
   }
+});
+
+test("robots and sitemap expose only the public discovery surface", async ({ request }) => {
+  const robots = await request.get("/robots.txt");
+  expect(robots.ok()).toBe(true);
+  expect(await robots.text()).toContain("Disallow: /admin");
+
+  const sitemap = await request.get("/sitemap.xml");
+  expect(sitemap.ok()).toBe(true);
+  const xml = await sitemap.text();
+  expect(xml).toContain("/campeonatos");
+  expect(xml).not.toContain("/painel");
 });
 
 test("anonymous admin access is redirected to the site login", async ({ request }) => {

@@ -13,6 +13,7 @@ import { gerarTicketAccessToken } from "@/lib/ticket-access";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { checarElegibilidadeCategoria } from "@/lib/inscricao-elegibilidade";
 import { PERGUNTAS_NIVEL, calcularRatingQuestionario, type RespostasQuestionario } from "@/lib/motor-categoria";
+import { reportOperationalEvent } from "@/lib/observability";
 
 // Lê e valida as 5 respostas do questionário de nível de UM dos atletas
 // (prefixo "comprador_quiz_" ou "parceiro_quiz_" no FormData) e devolve o
@@ -228,7 +229,13 @@ export async function comprarIngressoAtleta(
     .single();
 
   if (insErr || !ticket) {
-    console.error("[comprarIngressoAtleta] falha ao inserir athlete_tickets:", insErr);
+    await reportOperationalEvent({
+      level: "error",
+      event: "athlete_ticket.create_failed",
+      message: "Athlete ticket could not be persisted",
+      error: insErr,
+      alert: true,
+    });
     await liberarReivindicacoes();
     return { error: "Erro ao gerar o ingresso. Tente novamente." };
   }

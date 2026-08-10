@@ -58,18 +58,18 @@ const DORES_ARENA = [
 const FEATURES_ARENA = [
   {
     icon: GraduationCap,
-    titulo: "Mensalidades automáticas",
-    descricao: "Cadastre alunos, defina o valor e a data de vencimento. A cobrança sai sozinha — você só acompanha quem pagou.",
+    titulo: "Gestão de mensalistas",
+    descricao: "Cadastre alunos e planos e acompanhe a situação de cada matrícula em um só lugar.",
   },
   {
     icon: CalendarCheck,
     titulo: "Aluguéis de quadra",
-    descricao: "Registre reservas e receba o pagamento online. Sem WhatsApp pra confirmar, sem Pix que some.",
+    descricao: "Organize reservas e horários disponíveis sem depender de planilhas espalhadas.",
   },
   {
     icon: Banknote,
     titulo: "Diárias avulsas",
-    descricao: "Venda acesso por dia pra quem não é mensalista. Mais receita no mesmo espaço, sem trabalho extra.",
+    descricao: "Organize acessos avulsos e acompanhe a ocupação do espaço.",
   },
   {
     icon: Users,
@@ -223,7 +223,7 @@ function SectionArena({ ctaHref }: { ctaHref: string }) {
             ))}
           </div>
           <p className="text-center text-base font-semibold text-blue-600">
-            Com a RankFTV, sua arena se paga sozinha<br className="hidden sm:block" /> enquanto você foca no esporte.
+            Com a RankFTV, sua operação fica mais organizada<br className="hidden sm:block" /> enquanto você foca no esporte.
           </p>
         </section>
 
@@ -259,9 +259,9 @@ function SectionArena({ ctaHref }: { ctaHref: string }) {
           </h2>
           <div className="mt-5 flex flex-col gap-3">
             {[
-              { icon: GraduationCap, titulo: "Receita recorrente",     desc: "Veja em tempo real quanto os mensalistas estão gerando e quem está em atraso." },
-              { icon: CalendarCheck, titulo: "Aluguéis e diárias",      desc: "Histórico completo de todos os pagamentos por quadra e por dia." },
-              { icon: Banknote,      titulo: "Cobranças sem esforço",   desc: "O Pix ou boleto sai automático. Você só confirma quando cair na conta." },
+              { icon: GraduationCap, titulo: "Mensalistas",            desc: "Acompanhe planos, alunos ativos e matrículas em um só lugar." },
+              { icon: CalendarCheck, titulo: "Aluguéis e diárias",     desc: "Consulte o histórico de reservas e acessos por dia." },
+              { icon: Banknote,      titulo: "Financeiro em beta",      desc: "Cobranças online estão em homologação e podem permanecer indisponíveis." },
             ].map(({ icon: Icon, titulo, desc }) => (
               <div key={titulo} className="flex items-start gap-4 rounded-2xl bg-white/10 p-4">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/20">
@@ -321,7 +321,7 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: "eventos", label: "Meu Evento",  icon: Trophy },
-    { id: "arena",   label: "Minha Arena", icon: Building2 },
+    { id: "arena",   label: "Arena (Beta)", icon: Building2 },
   ];
 
   return (

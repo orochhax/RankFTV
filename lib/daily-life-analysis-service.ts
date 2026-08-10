@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { zodTextFormat } from "openai/helpers/zod";
 import { getOpenAIClient } from "@/lib/openai";
+import { openAIReasoningEffort } from "@/lib/openai-config";
 import { addDays } from "@/lib/performance";
 import {
   DAILY_LIFE_ANALYSIS_PROMPT_VERSION,
@@ -878,7 +879,7 @@ export async function generateDailyLifeAnalysis(
     try {
       const response = await getOpenAIClient().responses.parse({
         model,
-        reasoning: { effort: "medium" },
+        reasoning: { effort: openAIReasoningEffort(process.env.OPENAI_LIFE_OS_REASONING_EFFORT) },
         instructions: dailyLifeSystemInstructions(),
         input: dailyLifePromptInput(metrics),
         text: {

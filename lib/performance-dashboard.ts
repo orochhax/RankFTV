@@ -1,4 +1,4 @@
-import { addDays, parseISO, type Habit, type HabitLog } from "@/lib/performance";
+import { addDays, isHabitScheduled, parseISO, type Habit, type HabitLog } from "@/lib/performance";
 
 export type DashboardPeriod = "today" | "week" | "month" | "custom";
 export type DashboardRange = { period: DashboardPeriod; from: string; to: string };
@@ -72,6 +72,7 @@ export function habitMonthStats(habit: Habit, logs: HabitLog[], month: string, t
   let completed = 0;
   let eligible = 0;
   for (let date = first; date <= end; date = addDays(date, 1)) {
+    if (!isHabitScheduled(habit, date)) continue;
     eligible++;
     const value = logMap.get(date);
     const done = habit.tipo === "binario" ? value != null && value >= 1 : value != null && (habit.alvo ? value >= habit.alvo : value > 0);

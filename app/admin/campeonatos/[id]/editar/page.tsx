@@ -4,6 +4,7 @@ import { ChevronLeft, Info } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CampeonatoVitrineForm, type CampeonatoVitrineExistente } from "@/components/admin/CampeonatoVitrineForm";
+import { isAdminUser } from "@/lib/supabase/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +18,7 @@ export default async function EditarCampeonatoVitrinePage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
+  if (!(await isAdminUser(supabase))) redirect("/");
 
   // Edição admin só existe pra campeonatos vitrine — os reais de organizador
   // (com categoria/preço/inscrição) são editados no painel do próprio dono.

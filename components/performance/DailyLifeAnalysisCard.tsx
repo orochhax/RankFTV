@@ -120,8 +120,7 @@ export function DailyLifeAnalysisCard({ analysis, consistency }: Props) {
         <span>{generatedLabel(analysis.generatedAt)}</span>
         <span aria-hidden="true">·</span>
         <span>Dados até {evaluationLabel(analysis.evaluationDate)}</span>
-        <span className="rounded-md border border-white/10 px-2 py-1 text-[11px] text-white/55">{analysis.generation.mode === "ai" ? "Análise com IA" : "Leitura local"}</span>
-        {analysis.generation.warning && <span className="rounded-md border border-amber-300/20 bg-amber-300/5 px-2 py-1 text-[11px] text-amber-200" title={analysis.generation.warning}>Fallback registrado</span>}
+        {analysis.generation.mode === "ai" && <span className="rounded-md border border-white/10 px-2 py-1 text-[11px] text-white/55">Análise com IA</span>}
         {!expanded && <span className={`font-semibold ${status.color}`}>{status.label} · {analysis.score ?? "--"}/100</span>}
         <div className="ml-auto flex items-center gap-1">
           <AnalysisAction compact />

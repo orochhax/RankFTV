@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Activity, CalendarDays, Flame, TrendingUp } from "lucide-react";
-import { addDays, type Habit, type HabitLog } from "@/lib/performance";
+import { addDays, isHabitScheduled, type Habit, type HabitLog } from "@/lib/performance";
 import { habitBestWeekday, habitChartData, habitCurrentStreak, isHabitDone, type HabitChartPeriod } from "@/lib/performance-analytics";
 
 const COLORS = ["#2563eb", "#db2777", "#059669", "#d97706", "#7c3aed", "#0891b2", "#dc2626", "#4f46e5"];
@@ -73,10 +73,12 @@ function HabitDetail({ habit, logs, today, color }: { habit: Habit; logs: HabitL
   const values = new Map(logs.filter((log) => log.habit_id === habit.id).map((log) => [log.data, log.valor]));
   const data = Array.from({ length: 30 }, (_, index) => {
     const date = addDays(today, index - 29);
-    return { date, label: date.slice(8), done: isHabitDone(habit, values.get(date)) ? 1 : 0 };
+    const planned = isHabitScheduled(habit, date);
+    return { date, label: date.slice(8), done: planned ? (isHabitDone(habit, values.get(date)) ? 1 : 0) : null, planned };
   });
-  const completed = data.filter((item) => item.done).length;
-  const rate = Math.round((completed / 30) * 100);
+  const completed = data.filter((item) => item.done === 1).length;
+  const eligible = data.filter((item) => item.planned).length;
+  const rate = eligible ? Math.round((completed / eligible) * 100) : 0;
   const bestDay = habitBestWeekday(habit, logs);
   const streak = habitCurrentStreak(habit, logs, today);
 
@@ -84,14 +86,14 @@ function HabitDetail({ habit, logs, today, color }: { habit: Habit; logs: HabitL
     <div className="flex items-center gap-2"><span className="size-2.5 rounded-full" style={{ backgroundColor: color }} /><h3 className="flex-1 font-semibold">{habit.label}</h3><span className="text-sm font-bold" style={{ color }}>{rate}%</span></div>
     <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
       <Metric icon={Flame} label="Sequencia" value={`${streak}d`} />
-      <Metric icon={Activity} label="Concluidos" value={`${completed}/30`} />
+      <Metric icon={Activity} label="Concluidos" value={`${completed}/${eligible}`} />
       <Metric icon={CalendarDays} label="Melhor dia" value={bestDay?.slice(0, 3) ?? "-"} />
     </div>
     <div className="mt-4 h-24">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
           <XAxis dataKey="label" hide /><YAxis domain={[0, 1]} hide />
-          <Tooltip labelFormatter={(_, payload) => payload?.[0]?.payload?.date ?? ""} formatter={(value) => [Number(value) ? "Feito" : "Pendente", habit.label]} contentStyle={{ borderRadius: 8, borderColor: "#303741", background: "#11151a", color: "#f8fafc", fontSize: 12 }} />
+          <Tooltip labelFormatter={(_, payload) => payload?.[0]?.payload?.date ?? ""} formatter={(value) => [value == null ? "Folga" : Number(value) ? "Feito" : "Pendente", habit.label]} contentStyle={{ borderRadius: 8, borderColor: "#303741", background: "#11151a", color: "#f8fafc", fontSize: 12 }} />
           <Area type="stepAfter" dataKey="done" stroke={color} fill={color} fillOpacity={0.12} strokeWidth={1.5} />
         </AreaChart>
       </ResponsiveContainer>

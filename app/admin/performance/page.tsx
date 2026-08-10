@@ -215,6 +215,7 @@ export default async function PerformancePage({
     categoriesRes,
     eventsRes,
     activitiesRes,
+    workoutTemplatesRes,
     goalsRes,
     snapshotsRes,
     withdrawalsRes,
@@ -318,6 +319,11 @@ export default async function PerformancePage({
       .eq("user_id", user.id)
       .order("date", { ascending: false })
       .limit(500),
+    supabase
+      .from("perf_academy_workout_template")
+      .select("id, name, muscle_groups")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true }),
     supabase
       .from("perf_goal")
       .select("*")
@@ -573,12 +579,37 @@ export default async function PerformancePage({
   const studyAttemptRows = studyAttemptResults.flatMap(
     (result) => result.data ?? [],
   );
+  const studyCheckResults = await Promise.all(
+    itemIdChunks.map((ids) =>
+      supabase.from("perf_study_check_progress").select("item_id, check_group, item_index, checked").eq("user_id", user.id).in("item_id", ids),
+    ),
+  );
+  const studyCheckProgressReady = !studyCheckResults.some((result) => result.error);
+  const studyCheckRows = studyCheckResults.flatMap((result) => result.data ?? []);
   const studyReferenceStandardReady = !studyItemReferenceDetailsRes.error;
   const studyEnhancementsReady =
     (!studyItemReferenceDetailsRes.error || !studyItemDetailsRes?.error) &&
     !enhancedQuestionError;
 
-  const habits: Habit[] = (habitsRes.data ?? []).map((row) => ({
+  const habitScheduleRes = await supabase
+    .from("perf_habit_schedule_period")
+    .select("id, habit_id, frequency_type, weekdays, effective_from, effective_to")
+    .eq("user_id", user.id)
+    .order("effective_from", { ascending: true });
+  const scheduleByHabit = new Map<string, Habit["schedulePeriods"]>();
+  for (const row of habitScheduleRes.data ?? []) {
+    const periods = scheduleByHabit.get(row.habit_id) ?? [];
+    periods.push({
+      id: row.id,
+      frequencyType: row.frequency_type,
+      weekdays: Array.isArray(row.weekdays) ? row.weekdays.map(Number) : [],
+      effectiveFrom: row.effective_from,
+      effectiveTo: row.effective_to,
+    });
+    scheduleByHabit.set(row.habit_id, periods);
+  }
+
+  const mapHabit = (row: (typeof habitsRes.data extends (infer T)[] | null ? T : never)): Habit => ({
     id: row.id,
     label: row.label,
     tipo: row.tipo,
@@ -586,21 +617,20 @@ export default async function PerformancePage({
     unidade: row.unidade,
     ordem: row.ordem,
     ativo: row.ativo,
-  }));
+    frequencyType: row.frequency_type ?? "daily",
+    weekdays: Array.isArray(row.weekdays) ? row.weekdays.map(Number) : [],
+    startDate: row.start_date,
+    endDate: row.end_date,
+    schedulePeriods: scheduleByHabit.get(row.id) ?? [],
+  });
+
+  const habits: Habit[] = (habitsRes.data ?? []).map(mapHabit);
   const logs: HabitLog[] = (logsRes.data ?? []).map((row) => ({
     habit_id: row.habit_id,
     data: row.data,
     valor: Number(row.valor),
   }));
-  const allHabits: Habit[] = (allHabitsRes.data ?? []).map((row) => ({
-    id: row.id,
-    label: row.label,
-    tipo: row.tipo,
-    alvo: asNumber(row.alvo),
-    unidade: row.unidade,
-    ordem: row.ordem,
-    ativo: row.ativo,
-  }));
+  const allHabits: Habit[] = (allHabitsRes.data ?? []).map(mapHabit);
   const valuesToday = indexLogs(logs)[today] ?? {};
   const profile = profileRes.data;
   const weights = (weightsRes.data ?? []).map((row) => ({
@@ -631,6 +661,8 @@ export default async function PerformancePage({
     location: row.location,
     link: row.link,
     active: row.active,
+    recurrenceRule: row.recurrence_rule,
+    recurrenceGroupId: row.recurrence_group_id,
   }));
   const goals: LifeGoal[] = (goalsRes.data ?? []).map((row) => ({
     id: row.id,
@@ -670,6 +702,7 @@ export default async function PerformancePage({
   const newTableErrors = [
     eventsRes.error,
     activitiesRes.error,
+    workoutTemplatesRes.error,
     goalsRes.error,
     snapshotsRes.error,
     withdrawalsRes.error,
@@ -968,6 +1001,13 @@ export default async function PerformancePage({
             studySession: studySessionMetadata(row.metadata),
           };
         })}
+        academyWorkoutTemplates={(workoutTemplatesRes.data ?? []).map((row) => ({
+          id: row.id,
+          name: row.name,
+          muscleGroups: Array.isArray(row.muscle_groups)
+            ? row.muscle_groups.filter((value): value is string => typeof value === "string")
+            : [],
+        }))}
         goals={goals}
         snapshots={snapshots}
         investmentPlan={investmentPlan}
@@ -1131,6 +1171,8 @@ export default async function PerformancePage({
             feedback,
           };
         })}
+        studyCheckProgress={studyCheckRows.map((row) => ({ itemId: row.item_id, group: row.check_group as "preparation" | "completion", index: Number(row.item_index), checked: Boolean(row.checked) }))}
+        studyCheckProgressReady={studyCheckProgressReady}
         studyDrafts={studyDrafts}
         studyGenerationJobs={studyGenerationJobs}
         studyDraftsReady={!studyDraftsRes.error}

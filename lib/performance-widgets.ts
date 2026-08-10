@@ -2,7 +2,7 @@ import { addDays } from "@/lib/performance";
 import type { StudyOrganizationProfile } from "@/lib/study-organization";
 
 export type MetricActivity = { date: string; durationMinutes: number | null; status?: string; area?: string };
-export type StudyItemKind = "core" | "reinforcement" | "challenge" | "check" | "criterion" | "general" | "reading" | "video" | "practice" | "quiz" | "project" | "checkpoint";
+export type StudyItemKind = "core" | "reinforcement" | "challenge" | "check" | "criterion" | "general" | "reading" | "video" | "audiovisual" | "practice" | "quiz" | "project" | "checkpoint";
 export type StudyQuestionType = "multiple_choice" | "ordering";
 export type StudyRoadmapItem = { id: string; roadmapId: string; moduleId?: string | null; section: string | null; title: string; description: string | null; requirements?: string | null; workspace?: string | null; preparationSteps?: string[]; instructions?: string | null; practiceExercises?: string[]; reflectionQuestions?: string[]; completionChecklist?: string[]; evidence?: string | null; completionCriteria?: string | null; resourceTitle?: string | null; resourceUrl?: string | null; resourceChannel?: string | null; orderIndex: number; estimatedMinutes: number | null; status: "pending" | "in_progress" | "completed"; completedAt: string | null; scheduledDate?: string | null; itemKind?: StudyItemKind };
 export type StudyRoadmap = { id: string; title: string; description: string | null; status: "active" | "completed" | "archived"; startDate: string; targetDate: string | null; source?: "manual" | "import" | "ai"; difficultyLevel?: "introductory" | "intermediate" | "advanced" | "mixed" | null; qualityScore?: number | null; workloadScore?: number | null; totalEstimatedMinutes?: number | null; createdAt?: string; organizationProfile?: StudyOrganizationProfile | null };
@@ -10,6 +10,7 @@ export type StudyRoadmapModule = { id: string; roadmapId: string; title: string;
 export type StudyAssessmentQuestion = { id: string; itemId: string; prompt: string; options: string[]; orderIndex: number; questionType: StudyQuestionType };
 export type StudyAssessmentFeedback = { questionId: string; questionType: StudyQuestionType; correct: boolean; correctOptionIndex: number | null; correctOrder: number[]; explanation: string };
 export type StudyAssessmentAttempt = { id: string; itemId: string; score: number; correctCount: number; totalCount: number; submittedAt: string; answers: Record<string, number | number[]>; feedback: StudyAssessmentFeedback[] };
+export type StudyCheckProgress = { itemId: string; group: "preparation" | "completion"; index: number; checked: boolean };
 export type StudySessionMetadata = {
   source: "pomodoro" | "manual";
   focusMinutes: number;

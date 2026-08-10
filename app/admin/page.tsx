@@ -2,22 +2,26 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getUserRole, isAdminRole } from "@/lib/supabase/roles";
 
 const MENU = [
   {
     href: "/admin/performance",
+    ownerOnly: true,
     icon: Activity,
     label: "Performance",
     desc: "Seu painel pessoal: metas do dia, constância e evolução.",
   },
   {
     href: "/admin/gastos",
+    ownerOnly: true,
     icon: WalletCards,
     label: "Gastos pessoais",
     desc: "Controle financeiro pessoal de Carlos e Julia — isolado do RankFTV.",
   },
   {
     href: "/admin/gasto-mensal",
+    ownerOnly: true,
     icon: CalendarRange,
     label: "Gasto mensal",
     desc: "Planejamento financeiro mensal de Carlos e Julia — receitas, despesas e resultado previsto.",
@@ -57,8 +61,10 @@ const MENU = [
 export default async function AdminPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const role = await getUserRole(supabase);
 
-  if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
+  if (!user || !isAdminRole(role)) redirect("/");
+  const visibleMenu = MENU.filter((item) => !("ownerOnly" in item) || !item.ownerOnly || role === "ceo");
 
   return (
     <div className="w-full px-6 py-10">
@@ -68,7 +74,7 @@ export default async function AdminPage() {
       </div>
 
       <ul className="space-y-3">
-        {MENU.map(({ href, icon: Icon, label, desc }) => (
+        {visibleMenu.map(({ href, icon: Icon, label, desc }) => (
           <li key={href}>
             <Link
               href={href}

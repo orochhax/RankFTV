@@ -1,4 +1,5 @@
-import { addDays, parseISO, type Habit, type HabitLog } from "@/lib/performance";
+import { addDays, parseISO, scheduledHabits, type Habit, type HabitLog } from "@/lib/performance";
+import type { EventRecurrenceRule } from "@/lib/event-recurrence";
 
 const BAHIA_CLOCK_FORMATTER = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/Bahia",
@@ -16,6 +17,8 @@ export type LifeEvent = {
   id: string; title: string; description: string | null; startAt: string; endAt: string;
   allDay: boolean; status: EventStatus; source: string; categoryId: string | null;
   location: string | null; link: string | null; active?: boolean;
+  recurrenceRule?: EventRecurrenceRule | null; recurrenceGroupId?: string | null;
+  baseStartAt?: string; baseEndAt?: string; occurrenceId?: string;
 };
 
 export type LifeGoal = {
@@ -77,24 +80,8 @@ export function goalNeedsAttention(goal: LifeGoal, todayISO: string): boolean {
   return goalProgress(goal) < Math.min(1, elapsed / total) * 0.75;
 }
 
-export function isHabitScheduled(habit: Habit & { frequency_type?: string; weekdays?: number[] | null; start_date?: string | null; end_date?: string | null }, dateISO: string): boolean {
-  if (!habit.ativo) return false;
-  if (habit.start_date && dateISO < habit.start_date) return false;
-  if (habit.end_date && dateISO > habit.end_date) return false;
-  const frequency = habit.frequency_type ?? "daily";
-  const weekday = parseISO(dateISO).getDay();
-  if (frequency === "weekdays") return weekday >= 1 && weekday <= 5;
-  if (frequency === "weekends") return weekday === 0 || weekday === 6;
-  if (frequency === "custom_weekdays") return (habit.weekdays ?? []).includes(weekday);
-  return true;
-}
-
-export function scheduledHabits<T extends Habit & { frequency_type?: string; weekdays?: number[] | null; start_date?: string | null; end_date?: string | null }>(habits: T[], dateISO: string): T[] {
-  return habits.filter((habit) => isHabitScheduled(habit, dateISO));
-}
-
 export function dayProgress(habits: Habit[], logs: HabitLog[], dateISO: string): { completed: number; total: number; percent: number } {
-  const active = scheduledHabits(habits as (Habit & { frequency_type?: string })[], dateISO);
+  const active = scheduledHabits(habits, dateISO);
   const byHabit = new Map(logs.filter((log) => log.data === dateISO).map((log) => [log.habit_id, log.valor]));
   const completed = active.filter((habit) => {
     const value = byHabit.get(habit.id);

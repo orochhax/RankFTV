@@ -42,6 +42,25 @@ export type AsaasWebhookPayload = {
   payment: AsaasPaymentPayload;
 };
 
+/**
+ * Returns the billing competence represented by an Asaas due date.
+ * Webhook arrival time must never decide the accounting month: delayed
+ * deliveries can cross a month boundary.
+ */
+export function asaasBillingCompetence(dueDate: string | undefined): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dueDate ?? "");
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1) return null;
+
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  if (day > daysInMonth) return null;
+  return `${match[1]}-${match[2]}`;
+}
+
 export function asaasEventRank(event: string): number | null {
   return ASAAS_EVENT_RANK[event] ?? null;
 }
@@ -71,6 +90,8 @@ export function isValidAsaasWebhookPayload(value: unknown): value is AsaasWebhoo
     && body.payment.billingType.length <= 40
     && (body.payment.externalReference == null
       || (typeof body.payment.externalReference === "string" && body.payment.externalReference.length <= 200))
+    && (body.payment.dueDate == null
+      || (typeof body.payment.dueDate === "string" && body.payment.dueDate.length <= 10))
     && (body.id == null || (typeof body.id === "string" && body.id.length <= 160))
     && (body.dateCreated == null || typeof body.dateCreated === "string");
 }

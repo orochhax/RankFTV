@@ -9,6 +9,7 @@ import {
   conviteStaffHtml,
   recuperacaoIngressoHtml,
 } from "./templates";
+import { reportOperationalEvent } from "@/lib/observability";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
 
@@ -17,8 +18,15 @@ async function send(to: string, subject: string, html: string) {
   if (!process.env.RESEND_API_KEY) return; // sem chave → silencioso em dev
   try {
     await getResend().emails.send({ from: FROM, to, subject, html });
-  } catch {
-    console.error("[email] falha ao enviar para", to);
+  } catch (error) {
+    await reportOperationalEvent({
+      level: "error",
+      event: "email.delivery_failed",
+      message: "Transactional email delivery failed",
+      context: { templateSubject: subject },
+      error,
+      alert: true,
+    });
   }
 }
 

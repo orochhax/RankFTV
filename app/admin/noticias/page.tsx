@@ -7,13 +7,11 @@ import { getAllNews, formatDataNoticia } from "@/lib/supabase/news";
 import { NoticiaForm } from "@/components/admin/NoticiaForm";
 import { AdminDeleteNoticia } from "@/components/admin/AdminDeleteNoticia";
 import { NoticiasDestaquesEditor } from "@/components/admin/NoticiasDestaquesEditor";
+import { isAdminUser } from "@/lib/supabase/roles";
 
 export default async function AdminNoticiasPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
+  if (!(await isAdminUser(supabase))) redirect("/");
 
   const [noticias, configRow] = await Promise.all([
     getAllNews(),

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { hojeISO } from "@/lib/performance";
+import { habitEndDateAfterOccurrences, hojeISO, type HabitFrequency } from "@/lib/performance";
 import { isPerformanceOwner } from "@/lib/performance-owner";
 
 type Res = { ok: boolean; error?: string; message?: string };
@@ -61,10 +61,33 @@ const SUGERIDOS = [
   { label: "Alongamento", tipo: "binario",  alvo: null, unidade: null },
 ] as const;
 
+const HABIT_FREQUENCIES = new Set(["daily", "weekdays", "weekends", "custom_weekdays"]);
+function habitSchedule(formData: FormData, startDate: string): { frequency_type: HabitFrequency; weekdays: number[]; end_date: string | null } | { error: string } {
+  const requested = String(formData.get("frequency_type") ?? "daily");
+  const frequency_type = (HABIT_FREQUENCIES.has(requested) ? requested : "daily") as HabitFrequency;
+  const weekdays = [...new Set(formData.getAll("weekdays").map(Number).filter((day) => Number.isInteger(day) && day >= 0 && day <= 6))].sort();
+  if (frequency_type === "custom_weekdays" && weekdays.length === 0) return { error: "Escolha pelo menos um dia para o hábito." };
+  const normalizedWeekdays = frequency_type === "custom_weekdays" ? weekdays : [];
+  const endMode = String(formData.get("end_mode") ?? "never");
+  if (endMode === "date") {
+    const end_date = String(formData.get("end_date") ?? "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(end_date) || end_date < startDate) return { error: "A data final precisa ser igual ou posterior ao início do hábito." };
+    return { frequency_type, weekdays: normalizedWeekdays, end_date };
+  }
+  if (endMode === "count") {
+    const count = Number(formData.get("duration_count"));
+    try { return { frequency_type, weekdays: normalizedWeekdays, end_date: habitEndDateAfterOccurrences(startDate, frequency_type, normalizedWeekdays, count) }; }
+    catch (error) { return { error: error instanceof Error ? error.message : "Duração inválida." }; }
+  }
+  return { frequency_type, weekdays: normalizedWeekdays, end_date: null };
+}
+
 export async function criarHabitosSugeridos(): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx) return { ok: false, error: "Acesso negado." };
   const { supabase, user } = ctx;
+  const { error: scheduleSchemaError } = await supabase.from("perf_habit_schedule_period").select("id").limit(1);
+  if (scheduleSchemaError) return { ok: false, error: "Aplique a migration performance-scheduling-study-progress.sql antes de criar hábitos." };
 
   const rows = SUGERIDOS.map((h, i) => ({
     user_id: user.id, label: h.label, tipo: h.tipo,
@@ -81,6 +104,8 @@ export async function criarHabito(formData: FormData): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx) return { ok: false, error: "Acesso negado." };
   const { supabase, user } = ctx;
+  const { error: scheduleSchemaError } = await supabase.from("perf_habit_schedule_period").select("id").limit(1);
+  if (scheduleSchemaError) return { ok: false, error: "Aplique a migration performance-scheduling-study-progress.sql antes de criar hábitos." };
 
   const label = (formData.get("label") as string)?.trim();
   if (!label) return { ok: false, error: "Dê um nome ao hábito." };
@@ -90,6 +115,9 @@ export async function criarHabito(formData: FormData): Promise<Res> {
   if (tipo === "numerico" && (!alvo || alvo <= 0)) {
     return { ok: false, error: "Defina um alvo maior que zero." };
   }
+  const startDate = hojeISO("America/Bahia");
+  const schedule = habitSchedule(formData, startDate);
+  if ("error" in schedule) return { ok: false, error: schedule.error };
 
   const { data: maxRow } = await supabase
     .from("perf_habit").select("ordem")
@@ -97,8 +125,8 @@ export async function criarHabito(formData: FormData): Promise<Res> {
   const ordem = (maxRow?.ordem ?? -1) + 1;
 
   const { error } = await supabase.from("perf_habit").insert({
-    user_id: user.id, label, tipo, alvo, unidade, ordem,
-    start_date: hojeISO("America/Bahia"),
+    user_id: user.id, label, tipo, alvo, unidade, ordem, ...schedule,
+    start_date: startDate,
   });
   if (error) return { ok: false, error: error.message };
   reval();
@@ -109,6 +137,8 @@ export async function editarHabito(formData: FormData): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx) return { ok: false, error: "Acesso negado." };
   const { supabase, user } = ctx;
+  const { error: scheduleSchemaError } = await supabase.from("perf_habit_schedule_period").select("id").limit(1);
+  if (scheduleSchemaError) return { ok: false, error: "Aplique a migration performance-scheduling-study-progress.sql antes de personalizar hábitos." };
 
   const id = formData.get("id") as string;
   const label = (formData.get("label") as string)?.trim();
@@ -119,10 +149,12 @@ export async function editarHabito(formData: FormData): Promise<Res> {
   if (tipo === "numerico" && (!alvo || alvo <= 0)) {
     return { ok: false, error: "Defina um alvo maior que zero." };
   }
+  const schedule = habitSchedule(formData, hojeISO("America/Bahia"));
+  if ("error" in schedule) return { ok: false, error: schedule.error };
 
   const { error } = await supabase
     .from("perf_habit")
-    .update({ label, tipo, alvo, unidade })
+    .update({ label, tipo, alvo, unidade, ...schedule, updated_at: new Date().toISOString() })
     .eq("id", id).eq("user_id", user.id);
   if (error) return { ok: false, error: error.message };
   reval();

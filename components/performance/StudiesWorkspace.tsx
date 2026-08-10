@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import {
   ativarRoadmapEstudosLifeOS,
+  alternarCheckEstudoLifeOS,
   atualizarStatusEstudoLifeOS,
   criarItemEstudoLifeOS,
   dispensarFalhaGeracaoRoadmapLifeOS,
@@ -53,6 +54,7 @@ import {
 import { RoadmapAiWizard } from "@/components/performance/RoadmapAiWizard";
 import { usePerformanceConfirm } from "@/components/performance/PerformanceConfirmDialog";
 import { StudyOrganizationGuide } from "@/components/performance/StudyOrganizationGuide";
+import { StudyFolderDestination } from "@/components/performance/StudyFolderDestination";
 import { formatDateBR } from "@/lib/format";
 import { ROADMAP_IMPORT_MAX_BYTES } from "@/lib/performance-analytics";
 import { roadmapDraftStats, type RoadmapDraftDetail, type RoadmapDraftSummary, type RoadmapGenerationJob } from "@/lib/study-roadmap-ai";
@@ -62,6 +64,7 @@ import {
   studyWeeklyStats,
   type StudyAssessmentAttempt,
   type StudyAssessmentQuestion,
+  type StudyCheckProgress,
   type StudyItemKind,
   type StudyRoadmap,
   type StudyRoadmapItem,
@@ -80,6 +83,7 @@ const inputClass = "w-full rounded-lg border border-white/10 bg-[#0f1318] px-3 p
 const kindMeta: Record<StudyItemKind, { label: string; icon: typeof BookOpen; className: string }> = {
   reading: { label: "Leitura", icon: BookOpen, className: "bg-sky-400/10 text-sky-300" },
   video: { label: "Videoaula", icon: PlayCircle, className: "bg-red-400/10 text-red-300" },
+  audiovisual: { label: "Atividade audiovisual", icon: PlayCircle, className: "bg-orange-400/10 text-orange-300" },
   practice: { label: "Atividade", icon: Wrench, className: "bg-blue-400/10 text-blue-300" },
   quiz: { label: "Prova", icon: CircleHelp, className: "bg-violet-400/10 text-violet-300" },
   challenge: { label: "Desafio", icon: Swords, className: "bg-amber-400/10 text-amber-300" },
@@ -98,6 +102,8 @@ export function StudiesWorkspace({
   modules,
   questions,
   attempts,
+  checkProgress,
+  checkProgressReady,
   drafts,
   generationJobs,
   activities,
@@ -113,6 +119,8 @@ export function StudiesWorkspace({
   modules: StudyRoadmapModule[];
   questions: StudyAssessmentQuestion[];
   attempts: StudyAssessmentAttempt[];
+  checkProgress: StudyCheckProgress[];
+  checkProgressReady: boolean;
   drafts: RoadmapDraftSummary[];
   generationJobs: RoadmapGenerationJob[];
   activities: StudyActivity[];
@@ -340,6 +348,7 @@ export function StudiesWorkspace({
     </div>
 
         {roadmap && <section className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
+          {!checkProgressReady && <p role="alert" className="mb-4 rounded-lg border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-200">Aplique a migration <code>performance-scheduling-study-progress.sql</code> para habilitar os checklists persistentes.</p>}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div><h3 className="font-semibold">Modulos</h3><p className="mt-1 text-xs text-gray-400">Siga a ordem sugerida. Os passos nao possuem dia fixo.</p></div>
             <button type="button" onClick={() => setNewItem(true)} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white"><Plus className="size-4" />Etapa manual</button>
@@ -348,6 +357,7 @@ export function StudiesWorkspace({
             key={module.id}
             module={module}
             number={index + 1}
+            folderContext={{ roadmapId: roadmap.id, roadmapTitle: roadmap.title, moduleTitles: moduleViews.map((entry) => entry.title), moduleIndex: index, profile: roadmap.organizationProfile ?? null }}
             organizationGuide={index === 0 ? <StudyOrganizationGuide
               roadmapId={roadmap.id}
               roadmapTitle={roadmap.title}
@@ -356,6 +366,8 @@ export function StudiesWorkspace({
             /> : null}
             questions={questions}
             attempts={attempts}
+            checkProgress={checkProgress}
+            checkProgressReady={checkProgressReady}
             onRefresh={() => router.refresh()}
           />)}{!moduleViews.length && <p className="rounded-lg border border-dashed border-white/15 p-5 text-center text-sm text-white/40">Este roadmap ainda nao possui modulos.</p>}</div>
         </section>}
@@ -612,7 +624,9 @@ function RoadmapSummary({ roadmap, items, moduleCount }: { roadmap: StudyRoadmap
   </div>;
 }
 
-function StudyModule({ module, number, organizationGuide, questions, attempts, onRefresh }: { module: ModuleView; number: number; organizationGuide?: React.ReactNode; questions: StudyAssessmentQuestion[]; attempts: StudyAssessmentAttempt[]; onRefresh: () => void }) {
+type StudyFolderContext = { roadmapId: string; roadmapTitle: string; moduleTitles: string[]; moduleIndex: number; profile: StudyRoadmap["organizationProfile"] };
+
+function StudyModule({ module, number, organizationGuide, folderContext, questions, attempts, checkProgress, checkProgressReady, onRefresh }: { module: ModuleView; number: number; organizationGuide?: React.ReactNode; folderContext: StudyFolderContext; questions: StudyAssessmentQuestion[]; attempts: StudyAssessmentAttempt[]; checkProgress: StudyCheckProgress[]; checkProgressReady: boolean; onRefresh: () => void }) {
   const completed = module.items.filter((item) => item.status === "completed").length;
   const progress = module.items.length ? Math.round((completed / module.items.length) * 100) : 0;
   const estimatedMinutes = moduleDuration(module);
@@ -630,12 +644,12 @@ function StudyModule({ module, number, organizationGuide, questions, attempts, o
       {organizationGuide}
       {(module.objective || module.successCriteria) && <div className="grid gap-4 border-b border-white/10 pb-4 text-xs sm:grid-cols-2"><div><p className="font-semibold uppercase text-blue-300/70">Missao do modulo</p><p className="mt-1.5 leading-5 text-white/60">{module.objective ?? "Concluir as etapas deste modulo."}</p></div><div><p className="font-semibold uppercase text-emerald-300/70">Resultado esperado</p><p className="mt-1.5 leading-5 text-white/60">{module.successCriteria ?? "Aplicar o conteudo sem depender do passo a passo."}</p></div></div>}
       {visibleTopics.length > 0 && <div className="my-4 flex flex-wrap items-center gap-1.5"><span className="mr-1 text-[10px] font-semibold uppercase text-white/30">Competencias</span>{visibleTopics.map((topic) => <span key={topic} className="rounded bg-white/[0.05] px-2 py-1 text-[11px] text-white/55 ring-1 ring-white/10">{topic}</span>)}{hiddenTopicCount > 0 && <span title={module.topics.slice(visibleTopics.length).join(", ")} className="rounded px-2 py-1 text-[11px] text-white/35 ring-1 ring-white/10">+{hiddenTopicCount}</span>}</div>}
-      <div className="space-y-2">{module.items.map((item, index) => <StudyStep key={item.id} item={item} number={index + 1} defaultOpen={index === 0 && item.status !== "completed"} questions={questions.filter((question) => question.itemId === item.id)} attempts={attempts.filter((attempt) => attempt.itemId === item.id)} onRefresh={onRefresh} />)}{!module.items.length && <p className="rounded-lg border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">As etapas deste modulo nao foram carregadas. Troque o roadmap ativo e abra-o novamente.</p>}</div>
+      <div className="space-y-2">{module.items.map((item, index) => <StudyStep key={item.id} item={item} number={index + 1} defaultOpen={index === 0 && item.status !== "completed"} folderContext={folderContext} questions={questions.filter((question) => question.itemId === item.id)} attempts={attempts.filter((attempt) => attempt.itemId === item.id)} checkProgress={checkProgress.filter((progress) => progress.itemId === item.id)} checkProgressReady={checkProgressReady} onRefresh={onRefresh} />)}{!module.items.length && <p className="rounded-lg border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">As etapas deste modulo nao foram carregadas. Troque o roadmap ativo e abra-o novamente.</p>}</div>
     </div>}
   </article>;
 }
 
-function StudyStep({ item, number, defaultOpen = false, questions, attempts, onRefresh }: { item: StudyRoadmapItem; number: number; defaultOpen?: boolean; questions: StudyAssessmentQuestion[]; attempts: StudyAssessmentAttempt[]; onRefresh: () => void }) {
+function StudyStep({ item, number, defaultOpen = false, folderContext, questions, attempts, checkProgress, checkProgressReady, onRefresh }: { item: StudyRoadmapItem; number: number; defaultOpen?: boolean; folderContext: StudyFolderContext; questions: StudyAssessmentQuestion[]; attempts: StudyAssessmentAttempt[]; checkProgress: StudyCheckProgress[]; checkProgressReady: boolean; onRefresh: () => void }) {
   const router = useRouter();
   const [open, setOpen] = useState(defaultOpen);
   const [pending, startTransition] = useTransition();
@@ -646,6 +660,7 @@ function StudyStep({ item, number, defaultOpen = false, questions, attempts, onR
   const preparationSteps = item.preparationSteps ?? [];
   const practiceExercises = item.practiceExercises ?? [];
   const completionChecklist = item.completionChecklist ?? [];
+  const hasGates = preparationSteps.length + completionChecklist.length + questions.length > 0;
   const instructionTitle = item.itemKind === "challenge" ? "Como fazer o desafio" : item.itemKind === "project" ? "Plano de execucao" : "Passo a passo";
   const outcomeTitle = item.itemKind === "challenge" || item.itemKind === "project" ? "Resultado final" : "Concluido quando";
   const toggleComplete = () => startTransition(async () => {
@@ -662,7 +677,7 @@ function StudyStep({ item, number, defaultOpen = false, questions, attempts, onR
         <span className={`mt-1 block text-sm font-medium ${item.status === "completed" ? "text-white/35 line-through" : "text-white/85"}`}>{item.title}</span>
         {!open && item.description && <span className="mt-1 block line-clamp-1 text-xs text-white/35">{item.description}</span>}
       </button>
-      <button type="button" onClick={hasAssessment && item.status !== "completed" ? () => setOpen(true) : toggleComplete} disabled={pending} aria-pressed={item.status === "completed"} className={`inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-xs font-semibold ${item.status === "completed" ? "bg-emerald-400/10 text-emerald-300" : "bg-white/[0.05] text-white/55 hover:bg-white/10 hover:text-white"}`} title={hasAssessment && item.status !== "completed" ? "Responder atividade" : item.status === "completed" ? "Marcar como pendente" : "Marcar como concluida"}>{pending ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}<span className="hidden sm:inline">{item.status === "completed" ? "Concluida" : hasAssessment ? "Responder" : "Concluir"}</span></button>
+      <button type="button" onClick={hasGates ? () => setOpen(true) : toggleComplete} disabled={pending} aria-pressed={item.status === "completed"} className={`inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-xs font-semibold ${item.status === "completed" ? "bg-emerald-400/10 text-emerald-300" : "bg-white/[0.05] text-white/55 hover:bg-white/10 hover:text-white"}`} title={hasGates ? "Abra e cumpra todos os requisitos" : item.status === "completed" ? "Marcar como pendente" : "Marcar como concluida"}>{pending ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}<span className="hidden sm:inline">{item.status === "completed" ? "Concluida" : hasGates ? "Continuar" : "Concluir"}</span></button>
       <button type="button" onClick={() => setOpen((value) => !value)} className="rounded-md p-1.5 text-white/35 hover:bg-white/[0.06] hover:text-white" title="Ver detalhes"><ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} /></button>
     </div>
     {open && <div className="border-t border-white/10 px-4 py-4">
@@ -671,15 +686,17 @@ function StudyStep({ item, number, defaultOpen = false, questions, attempts, onR
         {item.requirements && <div><p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-white/35"><Wrench className="size-3.5" />O que voce precisa</p><p className="mt-1.5 whitespace-pre-line text-sm leading-6 text-white/70">{item.requirements}</p></div>}
         {item.workspace && <div><p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-white/35"><MapPin className="size-3.5" />Onde fazer</p><p className="mt-1.5 whitespace-pre-line text-sm leading-6 text-white/70">{item.workspace}</p></div>}
       </div>}
-      <StudyDetailList title="Preparacao" items={preparationSteps} marker="check" icon={Wrench} accentClass="text-sky-300" />
+      <StudyFolderDestination {...folderContext} profile={folderContext.profile ?? null} />
+      <InteractiveStudyChecks title="Preparacao" itemId={item.id} group="preparation" items={preparationSteps} progress={checkProgress} enabled={checkProgressReady} icon={Wrench} accentClass="text-sky-300" onRefresh={onRefresh} />
       {item.instructions && <div className="mt-4"><p className="text-xs font-semibold uppercase text-white/35">{instructionTitle}</p><InstructionChecklist value={item.instructions} /></div>}
       {item.resourceUrl && <>
         <a href={item.resourceUrl} target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-red-400/20 bg-red-400/10 p-3 text-red-200"><span className="min-w-0"><span className="block truncate text-sm font-semibold">{item.resourceTitle ?? "Abrir videoaula"}</span>{item.resourceChannel && <span className="mt-0.5 block text-xs text-red-300/70">{item.resourceChannel}</span>}</span><ExternalLink className="size-4 shrink-0" /></a>
         {item.itemKind === "video" && <div className="mt-2 flex items-start gap-2 rounded-md bg-white/[0.03] px-3 py-2 text-[11px] leading-5 text-white/45"><Languages className="mt-0.5 size-3.5 shrink-0" /><p>Algumas videoaulas podem estar em ingles. No YouTube, abra <b className="font-semibold text-white/60">Configuracoes</b> e escolha <b className="font-semibold text-white/60">Faixa de audio &gt; Portugues (Brasil)</b>, quando essa opcao estiver disponivel.</p></div>}
       </>}
+      {item.itemKind === "video" && !item.resourceUrl && <div role="alert" className="mt-4 rounded-lg border border-amber-400/30 bg-amber-400/10 p-3 text-sm font-semibold text-amber-200">Videoaula sem link cadastrado. Este é um dado legado pendente de correção.</div>}
       <StudyDetailList title="Pratica sem consulta" items={practiceExercises} marker="number" icon={Swords} accentClass="text-amber-300" />
       {item.completionCriteria && <div className="mt-5 border-l-2 border-emerald-500 pl-3"><p className="text-xs font-semibold uppercase text-emerald-300">{outcomeTitle}</p><p className="mt-1 text-sm leading-6 text-emerald-100/80">{item.completionCriteria}</p></div>}
-      <StudyDetailList title="Criterios objetivos" items={completionChecklist} marker="check" icon={Check} accentClass="text-emerald-300" />
+      <InteractiveStudyChecks title="Criterios objetivos" itemId={item.id} group="completion" items={completionChecklist} progress={checkProgress} enabled={checkProgressReady} icon={Check} accentClass="text-emerald-300" onRefresh={onRefresh} />
       {item.evidence && <div className="mt-5 border-t border-white/10 pt-4"><p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-cyan-300"><FileText className="size-3.5" />Evidencia esperada</p><p className="mt-2 text-sm leading-6 text-white/65">{item.evidence}</p></div>}
       {hasAssessment && <AssessmentPanel key={latestAttempt?.id ?? "new-attempt"} itemId={item.id} itemKind={item.itemKind ?? "general"} questions={questions} latestAttempt={latestAttempt} onRefresh={() => { router.refresh(); onRefresh(); }} />}
     </div>}
@@ -696,6 +713,36 @@ function InstructionChecklist({ value }: { value: string }) {
     .filter(Boolean);
   if (lines.length <= 1) return <p className="mt-2 whitespace-pre-line text-sm leading-6 text-white/70">{value}</p>;
   return <ol className="mt-3 space-y-3">{lines.map((line, index) => <li key={`${index}-${line}`} className="flex gap-3 text-sm leading-6 text-white/70"><span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-blue-500/10 text-[10px] font-bold text-blue-300 ring-1 ring-blue-400/20">{index + 1}</span><span>{line}</span></li>)}</ol>;
+}
+
+function InteractiveStudyChecks({ title, itemId, group, items, progress, enabled, icon: Icon, accentClass, onRefresh }: {
+  title: string; itemId: string; group: "preparation" | "completion"; items: string[]; progress: StudyCheckProgress[]; enabled: boolean; icon: typeof BookOpen; accentClass: string; onRefresh: () => void;
+}) {
+  const router = useRouter();
+  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const checked = new Set(progress.filter((entry) => entry.group === group && entry.checked).map((entry) => entry.index));
+  if (!items.length) return null;
+  const toggle = (index: number, next: boolean) => {
+    setPendingIndex(index); setError(null);
+    void alternarCheckEstudoLifeOS(itemId, group, index, next).then((result) => {
+      setPendingIndex(null);
+      if (!result.ok) setError(result.error ?? "Não foi possível salvar o check.");
+      else { router.refresh(); onRefresh(); }
+    });
+  };
+  return <section className="mt-5 border-t border-white/10 pt-4">
+    <h4 className={`flex items-center gap-1.5 text-xs font-semibold uppercase ${accentClass}`}><Icon className="size-3.5" />{title}</h4>
+    <ul className="mt-3 space-y-2.5">{items.map((item, index) => {
+      const isChecked = checked.has(index);
+      return <li key={`${title}-${index}-${item}`}><label className={`flex items-start gap-3 text-sm leading-6 ${enabled ? "cursor-pointer" : "cursor-not-allowed opacity-60"}`}>
+        <input type="checkbox" checked={isChecked} disabled={!enabled || pendingIndex === index} onChange={(event) => toggle(index, event.target.checked)} className="peer sr-only" />
+        <span className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md ring-1 transition ${isChecked ? "bg-emerald-500 text-white ring-emerald-500" : "bg-white/[0.04] text-transparent ring-white/15 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-400"}`}>{pendingIndex === index ? <Loader2 className="size-3.5 animate-spin text-white" /> : <Check className="size-3.5" />}</span>
+        <span className={isChecked ? "text-white/45 line-through" : "text-white/70"}>{item}</span>
+      </label></li>;
+    })}</ul>
+    {error && <p role="alert" className="mt-2 text-xs text-red-300">{error}</p>}
+  </section>;
 }
 
 function StudyDetailList({ title, items, marker, icon: Icon, accentClass }: { title: string; items: string[]; marker: "number" | "check" | "question"; icon: typeof BookOpen; accentClass: string }) {
@@ -718,7 +765,7 @@ function initialAssessmentAnswers(questions: StudyAssessmentQuestion[]): Record<
 }
 
 function persistedAssessmentResult(attempt?: StudyAssessmentAttempt): AssessmentResult | null {
-  return attempt ? { ok: true, score: attempt.score, correctCount: attempt.correctCount, totalCount: attempt.totalCount, passed: attempt.score >= 70, feedback: attempt.feedback } : null;
+  return attempt ? { ok: true, score: attempt.score, correctCount: attempt.correctCount, totalCount: attempt.totalCount, masteryReached: attempt.score >= 70, feedback: attempt.feedback } : null;
 }
 
 function AssessmentPanel({ itemId, itemKind, questions, latestAttempt, onRefresh }: { itemId: string; itemKind: StudyItemKind; questions: StudyAssessmentQuestion[]; latestAttempt?: StudyAssessmentAttempt; onRefresh: () => void }) {
@@ -745,7 +792,7 @@ function AssessmentPanel({ itemId, itemKind, questions, latestAttempt, onRefresh
   };
 
   return <div className="mt-5 border-t border-white/10 pt-4">
-    <div className="flex items-center justify-between gap-3"><div><p className="font-semibold text-white/90">{panelTitle}</p><p className="mt-1 text-xs text-white/35">Responda tudo e envie para receber a correcao.</p></div>{result?.score != null && <span className={`rounded-md px-2 py-1 text-sm font-bold ${result.passed ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"}`}>{result.score}%</span>}</div>
+    <div className="flex items-center justify-between gap-3"><div><p className="font-semibold text-white/90">{panelTitle}</p><p className="mt-1 text-xs text-white/35">Responda tudo e envie para receber a correcao. Acertos medem domínio, mas toda resposta válida conta para concluir.</p></div>{result?.score != null && <span title="Indicador de domínio; não controla a conclusão" className={`rounded-md px-2 py-1 text-sm font-bold ${result.masteryReached ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"}`}>{result.score}%</span>}</div>
     <div className="mt-4 space-y-5">{questions.map((question, questionIndex) => {
       const feedback = feedbackByQuestion.get(question.id);
       if (question.questionType === "ordering") {

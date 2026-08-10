@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { GeneroCategoria } from "@/lib/types";
 import { resolverFaixaRating } from "@/lib/motor-categoria";
+import { reportOperationalEvent } from "@/lib/observability";
 
 type Result = { ok: boolean; error?: string };
 type Entidade = "category" | "ticket_type";
@@ -101,7 +102,7 @@ export async function criarLote(champId: string, input: CriarLoteInput): Promise
       .select("id")
       .eq("championship_id", champId);
     if (catErr) {
-      console.error("[criarLote] erro ao buscar categorias:", catErr);
+      await reportOperationalEvent({ level: "error", event: "pricing_tier.categories_failed", error: catErr });
       return { ok: false, error: "Erro ao buscar as categorias do campeonato." };
     }
     entidadeIds = (categorias ?? []).map((c) => c.id);
@@ -116,7 +117,7 @@ export async function criarLote(champId: string, input: CriarLoteInput): Promise
     .select(coluna)
     .in(coluna, entidadeIds);
   if (lotesErr) {
-    console.error("[criarLote] erro ao contar lotes existentes:", lotesErr);
+    await reportOperationalEvent({ level: "error", event: "pricing_tier.list_failed", error: lotesErr });
     return { ok: false, error: "Erro ao verificar os lotes existentes." };
   }
 
@@ -141,8 +142,8 @@ export async function criarLote(champId: string, input: CriarLoteInput): Promise
   const { error } = await supabase.from("pricing_tiers").insert(rows);
 
   if (error) {
-    console.error("[criarLote] erro ao inserir:", error);
-    return { ok: false, error: `Erro ao criar o lote: ${error.message}` };
+    await reportOperationalEvent({ level: "error", event: "pricing_tier.create_failed", error });
+    return { ok: false, error: "Erro ao criar o lote. Tente novamente." };
   }
 
   revalidatePath(`/painel/campeonatos/${champId}/lotes`);

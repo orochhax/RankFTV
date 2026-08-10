@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateRangeBR } from "@/lib/format";
+import { isAdminUser } from "@/lib/supabase/roles";
 import {
   AdminCampeonatosLista,
   type AdminCampItem,
@@ -37,8 +38,7 @@ export default async function AdminCampeonatosPage({
   const requestedPage = Number.parseInt(String(query.page ?? "1"), 10);
   const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
+  if (!(await isAdminUser(supabase))) redirect("/");
 
   // Diretório privilegiado e paginado, incluindo rascunhos.
   const { data: directoryData } = await supabase.rpc("admin_championship_directory", {

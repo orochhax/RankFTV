@@ -10,7 +10,7 @@ type Persona = "atleta" | "organizador" | "arena";
 const personas: { id: Persona; label: string }[] = [
   { id: "atleta", label: "Sou atleta" },
   { id: "organizador", label: "Sou organizador" },
-  { id: "arena", label: "Dono de arena" },
+  { id: "arena", label: "Arena (Beta)" },
 ];
 
 function CTAs({ persona }: { persona: Persona }) {
@@ -105,12 +105,12 @@ export function PersonaSwitcher() {
       </div>
 
       {/* Toggle de persona */}
-      <div className="mx-auto flex max-w-sm rounded-2xl bg-white/8 p-1">
+      <div className="mx-auto grid max-w-sm grid-cols-3 gap-1 rounded-2xl bg-white/8 p-1">
         {personas.map((p) => (
           <button
             key={p.id}
             onClick={() => setPersona(p.id)}
-            className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+            className={`min-w-0 rounded-xl px-1.5 py-2 text-[11px] font-semibold leading-tight transition-all sm:px-3 sm:text-xs ${
               persona === p.id
                 ? "bg-white text-gray-900 shadow-sm"
                 : "text-gray-400 hover:text-white"

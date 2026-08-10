@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  asaasBillingCompetence,
   asaasEventDomainStatus,
   asaasEventOrderingDecision,
   asaasEventRank,
@@ -51,4 +52,18 @@ test("event identity is stable when Asaas omits its event id", () => {
     asaasWebhookEventId(withoutId),
     asaasWebhookEventId({ ...withoutId, event: "PAYMENT_REFUNDED" }),
   );
+});
+
+test("subscription competence comes from the provider due date, not webhook arrival", () => {
+  assert.equal(asaasBillingCompetence("2026-07-31"), "2026-07");
+  assert.equal(asaasBillingCompetence("2026-08-01"), "2026-08");
+  assert.equal(asaasBillingCompetence("2026-02-29"), null);
+  assert.equal(asaasBillingCompetence("invalid"), null);
+  assert.equal(asaasBillingCompetence(undefined), null);
+});
+
+test("maps chargeback events as terminal refunds", () => {
+  assert.equal(asaasEventDomainStatus("PAYMENT_CHARGEBACK_REQUESTED"), "estornado");
+  assert.equal(asaasEventDomainStatus("PAYMENT_CHARGEBACK_DISPUTE"), "estornado");
+  assert.equal(asaasEventRank("PAYMENT_CHARGEBACK_REQUESTED"), 50);
 });

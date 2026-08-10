@@ -7,8 +7,10 @@ import { zodTextFormat } from "openai/helpers/zod";
 import type { Response as OpenAIResponse } from "openai/resources/responses/responses";
 import { createClient } from "@/lib/supabase/server";
 import { addDays, hojeISO } from "@/lib/performance";
+import { parseEventRecurrenceRule } from "@/lib/event-recurrence";
 import { portfolioVariation } from "@/lib/performance-life-os";
 import { getOpenAIClient } from "@/lib/openai";
+import { openAIReasoningEffort } from "@/lib/openai-config";
 import { generateDailyLifeAnalysis } from "@/lib/daily-life-analysis-service";
 import { isStudyAnswerCorrect, validStudyAnswer, type SubmittedStudyAnswer } from "@/lib/study-assessment";
 import { isPerformanceOwner } from "@/lib/performance-owner";
@@ -118,13 +120,21 @@ export async function criarEventoLifeOS(formData: FormData): Promise<Res> {
   const startAt = text(formData, "start_at", 40);
   const endAt = text(formData, "end_at", 40);
   if (!title || !startAt || !endAt) return { ok: false, error: "Nome, início e fim são obrigatórios." };
-  const start = new Date(startAt); const end = new Date(endAt);
+  const allDay = formData.get("all_day") === "on";
+  let start = new Date(startAt); let end = new Date(endAt);
+  if (allDay) { start = new Date(`${startAt.slice(0, 10)}T00:00:00-03:00`); end = new Date(`${addDays(endAt.slice(0, 10), 1)}T00:00:00-03:00`); }
   if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) return { ok: false, error: "O fim precisa ser depois do início." };
   const status = text(formData, "status", 30) ?? "planned";
   if (!["planned", "in_progress", "completed", "cancelled"].includes(status)) return { ok: false, error: "Status inválido." };
+  const recurrenceInput = text(formData, "recurrence_rule", 3000);
+  let recurrenceRule = null;
+  try { recurrenceRule = parseEventRecurrenceRule(recurrenceInput ? JSON.parse(recurrenceInput) : null); }
+  catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Repetição inválida." }; }
+  if (recurrenceInput && !recurrenceRule) return { ok: false, error: "Repetição inválida." };
   const { error } = await ctx.supabase.from("perf_event").insert({
     user_id: ctx.user.id, title, description: text(formData, "description", 2000), start_at: start.toISOString(), end_at: end.toISOString(),
-    all_day: formData.get("all_day") === "on", status, source: "manual", location: text(formData, "location"), link: text(formData, "link", 500),
+    all_day: allDay, status, source: "manual", location: text(formData, "location"), link: text(formData, "link", 500),
+    recurrence_rule: recurrenceRule, recurrence_group_id: recurrenceRule ? randomUUID() : null,
   });
   if (error) return { ok: false, error: error.message };
   reval(); return { ok: true };
@@ -137,11 +147,18 @@ export async function editarEventoLifeOS(id: string, formData: FormData): Promis
   const startAt = text(formData, "start_at", 40);
   const endAt = text(formData, "end_at", 40);
   if (!title || !startAt || !endAt) return { ok: false, error: "Nome, inicio e fim sao obrigatorios." };
-  const start = new Date(startAt);
-  const end = new Date(endAt);
+  const allDay = formData.get("all_day") === "on";
+  let start = new Date(startAt);
+  let end = new Date(endAt);
+  if (allDay) { start = new Date(`${startAt.slice(0, 10)}T00:00:00-03:00`); end = new Date(`${addDays(endAt.slice(0, 10), 1)}T00:00:00-03:00`); }
   if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) {
     return { ok: false, error: "O fim precisa ser depois do inicio." };
   }
+  const recurrenceInput = text(formData, "recurrence_rule", 3000);
+  let recurrenceRule = null;
+  try { recurrenceRule = parseEventRecurrenceRule(recurrenceInput ? JSON.parse(recurrenceInput) : null); }
+  catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Repetição inválida." }; }
+  if (recurrenceInput && !recurrenceRule) return { ok: false, error: "Repetição inválida." };
   const { error } = await ctx.supabase.from("perf_event").update({
     title,
     description: text(formData, "description", 2000),
@@ -149,6 +166,8 @@ export async function editarEventoLifeOS(id: string, formData: FormData): Promis
     end_at: end.toISOString(),
     location: text(formData, "location"),
     link: text(formData, "link", 500),
+    all_day: allDay,
+    recurrence_rule: recurrenceRule,
     updated_at: new Date().toISOString(),
   }).eq("id", id).eq("user_id", ctx.user.id).eq("active", true);
   if (error) return { ok: false, error: error.message };
@@ -348,12 +367,27 @@ export async function removerSessaoEstudoLifeOS(id: string): Promise<Res> {
 export async function criarTreinoAcademiaLifeOS(formData: FormData): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx) return { ok: false, error: "Acesso negado." };
-  const title = text(formData, "title", 160); const date = text(formData, "date", 10); const duration = number(formData, "duration_minutes");
+  const templateId = text(formData, "template_id", 36);
+  let title = text(formData, "title", 160);
+  let muscleGroups = formData.getAll("muscle_groups").map(String).filter((value) => ACADEMY_MUSCLES.has(value));
+  if (templateId) {
+    const { data: template, error: templateError } = await ctx.supabase
+      .from("perf_academy_workout_template")
+      .select("name, muscle_groups")
+      .eq("id", templateId)
+      .eq("user_id", ctx.user.id)
+      .maybeSingle();
+    if (templateError || !template) return { ok: false, error: "Treino pre-configurado nao encontrado." };
+    title = template.name;
+    muscleGroups = Array.isArray(template.muscle_groups)
+      ? template.muscle_groups.filter((value: unknown): value is string => typeof value === "string" && ACADEMY_MUSCLES.has(value))
+      : [];
+  }
+  const date = text(formData, "date", 10); const duration = number(formData, "duration_minutes");
   if (!title || !date) return { ok: false, error: "Nome e data sao obrigatorios." };
   if (duration != null && (!Number.isInteger(duration) || duration <= 0)) return { ok: false, error: "Duracao invalida." };
-  const muscleGroups = formData.getAll("muscle_groups").map(String).filter((value) => ACADEMY_MUSCLES.has(value));
   if (!muscleGroups.length) return { ok: false, error: "Selecione pelo menos um grupo muscular." };
-  const { error } = await ctx.supabase.from("perf_activity").insert({ user_id: ctx.user.id, title, date, area: "academia", type: text(formData, "type", 50), duration_minutes: duration, status: "completed", notes: text(formData, "notes", 2000), metadata: { muscle_groups: muscleGroups } });
+  const { error } = await ctx.supabase.from("perf_activity").insert({ user_id: ctx.user.id, title, date, area: "academia", type: text(formData, "type", 50), duration_minutes: duration, status: "completed", notes: text(formData, "notes", 2000), metadata: { muscle_groups: muscleGroups, ...(templateId ? { workout_template_id: templateId } : {}) } });
   if (error) return { ok: false, error: error.message };
   reval(); return { ok: true };
 }
@@ -379,6 +413,43 @@ export async function removerTreinoAcademiaLifeOS(id: string): Promise<Res> {
 }
 
 const ACADEMY_MUSCLES = new Set(["peito", "ombros", "biceps", "triceps", "antebracos", "abdomen", "costas", "gluteos", "quadriceps", "posteriores", "panturrilhas"]);
+
+function academyMuscleGroups(formData: FormData): string[] {
+  return [...new Set(formData.getAll("muscle_groups").map(String).filter((value) => ACADEMY_MUSCLES.has(value)))];
+}
+
+export async function criarModeloTreinoAcademiaLifeOS(formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const name = text(formData, "name", 160);
+  const muscleGroups = academyMuscleGroups(formData);
+  if (!name) return { ok: false, error: "Informe o nome do treino pre-configurado." };
+  if (!muscleGroups.length) return { ok: false, error: "Selecione pelo menos um grupo muscular." };
+  const { error } = await ctx.supabase.from("perf_academy_workout_template").insert({ user_id: ctx.user.id, name, muscle_groups: muscleGroups });
+  if (error?.code === "23505") return { ok: false, error: "Ja existe um treino pre-configurado com esse nome." };
+  if (error) return { ok: false, error: error.message };
+  reval(); return { ok: true };
+}
+
+export async function editarModeloTreinoAcademiaLifeOS(id: string, formData: FormData): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx || !id) return { ok: false, error: "Treino pre-configurado invalido." };
+  const name = text(formData, "name", 160);
+  const muscleGroups = academyMuscleGroups(formData);
+  if (!name || !muscleGroups.length) return { ok: false, error: "Informe o nome e pelo menos um grupo muscular." };
+  const { error } = await ctx.supabase.from("perf_academy_workout_template").update({ name, muscle_groups: muscleGroups, updated_at: new Date().toISOString() }).eq("id", id).eq("user_id", ctx.user.id);
+  if (error?.code === "23505") return { ok: false, error: "Ja existe um treino pre-configurado com esse nome." };
+  if (error) return { ok: false, error: error.message };
+  reval(); return { ok: true };
+}
+
+export async function removerModeloTreinoAcademiaLifeOS(id: string): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx || !id) return { ok: false, error: "Treino pre-configurado invalido." };
+  const { error } = await ctx.supabase.from("perf_academy_workout_template").delete().eq("id", id).eq("user_id", ctx.user.id);
+  if (error) return { ok: false, error: error.message };
+  reval(); return { ok: true };
+}
 
 export async function salvarDadosAcademiaLifeOS(formData: FormData): Promise<Res> {
   const ctx = await requireCeo();
@@ -473,8 +544,21 @@ export async function editarItemEstudoLifeOS(id: string, formData: FormData): Pr
 export async function atualizarStatusEstudoLifeOS(id: string, status: string): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx || !id || !["pending", "in_progress", "completed"].includes(status)) return { ok: false, error: "Status invalido." };
+  const { data: item } = await ctx.supabase.from("perf_study_roadmap_item").select("preparation_steps, completion_checklist").eq("id", id).eq("user_id", ctx.user.id).maybeSingle();
+  if (!item) return { ok: false, error: "Etapa não encontrada." };
+  const { count } = await ctx.supabase.from("perf_study_assessment_question").select("id", { count: "exact", head: true }).eq("item_id", id).eq("user_id", ctx.user.id);
+  const hasChecks = (Array.isArray(item.preparation_steps) && item.preparation_steps.length > 0) || (Array.isArray(item.completion_checklist) && item.completion_checklist.length > 0);
+  if (hasChecks || (count ?? 0) > 0) return { ok: false, error: "Esta aula é concluída automaticamente após todos os checks e respostas." };
   const { error } = await ctx.supabase.from("perf_study_roadmap_item").update({ status, completed_at: status === "completed" ? new Date().toISOString() : null, updated_at: new Date().toISOString() }).eq("id", id).eq("user_id", ctx.user.id);
   if (error) return { ok: false, error: error.message };
+  reval(); return { ok: true };
+}
+
+export async function alternarCheckEstudoLifeOS(itemId: string, group: "preparation" | "completion", index: number, checked: boolean): Promise<Res> {
+  const ctx = await requireCeo();
+  if (!ctx || !itemId || !["preparation", "completion"].includes(group) || !Number.isInteger(index) || index < 0) return { ok: false, error: "Checklist inválido." };
+  const { error } = await ctx.supabase.rpc("perf_toggle_study_check", { p_item_id: itemId, p_group: group, p_index: index, p_checked: checked });
+  if (error) return { ok: false, error: error.message.includes("Could not find") ? "Aplique a migration de progresso dos estudos antes de marcar os checks." : error.message };
   reval(); return { ok: true };
 }
 
@@ -486,7 +570,7 @@ export async function removerItemEstudoLifeOS(id: string): Promise<Res> {
   reval(); return { ok: true };
 }
 
-const STUDY_ITEM_KINDS = new Set(["core", "reinforcement", "challenge", "check", "criterion", "general", "reading", "video", "practice", "quiz", "project", "checkpoint"]);
+const STUDY_ITEM_KINDS = new Set(["core", "reinforcement", "challenge", "check", "criterion", "general", "reading", "video", "audiovisual", "practice", "quiz", "project", "checkpoint"]);
 
 export async function importarRoadmapEstudosLifeOS(payload: string, filename = "roadmap.md"): Promise<GenerateRoadmapResult> {
   const ctx = await requireRoadmapAiUser();
@@ -521,7 +605,7 @@ export async function importarRoadmapEstudosLifeOS(payload: string, filename = "
   try {
     const response = await getOpenAIClient().responses.parse({
       model,
-      reasoning: { effort: "medium" },
+      reasoning: { effort: openAIReasoningEffort(process.env.OPENAI_ROADMAP_REASONING_EFFORT) },
       instructions: roadmapImportSystemInstructions,
       input: roadmapImportPromptInput(source, safeFilename),
       text: { format: zodTextFormat(generatedRoadmapSchema, "imported_study_roadmap") },
@@ -703,7 +787,7 @@ async function processRoadmapGeneration(
     const shouldSearchResources = shouldSearchVideos || shouldSearchExternalMaterials;
     const response = await getOpenAIClient().responses.create({
       model,
-      reasoning: { effort: "medium" },
+      reasoning: { effort: openAIReasoningEffort(process.env.OPENAI_ROADMAP_REASONING_EFFORT) },
       instructions: answers.roadmapType === "language" ? languageRoadmapSystemInstructions : roadmapSystemInstructions,
       input: roadmapPromptInput(answers),
       text: { format: zodTextFormat(generatedRoadmapSchema, "study_roadmap") },
@@ -941,6 +1025,8 @@ export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promis
   const parsedPlan = roadmapGenerationPlanSchema.safeParse(generation.generated_plan);
   if (!parsedPlan.success) return { ok: false, error: "O roadmap gerado nao passou na validacao." };
   const plan = parsedPlan.data;
+  const missingVideo = plan.modules.flatMap((module) => module.steps).find((step) => step.type === "video" && !step.resourceUrl);
+  if (missingVideo) return { ok: false, error: `A etapa “${missingVideo.title}” está rotulada como Videoaula, mas não possui link direto. Reclassifique-a como atividade audiovisual ou gere um recurso válido.` };
 
   const { data: created, error: roadmapError } = await ctx.supabase.from("perf_study_roadmap").insert({
     user_id: ctx.user.id,
@@ -1109,7 +1195,7 @@ export async function enviarAvaliacaoEstudoLifeOS(itemId: string, submittedAnswe
   score?: number;
   correctCount?: number;
   totalCount?: number;
-  passed?: boolean;
+  masteryReached?: boolean;
   feedback?: Array<{ questionId: string; questionType: "multiple_choice" | "ordering"; correct: boolean; correctOptionIndex: number | null; correctOrder: number[]; explanation: string }>;
 }> {
   const ctx = await requireCeo();
@@ -1161,25 +1247,12 @@ export async function enviarAvaliacaoEstudoLifeOS(itemId: string, submittedAnswe
   const correctCount = feedback.filter((entry) => entry.correct).length;
   const totalCount = questions.length;
   const score = Math.round((correctCount / totalCount) * 10_000) / 100;
-  const passed = score >= 70;
-  const { error: attemptError } = await ctx.supabase.from("perf_study_assessment_attempt").insert({
-    user_id: ctx.user.id,
-    item_id: itemId,
-    answers: submittedAnswers,
-    correct_count: correctCount,
-    total_count: totalCount,
-    score,
-  });
-  if (attemptError) return { ok: false, error: attemptError.message };
+  const masteryReached = score >= 70;
+  const { error: attemptError } = await ctx.supabase.rpc("perf_submit_study_attempt", { p_item_id: itemId, p_answers: submittedAnswers });
+  if (attemptError) return { ok: false, error: attemptError.message.includes("Could not find") ? "Aplique a migration performance-scheduling-study-progress.sql antes de enviar a avaliação." : attemptError.message };
 
-  const { error: itemError } = await ctx.supabase.from("perf_study_roadmap_item").update({
-    status: passed ? "completed" : "in_progress",
-    completed_at: passed ? new Date().toISOString() : null,
-    updated_at: new Date().toISOString(),
-  }).eq("id", itemId).eq("user_id", ctx.user.id);
-  if (itemError) return { ok: false, error: itemError.message };
   reval();
-  return { ok: true, score, correctCount, totalCount, passed, feedback };
+  return { ok: true, score, correctCount, totalCount, masteryReached, feedback };
 }
 
 export async function reiniciarAvaliacaoEstudoLifeOS(itemId: string): Promise<Res> {
@@ -1187,11 +1260,7 @@ export async function reiniciarAvaliacaoEstudoLifeOS(itemId: string): Promise<Re
   if (!ctx || !itemId) return { ok: false, error: "Avaliacao invalida." };
   const { data: item } = await ctx.supabase.from("perf_study_roadmap_item").select("id").eq("id", itemId).eq("user_id", ctx.user.id).maybeSingle();
   if (!item) return { ok: false, error: "Etapa nao encontrada." };
-  const { error: attemptsError } = await ctx.supabase.from("perf_study_assessment_attempt").delete().eq("item_id", itemId).eq("user_id", ctx.user.id);
-  if (attemptsError) return { ok: false, error: attemptsError.message };
-  const { error: itemError } = await ctx.supabase.from("perf_study_roadmap_item").update({ status: "in_progress", completed_at: null, updated_at: new Date().toISOString() }).eq("id", itemId).eq("user_id", ctx.user.id);
-  if (itemError) return { ok: false, error: itemError.message };
-  reval();
+  // Uma nova tentativa nao apaga o historico nem revoga uma conclusao valida.
   return { ok: true };
 }
 

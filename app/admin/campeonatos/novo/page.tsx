@@ -3,15 +3,13 @@ import Link from "next/link";
 import { ChevronLeft, Info } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CampeonatoVitrineForm } from "@/components/admin/CampeonatoVitrineForm";
+import { isAdminUser } from "@/lib/supabase/roles";
 
 export const dynamic = "force-dynamic";
 
 export default async function NovoCampeonatoVitrinePage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
+  if (!(await isAdminUser(supabase))) redirect("/");
 
   return (
     <div className="w-full space-y-6 px-6 py-8">

@@ -434,7 +434,9 @@ test("buildRoadmapPlan cria modulos sem datas, remove repeticao e valida recurso
   assert.equal(result.modules.length, 1);
   assert.equal(result.modules[0].steps.length, 4);
   assert.equal(result.modules[0].steps[1].resourceUrl, "https://www.youtube.com/watch?v=abc12345678");
+  assert.equal(result.modules[0].steps[1].type, "video");
   assert.equal(result.modules[0].steps[2].resourceUrl, null);
+  assert.equal(result.modules[0].steps[2].type, "audiovisual");
   assert.equal(result.modules[0].steps[3].estimatedMinutes, 60);
   assert.equal(result.modules[0].steps[3].questions.length, 1);
   assert.equal(result.modules[0].steps[0].requirements, "Um arquivo CSV e um editor de planilhas.");

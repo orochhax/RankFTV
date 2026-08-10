@@ -1,4 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { reportOperationalEvent } from "@/lib/observability";
+import { hashRateLimitKey } from "@/lib/rate-limit-core";
 
 /**
  * Extrai o IP do cliente a partir dos headers. A Vercel seta x-forwarded-for.
@@ -23,17 +25,30 @@ export async function checkRateLimit(
   try {
     const admin = createAdminClient();
     const { data, error } = await admin.rpc("check_rate_limit", {
-      p_key: key,
+      // Never persist raw IP, e-mail, CPF or user identifiers in rate_limits.
+      p_key: hashRateLimitKey(key),
       p_max: max,
       p_window_seconds: windowSeconds,
     });
     if (error) {
-      console.error("[rate-limit] erro na checagem, bloqueando:", error.message);
+      await reportOperationalEvent({
+        level: "error",
+        event: "rate_limit.check_failed",
+        message: "Rate-limit check failed closed",
+        error,
+        alert: true,
+      });
       return false;
     }
     return data === true;
   } catch (err) {
-    console.error("[rate-limit] excecao, bloqueando:", err);
+    await reportOperationalEvent({
+      level: "error",
+      event: "rate_limit.exception",
+      message: "Rate-limit check raised and failed closed",
+      error: err,
+      alert: true,
+    });
     return false;
   }
 }

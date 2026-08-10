@@ -6,11 +6,11 @@ import { getPublishedChampionships } from "@/lib/supabase/championships";
 import { DestaquesEditor } from "@/components/admin/DestaquesEditor";
 import { DestaquesArenasEditor } from "@/components/admin/DestaquesArenasEditor";
 import type { ArenaDestaque } from "@/components/arenas/DestaquesArenasCarousel";
+import { isAdminUser } from "@/lib/supabase/roles";
 
 export default async function AdminDestaquesPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
+  if (!(await isAdminUser(supabase))) redirect("/");
 
   const [campeonatos, arenaRows, configRow] = await Promise.all([
     getPublishedChampionships(),

@@ -105,6 +105,7 @@ const languageMaterialOptions = [
 const itemLabels: Record<string, string> = {
   reading: "Leitura",
   video: "Videoaula",
+  audiovisual: "Atividade audiovisual",
   practice: "Atividade",
   quiz: "Prova",
   challenge: "Desafio",

@@ -1,5 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { reportOperationalEvent } from "@/lib/observability";
 
 // Notificação in-app (best-effort — nunca bloqueia o fluxo principal que a
 // chamou). Inserir aqui já atualiza sozinho o contador do sino: o layout
@@ -14,8 +15,13 @@ export async function notificarArena(userId: string, titulo: string, mensagem: s
       titulo,
       mensagem,
     });
-  } catch {
-    console.error("[arena] falha ao criar notificação para", userId);
+  } catch (error) {
+    await reportOperationalEvent({
+      level: "error",
+      event: "arena.notification_failed",
+      message: "Arena in-app notification could not be created",
+      error,
+    });
   }
 }
 

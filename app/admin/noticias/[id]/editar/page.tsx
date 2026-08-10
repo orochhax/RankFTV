@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getNewsById } from "@/lib/supabase/news";
 import { EditarNoticiaForm } from "@/components/admin/EditarNoticiaForm";
+import { isAdminUser } from "@/lib/supabase/roles";
 
 export default async function EditarNoticiaPage({
   params,
@@ -13,8 +14,7 @@ export default async function EditarNoticiaPage({
   const { id } = await params;
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
+  if (!(await isAdminUser(supabase))) redirect("/");
 
   const noticia = await getNewsById(id);
   if (!noticia) notFound();

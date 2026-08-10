@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SubscriptionPaymentUI } from "./SubscriptionPaymentUI";
+import { arenaRecurringPaymentsEnabled } from "@/lib/release-flags";
 
 export default async function AssinarPlanoPage({
   params,
@@ -28,6 +29,21 @@ export default async function AssinarPlanoPage({
   if (!arenaRes.data) notFound();
   if (!planRes.data) notFound();
   if (planRes.data.arena_id !== arenaRes.data.id) notFound();
+
+  if (Number(planRes.data.valor) > 0 && !arenaRecurringPaymentsEnabled()) {
+    return (
+      <main className="mx-auto w-full max-w-lg px-6 py-12 text-center">
+        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+          Arena Beta
+        </span>
+        <h1 className="mt-5 text-2xl font-bold text-gray-900">Assinaturas temporariamente indisponíveis</h1>
+        <p className="mt-3 text-sm leading-6 text-gray-600">
+          Novas cobranças recorrentes estão pausadas durante a homologação da Arena.
+          Consulte a arena para combinar sua matrícula sem cobrança pela plataforma.
+        </p>
+      </main>
+    );
+  }
 
   return (
     <SubscriptionPaymentUI

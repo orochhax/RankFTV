@@ -75,7 +75,7 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
       </div>
 
       {/* ───────── Mobile: stack de cards com profundidade (carrossel) ───────── */}
-      <div className="relative md:hidden" style={{ height: "260px" }}>
+      <div className="relative h-[310px] md:hidden">
         {camps.map((camp, i) => {
             // distância em relação ao atual (com wrap circular)
           const raw  = (i - current + camps.length) % camps.length;
@@ -129,8 +129,8 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
                 </div>
                 <div className="space-y-1.5 p-4">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-gray-900">{camp.nome}</h3>
-                    <StatusBadge status={camp.status} />
+                    <h3 className="min-w-0 flex-1 font-semibold text-gray-900">{camp.nome}</h3>
+                    <div className="shrink-0"><StatusBadge status={camp.status} /></div>
                   </div>
                   <p className="text-sm text-gray-500">{formatDateRangeBR(camp.dataInicio, camp.dataFim)}</p>
                   <p className="flex items-center gap-1 text-sm text-gray-500">

@@ -9,6 +9,7 @@ import {
   cardBlockedMessage,
   finishCardPaymentAttempt,
 } from "@/lib/payment-security";
+import { arenaRecurringPaymentsEnabled } from "@/lib/release-flags";
 
 export type AssinarInput = {
   planId:      string;
@@ -28,6 +29,9 @@ export type AssinarResult =
   | { ok: false; error: string };
 
 export async function assinarPlano(input: AssinarInput): Promise<AssinarResult> {
+  if (!arenaRecurringPaymentsEnabled()) {
+    return { ok: false, error: "Novas assinaturas pagas estão pausadas enquanto a Arena está em beta." };
+  }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada. Faça login novamente." };

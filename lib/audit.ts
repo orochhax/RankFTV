@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { reportOperationalEvent } from "@/lib/observability";
 
 /**
  * Registra uma mudança sensível em security_audit_log (chave Pix, gênero
@@ -23,6 +24,13 @@ export async function registrarAuditoria(input: {
       detalhes:    input.detalhes ?? null,
     });
   } catch (err) {
-    console.error("[audit] falha ao registrar", input.acao, err);
+    await reportOperationalEvent({
+      level: "error",
+      event: "security_audit.persistence_failed",
+      message: "Security audit event could not be persisted",
+      context: { action: input.acao },
+      error: err,
+      alert: true,
+    });
   }
 }

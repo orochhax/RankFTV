@@ -21,7 +21,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { formatDateBR } from "@/lib/format";
-import type { Habit, HabitLog } from "@/lib/performance";
+import { habitEndSummary, habitScheduleSummary, isHabitScheduled, scheduledHabits, type Habit, type HabitLog } from "@/lib/performance";
+import { HabitScheduleFields } from "@/components/performance/HabitScheduleFields";
 import {
   criarHabito,
   editarHabito,
@@ -67,10 +68,13 @@ import { MetasDoDia as MetasDoDiaBase } from "@/components/performance/MetasDoDi
 import { PerfilEditor } from "@/components/performance/PerfilEditor";
 import type { WeeklyReport } from "@/components/performance/RelatorioSemanal";
 import { CalendarClient } from "@/components/performance/CalendarClient";
+import { EventRecurrenceFields } from "@/components/performance/EventRecurrenceFields";
+import { expandEventOccurrences } from "@/lib/event-recurrence";
 import type {
   InvestmentContribution,
   StudyAssessmentAttempt,
   StudyAssessmentQuestion,
+  StudyCheckProgress,
   StudyRoadmap,
   StudyRoadmapItem,
   StudyRoadmapModule,
@@ -133,6 +137,12 @@ type Profile = {
   treinos_semana_meta?: number | null;
 } | null;
 
+export type AcademyWorkoutTemplate = {
+  id: string;
+  name: string;
+  muscleGroups: string[];
+};
+
 export type LifeOSProps = {
   today: string;
   monday: string;
@@ -179,6 +189,7 @@ export type LifeOSProps = {
   }[];
   events: LifeEvent[];
   activities: ActivityRow[];
+  academyWorkoutTemplates: AcademyWorkoutTemplate[];
   goals: LifeGoal[];
   snapshots: PortfolioSnapshot[];
   investmentPlan: InvestmentPlan | null;
@@ -199,6 +210,8 @@ export type LifeOSProps = {
   studyModules: StudyRoadmapModule[];
   studyQuestions: StudyAssessmentQuestion[];
   studyAttempts: StudyAssessmentAttempt[];
+  studyCheckProgress: StudyCheckProgress[];
+  studyCheckProgressReady: boolean;
   studyDrafts: RoadmapDraftSummary[];
   studyGenerationJobs: RoadmapGenerationJob[];
   studyDraftsReady: boolean;
@@ -326,9 +339,7 @@ export function LifeOSDashboard(props: LifeOSProps) {
   const go = (next: LifeOSView) =>
     router.replace(`/admin/performance?view=${next}`, { scroll: false });
   const progress = dayProgress(props.habits, props.logs, props.today);
-  const todayEvents = props.events
-    .filter((event) => event.startAt.slice(0, 10) === props.today)
-    .sort((a, b) => a.startAt.localeCompare(b.startAt));
+  const todayEvents = expandEventOccurrences(props.events, { from: props.today, to: props.today });
   return (
     <div className="life-os-theme min-h-screen w-full min-w-0 overflow-x-hidden bg-[#0b0d10] text-white">
       <header className="border-b border-white/10 bg-[#0b0d10] px-3 pb-5 pt-4 sm:px-4 lg:px-6 2xl:px-8">
@@ -419,6 +430,7 @@ export function LifeOSDashboard(props: LifeOSProps) {
         {view === "activities" && (
           <AcademyWorkspace
             activities={props.activities}
+            workoutTemplates={props.academyWorkoutTemplates}
             weights={props.weights}
             today={props.today}
             heightCm={props.alturaCm}
@@ -433,6 +445,8 @@ export function LifeOSDashboard(props: LifeOSProps) {
             modules={props.studyModules}
             questions={props.studyQuestions}
             attempts={props.studyAttempts}
+            checkProgress={props.studyCheckProgress}
+            checkProgressReady={props.studyCheckProgressReady}
             drafts={props.studyDrafts}
             generationJobs={props.studyGenerationJobs}
             activities={props.activities}
@@ -961,10 +975,10 @@ function EventForm({
   const router = useRouter();
   const confirm = usePerformanceConfirm();
   const initialStart = event
-    ? eventLocalFields(event.startAt)
+    ? eventLocalFields(event.baseStartAt ?? event.startAt)
     : { date: initialDate ?? "", time: "09:00" };
   const initialEnd = event
-    ? eventLocalFields(event.endAt)
+    ? eventLocalFields(event.baseEndAt ?? event.endAt)
     : { date: initialDate ?? "", time: "10:00" };
   const [date, setDate] = useState(initialStart.date);
   const [start, setStart] = useState(initialStart.time);
@@ -977,7 +991,7 @@ function EventForm({
     const eventEnd = String(data.get("event_end") ?? "");
     if (!eventDate || !eventStart || !eventEnd)
       return { ok: false, error: "Informe data e horarios." };
-    if (eventEnd <= eventStart)
+    if (data.get("all_day") !== "on" && eventEnd <= eventStart)
       return {
         ok: false,
         error: "O horario de termino deve ser depois do inicio.",
@@ -1020,6 +1034,7 @@ function EventForm({
             required
           />
         </div>
+        <EventRecurrenceFields startDate={date} initialRule={event?.recurrenceRule} initialAllDay={event?.allDay} tone="light" />
         <Field
           name="description"
           title="Descricao"
@@ -1036,9 +1051,9 @@ function EventForm({
             disabled={deletePending}
             onClick={async () => {
               const approved = await confirm({
-                title: "Excluir evento?",
-                description: `O evento “${event.title}” sera removido da agenda definitivamente.`,
-                confirmLabel: "Excluir evento",
+                title: event.recurrenceRule ? "Excluir série recorrente?" : "Excluir evento?",
+                description: event.recurrenceRule ? `Todas as ocorrências de “${event.title}” serão removidas.` : `O evento “${event.title}” será removido da agenda definitivamente.`,
+                confirmLabel: event.recurrenceRule ? "Excluir série" : "Excluir evento",
               });
               if (!approved) return;
               setDeleteError(null);
@@ -1061,7 +1076,7 @@ function EventForm({
             ) : (
               <Trash2 className="size-4" />
             )}
-            Excluir evento
+            {event.recurrenceRule ? "Excluir série" : "Excluir evento"}
           </button>
         </div>
       )}
@@ -1395,6 +1410,7 @@ function HabitPanel({
   onOpen: (habit: Habit) => void;
   onToggle: (habit: Habit, done: boolean) => void;
 }) {
+  habits = scheduledHabits(habits, today);
   const todayLogs = new Map(
     logs
       .filter((log) => log.data === today)
@@ -1481,12 +1497,13 @@ function HabitManagerModal({
       <ActionForm action={criarHabito} onDone={() => router.refresh()}>
         <Field name="label" title="Novo habito" required />
         <input type="hidden" name="tipo" value="binario" />
+        <HabitScheduleFields tone="light" />
       </ActionForm>
       <div className="mt-5 space-y-2">
         {habits.map((habit) => (
           <div key={habit.id} className="rounded-lg border border-gray-100 p-3">
             <div className="flex items-center gap-2">
-              <span className="flex-1 text-sm">{habit.label}</span>
+              <span className="flex-1 text-sm">{habit.label}<small className="mt-0.5 block text-gray-400">{habitScheduleSummary(habit)}{habitEndSummary(habit.endDate) ? ` · ${habitEndSummary(habit.endDate)}` : ""}</small></span>
               {habit.ativo ? (
                 <>
                   <button
@@ -1547,6 +1564,7 @@ function HabitManagerModal({
             <input type="hidden" name="id" value={editing.id} />
             <input type="hidden" name="tipo" value={editing.tipo} />
             <Field name="label" title="Nome" value={editing.label} required />
+            <HabitScheduleFields habit={editing} tone="light" />
           </ActionForm>
         </Modal>
       )}
@@ -1628,11 +1646,12 @@ function HabitConstancyModal({
                   : habit.alvo
                     ? value >= habit.alvo
                     : value > 0);
+              const planned = isHabitScheduled(habit, date) && date <= today;
               return (
                 <span
                   key={date}
                   title={formatDateBR(date)}
-                  className={`aspect-square rounded-sm ${done ? "bg-emerald-500" : "bg-gray-100"}`}
+                  className={`aspect-square rounded-sm ${!planned ? "bg-transparent ring-1 ring-white/10" : done ? "bg-emerald-500" : "bg-gray-100"}`}
                 />
               );
             })}

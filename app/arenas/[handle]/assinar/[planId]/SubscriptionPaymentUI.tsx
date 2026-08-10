@@ -153,7 +153,7 @@ function StepPagamento({
         <div className="mt-2 flex justify-between border-t border-gray-200 pt-2 font-semibold text-gray-900">
           <span>Total por mês</span><span>{formatBRL(valorTotal)}</span>
         </div>
-        <p className="mt-2 text-[11px] text-gray-400">Cobrado automaticamente todo mês. Cancele a qualquer momento.</p>
+        <p className="mt-2 text-[11px] text-gray-400">Cobrança mensal automática. Confirme as regras diretamente com a arena antes de assinar.</p>
       </div>
 
       {error && (

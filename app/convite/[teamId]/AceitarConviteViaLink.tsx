@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { aceitarConvite, type AceitarConviteResult } from "@/app/perfil/convite-actions";
 import { CheckCircle2, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const initialState: AceitarConviteResult = { ok: true };
 
@@ -15,11 +16,12 @@ export function AceitarConviteViaLink({
   champId: string;
   inviteToken: string;
 }) {
+  const router = useRouter();
   const [state, action, pending] = useActionState<AceitarConviteResult, FormData>(
     async (_prev, formData) => {
       const result = await aceitarConvite(formData);
       if (result.ok) {
-        window.location.href = `/minhas-inscricoes/${champId}`;
+        router.replace(`/minhas-inscricoes/${champId}`);
       }
       return result;
     },

@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Database, Dumbbell, Flame, Loader2, Pencil, Plus, Scale, Trash2 } from "lucide-react";
+import { BookmarkPlus, Check, ChevronRight, Database, Dumbbell, Flame, Loader2, Pencil, Plus, Scale, Trash2 } from "lucide-react";
 import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { criarTreinoAcademiaLifeOS, editarTreinoAcademiaLifeOS, removerTreinoAcademiaLifeOS, salvarDadosAcademiaLifeOS } from "@/app/admin/performance/life-os-actions";
+import { criarModeloTreinoAcademiaLifeOS, criarTreinoAcademiaLifeOS, editarModeloTreinoAcademiaLifeOS, editarTreinoAcademiaLifeOS, removerModeloTreinoAcademiaLifeOS, removerTreinoAcademiaLifeOS, salvarDadosAcademiaLifeOS } from "@/app/admin/performance/life-os-actions";
 import { formatDateBR } from "@/lib/format";
 import { addDays } from "@/lib/performance";
 import { academyStreak, averageDuration } from "@/lib/performance-widgets";
@@ -22,6 +22,12 @@ export type AcademyActivity = {
   muscleGroups: string[];
 };
 
+export type AcademyWorkoutTemplate = {
+  id: string;
+  name: string;
+  muscleGroups: string[];
+};
+
 const MUSCLES = [
   ["peito", "Peito"], ["ombros", "Ombros"], ["biceps", "Biceps"], ["triceps", "Triceps"],
   ["antebracos", "Antebracos"], ["abdomen", "Abdomen"], ["costas", "Costas"], ["gluteos", "Gluteos"],
@@ -35,10 +41,12 @@ function minutesLabel(value: number): string {
   return `${Math.floor(value / 60)}h${value % 60 ? ` ${value % 60}min` : ""}`;
 }
 
-export function AcademyWorkspace({ activities: allActivities, weights, today, heightCm, currentWeight, targetWeight }: { activities: AcademyActivity[]; weights: { data: string; peso_kg: number }[]; today: string; heightCm: number | null; currentWeight: number | null; targetWeight: number | null }) {
+export function AcademyWorkspace({ activities: allActivities, workoutTemplates, weights, today, heightCm, currentWeight, targetWeight }: { activities: AcademyActivity[]; workoutTemplates: AcademyWorkoutTemplate[]; weights: { data: string; peso_kg: number }[]; today: string; heightCm: number | null; currentWeight: number | null; targetWeight: number | null }) {
   const router = useRouter();
   const confirm = usePerformanceConfirm();
-  const [creating, setCreating] = useState(false);
+  const [createStep, setCreateStep] = useState<"choose" | "workout" | "template" | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<AcademyWorkoutTemplate | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<AcademyWorkoutTemplate | null>(null);
   const [editing, setEditing] = useState<AcademyActivity | null>(null);
   const [editingData, setEditingData] = useState(false);
   const activities = allActivities.filter((item) => item.area === "academia").sort((a, b) => b.date.localeCompare(a.date));
@@ -46,6 +54,7 @@ export function AcademyWorkspace({ activities: allActivities, weights, today, he
   const recentStart = addDays(today, -6);
   const muscleFrequency = new Map<string, number>();
   completed.filter((item) => item.date >= recentStart && item.date <= today).forEach((item) => item.muscleGroups.forEach((muscle) => muscleFrequency.set(muscle, (muscleFrequency.get(muscle) ?? 0) + 1)));
+  const closeCreateFlow = () => { setCreateStep(null); setSelectedTemplate(null); setEditingTemplate(null); };
 
   return <section className="min-w-0 space-y-5">
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -65,6 +74,20 @@ export function AcademyWorkspace({ activities: allActivities, weights, today, he
       </div>
     </div>
 
+    <section className="rounded-lg border border-white/10 bg-[#15191f] p-4 text-white sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><h3 className="font-semibold">Treinos pre-configurados</h3><p className="mt-1 text-xs text-white/35">Deixe os grupos musculares prontos para registrar o treino com poucos cliques.</p></div>
+        <button type="button" onClick={() => { setEditingTemplate(null); setCreateStep("template"); }} className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2 text-sm font-semibold text-white/75 hover:bg-white/[0.08]"><BookmarkPlus className="size-4" />Pre-configurar</button>
+      </div>
+      {workoutTemplates.length ? <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+        {workoutTemplates.map((template) => <div key={template.id} className="rounded-lg border border-white/[0.08] bg-black/10 p-3">
+          <div className="flex items-start gap-2"><div className="min-w-0 flex-1"><p className="font-medium text-white/85">{template.name}</p><div className="mt-2 flex flex-wrap gap-1">{template.muscleGroups.map((id) => <MuscleChip key={id} id={id} />)}</div></div>
+          <button type="button" onClick={() => { setEditingTemplate(template); setCreateStep("template"); }} className="rounded-md p-1.5 text-white/35 hover:bg-white/[0.06] hover:text-blue-400" title="Editar treino pre-configurado"><Pencil className="size-4" /></button>
+          <button type="button" onClick={async () => { const approved = await confirm({ title: "Excluir treino pre-configurado?", description: `O modelo “${template.name}” sera removido. Os treinos ja registrados continuarao no historico.`, confirmLabel: "Excluir modelo" }); if (!approved) return; await removerModeloTreinoAcademiaLifeOS(template.id); router.refresh(); }} className="rounded-md p-1.5 text-white/25 hover:bg-red-400/10 hover:text-red-300" title="Excluir treino pre-configurado"><Trash2 className="size-4" /></button></div>
+        </div>)}
+      </div> : <p className="mt-4 rounded-lg border border-dashed border-white/10 p-4 text-center text-sm text-white/35">Nenhum treino pre-configurado. Crie, por exemplo, “Perna” com quadriceps, posteriores e panturrilhas.</p>}
+    </section>
+
     <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)]">
       <section className="min-w-0 rounded-lg border border-white/10 bg-[#15191f] p-4 text-white sm:p-5">
         <div><h3 className="font-semibold">Mapa muscular</h3><p className="mt-1 text-xs text-white/35">Grupos treinados nos ultimos 7 dias. Quanto mais azul, maior a frequencia.</p></div>
@@ -74,7 +97,7 @@ export function AcademyWorkspace({ activities: allActivities, weights, today, he
       </section>
 
       <section className="min-w-0 rounded-lg border border-white/10 bg-[#15191f] p-4 text-white sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-semibold">Historico de treinos</h3><p className="mt-1 text-xs text-white/35">{activities.length} registros</p></div><button type="button" onClick={() => setCreating(true)} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white"><Plus className="size-4" />Novo treino</button></div>
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-semibold">Historico de treinos</h3><p className="mt-1 text-xs text-white/35">{activities.length} registros</p></div><button type="button" onClick={() => setCreateStep("choose")} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white"><Plus className="size-4" />Novo treino</button></div>
         <div className="mt-4 max-h-[560px] overflow-y-auto pr-1">
           {activities.map((item) => <div key={item.id} className="flex items-start gap-3 border-b border-white/[0.06] py-3 last:border-0">
             <div className="min-w-0 flex-1"><p className="font-medium text-white/85">{item.title}</p><p className="mt-0.5 text-xs text-white/35">{formatDateBR(item.date)} · {item.durationMinutes ? minutesLabel(item.durationMinutes) : "Sem duracao"}</p><div className="mt-2 flex flex-wrap gap-1">{item.muscleGroups.map((id) => <span key={id} className="rounded bg-white/[0.05] px-1.5 py-0.5 text-[10px] text-white/40">{MUSCLES.find(([value]) => value === id)?.[1] ?? id}</span>)}</div></div>
@@ -88,7 +111,9 @@ export function AcademyWorkspace({ activities: allActivities, weights, today, he
 
     <WeightEvolution weights={weights} targetWeight={targetWeight} />
 
-    {creating && <Modal title="Novo treino" onClose={() => setCreating(false)}><WorkoutForm today={today} onDone={() => { setCreating(false); router.refresh(); }} /></Modal>}
+    {createStep === "choose" && <Modal title="Novo treino" onClose={closeCreateFlow}><WorkoutChoice templates={workoutTemplates} onTemplate={(template) => { setSelectedTemplate(template); setCreateStep("workout"); }} onStandalone={() => { setSelectedTemplate(null); setCreateStep("workout"); }} onConfigure={() => { setEditingTemplate(null); setCreateStep("template"); }} /></Modal>}
+    {createStep === "workout" && <Modal title={selectedTemplate ? `Registrar ${selectedTemplate.name}` : "Registrar treino avulso"} onClose={closeCreateFlow}><WorkoutForm today={today} template={selectedTemplate ?? undefined} onDone={() => { closeCreateFlow(); router.refresh(); }} /></Modal>}
+    {createStep === "template" && <Modal title={editingTemplate ? "Editar treino pre-configurado" : "Pre-configurar treino"} onClose={closeCreateFlow}><WorkoutTemplateForm template={editingTemplate ?? undefined} onDone={() => { closeCreateFlow(); router.refresh(); }} /></Modal>}
     {editing && <Modal title="Editar treino" onClose={() => setEditing(null)}><WorkoutForm today={today} activity={editing} onDone={() => { setEditing(null); router.refresh(); }} /></Modal>}
     {editingData && <Modal title="Dados da academia" onClose={() => setEditingData(false)}><AcademyDataForm today={today} heightCm={heightCm} currentWeight={currentWeight} targetWeight={targetWeight} onDone={() => { setEditingData(false); router.refresh(); }} /></Modal>}
   </section>;
@@ -98,14 +123,41 @@ function DarkMetric({ icon: Icon, title, value }: { icon: typeof Flame; title: s
   return <div className="rounded-lg border border-white/10 bg-[#15191f] p-4 text-white"><Icon className="size-4 text-blue-500" /><p className="mt-3 text-xs text-white/45">{title}</p><p className="mt-2 font-bold">{value}</p></div>;
 }
 
-function WorkoutForm({ today, activity, onDone }: { today: string; activity?: AcademyActivity; onDone: () => void }) {
-  const [selected, setSelected] = useState<Set<string>>(new Set(activity?.muscleGroups ?? []));
+function MuscleChip({ id }: { id: string }) {
+  return <span className="rounded bg-blue-400/10 px-1.5 py-0.5 text-[10px] text-blue-300">{MUSCLES.find(([value]) => value === id)?.[1] ?? id}</span>;
+}
+
+function WorkoutChoice({ templates, onTemplate, onStandalone, onConfigure }: { templates: AcademyWorkoutTemplate[]; onTemplate: (template: AcademyWorkoutTemplate) => void; onStandalone: () => void; onConfigure: () => void }) {
+  return <div className="space-y-4">
+    {templates.length ? <div><p className="text-sm text-white/55">Escolha um treino pronto:</p><div className="mt-3 grid gap-2 sm:grid-cols-2">{templates.map((template) => <button key={template.id} type="button" onClick={() => onTemplate(template)} className="group flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3 text-left hover:border-blue-500/50 hover:bg-blue-400/[0.06]"><Dumbbell className="size-5 shrink-0 text-blue-400" /><span className="min-w-0 flex-1"><span className="block font-semibold text-white/85">{template.name}</span><span className="mt-1 block text-xs text-white/35">{template.muscleGroups.map((id) => MUSCLES.find(([value]) => value === id)?.[1] ?? id).join(", ")}</span></span><ChevronRight className="size-4 text-white/20 group-hover:text-blue-400" /></button>)}</div></div> : <div className="rounded-lg border border-dashed border-blue-400/25 bg-blue-400/[0.05] p-4"><p className="font-semibold text-white/85">Voce ainda nao tem treinos pre-configurados</p><p className="mt-1 text-sm text-white/45">Registre um treino avulso agora ou deixe um modelo pronto para as proximas vezes.</p></div>}
+    <div className="grid gap-2 sm:grid-cols-2">
+      <button type="button" onClick={onStandalone} className="rounded-lg border border-white/10 p-3 text-left hover:bg-white/[0.04]"><span className="font-semibold text-white/80">Registrar treino avulso</span><span className="mt-1 block text-xs text-white/35">Escolha os musculos apenas para este registro.</span></button>
+      <button type="button" onClick={onConfigure} className="rounded-lg border border-white/10 p-3 text-left hover:bg-white/[0.04]"><span className="font-semibold text-white/80">Pre-configurar um treino</span><span className="mt-1 block text-xs text-white/35">Salve nome e grupos musculares para reutilizar.</span></button>
+    </div>
+  </div>;
+}
+
+function MuscleSelector({ selected, onToggle }: { selected: Set<string>; onToggle: (id: string) => void }) {
+  return <><div><p className="mb-2 text-xs font-medium text-white/45">Musculos treinados</p><MuscleBodyMap selected={selected} onToggle={onToggle} /></div><div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{MUSCLES.map(([id, label]) => <label key={id} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-xs ${selected.has(id) ? "border-blue-500 bg-blue-400/10 text-blue-300" : "border-white/10 text-white/45"}`}><input type="checkbox" name="muscle_groups" value={id} checked={selected.has(id)} onChange={() => onToggle(id)} className="sr-only" /><span className={`flex size-4 items-center justify-center rounded ${selected.has(id) ? "bg-blue-600" : "ring-1 ring-white/20"}`}>{selected.has(id) && <Check className="size-3 text-white" />}</span>{label}</label>)}</div></>;
+}
+
+function WorkoutTemplateForm({ template, onDone }: { template?: AcademyWorkoutTemplate; onDone: () => void }) {
+  const [selected, setSelected] = useState<Set<string>>(new Set(template?.muscleGroups ?? []));
+  const action = template ? (data: FormData) => editarModeloTreinoAcademiaLifeOS(template.id, data) : criarModeloTreinoAcademiaLifeOS;
+  const toggle = (id: string) => setSelected((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  return <AsyncForm action={action} onDone={onDone} submitLabel={template ? "Salvar alteracoes" : "Salvar pre-configuracao"}>
+    <div className="rounded-lg border border-blue-400/20 bg-blue-400/[0.05] p-3 text-sm text-white/50">Este modelo registra apenas os musculos trabalhados. Nao e necessario informar aparelho, exercicio ou peso.</div>
+    <Field name="name" label="Nome do treino" placeholder="Ex.: Perna" defaultValue={template?.name} required />
+    <MuscleSelector selected={selected} onToggle={toggle} />
+  </AsyncForm>;
+}
+
+function WorkoutForm({ today, activity, template, onDone }: { today: string; activity?: AcademyActivity; template?: AcademyWorkoutTemplate; onDone: () => void }) {
+  const [selected, setSelected] = useState<Set<string>>(new Set(activity?.muscleGroups ?? template?.muscleGroups ?? []));
   const action = activity ? (data: FormData) => editarTreinoAcademiaLifeOS(activity.id, data) : criarTreinoAcademiaLifeOS;
   return <AsyncForm action={action} onDone={onDone}>
-    <Field name="title" label="Nome do treino" defaultValue={activity?.title} required />
-    <div className="grid gap-3 sm:grid-cols-2"><Field name="date" label="Data" type="date" defaultValue={activity?.date ?? today} required /><Field name="duration_minutes" label="Duracao (min)" type="number" defaultValue={activity?.durationMinutes?.toString()} required /></div>
-    <div><p className="mb-2 text-xs font-medium text-white/45">Musculos treinados</p><MuscleBodyMap selected={selected} onToggle={(id) => setSelected((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; })} /></div>
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{MUSCLES.map(([id, label]) => <label key={id} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-xs ${selected.has(id) ? "border-blue-500 bg-blue-400/10 text-blue-300" : "border-white/10 text-white/45"}`}><input type="checkbox" name="muscle_groups" value={id} checked={selected.has(id)} onChange={() => setSelected((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; })} className="sr-only" /><span className={`flex size-4 items-center justify-center rounded ${selected.has(id) ? "bg-blue-600" : "ring-1 ring-white/20"}`}>{selected.has(id) && <Check className="size-3 text-white" />}</span>{label}</label>)}</div>
+    {template ? <><input type="hidden" name="template_id" value={template.id} /><div className="rounded-lg border border-blue-400/20 bg-blue-400/[0.05] p-3"><p className="font-semibold text-white/85">{template.name}</p><div className="mt-2 flex flex-wrap gap-1">{template.muscleGroups.map((id) => <MuscleChip key={id} id={id} />)}</div></div></> : <><Field name="title" label="Nome do treino" placeholder="Ex.: Perna" defaultValue={activity?.title} required /><MuscleSelector selected={selected} onToggle={(id) => setSelected((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; })} /></>}
+    <div className="grid gap-3 sm:grid-cols-2"><Field name="date" label="Data" type="date" defaultValue={activity?.date ?? today} required /><Field name="duration_minutes" label="Duracao em minutos (opcional)" type="number" defaultValue={activity?.durationMinutes?.toString()} /></div>
     <Field name="notes" label="Observacao" defaultValue={activity?.notes ?? undefined} />
   </AsyncForm>;
 }
@@ -158,13 +210,13 @@ function MuscleBodyMap({ frequency, selected, onToggle }: { frequency?: Map<stri
   </svg>;
 }
 
-function AsyncForm({ action, onDone, children }: { action: (data: FormData) => Promise<{ ok: boolean; error?: string }>; onDone: () => void; children: React.ReactNode }) {
+function AsyncForm({ action, onDone, children, submitLabel = "Salvar" }: { action: (data: FormData) => Promise<{ ok: boolean; error?: string }>; onDone: () => void; children: React.ReactNode; submitLabel?: string }) {
   const [pending, startTransition] = useTransition(); const [error, setError] = useState<string | null>(null);
-  return <form onSubmit={(event) => { event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setError(null); startTransition(async () => { const result = await action(data); if (!result.ok) setError(result.error ?? "Nao foi possivel salvar."); else onDone(); }); }} className="space-y-3">{children}{error && <p className="text-xs text-red-300">{error}</p>}<button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}Salvar</button></form>;
+  return <form onSubmit={(event) => { event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setError(null); startTransition(async () => { const result = await action(data); if (!result.ok) setError(result.error ?? "Nao foi possivel salvar."); else onDone(); }); }} className="space-y-3">{children}{error && <p className="text-xs text-red-300">{error}</p>}<button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}{submitLabel}</button></form>;
 }
 
-function Field({ name, label, type = "text", defaultValue, required, step }: { name: string; label: string; type?: string; defaultValue?: string; required?: boolean; step?: string }) {
-  return <label className="block text-xs font-medium text-white/45">{label}<input name={name} type={type} defaultValue={defaultValue} required={required} step={step} className={`${inputClass} mt-1`} /></label>;
+function Field({ name, label, type = "text", defaultValue, required, step, placeholder }: { name: string; label: string; type?: string; defaultValue?: string; required?: boolean; step?: string; placeholder?: string }) {
+  return <label className="block text-xs font-medium text-white/45">{label}<input name={name} type={type} defaultValue={defaultValue} required={required} step={step} placeholder={placeholder} className={`${inputClass} mt-1`} /></label>;
 }
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {

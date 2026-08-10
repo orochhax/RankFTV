@@ -28,7 +28,7 @@ export const roadmapMaterialBudgetValues = ["free_only", "paid_allowed"] as cons
 export const roadmapOutcomeValues = ["knowledge", "portfolio", "real_project", "exam_ready", "job_ready", "teach"] as const;
 export const roadmapAssessmentValues = ["none", "quick_quizzes", "module_exams", "practical", "mixed"] as const;
 export const roadmapProjectModeValues = ["none", "guided", "per_module", "capstone"] as const;
-export const roadmapItemKindValues = ["reading", "video", "practice", "quiz", "challenge", "project", "checkpoint"] as const;
+export const roadmapItemKindValues = ["reading", "video", "audiovisual", "practice", "quiz", "challenge", "project", "checkpoint"] as const;
 export const roadmapDifficultyValues = ["introductory", "intermediate", "advanced", "mixed"] as const;
 export const roadmapQuestionTypeValues = ["multiple_choice", "ordering"] as const;
 export const roadmapLanguageLevelValues = ["unknown", "zero", "a1", "a2", "b1", "b2", "c1", "c2"] as const;
@@ -745,10 +745,11 @@ export function buildRoadmapPlan(
             ? normalizeYoutubeUrl(step.resource.url)
             : null
         : null;
+      const normalizedType: (typeof roadmapItemKindValues)[number] = step.type === "video" && !resourceUrl ? "audiovisual" : step.type;
       const questions = ["quiz", "checkpoint", "practice"].includes(step.type) ? normalizeQuestions(step.questions) : [];
       steps.push({
         title,
-        type: step.type,
+        type: normalizedType,
         description: normalizeText(step.whyItMatters, "Parte necessaria para avancar no modulo.", 2000),
         requirements: normalizeText(step.requirements, "", 2000),
         workspace: normalizeText(step.workspace, "", 1500),

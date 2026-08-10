@@ -10,6 +10,7 @@ import {
   type StudyDevice,
   type StudyOrganizationProfile,
 } from "@/lib/study-organization";
+import { STUDY_DEVICE_EVENT, studyDeviceStorageKey } from "@/components/performance/StudyFolderDestination";
 
 type CopyState = "idle" | "copied" | "error";
 type FallbackDevice = StudyDevice | "";
@@ -77,6 +78,17 @@ export function StudyOrganizationGuide({
   useEffect(() => () => {
     if (resetTimer.current) window.clearTimeout(resetTimer.current);
   }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(studyDeviceStorageKey(roadmapId)) as StudyDevice | null;
+    if (saved) queueMicrotask(() => { setSelectedDevice(saved); if (!profile) setFallbackDevice(saved); });
+  }, [profile, roadmapId]);
+
+  useEffect(() => {
+    if (!activeDevice) return;
+    localStorage.setItem(studyDeviceStorageKey(roadmapId), activeDevice);
+    window.dispatchEvent(new CustomEvent(STUDY_DEVICE_EVENT, { detail: { roadmapId, device: activeDevice } }));
+  }, [activeDevice, roadmapId]);
 
   const handleCopy = async () => {
     if (resetTimer.current) window.clearTimeout(resetTimer.current);

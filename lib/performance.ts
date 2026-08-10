@@ -3,6 +3,15 @@
 // pct() na hora de exibir.
 
 export type HabitTipo = "binario" | "numerico";
+export type HabitFrequency = "daily" | "weekdays" | "weekends" | "custom_weekdays";
+
+export type HabitSchedulePeriod = {
+  id?: string;
+  frequencyType: HabitFrequency;
+  weekdays: number[];
+  effectiveFrom: string;
+  effectiveTo: string | null;
+};
 
 export type Habit = {
   id: string;
@@ -12,6 +21,11 @@ export type Habit = {
   unidade: string | null;
   ordem: number;
   ativo: boolean;
+  frequencyType?: HabitFrequency;
+  weekdays?: number[];
+  startDate?: string | null;
+  endDate?: string | null;
+  schedulePeriods?: HabitSchedulePeriod[];
 };
 
 export type HabitLog = {
@@ -51,6 +65,65 @@ export function pct(n: number): number {
   return Math.round(n * 100);
 }
 
+const WEEKDAY_LABELS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+
+export function habitScheduleForDate(habit: Habit, dateISO: string): Pick<HabitSchedulePeriod, "frequencyType" | "weekdays"> | null {
+  const period = habit.schedulePeriods?.find((candidate) =>
+    candidate.effectiveFrom <= dateISO && (!candidate.effectiveTo || dateISO <= candidate.effectiveTo),
+  );
+  if (habit.schedulePeriods?.length && !period) return null;
+  return period ?? { frequencyType: habit.frequencyType ?? "daily", weekdays: habit.weekdays ?? [] };
+}
+
+/** Um dia fora da agenda do hábito é neutro: não entra em denominadores nem quebra sequência. */
+export function isHabitScheduled(habit: Habit, dateISO: string): boolean {
+  if (habit.startDate && dateISO < habit.startDate) return false;
+  if (habit.endDate && dateISO > habit.endDate) return false;
+  const schedule = habitScheduleForDate(habit, dateISO);
+  if (!schedule) return false;
+  const weekday = parseISO(dateISO).getDay();
+  if (schedule.frequencyType === "weekdays") return weekday >= 1 && weekday <= 5;
+  if (schedule.frequencyType === "weekends") return weekday === 0 || weekday === 6;
+  if (schedule.frequencyType === "custom_weekdays") return schedule.weekdays.includes(weekday);
+  return true;
+}
+
+export function scheduledHabits<T extends Habit>(habits: T[], dateISO: string): T[] {
+  return habits.filter((habit) => habit.ativo && isHabitScheduled(habit, dateISO));
+}
+
+export function habitScheduleSummary(habit: Pick<Habit, "frequencyType" | "weekdays">): string {
+  const frequency = habit.frequencyType ?? "daily";
+  if (frequency === "weekdays") return "Segunda a sexta";
+  if (frequency === "weekends") return "Sábado e domingo";
+  if (frequency === "custom_weekdays") {
+    const days = [...new Set(habit.weekdays ?? [])].sort().map((day) => WEEKDAY_LABELS[day]).filter(Boolean);
+    return days.length ? days.join(", ") : "Escolha os dias";
+  }
+  return "Todos os dias";
+}
+
+export function habitEndDateAfterOccurrences(startDate: string, frequencyType: HabitFrequency, weekdays: number[], occurrenceCount: number): string {
+  if (!Number.isInteger(occurrenceCount) || occurrenceCount < 1 || occurrenceCount > 3650) throw new RangeError("Quantidade de dias planejados inválida.");
+  let cursor = startDate;
+  let found = 0;
+  for (let scanned = 0; scanned < 25_000; scanned += 1) {
+    const scheduled = isHabitScheduled({ id: "schedule-preview", label: "", tipo: "binario", alvo: null, unidade: null, ordem: 0, ativo: true, frequencyType, weekdays, startDate }, cursor);
+    if (scheduled) {
+      found += 1;
+      if (found === occurrenceCount) return cursor;
+    }
+    cursor = addDays(cursor, 1);
+  }
+  throw new RangeError("Não foi possível calcular o término do hábito.");
+}
+
+export function habitEndSummary(endDate: string | null | undefined): string | null {
+  if (!endDate) return null;
+  const [year, month, day] = endDate.split("-");
+  return `até ${day}/${month}/${year}`;
+}
+
 // ── Aderência ───────────────────────────────────────────────────────────────
 /** Aderência de um hábito (0..1) dado o valor realizado. */
 export function adherence(habit: Habit, valor: number | undefined | null): number {
@@ -73,8 +146,9 @@ export function indexLogs(logs: HabitLog[]): Record<string, Record<string, numbe
 export function dayScore(
   habits: Habit[],
   valoresDoDia: Record<string, number> | undefined,
+  dateISO?: string,
 ): number {
-  const ativos = habits.filter((h) => h.ativo);
+  const ativos = dateISO ? scheduledHabits(habits, dateISO) : habits.filter((h) => h.ativo);
   if (ativos.length === 0) return 0;
   const soma = ativos.reduce((s, h) => s + adherence(h, valoresDoDia?.[h.id]), 0);
   return soma / ativos.length;
@@ -94,7 +168,8 @@ function avgScore(
 ): { media: number; dias: number } {
   let soma = 0, dias = 0, cur = startISO;
   while (cur <= endISO) {
-    if (temRegistro(idx[cur])) { soma += dayScore(habits, idx[cur]); dias++; }
+    const planned = scheduledHabits(habits, cur);
+    if (planned.length && temRegistro(idx[cur])) { soma += dayScore(planned, idx[cur], cur); dias++; }
     cur = addDays(cur, 1);
   }
   return { media: dias ? soma / dias : 0, dias };
@@ -108,7 +183,7 @@ function avgHabit(
 ): { media: number; dias: number } {
   let soma = 0, dias = 0, cur = startISO;
   while (cur <= endISO) {
-    if (temRegistro(idx[cur])) { soma += adherence(habit, idx[cur][habit.id]); dias++; }
+    if (isHabitScheduled(habit, cur) && temRegistro(idx[cur])) { soma += adherence(habit, idx[cur][habit.id]); dias++; }
     cur = addDays(cur, 1);
   }
   return { media: dias ? soma / dias : 0, dias };
@@ -127,7 +202,8 @@ export function heatmap(
   for (let i = dias - 1; i >= 0; i--) {
     const data = addDays(todayISO, -i);
     const reg = temRegistro(idx[data]);
-    out.push({ data, score: reg ? dayScore(habits, idx[data]) : 0, temRegistro: reg });
+    const planned = scheduledHabits(habits, data);
+    out.push({ data, score: reg && planned.length ? dayScore(planned, idx[data], data) : 0, temRegistro: reg && planned.length > 0 });
   }
   return out;
 }
@@ -142,7 +218,10 @@ export function streak(
 ): number {
   let n = 0;
   let cur = addDays(todayISO, -1);
-  while (temRegistro(idx[cur]) && dayScore(habits, idx[cur]) >= limiar) {
+  while (cur >= addDays(todayISO, -730)) {
+    const planned = scheduledHabits(habits, cur);
+    if (!planned.length) { cur = addDays(cur, -1); continue; }
+    if (!temRegistro(idx[cur]) || dayScore(planned, idx[cur], cur) < limiar) break;
     n++;
     cur = addDays(cur, -1);
   }
@@ -247,7 +326,9 @@ export function insights(
     const data = addDays(todayISO, -i);
     if (!temRegistro(idx[data])) continue;
     const w = parseISO(data).getDay();
-    porDow[w].soma += dayScore(habits, idx[data]);
+    const planned = scheduledHabits(habits, data);
+    if (!planned.length) continue;
+    porDow[w].soma += dayScore(planned, idx[data], data);
     porDow[w].dias++;
   }
   const medias = porDow.map((p, w) => ({ w, media: p.dias >= 2 ? p.soma / p.dias : -1 }))

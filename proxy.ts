@@ -9,6 +9,11 @@ import {
 
 // Rotas que exigem role admin ou ceo
 const ADMIN_ROUTES = ["/admin"];
+const PRIVATE_ROBOTS_PREFIXES = [
+  "/admin", "/api", "/arena", "/agenda", "/cadastro", "/convite", "/login",
+  "/meus-ingressos", "/minhas-compras", "/minhas-inscricoes", "/notificacoes",
+  "/painel", "/perfil", "/recuperar-senha", "/staff",
+];
 
 export async function proxy(request: NextRequest) {
   const development = process.env.NODE_ENV === "development";
@@ -30,6 +35,9 @@ export async function proxy(request: NextRequest) {
       requestId,
       production: !development,
     });
+    if (PRIVATE_ROBOTS_PREFIXES.some((prefix) => request.nextUrl.pathname === prefix || request.nextUrl.pathname.startsWith(`${prefix}/`))) {
+      response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    }
     return response;
   };
 

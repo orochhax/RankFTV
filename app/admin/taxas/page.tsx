@@ -3,12 +3,11 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { TAXAS_EXIBICAO } from "@/lib/taxas";
+import { isAdminUser } from "@/lib/supabase/roles";
 
 export default async function AdminTaxasPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
+  if (!(await isAdminUser(supabase))) redirect("/");
 
   const { padrao, elite, minimo } = TAXAS_EXIBICAO;
 

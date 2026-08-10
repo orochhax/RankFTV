@@ -1,4 +1,4 @@
-import { addDays, parseISO, type Habit, type HabitLog } from "@/lib/performance";
+import { addDays, isHabitScheduled, parseISO, scheduledHabits, type Habit, type HabitLog } from "@/lib/performance";
 import type { TaskOccurrence } from "@/lib/performance-dashboard";
 import type { InvestmentContribution, InvestmentSnapshot } from "@/lib/performance-widgets";
 
@@ -50,7 +50,7 @@ export function isHabitDone(habit: Habit, value: number | null | undefined): boo
 
 function scoreForDate(habits: Habit[], logs: HabitLog[], tasks: TaskOccurrence[], date: string): { score: number; planned: boolean } {
   const domains: number[] = [];
-  const activeHabits = habits.filter((habit) => habit.ativo);
+  const activeHabits = scheduledHabits(habits, date);
   if (activeHabits.length) {
     const values = new Map(logs.filter((log) => log.data === date).map((log) => [log.habit_id, log.valor]));
     domains.push(activeHabits.filter((habit) => isHabitDone(habit, values.get(habit.id))).length / activeHabits.length);
@@ -116,7 +116,7 @@ export function habitChartData(habits: Habit[], logs: HabitLog[], today: string,
   return [...buckets].map(([key, bucket]) => {
     const point: HabitChartPoint = { key, label: bucket.label, total: 0 };
     active.forEach((habit) => {
-      const completed = bucket.dates.filter((date) => isHabitDone(habit, byDate.get(date)?.get(habit.id))).length;
+      const completed = bucket.dates.filter((date) => isHabitScheduled(habit, date) && isHabitDone(habit, byDate.get(date)?.get(habit.id))).length;
       point[habit.id] = completed;
       point.total += completed;
     });
@@ -126,9 +126,13 @@ export function habitChartData(habits: Habit[], logs: HabitLog[], today: string,
 
 export function habitCurrentStreak(habit: Habit, logs: HabitLog[], today: string): number {
   const values = new Map(logs.filter((log) => log.habit_id === habit.id).map((log) => [log.data, log.valor]));
-  let cursor = isHabitDone(habit, values.get(today)) ? today : addDays(today, -1);
+  let cursor = today;
+  while (!isHabitScheduled(habit, cursor) && cursor >= addDays(today, -730)) cursor = addDays(cursor, -1);
+  if (!isHabitDone(habit, values.get(cursor))) cursor = addDays(cursor, -1);
   let streak = 0;
-  while (isHabitDone(habit, values.get(cursor))) {
+  while (cursor >= addDays(today, -730)) {
+    if (!isHabitScheduled(habit, cursor)) { cursor = addDays(cursor, -1); continue; }
+    if (!isHabitDone(habit, values.get(cursor))) break;
     streak += 1;
     cursor = addDays(cursor, -1);
   }
