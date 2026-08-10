@@ -10,7 +10,7 @@ import { addDays, hojeISO } from "@/lib/performance";
 import { parseEventRecurrenceRule } from "@/lib/event-recurrence";
 import { portfolioVariation } from "@/lib/performance-life-os";
 import { getOpenAIClient } from "@/lib/openai";
-import { openAIReasoningEffort } from "@/lib/openai-config";
+import { openAIReasoningEffort, openAIRoadmapMaxOutputTokens } from "@/lib/openai-config";
 import { generateDailyLifeAnalysis } from "@/lib/daily-life-analysis-service";
 import { isStudyAnswerCorrect, validStudyAnswer, type SubmittedStudyAnswer } from "@/lib/study-assessment";
 import { isPerformanceOwner } from "@/lib/performance-owner";
@@ -688,7 +688,7 @@ function roadmapAiError(error: unknown): string {
   if (error instanceof Error && error.message === "EMPTY_ROADMAP") return "A IA nao encontrou conteudo suficiente para montar um roadmap.";
   if (error instanceof Error && error.message === "EMPTY_STRUCTURED_OUTPUT") return "A IA concluiu a solicitacao, mas nao devolveu um roadmap valido. Tente novamente.";
   if (error instanceof Error && error.message === "INVALID_STRUCTURED_OUTPUT") return "A IA devolveu um roadmap fora do formato esperado. Tente novamente; suas respostas continuam salvas.";
-  if (error instanceof Error && error.message === "ROADMAP_OUTPUT_LIMIT") return "O roadmap ficou maior que o limite de resposta da IA. Reduza a carga do plano ou divida o objetivo em duas trilhas.";
+  if (error instanceof Error && error.message === "ROADMAP_OUTPUT_LIMIT") return "A IA atingiu o limite configurado mesmo com o orcamento ampliado. Tente reduzir a profundidade ou dividir o objetivo em duas trilhas.";
   if (error instanceof Error && error.message === "ROADMAP_CONTENT_FILTER") return "A resposta foi interrompida pelo filtro de seguranca da OpenAI. Revise o objetivo informado e tente novamente.";
   if (error instanceof Error && error.message === "PROVIDER_RESPONSE_CANCELLED") return "A geracao foi cancelada antes de terminar. Tente novamente.";
   if (error instanceof Error && error.message === "DRAFT_PERSIST_FAILED") return "A IA terminou o roadmap, mas o site nao conseguiu salvar o rascunho. Tente novamente.";
@@ -801,7 +801,7 @@ async function processRoadmapGeneration(
         tool_choice: "auto" as const,
         max_tool_calls: 8,
       } : {}),
-      max_output_tokens: 30_000,
+      max_output_tokens: openAIRoadmapMaxOutputTokens(process.env.OPENAI_ROADMAP_MAX_OUTPUT_TOKENS),
       safety_identifier: createHash("sha256").update(ctx.user.id).digest("hex"),
       background: true,
       store: true,
@@ -844,7 +844,10 @@ export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<Gener
     mainDevice: availableDevices[0] ?? "windows",
     organizationProfileCollected: true,
     useContext,
-    targetLevel: "autonomous",
+    targetLevel: roadmapType === "language" ? "autonomous" : text(formData, "target_level", 30) ?? "autonomous",
+    applicationIntent: roadmapType === "language" ? "none" : text(formData, "application_intent", 30) ?? "none",
+    targetRole: roadmapType === "language" ? "" : text(formData, "target_role", 200) ?? "",
+    jobDescription: roadmapType === "language" ? "" : text(formData, "job_description", 8000) ?? "",
     mainObstacle: text(formData, "main_obstacle", 30) ?? "",
     startDate: text(formData, "start_date", 10) ?? "",
     timelineMode: text(formData, "timeline_mode", 20) ?? "",

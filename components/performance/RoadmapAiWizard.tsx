@@ -126,6 +126,9 @@ type FormState = {
   availableDevices: string[];
   useContext: string;
   targetLevel: string;
+  applicationIntent: string;
+  targetRole: string;
+  jobDescription: string;
   mainObstacle: string;
   startDate: string;
   timelineMode: "duration" | "deadline";
@@ -188,6 +191,9 @@ function initialFormState(today: string, answers?: RoadmapAiAnswers | null): For
       requiredMaterials: preferredMaterials.length ? preferredMaterials : ["official"],
       materialBudget: answers.requiredMaterials.includes("free") ? "free_only" : answers.materialBudget ?? "free_only",
       ownedMaterials: answers.ownedMaterials ?? "",
+      applicationIntent: answers.applicationIntent ?? "none",
+      targetRole: answers.targetRole ?? "",
+      jobDescription: answers.jobDescription ?? "",
       finalOutcomes: [],
       languageSkills: [...answers.languageSkills],
       languageActivities: [...answers.languageActivities],
@@ -205,6 +211,9 @@ function initialFormState(today: string, answers?: RoadmapAiAnswers | null): For
     availableDevices: [],
     useContext: "new_career",
     targetLevel: "autonomous",
+    applicationIntent: "none",
+    targetRole: "",
+    jobDescription: "",
     mainObstacle: "direction",
     startDate: today,
     timelineMode: "duration",
@@ -278,7 +287,9 @@ export function RoadmapAiWizard({
       && draft.languagePracticeAccess.length > 0
       && (draft.languageContexts.length > 0 || draft.languageSituations.trim().length >= 3)
       && draft.languageInterests.trim().length >= 3
-    : draft.subject.trim().length >= 3 && draft.learningFormats.length > 0);
+    : draft.subject.trim().length >= 3
+      && draft.learningFormats.length > 0
+      && (draft.applicationIntent === "none" || draft.targetRole.trim().length >= 2));
   const canAdjust = !initialDraft || initialDraft.origin === "ai" && Boolean(initialDraft.answers);
 
   const setField = <K extends keyof FormState>(key: K, value: FormState[K]) => setDraft((current) => ({ ...current, [key]: value }));
@@ -373,6 +384,17 @@ export function RoadmapAiWizard({
         <SelectField name="use_context" label="Para que voce quer aprender isso?" value={draft.useContext} onChange={(value) => setField("useContext", value)} className="sm:col-span-2" options={[
           ["current_job", "Aplicar no trabalho atual"], ["new_career", "Entrar ou mudar de carreira"], ["freelance", "Trabalhar como freelancer"], ["exam", "Fazer uma prova ou certificacao"], ["academic", "Usar na faculdade"], ["personal_project", "Construir um projeto pessoal"], ["personal_learning", "Aprender por interesse pessoal"],
         ]} />
+        <SelectField name="application_intent" label="Voce pretende se candidatar a vagas nessa area?" value={draft.applicationIntent} onChange={(value) => setField("applicationIntent", value)} className="sm:col-span-2" options={[
+          ["none", "Nao, quero focar no aprendizado agora"], ["after_roadmap", "Sim, depois de concluir o roadmap"], ["applying_now", "Sim, ja estou me candidatando"],
+        ]} />
+        {draft.applicationIntent !== "none" && <>
+          <label className="text-xs font-medium text-gray-500 sm:col-span-2">Cargo ou funcao desejada
+            <input name="target_role" required minLength={2} maxLength={200} value={draft.targetRole} onChange={(event) => setField("targetRole", event.target.value)} placeholder="Ex.: Analista de dados junior" className={inputClass} />
+          </label>
+          <label className="text-xs font-medium text-gray-500 sm:col-span-2">Descricao de uma ou mais vagas <span className="font-normal text-gray-400">Opcional</span>
+            <textarea name="job_description" rows={4} maxLength={8000} value={draft.jobDescription} onChange={(event) => setField("jobDescription", event.target.value)} placeholder="Cole os requisitos, atividades e tecnologias das vagas. A IA usara isso apenas para alinhar as competencias e entregas do roadmap." className={inputClass} />
+          </label>
+        </>}
         <label className="text-xs font-medium text-gray-500 sm:col-span-2">O que voce precisa conseguir fazer no final?
           <textarea name="goal_detail" required rows={3} minLength={10} maxLength={1500} value={draft.goalDetail} onChange={(event) => setField("goalDetail", event.target.value)} placeholder="Ex.: conectar dados de vendas, criar medidas DAX e publicar um dashboard que ajude a decidir quais produtos priorizar" className={inputClass} />
         </label>
@@ -384,6 +406,9 @@ export function RoadmapAiWizard({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SelectField name="current_level" label="Nivel atual" value={draft.currentLevel} onChange={(value) => setField("currentLevel", value)} options={[
           ["unknown", "Nao sei meu nivel"], ["beginner", "Nunca estudei"], ["basic", "Conheco o basico"], ["intermediate", "Ja pratico"], ["advanced", "Tenho experiencia"],
+        ]} />
+        <SelectField name="target_level" label="Nivel que quer atingir" value={draft.targetLevel} onChange={(value) => setField("targetLevel", value)} options={[
+          ["foundation", "Entender os fundamentos"], ["functional", "Executar com orientacao"], ["autonomous", "Trabalhar com autonomia"], ["professional", "Atuar com qualidade profissional"],
         ]} />
         <SelectField name="digital_literacy" label="Autonomia com tecnologia" value={draft.digitalLiteracy} onChange={(value) => setField("digitalLiteracy", value)} options={[
           ["needs_guidance", "Preciso do passo a passo"], ["basic", "Uso o computador, mas preciso de ajuda"], ["comfortable", "Instalo e configuro ferramentas"], ["advanced", "Domino terminal e ambientes"],
@@ -608,9 +633,7 @@ function TimeFeasibilityStatus({ status, depth, pace }: { status: TimeFeasibilit
   const paceLabel = { light: "leve", steady: "constante", intensive: "intensivo" }[pace] ?? pace;
   const requestedDuration = formatRoadmapDuration(status.requestedWeeks);
   const needsMoreTime = status.recommendedWeeks > status.requestedWeeks;
-  const recommendedDuration = needsMoreTime
-    ? formatRoadmapDuration(status.recommendedWeeks, status.recommendedMonths)
-    : formatRoadmapDuration(status.recommendedWeeks);
+  const recommendedDuration = formatRoadmapDuration(status.recommendedWeeks, status.recommendedMonths);
   const hasNoSessions = status.plannedMinutes === 0;
   const visibleCoverage = Math.min(100, status.coveragePercent);
   const coverageLabel = status.coveragePercent > 200 ? "mais de 200%" : `${status.coveragePercent}%`;
@@ -644,12 +667,14 @@ function TimeFeasibilityStatus({ status, depth, pace }: { status: TimeFeasibilit
           <p className={`text-sm font-bold ${presentation.accent}`}>{coverageLabel} do escopo</p>
         </div>
         <p className="mt-3 text-xs leading-5 text-white/65">{scopeImpact}</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
-          <TimeMetric label="Prazo informado" value={requestedDuration} />
-          <TimeMetric label="Carga util / estimada" value={`${formatStudyHours(status.plannedMinutes)} / ${formatStudyHours(status.estimatedMinutes)}`} />
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <TimeMetric label="Prazo escolhido" value={requestedDuration} />
+          <TimeMetric label="Carga disponivel nesse prazo" value={formatStudyHours(status.plannedMinutes)} />
+          <TimeMetric label="Carga estimada do objetivo" value={formatStudyHours(status.estimatedMinutes)} />
           <TimeMetric label="Prazo recomendado" value={recommendedDuration} />
         </div>
         <p className="mt-3 text-[11px] font-medium leading-5 text-white/60">{recommendation}</p>
+        <p className="mt-1 text-[10px] leading-4 text-white/35">Mudar apenas a duracao altera a carga disponivel e a cobertura. A carga do objetivo e o prazo recomendado continuam os mesmos.</p>
         <p className="mt-1 text-[10px] leading-4 text-white/30">Estimativa inicial baseada nas suas escolhas; nao e uma promessa de dominio total do assunto.</p>
       </div>
     </div>

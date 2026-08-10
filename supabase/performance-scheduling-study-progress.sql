@@ -117,7 +117,9 @@ DECLARE required_checks integer; checked_checks integer; question_count integer;
 BEGIN
   SELECT jsonb_array_length(preparation_steps) + jsonb_array_length(completion_checklist), legacy_completion_preserved
     INTO required_checks, legacy FROM perf_study_roadmap_item WHERE id = p_item_id AND user_id = p_user_id FOR UPDATE;
-  IF NOT FOUND THEN RAISE EXCEPTION 'Aula nao encontrada'; END IF;
+  -- A aula pode ja ter sido removida por um ON DELETE CASCADE. Nesse caso,
+  -- recalcular o progresso deve ser uma operacao segura e sem efeito.
+  IF NOT FOUND THEN RETURN false; END IF;
   SELECT count(*) INTO checked_checks FROM perf_study_check_progress
     WHERE item_id = p_item_id AND user_id = p_user_id AND checked;
   SELECT count(*) INTO question_count FROM perf_study_assessment_question WHERE item_id = p_item_id AND user_id = p_user_id;
@@ -207,8 +209,21 @@ CREATE TRIGGER perf_study_definition_completion_trigger AFTER UPDATE OF preparat
 
 CREATE OR REPLACE FUNCTION perf_sync_study_question_change()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE target_item uuid := coalesce(NEW.item_id,OLD.item_id); target_user uuid := coalesce(NEW.user_id,OLD.user_id);
-BEGIN PERFORM perf_recompute_study_item(target_item,target_user); RETURN coalesce(NEW,OLD); END $$;
+DECLARE target_item uuid; target_user uuid;
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    target_item := OLD.item_id;
+    target_user := OLD.user_id;
+  ELSE
+    target_item := NEW.item_id;
+    target_user := NEW.user_id;
+  END IF;
+  IF EXISTS (SELECT 1 FROM perf_study_roadmap_item WHERE id=target_item AND user_id=target_user) THEN
+    PERFORM perf_recompute_study_item(target_item,target_user);
+  END IF;
+  IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+  RETURN NEW;
+END $$;
 DROP TRIGGER IF EXISTS perf_study_question_completion_trigger ON perf_study_assessment_question;
 CREATE TRIGGER perf_study_question_completion_trigger AFTER INSERT OR UPDATE OR DELETE ON perf_study_assessment_question
   FOR EACH ROW EXECUTE FUNCTION perf_sync_study_question_change();

@@ -146,7 +146,7 @@ export function StudiesWorkspace({
   const [generationPending, startGenerationTransition] = useTransition();
   const [roadmapError, setRoadmapError] = useState<string | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
-  const [recentGeneration, setRecentGeneration] = useState<{ generationId: string; title: string } | null>(null);
+  const [recentGenerations, setRecentGenerations] = useState<Array<{ generationId: string; title: string }>>([]);
   const [dismissedGenerationIds, setDismissedGenerationIds] = useState<Set<string>>(() => new Set());
 
   const roadmap = roadmaps.find((entry) => entry.id === selectedRoadmapId) ?? null;
@@ -154,9 +154,18 @@ export function StudiesWorkspace({
   const moduleViews = useMemo(() => buildModuleViews(selectedRoadmapId, modules, items), [selectedRoadmapId, modules, items]);
   const weekly = studyWeeklyStats(activities.filter((item) => item.area === "estudos"), monday, today);
   const visibleGenerationJobs = useMemo(() => generationJobs.filter((job) => !dismissedGenerationIds.has(job.generationId)), [dismissedGenerationIds, generationJobs]);
-  const readyRecentDraft = recentGeneration ? drafts.find((draft) => draft.generationId === recentGeneration.generationId) ?? null : null;
-  const recentFailed = recentGeneration ? visibleGenerationJobs.some((job) => job.generationId === recentGeneration.generationId && job.status === "failed") : false;
-  const shouldPollGeneration = visibleGenerationJobs.some((job) => job.status === "generating") || Boolean(recentGeneration && !readyRecentDraft && !recentFailed);
+  const readyRecentDrafts = useMemo(() => recentGenerations.flatMap((generation) => {
+    const draft = drafts.find((entry) => entry.generationId === generation.generationId);
+    return draft ? [draft] : [];
+  }), [drafts, recentGenerations]);
+  const readyRecentIds = useMemo(() => new Set(readyRecentDrafts.map((draft) => draft.generationId)), [readyRecentDrafts]);
+  const failedRecentIds = useMemo(() => new Set(visibleGenerationJobs.filter((job) => job.status === "failed").map((job) => job.generationId)), [visibleGenerationJobs]);
+  const hasUnresolvedRecentGeneration = recentGenerations.some((generation) => !readyRecentIds.has(generation.generationId) && !failedRecentIds.has(generation.generationId));
+  const shouldPollGeneration = visibleGenerationJobs.some((job) => job.status === "generating") || hasUnresolvedRecentGeneration;
+
+  const trackGeneration = (generation: { generationId: string; title: string }) => {
+    setRecentGenerations((current) => [generation, ...current.filter((entry) => entry.generationId !== generation.generationId)]);
+  };
 
   useEffect(() => {
     if (!shouldPollGeneration) return;
@@ -188,7 +197,7 @@ export function StudiesWorkspace({
 
   const dismissGenerationFailure = (generationId: string) => {
     setDismissedGenerationIds((current) => new Set(current).add(generationId));
-    setRecentGeneration((current) => current?.generationId === generationId ? null : current);
+    setRecentGenerations((current) => current.filter((generation) => generation.generationId !== generationId));
     startGenerationTransition(async () => {
       await dispensarFalhaGeracaoRoadmapLifeOS(generationId);
       router.refresh();
@@ -286,12 +295,11 @@ export function StudiesWorkspace({
     {!referenceStandardReady && <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Execute <b>performance-study-reference-standard.sql</b> para liberar preparacao, pratica sem consulta, perguntas de checagem, criterios objetivos e evidencias nos novos roadmaps.</p>}
     <RoadmapGenerationPanel
       jobs={visibleGenerationJobs}
-      recentGeneration={recentGeneration}
-      readyDraft={readyRecentDraft}
-      onOpenReady={() => {
-        if (!readyRecentDraft) return;
-        setRecentGeneration(null);
-        openRoadmapDraft(readyRecentDraft.generationId);
+      recentGenerations={recentGenerations}
+      readyDrafts={readyRecentDrafts}
+      onOpenReady={(generationId) => {
+        setRecentGenerations((current) => current.filter((generation) => generation.generationId !== generationId));
+        openRoadmapDraft(generationId);
       }}
       onDismiss={dismissGenerationFailure}
       actionError={generationError}
@@ -304,7 +312,7 @@ export function StudiesWorkspace({
             setGenerationError(result.error ?? "Nao foi possivel tentar novamente.");
             return;
           }
-          setRecentGeneration({ generationId: result.generationId, title: result.title ?? "Novo roadmap" });
+          trackGeneration({ generationId: result.generationId, title: result.title ?? "Novo roadmap" });
           router.refresh();
         });
       }}
@@ -378,8 +386,8 @@ export function StudiesWorkspace({
     </section>
 
     {newItem && roadmap && <Modal title="Nova etapa" onClose={() => setNewItem(false)}><NewStudyItem roadmapId={roadmap.id} sections={moduleViews.map((module) => module.title)} order={items.length} onDone={() => { setNewItem(false); router.refresh(); }} /></Modal>}
-    {aiWizard && <Modal title="Criar roadmap com IA" wide onClose={() => setAiWizard(false)}><RoadmapAiWizard today={today} onClose={() => setAiWizard(false)} onGenerationStarted={(generation) => { setRecentGeneration(generation); setAiWizard(false); router.refresh(); }} onDone={() => { setAiWizard(false); setPreferredRoadmapId(""); router.refresh(); }} /></Modal>}
-    {openedDraft && <Modal title={openedDraft.origin === "import" ? "Roadmap ajustado pela IA" : "Rascunho de roadmap"} wide onClose={() => setOpenedDraft(null)}><RoadmapAiWizard today={today} initialDraft={openedDraft} onClose={() => setOpenedDraft(null)} onGenerationStarted={(generation) => { setRecentGeneration(generation); setOpenedDraft(null); setDraftLibrary(false); router.refresh(); }} onDone={() => { setOpenedDraft(null); setDraftLibrary(false); setPreferredRoadmapId(""); router.refresh(); }} /></Modal>}
+    {aiWizard && <Modal title="Criar roadmap com IA" wide onClose={() => setAiWizard(false)}><RoadmapAiWizard today={today} onClose={() => setAiWizard(false)} onGenerationStarted={(generation) => { trackGeneration(generation); setAiWizard(false); router.refresh(); }} onDone={() => { setAiWizard(false); setPreferredRoadmapId(""); router.refresh(); }} /></Modal>}
+    {openedDraft && <Modal title={openedDraft.origin === "import" ? "Roadmap ajustado pela IA" : "Rascunho de roadmap"} wide onClose={() => setOpenedDraft(null)}><RoadmapAiWizard today={today} initialDraft={openedDraft} onClose={() => setOpenedDraft(null)} onGenerationStarted={(generation) => { trackGeneration(generation); setOpenedDraft(null); setDraftLibrary(false); router.refresh(); }} onDone={() => { setOpenedDraft(null); setDraftLibrary(false); setPreferredRoadmapId(""); router.refresh(); }} /></Modal>}
     {draftLibrary && <Modal title="Meus Roadmaps" wide onClose={() => setDraftLibrary(false)}><RoadmapLibrary
       roadmaps={roadmaps}
       drafts={drafts}
@@ -448,8 +456,8 @@ const roadmapGenerationMessages = [
 
 function RoadmapGenerationPanel({
   jobs,
-  recentGeneration,
-  readyDraft,
+  recentGenerations,
+  readyDrafts,
   onOpenReady,
   onDismiss,
   onRetry,
@@ -457,19 +465,21 @@ function RoadmapGenerationPanel({
   retryPending,
 }: {
   jobs: RoadmapGenerationJob[];
-  recentGeneration: { generationId: string; title: string } | null;
-  readyDraft: RoadmapDraftSummary | null;
-  onOpenReady: () => void;
+  recentGenerations: Array<{ generationId: string; title: string }>;
+  readyDrafts: RoadmapDraftSummary[];
+  onOpenReady: (generationId: string) => void;
   onDismiss: (generationId: string) => void;
   onRetry: (generationId: string) => void;
   actionError: string | null;
   retryPending: boolean;
 }) {
   const [messageIndex, setMessageIndex] = useState(0);
-  const hasTrackedJob = recentGeneration ? jobs.some((job) => job.generationId === recentGeneration.generationId) : false;
-  const visibleJobs = recentGeneration && !readyDraft && !hasTrackedJob
-    ? [{ generationId: recentGeneration.generationId, status: "generating" as const, title: recentGeneration.title, error: null, createdAt: "" }, ...jobs]
-    : jobs;
+  const readyIds = new Set(readyDrafts.map((draft) => draft.generationId));
+  const serverJobIds = new Set(jobs.map((job) => job.generationId));
+  const optimisticJobs: RoadmapGenerationJob[] = recentGenerations
+    .filter((generation) => !readyIds.has(generation.generationId) && !serverJobIds.has(generation.generationId))
+    .map((generation) => ({ generationId: generation.generationId, status: "generating", title: generation.title, error: null, createdAt: "" }));
+  const visibleJobs = [...optimisticJobs, ...jobs];
   const hasGenerating = visibleJobs.some((job) => job.status === "generating");
 
   useEffect(() => {
@@ -478,15 +488,16 @@ function RoadmapGenerationPanel({
     return () => window.clearInterval(interval);
   }, [hasGenerating]);
 
-  if (!visibleJobs.length && !readyDraft && !actionError) return null;
+  if (!visibleJobs.length && !readyDrafts.length && !actionError) return null;
 
   return <div className="space-y-3">
     {actionError && <p role="alert" className="rounded-lg border border-red-400/25 bg-red-400/[0.06] px-4 py-3 text-xs text-red-200">{actionError}</p>}
-    {readyDraft && <section className="flex flex-wrap items-center gap-4 rounded-lg border border-emerald-400/25 bg-emerald-400/[0.07] p-4 text-white">
+    {hasGenerating && visibleJobs.filter((job) => job.status === "generating").length > 1 && <p className="text-xs font-medium text-white/45">{visibleJobs.filter((job) => job.status === "generating").length} roadmaps sendo construidos ao mesmo tempo</p>}
+    {readyDrafts.map((readyDraft) => <section key={readyDraft.generationId} className="flex flex-wrap items-center gap-4 rounded-lg border border-emerald-400/25 bg-emerald-400/[0.07] p-4 text-white">
       <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-300"><Check className="size-5" /></span>
       <div className="min-w-0 flex-1"><p className="text-xs font-semibold uppercase text-emerald-300">Roadmap pronto</p><h3 className="mt-1 truncate text-sm font-semibold text-white">{readyDraft.title}</h3><p className="mt-1 text-xs text-white/40">A geracao terminou e o resultado esta salvo em Meus Roadmaps.</p></div>
-      <button type="button" onClick={onOpenReady} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500">Ver roadmap</button>
-    </section>}
+      <button type="button" onClick={() => onOpenReady(readyDraft.generationId)} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500">Ver roadmap</button>
+    </section>)}
     {visibleJobs.map((job) => job.status === "generating" ? <section key={job.generationId} role="status" aria-live="polite" className="rounded-lg border border-blue-400/25 bg-blue-400/[0.06] p-4 text-white">
       <div className="flex items-start gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-400/15 text-blue-300"><Loader2 className="size-5 animate-spin" /></span>
