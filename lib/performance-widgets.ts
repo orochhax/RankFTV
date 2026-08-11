@@ -1,16 +1,136 @@
 import { addDays } from "@/lib/performance";
+import type { ItCareerProjectSpec } from "@/lib/it-career-roadmaps";
 import type { StudyOrganizationProfile } from "@/lib/study-organization";
 
 export type MetricActivity = { date: string; durationMinutes: number | null; status?: string; area?: string };
 export type StudyItemKind = "core" | "reinforcement" | "challenge" | "check" | "criterion" | "general" | "reading" | "video" | "audiovisual" | "practice" | "quiz" | "project" | "checkpoint";
+export type StudyRoadmapKind = "language" | "it_career" | "legacy_skill" | "legacy_unknown";
+export type StudyTechnicalLevel = "foundation" | "junior" | "mid" | "senior" | "specialist";
+export type StudyModuleKind = "core" | "specialization" | "capstone";
+export type StudyContentRole = "legacy_step" | "topic" | "subtopic" | "activity" | "module_project" | "assessment" | "capstone" | "review";
 export type StudyQuestionType = "multiple_choice" | "ordering";
-export type StudyRoadmapItem = { id: string; roadmapId: string; moduleId?: string | null; section: string | null; title: string; description: string | null; requirements?: string | null; workspace?: string | null; preparationSteps?: string[]; instructions?: string | null; practiceExercises?: string[]; reflectionQuestions?: string[]; completionChecklist?: string[]; evidence?: string | null; completionCriteria?: string | null; resourceTitle?: string | null; resourceUrl?: string | null; resourceChannel?: string | null; orderIndex: number; estimatedMinutes: number | null; status: "pending" | "in_progress" | "completed"; completedAt: string | null; scheduledDate?: string | null; itemKind?: StudyItemKind };
-export type StudyRoadmap = { id: string; title: string; description: string | null; status: "active" | "completed" | "archived"; startDate: string; targetDate: string | null; source?: "manual" | "import" | "ai"; difficultyLevel?: "introductory" | "intermediate" | "advanced" | "mixed" | null; qualityScore?: number | null; workloadScore?: number | null; totalEstimatedMinutes?: number | null; createdAt?: string; organizationProfile?: StudyOrganizationProfile | null };
-export type StudyRoadmapModule = { id: string; roadmapId: string; title: string; objective: string | null; successCriteria: string | null; topics: string[]; orderIndex: number; estimatedMinutes: number | null };
+export type StudyProjectSpec = ItCareerProjectSpec;
+export type StudyRoadmapItem = { id: string; roadmapId: string; moduleId?: string | null; parentItemId?: string | null; section: string | null; title: string; description: string | null; requirements?: string | null; workspace?: string | null; preparationSteps?: string[]; instructions?: string | null; practiceExercises?: string[]; reflectionQuestions?: string[]; completionChecklist?: string[]; subtopics?: string[]; evidence?: string | null; completionCriteria?: string | null; projectSpec?: StudyProjectSpec | null; resourceTitle?: string | null; resourceUrl?: string | null; resourceChannel?: string | null; orderIndex: number; estimatedMinutes: number | null; status: "pending" | "in_progress" | "completed"; completedAt: string | null; scheduledDate?: string | null; itemKind?: StudyItemKind; contentRole?: StudyContentRole; itemCode?: string | null; levelCode?: StudyTechnicalLevel | null; countsForProgress?: boolean; templateNodeId?: string | null };
+export type StudyRoadmap = { id: string; title: string; description: string | null; status: "active" | "completed" | "archived"; startDate: string; targetDate: string | null; recommendedTargetDate?: string | null; source?: "manual" | "import" | "ai" | "template"; roadmapKind?: StudyRoadmapKind; templateKey?: string | null; templateVersion?: number | null; targetTechnicalLevel?: StudyTechnicalLevel | null; setup?: Record<string, unknown> | null; difficultyLevel?: "introductory" | "intermediate" | "advanced" | "mixed" | null; qualityScore?: number | null; workloadScore?: number | null; totalEstimatedMinutes?: number | null; createdAt?: string; organizationProfile?: StudyOrganizationProfile | null };
+export type StudyRoadmapModule = { id: string; roadmapId: string; title: string; objective: string | null; successCriteria: string | null; topics: string[]; orderIndex: number; estimatedMinutes: number | null; moduleKind?: StudyModuleKind; moduleCode?: string | null; levelCode?: StudyTechnicalLevel | null; templateNodeId?: string | null };
 export type StudyAssessmentQuestion = { id: string; itemId: string; prompt: string; options: string[]; orderIndex: number; questionType: StudyQuestionType };
-export type StudyAssessmentFeedback = { questionId: string; questionType: StudyQuestionType; correct: boolean; correctOptionIndex: number | null; correctOrder: number[]; explanation: string };
+export type StudyAssessmentFeedback = { questionId: string; questionType: StudyQuestionType; correct: boolean };
 export type StudyAssessmentAttempt = { id: string; itemId: string; score: number; correctCount: number; totalCount: number; submittedAt: string; answers: Record<string, number | number[]>; feedback: StudyAssessmentFeedback[] };
 export type StudyCheckProgress = { itemId: string; group: "preparation" | "completion"; index: number; checked: boolean };
+
+const studyProjectInterestIds = new Set([
+  "football", "cars", "news", "technology", "finance",
+  "health_wellness", "games", "education", "music", "ecommerce",
+]);
+
+function projectRecord(value: unknown): Record<string, unknown> | null {
+  return value != null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function projectText(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function projectTextList(value: unknown): string[] | null {
+  if (!Array.isArray(value) || !value.length) return null;
+  const entries = value.map(projectText);
+  return entries.every((entry): entry is string => entry != null) ? entries : null;
+}
+
+/**
+ * Normaliza o snapshot JSON antes de expo-lo ao cliente. Dados antigos ou
+ * adulterados voltam como null e continuam usando a apresentacao legada.
+ */
+export function parseStudyProjectSpec(value: unknown): StudyProjectSpec | null {
+  const spec = projectRecord(value);
+  const interest = projectRecord(spec?.interest);
+  const data = projectRecord(spec?.data);
+  if (!spec || spec.schemaVersion !== 1 || !interest || !data) return null;
+  if (spec.projectKind !== "module_challenge" && spec.projectKind !== "capstone") return null;
+
+  const interestId = projectText(interest.id);
+  const interestLabel = projectText(interest.label);
+  const sourceType = data.sourceType;
+  if (!interestId || !studyProjectInterestIds.has(interestId) || !interestLabel) return null;
+  if (!["synthetic_generator", "provided_fixture", "public_dataset"].includes(String(sourceType))) return null;
+
+  const requiredTextKeys = [
+    "blueprintId", "projectTitle", "productDefinition", "problemStatement",
+    "targetAudience", "implementationFreedom",
+  ] as const;
+  const normalizedText = Object.fromEntries(requiredTextKeys.map((key) => [key, projectText(spec[key])]));
+  if (requiredTextKeys.some((key) => !normalizedText[key])) return null;
+
+  const requiredLists = [
+    "functionalities", "technicalConcepts", "mandatoryRequirements", "deliverables",
+    "submissionInstructions", "outOfScope",
+  ] as const;
+  const normalizedLists = Object.fromEntries(requiredLists.map((key) => [key, projectTextList(spec[key])]));
+  if (requiredLists.some((key) => !normalizedLists[key])) return null;
+
+  const sourceLabel = projectText(data.sourceLabel);
+  const acquisitionInstructions = projectText(data.acquisitionInstructions);
+  const preparationRules = projectTextList(data.preparationRules);
+  if (!sourceLabel || !acquisitionInstructions || !preparationRules || !Array.isArray(data.entities) || !data.entities.length) return null;
+  const entities = data.entities.map((entry) => {
+    const entity = projectRecord(entry);
+    const name = projectText(entity?.name);
+    if (!name || !Array.isArray(entity?.requiredFields) || !entity.requiredFields.length) return null;
+    const requiredFields = entity.requiredFields.map((fieldValue) => {
+      const field = projectRecord(fieldValue);
+      const fieldName = projectText(field?.name);
+      const type = projectText(field?.type);
+      const description = projectText(field?.description);
+      return fieldName && type && description ? { name: fieldName, type, description } : null;
+    });
+    return requiredFields.every((field): field is NonNullable<typeof field> => field != null)
+      ? { name, requiredFields }
+      : null;
+  });
+  if (!entities.every((entry): entry is NonNullable<typeof entry> => entry != null)) return null;
+
+  if (!Array.isArray(spec.evaluationCriteria) || !spec.evaluationCriteria.length) return null;
+  const evaluationCriteria = spec.evaluationCriteria.map((entry) => {
+    const criterion = projectRecord(entry);
+    const id = projectText(criterion?.id);
+    const label = projectText(criterion?.label);
+    const description = projectText(criterion?.description);
+    const weightPercent = criterion?.weightPercent;
+    return id && label && description && typeof weightPercent === "number" && Number.isInteger(weightPercent) && weightPercent > 0 && weightPercent <= 100
+      ? { id, label, description, weightPercent }
+      : null;
+  });
+  if (!evaluationCriteria.every((entry): entry is NonNullable<typeof entry> => entry != null)) return null;
+  if (evaluationCriteria.reduce((total, entry) => total + entry.weightPercent, 0) !== 100) return null;
+
+  return {
+    schemaVersion: 1,
+    blueprintId: normalizedText.blueprintId!,
+    projectKind: spec.projectKind,
+    interest: { id: interestId as StudyProjectSpec["interest"]["id"], label: interestLabel },
+    projectTitle: normalizedText.projectTitle!,
+    productDefinition: normalizedText.productDefinition!,
+    problemStatement: normalizedText.problemStatement!,
+    targetAudience: normalizedText.targetAudience!,
+    functionalities: normalizedLists.functionalities!,
+    data: {
+      sourceType: sourceType as StudyProjectSpec["data"]["sourceType"],
+      sourceLabel,
+      acquisitionInstructions,
+      entities,
+      preparationRules,
+    },
+    technicalConcepts: normalizedLists.technicalConcepts!,
+    mandatoryRequirements: normalizedLists.mandatoryRequirements!,
+    deliverables: normalizedLists.deliverables!,
+    evaluationCriteria,
+    submissionInstructions: normalizedLists.submissionInstructions!,
+    implementationFreedom: normalizedText.implementationFreedom!,
+    outOfScope: normalizedLists.outOfScope!,
+  };
+}
 export type StudySessionMetadata = {
   source: "pomodoro" | "manual";
   focusMinutes: number;
@@ -121,13 +241,24 @@ export function studyWeeklyStats(activities: MetricActivity[], monday: string, t
   return { totalMinutes, averageMinutes: Math.round(totalMinutes / elapsedDays), elapsedDays };
 }
 
-export function roadmapProgress(items: Pick<StudyRoadmapItem, "status" | "orderIndex">[]): number {
-  if (!items.length) return 0;
-  return Math.round((items.filter((item) => item.status === "completed").length / items.length) * 100);
+export function roadmapProgress(items: Pick<StudyRoadmapItem, "status" | "orderIndex" | "countsForProgress">[]): number {
+  const countableItems = items.filter((item) => item.countsForProgress !== false);
+  if (!countableItems.length) return 0;
+  return Math.round((countableItems.filter((item) => item.status === "completed").length / countableItems.length) * 100);
+}
+
+export function weightedRoadmapProgress(items: Pick<StudyRoadmapItem, "status" | "estimatedMinutes" | "countsForProgress">[]): number {
+  const countableItems = items.filter((item) => item.countsForProgress !== false);
+  const totalWeight = countableItems.reduce((sum, item) => sum + Math.max(1, item.estimatedMinutes ?? 0), 0);
+  if (!totalWeight) return 0;
+  const completedWeight = countableItems
+    .filter((item) => item.status === "completed")
+    .reduce((sum, item) => sum + Math.max(1, item.estimatedMinutes ?? 0), 0);
+  return Math.round((completedWeight / totalWeight) * 100);
 }
 
 export function nextStudyItem(items: StudyRoadmapItem[]): StudyRoadmapItem | null {
-  return [...items].filter((item) => item.status !== "completed").sort((a, b) => a.orderIndex - b.orderIndex)[0] ?? null;
+  return [...items].filter((item) => item.countsForProgress !== false && item.status !== "completed").sort((a, b) => a.orderIndex - b.orderIndex)[0] ?? null;
 }
 
 export function investmentSummary(contributions: InvestmentContribution[], snapshots: InvestmentSnapshot[], withdrawals: InvestmentWithdrawal[]) {

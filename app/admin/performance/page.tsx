@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { LifeOSDashboard } from "@/components/performance/LifeOSDashboard";
 import { PerformanceConfirmProvider } from "@/components/performance/PerformanceConfirmDialog";
@@ -35,10 +36,19 @@ import {
   parseDailyLifeAnalysis,
 } from "@/lib/daily-life-analysis";
 import {
-  isStudyAnswerCorrect,
   type SubmittedStudyAnswer,
 } from "@/lib/study-assessment";
-import type { StudySessionMetadata } from "@/lib/performance-widgets";
+import {
+  parseStudyProjectSpec,
+  type StudyContentRole,
+  type StudyModuleKind,
+  type StudyRoadmap,
+  type StudyRoadmapItem,
+  type StudyRoadmapKind,
+  type StudyRoadmapModule,
+  type StudySessionMetadata,
+  type StudyTechnicalLevel,
+} from "@/lib/performance-widgets";
 import { isPerformanceOwner } from "@/lib/performance-owner";
 import type {
   InvestmentPlan,
@@ -59,6 +69,12 @@ function stringList(value: unknown): string[] {
           typeof entry === "string" && Boolean(entry.trim()),
       )
     : [];
+}
+
+function objectValue(value: unknown): Record<string, unknown> | null {
+  return value != null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
 }
 
 function chunkValues<T>(values: T[], size = 50): T[][] {
@@ -181,6 +197,7 @@ export default async function PerformancePage({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user || !(await isPerformanceOwner(supabase, user))) redirect("/");
+  const privileged = createAdminClient();
 
   const today = todayDateInBahia();
   const params = (await searchParams) ?? {};
@@ -392,6 +409,7 @@ export default async function PerformancePage({
   const [
     roadmapsRes,
     roadmapMetaRes,
+    roadmapTemplateMetaRes,
     roadmapAnswersRes,
     studyDraftsRes,
     studyGenerationJobsRes,
@@ -413,6 +431,12 @@ export default async function PerformancePage({
       )
       .eq("user_id", user.id),
     supabase
+      .from("perf_study_roadmap")
+      .select(
+        "id, roadmap_kind, template_key, template_version, target_level, setup, recommended_target_date",
+      )
+      .eq("user_id", user.id),
+    supabase
       .from("perf_study_roadmap_generation")
       .select("id, answers")
       .eq("user_id", user.id)
@@ -420,7 +444,7 @@ export default async function PerformancePage({
     supabase
       .from("perf_study_roadmap_generation")
       .select(
-        "id, origin, original_filename, preview_title, preview_description, module_count, step_count, total_estimated_minutes, created_at",
+        "id, origin, original_filename, preview_title, preview_description, module_count, step_count, total_estimated_minutes, created_at, answers",
       )
       .eq("user_id", user.id)
       .eq("status", "ready")
@@ -428,7 +452,7 @@ export default async function PerformancePage({
       .limit(20),
     supabase
       .from("perf_study_roadmap_generation")
-      .select("id, status, preview_title, error_message, created_at")
+      .select("id, status, preview_title, error_message, created_at, answers")
       .eq("user_id", user.id)
       .in("status", ["generating", "failed"])
       .gte("created_at", recentGenerationSince)
@@ -477,50 +501,100 @@ export default async function PerformancePage({
     null;
   const loadedRoadmapId =
     activeRoadmapRow?.id ?? "00000000-0000-0000-0000-000000000000";
-  const [studyItemsRes, studyItemReferenceDetailsRes, studyModulesRes] =
+  const loadedRoadmapKind = (roadmapTemplateMetaRes.data ?? []).find((roadmap) => roadmap.id === loadedRoadmapId)?.roadmap_kind;
+  const [studyItemsRes, studyItemReferenceDetailsRes, studyModulesRes, studyTemplateItemsRes, studyTemplateModulesRes] =
     await Promise.all([
-      supabase
-        .from("perf_study_roadmap_item")
-        .select(
-          "id, roadmap_id, section, title, description, order_index, estimated_minutes, status, completed_at, scheduled_date, item_kind",
-        )
-        .eq("user_id", user.id)
-        .eq("roadmap_id", loadedRoadmapId)
-        .order("order_index"),
-      supabase
-        .from("perf_study_roadmap_item")
-        .select(
-          "id, module_id, requirements, workspace, preparation_steps, instructions, practice_exercises, reflection_questions, completion_checklist, evidence_prompt, completion_criteria, resource_title, resource_url, resource_channel",
-        )
-        .eq("user_id", user.id)
-        .eq("roadmap_id", loadedRoadmapId),
-      supabase
-        .from("perf_study_roadmap_module")
-        .select(
-          "id, roadmap_id, title, objective, success_criteria, topics, order_index, estimated_minutes",
-        )
-        .eq("user_id", user.id)
-        .eq("roadmap_id", loadedRoadmapId)
-        .order("order_index"),
-    ]);
-  const studyItemDetailsRes = studyItemReferenceDetailsRes.error
-    ? await supabase
-        .from("perf_study_roadmap_item")
-        .select(
-          "id, module_id, requirements, workspace, instructions, completion_criteria, resource_title, resource_url, resource_channel",
-        )
-        .eq("user_id", user.id)
-        .eq("roadmap_id", loadedRoadmapId)
-    : null;
-  const legacyStudyItemDetailsRes =
-    studyItemReferenceDetailsRes.error && studyItemDetailsRes?.error
-      ? await supabase
+      fetchAllPages(async (from, to) => {
+        const { data, error } = await supabase
           .from("perf_study_roadmap_item")
           .select(
-            "id, module_id, instructions, completion_criteria, resource_title, resource_url, resource_channel",
+            "id, roadmap_id, section, title, description, order_index, estimated_minutes, status, completed_at, scheduled_date, item_kind",
           )
           .eq("user_id", user.id)
           .eq("roadmap_id", loadedRoadmapId)
+          .order("order_index")
+          .order("id")
+          .range(from, to);
+        return { data, error };
+      }),
+      fetchAllPages(async (from, to) => {
+        const { data, error } = await supabase
+          .from("perf_study_roadmap_item")
+          .select(
+            "id, module_id, requirements, workspace, preparation_steps, instructions, practice_exercises, reflection_questions, completion_checklist, evidence_prompt, completion_criteria, resource_title, resource_url, resource_channel",
+          )
+          .eq("user_id", user.id)
+          .eq("roadmap_id", loadedRoadmapId)
+          .order("id")
+          .range(from, to);
+        return { data, error };
+      }),
+      fetchAllPages(async (from, to) => {
+        const { data, error } = await supabase
+          .from("perf_study_roadmap_module")
+          .select(
+            "id, roadmap_id, title, objective, success_criteria, topics, order_index, estimated_minutes",
+          )
+          .eq("user_id", user.id)
+          .eq("roadmap_id", loadedRoadmapId)
+          .order("order_index")
+          .order("id")
+          .range(from, to);
+        return { data, error };
+      }),
+      fetchAllPages(async (from, to) => {
+        const { data, error } = await supabase
+          .from("perf_study_roadmap_item")
+          .select(
+            "id, module_id, parent_item_id, content_role, item_code, level_code, counts_for_progress, template_node_id, subtopics, project_spec",
+          )
+          .eq("user_id", user.id)
+          .eq("roadmap_id", loadedRoadmapId)
+          .order("id")
+          .range(from, to);
+        return { data, error };
+      }),
+      fetchAllPages(async (from, to) => {
+        const { data, error } = await supabase
+          .from("perf_study_roadmap_module")
+          .select(
+            "id, module_kind, module_code, level_code, template_node_id",
+          )
+          .eq("user_id", user.id)
+          .eq("roadmap_id", loadedRoadmapId)
+          .order("id")
+          .range(from, to);
+        return { data, error };
+      }),
+    ]);
+  const studyItemDetailsRes = studyItemReferenceDetailsRes.error
+    ? await fetchAllPages(async (from, to) => {
+        const { data, error } = await supabase
+          .from("perf_study_roadmap_item")
+          .select(
+            "id, module_id, requirements, workspace, instructions, completion_criteria, resource_title, resource_url, resource_channel",
+          )
+          .eq("user_id", user.id)
+          .eq("roadmap_id", loadedRoadmapId)
+          .order("id")
+          .range(from, to);
+        return { data, error };
+      })
+    : null;
+  const legacyStudyItemDetailsRes =
+    studyItemReferenceDetailsRes.error && studyItemDetailsRes?.error
+      ? await fetchAllPages(async (from, to) => {
+          const { data, error } = await supabase
+            .from("perf_study_roadmap_item")
+            .select(
+              "id, module_id, instructions, completion_criteria, resource_title, resource_url, resource_channel",
+            )
+            .eq("user_id", user.id)
+            .eq("roadmap_id", loadedRoadmapId)
+            .order("id")
+            .range(from, to);
+          return { data, error };
+        })
       : null;
   const studyItemDetailRows = !studyItemReferenceDetailsRes.error
     ? (studyItemReferenceDetailsRes.data ?? [])
@@ -529,31 +603,47 @@ export default async function PerformancePage({
       : (legacyStudyItemDetailsRes?.data ?? []);
   const studyItemIds = (studyItemsRes.data ?? []).map((item) => item.id);
   const itemIdChunks = chunkValues(studyItemIds);
+  // Roadmaps de TI usam o site somente como mapa de assuntos. Perguntas e
+  // atividades ficam nos arquivos da IDE e nunca precisam chegar ao cliente.
+  const currentAssessmentItemIds = loadedRoadmapKind === "it_career" ? [] : studyItemIds;
+  const currentAssessmentItemIdChunks = chunkValues(currentAssessmentItemIds);
   const enhancedQuestionResults = await Promise.all(
-    itemIdChunks.map((ids) =>
-      supabase
-        .from("perf_study_assessment_question")
-        .select(
-          "id, item_id, question_type, prompt, options, order_index, correct_option, correct_order, explanation",
-        )
-        .eq("user_id", user.id)
-        .in("item_id", ids)
-        .order("order_index"),
+    currentAssessmentItemIdChunks.map((ids) =>
+      fetchAllPages(async (from, to) => {
+        const { data, error } = await privileged
+          .from("perf_study_assessment_question")
+          .select(
+            "id, item_id, question_type, prompt, options, order_index",
+          )
+          .eq("user_id", user.id)
+          .in("item_id", ids)
+          .order("item_id")
+          .order("order_index")
+          .order("id")
+          .range(from, to);
+        return { data, error };
+      }),
     ),
   );
   const enhancedQuestionError =
     enhancedQuestionResults.find((result) => result.error)?.error ?? null;
   const legacyQuestionResults = enhancedQuestionError
     ? await Promise.all(
-        itemIdChunks.map((ids) =>
-          supabase
-            .from("perf_study_assessment_question")
-            .select(
-              "id, item_id, prompt, options, order_index, correct_option, explanation",
-            )
-            .eq("user_id", user.id)
-            .in("item_id", ids)
-            .order("order_index"),
+        currentAssessmentItemIdChunks.map((ids) =>
+          fetchAllPages(async (from, to) => {
+            const { data, error } = await privileged
+              .from("perf_study_assessment_question")
+              .select(
+                "id, item_id, prompt, options, order_index",
+              )
+              .eq("user_id", user.id)
+              .in("item_id", ids)
+              .order("item_id")
+              .order("order_index")
+              .order("id")
+              .range(from, to);
+            return { data, error };
+          }),
         ),
       )
     : [];
@@ -563,25 +653,45 @@ export default async function PerformancePage({
     enhancedQuestionError ? legacyQuestionResults : enhancedQuestionResults
   ).flatMap((result) => result.data ?? []);
   const studyAttemptResults = await Promise.all(
-    itemIdChunks.map((ids) =>
-      supabase
-        .from("perf_study_assessment_attempt")
-        .select(
-          "id, item_id, answers, score, correct_count, total_count, submitted_at",
-        )
-        .eq("user_id", user.id)
-        .in("item_id", ids)
-        .order("submitted_at", { ascending: false }),
+    currentAssessmentItemIdChunks.map((ids) =>
+      fetchAllPages(async (from, to) => {
+        const { data, error } = await supabase
+          .from("perf_study_assessment_attempt")
+          .select(
+            "id, item_id, answers, score, correct_count, total_count, submitted_at",
+          )
+          .eq("user_id", user.id)
+          .in("item_id", ids)
+          .order("item_id")
+          .order("submitted_at", { ascending: false })
+          .order("id", { ascending: false })
+          .range(from, to);
+        return { data, error };
+      }),
     ),
   );
   const studyAttemptsError =
     studyAttemptResults.find((result) => result.error)?.error ?? null;
-  const studyAttemptRows = studyAttemptResults.flatMap(
-    (result) => result.data ?? [],
-  );
+  const allStudyAttemptRows = studyAttemptResults.flatMap((result) => result.data ?? []);
+  const latestAttemptByItem = new Map<string, (typeof allStudyAttemptRows)[number]>();
+  allStudyAttemptRows.forEach((attempt) => {
+    if (!latestAttemptByItem.has(attempt.item_id)) latestAttemptByItem.set(attempt.item_id, attempt);
+  });
+  const studyAttemptRows = [...latestAttemptByItem.values()];
   const studyCheckResults = await Promise.all(
     itemIdChunks.map((ids) =>
-      supabase.from("perf_study_check_progress").select("item_id, check_group, item_index, checked").eq("user_id", user.id).in("item_id", ids),
+      fetchAllPages(async (from, to) => {
+        const { data, error } = await supabase
+          .from("perf_study_check_progress")
+          .select("item_id, check_group, item_index, checked")
+          .eq("user_id", user.id)
+          .in("item_id", ids)
+          .order("item_id")
+          .order("check_group")
+          .order("item_index")
+          .range(from, to);
+        return { data, error };
+      }),
     ),
   );
   const studyCheckProgressReady = !studyCheckResults.some((result) => result.error);
@@ -590,6 +700,7 @@ export default async function PerformancePage({
   const studyEnhancementsReady =
     (!studyItemReferenceDetailsRes.error || !studyItemDetailsRes?.error) &&
     !enhancedQuestionError;
+  const studyItCatalogReady = !roadmapTemplateMetaRes.error && !studyTemplateItemsRes.error && !studyTemplateModulesRes.error;
 
   const habitScheduleRes = await supabase
     .from("perf_habit_schedule_period")
@@ -829,6 +940,9 @@ export default async function PerformancePage({
   const roadmapMetaById = new Map(
     (roadmapMetaRes.data ?? []).map((row) => [row.id, row]),
   );
+  const roadmapTemplateMetaById = new Map(
+    (roadmapTemplateMetaRes.data ?? []).map((row) => [row.id, row]),
+  );
   const roadmapOrganizationProfiles = new Map<
     string,
     StudyOrganizationProfile
@@ -854,8 +968,15 @@ export default async function PerformancePage({
   const itemDetailsById = new Map(
     studyItemDetailRows.map((row) => [row.id, row]),
   );
-  const studyRoadmaps = (roadmapsRes.data ?? []).map((row) => {
+  const templateItemDetailsById = new Map(
+    (studyTemplateItemsRes.data ?? []).map((row) => [row.id, row]),
+  );
+  const templateModuleDetailsById = new Map(
+    (studyTemplateModulesRes.data ?? []).map((row) => [row.id, row]),
+  );
+  const studyRoadmaps: StudyRoadmap[] = (roadmapsRes.data ?? []).map((row) => {
     const meta = roadmapMetaById.get(row.id);
+    const templateMeta = roadmapTemplateMetaById.get(row.id);
     const organizationProfile =
       typeof meta?.generation_id === "string"
         ? (roadmapOrganizationProfiles.get(meta.generation_id) ?? null)
@@ -867,7 +988,13 @@ export default async function PerformancePage({
       status: row.status,
       startDate: row.start_date,
       targetDate: row.target_date,
-      source: row.source,
+      recommendedTargetDate: templateMeta?.recommended_target_date ?? null,
+      source: row.source as StudyRoadmap["source"],
+      roadmapKind: (templateMeta?.roadmap_kind ?? "legacy_unknown") as StudyRoadmapKind,
+      templateKey: templateMeta?.template_key ?? null,
+      templateVersion: asNumber(templateMeta?.template_version),
+      targetTechnicalLevel: (templateMeta?.target_level ?? null) as StudyTechnicalLevel | null,
+      setup: objectValue(templateMeta?.setup),
       difficultyLevel: meta?.difficulty_level ?? null,
       qualityScore: asNumber(meta?.quality_score),
       workloadScore: asNumber(meta?.workload_score),
@@ -877,7 +1004,7 @@ export default async function PerformancePage({
     };
   });
   const studyDrafts: RoadmapDraftSummary[] = (studyDraftsRes.data ?? [])
-    .filter((row) => Boolean(row.preview_title))
+    .filter((row) => Boolean(row.preview_title) && objectValue(row.answers)?.roadmapType === "language")
     .map((row) => ({
       generationId: row.id,
       origin: row.origin === "import" ? "import" : "ai",
@@ -892,7 +1019,7 @@ export default async function PerformancePage({
   const studyGenerationJobs: RoadmapGenerationJob[] = (
     studyGenerationJobsRes.data ?? []
   ).flatMap((row) =>
-    row.status === "generating" || row.status === "failed"
+    (row.status === "generating" || row.status === "failed") && objectValue(row.answers)?.roadmapType === "language"
       ? [
           {
             generationId: row.id,
@@ -908,13 +1035,6 @@ export default async function PerformancePage({
     studyRoadmaps.find((roadmap) => roadmap.status === "active") ??
     studyRoadmaps[0] ??
     null;
-  const privateQuestionsByItem = new Map<string, typeof studyQuestionRows>();
-  studyQuestionRows.forEach((question) =>
-    privateQuestionsByItem.set(question.item_id, [
-      ...(privateQuestionsByItem.get(question.item_id) ?? []),
-      question,
-    ]),
-  );
 
   return (
     <PerformanceConfirmProvider>
@@ -1046,7 +1166,8 @@ export default async function PerformancePage({
         contributions={contributions}
         studyRoadmap={primaryRoadmap}
         studyRoadmaps={studyRoadmaps}
-        studyItems={(studyItemsRes.data ?? []).map((row) => {
+        studyItCatalogReady={studyItCatalogReady}
+        studyItems={(studyItemsRes.data ?? []).map((row): StudyRoadmapItem => {
           const details = itemDetailsById.get(row.id) as
             | ((typeof studyItemDetailRows)[number] & {
                 requirements?: string | null;
@@ -1058,10 +1179,12 @@ export default async function PerformancePage({
                 evidence_prompt?: string | null;
               })
             | undefined;
+          const templateDetails = templateItemDetailsById.get(row.id);
           return {
             id: row.id,
             roadmapId: row.roadmap_id,
             moduleId: details?.module_id ?? null,
+            parentItemId: templateDetails?.parent_item_id ?? null,
             section: row.section,
             title: row.title,
             description: row.description,
@@ -1072,8 +1195,10 @@ export default async function PerformancePage({
             practiceExercises: stringList(details?.practice_exercises),
             reflectionQuestions: stringList(details?.reflection_questions),
             completionChecklist: stringList(details?.completion_checklist),
+            subtopics: stringList(templateDetails?.subtopics),
             evidence: details?.evidence_prompt ?? null,
             completionCriteria: details?.completion_criteria ?? null,
+            projectSpec: parseStudyProjectSpec(templateDetails?.project_spec),
             resourceTitle: details?.resource_title ?? null,
             resourceUrl: details?.resource_url ?? null,
             resourceChannel: details?.resource_channel ?? null,
@@ -1083,9 +1208,16 @@ export default async function PerformancePage({
             completedAt: row.completed_at,
             scheduledDate: row.scheduled_date,
             itemKind: row.item_kind,
+            contentRole: (templateDetails?.content_role ?? "legacy_step") as StudyContentRole,
+            itemCode: templateDetails?.item_code ?? null,
+            levelCode: (templateDetails?.level_code ?? null) as StudyTechnicalLevel | null,
+            countsForProgress: templateDetails?.counts_for_progress ?? true,
+            templateNodeId: templateDetails?.template_node_id ?? null,
           };
-        })}
-        studyModules={(studyModulesRes.data ?? []).map((row) => ({
+        }).filter((item) => studyRoadmaps.find((roadmap) => roadmap.id === item.roadmapId)?.roadmapKind !== "it_career" || item.contentRole !== "activity")}
+        studyModules={(studyModulesRes.data ?? []).map((row): StudyRoadmapModule => {
+          const templateDetails = templateModuleDetailsById.get(row.id);
+          return {
           id: row.id,
           roadmapId: row.roadmap_id,
           title: row.title,
@@ -1098,7 +1230,11 @@ export default async function PerformancePage({
             : [],
           orderIndex: Number(row.order_index),
           estimatedMinutes: asNumber(row.estimated_minutes),
-        }))}
+          moduleKind: (templateDetails?.module_kind ?? "core") as StudyModuleKind,
+          moduleCode: templateDetails?.module_code ?? null,
+          levelCode: (templateDetails?.level_code ?? null) as StudyTechnicalLevel | null,
+          templateNodeId: templateDetails?.template_node_id ?? null,
+        };})}
         studyQuestions={studyQuestionRows.map((row) => {
           const enhanced = row as typeof row & { question_type?: string };
           return {
@@ -1119,47 +1255,6 @@ export default async function PerformancePage({
         })}
         studyAttempts={studyAttemptRows.map((row) => {
           const answers = assessmentAnswers(row.answers);
-          const feedback = (privateQuestionsByItem.get(row.item_id) ?? []).map(
-            (question) => {
-              const enhanced = question as typeof question & {
-                question_type?: string;
-                correct_option?: number | null;
-                correct_order?: unknown;
-                explanation?: string | null;
-              };
-              const questionType =
-                enhanced.question_type === "ordering"
-                  ? ("ordering" as const)
-                  : ("multiple_choice" as const);
-              const options = Array.isArray(question.options)
-                ? question.options
-                : [];
-              const correctOrder = Array.isArray(enhanced.correct_order)
-                ? enhanced.correct_order.map(Number).filter(Number.isInteger)
-                : [];
-              const correctOptionIndex =
-                questionType === "multiple_choice" &&
-                enhanced.correct_option != null &&
-                Number.isInteger(Number(enhanced.correct_option))
-                  ? Number(enhanced.correct_option)
-                  : null;
-              return {
-                questionId: question.id,
-                questionType,
-                correct: isStudyAnswerCorrect(answers[question.id], {
-                  questionType,
-                  optionCount: options.length,
-                  correctOptionIndex,
-                  correctOrder,
-                }),
-                correctOptionIndex,
-                correctOrder,
-                explanation:
-                  enhanced.explanation ??
-                  "Revise a explicacao da etapa antes de tentar novamente.",
-              };
-            },
-          );
           return {
             id: row.id,
             itemId: row.item_id,
@@ -1168,7 +1263,7 @@ export default async function PerformancePage({
             totalCount: Number(row.total_count),
             submittedAt: row.submitted_at,
             answers,
-            feedback,
+            feedback: [],
           };
         })}
         studyCheckProgress={studyCheckRows.map((row) => ({ itemId: row.item_id, group: row.check_group as "preparation" | "completion", index: Number(row.item_index), checked: Boolean(row.checked) }))}

@@ -16,7 +16,9 @@ import {
   FolderKanban,
   Languages,
   Loader2,
+  LockKeyhole,
   MapPin,
+  MoreHorizontal,
   Pause,
   Pencil,
   Play,
@@ -52,6 +54,8 @@ import {
   tentarNovamenteGeracaoRoadmapLifeOS,
 } from "@/app/admin/performance/life-os-actions";
 import { RoadmapAiWizard } from "@/components/performance/RoadmapAiWizard";
+import { ItCareerRoadmapWizard } from "@/components/performance/ItCareerRoadmapWizard";
+import { ItCareerWorkspaceFolderButton } from "@/components/performance/ItCareerWorkspaceFolderButton";
 import { usePerformanceConfirm } from "@/components/performance/PerformanceConfirmDialog";
 import { StudyOrganizationGuide } from "@/components/performance/StudyOrganizationGuide";
 import { StudyFolderDestination } from "@/components/performance/StudyFolderDestination";
@@ -62,10 +66,12 @@ import {
   nextStudyItem,
   roadmapProgress,
   studyWeeklyStats,
+  weightedRoadmapProgress,
   type StudyAssessmentAttempt,
   type StudyAssessmentQuestion,
   type StudyCheckProgress,
   type StudyItemKind,
+  type StudyProjectSpec,
   type StudyRoadmap,
   type StudyRoadmapItem,
   type StudyRoadmapModule,
@@ -75,7 +81,7 @@ import {
 type StudyActivity = { id: string; title: string; date: string; area: string; durationMinutes: number | null; status: string; notes: string | null; studySession: StudySessionMetadata | null };
 type PomodoroMode = "focus" | "short" | "long";
 type PomodoroSettings = { focus: number; short: number; long: number; cycles: number };
-type ModuleView = { id: string; title: string; objective: string | null; successCriteria: string | null; topics: string[]; estimatedMinutes: number | null; orderIndex: number; items: StudyRoadmapItem[]; legacy: boolean };
+type ModuleView = { id: string; title: string; objective: string | null; successCriteria: string | null; topics: string[]; estimatedMinutes: number | null; orderIndex: number; items: StudyRoadmapItem[]; legacy: boolean; moduleKind?: StudyRoadmapModule["moduleKind"]; moduleCode?: string | null; levelCode?: StudyRoadmapModule["levelCode"]; templateNodeId?: string | null };
 
 const DEFAULT_SETTINGS: PomodoroSettings = { focus: 25, short: 5, long: 20, cycles: 4 };
 const inputClass = "w-full rounded-lg border border-white/10 bg-[#0f1318] px-3 py-2 text-sm text-white outline-none focus:border-blue-500";
@@ -113,6 +119,7 @@ export function StudiesWorkspace({
   draftsReady,
   enhancementsReady,
   referenceStandardReady,
+  itCatalogReady,
 }: {
   roadmaps: StudyRoadmap[];
   items: StudyRoadmapItem[];
@@ -130,6 +137,7 @@ export function StudiesWorkspace({
   draftsReady: boolean;
   enhancementsReady: boolean;
   referenceStandardReady: boolean;
+  itCatalogReady: boolean;
 }) {
   const router = useRouter();
   const defaultRoadmapId = roadmaps.find((roadmap) => roadmap.status === "active")?.id ?? roadmaps[0]?.id ?? "";
@@ -138,6 +146,7 @@ export function StudiesWorkspace({
   const [importPending, startImport] = useTransition();
   const [newItem, setNewItem] = useState(false);
   const [aiWizard, setAiWizard] = useState(false);
+  const [createMode, setCreateMode] = useState<"it" | "language">("it");
   const [draftLibrary, setDraftLibrary] = useState(false);
   const [openedDraft, setOpenedDraft] = useState<RoadmapDraftDetail | null>(null);
   const [draftError, setDraftError] = useState<string | null>(null);
@@ -150,7 +159,10 @@ export function StudiesWorkspace({
   const [dismissedGenerationIds, setDismissedGenerationIds] = useState<Set<string>>(() => new Set());
 
   const roadmap = roadmaps.find((entry) => entry.id === selectedRoadmapId) ?? null;
-  const items = useMemo(() => allItems.filter((item) => item.roadmapId === selectedRoadmapId).sort((a, b) => a.orderIndex - b.orderIndex), [allItems, selectedRoadmapId]);
+  const items = useMemo(() => allItems
+    .filter((item) => item.roadmapId === selectedRoadmapId)
+    .filter((item) => roadmap?.roadmapKind !== "it_career" || item.contentRole !== "activity")
+    .sort((a, b) => a.orderIndex - b.orderIndex), [allItems, roadmap?.roadmapKind, selectedRoadmapId]);
   const moduleViews = useMemo(() => buildModuleViews(selectedRoadmapId, modules, items), [selectedRoadmapId, modules, items]);
   const weekly = studyWeeklyStats(activities.filter((item) => item.area === "estudos"), monday, today);
   const visibleGenerationJobs = useMemo(() => generationJobs.filter((job) => !dismissedGenerationIds.has(job.generationId)), [dismissedGenerationIds, generationJobs]);
@@ -207,16 +219,32 @@ export function StudiesWorkspace({
   const exportRoadmap = () => {
     if (!roadmap) return;
     const payload = {
-      version: 3,
+      version: 4,
+      exportKind: roadmap.roadmapKind === "language" ? "rankftv-language-roadmap" : "rankftv-it-career-roadmap",
+      roadmapKind: roadmap.roadmapKind,
+      templateKey: roadmap.templateKey,
+      templateVersion: roadmap.templateVersion,
+      targetTechnicalLevel: roadmap.targetTechnicalLevel,
       title: roadmap.title,
       description: roadmap.description,
       sections: moduleViews.map((module) => ({
         title: module.title,
         objective: module.objective,
         successCriteria: module.successCriteria,
+        moduleKind: module.moduleKind,
+        moduleCode: module.moduleCode,
+        levelCode: module.levelCode,
+        templateNodeId: module.templateNodeId,
         topics: module.topics,
         items: module.items.map((item) => ({
           title: item.title,
+          parentItemId: item.parentItemId,
+          contentRole: item.contentRole,
+          itemCode: item.itemCode,
+          levelCode: item.levelCode,
+          countsForProgress: item.countsForProgress,
+          templateNodeId: item.templateNodeId,
+          subtopics: item.subtopics,
           description: item.description,
           requirements: item.requirements,
           workspace: item.workspace,
@@ -227,6 +255,7 @@ export function StudiesWorkspace({
           completionChecklist: item.completionChecklist,
           evidence: item.evidence,
           completionCriteria: item.completionCriteria,
+          projectSpec: item.projectSpec,
           resourceTitle: item.resourceTitle,
           resourceUrl: item.resourceUrl,
           resourceChannel: item.resourceChannel,
@@ -292,7 +321,8 @@ export function StudiesWorkspace({
     {!v2Ready && <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Execute <b>performance-study-modules.sql</b> para liberar modulos, provas e multiplos roadmaps. O conteudo atual continua visivel.</p>}
     {!draftsReady && <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Execute <b>performance-roadmap-drafts.sql</b> para salvar e recuperar rascunhos gerados pela IA.</p>}
     {!enhancementsReady && <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Execute <b>performance-study-question-types.sql</b> para liberar desafios detalhados e atividades de ordenacao. Roadmaps e perguntas anteriores continuam preservados.</p>}
-    {!referenceStandardReady && <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Execute <b>performance-study-reference-standard.sql</b> para liberar preparacao, pratica sem consulta, perguntas de checagem, criterios objetivos e evidencias nos novos roadmaps.</p>}
+    {roadmap?.roadmapKind !== "it_career" && !referenceStandardReady && <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Execute <b>performance-study-reference-standard.sql</b> para liberar preparacao, pratica sem consulta, perguntas de checagem, criterios objetivos e evidencias nos novos roadmaps.</p>}
+    {!itCatalogReady && <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Execute <b>performance-it-career-roadmaps.sql</b> para liberar os roadmaps predefinidos de carreiras de TI.</p>}
     <RoadmapGenerationPanel
       jobs={visibleGenerationJobs}
       recentGenerations={recentGenerations}
@@ -322,7 +352,7 @@ export function StudiesWorkspace({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div><h2 className="font-semibold">Roadmaps de estudo</h2><p className="mt-1 text-xs text-gray-400">Escolha um plano e avance pelos modulos no seu ritmo.</p></div>
             <RoadmapActions
-              onAi={() => setAiWizard(true)}
+              onAi={() => { setCreateMode("it"); setAiWizard(true); }}
               showCreate={roadmaps.length > 0}
               draftCount={drafts.length}
               draftsReady={draftsReady}
@@ -349,19 +379,19 @@ export function StudiesWorkspace({
             </span>
           </label>}
           {roadmapError && <p role="alert" className="mt-2 text-xs text-red-400">{roadmapError}</p>}
-          <div className="flex-1">{roadmap ? <RoadmapSummary roadmap={roadmap} items={items} moduleCount={moduleViews.length} /> : <EmptyRoadmap draftsReady={draftsReady} onCreate={() => setAiWizard(true)} />}</div>
+          <div className="flex-1">{roadmap ? <RoadmapSummary roadmap={roadmap} items={items} moduleCount={moduleViews.length} today={today} /> : <EmptyRoadmap onCreate={() => { setCreateMode("it"); setAiWizard(true); }} />}</div>
         </section>
 
       <PomodoroTimer roadmap={roadmap} modules={moduleViews} today={today} onSaved={() => router.refresh()} />
     </div>
 
         {roadmap && <section className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
-          {!checkProgressReady && <p role="alert" className="mb-4 rounded-lg border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-200">Aplique a migration <code>performance-scheduling-study-progress.sql</code> para habilitar os checklists persistentes.</p>}
+          {roadmap.roadmapKind !== "it_career" && !checkProgressReady && <p role="alert" className="mb-4 rounded-lg border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-200">Aplique a migration <code>performance-scheduling-study-progress.sql</code> para habilitar os checklists persistentes.</p>}
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div><h3 className="font-semibold">Modulos</h3><p className="mt-1 text-xs text-gray-400">Siga a ordem sugerida. Os passos nao possuem dia fixo.</p></div>
-            <button type="button" onClick={() => setNewItem(true)} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white"><Plus className="size-4" />Etapa manual</button>
+            <div><h3 className="font-semibold">Modulos</h3><p className="mt-1 text-xs text-gray-400">{roadmap.roadmapKind === "it_career" ? "Marque cada assunto e entrega conforme concluir. O prazo nunca remove conteudo da trilha." : "Siga a ordem sugerida. Os passos nao possuem dia fixo."}</p></div>
+            {roadmap.roadmapKind !== "it_career" && <button type="button" onClick={() => setNewItem(true)} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white"><Plus className="size-4" />Etapa manual</button>}
           </div>
-          <div className="mt-5 space-y-3">{moduleViews.map((module, index) => <StudyModule
+          {roadmap.roadmapKind === "it_career" ? <ItCareerRoadmapView roadmapId={roadmap.id} modules={moduleViews} questions={questions} attempts={attempts} checkProgress={checkProgress} checkProgressReady={checkProgressReady} today={today} onRefresh={() => router.refresh()} /> : <div className="mt-5 space-y-3">{moduleViews.map((module, index) => <StudyModule
             key={module.id}
             module={module}
             number={index + 1}
@@ -377,7 +407,7 @@ export function StudiesWorkspace({
             checkProgress={checkProgress}
             checkProgressReady={checkProgressReady}
             onRefresh={() => router.refresh()}
-          />)}{!moduleViews.length && <p className="rounded-lg border border-dashed border-white/15 p-5 text-center text-sm text-white/40">Este roadmap ainda nao possui modulos.</p>}</div>
+          />)}{!moduleViews.length && <p className="rounded-lg border border-dashed border-white/15 p-5 text-center text-sm text-white/40">Este roadmap ainda nao possui modulos.</p>}</div>}
         </section>}
 
     <section className="rounded-lg border border-white/10 bg-[#15191f] p-5 text-white">
@@ -386,8 +416,8 @@ export function StudiesWorkspace({
     </section>
 
     {newItem && roadmap && <Modal title="Nova etapa" onClose={() => setNewItem(false)}><NewStudyItem roadmapId={roadmap.id} sections={moduleViews.map((module) => module.title)} order={items.length} onDone={() => { setNewItem(false); router.refresh(); }} /></Modal>}
-    {aiWizard && <Modal title="Criar roadmap com IA" wide onClose={() => setAiWizard(false)}><RoadmapAiWizard today={today} onClose={() => setAiWizard(false)} onGenerationStarted={(generation) => { trackGeneration(generation); setAiWizard(false); router.refresh(); }} onDone={() => { setAiWizard(false); setPreferredRoadmapId(""); router.refresh(); }} /></Modal>}
-    {openedDraft && <Modal title={openedDraft.origin === "import" ? "Roadmap ajustado pela IA" : "Rascunho de roadmap"} wide onClose={() => setOpenedDraft(null)}><RoadmapAiWizard today={today} initialDraft={openedDraft} onClose={() => setOpenedDraft(null)} onGenerationStarted={(generation) => { trackGeneration(generation); setOpenedDraft(null); setDraftLibrary(false); router.refresh(); }} onDone={() => { setOpenedDraft(null); setDraftLibrary(false); setPreferredRoadmapId(""); router.refresh(); }} /></Modal>}
+    {aiWizard && <Modal title="Criar roadmap" wide onClose={() => setAiWizard(false)}>{createMode === "it" ? itCatalogReady ? <ItCareerRoadmapWizard today={today} onClose={() => setAiWizard(false)} onChooseLanguage={() => setCreateMode("language")} onDone={() => { setAiWizard(false); setPreferredRoadmapId(""); router.refresh(); }} /> : <div className="space-y-4 text-white"><div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-5"><h3 className="font-semibold text-amber-100">Roadmaps de TI ainda nao foram habilitados</h3><p className="mt-2 text-sm leading-6 text-amber-100/70">Execute a migration <b>supabase/performance-it-career-roadmaps.sql</b>. Depois, recarregue esta pagina para criar uma carreira predefinida.</p></div><div className="flex flex-wrap justify-end gap-2"><button type="button" onClick={() => setAiWizard(false)} className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white/60">Fechar</button><button type="button" onClick={() => setCreateMode("language")} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Criar roadmap de idioma</button></div></div> : <RoadmapAiWizard languageOnly onChooseIt={() => setCreateMode("it")} today={today} onClose={() => setAiWizard(false)} onGenerationStarted={(generation) => { trackGeneration(generation); setAiWizard(false); router.refresh(); }} onDone={() => { setAiWizard(false); setPreferredRoadmapId(""); router.refresh(); }} />}</Modal>}
+    {openedDraft && <Modal title={openedDraft.origin === "import" ? "Roadmap de idioma ajustado pela IA" : "Rascunho de roadmap"} wide onClose={() => setOpenedDraft(null)}><RoadmapAiWizard languageOnly={openedDraft.origin === "import"} onChooseIt={() => { setOpenedDraft(null); setDraftLibrary(false); setCreateMode("it"); setAiWizard(true); }} today={today} initialDraft={openedDraft} onClose={() => setOpenedDraft(null)} onGenerationStarted={(generation) => { trackGeneration(generation); setOpenedDraft(null); setDraftLibrary(false); router.refresh(); }} onDone={() => { setOpenedDraft(null); setDraftLibrary(false); setPreferredRoadmapId(""); router.refresh(); }} /></Modal>}
     {draftLibrary && <Modal title="Meus Roadmaps" wide onClose={() => setDraftLibrary(false)}><RoadmapLibrary
       roadmaps={roadmaps}
       drafts={drafts}
@@ -433,6 +463,10 @@ function buildModuleViews(roadmapId: string, modules: StudyRoadmapModule[], item
     orderIndex: module.orderIndex,
     items: items.filter((item) => item.moduleId === module.id),
     legacy: false,
+    moduleKind: module.moduleKind,
+    moduleCode: module.moduleCode,
+    levelCode: module.levelCode,
+    templateNodeId: module.templateNodeId,
   }));
   const assignedIds = new Set(result.flatMap((module) => module.items.map((item) => item.id)));
   const legacyGroups = new Map<string, StudyRoadmapItem[]>();
@@ -518,18 +552,18 @@ function RoadmapGenerationPanel({
 
 function RoadmapActions({ draftCount, draftsReady, showCreate, onAi, onDrafts }: { draftCount: number; draftsReady: boolean; showCreate: boolean; onAi: () => void; onDrafts: () => void }) {
   return <div className="flex flex-wrap gap-2">
-    {showCreate && <button type="button" onClick={onAi} disabled={!draftsReady} className="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white disabled:opacity-40"><Sparkles className="size-4" />Criar com IA</button>}
+    {showCreate && <button type="button" onClick={onAi} className="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white"><Plus className="size-4" />Criar roadmap</button>}
     <button type="button" onClick={onDrafts} disabled={!draftsReady} className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white/75 disabled:opacity-40"><FileClock className="size-4" />Meus Roadmaps{draftCount > 0 ? ` (${draftCount} rasc.)` : ""}</button>
   </div>;
 }
 
-function EmptyRoadmap({ draftsReady, onCreate }: { draftsReady: boolean; onCreate: () => void }) {
+function EmptyRoadmap({ onCreate }: { onCreate: () => void }) {
   return <div className="flex min-h-64 w-full items-center justify-center px-4 py-8">
     <div className="max-w-md text-center">
       <span className="mx-auto flex size-11 items-center justify-center rounded-lg border border-blue-400/20 bg-blue-400/10 text-blue-300"><Sparkles className="size-5" /></span>
       <h3 className="mt-4 text-base font-semibold text-white">Crie seu primeiro roadmap</h3>
-      <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-white/40">Responda algumas perguntas sobre seu objetivo, nivel e tempo disponivel. A IA organiza uma trilha personalizada em modulos, atividades e criterios de conclusao.</p>
-      <button type="button" onClick={onCreate} disabled={!draftsReady} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"><Sparkles className="size-4" />Criar com IA</button>
+      <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-white/40">Escolha uma carreira de TI com conteudo predefinido ou mantenha o gerador personalizado para aprender um novo idioma.</p>
+      <button type="button" onClick={onCreate} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"><Plus className="size-4" />Criar roadmap</button>
     </div>
   </div>;
 }
@@ -575,8 +609,8 @@ function RoadmapLibrary({ roadmaps, drafts, pending, importPending, draftsReady,
       <p className="max-w-2xl text-sm leading-6 text-white/50">Ative uma trilha anterior, retome um rascunho ou exclua definitivamente o que nao faz mais sentido.</p>
       <div className="flex flex-wrap gap-2">
         <label className={`inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white/75 ${importPending || !draftsReady ? "pointer-events-none opacity-50" : "cursor-pointer hover:bg-white/15"}`}>
-          {importPending ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}{importPending ? "Ajustando com IA..." : "Importar"}
-          <input type="file" accept=".md,.markdown,.txt,.json,text/markdown,application/json" className="hidden" disabled={importPending || !draftsReady} onChange={(event) => { const input = event.currentTarget; const file = input.files?.[0]; input.value = ""; if (file) onImport(file); }} />
+          {importPending ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}{importPending ? "Ajustando idioma..." : "Importar idioma"}
+          <input type="file" accept=".json,application/json" className="hidden" disabled={importPending || !draftsReady} onChange={(event) => { const input = event.currentTarget; const file = input.files?.[0]; input.value = ""; if (file) onImport(file); }} />
         </label>
         <button type="button" onClick={onExport} disabled={!canExport} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-500 disabled:opacity-40"><Download className="size-4" />Exportar</button>
       </div>
@@ -585,7 +619,7 @@ function RoadmapLibrary({ roadmaps, drafts, pending, importPending, draftsReady,
     <div className="max-h-[64vh] space-y-5 overflow-y-auto pr-1">
       <section><h3 className="mb-2 text-xs font-semibold uppercase text-white/35">Roadmaps salvos</h3><div className="space-y-2">{roadmaps.map((roadmap) => <article key={roadmap.id} className={`flex flex-wrap items-center gap-3 rounded-lg border p-3 ${roadmap.status === "active" ? "border-blue-400/40 bg-blue-400/10" : "border-white/10 bg-white/[0.02]"}`}>
         <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${roadmap.status === "active" ? "bg-blue-500 text-white" : "bg-white/[0.06] text-white/45"}`}><BookOpen className="size-4" /></span>
-        <div className="min-w-0 flex-1">{renameTarget?.kind === "roadmap" && renameTarget.id === roadmap.id ? <RoadmapRenameField value={renameValue} pending={renamePending} onChange={setRenameValue} onSave={submitRename} onCancel={() => { setRenameTarget(null); setRenameError(null); }} /> : <p className="truncate text-sm font-semibold text-white/85">{roadmap.title}</p>}<p className="mt-1 text-xs text-white/35">{roadmap.status === "active" ? "Ativo agora" : roadmap.status === "completed" ? "Concluido" : "Arquivado"} - {roadmap.source === "ai" ? "Criado com IA" : roadmap.source === "import" ? "Importado" : "Manual"} - {roadmap.createdAt ? formatDraftDate(roadmap.createdAt) : formatDateBR(roadmap.startDate)}</p></div>
+        <div className="min-w-0 flex-1">{renameTarget?.kind === "roadmap" && renameTarget.id === roadmap.id ? <RoadmapRenameField value={renameValue} pending={renamePending} onChange={setRenameValue} onSave={submitRename} onCancel={() => { setRenameTarget(null); setRenameError(null); }} /> : <p className="truncate text-sm font-semibold text-white/85">{roadmap.title}</p>}<p className="mt-1 text-xs text-white/35">{roadmap.status === "active" ? "Ativo agora" : roadmap.status === "completed" ? "Concluido" : "Arquivado"} - {roadmap.source === "template" ? "Carreira predefinida" : roadmap.source === "ai" ? "Criado com IA" : roadmap.source === "import" ? "Importado" : "Manual"} - {roadmap.createdAt ? formatDraftDate(roadmap.createdAt) : formatDateBR(roadmap.startDate)}</p></div>
         {roadmap.status !== "active" && <button type="button" disabled={busy} onClick={() => onActivate(roadmap.id)} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Ativar</button>}
         <button type="button" disabled={busy} onClick={() => beginRename("roadmap", roadmap.id, roadmap.title)} title="Alterar nome" className="flex size-8 items-center justify-center rounded-lg text-white/30 hover:bg-white/10 hover:text-white disabled:opacity-50"><Pencil className="size-4" /></button>
         <button type="button" disabled={busy} onClick={async () => { const approved = await confirm({ title: "Excluir roadmap?", description: `“${roadmap.title}” sera apagado com todos os modulos, respostas e progresso. Esta acao nao pode ser desfeita.`, confirmLabel: "Excluir roadmap" }); if (approved) onDeleteRoadmap(roadmap.id); }} title="Excluir roadmap" className="flex size-8 items-center justify-center rounded-lg text-white/25 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-50"><Trash2 className="size-4" /></button>
@@ -620,26 +654,210 @@ function studyDurationLabel(minutes: number): string {
   return `${hours}h${remainder ? ` ${remainder}min` : ""}`;
 }
 
+function studyEffortLabel(minutes: number): string {
+  if (minutes < 24 * 60) return studyDurationLabel(minutes);
+  const days = Math.floor(minutes / (24 * 60));
+  const remainingMinutes = minutes % (24 * 60);
+  const hours = Math.floor(remainingMinutes / 60);
+  const minutesRemainder = remainingMinutes % 60;
+  const remainder = [hours ? `${hours}h` : "", minutesRemainder ? `${minutesRemainder}min` : ""].filter(Boolean).join(" ");
+  return `${days} ${days === 1 ? "dia" : "dias"}${remainder ? ` + ${remainder}` : ""}`;
+}
+
 function moduleDuration(module: ModuleView): number {
   const itemMinutes = module.items.reduce((sum, item) => sum + Math.max(0, item.estimatedMinutes ?? 0), 0);
   return itemMinutes || Math.max(0, module.estimatedMinutes ?? 0);
 }
 
-function RoadmapSummary({ roadmap, items, moduleCount }: { roadmap: StudyRoadmap; items: StudyRoadmapItem[]; moduleCount: number }) {
-  const progress = roadmapProgress(items);
+function technicalLevelLabel(level: StudyRoadmapModule["levelCode"]): string | null {
+  if (level === "foundation") return "Fundamentos";
+  if (level === "junior") return "Conteúdo para atuação Júnior";
+  if (level === "mid") return "Conteúdo intermediário";
+  if (level === "senior") return "Conteúdo avançado";
+  if (level === "specialist") return "Especialização técnica e arquitetura";
+  return null;
+}
+
+function RoadmapSummary({ roadmap, items, moduleCount, today }: { roadmap: StudyRoadmap; items: StudyRoadmapItem[]; moduleCount: number; today: string }) {
+  const isItCareer = roadmap.roadmapKind === "it_career";
+  const progress = isItCareer ? weightedRoadmapProgress(items) : roadmapProgress(items);
   const totalMinutes = items.reduce((sum, item) => sum + Math.max(0, item.estimatedMinutes ?? 0), 0) || roadmap.totalEstimatedMinutes || 0;
+  const recommendedMinutes = typeof roadmap.setup?.recommendedEstimatedMinutes === "number" && Number.isFinite(roadmap.setup.recommendedEstimatedMinutes)
+    ? roadmap.setup.recommendedEstimatedMinutes
+    : null;
+  const bufferMinutes = typeof roadmap.setup?.bufferMinutes === "number" && Number.isFinite(roadmap.setup.bufferMinutes)
+    ? roadmap.setup.bufferMinutes
+    : null;
+  const nextMilestone = typeof roadmap.setup?.nextProfessionalMilestoneLabel === "string"
+    ? roadmap.setup.nextProfessionalMilestoneLabel
+    : null;
+  const firstMilestone = typeof roadmap.setup?.firstProfessionalMilestoneLabel === "string"
+    ? roadmap.setup.firstProfessionalMilestoneLabel
+    : null;
+  const curriculumMilestone = nextMilestone ?? firstMilestone;
+  const nextDueDailyQuiz = isItCareer ? items
+    .filter((item) => item.contentRole === "assessment" && item.scheduledDate && item.scheduledDate <= today && item.status !== "completed")
+    .sort((a, b) => (a.scheduledDate ?? "").localeCompare(b.scheduledDate ?? "") || a.orderIndex - b.orderIndex)[0] ?? null : null;
+  const nextItem = nextDueDailyQuiz ?? nextStudyItem(items);
   return <div className="mt-5 border-t border-white/10 pt-5">
-    <div className="flex flex-wrap items-start justify-between gap-4"><div className="min-w-0 flex-1"><span className="inline-flex rounded bg-amber-400/10 px-2 py-1 text-[10px] font-semibold uppercase text-amber-300">Trilha ativa</span><p className="mt-2 break-words font-semibold text-white">{roadmap.title}</p>{roadmap.description && <p className="mt-1 text-xs leading-5 text-white/45">{roadmap.description}</p>}<p className="mt-3 text-xs text-white/55">Proxima etapa: <b className="text-white/85">{nextStudyItem(items)?.title ?? "Roadmap concluido"}</b></p></div><div className="shrink-0 text-right"><strong className="text-3xl font-semibold tabular-nums text-white">{progress}%</strong><p className="mt-1 text-[10px] uppercase text-white/30">concluido</p></div></div>
+    <div className="flex flex-wrap items-start justify-between gap-4"><div className="min-w-0 flex-1"><span className="inline-flex rounded bg-amber-400/10 px-2 py-1 text-[10px] font-semibold uppercase text-amber-300">Trilha ativa</span><p className="mt-2 break-words font-semibold text-white">{roadmap.title}</p>{roadmap.description && <p className="mt-1 text-xs leading-5 text-white/45">{roadmap.description}</p>}<p className="mt-3 text-xs text-white/55">Proxima etapa: <b className="text-white/85">{nextItem?.title ?? "Roadmap concluido"}</b>{nextDueDailyQuiz?.scheduledDate ? <span className="ml-1 text-violet-200">· Questões de {formatDateBR(nextDueDailyQuiz.scheduledDate)}</span> : null}</p></div><div className="shrink-0 text-right"><strong className="text-3xl font-semibold tabular-nums text-white">{progress}%</strong><p className="mt-1 text-[10px] uppercase text-white/30">concluido</p></div></div>
     <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-amber-400 transition-all" style={{ width: `${progress}%` }} /></div>
-    <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/40"><span>{moduleCount} modulos</span><span>{items.length} etapas</span><span>{studyDurationLabel(totalMinutes)} planejadas</span>{roadmap.qualityScore != null && <span>Definicao {roadmap.qualityScore}%</span>}{roadmap.workloadScore != null && <span>Exigencia {roadmap.workloadScore}%</span>}</div>
+    <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/40"><span>{moduleCount} modulos</span><span>{items.filter((item) => item.countsForProgress !== false).length} {isItCareer ? "assuntos e entregas" : "etapas"}</span><span>{isItCareer ? studyEffortLabel(totalMinutes) : studyDurationLabel(totalMinutes)} {isItCareer ? "de carga planejada" : "planejadas"}</span>{isItCareer && recommendedMinutes != null && <span>{studyEffortLabel(recommendedMinutes)} para planejamento com revisões</span>}{roadmap.targetTechnicalLevel && <span>{isItCareer ? "Profundidade do conteúdo" : "Nivel tecnico"}: {technicalLevelLabel(roadmap.targetTechnicalLevel)}</span>}{roadmap.qualityScore != null && <span>Definicao {roadmap.qualityScore}%</span>}{roadmap.workloadScore != null && <span>Exigencia {roadmap.workloadScore}%</span>}</div>
+    {isItCareer && <p className="mt-3 rounded-md border border-blue-400/20 bg-blue-400/[0.06] px-3 py-2 text-xs leading-5 text-blue-100/80">Concluir esta trilha registra o estudo dos assuntos, das questões e dos projetos planejados. Isso não concede automaticamente senioridade profissional.{curriculumMilestone ? ` Próximo marco curricular recomendado: ${curriculumMilestone}.` : ""}{bufferMinutes ? ` A previsão inclui ${studyEffortLabel(bufferMinutes)} para revisões e imprevistos.` : ""}</p>}
+    {isItCareer && roadmap.recommendedTargetDate && roadmap.targetDate && roadmap.recommendedTargetDate > roadmap.targetDate && <p className="mt-3 rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs leading-5 text-red-100">Seu prazo desejado termina em {formatDateBR(roadmap.targetDate)}. A previsão para concluir o conteúdo e os projetos, incluindo revisões e imprevistos, termina em {formatDateBR(roadmap.recommendedTargetDate)}. Nenhum conteúdo foi removido.</p>}
   </div>;
+}
+
+function visibleItCareerModuleItems(module: ModuleView): StudyRoadmapItem[] {
+  return module.items.filter((item) => item.contentRole === "topic" || item.contentRole === "review");
+}
+
+function isItCareerModuleComplete(module: ModuleView): boolean {
+  const requiredItems = visibleItCareerModuleItems(module).filter((item) => item.countsForProgress !== false);
+  return requiredItems.every((item) => item.status === "completed");
+}
+
+function itWorkspaceDownloadUrl(roadmapId: string, kind: "base" | "module" | "through_module" | "full", moduleId?: string): string {
+  const params = new URLSearchParams({ kind });
+  if (moduleId) params.set("moduleId", moduleId);
+  return `/api/performance/study-workspace/${encodeURIComponent(roadmapId)}?${params.toString()}`;
+}
+
+function ItCareerRoadmapView({ roadmapId, modules, onRefresh }: { roadmapId: string; modules: ModuleView[]; questions: StudyAssessmentQuestion[]; attempts: StudyAssessmentAttempt[]; checkProgress: StudyCheckProgress[]; checkProgressReady: boolean; today: string; onRefresh: () => void }) {
+  if (!modules.length) return <p className="mt-5 rounded-lg border border-dashed border-white/15 p-5 text-center text-sm text-white/40">Este roadmap ainda nao possui modulos.</p>;
+  const completedModules = modules.map(isItCareerModuleComplete);
+  return <div className="mt-5 space-y-2"><div className="flex justify-end px-1"><ItCareerWorkspaceFolderButton url={itWorkspaceDownloadUrl(roadmapId, "full")}>Baixar projeto completo</ItCareerWorkspaceFolderButton></div>{modules.map((module, index) => {
+    const blockingModuleIndex = completedModules.slice(0, index).findIndex((completed) => !completed);
+    const blockedByModule = blockingModuleIndex >= 0 ? modules[blockingModuleIndex] : null;
+    return <ItCareerModule key={module.id} roadmapId={roadmapId} module={module} number={index + 1} blockedByModule={blockedByModule} onRefresh={onRefresh} />;
+  })}</div>;
+}
+
+function ItCareerModule({ roadmapId, module, number, blockedByModule, onRefresh }: { roadmapId: string; module: ModuleView; number: number; blockedByModule: ModuleView | null; onRefresh: () => void }) {
+  const visibleItems = visibleItCareerModuleItems(module);
+  const progressItems = visibleItems.filter((item) => item.countsForProgress !== false);
+  const completed = progressItems.filter((item) => item.status === "completed").length;
+  const progress = weightedRoadmapProgress(progressItems);
+  const isModuleLocked = Boolean(blockedByModule);
+  const lockMessage = blockedByModule ? `Você precisa finalizar o módulo ${blockedByModule.title} primeiro.` : null;
+  const lockMessageId = `it-module-lock-${module.id}`;
+  const [open, setOpen] = useState(!isModuleLocked && (number === 1 || progress > 0 && progress < 100));
+  const topics = visibleItems;
+  const estimatedMinutes = visibleItems.reduce((sum, item) => sum + Math.max(0, item.estimatedMinutes ?? 0), 0);
+  const levelLabel = module.templateNodeId === "career-preparation" ? "Carreira" : technicalLevelLabel(module.levelCode);
+  const moduleLabel = module.moduleKind === "capstone" ? "Projeto final / TCC" : [module.moduleCode ?? `Modulo ${number}`, levelLabel].filter(Boolean).join(" · ");
+  return <article className={`overflow-hidden rounded-xl border bg-[#11151a] ${isModuleLocked ? "border-amber-400/20" : "border-white/10"}`} aria-describedby={isModuleLocked ? lockMessageId : undefined}>
+    <div className={`flex items-center gap-2 px-4 py-3 ${isModuleLocked ? "bg-amber-400/[0.02]" : ""}`}>
+      <button type="button" onClick={() => setOpen((value) => !value)} disabled={isModuleLocked} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-3 text-left disabled:cursor-default">
+        <span className={`flex size-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold ${progress === 100 ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-200" : isModuleLocked ? "border-amber-400/20 bg-amber-400/10 text-amber-200" : "border-white/10 text-white/45"}`}>{progress === 100 ? <Check className="size-3.5" /> : isModuleLocked ? <LockKeyhole className="size-3.5" /> : number}</span>
+        <span className="min-w-0 flex-1"><span className="block text-[10px] font-semibold uppercase tracking-wide text-white/30">{moduleLabel}</span><span className={`mt-0.5 block font-semibold ${isModuleLocked ? "text-white/50" : "text-white/90"}`}>{module.title}</span><span className="mt-0.5 block text-xs text-white/35">{completed}/{progressItems.length} assuntos{estimatedMinutes ? ` · ${studyDurationLabel(estimatedMinutes)}` : ""}</span>{lockMessage && <span id={lockMessageId} className="mt-1 block text-xs text-amber-200">Finalize “{blockedByModule?.title}” para liberar</span>}</span>
+        <span className="hidden w-20 shrink-0 sm:block"><span className="block h-1 overflow-hidden rounded-full bg-white/10"><span className="block h-full bg-emerald-500" style={{ width: `${progress}%` }} /></span><span className="mt-1 block text-right text-[10px] text-white/30">{progress}%</span></span>
+        {!isModuleLocked && <ChevronDown className={`size-4 shrink-0 text-white/25 transition-transform ${open ? "rotate-180" : ""}`} />}
+      </button>
+      {!isModuleLocked && <div className="flex shrink-0 items-center gap-1 border-l border-white/10 pl-2"><ItCareerWorkspaceFolderButton compact url={itWorkspaceDownloadUrl(roadmapId, "module", module.id)}>Salvar módulo em pasta</ItCareerWorkspaceFolderButton><details className="group relative"><summary aria-label="Mais opções do módulo" className="flex size-8 cursor-pointer list-none items-center justify-center rounded-md text-white/35 hover:bg-white/[0.06] hover:text-white"><MoreHorizontal className="size-4" /></summary><div className="absolute right-0 z-20 mt-1 w-56 rounded-lg border border-white/10 bg-[#171c22] p-2 shadow-2xl"><ItCareerWorkspaceFolderButton url={itWorkspaceDownloadUrl(roadmapId, "through_module", module.id)}>Salvar roadmap até aqui</ItCareerWorkspaceFolderButton></div></details></div>}
+    </div>
+    {open && !isModuleLocked && <div className="border-t border-white/[0.07] px-4 pb-2">
+      {(module.objective || module.successCriteria) && <details className="border-b border-white/[0.07] py-2.5"><summary className="cursor-pointer text-xs font-medium text-white/45 hover:text-white/70">Sobre este módulo</summary><div className="mt-3 grid gap-3 pb-1 text-xs sm:grid-cols-2"><div><p className="font-medium text-white/35">Objetivo</p><p className="mt-1 leading-5 text-white/55">{module.objective}</p></div><div><p className="font-medium text-white/35">Resultado esperado</p><p className="mt-1 leading-5 text-white/55">{module.successCriteria}</p></div></div></details>}
+      <div>{topics.map((topic) => <ItTopicRow key={topic.id} item={topic} blockedByModule={blockedByModule} onRefresh={onRefresh} />)}</div>
+      {!topics.length && <p className="py-4 text-sm text-white/35">Nenhum assunto foi materializado neste módulo.</p>}
+    </div>}
+  </article>;
+}
+
+function ItTopicRow({ item, blockedByModule, onRefresh }: { item: StudyRoadmapItem; blockedByModule: ModuleView | null; onRefresh: () => void }) {
+  const moduleLockMessage = blockedByModule ? `Você precisa finalizar o módulo ${blockedByModule.title} primeiro.` : null;
+  return <section className="border-b border-white/[0.07] py-3 last:border-b-0">
+    <div className="flex items-start gap-3">
+      <span className={`mt-1 text-[10px] font-semibold ${item.contentRole === "review" ? "text-amber-300/70" : "text-white/25"}`}>{item.itemCode ?? "•"}</span>
+      <div className="min-w-0 flex-1"><p className={`text-sm font-medium ${item.status === "completed" ? "text-white/35 line-through" : "text-white/80"}`}>{item.title}</p>{item.subtopics?.length ? <p className="mt-1 text-xs leading-5 text-white/40">{item.subtopics.join(" · ")}</p> : item.description && <p className="mt-1 line-clamp-1 text-xs text-white/35">{item.description}</p>}</div>
+      <ItCompletionButton item={item} onRefresh={onRefresh} compact disabled={Boolean(blockedByModule)} disabledReason={moduleLockMessage ?? undefined} />
+    </div>
+  </section>;
+}
+
+export function ItPracticalItem({ item, checkProgress, checkProgressReady, locked, lockMessage, onRefresh, nested = false }: { item: StudyRoadmapItem; checkProgress: StudyCheckProgress[]; checkProgressReady: boolean; locked: boolean; lockMessage?: string | null; onRefresh: () => void; nested?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const isCapstone = item.contentRole === "capstone";
+  const isProject = item.contentRole === "module_project" || isCapstone;
+  const label = isCapstone ? "Projeto final / TCC" : isProject ? "Desafio do módulo" : "Entrega prática";
+  const Icon = isProject ? FolderKanban : Wrench;
+  const summary = item.projectSpec?.productDefinition ?? item.description;
+  const interactionLocked = locked && (Boolean(lockMessage) || item.status !== "completed");
+  return <article className={`rounded-lg border ${nested ? "border-white/[0.07] bg-white/[0.02]" : isCapstone ? "border-violet-400/25 bg-violet-400/[0.05]" : "border-white/10 bg-[#151a20]"}`}>
+    <div className="flex items-start gap-3 p-3"><span className={`mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md ${isCapstone ? "bg-violet-400/15 text-violet-300" : isProject ? "bg-emerald-400/10 text-emerald-300" : "bg-blue-400/10 text-blue-300"}`}><Icon className="size-3.5" /></span><button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} className="min-w-0 flex-1 text-left"><span className="text-[10px] font-semibold uppercase text-white/35">{label}{item.estimatedMinutes ? ` - ${studyDurationLabel(item.estimatedMinutes)}` : ""}</span><span className={`mt-1 block text-sm font-semibold ${item.status === "completed" ? "text-white/40 line-through" : "text-white/80"}`}>{item.title}</span>{!open && summary && <span className="mt-1 block line-clamp-2 text-xs leading-5 text-white/35">{summary}</span>}</button>{interactionLocked ? <span className="inline-flex min-h-8 shrink-0 items-center rounded-md bg-white/[0.04] px-2 text-xs font-semibold text-white/30">Bloqueado</span> : (item.completionChecklist?.length ?? 0) > 0 ? <button type="button" onClick={() => setOpen(true)} aria-expanded={open} className={`inline-flex min-h-8 shrink-0 items-center rounded-md px-2 text-xs font-semibold ${item.status === "completed" ? "bg-emerald-500 text-white" : "bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/15"}`}>{item.status === "completed" ? "Concluido" : "Entregas"}</button> : <ItCompletionButton item={item} onRefresh={onRefresh} compact />}<button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={open ? "Ocultar detalhes" : "Mostrar detalhes"} className="rounded p-1 text-white/35 hover:bg-white/[0.05]"><ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} /></button></div>
+    {open && <>{item.projectSpec ? <ItProjectSpecDetails spec={item.projectSpec} /> : <LegacyProjectDetails item={item} />}{interactionLocked ? <p className="mx-4 mb-4 rounded-md border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs leading-5 text-amber-200">{lockMessage ?? "Conclua primeiro as questoes e o desafio anterior para liberar esta entrega."}</p> : <div className="px-4 pb-4"><InteractiveStudyChecks title="Confirmacao das entregas" itemId={item.id} group="completion" items={item.completionChecklist ?? []} progress={checkProgress} enabled={checkProgressReady} icon={Check} accentClass="text-emerald-300" onRefresh={onRefresh} />{Boolean(item.completionChecklist?.length) && <p className="mt-3 text-xs leading-5 text-white/40">O desafio sera concluido automaticamente quando todas as entregas forem confirmadas.</p>}</div>}</>}
+  </article>;
+}
+
+function ItProjectSpecDetails({ spec }: { spec: StudyProjectSpec }) {
+  const dataEntries = [
+    `${spec.data.sourceLabel}: ${spec.data.acquisitionInstructions}`,
+    ...spec.data.entities.map((entity) => `${entity.name}: ${entity.requiredFields.map((field) => `${field.name} (${field.type})`).join(", ")}`),
+    ...spec.data.preparationRules,
+  ];
+  return <div className="border-t border-white/10 px-4 py-4 text-sm text-white/60">
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div className="rounded-lg border border-emerald-400/15 bg-emerald-400/[0.04] p-3"><p className="text-[10px] font-semibold uppercase text-emerald-300">O que você vai construir</p><p className="mt-1.5 leading-6 text-white/75">{spec.productDefinition}</p></div>
+      <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3"><p className="text-[10px] font-semibold uppercase text-sky-300">Problema e público</p><p className="mt-1.5 leading-6">{spec.problemStatement}</p><p className="mt-2 text-xs text-white/40">Para: {spec.targetAudience} · Contexto: {spec.interest.label}</p></div>
+    </div>
+    <div className="mt-3 space-y-2">
+      <ProjectSpecList title="Funcionalidades" entries={spec.functionalities} />
+      <ProjectSpecList title="Dados obrigatórios" entries={dataEntries} />
+      <ProjectSpecList title="Conceitos técnicos" entries={spec.technicalConcepts} />
+      <ProjectSpecList title="Requisitos obrigatórios" entries={spec.mandatoryRequirements} />
+      <ProjectSpecList title="Entregas" entries={spec.deliverables} />
+      <ProjectEvaluationCriteria criteria={spec.evaluationCriteria} />
+      <ProjectSpecList title="Como entregar" entries={spec.submissionInstructions} />
+      <details className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2"><summary className="cursor-pointer text-xs font-semibold text-white/70">Liberdade de implementação e limites</summary><p className="mt-3 leading-6">{spec.implementationFreedom}</p><ul className="mt-2 space-y-1.5">{spec.outOfScope.map((entry) => <li key={entry} className="flex gap-2"><X className="mt-1 size-3 shrink-0 text-red-300" /><span>{entry}</span></li>)}</ul></details>
+    </div>
+  </div>;
+}
+
+function ProjectSpecList({ title, entries }: { title: string; entries: string[] }) {
+  return <details className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2"><summary className="cursor-pointer text-xs font-semibold text-white/70">{title} <span className="font-normal text-white/35">({entries.length})</span></summary><ul className="mt-3 space-y-2">{entries.map((entry) => <li key={entry} className="flex gap-2 leading-6"><Check className="mt-1.5 size-3 shrink-0 text-emerald-300" /><span>{entry}</span></li>)}</ul></details>;
+}
+
+function ProjectEvaluationCriteria({ criteria }: { criteria: StudyProjectSpec["evaluationCriteria"] }) {
+  return <details className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2"><summary className="cursor-pointer text-xs font-semibold text-white/70">Critérios de avaliação <span className="font-normal text-white/35">({criteria.length})</span></summary><div className="mt-3 space-y-2">{criteria.map((criterion) => <div key={criterion.id} className="rounded-md border border-white/[0.07] p-2.5"><div className="flex items-center justify-between gap-3"><p className="font-semibold text-white/75">{criterion.label}</p><span className="rounded bg-violet-400/10 px-2 py-0.5 text-xs font-semibold text-violet-200">{criterion.weightPercent}%</span></div><p className="mt-1 text-xs leading-5 text-white/45">{criterion.description}</p></div>)}</div></details>;
+}
+
+function LegacyProjectDetails({ item }: { item: StudyRoadmapItem }) {
+  return <div className="border-t border-white/10 px-4 py-3 text-sm text-white/60">{item.description && <p className="leading-6">{item.description}</p>}{item.requirements && <div className="mt-3"><p className="text-[10px] font-semibold uppercase text-sky-300">Requisitos e limites</p><p className="mt-1 whitespace-pre-line leading-6">{item.requirements}</p></div>}{item.instructions && <div className="mt-3"><p className="text-[10px] font-semibold uppercase text-violet-300">Instruções de entrega</p><p className="mt-1 whitespace-pre-line leading-6">{item.instructions}</p></div>}{Boolean(item.practiceExercises?.length) && <div className="mt-3"><p className="text-[10px] font-semibold uppercase text-blue-300">Entregas</p><ul className="mt-2 space-y-1.5">{item.practiceExercises?.map((entry) => <li key={entry} className="flex gap-2"><Check className="mt-1 size-3 shrink-0 text-blue-300" /><span>{entry}</span></li>)}</ul></div>}{item.completionCriteria && <div className="mt-3"><p className="text-[10px] font-semibold uppercase text-emerald-300">Critérios de aceite</p><p className="mt-1 whitespace-pre-line leading-6">{item.completionCriteria}</p></div>}</div>;
+}
+
+export function ItAssessmentItem({ item, questions, attempts, today, locked = false, lockedReason, daily = false, onRefresh }: { item: StudyRoadmapItem; questions: StudyAssessmentQuestion[]; attempts: StudyAssessmentAttempt[]; today: string; locked?: boolean; lockedReason?: string | null; daily?: boolean; onRefresh: () => void }) {
+  const [open, setOpen] = useState(item.status !== "completed" && !locked);
+  const latestAttempt = attempts[0];
+  const interactionLocked = locked && (Boolean(lockedReason) || item.status !== "completed");
+  return <article className="rounded-lg border border-violet-400/20 bg-violet-400/[0.04]">
+    <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} className="flex w-full items-center gap-3 p-3 text-left"><span className="flex size-7 items-center justify-center rounded-md bg-violet-400/15 text-violet-300"><CircleHelp className="size-3.5" /></span><span className="min-w-0 flex-1"><span className="text-[10px] font-semibold uppercase text-violet-300">{daily ? "Questões do dia" : "Avaliação"}{item.scheduledDate ? ` · ${formatDateBR(item.scheduledDate)}` : ""}</span><span className="mt-1 block text-sm font-semibold text-white/80">{item.title}</span><span className="mt-1 block text-xs text-white/40">{lockedReason ?? (daily ? item.scheduledDate && item.scheduledDate > today ? "As perguntas serão carregadas somente na data agendada." : `${questions.length} perguntas objetivas associadas a esta sessão. Responda todas; erros geram feedback e não impedem a conclusão.` : "Concluída ao responder todas as perguntas, mesmo que alguma resposta esteja errada.")}</span></span>{item.status === "completed" && <span className="rounded bg-emerald-400/10 px-2 py-1 text-[10px] font-semibold text-emerald-300">Concluída</span>}{interactionLocked && <span className="rounded bg-white/[0.06] px-2 py-1 text-[10px] font-semibold text-white/40">Bloqueada</span>}<ChevronDown className={`size-4 text-white/35 transition-transform ${open ? "rotate-180" : ""}`} /></button>
+    {open && <div className="border-t border-white/10 px-4 py-4">{interactionLocked ? <p className="text-sm leading-6 text-amber-200">{lockedReason ?? (item.scheduledDate && item.scheduledDate > today ? `Esta sessão fica disponível em ${formatDateBR(item.scheduledDate)}.` : "Conclua primeiro o bloco de perguntas anterior deste roadmap.")}</p> : questions.length ? <AssessmentPanel key={latestAttempt?.id ?? "new-attempt"} itemId={item.id} itemKind={item.itemKind ?? "quiz"} questions={questions} latestAttempt={latestAttempt} onRefresh={onRefresh} /> : <p className="text-sm text-amber-200">As perguntas predefinidas desta sessão não foram carregadas.</p>}</div>}
+  </article>;
+}
+
+function ItCompletionButton({ item, onRefresh, compact = false, disabled = false, disabledReason }: { item: StudyRoadmapItem; onRefresh: () => void; compact?: boolean; disabled?: boolean; disabledReason?: string }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const toggle = () => {
+    if (disabled) return;
+    startTransition(async () => {
+    setError(null);
+    const result = await atualizarStatusEstudoLifeOS(item.id, item.status === "completed" ? "pending" : "completed");
+    if (!result.ok) setError(result.error ?? "Nao foi possivel salvar o check.");
+    else { router.refresh(); onRefresh(); }
+    });
+  };
+  const actionLabel = disabledReason ?? (item.status === "completed" ? "Marcar como pendente" : disabled ? "Bloqueado" : "Marcar como concluido");
+  return <span className="shrink-0"><button type="button" onClick={toggle} disabled={pending || disabled} aria-pressed={item.status === "completed"} aria-label={actionLabel} title={actionLabel} className={`inline-flex items-center justify-center gap-1.5 text-xs font-semibold disabled:cursor-not-allowed ${compact ? "size-7 rounded-full border" : "min-h-8 rounded-md px-2"} ${disabled ? "border-white/10 text-white/20" : item.status === "completed" ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-200" : "border-white/10 text-white/30 hover:border-white/25 hover:text-white/70"}`}>{pending ? <Loader2 className="size-3.5 animate-spin" /> : disabled ? <LockKeyhole className="size-3.5" /> : <Check className="size-3.5" />}{!compact && <span>{item.status === "completed" ? "Concluido" : disabled ? "Bloqueado" : "Concluir"}</span>}</button>{error && <span title={error} className="mt-1 block max-w-28 text-[10px] text-red-300">Erro ao salvar</span>}</span>;
 }
 
 type StudyFolderContext = { roadmapId: string; roadmapTitle: string; moduleTitles: string[]; moduleIndex: number; profile: StudyRoadmap["organizationProfile"] };
 
 function StudyModule({ module, number, organizationGuide, folderContext, questions, attempts, checkProgress, checkProgressReady, onRefresh }: { module: ModuleView; number: number; organizationGuide?: React.ReactNode; folderContext: StudyFolderContext; questions: StudyAssessmentQuestion[]; attempts: StudyAssessmentAttempt[]; checkProgress: StudyCheckProgress[]; checkProgressReady: boolean; onRefresh: () => void }) {
-  const completed = module.items.filter((item) => item.status === "completed").length;
-  const progress = module.items.length ? Math.round((completed / module.items.length) * 100) : 0;
+  const progressItems = module.items.filter((item) => item.countsForProgress !== false);
+  const completed = progressItems.filter((item) => item.status === "completed").length;
+  const progress = roadmapProgress(progressItems);
   const estimatedMinutes = moduleDuration(module);
   const visibleTopics = module.topics.slice(0, 4);
   const hiddenTopicCount = Math.max(0, module.topics.length - visibleTopics.length);
@@ -647,8 +865,8 @@ function StudyModule({ module, number, organizationGuide, folderContext, questio
   return <article className="overflow-hidden rounded-lg border border-white/10 bg-[#11151a]">
     <button type="button" onClick={() => setOpen((value) => !value)} className="flex w-full items-center gap-3 p-4 text-left hover:bg-white/[0.03]">
       <span className={`flex size-8 shrink-0 items-center justify-center rounded-md text-xs font-bold ${progress === 100 ? "bg-emerald-500 text-white" : "bg-white/[0.06] text-white/60"}`}>{progress === 100 ? <Check className="size-4" /> : number}</span>
-      <span className="min-w-0 flex-1"><span className="block font-semibold text-white">{module.title}</span><span className="mt-1 block text-xs text-white/40">{module.items.length ? `${completed} de ${module.items.length} etapas` : "Sem etapas vinculadas"}{estimatedMinutes ? ` - ${studyDurationLabel(estimatedMinutes)}` : ""}</span></span>
-      {module.items.length > 0 && <span className="hidden w-24 sm:block"><span className="block h-1.5 overflow-hidden rounded-full bg-white/10"><span className="block h-full bg-emerald-500" style={{ width: `${progress}%` }} /></span><span className="mt-1 block text-right text-[10px] text-white/35">{progress}%</span></span>}
+      <span className="min-w-0 flex-1"><span className="block font-semibold text-white">{module.title}</span><span className="mt-1 block text-xs text-white/40">{progressItems.length ? `${completed} de ${progressItems.length} etapas` : "Sem etapas vinculadas"}{estimatedMinutes ? ` - ${studyDurationLabel(estimatedMinutes)}` : ""}</span></span>
+      {progressItems.length > 0 && <span className="hidden w-24 sm:block"><span className="block h-1.5 overflow-hidden rounded-full bg-white/10"><span className="block h-full bg-emerald-500" style={{ width: `${progress}%` }} /></span><span className="mt-1 block text-right text-[10px] text-white/35">{progress}%</span></span>}
       <ChevronDown className={`size-4 text-white/35 transition-transform ${open ? "rotate-180" : ""}`} />
     </button>
     {open && <div className="border-t border-white/10 p-4">
@@ -812,18 +1030,22 @@ function AssessmentPanel({ itemId, itemKind, questions, latestAttempt, onRefresh
       }
       return <fieldset key={question.id}><legend className="text-sm font-medium text-white/80">{questionIndex + 1}. {question.prompt}</legend><div className="mt-2 space-y-2">{question.options.map((option, optionIndex) => {
         const selected = answers[question.id] === optionIndex;
-        const isCorrectAnswer = feedback?.correctOptionIndex === optionIndex;
-        const isWrongSelection = Boolean(feedback && selected && !feedback.correct);
-        return <label key={`${question.id}-${optionIndex}`} className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 text-sm ${isCorrectAnswer ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-200" : isWrongSelection ? "border-red-400/40 bg-red-400/10 text-red-200" : selected ? "border-blue-400/50 bg-blue-400/10 text-blue-200" : "border-white/10 text-white/55"}`}><input type="radio" name={`question-${question.id}`} checked={selected} disabled={Boolean(result)} onChange={() => setAnswers((current) => ({ ...current, [question.id]: optionIndex }))} className="mt-0.5 accent-blue-500" />{option}</label>;
-      })}</div>{feedback && <p className={`mt-2 text-xs leading-5 ${feedback.correct ? "text-emerald-300" : "text-red-300"}`}>{feedback.correct ? "Resposta correta. " : "Resposta incorreta. "}{feedback.explanation}</p>}</fieldset>;
+        const selectedFeedbackClass = feedback && selected
+          ? feedback.correct
+            ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-200"
+            : "border-red-400/40 bg-red-400/10 text-red-200"
+          : selected
+            ? "border-blue-400/50 bg-blue-400/10 text-blue-200"
+            : "border-white/10 text-white/55";
+        return <label key={`${question.id}-${optionIndex}`} className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 text-sm ${selectedFeedbackClass}`}><input type="radio" name={`question-${question.id}`} checked={selected} disabled={Boolean(result)} onChange={() => setAnswers((current) => ({ ...current, [question.id]: optionIndex }))} className="mt-0.5 accent-blue-500" />{option}</label>;
+      })}</div>{feedback && <p className={`mt-2 text-xs leading-5 ${feedback.correct ? "text-emerald-300" : "text-red-300"}`}>{feedback.correct ? "Resposta correta." : "Resposta incorreta."}</p>}</fieldset>;
     })}</div>
     {result?.error && <p className="mt-3 text-sm text-red-300">{result.error}</p>}
-    <div className="mt-5 flex justify-end">{result ? <button type="button" disabled={pending} onClick={() => startTransition(async () => { const response = await reiniciarAvaliacaoEstudoLifeOS(itemId); if (!response.ok) setResult({ ok: false, error: response.error }); else { setAnswers(initialAssessmentAnswers(questions)); setResult(null); onRefresh(); } })} className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white/70 disabled:opacity-50">{pending && <Loader2 className="size-4 animate-spin" />}Tentar novamente</button> : <button type="button" disabled={pending || !complete} onClick={() => startTransition(async () => { const response = await enviarAvaliacaoEstudoLifeOS(itemId, answers); setResult(response); if (response.ok) onRefresh(); })} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}{pending ? "Corrigindo..." : "Enviar respostas"}</button>}</div>
+    <div className="mt-5 flex flex-wrap justify-end gap-2">{result ? <><button type="button" disabled={pending} onClick={() => startTransition(async () => { const response = await reiniciarAvaliacaoEstudoLifeOS(itemId); if (!response.ok) setResult({ ok: false, error: response.error }); else { setAnswers(initialAssessmentAnswers(questions)); setResult(null); } })} className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white/70 disabled:opacity-50">{pending && <Loader2 className="size-4 animate-spin" />}Tentar novamente</button>{result.ok && <button type="button" onClick={onRefresh} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white"><Check className="size-4" />Continuar no roadmap</button>}</> : <button type="button" disabled={pending || !complete} onClick={() => startTransition(async () => { const response = await enviarAvaliacaoEstudoLifeOS(itemId, answers); setResult(response); })} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}{pending ? "Corrigindo..." : "Enviar respostas"}</button>}</div>
   </div>;
 }
 
 function OrderingQuestion({ question, questionIndex, order, feedback, disabled, onMove }: { question: StudyAssessmentQuestion; questionIndex: number; order: number[]; feedback?: AssessmentFeedback; disabled: boolean; onMove: (position: number, direction: -1 | 1) => void }) {
-  const correctSequence = feedback?.correctOrder.map((optionIndex) => question.options[optionIndex]).filter(Boolean) ?? [];
   return <fieldset>
     <legend className="text-sm font-medium text-white/80">{questionIndex + 1}. {question.prompt}</legend>
     <p className="mt-1 text-xs text-white/35">Organize os itens na sequencia correta.</p>
@@ -835,7 +1057,7 @@ function OrderingQuestion({ question, questionIndex, order, feedback, disabled, 
         <button type="button" disabled={disabled || position === order.length - 1} onClick={() => onMove(position, 1)} className="flex size-7 shrink-0 items-center justify-center rounded-md text-white/35 hover:bg-white/10 hover:text-white disabled:opacity-20" title="Mover para baixo" aria-label={`Mover ${question.options[optionIndex]} para baixo`}><ArrowDown className="size-3.5" /></button>
       </li>)}
     </ol>
-    {feedback && <div className={`mt-2 text-xs leading-5 ${feedback.correct ? "text-emerald-300" : "text-red-300"}`}><p>{feedback.correct ? "Ordem correta. " : "Ordem incorreta. "}{feedback.explanation}</p>{!feedback.correct && correctSequence.length > 0 && <p className="mt-1 font-medium">Sequencia correta: {correctSequence.join(" -> ")}</p>}</div>}
+    {feedback && <p className={`mt-2 text-xs leading-5 ${feedback.correct ? "text-emerald-300" : "text-red-300"}`}>{feedback.correct ? "Ordem correta." : "Ordem incorreta."}</p>}
   </fieldset>;
 }
 

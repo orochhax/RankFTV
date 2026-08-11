@@ -255,14 +255,23 @@ export function RoadmapAiWizard({
   onClose,
   initialDraft,
   onGenerationStarted,
+  languageOnly = false,
+  onChooseIt,
 }: {
   today: string;
   onDone: () => void;
   onClose: () => void;
   initialDraft?: RoadmapDraftDetail | null;
   onGenerationStarted?: (generation: { generationId: string; title: string }) => void;
+  languageOnly?: boolean;
+  onChooseIt?: () => void;
 }) {
-  const [draft, setDraft] = useState<FormState>(() => initialFormState(today, initialDraft?.answers));
+  const [draft, setDraft] = useState<FormState>(() => {
+    const initial = initialFormState(today, initialDraft?.answers);
+    return languageOnly
+      ? { ...initial, roadmapType: "language", learningFormats: roadmapLanguageFormats(initial.languageActivities) }
+      : initial;
+  });
   const [preview, setPreview] = useState<PreviewState | null>(() => initialDraft ? { generationId: initialDraft.generationId, plan: initialDraft.plan } : null);
   const [editingAnswers, setEditingAnswers] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -368,7 +377,7 @@ export function RoadmapAiWizard({
     <fieldset>
       <legend className="text-xs font-semibold uppercase text-white/35">Tipo de trilha</legend>
       <div className="mt-2 grid gap-2 sm:grid-cols-2">
-        <button type="button" onClick={() => selectRoadmapType("skill")} className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${draft.roadmapType === "skill" ? "border-blue-400/50 bg-blue-400/10" : "border-white/10 hover:border-white/20"}`}><span className={`flex size-9 items-center justify-center rounded-md ${draft.roadmapType === "skill" ? "bg-blue-600 text-white" : "bg-white/10 text-white/40"}`}><Wrench className="size-4" /></span><span><b className="block text-sm text-white/85">Habilidade ou profissao</b><span className="mt-0.5 block text-xs text-white/35">Tecnologia, carreira, prova ou projeto</span></span></button>
+        <button type="button" onClick={() => languageOnly ? onChooseIt?.() : selectRoadmapType("skill")} className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${draft.roadmapType === "skill" ? "border-blue-400/50 bg-blue-400/10" : "border-white/10 hover:border-white/20"}`}><span className={`flex size-9 items-center justify-center rounded-md ${draft.roadmapType === "skill" ? "bg-blue-600 text-white" : "bg-white/10 text-white/40"}`}><Wrench className="size-4" /></span><span><b className="block text-sm text-white/85">Carreira em TI</b><span className="mt-0.5 block text-xs text-white/35">Trilhas predefinidas por nivel tecnico</span></span></button>
         <button type="button" onClick={() => selectRoadmapType("language")} className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${draft.roadmapType === "language" ? "border-emerald-400/50 bg-emerald-400/10" : "border-white/10 hover:border-white/20"}`}><span className={`flex size-9 items-center justify-center rounded-md ${draft.roadmapType === "language" ? "bg-emerald-600 text-white" : "bg-white/10 text-white/40"}`}><Languages className="size-4" /></span><span><b className="block text-sm text-white/85">Idioma</b><span className="mt-0.5 block text-xs text-white/35">Comunicacao, imersao e pratica real</span></span></button>
       </div>
     </fieldset>

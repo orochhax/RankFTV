@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { Response as OpenAIResponse } from "openai/resources/responses/responses";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { addDays, hojeISO } from "@/lib/performance";
 import { parseEventRecurrenceRule } from "@/lib/event-recurrence";
@@ -14,6 +15,27 @@ import { openAIReasoningEffort, openAIRoadmapMaxOutputTokens } from "@/lib/opena
 import { generateDailyLifeAnalysis } from "@/lib/daily-life-analysis-service";
 import { isStudyAnswerCorrect, validStudyAnswer, type SubmittedStudyAnswer } from "@/lib/study-assessment";
 import { isPerformanceOwner } from "@/lib/performance-owner";
+import {
+  buildItCareerPlan,
+  buildItCareerPreview,
+  itCareerCatalogs,
+  itCareerCurrentLevelIds,
+  itCareerCurrentLevelLabels,
+  itCareerIds,
+  itCareerInterestIds,
+  itCareerInterestOptions,
+  itCareerLevelIds,
+  itCareerLevelLabels,
+  topicsForItCareer,
+  type ItCareerCurrentLevelId,
+  type ItCareerDailyQuizSession,
+  type ItCareerId,
+  type ItCareerInterestId,
+  type ItCareerLevelId,
+  type ItCareerPlanSetup,
+  type ItKnownTopicPolicy,
+} from "@/lib/it-career-roadmaps";
+import { officialItCareerTemplate } from "@/lib/it-career-official-templates";
 import {
   ROADMAP_IMPORT_MAX_BYTES,
 } from "@/lib/performance-analytics";
@@ -76,6 +98,48 @@ function integer(formData: FormData, key: string, minimum = 0): number | null {
 
 function formValues(formData: FormData, key: string, max = 100): string[] {
   return [...new Set(formData.getAll(key).map(String).map((value) => value.trim()).filter(Boolean))].slice(0, max);
+}
+
+function insertBatches<T>(values: T[], size: number): T[][] {
+  const batches: T[][] = [];
+  for (let index = 0; index < values.length; index += size) batches.push(values.slice(index, index + size));
+  return batches;
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function hasValue(value: unknown): boolean {
+  return value !== undefined && value !== null && value !== "";
+}
+
+/**
+ * A importacao e limitada aos exports de idioma. Um JSON de carreira de TI
+ * inclui metadados deterministas e jamais deve voltar ao normalizador com IA.
+ */
+function isLanguageRoadmapExport(payload: unknown): boolean {
+  if (!isPlainRecord(payload) || payload.roadmapKind !== "language" || payload.version !== 4) return false;
+  if (hasValue(payload.exportKind) && payload.exportKind !== "rankftv-language-roadmap") return false;
+  if (hasValue(payload.templateKey) || hasValue(payload.templateVersion) || hasValue(payload.targetTechnicalLevel)) return false;
+  if (typeof payload.title !== "string" || !payload.title.trim() || !Array.isArray(payload.sections) || !payload.sections.length || payload.sections.length > 100) return false;
+
+  return payload.sections.every((section) => {
+    if (!isPlainRecord(section) || typeof section.title !== "string" || !section.title.trim() || !Array.isArray(section.items) || !section.items.length) return false;
+    if (["moduleKind", "moduleCode", "levelCode", "templateNodeId"].some((key) => hasValue(section[key]))) return false;
+
+    return section.items.every((item) => {
+      if (!isPlainRecord(item) || typeof item.title !== "string" || !item.title.trim()) return false;
+      if (["parentItemId", "contentRole", "itemCode", "levelCode", "templateNodeId"].some((key) => hasValue(item[key]))) return false;
+      return !Array.isArray(item.subtopics) || item.subtopics.length === 0;
+    });
+  });
+}
+
+function isLanguageRoadmapGeneration(origin: unknown, answers: unknown): boolean {
+  if (!isPlainRecord(answers) || answers.roadmapType !== "language") return false;
+  if (origin === "ai") return roadmapAiAnswersSchema.safeParse(answers).success;
+  return origin === "import" && answers.source === "import";
 }
 
 function normalizedRoadmapTitle(value: string): string | null {
@@ -483,6 +547,561 @@ export async function criarRoadmapEstudosLifeOS(formData: FormData): Promise<Res
   reval(); return { ok: true, id: data.id };
 }
 
+const IT_ROADMAP_OBJECTIVES = new Set(["learning", "first_job", "career_change", "current_job", "freelance"]);
+const IT_APPLICATION_INTENTS = new Set(["none", "after_roadmap", "applying_now"]);
+
+function booleanField(formData: FormData, key: string): boolean {
+  return formData.get(key) === "true";
+}
+
+function itRoadmapPersistenceError(error: { message?: string; code?: string } | null): string {
+  const message = error?.message ?? "";
+  if (error?.code === "PGRST202" || error?.code === "PGRST204" || /roadmap_kind|template_key|content_role|module_kind|parent_item_id|project_spec|perf_activate_study_roadmap/i.test(message)) {
+    return "Execute a migration performance-it-career-roadmaps.sql antes de criar uma carreira de TI.";
+  }
+  return message || "Nao foi possivel salvar o roadmap predefinido.";
+}
+
+function isMissingStudyContentRole(error: { message?: string; code?: string } | null): boolean {
+  const message = error?.message ?? "";
+  return /content_role/i.test(message) && ["42703", "PGRST204"].includes(error?.code ?? "");
+}
+
+type StudyModuleGateContext = NonNullable<Awaited<ReturnType<typeof requireCeo>>>;
+
+async function previousItCareerModuleCompletionError(
+  ctx: StudyModuleGateContext,
+  item: { roadmap_id: string | null; module_id: string | null },
+): Promise<string | null> {
+  if (!item.roadmap_id || !item.module_id) return null;
+
+  const roadmapLookup = await ctx.supabase.from("perf_study_roadmap")
+    .select("roadmap_kind")
+    .eq("id", item.roadmap_id)
+    .eq("user_id", ctx.user.id)
+    .maybeSingle();
+  if (roadmapLookup.error) {
+    const missingRoadmapKind = /roadmap_kind/i.test(roadmapLookup.error.message ?? "")
+      && ["42703", "PGRST204"].includes(roadmapLookup.error.code ?? "");
+    return missingRoadmapKind ? null : roadmapLookup.error.message;
+  }
+  if (roadmapLookup.data?.roadmap_kind !== "it_career") return null;
+
+  const currentModuleLookup = await ctx.supabase.from("perf_study_roadmap_module")
+    .select("id, order_index")
+    .eq("id", item.module_id)
+    .eq("roadmap_id", item.roadmap_id)
+    .eq("user_id", ctx.user.id)
+    .maybeSingle();
+  if (currentModuleLookup.error) return currentModuleLookup.error.message;
+  if (!currentModuleLookup.data) return "Modulo do roadmap nao encontrado.";
+
+  const previousModulesLookup = await ctx.supabase.from("perf_study_roadmap_module")
+    .select("id, title, order_index")
+    .eq("roadmap_id", item.roadmap_id)
+    .eq("user_id", ctx.user.id)
+    .lt("order_index", currentModuleLookup.data.order_index)
+    .order("order_index", { ascending: true });
+  if (previousModulesLookup.error) return previousModulesLookup.error.message;
+  const previousModules = previousModulesLookup.data ?? [];
+  if (!previousModules.length) return null;
+
+  const previousModuleIds = previousModules.map((module) => module.id);
+  const pendingItemsLookup = await ctx.supabase.from("perf_study_roadmap_item")
+    .select("module_id")
+    .eq("roadmap_id", item.roadmap_id)
+    .eq("user_id", ctx.user.id)
+    .in("module_id", previousModuleIds)
+    .neq("counts_for_progress", false)
+    .neq("status", "completed");
+  if (pendingItemsLookup.error) return pendingItemsLookup.error.message;
+
+  const pendingModuleIds = new Set((pendingItemsLookup.data ?? []).map((pendingItem) => pendingItem.module_id));
+  const blockingModule = previousModules.find((module) => pendingModuleIds.has(module.id));
+  return blockingModule
+    ? `Você precisa finalizar o módulo ${blockingModule.title} primeiro.`
+    : null;
+}
+
+type ItCareerWizardPreviewInput = {
+  careerId: string;
+  currentLevel: string;
+  targetLevel: string;
+  interestIds: string[];
+  knownTopicIds: string[];
+  knownTopicPolicy: string;
+  includeDailyQuestions: true;
+  includeModuleProjects: true;
+  includeCapstone: boolean;
+  jobPreparation: boolean;
+  objective: string;
+  applicationIntent: string;
+  targetRole: string;
+  startDate: string;
+  timelineMode: string;
+  durationMonths: number;
+  deadline: string;
+  availableDays: string[];
+  minutesPerDay: number;
+};
+
+function previewStringArray(value: unknown, maximum: number): string[] {
+  if (!Array.isArray(value) || value.length > maximum) return [];
+  return value.flatMap((entry) => typeof entry === "string" && entry.trim() ? [entry.trim()] : []);
+}
+
+function parseItCareerPreviewInput(value: unknown): ItCareerPlanSetup {
+  if (!isPlainRecord(value)) throw new Error("Configuracao da previa invalida.");
+  const input = value as Partial<ItCareerWizardPreviewInput>;
+  const interestIds = previewStringArray(input.interestIds, 3);
+  const knownTopicIds = previewStringArray(input.knownTopicIds, 500);
+  const availableDays = previewStringArray(input.availableDays, 7);
+  const careerId = typeof input.careerId === "string" ? input.careerId : "";
+  const currentLevel = typeof input.currentLevel === "string" ? input.currentLevel : "";
+  const targetLevel = typeof input.targetLevel === "string" ? input.targetLevel : "";
+  const knownTopicPolicy = typeof input.knownTopicPolicy === "string" ? input.knownTopicPolicy : "";
+  const objective = typeof input.objective === "string" ? input.objective : "";
+  const applicationIntent = typeof input.applicationIntent === "string" ? input.applicationIntent : "";
+  const timelineMode = typeof input.timelineMode === "string" ? input.timelineMode : "";
+
+  if (!itCareerIds.includes(careerId as ItCareerId)) throw new Error("Escolha uma carreira de TI valida.");
+  if (!itCareerCurrentLevelIds.includes(currentLevel as ItCareerCurrentLevelId)) throw new Error("Informe seu nivel atual.");
+  if (!itCareerLevelIds.includes(targetLevel as ItCareerLevelId)) throw new Error("Escolha a profundidade de conteudo que deseja estudar.");
+  if (!itCareerInterestIds.every((id) => typeof id === "string") || interestIds.some((id) => !itCareerInterestIds.includes(id as ItCareerInterestId))) {
+    throw new Error("Escolha apenas assuntos de interesse validos.");
+  }
+  if (!IT_ROADMAP_OBJECTIVES.has(objective)) throw new Error("Escolha seu objetivo com esta carreira.");
+  if (!IT_APPLICATION_INTENTS.has(applicationIntent)) throw new Error("Informe se pretende se candidatar a vagas.");
+  if (!['skip', 'validate'].includes(knownTopicPolicy)) throw new Error("Escolha como tratar os assuntos que ja domina.");
+  if (!['duration', 'deadline'].includes(timelineMode)) throw new Error("Escolha como deseja informar o prazo.");
+
+  return {
+    careerId,
+    currentLevel,
+    targetLevel,
+    interestIds: interestIds as ItCareerInterestId[],
+    knownTopicIds,
+    knownTopicPolicy: knownTopicPolicy as ItKnownTopicPolicy,
+    includeActivities: false,
+    includeDailyQuestions: true,
+    includeModuleProjects: true,
+    includeAssessments: false,
+    includeCapstone: input.includeCapstone === true,
+    jobPreparation: input.jobPreparation === true,
+    objective: objective as NonNullable<ItCareerPlanSetup["objective"]>,
+    applicationIntent: applicationIntent as NonNullable<ItCareerPlanSetup["applicationIntent"]>,
+    targetRole: typeof input.targetRole === "string" ? input.targetRole.trim().slice(0, 200) : "",
+    startDate: typeof input.startDate === "string" ? input.startDate.slice(0, 10) : "",
+    timelineMode: timelineMode as "duration" | "deadline",
+    durationMonths: Number.isInteger(input.durationMonths) ? Number(input.durationMonths) : 0,
+    deadline: typeof input.deadline === "string" ? input.deadline.slice(0, 10) : "",
+    availableDays,
+    minutesPerDay: Number.isInteger(input.minutesPerDay) ? Number(input.minutesPerDay) : 0,
+  };
+}
+
+/** Somente metadados publicos; nunca envia perguntas, explicacoes ou gabaritos. */
+export async function obterConfiguracaoRoadmapTiLifeOS() {
+  try {
+    const ctx = await requireCeo();
+    if (!ctx) return { ok: false as const, error: "Acesso negado." };
+
+    const topicsByCareerAndLevel = Object.fromEntries(itCareerCatalogs.map((career) => [
+      career.id,
+      Object.fromEntries(itCareerCurrentLevelIds.map((level) => [
+        level,
+        topicsForItCareer(career.id, level).map((topic) => ({
+          id: topic.id,
+          label: topic.title,
+          moduleLabel: topic.moduleLabel,
+          levelLabel: topic.levelLabel,
+        })),
+      ])),
+    ]));
+
+    return {
+      ok: true as const,
+      configuration: {
+        careers: itCareerCatalogs.map((career) => ({ id: career.id, label: career.title, description: career.description })),
+        currentLevelIds: [...itCareerCurrentLevelIds],
+        currentLevelLabels: { ...itCareerCurrentLevelLabels },
+        targetLevelIds: [...itCareerLevelIds],
+        targetLevelLabels: { ...itCareerLevelLabels },
+        interestOptions: itCareerInterestOptions.map((interest) => ({ ...interest })),
+        topicsByCareerAndLevel,
+      },
+    };
+  } catch {
+    return { ok: false as const, error: "Nao foi possivel carregar a configuracao do roadmap." };
+  }
+}
+
+/** Calcula a previa no servidor e projeta apenas os campos exibidos pelo wizard. */
+export async function previsualizarRoadmapTiLifeOS(value: unknown) {
+  try {
+    const ctx = await requireCeo();
+    if (!ctx) return { ok: false as const, error: "Acesso negado." };
+    const plan = buildItCareerPreview(parseItCareerPreviewInput(value));
+    return {
+      ok: true as const,
+      preview: {
+        title: plan.title,
+        description: plan.description,
+        totalEstimatedMinutes: plan.totalEstimatedMinutes,
+        bufferMinutes: plan.bufferMinutes,
+        recommendedEstimatedMinutes: plan.recommendedEstimatedMinutes,
+        recommendedTargetDate: plan.recommendedTargetDate,
+        deadlineWarning: plan.deadlineWarning,
+        milestones: plan.milestones.map((milestone) => ({
+          levelId: milestone.level,
+          label: milestone.levelLabel,
+          estimatedMinutes: milestone.cumulativeRecommendedEstimatedMinutes,
+          targetDate: milestone.recommendedTargetDate,
+        })),
+        dailyQuestionPolicy: { ...plan.dailyQuestionPolicy },
+        modules: plan.modules.map((module) => ({
+          id: module.id,
+          title: module.title,
+          levelId: module.level,
+          levelLabel: module.levelLabel,
+          estimatedMinutes: module.estimatedMinutes,
+          topics: module.topics.map((topic) => ({ id: topic.id, title: topic.title, subtopics: [...topic.subtopics] })),
+          project: module.project ? {
+            id: module.project.id,
+            title: module.project.title,
+            estimatedMinutes: module.project.estimatedMinutes,
+            projectSpec: {
+              productDefinition: module.project.projectSpec.productDefinition,
+              data: { sourceLabel: module.project.projectSpec.data.sourceLabel },
+              functionalities: [...module.project.projectSpec.functionalities],
+              deliverables: [...module.project.projectSpec.deliverables],
+              evaluationCriteria: module.project.projectSpec.evaluationCriteria.map((criterion) => ({ id: criterion.id })),
+            },
+          } : null,
+        })),
+      },
+    };
+  } catch (error) {
+    return { ok: false as const, error: error instanceof Error ? error.message : "Nao foi possivel montar a previa deste roadmap." };
+  }
+}
+
+export async function criarRoadmapTiPredefinidoLifeOS(formData: FormData): Promise<Res & { id?: string }> {
+  const ctx = await requireCeo();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+
+  const careerId = text(formData, "career_id", 80) ?? "";
+  const currentLevel = text(formData, "current_level", 30) ?? "";
+  const targetLevel = text(formData, "target_level", 30) ?? "";
+  const knownTopicPolicy = text(formData, "mastered_topic_policy", 20) ?? "validate";
+  const objective = text(formData, "objective", 30) ?? "";
+  const applicationIntent = text(formData, "application_intent", 30) ?? "none";
+  const targetRole = applicationIntent === "none" ? "" : text(formData, "target_role", 200) ?? "";
+  const jobPreparation = applicationIntent !== "none" && booleanField(formData, "job_preparation");
+  const timelineMode = text(formData, "timeline_mode", 20) ?? "duration";
+  const durationMonths = integer(formData, "duration_months", 1) ?? 0;
+  const deadline = text(formData, "deadline", 10) ?? "";
+  const startDate = text(formData, "start_date", 10) ?? "";
+  const minutesPerDay = integer(formData, "minutes_per_day", 1) ?? 0;
+  const availableDays = formValues(formData, "available_days", 7);
+  const knownTopicIds = formValues(formData, "mastered_topic_ids", 500);
+  const interestIds = formValues(formData, "interest_ids", 3);
+  const tooManyInterestIds = formValues(formData, "interest_ids", 4).length > 3;
+
+  if (!itCareerIds.includes(careerId as ItCareerId)) return { ok: false, error: "Escolha uma carreira de TI valida." };
+  if (!itCareerCurrentLevelIds.includes(currentLevel as ItCareerCurrentLevelId)) return { ok: false, error: "Informe seu nivel atual." };
+  if (!itCareerLevelIds.includes(targetLevel as ItCareerLevelId)) return { ok: false, error: "Escolha a profundidade de conteúdo que deseja estudar." };
+  if (!["skip", "validate"].includes(knownTopicPolicy)) return { ok: false, error: "Escolha como tratar os assuntos que ja domina." };
+  if (!IT_ROADMAP_OBJECTIVES.has(objective)) return { ok: false, error: "Escolha seu objetivo com esta carreira." };
+  if (!IT_APPLICATION_INTENTS.has(applicationIntent)) return { ok: false, error: "Informe se pretende se candidatar a vagas." };
+  if (applicationIntent !== "none" && targetRole.length < 2) return { ok: false, error: "Informe o cargo ou funcao desejada." };
+  if (!['duration', 'deadline'].includes(timelineMode)) return { ok: false, error: "Escolha como deseja informar o prazo." };
+  if (interestIds.length < 1 || tooManyInterestIds) return { ok: false, error: "Escolha de um a tres assuntos de interesse." };
+  if (interestIds.some((id) => !itCareerInterestIds.includes(id as ItCareerInterestId))) return { ok: false, error: "Escolha apenas assuntos de interesse validos." };
+
+  const setup: ItCareerPlanSetup = {
+    careerId,
+    currentLevel,
+    targetLevel,
+    interestIds: interestIds as ItCareerInterestId[],
+    knownTopicIds,
+    knownTopicPolicy: knownTopicPolicy as ItKnownTopicPolicy,
+    includeActivities: false,
+    includeDailyQuestions: true,
+    includeModuleProjects: true,
+    includeAssessments: false,
+    includeCapstone: booleanField(formData, "include_capstone"),
+    jobPreparation,
+    objective: objective as NonNullable<ItCareerPlanSetup["objective"]>,
+    applicationIntent: applicationIntent as NonNullable<ItCareerPlanSetup["applicationIntent"]>,
+    targetRole,
+    startDate,
+    timelineMode: timelineMode as "duration" | "deadline",
+    durationMonths,
+    deadline,
+    availableDays,
+    minutesPerDay,
+  };
+
+  let plan;
+  try {
+    plan = buildItCareerPlan(setup);
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Nao foi possivel montar este roadmap." };
+  }
+  const officialTemplate = officialItCareerTemplate(careerId as ItCareerId, targetLevel as ItCareerLevelId);
+  if (!officialTemplate) return { ok: false, error: "O template oficial desta carreira e nível não está disponível." };
+
+  const roadmapId = randomUUID();
+  const now = new Date().toISOString();
+  const storedSetup = {
+    ...setup,
+    objective,
+    applicationIntent,
+    targetRole,
+    jobPreparation,
+    deadlineWarning: plan.deadlineWarning,
+    plannedEstimatedMinutes: plan.totalEstimatedMinutes,
+    bufferMinutes: plan.bufferMinutes,
+    recommendedEstimatedMinutes: plan.recommendedEstimatedMinutes,
+    recommendedTargetDate: plan.recommendedTargetDate,
+    milestones: plan.milestones,
+    firstProfessionalMilestoneLabel: plan.professionalMilestone.firstLabel,
+    nextProfessionalMilestoneLabel: plan.professionalMilestone.nextLabel,
+    dailyQuestionPolicy: plan.dailyQuestionPolicy,
+    estimationScope: "curriculum_completion",
+    officialTemplateSchemaVersion: officialTemplate.schemaVersion,
+    officialTemplateTitle: officialTemplate.title,
+    workspaceSchemaVersion: 2,
+    workspaceDelivery: "authenticated_download",
+  };
+  const { error: roadmapError } = await ctx.supabase.from("perf_study_roadmap").insert({
+    id: roadmapId,
+    user_id: ctx.user.id,
+    title: plan.title,
+    description: plan.description,
+    status: "archived",
+    source: "template",
+    roadmap_kind: "it_career",
+    template_key: plan.templateKey,
+    template_version: plan.templateVersion,
+    target_level: plan.targetLevel,
+    setup: storedSetup,
+    start_date: plan.startDate,
+    target_date: plan.targetDate,
+    recommended_target_date: plan.recommendedTargetDate,
+    difficulty_level: plan.targetLevel === "foundation" || plan.targetLevel === "junior" ? "introductory" : plan.targetLevel === "mid" ? "intermediate" : "advanced",
+    total_estimated_minutes: plan.totalEstimatedMinutes,
+    created_at: now,
+    updated_at: now,
+  });
+  if (roadmapError) return { ok: false, error: itRoadmapPersistenceError(roadmapError) };
+
+  const rollback = async (message: string): Promise<Res> => {
+    const { error: cleanupError } = await ctx.supabase.from("perf_study_roadmap").delete().eq("id", roadmapId).eq("user_id", ctx.user.id);
+    return { ok: false, error: cleanupError ? `${message} A limpeza automatica tambem falhou: ${cleanupError.message}` : message };
+  };
+
+  const officialTopicById = new Map(
+    officialTemplate.phases.flatMap((phase) => phase.modules.flatMap((module) => module.topics))
+      .map((topic) => [topic.id, topic] as const),
+  );
+
+  const moduleIds = new Map<string, string>();
+  const moduleRows = plan.modules.map((roadmapModule, index) => {
+    const id = randomUUID();
+    moduleIds.set(roadmapModule.id, id);
+    return {
+      id,
+      user_id: ctx.user.id,
+      roadmap_id: roadmapId,
+      title: roadmapModule.title,
+      objective: roadmapModule.objective,
+      success_criteria: roadmapModule.successCriteria,
+      topics: roadmapModule.topics.map((topic) => topic.title),
+      order_index: index,
+      estimated_minutes: roadmapModule.estimatedMinutes,
+      module_kind: roadmapModule.moduleKind,
+      module_code: `M${index + 1}`,
+      level_code: roadmapModule.level,
+      template_node_id: roadmapModule.id,
+    };
+  });
+  for (const moduleBatch of insertBatches(moduleRows, 100)) {
+    const { error: moduleError } = await ctx.supabase.from("perf_study_roadmap_module").insert(moduleBatch);
+    if (moduleError) return rollback(itRoadmapPersistenceError(moduleError));
+  }
+
+  let orderIndex = 0;
+  const itemRows: Array<Record<string, unknown>> = [];
+  const questionRows: Array<Record<string, unknown>> = [];
+  const topicItemRows = new Map<string, Record<string, unknown>>();
+  const topicItemOrder: Array<{ moduleOrder: number; topicOrder: number; topicId: string }> = [];
+  const projectItemRows = new Map<string, Record<string, unknown>>();
+  const dailyQuizMaterializations: Array<{
+    dailyQuiz: ItCareerDailyQuizSession;
+    dailyQuizIndex: number;
+    moduleId: string;
+    moduleOrder: number;
+    moduleTitle: string;
+    topicCode: string;
+    topicId: string;
+    topicOrder: number;
+    topicTitle: string;
+    level: ItCareerLevelId;
+  }> = [];
+  for (const [moduleOrder, roadmapModule] of plan.modules.entries()) {
+    const moduleId = moduleIds.get(roadmapModule.id);
+    if (!moduleId) return rollback("Nao foi possivel vincular um dos modulos predefinidos.");
+    for (const [topicOrder, topic] of roadmapModule.topics.entries()) {
+      const officialTopic = officialTopicById.get(topic.id);
+      if (!officialTopic) return rollback(`O assunto oficial ${topic.title} não foi encontrado no template versionado.`);
+      const topicId = randomUUID();
+      topicItemRows.set(topicId, {
+        id: topicId, user_id: ctx.user.id, roadmap_id: roadmapId, module_id: moduleId, parent_item_id: null,
+        section: roadmapModule.title, title: topic.title, description: topic.competence, estimated_minutes: topic.estimatedMinutes,
+        preparation_steps: officialTopic.guidedStudy.slice(0, 8), practice_exercises: officialTopic.activities.slice(0, 8),
+        reflection_questions: [], completion_checklist: [], evidence_prompt: officialTopic.evidence,
+        item_kind: topic.role === "review" ? "reinforcement" : "core", content_role: topic.role, item_code: topic.code, level_code: roadmapModule.level,
+        counts_for_progress: true, template_node_id: topic.id, subtopics: topic.subtopics,
+      });
+      topicItemOrder.push({ moduleOrder, topicOrder, topicId });
+      const requiresDailyQuizzes = roadmapModule.id !== "career-preparation";
+      if (requiresDailyQuizzes && !topic.dailyQuizzes.length) return rollback(`O catalogo de ${topic.title} nao possui perguntas para as sessoes de estudo.`);
+      for (const [dailyQuizIndex, dailyQuiz] of topic.dailyQuizzes.entries()) {
+        dailyQuizMaterializations.push({ dailyQuiz, dailyQuizIndex, moduleId, moduleOrder, moduleTitle: roadmapModule.title, topicCode: topic.code, topicId, topicOrder, topicTitle: topic.title, level: roadmapModule.level });
+      }
+    }
+    if (roadmapModule.project) {
+      const project = roadmapModule.project;
+      const projectSpec = project.projectSpec;
+      projectItemRows.set(moduleId, {
+        id: randomUUID(), user_id: ctx.user.id, roadmap_id: roadmapId, module_id: moduleId, parent_item_id: null,
+        section: roadmapModule.title, title: projectSpec.projectTitle,
+        description: `${projectSpec.productDefinition}\n\nProblema: ${projectSpec.problemStatement}\n\nPublico: ${projectSpec.targetAudience}`,
+        requirements: projectSpec.mandatoryRequirements.join("\n"), workspace: null, preparation_steps: [], instructions: projectSpec.submissionInstructions.join("\n"),
+        practice_exercises: projectSpec.deliverables, reflection_questions: [], completion_checklist: projectSpec.deliverables.slice(0, 8), evidence_prompt: null,
+        completion_criteria: projectSpec.evaluationCriteria.map((criterion) => `${criterion.label} (${criterion.weightPercent}%): ${criterion.description}`).join("\n"),
+        project_spec: projectSpec, estimated_minutes: project.estimatedMinutes,
+        item_kind: "project", content_role: roadmapModule.moduleKind === "capstone" ? "capstone" : "module_project", item_code: roadmapModule.moduleKind === "capstone" ? "TCC" : `${moduleOrder + 1}.P`, level_code: roadmapModule.level,
+        // Projetos e atividades vivem no workspace da IDE. No site, somente
+        // assuntos/revisoes compoem o progresso e o desbloqueio de modulos.
+        counts_for_progress: false, template_node_id: project.id, subtopics: [],
+      });
+    }
+  }
+
+  dailyQuizMaterializations.sort((left, right) => left.dailyQuiz.scheduledDate.localeCompare(right.dailyQuiz.scheduledDate)
+    || left.moduleOrder - right.moduleOrder
+    || left.topicOrder - right.topicOrder
+    || left.dailyQuiz.sessionIndex - right.dailyQuiz.sessionIndex
+    || left.dailyQuiz.id.localeCompare(right.dailyQuiz.id));
+  const lastDailyQuizIndexByModule = new Map<string, number>();
+  dailyQuizMaterializations.forEach((entry, index) => lastDailyQuizIndexByModule.set(entry.moduleId, index));
+  const appendedTopicIds = new Set<string>();
+  const appendedProjectModuleIds = new Set<string>();
+  const appendedQuizlessModuleOrders = new Set<number>();
+  const appendItemRow = (row: Record<string, unknown>) => itemRows.push({ ...row, status: "pending", order_index: orderIndex++ });
+  const appendQuizlessModulesBefore = (exclusiveModuleOrder: number) => {
+    for (const [moduleOrder, roadmapModule] of plan.modules.entries()) {
+      if (moduleOrder >= exclusiveModuleOrder || appendedQuizlessModuleOrders.has(moduleOrder)) continue;
+      const moduleId = moduleIds.get(roadmapModule.id);
+      if (!moduleId || lastDailyQuizIndexByModule.has(moduleId)) continue;
+
+      topicItemOrder
+        .filter((entry) => entry.moduleOrder === moduleOrder)
+        .sort((left, right) => left.topicOrder - right.topicOrder)
+        .forEach(({ topicId }) => {
+          if (appendedTopicIds.has(topicId)) return;
+          const topicRow = topicItemRows.get(topicId);
+          if (topicRow) appendItemRow(topicRow);
+          appendedTopicIds.add(topicId);
+        });
+      const projectRow = projectItemRows.get(moduleId);
+      if (projectRow) {
+        appendItemRow(projectRow);
+        appendedProjectModuleIds.add(moduleId);
+      }
+      appendedQuizlessModuleOrders.add(moduleOrder);
+    }
+  };
+  for (const [dailyOrder, materialization] of dailyQuizMaterializations.entries()) {
+      appendQuizlessModulesBefore(materialization.moduleOrder);
+      const { dailyQuiz, dailyQuizIndex, moduleId, moduleTitle, topicCode, topicId, topicTitle, level } = materialization;
+      const scheduledWeekday = /^\d{4}-\d{2}-\d{2}$/.test(dailyQuiz.scheduledDate)
+        ? new Date(`${dailyQuiz.scheduledDate}T12:00:00Z`).getUTCDay()
+        : -1;
+      if (
+        dailyQuiz.scheduledDate < plan.startDate
+        || !availableDays.includes(String(scheduledWeekday))
+        || dailyQuiz.questions.length !== plan.dailyQuestionPolicy.questionsPerStudyDay
+        || dailyQuiz.questions.length > 20
+      ) return rollback(`O catalogo de ${topicTitle} possui uma sessao de perguntas diarias invalida.`);
+      if (!appendedTopicIds.has(topicId)) {
+        const topicRow = topicItemRows.get(topicId);
+        if (!topicRow) return rollback(`Nao foi possivel materializar o assunto ${topicTitle}.`);
+        appendItemRow(topicRow);
+        appendedTopicIds.add(topicId);
+      }
+      const assessmentId = randomUUID();
+      appendItemRow({
+        id: assessmentId, user_id: ctx.user.id, roadmap_id: roadmapId, module_id: moduleId, parent_item_id: topicId,
+        section: moduleTitle, title: dailyQuiz.title,
+        description: "Perguntas predefinidas para praticar nos arquivos do workspace da IDE.",
+        estimated_minutes: dailyQuiz.estimatedMinutes, item_kind: "quiz", content_role: "assessment",
+        item_code: `${topicCode}.Q${dailyQuizIndex + 1}`, level_code: level, scheduled_date: dailyQuiz.scheduledDate,
+        counts_for_progress: false, template_node_id: dailyQuiz.id, subtopics: [],
+      });
+      dailyQuiz.questions.forEach((question, questionIndex) => questionRows.push({
+        user_id: ctx.user.id,
+        item_id: assessmentId,
+        question_type: question.type,
+        prompt: question.prompt,
+        options: question.options,
+        correct_option: question.type === "multiple_choice" ? question.correctOptionIndex : null,
+        correct_order: question.type === "ordering" ? question.correctOrder : [],
+        explanation: question.explanation,
+        order_index: questionIndex,
+      }));
+      if (lastDailyQuizIndexByModule.get(moduleId) === dailyOrder) {
+        const projectRow = projectItemRows.get(moduleId);
+        if (projectRow) {
+          appendItemRow(projectRow);
+          appendedProjectModuleIds.add(moduleId);
+        }
+      }
+  }
+  appendQuizlessModulesBefore(plan.modules.length);
+  topicItemOrder
+    .sort((left, right) => left.moduleOrder - right.moduleOrder || left.topicOrder - right.topicOrder)
+    .forEach(({ topicId }) => {
+      if (appendedTopicIds.has(topicId)) return;
+      const topicRow = topicItemRows.get(topicId);
+      if (topicRow) appendItemRow(topicRow);
+    });
+  plan.modules.forEach((roadmapModule) => {
+    const moduleId = moduleIds.get(roadmapModule.id);
+    if (!moduleId || appendedProjectModuleIds.has(moduleId)) return;
+    const projectRow = projectItemRows.get(moduleId);
+    if (projectRow) appendItemRow(projectRow);
+  });
+
+  for (const itemBatch of insertBatches(itemRows, 200)) {
+    const { error: itemError } = await ctx.supabase
+      .from("perf_study_roadmap_item")
+      .insert(itemBatch, { defaultToNull: false });
+    if (itemError) return rollback(itRoadmapPersistenceError(itemError));
+  }
+  for (const questionBatch of insertBatches(questionRows, 250)) {
+    const { error: questionError } = await createAdminClient().from("perf_study_assessment_question").insert(questionBatch);
+    if (questionError) return rollback(questionError.message);
+  }
+  const { error: activationError } = await ctx.supabase.rpc("perf_activate_study_roadmap", { p_roadmap_id: roadmapId });
+  if (activationError) return rollback(itRoadmapPersistenceError(activationError));
+  reval();
+  return { ok: true, id: roadmapId };
+}
+
 export async function ativarRoadmapEstudosLifeOS(id: string): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx || !id) return { ok: false, error: "Roadmap invalido." };
@@ -544,9 +1163,17 @@ export async function editarItemEstudoLifeOS(id: string, formData: FormData): Pr
 export async function atualizarStatusEstudoLifeOS(id: string, status: string): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx || !id || !["pending", "in_progress", "completed"].includes(status)) return { ok: false, error: "Status invalido." };
-  const { data: item } = await ctx.supabase.from("perf_study_roadmap_item").select("preparation_steps, completion_checklist").eq("id", id).eq("user_id", ctx.user.id).maybeSingle();
+  const { data: item } = await ctx.supabase.from("perf_study_roadmap_item")
+    .select("roadmap_id, module_id, preparation_steps, completion_checklist")
+    .eq("id", id)
+    .eq("user_id", ctx.user.id)
+    .maybeSingle();
   if (!item) return { ok: false, error: "Etapa não encontrada." };
-  const { count } = await ctx.supabase.from("perf_study_assessment_question").select("id", { count: "exact", head: true }).eq("item_id", id).eq("user_id", ctx.user.id);
+  if (status !== "pending") {
+    const moduleGateError = await previousItCareerModuleCompletionError(ctx, item);
+    if (moduleGateError) return { ok: false, error: moduleGateError };
+  }
+  const { count } = await createAdminClient().from("perf_study_assessment_question").select("id", { count: "exact", head: true }).eq("item_id", id).eq("user_id", ctx.user.id);
   const hasChecks = (Array.isArray(item.preparation_steps) && item.preparation_steps.length > 0) || (Array.isArray(item.completion_checklist) && item.completion_checklist.length > 0);
   if (hasChecks || (count ?? 0) > 0) return { ok: false, error: "Esta aula é concluída automaticamente após todos os checks e respostas." };
   const { error } = await ctx.supabase.from("perf_study_roadmap_item").update({ status, completed_at: status === "completed" ? new Date().toISOString() : null, updated_at: new Date().toISOString() }).eq("id", id).eq("user_id", ctx.user.id);
@@ -557,6 +1184,51 @@ export async function atualizarStatusEstudoLifeOS(id: string, status: string): P
 export async function alternarCheckEstudoLifeOS(itemId: string, group: "preparation" | "completion", index: number, checked: boolean): Promise<Res> {
   const ctx = await requireCeo();
   if (!ctx || !itemId || !["preparation", "completion"].includes(group) || !Number.isInteger(index) || index < 0) return { ok: false, error: "Checklist inválido." };
+  if (checked) {
+    const itemLookup = await ctx.supabase.from("perf_study_roadmap_item")
+      .select("id, roadmap_id, module_id, order_index, content_role")
+      .eq("id", itemId)
+      .eq("user_id", ctx.user.id)
+      .maybeSingle();
+    const item = itemLookup.data;
+    if (itemLookup.error) {
+      if (!isMissingStudyContentRole(itemLookup.error)) return { ok: false, error: itemLookup.error.message };
+      const legacyItemLookup = await ctx.supabase.from("perf_study_roadmap_item")
+        .select("id, roadmap_id")
+        .eq("id", itemId)
+        .eq("user_id", ctx.user.id)
+        .maybeSingle();
+      if (legacyItemLookup.error) return { ok: false, error: legacyItemLookup.error.message };
+      if (!legacyItemLookup.data?.roadmap_id) return { ok: false, error: "Etapa nao encontrada." };
+      const legacyRoadmapLookup = await ctx.supabase.from("perf_study_roadmap")
+        .select("source")
+        .eq("id", legacyItemLookup.data.roadmap_id)
+        .eq("user_id", ctx.user.id)
+        .maybeSingle();
+      if (legacyRoadmapLookup.error) return { ok: false, error: legacyRoadmapLookup.error.message };
+      if (!legacyRoadmapLookup.data || legacyRoadmapLookup.data.source === "template") {
+        return { ok: false, error: "Execute a migration performance-it-career-roadmaps.sql antes de marcar este desafio." };
+      }
+    } else if (!item) {
+      return { ok: false, error: "Etapa nao encontrada." };
+    } else {
+      const moduleGateError = await previousItCareerModuleCompletionError(ctx, item);
+      if (moduleGateError) return { ok: false, error: moduleGateError };
+    }
+    if (item && ["module_project", "capstone"].includes(item.content_role ?? "") && item.roadmap_id) {
+      const { data: earlierPendingGate, error: gateError } = await ctx.supabase.from("perf_study_roadmap_item")
+        .select("id")
+        .eq("user_id", ctx.user.id)
+        .eq("roadmap_id", item.roadmap_id)
+        .in("content_role", ["assessment", "module_project", "capstone"])
+        .lt("order_index", item.order_index)
+        .neq("status", "completed")
+        .limit(1)
+        .maybeSingle();
+      if (gateError) return { ok: false, error: gateError.message };
+      if (earlierPendingGate) return { ok: false, error: "Conclua primeiro as questões e o desafio anterior deste roadmap." };
+    }
+  }
   const { error } = await ctx.supabase.rpc("perf_toggle_study_check", { p_item_id: itemId, p_group: group, p_index: index, p_checked: checked });
   if (error) return { ok: false, error: error.message.includes("Could not find") ? "Aplique a migration de progresso dos estudos antes de marcar os checks." : error.message };
   reval(); return { ok: true };
@@ -572,13 +1244,21 @@ export async function removerItemEstudoLifeOS(id: string): Promise<Res> {
 
 const STUDY_ITEM_KINDS = new Set(["core", "reinforcement", "challenge", "check", "criterion", "general", "reading", "video", "audiovisual", "practice", "quiz", "project", "checkpoint"]);
 
-export async function importarRoadmapEstudosLifeOS(payload: string, filename = "roadmap.md"): Promise<GenerateRoadmapResult> {
+export async function importarRoadmapEstudosLifeOS(payload: string, filename = "roadmap.json"): Promise<GenerateRoadmapResult> {
   const ctx = await requireRoadmapAiUser();
   if (!ctx) return { ok: false, error: "A importacao com IA ainda nao esta liberada para este usuario." };
   if (Buffer.byteLength(payload, "utf8") > ROADMAP_IMPORT_MAX_BYTES) return { ok: false, error: "O arquivo excede o limite de 5 MB." };
 
-  const safeFilename = filename.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 180) || "roadmap.md";
-  if (!/\.(md|markdown|txt|json)$/i.test(safeFilename)) return { ok: false, error: "Use um arquivo Markdown, TXT ou JSON." };
+  const safeFilename = filename.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 180) || "roadmap.json";
+  if (!/\.json$/i.test(safeFilename)) return { ok: false, error: "Importe um arquivo JSON exportado de um roadmap de idioma." };
+  try {
+    const imported = JSON.parse(payload) as unknown;
+    if (!isLanguageRoadmapExport(imported)) {
+      return { ok: false, error: "Somente roadmaps de idioma exportados pelo sistema podem ser importados. Carreiras de TI usam o catalogo predefinido." };
+    }
+  } catch {
+    return { ok: false, error: "O arquivo JSON de idioma nao e valido." };
+  }
   let source: string;
   try {
     source = prepareRoadmapImportSource(payload);
@@ -593,7 +1273,7 @@ export async function importarRoadmapEstudosLifeOS(payload: string, filename = "
   const { data: generation, error: generationError } = await ctx.supabase.from("perf_study_roadmap_generation").insert({
     user_id: ctx.user.id,
     status: "generating",
-    answers: { source: "import", filename: safeFilename, characterCount: source.length },
+    answers: { source: "import", roadmapType: "language", filename: safeFilename, characterCount: source.length },
     origin: "import",
     original_filename: safeFilename,
     source_sha256: sourceSha256,
@@ -637,7 +1317,7 @@ async function roadmapGenerationGate(ctx: RoadmapAiContext): Promise<string | nu
     ctx.supabase.from("perf_study_roadmap_generation").select("id, origin, preview_title").eq("user_id", ctx.user.id).limit(1),
     ctx.supabase.from("perf_study_roadmap_item").select("id, requirements, workspace").eq("user_id", ctx.user.id).limit(1),
     ctx.supabase.from("perf_study_roadmap_item").select("id, preparation_steps, practice_exercises, reflection_questions, completion_checklist, evidence_prompt").eq("user_id", ctx.user.id).limit(1),
-    ctx.supabase.from("perf_study_assessment_question").select("id, question_type, correct_order").eq("user_id", ctx.user.id).limit(1),
+    createAdminClient().from("perf_study_assessment_question").select("id, question_type, correct_order").eq("user_id", ctx.user.id).limit(1),
     ctx.supabase
       .from("perf_study_roadmap_generation")
       .select("id", { count: "exact", head: true })
@@ -782,6 +1462,7 @@ async function processRoadmapGeneration(
   attemptId: string,
 ): Promise<void> {
   try {
+    if (answers.roadmapType !== "language") throw new Error("IT_ROADMAPS_USE_PREDEFINED_CATALOG");
     const shouldSearchVideos = answers.learningFormats.includes("video");
     const shouldSearchExternalMaterials = answers.requiredMaterials.some((material) => ["course", "book"].includes(material));
     const shouldSearchResources = shouldSearchVideos || shouldSearchExternalMaterials;
@@ -829,6 +1510,7 @@ export async function gerarRoadmapComIALifeOS(formData: FormData): Promise<Gener
   if (!ctx) return { ok: false, error: "A geracao com IA ainda nao esta liberada para este usuario." };
 
   const roadmapType = text(formData, "roadmap_type", 20) ?? "skill";
+  if (roadmapType !== "language") return { ok: false, error: "Roadmaps de TI agora usam carreiras e conteudos predefinidos. Abra Carreira em TI para criar a trilha." };
   const targetLanguage = text(formData, "target_language", 100) ?? "";
   const languageActivities = formValues(formData, "language_activities", 20);
   const availableDevices = formValues(formData, "available_devices", 5);
@@ -929,6 +1611,11 @@ export async function sincronizarGeracoesRoadmapLifeOS(): Promise<Res & { update
       updated += 1;
       continue;
     }
+    if (parsedAnswers.data.roadmapType !== "language") {
+      await failRoadmapGeneration(ctx, generation.id, new Error("IT_ROADMAPS_USE_PREDEFINED_CATALOG"));
+      updated += 1;
+      continue;
+    }
 
     let response: OpenAIResponse;
     try {
@@ -976,6 +1663,7 @@ export async function tentarNovamenteGeracaoRoadmapLifeOS(generationId: string):
 
   const parsedAnswers = roadmapAiAnswersSchema.safeParse(generation.answers);
   if (!parsedAnswers.success) return { ok: false, error: "As respostas salvas desta geracao nao sao mais validas." };
+  if (parsedAnswers.data.roadmapType !== "language") return { ok: false, error: "Esta geracao antiga de TI foi substituida pelo catalogo de carreiras predefinidas." };
   const gateError = await roadmapGenerationGate(ctx);
   if (gateError) return { ok: false, error: gateError };
 
@@ -1018,20 +1706,21 @@ export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promis
   const [itemDetailsCheck, referenceStandardCheck, questionTypesCheck] = await Promise.all([
     ctx.supabase.from("perf_study_roadmap_item").select("id, requirements, workspace").eq("user_id", ctx.user.id).limit(1),
     ctx.supabase.from("perf_study_roadmap_item").select("id, preparation_steps, practice_exercises, reflection_questions, completion_checklist, evidence_prompt").eq("user_id", ctx.user.id).limit(1),
-    ctx.supabase.from("perf_study_assessment_question").select("id, question_type, correct_order").eq("user_id", ctx.user.id).limit(1),
+    createAdminClient().from("perf_study_assessment_question").select("id, question_type, correct_order").eq("user_id", ctx.user.id).limit(1),
   ]);
   if (itemDetailsCheck.error || questionTypesCheck.error) return { ok: false, error: "Execute a migration performance-study-question-types.sql antes de salvar este roadmap." };
   if (referenceStandardCheck.error) return { ok: false, error: "Execute a migration performance-study-reference-standard.sql antes de salvar este roadmap." };
 
-  const { data: generation, error: generationError } = await ctx.supabase.from("perf_study_roadmap_generation").select("id, status, generated_plan, origin").eq("id", generationId).eq("user_id", ctx.user.id).maybeSingle();
+  const { data: generation, error: generationError } = await ctx.supabase.from("perf_study_roadmap_generation").select("id, status, generated_plan, origin, answers").eq("id", generationId).eq("user_id", ctx.user.id).maybeSingle();
   if (generationError || !generation || generation.status !== "ready") return { ok: false, error: "A previa nao esta disponivel para confirmacao." };
+  if (!isLanguageRoadmapGeneration(generation.origin, generation.answers)) return { ok: false, error: "Somente roadmaps de idioma podem ser confirmados por este fluxo. Para TI, crie uma trilha pela opcao Carreira em TI." };
   const parsedPlan = roadmapGenerationPlanSchema.safeParse(generation.generated_plan);
   if (!parsedPlan.success) return { ok: false, error: "O roadmap gerado nao passou na validacao." };
   const plan = parsedPlan.data;
   const missingVideo = plan.modules.flatMap((module) => module.steps).find((step) => step.type === "video" && !step.resourceUrl);
   if (missingVideo) return { ok: false, error: `A etapa “${missingVideo.title}” está rotulada como Videoaula, mas não possui link direto. Reclassifique-a como atividade audiovisual ou gere um recurso válido.` };
 
-  const { data: created, error: roadmapError } = await ctx.supabase.from("perf_study_roadmap").insert({
+  const roadmapPayload = {
     user_id: ctx.user.id,
     title: plan.title,
     description: plan.description,
@@ -1044,7 +1733,14 @@ export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promis
     quality_score: plan.qualityScore,
     workload_score: plan.workloadScore,
     total_estimated_minutes: plan.totalEstimatedMinutes,
+  };
+  let { data: created, error: roadmapError } = await ctx.supabase.from("perf_study_roadmap").insert({
+    ...roadmapPayload,
+    roadmap_kind: "language",
   }).select("id").single();
+  if (roadmapError && /roadmap_kind/i.test(roadmapError.message ?? "")) {
+    ({ data: created, error: roadmapError } = await ctx.supabase.from("perf_study_roadmap").insert(roadmapPayload).select("id").single());
+  }
   if (roadmapError || !created) return { ok: false, error: roadmapError?.message ?? "Nao foi possivel criar o roadmap." };
 
   let orderIndex = 0;
@@ -1112,7 +1808,7 @@ export async function confirmarRoadmapGeradoLifeOS(generationId: string): Promis
       }));
     });
     if (questionRows.length) {
-      const { error: questionError } = await ctx.supabase.from("perf_study_assessment_question").insert(questionRows);
+      const { error: questionError } = await createAdminClient().from("perf_study_assessment_question").insert(questionRows);
       if (questionError) {
         await ctx.supabase.from("perf_study_roadmap").delete().eq("id", created.id).eq("user_id", ctx.user.id);
         return { ok: false, error: questionError.message };
@@ -1199,17 +1895,61 @@ export async function enviarAvaliacaoEstudoLifeOS(itemId: string, submittedAnswe
   correctCount?: number;
   totalCount?: number;
   masteryReached?: boolean;
-  feedback?: Array<{ questionId: string; questionType: "multiple_choice" | "ordering"; correct: boolean; correctOptionIndex: number | null; correctOrder: number[]; explanation: string }>;
+  feedback?: Array<{ questionId: string; questionType: "multiple_choice" | "ordering"; correct: boolean }>;
 }> {
   const ctx = await requireCeo();
   if (!ctx || !itemId) return { ok: false, error: "Avaliacao invalida." };
+  const privileged = createAdminClient();
   if (!submittedAnswers || typeof submittedAnswers !== "object" || Object.keys(submittedAnswers).length > 20) return { ok: false, error: "Respostas invalidas." };
 
-  const { data: item } = await ctx.supabase.from("perf_study_roadmap_item").select("id").eq("id", itemId).eq("user_id", ctx.user.id).maybeSingle();
+  type AssessmentItemLookup = { id: string; roadmap_id: string | null; module_id: string | null; scheduled_date: string | null; order_index: number; content_role: string | null };
+  const itemLookup = await ctx.supabase.from("perf_study_roadmap_item")
+    .select("id, roadmap_id, module_id, scheduled_date, order_index, content_role")
+    .eq("id", itemId)
+    .eq("user_id", ctx.user.id)
+    .maybeSingle();
+  let item = itemLookup.data as AssessmentItemLookup | null;
+  if (itemLookup.error) {
+    const legacyLookup = await ctx.supabase.from("perf_study_roadmap_item").select("id").eq("id", itemId).eq("user_id", ctx.user.id).maybeSingle();
+    if (legacyLookup.error) return { ok: false, error: legacyLookup.error.message };
+    item = legacyLookup.data ? { id: legacyLookup.data.id, roadmap_id: null, module_id: null, scheduled_date: null, order_index: 0, content_role: null } : null;
+  }
   if (!item) return { ok: false, error: "Etapa nao encontrada." };
-  let questionsResult = await ctx.supabase.from("perf_study_assessment_question").select("id, question_type, options, correct_option, correct_order, explanation").eq("item_id", itemId).eq("user_id", ctx.user.id).order("order_index").limit(20);
+  if (item.content_role === "assessment") {
+    const moduleGateError = await previousItCareerModuleCompletionError(ctx, item);
+    if (moduleGateError) return { ok: false, error: moduleGateError };
+  }
+  if (item.content_role === "assessment" && typeof item.scheduled_date === "string") {
+    const scheduledDate = item.scheduled_date;
+    const today = hojeISO("America/Bahia");
+    if (scheduledDate > today) return { ok: false, error: `Este bloco de perguntas fica disponivel em ${scheduledDate}.` };
+    const { data: earlierPendingProject, error: projectSequenceError } = await ctx.supabase.from("perf_study_roadmap_item")
+      .select("id")
+      .eq("user_id", ctx.user.id)
+      .eq("roadmap_id", item.roadmap_id)
+      .in("content_role", ["module_project", "capstone"])
+      .lt("order_index", item.order_index)
+      .neq("status", "completed")
+      .limit(1)
+      .maybeSingle();
+    if (projectSequenceError) return { ok: false, error: projectSequenceError.message };
+    if (earlierPendingProject) return { ok: false, error: "Conclua primeiro o desafio anterior deste roadmap." };
+    const { data: earlierPendingQuiz, error: sequenceError } = await ctx.supabase.from("perf_study_roadmap_item")
+      .select("id")
+      .eq("user_id", ctx.user.id)
+      .eq("roadmap_id", item.roadmap_id)
+      .eq("content_role", "assessment")
+      .not("scheduled_date", "is", null)
+      .lt("order_index", item.order_index)
+      .neq("status", "completed")
+      .limit(1)
+      .maybeSingle();
+    if (sequenceError) return { ok: false, error: sequenceError.message };
+    if (earlierPendingQuiz) return { ok: false, error: "Conclua primeiro o bloco de perguntas anterior deste roadmap." };
+  }
+  let questionsResult = await privileged.from("perf_study_assessment_question").select("id, question_type, options, correct_option, correct_order").eq("item_id", itemId).eq("user_id", ctx.user.id).order("order_index").limit(20);
   if (questionsResult.error) {
-    const legacyResult = await ctx.supabase.from("perf_study_assessment_question").select("id, options, correct_option, explanation").eq("item_id", itemId).eq("user_id", ctx.user.id).order("order_index").limit(20);
+    const legacyResult = await privileged.from("perf_study_assessment_question").select("id, options, correct_option").eq("item_id", itemId).eq("user_id", ctx.user.id).order("order_index").limit(20);
     if (legacyResult.error) return { ok: false, error: legacyResult.error.message };
     questionsResult = {
       ...legacyResult,
@@ -1242,9 +1982,6 @@ export async function enviarAvaliacaoEstudoLifeOS(itemId: string, submittedAnswe
       questionId: question.id,
       questionType,
       correct: isStudyAnswerCorrect(answer, gradableQuestion),
-      correctOptionIndex: gradableQuestion.correctOptionIndex,
-      correctOrder: gradableQuestion.correctOrder,
-      explanation: String(question.explanation),
     };
   });
   const correctCount = feedback.filter((entry) => entry.correct).length;

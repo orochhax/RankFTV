@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { academyDurationSeries, academyStreak, averageDuration, cumulativeContributions, investmentSummary, nextStudyItem, portfolioSeriesVariation, portfolioValueSeries, roadmapProgress, studyWeeklyStats } from "./performance-widgets";
+import { academyDurationSeries, academyStreak, averageDuration, cumulativeContributions, investmentSummary, nextStudyItem, parseStudyProjectSpec, portfolioSeriesVariation, portfolioValueSeries, roadmapProgress, studyWeeklyStats, weightedRoadmapProgress } from "./performance-widgets";
 
 test("academyStreak counts consecutive days and tolerates today not yet completed", () => {
   assert.equal(academyStreak(["2026-08-05", "2026-08-04", "2026-08-03"], "2026-08-05"), 3);
@@ -35,6 +35,16 @@ test("roadmap returns progress and first pending item", () => {
   assert.equal(nextStudyItem(items)?.title, "B");
 });
 
+test("weighted roadmap progress preserves the material weight of a pending project", () => {
+  const items = [
+    { status: "completed" as const, estimatedMinutes: 60, countsForProgress: true },
+    { status: "completed" as const, estimatedMinutes: 60, countsForProgress: true },
+    { status: "pending" as const, estimatedMinutes: 240, countsForProgress: true },
+  ];
+  assert.equal(roadmapProgress(items.map((item, orderIndex) => ({ ...item, orderIndex }))), 67);
+  assert.equal(weightedRoadmapProgress(items), 33);
+});
+
 test("investment summary and monthly cumulative contributions are stable", () => {
   const contributions = [{ id: "1", date: "2026-08-01", amount: 100, institution: null, notes: null }, { id: "2", date: "2026-09-01", amount: 50, institution: null, notes: null }];
   assert.equal(investmentSummary(contributions, [{ date: "2026-09-02", totalValue: 170 }], [{ date: "2026-09-01", amount: 10 }]).returnPercent, 21.428571428571427);
@@ -53,4 +63,39 @@ test("portfolio chart keeps the latest snapshot for each selected period", () =>
   assert.deepEqual(portfolioValueSeries(snapshots, "week").map((item) => item.value), [900, 1_100, 1_250]);
   assert.deepEqual(portfolioValueSeries(snapshots, "month").map((item) => item.value), [900, 1_250]);
   assert.deepEqual(portfolioSeriesVariation(portfolioValueSeries(snapshots, "month")), { amount: 350, percent: 38.88888888888889 });
+});
+
+test("project specification parser accepts a complete snapshot and rejects an invalid rubric", () => {
+  const snapshot = {
+    schemaVersion: 1,
+    blueprintId: "data_science_ai.capstone.specialist",
+    projectKind: "capstone",
+    interest: { id: "football", label: "Futebol" },
+    projectTitle: "TCC — Previsor de partidas",
+    productDefinition: "Desenvolva um sistema que calcule probabilidades para partidas fictícias.",
+    problemStatement: "Analistas precisam comparar partidas usando dados consistentes.",
+    targetAudience: "Analistas esportivos",
+    functionalities: ["Importar a fixture", "Treinar modelos", "Publicar probabilidades"],
+    data: {
+      sourceType: "synthetic_generator",
+      sourceLabel: "Fixture de partidas",
+      acquisitionInstructions: "Gere mil partidas com seed 42.",
+      entities: [{ name: "match", requiredFields: [{ name: "match_id", type: "string", description: "Identificador" }] }],
+      preparationRules: ["Não usar o futuro no treino"],
+    },
+    technicalConcepts: ["Python", "Classificação"],
+    mandatoryRequirements: ["Separar treino e teste"],
+    deliverables: ["Código", "Testes", "README"],
+    evaluationCriteria: [
+      { id: "product", label: "Produto", description: "Funciona", weightPercent: 60 },
+      { id: "quality", label: "Qualidade", description: "É reproduzível", weightPercent: 40 },
+    ],
+    submissionInstructions: ["Entregue o repositório"],
+    implementationFreedom: "A arquitetura interna é livre.",
+    outOfScope: ["Trocar o produto"],
+  };
+
+  assert.deepEqual(parseStudyProjectSpec(snapshot)?.interest, { id: "football", label: "Futebol" });
+  assert.equal(parseStudyProjectSpec({ ...snapshot, evaluationCriteria: [{ ...snapshot.evaluationCriteria[0], weightPercent: 90 }] }), null);
+  assert.equal(parseStudyProjectSpec({ ...snapshot, interest: { id: "unknown", label: "Outro" } }), null);
 });

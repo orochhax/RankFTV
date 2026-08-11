@@ -217,6 +217,7 @@ export type LifeOSProps = {
   studyDraftsReady: boolean;
   studyEnhancementsReady: boolean;
   studyReferenceStandardReady: boolean;
+  studyItCatalogReady: boolean;
   studyV2Ready: boolean;
   range: DashboardRange;
   taskOccurrences: TaskOccurrence[];
@@ -456,6 +457,7 @@ export function LifeOSDashboard(props: LifeOSProps) {
             draftsReady={props.studyDraftsReady}
             enhancementsReady={props.studyEnhancementsReady}
             referenceStandardReady={props.studyReferenceStandardReady}
+            itCatalogReady={props.studyItCatalogReady}
           />
         )}
         {view === "investments" && (
