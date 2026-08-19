@@ -118,7 +118,7 @@ function CadastroForm() {
       requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
         ? requestedNext
         : null;
-    if (modoOrganizador) callbackUrl.searchParams.set("next", "/painel/novo-campeonato");
+    if (modoOrganizador) callbackUrl.searchParams.set("next", "/painel");
     else if (safeNext) callbackUrl.searchParams.set("next", safeNext);
 
     const { error } = await supabase.auth.signUp({

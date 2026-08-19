@@ -13,7 +13,9 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { AutoRefresh } from "@/components/ui/AutoRefresh";
 import { PainelLandingClient } from "@/components/painel/PainelLandingClient";
+import { EmptyState } from "@/components/shell/EmptyState";
 import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { StatCard } from "@/components/shell/StatCard";
 
 function fmt(v: number) {
@@ -67,36 +69,37 @@ export default async function PainelOrganizadorPage() {
     metrics = metricsRes.data as unknown as OrganizerMetrics | null;
   }
 
-  if (user && metrics && (isOrganizer || metricNumber(metrics.championshipTotal) > 0)) {
-    const todos = { length: metricNumber(metrics.championshipTotal) };
-    const abertos = { length: metricNumber(metrics.championshipOpen) };
-    const campsAbertos = metricNumber(metrics.championshipRegistrationsOpen);
-    const campsAndamento = metricNumber(metrics.championshipInProgress);
-    const campsEncerrados = metricNumber(metrics.championshipClosed);
-    const arenaCount = metricNumber(metrics.arenaCount);
+  if (user && (isOrganizer || metricNumber(metrics?.championshipTotal) > 0)) {
+    const dashboardMetrics = metrics ?? ({} as OrganizerMetrics);
+    const todos = { length: metricNumber(dashboardMetrics.championshipTotal) };
+    const abertos = { length: metricNumber(dashboardMetrics.championshipOpen) };
+    const campsAbertos = metricNumber(dashboardMetrics.championshipRegistrationsOpen);
+    const campsAndamento = metricNumber(dashboardMetrics.championshipInProgress);
+    const campsEncerrados = metricNumber(dashboardMetrics.championshipClosed);
+    const arenaCount = metricNumber(dashboardMetrics.arenaCount);
     const arenaIds = { length: arenaCount };
-    const regsPagas = { length: metricNumber(metrics.registrationPaidCount) };
-    const totalAtletas = metricNumber(metrics.registrationPaidValue);
-    const totalPendente = metricNumber(metrics.registrationPendingValue);
-    const totalEstornado = metricNumber(metrics.registrationRefundedValue);
+    const regsPagas = { length: metricNumber(dashboardMetrics.registrationPaidCount) };
+    const totalAtletas = metricNumber(dashboardMetrics.registrationPaidValue);
+    const totalPendente = metricNumber(dashboardMetrics.registrationPendingValue);
+    const totalEstornado = metricNumber(dashboardMetrics.registrationRefundedValue);
     const ticketAtletas  = regsPagas.length > 0 ? totalAtletas / regsPagas.length : 0;
 
-    const totalPlateia = metricNumber(metrics.spectatorPaidValue);
-    const qtdIngressos = metricNumber(metrics.spectatorPaidQuantity);
+    const totalPlateia = metricNumber(dashboardMetrics.spectatorPaidValue);
+    const qtdIngressos = metricNumber(dashboardMetrics.spectatorPaidQuantity);
     const ticketPlateia  = qtdIngressos > 0 ? totalPlateia / qtdIngressos : 0;
     const saldoCampeonatos = totalAtletas + totalPlateia;
 
-    const alunosAtivos = { length: metricNumber(metrics.activeStudentCount) };
-    const totalMRR = metricNumber(metrics.activeMrr);
-    const rentaisMes = { length: metricNumber(metrics.rentalMonthCount) };
-    const totalAluguelMs = metricNumber(metrics.rentalMonthValue);
-    const diariasMes = { length: metricNumber(metrics.dailyMonthCount) };
-    const totalDiariasMs = metricNumber(metrics.dailyMonthValue);
+    const alunosAtivos = { length: metricNumber(dashboardMetrics.activeStudentCount) };
+    const totalMRR = metricNumber(dashboardMetrics.activeMrr);
+    const rentaisMes = { length: metricNumber(dashboardMetrics.rentalMonthCount) };
+    const totalAluguelMs = metricNumber(dashboardMetrics.rentalMonthValue);
+    const diariasMes = { length: metricNumber(dashboardMetrics.dailyMonthCount) };
+    const totalDiariasMs = metricNumber(dashboardMetrics.dailyMonthValue);
     const saldoArena = totalMRR + totalAluguelMs + totalDiariasMs;
 
-    const totalCharges = metricNumber(metrics.chargePaidValue);
-    const totalAluguelAll = metricNumber(metrics.rentalPaidValue);
-    const totalDiariasAll = metricNumber(metrics.dailyPaidValue);
+    const totalCharges = metricNumber(dashboardMetrics.chargePaidValue);
+    const totalAluguelAll = metricNumber(dashboardMetrics.rentalPaidValue);
+    const totalDiariasAll = metricNumber(dashboardMetrics.dailyPaidValue);
     const receitaTotal    = totalAtletas + totalPlateia + totalCharges + totalAluguelAll + totalDiariasAll;
 
     // suppress unused-var warnings for pending/estornado (kept for future use)
@@ -119,6 +122,24 @@ export default async function PainelOrganizadorPage() {
         </Link>
       </>
     );
+
+    if (todos.length === 0 && arenaCount === 0) {
+      return (
+        <PageContainer width="wide" className="space-y-6 py-8">
+          <PageHeader
+            title="Painel do organizador"
+            description="Acompanhe seus campeonatos, inscrições e pagamentos."
+          />
+          <EmptyState
+            icon={Trophy}
+            title="Nenhum campeonato criado ainda"
+            description="Sua conta de organizador está ativa. Crie seu primeiro campeonato para começar."
+            actionLabel="Criar campeonato"
+            actionHref="/painel/novo-campeonato"
+          />
+        </PageContainer>
+      );
+    }
 
     return (
       <div className="min-h-screen">

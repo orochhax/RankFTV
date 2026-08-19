@@ -14,7 +14,7 @@ export default async function NovoCampeonatoPage() {
     .select("habilitado")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (!conta?.habilitado) redirect("/perfil/ativar-organizador?next=%2Fpainel%2Fnovo-campeonato");
+  if (!conta?.habilitado) redirect("/perfil/ativar-organizador");
 
   return (
     <PageContainer width="form" className="space-y-6 py-8">

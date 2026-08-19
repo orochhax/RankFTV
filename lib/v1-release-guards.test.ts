@@ -64,3 +64,20 @@ test("public copy does not promise boleto or self-service cancellation", () => {
   assert.doesNotMatch(publicCopy, /Cancele a qualquer momento/i);
   assert.match(publicCopy, /Beta/i);
 });
+
+test("organizer activation opens the empty dashboard before championship creation", () => {
+  const activationAction = source("app/perfil/ativar-organizador/actions.ts");
+  const activationPage = source("app/perfil/ativar-organizador/page.tsx");
+  const championshipPage = source("app/painel/novo-campeonato/page.tsx");
+  const dashboardPage = source("app/painel/page.tsx");
+  const signupPage = source("app/cadastro/page.tsx");
+
+  assert.match(activationAction, /revalidatePath\("\/", "layout"\)/);
+  assert.match(activationAction, /redirect\("\/painel"\)/);
+  assert.doesNotMatch(activationAction, /redirect\([^\n]*novo-campeonato/);
+  assert.match(activationPage, /if \(conta\?\.habilitado\) redirect\("\/painel"\)/);
+  assert.match(championshipPage, /if \(!conta\?\.habilitado\) redirect\("\/perfil\/ativar-organizador"\)/);
+  assert.match(signupPage, /if \(modoOrganizador\) callbackUrl\.searchParams\.set\("next", "\/painel"\)/);
+  assert.match(dashboardPage, /Nenhum campeonato criado ainda/);
+  assert.match(dashboardPage, /Sua conta de organizador está ativa/);
+});

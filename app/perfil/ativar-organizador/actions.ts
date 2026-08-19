@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { validaCpfCnpj, idadeEm, soDigitos } from "@/lib/validacao";
 
@@ -14,7 +15,6 @@ export async function ativarOrganizador(formData: FormData) {
   const cpfCnpj    = soDigitos((formData.get("cpf_cnpj") as string) ?? "");
   const nascimento = ((formData.get("data_nascimento") as string) ?? "").trim();
   const telefone   = soDigitos((formData.get("telefone") as string) ?? "");
-  const destino    = ((formData.get("destino") as string) ?? "").trim();
 
   if (!validaCpfCnpj(cpfCnpj)) {
     return { error: "Informe um CPF ou CNPJ válido." };
@@ -44,5 +44,8 @@ export async function ativarOrganizador(formData: FormData) {
 
   if (dbError) return { error: "Erro ao salvar dados. Tente novamente." };
 
-  redirect(destino && destino.startsWith("/") && !destino.startsWith("//") ? destino : "/painel/novo-campeonato");
+  // A permissão do menu lateral é calculada no layout raiz. Invalida o cache
+  // antes de abrir o painel para o item aparecer sem exigir outro campeonato.
+  revalidatePath("/", "layout");
+  redirect("/painel");
 }

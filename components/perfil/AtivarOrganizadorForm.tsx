@@ -6,7 +6,7 @@ import { ativarOrganizador } from "@/app/perfil/ativar-organizador/actions";
 
 const initialState = { error: undefined as string | undefined };
 
-export function AtivarOrganizadorForm({ destino }: { destino: string }) {
+export function AtivarOrganizadorForm() {
   const [state, action, pending] = useActionState(
     async (_prev: typeof initialState, formData: FormData) => {
       const result = await ativarOrganizador(formData);
@@ -17,8 +17,6 @@ export function AtivarOrganizadorForm({ destino }: { destino: string }) {
 
   return (
     <form action={action} className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
-      <input type="hidden" name="destino" value={destino} />
-
       <div>
         <label className="block text-sm font-medium text-gray-700">
           CPF ou CNPJ
