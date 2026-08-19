@@ -57,13 +57,16 @@ export async function proxy(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet, headers) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = createNextResponse();
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
+          );
+          Object.entries(headers).forEach(([name, value]) =>
+            supabaseResponse.headers.set(name, value)
           );
         },
       },
@@ -73,8 +76,9 @@ export async function proxy(request: NextRequest) {
   // Renova o token — sempre necessário
   let user: { id: string } | null = null;
   try {
-    const auth = await supabase.auth.getUser();
-    user = auth.data.user;
+    const auth = await supabase.auth.getClaims();
+    const subject = auth.data?.claims?.sub;
+    user = typeof subject === "string" ? { id: subject } : null;
   } catch {
     // Public pages and security headers remain available during a temporary
     // auth-provider outage. Protected routes still fail closed below.
