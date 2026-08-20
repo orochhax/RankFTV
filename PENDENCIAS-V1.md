@@ -91,11 +91,13 @@ Revisão de continuidade em 19/08/2026:
   processado e uma credencial com código/QR. O cenário Pix completo está aprovado;
   no primeiro teste de cartão, o Asaas recusou a requisição porque o checkout não
   enviava o telefone do titular e o campo de número do endereço era ambíguo. O
-  formulário foi corrigido para pedir celular com DDD, identificar o número da casa,
-  aceitar complemento, consultar rua/bairro/cidade/UF pelo CEP e enviar também o IP
-  remoto exigido pelo provedor. A correção está automatizada e aguarda o reteste no
-  Preview; aprovação/recusa de cartão, duplicidade forçada, ordenação, timeout,
-  estorno, chargeback, repasses,
+  formulário foi corrigido no commit `9985fac` para pedir celular com DDD, identificar
+  o número da casa, aceitar complemento, consultar rua/bairro/cidade/UF pelo CEP e
+  enviar também o IP remoto exigido pelo provedor. O reteste aprovou o cartão, confirmou
+  a inscrição e processou o webhook. A consulta de evidência retornou uma única operação
+  financeira `confirmed`, uma tentativa aprovada, uma credencial, um evento processado
+  e zero colunas destinadas a PAN/CVV. Recusa de cartão, duplicidade forçada, ordenação,
+  timeout, estorno, chargeback, repasses,
   plateia e check-in ainda precisam ser exercitados. A navegação de compras foi
   consolidada em `/minhas-compras`, com abas Atleta e Plateia.
 - [M] (confirma que a conta pode receber e movimentar dinheiro) Confirmar KYC e as capacidades de Pix, cartão, parcelamento, estorno e
@@ -515,7 +517,10 @@ tokens ou dados pessoais.
   confirmou uma única compra/credencial em 20/08/2026. A consulta no Sandbox retornou
   `pago`, vínculo Asaas e credencial válidos, uma compra, uma operação financeira e um
   evento `PAYMENT_RECEIVED` processado.
-- [ ] (testa cartão aprovado sem guardar dados proibidos) Cartão aprovado sem armazenar PAN/CVV.
+- [x] (testa cartão aprovado sem guardar dados proibidos) Cartão aprovado em 20/08/2026:
+  inscrição `pago`, cobrança `CREDIT_CARD` vinculada, credencial criada, uma operação
+  `confirmed`, uma tentativa aprovada, um webhook processado e zero colunas destinadas
+  a PAN/CVV no schema público do Sandbox.
 - [ ] (testa cartão recusado sem liberar a inscrição) Cartão recusado com mensagem segura e sem ativar inscrição.
 - [ ] (garante que dois cliques não criem duas cobranças) Request duplicado retorna/reconcilia a mesma operação externa.
 - [ ] (não processa duas vezes o mesmo aviso de pagamento) Webhook duplicado é ignorado pelo ledger.
