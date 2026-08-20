@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { criarOuBuscarCliente } from "@/lib/asaas";
 import { calcularTotalComprador } from "@/lib/taxas";
@@ -12,6 +13,12 @@ import {
   finishCardPaymentAttempt,
 } from "@/lib/payment-security";
 import { estornarAthleteTicket } from "@/lib/pagamento-inscricao";
+import {
+  isValidCardHolderPhone,
+  normalizeAddressComplement,
+  normalizeCardHolderPhone,
+} from "@/lib/card-holder";
+import { getClientIp } from "@/lib/rate-limit";
 
 export type CardPaymentInput = {
   ticketId:    string;
@@ -23,8 +30,10 @@ export type CardPaymentInput = {
   anoValidade: string;
   cvv:         string;
   parcelas:    number;
+  telefone:     string;
   cep:          string;
   numeroEndereco: string;
+  complemento:  string;
 };
 
 export type CardPaymentResult =
@@ -39,10 +48,15 @@ export async function pagarIngressoAtletaComCartao(
   input: CardPaymentInput,
 ): Promise<CardPaymentResult> {
   const admin = createAdminClient();
+  const telefone = normalizeCardHolderPhone(input.telefone);
   const cep = input.cep.replace(/\D/g, "");
   const numeroEndereco = input.numeroEndereco.trim();
-  if (cep.length !== 8) return { ok: false, error: "CEP invalido." };
-  if (!numeroEndereco) return { ok: false, error: "Informe o numero do endereco do titular." };
+  const complemento = normalizeAddressComplement(input.complemento);
+  if (!isValidCardHolderPhone(telefone)) {
+    return { ok: false, error: "Informe o celular com DDD do titular do cartão." };
+  }
+  if (cep.length !== 8) return { ok: false, error: "CEP inválido." };
+  if (!numeroEndereco) return { ok: false, error: "Informe o número do endereço do titular." };
   const accessToken = normalizarTicketAccessToken(input.accessToken);
   if (!accessToken) return { ok: false, error: "Link do ingresso invalido." };
 
@@ -80,6 +94,7 @@ export async function pagarIngressoAtletaComCartao(
   const valorBase    = Number(ticket.valor);
   // Comprador paga valor + taxa de cartão (10% Padrão / 9% Elite, mín. R$3,99).
   const valorTotal   = calcularTotalComprador(valorBase, input.tipo, !!champ?.is_elite);
+  const remoteIp = getClientIp(await headers());
 
   const attempt = await beginCardPaymentAttempt({
     flow: "athlete_ticket",
@@ -109,8 +124,12 @@ export async function pagarIngressoAtletaComCartao(
       cpfCnpj: ticket.comprador_cpf,
       postalCode: cep,
       addressNumber: numeroEndereco,
+      addressComplement: complemento || null,
+      phone: telefone,
+      mobilePhone: telefone,
     },
     installments: input.tipo === "credito" ? input.parcelas : 1,
+    remoteIp: remoteIp === "unknown" ? undefined : remoteIp,
     metadata: { championshipId: ticket.championship_id },
   });
 

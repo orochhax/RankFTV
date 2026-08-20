@@ -188,6 +188,7 @@ export type CobrancaCartaoInput = {
   cartao: CartaoInput;
   titular: TitularInput;
   parcelas?: number;
+  remoteIp?: string;
 };
 
 export type CobrancaCartaoResultado = {
@@ -217,6 +218,7 @@ export async function criarCobrancaCartao(input: CobrancaCartaoInput): Promise<C
       ccv: input.cartao.ccv,
     },
     creditCardHolderInfo: input.titular,
+    ...(input.remoteIp ? { remoteIp: input.remoteIp } : {}),
   };
 
   const parcelas = Math.max(1, Math.floor(input.parcelas ?? 1));
@@ -291,6 +293,9 @@ export type TitularInput = {
   cpfCnpj:       string;
   postalCode:    string;
   addressNumber: string;
+  addressComplement?: string | null;
+  phone?:         string;
+  mobilePhone?:   string;
 };
 
 export type CartaoTokenizado = {

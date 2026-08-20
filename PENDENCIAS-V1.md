@@ -89,7 +89,13 @@ Revisão de continuidade em 19/08/2026:
   da fila, atualizou o ingresso para `pago`. A validação somente leitura confirmou uma
   única compra para o pagamento, uma única operação financeira, um único evento
   processado e uma credencial com código/QR. O cenário Pix completo está aprovado;
-  cartão, recusa, duplicidade forçada, ordenação, timeout, estorno, chargeback, repasses,
+  no primeiro teste de cartão, o Asaas recusou a requisição porque o checkout não
+  enviava o telefone do titular e o campo de número do endereço era ambíguo. O
+  formulário foi corrigido para pedir celular com DDD, identificar o número da casa,
+  aceitar complemento, consultar rua/bairro/cidade/UF pelo CEP e enviar também o IP
+  remoto exigido pelo provedor. A correção está automatizada e aguarda o reteste no
+  Preview; aprovação/recusa de cartão, duplicidade forçada, ordenação, timeout,
+  estorno, chargeback, repasses,
   plateia e check-in ainda precisam ser exercitados. A navegação de compras foi
   consolidada em `/minhas-compras`, com abas Atleta e Plateia.
 - [M] (confirma que a conta pode receber e movimentar dinheiro) Confirmar KYC e as capacidades de Pix, cartão, parcelamento, estorno e

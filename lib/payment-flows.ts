@@ -81,6 +81,7 @@ export async function createIdempotentCardCharge(input: CommonInput & {
   card: CartaoInput;
   holder: TitularInput;
   installments?: number;
+  remoteIp?: string;
 }): Promise<FinancialExecutionResult<PaymentProviderResult>> {
   return executeFinancialOperation<PaymentProviderResult>({
     flow: input.flow,
@@ -102,6 +103,7 @@ export async function createIdempotentCardCharge(input: CommonInput & {
       cartao: input.card,
       titular: input.holder,
       parcelas: input.installments,
+      remoteIp: input.remoteIp,
     }),
   });
 }

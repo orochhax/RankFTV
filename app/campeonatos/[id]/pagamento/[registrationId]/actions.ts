@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { criarOuBuscarCliente } from "@/lib/asaas";
 import { calcularTotalComprador } from "@/lib/taxas";
@@ -10,6 +11,12 @@ import {
   cardBlockedMessage,
   finishCardPaymentAttempt,
 } from "@/lib/payment-security";
+import {
+  isValidCardHolderPhone,
+  normalizeAddressComplement,
+  normalizeCardHolderPhone,
+} from "@/lib/card-holder";
+import { getClientIp } from "@/lib/rate-limit";
 
 export type CardPaymentInput = {
   registrationId: string;
@@ -20,8 +27,10 @@ export type CardPaymentInput = {
   anoValidade:    string;
   cvv:            string;
   parcelas:       number;
+  telefone:        string;
   cep:             string;
   numeroEndereco:  string;
+  complemento:     string;
 };
 
 export type CardPaymentResult =
@@ -44,10 +53,15 @@ export async function pagarComCartao(
   ]);
 
   const cpf = privRes.data?.cpf ?? null;
+  const telefone = normalizeCardHolderPhone(input.telefone);
   const cep = input.cep.replace(/\D/g, "");
   const numeroEndereco = input.numeroEndereco.trim();
-  if (cep.length !== 8) return { ok: false, error: "CEP invalido." };
-  if (!numeroEndereco) return { ok: false, error: "Informe o numero do endereco do titular." };
+  const complemento = normalizeAddressComplement(input.complemento);
+  if (!isValidCardHolderPhone(telefone)) {
+    return { ok: false, error: "Informe o celular com DDD do titular do cartão." };
+  }
+  if (cep.length !== 8) return { ok: false, error: "CEP inválido." };
+  if (!numeroEndereco) return { ok: false, error: "Informe o número do endereço do titular." };
 
   if (!regRes.data) return { ok: false, error: "Inscrição não encontrada." };
   if (!profileRes.data) return { ok: false, error: "Perfil não encontrado." };
@@ -76,6 +90,7 @@ export async function pagarComCartao(
   const valorBase   = Number(regRes.data.valor);
   // Comprador paga valor + taxa de cartão (10% Padrão / 9% Elite, mín. R$3,99).
   const valorTotal  = calcularTotalComprador(valorBase, input.tipo, !!champRes.data?.is_elite);
+  const remoteIp = getClientIp(await headers());
 
   const attempt = await beginCardPaymentAttempt({
     flow: "registration",
@@ -106,8 +121,12 @@ export async function pagarComCartao(
       cpfCnpj: cpf,
       postalCode: cep,
       addressNumber: numeroEndereco,
+      addressComplement: complemento || null,
+      phone: telefone,
+      mobilePhone: telefone,
     },
     installments: input.tipo === "credito" ? input.parcelas : 1,
+    remoteIp: remoteIp === "unknown" ? undefined : remoteIp,
     actorId: user.id,
     metadata: { championshipId: regRes.data.championship_id },
   });
