@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enviarConviteAceito, enviarInscricaoConfirmada } from "@/lib/email/send";
 import { checarElegibilidadeCategoria } from "@/lib/inscricao-elegibilidade";
+import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 
 export type AceitarConviteResult = { ok: boolean; error?: string };
 
@@ -57,7 +58,7 @@ export async function aceitarConvite(formData: FormData): Promise<AceitarConvite
       const elegibilidade = checarElegibilidadeCategoria(
         { genero: perfil.genero, rating: perfil.rating },
         { genero: cat.genero, corteRatingMin: cat.corte_rating_min, corteRatingMax: cat.corte_rating_max },
-        champ?.usa_motor_categoria ?? true,
+        categoryLevelRecommendationEnabled(champ?.usa_motor_categoria),
       );
       if (!elegibilidade.ok) return { ok: false, error: elegibilidade.error };
     }

@@ -6,6 +6,7 @@ import type {
   ChampionshipStatus,
   GeneroCategoria,
 } from "@/lib/types";
+import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 
 // Campeonatos criados na plataforma (Supabase), mapeados para o tipo de domínio
 // usado pelos cards, listas e páginas de detalhe.
@@ -80,7 +81,7 @@ function mapChampionship(row: ChampRow): Championship {
     bannerPositionY: row.banner_position_y ?? null,
     liveUrl: row.live_url,
     isVitrine: row.is_vitrine ?? false,
-    usaMotorCategoria: row.usa_motor_categoria ?? true,
+    usaMotorCategoria: categoryLevelRecommendationEnabled(row.usa_motor_categoria),
     prevendaInicio: row.prevenda_inicio,
     prevendaFim: row.prevenda_fim,
     categorias: (row.championship_categories ?? []).map(

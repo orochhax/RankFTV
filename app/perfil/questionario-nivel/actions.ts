@@ -8,8 +8,13 @@ import {
   PERGUNTAS_NIVEL,
   type RespostasQuestionario,
 } from "@/lib/motor-categoria";
+import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 
 export async function salvarQuestionarioNivel(formData: FormData) {
+  if (!categoryLevelRecommendationEnabled()) {
+    return { error: "A recomendação de categoria está desativada nesta versão." };
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");

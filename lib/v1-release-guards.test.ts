@@ -34,6 +34,31 @@ test("Arena paid subscriptions are opt-in and guarded in UI and server action", 
   assert.match(source(".env.example"), /ARENA_RECURRING_PAYMENTS_ENABLED=0/);
 });
 
+test("category-level recommendation is disabled throughout the V1 flow", () => {
+  const flags = source("lib/release-flags.ts");
+  const newForm = source("components/painel/NovoCampeonatoForm.tsx");
+  const editForm = source("components/painel/EditarCampeonatoForm.tsx");
+
+  assert.match(flags, /function categoryLevelRecommendationEnabled/);
+  assert.match(flags, /categoryLevelRecommendationEnabled[\s\S]*return false/);
+  assert.doesNotMatch(newForm, /Recomendar categoria pro atleta/);
+  assert.doesNotMatch(editForm, /Recomendar categoria pro atleta/);
+  assert.match(newForm, /usaMotorCategoria: false/);
+  assert.match(editForm, /usaMotorCategoria: false/);
+
+  for (const file of [
+    "app/campeonatos/[id]/comprar/actions.ts",
+    "app/campeonatos/[id]/inscrever/actions.ts",
+    "app/perfil/convite-actions.ts",
+    "lib/supabase/championships.ts",
+  ]) {
+    assert.match(source(file), /categoryLevelRecommendationEnabled/);
+  }
+
+  assert.match(source("app/perfil/questionario-nivel/page.tsx"), /if \(!categoryLevelRecommendationEnabled\(\)\) redirect\("\/perfil"\)/);
+  assert.match(source("app/perfil/questionario-nivel/actions.ts"), /if \(!categoryLevelRecommendationEnabled\(\)\)/);
+});
+
 test("transactional email failures never log the recipient", () => {
   const email = source("lib/email/send.ts");
   assert.doesNotMatch(email, /console\.error\([^\n]*\bto\b/);

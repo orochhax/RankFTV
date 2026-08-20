@@ -99,7 +99,6 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
   const [local, setLocal]                     = useState(initial.local);
   const [liveUrl, setLiveUrl]                 = useState(initial.liveUrl ?? "");
   const [status, setStatus]                   = useState(initial.status);
-  const [usaMotorCategoria, setUsaMotorCategoria] = useState(initial.usaMotorCategoria);
   const [categorias, setCategorias]           = useState<CatForm[]>(
     initial.categorias.map((c) => ({
       id:             c.id,
@@ -160,8 +159,8 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
     if (liveUrl.trim()    !== (initial.liveUrl ?? "").trim()) lista.push("Link da transmissão ao vivo alterado");
     if (pdfFile)                                         lista.push("PDF do regulamento substituído");
     if (!pdfUrl && initial.regulamentoPdfUrl)            lista.push("PDF do regulamento removido");
-    if (usaMotorCategoria !== initial.usaMotorCategoria)
-      lista.push(usaMotorCategoria ? "Recomendação de categoria ligada" : "Recomendação de categoria desligada");
+    if (initial.usaMotorCategoria)
+      lista.push("Recomendação de categoria desativada na V1");
 
     // Categorias
     const removidas = categorias.filter((c) => c._delete && c.id);
@@ -274,7 +273,7 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
         prevendaFim:      prevendaFim      || undefined,
         cidade, estado, local, liveUrl,
         status,
-        usaMotorCategoria,
+        usaMotorCategoria: false,
         categorias: payload,
       });
 
@@ -286,7 +285,7 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nome, descricao, regulamento, pdfUrl, pdfFile, dataInicio, dataFim,
       inscricoesInicio, inscricoesFim, prevendaInicio, prevendaFim,
-      cidade, estado, local, liveUrl, status, usaMotorCategoria, categorias]);
+      cidade, estado, local, liveUrl, status, categorias]);
 
   return (
     <>
@@ -679,37 +678,6 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
             );
           })}
         </div>
-      </div>
-
-      {/* Recomendação de categoria */}
-      <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-        <label className="flex items-start justify-between gap-4">
-          <span>
-            <span className="block text-sm font-semibold text-gray-800">
-              Recomendar categoria pro atleta
-            </span>
-            <span className="mt-0.5 block text-xs text-gray-400">
-              O atleta responde um questionário de 5 perguntas sobre o próprio nível antes de
-              se inscrever, e a plataforma recomenda a categoria certa pra ele. Se desligar, o
-              atleta escolhe a categoria livremente, sem passar pelo questionário.
-            </span>
-          </span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={usaMotorCategoria}
-            onClick={() => setUsaMotorCategoria((v) => !v)}
-            className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-              usaMotorCategoria ? "bg-blue-600" : "bg-gray-200"
-            }`}
-          >
-            <span
-              className={`inline-block size-4 transform rounded-full bg-white transition-transform ${
-                usaMotorCategoria ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
-        </label>
       </div>
 
       {/* Ações */}

@@ -124,11 +124,9 @@ export default async function PerfilPage() {
                 <p className="text-lg font-bold text-gray-900">{profile.rating > 0 ? profile.rating : "—"}</p>
               </div>
               <p className="mt-1 text-xs text-gray-400">
-                Sua pontuação de nível, calculada a partir do questionário de nível — usada pra
-                recomendar sua categoria nos campeonatos que ativam essa opção.{" "}
-                <Link href="/perfil/questionario-nivel" className="font-medium text-blue-600 hover:underline">
-                  {profile.rating > 0 ? "Refazer questionário" : "Responder questionário"}
-                </Link>
+                Sua pontuação competitiva é atualizada pelos resultados registrados. A
+                autoavaliação e a recomendação automática de categoria ficam para uma versão
+                futura.
               </p>
             </div>
 

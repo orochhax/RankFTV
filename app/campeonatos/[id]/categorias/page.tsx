@@ -162,11 +162,13 @@ export default async function CategoriasPage({
                             </span>
                           )}
                         </div>
-                        <p className="mt-0.5 text-sm text-gray-500">
-                          {cat.corteRatingMin > 0
-                            ? `Pontuação mínima ${cat.corteRatingMin}`
-                            : "Aberta para todos os níveis"}
-                        </p>
+                        {motorLigado && (
+                          <p className="mt-0.5 text-sm text-gray-500">
+                            {cat.corteRatingMin > 0
+                              ? `Pontuação mínima ${cat.corteRatingMin}`
+                              : "Aberta para todos os níveis"}
+                          </p>
+                        )}
                       </div>
                       {(() => {
                         if (preco.esgotado) {

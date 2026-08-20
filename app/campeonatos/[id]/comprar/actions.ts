@@ -13,6 +13,7 @@ import { gerarTicketAccessToken } from "@/lib/ticket-access";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { checarElegibilidadeCategoria } from "@/lib/inscricao-elegibilidade";
 import { PERGUNTAS_NIVEL, calcularRatingQuestionario, type RespostasQuestionario } from "@/lib/motor-categoria";
+import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 import { reportOperationalEvent } from "@/lib/observability";
 
 // Lê e valida as 5 respostas do questionário de nível de UM dos atletas
@@ -110,7 +111,7 @@ export async function comprarIngressoAtleta(
   // masculino+feminino passa direto numa categoria fechada. O rating só
   // entra na conta quando o motor de categoria está ligado (questionário
   // de 5 perguntas obrigatório pros dois atletas nesse caso).
-  const motorLigado = champ.usa_motor_categoria ?? true;
+  const motorLigado = categoryLevelRecommendationEnabled(champ.usa_motor_categoria);
   const categoriaElegibilidade = {
     genero: cat.genero as string,
     corteRatingMin: Number(cat.corte_rating_min ?? 0),

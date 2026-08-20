@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { GeneroCategoria } from "@/lib/types";
 import { resolverFaixaRating } from "@/lib/motor-categoria";
+import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 
 export async function atualizarBannerCampeonato(
   champId: string,
@@ -162,7 +163,7 @@ export async function updateChampionship(
       local:             input.local?.trim() ?? "",
       live_url:          input.liveUrl?.trim() || null,
       status:            input.status,
-      usa_motor_categoria: input.usaMotorCategoria,
+      usa_motor_categoria: categoryLevelRecommendationEnabled(input.usaMotorCategoria),
     })
     .eq("id", champId);
 

@@ -10,6 +10,7 @@ import { buscarCupomValido, type CupomValido } from "@/lib/cupons";
 import { resolverPrecos, resolverEClaimarLote } from "@/lib/lotes";
 import { enviarConviteDupla, enviarInscricaoConfirmada } from "@/lib/email/send";
 import { checarElegibilidadeCategoria, resolverCpfInscricao, podeConvidarComoParceiro } from "@/lib/inscricao-elegibilidade";
+import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 
 export type InscreverState = { error?: string };
 
@@ -64,7 +65,7 @@ export async function inscreverDupla(
   const elegibilidade = checarElegibilidadeCategoria(
     { genero: profile.genero, rating: profile.rating },
     { genero: cat.genero, corteRatingMin: cat.corte_rating_min, corteRatingMax: cat.corte_rating_max },
-    champ.usa_motor_categoria ?? true,
+    categoryLevelRecommendationEnabled(champ.usa_motor_categoria),
   );
   if (!elegibilidade.ok) return { error: elegibilidade.error };
 
@@ -153,7 +154,7 @@ export async function inscreverDupla(
     const elegibilidadeParceiro = checarElegibilidadeCategoria(
       { genero: parceiro.genero, rating: parceiro.rating },
       { genero: cat.genero, corteRatingMin: cat.corte_rating_min, corteRatingMax: cat.corte_rating_max },
-      champ.usa_motor_categoria ?? true,
+      categoryLevelRecommendationEnabled(champ.usa_motor_categoria),
     );
     if (!elegibilidadeParceiro.ok)
       return { error: `@${parceiroUsername}: ${elegibilidadeParceiro.error}` };

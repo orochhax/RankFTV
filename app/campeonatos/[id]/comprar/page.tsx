@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 import { IngressoAtletaForm, type CategoriaOpcao } from "@/components/campeonatos/IngressoAtletaForm";
 import { resolverPrecos, listarLotesComStatus } from "@/lib/lotes";
 
@@ -91,7 +92,7 @@ export default async function ComprarAtletaPage({
                 championshipId={id}
                 categorias={categorias}
                 isElite={!!champ.is_elite}
-                usaMotorCategoria={champ.usa_motor_categoria ?? true}
+                usaMotorCategoria={categoryLevelRecommendationEnabled(champ.usa_motor_categoria)}
               />
             </div>
           )}
