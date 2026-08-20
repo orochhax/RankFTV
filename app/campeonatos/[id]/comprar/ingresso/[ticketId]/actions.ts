@@ -48,13 +48,16 @@ export async function pagarIngressoAtletaComCartao(
 
   const { data: ticket } = await admin
     .from("athlete_tickets")
-    .select("id, championship_id, comprador_nome, comprador_cpf, comprador_email, valor, status_pagamento")
+    .select("id, championship_id, comprador_nome, comprador_cpf, comprador_email, valor, status_pagamento, billing_type")
     .eq("id", input.ticketId)
     .eq("access_token", accessToken)
     .maybeSingle();
 
   if (!ticket) return { ok: false, error: "Ingresso não encontrado." };
   if (ticket.status_pagamento === "pago") return { ok: true, pago: true };
+  if (ticket.billing_type === "PIX") {
+    return { ok: false, error: "Este ingresso foi iniciado no Pix. Crie uma nova compra para pagar com cartão." };
+  }
 
   const { data: champ } = await admin
     .from("championships")

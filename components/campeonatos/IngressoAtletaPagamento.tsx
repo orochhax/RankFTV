@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, Clock, QrCode, CreditCard, Loader2, AlertCircle } from "lucide-react";
+import { CheckCircle2, Clock, Loader2, AlertCircle } from "lucide-react";
 import QRCode from "qrcode";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { formatBRL } from "@/lib/format";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 import { pagarIngressoAtletaComCartao } from "@/app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions";
 
-type Tab  = "pix" | "cartao";
 type Tipo = "credito" | "debito";
 
 function formatCardNumber(v: string) {
@@ -35,6 +34,7 @@ type Props = {
   valor:        number;
   pixCopyPaste: string | null;
   pixQrBase64:  string | null;
+  paymentMethod: "pix" | "cartao";
 };
 
 export function IngressoAtletaPagamento({
@@ -49,11 +49,11 @@ export function IngressoAtletaPagamento({
   valor,
   pixCopyPaste,
   pixQrBase64,
+  paymentMethod,
 }: Props) {
   const [statusPagamento, setStatusPagamento] = useState(initialStatusPagamento);
   const [checkedIn, setCheckedIn] = useState(initialCheckedIn);
   const [entradaQr, setEntradaQr] = useState(initialEntradaQr);
-  const [tab, setTab] = useState<Tab>("pix");
   const stoppedRef = useRef(false);
 
   const pago = statusPagamento === "pago";
@@ -123,26 +123,7 @@ export function IngressoAtletaPagamento({
 
   return (
     <div className="space-y-5">
-      {/* Tabs */}
-      <div className="flex gap-1 rounded-2xl bg-gray-100 p-1">
-        {([
-          { key: "pix" as Tab, label: "Pix", icon: <QrCode className="size-4" /> },
-          { key: "cartao" as Tab, label: "Cartão", icon: <CreditCard className="size-4" /> },
-        ]).map(({ key, label, icon }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setTab(key)}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-semibold transition-all ${
-              tab === key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {icon}{label}
-          </button>
-        ))}
-      </div>
-
-      {tab === "pix" ? (
+      {paymentMethod === "pix" ? (
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="flex items-center gap-1.5 text-sm font-medium text-amber-600">
             <Clock className="size-4" /> Aguardando pagamento

@@ -15,6 +15,11 @@ import { checarElegibilidadeCategoria } from "@/lib/inscricao-elegibilidade";
 import { PERGUNTAS_NIVEL, calcularRatingQuestionario, type RespostasQuestionario } from "@/lib/motor-categoria";
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 import { reportOperationalEvent } from "@/lib/observability";
+import {
+  athleteTicketInitialBillingType,
+  parseAthleteTicketPaymentChoice,
+  shouldCreateAthleteTicketPixCharge,
+} from "@/lib/athlete-ticket-payment";
 
 // Lê e valida as 5 respostas do questionário de nível de UM dos atletas
 // (prefixo "comprador_quiz_" ou "parceiro_quiz_" no FormData) e devolve o
@@ -41,6 +46,9 @@ export async function comprarIngressoAtleta(
   const championshipId = formData.get("championship_id") as string;
   const categoryId     = (formData.get("category_id") as string) || null;
   const categoriaNome  = (formData.get("categoria_nome") as string) || null;
+  const metodoPagamento = parseAthleteTicketPaymentChoice(formData.get("metodo_pagamento"));
+
+  if (!metodoPagamento) return { error: "Selecione Pix ou cartão para continuar." };
 
   // Comprador
   const nome      = ((formData.get("comprador_nome")  as string) ?? "").trim();
@@ -219,7 +227,7 @@ export async function comprarIngressoAtleta(
       cupom_id:             cupomId,
       lote_id:              loteId,
       status_pagamento:     isGratis ? "pago" : "pendente",
-      billing_type:         isGratis ? null : "PIX",
+      billing_type:         athleteTicketInitialBillingType(metodoPagamento, isGratis),
       code,
       access_token:         accessToken,
       user_id:              buyerUser?.id ?? null,
@@ -242,6 +250,10 @@ export async function comprarIngressoAtleta(
   }
 
   if (isGratis) {
+    redirect(`/campeonatos/${championshipId}/comprar/ingresso/${ticket.id}?token=${accessToken}`);
+  }
+
+  if (!shouldCreateAthleteTicketPixCharge(metodoPagamento, isGratis)) {
     redirect(`/campeonatos/${championshipId}/comprar/ingresso/${ticket.id}?token=${accessToken}`);
   }
 

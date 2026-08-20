@@ -41,7 +41,7 @@ export default async function IngressoAtletaPage({
   const { data: t } = await supabase
     .from("athlete_tickets")
     .select(
-      "id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in",
+      "id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, billing_type, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in",
     )
     .eq("id", ticketId)
     .eq("access_token", accessToken)
@@ -155,6 +155,7 @@ export default async function IngressoAtletaPage({
             valor={Number(t.valor)}
             pixCopyPaste={t.pix_copy_paste}
             pixQrBase64={t.pix_qr_code_base64}
+            paymentMethod={t.billing_type === "CREDIT_CARD" || t.billing_type === "DEBIT_CARD" ? "cartao" : "pix"}
           />
 
           {/* Dados do campeonato */}

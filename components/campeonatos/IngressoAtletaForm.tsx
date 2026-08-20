@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Loader2, Trophy, Check } from "lucide-react";
+import { Loader2, Trophy, Check, CreditCard, QrCode } from "lucide-react";
 import { comprarIngressoAtleta, type ComprarAtletaState } from "@/app/campeonatos/[id]/comprar/actions";
 import { formatBRL } from "@/lib/format";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
@@ -105,6 +105,7 @@ export function IngressoAtletaForm({
   const [etapa, setEtapa] = useState<Etapa>("categoria");
   const [catSelecionada, setCat] = useState<CategoriaOpcao | null>(null);
   const [cupom, setCupom] = useState<CupomAplicado | null>(null);
+  const [metodoPagamento, setMetodoPagamento] = useState<"pix" | "cartao">("pix");
   const [state, formAction, pending] = useActionState<ComprarAtletaState, FormData>(
     comprarIngressoAtleta,
     {},
@@ -118,8 +119,9 @@ export function IngressoAtletaForm({
   const valor      = catSelecionada?.valorInscricao ?? 0;
   const valorFinal = cupom ? Math.max(0, valor - cupom.desconto) : valor;
   const isGratis   = valorFinal <= 0;
-  const taxa       = calcularTaxaComprador(valorFinal, "pix", isElite);
-  const total      = calcularTotalComprador(valorFinal, "pix", isElite);
+  const metodoTaxa = metodoPagamento === "cartao" ? "credito" : "pix";
+  const taxa       = calcularTaxaComprador(valorFinal, metodoTaxa, isElite);
+  const total      = calcularTotalComprador(valorFinal, metodoTaxa, isElite);
 
   return (
     <div className="space-y-6">
@@ -132,7 +134,7 @@ export function IngressoAtletaForm({
           {categorias.map((cat) => {
             const sel = catSelecionada?.id === cat.id;
             const v   = cat.valorInscricao;
-            const t   = calcularTotalComprador(v, "pix", isElite);
+            const t   = calcularTotalComprador(v, metodoTaxa, isElite);
             const loteAtivo = cat.lotes.find((l) => l.status === "ativo");
             return (
               <button
@@ -180,7 +182,9 @@ export function IngressoAtletaForm({
                   ) : (
                     <div>
                       <p className="font-semibold text-gray-900">{formatBRL(t)}</p>
-                      <p className="text-[11px] text-gray-400">com taxa · Pix</p>
+                      <p className="text-[11px] text-gray-400">
+                        com taxa · {metodoPagamento === "pix" ? "Pix" : "Cartão"}
+                      </p>
                     </div>
                   )}
                   {sel && !cat.esgotado && (
@@ -210,6 +214,7 @@ export function IngressoAtletaForm({
           <input type="hidden" name="championship_id" value={championshipId} />
           <input type="hidden" name="category_id"     value={catSelecionada.id} />
           <input type="hidden" name="categoria_nome"  value={catSelecionada.nome} />
+          <input type="hidden" name="metodo_pagamento" value={metodoPagamento} />
 
           {/* Resumo da categoria escolhida */}
           <div className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4">
@@ -334,6 +339,37 @@ export function IngressoAtletaForm({
             />
           )}
 
+          {!isGratis && (
+            <section className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-gray-800">Forma de pagamento</p>
+                <p className="text-xs text-gray-400">Escolha antes de gerar a cobrança.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {([
+                  { value: "pix" as const, label: "Pix", icon: QrCode },
+                  { value: "cartao" as const, label: "Cartão", icon: CreditCard },
+                ]).map(({ value: option, label, icon: Icon }) => {
+                  const selected = metodoPagamento === option;
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setMetodoPagamento(option)}
+                      className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-colors ${
+                        selected
+                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      <Icon className="size-4" /> {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
           {/* Resumo do valor */}
           {!isGratis && (
             <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm ring-1 ring-black/5">
@@ -352,7 +388,7 @@ export function IngressoAtletaForm({
                 <span>+ {formatBRL(taxa)}</span>
               </div>
               <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2 font-semibold text-gray-900">
-                <span>Total no Pix</span>
+                <span>{metodoPagamento === "pix" ? "Total no Pix" : "Total no cartão"}</span>
                 <span>{formatBRL(total)}</span>
               </div>
               <p className="mt-2 text-[11px] text-gray-400">
@@ -375,7 +411,7 @@ export function IngressoAtletaForm({
             {pending && <Loader2 className="size-4 animate-spin" />}
             {isGratis
               ? "Confirmar inscrição grátis"
-              : `Continuar pro pagamento — ${formatBRL(total)}`}
+              : `Continuar com ${metodoPagamento === "pix" ? "Pix" : "cartão"} — ${formatBRL(total)}`}
           </button>
         </form>
       )}
