@@ -74,29 +74,24 @@ Revisão de continuidade em 19/08/2026:
   `complete`/`partial`/`unmigrated`, pedidos sem relatório e divergências de
   quantidade retornaram zero. Nenhuma decisão ou correção manual foi necessária.
 - [M] (testa todo o financeiro sem mexer em dinheiro real) Homologar em ambiente descartável toda a matriz financeira de Campeonatos,
-  sem apontar testes mutantes para produção. Em andamento em 19/08/2026: o novo
-  Supabase `RankFTV Sandbox` recebeu somente o schema (92 tabelas públicas e zero
-  registros nas tabelas de domínio verificadas), e uma nova chave do Asaas Sandbox
-  foi criada. O Preview da branch `sandbox-homologacao`, no commit `8fd724498301`,
-  respondeu `/api/health` com aplicação e banco `ok`. O acesso automatizado protegido
-  também foi validado por bypass da Vercel (485 ms). O webhook autenticado do Asaas
-  Sandbox foi cadastrado apontando para esse Preview, com fila ativa e envio
-  sequencial. A conta de organizador, cadastro, login e ativação foram validados; a
-  correção do painel vazio foi publicada no Preview no commit `86601f0`. Ainda faltam
-  a entrega financeira real do webhook e os cenários da matriz abaixo. O campeonato
-  descartável já foi criado e publicado com chave Pix, e uma conta separada de
-  comprador/atleta foi criada, confirmada e teve o login validado no Preview. Essa
-  conta enviou a primeira compra de ingresso de atleta e chegou à tela de pagamento;
-  a cobrança Pix foi confirmada manualmente no Asaas Sandbox em 20/08/2026 e ficou
-  `Recebida`, mas o ingresso permaneceu pendente. Os logs do Asaas registraram `401`
-  no webhook do Preview e `409` em um webhook de produção que também recebeu o evento
-  Sandbox. Antes de repetir o cenário, é obrigatório remover/desativar o endpoint de
-  produção no Asaas Sandbox e abrir a resposta do `401`: se ela vier da aplicação,
-  alinhar o `ASAAS_WEBHOOK_TOKEN` do Preview com o token do webhook Sandbox; se vier da
-  proteção da Vercel, corrigir o parâmetro `x-vercel-protection-bypass` da URL. Depois,
-  refazer o deploy quando necessário e reenviar o evento falho. A navegação de compras
-  também foi consolidada em `/minhas-compras`, com abas Atleta e Plateia; a aba Atleta
-  reúne ingressos avulsos e inscrições por equipe, mantendo detalhes e reembolso.
+  sem apontar testes mutantes para produção. Em andamento em 20/08/2026: o Supabase
+  `RankFTV Sandbox` recebeu somente o schema (92 tabelas públicas e zero registros
+  iniciais nas tabelas de domínio verificadas), e uma chave exclusiva do Asaas
+  Sandbox foi criada. O Preview da branch `sandbox-homologacao`, agora no commit
+  `f10dd67`, respondeu `/api/health` com aplicação e banco `ok`. O acesso automatizado
+  protegido foi validado com um novo bypass da Vercel; o segredo que apareceu em uma
+  evidência foi revogado. O webhook Sandbox usa fila sequencial, token exclusivo e
+  somente o endpoint do Preview; o endpoint de produção foi desativado nesse ambiente.
+  Cadastro, login e ativação das contas de organizador e comprador/atleta foram
+  validados. O campeonato descartável foi criado e publicado com chave Pix. A primeira
+  compra de ingresso de atleta foi confirmada manualmente no Asaas Sandbox e o evento
+  `PAYMENT_RECEIVED`, após alinhamento do `ASAAS_WEBHOOK_TOKEN` e remoção da penalização
+  da fila, atualizou o ingresso para `pago`. A validação somente leitura confirmou uma
+  única compra para o pagamento, uma única operação financeira, um único evento
+  processado e uma credencial com código/QR. O cenário Pix completo está aprovado;
+  cartão, recusa, duplicidade forçada, ordenação, timeout, estorno, chargeback, repasses,
+  plateia e check-in ainda precisam ser exercitados. A navegação de compras foi
+  consolidada em `/minhas-compras`, com abas Atleta e Plateia.
 - [M] (confirma que a conta pode receber e movimentar dinheiro) Confirmar KYC e as capacidades de Pix, cartão, parcelamento, estorno e
   transferência na conta Asaas de produção.
 - [M] (faz pagamentos incertos serem verificados rapidamente) Definir a cadência de conciliação financeira. O deploy atual agenda
@@ -510,7 +505,10 @@ tokens ou dados pessoais.
 
 ## Testes obrigatórios antes de abrir pagamentos
 
-- [ ] (testa um Pix completo sem duplicar inscrição) Pix criado e aprovado; webhook confirma uma única inscrição/credencial.
+- [x] (testa um Pix completo sem duplicar inscrição) Pix criado e aprovado; webhook
+  confirmou uma única compra/credencial em 20/08/2026. A consulta no Sandbox retornou
+  `pago`, vínculo Asaas e credencial válidos, uma compra, uma operação financeira e um
+  evento `PAYMENT_RECEIVED` processado.
 - [ ] (testa cartão aprovado sem guardar dados proibidos) Cartão aprovado sem armazenar PAN/CVV.
 - [ ] (testa cartão recusado sem liberar a inscrição) Cartão recusado com mensagem segura e sem ativar inscrição.
 - [ ] (garante que dois cliques não criem duas cobranças) Request duplicado retorna/reconcilia a mesma operação externa.
