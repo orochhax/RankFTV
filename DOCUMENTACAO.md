@@ -1,6 +1,6 @@
 # Documentação técnica do RankFTV
 
-> Fonte técnica canônica do estado atual do repositório em 07/08/2026.
+> Fonte técnica canônica do estado atual do repositório em 19/08/2026.
 >
 > Este documento descreve o que está implementado no código. Configurações de
 > serviços externos e riscos que ainda impedem afirmar “100% em produção” ficam
@@ -12,6 +12,10 @@
 
 RankFTV é uma plataforma web responsiva para campeonatos de futevôlei e gestão
 de arenas. A mesma identidade do Supabase Auth pode acumular capacidades:
+
+O release comercial V1 está congelado em Campeonatos. Arena permanece Beta e
+as ferramentas pessoais não fazem parte do escopo de lançamento; o estado e os
+bloqueios operacionais estão centralizados em `PENDENCIAS-V1.md`.
 
 - visitante: consulta campeonatos, arenas, agenda, notícias e páginas públicas;
 - atleta autenticado: mantém perfil, participa de duplas, paga inscrições e
@@ -43,6 +47,10 @@ pela autorização efetiva.
 | Deploy e tarefas | Vercel e cron definido em vercel.json |
 
 Requisito local: Node.js 20.9 ou superior.
+
+O lockfile fixa `nanoid` 3.3.18 por override transitivo do PostCSS. Essa versão
+substituiu a 3.3.17 após o audit de 19/08/2026 e mantém `npm audit --omit=dev`
+sem vulnerabilidades conhecidas no estado verificado.
 
 ~~~bash
 npm ci
@@ -231,7 +239,8 @@ seja pública: cada página aplica sua autenticação e autorização.
 | /perfil | visão privada do perfil |
 | /perfil/editar | dados públicos e foto |
 | /perfil/conta | dados privados e credenciais |
-| /perfil/questionario e /perfil/questionario-nivel | gênero e avaliação de nível |
+| /perfil/questionario | preenchimento de gênero do perfil |
+| /perfil/questionario-nivel | rota preservada, mas desativada na V1; redireciona para `/perfil` |
 | /perfil/ativar-organizador | criação da conta de organizador |
 | /perfil/ativar-arena | criação da arena |
 | /meus-ingressos | recuperação/consulta protegida de ingressos |
@@ -407,6 +416,38 @@ mutáveis e não substituem a chave primária nas relações.
 4. A cobrança é criada no Asaas.
 5. Webhook validado atualiza o pagamento.
 6. Credencial e financeiro passam a refletir o estado confirmado.
+
+#### 7.1.1 Recomendação automática de categoria
+
+A recomendação de categoria por autoavaliação está desativada na V1. O guard
+central `categoryLevelRecommendationEnabled`, em `lib/release-flags.ts`, retorna
+sempre `false`, inclusive quando um campeonato antigo ainda possui
+`usa_motor_categoria=true` no banco. Campeonatos criados ou editados pela versão
+atual persistem esse campo como `false`, e o controle não aparece mais para o
+organizador.
+
+Consequências no fluxo atual:
+
+- o atleta escolhe a categoria livremente antes de preencher os dados;
+- o checkout de visitante não mostra nem exige o questionário de nível;
+- inscrição autenticada e aceite de convite não aplicam cortes de rating;
+- a validação de gênero da categoria continua obrigatória no servidor;
+- `/perfil/questionario-nivel` redireciona para `/perfil`, e sua Server Action
+  também recusa gravações enquanto o recurso estiver desativado;
+- faixas e funções já implementadas foram preservadas apenas para uma futura
+  reconstrução, sem serem tratadas como funcionalidade disponível.
+
+O questionário **Nível do evento** exibido ao criar um campeonato é independente:
+ele classifica o evento como Local, Open ou Elite e continua ativo. Ele não mede o
+nível do atleta nem escolhe sua categoria.
+
+Uma reativação futura não deve consistir apenas em mudar o guard. O fluxo correto
+precisa coletar os dados e as respostas dos dois atletas antes da escolha, calcular
+o nível da dupla e somente então sugerir categorias elegíveis. Categorias criadas
+em **Outros** também deverão receber do organizador uma faixa explícita ou uma
+equivalência com um nível conhecido; hoje elas usam a faixa técnica aberta
+`0–9999`, que não produz recomendação confiável. A reativação deve cobrir checkout
+de visitante, inscrição autenticada, convite de parceiro e testes de servidor.
 
 ### 7.2 Ingresso de visitante
 
@@ -670,7 +711,7 @@ Aplicar exatamente na ordem de `RUNBOOK-PRODUCAO.md`:
 As migrations são aditivas e idempotentes, têm RLS mínimo e preservam dados
 existentes. Backfill, validação, implantação gradual e rollback estão no
 runbook; configurações que dependem do responsável estão em
-`PENDENCIAS-MANUAIS.md`.
+`PENDENCIAS-V1.md`.
 
 ## 9. Estado dos dados
 
@@ -699,7 +740,7 @@ confirmados fora do repositório:
 - homologação financeira real controlada;
 - aviso de privacidade/LGPD e resposta a incidentes.
 
-As configurações externas restantes estão em `PENDENCIAS-MANUAIS.md`; o
+As configurações externas restantes estão em `PENDENCIAS-V1.md`; o
 procedimento de liberação está em `RUNBOOK-PRODUCAO.md`. Não declarar a
 plataforma “100% pronta” enquanto as migrations remotas e a homologação sandbox
 completa não estiverem comprovadas.

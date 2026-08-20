@@ -4,10 +4,15 @@ Plataforma web responsiva para organizar campeonatos de futevôlei e operar aren
 
 O produto reúne descoberta e inscrição em campeonatos, pagamentos, ingressos e credenciais por QR Code, check-in, chaveamento, financeiro e repasses, além de agenda de aulas, planos, mensalidades, diárias e aluguel de quadras para arenas.
 
+O lançamento comercial V1 está limitado a Campeonatos. Arena permanece Beta e
+as ferramentas pessoais ficam fora do escopo desse release.
+
 ## Documentação
 
 - [DOCUMENTACAO.md](DOCUMENTACAO.md): fonte técnica atual sobre rotas, componentes, dados e fluxos.
 - [AUDITORIA-PRODUCAO.md](AUDITORIA-PRODUCAO.md): segurança, pendências externas e prontidão para produção.
+- [PENDENCIAS-V1.md](PENDENCIAS-V1.md): fonte única do fechamento, evidências e bloqueios da V1.
+- [RUNBOOK-PRODUCAO.md](RUNBOOK-PRODUCAO.md): ordem controlada de deploy, migrations e rollback.
 - [PLANO-PIVO-ARENA.md](PLANO-PIVO-ARENA.md): registro histórico do pivô de produto; não deve substituir a documentação atual.
 
 Antes de alterar código Next.js, leia também [AGENTS.md](AGENTS.md) e a documentação desta versão instalada em `node_modules/next/dist/docs/`.
@@ -18,7 +23,7 @@ Versões declaradas em `package.json`:
 
 | Camada | Pacote | Versão |
 | --- | --- | --- |
-| Framework | `next` | `16.2.10` |
+| Framework | `next` | `16.3.0` |
 | Interface | `react` / `react-dom` | `19.2.4` |
 | Linguagem | `typescript` | `^5` |
 | Estilos | `tailwindcss` / `@tailwindcss/postcss` | `^4` |
@@ -31,17 +36,18 @@ Versões declaradas em `package.json`:
 | E-mail | `resend` | `^6.14.0` |
 | Proteção de módulos do servidor | `server-only` | `^0.0.1` |
 | Testes TypeScript | `tsx` | `^4.23.1` |
-| Lint | `eslint` / `eslint-config-next` | `^9` / `16.2.10` |
+| Lint | `eslint` / `eslint-config-next` | `^9` / `16.3.0` |
 | Tipos | `@types/node` / `@types/react` / `@types/react-dom` | `^20` / `^19` / `^19` |
 
-O projeto força `postcss` `8.5.10` para o Next.js por meio de `overrides`. O lockfile usa o formato v3 do npm.
+O projeto força `postcss` `8.5.26` e o patch compatível `nanoid` `3.3.18` por
+meio de `overrides`. O lockfile usa o formato v3 do npm.
 
 Integrações externas:
 
 - Supabase: Postgres, Auth, Storage, RLS e RPCs.
 - Asaas: Pix, cartão, assinaturas, webhooks e repasses.
 - Resend: e-mails transacionais.
-- Vercel: deploy e cron diário de liquidação.
+- Vercel: deploy e crons diários de liquidação, conciliação, retenção e análise interna.
 
 ## Requisitos
 
@@ -75,16 +81,22 @@ Nunca versione `.env.local`. Variáveis sem o prefixo `NEXT_PUBLIC_` são exclus
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Público | Chave pública/anon do Supabase. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Servidor | Operações administrativas que ignoram RLS. |
 | `NEXT_PUBLIC_BASE_URL` | Público | URL canônica usada em links e callbacks. |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Público | Chave pública do CAPTCHA; o segredo fica no Supabase Auth. |
 | `ADMIN_EMAIL` | Servidor | Identifica a única conta administrativa principal. |
 | `ASAAS_BASE_URL` | Servidor | Endpoint da API Asaas do ambiente atual. |
 | `ASAAS_API_KEY` | Servidor | Credencial da API Asaas. |
 | `ASAAS_WEBHOOK_TOKEN` | Servidor | Autentica os webhooks recebidos do Asaas. |
+| `ARENA_RECURRING_PAYMENTS_ENABLED` | Servidor | Mantém novas recorrências pagas da Arena beta fechadas por padrão. |
+| `PAYMENT_FINGERPRINT_SECRET` | Servidor | HMAC usado pelo bloqueio contra testes abusivos de cartão. |
 | `CRON_SECRET` | Servidor | Protege os endpoints em `/api/cron/*`. |
 | `OPENAI_API_KEY` | Servidor | Gera roadmaps e a analise diaria do Life OS. |
 | `OPENAI_ROADMAP_MODEL` | Servidor | Modelo usado para roadmaps de estudo. |
 | `OPENAI_LIFE_OS_MODEL` | Servidor | Modelo usado na leitura diaria das 05:00. |
 | `RESEND_API_KEY` | Servidor | Envio de e-mails transacionais. |
 | `RESEND_FROM_EMAIL` | Servidor | Remetente em domínio verificado; obrigatório para envio real. |
+| `OBSERVABILITY_HTTP_ENDPOINT` / `OBSERVABILITY_HTTP_TOKEN` | Servidor | Coletor autenticado de observabilidade. |
+| `OPERATIONS_ALERT_WEBHOOK_URL` | Servidor | Canal de alertas operacionais. |
+| `APP_VERSION` | Servidor | Identifica a versão em health check e telemetria. |
 | `ALLOW_TUNNEL_ORIGIN` | Desenvolvimento | Libera origem temporária do Cloudflare Tunnel; não definir em produção. |
 | `ASAAS_WALLET_ID` | Servidor/legado | Existe no ambiente local, mas não há uso direto encontrado no código atual; confirme antes de mantê-la em produção. |
 
@@ -98,9 +110,14 @@ Em produção, todas as variáveis aplicáveis devem ser cadastradas também no 
 | `npm run build` | Gera o build de produção. |
 | `npm run start` | Inicia o build de produção já gerado. |
 | `npm run lint` | Executa o ESLint. |
+| `npm run typecheck` | Verifica os tipos sem gerar arquivos. |
 | `npm test` | Executa os testes `lib/**/*.test.ts` com o runner nativo do Node e `tsx`. |
+| `npm run audit:prod` | Audita somente dependências usadas em produção. |
+| `npm run test:e2e` | Executa os cenários Playwright permitidos pelo ambiente. |
+| `npm run ci:verify` | Executa audit, lint, tipos, testes, build e E2E em sequência. |
 
-A checagem de tipos é executada separadamente com `npx tsc --noEmit`.
+Os E2E mutantes permanecem desligados por padrão e só podem apontar para um
+ambiente sandbox descartável.
 
 ## Arquitetura
 
@@ -176,9 +193,8 @@ Veja a sequência completa, as correções e os riscos residuais em [AUDITORIA-P
 - [ ] Validar páginas públicas, links diretos, voltar/avançar, notificações e rotas focadas.
 - [ ] Publicar aviso de privacidade/LGPD e definir canal e processo de resposta a incidentes.
 
-A assinatura paga da própria plataforma para donos de arena, a uniformização da
-taxa de serviço da Arena e da regra Admin, a homologação financeira real, a
-proteção persistente contra determinadas repetições de cobrança, CSP com nonce
-e a suíte E2E ainda exigem decisão ou validação antes de considerar a operação
-integralmente pronta. Consulte
-[AUDITORIA-PRODUCAO.md](AUDITORIA-PRODUCAO.md) para o estado detalhado.
+A V1 ainda depende das tarefas manuais e evidências externas registradas em
+[PENDENCIAS-V1.md](PENDENCIAS-V1.md), especialmente homologação financeira
+sandbox, capacidades da conta Asaas de produção, backups periódicos, RLS/Auth,
+e-mail, jurídico, suporte e monitoramento. Não use este README isoladamente para
+autorizar a abertura de pagamentos reais.

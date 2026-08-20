@@ -26,10 +26,24 @@ Contradições encontradas no produto atual:
 
 ## Status geral
 
-Percentual anterior: 78%  
-Percentual atual estimado: 84% (código local verificado; produção ainda bloqueada pelos P0 manuais)  
-Última atualização: 09/08/2026  
-Último commit analisado: `8a65983e392a435696f17ab6ff04d868da9a2149`
+- Percentual anterior: 78%
+- Percentual atual estimado: 84% (estimativa mantida; produção ainda bloqueada pelos P0 manuais)
+- Última atualização: 19/08/2026
+- Último commit analisado: `696d81c` (19/08/2026)
+
+Revisão de continuidade em 19/08/2026:
+
+- O backup lógico manual foi criado e restaurado localmente com sucesso; os
+  demais P0 manuais permanecem abertos.
+- Os commits posteriores ao candidato inicial concentram-se em Performance/Life OS
+  (fora do escopo da V1). O commit `d4c2fb7` também normalizou a URL-base usada
+  por links, e-mail, metadata, robots e sitemap.
+- O domínio canônico precisa ser decidido uma única vez. O código usa
+  `https://www.rankftv.com` como fallback, mas `NEXT_PUBLIC_BASE_URL` deve conter
+  o domínio escolhido e os demais serviços devem usar exatamente esse mesmo valor.
+- A configuração atual em `vercel.json` executa a conciliação uma vez ao dia;
+  para a meta de 10 minutos é obrigatório configurar um agendador externo
+  autenticado ou mudar de plano/configuração antes de abrir pagamentos.
 
 ## Legenda
 
@@ -42,21 +56,47 @@ Percentual atual estimado: 84% (código local verificado; produção ainda bloqu
 
 ## P0 — Bloqueia lançamento
 
-- [M] Confirmar backup/PITR recuperável do Supabase de produção antes de executar SQL.
-- [M] Confirmar e aplicar, em janela sem checkout, as sete migrations de produção
-  listadas em **Aplicação controlada das migrations**.
-- [M] Validar o backfill de `spectator_ticket_items_backfill_report`; qualquer linha
-  `partial` ou `unmigrated` exige decisão individual antes de liberar estoque/estorno.
-- [M] Homologar em ambiente descartável toda a matriz financeira de Campeonatos,
-  sem apontar testes mutantes para produção.
-- [M] Confirmar KYC e as capacidades de Pix, cartão, parcelamento, estorno e
+- [x] Confirmar backup recuperável do Supabase de produção antes de executar SQL.
+  No plano Free, foi gerado o arquivo atômico `production-consistent.backup` em
+  19/08/2026 (1.515.665 bytes; SHA-256
+  `612509F0BE5F13971901F5BB65BA2D04032B622B7A3B8D8DCFEF0A0DC7C5E081`).
+  O restore local terminou sem erro, recuperou 93 tabelas públicas e confirmou
+  `auth.audit_log_entries`. PITR continua indisponível no plano atual.
+- [x] Confirmar e aplicar, em janela sem checkout, as sete migrations de produção
+  listadas em **Aplicação controlada das migrations**. As três migrations-base
+  foram confirmadas em 19/08/2026 por consulta somente leitura: 10/10 verificações
+  de colunas, funções, constraints, tabela, RLS e policy retornaram `OK`. As sete
+  migrations foram executadas na ordem em 19/08/2026 e todas retornaram
+  `Success. No rows returned`. A validação pós-migration confirmou 15/15 objetos
+  e 14/14 verificações de RLS/permissões com resultado `OK`.
+- [x] Validar o backfill de `spectator_ticket_items_backfill_report`. Concluído em
+  19/08/2026: não havia pedidos históricos de plateia; pedidos, itens, relatórios
+  `complete`/`partial`/`unmigrated`, pedidos sem relatório e divergências de
+  quantidade retornaram zero. Nenhuma decisão ou correção manual foi necessária.
+- [M] (testa todo o financeiro sem mexer em dinheiro real) Homologar em ambiente descartável toda a matriz financeira de Campeonatos,
+  sem apontar testes mutantes para produção. Em andamento em 19/08/2026: o novo
+  Supabase `RankFTV Sandbox` recebeu somente o schema (92 tabelas públicas e zero
+  registros nas tabelas de domínio verificadas), e uma nova chave do Asaas Sandbox
+  foi criada. O Preview da branch `sandbox-homologacao`, no commit `8fd724498301`,
+  respondeu `/api/health` com aplicação e banco `ok`. O acesso automatizado protegido
+  também foi validado por bypass da Vercel (485 ms). O webhook autenticado do Asaas
+  Sandbox foi cadastrado apontando para esse Preview, com fila ativa e envio
+  sequencial. A conta de organizador, cadastro, login e ativação foram validados; a
+  correção do painel vazio foi publicada no Preview no commit `86601f0`. Ainda faltam
+  a entrega financeira real do webhook e os cenários da matriz abaixo. O campeonato
+  descartável já foi criado e publicado com chave Pix, e uma conta separada de
+  comprador/atleta foi criada, confirmada e teve o login validado no Preview. Essa
+  conta enviou a primeira compra de ingresso de atleta e chegou à tela de pagamento;
+  a cobrança ainda precisa ser simulada/confirmada e conferida na UI, no Asaas e no
+  banco.
+- [M] (confirma que a conta pode receber e movimentar dinheiro) Confirmar KYC e as capacidades de Pix, cartão, parcelamento, estorno e
   transferência na conta Asaas de produção.
-- [M] Definir a cadência de conciliação financeira. O deploy atual agenda
+- [M] (faz pagamentos incertos serem verificados rapidamente) Definir a cadência de conciliação financeira. O deploy atual agenda
   `/api/cron/financial-reconciliation` uma vez ao dia por limitação do plano
   Vercel usado; operações ambíguas não podem depender de uma espera de até 24 h.
-- [M] Fornecer e revisar os dados empresariais, canal oficial de suporte,
+- [M] (troca textos genéricos pelos dados reais da empresa) Fornecer e revisar os dados empresariais, canal oficial de suporte,
   política de cancelamento/reembolso e textos jurídicos antes da primeira cobrança.
-- [M] Configurar e validar domínio/remetente transacional (SPF, DKIM e DMARC).
+- [M] (faz os e-mails chegarem como oficiais e confiáveis) Configurar e validar domínio/remetente transacional (SPF, DKIM e DMARC).
 - [x] Corrigir no webhook a competência de mensalidade derivada do vencimento do
   pagamento, e não do horário em que o webhook chegou.
 - [x] Limitar claramente a cobrança recorrente da Arena enquanto ela estiver beta.
@@ -69,6 +109,11 @@ Percentual atual estimado: 84% (código local verificado; produção ainda bloqu
 - [x] Identificar publicamente a Arena como beta e não prometer automação financeira
   ainda não homologada.
 - [x] Escopo comercial congelado neste documento: V1 = Campeonatos.
+- [x] (evita pedir um nível depois que a categoria já foi escolhida) Desativar na
+  V1 a recomendação automática de categoria por questionário. O guard central
+  ignora inclusive valores legados ativos no banco, campeonatos novos/editados
+  salvam a opção como `false`, o controle foi retirado do organizador e o checkout
+  não exige respostas. A validação de gênero continua no servidor.
 
 ### Banco e produção
 
@@ -76,11 +121,15 @@ Percentual atual estimado: 84% (código local verificado; produção ainda bloqu
   testes contratuais locais em `lib/production-migrations.test.ts`.
 - [x] Ledger financeiro, outbox, ledger de webhook e guardas de cartão possuem RLS,
   revogação para `anon/authenticated` e acesso exclusivo por `service_role` nos SQLs.
-- [?] O repositório não usa uma tabela/histórico padrão de migrations do Supabase;
+- [?] (confere se o banco real está igual ao código) O repositório não usa uma tabela/histórico padrão de migrations do Supabase;
   a equivalência entre arquivos e produção deve ser comprovada pelas consultas do
   runbook, não presumida pelo Git.
-- [?] Buckets, limites MIME/tamanho e policies reais do Storage precisam ser
+- [?] (confere quem pode enviar e ver arquivos) Buckets, limites MIME/tamanho e policies reais do Storage precisam ser
   comparados no painel Supabase.
+- [M] (evita perder banco e arquivos se algo der errado) Antes de abrir pagamentos, definir uma rotina de backups lógicos periódicos
+  no plano Free, guardar ao menos uma cópia independente da máquina do operador e
+  proteger separadamente os arquivos dos buckets. O dump do PostgreSQL contém os
+  metadados do Storage, não o conteúdo dos objetos armazenados.
 
 ### Financeiro de Campeonatos
 
@@ -93,10 +142,11 @@ Percentual atual estimado: 84% (código local verificado; produção ainda bloqu
 - [x] Repasse só é final após estado `DONE` do provedor; estado incerto é conciliado
   sem gerar uma nova transferência.
 - [x] Executar a suíte automatizada local de ledger, duplicidade, timeout, estorno,
-  chargeback, repasse e falha de repasse: 490/490 testes aprovados.
-- [M] Executar a homologação sandbox de Pix, cartão, duplicidade, timeout, estorno,
+  chargeback, repasse e falha de repasse: suíte local completa com 576/576 testes
+  aprovados em 19/08/2026 (inclui módulos fora do escopo da V1).
+- [M] (testa pagamentos falsos do começo ao fim) Executar a homologação sandbox de Pix, cartão, duplicidade, timeout, estorno,
   chargeback e repasse com credenciais/dados descartáveis.
-- [?] Validar no Asaas sandbox o comportamento de eventos não exercitados por
+- [?] (confere avisos reais do simulador de pagamentos) Validar no Asaas sandbox o comportamento de eventos não exercitados por
   fixture local e comparar interface, provedor e tabelas financeiras.
 
 ### Segurança
@@ -112,7 +162,10 @@ Percentual atual estimado: 84% (código local verificado; produção ainda bloqu
   persistidas de rate limit que antes podiam conter IP, CPF ou e-mail.
 - [x] CSP por nonce, HSTS, proteção de frame, MIME e Permissions-Policy estão
   configurados e cobertos por testes locais.
-- [?] Fazer revisão autenticada das RLS como atleta, organizador, staff, admin e
+- [x] Corrigir a dependência transitiva `nanoid` indicada pelo audit de
+  19/08/2026: override atualizado de 3.3.17 para 3.3.18 no commit `696d81c`;
+  `npm ci` e `npm run audit:prod` confirmaram zero vulnerabilidades.
+- [?] (confere o que cada tipo de usuário pode acessar) Fazer revisão autenticada das RLS como atleta, organizador, staff, admin e
   usuário sem vínculo no sandbox.
 
 ### UX de lançamento
@@ -120,7 +173,7 @@ Percentual atual estimado: 84% (código local verificado; produção ainda bloqu
 - [x] Corrigir o seletor de persona e o card de destaque para não cortar conteúdo
   em larguras pequenas; verificado visualmente em viewport Chromium 390 × 844.
 - [x] Criar fallbacks globais de loading, erro e página não encontrada.
-- [?] Validar cadastro, pagamento, credencial, check-in, chaveamento e financeiro
+- [?] (testa a jornada completa em celular e computador) Validar cadastro, pagamento, credencial, check-in, chaveamento e financeiro
   em celular real e desktop no Preview aprovado.
 
 ### E-mail
@@ -128,17 +181,17 @@ Percentual atual estimado: 84% (código local verificado; produção ainda bloqu
 - [x] Templates locais de convite, inscrição, pagamento e recuperação possuem
   testes de renderização.
 - [x] Alertar operacionalmente falhas de envio sem registrar destinatário.
-- [?] Confirmar no Supabase Auth os templates e redirects de cadastro, confirmação
+- [?] (confere os links dos e-mails de acesso e senha) Confirmar no Supabase Auth os templates e redirects de cadastro, confirmação
   e recuperação de senha do domínio final.
-- [M] Publicar DNS e testar entrega conforme **Configuração do e-mail transacional**.
+- [M] (faz o e-mail oficial chegar sem cair no spam) Publicar DNS e testar entrega conforme **Configuração do e-mail transacional**.
 
 ### Jurídico e suporte
 
-- [ ] Remover placeholders jurídicos somente após receber dados verdadeiros; não
+- [ ] (coloca os dados reais da empresa nos textos) Remover placeholders jurídicos somente após receber dados verdadeiros; não
   inventar razão social, CNPJ, responsável ou e-mail.
-- [M] Revisar Termos, Privacidade, cancelamento/reembolso e fluxo LGPD com apoio
+- [M] (garante regras legais claras para todos) Revisar Termos, Privacidade, cancelamento/reembolso e fluxo LGPD com apoio
   jurídico/contábil.
-- [M] Definir canal de suporte e responsável/SLA para pagamento, ingresso, estorno,
+- [M] (define quem ajuda o cliente e em quanto tempo) Definir canal de suporte e responsável/SLA para pagamento, ingresso, estorno,
   repasse, segurança e solicitações de titulares.
 
 ### Monitoramento
@@ -148,8 +201,8 @@ Percentual atual estimado: 84% (código local verificado; produção ainda bloqu
   por sanitização de PII/segredos.
 - [x] Falhas graves de webhook, ledger e conciliação geram evento operacional e
   podem acionar `OPERATIONS_ALERT_WEBHOOK_URL`.
-- [M] Configurar alerta operacional e monitor externo para `/api/health`.
-- [M] Definir quem responde a uma operação financeira pendente ou webhook falho.
+- [M] (avisa quando o site ou banco estiver com problema) Configurar alerta operacional e monitor externo para `/api/health`.
+- [M] (define quem resolve falhas de pagamento) Definir quem responde a uma operação financeira pendente ou webhook falho.
 
 ### SEO
 
@@ -160,12 +213,16 @@ Percentual atual estimado: 84% (código local verificado; produção ainda bloqu
 
 ## P2 — Pós-lançamento
 
-- [P2] Produto comercial e roadmap do Life OS, Performance e Carteira em Rota.
-- [P2] Redesign visual ou refatoração estética sem impacto operacional.
-- [P2] Analytics de produto avançado.
-- [P2] Aplicativo nativo, WhatsApp, IA comercial e expansão de ranking.
-- [P2] Plataforma de assinatura da própria Arena.
-- [P2] Completar inadimplência e ciclo recorrente da Arena depois que houver decisão
+- [P2] (planeja os produtos que ficam para depois) Produto comercial e roadmap do Life OS, Performance e Carteira em Rota.
+- [P2] (melhora a aparência depois que o essencial estiver pronto) Redesign visual ou refatoração estética sem impacto operacional.
+- [P2] (mede como as pessoas usam o produto) Analytics de produto avançado.
+- [P2] (adiciona canais e recursos futuros) Aplicativo nativo, WhatsApp, IA comercial e expansão de ranking.
+- [P2] (recomenda a categoria antes da escolha) Reconstruir o motor de categoria:
+  coletar respostas dos dois atletas antes da seleção, calcular o nível da dupla e
+  exigir faixa explícita para categorias personalizadas. Só então reativar o guard
+  nos fluxos de visitante, autenticado e convite.
+- [P2] (permite vender assinaturas da Arena no futuro) Plataforma de assinatura da própria Arena.
+- [P2] (trata atrasos e cobranças recorrentes da Arena) Completar inadimplência e ciclo recorrente da Arena depois que houver decisão
   comercial, fiscal, de suporte e homologação específica.
 
 ## Arena Beta
@@ -174,33 +231,54 @@ Percentual atual estimado: 84% (código local verificado; produção ainda bloqu
   financeiro finalizado.
 - [x] Desabilitar por padrão novas assinaturas recorrentes de alunos até existir
   habilitação explícita e homologação separada.
-- [P2] Implementar cancelamento self-service preservando `access_until`.
-- [P2] Tratar `PAYMENT_OVERDUE` e política de carência/inadimplência.
-- [P2] Revisar cancelamento, reativação, cobrança fora de ordem e emissão fiscal.
-- [P2] A frequência dos crons de Arena não bloqueia Campeonatos se suas cobranças
+- [P2] (deixa o aluno cancelar sozinho sem perder o período pago) Implementar cancelamento self-service preservando `access_until`.
+- [P2] (decide o que acontece quando a mensalidade atrasa) Tratar `PAYMENT_OVERDUE` e política de carência/inadimplência.
+- [P2] (evita erros no ciclo das mensalidades) Revisar cancelamento, reativação, cobrança fora de ordem e emissão fiscal.
+- [P2] (mantém a Arena beta sem bloquear a V1) A frequência dos crons de Arena não bloqueia Campeonatos se suas cobranças
   de risco permanecerem desabilitadas.
 
 ## Ações manuais minhas
 
 ### Backup e confirmação do backup
 
+Status: [x] concluído em 19/08/2026 por backup lógico manual, pois o plano Free
+não oferece backup/PITR pelo painel. O arquivo atômico foi restaurado em banco
+Docker isolado; ownership e grants gerenciados pela plataforma foram omitidos
+somente no teste local, porque dependem das roles internas de um projeto Supabase.
+
 Motivo: migrations e backfills financeiros não devem ser executados sem caminho
 de recuperação comprovado.  
-Onde fazer: Supabase de produção, em `Database > Backups` ou `Point in Time Recovery`.  
-Passo a passo:
+Onde foi feito: dump remoto por `pg_dump` executado em container Docker e restore
+em PostgreSQL Supabase isolado na máquina local. Não foi usado o painel de Backups.
+Evidência registrada:
 
-1. Confirmar pelo identificador do projeto que o painel aberto é o de produção.
-2. Registrar data/hora e tipo do backup mais recente.
-3. Confirmar a janela de retenção e localizar a ação de restauração sem executá-la.
-4. Preferencialmente restaurar um backup recente em projeto separado e executar
-   uma consulta simples de contagem para provar que o backup é utilizável.
-5. Guardar evidência privada; não publicar URL, IDs sensíveis ou credenciais.
+1. Arquivo:
+   `C:\Users\carlo\Documents\RankFTV-backup-2026-08-19\production-consistent.backup`.
+2. Formato: dump lógico atômico/custom criado em uma única execução de `pg_dump`.
+3. Tamanho: 1.515.665 bytes; horário: 19/08/2026 15:13:36.
+4. SHA-256:
+   `612509F0BE5F13971901F5BB65BA2D04032B622B7A3B8D8DCFEF0A0DC7C5E081`.
+5. Restore local: concluído sem erro com `pg_restore --no-owner --no-privileges`;
+   recuperou 93 tabelas de `public` e confirmou `auth.audit_log_entries`.
+6. Os dumps separados `roles.sql`, `schema.sql` e `data.sql` foram preservados
+   como evidência auxiliar, mas o arquivo custom consistente é o backup principal.
 
-O que preciso ter: acesso de administrador ao Supabase e capacidade de backup/PITR.  
-Como saber que funcionou: há backup identificável e um procedimento de restore
-testado ou oficialmente disponível.  
-Evidência que devo trazer para você: data/hora, tipo do backup, janela de retenção
-e resultado do teste de restauração, sem segredos.
+Limites conhecidos:
+
+- este backup representa somente o estado do banco no horário acima; não permite
+  recuperar um segundo/minuto posterior como PITR;
+- não existe restauração automática ou com um clique no plano atual;
+- o teste local não recriou ownership/grants das roles internas da plataforma;
+- o dump preserva metadados do Storage, mas não os arquivos dos buckets;
+- a restauração em um projeto Supabase real ainda não foi ensaiada porque o plano
+  atual já utiliza o limite de dois projetos;
+- se houver gravações que precisem ser preservadas depois de 15:13:36, gerar novo
+  dump atômico imediatamente antes das migrations. Não tratar o arquivo antigo
+  como ponto atual de recuperação.
+
+Como saber que esta etapa funcionou: o arquivo tem hash registrado e seu schema e
+dados foram restaurados e consultados em banco isolado. Isso comprova recuperação
+lógica, mas não equivale a PITR nem a restore de produção gerenciado pelo Supabase.
 
 ### Aplicação controlada das migrations
 
@@ -209,19 +287,26 @@ inferidos como existentes só porque estão no Git.
 Onde fazer: SQL Editor do Supabase de produção, após backup, em janela sem checkout.  
 Passo a passo:
 
-1. Confirmar primeiro as migrations-base `harden-ticket-inventory-security.sql`,
+1. [x] Confirmar primeiro as migrations-base `harden-ticket-inventory-security.sql`,
    `add-elite-fee-collection.sql` e `add-security-audit-log.sql` conforme o runbook.
-2. Aplicar uma por vez, aguardando sucesso antes da próxima, nesta ordem:
-   1. `supabase/financial-operations.sql`
-   2. `supabase/payment-card-attempt-security.sql`
-   3. `supabase/production-spectator-ticket-items.sql`
-   4. `supabase/production-order-inventory-release.sql`
-   5. `supabase/asaas-webhook-idempotency.sql`
-   6. `supabase/production-query-indexes.sql`
-   7. `supabase/production-data-retention.sql`
-3. Executar as consultas de validação de `RUNBOOK-PRODUCAO.md`.
-4. Conferir que tabelas/RPCs existem e que grants de cliente não foram abertos.
-5. Conferir o relatório do backfill. Não corrigir linhas ambíguas automaticamente.
+   Concluído em 19/08/2026: as 10 verificações retornaram `OK`.
+2. [x] Aplicar uma por vez, aguardando sucesso antes da próxima, nesta ordem:
+   1. [x] `supabase/financial-operations.sql`
+   2. [x] `supabase/payment-card-attempt-security.sql`
+   3. [x] `supabase/production-spectator-ticket-items.sql`
+   4. [x] `supabase/production-order-inventory-release.sql`
+   5. [x] `supabase/asaas-webhook-idempotency.sql`
+   6. [x] `supabase/production-query-indexes.sql`
+   7. [x] `supabase/production-data-retention.sql`
+   Concluído em 19/08/2026: todas retornaram `Success. No rows returned`.
+3. [x] Executar as consultas de validação de `RUNBOOK-PRODUCAO.md`.
+   Concluído em 19/08/2026: 15/15 tabelas e funções esperadas retornaram `OK`.
+4. [x] Conferir que tabelas/RPCs existem e que grants de cliente não foram abertos.
+   Concluído em 19/08/2026: 14/14 verificações confirmaram RLS nas tabelas,
+   `anon=false`, `authenticated=false` e `service_role=true`.
+5. [x] Conferir o relatório do backfill. Concluído em 19/08/2026: a base não tinha
+   pedidos históricos de plateia; `partial`, `unmigrated`, pedidos sem relatório e
+   divergências normalizadas retornaram zero. Nenhuma correção foi necessária.
 
 O que preciso ter: backup confirmado, acesso ao SQL Editor e janela sem pagamentos.  
 Como saber que funcionou: todos os scripts retornam sucesso e todas as consultas
@@ -232,27 +317,73 @@ consultas de objetos e relatório agregado/pendente do backfill.
 ### Rollback e restore de banco
 
 Motivo: rollback de aplicação não desfaz schema nem ledger financeiro.  
-Onde fazer: Vercel para rollback da aplicação; Supabase para restore apenas em
-incidente confirmado e com aprovação explícita.  
+Onde fazer: Vercel para rollback da aplicação. No plano Free, uma recuperação de
+banco usa o dump lógico manual em ambiente isolado ou em um projeto Supabase de
+destino compatível; não existe PITR/restauração pelo painel disponível.
 Passo a passo:
 
 1. Em falha de aplicação, interromper abertura de novos pagamentos e promover o
    último deployment aprovado na Vercel.
 2. Não apagar migrations, operações financeiras ou eventos de webhook.
 3. Diagnosticar se a falha é apenas de aplicação ou se houve corrupção de dados.
-4. Para falha de schema/dados, abrir incidente, registrar o horário de corte e
-   selecionar backup/PITR anterior ao evento.
-5. Restaurar primeiro em projeto separado quando possível e comparar contagens.
-6. Só substituir produção com aprovação explícita e plano para reconciliar os
-   pagamentos que chegaram depois do ponto restaurado.
+4. Para falha de schema/dados, abrir incidente, pausar checkouts e crons, registrar
+   o horário de corte e preservar um dump do estado afetado para investigação.
+5. Escolher um dump lógico anterior ao incidente e restaurá-lo primeiro em banco
+   isolado. Se a recuperação exigir um projeto Supabase, obter capacidade para um
+   projeto de destino compatível antes de alterar a produção.
+6. Validar schema, dados, extensões, Auth, RLS, grants, funções, triggers e Storage;
+   copiar/restaurar separadamente os objetos dos buckets quando necessário.
+7. Só substituir ou reconstruir produção com aprovação explícita e plano para
+   reconciliar no Asaas tudo o que ocorreu depois do horário do dump.
 
-O que preciso ter: deployment anterior, backup/PITR e responsável pelo incidente.  
+O que preciso ter: deployment anterior, dump lógico íntegro, destino de restore e
+responsável pelo incidente. PITR só passa a fazer parte do plano se for contratado
+e habilitado antes do incidente.
 Como saber que funcionou: aplicação volta a responder e banco/Asaas são
 reconciliados sem duplicar cobrança ou repasse.  
-Evidência que devo trazer para você: timeline, deployment restaurado, ponto do
-backup e relatório de conciliação.
+Evidência que devo trazer para você: timeline, deployment restaurado, hash/horário
+do dump utilizado, validações pós-restore e relatório de conciliação.
 
 ### Homologação financeira em sandbox
+
+Status: [M] em andamento em 19/08/2026. Supabase descartável criado e validado
+com 92 tabelas públicas, sem perfis, campeonatos, inscrições, ingressos, operações
+financeiras ou eventos Asaas. Conta e chave exclusivas do Asaas Sandbox confirmadas.
+Nenhuma credencial foi adicionada ao `.env.local` que aponta para produção.
+Preview isolado criado na branch `sandbox-homologacao`; o commit `8fd724498301`
+respondeu `/api/health` com `status=ok` e banco `ok`. O bypass de proteção para
+automação da Vercel também foi validado em 19/08/2026, com nova resposta saudável
+e latência de 485 ms. O segredo do bypass permanece restrito e deverá ser revogado
+ao final da homologação. Webhook exclusivo do Asaas Sandbox cadastrado no mesmo dia,
+ativo, com fila ativa, token independente, entrega sequencial e somente os eventos
+financeiros tratados pelo RankFTV. A entrega real ainda precisa ser comprovada por
+um pagamento descartável. No Supabase Sandbox, `Site URL` e a allowlist de redirects
+do Auth também foram limitadas ao domínio estável da branch de homologação. O
+Turnstile do Preview/Auth foi configurado com o par oficial de chaves de teste da
+Cloudflare, sem reutilizar as credenciais CAPTCHA de produção. O primeiro cadastro
+revelou que o dump lógico preservou `public.handle_new_user()`, mas não o trigger
+instalado sobre `auth.users`; o trigger foi reinstalado, o perfil ausente foi
+recuperado e o login/perfil foi validado. O passo passou a ficar versionado em
+`supabase/sandbox-restore-auth-profile-trigger.sql` para futuras restaurações.
+Na sequência, o cadastro e a ativação da conta de organizador foram validados. O
+fluxo foi ajustado para abrir o painel logo após a ativação, atualizar imediatamente
+o menu lateral e exibir um estado vazio com a opção de criar o primeiro campeonato;
+lint, tipos, 573 testes e build de produção passaram localmente. A correção e o
+script de restauração foram publicados no Preview no commit `86601f0`. O deployment
+ficou `Ready` e a validação visual confirmou o menu `Organizador`, a abertura direta
+do painel e o estado vazio com o botão para criar o primeiro campeonato.
+Na primeira publicação descartável, foram encontrados dois campos concorrentes de
+chave Pix e a gravação segura era bloqueada. O fluxo foi unificado em um único campo,
+a escrita passou a ocorrer somente pela ação autenticada do servidor e campeonatos
+com apenas plateia paga passaram a exigir o mesmo recebimento; a correção foi enviada
+ao Preview no commit `6aa85a6`. A validação visual e funcional passou: restou um único
+campo, a chave Pix foi salva e o primeiro campeonato descartável foi publicado.
+Uma conta compradora/atleta separada foi criada e autenticada, enviou os dados da
+dupla e avançou até a tela de pagamento. Nesse ensaio foi identificada uma
+contradição no motor de categoria: o formulário pedia a autoavaliação somente
+depois de a categoria já ter sido escolhida, e categorias personalizadas não têm
+faixa de nível confiável. Para não lançar uma promessa incorreta, a recomendação
+foi desativada de ponta a ponta na V1 no commit `7184956`; gênero continua validado.
 
 Motivo: testes locais provam regras, mas não provam a integração real entre UI,
 Asaas e banco.  
@@ -371,21 +502,21 @@ tokens ou dados pessoais.
 
 ## Testes obrigatórios antes de abrir pagamentos
 
-- [ ] Pix criado e aprovado; webhook confirma uma única inscrição/credencial.
-- [ ] Cartão aprovado sem armazenar PAN/CVV.
-- [ ] Cartão recusado com mensagem segura e sem ativar inscrição.
-- [ ] Request duplicado retorna/reconcilia a mesma operação externa.
-- [ ] Webhook duplicado é ignorado pelo ledger.
-- [ ] Webhook confirmado depois de estorno é ignorado como fora de ordem.
-- [ ] Timeout após aceite do provedor fica ambíguo e é conciliado sem nova cobrança.
-- [ ] Reembolso aceito só libera inventário no estado correto.
-- [ ] Chargeback reverte acesso/estado sem regressão posterior.
-- [ ] Repasse Pix chega a `DONE` uma única vez.
-- [ ] Repasse de cartão respeita liquidação.
-- [ ] Falha de repasse fica pendente/conciliável e gera alerta.
-- [ ] Ingresso de plateia com múltiplos tipos reserva e libera estoque corretamente.
-- [ ] Fluxo completo de atleta: compra → QR → check-in único.
-- [ ] Fluxo completo do organizador: publicar → inscrições → financeiro → reembolso.
+- [ ] (testa um Pix completo sem duplicar inscrição) Pix criado e aprovado; webhook confirma uma única inscrição/credencial.
+- [ ] (testa cartão aprovado sem guardar dados proibidos) Cartão aprovado sem armazenar PAN/CVV.
+- [ ] (testa cartão recusado sem liberar a inscrição) Cartão recusado com mensagem segura e sem ativar inscrição.
+- [ ] (garante que dois cliques não criem duas cobranças) Request duplicado retorna/reconcilia a mesma operação externa.
+- [ ] (não processa duas vezes o mesmo aviso de pagamento) Webhook duplicado é ignorado pelo ledger.
+- [ ] (impede que um aviso atrasado desfaça um estorno) Webhook confirmado depois de estorno é ignorado como fora de ordem.
+- [ ] (garante que uma demora não gere outra cobrança) Timeout após aceite do provedor fica ambíguo e é conciliado sem nova cobrança.
+- [ ] (devolve vaga e cupom somente após o reembolso) Reembolso aceito só libera inventário no estado correto.
+- [ ] (remove o acesso após uma contestação do pagamento) Chargeback reverte acesso/estado sem regressão posterior.
+- [ ] (garante que o repasse Pix aconteça uma só vez) Repasse Pix chega a `DONE` uma única vez.
+- [ ] (só repassa cartão depois de o dinheiro estar liberado) Repasse de cartão respeita liquidação.
+- [ ] (guarda o repasse com erro para tentar novamente) Falha de repasse fica pendente/conciliável e gera alerta.
+- [ ] (testa vários tipos de ingresso no mesmo pedido) Ingresso de plateia com múltiplos tipos reserva e libera estoque corretamente.
+- [ ] (testa o atleta da compra até a entrada) Fluxo completo de atleta: compra → QR → check-in único.
+- [ ] (testa o organizador da publicação ao reembolso) Fluxo completo do organizador: publicar → inscrições → financeiro → reembolso.
 
 Comandos locais mínimos:
 
@@ -405,22 +536,57 @@ Os E2E mutantes só podem ser habilitados em sandbox descartável com
 
 - [x] Escopo V1 congelado em Campeonatos; Arena beta; ferramentas pessoais fora.
 - [x] Código, lint, tipos, testes, audit e build verdes no estado local candidato.
-- [ ] Preview usa Supabase/Asaas sandbox e o mesmo commit que será promovido.
-- [ ] Backup/PITR confirmado e restauração conhecida.
-- [ ] Migrations e backfill validados com evidência.
-- [ ] RLS/Auth/Storage testados por papel.
-- [ ] Matriz financeira automatizada e sandbox aprovada.
-- [ ] KYC/capacidades/webhook Asaas de produção confirmados.
-- [ ] Conciliação financeira frequente e alertada.
-- [ ] Termos, Privacidade, suporte e política de reembolso aprovados.
-- [ ] Resend/DNS e entrega Gmail/Outlook aprovados.
-- [ ] Health check e alertas monitorados.
-- [ ] Smoke mobile/desktop do fluxo completo aprovado.
-- [ ] Commit, deployment, horário, migrations e responsáveis registrados.
-- [ ] Plano de rollback de aplicação e restore de banco disponível.
-- [ ] Pagamentos reais continuam fechados até todos os P0 acima estarem concluídos.
+- [ ] (publica uma cópia segura do site ligada somente a testes) Preview usa Supabase/Asaas sandbox e o mesmo commit que será promovido.
+- [x] Backup lógico manual confirmado e restauração local comprovada; PITR não
+  está disponível no plano atual.
+- [ ] (mantém banco e arquivos protegidos por cópias regulares) Rotina periódica, cópia independente e backup dos objetos do Storage definidos.
+- [x] Migrations e backfill validados com evidência.
+- [ ] (confere que cada usuário vê somente o que deve) RLS/Auth/Storage testados por papel.
+- [ ] (confirma todos os cenários de pagamento no simulador) Matriz financeira automatizada e sandbox aprovada.
+- [ ] (confirma que a conta real pode cobrar, estornar e repassar) KYC/capacidades/webhook Asaas de produção confirmados.
+- [ ] (verifica pagamentos pendentes rapidamente e avisa falhas) Conciliação financeira frequente e alertada.
+- [ ] (deixa regras legais, reembolso e ajuda ao cliente prontos) Termos, Privacidade, suporte e política de reembolso aprovados.
+- [ ] (garante que os e-mails oficiais não caiam no spam) Resend/DNS e entrega Gmail/Outlook aprovados.
+- [ ] (acompanha se o site está funcionando e avisa problemas) Health check e alertas monitorados.
+- [ ] (testa o fluxo principal em celular e computador) Smoke mobile/desktop do fluxo completo aprovado.
+- [ ] (anota o que foi publicado, quando e por quem) Commit, deployment, horário, migrations e responsáveis registrados.
+- [ ] (define como voltar o site e recuperar o banco após falha) Plano de rollback da aplicação e restore lógico em Supabase real disponível.
+- [ ] (impede cobranças antes de resolver todos os bloqueios) Pagamentos reais continuam fechados até todos os P0 acima estarem concluídos.
 
 ## Últimas alterações feitas pela IA
+
+- arquivos: `package.json` e `package-lock.json` em 19/08/2026
+  - problema: a conferência da documentação revelou uma vulnerabilidade alta no
+    `nanoid` 3.3.17, dependência transitiva do PostCSS;
+  - alteração: override restrito para a correção compatível 3.3.18;
+  - teste executado: `npm ci --ignore-scripts`, `npm ls nanoid`,
+    `npm run audit:prod`, E2E seguro e build de produção;
+  - resultado: zero vulnerabilidades, `nanoid@3.3.18`, 5 E2E aprovados, 9
+    corretamente ignorados sem credenciais/flags mutantes e build aprovado no
+    commit `696d81c`.
+
+- arquivos: `lib/release-flags.ts`, formulários/actions de campeonato e inscrição,
+  perfil, `DOCUMENTACAO.md`, `README.md` e `PENDENCIAS-V1.md` em 19/08/2026
+  - problema: o produto chamava de recomendação um questionário respondido depois
+    da escolha da categoria; categorias personalizadas usavam uma faixa aberta e
+    não podiam receber uma sugestão confiável;
+  - alteração: recurso fechado por guard central na V1, controle removido da criação
+    e edição, questionário retirado do checkout, gravações novas forçadas para
+    `false` e rota/action antiga protegidas; gênero permanece obrigatório;
+  - decisão futura: coletar as respostas dos dois atletas antes da categoria e
+    exigir uma faixa/equivalência de nível nas categorias personalizadas;
+  - teste executado: 576 testes, teste contratual do guard, TypeScript, lint sem
+    avisos, build de produção Next.js 16.3.0 e `git diff --check`;
+  - resultado: aprovado no commit `7184956`; falta confirmar visualmente no Preview.
+
+- arquivo: `PENDENCIAS-V1.md` em 19/08/2026
+  - problema: as instruções detalhadas e o checklist ainda pressupunham backup/PITR
+    pelo painel, embora o plano Free tenha exigido um backup lógico local;
+  - alteração: evidência do dump e restore registrada, limitações separadas e fluxo
+    de recuperação adaptado para dump lógico, Storage e ausência de PITR;
+  - teste executado: conferência das referências a backup/restore e `git diff --check`;
+  - resultado: backup pré-migration concluído; rotina periódica e restore em um
+    projeto Supabase real permanecem explicitamente pendentes.
 
 - arquivo: `PENDENCIAS-V1.md`
   - problema: não existia uma fonte única para o fechamento da V1;
@@ -497,7 +663,7 @@ Os E2E mutantes só podem ser habilitados em sandbox descartável com
   - teste executado: lint final;
   - resultado: aprovado sem erros ou avisos.
 
-Validação final desta execução:
+Validação do candidato inicial (registro histórico; reexecutar antes do release):
 
 - `npm run audit:prod`: 0 vulnerabilidades;
 - `npm run lint`: aprovado, 0 erros e 0 avisos;
@@ -508,11 +674,22 @@ Validação final desta execução:
   de credenciais sandbox; nenhum cenário mutante foi executado;
 - inspeção mobile local: Chromium 390 × 844 aprovado para seletor e destaque.
 
+Verificação posterior em 19/08/2026:
+
+- `npm test`: 576/576 aprovados, 0 falhos, 0 ignorados;
+- `npm run lint`, `npm run typecheck -- --incremental false` e `npm run build`:
+  aprovados após a desativação do motor de categoria;
+- `npm run audit:prod`: zero vulnerabilidades após atualizar o `nanoid` para
+  3.3.18;
+- `npm run test:e2e`: 5 aprovados e 9 ignorados por ausência deliberada de
+  credenciais/flags mutantes; nenhum teste destrutivo foi executado.
+
 ## Próximas 3 tarefas
 
-1. Confirmar backup/PITR, aplicar as sete migrations na ordem e trazer as consultas
-   de validação e o relatório do backfill.
-2. Criar Preview totalmente descartável e executar a matriz financeira sandbox,
-   incluindo a decisão/configuração da conciliação a cada 10 minutos.
-3. Fornecer dados jurídicos e canal de suporte, concluir KYC/webhook Asaas e
-   configurar domínio Resend com SPF, DKIM, DMARC, Gmail e Outlook.
+1. Criar Preview totalmente descartável e executar a matriz financeira sandbox,
+   incluindo agendador externo autenticado a cada 10 minutos para a conciliação.
+2. Definir o domínio canônico, configurar `NEXT_PUBLIC_BASE_URL`, redirects,
+   Supabase Auth, Turnstile e webhook Asaas com o mesmo domínio; depois concluir
+   dados jurídicos/suporte, KYC e e-mail transacional.
+3. Definir a rotina de backups lógicos periódicos, manter cópia independente e
+   proteger separadamente os objetos do Storage antes de abrir pagamentos.
