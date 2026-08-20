@@ -22,6 +22,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { Avatar } from "@/components/ui/Avatar";
 import {
+  APP_NAV_GROUPS,
   isAppNavItemActive,
   visibleAppNavItems,
   type AppNavPermissions,
@@ -41,12 +42,6 @@ type NotificationPreview = {
   unread: boolean;
   kind: "staff" | "team" | "notice";
 };
-
-const GROUPS: { label: string; keys: string[] }[] = [
-  { label: "Principal", keys: ["campeonatos", "arenas", "agenda", "ingressos"] },
-  { label: "Minha conta", keys: ["inscricoes"] },
-  { label: "Gestao", keys: ["painel", "arena", "staff", "admin"] },
-];
 
 export function DesktopSidebar({
   user,
@@ -389,7 +384,7 @@ export function DesktopSidebar({
             opacity: indicator.ready ? 1 : 0,
           }}
         />
-        {GROUPS.map((group, index) => {
+        {APP_NAV_GROUPS.map((group, index) => {
           const groupItems = group.keys.map((k) => itemByKey.get(k)).filter((i): i is NonNullable<typeof i> => !!i);
           if (groupItems.length === 0) return null;
 

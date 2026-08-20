@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  APP_NAV_GROUPS,
   isAppNavItemActive,
   visibleAppNavItems,
 } from "../components/shell/app-nav-items";
@@ -41,4 +42,14 @@ test("aba inicial respeita a URL e prioriza a seção que possui compras", () =>
   assert.equal(resolveComprasTab(undefined, 2, 1), "atleta");
   assert.equal(resolveComprasTab(undefined, 0, 1), "plateia");
   assert.equal(resolveComprasTab(undefined, 0, 0), "atleta");
+});
+
+test("barra lateral agrupa os atalhos de compra para visitante e usuario autenticado", () => {
+  const principal = APP_NAV_GROUPS.find((group) => group.label === "Principal");
+  const minhaConta = APP_NAV_GROUPS.find((group) => group.label === "Minha conta");
+
+  assert.ok(principal?.keys.includes("consultar-ingresso"));
+  assert.ok(minhaConta?.keys.includes("compras"));
+  assert.ok(!principal?.keys.includes("ingressos"));
+  assert.ok(!minhaConta?.keys.includes("inscricoes"));
 });

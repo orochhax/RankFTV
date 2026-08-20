@@ -29,6 +29,12 @@ export const APP_NAV_ITEMS: AppNavItem[] = [
   { key: "admin", label: "Administração", href: "/admin", icon: Wrench, requires: "admin" },
 ];
 
+export const APP_NAV_GROUPS: { label: string; keys: string[] }[] = [
+  { label: "Principal", keys: ["campeonatos", "arenas", "agenda", "consultar-ingresso"] },
+  { label: "Minha conta", keys: ["compras"] },
+  { label: "Gestao", keys: ["painel", "arena", "staff", "admin"] },
+];
+
 export type AppNavPermissions = {
   isLoggedIn: boolean;
   isOrganizer: boolean;
