@@ -90,3 +90,19 @@ test("new championships do not start with an unnamed category", () => {
   assert.match(form, /onClick=\{\(\) => addCat\(""\)\}/);
   assert.match(form, /function removeCat\(i: number\) \{\s*setCategorias\(\(cs\) => cs\.filter/);
 });
+
+test("championship publishing has one secured Pix field for every paid product", () => {
+  const page = source("app/painel/campeonatos/[id]/publicar/page.tsx");
+  const form = source("components/painel/PublicarCampeonatoForm.tsx");
+  const action = source("app/painel/campeonatos/[id]/publicar/actions.ts");
+  const financialAction = source("app/painel/campeonatos/[id]/financeiro/actions.ts");
+
+  assert.doesNotMatch(page, /ChavePixClient/);
+  assert.equal([...form.matchAll(/name="chave_pix"/g)].length, 1);
+  assert.match(page, /const temProdutoPago\s*=\s*temCategoriaPaga \|\| temIngressoPago/);
+  assert.match(action, /const temProdutoPago = temCategoriaPaga \|\| temIngressoPago/);
+  assert.match(action, /await salvarChavePix\(chavePix\)/);
+  assert.doesNotMatch(action, /\.update\(\{ chave_pix: chavePix \}\)/);
+  assert.match(financialAction, /const admin = createAdminClient\(\)/);
+  assert.match(financialAction, /chave_pix_atualizada_em: new Date\(\)\.toISOString\(\)/);
+});

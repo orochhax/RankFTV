@@ -206,8 +206,20 @@ export async function salvarChavePix(
     };
   }
 
-  const { error } = await supabase.rpc("atualizar_chave_pix_organizador", { p_chave: chaveClean });
-  if (error) return { ok: false, error: "Erro ao salvar chave Pix." };
+  // A ação já autenticou o usuário e só permite alterar a própria conta. A
+  // gravação administrativa é feita exclusivamente no servidor para atravessar
+  // a proteção que bloqueia UPDATE direto do navegador e carimbar o cooldown.
+  const admin = createAdminClient();
+  const { data: contaAtualizada, error } = await admin
+    .from("organizer_accounts")
+    .update({
+      chave_pix: chaveClean,
+      chave_pix_atualizada_em: new Date().toISOString(),
+    })
+    .eq("user_id", user.id)
+    .select("user_id")
+    .maybeSingle();
+  if (error || !contaAtualizada) return { ok: false, error: "Erro ao salvar chave Pix." };
 
   await registrarAuditoria({
     actorId: user.id,
