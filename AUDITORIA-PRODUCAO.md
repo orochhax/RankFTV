@@ -52,7 +52,7 @@ externos continuam manuais e nao foram presumidas.
 
 Ordem, consultas de validacao, backfill, deploy e rollback estao em
 `RUNBOOK-PRODUCAO.md`. O que exige conta, segredo ou decisao do responsavel esta
-em `PENDENCIAS-MANUAIS.md`.
+em `PENDENCIAS-V1.md`.
 
 ### Validacoes locais de 07/08/2026
 
@@ -111,7 +111,7 @@ bloqueados ate concluir o runbook e todas as pendencias manuais.
 Segunda rodada de auditoria, em paralelo a atualizacao acima (branches
 diferentes, mesclados depois). Cobriu autorizacao, pagamentos, concorrencia e
 privacidade em codigo — nao so recomendacao. Resumo; detalhe completo e
-passo a passo de aplicacao ficaram em `PENDENCIAS.md`.
+passo a passo de aplicacao ficaram em `PENDENCIAS-V1.md`.
 
 - Presenca de aula de arena passou a ser feita só por RPC atômica (gênero,
   vaga e crédito derivados no banco); fim da escrita direta na tabela pelo
@@ -153,7 +153,7 @@ passo a passo de aplicacao ficaram em `PENDENCIAS.md`.
 - N+1 corrigido na contagem de alunos da listagem de arenas.
 - **LGPD: CPF pessoal e endereço residencial removidos dos Termos de Uso
   (ficou placeholder `[PENDENTE]` até ter o dado empresarial correto — ver
-  `PENDENCIAS.md`); Política de Privacidade criada em `/privacidade`;
+  `PENDENCIAS-V1.md`); Política de Privacidade criada em `/privacidade`;
   exportação de dados e solicitação de exclusão de conta implementadas em
   `/perfil/conta` (item 6 antigo desta lista, ver abaixo).**
 
@@ -161,7 +161,7 @@ Migrations novas em `supabase/harden-*.sql`, `supabase/add-security-audit-log.sq
 e `supabase/add-ticket-recovery-otp.sql` — já aplicadas no banco em 20-21/07.
 Pendências reais (dado de empresa pros Termos, CAPTCHA/rate limit de
 login-cadastro no painel do Supabase, limitações conhecidas) estão todas em
-`PENDENCIAS.md`, com passo a passo.
+`PENDENCIAS-V1.md`, com passo a passo.
 
 ## Resultado executivo
 
@@ -299,7 +299,7 @@ Nunca copiar a chave Sandbox para producao nem expor `SUPABASE_SERVICE_ROLE_KEY`
    direitos do titular) e exportação/exclusão de conta implementadas em
    `/perfil/conta`. Ainda falta: dado de identificação empresarial real nos
    Termos/Privacidade (hoje é um placeholder `[PENDENTE]`, ver
-   `PENDENCIAS.md`) e um procedimento formal de resposta a incidentes.
+   `PENDENCIAS-V1.md`) e um procedimento formal de resposta a incidentes.
 7. Os testes atuais cobrem a logica financeira local, mas nao ha suite E2E para
    cadastro, convite, pagamento, webhook, check-in, painel de organizador e
    arena. Esses fluxos precisam de um roteiro de homologacao antes da abertura.

@@ -37,7 +37,7 @@ npm run test:e2e
    `add-elite-fee-collection.sql` e `add-security-audit-log.sql`.
 5. Conferir que Production nao usa URL ou chave do Asaas Sandbox.
 6. Configurar as variaveis descritas em `.env.example` e
-   `PENDENCIAS-MANUAIS.md`, sem copiar valores para logs ou tickets.
+   `PENDENCIAS-V1.md`, sem copiar valores para logs ou tickets.
 
 ## 2. Ordem das migrations
 
@@ -227,4 +227,4 @@ trilha de auditoria.
 
 Registrar commit, horario, migrations, contagens do backfill, resultado dos
 gates, cobrancas sandbox usadas, incidentes e responsavel pela liberacao. As
-configuracoes externas ainda abertas permanecem em `PENDENCIAS-MANUAIS.md`.
+configuracoes externas ainda abertas permanecem em `PENDENCIAS-V1.md`.
