@@ -159,10 +159,10 @@ export default async function IngressoPage({
       <div className="bg-black px-6 pb-16 pt-6">
         <div className="mx-auto max-w-md space-y-4">
           <Link
-            href="/minhas-inscricoes"
+            href="/minhas-compras?aba=atleta"
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
           >
-            <ArrowLeft className="size-4" /> Minhas inscrições
+            <ArrowLeft className="size-4" /> Minhas compras
           </Link>
 
           <div>

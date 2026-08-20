@@ -187,8 +187,8 @@ Itens declarados em components/shell/app-nav-items.ts:
 | Campeonatos | / | todos |
 | Arenas | /arenas | todos |
 | Agenda | /agenda | todos |
-| Meus ingressos | /meus-ingressos | todos |
-| Minhas inscrições | /minhas-inscricoes | autenticado |
+| Consultar ingresso | /meus-ingressos | visitante |
+| Minhas compras | /minhas-compras | autenticado |
 | Perfil | /perfil | autenticado |
 | Organizador | /painel | possui organizer_accounts |
 | Minhas arenas | /arena | possui arena |
@@ -243,9 +243,9 @@ seja pública: cada página aplica sua autenticação e autorização.
 | /perfil/questionario-nivel | rota preservada, mas desativada na V1; redireciona para `/perfil` |
 | /perfil/ativar-organizador | criação da conta de organizador |
 | /perfil/ativar-arena | criação da arena |
-| /meus-ingressos | recuperação/consulta protegida de ingressos |
-| /minhas-compras | compras ligadas à conta |
-| /minhas-inscricoes | inscrições do atleta |
+| /meus-ingressos | recuperação pública protegida por CPF, e-mail e OTP; usuário autenticado é direcionado para `/minhas-compras` |
+| /minhas-compras | área unificada da conta, separada em Atleta e Plateia; reúne ingressos avulsos, inscrições por equipe e vínculo de compras antigas |
+| /minhas-inscricoes | rota de compatibilidade; direciona para a aba Atleta de `/minhas-compras` |
 | /minhas-inscricoes/[champId] | detalhe, dupla e credencial |
 | /minhas-inscricoes/[champId]/reembolso | solicitação de reembolso |
 | /convite/[teamId] | aceite ou recusa de convite da dupla |

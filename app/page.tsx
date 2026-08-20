@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Radio, MapPin, CalendarDays, Building2, Ticket, ClipboardList } from "lucide-react";
+import { ChevronRight, Radio, MapPin, CalendarDays, Building2, Ticket, ShoppingBag } from "lucide-react";
 import { PersonaSwitcher } from "@/components/home/PersonaSwitcher";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
@@ -82,8 +82,9 @@ export default async function Home() {
   const quickLinks = [
     { href: "/agenda", label: "Agenda de eventos", icon: CalendarDays },
     { href: "/arenas", label: "Arenas", icon: Building2 },
-    { href: "/meus-ingressos", label: "Meus ingressos", icon: Ticket },
-    ...(profile ? [{ href: "/minhas-inscricoes", label: "Minhas inscrições", icon: ClipboardList }] : []),
+    ...(profile
+      ? [{ href: "/minhas-compras", label: "Minhas compras", icon: ShoppingBag }]
+      : [{ href: "/meus-ingressos", label: "Consultar ingresso", icon: Ticket }]),
   ];
 
   return (

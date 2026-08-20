@@ -10,7 +10,13 @@ function estaOculto(ing: Ingresso) {
   return ing.status_pagamento === "estornado" || ing.checked_in;
 }
 
-export function MinhasComprasClient({ ingressos }: { ingressos: Ingresso[] }) {
+export function MinhasComprasClient({
+  ingressos,
+  emptyMessage = "Você ainda não comprou nenhum ingresso.",
+}: {
+  ingressos: Ingresso[];
+  emptyMessage?: string;
+}) {
   const [mostrarOcultos, setMostrarOcultos] = useState(false);
 
   const visiveis = ingressos.filter((i) => !estaOculto(i));
@@ -20,7 +26,7 @@ export function MinhasComprasClient({ ingressos }: { ingressos: Ingresso[] }) {
     return (
       <div className="rounded-2xl bg-gray-50 p-8 text-center ring-1 ring-black/5">
         <ShoppingBag className="mx-auto mb-2 size-8 text-gray-200" />
-        <p className="text-sm text-gray-400">Você ainda não comprou nenhum ingresso.</p>
+        <p className="text-sm text-gray-400">{emptyMessage}</p>
       </div>
     );
   }
@@ -32,9 +38,11 @@ export function MinhasComprasClient({ ingressos }: { ingressos: Ingresso[] }) {
           Nenhum ingresso ativo no momento.
         </p>
       ) : (
-        visiveis.map((ing) => (
-          <IngressoCard key={`${ing.tipo}-${ing.ticket_id}`} ingresso={ing} origem="minhas-compras" />
-        ))
+        <div className="grid gap-4 sm:grid-cols-2">
+          {visiveis.map((ing) => (
+            <IngressoCard key={`${ing.tipo}-${ing.ticket_id}`} ingresso={ing} origem="minhas-compras" />
+          ))}
+        </div>
       )}
 
       {ocultos.length > 0 && (
@@ -50,7 +58,7 @@ export function MinhasComprasClient({ ingressos }: { ingressos: Ingresso[] }) {
           </button>
 
           {mostrarOcultos && (
-            <div className="mt-3 space-y-4 opacity-70">
+            <div className="mt-3 grid gap-4 opacity-70 sm:grid-cols-2">
               {ocultos.map((ing) => (
                 <IngressoCard key={`${ing.tipo}-${ing.ticket_id}`} ingresso={ing} origem="minhas-compras" />
               ))}

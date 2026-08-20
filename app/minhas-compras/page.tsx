@@ -1,110 +1,242 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ShoppingBag } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { MinhasComprasClient } from "@/components/perfil/MinhasComprasClient";
+import { redirect } from "next/navigation";
+import { ArrowLeft, ShoppingBag, Ticket, Users } from "lucide-react";
+import { VincularComprasForm } from "@/app/meus-ingressos/VincularComprasForm";
 import type { Ingresso } from "@/components/ingressos/IngressoCard";
+import { InscricoesAtletaList } from "@/components/perfil/InscricoesAtletaList";
+import { MinhasComprasClient } from "@/components/perfil/MinhasComprasClient";
+import { MinhasComprasTabs } from "@/components/perfil/MinhasComprasTabs";
+import { EmptyState } from "@/components/shell/EmptyState";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { resolveComprasTab, type CompraInscricaoRow } from "@/lib/minhas-compras";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
-// "Minhas Compras": ingressos (atleta/plateia) do usuário logado.
-//
-// O vínculo é feito por user_id (auth.uid()), nunca por e-mail — e-mail não
-// é uma identidade autenticada nesse ponto (quem cria conta com um e-mail
-// que apareceu num checkout de visitante não prova que comprou aquilo). Ver
-// harden-ticket-user-linking.sql e Bug 4 do relatório de correções. Compras
-// antigas sem user_id (feitas antes desta correção) só aparecem depois que
-// o próprio dono as vincula explicitamente em /meus-ingressos, provando
-// posse via o código OTP que já existe pra recuperação de ingresso.
-export default async function MinhasComprasPage() {
+type TicketRow = {
+  id: string;
+  championship_id: string;
+  championships: unknown;
+  [key: string]: unknown;
+};
+
+function championshipName(row: TicketRow): string {
+  return (row.championships as { nome?: string } | null)?.nome ?? "Campeonato";
+}
+
+export default async function MinhasComprasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ aba?: string }>;
+}) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  let ingressos: Ingresso[] = [];
-
-  {
-    const admin = createAdminClient();
-
-    const [ath1, ath2, plateia] = await Promise.all([
+  const admin = createAdminClient();
+  const [{ data: athleteBuyer }, { data: athletePartner }, { data: spectator }, teamsResult, profileResult] =
+    await Promise.all([
       admin
         .from("athlete_tickets")
-        .select("id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)")
+        .select(
+          "id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)",
+        )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
       admin
         .from("athlete_tickets")
-        .select("id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)")
+        .select(
+          "id, championship_id, categoria_nome, comprador_nome, parceiro_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)",
+        )
         .eq("parceiro_user_id", user.id)
         .order("created_at", { ascending: false }),
       admin
         .from("spectator_tickets")
-        .select("id, championship_id, tipo_nome, comprador_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)")
+        .select(
+          "id, championship_id, tipo_nome, comprador_nome, valor, status_pagamento, code, access_token, checked_in, championships(nome)",
+        )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("teams")
+        .select(`
+          id, status, championship_id, category_id, atleta1_id,
+          championships(id, nome, data_inicio, data_fim, cidade, estado, status),
+          championship_categories(nome, genero, valor_inscricao),
+          registrations(id, status_pagamento)
+        `)
+        .or(`atleta1_id.eq.${user.id},atleta2_id.eq.${user.id}`)
+        .order("created_at", { ascending: false }),
+      supabase.from("profiles").select("tamanho_camisa").eq("id", user.id).maybeSingle(),
     ]);
 
-    type Row = { id: string; championship_id: string; championships: unknown; [k: string]: unknown };
-    const champNome = (row: Row) => (row.championships as { nome?: string } | null)?.nome ?? "Campeonato";
+  const athleteTickets: Ingresso[] = [
+    ...(athleteBuyer ?? []).map((row) => ({
+      tipo: "atleta" as const,
+      ticket_id: row.id,
+      championship_id: row.championship_id,
+      campeonato_nome: championshipName(row as TicketRow),
+      categoria_nome: row.categoria_nome ?? null,
+      tipo_nome: null,
+      comprador_nome: row.comprador_nome,
+      parceiro_nome: row.parceiro_nome ?? null,
+      valor: Number(row.valor),
+      status_pagamento: row.status_pagamento,
+      code: row.code ?? null,
+      access_token: row.access_token ?? null,
+      checked_in: row.checked_in,
+      id: row.id,
+    })),
+    ...(athletePartner ?? []).map((row) => ({
+      tipo: "atleta" as const,
+      ticket_id: row.id,
+      championship_id: row.championship_id,
+      campeonato_nome: championshipName(row as TicketRow),
+      categoria_nome: row.categoria_nome ?? null,
+      tipo_nome: null,
+      comprador_nome: row.comprador_nome,
+      parceiro_nome: row.parceiro_nome ?? null,
+      valor: Number(row.valor),
+      status_pagamento: row.status_pagamento,
+      code: row.code ?? null,
+      access_token: row.access_token ?? null,
+      checked_in: row.checked_in,
+      id: row.id,
+    })),
+  ];
 
-    const atleta = [
-      ...(ath1.data ?? []).map((r) => ({
-        tipo: "atleta" as const, ticket_id: r.id, championship_id: r.championship_id,
-        campeonato_nome: champNome(r as Row), categoria_nome: r.categoria_nome ?? null,
-        tipo_nome: null, comprador_nome: r.comprador_nome, parceiro_nome: r.parceiro_nome ?? null,
-        valor: Number(r.valor), status_pagamento: r.status_pagamento, code: r.code ?? null,
-        access_token: r.access_token ?? null, checked_in: r.checked_in, id: r.id,
-      })),
-      ...(ath2.data ?? []).map((r) => ({
-        tipo: "atleta" as const, ticket_id: r.id, championship_id: r.championship_id,
-        campeonato_nome: champNome(r as Row), categoria_nome: r.categoria_nome ?? null,
-        tipo_nome: null, comprador_nome: r.comprador_nome, parceiro_nome: r.parceiro_nome ?? null,
-        valor: Number(r.valor), status_pagamento: r.status_pagamento, code: r.code ?? null,
-        access_token: r.access_token ?? null, checked_in: r.checked_in, id: r.id,
-      })),
-    ];
+  const seenAthleteTickets = new Set<string>();
+  const uniqueAthleteTickets = athleteTickets.filter((ticket) => {
+    if (seenAthleteTickets.has(ticket.ticket_id)) return false;
+    seenAthleteTickets.add(ticket.ticket_id);
+    return true;
+  });
 
-    const plateiaList = (plateia.data ?? []).map((r) => ({
-      tipo: "plateia" as const, ticket_id: r.id, championship_id: r.championship_id,
-      campeonato_nome: champNome(r as Row), categoria_nome: null, tipo_nome: r.tipo_nome ?? null,
-      comprador_nome: r.comprador_nome, parceiro_nome: null, valor: Number(r.valor),
-      status_pagamento: r.status_pagamento, code: r.code ?? null, access_token: r.access_token ?? null,
-      checked_in: r.checked_in, id: r.id,
-    }));
+  const spectatorTickets: Ingresso[] = (spectator ?? []).map((row) => ({
+    tipo: "plateia" as const,
+    ticket_id: row.id,
+    championship_id: row.championship_id,
+    campeonato_nome: championshipName(row as TicketRow),
+    categoria_nome: null,
+    tipo_nome: row.tipo_nome ?? null,
+    comprador_nome: row.comprador_nome,
+    parceiro_nome: null,
+    valor: Number(row.valor),
+    status_pagamento: row.status_pagamento,
+    code: row.code ?? null,
+    access_token: row.access_token ?? null,
+    checked_in: row.checked_in,
+    id: row.id,
+  }));
 
-    // Deduplica (mesmo atleta como comprador e parceiro no mesmo ticket)
-    const seen = new Set<string>();
-    ingressos = [...atleta, ...plateiaList].filter((i) => {
-      const key = `${i.tipo}-${i.ticket_id}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }
+  const teams = (teamsResult.data ?? []) as unknown as CompraInscricaoRow[];
+  const atletaCount = uniqueAthleteTickets.length + teams.length;
+  const plateiaCount = spectatorTickets.length;
+  const total = atletaCount + plateiaCount;
+  const requestedTab = (await searchParams).aba;
+  const initialTab = resolveComprasTab(requestedTab, atletaCount, plateiaCount);
+  const semTamanho = !profileResult.data?.tamanho_camisa;
+
+  const atletaContent = atletaCount === 0 ? (
+    <EmptyState
+      icon={Users}
+      title="Nenhuma compra de atleta"
+      description="Quando você comprar um ingresso ou inscrever sua dupla, ele aparecerá aqui."
+      actionLabel="Ver campeonatos"
+      actionHref="/"
+    />
+  ) : (
+    <div className="space-y-8">
+      {teams.length > 0 && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Inscrições da sua conta</h2>
+            <p className="text-xs text-gray-400">Duplas, convites, pagamento e reembolso.</p>
+          </div>
+          <InscricoesAtletaList
+            teams={teams}
+            userId={user.id}
+            semTamanho={semTamanho}
+          />
+        </section>
+      )}
+
+      {uniqueAthleteTickets.length > 0 && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Ingressos de atleta</h2>
+            <p className="text-xs text-gray-400">Compras feitas pelo checkout rápido.</p>
+          </div>
+          <MinhasComprasClient ingressos={uniqueAthleteTickets} />
+        </section>
+      )}
+    </div>
+  );
+
+  const plateiaContent = plateiaCount === 0 ? (
+    <EmptyState
+      icon={Ticket}
+      title="Nenhum ingresso de plateia"
+      description="Os ingressos comprados para assistir aos campeonatos aparecerão aqui."
+      actionLabel="Ver campeonatos"
+      actionHref="/"
+    />
+  ) : (
+    <MinhasComprasClient ingressos={spectatorTickets} />
+  );
 
   return (
     <div className="min-h-screen">
-      <div className="bg-black px-6 pb-16 pt-6">
+      <div className="bg-black px-6 pb-16 pt-6 md:hidden">
         <div className="w-full space-y-3">
           <Link
-            href="/perfil"
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-white/50 transition-colors hover:text-white/80"
           >
-            <ArrowLeft className="size-4" /> Perfil
+            <ArrowLeft className="size-4" /> Início
           </Link>
           <div className="flex items-center gap-2">
             <ShoppingBag className="size-6 text-blue-400" />
-            <h1 className="text-2xl font-bold tracking-tight text-white">Minhas Compras</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Minhas compras</h1>
           </div>
           <p className="text-sm text-white/50">
-            Ingressos de atleta e de plateia que você comprou.
+            {total === 0
+              ? "Ingressos e inscrições em um só lugar."
+              : `${total} ${total === 1 ? "item" : "itens"} entre atleta e plateia.`}
           </p>
         </div>
       </div>
 
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
-        <div className="w-full">
-          <MinhasComprasClient ingressos={ingressos} />
-        </div>
+      <div className="hidden border-b border-border bg-surface md:block">
+        <PageContainer width="wide" className="py-8">
+          <PageHeader
+            eyebrow="Campeonatos"
+            title="Minhas compras"
+            description={
+              total === 0
+                ? "Ingressos e inscrições em um só lugar."
+                : `${total} ${total === 1 ? "item" : "itens"} entre atleta e plateia.`
+            }
+          />
+        </PageContainer>
+      </div>
+
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:pb-16 md:shadow-none">
+        <PageContainer width="wide" className="space-y-8">
+          <MinhasComprasTabs
+            initialTab={initialTab}
+            atletaCount={atletaCount}
+            plateiaCount={plateiaCount}
+            atletaContent={atletaContent}
+            plateiaContent={plateiaContent}
+          />
+
+          <section className="border-t border-gray-200 pt-6">
+            <VincularComprasForm />
+          </section>
+        </PageContainer>
       </div>
     </div>
   );

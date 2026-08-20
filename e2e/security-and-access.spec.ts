@@ -47,12 +47,14 @@ test("login remains usable on a narrow viewport", async ({ page }) => {
   expect(overflow).toBe(false);
 });
 
-test("athlete can reach the registrations area", async ({ page }) => {
+test("athlete can reach the unified purchases area", async ({ page }) => {
   test.skip(!process.env.E2E_ATHLETE_EMAIL || !process.env.E2E_ATHLETE_PASSWORD, "Sandbox athlete credentials were not configured");
   await login(page, process.env.E2E_ATHLETE_EMAIL!, process.env.E2E_ATHLETE_PASSWORD!);
-  await page.goto("/minhas-inscricoes");
+  await page.goto("/minhas-compras?aba=atleta");
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
-  await expect(page.locator("body")).toContainText(/inscri/i);
+  await expect(page.getByRole("heading", { name: "Minhas compras" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Atleta/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Plateia/ })).toBeVisible();
 });
 
 test("organizer can reach the management panel", async ({ page }) => {

@@ -69,8 +69,8 @@ export default async function PagamentoPage({
             >
               Ver campeonato
             </Link>
-            <Link href="/minhas-inscricoes" className="mt-3 block text-sm text-gray-400 hover:text-gray-600">
-              Minhas inscrições
+            <Link href="/minhas-compras?aba=atleta" className="mt-3 block text-sm text-gray-400 hover:text-gray-600">
+              Minhas compras
             </Link>
           </div>
         </div>
