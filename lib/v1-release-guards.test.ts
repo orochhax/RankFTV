@@ -81,3 +81,12 @@ test("organizer activation opens the empty dashboard before championship creatio
   assert.match(dashboardPage, /Nenhum campeonato criado ainda/);
   assert.match(dashboardPage, /Sua conta de organizador está ativa/);
 });
+
+test("new championships do not start with an unnamed category", () => {
+  const form = source("components/painel/NovoCampeonatoForm.tsx");
+
+  assert.match(form, /useState<CatForm\[\]>\(\[\]\)/);
+  assert.match(form, /if \(!ativa\) addCat\(preset\)/);
+  assert.match(form, /onClick=\{\(\) => addCat\(""\)\}/);
+  assert.match(form, /function removeCat\(i: number\) \{\s*setCategorias\(\(cs\) => cs\.filter/);
+});

@@ -66,9 +66,7 @@ export function NovoCampeonatoForm() {
   const [local, setLocal] = useState("");
   const [liveUrl, setLiveUrl] = useState("");
 
-  const [categorias, setCategorias] = useState<CatForm[]>([
-    { nome: "", genero: "masculino", valorInscricao: "", maxDuplas: "" },
-  ]);
+  const [categorias, setCategorias] = useState<CatForm[]>([]);
   const [ingressos, setIngressos] = useState<IngForm[]>([{ nome: "", valor: "", quantidade: "" }]);
   const [quiz, setQuiz] = useState<Partial<QuizAnswers>>({});
   const [elite, setElite] = useState(false);
@@ -101,7 +99,7 @@ export function NovoCampeonatoForm() {
   }
   const nomesUsados = new Set(categorias.map((c) => c.nome));
   function removeCat(i: number) {
-    setCategorias((cs) => (cs.length === 1 ? cs : cs.filter((_, j) => j !== i)));
+    setCategorias((cs) => cs.filter((_, j) => j !== i));
   }
 
   function updateIng(i: number, patch: Partial<IngForm>) {
@@ -441,7 +439,7 @@ export function NovoCampeonatoForm() {
                         <div><label className={labelClass}>Gênero</label><select className={inputClass} value={cat.genero} onChange={(e) => updateCat(i, { genero: e.target.value as GeneroCategoria })}>{GENEROS.map((g) => (<option key={g.value} value={g.value}>{g.label}</option>))}</select></div>
                         <div><label className={labelClass}>Valor (R$)</label><input type="number" min={0} className={inputClass} value={cat.valorInscricao} onChange={(e) => updateCat(i, { valorInscricao: e.target.value })} placeholder="100" /></div>
                         <div><label className={labelClass}>Máx. duplas</label><input type="number" min={1} className={inputClass} value={cat.maxDuplas} onChange={(e) => updateCat(i, { maxDuplas: e.target.value })} placeholder="∞" /></div>
-                        <button type="button" onClick={() => removeCat(i)} disabled={categorias.length === 1} aria-label="Remover categoria" className="mb-1 inline-flex size-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"><Trash2 className="size-4" /></button>
+                        <button type="button" onClick={() => removeCat(i)} aria-label="Remover categoria" className="mb-1 inline-flex size-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600"><Trash2 className="size-4" /></button>
                       </div>
                     </div>
                   ))}
