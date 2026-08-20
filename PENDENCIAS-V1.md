@@ -91,8 +91,10 @@ Revisão de continuidade em 19/08/2026:
   `Recebida`, mas o ingresso permaneceu pendente. Os logs do Asaas registraram `401`
   no webhook do Preview e `409` em um webhook de produção que também recebeu o evento
   Sandbox. Antes de repetir o cenário, é obrigatório remover/desativar o endpoint de
-  produção no Asaas Sandbox, alinhar o `ASAAS_WEBHOOK_TOKEN` do Preview com o token do
-  webhook Sandbox, refazer o deploy e reenviar o evento falho. A navegação de compras
+  produção no Asaas Sandbox e abrir a resposta do `401`: se ela vier da aplicação,
+  alinhar o `ASAAS_WEBHOOK_TOKEN` do Preview com o token do webhook Sandbox; se vier da
+  proteção da Vercel, corrigir o parâmetro `x-vercel-protection-bypass` da URL. Depois,
+  refazer o deploy quando necessário e reenviar o evento falho. A navegação de compras
   também foi consolidada em `/minhas-compras`, com abas Atleta e Plateia; a aba Atleta
   reúne ingressos avulsos e inscrições por equipe, mantendo detalhes e reembolso.
 - [M] (confirma que a conta pode receber e movimentar dinheiro) Confirmar KYC e as capacidades de Pix, cartão, parcelamento, estorno e
