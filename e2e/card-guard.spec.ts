@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
+import { financialMutationSandboxEnabled } from "../lib/e2e-sandbox-safety";
 
-const enabled = process.env.E2E_CARD_GUARD_MUTATION_TESTS === "1"
+const enabled = financialMutationSandboxEnabled("E2E_CARD_GUARD_MUTATION_TESTS")
   && Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL)
   && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
 

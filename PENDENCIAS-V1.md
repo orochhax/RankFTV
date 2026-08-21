@@ -547,7 +547,13 @@ npm run test:e2e
 ```
 
 Os E2E mutantes só podem ser habilitados em sandbox descartável com
-`E2E_ASAAS_MUTATION_TESTS=1` e `E2E_CARD_GUARD_MUTATION_TESTS=1`.
+`E2E_ASAAS_MUTATION_TESTS=1` ou `E2E_CARD_GUARD_MUTATION_TESTS=1`. Além da flag
+estrita, o executor exige `E2E_DISPOSABLE_SANDBOX=RANKFTV_DISPOSABLE_SANDBOX`,
+uma `E2E_BASE_URL` da branch `sandbox-homologacao` na Vercel e
+`E2E_SANDBOX_SUPABASE_PROJECT_REF` igual ao projeto presente em
+`NEXT_PUBLIC_SUPABASE_URL`. Domínio ou referência conhecidos de produção bloqueiam
+o teste antes de qualquer mutação. O bypass protegido da Vercel é enviado por header
+quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na URL.
 
 ## Checklist de release
 

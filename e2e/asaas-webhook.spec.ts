@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
+import { financialMutationSandboxEnabled } from "../lib/e2e-sandbox-safety";
+
+const mutationsEnabled = financialMutationSandboxEnabled("E2E_ASAAS_MUTATION_TESTS");
 
 async function fixture(name: string) {
   const raw = await readFile(path.join(process.cwd(), "e2e", "fixtures", "asaas", name), "utf8");
@@ -27,7 +30,7 @@ test("rejects a signed payload with an invalid schema", async ({ request }) => {
 
 test("sandbox ledger ignores duplicates and confirmed events after a refund", async ({ request }) => {
   test.skip(
-    !process.env.E2E_ASAAS_MUTATION_TESTS
+    !mutationsEnabled
       || !process.env.ASAAS_WEBHOOK_TOKEN
       || !process.env.E2E_ASAAS_PAYMENT_ID
       || !process.env.E2E_ASAAS_EXTERNAL_REFERENCE,
