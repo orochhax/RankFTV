@@ -28,8 +28,8 @@ Contradições encontradas no produto atual:
 
 - Percentual anterior: 78%
 - Percentual atual estimado: 84% (estimativa mantida; produção ainda bloqueada pelos P0 manuais)
-- Última atualização: 19/08/2026
-- Último commit analisado: `696d81c` (19/08/2026)
+- Última atualização: 20/08/2026
+- Último commit analisado: `1a9a0a8` (20/08/2026)
 
 Revisão de continuidade em 19/08/2026:
 
@@ -96,8 +96,9 @@ Revisão de continuidade em 19/08/2026:
   enviar também o IP remoto exigido pelo provedor. O reteste aprovou o cartão, confirmou
   a inscrição e processou o webhook. A consulta de evidência retornou uma única operação
   financeira `confirmed`, uma tentativa aprovada, uma credencial, um evento processado
-  e zero colunas destinadas a PAN/CVV. Recusa de cartão, duplicidade forçada, ordenação,
-  timeout, estorno, chargeback, repasses,
+  e zero colunas destinadas a PAN/CVV. O cartão recusado também foi aprovado: permaneceu
+  pendente, sem cobrança, credencial ou webhook, com operação `failed` e tentativa
+  `declined`. Duplicidade forçada, ordenação, timeout, estorno, chargeback, repasses,
   plateia e check-in ainda precisam ser exercitados. A navegação de compras foi
   consolidada em `/minhas-compras`, com abas Atleta e Plateia.
 - [M] (confirma que a conta pode receber e movimentar dinheiro) Confirmar KYC e as capacidades de Pix, cartão, parcelamento, estorno e
@@ -153,8 +154,8 @@ Revisão de continuidade em 19/08/2026:
 - [x] Repasse só é final após estado `DONE` do provedor; estado incerto é conciliado
   sem gerar uma nova transferência.
 - [x] Executar a suíte automatizada local de ledger, duplicidade, timeout, estorno,
-  chargeback, repasse e falha de repasse: suíte local completa com 576/576 testes
-  aprovados em 19/08/2026 (inclui módulos fora do escopo da V1).
+  chargeback, repasse e falha de repasse: suíte local completa com 596/596 testes
+  aprovados em 20/08/2026 (inclui módulos fora do escopo da V1).
 - [M] (testa pagamentos falsos do começo ao fim) Executar a homologação sandbox de Pix, cartão, duplicidade, timeout, estorno,
   chargeback e repasse com credenciais/dados descartáveis.
 - [?] (confere avisos reais do simulador de pagamentos) Validar no Asaas sandbox o comportamento de eventos não exercitados por
@@ -521,7 +522,10 @@ tokens ou dados pessoais.
   inscrição `pago`, cobrança `CREDIT_CARD` vinculada, credencial criada, uma operação
   `confirmed`, uma tentativa aprovada, um webhook processado e zero colunas destinadas
   a PAN/CVV no schema público do Sandbox.
-- [ ] (testa cartão recusado sem liberar a inscrição) Cartão recusado com mensagem segura e sem ativar inscrição.
+- [x] (testa cartão recusado sem liberar a inscrição) Cartão recusado em 20/08/2026
+  com mensagem segura: o pedido permaneceu `pendente`, sem inscrição, check-in,
+  cobrança Asaas, provider ID, webhook ou credencial liberada. A única operação ficou
+  `failed` e a única tentativa ficou `declined`.
 - [ ] (garante que dois cliques não criem duas cobranças) Request duplicado retorna/reconcilia a mesma operação externa.
 - [ ] (impede a mesma pessoa de comprar duas vezes a mesma categoria) Unificar a
   regra de participação entre inscrição com conta e checkout rápido: permitir que o
@@ -531,7 +535,10 @@ tokens ou dados pessoais.
   bloqueia o campeonato inteiro, enquanto `athlete_tickets` não impede dois pedidos
   distintos com o mesmo CPF; a idempotência financeira por pedido não cobre esse caso.
   A segunda tentativa deve falhar antes de criar cobrança. Cancelamento/estorno
-  confirmado deve liberar a reserva para uma nova inscrição.
+  confirmado deve liberar a reserva para uma nova inscrição. Implementação preparada
+  em 20/08/2026 e validada no backup restaurado local: comprador/parceiro, fluxo com
+  conta/checkout rápido, categorias diferentes e liberação terminal passaram. Falta
+  auditar os pedidos já criados e aplicar/testar a migration no Sandbox.
 - [ ] (não processa duas vezes o mesmo aviso de pagamento) Webhook duplicado é ignorado pelo ledger.
 - [ ] (impede que um aviso atrasado desfaça um estorno) Webhook confirmado depois de estorno é ignorado como fora de ordem.
 - [ ] (garante que uma demora não gere outra cobrança) Timeout após aceite do provedor fica ambíguo e é conciliado sem nova cobrança.
@@ -586,6 +593,19 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
 - [ ] (impede cobranças antes de resolver todos os bloqueios) Pagamentos reais continuam fechados até todos os P0 acima estarem concluídos.
 
 ## Últimas alterações feitas pela IA
+
+- arquivos: `supabase/production-participant-category-uniqueness.sql`, teste SQL
+  descartável, actions dos dois fluxos de inscrição e helper de erro em 20/08/2026
+  - problema: uma mesma pessoa podia gerar pedidos distintos na mesma categoria e o
+    fluxo autenticado, ao mesmo tempo, bloqueava categorias diferentes;
+  - alteração: regra única por campeonato + categoria, cobrindo comprador, parceiro,
+    conta, checkout rápido e concorrência antes de qualquer chamada ao Asaas;
+  - liberação: estorno/expiração preserva o histórico e devolve a possibilidade de
+    inscrição naquela categoria;
+  - teste executado: migration e cenários funcionais em restauração local descartável,
+    596 testes, lint, TypeScript, build e `git diff --check`;
+  - resultado: aprovado localmente; auditoria dos pedidos existentes e aplicação no
+    Supabase Sandbox ainda pendentes.
 
 - arquivos: `package.json` e `package-lock.json` em 19/08/2026
   - problema: a conferência da documentação revelou uma vulnerabilidade alta no

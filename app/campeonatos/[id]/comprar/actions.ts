@@ -20,6 +20,10 @@ import {
   parseAthleteTicketPaymentChoice,
   shouldCreateAthleteTicketPixCharge,
 } from "@/lib/athlete-ticket-payment";
+import {
+  isParticipantCategoryConflict,
+  participantCategoryConflictMessage,
+} from "@/lib/participant-registration";
 
 // Lê e valida as 5 respostas do questionário de nível de UM dos atletas
 // (prefixo "comprador_quiz_" ou "parceiro_quiz_" no FormData) e devolve o
@@ -246,6 +250,9 @@ export async function comprarIngressoAtleta(
       alert: true,
     });
     await liberarReivindicacoes();
+    if (isParticipantCategoryConflict(insErr)) {
+      return { error: participantCategoryConflictMessage };
+    }
     return { error: "Erro ao gerar o ingresso. Tente novamente." };
   }
 

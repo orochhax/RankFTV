@@ -11,6 +11,10 @@ import { resolverPrecos, resolverEClaimarLote } from "@/lib/lotes";
 import { enviarConviteDupla, enviarInscricaoConfirmada } from "@/lib/email/send";
 import { checarElegibilidadeCategoria, resolverCpfInscricao, podeConvidarComoParceiro } from "@/lib/inscricao-elegibilidade";
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
+import {
+  isParticipantCategoryConflict,
+  participantCategoryConflictMessage,
+} from "@/lib/participant-registration";
 
 export type InscreverState = { error?: string };
 
@@ -78,13 +82,14 @@ export async function inscreverDupla(
     .from("teams")
     .select("id")
     .eq("championship_id", championshipId)
+    .eq("category_id", categoryId)
     .neq("status", "cancelado")
     .or(`atleta1_id.eq.${user.id},atleta2_id.eq.${user.id}`)
     .limit(1)
     .maybeSingle();
 
   if (inscricaoExistente) {
-    return { error: "Você já está inscrito neste campeonato." };
+    return { error: participantCategoryConflictMessage };
   }
 
   const valorBaseCategoria = Number(cat.valor_inscricao);
@@ -227,12 +232,10 @@ export async function inscreverDupla(
     .single();
   if (teamError || !team) {
     await liberarReivindicacoes();
-    // 23505 (unique_violation) no índice teams_one_active_per_atleta1 =
-    // clique duplo/retry criou uma segunda tentativa concorrente pra mesma
-    // pessoa neste campeonato — a primeira já passou. Nunca chega a chamar
-    // o Asaas nesta segunda tentativa.
-    if (teamError?.code === "23505") {
-      return { error: "Você já está inscrito neste campeonato." };
+    // A trava por participante + categoria cobre clique duplo, parceiro e o
+    // checkout rápido. A tentativa recusada nunca chega a chamar o Asaas.
+    if (isParticipantCategoryConflict(teamError)) {
+      return { error: participantCategoryConflictMessage };
     }
     return { error: "Erro ao criar dupla." };
   }
@@ -256,6 +259,7 @@ export async function inscreverDupla(
     .single();
   if (regError || !reg) {
     await liberarReivindicacoes();
+    await admin.from("teams").update({ status: "cancelado" }).eq("id", team.id);
     return { error: "Erro ao criar inscrição." };
   }
 

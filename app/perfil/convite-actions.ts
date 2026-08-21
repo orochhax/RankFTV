@@ -6,6 +6,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { enviarConviteAceito, enviarInscricaoConfirmada } from "@/lib/email/send";
 import { checarElegibilidadeCategoria } from "@/lib/inscricao-elegibilidade";
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
+import {
+  isParticipantCategoryConflict,
+  participantCategoryConflictMessage,
+} from "@/lib/participant-registration";
 
 export type AceitarConviteResult = { ok: boolean; error?: string };
 
@@ -67,6 +71,9 @@ export async function aceitarConvite(formData: FormData): Promise<AceitarConvite
   // Se convite aberto (atleta2_id null), associa o usuário atual como parceiro
   if (isConviteAberto) {
     const { error: assocError } = await admin.from("teams").update({ atleta2_id: user.id }).eq("id", teamId);
+    if (isParticipantCategoryConflict(assocError)) {
+      return { ok: false, error: participantCategoryConflictMessage };
+    }
     if (assocError) return { ok: false, error: "Erro ao processar o convite." };
   }
 
