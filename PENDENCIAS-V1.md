@@ -523,6 +523,15 @@ tokens ou dados pessoais.
   a PAN/CVV no schema público do Sandbox.
 - [ ] (testa cartão recusado sem liberar a inscrição) Cartão recusado com mensagem segura e sem ativar inscrição.
 - [ ] (garante que dois cliques não criem duas cobranças) Request duplicado retorna/reconcilia a mesma operação externa.
+- [ ] (impede a mesma pessoa de comprar duas vezes a mesma categoria) Unificar a
+  regra de participação entre inscrição com conta e checkout rápido: permitir que o
+  atleta participe de categorias diferentes do mesmo campeonato, mas reservar no
+  máximo uma vaga por atleta em cada categoria, independentemente de aparecer como
+  comprador ou parceiro e mesmo sob requisições concorrentes. Hoje o fluxo autenticado
+  bloqueia o campeonato inteiro, enquanto `athlete_tickets` não impede dois pedidos
+  distintos com o mesmo CPF; a idempotência financeira por pedido não cobre esse caso.
+  A segunda tentativa deve falhar antes de criar cobrança. Cancelamento/estorno
+  confirmado deve liberar a reserva para uma nova inscrição.
 - [ ] (não processa duas vezes o mesmo aviso de pagamento) Webhook duplicado é ignorado pelo ledger.
 - [ ] (impede que um aviso atrasado desfaça um estorno) Webhook confirmado depois de estorno é ignorado como fora de ordem.
 - [ ] (garante que uma demora não gere outra cobrança) Timeout após aceite do provedor fica ambíguo e é conciliado sem nova cobrança.
