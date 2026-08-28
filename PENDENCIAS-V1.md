@@ -354,9 +354,11 @@ Passo a passo:
        cancelada no Asaas Sandbox e depois foi encerrado no RankFTV (`estornado`,
        cobrança histórica preservada e estoque liberado). Mantém-se o cartão pago
        `2068be9c…`; o Pix pago `6859a023…` será o cenário controlado de estorno.
-   3. [ ] Aplicar a migration no Sandbox e comprovar: repetição na mesma categoria
-      bloqueada antes do Asaas, categoria diferente permitida, comprador/parceiro e
-      os dois fluxos cobertos, além de nova compra liberada após estorno/expiração.
+   3. [M] Aplicar a migration no Sandbox e comprovar: a aplicação foi concluída em
+      28/08/2026 com `Success. No rows returned`. Ainda falta comprovar repetição na
+      mesma categoria bloqueada antes do Asaas, categoria diferente permitida,
+      comprador/parceiro e os dois fluxos, além de nova compra liberada após
+      estorno/expiração.
    4. [ ] Somente depois da homologação, gerar backup atual de produção e aplicar em
       janela sem checkout. O próprio SQL deve abortar se encontrar conflito legado.
 
