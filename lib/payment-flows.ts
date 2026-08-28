@@ -21,7 +21,7 @@ import {
   type FinancialExecutionResult,
   type FinancialFlow,
 } from "@/lib/financial-operations";
-import { refundProviderState, transferProviderState } from "@/lib/payment-provider-state";
+import { refundProviderState, refundStatusFromRefunds, transferProviderState } from "@/lib/payment-provider-state";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type CommonInput = {
@@ -184,11 +184,18 @@ export async function refundIdempotently(input: {
     metadata: { originalPaymentId: input.originalPaymentId.slice(0, 80) },
     lookup: async () => {
       const payment = await consultarCobranca(input.originalPaymentId);
-      return ["REFUNDED", "REFUND_REQUESTED"].includes(payment.status)
-        ? { id: payment.id, status: payment.status }
+      const refundStatus = refundStatusFromRefunds(payment.refunds);
+      return refundStatus
+        ? { id: payment.id, status: refundStatus }
         : null;
     },
-    create: () => reembolsarPagamento(input.originalPaymentId, input.amount),
+    create: async () => {
+      const payment = await reembolsarPagamento(input.originalPaymentId, input.amount);
+      return {
+        id: payment.id,
+        status: refundStatusFromRefunds(payment.refunds) ?? payment.status,
+      };
+    },
     completedStatus: (provider) => refundProviderState(provider.status) === "confirmed"
       ? "refunded"
       : "provider_created",

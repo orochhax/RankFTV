@@ -440,6 +440,14 @@ disponível, deixa o andamento à esquerda e os prazos em um card vertical à di
 no celular, os blocos continuam em uma coluna. A timeline usa uma coluna própria
 para linha e marcadores, evitando bolinhas desalinhadas do texto.
 
+Em 28/08/2026, a consulta do estorno do Pix `6859a023…` mostrou que a operação
+interna estava em `provider_created`, porém a cobrança permanecia `RECEIVED` e sem
+erro do provedor. Foi identificada uma lacuna no adaptador: o Asaas mantém a cobrança
+Pix como recebida enquanto o estado do estorno fica em `refunds` (`PENDING`/`DONE`).
+O código passou a acompanhar essa lista, manter a vaga bloqueada em `PENDING` e só
+finalizar o domínio em `DONE`; a correção ainda precisa ser validada no Preview com
+esse mesmo cenário, sem criar uma segunda solicitação.
+
 O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
 perfil faltante recuperado e o procedimento ficou versionado em
 `supabase/sandbox-restore-auth-profile-trigger.sql`. Cadastro, login, conta de

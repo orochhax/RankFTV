@@ -210,7 +210,7 @@ export async function executeFinancialOperation<T extends ProviderRecord>(input:
 export function financialProviderStatusToWebhookEvent(status: string | undefined): string | null {
   if (!status) return null;
   if (["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(status)) return "PAYMENT_CONFIRMED";
-  if (["REFUNDED", "REFUND_REQUESTED", "CHARGEBACK_REQUESTED", "CHARGEBACK_DISPUTE"].includes(status)) {
+  if (["REFUNDED", "CHARGEBACK_REQUESTED", "CHARGEBACK_DISPUTE"].includes(status)) {
     return "PAYMENT_REFUNDED";
   }
   return null;

@@ -10,7 +10,7 @@ import {
   type StatusCobranca,
 } from "@/lib/asaas";
 import { financialProviderStatusToWebhookEvent } from "@/lib/financial-operations";
-import { payoutRetryStatusForBilling } from "@/lib/payment-provider-state";
+import { payoutRetryStatusForBilling, refundStatusFromRefunds } from "@/lib/payment-provider-state";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type ReconcileOperation = {
@@ -143,12 +143,17 @@ async function reconcileRefund(operation: ReconcileOperation) {
   const originalPaymentId = String(operation.metadata?.originalPaymentId ?? "");
   if (!originalPaymentId) throw new Error("refund_original_payment_missing");
   const payment = await consultarCobranca(originalPaymentId);
-  if (!financialProviderStatusToWebhookEvent(payment.status)?.includes("REFUNDED")) {
-    await reschedule(operation, `refund_status_${payment.status}`, 300);
+  const refundStatus = refundStatusFromRefunds(payment.refunds);
+  if (refundStatus !== "REFUNDED") {
+    await recordProvider(operation, {
+      id: payment.id,
+      status: refundStatus ?? payment.status,
+    }, "provider_created");
+    await reschedule(operation, `refund_status_${refundStatus ?? payment.status}`, 300);
     return "pending" as const;
   }
-  await dispatchPaymentEvent(payment);
-  await recordProvider(operation, { id: payment.id, status: payment.status }, "refunded");
+  await dispatchPaymentEvent({ ...payment, status: "REFUNDED" });
+  await recordProvider(operation, { id: payment.id, status: refundStatus }, "refunded");
   return "reconciled" as const;
 }
 

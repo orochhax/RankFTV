@@ -387,8 +387,8 @@ export async function cancelarAssinatura(subscriptionId: string): Promise<void> 
 export async function reembolsarPagamento(
   asaasPaymentId: string,
   valorParcial?: number,   // omitir = reembolso total; informar = reembolso parcial
-): Promise<{ id: string; status: string }> {
-  return request<{ id: string; status: string }>(`/payments/${asaasPaymentId}/refund`, {
+): Promise<StatusCobranca> {
+  return request<StatusCobranca>(`/payments/${asaasPaymentId}/refund`, {
     method: "POST",
     body: valorParcial != null
       ? JSON.stringify({ value: parseFloat(valorParcial.toFixed(2)) })
@@ -410,7 +410,14 @@ export type StatusCobranca = {
   invoiceUrl?: string;
   externalReference?: string;
   subscription?: string;
+  refunds?: Array<{
+    status: string;
+    value?: number;
+    dateCreated?: string;
+    transactionReceiptUrl?: string | null;
+  }>;
 };
+
 
 export async function consultarCobranca(asaasPaymentId: string): Promise<StatusCobranca> {
   return request<StatusCobranca>(`/payments/${asaasPaymentId}`);
