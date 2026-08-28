@@ -340,8 +340,11 @@ Passo a passo:
 6. [M] Tratar separadamente a migration adicionada depois desse lote,
    `supabase/production-participant-category-uniqueness.sql`:
    1. [x] Executar no Sandbox a auditoria somente leitura de participantes repetidos
-      e ingressos ativos sem categoria. Em 28/08/2026: 93 tabelas públicas, zero
-      ingressos ativos sem categoria e 3 chaves de identidade repetidas.
+      e ingressos ativos sem categoria. A primeira auditoria em 28/08/2026 encontrou
+      93 tabelas públicas, zero ingressos ativos sem categoria e 3 chaves de
+      identidade repetidas. Após as decisões e o estorno conciliado, a reauditoria
+      retornou zero ingressos ativos sem categoria e zero identidades repetidas,
+      liberando a aplicação no Sandbox.
     2. [M] Decidir individualmente qual pedido manter, cancelar ou estornar; não
        alterar diretamente uma compra paga sem reconciliar o Asaas. Em 28/08/2026,
        o cartão recusado `6538f1f8…` foi cancelado (`estornado`, sem cobrança Asaas
