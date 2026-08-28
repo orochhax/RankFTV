@@ -434,6 +434,11 @@ card de prazos: Pix depende da confirmação/provedor e cartão pode levar até 
 úteis para constar na fatura. O bloqueio de check-in no servidor ainda deve ser
 validado separadamente antes de ser dado como concluído.
 
+Em 28/08/2026, esse acompanhamento foi ajustado para o desktop: ocupa a largura
+disponível, deixa o andamento à esquerda e os prazos em um card vertical à direita;
+no celular, os blocos continuam em uma coluna. A timeline usa uma coluna própria
+para linha e marcadores, evitando bolinhas desalinhadas do texto.
+
 O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
 perfil faltante recuperado e o procedimento ficou versionado em
 `supabase/sandbox-restore-auth-profile-trigger.sql`. Cadastro, login, conta de

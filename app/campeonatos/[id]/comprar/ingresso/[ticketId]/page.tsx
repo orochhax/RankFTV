@@ -93,7 +93,7 @@ export default async function IngressoAtletaPage({
     <div className="min-h-screen">
       {/* ── Cabeçalho escuro (mesma largura contida do corpo, em toda tela) ── */}
       <div className="bg-black pb-16 pt-6">
-        <PageContainer width="form" className="space-y-5">
+        <PageContainer width="wide" className="space-y-5">
           <div className="flex items-center justify-between">
             <Link
               href={backHref}
@@ -155,7 +155,7 @@ export default async function IngressoAtletaPage({
 
       {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
       <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:shadow-none">
-        <PageContainer width="form" className="space-y-6">
+        <PageContainer width="wide" className="space-y-6">
           {estornoEmAndamento ? (
             <RefundStatusPanel
               billingType={t.billing_type}
