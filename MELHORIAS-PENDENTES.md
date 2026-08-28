@@ -3,6 +3,19 @@
 Itens observados durante a homologação. Não são alterações de P0 nem devem ser
 implementados sem uma solicitação explícita de pacote de melhorias.
 
+## Navegação nas telas de ingresso e reembolso
+
+- Registrado em 28/08/2026 durante a validação do estorno Pix real.
+- Problema: as páginas de detalhes do ingresso, checkout e acompanhamento de reembolso
+  exibem apenas a faixa superior com a marca RankFTV; a barra de navegação lateral da
+  área autenticada não aparece.
+- Resultado esperado: em desktop/notebook, manter a navegação lateral consistente com
+  as demais telas logadas, incluindo o atalho de “Minhas compras”; no celular, usar a
+  navegação móvel correspondente sem desperdiçar área útil.
+- Critério de UX: o contexto da compra deve continuar claro e o botão “Voltar para
+  Minhas compras” deve permanecer como retorno contextual, não como substituto da
+  navegação principal.
+
 ## Confirmação visual de solicitação de reembolso
 
 - Registrado em 28/08/2026 durante a homologação Sandbox do estorno Pix real.
