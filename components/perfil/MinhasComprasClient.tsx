@@ -13,11 +13,13 @@ function estaOculto(ing: Ingresso) {
 export function MinhasComprasClient({
   ingressos,
   emptyMessage = "Você ainda não comprou nenhum ingresso.",
+  showCancelledInitially = false,
 }: {
   ingressos: Ingresso[];
   emptyMessage?: string;
+  showCancelledInitially?: boolean;
 }) {
-  const [mostrarOcultos, setMostrarOcultos] = useState(false);
+  const [mostrarOcultos, setMostrarOcultos] = useState(showCancelledInitially);
 
   const visiveis = ingressos.filter((i) => !estaOculto(i));
   const ocultos  = ingressos.filter(estaOculto);

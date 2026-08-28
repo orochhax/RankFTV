@@ -71,7 +71,7 @@ export async function alterarTitularidadePlateia(
 export async function cancelarIngressoPlateia(
   ticketId: string,
   accessTokenRaw: string,
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; outcome?: "cancelado" | "estorno_solicitado" }> {
   const admin = createAdminClient();
   const accessToken = normalizarTicketAccessToken(accessTokenRaw);
   if (!accessToken) return { ok: false, error: "Link do ingresso invalido." };
@@ -93,7 +93,7 @@ export async function cancelarIngressoPlateia(
     const released = await releaseSpectatorOrder(ticketId);
     if (!released.ok) return released;
     revalidatePath(path);
-    return { ok: true };
+    return { ok: true, outcome: "cancelado" };
   }
 
   const ageDays = (Date.now() - new Date(ticket.created_at).getTime()) / 86_400_000;
@@ -117,5 +117,5 @@ export async function cancelarIngressoPlateia(
   const released = await releaseSpectatorOrder(ticketId);
   if (!released.ok) return released;
   revalidatePath(path);
-  return { ok: true };
+  return { ok: true, outcome: "estorno_solicitado" };
 }

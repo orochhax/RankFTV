@@ -12,6 +12,7 @@ export type Ingresso = {
   code:             string | null;
   access_token:     string | null;
   checked_in:       boolean;
+  refund_status?:    string | null;
   comprador_nome:   string;
   parceiro_nome?:   string | null;
   championship_id:  string;
@@ -30,6 +31,11 @@ export function IngressoCard({
   const pago       = ing.status_pagamento === "pago";
   const estornado  = ing.status_pagamento === "estornado";
   const isAtleta   = ing.tipo === "atleta";
+  const refundLabel = ing.refund_status === "refunded"
+    ? "Estorno confirmado"
+    : ing.refund_status
+      ? "Estorno solicitado"
+      : null;
 
   const params = new URLSearchParams();
   if (ing.access_token) params.set("token", ing.access_token);
@@ -74,7 +80,9 @@ export function IngressoCard({
 
           <div className="mt-2 flex items-center gap-1 text-xs font-semibold">
             {estornado ? (
-              <span className="text-red-500">Cancelado</span>
+              <span className={refundLabel ? "text-blue-600" : "text-red-500"}>
+                {refundLabel ?? "Cancelado"}
+              </span>
             ) : pago ? (
               <span className="flex items-center gap-1 text-blue-600">
                 <CheckCircle2 className="size-3.5" /> Confirmado

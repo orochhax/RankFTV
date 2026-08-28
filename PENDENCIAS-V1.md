@@ -26,21 +26,32 @@ Contradições encontradas no produto atual:
 
 ## Status geral
 
-- Percentual anterior: 78%
-- Percentual atual estimado: 84% (estimativa mantida; produção ainda bloqueada pelos P0 manuais)
-- Última atualização: 20/08/2026
-- Último commit analisado: `1a9a0a8` (20/08/2026)
+- Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
+  fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
+- P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
+- Matriz financeira obrigatória: 3 de 16 cenários concluídos.
+- Checklist de release: 4 de 17 itens principais concluídos.
+- Última atualização: 28/08/2026
+- Último commit de código analisado: `1d02bcf` (20/08/2026)
+- Estado Git-base conferido em 28/08/2026: `origin/master` em `8fd7244` e
+  `origin/sandbox-homologacao` em `1d02bcf`; esta revisão altera somente este arquivo.
 
-Revisão de continuidade em 19/08/2026:
+Revisão de continuidade em 28/08/2026:
 
 - O backup lógico manual foi criado e restaurado localmente com sucesso; os
   demais P0 manuais permanecem abertos.
-- Os commits posteriores ao candidato inicial concentram-se em Performance/Life OS
-  (fora do escopo da V1). O commit `d4c2fb7` também normalizou a URL-base usada
-  por links, e-mail, metadata, robots e sitemap.
-- O domínio canônico precisa ser decidido uma única vez. O código usa
-  `https://www.rankftv.com` como fallback, mas `NEXT_PUBLIC_BASE_URL` deve conter
-  o domínio escolhido e os demais serviços devem usar exatamente esse mesmo valor.
+- A branch remota de homologação contém todas as correções da V1 até `1d02bcf`.
+  O último `/api/health` comprovado por evidência foi o release `f10dd67c6452`;
+  portanto, o deployment do HEAD atual ainda precisa de novo health check antes
+  de ser tratado como candidato aprovado.
+- A branch local ainda se chama `master`, mas seu conteúdo corresponde à branch de
+  homologação e está 19 commits à frente de `origin/master`. Durante os testes,
+  nunca executar `git push origin master`; publicar explicitamente somente com
+  `git push origin HEAD:refs/heads/sandbox-homologacao` até a aprovação do release.
+- O domínio canônico operacional adotado é `https://www.rankftv.com`. Falta confirmar
+  que as variáveis Vercel e as contas/projetos de produção de Supabase Auth,
+  Turnstile, Resend e webhook Asaas usam exatamente esse domínio. O Sandbox deve
+  continuar limitado ao domínio, redirects e chaves de teste do Preview.
 - A configuração atual em `vercel.json` executa a conciliação uma vez ao dia;
   para a meta de 10 minutos é obrigatório configurar um agendador externo
   autenticado ou mudar de plano/configuração antes de abrir pagamentos.
@@ -75,10 +86,12 @@ Revisão de continuidade em 19/08/2026:
   quantidade retornaram zero. Nenhuma decisão ou correção manual foi necessária.
 - [M] (testa todo o financeiro sem mexer em dinheiro real) Homologar em ambiente descartável toda a matriz financeira de Campeonatos,
   sem apontar testes mutantes para produção. Em andamento em 20/08/2026: o Supabase
-  `RankFTV Sandbox` recebeu somente o schema (92 tabelas públicas e zero registros
-  iniciais nas tabelas de domínio verificadas), e uma chave exclusiva do Asaas
+  `RankFTV Sandbox` recebeu somente o schema (92 tabelas públicas na verificação
+  inicial e zero registros nas tabelas de domínio verificadas), e uma chave exclusiva do Asaas
   Sandbox foi criada. O Preview da branch `sandbox-homologacao`, agora no commit
-  `f10dd67`, respondeu `/api/health` com aplicação e banco `ok`. O acesso automatizado
+  remoto `1d02bcf`, está isolado de produção. O último health check comprovado foi
+  no release `f10dd67c6452`, com aplicação e banco `ok`; o HEAD atual ainda precisa
+  ser revalidado. O acesso automatizado
   protegido foi validado com um novo bypass da Vercel; o segredo que apareceu em uma
   evidência foi revogado. O webhook Sandbox usa fila sequencial, token exclusivo e
   somente o endpoint do Preview; o endpoint de produção foi desativado nesse ambiente.
@@ -98,9 +111,14 @@ Revisão de continuidade em 19/08/2026:
   financeira `confirmed`, uma tentativa aprovada, uma credencial, um evento processado
   e zero colunas destinadas a PAN/CVV. O cartão recusado também foi aprovado: permaneceu
   pendente, sem cobrança, credencial ou webhook, com operação `failed` e tentativa
-  `declined`. Duplicidade forçada, ordenação, timeout, estorno, chargeback, repasses,
+  `declined`. O commit `08c97f3` passou a escolher a forma de pagamento antes de
+  criar a cobrança, eliminando o conflito “já existe cobrança por outro meio” no
+  mesmo pedido. Duplicidade forçada, ordenação, timeout, estorno, chargeback, repasses,
   plateia e check-in ainda precisam ser exercitados. A navegação de compras foi
   consolidada em `/minhas-compras`, com abas Atleta e Plateia.
+  Após retomar o projeto pausado em 28/08/2026, uma nova consulta encontrou 93 tabelas
+  públicas no Sandbox, igualando a contagem do restore. A divergência 92 × 93 ficou
+  resolvida sem alteração manual de schema.
 - [M] (confirma que a conta pode receber e movimentar dinheiro) Confirmar KYC e as capacidades de Pix, cartão, parcelamento, estorno e
   transferência na conta Asaas de produção.
 - [M] (faz pagamentos incertos serem verificados rapidamente) Definir a cadência de conciliação financeira. O deploy atual agenda
@@ -319,6 +337,18 @@ Passo a passo:
 5. [x] Conferir o relatório do backfill. Concluído em 19/08/2026: a base não tinha
    pedidos históricos de plateia; `partial`, `unmigrated`, pedidos sem relatório e
    divergências normalizadas retornaram zero. Nenhuma correção foi necessária.
+6. [M] Tratar separadamente a migration adicionada depois desse lote,
+   `supabase/production-participant-category-uniqueness.sql`:
+   1. [x] Executar no Sandbox a auditoria somente leitura de participantes repetidos
+      e ingressos ativos sem categoria. Em 28/08/2026: 93 tabelas públicas, zero
+      ingressos ativos sem categoria e 3 chaves de identidade repetidas.
+   2. [ ] Decidir individualmente qual pedido manter, cancelar ou estornar; não
+      alterar diretamente uma compra paga sem reconciliar o Asaas.
+   3. [ ] Aplicar a migration no Sandbox e comprovar: repetição na mesma categoria
+      bloqueada antes do Asaas, categoria diferente permitida, comprador/parceiro e
+      os dois fluxos cobertos, além de nova compra liberada após estorno/expiração.
+   4. [ ] Somente depois da homologação, gerar backup atual de produção e aplicar em
+      janela sem checkout. O próprio SQL deve abortar se encontrar conflito legado.
 
 O que preciso ter: backup confirmado, acesso ao SQL Editor e janela sem pagamentos.  
 Como saber que funcionou: todos os scripts retornam sucesso e todas as consultas
@@ -358,44 +388,44 @@ do dump utilizado, validações pós-restore e relatório de conciliação.
 
 ### Homologação financeira em sandbox
 
-Status: [M] em andamento em 19/08/2026. Supabase descartável criado e validado
-com 92 tabelas públicas, sem perfis, campeonatos, inscrições, ingressos, operações
-financeiras ou eventos Asaas. Conta e chave exclusivas do Asaas Sandbox confirmadas.
-Nenhuma credencial foi adicionada ao `.env.local` que aponta para produção.
-Preview isolado criado na branch `sandbox-homologacao`; o commit `8fd724498301`
-respondeu `/api/health` com `status=ok` e banco `ok`. O bypass de proteção para
-automação da Vercel também foi validado em 19/08/2026, com nova resposta saudável
-e latência de 485 ms. O segredo do bypass permanece restrito e deverá ser revogado
-ao final da homologação. Webhook exclusivo do Asaas Sandbox cadastrado no mesmo dia,
-ativo, com fila ativa, token independente, entrega sequencial e somente os eventos
-financeiros tratados pelo RankFTV. A entrega real ainda precisa ser comprovada por
-um pagamento descartável. No Supabase Sandbox, `Site URL` e a allowlist de redirects
-do Auth também foram limitadas ao domínio estável da branch de homologação. O
-Turnstile do Preview/Auth foi configurado com o par oficial de chaves de teste da
-Cloudflare, sem reutilizar as credenciais CAPTCHA de produção. O primeiro cadastro
-revelou que o dump lógico preservou `public.handle_new_user()`, mas não o trigger
-instalado sobre `auth.users`; o trigger foi reinstalado, o perfil ausente foi
-recuperado e o login/perfil foi validado. O passo passou a ficar versionado em
-`supabase/sandbox-restore-auth-profile-trigger.sql` para futuras restaurações.
-Na sequência, o cadastro e a ativação da conta de organizador foram validados. O
-fluxo foi ajustado para abrir o painel logo após a ativação, atualizar imediatamente
-o menu lateral e exibir um estado vazio com a opção de criar o primeiro campeonato;
-lint, tipos, 573 testes e build de produção passaram localmente. A correção e o
-script de restauração foram publicados no Preview no commit `86601f0`. O deployment
-ficou `Ready` e a validação visual confirmou o menu `Organizador`, a abertura direta
-do painel e o estado vazio com o botão para criar o primeiro campeonato.
-Na primeira publicação descartável, foram encontrados dois campos concorrentes de
-chave Pix e a gravação segura era bloqueada. O fluxo foi unificado em um único campo,
-a escrita passou a ocorrer somente pela ação autenticada do servidor e campeonatos
-com apenas plateia paga passaram a exigir o mesmo recebimento; a correção foi enviada
-ao Preview no commit `6aa85a6`. A validação visual e funcional passou: restou um único
-campo, a chave Pix foi salva e o primeiro campeonato descartável foi publicado.
-Uma conta compradora/atleta separada foi criada e autenticada, enviou os dados da
-dupla e avançou até a tela de pagamento. Nesse ensaio foi identificada uma
-contradição no motor de categoria: o formulário pedia a autoavaliação somente
-depois de a categoria já ter sido escolhida, e categorias personalizadas não têm
-faixa de nível confiável. Para não lançar uma promessa incorreta, a recomendação
-foi desativada de ponta a ponta na V1 no commit `7184956`; gênero continua validado.
+Status: [M] em andamento, revisado em 28/08/2026. O Supabase descartável começou
+com 92 tabelas públicas e zero registros nas tabelas de domínio verificadas. Após
+retomar o projeto pausado, a nova consulta retornou 93 tabelas públicas, igual à
+contagem do restore da produção; a divergência de schema ficou encerrada. A mesma
+auditoria encontrou zero ingresso ativo sem categoria e 3 chaves de identidade
+repetidas, que exigem decisão individual antes da migration. Conta e chave exclusivas
+do Asaas Sandbox foram confirmadas, e nenhuma
+credencial foi adicionada ao `.env.local` que aponta para produção.
+
+O Preview isolado usa a branch `sandbox-homologacao`, cujo remoto está em `1d02bcf`.
+O último health check comprovado por evidência foi o release `f10dd67c6452`, com
+aplicação e banco `ok`; falta repetir o health check no deployment do HEAD atual. O
+bypass de proteção foi validado e o segredo exposto durante a homologação foi
+revogado/substituído. O bypass vigente permanece restrito e deve ser removido ao
+final. `Site URL`, redirects do Auth e chaves de teste do Turnstile foram limitados
+ao Preview, sem reutilizar as credenciais CAPTCHA de produção.
+
+O webhook exclusivo do Asaas Sandbox está com token independente, fila ativa e
+envio sequencial, apontando somente para o Preview; o endpoint de produção foi
+desativado no Sandbox. A entrega real foi comprovada por Pix e cartão aprovado:
+ambos tiveram evento financeiro processado, atualizaram o domínio e criaram credencial.
+O cartão recusado ficou corretamente sem provider ID, cobrança, webhook, credencial
+ou ativação. Portanto, a entrega básica do webhook está aprovada; duplicação,
+ordenação tardia, estorno e chargeback continuam pendentes.
+
+O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
+perfil faltante recuperado e o procedimento ficou versionado em
+`supabase/sandbox-restore-auth-profile-trigger.sql`. Cadastro, login, conta de
+organizador, painel vazio, chave Pix única, publicação do campeonato e conta
+compradora/atleta foram validados. A recomendação de categoria foi desativada na V1
+no commit `7184956` e os checkouts posteriores confirmaram o fluxo sem questionário.
+
+O commit `08c97f3` corrigiu a ordem do pagamento para escolher Pix/cartão antes de
+criar uma cobrança. O commit `1d02bcf` preparou a regra única de participante por
+campeonato + categoria e passou em migration/teste funcional no backup restaurado,
+além de 596 testes, lint, tipos e build. Essa migration ainda não está ativa no
+Sandbox nem em produção: primeiro é obrigatório auditar e resolver os pedidos já
+existentes.
 
 Motivo: testes locais provam regras, mas não provam a integração real entre UI,
 Asaas e banco.  
@@ -514,7 +544,7 @@ tokens ou dados pessoais.
 
 ## Testes obrigatórios antes de abrir pagamentos
 
-- [x] (testa um Pix completo sem duplicar inscrição) Pix criado e aprovado; webhook
+- [x] (testa um Pix completo e uma credencial para a cobrança) Pix criado e aprovado; webhook
   confirmou uma única compra/credencial em 20/08/2026. A consulta no Sandbox retornou
   `pago`, vínculo Asaas e credencial válidos, uma compra, uma operação financeira e um
   evento `PAYMENT_RECEIVED` processado.
@@ -527,18 +557,15 @@ tokens ou dados pessoais.
   cobrança Asaas, provider ID, webhook ou credencial liberada. A única operação ficou
   `failed` e a única tentativa ficou `declined`.
 - [ ] (garante que dois cliques não criem duas cobranças) Request duplicado retorna/reconcilia a mesma operação externa.
-- [ ] (impede a mesma pessoa de comprar duas vezes a mesma categoria) Unificar a
-  regra de participação entre inscrição com conta e checkout rápido: permitir que o
-  atleta participe de categorias diferentes do mesmo campeonato, mas reservar no
-  máximo uma vaga por atleta em cada categoria, independentemente de aparecer como
-  comprador ou parceiro e mesmo sob requisições concorrentes. Hoje o fluxo autenticado
-  bloqueia o campeonato inteiro, enquanto `athlete_tickets` não impede dois pedidos
-  distintos com o mesmo CPF; a idempotência financeira por pedido não cobre esse caso.
-  A segunda tentativa deve falhar antes de criar cobrança. Cancelamento/estorno
-  confirmado deve liberar a reserva para uma nova inscrição. Implementação preparada
-  em 20/08/2026 e validada no backup restaurado local: comprador/parceiro, fluxo com
-  conta/checkout rápido, categorias diferentes e liberação terminal passaram. Falta
-  auditar os pedidos já criados e aplicar/testar a migration no Sandbox.
+- [ ] (impede a mesma pessoa de comprar duas vezes a mesma categoria) Antes do commit
+  `1d02bcf`, o fluxo com conta bloqueava o campeonato inteiro e o checkout rápido
+  permitia pedidos distintos com o mesmo CPF. O código agora permite categorias
+  diferentes e reserva no máximo uma vaga por atleta/categoria, cobrindo comprador,
+  parceiro, os dois fluxos e concorrência antes da chamada ao Asaas. Estorno/expiração
+  libera nova inscrição preservando o histórico. A implementação passou no backup
+  restaurado local, mas o item continua pendente até: auditar os pedidos existentes,
+  resolver cada conflito, aplicar a migration no Sandbox e comprovar o comportamento
+  pela interface e pelas tabelas financeiras.
 - [ ] (não processa duas vezes o mesmo aviso de pagamento) Webhook duplicado é ignorado pelo ledger.
 - [ ] (impede que um aviso atrasado desfaça um estorno) Webhook confirmado depois de estorno é ignorado como fora de ordem.
 - [ ] (garante que uma demora não gere outra cobrança) Timeout após aceite do provedor fica ambíguo e é conciliado sem nova cobrança.
@@ -575,11 +602,16 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
 
 - [x] Escopo V1 congelado em Campeonatos; Arena beta; ferramentas pessoais fora.
 - [x] Código, lint, tipos, testes, audit e build verdes no estado local candidato.
-- [ ] (publica uma cópia segura do site ligada somente a testes) Preview usa Supabase/Asaas sandbox e o mesmo commit que será promovido.
+- [ ] (publica uma cópia segura do site ligada somente a testes) A branch do Preview
+  usa Supabase/Asaas Sandbox e está em `1d02bcf`, mas o deployment desse HEAD ainda
+  precisa responder ao health check antes de virar candidato aprovado.
 - [x] Backup lógico manual confirmado e restauração local comprovada; PITR não
   está disponível no plano atual.
 - [ ] (mantém banco e arquivos protegidos por cópias regulares) Rotina periódica, cópia independente e backup dos objetos do Storage definidos.
-- [x] Migrations e backfill validados com evidência.
+- [x] As sete migrations de 19/08/2026 e o backfill de plateia foram aplicados e
+  validados em produção com evidência.
+  - [ ] A migration posterior de unicidade por participante/categoria ainda depende
+    de auditoria e aplicação no Sandbox; produção só depois dessa homologação.
 - [ ] (confere que cada usuário vê somente o que deve) RLS/Auth/Storage testados por papel.
 - [ ] (confirma todos os cenários de pagamento no simulador) Matriz financeira automatizada e sandbox aprovada.
 - [ ] (confirma que a conta real pode cobrar, estornar e repassar) KYC/capacidades/webhook Asaas de produção confirmados.
@@ -594,8 +626,34 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
 
 ## Últimas alterações feitas pela IA
 
+- arquivos: escolha de pagamento e criação de cobrança do ingresso de atleta no
+  commit `08c97f3`, em 20/08/2026
+  - problema: o pedido podia ganhar uma cobrança Pix antes de o usuário informar que
+    pagaria por cartão, causando “já existe cobrança por outro meio”;
+  - alteração: a forma é escolhida antes da criação; Pix cria cobrança imediatamente
+    e cartão aguarda os dados completos do titular;
+  - resultado: Pix e cartão foram aprovados separadamente no Asaas Sandbox.
+
+- arquivos: guardas E2E e configuração Playwright no commit `5609652`, em 20/08/2026
+  - problema: testes mutantes financeiros precisavam falhar fechados fora do ambiente
+    descartável, inclusive diante de variável ou URL configurada incorretamente;
+  - alteração: execução exige flags estritas, domínio da branch de homologação e
+    project ref do Supabase Sandbox; produção conhecida é bloqueada antes da mutação;
+  - resultado: proteção coberta pela suíte local; segredos continuam fora do Git.
+
+- arquivos: telas de cancelamento e histórico em `Minhas compras`, em 28/08/2026
+  (alteração local ainda sem commit/deploy)
+  - problema: ao cancelar um ingresso a tela permanecia no checkout, sem confirmação;
+    o histórico ocultava o item e não distinguia cancelamento simples de estorno pago;
+  - alteração: redireciona para `Minhas compras` com aviso de sucesso, abre o histórico
+    automaticamente e mostra “Estorno solicitado” ou “Estorno confirmado” conforme a
+    operação financeira registrada;
+  - teste executado: TypeScript, lint e `git diff --check` aprovados; falta validar
+    visualmente no Preview depois do deploy.
+
 - arquivos: `supabase/production-participant-category-uniqueness.sql`, teste SQL
-  descartável, actions dos dois fluxos de inscrição e helper de erro em 20/08/2026
+  descartável, actions dos dois fluxos de inscrição e helper de erro no commit
+  `1d02bcf`, em 20/08/2026
   - problema: uma mesma pessoa podia gerar pedidos distintos na mesma categoria e o
     fluxo autenticado, ao mesmo tempo, bloqueava categorias diferentes;
   - alteração: regra única por campeonato + categoria, cobrindo comprador, parceiro,
@@ -629,7 +687,8 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
     exigir uma faixa/equivalência de nível nas categorias personalizadas;
   - teste executado: 576 testes, teste contratual do guard, TypeScript, lint sem
     avisos, build de produção Next.js 16.3.0 e `git diff --check`;
-  - resultado: aprovado no commit `7184956`; falta confirmar visualmente no Preview.
+  - resultado: aprovado no commit `7184956`; os checkouts de Pix e cartão posteriores
+    confirmaram o fluxo do Preview sem o questionário.
 
 - arquivo: `PENDENCIAS-V1.md` em 19/08/2026
   - problema: as instruções detalhadas e o checklist ainda pressupunham backup/PITR
@@ -736,12 +795,31 @@ Verificação posterior em 19/08/2026:
 - `npm run test:e2e`: 5 aprovados e 9 ignorados por ausência deliberada de
   credenciais/flags mutantes; nenhum teste destrutivo foi executado.
 
+Verificação do estado `1d02bcf` em 20/08/2026:
+
+- `npm test`: 596/596 aprovados, 0 falhos, 0 ignorados;
+- `npm run lint`: aprovado, 0 erros e 0 avisos;
+- `npm run typecheck`: aprovado;
+- `npm run build`: aprovado, incluindo as 56 páginas estáticas/dinâmicas esperadas;
+- migration de unicidade e teste funcional aprovados em restauração local descartável,
+  com rollback da massa de teste;
+- `git diff --check`: aprovado antes do commit;
+- `npm run audit:prod`: reconfirmado em 28/08/2026 com zero vulnerabilidades;
+- o E2E completo do deployment `1d02bcf` ainda deve ser reexecutado depois de aplicar
+  a migration no Sandbox; nenhum teste mutante foi apontado para produção.
+
 ## Próximas 3 tarefas
 
-1. Criar Preview totalmente descartável e executar a matriz financeira sandbox,
-   incluindo agendador externo autenticado a cada 10 minutos para a conciliação.
-2. Definir o domínio canônico, configurar `NEXT_PUBLIC_BASE_URL`, redirects,
-   Supabase Auth, Turnstile e webhook Asaas com o mesmo domínio; depois concluir
-   dados jurídicos/suporte, KYC e e-mail transacional.
-3. Definir a rotina de backups lógicos periódicos, manter cópia independente e
-   proteger separadamente os objetos do Storage antes de abrir pagamentos.
+1. No Supabase Sandbox, detalhar de forma mascarada as 3 chaves de identidade repetidas
+   encontradas em 28/08/2026 e decidir individualmente quais pedidos manter, cancelar
+   ou estornar. A contagem 92 × 93 já foi reconciliada: o Sandbox agora possui 93.
+2. Aplicar `supabase/production-participant-category-uniqueness.sql` somente no
+   Sandbox, revalidar `/api/health` no deployment do HEAD e comprovar pela UI/banco:
+   mesma categoria bloqueada antes do Asaas, categoria diferente permitida e nova
+   inscrição liberada após estorno/expiração.
+3. Continuar a matriz financeira por duplicidade de request/webhook, evento fora de
+   ordem, timeout, estorno, chargeback, repasses, plateia e check-in; em paralelo,
+   fechar os demais P0 manuais de conciliação, KYC, jurídico/suporte e e-mail DNS.
+
+Ponto exato de retomada: detalhar os 3 conflitos da tarefa 1. Até decidir cada pedido,
+não aplicar a nova migration e não criar outra cobrança para o mesmo atleta/categoria.

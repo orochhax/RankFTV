@@ -313,7 +313,7 @@ function CancelarModal({
 
       if (!res.ok) { setError(res.error ?? "Erro ao cancelar."); return; }
       onClose();
-      router.refresh();
+      router.push(`/minhas-compras?cancelamento=${res.outcome === "estorno_solicitado" ? "estorno" : "cancelado"}`);
     });
   }
 

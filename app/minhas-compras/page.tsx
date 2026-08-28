@@ -27,7 +27,7 @@ function championshipName(row: TicketRow): string {
 export default async function MinhasComprasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ aba?: string }>;
+  searchParams: Promise<{ aba?: string; cancelamento?: string }>;
 }) {
   const supabase = await createClient();
   const {
@@ -131,11 +131,33 @@ export default async function MinhasComprasPage({
     id: row.id,
   }));
 
+  const athleteTicketIds = uniqueAthleteTickets.map((ticket) => ticket.ticket_id);
+  const spectatorTicketIds = spectatorTickets.map((ticket) => ticket.ticket_id);
+  const allTicketIds = [...athleteTicketIds, ...spectatorTicketIds];
+  const { data: refundOperations } = allTicketIds.length > 0
+    ? await admin
+        .from("financial_operations")
+        .select("flow, record_id, status")
+        .eq("operation_type", "refund")
+        .in("record_id", allTicketIds)
+    : { data: [] as { flow: string; record_id: string; status: string }[] };
+  const refundStatusByTicket = new Map(
+    (refundOperations ?? []).map((operation) => [`${operation.flow}:${operation.record_id}`, operation.status]),
+  );
+  const athleteTicketsWithRefundStatus = uniqueAthleteTickets.map((ticket) => ({
+    ...ticket,
+    refund_status: refundStatusByTicket.get(`athlete_ticket:${ticket.ticket_id}`) ?? null,
+  }));
+  const spectatorTicketsWithRefundStatus = spectatorTickets.map((ticket) => ({
+    ...ticket,
+    refund_status: refundStatusByTicket.get(`spectator_ticket:${ticket.ticket_id}`) ?? null,
+  }));
+
   const teams = (teamsResult.data ?? []) as unknown as CompraInscricaoRow[];
-  const atletaCount = uniqueAthleteTickets.length + teams.length;
-  const plateiaCount = spectatorTickets.length;
+  const atletaCount = athleteTicketsWithRefundStatus.length + teams.length;
+  const plateiaCount = spectatorTicketsWithRefundStatus.length;
   const total = atletaCount + plateiaCount;
-  const requestedTab = (await searchParams).aba;
+  const { aba: requestedTab, cancelamento } = await searchParams;
   const initialTab = resolveComprasTab(requestedTab, atletaCount, plateiaCount);
   const semTamanho = !profileResult.data?.tamanho_camisa;
 
@@ -163,13 +185,16 @@ export default async function MinhasComprasPage({
         </section>
       )}
 
-      {uniqueAthleteTickets.length > 0 && (
+      {athleteTicketsWithRefundStatus.length > 0 && (
         <section className="space-y-3">
           <div>
             <h2 className="text-sm font-semibold text-gray-900">Ingressos de atleta</h2>
             <p className="text-xs text-gray-400">Compras feitas pelo checkout rápido.</p>
           </div>
-          <MinhasComprasClient ingressos={uniqueAthleteTickets} />
+          <MinhasComprasClient
+            ingressos={athleteTicketsWithRefundStatus}
+            showCancelledInitially={cancelamento != null}
+          />
         </section>
       )}
     </div>
@@ -184,7 +209,10 @@ export default async function MinhasComprasPage({
       actionHref="/"
     />
   ) : (
-    <MinhasComprasClient ingressos={spectatorTickets} />
+    <MinhasComprasClient
+      ingressos={spectatorTicketsWithRefundStatus}
+      showCancelledInitially={cancelamento != null}
+    />
   );
 
   return (
@@ -225,6 +253,16 @@ export default async function MinhasComprasPage({
 
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:pb-16 md:shadow-none">
         <PageContainer width="wide" className="space-y-8">
+          {cancelamento === "cancelado" && (
+            <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              <strong>Ingresso cancelado com sucesso.</strong> O item continua disponível no histórico de compras.
+            </div>
+          )}
+          {cancelamento === "estorno" && (
+            <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              <strong>Estorno solicitado com sucesso.</strong> Acompanhe o ingresso em “Mostrar ingressos cancelados ou já usados”; o histórico preserva o status do pedido.
+            </div>
+          )}
           <MinhasComprasTabs
             initialTab={initialTab}
             atletaCount={atletaCount}

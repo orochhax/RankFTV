@@ -268,7 +268,7 @@ export async function alterarTitularidadeAtleta(
 export async function cancelarIngressoAtleta(
   ticketId: string,
   accessTokenRaw: string,
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; outcome?: "cancelado" | "estorno_solicitado" }> {
   const admin = createAdminClient();
   const accessToken = normalizarTicketAccessToken(accessTokenRaw);
   if (!accessToken) return { ok: false, error: "Link do ingresso invalido." };
@@ -291,7 +291,7 @@ export async function cancelarIngressoAtleta(
     const cancelled = await estornarAthleteTicket(admin, ticketId);
     if (!cancelled.ok) return { ok: false, error: "Nao foi possivel cancelar agora." };
     revalidatePath(path);
-    return { ok: true };
+    return { ok: true, outcome: "cancelado" };
   }
 
   // Pago, mas grátis ou sem cobrança real no Asaas — só marca cancelado.
@@ -299,7 +299,7 @@ export async function cancelarIngressoAtleta(
     const cancelled = await estornarAthleteTicket(admin, ticketId);
     if (!cancelled.ok) return { ok: false, error: "Nao foi possivel cancelar agora." };
     revalidatePath(path);
-    return { ok: true };
+    return { ok: true, outcome: "cancelado" };
   }
 
   // Pago de verdade — estorna via Asaas.
@@ -336,5 +336,5 @@ export async function cancelarIngressoAtleta(
     return { ok: false, error: "O reembolso foi aceito, mas o status aguarda reconciliacao." };
   }
   revalidatePath(path);
-  return { ok: true };
+  return { ok: true, outcome: "estorno_solicitado" };
 }
