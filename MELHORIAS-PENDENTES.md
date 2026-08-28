@@ -16,6 +16,20 @@ implementados sem uma solicitação explícita de pacote de melhorias.
   Minhas compras” deve permanecer como retorno contextual, não como substituto da
   navegação principal.
 
+## Histórico após cancelamento ou estorno concluído
+
+- Registrado em 28/08/2026 ao concluir o cancelamento do ingresso Sandbox.
+- Problema: depois da conclusão, a tela substitui a timeline de reembolso por um card
+  genérico de “Ingresso cancelado”, sem informar quando o cancelamento ocorreu nem
+  preservar as etapas já percorridas.
+- Resultado esperado: manter a timeline/histórico na própria tela, acrescentando as
+  etapas “Estorno confirmado” e “Ingresso cancelado”, ambas com data e hora. O card
+  principal deve resumir que a vaga foi liberada e que o ingresso não pode mais ser
+  usado, sem esconder o acompanhamento financeiro.
+- Critério de UX: o botão “Ver minhas compras” pode continuar como ação secundária,
+  mas não deve ser a única forma de a pessoa descobrir o status e o horário final do
+  reembolso.
+
 ## Confirmação visual de solicitação de reembolso
 
 - Registrado em 28/08/2026 durante a homologação Sandbox do estorno Pix real.
