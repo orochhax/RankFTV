@@ -29,7 +29,7 @@ Contradições encontradas no produto atual:
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 3 de 16 cenários concluídos.
+- Matriz financeira obrigatória: 4 de 16 cenários concluídos.
 - Checklist de release: 4 de 17 itens principais concluídos.
 - Última atualização: 28/08/2026
 - Último commit de código analisado: `1d02bcf` (20/08/2026)
@@ -640,7 +640,11 @@ tokens ou dados pessoais.
 - [ ] (não processa duas vezes o mesmo aviso de pagamento) Webhook duplicado é ignorado pelo ledger.
 - [ ] (impede que um aviso atrasado desfaça um estorno) Webhook confirmado depois de estorno é ignorado como fora de ordem.
 - [ ] (garante que uma demora não gere outra cobrança) Timeout após aceite do provedor fica ambíguo e é conciliado sem nova cobrança.
-- [ ] (devolve vaga e cupom somente após o reembolso) Reembolso aceito só libera inventário no estado correto.
+- [x] (devolve vaga e cupom somente após o reembolso) Estorno Pix real concluído em
+  28/08/2026: a cobrança `pay_r3j64v55ldo38nmt` de R$ 23,99 foi paga por uma segunda
+  conta Sandbox, confirmada por webhook e estornada após autorização crítica. O banco
+  confirmou ingresso `estornado`, `inventory_released_at` preenchido,
+  `repasse_status=estornado` e operação de refund `refunded/REFUNDED`, sem erro.
 - [ ] (remove o acesso após uma contestação do pagamento) Chargeback reverte acesso/estado sem regressão posterior.
 - [ ] (garante que o repasse Pix aconteça uma só vez) Repasse Pix chega a `DONE` uma única vez.
 - [ ] (só repassa cartão depois de o dinheiro estar liberado) Repasse de cartão respeita liquidação.
@@ -885,12 +889,10 @@ Verificação do estado `1d02bcf` em 20/08/2026:
 
 ## Próximas 3 tarefas
 
-1. No Sandbox, não repetir o estorno do Pix simulado `6859a023…`: a devolução virou
-   uma transferência Pix falha. Criar uma segunda conta Asaas Sandbox pagadora, com
-   saldo e chave Pix, pagar pelo QR Code uma nova compra descartável e então solicitar
-   um único estorno. Validar no Asaas, webhook/ledger, tela e inventário até `DONE`;
-   manter o cartão pago `2068be9c…` como participação ativa de controle.
-2. Depois do estorno confirmado, reexecutar a auditoria de duplicidade e aplicar
+1. [x] No Sandbox, não repetir o estorno do Pix simulado `6859a023…`: o Pix real
+   substituto (`pay_r3j64v55ldo38nmt`) foi pago, estornado e conciliado até
+   `refunded/REFUNDED`, com estoque liberado e repasse estornado.
+2. Reexecutar a auditoria de duplicidade e aplicar, se ela não apontar conflitos,
    `supabase/production-participant-category-uniqueness.sql` somente no Sandbox,
    revalidando `/api/health` no deployment do HEAD e comprovando pela UI/banco:
    mesma categoria bloqueada antes do Asaas, categoria diferente permitida e nova
@@ -899,7 +901,7 @@ Verificação do estado `1d02bcf` em 20/08/2026:
    ordem, timeout, estorno, chargeback, repasses, plateia e check-in; em paralelo,
    fechar os demais P0 manuais de conciliação, KYC, jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: preparar uma segunda conta Asaas Sandbox para realizar um
-pagamento Pix real por QR Code. Não repetir o estorno de `6859a023…`; essa cobrança
-simulada terminou em transferência de devolução falha. A migration de unicidade
-continua bloqueada pela auditoria dos três conflitos legados.
+Ponto exato de retomada: reexecutar no Sandbox a auditoria de participantes repetidos
+e ingressos ativos sem categoria. A migration de unicidade só pode ser aplicada quando
+os conflitos legados que ela apontar tiverem decisão individual e estado financeiro
+reconciliado.
