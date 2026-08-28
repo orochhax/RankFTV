@@ -472,10 +472,12 @@ O deploy Preview foi concluído e a fila do webhook Preview foi reativada. Em
 28/08/2026, o Asaas reenviou com HTTP `200` o evento `PAYMENT_RECEIVED` do pagamento
 novo; a resposta do RankFTV foi `{"ok":true,"tipo":"atleta_ticket","status":"pago"}`.
 Logo, a confirmação Pix real ponta a ponta está aprovada. Manter o webhook de
-produção desativado no Asaas Sandbox: ele não deve receber eventos de teste. Próximo
-passo deste cenário: solicitar uma única devolução para `pay_r3j64v55ldo38nmt`,
-acompanhar `refunds` até a conclusão e comprovar no banco que o ingresso foi
-estornado, a vaga liberada e o repasse bloqueado.
+produção desativado no Asaas Sandbox: ele não deve receber eventos de teste. A
+devolução única de R$ 23,99 foi então autorizada no evento crítico do Asaas e o painel
+do provedor passou a mostrar “Cobrança estornada” para `pay_r3j64v55ldo38nmt`; a tela
+do RankFTV também passou a mostrar o ingresso cancelado. Falta a verificação somente
+leitura no banco para comprovar o estado financeiro final, a liberação da vaga e o
+bloqueio do repasse antes de marcar o cenário de estorno como concluído.
 
 O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
 perfil faltante recuperado e o procedimento ficou versionado em
