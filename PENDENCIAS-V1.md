@@ -421,6 +421,12 @@ O cartão recusado ficou corretamente sem provider ID, cobrança, webhook, crede
   inventário: cartão recusado sem cobrança e Pix pendente após exclusão da cobrança
   no Asaas. O próximo cenário é o estorno controlado do Pix pago.
 
+Em 28/08/2026, o estorno controlado do Pix pago `6859a023…` foi solicitado pelo
+RankFTV. A operação financeira ficou em `provider_created`, enquanto o ingresso
+permanece `pago`, com estoque e repasse ainda bloqueados. Esse é o estado seguro
+enquanto o Asaas não confirmar o reembolso: não repetir a solicitação; conferir o
+status do provedor e deixar webhook/conciliação concluir a transição para `estornado`.
+
 O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
 perfil faltante recuperado e o procedimento ficou versionado em
 `supabase/sandbox-restore-auth-profile-trigger.sql`. Cadastro, login, conta de
