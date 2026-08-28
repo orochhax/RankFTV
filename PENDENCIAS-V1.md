@@ -478,6 +478,11 @@ do provedor passou a mostrar “Cobrança estornada” para `pay_r3j64v55ldo38nm
 do RankFTV também passou a mostrar o ingresso cancelado. Falta a verificação somente
 leitura no banco para comprovar o estado financeiro final, a liberação da vaga e o
 bloqueio do repasse antes de marcar o cenário de estorno como concluído.
+Essa consulta mostrou o domínio já em `estornado`, com `inventory_released_at` e
+`repasse_status=estornado`, mas a operação de refund ainda em
+`provider_created/RECEIVED`. É esperado antes da próxima reconciliação: executar o
+cron financeiro uma vez no Preview e repetir a consulta até a operação registrar
+`refunded/REFUNDED` e a data de conclusão.
 
 O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
 perfil faltante recuperado e o procedimento ficou versionado em
