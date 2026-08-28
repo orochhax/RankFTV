@@ -45,11 +45,12 @@ BEGIN
   BEGIN
     INSERT INTO public.athlete_tickets (
       championship_id, category_id, comprador_nome, comprador_cpf, comprador_email,
-      parceiro_nome, parceiro_cpf, user_id
+      parceiro_nome, parceiro_cpf, user_id, access_token
     ) VALUES (
       v_source.championship_id, v_source.category_id,
       'Teste comprador duplicado', v_source.comprador_cpf,
-      'duplicate-buyer@example.invalid', 'Parceiro de teste', '90000000001', v_source.user_id
+      'duplicate-buyer@example.invalid', 'Parceiro de teste', '90000000001', v_source.user_id,
+      gen_random_uuid()::text
     );
   EXCEPTION WHEN unique_violation THEN
     v_blocked := SQLERRM LIKE '%PARTICIPANT_ALREADY_REGISTERED%';
@@ -63,11 +64,11 @@ BEGIN
   BEGIN
     INSERT INTO public.athlete_tickets (
       championship_id, category_id, comprador_nome, comprador_cpf, comprador_email,
-      parceiro_nome, parceiro_cpf
+      parceiro_nome, parceiro_cpf, access_token
     ) VALUES (
       v_source.championship_id, v_source.category_id,
       'Outro comprador', '90000000002', 'duplicate-partner@example.invalid',
-      'Teste parceiro duplicado', v_source.comprador_cpf
+      'Teste parceiro duplicado', v_source.comprador_cpf, gen_random_uuid()::text
     );
   EXCEPTION WHEN unique_violation THEN
     v_blocked := SQLERRM LIKE '%PARTICIPANT_ALREADY_REGISTERED%';
@@ -95,24 +96,25 @@ BEGIN
   UPDATE public.teams SET status = 'cancelado' WHERE id = v_team_id;
 
   INSERT INTO public.athlete_tickets (
-    championship_id, category_id, comprador_nome, comprador_cpf, comprador_email,
-    parceiro_nome, parceiro_cpf, user_id
+      championship_id, category_id, comprador_nome, comprador_cpf, comprador_email,
+      parceiro_nome, parceiro_cpf, user_id, access_token
   ) VALUES (
     v_source.championship_id, v_other_category,
     'Teste categoria diferente', v_source.comprador_cpf,
-    'different-category@example.invalid', 'Parceiro de teste', '90000000003', v_source.user_id
+      'different-category@example.invalid', 'Parceiro de teste', '90000000003', v_source.user_id,
+      gen_random_uuid()::text
   );
 
   -- A terminal row frees the same category for a new purchase.
   v_cpf_a := (floor(random() * 90000000000 + 10000000000)::bigint)::text;
   v_cpf_b := (v_cpf_a::bigint + 1)::text;
   INSERT INTO public.athlete_tickets (
-    championship_id, category_id, comprador_nome, comprador_cpf, comprador_email,
-    parceiro_nome, parceiro_cpf
+      championship_id, category_id, comprador_nome, comprador_cpf, comprador_email,
+      parceiro_nome, parceiro_cpf, access_token
   ) VALUES (
     v_source.championship_id, v_source.category_id,
     'Teste liberacao apos terminal', v_cpf_a,
-    'terminal-release@example.invalid', 'Parceiro de teste', v_cpf_b
+      'terminal-release@example.invalid', 'Parceiro de teste', v_cpf_b, gen_random_uuid()::text
   ) RETURNING id INTO v_ticket_id;
 
   UPDATE public.athlete_tickets
@@ -120,12 +122,12 @@ BEGIN
   WHERE id = v_ticket_id;
 
   INSERT INTO public.athlete_tickets (
-    championship_id, category_id, comprador_nome, comprador_cpf, comprador_email,
-    parceiro_nome, parceiro_cpf
+      championship_id, category_id, comprador_nome, comprador_cpf, comprador_email,
+      parceiro_nome, parceiro_cpf, access_token
   ) VALUES (
     v_source.championship_id, v_source.category_id,
     'Teste nova compra apos terminal', v_cpf_a,
-    'terminal-release-second@example.invalid', 'Outro parceiro', v_cpf_b
+      'terminal-release-second@example.invalid', 'Outro parceiro', v_cpf_b, gen_random_uuid()::text
   );
 
   RAISE NOTICE 'PASS: buyer, partner, cross-flow, different category and terminal release';
