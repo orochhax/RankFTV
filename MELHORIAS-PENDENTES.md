@@ -3,6 +3,20 @@
 Itens observados durante a homologação. Não são alterações de P0 nem devem ser
 implementados sem uma solicitação explícita de pacote de melhorias.
 
+## Confirmação visual de solicitação de reembolso
+
+- Registrado em 28/08/2026 durante a homologação Sandbox do estorno Pix real.
+- Problema: depois de confirmar o cancelamento, o modal permanece com uma mensagem em
+  vermelho (“O reembolso está sendo confirmado”), que parece erro e não deixa claro que
+  a solicitação foi aceita.
+- Resultado esperado: após a solicitação bem-sucedida, substituir o modal por um card
+  de sucesso visualmente positivo, com o texto “Seu reembolso foi solicitado com
+  sucesso”, um resumo do próximo passo/prazo conforme Pix ou cartão e o botão “Ver
+  status do reembolso”. Esse botão deve abrir os detalhes do próprio ingresso, onde a
+  timeline do estorno permanece disponível.
+- Critério de UX: não mostrar novamente a ação de cancelar enquanto houver uma
+  solicitação pendente; a interface deve impedir repetição sem transmitir falha.
+
 ## Checkout Pix: atualização automática após pagamento
 
 - Registrado em 28/08/2026 durante a compra Sandbox da categoria `Estorno Pix Real`.
