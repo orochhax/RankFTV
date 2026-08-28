@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical, UserPen, XCircle, Loader2, AlertTriangle } from "lucide-react";
+import { MoreVertical, UserPen, XCircle, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
 import {
   alterarTitularidadeAtleta,
   cancelarIngressoAtleta,
@@ -303,6 +303,14 @@ function CancelarModal({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<"cancelado" | "estorno" | null>(null);
+
+  useEffect(() => {
+    if (!success) return;
+    const destination = `/minhas-compras?cancelamento=${success}`;
+    const timeout = window.setTimeout(() => router.push(destination), 1800);
+    return () => window.clearTimeout(timeout);
+  }, [router, success]);
 
   function confirmar() {
     setError(null);
@@ -312,9 +320,34 @@ function CancelarModal({
         : await cancelarIngressoPlateia(ticketId, accessToken);
 
       if (!res.ok) { setError(res.error ?? "Erro ao cancelar."); return; }
-      onClose();
-      router.push(`/minhas-compras?cancelamento=${res.outcome === "estorno_solicitado" ? "estorno" : "cancelado"}`);
+      setSuccess(res.outcome === "estorno_solicitado" ? "estorno" : "cancelado");
     });
+  }
+
+  if (success) {
+    const destination = `/minhas-compras?cancelamento=${success}`;
+    const title = success === "estorno" ? "Estorno solicitado com sucesso" : "Ingresso cancelado com sucesso";
+    const description = success === "estorno"
+      ? "Você poderá acompanhar o estorno no histórico de Minhas compras."
+      : "A vaga foi liberada e o ingresso ficará no seu histórico de compras.";
+
+    return (
+      <ModalShell onClose={() => router.push(destination)}>
+        <div className="py-3 text-center">
+          <CheckCircle2 className="mx-auto size-12 text-emerald-600" />
+          <h2 className="mt-4 text-lg font-semibold text-gray-900">{title}</h2>
+          <p className="mt-2 text-sm text-gray-600">{description}</p>
+          <p className="mt-4 text-xs text-gray-400">Indo para Minhas compras…</p>
+          <button
+            type="button"
+            onClick={() => router.push(destination)}
+            className="mt-5 w-full rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            Ir agora
+          </button>
+        </div>
+      </ModalShell>
+    );
   }
 
   return (

@@ -653,6 +653,7 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
   - correção posterior local: um item já cancelado ainda renderizava os campos de
     cartão/Pix ao ser aberto. As telas de atleta e plateia agora bloqueiam qualquer
     novo pagamento e exibem somente o aviso de cancelamento e o link ao histórico.
+    O modal também confirma visualmente o cancelamento antes do redirecionamento.
 
 - arquivos: `supabase/production-participant-category-uniqueness.sql`, teste SQL
   descartável, actions dos dois fluxos de inscrição e helper de erro no commit
