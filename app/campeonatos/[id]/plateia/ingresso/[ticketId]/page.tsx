@@ -124,19 +124,37 @@ export default async function IngressoPlateiaPage({
           )}
 
           <div className="px-6 py-6">
-            <IngressoPlateiaStatus
-              ticketId={t.id}
-              accessToken={accessToken}
-              initialStatusPagamento={t.status_pagamento}
-              initialCheckedIn={t.checked_in}
-              initialEntradaQr={entradaQr}
-              qrToken={t.qr_token}
-              code={t.code}
-              quantidade={Number(t.quantidade)}
-              valor={Number(t.valor)}
-              pixCopyPaste={t.pix_copy_paste}
-              pixQrBase64={t.pix_qr_code_base64}
-            />
+            {t.status_pagamento === "estornado" ? (
+              <section className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
+                <h2 className="text-lg font-semibold text-red-950">Ingresso cancelado</h2>
+                <p className="mt-2 text-sm text-red-800">
+                  Este ingresso não pode mais receber pagamento nem ser usado para entrar no campeonato.
+                </p>
+                <p className="mt-1 text-sm text-red-800">
+                  Se houve pagamento, acompanhe o status do estorno no histórico de Minhas compras.
+                </p>
+                <Link
+                  href="/minhas-compras"
+                  className="mt-5 inline-flex rounded-xl bg-red-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-800"
+                >
+                  Ver minhas compras
+                </Link>
+              </section>
+            ) : (
+              <IngressoPlateiaStatus
+                ticketId={t.id}
+                accessToken={accessToken}
+                initialStatusPagamento={t.status_pagamento}
+                initialCheckedIn={t.checked_in}
+                initialEntradaQr={entradaQr}
+                qrToken={t.qr_token}
+                code={t.code}
+                quantidade={Number(t.quantidade)}
+                valor={Number(t.valor)}
+                pixCopyPaste={t.pix_copy_paste}
+                pixQrBase64={t.pix_qr_code_base64}
+              />
+            )}
           </div>
 
           {/* Dados do campeonato */}

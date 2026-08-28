@@ -143,20 +143,38 @@ export default async function IngressoAtletaPage({
       {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
       <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:shadow-none">
         <PageContainer width="form" className="space-y-6">
-          <IngressoAtletaPagamento
-            ticketId={t.id}
-            accessToken={accessToken}
-            isElite={!!champ?.is_elite}
-            initialStatusPagamento={t.status_pagamento}
-            initialCheckedIn={t.checked_in}
-            initialEntradaQr={entradaQr}
-            qrToken={t.qr_token}
-            code={t.code}
-            valor={Number(t.valor)}
-            pixCopyPaste={t.pix_copy_paste}
-            pixQrBase64={t.pix_qr_code_base64}
-            paymentMethod={t.billing_type === "CREDIT_CARD" || t.billing_type === "DEBIT_CARD" ? "cartao" : "pix"}
-          />
+          {t.status_pagamento === "estornado" ? (
+            <section className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+              <h2 className="text-lg font-semibold text-red-950">Ingresso cancelado</h2>
+              <p className="mt-2 text-sm text-red-800">
+                Este ingresso não pode mais receber pagamento nem ser usado para entrar no campeonato.
+              </p>
+              <p className="mt-1 text-sm text-red-800">
+                Se houve pagamento, acompanhe o status do estorno no histórico de Minhas compras.
+              </p>
+              <Link
+                href="/minhas-compras"
+                className="mt-5 inline-flex rounded-xl bg-red-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-800"
+              >
+                Ver minhas compras
+              </Link>
+            </section>
+          ) : (
+            <IngressoAtletaPagamento
+              ticketId={t.id}
+              accessToken={accessToken}
+              isElite={!!champ?.is_elite}
+              initialStatusPagamento={t.status_pagamento}
+              initialCheckedIn={t.checked_in}
+              initialEntradaQr={entradaQr}
+              qrToken={t.qr_token}
+              code={t.code}
+              valor={Number(t.valor)}
+              pixCopyPaste={t.pix_copy_paste}
+              pixQrBase64={t.pix_qr_code_base64}
+              paymentMethod={t.billing_type === "CREDIT_CARD" || t.billing_type === "DEBIT_CARD" ? "cartao" : "pix"}
+            />
+          )}
 
           {/* Dados do campeonato */}
           {champ && (

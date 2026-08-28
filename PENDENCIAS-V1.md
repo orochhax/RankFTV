@@ -641,8 +641,8 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
     project ref do Supabase Sandbox; produção conhecida é bloqueada antes da mutação;
   - resultado: proteção coberta pela suíte local; segredos continuam fora do Git.
 
-- arquivos: telas de cancelamento e histórico em `Minhas compras`, em 28/08/2026
-  (alteração local ainda sem commit/deploy)
+- arquivos: telas de cancelamento e histórico em `Minhas compras`, commit `a1129bc`,
+  em 28/08/2026
   - problema: ao cancelar um ingresso a tela permanecia no checkout, sem confirmação;
     o histórico ocultava o item e não distinguia cancelamento simples de estorno pago;
   - alteração: redireciona para `Minhas compras` com aviso de sucesso, abre o histórico
@@ -650,6 +650,9 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
     operação financeira registrada;
   - teste executado: TypeScript, lint e `git diff --check` aprovados; falta validar
     visualmente no Preview depois do deploy.
+  - correção posterior local: um item já cancelado ainda renderizava os campos de
+    cartão/Pix ao ser aberto. As telas de atleta e plateia agora bloqueiam qualquer
+    novo pagamento e exibem somente o aviso de cancelamento e o link ao histórico.
 
 - arquivos: `supabase/production-participant-category-uniqueness.sql`, teste SQL
   descartável, actions dos dois fluxos de inscrição e helper de erro no commit
