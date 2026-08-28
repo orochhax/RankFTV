@@ -464,6 +464,14 @@ repetir o estorno nessa cobrança. Para homologar o caso, criar uma nova cobran�
 descartável e pagá-la pelo QR Code a partir de uma segunda conta Asaas Sandbox com
 saldo e chave Pix, antes de solicitar uma única devolução.
 
+Após decisão explícita para limpeza apenas do Sandbox, o ingresso manual antigo
+`6859a023…` foi encerrado como `expirado` pela RPC de liberação, que retornou `true`
+e preencheu `inventory_released_at`. A cobrança histórica `pay_g178ostlktfqlltr`
+permanece preservada e nenhum novo estorno foi solicitado. O campo
+`repasse_status` permaneceu `pendente`, mas não há repasse executável: o cron de
+repasse seleciona somente ingressos com `status_pagamento='pago'`; o registro
+expirado fica fora dessa seleção.
+
 Ainda em 28/08/2026, uma nova compra Pix real de R$ 23,99 foi paga pela segunda
 conta Sandbox e o Asaas registrou `pay_r3j64v55ldo38nmt` como `RECEIVED`, vinculado
 ao ingresso `ce094d96…`. A tela permaneceu pendente porque a fila do webhook estava
