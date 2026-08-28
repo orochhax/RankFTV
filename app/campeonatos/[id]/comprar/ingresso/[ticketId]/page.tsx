@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Avatar } from "@/components/ui/Avatar";
 import { IngressoAtletaPagamento } from "@/components/campeonatos/IngressoAtletaPagamento";
 import { IngressoOpcoesMenu } from "@/components/ingressos/IngressoOpcoesMenu";
+import { RefundStatusPanel } from "@/components/ingressos/RefundStatusPanel";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 import { PageContainer } from "@/components/shell/PageContainer";
 
@@ -50,7 +51,7 @@ export default async function IngressoAtletaPage({
 
   const { data: refundOperation } = await supabase
     .from("financial_operations")
-    .select("status")
+    .select("status, created_at")
     .eq("flow", "athlete_ticket")
     .eq("operation_type", "refund")
     .eq("record_id", ticketId)
@@ -156,21 +157,10 @@ export default async function IngressoAtletaPage({
       <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:shadow-none">
         <PageContainer width="form" className="space-y-6">
           {estornoEmAndamento ? (
-            <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
-              <h2 className="text-lg font-semibold text-amber-950">Estorno solicitado</h2>
-              <p className="mt-2 text-sm text-amber-900">
-                Estamos aguardando a confirmação do Asaas. Você não precisa fazer nada nem repetir a solicitação.
-              </p>
-              <p className="mt-1 text-sm text-amber-900">
-                Assim que confirmado, este ingresso será cancelado e a vaga será liberada.
-              </p>
-              <Link
-                href="/minhas-compras"
-                className="mt-5 inline-flex rounded-xl bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-800"
-              >
-                Ver status em Minhas compras
-              </Link>
-            </section>
+            <RefundStatusPanel
+              billingType={t.billing_type}
+              requestedAt={refundOperation?.created_at ?? null}
+            />
           ) : t.status_pagamento === "estornado" ? (
             <section className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
               <h2 className="text-lg font-semibold text-red-950">Ingresso cancelado</h2>

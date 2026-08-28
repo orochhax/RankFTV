@@ -427,8 +427,12 @@ permanece `pago`, com estoque e repasse ainda bloqueados. Esse é o estado segur
 enquanto o Asaas não confirmar o reembolso: não repetir a solicitação; conferir o
 status do provedor e deixar webhook/conciliação concluir a transição para `estornado`.
 O Preview também passou a tratar esse estado como “Estorno solicitado”, e não como
-erro nem como ingresso confirmado: bloqueia novo cancelamento/check-in e aponta o
-usuário para o acompanhamento em Minhas compras.
+erro nem como ingresso confirmado: bloqueia um novo pedido de cancelamento pela
+interface e mantém o acompanhamento na própria tela do ingresso. Em 28/08/2026,
+a tela passou a mostrar uma linha do tempo com a data/hora real da solicitação e um
+card de prazos: Pix depende da confirmação/provedor e cartão pode levar até 10 dias
+úteis para constar na fatura. O bloqueio de check-in no servidor ainda deve ser
+validado separadamente antes de ser dado como concluído.
 
 O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
 perfil faltante recuperado e o procedimento ficou versionado em

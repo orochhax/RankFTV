@@ -5,6 +5,7 @@ import QRCode from "qrcode";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { IngressoPlateiaStatus } from "@/components/plateia/IngressoPlateiaStatus";
 import { IngressoOpcoesMenu } from "@/components/ingressos/IngressoOpcoesMenu";
+import { RefundStatusPanel } from "@/components/ingressos/RefundStatusPanel";
 import { formatBRL } from "@/lib/format";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 
@@ -33,7 +34,7 @@ export default async function IngressoPlateiaPage({
   const supabase = createAdminClient();
   const { data: t } = await supabase
     .from("spectator_tickets")
-    .select("id, tipo_nome, comprador_nome, comprador_email, comprador_cpf, valor, quantidade, itens, status_pagamento, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in")
+    .select("id, tipo_nome, comprador_nome, comprador_email, comprador_cpf, valor, quantidade, itens, status_pagamento, billing_type, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in")
     .eq("id", ticketId)
     .eq("access_token", accessToken)
     .maybeSingle();
@@ -41,7 +42,7 @@ export default async function IngressoPlateiaPage({
 
   const { data: refundOperation } = await supabase
     .from("financial_operations")
-    .select("status")
+    .select("status, created_at")
     .eq("flow", "spectator_ticket")
     .eq("operation_type", "refund")
     .eq("record_id", ticketId)
@@ -137,21 +138,10 @@ export default async function IngressoPlateiaPage({
 
           <div className="px-6 py-6">
             {estornoEmAndamento ? (
-              <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center">
-                <h2 className="text-lg font-semibold text-amber-950">Estorno solicitado</h2>
-                <p className="mt-2 text-sm text-amber-900">
-                  Estamos aguardando a confirmação do Asaas. Não repita a solicitação.
-                </p>
-                <p className="mt-1 text-sm text-amber-900">
-                  Assim que confirmado, este ingresso será cancelado e o estoque será liberado.
-                </p>
-                <Link
-                  href="/minhas-compras"
-                  className="mt-5 inline-flex rounded-xl bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-800"
-                >
-                  Ver status em Minhas compras
-                </Link>
-              </section>
+              <RefundStatusPanel
+                billingType={t.billing_type}
+                requestedAt={refundOperation?.created_at ?? null}
+              />
             ) : t.status_pagamento === "estornado" ? (
               <section className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
                 <h2 className="text-lg font-semibold text-red-950">Ingresso cancelado</h2>
