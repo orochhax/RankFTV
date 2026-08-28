@@ -402,7 +402,8 @@ repetidas, que exigem decisão individual antes da migration. Conta e chave excl
 do Asaas Sandbox foram confirmadas, e nenhuma
 credencial foi adicionada ao `.env.local` que aponta para produção.
 
-O Preview isolado usa a branch `sandbox-homologacao`, cujo remoto está em `d96d5cd`.
+O Preview isolado usa a branch `sandbox-homologacao`, cujo remoto está em `600b420`
+(acompanhamento de estorno em tela ampla para desktop).
 O último health check comprovado por evidência foi o release `f10dd67c6452`, com
 aplicação e banco `ok`; falta repetir o health check no deployment do HEAD atual. O
 bypass de proteção foi validado e o segredo exposto durante a homologação foi
@@ -840,10 +841,11 @@ Verificação do estado `1d02bcf` em 20/08/2026:
 
 ## Próximas 3 tarefas
 
-1. No Sandbox, cancelar o Pix pago `6859a023…` pelo fluxo normal de estorno. Validar
-   no Asaas, no histórico de Minhas compras, no webhook/ledger e no inventário; manter
-   o cartão pago `2068be9c…` como a única participação ativa.
-2. Reexecutar a auditoria de duplicidade e aplicar
+1. No Sandbox, aguardar e confirmar o estorno já solicitado do Pix pago `6859a023…`.
+   Validar no Asaas, na tela do ingresso, no webhook/ledger e no inventário: deve
+   terminar como `estornado`, com vaga liberada. Não repetir a solicitação; manter o
+   cartão pago `2068be9c…` como a única participação ativa.
+2. Depois do estorno confirmado, reexecutar a auditoria de duplicidade e aplicar
    `supabase/production-participant-category-uniqueness.sql` somente no Sandbox,
    revalidando `/api/health` no deployment do HEAD e comprovando pela UI/banco:
    mesma categoria bloqueada antes do Asaas, categoria diferente permitida e nova
@@ -852,5 +854,6 @@ Verificação do estado `1d02bcf` em 20/08/2026:
    ordem, timeout, estorno, chargeback, repasses, plateia e check-in; em paralelo,
    fechar os demais P0 manuais de conciliação, KYC, jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: detalhar os 3 conflitos da tarefa 1. Até decidir cada pedido,
-não aplicar a nova migration e não criar outra cobrança para o mesmo atleta/categoria.
+Ponto exato de retomada: aguardar a confirmação do estorno do Pix pago; até ela
+chegar, não criar outra cobrança para esse atleta/categoria. A migration de
+unicidade continua bloqueada pela auditoria dos três conflitos legados.
