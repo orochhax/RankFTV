@@ -459,6 +459,18 @@ repetir o estorno nessa cobrança. Para homologar o caso, criar uma nova cobran�
 descartável e pagá-la pelo QR Code a partir de uma segunda conta Asaas Sandbox com
 saldo e chave Pix, antes de solicitar uma única devolução.
 
+Ainda em 28/08/2026, uma nova compra Pix real de R$ 23,99 foi paga pela segunda
+conta Sandbox e o Asaas registrou `pay_r3j64v55ldo38nmt` como `RECEIVED`, vinculado
+ao ingresso `ce094d96…`. A tela permaneceu pendente porque a fila do webhook estava
+penalizada por sete reentregas de um evento antigo de cartão: ele apontava para uma
+parcela que não correspondia mais ao `asaas_payment_id` guardado no ingresso e o
+endpoint respondia `409`. O endpoint foi corrigido para auditar essa divergência,
+preservar o bloqueio de confirmação do domínio e responder `200`/ignorado ao Asaas;
+assim o evento antigo não bloqueia a fila e eventos válidos posteriores continuam
+exigindo vínculo exato. Lint, TypeScript, 599 testes e build passaram localmente.
+Após o deploy Preview, reativar a fila e validar a entrega de `PAYMENT_RECEIVED` do
+Pix novo antes de iniciar o estorno real.
+
 O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
 perfil faltante recuperado e o procedimento ficou versionado em
 `supabase/sandbox-restore-auth-profile-trigger.sql`. Cadastro, login, conta de

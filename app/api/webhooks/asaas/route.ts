@@ -76,6 +76,19 @@ async function handleAsaasWebhook(req: NextRequest) {
     return true;
   }
 
+  // A cobrança pode chegar atrasada, pertencer a uma parcela antiga ou já ter sido
+  // substituída por outra cobrança do mesmo registro. Isso deve ser auditado, mas
+  // não pode devolver 4xx ao Asaas: ele reenvia, penaliza a fila e bloqueia eventos
+  // válidos posteriores. A confirmação do domínio continua bloqueada pelo vínculo
+  // exato entre o payment.id e o registro.
+  function acknowledgePaymentOwnershipMismatch() {
+    return NextResponse.json({
+      ok: true,
+      ignored: true,
+      reason: "payment_ownership_mismatch",
+    });
+  }
+
   async function processarRepasseArena(
     table: "student_charges" | "arena_rentals" | "arena_daily_passes" | "arena_attendance",
     id: string,
@@ -222,7 +235,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("mens:")) {
     const chargeId = registrationId.slice("mens:".length);
     if (!(await paymentBelongsToRecord("student_charges", chargeId))) {
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
     }
 
     if (ASAAS_CONFIRMED_EVENTS.has(event)) {
@@ -262,7 +275,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("arena_rental:")) {
     const rentalId = registrationId.slice("arena_rental:".length);
     if (!(await paymentBelongsToRecord("arena_rentals", rentalId)))
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
 
     if (ASAAS_CONFIRMED_EVENTS.has(event)) {
       await supabase
@@ -310,7 +323,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("arena_daily:")) {
     const passId = registrationId.slice("arena_daily:".length);
     if (!(await paymentBelongsToRecord("arena_daily_passes", passId)))
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
 
     if (ASAAS_CONFIRMED_EVENTS.has(event)) {
       await supabase
@@ -363,7 +376,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("arena_class_charge:")) {
     const attendanceId = registrationId.slice("arena_class_charge:".length);
     if (!(await paymentBelongsToRecord("arena_attendance", attendanceId)))
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
 
     if (ASAAS_CONFIRMED_EVENTS.has(event)) {
       await supabase
@@ -414,7 +427,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("athl:")) {
     const ticketId = registrationId.slice(5);
     if (!(await paymentBelongsToRecord("athlete_tickets", ticketId)))
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
 
     const resultado = novoStatus === "pago"
       ? await confirmarAthleteTicketPago(supabase, ticketId, { id: payment.id, billingType: payment.billingType })
@@ -440,7 +453,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("spec:")) {
     const ticketId = registrationId.slice(5);
     if (!(await paymentBelongsToRecord("spectator_tickets", ticketId)))
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
 
     await supabase
       .from("spectator_tickets")
@@ -517,7 +530,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   }
 
   if (!(await paymentBelongsToRecord("registrations", registrationId)))
-    return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+    return acknowledgePaymentOwnershipMismatch();
 
   // 2/3/4. Atualiza status, ativa dupla/credenciais/repasse (pago) ou reverte
   // (estornado) — lógica compartilhada com a reconciliação manual do painel
