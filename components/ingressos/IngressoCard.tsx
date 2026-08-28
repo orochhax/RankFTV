@@ -36,6 +36,7 @@ export function IngressoCard({
     : ing.refund_status
       ? "Estorno solicitado"
       : null;
+  const estornoEmAndamento = !!refundLabel && !estornado;
 
   const params = new URLSearchParams();
   if (ing.access_token) params.set("token", ing.access_token);
@@ -79,7 +80,11 @@ export function IngressoCard({
           </div>
 
           <div className="mt-2 flex items-center gap-1 text-xs font-semibold">
-            {estornado ? (
+            {estornoEmAndamento ? (
+              <span className="flex items-center gap-1 text-amber-700">
+                <Clock className="size-3.5" /> {refundLabel}
+              </span>
+            ) : estornado ? (
               <span className={refundLabel ? "text-blue-600" : "text-red-500"}>
                 {refundLabel ?? "Cancelado"}
               </span>

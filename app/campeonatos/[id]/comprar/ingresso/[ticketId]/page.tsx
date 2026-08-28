@@ -48,6 +48,18 @@ export default async function IngressoAtletaPage({
     .maybeSingle();
   if (!t) notFound();
 
+  const { data: refundOperation } = await supabase
+    .from("financial_operations")
+    .select("status")
+    .eq("flow", "athlete_ticket")
+    .eq("operation_type", "refund")
+    .eq("record_id", ticketId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const estornoEmAndamento = refundOperation?.status != null
+    && t.status_pagamento !== "estornado";
+
   const { data: champ } = await supabase
     .from("championships")
     .select("nome, is_elite, data_inicio, data_fim, cidade, estado, local, regulamento")
@@ -88,7 +100,7 @@ export default async function IngressoAtletaPage({
             >
               <ArrowLeft className="size-4" /> {voltar === "minhas-compras" ? "Minhas Compras" : "Voltar ao campeonato"}
             </Link>
-            {t.status_pagamento !== "estornado" && (
+            {t.status_pagamento !== "estornado" && !estornoEmAndamento && (
               <IngressoOpcoesMenu
                 tipo="atleta"
                 ticketId={t.id}
@@ -143,7 +155,23 @@ export default async function IngressoAtletaPage({
       {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
       <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:shadow-none">
         <PageContainer width="form" className="space-y-6">
-          {t.status_pagamento === "estornado" ? (
+          {estornoEmAndamento ? (
+            <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+              <h2 className="text-lg font-semibold text-amber-950">Estorno solicitado</h2>
+              <p className="mt-2 text-sm text-amber-900">
+                Estamos aguardando a confirmação do Asaas. Você não precisa fazer nada nem repetir a solicitação.
+              </p>
+              <p className="mt-1 text-sm text-amber-900">
+                Assim que confirmado, este ingresso será cancelado e a vaga será liberada.
+              </p>
+              <Link
+                href="/minhas-compras"
+                className="mt-5 inline-flex rounded-xl bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-800"
+              >
+                Ver status em Minhas compras
+              </Link>
+            </section>
+          ) : t.status_pagamento === "estornado" ? (
             <section className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
               <h2 className="text-lg font-semibold text-red-950">Ingresso cancelado</h2>
               <p className="mt-2 text-sm text-red-800">

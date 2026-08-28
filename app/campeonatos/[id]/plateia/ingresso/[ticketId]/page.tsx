@@ -39,6 +39,18 @@ export default async function IngressoPlateiaPage({
     .maybeSingle();
   if (!t) notFound();
 
+  const { data: refundOperation } = await supabase
+    .from("financial_operations")
+    .select("status")
+    .eq("flow", "spectator_ticket")
+    .eq("operation_type", "refund")
+    .eq("record_id", ticketId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const estornoEmAndamento = refundOperation?.status != null
+    && t.status_pagamento !== "estornado";
+
   const { data: normalizedItems } = await supabase
     .from("spectator_ticket_items")
     .select("id, tipo_nome_snapshot, valor_unitario, quantidade")
@@ -83,7 +95,7 @@ export default async function IngressoPlateiaPage({
           >
             <ArrowLeft className="size-4" /> {voltar === "minhas-compras" ? "Minhas Compras" : (champ?.nome ?? "Campeonato")}
           </Link>
-          {t.status_pagamento !== "estornado" && (
+          {t.status_pagamento !== "estornado" && !estornoEmAndamento && (
               <IngressoOpcoesMenu
                 tipo="plateia"
                 ticketId={t.id}
@@ -124,7 +136,23 @@ export default async function IngressoPlateiaPage({
           )}
 
           <div className="px-6 py-6">
-            {t.status_pagamento === "estornado" ? (
+            {estornoEmAndamento ? (
+              <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center">
+                <h2 className="text-lg font-semibold text-amber-950">Estorno solicitado</h2>
+                <p className="mt-2 text-sm text-amber-900">
+                  Estamos aguardando a confirmação do Asaas. Não repita a solicitação.
+                </p>
+                <p className="mt-1 text-sm text-amber-900">
+                  Assim que confirmado, este ingresso será cancelado e o estoque será liberado.
+                </p>
+                <Link
+                  href="/minhas-compras"
+                  className="mt-5 inline-flex rounded-xl bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-800"
+                >
+                  Ver status em Minhas compras
+                </Link>
+              </section>
+            ) : t.status_pagamento === "estornado" ? (
               <section className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
                 <h2 className="text-lg font-semibold text-red-950">Ingresso cancelado</h2>
                 <p className="mt-2 text-sm text-red-800">
