@@ -468,8 +468,14 @@ endpoint respondia `409`. O endpoint foi corrigido para auditar essa divergênci
 preservar o bloqueio de confirmação do domínio e responder `200`/ignorado ao Asaas;
 assim o evento antigo não bloqueia a fila e eventos válidos posteriores continuam
 exigindo vínculo exato. Lint, TypeScript, 599 testes e build passaram localmente.
-Após o deploy Preview, reativar a fila e validar a entrega de `PAYMENT_RECEIVED` do
-Pix novo antes de iniciar o estorno real.
+O deploy Preview foi concluído e a fila do webhook Preview foi reativada. Em
+28/08/2026, o Asaas reenviou com HTTP `200` o evento `PAYMENT_RECEIVED` do pagamento
+novo; a resposta do RankFTV foi `{"ok":true,"tipo":"atleta_ticket","status":"pago"}`.
+Logo, a confirmação Pix real ponta a ponta está aprovada. Manter o webhook de
+produção desativado no Asaas Sandbox: ele não deve receber eventos de teste. Próximo
+passo deste cenário: solicitar uma única devolução para `pay_r3j64v55ldo38nmt`,
+acompanhar `refunds` até a conclusão e comprovar no banco que o ingresso foi
+estornado, a vaga liberada e o repasse bloqueado.
 
 O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
 perfil faltante recuperado e o procedimento ficou versionado em
