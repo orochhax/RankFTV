@@ -342,8 +342,13 @@ Passo a passo:
    1. [x] Executar no Sandbox a auditoria somente leitura de participantes repetidos
       e ingressos ativos sem categoria. Em 28/08/2026: 93 tabelas públicas, zero
       ingressos ativos sem categoria e 3 chaves de identidade repetidas.
-   2. [ ] Decidir individualmente qual pedido manter, cancelar ou estornar; não
-      alterar diretamente uma compra paga sem reconciliar o Asaas.
+    2. [M] Decidir individualmente qual pedido manter, cancelar ou estornar; não
+       alterar diretamente uma compra paga sem reconciliar o Asaas. Em 28/08/2026,
+       o cartão recusado `6538f1f8…` foi cancelado (`estornado`, sem cobrança Asaas
+       e estoque liberado) e o Pix pendente `55f211f2…` teve a cobrança primeiro
+       cancelada no Asaas Sandbox e depois foi encerrado no RankFTV (`estornado`,
+       cobrança histórica preservada e estoque liberado). Mantém-se o cartão pago
+       `2068be9c…`; o Pix pago `6859a023…` será o cenário controlado de estorno.
    3. [ ] Aplicar a migration no Sandbox e comprovar: repetição na mesma categoria
       bloqueada antes do Asaas, categoria diferente permitida, comprador/parceiro e
       os dois fluxos cobertos, além de nova compra liberada após estorno/expiração.
@@ -397,7 +402,7 @@ repetidas, que exigem decisão individual antes da migration. Conta e chave excl
 do Asaas Sandbox foram confirmadas, e nenhuma
 credencial foi adicionada ao `.env.local` que aponta para produção.
 
-O Preview isolado usa a branch `sandbox-homologacao`, cujo remoto está em `1d02bcf`.
+O Preview isolado usa a branch `sandbox-homologacao`, cujo remoto está em `d96d5cd`.
 O último health check comprovado por evidência foi o release `f10dd67c6452`, com
 aplicação e banco `ok`; falta repetir o health check no deployment do HEAD atual. O
 bypass de proteção foi validado e o segredo exposto durante a homologação foi
@@ -410,8 +415,11 @@ envio sequencial, apontando somente para o Preview; o endpoint de produção foi
 desativado no Sandbox. A entrega real foi comprovada por Pix e cartão aprovado:
 ambos tiveram evento financeiro processado, atualizaram o domínio e criaram credencial.
 O cartão recusado ficou corretamente sem provider ID, cobrança, webhook, credencial
-ou ativação. Portanto, a entrega básica do webhook está aprovada; duplicação,
-ordenação tardia, estorno e chargeback continuam pendentes.
+  ou ativação. Portanto, a entrega básica do webhook está aprovada; duplicação,
+  ordenação tardia, estorno e chargeback continuam pendentes. Em 28/08/2026, dois
+  pedidos legados pendentes da massa de teste foram encerrados com validação de
+  inventário: cartão recusado sem cobrança e Pix pendente após exclusão da cobrança
+  no Asaas. O próximo cenário é o estorno controlado do Pix pago.
 
 O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
 perfil faltante recuperado e o procedimento ficou versionado em
@@ -814,11 +822,12 @@ Verificação do estado `1d02bcf` em 20/08/2026:
 
 ## Próximas 3 tarefas
 
-1. No Supabase Sandbox, detalhar de forma mascarada as 3 chaves de identidade repetidas
-   encontradas em 28/08/2026 e decidir individualmente quais pedidos manter, cancelar
-   ou estornar. A contagem 92 × 93 já foi reconciliada: o Sandbox agora possui 93.
-2. Aplicar `supabase/production-participant-category-uniqueness.sql` somente no
-   Sandbox, revalidar `/api/health` no deployment do HEAD e comprovar pela UI/banco:
+1. No Sandbox, cancelar o Pix pago `6859a023…` pelo fluxo normal de estorno. Validar
+   no Asaas, no histórico de Minhas compras, no webhook/ledger e no inventário; manter
+   o cartão pago `2068be9c…` como a única participação ativa.
+2. Reexecutar a auditoria de duplicidade e aplicar
+   `supabase/production-participant-category-uniqueness.sql` somente no Sandbox,
+   revalidando `/api/health` no deployment do HEAD e comprovando pela UI/banco:
    mesma categoria bloqueada antes do Asaas, categoria diferente permitida e nova
    inscrição liberada após estorno/expiração.
 3. Continuar a matriz financeira por duplicidade de request/webhook, evento fora de
