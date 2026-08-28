@@ -448,6 +448,17 @@ O código passou a acompanhar essa lista, manter a vaga bloqueada em `PENDING` e
 finalizar o domínio em `DONE`; a correção ainda precisa ser validada no Preview com
 esse mesmo cenário, sem criar uma segunda solicitação.
 
+Em 28/08/2026, a investigação no Asaas confirmou que esse Pix não serve para provar
+o estorno ponta a ponta: a cobrança havia sido marcada como recebida pela ação manual
+do Sandbox, sem uma liquidação Pix real. As tentativas de estorno chegaram a
+`AWAITING_CRITICAL_ACTION_AUTHORIZATION`, e a devolução gerada apareceu no Asaas como
+uma transferência Pix de R$ 108,00 com status `Falhou` e mensagem “Falha ao processar
+a transferência”; depois disso, `refunds` voltou a `null`. O RankFTV manteve o
+ingresso `pago`, sem liberar estoque ou repasse, que é o comportamento seguro. Não
+repetir o estorno nessa cobrança. Para homologar o caso, criar uma nova cobrança Pix
+descartável e pagá-la pelo QR Code a partir de uma segunda conta Asaas Sandbox com
+saldo e chave Pix, antes de solicitar uma única devolução.
+
 O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
 perfil faltante recuperado e o procedimento ficou versionado em
 `supabase/sandbox-restore-auth-profile-trigger.sql`. Cadastro, login, conta de
@@ -849,10 +860,11 @@ Verificação do estado `1d02bcf` em 20/08/2026:
 
 ## Próximas 3 tarefas
 
-1. No Sandbox, aguardar e confirmar o estorno já solicitado do Pix pago `6859a023…`.
-   Validar no Asaas, na tela do ingresso, no webhook/ledger e no inventário: deve
-   terminar como `estornado`, com vaga liberada. Não repetir a solicitação; manter o
-   cartão pago `2068be9c…` como a única participação ativa.
+1. No Sandbox, não repetir o estorno do Pix simulado `6859a023…`: a devolução virou
+   uma transferência Pix falha. Criar uma segunda conta Asaas Sandbox pagadora, com
+   saldo e chave Pix, pagar pelo QR Code uma nova compra descartável e então solicitar
+   um único estorno. Validar no Asaas, webhook/ledger, tela e inventário até `DONE`;
+   manter o cartão pago `2068be9c…` como participação ativa de controle.
 2. Depois do estorno confirmado, reexecutar a auditoria de duplicidade e aplicar
    `supabase/production-participant-category-uniqueness.sql` somente no Sandbox,
    revalidando `/api/health` no deployment do HEAD e comprovando pela UI/banco:
@@ -862,6 +874,7 @@ Verificação do estado `1d02bcf` em 20/08/2026:
    ordem, timeout, estorno, chargeback, repasses, plateia e check-in; em paralelo,
    fechar os demais P0 manuais de conciliação, KYC, jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: aguardar a confirmação do estorno do Pix pago; até ela
-chegar, não criar outra cobrança para esse atleta/categoria. A migration de
-unicidade continua bloqueada pela auditoria dos três conflitos legados.
+Ponto exato de retomada: preparar uma segunda conta Asaas Sandbox para realizar um
+pagamento Pix real por QR Code. Não repetir o estorno de `6859a023…`; essa cobrança
+simulada terminou em transferência de devolução falha. A migration de unicidade
+continua bloqueada pela auditoria dos três conflitos legados.
