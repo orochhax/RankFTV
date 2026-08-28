@@ -29,10 +29,10 @@ Contradições encontradas no produto atual:
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 4 de 16 cenários concluídos.
+- Matriz financeira obrigatória: 5 de 16 cenários concluídos.
 - Checklist de release: 4 de 17 itens principais concluídos.
 - Última atualização: 28/08/2026
-- Último commit de código analisado: `1d02bcf` (20/08/2026)
+- Último commit de código analisado: `87537dc` (28/08/2026)
 - Estado Git-base conferido em 28/08/2026: `origin/master` em `8fd7244` e
   `origin/sandbox-homologacao` em `1d02bcf`; esta revisão altera somente este arquivo.
 
@@ -40,7 +40,7 @@ Revisão de continuidade em 28/08/2026:
 
 - O backup lógico manual foi criado e restaurado localmente com sucesso; os
   demais P0 manuais permanecem abertos.
-- A branch remota de homologação contém todas as correções da V1 até `1d02bcf`.
+- A branch remota de homologação contém todas as correções da V1 até `87537dc`.
   O último `/api/health` comprovado por evidência foi o release `f10dd67c6452`;
   portanto, o deployment do HEAD atual ainda precisa de novo health check antes
   de ser tratado como candidato aprovado.
@@ -344,21 +344,24 @@ Passo a passo:
       93 tabelas públicas, zero ingressos ativos sem categoria e 3 chaves de
       identidade repetidas. Após as decisões e o estorno conciliado, uma auditoria
       resumida retornou zero/zero, mas a checagem de segurança da própria migration
-      encontrou uma chave de identidade ainda repetida. A migration abortou antes de
-      criar qualquer objeto; falta localizar e decidir esse último conflito usando a
-      auditoria que replica integralmente a migration.
-    2. [M] Decidir individualmente qual pedido manter, cancelar ou estornar; não
+      encontrou uma chave de identidade ainda repetida. Ela foi localizada pela
+      auditoria integral e decidida antes da aplicação; a verificação final da
+      migration não encontrou conflito.
+    2. [x] Decidir individualmente qual pedido manter, cancelar ou estornar; não
        alterar diretamente uma compra paga sem reconciliar o Asaas. Em 28/08/2026,
        o cartão recusado `6538f1f8…` foi cancelado (`estornado`, sem cobrança Asaas
        e estoque liberado) e o Pix pendente `55f211f2…` teve a cobrança primeiro
        cancelada no Asaas Sandbox e depois foi encerrado no RankFTV (`estornado`,
        cobrança histórica preservada e estoque liberado). Mantém-se o cartão pago
-       `2068be9c…`; o Pix pago `6859a023…` será o cenário controlado de estorno.
-   3. [M] Aplicar a migration no Sandbox e comprovar: a aplicação foi concluída em
-      28/08/2026 com `Success. No rows returned`. Ainda falta comprovar repetição na
-      mesma categoria bloqueada antes do Asaas, categoria diferente permitida,
-      comprador/parceiro e os dois fluxos, além de nova compra liberada após
-      estorno/expiração.
+       `2068be9c…`; o Pix pago `6859a023…`, que não tinha estorno viável no Asaas,
+       foi encerrado como `expirado` no RankFTV e teve o estoque liberado. Não é
+       candidato a repasse porque o cron só seleciona ingressos `pago`.
+   3. [x] Aplicar e comprovar no Sandbox: a migration retornou `Success. No rows
+      returned` em 28/08/2026. A validação posterior confirmou 7/7 objetos (três
+      funções, dois triggers e dois índices). O teste descartável com `ROLLBACK`
+      também passou: bloqueou comprador e parceiro repetidos na mesma categoria,
+      bloqueou o cruzamento checkout/equipe, permitiu categoria diferente e liberou
+      nova compra depois de `expirado`, sem chamar o Asaas nem manter dados de teste.
    4. [ ] Somente depois da homologação, gerar backup atual de produção e aplicar em
       janela sem checkout. O próprio SQL deve abortar se encontrar conflito legado.
 
@@ -643,15 +646,15 @@ tokens ou dados pessoais.
   cobrança Asaas, provider ID, webhook ou credencial liberada. A única operação ficou
   `failed` e a única tentativa ficou `declined`.
 - [ ] (garante que dois cliques não criem duas cobranças) Request duplicado retorna/reconcilia a mesma operação externa.
-- [ ] (impede a mesma pessoa de comprar duas vezes a mesma categoria) Antes do commit
+- [x] (impede a mesma pessoa de comprar duas vezes a mesma categoria) Antes do commit
   `1d02bcf`, o fluxo com conta bloqueava o campeonato inteiro e o checkout rápido
   permitia pedidos distintos com o mesmo CPF. O código agora permite categorias
   diferentes e reserva no máximo uma vaga por atleta/categoria, cobrindo comprador,
   parceiro, os dois fluxos e concorrência antes da chamada ao Asaas. Estorno/expiração
-  libera nova inscrição preservando o histórico. A implementação passou no backup
-  restaurado local, mas o item continua pendente até: auditar os pedidos existentes,
-  resolver cada conflito, aplicar a migration no Sandbox e comprovar o comportamento
-  pela interface e pelas tabelas financeiras.
+  libera nova inscrição preservando o histórico. Em 28/08/2026, os pedidos legados
+  foram auditados e decididos, a migration foi aplicada no Sandbox e o teste SQL
+  descartável confirmou comprador, parceiro, os dois fluxos, categoria diferente e
+  liberação depois de estado terminal. Nenhum pagamento ou dado de teste foi criado.
 - [ ] (não processa duas vezes o mesmo aviso de pagamento) Webhook duplicado é ignorado pelo ledger.
 - [ ] (impede que um aviso atrasado desfaça um estorno) Webhook confirmado depois de estorno é ignorado como fora de ordem.
 - [ ] (garante que uma demora não gere outra cobrança) Timeout após aceite do provedor fica ambíguo e é conciliado sem nova cobrança.
@@ -700,8 +703,9 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
 - [ ] (mantém banco e arquivos protegidos por cópias regulares) Rotina periódica, cópia independente e backup dos objetos do Storage definidos.
 - [x] As sete migrations de 19/08/2026 e o backfill de plateia foram aplicados e
   validados em produção com evidência.
-  - [ ] A migration posterior de unicidade por participante/categoria ainda depende
-    de auditoria e aplicação no Sandbox; produção só depois dessa homologação.
+  - [x] A migration posterior de unicidade por participante/categoria foi auditada,
+    aplicada e homologada no Sandbox; produção ainda exige backup atual e janela sem
+    checkout.
 - [ ] (confere que cada usuário vê somente o que deve) RLS/Auth/Storage testados por papel.
 - [ ] (confirma todos os cenários de pagamento no simulador) Matriz financeira automatizada e sandbox aprovada.
 - [ ] (confirma que a conta real pode cobrar, estornar e repassar) KYC/capacidades/webhook Asaas de produção confirmados.
@@ -907,16 +911,14 @@ Verificação do estado `1d02bcf` em 20/08/2026:
 1. [x] No Sandbox, não repetir o estorno do Pix simulado `6859a023…`: o Pix real
    substituto (`pay_r3j64v55ldo38nmt`) foi pago, estornado e conciliado até
    `refunded/REFUNDED`, com estoque liberado e repasse estornado.
-2. Reexecutar a auditoria de duplicidade e aplicar, se ela não apontar conflitos,
-   `supabase/production-participant-category-uniqueness.sql` somente no Sandbox,
-   revalidando `/api/health` no deployment do HEAD e comprovando pela UI/banco:
-   mesma categoria bloqueada antes do Asaas, categoria diferente permitida e nova
-   inscrição liberada após estorno/expiração.
-3. Continuar a matriz financeira por duplicidade de request/webhook, evento fora de
-   ordem, timeout, estorno, chargeback, repasses, plateia e check-in; em paralelo,
-   fechar os demais P0 manuais de conciliação, KYC, jurídico/suporte e e-mail DNS.
+2. [x] No Sandbox, aplicar e homologar
+   `supabase/production-participant-category-uniqueness.sql`: os objetos e os cinco
+   comportamentos de proteção foram confirmados em teste descartável com `ROLLBACK`.
+3. Continuar a matriz financeira pelo request duplicado: comprovar que dois envios
+   equivalentes retornam/reconciliam a mesma operação e não criam segunda cobrança.
+   Em seguida, testar webhook duplicado, evento fora de ordem, timeout, chargeback,
+   repasses, plateia e check-in; em paralelo, fechar conciliação, KYC,
+   jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: reexecutar no Sandbox a auditoria de participantes repetidos
-e ingressos ativos sem categoria. A migration de unicidade só pode ser aplicada quando
-os conflitos legados que ela apontar tiverem decisão individual e estado financeiro
-reconciliado.
+Ponto exato de retomada: no Sandbox, exercitar o cenário financeiro de request
+duplicado sem gerar uma segunda cobrança no Asaas.
