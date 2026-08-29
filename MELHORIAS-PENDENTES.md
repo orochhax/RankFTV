@@ -70,3 +70,14 @@ implementados sem uma solicitação explícita de pacote de melhorias.
 - Critério de UX: erros de validação não podem apagar dados válidos nem voltar a
   etapa anterior; o foco deve ir para o primeiro campo inválido e a pessoa deve
   conseguir corrigir somente ele.
+
+## Ingressos: mostrar nome do atleta, nunca e-mail como identificação
+
+- Registrado em 28/08/2026 no detalhe de ingresso da categoria `Teste duplicidade`.
+- Problema: em alguns ingressos, o cabeçalho mostra o e-mail no lugar do nome de um
+  atleta, enquanto o outro participante aparece corretamente pelo nome.
+- Resultado esperado: em cartões, cabeçalhos, QR/credencial, Minhas compras e telas
+  de detalhe, usar sempre `comprador_nome` e `parceiro_nome` como identificação
+  pública. O e-mail só deve aparecer em contexto explícito de contato ou entrega.
+- Critério de UX: quando o nome estiver ausente em dado histórico, mostrar um rótulo
+  neutro como “Atleta não informado”; nunca fazer fallback visual para e-mail.
