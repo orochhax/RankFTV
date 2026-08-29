@@ -8,6 +8,7 @@ import { IngressoOpcoesMenu } from "@/components/ingressos/IngressoOpcoesMenu";
 import { RefundStatusPanel } from "@/components/ingressos/RefundStatusPanel";
 import { formatBRL } from "@/lib/format";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
+import { PageContainer } from "@/components/shell/PageContainer";
 
 function dataBR(iso: string) {
   return new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", {
@@ -34,7 +35,7 @@ export default async function IngressoPlateiaPage({
   const supabase = createAdminClient();
   const { data: t } = await supabase
     .from("spectator_tickets")
-    .select("id, tipo_nome, comprador_nome, comprador_email, comprador_cpf, valor, quantidade, itens, status_pagamento, billing_type, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in")
+    .select("id, tipo_nome, comprador_nome, comprador_email, comprador_cpf, valor, quantidade, itens, status_pagamento, billing_type, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at")
     .eq("id", ticketId)
     .eq("access_token", accessToken)
     .maybeSingle();
@@ -42,15 +43,18 @@ export default async function IngressoPlateiaPage({
 
   const { data: refundOperation } = await supabase
     .from("financial_operations")
-    .select("status, created_at")
+    .select("status, provider_status, created_at, updated_at, completed_at")
     .eq("flow", "spectator_ticket")
     .eq("operation_type", "refund")
     .eq("record_id", ticketId)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const estornoEmAndamento = refundOperation?.status != null
-    && t.status_pagamento !== "estornado";
+  const hasRefundOperation = Boolean(refundOperation);
+  const terminal = t.status_pagamento === "estornado" || t.status_pagamento === "expirado";
+  const refundStatus = refundOperation?.provider_status === "REFUNDED"
+    ? "refunded"
+    : refundOperation?.status ?? null;
 
   const { data: normalizedItems } = await supabase
     .from("spectator_ticket_items")
@@ -88,7 +92,7 @@ export default async function IngressoPlateiaPage({
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="mx-auto max-w-md px-6 py-8">
+      <PageContainer width="wide" className="py-8">
         <div className="flex items-center justify-between">
           <Link
             href={backHref}
@@ -96,11 +100,12 @@ export default async function IngressoPlateiaPage({
           >
             <ArrowLeft className="size-4" /> {voltar === "minhas-compras" ? "Minhas Compras" : (champ?.nome ?? "Campeonato")}
           </Link>
-          {t.status_pagamento !== "estornado" && !estornoEmAndamento && (
+          {!terminal && !hasRefundOperation && (
               <IngressoOpcoesMenu
                 tipo="plateia"
                 ticketId={t.id}
                 accessToken={accessToken}
+                billingType={t.billing_type}
                 dadosAtuais={{
                 compradorNome:  t.comprador_nome,
                 compradorEmail: t.comprador_email,
@@ -137,27 +142,14 @@ export default async function IngressoPlateiaPage({
           )}
 
           <div className="px-6 py-6">
-            {estornoEmAndamento ? (
+            {hasRefundOperation || terminal ? (
               <RefundStatusPanel
                 billingType={t.billing_type}
+                refundStatus={refundStatus}
                 requestedAt={refundOperation?.created_at ?? null}
+                completedAt={refundOperation?.completed_at ?? (refundStatus === "refunded" ? refundOperation?.updated_at ?? null : null)}
+                cancelledAt={t.inventory_released_at ?? null}
               />
-            ) : t.status_pagamento === "estornado" ? (
-              <section className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
-                <h2 className="text-lg font-semibold text-red-950">Ingresso cancelado</h2>
-                <p className="mt-2 text-sm text-red-800">
-                  Este ingresso não pode mais receber pagamento nem ser usado para entrar no campeonato.
-                </p>
-                <p className="mt-1 text-sm text-red-800">
-                  Se houve pagamento, acompanhe o status do estorno no histórico de Minhas compras.
-                </p>
-                <Link
-                  href="/minhas-compras"
-                  className="mt-5 inline-flex rounded-xl bg-red-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-800"
-                >
-                  Ver minhas compras
-                </Link>
-              </section>
             ) : (
               <IngressoPlateiaStatus
                 ticketId={t.id}
@@ -202,7 +194,7 @@ export default async function IngressoPlateiaPage({
             </div>
           )}
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

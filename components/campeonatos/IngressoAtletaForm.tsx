@@ -1,13 +1,18 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Loader2, Trophy, Check, CreditCard, QrCode } from "lucide-react";
-import { comprarIngressoAtleta, type ComprarAtletaState } from "@/app/campeonatos/[id]/comprar/actions";
+import {
+  comprarIngressoAtleta,
+  type ComprarAtletaField,
+  type ComprarAtletaState,
+} from "@/app/campeonatos/[id]/comprar/actions";
 import { formatBRL } from "@/lib/format";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 import { CupomInput, type CupomAplicado } from "@/components/ui/CupomInput";
 import type { LoteComStatus } from "@/lib/lotes";
 import { PERGUNTAS_NIVEL } from "@/lib/motor-categoria";
+import { formatCpf } from "@/lib/cpf";
 
 export type CategoriaOpcao = {
   id: string;
@@ -65,7 +70,17 @@ function BarraDeProgresso({ etapa }: { etapa: Etapa }) {
 // (comprador e parceiro) quando o campeonato tem o motor de categoria
 // ligado. Os names ficam prefixados ("comprador_quiz_"/"parceiro_quiz_")
 // pro server action calcular o rating de cada um separadamente.
-function QuestionarioNivel({ prefixo, titulo }: { prefixo: string; titulo: string }) {
+function QuestionarioNivel({
+  prefixo,
+  titulo,
+  values,
+  onChange,
+}: {
+  prefixo: string;
+  titulo: string;
+  values: Record<string, string>;
+  onChange: (field: string, value: string) => void;
+}) {
   const select =
     "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
   return (
@@ -79,7 +94,13 @@ function QuestionarioNivel({ prefixo, titulo }: { prefixo: string; titulo: strin
       {PERGUNTAS_NIVEL.map((p) => (
         <div key={p.key}>
           <label className="block text-sm font-medium text-gray-700">{p.pergunta}</label>
-          <select name={`${prefixo}${p.key}`} className={`mt-1 ${select}`} defaultValue="" required>
+          <select
+            name={`${prefixo}${p.key}`}
+            className={`mt-1 ${select}`}
+            value={values[`${prefixo}${p.key}`] ?? ""}
+            onChange={(event) => onChange(`${prefixo}${p.key}`, event.target.value)}
+            required
+          >
             <option value="" disabled>Selecione</option>
             {p.opcoes.map((o) => (
               <option key={o.valor} value={o.valor}>{o.label}</option>
@@ -106,10 +127,45 @@ export function IngressoAtletaForm({
   const [catSelecionada, setCat] = useState<CategoriaOpcao | null>(null);
   const [cupom, setCupom] = useState<CupomAplicado | null>(null);
   const [metodoPagamento, setMetodoPagamento] = useState<"pix" | "cartao">("pix");
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [dismissedErrors, setDismissedErrors] = useState<Partial<Record<ComprarAtletaField, number>>>({});
   const [state, formAction, pending] = useActionState<ComprarAtletaState, FormData>(
     comprarIngressoAtleta,
     {},
   );
+  const compradorNomeRef = useRef<HTMLInputElement>(null);
+  const compradorCpfRef = useRef<HTMLInputElement>(null);
+  const parceiroNomeRef = useRef<HTMLInputElement>(null);
+  const parceiroCpfRef = useRef<HTMLInputElement>(null);
+
+  const visibleFieldError = (field: ComprarAtletaField) =>
+    dismissedErrors[field] === state.validationAttempt ? undefined : state.fieldErrors?.[field];
+
+  function updateValue(field: string, value: string) {
+    setValues((current) => ({ ...current, [field]: value }));
+    if (state.fieldErrors?.[field as ComprarAtletaField]) {
+      setDismissedErrors((current) => ({
+        ...current,
+        [field]: state.validationAttempt ?? 0,
+      }));
+    }
+  }
+
+  useEffect(() => {
+    const refs = {
+      comprador_nome: compradorNomeRef,
+      comprador_cpf: compradorCpfRef,
+      parceiro_nome: parceiroNomeRef,
+      parceiro_cpf: parceiroCpfRef,
+    };
+    const firstInvalid = ([
+      "comprador_nome",
+      "comprador_cpf",
+      "parceiro_nome",
+      "parceiro_cpf",
+    ] as ComprarAtletaField[]).find((field) => state.fieldErrors?.[field]);
+    if (firstInvalid) refs[firstInvalid].current?.focus();
+  }, [state.fieldErrors, state.validationAttempt]);
 
   const input =
     "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -236,27 +292,84 @@ export function IngressoAtletaForm({
             <p className="text-sm font-semibold text-gray-800">Seus dados (atleta 1)</p>
             <div>
               <label className="block text-sm font-medium text-gray-700">Nome completo</label>
-              <input name="comprador_nome" className={`mt-1 ${input}`} placeholder="Como vai aparecer no ingresso" required />
+              <input
+                ref={compradorNomeRef}
+                name="comprador_nome"
+                className={`mt-1 ${input} ${visibleFieldError("comprador_nome") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
+                placeholder="Como vai aparecer no ingresso"
+                value={values.comprador_nome ?? ""}
+                onChange={(event) => updateValue("comprador_nome", event.target.value)}
+                aria-invalid={!!visibleFieldError("comprador_nome")}
+                aria-describedby={visibleFieldError("comprador_nome") ? "comprador-nome-error" : undefined}
+                autoComplete="name"
+                required
+              />
+              {visibleFieldError("comprador_nome") && (
+                <p id="comprador-nome-error" className="mt-1 text-xs font-medium text-red-600">
+                  {visibleFieldError("comprador_nome")}
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">CPF</label>
-                <input name="comprador_cpf" inputMode="numeric" className={`mt-1 ${input}`} placeholder="Somente números" required maxLength={11} />
+                <input
+                  ref={compradorCpfRef}
+                  name="comprador_cpf"
+                  inputMode="numeric"
+                  className={`mt-1 ${input} ${visibleFieldError("comprador_cpf") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
+                  placeholder="000.000.000-00"
+                  value={values.comprador_cpf ?? ""}
+                  onChange={(event) => updateValue("comprador_cpf", formatCpf(event.target.value))}
+                  aria-invalid={!!visibleFieldError("comprador_cpf")}
+                  aria-describedby={visibleFieldError("comprador_cpf") ? "comprador-cpf-error" : undefined}
+                  autoComplete="off"
+                  required
+                  maxLength={14}
+                />
+                {visibleFieldError("comprador_cpf") && (
+                  <p id="comprador-cpf-error" className="mt-1 text-xs font-medium text-red-600">
+                    {visibleFieldError("comprador_cpf")}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
-                <input name="comprador_zap" inputMode="numeric" className={`mt-1 ${input}`} placeholder="DDD + número" />
+                <input
+                  name="comprador_zap"
+                  inputMode="numeric"
+                  className={`mt-1 ${input}`}
+                  placeholder="DDD + número"
+                  value={values.comprador_zap ?? ""}
+                  onChange={(event) => updateValue("comprador_zap", event.target.value)}
+                  autoComplete="tel"
+                />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">E-mail</label>
-              <input name="comprador_email" type="email" className={`mt-1 ${input}`} placeholder="voce@email.com" required />
+              <input
+                name="comprador_email"
+                type="email"
+                className={`mt-1 ${input}`}
+                placeholder="voce@email.com"
+                value={values.comprador_email ?? ""}
+                onChange={(event) => updateValue("comprador_email", event.target.value)}
+                autoComplete="email"
+                required
+              />
               <p className="mt-1 text-xs text-gray-400">O ingresso e QR de entrada chegam nesse e-mail.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Gênero</label>
-                <select name="comprador_genero" className={`mt-1 ${select}`} defaultValue="" required>
+                <select
+                  name="comprador_genero"
+                  className={`mt-1 ${select}`}
+                  value={values.comprador_genero ?? ""}
+                  onChange={(event) => updateValue("comprador_genero", event.target.value)}
+                  required
+                >
                   <option value="" disabled>Selecione</option>
                   <option value="masculino">Masculino</option>
                   <option value="feminino">Feminino</option>
@@ -270,7 +383,12 @@ export function IngressoAtletaForm({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Camisa (kit)</label>
-                <select name="comprador_camisa" className={`mt-1 ${select}`}>
+                <select
+                  name="comprador_camisa"
+                  className={`mt-1 ${select}`}
+                  value={values.comprador_camisa ?? ""}
+                  onChange={(event) => updateValue("comprador_camisa", event.target.value)}
+                >
                   <option value="">Não informar</option>
                   {CAMISAS.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -278,34 +396,97 @@ export function IngressoAtletaForm({
             </div>
           </section>
 
-          {usaMotorCategoria && <QuestionarioNivel prefixo="comprador_quiz_" titulo="Nível do atleta 1 (você)" />}
+          {usaMotorCategoria && (
+            <QuestionarioNivel
+              prefixo="comprador_quiz_"
+              titulo="Nível do atleta 1 (você)"
+              values={values}
+              onChange={updateValue}
+            />
+          )}
 
           {/* Dados do parceiro */}
           <section className="space-y-3">
             <p className="text-sm font-semibold text-gray-800">Dados do parceiro (atleta 2)</p>
             <div>
               <label className="block text-sm font-medium text-gray-700">Nome completo</label>
-              <input name="parceiro_nome" className={`mt-1 ${input}`} placeholder="Nome completo do parceiro" required />
+              <input
+                ref={parceiroNomeRef}
+                name="parceiro_nome"
+                className={`mt-1 ${input} ${visibleFieldError("parceiro_nome") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
+                placeholder="Nome completo do parceiro"
+                value={values.parceiro_nome ?? ""}
+                onChange={(event) => updateValue("parceiro_nome", event.target.value)}
+                aria-invalid={!!visibleFieldError("parceiro_nome")}
+                aria-describedby={visibleFieldError("parceiro_nome") ? "parceiro-nome-error" : undefined}
+                autoComplete="off"
+                required
+              />
+              {visibleFieldError("parceiro_nome") && (
+                <p id="parceiro-nome-error" className="mt-1 text-xs font-medium text-red-600">
+                  {visibleFieldError("parceiro_nome")}
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">CPF</label>
-                <input name="parceiro_cpf" inputMode="numeric" className={`mt-1 ${input}`} placeholder="Somente números" required maxLength={11} />
+                <input
+                  ref={parceiroCpfRef}
+                  name="parceiro_cpf"
+                  inputMode="numeric"
+                  className={`mt-1 ${input} ${visibleFieldError("parceiro_cpf") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
+                  placeholder="000.000.000-00"
+                  value={values.parceiro_cpf ?? ""}
+                  onChange={(event) => updateValue("parceiro_cpf", formatCpf(event.target.value))}
+                  aria-invalid={!!visibleFieldError("parceiro_cpf")}
+                  aria-describedby={visibleFieldError("parceiro_cpf") ? "parceiro-cpf-error" : undefined}
+                  autoComplete="off"
+                  required
+                  maxLength={14}
+                />
+                {visibleFieldError("parceiro_cpf") && (
+                  <p id="parceiro-cpf-error" className="mt-1 text-xs font-medium text-red-600">
+                    {visibleFieldError("parceiro_cpf")}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
-                <input name="parceiro_zap" inputMode="numeric" className={`mt-1 ${input}`} placeholder="DDD + número" />
+                <input
+                  name="parceiro_zap"
+                  inputMode="numeric"
+                  className={`mt-1 ${input}`}
+                  placeholder="DDD + número"
+                  value={values.parceiro_zap ?? ""}
+                  onChange={(event) => updateValue("parceiro_zap", event.target.value)}
+                  autoComplete="off"
+                />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">E-mail</label>
-              <input name="parceiro_email" type="email" className={`mt-1 ${input}`} placeholder="parceiro@email.com" />
+              <input
+                name="parceiro_email"
+                type="email"
+                className={`mt-1 ${input}`}
+                placeholder="parceiro@email.com"
+                value={values.parceiro_email ?? ""}
+                onChange={(event) => updateValue("parceiro_email", event.target.value)}
+                autoComplete="off"
+              />
               <p className="mt-1 text-xs text-gray-400">O ingresso e QR de entrada chegam nesse e-mail.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Gênero</label>
-                <select name="parceiro_genero" className={`mt-1 ${select}`} defaultValue="" required>
+                <select
+                  name="parceiro_genero"
+                  className={`mt-1 ${select}`}
+                  value={values.parceiro_genero ?? ""}
+                  onChange={(event) => updateValue("parceiro_genero", event.target.value)}
+                  required
+                >
                   <option value="" disabled>Selecione</option>
                   <option value="masculino">Masculino</option>
                   <option value="feminino">Feminino</option>
@@ -319,7 +500,12 @@ export function IngressoAtletaForm({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Camisa (kit)</label>
-                <select name="parceiro_camisa" className={`mt-1 ${select}`}>
+                <select
+                  name="parceiro_camisa"
+                  className={`mt-1 ${select}`}
+                  value={values.parceiro_camisa ?? ""}
+                  onChange={(event) => updateValue("parceiro_camisa", event.target.value)}
+                >
                   <option value="">Não informar</option>
                   {CAMISAS.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -327,7 +513,14 @@ export function IngressoAtletaForm({
             </div>
           </section>
 
-          {usaMotorCategoria && <QuestionarioNivel prefixo="parceiro_quiz_" titulo="Nível do parceiro (atleta 2)" />}
+          {usaMotorCategoria && (
+            <QuestionarioNivel
+              prefixo="parceiro_quiz_"
+              titulo="Nível do parceiro (atleta 2)"
+              values={values}
+              onChange={updateValue}
+            />
+          )}
 
           {/* Cupom de desconto */}
           {valor > 0 && (

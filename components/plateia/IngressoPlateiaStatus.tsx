@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import QRCode from "qrcode";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { formatBRL } from "@/lib/format";
@@ -36,6 +37,7 @@ export function IngressoPlateiaStatus({
   pixCopyPaste,
   pixQrBase64,
 }: Props) {
+  const router = useRouter();
   const [statusPagamento, setStatusPagamento] = useState(initialStatusPagamento);
   const [checkedIn, setCheckedIn] = useState(initialCheckedIn);
   const [entradaQr, setEntradaQr] = useState(initialEntradaQr);
@@ -44,9 +46,9 @@ export function IngressoPlateiaStatus({
   const pago = statusPagamento === "pago";
 
   useEffect(() => {
-    if (pago) return; // já confirmado — não precisa mais checar
+    if (statusPagamento !== "pendente") return;
     stoppedRef.current = false;
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
     async function check() {
       if (stoppedRef.current) return;
@@ -54,10 +56,12 @@ export function IngressoPlateiaStatus({
         const res = await fetch(`/api/ticket-status?tipo=plateia&id=${ticketId}&token=${accessToken}`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
-          if (data.status_pagamento === "pago") {
-            setStatusPagamento("pago");
+          const nextStatus = String(data.status_pagamento ?? "pendente");
+          if (nextStatus !== "pendente") {
+            stoppedRef.current = true;
+            setStatusPagamento(nextStatus);
             setCheckedIn(!!data.checked_in);
-            if (qrToken) {
+            if (nextStatus === "pago" && qrToken) {
               const dataUrl = await QRCode.toDataURL(qrToken, {
                 width: 280,
                 margin: 2,
@@ -66,6 +70,7 @@ export function IngressoPlateiaStatus({
               });
               setEntradaQr(dataUrl);
             }
+            router.refresh();
             return;
           }
         }
@@ -75,11 +80,18 @@ export function IngressoPlateiaStatus({
       if (!stoppedRef.current) timer = setTimeout(check, 3000);
     }
 
-    timer = setTimeout(check, 3000);
-    const maxTimer = setTimeout(() => { stoppedRef.current = true; clearTimeout(timer); }, 20 * 60 * 1000);
+    void check();
+    const maxTimer = setTimeout(() => {
+      stoppedRef.current = true;
+      if (timer) clearTimeout(timer);
+    }, 20 * 60 * 1000);
 
-    return () => { stoppedRef.current = true; clearTimeout(timer); clearTimeout(maxTimer); };
-  }, [pago, ticketId, accessToken, qrToken]);
+    return () => {
+      stoppedRef.current = true;
+      if (timer) clearTimeout(timer);
+      clearTimeout(maxTimer);
+    };
+  }, [statusPagamento, ticketId, accessToken, qrToken, router]);
 
   if (pago) {
     return (
@@ -101,6 +113,16 @@ export function IngressoPlateiaStatus({
         {code && (
           <p className="font-mono text-xs tracking-[0.2em] text-gray-400">{code}</p>
         )}
+      </div>
+    );
+  }
+
+  if (statusPagamento === "estornado" || statusPagamento === "expirado") {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
+        <AlertCircle className="mx-auto size-6 text-red-600" />
+        <p className="mt-2 text-sm font-semibold text-red-900">Este ingresso foi cancelado</p>
+        <p className="mt-1 text-xs text-red-700">Atualizando o histórico da compra…</p>
       </div>
     );
   }

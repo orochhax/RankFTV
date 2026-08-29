@@ -19,6 +19,8 @@ import {
   normalizeCardHolderPhone,
 } from "@/lib/card-holder";
 import { getClientIp } from "@/lib/rate-limit";
+import { normalizeCpf } from "@/lib/cpf";
+import { isValidAthleteName } from "@/lib/athlete-display-name";
 
 export type CardPaymentInput = {
   ticketId:    string;
@@ -199,23 +201,23 @@ export async function alterarTitularidadeAtleta(
     return { ok: false, error: "Esse ingresso foi cancelado — não dá pra alterar." };
 
   const compradorNome   = input.compradorNome.trim();
-  const compradorCpf    = input.compradorCpf.replace(/\D/g, "");
+  const compradorCpf    = normalizeCpf(input.compradorCpf);
   const compradorEmail  = input.compradorEmail.trim();
   const compradorZap    = input.compradorZap.replace(/\D/g, "");
   const compradorGenero = input.compradorGenero;
   const parceiroNome    = input.parceiroNome.trim();
-  const parceiroCpf     = input.parceiroCpf.replace(/\D/g, "");
+  const parceiroCpf     = normalizeCpf(input.parceiroCpf);
   const parceiroEmail   = input.parceiroEmail.trim();
   const parceiroZap     = input.parceiroZap.replace(/\D/g, "");
   const parceiroGenero  = input.parceiroGenero;
 
-  if (!compradorNome)  return { ok: false, error: "Informe o nome do atleta 1." };
+  if (!isValidAthleteName(compradorNome)) return { ok: false, error: "Informe o nome do atleta 1, não o e-mail." };
   if (compradorCpf.length !== 11) return { ok: false, error: "CPF do atleta 1 inválido (11 dígitos)." };
   if (!compradorEmail.includes("@")) return { ok: false, error: "E-mail do atleta 1 inválido." };
   if (!compradorZap) return { ok: false, error: "Informe o WhatsApp do atleta 1." };
   if (compradorGenero !== "masculino" && compradorGenero !== "feminino")
     return { ok: false, error: "Informe o gênero do atleta 1." };
-  if (!parceiroNome)  return { ok: false, error: "Informe o nome do atleta 2." };
+  if (!isValidAthleteName(parceiroNome)) return { ok: false, error: "Informe o nome do atleta 2, não o e-mail." };
   if (parceiroCpf.length !== 11) return { ok: false, error: "CPF do atleta 2 inválido (11 dígitos)." };
   if (!parceiroEmail.includes("@")) return { ok: false, error: "E-mail do atleta 2 inválido." };
   if (!parceiroZap) return { ok: false, error: "Informe o WhatsApp do atleta 2." };
@@ -326,7 +328,8 @@ export async function cancelarIngressoAtleta(
   });
   if (!refund.ok) {
     if (refund.ambiguous || refund.inProgress) {
-      return { ok: false, error: "O reembolso esta sendo confirmado. Nao repita a solicitacao." };
+      revalidatePath(path);
+      return { ok: true, outcome: "estorno_solicitado" };
     }
     return { ok: false, error: refund.error };
   }

@@ -106,11 +106,13 @@ export async function cancelarIngressoPlateia(
   });
 
   if (!refund.ok) {
+    if (refund.ambiguous || refund.inProgress) {
+      revalidatePath(path);
+      return { ok: true, outcome: "estorno_solicitado" };
+    }
     return {
       ok: false,
-      error: refund.ambiguous || refund.inProgress
-        ? "O cancelamento esta sendo confirmado. Nao repita a solicitacao."
-        : refund.error,
+      error: refund.error,
     };
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock, Loader2, AlertCircle } from "lucide-react";
 import QRCode from "qrcode";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -47,6 +48,7 @@ export function IngressoAtletaPagamento({
   pixQrBase64,
   paymentMethod,
 }: Props) {
+  const router = useRouter();
   const [statusPagamento, setStatusPagamento] = useState(initialStatusPagamento);
   const [checkedIn, setCheckedIn] = useState(initialCheckedIn);
   const [entradaQr, setEntradaQr] = useState(initialEntradaQr);
@@ -65,12 +67,13 @@ export function IngressoAtletaPagamento({
     setEntradaQr(dataUrl);
   }
 
-  // Polling: verifica a cada 3s se o Pix foi confirmado. Para sozinho
-  // quando pago ou após 20 minutos.
+  // Consulta apenas este ingresso e considera o banco como fonte da verdade.
+  // Para em qualquer estado final e atualiza também o Server Component, que
+  // contém a timeline de cancelamento/estorno.
   useEffect(() => {
-    if (pago) return;
+    if (statusPagamento !== "pendente") return;
     stoppedRef.current = false;
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
     async function check() {
       if (stoppedRef.current) return;
@@ -78,10 +81,13 @@ export function IngressoAtletaPagamento({
         const res = await fetch(`/api/ticket-status?tipo=atleta&id=${ticketId}&token=${accessToken}`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
-          if (data.status_pagamento === "pago") {
-            setStatusPagamento("pago");
+          const nextStatus = String(data.status_pagamento ?? "pendente");
+          if (nextStatus !== "pendente") {
+            stoppedRef.current = true;
+            setStatusPagamento(nextStatus);
             setCheckedIn(!!data.checked_in);
-            await gerarEntradaQr();
+            if (nextStatus === "pago") await gerarEntradaQr();
+            router.refresh();
             return;
           }
         }
@@ -91,12 +97,19 @@ export function IngressoAtletaPagamento({
       if (!stoppedRef.current) timer = setTimeout(check, 3000);
     }
 
-    timer = setTimeout(check, 3000);
-    const maxTimer = setTimeout(() => { stoppedRef.current = true; clearTimeout(timer); }, 20 * 60 * 1000);
+    void check();
+    const maxTimer = setTimeout(() => {
+      stoppedRef.current = true;
+      if (timer) clearTimeout(timer);
+    }, 20 * 60 * 1000);
 
-    return () => { stoppedRef.current = true; clearTimeout(timer); clearTimeout(maxTimer); };
+    return () => {
+      stoppedRef.current = true;
+      if (timer) clearTimeout(timer);
+      clearTimeout(maxTimer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pago, ticketId, accessToken, qrToken]);
+  }, [statusPagamento, ticketId, accessToken, qrToken, router]);
 
   if (pago) {
     return (
@@ -113,6 +126,16 @@ export function IngressoAtletaPagamento({
         </p>
         {code && <p className="font-mono text-xs tracking-[0.2em] text-gray-400">{code}</p>}
         <p className="text-xs text-blue-600">Salve o link desta página para acessar depois.</p>
+      </div>
+    );
+  }
+
+  if (statusPagamento === "estornado" || statusPagamento === "expirado") {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
+        <AlertCircle className="mx-auto size-6 text-red-600" />
+        <p className="mt-2 text-sm font-semibold text-red-900">Este ingresso foi cancelado</p>
+        <p className="mt-1 text-xs text-red-700">Atualizando o histórico da compra…</p>
       </div>
     );
   }

@@ -9,6 +9,7 @@ import { IngressoOpcoesMenu } from "@/components/ingressos/IngressoOpcoesMenu";
 import { RefundStatusPanel } from "@/components/ingressos/RefundStatusPanel";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 import { PageContainer } from "@/components/shell/PageContainer";
+import { athleteDisplayName } from "@/lib/athlete-display-name";
 
 const AVATAR_COLORS = ["bg-blue-500", "bg-blue-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
 function avatarColor(str: string) {
@@ -42,7 +43,7 @@ export default async function IngressoAtletaPage({
   const { data: t } = await supabase
     .from("athlete_tickets")
     .select(
-      "id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, billing_type, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in",
+      "id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, billing_type, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at",
     )
     .eq("id", ticketId)
     .eq("access_token", accessToken)
@@ -51,15 +52,18 @@ export default async function IngressoAtletaPage({
 
   const { data: refundOperation } = await supabase
     .from("financial_operations")
-    .select("status, created_at")
+    .select("status, provider_status, created_at, updated_at, completed_at")
     .eq("flow", "athlete_ticket")
     .eq("operation_type", "refund")
     .eq("record_id", ticketId)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const estornoEmAndamento = refundOperation?.status != null
-    && t.status_pagamento !== "estornado";
+  const hasRefundOperation = Boolean(refundOperation);
+  const terminal = t.status_pagamento === "estornado" || t.status_pagamento === "expirado";
+  const refundStatus = refundOperation?.provider_status === "REFUNDED"
+    ? "refunded"
+    : refundOperation?.status ?? null;
 
   const { data: champ } = await supabase
     .from("championships")
@@ -78,6 +82,8 @@ export default async function IngressoAtletaPage({
   }
 
   const pago = t.status_pagamento === "pago";
+  const compradorPublicName = athleteDisplayName(t.comprador_nome);
+  const parceiroPublicName = athleteDisplayName(t.parceiro_nome);
 
   let entradaQr: string | null = null;
   if (pago && t.qr_token) {
@@ -101,11 +107,12 @@ export default async function IngressoAtletaPage({
             >
               <ArrowLeft className="size-4" /> {voltar === "minhas-compras" ? "Minhas Compras" : "Voltar ao campeonato"}
             </Link>
-            {t.status_pagamento !== "estornado" && !estornoEmAndamento && (
+            {!terminal && !hasRefundOperation && (
               <IngressoOpcoesMenu
                 tipo="atleta"
                 ticketId={t.id}
                 accessToken={accessToken}
+                billingType={t.billing_type}
                 dadosAtuais={{
                   compradorNome:   t.comprador_nome,
                   compradorCpf:    t.comprador_cpf,
@@ -133,18 +140,14 @@ export default async function IngressoAtletaPage({
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <Avatar nome={t.comprador_nome} color={avatarColor(t.comprador_nome)} size="sm" />
-              <span className="text-sm font-medium text-white">{t.comprador_nome}</span>
+              <Avatar nome={compradorPublicName} color={avatarColor(compradorPublicName)} size="sm" />
+              <span className="text-sm font-medium text-white">{compradorPublicName}</span>
             </div>
-            {t.parceiro_nome && (
-              <>
-                <span className="text-white/30">+</span>
-                <div className="flex items-center gap-2">
-                  <Avatar nome={t.parceiro_nome} color={avatarColor(t.parceiro_nome)} size="sm" />
-                  <span className="text-sm font-medium text-white">{t.parceiro_nome}</span>
-                </div>
-              </>
-            )}
+            <span className="text-white/30">+</span>
+            <div className="flex items-center gap-2">
+              <Avatar nome={parceiroPublicName} color={avatarColor(parceiroPublicName)} size="sm" />
+              <span className="text-sm font-medium text-white">{parceiroPublicName}</span>
+            </div>
           </div>
 
           {t.code && (
@@ -156,27 +159,14 @@ export default async function IngressoAtletaPage({
       {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
       <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:shadow-none">
         <PageContainer width="wide" className="space-y-6">
-          {estornoEmAndamento ? (
+          {hasRefundOperation || terminal ? (
             <RefundStatusPanel
               billingType={t.billing_type}
+              refundStatus={refundStatus}
               requestedAt={refundOperation?.created_at ?? null}
+              completedAt={refundOperation?.completed_at ?? (refundStatus === "refunded" ? refundOperation?.updated_at ?? null : null)}
+              cancelledAt={t.inventory_released_at ?? null}
             />
-          ) : t.status_pagamento === "estornado" ? (
-            <section className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-              <h2 className="text-lg font-semibold text-red-950">Ingresso cancelado</h2>
-              <p className="mt-2 text-sm text-red-800">
-                Este ingresso não pode mais receber pagamento nem ser usado para entrar no campeonato.
-              </p>
-              <p className="mt-1 text-sm text-red-800">
-                Se houve pagamento, acompanhe o status do estorno no histórico de Minhas compras.
-              </p>
-              <Link
-                href="/minhas-compras"
-                className="mt-5 inline-flex rounded-xl bg-red-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-800"
-              >
-                Ver minhas compras
-              </Link>
-            </section>
           ) : (
             <IngressoAtletaPagamento
               ticketId={t.id}

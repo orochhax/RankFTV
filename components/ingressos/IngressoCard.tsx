@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Ticket, Users, CheckCircle2, Clock, ChevronRight } from "lucide-react";
+import { athleteDisplayName } from "@/lib/athlete-display-name";
 
 export type Ingresso = {
   id:               string;
@@ -37,6 +38,8 @@ export function IngressoCard({
       ? "Estorno solicitado"
       : null;
   const estornoEmAndamento = !!refundLabel && !estornado;
+  const compradorPublicName = isAtleta ? athleteDisplayName(ing.comprador_nome) : ing.comprador_nome;
+  const parceiroPublicName = athleteDisplayName(ing.parceiro_nome);
 
   const params = new URLSearchParams();
   if (ing.access_token) params.set("token", ing.access_token);
@@ -74,9 +77,9 @@ export function IngressoCard({
       <div className="flex items-center justify-between gap-3 bg-white px-5 py-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            {isAtleta && ing.parceiro_nome
-              ? <><span className="font-medium">{ing.comprador_nome}</span> + <span className="font-medium">{ing.parceiro_nome}</span></>
-              : <span className="font-medium truncate">{ing.comprador_nome}</span>}
+            {isAtleta
+              ? <><span className="font-medium">{compradorPublicName}</span> + <span className="font-medium">{parceiroPublicName}</span></>
+              : <span className="font-medium truncate">{compradorPublicName}</span>}
           </div>
 
           <div className="mt-2 flex items-center gap-1 text-xs font-semibold">

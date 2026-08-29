@@ -24,6 +24,8 @@ import {
   isParticipantCategoryConflict,
   participantCategoryConflictMessage,
 } from "@/lib/participant-registration";
+import { normalizeCpf } from "@/lib/cpf";
+import { isValidAthleteName } from "@/lib/athlete-display-name";
 
 // Lê e valida as 5 respostas do questionário de nível de UM dos atletas
 // (prefixo "comprador_quiz_" ou "parceiro_quiz_" no FormData) e devolve o
@@ -41,10 +43,20 @@ function calcularRatingDoFormulario(formData: FormData, prefixo: string): number
   return calcularRatingQuestionario(raw as unknown as RespostasQuestionario);
 }
 
-export type ComprarAtletaState = { error?: string };
+export type ComprarAtletaField =
+  | "comprador_nome"
+  | "comprador_cpf"
+  | "parceiro_nome"
+  | "parceiro_cpf";
+
+export type ComprarAtletaState = {
+  error?: string;
+  fieldErrors?: Partial<Record<ComprarAtletaField, string>>;
+  validationAttempt?: number;
+};
 
 export async function comprarIngressoAtleta(
-  _prev: ComprarAtletaState,
+  previousState: ComprarAtletaState,
   formData: FormData,
 ): Promise<ComprarAtletaState> {
   const championshipId = formData.get("championship_id") as string;
@@ -56,7 +68,7 @@ export async function comprarIngressoAtleta(
 
   // Comprador
   const nome      = ((formData.get("comprador_nome")  as string) ?? "").trim();
-  const cpf       = ((formData.get("comprador_cpf")   as string) ?? "").replace(/\D/g, "");
+  const cpf       = normalizeCpf(formData.get("comprador_cpf") as string);
   const email     = ((formData.get("comprador_email") as string) ?? "").trim();
   const zap       = ((formData.get("comprador_zap")   as string) ?? "").replace(/\D/g, "") || null;
   const genero    = (formData.get("comprador_genero") as string) || null;
@@ -65,7 +77,7 @@ export async function comprarIngressoAtleta(
 
   // Parceiro
   const pNome   = ((formData.get("parceiro_nome")  as string) ?? "").trim();
-  const pCpf    = ((formData.get("parceiro_cpf")   as string) ?? "").replace(/\D/g, "");
+  const pCpf    = normalizeCpf(formData.get("parceiro_cpf") as string);
   const pEmail  = ((formData.get("parceiro_email") as string) ?? "").trim() || null;
   const pZap    = ((formData.get("parceiro_zap")   as string) ?? "").replace(/\D/g, "") || null;
   const pGenero  = (formData.get("parceiro_genero") as string) || null;
@@ -73,12 +85,33 @@ export async function comprarIngressoAtleta(
 
   const cupomCodigo = ((formData.get("cupom_codigo") as string) ?? "").trim();
 
-  if (!nome)                               return { error: "Informe seu nome completo." };
+  const fieldErrors: ComprarAtletaState["fieldErrors"] = {};
+  if (!isValidAthleteName(nome)) {
+    fieldErrors.comprador_nome = nome
+      ? "Informe o nome do atleta, não o e-mail."
+      : "Informe seu nome completo.";
+  }
+  if (cpf.length !== 11) {
+    fieldErrors.comprador_cpf = "CPF inválido. Informe os 11 dígitos.";
+  }
+  if (!isValidAthleteName(pNome)) {
+    fieldErrors.parceiro_nome = pNome
+      ? "Informe o nome do parceiro, não o e-mail."
+      : "Informe o nome do parceiro.";
+  }
+  if (pCpf.length !== 11) {
+    fieldErrors.parceiro_cpf = "CPF do parceiro inválido. Informe os 11 dígitos.";
+  } else if (cpf === pCpf) {
+    fieldErrors.parceiro_cpf = "O CPF do parceiro não pode ser igual ao seu.";
+  }
+  if (Object.keys(fieldErrors).length > 0) {
+    return {
+      fieldErrors,
+      validationAttempt: (previousState.validationAttempt ?? 0) + 1,
+    };
+  }
+
   if (!email || !email.includes("@"))      return { error: "Informe um e-mail válido." };
-  if (!cpf || cpf.length !== 11)           return { error: "CPF inválido (somente números, 11 dígitos)." };
-  if (!pNome)                              return { error: "Informe o nome do parceiro." };
-  if (!pCpf || pCpf.length !== 11)        return { error: "CPF do parceiro inválido (11 dígitos)." };
-  if (cpf === pCpf)                        return { error: "O CPF do parceiro não pode ser igual ao seu." };
   if (!categoryId)                         return { error: "Selecione uma categoria." };
 
   // Checkout de visitante (sem login) — rate limit por IP e por e-mail.

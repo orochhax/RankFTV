@@ -73,9 +73,9 @@ export function isAppNavItemActive(pathname: string, item: AppNavItem): boolean 
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-// Rotas que precisam de experiência concentrada (sem sidebar e BottomNav) —
-// autenticação, pagamento, convites e termos. Prefixo = tudo abaixo também
-// entra.
+// Somente fluxos realmente avulsos ficam sem a navegação principal. As telas
+// de campeonato, checkout, ingresso e reembolso preservam o AppShell para que
+// a pessoa nunca perca o atalho de Minhas compras.
 const FOCUSED_PREFIXES = [
   "/login",
   "/cadastro",
@@ -84,19 +84,6 @@ const FOCUSED_PREFIXES = [
   "/arena/mensalidade", // Pix da mensalidade do aluno — página avulsa
 ];
 
-// Padrões de pagamento/checkout/inscrição que vivem dentro de segmentos
-// dinâmicos ([id]) de campeonato — casados por substring. Cada um foi
-// conferido contra o inventário de rotas pra não colidir com /painel ou
-// /staff (que usam "inscricoes", não "inscrever", por exemplo).
-const FOCUSED_SUBSTRINGS = [
-  "/pagamento/",
-  "/comprar/ingresso/",
-  "/plateia/ingresso/",
-  "/reembolso",
-  "/inscrever",
-];
-
 export function isFocusedRoute(pathname: string): boolean {
-  if (FOCUSED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return true;
-  return FOCUSED_SUBSTRINGS.some((s) => pathname.includes(s));
+  return FOCUSED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }

@@ -35,8 +35,8 @@ type DadosPlateia = {
 };
 
 type Props =
-  | { tipo: "atleta"; ticketId: string; accessToken: string; dadosAtuais: DadosAtleta }
-  | { tipo: "plateia"; ticketId: string; accessToken: string; dadosAtuais: DadosPlateia };
+  | { tipo: "atleta"; ticketId: string; accessToken: string; billingType: string | null; dadosAtuais: DadosAtleta }
+  | { tipo: "plateia"; ticketId: string; accessToken: string; billingType: string | null; dadosAtuais: DadosPlateia };
 
 const inputCls =
   "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
@@ -91,7 +91,13 @@ export function IngressoOpcoesMenu(props: Props) {
         <TitularidadeModal {...props} onClose={() => setModal(null)} />
       )}
       {modal === "cancelar" && (
-        <CancelarModal tipo={props.tipo} ticketId={props.ticketId} accessToken={props.accessToken} onClose={() => setModal(null)} />
+        <CancelarModal
+          tipo={props.tipo}
+          ticketId={props.ticketId}
+          accessToken={props.accessToken}
+          billingType={props.billingType}
+          onClose={() => setModal(null)}
+        />
       )}
     </>
   );
@@ -293,24 +299,19 @@ function CancelarModal({
   tipo,
   ticketId,
   accessToken,
+  billingType,
   onClose,
 }: {
   tipo: "atleta" | "plateia";
   ticketId: string;
   accessToken: string;
+  billingType: string | null;
   onClose: () => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<"cancelado" | "estorno" | null>(null);
-
-  useEffect(() => {
-    if (!success) return;
-    const destination = `/minhas-compras?cancelamento=${success}`;
-    const timeout = window.setTimeout(() => router.push(destination), 1800);
-    return () => window.clearTimeout(timeout);
-  }, [router, success]);
 
   function confirmar() {
     setError(null);
@@ -325,25 +326,36 @@ function CancelarModal({
   }
 
   if (success) {
-    const destination = `/minhas-compras?cancelamento=${success}`;
-    const title = success === "estorno" ? "Estorno solicitado com sucesso" : "Ingresso cancelado com sucesso";
-    const description = success === "estorno"
-      ? "Você poderá acompanhar o estorno no histórico de Minhas compras."
-      : "A vaga foi liberada e o ingresso ficará no seu histórico de compras.";
+    const isRefund = success === "estorno";
+    const isCard = billingType === "CREDIT_CARD" || billingType === "DEBIT_CARD";
+    const title = isRefund
+      ? "Seu reembolso foi solicitado com sucesso"
+      : "Ingresso cancelado com sucesso";
+    const description = isRefund
+      ? isCard
+        ? "Acompanhe a confirmação neste ingresso. Depois de confirmado, o crédito pode levar até 10 dias úteis para aparecer na fatura."
+        : billingType === "PIX"
+          ? "Acompanhe a confirmação neste ingresso. No Pix, a devolução será enviada à conta usada no pagamento."
+          : "Acompanhe a confirmação e o prazo do reembolso nos detalhes deste ingresso."
+      : "A vaga foi liberada e o ingresso continuará disponível no seu histórico.";
+
+    function showUpdatedTicket() {
+      onClose();
+      router.refresh();
+    }
 
     return (
-      <ModalShell onClose={() => router.push(destination)}>
+      <ModalShell onClose={showUpdatedTicket}>
         <div className="py-3 text-center">
           <CheckCircle2 className="mx-auto size-12 text-emerald-600" />
           <h2 className="mt-4 text-lg font-semibold text-gray-900">{title}</h2>
           <p className="mt-2 text-sm text-gray-600">{description}</p>
-          <p className="mt-4 text-xs text-gray-400">Indo para Minhas compras…</p>
           <button
             type="button"
-            onClick={() => router.push(destination)}
-            className="mt-5 w-full rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+            onClick={showUpdatedTicket}
+            className="mt-6 w-full rounded-2xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
           >
-            Ir agora
+            {isRefund ? "Ver status do reembolso" : "Ver ingresso cancelado"}
           </button>
         </div>
       </ModalShell>
