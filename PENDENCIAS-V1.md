@@ -654,7 +654,10 @@ tokens ou dados pessoais.
   libera nova inscrição preservando o histórico. Em 28/08/2026, os pedidos legados
   foram auditados e decididos, a migration foi aplicada no Sandbox e o teste SQL
   descartável confirmou comprador, parceiro, os dois fluxos, categoria diferente e
-  liberação depois de estado terminal. Nenhum pagamento ou dado de teste foi criado.
+  liberação depois de estado terminal. A prova visual posterior, na categoria
+  `Teste duplicidade`, bloqueou a segunda tentativa com a mensagem de inscrição
+  ativa; a consulta retornou exatamente 1 pedido criado/ativo e 1 cobrança/ID Asaas.
+  Nenhum pagamento nem dado de teste adicional foi criado.
 - [ ] (não processa duas vezes o mesmo aviso de pagamento) Webhook duplicado é ignorado pelo ledger.
 - [ ] (impede que um aviso atrasado desfaça um estorno) Webhook confirmado depois de estorno é ignorado como fora de ordem.
 - [ ] (garante que uma demora não gere outra cobrança) Timeout após aceite do provedor fica ambíguo e é conciliado sem nova cobrança.
