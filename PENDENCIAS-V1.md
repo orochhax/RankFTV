@@ -30,8 +30,8 @@ Contradições encontradas no produto atual:
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
 - Matriz financeira obrigatória: 5 de 16 cenários concluídos.
-- Checklist de release: 4 de 17 itens principais concluídos.
-- Última atualização: 28/08/2026
+- Checklist de release: 5 de 17 itens principais concluídos.
+- Última atualização: 29/08/2026
 - Último commit de código analisado: `a079dd2` (28/08/2026)
 - Estado Git-base conferido em 28/08/2026: `origin/master` permanece em `8fd7244`;
   o candidato de código `a079dd2` está documentado para publicação exclusiva em
@@ -41,10 +41,9 @@ Revisão de continuidade em 28/08/2026:
 
 - O backup lógico manual foi criado e restaurado localmente com sucesso; os
   demais P0 manuais permanecem abertos.
-- O candidato de homologação contém todas as correções da V1 até `a079dd2`.
-  O último `/api/health` comprovado por evidência foi o release `f10dd67c6452`;
-  portanto, o deployment do HEAD atual ainda precisa de novo health check antes
-  de ser tratado como candidato aprovado.
+- O candidato de homologação contém todas as correções da V1 até `a079dd2`. Em
+  29/08/2026, o deployment documental `a0e1a14ff571` respondeu `/api/health` com
+  aplicação e banco `ok`, latência do banco de 274 ms e duração total de 275 ms.
 - A branch local ainda se chama `master`, mas seu conteúdo corresponde à branch de
   homologação e está mais de 50 commits à frente de `origin/master`. Durante os testes,
   nunca executar `git push origin master`; publicar explicitamente somente com
@@ -90,9 +89,8 @@ Revisão de continuidade em 28/08/2026:
   `RankFTV Sandbox` recebeu somente o schema (92 tabelas públicas na verificação
   inicial e zero registros nas tabelas de domínio verificadas), e uma chave exclusiva do Asaas
   Sandbox foi criada. O Preview da branch `sandbox-homologacao`, agora no commit
-  de código `a079dd2`, está isolado de produção. O último health check comprovado foi
-  no release `f10dd67c6452`, com aplicação e banco `ok`; o HEAD atual ainda precisa
-  ser revalidado. O acesso automatizado
+  de código `a079dd2`, está isolado de produção. O health check do release
+  `a0e1a14ff571` foi aprovado em 29/08/2026, com aplicação e banco `ok`. O acesso automatizado
   protegido foi validado com um novo bypass da Vercel; o segredo que apareceu em uma
   evidência foi revogado. O webhook Sandbox usa fila sequencial, token exclusivo e
   somente o endpoint do Preview; o endpoint de produção foi desativado nesse ambiente.
@@ -704,9 +702,9 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
 
 - [x] Escopo V1 congelado em Campeonatos; Arena beta; ferramentas pessoais fora.
 - [x] Código, lint, tipos, testes, audit e build verdes no estado local candidato.
-- [ ] (publica uma cópia segura do site ligada somente a testes) A branch do Preview
-  usa Supabase/Asaas Sandbox e o candidato de código está em `a079dd2`, mas o deployment desse HEAD ainda
-  precisa responder ao health check antes de virar candidato aprovado.
+- [x] (publica uma cópia segura do site ligada somente a testes) A branch do Preview
+  usa Supabase/Asaas Sandbox; o release `a0e1a14ff571` respondeu `/api/health` com
+  aplicação e banco `ok` em 29/08/2026.
 - [x] Backup lógico manual confirmado e restauração local comprovada; PITR não
   está disponível no plano atual.
 - [ ] (mantém banco e arquivos protegidos por cópias regulares) Rotina periódica, cópia independente e backup dos objetos do Storage definidos.
