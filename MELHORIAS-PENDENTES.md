@@ -56,3 +56,17 @@ implementados sem uma solicitação explícita de pacote de melhorias.
   também parar a atualização.
 - Critério de segurança: a atualização visual não pode confirmar pagamento por conta
   própria; o estado continua vindo do webhook/ledger e da conciliação financeira.
+
+## Checkout de atleta: preservar formulário após CPF inválido
+
+- Registrado em 28/08/2026 durante o teste Sandbox de compra duplicada.
+- Problema: ao enviar o formulário com CPF inválido, o checkout perde todos os dados
+  preenchidos pela dupla. A pessoa precisa preencher o formulário inteiro novamente,
+  embora somente o CPF precise de correção.
+- Resultado esperado: preservar os dados digitados e marcar apenas o campo de CPF
+  inválido em vermelho, com mensagem próxima ao campo. Aceitar CPF tanto só com
+  números quanto formatado, por exemplo `52998224725` e `529.982.247-25`,
+  normalizando-o internamente antes da validação e do envio.
+- Critério de UX: erros de validação não podem apagar dados válidos nem voltar a
+  etapa anterior; o foco deve ir para o primeiro campo inválido e a pessoa deve
+  conseguir corrigir somente ele.
