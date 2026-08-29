@@ -32,20 +32,21 @@ Contradições encontradas no produto atual:
 - Matriz financeira obrigatória: 5 de 16 cenários concluídos.
 - Checklist de release: 4 de 17 itens principais concluídos.
 - Última atualização: 28/08/2026
-- Último commit de código analisado: `87537dc` (28/08/2026)
-- Estado Git-base conferido em 28/08/2026: `origin/master` em `8fd7244` e
-  `origin/sandbox-homologacao` em `1d02bcf`; esta revisão altera somente este arquivo.
+- Último commit de código analisado: `a079dd2` (28/08/2026)
+- Estado Git-base conferido em 28/08/2026: `origin/master` permanece em `8fd7244`;
+  o candidato de código `a079dd2` está documentado para publicação exclusiva em
+  `sandbox-homologacao`, nunca diretamente em `master`.
 
 Revisão de continuidade em 28/08/2026:
 
 - O backup lógico manual foi criado e restaurado localmente com sucesso; os
   demais P0 manuais permanecem abertos.
-- A branch remota de homologação contém todas as correções da V1 até `87537dc`.
+- O candidato de homologação contém todas as correções da V1 até `a079dd2`.
   O último `/api/health` comprovado por evidência foi o release `f10dd67c6452`;
   portanto, o deployment do HEAD atual ainda precisa de novo health check antes
   de ser tratado como candidato aprovado.
 - A branch local ainda se chama `master`, mas seu conteúdo corresponde à branch de
-  homologação e está 19 commits à frente de `origin/master`. Durante os testes,
+  homologação e está mais de 50 commits à frente de `origin/master`. Durante os testes,
   nunca executar `git push origin master`; publicar explicitamente somente com
   `git push origin HEAD:refs/heads/sandbox-homologacao` até a aprovação do release.
 - O domínio canônico operacional adotado é `https://www.rankftv.com`. Falta confirmar
@@ -89,7 +90,7 @@ Revisão de continuidade em 28/08/2026:
   `RankFTV Sandbox` recebeu somente o schema (92 tabelas públicas na verificação
   inicial e zero registros nas tabelas de domínio verificadas), e uma chave exclusiva do Asaas
   Sandbox foi criada. O Preview da branch `sandbox-homologacao`, agora no commit
-  remoto `1d02bcf`, está isolado de produção. O último health check comprovado foi
+  de código `a079dd2`, está isolado de produção. O último health check comprovado foi
   no release `f10dd67c6452`, com aplicação e banco `ok`; o HEAD atual ainda precisa
   ser revalidado. O acesso automatizado
   protegido foi validado com um novo bypass da Vercel; o segredo que apareceu em uma
@@ -172,8 +173,8 @@ Revisão de continuidade em 28/08/2026:
 - [x] Repasse só é final após estado `DONE` do provedor; estado incerto é conciliado
   sem gerar uma nova transferência.
 - [x] Executar a suíte automatizada local de ledger, duplicidade, timeout, estorno,
-  chargeback, repasse e falha de repasse: suíte local completa com 596/596 testes
-  aprovados em 20/08/2026 (inclui módulos fora do escopo da V1).
+  chargeback, repasse e falha de repasse: suíte local completa com 607/607 testes
+  aprovados em 28/08/2026 (inclui módulos fora do escopo da V1).
 - [M] (testa pagamentos falsos do começo ao fim) Executar a homologação sandbox de Pix, cartão, duplicidade, timeout, estorno,
   chargeback e repasse com credenciais/dados descartáveis.
 - [?] (confere avisos reais do simulador de pagamentos) Validar no Asaas sandbox o comportamento de eventos não exercitados por
@@ -203,6 +204,13 @@ Revisão de continuidade em 28/08/2026:
 - [x] Corrigir o seletor de persona e o card de destaque para não cortar conteúdo
   em larguras pequenas; verificado visualmente em viewport Chromium 390 × 844.
 - [x] Criar fallbacks globais de loading, erro e página não encontrada.
+- [x] Concluir o pacote de seis melhorias encontrado na homologação dos ingressos:
+  navegação principal preservada no checkout/detalhe/reembolso; timeline histórica
+  com datas de solicitação, cancelamento e conclusão; confirmação positiva do pedido
+  de reembolso sem redirecionamento automático; atualização automática do Pix pelo
+  estado persistido; formulário preservado com CPF formatado/normalizado e erro
+  localizado; e nome público seguro do atleta sem fallback para e-mail. Implementado
+  no commit `a079dd2` e coberto por testes contratuais.
 - [?] (testa a jornada completa em celular e computador) Validar cadastro, pagamento, credencial, check-in, chaveamento e financeiro
   em celular real e desktop no Preview aprovado.
 
@@ -493,14 +501,10 @@ Logo, a confirmação Pix real ponta a ponta está aprovada. Manter o webhook de
 produção desativado no Asaas Sandbox: ele não deve receber eventos de teste. A
 devolução única de R$ 23,99 foi então autorizada no evento crítico do Asaas e o painel
 do provedor passou a mostrar “Cobrança estornada” para `pay_r3j64v55ldo38nmt`; a tela
-do RankFTV também passou a mostrar o ingresso cancelado. Falta a verificação somente
-leitura no banco para comprovar o estado financeiro final, a liberação da vaga e o
-bloqueio do repasse antes de marcar o cenário de estorno como concluído.
-Essa consulta mostrou o domínio já em `estornado`, com `inventory_released_at` e
-`repasse_status=estornado`, mas a operação de refund ainda em
-`provider_created/RECEIVED`. É esperado antes da próxima reconciliação: executar o
-cron financeiro uma vez no Preview e repetir a consulta até a operação registrar
-`refunded/REFUNDED` e a data de conclusão.
+do RankFTV também passou a mostrar o ingresso cancelado. A verificação final após a
+reconciliação confirmou o domínio em `estornado`, `inventory_released_at` preenchido,
+`repasse_status=estornado`, operação de refund `refunded/REFUNDED`, data de conclusão
+e nenhum erro registrado. O cenário de estorno Pix real está concluído.
 
 O restore não havia recriado o trigger sobre `auth.users`; ele foi reinstalado, o
 perfil faltante recuperado e o procedimento ficou versionado em
@@ -511,10 +515,12 @@ no commit `7184956` e os checkouts posteriores confirmaram o fluxo sem question�
 
 O commit `08c97f3` corrigiu a ordem do pagamento para escolher Pix/cartão antes de
 criar uma cobrança. O commit `1d02bcf` preparou a regra única de participante por
-campeonato + categoria e passou em migration/teste funcional no backup restaurado,
-além de 596 testes, lint, tipos e build. Essa migration ainda não está ativa no
-Sandbox nem em produção: primeiro é obrigatório auditar e resolver os pedidos já
-existentes.
+campeonato + categoria. Depois da decisão individual sobre o conflito legado, a
+migration foi aplicada no Sandbox; os objetos foram conferidos e o teste SQL
+descartável aprovou comprador, parceiro, proteção entre os dois fluxos, categoria
+diferente e liberação após estado terminal. A prova visual bloqueou a segunda compra
+e a consulta confirmou somente um pedido e uma cobrança. Produção ainda exige backup
+atual e janela sem checkout antes de receber essa migration posterior.
 
 Motivo: testes locais provam regras, mas não provam a integração real entre UI,
 Asaas e banco.  
@@ -699,7 +705,7 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
 - [x] Escopo V1 congelado em Campeonatos; Arena beta; ferramentas pessoais fora.
 - [x] Código, lint, tipos, testes, audit e build verdes no estado local candidato.
 - [ ] (publica uma cópia segura do site ligada somente a testes) A branch do Preview
-  usa Supabase/Asaas Sandbox e está em `1d02bcf`, mas o deployment desse HEAD ainda
+  usa Supabase/Asaas Sandbox e o candidato de código está em `a079dd2`, mas o deployment desse HEAD ainda
   precisa responder ao health check antes de virar candidato aprovado.
 - [x] Backup lógico manual confirmado e restauração local comprovada; PITR não
   está disponível no plano atual.
@@ -722,6 +728,24 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
 - [ ] (impede cobranças antes de resolver todos os bloqueios) Pagamentos reais continuam fechados até todos os P0 acima estarem concluídos.
 
 ## Últimas alterações feitas pela IA
+
+- arquivos: shell, checkout de atleta, detalhes de atleta/plateia, cards de compras,
+  modal e timeline de estorno, polling de pagamento e helpers/testes no commit
+  `a079dd2`, em 28/08/2026
+  - navegação: checkout, detalhes e reembolso mantêm sidebar no desktop e navegação
+    móvel, inclusive o atalho de **Minhas compras**;
+  - reembolso: solicitação aceita usa confirmação positiva e permanece no próprio
+    ingresso; a timeline conserva solicitação, cancelamento/liberação e confirmação
+    financeira com as datas disponíveis, além do prazo específico de Pix ou cartão;
+  - Pix: atleta e plateia consultam somente o pedido protegido pelo token, refletem
+    automaticamente o estado confirmado pelo banco e param em qualquer estado final;
+  - formulário: todos os dados preenchidos ficam preservados após erro, CPF aceita
+    máscara ou 11 dígitos, é normalizado no servidor e o primeiro campo inválido recebe
+    mensagem local, destaque e foco;
+  - identificação: novas entradas recusam e-mail como nome e registros históricos
+    usam `Atleta não informado`, sem expor e-mail como identificação visual;
+  - verificação: auditoria com zero vulnerabilidades, lint, TypeScript,
+    `git diff --check`, 607/607 testes, build de produção e E2E seguro aprovados.
 
 - arquivos: escolha de pagamento e criação de cobrança do ingresso de atleta no
   commit `08c97f3`, em 20/08/2026
@@ -751,6 +775,8 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
     cartão/Pix ao ser aberto. As telas de atleta e plateia agora bloqueiam qualquer
     novo pagamento e exibem somente o aviso de cancelamento e o link ao histórico.
     O modal também confirma visualmente o cancelamento antes do redirecionamento.
+  - evolução posterior: o commit `a079dd2` removeu o redirecionamento automático e
+    passou a manter o acompanhamento completo na própria tela do ingresso.
 
 - arquivos: `supabase/production-participant-category-uniqueness.sql`, teste SQL
   descartável, actions dos dois fluxos de inscrição e helper de erro no commit
@@ -908,6 +934,17 @@ Verificação do estado `1d02bcf` em 20/08/2026:
 - `npm run audit:prod`: reconfirmado em 28/08/2026 com zero vulnerabilidades;
 - o E2E completo do deployment `1d02bcf` ainda deve ser reexecutado depois de aplicar
   a migration no Sandbox; nenhum teste mutante foi apontado para produção.
+
+Verificação do pacote de UX `a079dd2` em 28/08/2026:
+
+- `npm run audit:prod`: zero vulnerabilidades;
+- `npm run lint`: aprovado, 0 erros e 0 avisos;
+- `npm run typecheck`: aprovado;
+- `npm test`: 607/607 aprovados, 0 falhos e 0 ignorados;
+- `npm run build`: aprovado no Next.js 16.3.0, com todas as rotas geradas;
+- `npm run test:e2e`: 5 aprovados e 9 ignorados por ausência deliberada de
+  credenciais/flags mutantes; nenhum teste financeiro destrutivo foi executado;
+- `git diff --check`: aprovado.
 
 ## Próximas 3 tarefas
 
