@@ -32,7 +32,7 @@ Contradições encontradas no produto atual:
 - Matriz financeira obrigatória: 16 de 16 cenários concluídos.
 - Checklist de release: 6 de 17 itens principais concluídos.
 - Última atualização: 30/08/2026
-- Último commit de código analisado: `aba1987` (30/08/2026)
+- Último commit de código analisado: `a872f44` (30/08/2026)
 - Estado Git-base conferido em 28/08/2026: `origin/master` permanece em `8fd7244`;
   o candidato de código `a079dd2` está documentado para publicação exclusiva em
   `sandbox-homologacao`, nunca diretamente em `master`.
@@ -172,8 +172,8 @@ Revisão de continuidade em 28/08/2026:
 - [x] Repasse só é final após estado `DONE` do provedor; estado incerto é conciliado
   sem gerar uma nova transferência.
 - [x] Executar a suíte automatizada local de ledger, duplicidade, timeout, estorno,
-  chargeback, repasse e falha de repasse: suíte local completa com 607/607 testes
-  aprovados em 28/08/2026 (inclui módulos fora do escopo da V1).
+  chargeback, repasse e falha de repasse: suíte local completa com 617/617 testes
+  aprovados em 30/08/2026 (inclui módulos fora do escopo da V1).
 - [x] (testa pagamentos falsos do começo ao fim) Homologação Sandbox de Pix, cartão,
   duplicidade, timeout, estorno, chargeback e repasse concluída em 30/08/2026 com
   credenciais e dados descartáveis; a matriz abaixo registra as 16 evidências.
@@ -217,8 +217,16 @@ Revisão de continuidade em 28/08/2026:
   estado persistido; formulário preservado com CPF formatado/normalizado e erro
   localizado; e nome público seguro do atleta sem fallback para e-mail. Implementado
   no commit `a079dd2` e coberto por testes contratuais.
+- [x] Incluir no chaveamento as duplas pagas pelo checkout rápido de atleta, sem
+  exigir contas vinculadas. A projeção canônica, o backfill e as referências das
+  partidas foram aplicados no Sandbox; o Preview `a872f4442c6d` respondeu com
+  aplicação/banco `ok`. O teste descartável confirmou os nomes na tela do
+  organizador e do staff, bloqueou enumeração por atleta/anônimo/usuário sem
+  vínculo e removeu os três usuários temporários.
 - [?] (testa a jornada completa em celular e computador) Validar cadastro, pagamento, credencial, check-in, chaveamento e financeiro
-  em celular real e desktop no Preview aprovado.
+  em celular real e desktop no Preview aprovado. O smoke emulado passou em
+  390 × 844 e 1440 × 900 para as rotas públicas, checkout, ingresso, painel,
+  financeiro, check-in e chaveamento; ainda falta a conferência em aparelho real.
 
 ### E-mail
 

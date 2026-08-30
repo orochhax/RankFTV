@@ -134,6 +134,14 @@ try {
     throw athleteError ?? new Error("linked_paid_athlete_missing");
   }
 
+  const { data: bracketParticipant, error: bracketParticipantError } = await admin
+    .from("bracket_participants")
+    .select("id,category_id,display_name_snapshot")
+    .eq("athlete_ticket_id", athleteTicket.id)
+    .eq("active", true)
+    .single();
+  if (bracketParticipantError) throw bracketParticipantError;
+
   const organizerEmail = await authEmail(championship.organizador_id);
   const athleteEmail = await authEmail(athleteTicket.user_id);
   const staff = await createTemporaryUser("staff");
@@ -166,15 +174,21 @@ try {
     .from("athlete_tickets").select("id").eq("id", athleteTicket.id);
   const { data: organizerStaff } = await organizerClient
     .from("championship_staff").select("id").eq("id", staffRowId);
+  const { data: organizerBracketParticipant } = await organizerClient
+    .from("bracket_participants").select("id").eq("id", bracketParticipant.id);
   assert.equal(organizerTicket?.length, 1);
   assert.equal(organizerStaff?.length, 1);
+  assert.equal(organizerBracketParticipant?.length, 1);
 
   const { data: athleteOwn } = await athleteClient
     .from("athlete_tickets").select("id").eq("id", athleteTicket.id);
   const { data: athleteStaff } = await athleteClient
     .from("championship_staff").select("id").eq("id", staffRowId);
+  const { data: athleteBracketParticipant } = await athleteClient
+    .from("bracket_participants").select("id").eq("id", bracketParticipant.id);
   assert.equal(athleteOwn?.length, 1);
   assert.equal(athleteStaff?.length, 0);
+  assert.equal(athleteBracketParticipant?.length, 0);
 
   const { data: ownStaff } = await staffClient
     .from("championship_staff").select("id").eq("id", staffRowId);
@@ -182,9 +196,12 @@ try {
     .from("registrations").select("id").eq("championship_id", championshipId).limit(1);
   const { data: staffGuestTicket } = await staffClient
     .from("athlete_tickets").select("id").eq("id", athleteTicket.id);
+  const { data: staffBracketParticipant } = await staffClient
+    .from("bracket_participants").select("id").eq("id", bracketParticipant.id);
   assert.equal(ownStaff?.length, 1);
   assert.equal(staffRegistrationsError, null);
   assert.equal(staffGuestTicket?.length, 0);
+  assert.equal(staffBracketParticipant?.length, 1);
 
   const { data: adminRole } = await adminClient
     .from("profiles").select("role").eq("id", commercialAdmin.id).single();
@@ -194,14 +211,22 @@ try {
     .from("championship_staff").select("id").eq("id", staffRowId);
   const { data: unrelatedTicket } = await unrelatedClient
     .from("athlete_tickets").select("id").eq("id", athleteTicket.id);
+  const { data: unrelatedBracketParticipant } = await unrelatedClient
+    .from("bracket_participants").select("id").eq("id", bracketParticipant.id);
   assert.equal(unrelatedStaff?.length, 0);
   assert.equal(unrelatedTicket?.length, 0);
+  assert.equal(unrelatedBracketParticipant?.length, 0);
 
   browser = await chromium.launch({ headless: true });
 
   {
     const { context, page } = await authenticatedPage(organizerEmail, `/painel/campeonatos/${championshipId}`);
     await page.getByText("Receita confirmada", { exact: true }).waitFor();
+    await page.goto(
+      `${baseUrl}/painel/campeonatos/${championshipId}/chaveamento?cat=${bracketParticipant.category_id}`,
+      { waitUntil: "domcontentloaded" },
+    );
+    await page.getByText(bracketParticipant.display_name_snapshot, { exact: true }).first().waitFor();
     await page.goto(`${baseUrl}/admin`, { waitUntil: "domcontentloaded" });
     assert.equal(new URL(page.url()).pathname, "/");
     await context.close();
@@ -216,6 +241,11 @@ try {
   {
     const { context, page } = await authenticatedPage(staff.email, `/staff/${championshipId}`);
     await page.getByText("Você está acessando como staff", { exact: true }).waitFor();
+    await page.goto(
+      `${baseUrl}/staff/${championshipId}/chaveamento?cat=${bracketParticipant.category_id}`,
+      { waitUntil: "domcontentloaded" },
+    );
+    await page.getByText(bracketParticipant.display_name_snapshot, { exact: true }).first().waitFor();
     await page.goto(`${baseUrl}/painel/campeonatos/${championshipId}`, { waitUntil: "domcontentloaded" });
     assert.equal(await page.getByText("Receita confirmada", { exact: true }).count(), 0);
     await context.close();
@@ -248,6 +278,7 @@ try {
       admin: "commercial_admin_only",
       unlinked: "protected_routes_and_rows_denied",
     },
+    bracketParticipants: "organizer_and_staff_visible_athlete_and_unlinked_denied",
     temporaryUsersRemoved: createdUsers.length,
     storage: buckets.length === 0 ? "not_testable_no_buckets_in_sandbox" : `${buckets.length}_bucket(s)_require_policy_tests`,
   }));
