@@ -37,6 +37,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# cofre local de credenciais (nunca versionar)
+/.secrets.local
+
 # vercel
 .vercel
 
