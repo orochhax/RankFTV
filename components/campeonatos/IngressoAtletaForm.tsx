@@ -13,6 +13,7 @@ import { CupomInput, type CupomAplicado } from "@/components/ui/CupomInput";
 import type { LoteComStatus } from "@/lib/lotes";
 import { PERGUNTAS_NIVEL } from "@/lib/motor-categoria";
 import { formatCpf } from "@/lib/cpf";
+import { resolveCategoryPriceComposition } from "@/lib/category-price-display";
 import {
   setAthleteEmail,
   type AthleteEmailField,
@@ -225,7 +226,7 @@ export function IngressoAtletaForm({
           {categorias.map((cat) => {
             const sel = catSelecionada?.id === cat.id;
             const v   = cat.valorInscricao;
-            const t   = calcularTotalComprador(v, metodoTaxa, isElite);
+            const price = resolveCategoryPriceComposition(v, isElite);
             const loteAtivo = cat.lotes.find((l) => l.status === "ativo");
             return (
               <button
@@ -233,7 +234,7 @@ export function IngressoAtletaForm({
                 type="button"
                 disabled={cat.esgotado}
                 onClick={() => { setCat(sel ? null : cat); setCupom(null); }}
-                className={`w-full flex items-center justify-between gap-3 rounded-2xl border p-4 text-left transition-colors ${
+                className={`flex w-full flex-col items-stretch gap-3 rounded-2xl border p-4 text-left transition-colors sm:flex-row sm:items-center sm:justify-between ${
                   cat.esgotado
                     ? "cursor-not-allowed border-gray-200 bg-gray-50 opacity-60"
                     : sel ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
@@ -265,16 +266,28 @@ export function IngressoAtletaForm({
                     )}
                   </div>
                 </div>
-                <div className="shrink-0 text-right">
+                <div className="w-full sm:w-auto sm:min-w-60 sm:shrink-0 sm:text-right">
                   {cat.esgotado ? (
                     <span className="font-semibold text-gray-400">Esgotado</span>
                   ) : v <= 0 ? (
                     <span className="font-semibold text-blue-600">Grátis</span>
                   ) : (
-                    <div>
-                      <p className="font-semibold text-gray-900">{formatBRL(t)}</p>
-                      <p className="text-[11px] text-gray-400">
-                        com taxa · {metodoPagamento === "pix" ? "Pix" : "Cartão"}
+                    <div
+                      className={`rounded-xl px-3 py-2 ring-1 ring-black/5 ${sel ? "bg-white/80" : "bg-gray-50"}`}
+                      aria-label={`Valor da inscrição ${formatBRL(price.basePrice)}, mais ${formatBRL(price.serviceFee)} de taxa de serviço. Total no Pix ${formatBRL(price.pixTotal)}.`}
+                    >
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                        Valor da inscrição
+                      </p>
+                      <p className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 sm:justify-end">
+                        <span className="text-lg font-bold text-blue-600">{formatBRL(price.basePrice)}</span>
+                        <span className="text-sm text-gray-400">+</span>
+                        <span className="text-sm font-medium text-gray-700">
+                          {formatBRL(price.serviceFee)} de taxa de serviço
+                        </span>
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-gray-400">
+                        Total no Pix: {formatBRL(price.pixTotal)}
                       </p>
                     </div>
                   )}

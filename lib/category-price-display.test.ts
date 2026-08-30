@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import test from "node:test";
 import { resolveCategoryPriceComposition } from "./category-price-display";
 
@@ -26,4 +28,18 @@ test("respeita taxa mínima, plano Elite e gratuidade", () => {
     serviceFee: 0,
     pixTotal: 0,
   });
+});
+
+test("a etapa de escolha da categoria separa valor-base e taxa de serviço", () => {
+  const form = readFileSync(
+    path.join(process.cwd(), "components/campeonatos/IngressoAtletaForm.tsx"),
+    "utf8",
+  );
+
+  assert.match(form, /resolveCategoryPriceComposition\(v, isElite\)/);
+  assert.match(form, /Valor da inscrição/);
+  assert.match(form, /price\.basePrice/);
+  assert.match(form, /price\.serviceFee/);
+  assert.match(form, /Total no Pix/);
+  assert.doesNotMatch(form, /com taxa ·/);
 });
