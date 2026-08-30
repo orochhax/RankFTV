@@ -30,7 +30,7 @@ Contradições encontradas no produto atual:
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 6 de 10 itens principais concluídos; 4 manuais ainda abertos.
 - Matriz financeira obrigatória: 16 de 16 cenários concluídos.
-- Checklist de release: 5 de 17 itens principais concluídos.
+- Checklist de release: 6 de 17 itens principais concluídos.
 - Última atualização: 30/08/2026
 - Último commit de código analisado: `aba1987` (30/08/2026)
 - Estado Git-base conferido em 28/08/2026: `origin/master` permanece em `8fd7244`;
@@ -196,8 +196,14 @@ Revisão de continuidade em 28/08/2026:
 - [x] Corrigir a dependência transitiva `nanoid` indicada pelo audit de
   19/08/2026: override atualizado de 3.3.17 para 3.3.18 no commit `696d81c`;
   `npm ci` e `npm run audit:prod` confirmaram zero vulnerabilidades.
-- [?] (confere o que cada tipo de usuário pode acessar) Fazer revisão autenticada das RLS como atleta, organizador, staff, admin e
-  usuário sem vínculo no sandbox.
+- [?] (confere o que cada tipo de usuário pode acessar) A revisão autenticada de
+  Auth/RLS por papel passou no Sandbox em 30/08/2026. O auditor descartável validou
+  organizador apenas no próprio painel/financeiro, atleta apenas nas próprias compras,
+  staff aceito apenas nas rotas e leituras concedidas, admin apenas no painel comercial
+  e usuário sem vínculo sem acesso às linhas/rotas protegidas. Três usuários e um
+  vínculo temporários foram removidos; a conferência final retornou zero resíduos.
+  Storage continua não verificado porque o Sandbox possui zero buckets; os buckets e
+  policies reais de produção ainda precisam ser comparados.
 
 ### UX de lançamento
 
@@ -796,8 +802,11 @@ quando `VERCEL_AUTOMATION_BYPASS_SECRET` está disponível, sem colocá-lo na UR
   - [x] A migration posterior de unicidade por participante/categoria foi auditada,
     aplicada e homologada no Sandbox; produção ainda exige backup atual e janela sem
     checkout.
-- [ ] (confere que cada usuário vê somente o que deve) RLS/Auth/Storage testados por papel.
-- [ ] (confirma todos os cenários de pagamento no simulador) Matriz financeira automatizada e sandbox aprovada.
+- [ ] (confere que cada usuário vê somente o que deve) Auth/RLS de organizador,
+  atleta, staff, admin e usuário sem vínculo aprovados no Sandbox; Storage aguarda
+  buckets reais ou uma réplica no Sandbox.
+- [x] (confirma todos os cenários de pagamento no simulador) Matriz financeira
+  Sandbox aprovada em 16/16 cenários em 30/08/2026.
 - [ ] (confirma que a conta real pode cobrar, estornar e repassar) KYC/capacidades/webhook Asaas de produção confirmados.
 - [ ] (verifica pagamentos pendentes rapidamente e avisa falhas) Conciliação financeira frequente e alertada.
 - [ ] (deixa regras legais, reembolso e ajuda ao cliente prontos) Termos, Privacidade, suporte e política de reembolso aprovados.
