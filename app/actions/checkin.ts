@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type CheckinResult =
   | { ok: true; nome: string }
@@ -55,30 +56,76 @@ export async function markCheckin(
     .or(`qr_token.eq.${token},code.eq.${tokenUpper}`)
     .maybeSingle();
 
-  if (!cred) {
-    return { error: "Código não encontrado neste campeonato" };
+  if (cred) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("nome")
+      .eq("id", cred.user_id)
+      .maybeSingle();
+
+    const nome = profile?.nome ?? "Atleta";
+    if (cred.checked_in) return { alreadyDone: true, nome };
+
+    // A condição checked_in=false transforma leituras simultâneas do mesmo QR
+    // em uma única confirmação. Quem perder a disputa recebe alreadyDone.
+    const { data: claimed, error: claimError } = await supabase
+      .from("credentials")
+      .update({
+        checked_in:     true,
+        checkin_at:     new Date().toISOString(),
+        checked_in_by:  user.id,
+      })
+      .eq("id", cred.id)
+      .eq("checked_in", false)
+      .select("id")
+      .maybeSingle();
+
+    if (claimError) return { error: "Não foi possível confirmar o check-in" };
+    if (!claimed) return { alreadyDone: true, nome };
+
+    revalidatePath(`/painel/campeonatos/${championshipId}/checkin`);
+    revalidatePath(`/staff/${championshipId}/qrcode`);
+    return { ok: true, nome };
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("nome")
-    .eq("id", cred.user_id)
+  // O checkout visitante não cria uma linha em credentials: o próprio
+  // athlete_tickets é a credencial. Depois da autorização acima, o client
+  // administrativo permite que organizador e staff validem esse QR sem abrir
+  // UPDATE direto da tabela aos usuários autenticados.
+  const admin = createAdminClient();
+  const { data: ticket } = await admin
+    .from("athlete_tickets")
+    .select("id, comprador_nome, status_pagamento, checked_in")
+    .eq("championship_id", championshipId)
+    .or(`qr_token.eq.${token},code.eq.${tokenUpper}`)
     .maybeSingle();
 
-  const nome = profile?.nome ?? "Atleta";
+  if (!ticket) return { error: "Código não encontrado neste campeonato" };
 
-  if (cred.checked_in) {
-    return { alreadyDone: true, nome };
+  const nome = ticket.comprador_nome?.trim() || "Atleta";
+  if (ticket.status_pagamento !== "pago") return { error: "Ingresso não está ativo" };
+  if (ticket.checked_in) return { alreadyDone: true, nome };
+
+  const { data: claimed, error: claimError } = await admin
+    .from("athlete_tickets")
+    .update({ checked_in: true, checkin_at: new Date().toISOString() })
+    .eq("id", ticket.id)
+    .eq("status_pagamento", "pago")
+    .eq("checked_in", false)
+    .select("id")
+    .maybeSingle();
+
+  if (claimError) return { error: "Não foi possível confirmar o check-in" };
+  if (!claimed) {
+    const { data: current } = await admin
+      .from("athlete_tickets")
+      .select("status_pagamento, checked_in")
+      .eq("id", ticket.id)
+      .maybeSingle();
+    return current?.checked_in
+      ? { alreadyDone: true, nome }
+      : { error: "Ingresso não está ativo" };
   }
-
-  await supabase
-    .from("credentials")
-    .update({
-      checked_in:     true,
-      checkin_at:     new Date().toISOString(),
-      checked_in_by:  user.id,
-    })
-    .eq("id", cred.id);
 
   revalidatePath(`/painel/campeonatos/${championshipId}/checkin`);
   revalidatePath(`/staff/${championshipId}/qrcode`);
