@@ -2,5 +2,4 @@
 
 Nenhuma melhoria pendente no momento.
 
-As melhorias concluídas foram removidas desta lista em 29/08/2026. O histórico das
-implementações e das validações permanece registrado no `PENDENCIAS-V1.md` e no Git.
+Os itens concluídos foram removidos desta lista em 30/08/2026. O histórico das implementações e validações permanece registrado no Git.

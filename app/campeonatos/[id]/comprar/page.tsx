@@ -14,6 +14,7 @@ export default async function ComprarAtletaPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { data: champ } = await supabase
     .from("championships")
@@ -93,6 +94,7 @@ export default async function ComprarAtletaPage({
                 categorias={categorias}
                 isElite={!!champ.is_elite}
                 usaMotorCategoria={categoryLevelRecommendationEnabled(champ.usa_motor_categoria)}
+                authenticatedEmail={user?.email?.trim() || null}
               />
             </div>
           )}

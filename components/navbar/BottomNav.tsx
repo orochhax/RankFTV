@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, ShieldCheck, Wrench } from "lucide-react";
-import { isArenaOrganizerRoute, isNavItemActive, NAV_ITEMS, type NavItem } from "./nav-items";
+import { isArenaOrganizerRoute, isNavItemActive, visibleBottomNavItems, type NavItem } from "./nav-items";
 import { isFocusedRoute } from "@/components/shell/app-nav-items";
 
 export function BottomNav({
@@ -23,9 +23,9 @@ export function BottomNav({
 
   if (isArenaOrganizerRoute(pathname) || isFocusedRoute(pathname)) return null;
 
-  // "Painel" só aparece pra quem já tem permissão de organizador — sem isso
-  // é um link que só leva a uma tela de "ativar organizador".
-  const base = isOrganizer ? NAV_ITEMS : NAV_ITEMS.filter((i) => i.href !== "/painel");
+  // "Painel" depende da permissão de organizador e "Minhas compras" da
+  // sessão autenticada. Os demais atalhos continuam sempre visíveis.
+  const base = visibleBottomNavItems({ isLoggedIn, isOrganizer });
   const items: NavItem[] = showStaff
     ? [...base, { href: "/staff", label: "Staff", icon: ShieldCheck }]
     : base;
@@ -69,22 +69,22 @@ export function BottomNav({
       aria-label="Navegação principal"
       className="flex justify-center"
     >
-      <ul className="flex items-center gap-1 rounded-full bg-white p-1.5 shadow-lg shadow-black/10 ring-1 ring-black/5">
+      <ul className="flex max-w-[calc(100vw-1rem)] items-center gap-0.5 overflow-x-auto rounded-full bg-white p-1.5 shadow-lg shadow-black/10 ring-1 ring-black/5 min-[360px]:gap-1">
         {items.map(({ href, label, icon: Icon }) => {
           const active = isNavItemActive(pathname, href);
           return (
-            <li key={href}>
+            <li key={href} className="shrink-0">
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-2.5 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1.5 rounded-full px-2 py-2.5 text-sm font-medium transition-colors min-[360px]:px-2.5 min-[420px]:px-3 ${
                   active
                     ? "bg-blue-600 text-white"
                     : "text-gray-500 hover:text-gray-900"
                 }`}
               >
                 <Icon className="size-5" strokeWidth={2} />
-                {active && <span>{label}</span>}
+                {active && <span className="hidden min-[360px]:inline">{label}</span>}
               </Link>
             </li>
           );

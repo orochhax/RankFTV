@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { InscricaoButton } from "@/components/campeonatos/InscricaoButton";
 import { recomendarCategoria } from "@/lib/motor-categoria";
-import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
+import { resolveCategoryPriceComposition } from "@/lib/category-price-display";
 import { resolverPrecos } from "@/lib/lotes";
 import { formatBRL, generoLabel } from "@/lib/format";
 
@@ -128,8 +128,8 @@ export default async function CategoriasPage({
             <div className="space-y-3">
               {championship.categorias.some((c) => c.valorInscricao > 0) && (
                 <p className="text-xs text-gray-400">
-                  Valores já com a taxa de serviço, no Pix. No cartão a taxa é um pouco maior —
-                  você vê o total antes de confirmar.
+                  O valor da inscrição e a taxa de serviço do Pix aparecem separados.
+                  No cartão a taxa é um pouco maior — você vê o total antes de confirmar.
                 </p>
               )}
               {championship.categorias.map((cat) => {
@@ -140,7 +140,7 @@ export default async function CategoriasPage({
                     key={cat.id}
                     className={`rounded-2xl bg-white p-4 ring-1 ${isRecomendada ? "ring-blue-400 bg-blue-50" : "ring-black/5"}`}
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="font-medium text-gray-900">
@@ -178,13 +178,24 @@ export default async function CategoriasPage({
                         if (valor <= 0) {
                           return <span className="shrink-0 font-semibold text-blue-600">Grátis</span>;
                         }
-                        const taxa  = calcularTaxaComprador(valor, "pix", isElite);
-                        const total = calcularTotalComprador(valor, "pix", isElite);
+                        const { basePrice, serviceFee, pixTotal } = resolveCategoryPriceComposition(valor, isElite);
                         return (
-                          <div className="shrink-0 text-right">
-                            <p className="font-semibold text-gray-900">{formatBRL(total)}</p>
-                            <p className="text-[11px] leading-tight text-gray-400">
-                              {formatBRL(valor)} + {formatBRL(taxa)} taxa
+                          <div
+                            className="w-full rounded-xl bg-gray-50 px-3 py-2 ring-1 ring-black/5 sm:w-auto sm:min-w-64 sm:shrink-0 sm:text-right"
+                            aria-label={`Valor da inscrição ${formatBRL(basePrice)}, mais ${formatBRL(serviceFee)} de taxa de serviço. Total no Pix ${formatBRL(pixTotal)}.`}
+                          >
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                              Valor da inscrição
+                            </p>
+                            <p className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 sm:justify-end">
+                              <span className="text-lg font-bold text-blue-600">{formatBRL(basePrice)}</span>
+                              <span className="text-sm text-gray-400">+</span>
+                              <span className="text-sm font-medium text-gray-700">
+                                {formatBRL(serviceFee)} de taxa de serviço
+                              </span>
+                            </p>
+                            <p className="mt-0.5 text-[11px] text-gray-400">
+                              Total no Pix: {formatBRL(pixTotal)}
                             </p>
                           </div>
                         );

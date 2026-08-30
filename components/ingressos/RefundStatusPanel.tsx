@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buildRefundTimeline, type RefundTimelineStep } from "@/lib/refund-timeline";
 
 type RefundStatusPanelProps = {
   billingType: string | null;
@@ -9,11 +10,37 @@ type RefundStatusPanelProps = {
 };
 
 type TimelineEvent = {
-  key: string;
+  key: RefundTimelineStep["key"];
   title: string;
   description: string;
   date: string | null;
   tone: "amber" | "emerald" | "red";
+};
+
+const TIMELINE_COPY: Record<
+  RefundTimelineStep["key"],
+  Pick<TimelineEvent, "title" | "description" | "tone">
+> = {
+  requested: {
+    title: "Estorno solicitado",
+    description: "Solicitação registrada e protegida contra repetição.",
+    tone: "amber",
+  },
+  awaiting: {
+    title: "Aguardando confirmação do reembolso",
+    description: "Você não precisa repetir a solicitação.",
+    tone: "amber",
+  },
+  completed: {
+    title: "Estorno confirmado",
+    description: "O processamento do reembolso foi confirmado.",
+    tone: "emerald",
+  },
+  cancelled: {
+    title: "Ingresso cancelado",
+    description: "O cancelamento foi finalizado e o ingresso não pode mais ser usado.",
+    tone: "red",
+  },
 };
 
 function formatDateTime(date: string | null, fallback: string) {
@@ -59,46 +86,15 @@ export function RefundStatusPanel({
 }: RefundStatusPanelProps) {
   const hasRefund = Boolean(refundStatus || requestedAt);
   const refundCompleted = refundStatus === "refunded";
-  const ticketCancelled = Boolean(cancelledAt);
   const isCard = billingType === "CREDIT_CARD" || billingType === "DEBIT_CARD";
   const paymentMethod = isCard ? "cartão" : billingType === "PIX" ? "Pix" : "forma de pagamento usada";
 
-  const events: TimelineEvent[] = [];
-  if (hasRefund) {
-    events.push({
-      key: "requested",
-      title: "Estorno solicitado",
-      description: "Solicitação registrada e protegida contra repetição.",
-      date: requestedAt,
-      tone: "amber",
-    });
-  }
-  if (ticketCancelled) {
-    events.push({
-      key: "cancelled",
-      title: "Ingresso cancelado",
-      description: "A vaga foi liberada e o ingresso não pode mais ser usado.",
-      date: cancelledAt,
-      tone: "red",
-    });
-  }
-  if (refundCompleted) {
-    events.push({
-      key: "completed",
-      title: "Estorno confirmado",
-      description: "O Asaas confirmou o processamento do reembolso.",
-      date: completedAt,
-      tone: "emerald",
-    });
-  } else if (hasRefund) {
-    events.push({
-      key: "awaiting",
-      title: "Aguardando confirmação do Asaas",
-      description: "Você não precisa repetir a solicitação.",
-      date: null,
-      tone: "amber",
-    });
-  }
+  const events: TimelineEvent[] = buildRefundTimeline({
+    refundStatus,
+    requestedAt,
+    completedAt,
+    cancelledAt,
+  }).map((step) => ({ ...step, ...TIMELINE_COPY[step.key] }));
 
   const title = refundCompleted
     ? "Reembolso concluído"
@@ -148,7 +144,7 @@ export function RefundStatusPanel({
               )}
             </div>
             <p className={`mt-4 text-sm font-semibold ${refundCompleted ? "text-emerald-700" : "text-amber-700"}`}>
-              {refundCompleted ? "Processamento confirmado pelo Asaas." : "Confirmação do Asaas ainda pendente."}
+              {refundCompleted ? "Processamento do reembolso confirmado." : "Confirmação do reembolso ainda pendente."}
             </p>
           </>
         ) : (

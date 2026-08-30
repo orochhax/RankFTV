@@ -13,6 +13,10 @@ import { CupomInput, type CupomAplicado } from "@/components/ui/CupomInput";
 import type { LoteComStatus } from "@/lib/lotes";
 import { PERGUNTAS_NIVEL } from "@/lib/motor-categoria";
 import { formatCpf } from "@/lib/cpf";
+import {
+  setAthleteEmail,
+  type AthleteEmailField,
+} from "@/lib/athlete-email-suggestion";
 
 export type CategoriaOpcao = {
   id: string;
@@ -62,6 +66,30 @@ function BarraDeProgresso({ etapa }: { etapa: Etapa }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function SugestaoEmailDaConta({
+  email,
+  atleta,
+  onUse,
+}: {
+  email: string;
+  atleta: "atleta 1" | "atleta 2";
+  onUse: () => void;
+}) {
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-blue-50 px-3 py-2 text-xs ring-1 ring-blue-100">
+      <span className="text-blue-700">Usar e-mail da sua conta:</span>
+      <button
+        type="button"
+        onClick={onUse}
+        aria-label={`Usar ${email} no e-mail do ${atleta}`}
+        className="max-w-full break-all font-semibold text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900"
+      >
+        {email}
+      </button>
     </div>
   );
 }
@@ -117,11 +145,13 @@ export function IngressoAtletaForm({
   categorias,
   isElite,
   usaMotorCategoria,
+  authenticatedEmail,
 }: {
   championshipId: string;
   categorias: CategoriaOpcao[];
   isElite: boolean;
   usaMotorCategoria: boolean;
+  authenticatedEmail: string | null;
 }) {
   const [etapa, setEtapa] = useState<Etapa>("categoria");
   const [catSelecionada, setCat] = useState<CategoriaOpcao | null>(null);
@@ -151,6 +181,10 @@ export function IngressoAtletaForm({
     }
   }
 
+  function updateAthleteEmail(field: AthleteEmailField, email: string) {
+    setValues((current) => setAthleteEmail(current, field, email));
+  }
+
   useEffect(() => {
     const refs = {
       comprador_nome: compradorNomeRef,
@@ -178,6 +212,7 @@ export function IngressoAtletaForm({
   const metodoTaxa = metodoPagamento === "cartao" ? "credito" : "pix";
   const taxa       = calcularTaxaComprador(valorFinal, metodoTaxa, isElite);
   const total      = calcularTotalComprador(valorFinal, metodoTaxa, isElite);
+  const emailDaConta = authenticatedEmail?.trim() || null;
 
   return (
     <div className="space-y-6">
@@ -354,10 +389,17 @@ export function IngressoAtletaForm({
                 className={`mt-1 ${input}`}
                 placeholder="voce@email.com"
                 value={values.comprador_email ?? ""}
-                onChange={(event) => updateValue("comprador_email", event.target.value)}
-                autoComplete="email"
+                onChange={(event) => updateAthleteEmail("comprador_email", event.target.value)}
+                autoComplete="off"
                 required
               />
+              {emailDaConta && (
+                <SugestaoEmailDaConta
+                  email={emailDaConta}
+                  atleta="atleta 1"
+                  onUse={() => updateAthleteEmail("comprador_email", emailDaConta)}
+                />
+              )}
               <p className="mt-1 text-xs text-gray-400">O ingresso e QR de entrada chegam nesse e-mail.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -472,9 +514,16 @@ export function IngressoAtletaForm({
                 className={`mt-1 ${input}`}
                 placeholder="parceiro@email.com"
                 value={values.parceiro_email ?? ""}
-                onChange={(event) => updateValue("parceiro_email", event.target.value)}
+                onChange={(event) => updateAthleteEmail("parceiro_email", event.target.value)}
                 autoComplete="off"
               />
+              {emailDaConta && (
+                <SugestaoEmailDaConta
+                  email={emailDaConta}
+                  atleta="atleta 2"
+                  onUse={() => updateAthleteEmail("parceiro_email", emailDaConta)}
+                />
+              )}
               <p className="mt-1 text-xs text-gray-400">O ingresso e QR de entrada chegam nesse e-mail.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">

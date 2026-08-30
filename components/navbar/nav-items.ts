@@ -1,18 +1,34 @@
-import { Building2, LayoutDashboard, Trophy, User } from "lucide-react";
+import { Building2, LayoutDashboard, ShoppingBag, Trophy, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
+  requires?: "auth" | "organizer";
 };
 
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Campeonatos", icon: Trophy },
   { href: "/arenas", label: "Arenas", icon: Building2 },
-  { href: "/painel", label: "Painel", icon: LayoutDashboard },
+  { href: "/painel", label: "Painel", icon: LayoutDashboard, requires: "organizer" },
+  { href: "/minhas-compras", label: "Minhas compras", icon: ShoppingBag, requires: "auth" },
   { href: "/perfil", label: "Perfil", icon: User },
 ];
+
+export function visibleBottomNavItems({
+  isLoggedIn,
+  isOrganizer,
+}: {
+  isLoggedIn: boolean;
+  isOrganizer: boolean;
+}): NavItem[] {
+  return NAV_ITEMS.filter((item) => {
+    if (item.requires === "auth") return isLoggedIn;
+    if (item.requires === "organizer") return isOrganizer;
+    return true;
+  });
+}
 
 // "/" (Campeonatos) fica ativo também em /campeonatos/* (detalhe do camp).
 export function isNavItemActive(pathname: string, href: string) {
