@@ -229,7 +229,11 @@ Revisão de continuidade em 28/08/2026:
 - [?] (testa a jornada completa em celular e computador) Validar cadastro, pagamento, credencial, check-in, chaveamento e financeiro
   em celular real e desktop no Preview aprovado. O smoke emulado passou em
   390 × 844 e 1440 × 900 para as rotas públicas, checkout, ingresso, painel,
-  financeiro, check-in e chaveamento; ainda falta a conferência em aparelho real.
+  financeiro, check-in e chaveamento. A suíte E2E não mutante do Preview também
+  aprovou 6/6 cenários aplicáveis (CSP/headers, robots/sitemap, redirecionamento
+  anônimo, login mobile e rejeições do webhook); 8 cenários permaneceram ignorados
+  por dependerem de credenciais ou flags mutantes. Ainda falta a conferência em
+  aparelho real.
 
 ### E-mail
 
