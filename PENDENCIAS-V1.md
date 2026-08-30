@@ -29,7 +29,7 @@ Contradições encontradas no produto atual:
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 12 de 16 cenários concluídos.
+- Matriz financeira obrigatória: 13 de 16 cenários concluídos.
 - Checklist de release: 5 de 17 itens principais concluídos.
 - Última atualização: 30/08/2026
 - Último commit de código analisado: `a079dd2` (28/08/2026)
@@ -721,7 +721,15 @@ tokens ou dados pessoais.
   ingresso para `repassado`, sem erro. A chave Pix original do organizador foi
   restaurada após o teste.
 - [ ] (guarda o repasse com erro para tentar novamente) Falha de repasse fica pendente/conciliável e gera alerta.
-- [ ] (testa vários tipos de ingresso no mesmo pedido) Ingresso de plateia com múltiplos tipos reserva e libera estoque corretamente.
+- [x] (testa vários tipos de ingresso no mesmo pedido) Pedido de plateia com múltiplos
+  tipos aprovado em 30/08/2026. A primeira tentativa revelou o erro SQL `42702`
+  por ambiguidade da coluna `valor`; o commit `e121e2f` qualificou as colunas da
+  função e passou em 607/607 testes. Após aplicar a correção no Sandbox, o pedido
+  `9d0ad36d-019b-4869-bf11-7391b43954aa` reservou 3 ingressos do tipo temporário
+  e 2 do tipo Meia, totalizando 5 e R$ 51 em duas linhas normalizadas. A primeira
+  expiração devolveu os dois contadores de estoque de 3/2 para 0/0 e marcou todas
+  as linhas como liberadas; a segunda chamada retornou `false` e preservou 0/0,
+  comprovando idempotência. O tipo temporário terminou desativado.
 - [ ] (testa o atleta da compra até a entrada) Fluxo completo de atleta: compra → QR → check-in único.
 - [ ] (testa o organizador da publicação ao reembolso) Fluxo completo do organizador: publicar → inscrições → financeiro → reembolso.
 
@@ -998,9 +1006,8 @@ Verificação do pacote de UX `a079dd2` em 28/08/2026:
 2. [x] Repasse Pix chegou a `DONE` uma única vez; evento duplicado não criou novo
    repasse.
 3. [x] O repasse de cartão respeitou a liquidação e chegou a `DONE` uma única vez.
-   Agora, concluir a falha de repasse conciliável; em seguida seguir para plateia e
-   check-in. Em
+   Agora, concluir a falha de repasse conciliável e seguir para check-in. Em
    paralelo, fechar conciliação, KYC, jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: no Sandbox, concluir a evidência de falha de repasse
-pendente/conciliável e confirmar o alerta operacional sem criar transferência extra.
+Ponto exato de retomada: no Sandbox, concluir a evidência de falha de repasse e
+executar o fluxo completo de atleta até o check-in único.
