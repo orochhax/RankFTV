@@ -69,6 +69,12 @@ export function asaasEventDomainStatus(event: string): "pago" | "estornado" | nu
   return null;
 }
 
+export function asaasEventFinancialOperationStatus(event: string): "confirmed" | "refunded" | null {
+  if (ASAAS_CONFIRMED_EVENTS.has(event)) return "confirmed";
+  if (ASAAS_REFUNDED_EVENTS.has(event)) return "refunded";
+  return null;
+}
+
 export function isValidAsaasWebhookPayload(value: unknown): value is AsaasWebhookPayload {
   if (!value || typeof value !== "object") return false;
   const body = value as Partial<AsaasWebhookPayload>;

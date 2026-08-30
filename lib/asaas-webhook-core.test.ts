@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   asaasBillingCompetence,
   asaasEventDomainStatus,
+  asaasEventFinancialOperationStatus,
   asaasEventOrderingDecision,
   asaasEventRank,
   asaasWebhookEventId,
@@ -66,4 +67,9 @@ test("maps chargeback events as terminal refunds", () => {
   assert.equal(asaasEventDomainStatus("PAYMENT_CHARGEBACK_REQUESTED"), "estornado");
   assert.equal(asaasEventDomainStatus("PAYMENT_CHARGEBACK_DISPUTE"), "estornado");
   assert.equal(asaasEventRank("PAYMENT_CHARGEBACK_REQUESTED"), 50);
+  assert.equal(asaasEventFinancialOperationStatus("PAYMENT_CONFIRMED"), "confirmed");
+  assert.equal(asaasEventFinancialOperationStatus("PAYMENT_RECEIVED"), "confirmed");
+  assert.equal(asaasEventFinancialOperationStatus("PAYMENT_REFUNDED"), "refunded");
+  assert.equal(asaasEventFinancialOperationStatus("PAYMENT_CHARGEBACK_REQUESTED"), "refunded");
+  assert.equal(asaasEventFinancialOperationStatus("PAYMENT_CREATED"), null);
 });

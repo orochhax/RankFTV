@@ -15,6 +15,7 @@ import {
   ASAAS_REFUNDED_EVENTS,
   asaasBillingCompetence,
   asaasEventDomainStatus,
+  asaasEventFinancialOperationStatus,
   asaasEventRank,
   asaasWebhookEventId,
   isValidAsaasWebhookPayload,
@@ -27,6 +28,48 @@ const DIAS_LIQUIDACAO: Record<string, number> = {
   DEBIT_CARD:  3,
   CREDIT_CARD: 32,
 };
+
+async function syncFinancialPaymentOperation(body: AsaasWebhookPayload): Promise<void> {
+  const targetStatus = asaasEventFinancialOperationStatus(body.event);
+  if (!targetStatus || !body.payment.externalReference) return;
+
+  const admin = createAdminClient();
+  const selectOperation = "id, provider_id";
+  let { data: operation, error } = await admin
+    .from("financial_operations")
+    .select(selectOperation)
+    .eq("operation_type", "payment")
+    .eq("provider_id", body.payment.id)
+    .maybeSingle();
+
+  if (error) throw new Error(`financial_operation_lookup_failed:${error.message}`);
+  if (!operation) {
+    const byReference = await admin
+      .from("financial_operations")
+      .select(selectOperation)
+      .eq("operation_type", "payment")
+      .eq("external_reference", body.payment.externalReference)
+      .maybeSingle();
+    operation = byReference.data;
+    error = byReference.error;
+  }
+
+  if (error) throw new Error(`financial_operation_lookup_failed:${error.message}`);
+  if (!operation) return;
+  if (operation.provider_id && operation.provider_id !== body.payment.id) {
+    throw new Error("financial_provider_id_conflict");
+  }
+
+  const { error: completeError } = await admin.rpc("financial_complete_operation", {
+    p_operation_id: operation.id,
+    p_provider_id: body.payment.id,
+    p_provider_status: body.payment.status,
+    p_status: targetStatus,
+  });
+  if (completeError) {
+    throw new Error(`financial_operation_sync_failed:${completeError.message}`);
+  }
+}
 
 async function handleAsaasWebhook(req: NextRequest) {
   try {
@@ -660,7 +703,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 
-  const success = response.status < 400;
+  let success = response.status < 400;
+  if (success) {
+    const responseBody = await response.clone().json().catch(() => null) as { ignored?: boolean } | null;
+    if (!responseBody?.ignored) {
+      try {
+        await syncFinancialPaymentOperation(body);
+      } catch (error) {
+        success = false;
+        response = NextResponse.json(
+          { error: "Webhook financial state synchronization failed" },
+          { status: 500 },
+        );
+        await reportOperationalEvent({
+          level: "critical",
+          event: "webhook.financial_operation_sync_failed",
+          message: "Webhook domain state changed but its financial operation did not synchronize",
+          requestId: correlationId,
+          context: { eventId, paymentId: body.payment.id, eventType: body.event },
+          error,
+          alert: true,
+        });
+      }
+    }
+  }
   await admin.rpc("complete_asaas_webhook_event", {
     p_event_id: eventId,
     p_success: success,
