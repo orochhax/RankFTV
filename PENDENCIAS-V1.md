@@ -29,7 +29,7 @@ Contradições encontradas no produto atual:
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 10 de 16 cenários concluídos.
+- Matriz financeira obrigatória: 11 de 16 cenários concluídos.
 - Checklist de release: 5 de 17 itens principais concluídos.
 - Última atualização: 30/08/2026
 - Último commit de código analisado: `a079dd2` (28/08/2026)
@@ -699,7 +699,16 @@ tokens ou dados pessoais.
   operação financeira ainda ficava `confirmed`; o commit `549d2ae` corrigiu o webhook
   e o retry confirmou `refunded/CHARGEBACK_REQUESTED`, sem erro. O Asaas permaneceu
   com exatamente uma cobrança para a referência.
-- [ ] (garante que o repasse Pix aconteça uma só vez) Repasse Pix chega a `DONE` uma única vez.
+- [x] (garante que o repasse Pix aconteça uma só vez) Repasse Pix aprovado em
+  30/08/2026 no ingresso `38a98fff-064a-44d4-bee6-40230f2d3540`: o pagamento
+  `pay_e9wbbu8azvy1ll4l` foi confirmado, criou uma única operação de transferência
+  (`a31420b0-6e1f-4cd5-9a68-189f4e093e4a`) e uma única transferência Asaas
+  (`97aa6f78-b0ae-4295-b095-e7f7c5b30bcb`). Enquanto a ação crítica estava sem
+  autorização, o ingresso permaneceu corretamente `processando`, sem novo repasse.
+  Após a autorização Sandbox, o provedor chegou a `DONE`, o conciliador concluiu
+  a outbox em uma tentativa e atualizou o ingresso para `repassado`, sem erro. O
+  reenvio do mesmo `PAYMENT_RECEIVED` foi ignorado como já processado; ledger e
+  Asaas permaneceram com exatamente uma operação e uma transferência.
 - [ ] (só repassa cartão depois de o dinheiro estar liberado) Repasse de cartão respeita liquidação.
 - [ ] (guarda o repasse com erro para tentar novamente) Falha de repasse fica pendente/conciliável e gera alerta.
 - [ ] (testa vários tipos de ingresso no mesmo pedido) Ingresso de plateia com múltiplos tipos reserva e libera estoque corretamente.
@@ -976,10 +985,11 @@ Verificação do pacote de UX `a079dd2` em 28/08/2026:
 
 1. [x] Chargeback reverteu domínio e operação financeira; confirmação posterior foi
    ignorada sem regressão.
-2. Agora, testar repasse Pix e comprovar que ele chega a `DONE` uma única vez.
-3. Depois, testar liquidação do repasse de cartão e falha de repasse conciliável; em
+2. [x] Repasse Pix chegou a `DONE` uma única vez; evento duplicado não criou novo
+   repasse.
+3. Agora, testar liquidação do repasse de cartão e falha de repasse conciliável; em
    seguida seguir para plateia e check-in. Em
    paralelo, fechar conciliação, KYC, jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: no Sandbox, testar um repasse Pix completo e comprovar no
-provedor e no ledger que a transferência foi concluída exatamente uma vez.
+Ponto exato de retomada: no Sandbox, testar a liquidação do repasse de cartão e
+comprovar que a transferência só é criada depois da disponibilidade financeira.
