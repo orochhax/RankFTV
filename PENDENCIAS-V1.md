@@ -222,7 +222,10 @@ Revisão de continuidade em 28/08/2026:
   partidas foram aplicados no Sandbox; o Preview `a872f4442c6d` respondeu com
   aplicação/banco `ok`. O teste descartável confirmou os nomes na tela do
   organizador e do staff, bloqueou enumeração por atleta/anônimo/usuário sem
-  vínculo e removeu os três usuários temporários.
+  vínculo e removeu os três usuários temporários. O teste funcional seguinte
+  selecionou as três duplas ativas pela interface, gerou quatro partidas com as
+  referências canônicas, exibiu os seis nomes no chaveamento público e removeu
+  exatamente as quatro partidas criadas; a consulta final retornou zero jogos.
 - [?] (testa a jornada completa em celular e computador) Validar cadastro, pagamento, credencial, check-in, chaveamento e financeiro
   em celular real e desktop no Preview aprovado. O smoke emulado passou em
   390 × 844 e 1440 × 900 para as rotas públicas, checkout, ingresso, painel,
