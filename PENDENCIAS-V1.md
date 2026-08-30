@@ -29,7 +29,7 @@ Contradições encontradas no produto atual:
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 9 de 16 cenários concluídos.
+- Matriz financeira obrigatória: 10 de 16 cenários concluídos.
 - Checklist de release: 5 de 17 itens principais concluídos.
 - Última atualização: 30/08/2026
 - Último commit de código analisado: `a079dd2` (28/08/2026)
@@ -691,7 +691,14 @@ tokens ou dados pessoais.
   conta Sandbox, confirmada por webhook e estornada após autorização crítica. O banco
   confirmou ingresso `estornado`, `inventory_released_at` preenchido,
   `repasse_status=estornado` e operação de refund `refunded/REFUNDED`, sem erro.
-- [ ] (remove o acesso após uma contestação do pagamento) Chargeback reverte acesso/estado sem regressão posterior.
+- [x] (remove o acesso após uma contestação do pagamento) Chargeback controlado
+  aprovado em 30/08/2026 no ingresso `5fdd918c-8da7-4cc0-94c7-d2098d18f9ce`:
+  `PAYMENT_CHARGEBACK_REQUESTED` foi processado no rank 50, mudou ingresso e repasse
+  para `estornado` e liberou o estoque uma única vez. Uma confirmação posterior de
+  rank 30 foi ignorada como `out_of_order`, sem regressão. O teste revelou que a
+  operação financeira ainda ficava `confirmed`; o commit `549d2ae` corrigiu o webhook
+  e o retry confirmou `refunded/CHARGEBACK_REQUESTED`, sem erro. O Asaas permaneceu
+  com exatamente uma cobrança para a referência.
 - [ ] (garante que o repasse Pix aconteça uma só vez) Repasse Pix chega a `DONE` uma única vez.
 - [ ] (só repassa cartão depois de o dinheiro estar liberado) Repasse de cartão respeita liquidação.
 - [ ] (guarda o repasse com erro para tentar novamente) Falha de repasse fica pendente/conciliável e gera alerta.
@@ -967,12 +974,12 @@ Verificação do pacote de UX `a079dd2` em 28/08/2026:
 
 ## Próximas 3 tarefas
 
-1. [x] Timeout após aceite do provedor foi conciliado pela referência externa e
-   recuperou a mesma cobrança, sem duplicação.
-2. Agora, testar chargeback e comprovar que o acesso/estado é revertido sem regressão
-   por eventos posteriores.
-3. Depois, seguir para repasses, plateia e check-in. Em
+1. [x] Chargeback reverteu domínio e operação financeira; confirmação posterior foi
+   ignorada sem regressão.
+2. Agora, testar repasse Pix e comprovar que ele chega a `DONE` uma única vez.
+3. Depois, testar liquidação do repasse de cartão e falha de repasse conciliável; em
+   seguida seguir para plateia e check-in. Em
    paralelo, fechar conciliação, KYC, jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: no Sandbox, testar chargeback sobre uma cobrança de teste e
-comprovar a reversão do acesso, do estoque e do estado financeiro sem regressão.
+Ponto exato de retomada: no Sandbox, testar um repasse Pix completo e comprovar no
+provedor e no ledger que a transferência foi concluída exatamente uma vez.
