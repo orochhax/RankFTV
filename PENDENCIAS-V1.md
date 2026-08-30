@@ -29,9 +29,9 @@ Contradições encontradas no produto atual:
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 6 de 16 cenários concluídos.
+- Matriz financeira obrigatória: 7 de 16 cenários concluídos.
 - Checklist de release: 5 de 17 itens principais concluídos.
-- Última atualização: 29/08/2026
+- Última atualização: 30/08/2026
 - Último commit de código analisado: `a079dd2` (28/08/2026)
 - Estado Git-base conferido em 28/08/2026: `origin/master` permanece em `8fd7244`;
   o candidato de código `a079dd2` está documentado para publicação exclusiva em
@@ -668,7 +668,11 @@ tokens ou dados pessoais.
   `Teste duplicidade`, bloqueou a segunda tentativa com a mensagem de inscrição
   ativa; a consulta retornou exatamente 1 pedido criado/ativo e 1 cobrança/ID Asaas.
   Nenhum pagamento nem dado de teste adicional foi criado.
-- [ ] (não processa duas vezes o mesmo aviso de pagamento) Webhook duplicado é ignorado pelo ledger.
+- [x] (não processa duas vezes o mesmo aviso de pagamento) Webhook duplicado aprovado
+  em 30/08/2026: o evento `evt_15e444ff9b9ab9ec29294aa1abe68025&18571028`,
+  referente ao pagamento `pay_qm8ndikz28xw9kng`, foi reenviado pelo Asaas e recebeu
+  `ok=true`, `ignored=true`, `reason=processed`. O ledger permaneceu com uma única
+  tentativa processada (`attempt_count=1`), `processed_at` preenchido e sem erro.
 - [ ] (impede que um aviso atrasado desfaça um estorno) Webhook confirmado depois de estorno é ignorado como fora de ordem.
 - [ ] (garante que uma demora não gere outra cobrança) Timeout após aceite do provedor fica ambíguo e é conciliado sem nova cobrança.
 - [x] (devolve vaga e cupom somente após o reembolso) Estorno Pix real concluído em
@@ -954,11 +958,11 @@ Verificação do pacote de UX `a079dd2` em 28/08/2026:
 
 1. [x] Request duplicado no cartão Sandbox: duas abas do mesmo ingresso convergiram
    para uma operação, uma referência e uma cobrança confirmada no Asaas.
-2. No Sandbox, reenviar exatamente o mesmo evento de pagamento e comprovar que o
-   ledger do webhook o ignora sem repetir alteração, credencial ou efeito financeiro.
-3. Depois, testar evento confirmado fora de ordem após estorno e timeout após aceite
+2. [x] Webhook duplicado no Sandbox: o mesmo evento foi reenviado e ignorado como
+   `processed`, mantendo uma única tentativa no ledger e nenhum erro.
+3. Agora, testar evento confirmado fora de ordem após estorno e timeout após aceite
    do provedor; em seguida seguir para chargeback, repasses, plateia e check-in. Em
    paralelo, fechar conciliação, KYC, jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: no Sandbox, testar a idempotência de webhook duplicado sem
-criar uma nova cobrança nem repetir efeitos no domínio.
+Ponto exato de retomada: no Sandbox, testar um webhook confirmado fora de ordem depois
+de um estorno e comprovar que o estado terminal não sofre regressão.
