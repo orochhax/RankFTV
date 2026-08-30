@@ -29,7 +29,7 @@ Contradições encontradas no produto atual:
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 13 de 16 cenários concluídos.
+- Matriz financeira obrigatória: 14 de 16 cenários concluídos.
 - Checklist de release: 5 de 17 itens principais concluídos.
 - Última atualização: 30/08/2026
 - Último commit de código analisado: `a079dd2` (28/08/2026)
@@ -730,7 +730,14 @@ tokens ou dados pessoais.
   expiração devolveu os dois contadores de estoque de 3/2 para 0/0 e marcou todas
   as linhas como liberadas; a segunda chamada retornou `false` e preservou 0/0,
   comprovando idempotência. O tipo temporário terminou desativado.
-- [ ] (testa o atleta da compra até a entrada) Fluxo completo de atleta: compra → QR → check-in único.
+- [x] (testa o atleta da compra até a entrada) Fluxo completo de atleta aprovado em
+  30/08/2026 no Preview `195929c`. O ingresso de cartão pago
+  `bf7abf48-3fe7-46f4-8db7-c10234245111` manteve pagamento `pago` e QR válido. Pela
+  tela autenticada do organizador, a primeira leitura confirmou o atleta e gravou
+  `checked_in=true` com `checkin_at`; a segunda leitura do mesmo QR informou que o
+  atleta já estava confirmado, sem criar nova entrada. O teste também validou o
+  fallback de QR do checkout rápido em `athlete_tickets`, além da credencial do fluxo
+  autenticado, e o claim atômico que impede duas leituras concorrentes de vencerem.
 - [ ] (testa o organizador da publicação ao reembolso) Fluxo completo do organizador: publicar → inscrições → financeiro → reembolso.
 
 Comandos locais mínimos:
@@ -1005,9 +1012,8 @@ Verificação do pacote de UX `a079dd2` em 28/08/2026:
    ignorada sem regressão.
 2. [x] Repasse Pix chegou a `DONE` uma única vez; evento duplicado não criou novo
    repasse.
-3. [x] O repasse de cartão respeitou a liquidação e chegou a `DONE` uma única vez.
-   Agora, concluir a falha de repasse conciliável e seguir para check-in. Em
-   paralelo, fechar conciliação, KYC, jurídico/suporte e e-mail DNS.
+3. [x] O fluxo completo de atleta chegou ao check-in único no Preview: primeira
+   leitura aceita e segunda leitura reconhecida como já confirmada.
 
-Ponto exato de retomada: no Sandbox, concluir a evidência de falha de repasse e
-executar o fluxo completo de atleta até o check-in único.
+Ponto exato de retomada: no Sandbox, concluir a entrega externa do alerta da falha
+de repasse e executar o fluxo completo do organizador, da publicação ao reembolso.
