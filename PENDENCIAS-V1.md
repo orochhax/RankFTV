@@ -29,7 +29,7 @@ Contradições encontradas no produto atual:
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 11 de 16 cenários concluídos.
+- Matriz financeira obrigatória: 12 de 16 cenários concluídos.
 - Checklist de release: 5 de 17 itens principais concluídos.
 - Última atualização: 30/08/2026
 - Último commit de código analisado: `a079dd2` (28/08/2026)
@@ -709,7 +709,17 @@ tokens ou dados pessoais.
   a outbox em uma tentativa e atualizou o ingresso para `repassado`, sem erro. O
   reenvio do mesmo `PAYMENT_RECEIVED` foi ignorado como já processado; ledger e
   Asaas permaneceram com exatamente uma operação e uma transferência.
-- [ ] (só repassa cartão depois de o dinheiro estar liberado) Repasse de cartão respeita liquidação.
+- [x] (só repassa cartão depois de o dinheiro estar liberado) Repasse de cartão
+  aprovado em 30/08/2026 no ingresso `bf7abf48-3fe7-46f4-8db7-c10234245111`.
+  A cobrança `pay_48izhgc0du7yqfs2` de R$ 6 ficou
+  `aguardando_liquidacao` até 01/10/2026, mesma data de crédito informada pelo
+  Asaas, e o cron executado antes do vencimento não criou transferência. Após
+  avançar somente a data da massa descartável, foi criada exatamente uma operação
+  (`3cc6a214-7374-4cbc-9bf9-57fa38fc0fc6`) e uma transferência
+  (`1b7e133b-5ecd-459c-af51-cecedcbf4926`). Depois da autorização crítica, a
+  conciliação confirmou `DONE`, concluiu a outbox em uma tentativa e atualizou o
+  ingresso para `repassado`, sem erro. A chave Pix original do organizador foi
+  restaurada após o teste.
 - [ ] (guarda o repasse com erro para tentar novamente) Falha de repasse fica pendente/conciliável e gera alerta.
 - [ ] (testa vários tipos de ingresso no mesmo pedido) Ingresso de plateia com múltiplos tipos reserva e libera estoque corretamente.
 - [ ] (testa o atleta da compra até a entrada) Fluxo completo de atleta: compra → QR → check-in único.
@@ -987,9 +997,10 @@ Verificação do pacote de UX `a079dd2` em 28/08/2026:
    ignorada sem regressão.
 2. [x] Repasse Pix chegou a `DONE` uma única vez; evento duplicado não criou novo
    repasse.
-3. Agora, testar liquidação do repasse de cartão e falha de repasse conciliável; em
-   seguida seguir para plateia e check-in. Em
+3. [x] O repasse de cartão respeitou a liquidação e chegou a `DONE` uma única vez.
+   Agora, concluir a falha de repasse conciliável; em seguida seguir para plateia e
+   check-in. Em
    paralelo, fechar conciliação, KYC, jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: no Sandbox, testar a liquidação do repasse de cartão e
-comprovar que a transferência só é criada depois da disponibilidade financeira.
+Ponto exato de retomada: no Sandbox, concluir a evidência de falha de repasse
+pendente/conciliável e confirmar o alerta operacional sem criar transferência extra.
