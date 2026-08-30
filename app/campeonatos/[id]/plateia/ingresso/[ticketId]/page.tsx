@@ -9,6 +9,7 @@ import { RefundStatusPanel } from "@/components/ingressos/RefundStatusPanel";
 import { formatBRL } from "@/lib/format";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 import { PageContainer } from "@/components/shell/PageContainer";
+import { calcularTotalComprador } from "@/lib/taxas";
 
 function dataBR(iso: string) {
   return new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", {
@@ -50,6 +51,15 @@ export default async function IngressoPlateiaPage({
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+  const { data: paymentOperation } = await supabase
+    .from("financial_operations")
+    .select("amount")
+    .eq("flow", "spectator_ticket")
+    .eq("operation_type", "payment")
+    .eq("record_id", ticketId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
   const hasRefundOperation = Boolean(refundOperation);
   const terminal = t.status_pagamento === "estornado" || t.status_pagamento === "expirado";
   const refundStatus = refundOperation?.provider_status === "REFUNDED"
@@ -73,7 +83,7 @@ export default async function IngressoPlateiaPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome, data_inicio, data_fim, cidade, estado, local")
+    .select("nome, is_elite, data_inicio, data_fim, cidade, estado, local")
     .eq("id", champId)
     .maybeSingle();
 
@@ -160,7 +170,7 @@ export default async function IngressoPlateiaPage({
                 qrToken={t.qr_token}
                 code={t.code}
                 quantidade={Number(t.quantidade)}
-                valor={Number(t.valor)}
+                pixAmount={Number(paymentOperation?.amount ?? calcularTotalComprador(Number(t.valor), "pix", !!champ?.is_elite))}
                 pixCopyPaste={t.pix_copy_paste}
                 pixQrBase64={t.pix_qr_code_base64}
               />

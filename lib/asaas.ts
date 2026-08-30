@@ -99,16 +99,31 @@ export async function criarOuBuscarCliente(input: {
   email: string;
   cpfCnpj: string;
 }): Promise<{ id: string }> {
-  const busca = await request<{ data: Array<{ id: string }> }>(
-    `/customers?cpfCnpj=${input.cpfCnpj}`
+  const name = input.name.trim();
+  const email = input.email.trim().toLowerCase();
+  const busca = await request<{ data: Array<{ id: string; name?: string; email?: string }> }>(
+    `/customers?cpfCnpj=${encodeURIComponent(input.cpfCnpj)}`
   );
-  if (busca.data.length > 0) return { id: busca.data[0].id };
+  if (busca.data.length > 0) {
+    const existing = busca.data[0];
+    const updates: { name?: string; email?: string } = {};
+    if ((existing.name ?? "").trim() !== name) updates.name = name;
+    if ((existing.email ?? "").trim().toLowerCase() !== email) updates.email = email;
+
+    if (Object.keys(updates).length > 0) {
+      await request(`/customers/${existing.id}`, {
+        method: "PUT",
+        body: JSON.stringify(updates),
+      });
+    }
+    return { id: existing.id };
+  }
 
   return request<{ id: string }>("/customers", {
     method: "POST",
     body: JSON.stringify({
-      name:     input.name,
-      email:    input.email,
+      name,
+      email,
       cpfCnpj: input.cpfCnpj,
     }),
   });

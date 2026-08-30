@@ -10,6 +10,7 @@ import { RefundStatusPanel } from "@/components/ingressos/RefundStatusPanel";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { athleteDisplayName } from "@/lib/athlete-display-name";
+import { calcularTotalComprador } from "@/lib/taxas";
 
 const AVATAR_COLORS = ["bg-blue-500", "bg-blue-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
 function avatarColor(str: string) {
@@ -55,6 +56,15 @@ export default async function IngressoAtletaPage({
     .select("status, provider_status, created_at, updated_at, completed_at")
     .eq("flow", "athlete_ticket")
     .eq("operation_type", "refund")
+    .eq("record_id", ticketId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const { data: paymentOperation } = await supabase
+    .from("financial_operations")
+    .select("amount")
+    .eq("flow", "athlete_ticket")
+    .eq("operation_type", "payment")
     .eq("record_id", ticketId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -178,6 +188,7 @@ export default async function IngressoAtletaPage({
               qrToken={t.qr_token}
               code={t.code}
               valor={Number(t.valor)}
+              pixAmount={Number(paymentOperation?.amount ?? calcularTotalComprador(Number(t.valor), "pix", !!champ?.is_elite))}
               pixCopyPaste={t.pix_copy_paste}
               pixQrBase64={t.pix_qr_code_base64}
               paymentMethod={t.billing_type === "CREDIT_CARD" || t.billing_type === "DEBIT_CARD" ? "cartao" : "pix"}

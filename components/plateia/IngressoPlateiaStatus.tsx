@@ -16,7 +16,7 @@ type Props = {
   qrToken: string | null;
   code: string | null;
   quantidade: number;
-  valor: number;
+  pixAmount: number;
   pixCopyPaste: string | null;
   pixQrBase64: string | null;
 };
@@ -33,7 +33,7 @@ export function IngressoPlateiaStatus({
   qrToken,
   code,
   quantidade,
-  valor,
+  pixAmount,
   pixCopyPaste,
   pixQrBase64,
 }: Props) {
@@ -140,7 +140,7 @@ export function IngressoPlateiaStatus({
           <Clock className="size-10 text-gray-300" />
         </div>
       )}
-      <p className="text-lg font-bold text-gray-900">{formatBRL(Number(valor))}</p>
+      <p className="text-lg font-bold text-gray-900">{formatBRL(pixAmount)}</p>
       {pixCopyPaste && (
         <div className="flex w-full items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 ring-1 ring-black/5">
           <span className="flex-1 truncate font-mono text-xs text-gray-500">{pixCopyPaste}</span>

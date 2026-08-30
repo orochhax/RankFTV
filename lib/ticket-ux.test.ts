@@ -40,6 +40,26 @@ test("payment startup failures release the reserved athlete inventory", () => {
   assert.match(authenticatedAction, /customer_or_payment_start_failed/);
 });
 
+test("pending Pix tickets display the persisted charged amount including fees", () => {
+  const athletePage = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/page.tsx");
+  const athleteStatus = source("components/campeonatos/IngressoAtletaPagamento.tsx");
+  const spectatorPage = source("app/campeonatos/[id]/plateia/ingresso/[ticketId]/page.tsx");
+  const spectatorStatus = source("components/plateia/IngressoPlateiaStatus.tsx");
+
+  assert.match(athletePage, /paymentOperation\?\.amount/);
+  assert.match(spectatorPage, /paymentOperation\?\.amount/);
+  assert.match(athleteStatus, /formatBRL\(pixAmount\)/);
+  assert.match(spectatorStatus, /formatBRL\(pixAmount\)/);
+});
+
+test("existing provider customer is synchronized before a new charge", () => {
+  const asaas = source("lib/asaas.ts");
+  assert.match(asaas, /method: "PUT"/);
+  assert.match(asaas, /`\/customers\/\$\{existing\.id\}`/);
+  assert.match(asaas, /updates\.name = name/);
+  assert.match(asaas, /updates\.email = email/);
+});
+
 test("payment polling stops on every terminal ticket status", () => {
   for (const file of [
     "components/campeonatos/IngressoAtletaPagamento.tsx",
