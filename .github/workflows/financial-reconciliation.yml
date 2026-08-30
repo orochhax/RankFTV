@@ -1,0 +1,46 @@
+name: Financial reconciliation
+
+on:
+  schedule:
+    # Runs around every ten minutes away from the hour, when GitHub has the
+    # highest chance of delaying scheduled jobs. Reconciliation is idempotent.
+    - cron: "7,17,27,37,47,57 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: financial-reconciliation-production
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    env:
+      FINANCIAL_RECONCILIATION_URL: ${{ secrets.FINANCIAL_RECONCILIATION_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+    steps:
+      - name: Validate production target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$FINANCIAL_RECONCILIATION_URL"
+          test -n "$CRON_SECRET"
+          test "$FINANCIAL_RECONCILIATION_URL" = "https://www.rankftv.com/api/cron/financial-reconciliation"
+
+      - name: Reconcile pending financial operations
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            --retry 2 \
+            --retry-all-errors \
+            --connect-timeout 10 \
+            --max-time 50 \
+            --header "Authorization: Bearer $CRON_SECRET" \
+            --header "X-Request-ID: github-financial-reconciliation-$GITHUB_RUN_ID" \
+            "$FINANCIAL_RECONCILIATION_URL"
