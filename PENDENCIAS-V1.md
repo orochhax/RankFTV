@@ -29,7 +29,7 @@ Contradições encontradas no produto atual:
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 8 de 16 cenários concluídos.
+- Matriz financeira obrigatória: 9 de 16 cenários concluídos.
 - Checklist de release: 5 de 17 itens principais concluídos.
 - Última atualização: 30/08/2026
 - Último commit de código analisado: `a079dd2` (28/08/2026)
@@ -679,7 +679,13 @@ tokens ou dados pessoais.
   `PAYMENT_CONFIRMED` entrou com rank 30 e foi persistido como `ignored`, uma tentativa
   e nenhum erro. O estado monotônico permaneceu em `PAYMENT_REFUNDED`, rank 50; o
   ingresso continuou `estornado`, com estoque liberado e repasse estornado.
-- [ ] (garante que uma demora não gere outra cobrança) Timeout após aceite do provedor fica ambíguo e é conciliado sem nova cobrança.
+- [x] (garante que uma demora não gere outra cobrança) Cenário controlado aprovado em
+  30/08/2026 com a operação `973e86d6-8b35-4735-928f-08190e39eaca`: após simular
+  timeout depois da escrita no provedor, a operação ficou `ambiguous`, sem provider ID,
+  com erro `timeout` e outbox `pending`. O cron conciliou pela referência externa,
+  restaurou `pay_qm8ndikz28xw9kng` como `confirmed/CONFIRMED`, concluiu a outbox sem
+  erro e manteve o ingresso `pago`. A consulta direta ao Asaas confirmou exatamente
+  uma cobrança para a referência; nenhuma cobrança substituta foi criada.
 - [x] (devolve vaga e cupom somente após o reembolso) Estorno Pix real concluído em
   28/08/2026: a cobrança `pay_r3j64v55ldo38nmt` de R$ 23,99 foi paga por uma segunda
   conta Sandbox, confirmada por webhook e estornada após autorização crítica. O banco
@@ -961,12 +967,12 @@ Verificação do pacote de UX `a079dd2` em 28/08/2026:
 
 ## Próximas 3 tarefas
 
-1. [x] Webhook confirmado fora de ordem após estorno foi ignorado com rank 30, sem
-   regredir o estado terminal `PAYMENT_REFUNDED` de rank 50.
-2. Agora, testar timeout após aceite do provedor e comprovar conciliação sem criar uma
-   segunda cobrança.
-3. Depois, seguir para chargeback, repasses, plateia e check-in. Em
+1. [x] Timeout após aceite do provedor foi conciliado pela referência externa e
+   recuperou a mesma cobrança, sem duplicação.
+2. Agora, testar chargeback e comprovar que o acesso/estado é revertido sem regressão
+   por eventos posteriores.
+3. Depois, seguir para repasses, plateia e check-in. Em
    paralelo, fechar conciliação, KYC, jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: no Sandbox, testar timeout depois de o provedor aceitar a
-cobrança e comprovar que a conciliação recupera a operação sem criar outra cobrança.
+Ponto exato de retomada: no Sandbox, testar chargeback sobre uma cobrança de teste e
+comprovar a reversão do acesso, do estoque e do estado financeiro sem regressão.
