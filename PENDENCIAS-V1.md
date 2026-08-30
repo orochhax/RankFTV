@@ -28,11 +28,11 @@ Contradições encontradas no produto atual:
 
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
-- P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 14 de 16 cenários concluídos.
+- P0: 6 de 10 itens principais concluídos; 4 manuais ainda abertos.
+- Matriz financeira obrigatória: 16 de 16 cenários concluídos.
 - Checklist de release: 5 de 17 itens principais concluídos.
 - Última atualização: 30/08/2026
-- Último commit de código analisado: `a079dd2` (28/08/2026)
+- Último commit de código analisado: `aba1987` (30/08/2026)
 - Estado Git-base conferido em 28/08/2026: `origin/master` permanece em `8fd7244`;
   o candidato de código `a079dd2` está documentado para publicação exclusiva em
   `sandbox-homologacao`, nunca diretamente em `master`.
@@ -84,7 +84,7 @@ Revisão de continuidade em 28/08/2026:
   19/08/2026: não havia pedidos históricos de plateia; pedidos, itens, relatórios
   `complete`/`partial`/`unmigrated`, pedidos sem relatório e divergências de
   quantidade retornaram zero. Nenhuma decisão ou correção manual foi necessária.
-- [M] (testa todo o financeiro sem mexer em dinheiro real) Homologar em ambiente descartável toda a matriz financeira de Campeonatos,
+- [x] (testa todo o financeiro sem mexer em dinheiro real) Homologar em ambiente descartável toda a matriz financeira de Campeonatos,
   sem apontar testes mutantes para produção. Em andamento em 20/08/2026: o Supabase
   `RankFTV Sandbox` recebeu somente o schema (92 tabelas públicas na verificação
   inicial e zero registros nas tabelas de domínio verificadas), e uma chave exclusiva do Asaas
@@ -112,9 +112,10 @@ Revisão de continuidade em 28/08/2026:
   pendente, sem cobrança, credencial ou webhook, com operação `failed` e tentativa
   `declined`. O commit `08c97f3` passou a escolher a forma de pagamento antes de
   criar a cobrança, eliminando o conflito “já existe cobrança por outro meio” no
-  mesmo pedido. Ordenação, timeout, chargeback, repasses, plateia e check-in ainda
-  precisam ser exercitados. A navegação de compras foi
-  consolidada em `/minhas-compras`, com abas Atleta e Plateia.
+  mesmo pedido. Em 30/08/2026, ordenação, timeout, chargeback, repasses Pix/cartão,
+  falha conciliável, plateia com múltiplos itens e os fluxos completos de atleta e
+  organizador também foram aprovados, fechando 16/16 cenários. A navegação de compras
+  foi consolidada em `/minhas-compras`, com abas Atleta e Plateia.
   Após retomar o projeto pausado em 28/08/2026, uma nova consulta encontrou 93 tabelas
   públicas no Sandbox, igualando a contagem do restore. A divergência 92 × 93 ficou
   resolvida sem alteração manual de schema.
@@ -173,8 +174,9 @@ Revisão de continuidade em 28/08/2026:
 - [x] Executar a suíte automatizada local de ledger, duplicidade, timeout, estorno,
   chargeback, repasse e falha de repasse: suíte local completa com 607/607 testes
   aprovados em 28/08/2026 (inclui módulos fora do escopo da V1).
-- [M] (testa pagamentos falsos do começo ao fim) Executar a homologação sandbox de Pix, cartão, duplicidade, timeout, estorno,
-  chargeback e repasse com credenciais/dados descartáveis.
+- [x] (testa pagamentos falsos do começo ao fim) Homologação Sandbox de Pix, cartão,
+  duplicidade, timeout, estorno, chargeback e repasse concluída em 30/08/2026 com
+  credenciais e dados descartáveis; a matriz abaixo registra as 16 evidências.
 - [?] (confere avisos reais do simulador de pagamentos) Validar no Asaas sandbox o comportamento de eventos não exercitados por
   fixture local e comparar interface, provedor e tabelas financeiras.
 
@@ -720,7 +722,18 @@ tokens ou dados pessoais.
   conciliação confirmou `DONE`, concluiu a outbox em uma tentativa e atualizou o
   ingresso para `repassado`, sem erro. A chave Pix original do organizador foi
   restaurada após o teste.
-- [ ] (guarda o repasse com erro para tentar novamente) Falha de repasse fica pendente/conciliável e gera alerta.
+- [x] (guarda o repasse com erro para tentar novamente) Falha de repasse aprovada em
+  30/08/2026 no ingresso `6803452b-46e0-4533-a7f9-233c34fc4608`. A colisão controlada
+  do provedor não criou transferência substituta: a operação
+  `e24d2f69-3fa1-482c-a117-5e246a8d4aa0` permaneceu `ambiguous`, sem provider ID,
+  com erro `http_409` e nova conciliação agendada. A outbox
+  `eb53cf8c-42a4-458e-9a7a-d1b44ee01362` ficou `failed`, com uma tentativa,
+  `provider_transfer_not_found` e reexecução agendada; o ingresso continuou `pago`
+  e `processando`. O cron contabilizou uma falha e gera o evento operacional de erro
+  com `alert=true`. Um teste de entrega confirmou que, quando o destino é configurado,
+  ele recebe o alerta sanitizado sem o token usado na massa. O recebimento em um canal
+  externo permanente continua no item manual de Monitoramento, pois o Preview ainda
+  não possui `OPERATIONS_ALERT_WEBHOOK_URL`.
 - [x] (testa vários tipos de ingresso no mesmo pedido) Pedido de plateia com múltiplos
   tipos aprovado em 30/08/2026. A primeira tentativa revelou o erro SQL `42702`
   por ambiguidade da coluna `valor`; o commit `e121e2f` qualificou as colunas da
@@ -738,7 +751,15 @@ tokens ou dados pessoais.
   atleta já estava confirmado, sem criar nova entrada. O teste também validou o
   fallback de QR do checkout rápido em `athlete_tickets`, além da credencial do fluxo
   autenticado, e o claim atômico que impede duas leituras concorrentes de vencerem.
-- [ ] (testa o organizador da publicação ao reembolso) Fluxo completo do organizador: publicar → inscrições → financeiro → reembolso.
+- [x] (testa o organizador da publicação ao reembolso) Fluxo completo do organizador
+  aprovado em 30/08/2026 no Preview `aba1987`. O campeonato permaneceu publicado em
+  `inscricoes_abertas` e visível na página pública e no painel do dono; uma compra paga
+  do checkout rápido apareceu em Inscrições e no resumo financeiro. O teste encontrou
+  uma divergência: Estornados contabilizava `athlete_tickets`, mas detalhava somente
+  `registrations`. O commit `aba1987` unificou as duas fontes com paginação cronológica
+  e removeu o username fictício dos convidados. Após o deploy, o ingresso Pix realmente
+  estornado `ce094d96-c367-4071-b638-6a2e30239562` apareceu na lista do organizador,
+  sem estado vazio e sem executar um segundo reembolso.
 
 Comandos locais mínimos:
 
@@ -1012,8 +1033,10 @@ Verificação do pacote de UX `a079dd2` em 28/08/2026:
    ignorada sem regressão.
 2. [x] Repasse Pix chegou a `DONE` uma única vez; evento duplicado não criou novo
    repasse.
-3. [x] O fluxo completo de atleta chegou ao check-in único no Preview: primeira
-   leitura aceita e segunda leitura reconhecida como já confirmada.
+3. [x] O fluxo completo do organizador passou da publicação ao histórico do reembolso,
+   incluindo ingressos do checkout rápido no detalhe financeiro.
 
-Ponto exato de retomada: no Sandbox, concluir a entrega externa do alerta da falha
-de repasse e executar o fluxo completo do organizador, da publicação ao reembolso.
+Ponto exato de retomada: a matriz Sandbox obrigatória está concluída em 16/16. Restam
+as quatro liberações manuais de produção: KYC/capacidades Asaas, cadência de
+conciliação, dados jurídicos/suporte e domínio/remetente transacional; o alerta externo
+permanente também deve ser configurado antes de abrir pagamentos.
