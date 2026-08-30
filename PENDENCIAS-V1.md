@@ -29,7 +29,7 @@ Contradições encontradas no produto atual:
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 5 de 16 cenários concluídos.
+- Matriz financeira obrigatória: 6 de 16 cenários concluídos.
 - Checklist de release: 5 de 17 itens principais concluídos.
 - Última atualização: 29/08/2026
 - Último commit de código analisado: `a079dd2` (28/08/2026)
@@ -112,8 +112,8 @@ Revisão de continuidade em 28/08/2026:
   pendente, sem cobrança, credencial ou webhook, com operação `failed` e tentativa
   `declined`. O commit `08c97f3` passou a escolher a forma de pagamento antes de
   criar a cobrança, eliminando o conflito “já existe cobrança por outro meio” no
-  mesmo pedido. Duplicidade forçada, ordenação, timeout, estorno, chargeback, repasses,
-  plateia e check-in ainda precisam ser exercitados. A navegação de compras foi
+  mesmo pedido. Ordenação, timeout, chargeback, repasses, plateia e check-in ainda
+  precisam ser exercitados. A navegação de compras foi
   consolidada em `/minhas-compras`, com abas Atleta e Plateia.
   Após retomar o projeto pausado em 28/08/2026, uma nova consulta encontrou 93 tabelas
   públicas no Sandbox, igualando a contagem do restore. A divergência 92 × 93 ficou
@@ -649,7 +649,13 @@ tokens ou dados pessoais.
   com mensagem segura: o pedido permaneceu `pendente`, sem inscrição, check-in,
   cobrança Asaas, provider ID, webhook ou credencial liberada. A única operação ficou
   `failed` e a única tentativa ficou `declined`.
-- [ ] (garante que dois cliques não criem duas cobranças) Request duplicado retorna/reconcilia a mesma operação externa.
+- [x] (garante que dois cliques não criem duas cobranças) Request duplicado aprovado
+  em 30/08/2026 no cartão Sandbox: duas abas enviaram o pagamento do mesmo ingresso
+  quase simultaneamente e convergiram para a mesma credencial. O banco confirmou o
+  ingresso `5fdd918c…` como `pago`, uma operação `confirmed`, uma referência externa,
+  um provider ID e uma tentativa no ledger. A consulta direta ao Asaas retornou
+  exatamente uma cobrança `CONFIRMED`, `pay_qm8ndikz28xw9kng`, para a referência
+  `athl:5fdd918c-8da7-4cc0-94c7-d2098d18f9ce`.
 - [x] (impede a mesma pessoa de comprar duas vezes a mesma categoria) Antes do commit
   `1d02bcf`, o fluxo com conta bloqueava o campeonato inteiro e o checkout rápido
   permitia pedidos distintos com o mesmo CPF. O código agora permite categorias
@@ -946,17 +952,13 @@ Verificação do pacote de UX `a079dd2` em 28/08/2026:
 
 ## Próximas 3 tarefas
 
-1. [x] No Sandbox, não repetir o estorno do Pix simulado `6859a023…`: o Pix real
-   substituto (`pay_r3j64v55ldo38nmt`) foi pago, estornado e conciliado até
-   `refunded/REFUNDED`, com estoque liberado e repasse estornado.
-2. [x] No Sandbox, aplicar e homologar
-   `supabase/production-participant-category-uniqueness.sql`: os objetos e os cinco
-   comportamentos de proteção foram confirmados em teste descartável com `ROLLBACK`.
-3. Continuar a matriz financeira pelo request duplicado: comprovar que dois envios
-   equivalentes retornam/reconciliam a mesma operação e não criam segunda cobrança.
-   Em seguida, testar webhook duplicado, evento fora de ordem, timeout, chargeback,
-   repasses, plateia e check-in; em paralelo, fechar conciliação, KYC,
-   jurídico/suporte e e-mail DNS.
+1. [x] Request duplicado no cartão Sandbox: duas abas do mesmo ingresso convergiram
+   para uma operação, uma referência e uma cobrança confirmada no Asaas.
+2. No Sandbox, reenviar exatamente o mesmo evento de pagamento e comprovar que o
+   ledger do webhook o ignora sem repetir alteração, credencial ou efeito financeiro.
+3. Depois, testar evento confirmado fora de ordem após estorno e timeout após aceite
+   do provedor; em seguida seguir para chargeback, repasses, plateia e check-in. Em
+   paralelo, fechar conciliação, KYC, jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: no Sandbox, exercitar o cenário financeiro de request
-duplicado sem gerar uma segunda cobrança no Asaas.
+Ponto exato de retomada: no Sandbox, testar a idempotência de webhook duplicado sem
+criar uma nova cobrança nem repetir efeitos no domínio.
