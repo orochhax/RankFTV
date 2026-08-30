@@ -51,6 +51,7 @@ export default async function FinanceiroStatusPage({
   const query = await searchParams;
   const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
   const pageSize = 30;
+  const fetchEnd = page * pageSize - 1;
 
   if (!Object.keys(SLUG_TO_STATUS).includes(statusSlug)) notFound();
   const slug   = statusSlug as StatusSlug;
@@ -66,14 +67,25 @@ export default async function FinanceiroStatusPage({
   if (camp.organizadorId !== user.id) notFound();
 
   // Busca inscrições com o status filtrado
-  const [{ data: rawRegs, count }, { data: metricData }] = await Promise.all([
+  const [{ data: rawRegs }, { data: rawTickets }, { data: metricData }] = await Promise.all([
     supabase
     .from("registrations")
-    .select(`id, valor, created_at, team_id, championship_categories(nome), teams(atleta1_id, atleta2_id)`, { count: "exact" })
+    .select(`id, valor, created_at, team_id, championship_categories(nome), teams(atleta1_id, atleta2_id)`)
     .eq("championship_id", id)
     .eq("status_pagamento", status)
     .order("created_at", { ascending: false })
-    .range((page - 1) * pageSize, page * pageSize - 1),
+    .range(0, fetchEnd),
+    supabase
+    .from("athlete_tickets")
+    .select(`
+      id, valor, created_at, categoria_nome,
+      comprador_nome, comprador_email, comprador_zap,
+      parceiro_nome, parceiro_email, parceiro_zap
+    `)
+    .eq("championship_id", id)
+    .eq("status_pagamento", status)
+    .order("created_at", { ascending: false })
+    .range(0, fetchEnd),
     supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
   ]);
 
@@ -106,7 +118,7 @@ export default async function FinanceiroStatusPage({
     statuses?: Array<{ status: string; count: number; total: number }>;
   };
   const statusMetric = metrics.statuses?.find((item) => item.status === status);
-  const totalRows = Number(statusMetric?.count ?? count ?? 0);
+  const totalRows = Number(statusMetric?.count ?? 0);
   const totalValor = Number(statusMetric?.total ?? 0);
   const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
   if (page > totalPages) {
@@ -122,7 +134,7 @@ export default async function FinanceiroStatusPage({
     atleta2:   { nome: string; username: string; telefone: string | null; email: string | null } | null;
   };
 
-  const lista: InscricaoDetalhe[] = regs.map((r) => {
+  const listaRegs: InscricaoDetalhe[] = regs.map((r) => {
     const t   = (r.teams as unknown) as { atleta1_id: string; atleta2_id: string | null } | null;
     const cat = (r.championship_categories as unknown) as { nome: string } | null;
     const a1id = t?.atleta1_id ?? "";
@@ -138,6 +150,46 @@ export default async function FinanceiroStatusPage({
       atleta2:   p2 ? { nome: p2.nome, username: p2.username, telefone: p2.telefone ?? null, email: emailMap[a2id!] ?? null } : null,
     };
   });
+
+  type AthleteTicketRow = {
+    id: string;
+    valor: number;
+    created_at: string;
+    categoria_nome: string | null;
+    comprador_nome: string;
+    comprador_email: string;
+    comprador_zap: string | null;
+    parceiro_nome: string | null;
+    parceiro_email: string | null;
+    parceiro_zap: string | null;
+  };
+
+  const listaTickets: InscricaoDetalhe[] = ((rawTickets ?? []) as AthleteTicketRow[]).map((ticket) => ({
+    regId: ticket.id,
+    valor: Number(ticket.valor),
+    categoria: ticket.categoria_nome ?? "—",
+    criadoEm: ticket.created_at,
+    atleta1: {
+      nome: ticket.comprador_nome,
+      username: "",
+      telefone: ticket.comprador_zap,
+      email: ticket.comprador_email,
+    },
+    atleta2: ticket.parceiro_nome
+      ? {
+          nome: ticket.parceiro_nome,
+          username: "",
+          telefone: ticket.parceiro_zap,
+          email: ticket.parceiro_email,
+        }
+      : null,
+  }));
+
+  // Cada fonte traz seus N registros mais recentes. Depois de mesclar e cortar,
+  // obtemos a paginação cronológica correta sem esconder o checkout rápido.
+  const lista = [...listaRegs, ...listaTickets]
+    .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))
+    .slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <PageContainer width="wide" className="space-y-4 py-8">
