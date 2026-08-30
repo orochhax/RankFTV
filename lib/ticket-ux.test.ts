@@ -25,7 +25,19 @@ test("athlete checkout preserves values and reports CPF errors inline", () => {
   assert.match(form, /maxLength=\{14\}/);
   assert.match(form, /aria-invalid=\{!!visibleFieldError\("comprador_cpf"\)\}/);
   assert.match(action, /normalizeCpf\(formData\.get\("comprador_cpf"\)/);
+  assert.match(action, /validaCPF\(cpf\)/);
+  assert.match(action, /validaCPF\(pCpf\)/);
   assert.match(action, /fieldErrors\.comprador_cpf/);
+});
+
+test("payment startup failures release the reserved athlete inventory", () => {
+  const guestAction = source("app/campeonatos/[id]/comprar/actions.ts");
+  const authenticatedAction = source("app/campeonatos/[id]/inscrever/actions.ts");
+
+  assert.match(guestAction, /release_athlete_ticket_inventory/);
+  assert.match(authenticatedAction, /release_registration_inventory/);
+  assert.match(guestAction, /customer_or_payment_start_failed/);
+  assert.match(authenticatedAction, /customer_or_payment_start_failed/);
 });
 
 test("payment polling stops on every terminal ticket status", () => {

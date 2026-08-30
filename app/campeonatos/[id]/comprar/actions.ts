@@ -26,6 +26,7 @@ import {
 } from "@/lib/participant-registration";
 import { normalizeCpf } from "@/lib/cpf";
 import { isValidAthleteName } from "@/lib/athlete-display-name";
+import { validaCPF } from "@/lib/validacao";
 
 // Lê e valida as 5 respostas do questionário de nível de UM dos atletas
 // (prefixo "comprador_quiz_" ou "parceiro_quiz_" no FormData) e devolve o
@@ -91,16 +92,16 @@ export async function comprarIngressoAtleta(
       ? "Informe o nome do atleta, não o e-mail."
       : "Informe seu nome completo.";
   }
-  if (cpf.length !== 11) {
-    fieldErrors.comprador_cpf = "CPF inválido. Informe os 11 dígitos.";
+  if (!validaCPF(cpf)) {
+    fieldErrors.comprador_cpf = "CPF inválido. Confira os números informados.";
   }
   if (!isValidAthleteName(pNome)) {
     fieldErrors.parceiro_nome = pNome
       ? "Informe o nome do parceiro, não o e-mail."
       : "Informe o nome do parceiro.";
   }
-  if (pCpf.length !== 11) {
-    fieldErrors.parceiro_cpf = "CPF do parceiro inválido. Informe os 11 dígitos.";
+  if (!validaCPF(pCpf)) {
+    fieldErrors.parceiro_cpf = "CPF do parceiro inválido. Confira os números informados.";
   } else if (cpf === pCpf) {
     fieldErrors.parceiro_cpf = "O CPF do parceiro não pode ser igual ao seu.";
   }
@@ -331,7 +332,18 @@ export async function comprarIngressoAtleta(
         invoice_url:        cobranca.invoiceUrl ?? null,
       })
       .eq("id", ticket.id);
-  } catch {
+  } catch (error) {
+    await reportOperationalEvent({
+      level: "error",
+      event: "athlete_ticket.customer_or_payment_start_failed",
+      message: "Athlete payment could not be started",
+      error,
+      alert: true,
+    });
+    await supabase.rpc("release_athlete_ticket_inventory", {
+      p_ticket_id: ticket.id,
+      p_target_status: "expirado",
+    });
     return { error: "Não foi possível iniciar o pagamento. Tente novamente em instantes." };
   }
 

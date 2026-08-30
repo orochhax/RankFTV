@@ -15,6 +15,8 @@ import {
   isParticipantCategoryConflict,
   participantCategoryConflictMessage,
 } from "@/lib/participant-registration";
+import { reportOperationalEvent } from "@/lib/observability";
+import { validaCPF } from "@/lib/validacao";
 
 export type InscreverState = { error?: string };
 
@@ -118,8 +120,8 @@ export async function inscreverDupla(
   const cpf = resolverCpfInscricao(cpfSalvo, cpfInput);
 
   // CPF só é obrigatório para inscrições pagas (Asaas exige)
-  if (!isGratisPreview && (!cpf || cpf.length !== 11)) {
-    return { error: "CPF obrigatório (somente números, 11 dígitos)." };
+  if (!isGratisPreview && !validaCPF(cpf)) {
+    return { error: "CPF inválido. Confira os números informados." };
   }
 
   // Chave Pix do organizador só é necessária para inscrições pagas
@@ -343,7 +345,18 @@ export async function inscreverDupla(
         invoice_url:        cobranca.invoiceUrl ?? null,
       })
       .eq("id", reg.id);
-  } catch {
+  } catch (error) {
+    await reportOperationalEvent({
+      level: "error",
+      event: "registration.customer_or_payment_start_failed",
+      message: "Registration payment could not be started",
+      error,
+      alert: true,
+    });
+    await admin.rpc("release_registration_inventory", {
+      p_registration_id: reg.id,
+      p_target_status: "expirado",
+    });
     return { error: "Não foi possível iniciar o pagamento. Tente novamente em instantes." };
   }
 
