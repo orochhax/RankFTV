@@ -10,9 +10,10 @@ import type {
   SetDetail,
 } from "@/app/painel/campeonatos/[id]/chaveamento/page";
 
-type RegRow = {
+type ParticipantRow = {
+  id: string;
   category_id: string;
-  teams: { id: string; atleta1_id: string; atleta2_id: string | null } | null;
+  display_name_snapshot: string;
   championship_categories: { id: string; nome: string; genero: string } | null;
 };
 
@@ -58,55 +59,25 @@ export default async function StaffChaveamentoPage({
 
   if (!campData) notFound();
 
-  // Inscrições pagas
-  const { data: rawRegs } = await supabase
-    .from("registrations")
+  // Participantes pagos dos fluxos autenticado e checkout rápido.
+  const { data: rawParticipants } = await supabase
+    .from("bracket_participants")
     .select(`
-      category_id, status_pagamento,
-      teams(id, atleta1_id, atleta2_id),
+      id, category_id, display_name_snapshot,
       championship_categories(id, nome, genero)
     `)
     .eq("championship_id", id)
-    .eq("status_pagamento", "pago");
+    .eq("active", true);
 
-  const regs: RegRow[] = (rawRegs ?? []) as unknown as RegRow[];
-
-  // Perfis em batch
-  const athleteIds = [
-    ...new Set(
-      regs.flatMap((r) =>
-        r.teams
-          ? [r.teams.atleta1_id, ...(r.teams.atleta2_id ? [r.teams.atleta2_id] : [])]
-          : []
-      ),
-    ),
-  ];
-  let profileMap: Record<string, { id: string; nome: string }> = {};
-  if (athleteIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, nome")
-      .in("id", athleteIds);
-    profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
-  }
+  const participants = (rawParticipants ?? []) as unknown as ParticipantRow[];
 
   const teamsByCat: Record<string, TeamDisplay[]>                    = {};
   const catMeta:    Record<string, { nome: string; genero: string }> = {};
-  const seenTeams = new Set<string>();
-
-  for (const reg of regs) {
-    const team    = reg.teams;
-    const catData = reg.championship_categories;
-    if (!team || !catData) continue;
-    if (seenTeams.has(team.id)) continue;
-    seenTeams.add(team.id);
-
-    const a1   = profileMap[team.atleta1_id];
-    const a2   = team.atleta2_id ? profileMap[team.atleta2_id] : null;
-    const nome = a2 ? `${a1?.nome ?? "Atleta"} & ${a2.nome}` : (a1?.nome ?? "Atleta");
-
+  for (const participant of participants) {
+    const catData = participant.championship_categories;
+    if (!catData) continue;
     if (!teamsByCat[catData.id]) teamsByCat[catData.id] = [];
-    teamsByCat[catData.id].push({ id: team.id, nome });
+    teamsByCat[catData.id].push({ id: participant.id, nome: participant.display_name_snapshot });
     catMeta[catData.id] = { nome: catData.nome, genero: catData.genero };
   }
 
@@ -138,7 +109,7 @@ export default async function StaffChaveamentoPage({
   if (activeCatId) {
     const { data: dbMatches } = await supabase
       .from("bracket_matches")
-      .select("id, round_index, match_index, team_a_id, team_b_id, sets_a, sets_b, winner_id, set_details, is_third_place")
+      .select("id, round_index, match_index, participant_a_id, participant_b_id, sets_a, sets_b, winner_participant_id, set_details, is_third_place")
       .eq("championship_id", id)
       .eq("category_id", activeCatId)
       .order("round_index")
@@ -154,11 +125,11 @@ export default async function StaffChaveamentoPage({
         dbId:       m.id,
         roundIndex: m.round_index,
         matchIndex: m.match_index,
-        teamA:      m.team_a_id ? { id: m.team_a_id, nome: teamMap[m.team_a_id] ?? "Dupla" } : null,
-        teamB:      m.team_b_id ? { id: m.team_b_id, nome: teamMap[m.team_b_id] ?? "Dupla" } : null,
+        teamA:      m.participant_a_id ? { id: m.participant_a_id, nome: teamMap[m.participant_a_id] ?? "Dupla" } : null,
+        teamB:      m.participant_b_id ? { id: m.participant_b_id, nome: teamMap[m.participant_b_id] ?? "Dupla" } : null,
         setsA:      m.sets_a,
         setsB:      m.sets_b,
-        winnerId:   m.winner_id,
+        winnerId:   m.winner_participant_id,
         setDetails: (m.set_details as SetDetail[] | null) ?? null,
       });
 

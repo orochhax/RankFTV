@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Trophy, ChevronLeft } from "lucide-react";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { BracketCategoryView } from "@/components/chaveamento/BracketView";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { BracketCategory, BracketMatch, BracketRound } from "@/lib/types";
 
 function splitNomes(nome: string): [string, string] {
@@ -14,53 +14,34 @@ function splitNomes(nome: string): [string, string] {
 async function getDbBracketCategories(
   champId: string,
 ): Promise<BracketCategory[] | null> {
-  const supabase = await createClient();
+  // The participant projection is private to organizers/staff. This Server
+  // Component reads only names already assigned to public bracket matches.
+  const supabase = createAdminClient();
 
   const { data: matches } = await supabase
     .from("bracket_matches")
-    .select("id, round_index, match_index, team_a_id, team_b_id, sets_a, sets_b, winner_id, category_id")
+    .select("id, round_index, match_index, participant_a_id, participant_b_id, sets_a, sets_b, winner_participant_id, category_id")
     .eq("championship_id", champId)
     .order("round_index")
     .order("match_index");
 
   if (!matches || matches.length === 0) return null;
 
-  // Coleta todos os team_ids únicos para buscar nomes
-  const teamIds = [
+  // Coleta os participantes canônicos, incluindo checkout rápido sem conta.
+  const participantIds = [
     ...new Set(
-      matches.flatMap((m) => [m.team_a_id, m.team_b_id].filter(Boolean) as string[]),
+      matches.flatMap((m) => [m.participant_a_id, m.participant_b_id].filter(Boolean) as string[]),
     ),
   ];
 
-  // Busca nomes das duplas (atleta1 & atleta2) via teams + profiles
-  const teamNomes: Record<string, string> = {};
-  if (teamIds.length > 0) {
-    const { data: teams } = await supabase
-      .from("teams")
-      .select("id, atleta1_id, atleta2_id")
-      .in("id", teamIds);
-
-    const athleteIds = [
-      ...new Set(
-        (teams ?? []).flatMap((t) =>
-          [t.atleta1_id, t.atleta2_id].filter(Boolean) as string[],
-        ),
-      ),
-    ];
-
-    let profileMap: Record<string, string> = {};
-    if (athleteIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, nome")
-        .in("id", athleteIds);
-      profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p.nome]));
-    }
-
-    for (const t of teams ?? []) {
-      const a1 = profileMap[t.atleta1_id] ?? "Atleta";
-      const a2 = t.atleta2_id ? profileMap[t.atleta2_id] : null;
-      teamNomes[t.id] = a2 ? `${a1} & ${a2}` : a1;
+  const participantNames: Record<string, string> = {};
+  if (participantIds.length > 0) {
+    const { data: participants } = await supabase
+      .from("bracket_participants")
+      .select("id, display_name_snapshot")
+      .in("id", participantIds);
+    for (const participant of participants ?? []) {
+      participantNames[participant.id] = participant.display_name_snapshot;
     }
   }
 
@@ -81,9 +62,9 @@ async function getDbBracketCategories(
     const byRound = byCat.get(m.category_id)!;
     if (!byRound.has(m.round_index)) byRound.set(m.round_index, []);
 
-    const winnerId = m.winner_id;
-    const isWinA = winnerId && winnerId === m.team_a_id;
-    const isWinB = winnerId && winnerId === m.team_b_id;
+    const winnerId = m.winner_participant_id;
+    const isWinA = winnerId && winnerId === m.participant_a_id;
+    const isWinB = winnerId && winnerId === m.participant_b_id;
 
     const scoreStr =
       m.sets_a !== null && m.sets_b !== null
@@ -92,8 +73,8 @@ async function getDbBracketCategories(
 
     byRound.get(m.round_index)!.push({
       id: m.id,
-      duplaA: { nomes: splitNomes(m.team_a_id ? (teamNomes[m.team_a_id] ?? "A definir") : "A definir") },
-      duplaB: { nomes: splitNomes(m.team_b_id ? (teamNomes[m.team_b_id] ?? "A definir") : "A definir") },
+      duplaA: { nomes: splitNomes(m.participant_a_id ? (participantNames[m.participant_a_id] ?? "A definir") : "A definir") },
+      duplaB: { nomes: splitNomes(m.participant_b_id ? (participantNames[m.participant_b_id] ?? "A definir") : "A definir") },
       placar: scoreStr,
       winner: isWinA ? "a" : isWinB ? "b" : null,
     });

@@ -73,16 +73,21 @@ export async function generateBracket(
   if (!(await canManageBracket(supabase, champId))) return;
   if (!(await categoryBelongsToChampionship(supabase, champId, catId))) return;
 
-  const uniqueTeamIds = [...new Set(teamIds)].slice(0, 256);
-  if (uniqueTeamIds.length !== teamIds.length) return;
-  if (uniqueTeamIds.length > 0) {
-    const { data: validTeams } = await supabase
-      .from("teams")
-      .select("id")
-      .in("id", uniqueTeamIds)
+  const uniqueParticipantIds = [...new Set(teamIds)].slice(0, 256);
+  if (uniqueParticipantIds.length !== teamIds.length) return;
+  let participantTeamIds = new Map<string, string | null>();
+  if (uniqueParticipantIds.length > 0) {
+    const { data: validParticipants } = await supabase
+      .from("bracket_participants")
+      .select("id, team_id")
+      .in("id", uniqueParticipantIds)
       .eq("championship_id", champId)
-      .eq("category_id", catId);
-    if ((validTeams ?? []).length !== uniqueTeamIds.length) return;
+      .eq("category_id", catId)
+      .eq("active", true);
+    if ((validParticipants ?? []).length !== uniqueParticipantIds.length) return;
+    participantTeamIds = new Map(
+      (validParticipants ?? []).map((participant) => [participant.id, participant.team_id]),
+    );
   }
 
   // Reverte o rating de partidas já resultadas antes de apagar o bracket
@@ -98,7 +103,7 @@ export async function generateBracket(
     .eq("championship_id", champId)
     .eq("category_id", catId);
 
-  const shuffled = shuffle(uniqueTeamIds);
+  const shuffled = shuffle(uniqueParticipantIds);
   const n            = nextPow2(shuffled.length);
   const totalRounds  = Math.log2(n);
   const slots: (string | null)[] = [
@@ -115,8 +120,14 @@ export async function generateBracket(
         category_id:     catId,
         round_index:     r,
         match_index:     m,
-        team_a_id: r === 0 ? (slots[m * 2]     ?? null) : null,
-        team_b_id: r === 0 ? (slots[m * 2 + 1] ?? null) : null,
+        participant_a_id: r === 0 ? (slots[m * 2]     ?? null) : null,
+        participant_b_id: r === 0 ? (slots[m * 2 + 1] ?? null) : null,
+        team_a_id: r === 0 && slots[m * 2]
+          ? (participantTeamIds.get(slots[m * 2]!) ?? null)
+          : null,
+        team_b_id: r === 0 && slots[m * 2 + 1]
+          ? (participantTeamIds.get(slots[m * 2 + 1]!) ?? null)
+          : null,
       });
     }
   }
@@ -152,26 +163,36 @@ export async function assignTeam(
 
   const { data: match } = await supabase
     .from("bracket_matches")
-    .select("category_id")
+    .select("category_id, winner_participant_id")
     .eq("id", matchId)
     .eq("championship_id", champId)
     .maybeSingle();
   if (!match) return;
 
+  if (match.winner_participant_id) return;
+
+  let legacyTeamId: string | null = null;
   if (teamId) {
-    const { data: team } = await supabase
-      .from("teams")
-      .select("id")
+    const { data: participant } = await supabase
+      .from("bracket_participants")
+      .select("id, team_id")
       .eq("id", teamId)
       .eq("championship_id", champId)
       .eq("category_id", match.category_id)
+      .eq("active", true)
       .maybeSingle();
-    if (!team) return;
+    if (!participant) return;
+    legacyTeamId = participant.team_id;
   }
-  const field = slot === "a" ? "team_a_id" : "team_b_id";
+  const participantField = slot === "a" ? "participant_a_id" : "participant_b_id";
+  const teamField = slot === "a" ? "team_a_id" : "team_b_id";
   await supabase
     .from("bracket_matches")
-    .update({ [field]: teamId, updated_at: new Date().toISOString() })
+    .update({
+      [participantField]: teamId,
+      [teamField]: legacyTeamId,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", matchId)
     .eq("championship_id", champId);
   revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
@@ -204,26 +225,30 @@ export async function saveScore(
 
   const { data: securedMatch } = await supabase
     .from("bracket_matches")
-    .select("winner_id, team_a_id, team_b_id, round_index, match_index, category_id")
+    .select("winner_participant_id, participant_a_id, participant_b_id, team_a_id, team_b_id, round_index, match_index, category_id")
     .eq("id", matchId)
     .eq("championship_id", champId)
     .eq("category_id", catId)
     .maybeSingle();
   if (!securedMatch) return;
-  if (securedMatch.team_a_id !== teamAId || securedMatch.team_b_id !== teamBId) return;
+  if (securedMatch.participant_a_id !== teamAId || securedMatch.participant_b_id !== teamBId) return;
   if (securedMatch.round_index !== roundIndex || securedMatch.match_index !== matchIndex) return;
 
-  const winnerId =
+  const winnerParticipantId =
     setsA > setsB ? teamAId
     : setsB > setsA ? teamBId
     : null;
+  const winnerTeamId = setsA > setsB
+    ? securedMatch.team_a_id
+    : securedMatch.team_b_id;
 
   await supabase
     .from("bracket_matches")
     .update({
       sets_a:      setsA,
       sets_b:      setsB,
-      winner_id:   winnerId,
+      winner_participant_id: winnerParticipantId,
+      winner_id:   winnerTeamId,
       set_details: setDetails ?? null,
       updated_at:  new Date().toISOString(),
     })
@@ -232,10 +257,11 @@ export async function saveScore(
     .eq("category_id", catId);
 
   // Avança o vencedor para a próxima rodada
-  if (winnerId) {
+  if (winnerParticipantId) {
     const nextRound = roundIndex + 1;
     const nextMatch = Math.floor(matchIndex / 2);
-    const nextSlot  = matchIndex % 2 === 0 ? "team_a_id" : "team_b_id";
+    const nextParticipantSlot = matchIndex % 2 === 0 ? "participant_a_id" : "participant_b_id";
+    const nextTeamSlot = matchIndex % 2 === 0 ? "team_a_id" : "team_b_id";
 
     const { data: nextRow } = await supabase
       .from("bracket_matches")
@@ -249,16 +275,20 @@ export async function saveScore(
     if (nextRow) {
       await supabase
         .from("bracket_matches")
-        .update({ [nextSlot]: winnerId, updated_at: new Date().toISOString() })
+        .update({
+          [nextParticipantSlot]: winnerParticipantId,
+          [nextTeamSlot]: winnerTeamId,
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", nextRow.id);
     }
   }
 
   // Popula a partida pelo 3º lugar com o perdedor da semifinal
-  if (winnerId && teamAId && teamBId) {
+  if (winnerParticipantId && teamAId && teamBId) {
     const { data: thirdPlace } = await supabase
       .from("bracket_matches")
-      .select("id, team_a_id, team_b_id")
+      .select("id, participant_a_id, participant_b_id, team_a_id, team_b_id")
       .eq("championship_id", champId)
       .eq("category_id", catId)
       .eq("is_third_place", true)
@@ -275,13 +305,19 @@ export async function saveScore(
         .eq("is_third_place", false);
 
       if (nextCount === 1) {
-        const loserId = winnerId === teamAId ? teamBId : teamAId;
-        const slot    = matchIndex === 0 ? "team_a_id" : "team_b_id";
-        const already = slot === "team_a_id" ? thirdPlace.team_a_id : thirdPlace.team_b_id;
+        const loserId = winnerParticipantId === teamAId ? teamBId : teamAId;
+        const loserTeamId = winnerParticipantId === teamAId
+          ? securedMatch.team_b_id
+          : securedMatch.team_a_id;
+        const participantSlot = matchIndex === 0 ? "participant_a_id" : "participant_b_id";
+        const teamSlot = matchIndex === 0 ? "team_a_id" : "team_b_id";
+        const already = participantSlot === "participant_a_id"
+          ? thirdPlace.participant_a_id
+          : thirdPlace.participant_b_id;
         if (!already) {
           await supabase
             .from("bracket_matches")
-            .update({ [slot]: loserId })
+            .update({ [participantSlot]: loserId, [teamSlot]: loserTeamId })
             .eq("id", thirdPlace.id);
         }
       }
@@ -293,7 +329,7 @@ export async function saveScore(
   // chamar sempre (placar novo ou editado) sem se preocupar em detectar "é
   // resultado novo?" aqui — nunca soma dois deltas em cima do mesmo match_id.
   // Ver supabase/harden-rating-ledger-idempotency.sql.
-  if (teamAId && teamBId) {
+  if (securedMatch.team_a_id && securedMatch.team_b_id) {
     await createAdminClient().rpc("apply_bracket_match_rating", { p_match_id: matchId });
   }
 
@@ -309,6 +345,7 @@ export async function clearScore(matchId: string, champId: string) {
       sets_a: null,
       sets_b: null,
       winner_id: null,
+      winner_participant_id: null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", matchId)
@@ -357,23 +394,26 @@ export async function confirmBracket(
   // Verifica que a final tem vencedor
   const { data: matches } = await supabase
     .from("bracket_matches")
-    .select("round_index, winner_id")
+    .select("round_index, winner_participant_id, is_third_place")
     .eq("championship_id", champId)
     .eq("category_id", catId);
 
   if (!matches || matches.length === 0)
     return { ok: false, error: "Chaveamento não gerado." };
 
-  const regularMatches = matches.filter((m) => !(m as { is_third_place?: boolean }).is_third_place);
-  const thirdPlace     = matches.find((m)  =>  (m as { is_third_place?: boolean }).is_third_place);
+  const regularMatches = matches.filter((m) => !m.is_third_place);
+  const thirdPlace     = matches.find((m) => m.is_third_place);
+
+  if (regularMatches.length === 0)
+    return { ok: false, error: "Chaveamento não gerado." };
 
   const maxRound     = Math.max(...regularMatches.map((m) => m.round_index));
   const finalMatches = regularMatches.filter((m) => m.round_index === maxRound);
-  const hasChampeão  = finalMatches.every((m) => m.winner_id);
+  const hasChampeão  = finalMatches.every((m) => m.winner_participant_id);
   if (!hasChampeão)
     return { ok: false, error: "O chaveamento ainda não está completo." };
 
-  if (thirdPlace && !thirdPlace.winner_id)
+  if (thirdPlace && !thirdPlace.winner_participant_id)
     return { ok: false, error: "A partida pelo 3º lugar ainda não tem resultado." };
 
   const { error } = await supabase
