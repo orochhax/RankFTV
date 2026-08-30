@@ -29,7 +29,7 @@ Contradições encontradas no produto atual:
 - Estimativas históricas: 78% → 84%. O percentual não foi recalculado por não ter
   fórmula objetiva; a continuidade passa a usar as contagens verificáveis abaixo.
 - P0: 5 de 10 itens principais concluídos; 5 manuais ainda abertos.
-- Matriz financeira obrigatória: 7 de 16 cenários concluídos.
+- Matriz financeira obrigatória: 8 de 16 cenários concluídos.
 - Checklist de release: 5 de 17 itens principais concluídos.
 - Última atualização: 30/08/2026
 - Último commit de código analisado: `a079dd2` (28/08/2026)
@@ -673,7 +673,12 @@ tokens ou dados pessoais.
   referente ao pagamento `pay_qm8ndikz28xw9kng`, foi reenviado pelo Asaas e recebeu
   `ok=true`, `ignored=true`, `reason=processed`. O ledger permaneceu com uma única
   tentativa processada (`attempt_count=1`), `processed_at` preenchido e sem erro.
-- [ ] (impede que um aviso atrasado desfaça um estorno) Webhook confirmado depois de estorno é ignorado como fora de ordem.
+- [x] (impede que um aviso atrasado desfaça um estorno) Cenário aprovado em
+  30/08/2026 com o pagamento Pix estornado `pay_r3j64v55ldo38nmt`: o evento artificial
+  `evt_rankftv_out_of_order_63139179ff5e4a7293325aa14a64ce41` de
+  `PAYMENT_CONFIRMED` entrou com rank 30 e foi persistido como `ignored`, uma tentativa
+  e nenhum erro. O estado monotônico permaneceu em `PAYMENT_REFUNDED`, rank 50; o
+  ingresso continuou `estornado`, com estoque liberado e repasse estornado.
 - [ ] (garante que uma demora não gere outra cobrança) Timeout após aceite do provedor fica ambíguo e é conciliado sem nova cobrança.
 - [x] (devolve vaga e cupom somente após o reembolso) Estorno Pix real concluído em
   28/08/2026: a cobrança `pay_r3j64v55ldo38nmt` de R$ 23,99 foi paga por uma segunda
@@ -956,13 +961,12 @@ Verificação do pacote de UX `a079dd2` em 28/08/2026:
 
 ## Próximas 3 tarefas
 
-1. [x] Request duplicado no cartão Sandbox: duas abas do mesmo ingresso convergiram
-   para uma operação, uma referência e uma cobrança confirmada no Asaas.
-2. [x] Webhook duplicado no Sandbox: o mesmo evento foi reenviado e ignorado como
-   `processed`, mantendo uma única tentativa no ledger e nenhum erro.
-3. Agora, testar evento confirmado fora de ordem após estorno e timeout após aceite
-   do provedor; em seguida seguir para chargeback, repasses, plateia e check-in. Em
+1. [x] Webhook confirmado fora de ordem após estorno foi ignorado com rank 30, sem
+   regredir o estado terminal `PAYMENT_REFUNDED` de rank 50.
+2. Agora, testar timeout após aceite do provedor e comprovar conciliação sem criar uma
+   segunda cobrança.
+3. Depois, seguir para chargeback, repasses, plateia e check-in. Em
    paralelo, fechar conciliação, KYC, jurídico/suporte e e-mail DNS.
 
-Ponto exato de retomada: no Sandbox, testar um webhook confirmado fora de ordem depois
-de um estorno e comprovar que o estado terminal não sofre regressão.
+Ponto exato de retomada: no Sandbox, testar timeout depois de o provedor aceitar a
+cobrança e comprovar que a conciliação recupera a operação sem criar outra cobrança.
