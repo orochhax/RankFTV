@@ -31,6 +31,8 @@ test("spectator migration preserves every normalized line and reports uncertain 
   assert.match(sql, /jsonb_array_length\(st\.itens\) > 0[\s\S]*WHEN st\.ticket_type_id IS NOT NULL THEN 1/i);
   assert.match(sql, /CREATE OR REPLACE FUNCTION create_spectator_ticket_order/i);
   assert.match(sql, /CREATE OR REPLACE FUNCTION release_spectator_ticket_order/i);
+  assert.match(sql, /SELECT tt\.id, tt\.nome, tt\.valor, tt\.max_quantidade, tt\.vendidos, tt\.ativo/i);
+  assert.match(sql, /SELECT pt\.id, pt\.nome, pt\.valor, pt\.quantidade_maxima, pt\.vendidos/i);
   assert.match(sql, /ORDER BY ticket_type_id, pricing_tier_id, id[\s\S]*FOR UPDATE/i);
   assert.match(sql, /usos_atuais = GREATEST\(0, usos_atuais - 1\)/i);
 });
