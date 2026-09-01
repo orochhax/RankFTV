@@ -47,8 +47,10 @@ function calcularRatingDoFormulario(formData: FormData, prefixo: string): number
 export type ComprarAtletaField =
   | "comprador_nome"
   | "comprador_cpf"
+  | "comprador_email"
   | "parceiro_nome"
-  | "parceiro_cpf";
+  | "parceiro_cpf"
+  | "parceiro_email";
 
 export type ComprarAtletaState = {
   error?: string;
@@ -70,7 +72,7 @@ export async function comprarIngressoAtleta(
   // Comprador
   const nome      = ((formData.get("comprador_nome")  as string) ?? "").trim();
   const cpf       = normalizeCpf(formData.get("comprador_cpf") as string);
-  const email     = ((formData.get("comprador_email") as string) ?? "").trim();
+  const email     = ((formData.get("comprador_email") as string) ?? "").trim().toLowerCase();
   const zap       = ((formData.get("comprador_zap")   as string) ?? "").replace(/\D/g, "") || null;
   const genero    = (formData.get("comprador_genero") as string) || null;
   const nasc      = (formData.get("comprador_nascimento") as string) || null;
@@ -79,7 +81,7 @@ export async function comprarIngressoAtleta(
   // Parceiro
   const pNome   = ((formData.get("parceiro_nome")  as string) ?? "").trim();
   const pCpf    = normalizeCpf(formData.get("parceiro_cpf") as string);
-  const pEmail  = ((formData.get("parceiro_email") as string) ?? "").trim() || null;
+  const pEmail  = ((formData.get("parceiro_email") as string) ?? "").trim().toLowerCase() || null;
   const pZap    = ((formData.get("parceiro_zap")   as string) ?? "").replace(/\D/g, "") || null;
   const pGenero  = (formData.get("parceiro_genero") as string) || null;
   const pCamisa  = (formData.get("parceiro_camisa") as string) || null;
@@ -95,6 +97,9 @@ export async function comprarIngressoAtleta(
   if (!validaCPF(cpf)) {
     fieldErrors.comprador_cpf = "CPF inválido. Confira os números informados.";
   }
+  if (!email || !email.includes("@")) {
+    fieldErrors.comprador_email = "Informe um e-mail válido para acessar o ingresso.";
+  }
   if (!isValidAthleteName(pNome)) {
     fieldErrors.parceiro_nome = pNome
       ? "Informe o nome do parceiro, não o e-mail."
@@ -105,6 +110,9 @@ export async function comprarIngressoAtleta(
   } else if (cpf === pCpf) {
     fieldErrors.parceiro_cpf = "O CPF do parceiro não pode ser igual ao seu.";
   }
+  if (!pEmail || !pEmail.includes("@")) {
+    fieldErrors.parceiro_email = "Informe o e-mail do parceiro para ele acessar o próprio ingresso.";
+  }
   if (Object.keys(fieldErrors).length > 0) {
     return {
       fieldErrors,
@@ -112,7 +120,6 @@ export async function comprarIngressoAtleta(
     };
   }
 
-  if (!email || !email.includes("@"))      return { error: "Informe um e-mail válido." };
   if (!categoryId)                         return { error: "Selecione uma categoria." };
 
   // Checkout de visitante (sem login) — rate limit por IP e por e-mail.

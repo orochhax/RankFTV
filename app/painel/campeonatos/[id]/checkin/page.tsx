@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Users, UserCheck, UserX } from "lucide-react
 import { createClient } from "@/lib/supabase/server";
 import { CheckinClient } from "@/components/checkin/CheckinClient";
 import { PresenceItem } from "@/components/checkin/PresenceItem";
+import { PairPresenceItem } from "@/components/checkin/PairPresenceItem";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
@@ -52,14 +53,17 @@ export default async function CheckinPage({
   const allList = await getCheckinDirectory(id, user.id);
   if (!allList) notFound();
 
-  const total = allList.length;
-  const confirmados = allList.filter((item) => item.checked_in).length;
+  const total = allList.reduce((sum, item) => sum + item.members.length, 0);
+  const confirmados = allList.reduce(
+    (sum, item) => sum + item.members.filter((member) => member.checkedIn).length,
+    0,
+  );
   const pendentes = total - confirmados;
   const filteredList =
     filtroAtivo === "presentes"
-      ? allList.filter((item) => item.checked_in)
+      ? allList.filter((item) => item.members.some((member) => member.checkedIn))
       : filtroAtivo === "pendentes"
-        ? allList.filter((item) => !item.checked_in)
+        ? allList.filter((item) => item.members.some((member) => !member.checkedIn))
         : allList;
   const filteredTotal = filteredList.length;
   const totalPages = Math.max(1, Math.ceil(filteredTotal / PAGE_SIZE));
@@ -67,9 +71,9 @@ export default async function CheckinPage({
   const lista = filteredList.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const FILTROS = [
-    { key: "todos",     label: `Todos (${total})` },
-    { key: "pendentes", label: `Pendentes (${pendentes})` },
-    { key: "presentes", label: `Presentes (${confirmados})` },
+    { key: "todos",     label: `Todos (${allList.length})` },
+    { key: "pendentes", label: "Com pendentes" },
+    { key: "presentes", label: "Com presentes" },
   ];
 
   return (
@@ -77,8 +81,8 @@ export default async function CheckinPage({
       <PageHeader title="Check-in" description="Portaria · credenciamento e controle de presença." />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-        <StatCard label="Credenciais" value={total} icon={Users} className="col-span-2 sm:col-span-1" />
-        <StatCard label="Confirmados" value={confirmados} icon={UserCheck} tone="success" />
+        <StatCard label="Atletas" value={total} icon={Users} className="col-span-2 sm:col-span-1" />
+        <StatCard label="Presentes" value={confirmados} icon={UserCheck} tone="success" />
         <StatCard label="Pendentes" value={pendentes} icon={UserX} tone={pendentes > 0 ? "warning" : "default"} />
       </div>
 
@@ -123,37 +127,37 @@ export default async function CheckinPage({
         ) : (
           <Surface padding="none" className="mt-3 overflow-hidden">
             <ol className="divide-y divide-border">
-              {lista.map((c) =>
-                c.checked_in && c.checkin_at ? (
-                  // Presente — clicável, mostra quem escaneou
+              {lista.map((item) => {
+                if (item.kind === "pair") {
+                  return <PairPresenceItem key={item.id} members={item.members} />;
+                }
+                const member = item.members[0];
+                if (!member) return null;
+                return member.checkedIn && member.checkinAt ? (
                   <PresenceItem
-                    key={c.id}
-                    nome={c.nome}
-                    username={c.username}
-                    checkinAt={c.checkin_at}
-                    scannerNome={c.scannerNome}
-                    isPair={c.kind === "pair"}
+                    key={item.id}
+                    nome={member.name}
+                    username={member.username}
+                    checkinAt={member.checkinAt}
+                    scannerNome={member.scannerName}
                   />
                 ) : (
-                  // Pendente — linha simples
-                  <li key={c.id} className="flex items-center gap-3 px-4 py-3">
+                  <li key={item.id} className="flex items-center gap-3 px-4 py-3">
                     <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2">
                       <span className="text-xs font-bold text-ink-muted">?</span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-ink">{c.nome}</p>
-                      {c.kind === "pair" ? (
-                        <p className="text-xs text-ink-muted">Ingresso da dupla</p>
-                      ) : c.username ? (
-                        <p className="text-xs text-ink-muted">@{c.username}</p>
-                      ) : null}
+                      <p className="truncate font-medium text-ink">{member.name}</p>
+                      {member.username && (
+                        <p className="text-xs text-ink-muted">@{member.username}</p>
+                      )}
                     </div>
                     <span className="shrink-0 rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-ink-muted">
                       Pendente
                     </span>
                   </li>
-                )
-              )}
+                );
+              })}
             </ol>
           </Surface>
         )}

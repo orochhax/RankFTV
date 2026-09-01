@@ -12,6 +12,16 @@ import { CardHolderContactFields } from "@/components/pagamento/CardHolderContac
 
 type Tipo = "credito" | "debito";
 
+export type AthleteEntryCredential = {
+  id: string;
+  name: string;
+  qrToken: string | null;
+  code: string | null;
+  checkedIn: boolean;
+  checkinAt: string | null;
+  qrDataUrl: string | null;
+};
+
 function formatCardNumber(v: string) {
   return v.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
 }
@@ -24,10 +34,7 @@ type Props = {
   accessToken:  string;
   isElite:      boolean;
   initialStatusPagamento: string; // "pendente" | "pago" | "estornado"
-  initialCheckedIn: boolean;
-  initialEntradaQr: string | null;
-  qrToken:      string | null;
-  code:         string | null;
+  initialCredentials: AthleteEntryCredential[];
   valor:        number;
   pixAmount:    number;
   pixCopyPaste: string | null;
@@ -40,10 +47,7 @@ export function IngressoAtletaPagamento({
   accessToken,
   isElite,
   initialStatusPagamento,
-  initialCheckedIn,
-  initialEntradaQr,
-  qrToken,
-  code,
+  initialCredentials,
   valor,
   pixAmount,
   pixCopyPaste,
@@ -52,28 +56,31 @@ export function IngressoAtletaPagamento({
 }: Props) {
   const router = useRouter();
   const [statusPagamento, setStatusPagamento] = useState(initialStatusPagamento);
-  const [checkedIn, setCheckedIn] = useState(initialCheckedIn);
-  const [entradaQr, setEntradaQr] = useState(initialEntradaQr);
+  const [credentials, setCredentials] = useState(initialCredentials);
   const stoppedRef = useRef(false);
 
   const pago = statusPagamento === "pago";
 
-  async function gerarEntradaQr() {
-    if (!qrToken) return;
-    const dataUrl = await QRCode.toDataURL(qrToken, {
-      width: 280,
-      margin: 2,
-      color: { dark: "#000000", light: "#ffffff" },
-      errorCorrectionLevel: "M",
-    });
-    setEntradaQr(dataUrl);
+  async function gerarEntradaQrs() {
+    const generated = await Promise.all(credentials.map(async (credential) => {
+      if (!credential.qrToken || credential.qrDataUrl) return credential;
+      const qrDataUrl = await QRCode.toDataURL(credential.qrToken, {
+        width: 280,
+        margin: 2,
+        color: { dark: "#000000", light: "#ffffff" },
+        errorCorrectionLevel: "M",
+      });
+      return { ...credential, qrDataUrl };
+    }));
+    setCredentials(generated);
   }
 
   // Consulta apenas este ingresso e considera o banco como fonte da verdade.
   // Para em qualquer estado final e atualiza também o Server Component, que
   // contém a timeline de cancelamento/estorno.
   useEffect(() => {
-    if (statusPagamento !== "pendente") return;
+    if (["estornado", "expirado"].includes(statusPagamento)) return;
+    if (statusPagamento === "pago" && credentials.length > 0 && credentials.every((credential) => credential.checkedIn)) return;
     stoppedRef.current = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -84,14 +91,29 @@ export function IngressoAtletaPagamento({
         if (res.ok) {
           const data = await res.json();
           const nextStatus = String(data.status_pagamento ?? "pendente");
-          if (nextStatus !== "pendente") {
-            stoppedRef.current = true;
-            setStatusPagamento(nextStatus);
-            setCheckedIn(!!data.checked_in);
-            if (nextStatus === "pago") await gerarEntradaQr();
-            router.refresh();
-            return;
+          if (Array.isArray(data.credentials)) {
+            const allCredentialsChecked = data.credentials.length > 0
+              && data.credentials.every((item: { checked_in?: unknown }) => item.checked_in === true);
+            setCredentials((current) => current.map((credential) => {
+              const latest = data.credentials.find((item: { id?: string }) => item.id === credential.id);
+              return latest
+                ? {
+                    ...credential,
+                    checkedIn: !!latest.checked_in,
+                    checkinAt: latest.checkin_at ?? null,
+                  }
+                : credential;
+            }));
+            if (nextStatus === "pago" && allCredentialsChecked) {
+              stoppedRef.current = true;
+            }
           }
+          if (nextStatus !== statusPagamento) {
+            setStatusPagamento(nextStatus);
+            if (nextStatus === "pago") await gerarEntradaQrs();
+            router.refresh();
+          }
+          if (stoppedRef.current) return;
         }
       } catch {
         // falha de rede — tenta de novo no próximo tick
@@ -111,22 +133,42 @@ export function IngressoAtletaPagamento({
       clearTimeout(maxTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusPagamento, ticketId, accessToken, qrToken, router]);
+  }, [statusPagamento, ticketId, accessToken, router]);
 
   if (pago) {
     return (
-      <div className="flex flex-col items-center gap-3 text-center">
+      <div className="space-y-5 text-center">
         <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-600">
           <CheckCircle2 className="size-4" /> Inscrição confirmada
         </div>
-        {entradaQr && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={entradaQr} alt="QR de entrada" width={220} height={220} className={`rounded-2xl ${checkedIn ? "opacity-40 grayscale" : ""}`} />
-        )}
-        <p className="text-xs text-gray-400">
-          {checkedIn ? "Check-in já realizado" : "Apresente este QR na entrada do evento"}
+        <p className="text-xs text-gray-500">
+          Cada atleta deve apresentar sua própria credencial na chegada.
         </p>
-        {code && <p className="font-mono text-xs tracking-[0.2em] text-gray-400">{code}</p>}
+        <div className="grid gap-4 md:grid-cols-2">
+          {credentials.map((credential) => (
+            <div key={credential.id} className="flex flex-col items-center rounded-2xl bg-white p-4 ring-1 ring-black/5">
+              <p className="mb-2 max-w-full truncate text-sm font-semibold text-gray-900">
+                {credential.name}
+              </p>
+              {credential.qrDataUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={credential.qrDataUrl}
+                  alt={`QR de entrada de ${credential.name}`}
+                  width={220}
+                  height={220}
+                  className={`rounded-2xl ${credential.checkedIn ? "opacity-40 grayscale" : ""}`}
+                />
+              )}
+              <p className={`mt-2 text-xs ${credential.checkedIn ? "font-medium text-blue-600" : "text-gray-400"}`}>
+                {credential.checkedIn ? "Check-in já realizado" : "Apresente este QR na entrada"}
+              </p>
+              {credential.code && (
+                <p className="mt-1 font-mono text-xs tracking-[0.2em] text-gray-400">{credential.code}</p>
+              )}
+            </div>
+          ))}
+        </div>
         <p className="text-xs text-blue-600">Salve o link desta página para acessar depois.</p>
       </div>
     );
@@ -176,7 +218,7 @@ export function IngressoAtletaPagamento({
           isElite={isElite}
           onPago={async () => {
             setStatusPagamento("pago");
-            await gerarEntradaQr();
+            await gerarEntradaQrs();
           }}
         />
       )}

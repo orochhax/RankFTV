@@ -15,7 +15,7 @@ test("ticket and checkout routes keep the authenticated navigation", () => {
   assert.match(navigation, /label: "Minhas compras"/);
 });
 
-test("athlete checkout preserves values and reports CPF errors inline", () => {
+test("athlete checkout preserves values and validates CPF and both access e-mails inline", () => {
   const form = source("components/campeonatos/IngressoAtletaForm.tsx");
   const action = source("app/campeonatos/[id]/comprar/actions.ts");
 
@@ -28,6 +28,11 @@ test("athlete checkout preserves values and reports CPF errors inline", () => {
   assert.match(action, /validaCPF\(cpf\)/);
   assert.match(action, /validaCPF\(pCpf\)/);
   assert.match(action, /fieldErrors\.comprador_cpf/);
+  assert.match(form, /visibleFieldError\("comprador_email"\)/);
+  assert.match(form, /visibleFieldError\("parceiro_email"\)/);
+  assert.match(action, /fieldErrors\.comprador_email/);
+  assert.match(action, /fieldErrors\.parceiro_email/);
+  assert.match(action, /parceiro_email[\s\S]*\.trim\(\)\.toLowerCase\(\)/);
 });
 
 test("payment startup failures release the reserved athlete inventory", () => {
@@ -61,15 +66,31 @@ test("existing provider customer is synchronized before a new charge", () => {
 });
 
 test("payment polling stops on every terminal ticket status", () => {
-  for (const file of [
-    "components/campeonatos/IngressoAtletaPagamento.tsx",
-    "components/plateia/IngressoPlateiaStatus.tsx",
-  ]) {
-    const contents = source(file);
-    assert.match(contents, /if \(statusPagamento !== "pendente"\) return/);
-    assert.match(contents, /if \(nextStatus !== "pendente"\)/);
-    assert.match(contents, /router\.refresh\(\)/);
-  }
+  const athlete = source("components/campeonatos/IngressoAtletaPagamento.tsx");
+  assert.match(athlete, /\["estornado", "expirado"\]\.includes\(statusPagamento\)/);
+  assert.match(athlete, /credentials\.every\(\(credential\) => credential\.checkedIn\)/);
+  assert.match(athlete, /router\.refresh\(\)/);
+
+  const spectator = source("components/plateia/IngressoPlateiaStatus.tsx");
+  assert.match(spectator, /if \(statusPagamento !== "pendente"\) return/);
+  assert.match(spectator, /if \(nextStatus !== "pendente"\)/);
+  assert.match(spectator, /router\.refresh\(\)/);
+});
+
+test("a guest pair receives two linked individual entry credentials", () => {
+  const migration = source("supabase/production-athlete-ticket-credentials.sql");
+  const athletePage = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/page.tsx");
+  const athleteStatus = source("components/campeonatos/IngressoAtletaPagamento.tsx");
+
+  assert.match(migration, /UNIQUE \(athlete_ticket_id, athlete_slot\)/i);
+  assert.match(migration, /VALUES \(1::smallint\), \(2::smallint\)/i);
+  assert.match(migration, /sync_athlete_ticket_credentials/i);
+  assert.match(migration, /sync_athlete_ticket_checkin_summary/i);
+  assert.match(migration, /bool_or\(c\.checked_in\)/);
+  assert.match(migration, /checked_in = v_any_checked/);
+  assert.match(athletePage, /\.from\("athlete_ticket_credentials"\)/);
+  assert.match(athleteStatus, /Cada atleta deve apresentar sua própria credencial/);
+  assert.match(athleteStatus, /credentials\.map/);
 });
 
 test("refund details preserve request, confirmation and cancellation history", () => {

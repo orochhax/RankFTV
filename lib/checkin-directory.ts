@@ -2,14 +2,18 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export type CheckinDirectoryMember = {
+  name: string;
+  username: string;
+  checkedIn: boolean;
+  checkinAt: string | null;
+  scannerName: string | null;
+};
+
 export type CheckinDirectoryItem = {
   id: string;
-  nome: string;
-  username: string;
-  checked_in: boolean;
-  checkin_at: string | null;
-  scannerNome: string | null;
   kind: "athlete" | "pair";
+  members: CheckinDirectoryMember[];
 };
 
 type CredentialRow = {
@@ -26,6 +30,16 @@ type TicketRow = {
   parceiro_nome: string | null;
   checked_in: boolean;
   checkin_at: string | null;
+};
+
+type TicketCredentialRow = {
+  id: string;
+  athlete_ticket_id: string;
+  athlete_slot: number;
+  display_name_snapshot: string;
+  checked_in: boolean;
+  checkin_at: string | null;
+  checked_in_by: string | null;
 };
 
 type ProfileRow = {
@@ -59,7 +73,7 @@ export async function getCheckinDirectory(
   const authorized = championship?.organizador_id === viewerId || staff?.can_qrcode === true;
   if (!authorized) return null;
 
-  const [{ data: rawCredentials }, { data: rawTickets }] = await Promise.all([
+  const [credentialResult, ticketResult, ticketCredentialResult] = await Promise.all([
     admin
       .from("credentials")
       .select("id, user_id, checked_in, checkin_at, checked_in_by")
@@ -71,17 +85,31 @@ export async function getCheckinDirectory(
       .eq("championship_id", championshipId)
       .eq("status_pagamento", "pago")
       .limit(DIRECTORY_LIMIT),
+    admin
+      .from("athlete_ticket_credentials")
+      .select("id, athlete_ticket_id, athlete_slot, display_name_snapshot, checked_in, checkin_at, checked_in_by")
+      .eq("championship_id", championshipId)
+      .order("athlete_slot")
+      .limit(DIRECTORY_LIMIT * 2),
   ]);
 
-  const credentials = (rawCredentials ?? []) as CredentialRow[];
-  const tickets = (rawTickets ?? []) as TicketRow[];
+  const credentials = (credentialResult.data ?? []) as CredentialRow[];
+  const tickets = (ticketResult.data ?? []) as TicketRow[];
+  // Enquanto a migration ainda não foi aplicada, a consulta retorna erro e o
+  // painel conserva o comportamento legado sem derrubar a página.
+  const ticketCredentials = ticketCredentialResult.error
+    ? []
+    : (ticketCredentialResult.data ?? []) as TicketCredentialRow[];
   const profileIds = [
-    ...new Set(
-      credentials.flatMap((credential) => [
+    ...new Set([
+      ...credentials.flatMap((credential) => [
         credential.user_id,
         ...(credential.checked_in_by ? [credential.checked_in_by] : []),
       ]),
-    ),
+      ...ticketCredentials.flatMap((credential) =>
+        credential.checked_in_by ? [credential.checked_in_by] : [],
+      ),
+    ]),
   ];
 
   let profiles: ProfileRow[] = [];
@@ -97,30 +125,57 @@ export async function getCheckinDirectory(
 
   const credentialItems: CheckinDirectoryItem[] = credentials.map((credential) => ({
     id: `credential:${credential.id}`,
-    nome: profileMap.get(credential.user_id)?.nome ?? "Atleta",
-    username: profileMap.get(credential.user_id)?.username ?? "",
-    checked_in: credential.checked_in,
-    checkin_at: credential.checkin_at,
-    scannerNome: credential.checked_in_by
-      ? profileMap.get(credential.checked_in_by)?.nome ?? null
-      : null,
     kind: "athlete",
+    members: [{
+      name: profileMap.get(credential.user_id)?.nome ?? "Atleta",
+      username: profileMap.get(credential.user_id)?.username ?? "",
+      checkedIn: credential.checked_in,
+      checkinAt: credential.checkin_at,
+      scannerName: credential.checked_in_by
+        ? profileMap.get(credential.checked_in_by)?.nome ?? null
+        : null,
+    }],
   }));
 
-  const ticketItems: CheckinDirectoryItem[] = tickets.map((ticket) => ({
-    id: `ticket:${ticket.id}`,
-    nome: [ticket.comprador_nome, ticket.parceiro_nome]
-      .map((name) => name?.trim())
-      .filter(Boolean)
-      .join(" + "),
-    username: "",
-    checked_in: ticket.checked_in,
-    checkin_at: ticket.checkin_at,
-    scannerNome: null,
-    kind: "pair",
-  }));
+  const credentialsByTicket = new Map<string, TicketCredentialRow[]>();
+  for (const credential of ticketCredentials) {
+    const current = credentialsByTicket.get(credential.athlete_ticket_id) ?? [];
+    current.push(credential);
+    credentialsByTicket.set(credential.athlete_ticket_id, current);
+  }
+
+  const ticketItems: CheckinDirectoryItem[] = tickets.map((ticket) => {
+    const individualCredentials = credentialsByTicket.get(ticket.id)?.sort(
+      (a, b) => a.athlete_slot - b.athlete_slot,
+    );
+    const members: CheckinDirectoryMember[] = individualCredentials?.length
+      ? individualCredentials.map((credential) => ({
+          name: credential.display_name_snapshot,
+          username: "",
+          checkedIn: credential.checked_in,
+          checkinAt: credential.checkin_at,
+          scannerName: credential.checked_in_by
+            ? profileMap.get(credential.checked_in_by)?.nome ?? null
+            : null,
+        }))
+      : [ticket.comprador_nome, ticket.parceiro_nome]
+          .filter((name): name is string => Boolean(name?.trim()))
+          .map((name) => ({
+            name,
+            username: "",
+            checkedIn: ticket.checked_in,
+            checkinAt: ticket.checkin_at,
+            scannerName: null,
+          }));
+
+    return {
+      id: `ticket:${ticket.id}`,
+      kind: "pair",
+      members,
+    };
+  });
 
   return [...credentialItems, ...ticketItems].sort((a, b) =>
-    a.nome.localeCompare(b.nome, "pt-BR"),
+    (a.members[0]?.name ?? "").localeCompare(b.members[0]?.name ?? "", "pt-BR"),
   );
 }

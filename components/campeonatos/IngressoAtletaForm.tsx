@@ -166,8 +166,10 @@ export function IngressoAtletaForm({
   );
   const compradorNomeRef = useRef<HTMLInputElement>(null);
   const compradorCpfRef = useRef<HTMLInputElement>(null);
+  const compradorEmailRef = useRef<HTMLInputElement>(null);
   const parceiroNomeRef = useRef<HTMLInputElement>(null);
   const parceiroCpfRef = useRef<HTMLInputElement>(null);
+  const parceiroEmailRef = useRef<HTMLInputElement>(null);
 
   const visibleFieldError = (field: ComprarAtletaField) =>
     dismissedErrors[field] === state.validationAttempt ? undefined : state.fieldErrors?.[field];
@@ -184,20 +186,30 @@ export function IngressoAtletaForm({
 
   function updateAthleteEmail(field: AthleteEmailField, email: string) {
     setValues((current) => setAthleteEmail(current, field, email));
+    if (state.fieldErrors?.[field]) {
+      setDismissedErrors((current) => ({
+        ...current,
+        [field]: state.validationAttempt ?? 0,
+      }));
+    }
   }
 
   useEffect(() => {
     const refs = {
       comprador_nome: compradorNomeRef,
       comprador_cpf: compradorCpfRef,
+      comprador_email: compradorEmailRef,
       parceiro_nome: parceiroNomeRef,
       parceiro_cpf: parceiroCpfRef,
+      parceiro_email: parceiroEmailRef,
     };
     const firstInvalid = ([
       "comprador_nome",
       "comprador_cpf",
+      "comprador_email",
       "parceiro_nome",
       "parceiro_cpf",
+      "parceiro_email",
     ] as ComprarAtletaField[]).find((field) => state.fieldErrors?.[field]);
     if (firstInvalid) refs[firstInvalid].current?.focus();
   }, [state.fieldErrors, state.validationAttempt]);
@@ -397,15 +409,23 @@ export function IngressoAtletaForm({
             <div>
               <label className="block text-sm font-medium text-gray-700">E-mail</label>
               <input
+                ref={compradorEmailRef}
                 name="comprador_email"
                 type="email"
-                className={`mt-1 ${input}`}
+                className={`mt-1 ${input} ${visibleFieldError("comprador_email") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
                 placeholder="voce@email.com"
                 value={values.comprador_email ?? ""}
                 onChange={(event) => updateAthleteEmail("comprador_email", event.target.value)}
+                aria-invalid={!!visibleFieldError("comprador_email")}
+                aria-describedby={visibleFieldError("comprador_email") ? "comprador-email-error" : undefined}
                 autoComplete="off"
                 required
               />
+              {visibleFieldError("comprador_email") && (
+                <p id="comprador-email-error" className="mt-1 text-xs font-medium text-red-600">
+                  {visibleFieldError("comprador_email")}
+                </p>
+              )}
               {emailDaConta && (
                 <SugestaoEmailDaConta
                   email={emailDaConta}
@@ -522,14 +542,23 @@ export function IngressoAtletaForm({
             <div>
               <label className="block text-sm font-medium text-gray-700">E-mail</label>
               <input
+                ref={parceiroEmailRef}
                 name="parceiro_email"
                 type="email"
-                className={`mt-1 ${input}`}
+                className={`mt-1 ${input} ${visibleFieldError("parceiro_email") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
                 placeholder="parceiro@email.com"
                 value={values.parceiro_email ?? ""}
                 onChange={(event) => updateAthleteEmail("parceiro_email", event.target.value)}
+                aria-invalid={!!visibleFieldError("parceiro_email")}
+                aria-describedby={visibleFieldError("parceiro_email") ? "parceiro-email-error" : undefined}
                 autoComplete="off"
+                required
               />
+              {visibleFieldError("parceiro_email") && (
+                <p id="parceiro-email-error" className="mt-1 text-xs font-medium text-red-600">
+                  {visibleFieldError("parceiro_email")}
+                </p>
+              )}
               {emailDaConta && (
                 <SugestaoEmailDaConta
                   email={emailDaConta}

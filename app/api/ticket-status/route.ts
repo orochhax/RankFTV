@@ -30,5 +30,20 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Ingresso nao encontrado." }, { status: 404, headers: PRIVATE_HEADERS });
   }
 
+  if (tipo === "atleta") {
+    const credentialResult = await supabase
+      .from("athlete_ticket_credentials")
+      .select("id, athlete_slot, checked_in, checkin_at")
+      .eq("athlete_ticket_id", id)
+      .order("athlete_slot");
+    return NextResponse.json(
+      {
+        ...data,
+        credentials: credentialResult.error ? [] : credentialResult.data ?? [],
+      },
+      { headers: PRIVATE_HEADERS },
+    );
+  }
+
   return NextResponse.json(data, { headers: PRIVATE_HEADERS });
 }

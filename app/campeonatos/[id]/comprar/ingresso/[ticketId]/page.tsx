@@ -4,7 +4,10 @@ import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
 import QRCode from "qrcode";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Avatar } from "@/components/ui/Avatar";
-import { IngressoAtletaPagamento } from "@/components/campeonatos/IngressoAtletaPagamento";
+import {
+  IngressoAtletaPagamento,
+  type AthleteEntryCredential,
+} from "@/components/campeonatos/IngressoAtletaPagamento";
 import { IngressoOpcoesMenu } from "@/components/ingressos/IngressoOpcoesMenu";
 import { RefundStatusPanel } from "@/components/ingressos/RefundStatusPanel";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
@@ -52,6 +55,12 @@ export default async function IngressoAtletaPage({
     .maybeSingle();
   if (!t) notFound();
   if (t.championship_id !== champId) notFound();
+
+  const individualCredentialResult = await supabase
+    .from("athlete_ticket_credentials")
+    .select("id, athlete_slot, display_name_snapshot, qr_token, code, checked_in, checkin_at")
+    .eq("athlete_ticket_id", ticketId)
+    .order("athlete_slot");
 
   const { data: refundOperation } = await supabase
     .from("financial_operations")
@@ -104,15 +113,47 @@ export default async function IngressoAtletaPage({
   const compradorPublicName = athleteDisplayName(t.comprador_nome);
   const parceiroPublicName = athleteDisplayName(t.parceiro_nome);
 
-  let entradaQr: string | null = null;
-  if (pago && t.qr_token) {
-    entradaQr = await QRCode.toDataURL(t.qr_token, {
-      width:                280,
-      margin:               2,
-      color:                { dark: "#000000", light: "#ffffff" },
-      errorCorrectionLevel: "M",
-    });
-  }
+  type CredentialRow = {
+    id: string;
+    athlete_slot: number;
+    display_name_snapshot: string;
+    qr_token: string | null;
+    code: string | null;
+    checked_in: boolean;
+    checkin_at: string | null;
+  };
+  const individualCredentials = individualCredentialResult.error
+    ? []
+    : (individualCredentialResult.data ?? []) as CredentialRow[];
+  const credentialSources: CredentialRow[] = individualCredentials.length > 0
+    ? individualCredentials
+    : [{
+        id: `legacy:${t.id}`,
+        athlete_slot: 1,
+        display_name_snapshot: `${compradorPublicName} + ${parceiroPublicName}`,
+        qr_token: t.qr_token,
+        code: t.code,
+        checked_in: t.checked_in,
+        checkin_at: null,
+      }];
+  const initialCredentials: AthleteEntryCredential[] = await Promise.all(
+    credentialSources.map(async (credential) => ({
+      id: credential.id,
+      name: athleteDisplayName(credential.display_name_snapshot),
+      qrToken: credential.qr_token,
+      code: credential.code,
+      checkedIn: credential.checked_in,
+      checkinAt: credential.checkin_at,
+      qrDataUrl: pago && credential.qr_token
+        ? await QRCode.toDataURL(credential.qr_token, {
+            width: 280,
+            margin: 2,
+            color: { dark: "#000000", light: "#ffffff" },
+            errorCorrectionLevel: "M",
+          })
+        : null,
+    })),
+  );
 
   return (
     <div className="min-h-screen">
@@ -174,9 +215,6 @@ export default async function IngressoAtletaPage({
             </div>
           </div>
 
-          {t.code && (
-            <p className="font-mono text-[11px] tracking-[0.25em] text-white/30">{t.code}</p>
-          )}
         </PageContainer>
       </div>
 
@@ -197,10 +235,7 @@ export default async function IngressoAtletaPage({
               accessToken={accessToken}
               isElite={!!champ?.is_elite}
               initialStatusPagamento={t.status_pagamento}
-              initialCheckedIn={t.checked_in}
-              initialEntradaQr={entradaQr}
-              qrToken={t.qr_token}
-              code={t.code}
+              initialCredentials={initialCredentials}
               valor={Number(t.valor)}
               pixAmount={Number(paymentOperation?.amount ?? calcularTotalComprador(Number(t.valor), "pix", !!champ?.is_elite))}
               pixCopyPaste={t.pix_copy_paste}

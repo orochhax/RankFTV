@@ -88,11 +88,55 @@ export async function markCheckin(
     return { ok: true, nome };
   }
 
-  // O checkout visitante não cria uma linha em credentials: o próprio
-  // athlete_tickets é a credencial. Depois da autorização acima, o client
-  // administrativo permite que organizador e staff validem esse QR sem abrir
-  // UPDATE direto da tabela aos usuários autenticados.
   const admin = createAdminClient();
+
+  // No checkout de dupla, cada atleta tem uma credencial própria vinculada
+  // ao mesmo pedido. O trigger da migration mantém athlete_tickets.checked_in
+  // como resumo (ao menos um integrante presente) para bloquear reembolsos.
+  const individualResult = await admin
+    .from("athlete_ticket_credentials")
+    .select("id, athlete_ticket_id, display_name_snapshot, checked_in")
+    .eq("championship_id", championshipId)
+    .or(`qr_token.eq.${token},code.eq.${tokenUpper}`)
+    .maybeSingle();
+  const individualCredential = individualResult.data;
+
+  if (individualCredential) {
+    const { data: parentTicket } = await admin
+      .from("athlete_tickets")
+      .select("status_pagamento")
+      .eq("id", individualCredential.athlete_ticket_id)
+      .maybeSingle();
+    const nome = individualCredential.display_name_snapshot?.trim() || "Atleta";
+
+    if (parentTicket?.status_pagamento !== "pago") {
+      return { error: "Ingresso não está ativo" };
+    }
+    if (individualCredential.checked_in) return { alreadyDone: true, nome };
+
+    const { data: claimed, error: claimError } = await admin
+      .from("athlete_ticket_credentials")
+      .update({
+        checked_in: true,
+        checkin_at: new Date().toISOString(),
+        checked_in_by: user.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", individualCredential.id)
+      .eq("checked_in", false)
+      .select("id")
+      .maybeSingle();
+
+    if (claimError) return { error: "Não foi possível confirmar o check-in" };
+    if (!claimed) return { alreadyDone: true, nome };
+
+    revalidatePath(`/painel/campeonatos/${championshipId}/checkin`);
+    revalidatePath(`/staff/${championshipId}/qrcode`);
+    return { ok: true, nome };
+  }
+
+  // Compatibilidade temporária enquanto a migration ainda não existir e para
+  // qualquer QR legado que não tenha recebido as duas credenciais no backfill.
   const { data: ticket } = await admin
     .from("athlete_tickets")
     .select("id, comprador_nome, parceiro_nome, status_pagamento, checked_in")
