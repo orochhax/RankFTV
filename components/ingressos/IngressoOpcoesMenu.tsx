@@ -122,11 +122,26 @@ export function IngressoOpcoesMenu(props: Props) {
   );
 }
 
-function ModalShell({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+function ModalShell({
+  children,
+  onClose,
+  closeOnBackdrop = true,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  closeOnBackdrop?: boolean;
+}) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-md rounded-3xl bg-white p-6 shadow-xl max-h-[85vh] overflow-y-auto">
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={closeOnBackdrop ? onClose : undefined}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="relative z-10 w-full max-w-md rounded-3xl bg-white p-6 shadow-xl max-h-[85vh] overflow-y-auto"
+      >
         {children}
       </div>
     </div>
@@ -374,7 +389,7 @@ function CancelarModal({
     }
 
     return (
-      <ModalShell onClose={showUpdatedTicket}>
+      <ModalShell onClose={showUpdatedTicket} closeOnBackdrop={false}>
         <div className="py-3 text-center">
           <CheckCircle2 className="mx-auto size-12 text-emerald-600" />
           <h2 className="mt-4 text-lg font-semibold text-gray-900">{title}</h2>
@@ -384,7 +399,7 @@ function CancelarModal({
             onClick={showUpdatedTicket}
             className="mt-6 w-full rounded-2xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
           >
-            {isRefund ? "Ver status do reembolso" : "Ver ingresso cancelado"}
+            OK
           </button>
         </div>
       </ModalShell>

@@ -75,6 +75,14 @@ test("payment polling stops on every terminal ticket status", () => {
 test("refund details preserve request, confirmation and cancellation history", () => {
   const panel = source("components/ingressos/RefundStatusPanel.tsx");
   const menu = source("components/ingressos/IngressoOpcoesMenu.tsx");
+  const athleteActions = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
+  const spectatorActions = source("app/campeonatos/[id]/plateia/ingresso/[ticketId]/actions.ts");
+  const athleteCancellation = athleteActions.slice(
+    athleteActions.indexOf("export async function cancelarIngressoAtleta"),
+  );
+  const spectatorCancellation = spectatorActions.slice(
+    spectatorActions.indexOf("export async function cancelarIngressoPlateia"),
+  );
 
   assert.match(panel, /Estorno solicitado/);
   assert.match(panel, /Estorno confirmado/);
@@ -82,6 +90,10 @@ test("refund details preserve request, confirmation and cancellation history", (
   assert.match(panel, /completedAt/);
   assert.match(panel, /cancelledAt/);
   assert.match(menu, /Seu reembolso foi solicitado com sucesso/);
-  assert.match(menu, /Ver status do reembolso/);
+  assert.match(menu, /closeOnBackdrop=\{false\}/);
+  assert.match(menu, />\s*OK\s*</);
+  assert.match(menu, /onClick=\{showUpdatedTicket\}/);
   assert.doesNotMatch(menu, /Indo para Minhas compras/);
+  assert.doesNotMatch(athleteCancellation, /revalidatePath\(/);
+  assert.doesNotMatch(spectatorCancellation, /revalidatePath\(/);
 });

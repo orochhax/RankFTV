@@ -286,7 +286,6 @@ export async function cancelarIngressoAtleta(
   if (["estornado", "expirado"].includes(ticket.status_pagamento))
     return { ok: false, error: "Esse ingresso já foi cancelado." };
 
-  const path = `/campeonatos/${ticket.championship_id}/comprar/ingresso/${ticketId}`;
   const { data: championship } = await admin
     .from("championships")
     .select("data_inicio")
@@ -305,7 +304,6 @@ export async function cancelarIngressoAtleta(
   if (ticket.status_pagamento === "pendente") {
     const cancelled = await estornarAthleteTicket(admin, ticketId);
     if (!cancelled.ok) return { ok: false, error: "Nao foi possivel cancelar agora." };
-    revalidatePath(path);
     return { ok: true, outcome: "cancelado" };
   }
 
@@ -313,7 +311,6 @@ export async function cancelarIngressoAtleta(
   if (!ticket.asaas_payment_id || Number(ticket.valor) <= 0) {
     const cancelled = await estornarAthleteTicket(admin, ticketId);
     if (!cancelled.ok) return { ok: false, error: "Nao foi possivel cancelar agora." };
-    revalidatePath(path);
     return { ok: true, outcome: "cancelado" };
   }
 
@@ -339,7 +336,6 @@ export async function cancelarIngressoAtleta(
   });
   if (!refund.ok) {
     if (refund.ambiguous || refund.inProgress) {
-      revalidatePath(path);
       return { ok: true, outcome: "estorno_solicitado" };
     }
     return { ok: false, error: refund.error };
@@ -349,6 +345,5 @@ export async function cancelarIngressoAtleta(
   if (!cancelled.ok) {
     return { ok: false, error: "O reembolso foi aceito, mas o status aguarda reconciliacao." };
   }
-  revalidatePath(path);
   return { ok: true, outcome: "estorno_solicitado" };
 }

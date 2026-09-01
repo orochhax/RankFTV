@@ -89,7 +89,6 @@ export async function cancelarIngressoPlateia(
     return { ok: false, error: "Esse ingresso ja foi cancelado." };
   }
 
-  const path = `/campeonatos/${ticket.championship_id}/plateia/ingresso/${ticketId}`;
   const { data: championship } = await admin
     .from("championships")
     .select("data_inicio")
@@ -107,7 +106,6 @@ export async function cancelarIngressoPlateia(
   if (ticket.status_pagamento === "pendente" || !ticket.asaas_payment_id || Number(ticket.valor) <= 0) {
     const released = await releaseSpectatorOrder(ticketId);
     if (!released.ok) return released;
-    revalidatePath(path);
     return { ok: true, outcome: "cancelado" };
   }
 
@@ -121,7 +119,6 @@ export async function cancelarIngressoPlateia(
 
   if (!refund.ok) {
     if (refund.ambiguous || refund.inProgress) {
-      revalidatePath(path);
       return { ok: true, outcome: "estorno_solicitado" };
     }
     return {
@@ -132,6 +129,5 @@ export async function cancelarIngressoPlateia(
 
   const released = await releaseSpectatorOrder(ticketId);
   if (!released.ok) return released;
-  revalidatePath(path);
   return { ok: true, outcome: "estorno_solicitado" };
 }
