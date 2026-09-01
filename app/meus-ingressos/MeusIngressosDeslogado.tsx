@@ -34,7 +34,10 @@ export function MeusIngressosDeslogado() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Erro ao enviar o código.");
-      setAviso(data.mensagem ?? "Se encontrarmos ingressos, enviamos um código pro seu e-mail.");
+      setAviso(
+        data.mensagem
+          ?? "O código só será enviado se o CPF e o e-mail coincidirem com os dados da compra.",
+      );
       setEtapa("codigo");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao enviar o código.");
@@ -155,7 +158,7 @@ export function MeusIngressosDeslogado() {
       </Surface>
 
       {results !== null && (
-        <div>
+        <div className="mt-8">
           {results.length === 0 ? (
             <EmptyState
               icon={Ticket}
@@ -163,7 +166,13 @@ export function MeusIngressosDeslogado() {
               description="Confira se o CPF e o e-mail são os mesmos usados na compra."
             />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              className={
+                results.length === 1
+                  ? "mx-auto w-full max-w-xl"
+                  : "mx-auto grid w-full max-w-5xl gap-4 sm:grid-cols-2"
+              }
+            >
               {results.map((ing) => (
                 <IngressoCard key={`${ing.tipo}-${ing.ticket_id}`} ingresso={ing} />
               ))}

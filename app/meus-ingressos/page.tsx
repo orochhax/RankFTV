@@ -31,7 +31,7 @@ export default async function MeusIngressosPage() {
             Encontre sua compra
           </h1>
           <p className="text-sm text-white/50">
-            Digite o CPF e o e-mail usados na compra. Enviaremos um código de acesso ao seu e-mail.
+            Digite exatamente o CPF e o e-mail usados na compra. O código só será enviado se os dois dados coincidirem.
           </p>
         </div>
       </div>
@@ -41,7 +41,7 @@ export default async function MeusIngressosPage() {
           <PageHeader
             eyebrow="Consultar ingresso"
             title="Encontre sua compra"
-            description="Digite o CPF e o e-mail usados na compra. Enviaremos um código de acesso ao seu e-mail."
+            description="Digite exatamente o CPF e o e-mail usados na compra. O código só será enviado se os dois dados coincidirem."
           />
         </PageContainer>
       </div>

@@ -18,4 +18,11 @@ Itens abaixo não bloqueiam o lançamento da V1. Devem ser priorizados depois do
 - [ ] Avaliar download opcional da credencial individual em PDF, mantendo o link online como fonte principal e atualizada.
 - [ ] Avaliar integração com Apple Wallet e Google Wallet para guardar a credencial individual no celular.
 
+## Painel de check-in
+
+- [ ] Reorganizar os indicadores do topo em dois grupos. Atletas: `Total de atletas` (quantidade individual de inscritos), `Atletas presentes` e `Atletas pendentes`. Duplas: `Duplas totais`, `Duplas pendentes` (zero ou somente um integrante presente) e `Duplas confirmadas` (dois integrantes presentes). As contagens devem atualizar automaticamente após cada check-in.
+- [ ] Substituir os blocos repetidos da lista de presença por uma única linha compacta por dupla, no formato `Carlos Rocha + Julia Veronia    1/2`. Exibir cada nome individualmente em azul quando o atleta já chegou e em cinza enquanto estiver pendente; manter também um ícone ou texto de estado para não depender somente da cor. Usar `0/2`, `1/2` e `2/2` como resumo da chegada da dupla.
+- [ ] Ajustar os filtros da lista compacta para `Todas`, `Pendentes` e `Confirmadas`, considerando como confirmada somente a dupla com `2/2`. Se horários e detalhes individuais ainda forem necessários, mostrá-los ao tocar/expandir a linha, sem repetir permanentemente duas linhas de atleta abaixo de cada dupla.
+- [ ] Validar o novo painel no celular: nomes longos devem truncar ou quebrar de forma legível, o contador precisa permanecer visível e a lista não pode ficar escondida pela navegação inferior.
+
 Os itens concluídos continuam removidos. O histórico das implementações e validações permanece registrado no Git.

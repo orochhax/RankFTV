@@ -37,6 +37,19 @@ test("athlete checkout preserves values and validates CPF and both access e-mail
   assert.match(action, /e-mail diferente para cada atleta/);
 });
 
+test("guest ticket recovery keeps account discovery private and aligns recovered cards", () => {
+  const request = source("app/api/meus-ingressos/route.ts");
+  const page = source("app/meus-ingressos/MeusIngressosDeslogado.tsx");
+
+  assert.match(request, /cpf[\s\S]*comprador_email[\s\S]*email/);
+  assert.match(request, /parceiro_cpf[\s\S]*cpf[\s\S]*parceiro_email[\s\S]*email/);
+  assert.match(request, /O código só será enviado se o CPF e o e-mail coincidirem/);
+  assert.match(request, /Por segurança, não confirmamos nesta tela se existe uma inscrição/);
+  assert.match(page, /results\.length === 1/);
+  assert.match(page, /mx-auto w-full max-w-xl/);
+  assert.match(page, /className="mt-8"/);
+});
+
 test("payment startup failures release the reserved athlete inventory", () => {
   const guestAction = source("app/campeonatos/[id]/comprar/actions.ts");
   const authenticatedAction = source("app/campeonatos/[id]/inscrever/actions.ts");
