@@ -2,71 +2,59 @@
 
 import { useEffect, useRef, useState } from "react";
 import { X, QrCode, AlertCircle } from "lucide-react";
+import QrScannerEngine from "qr-scanner";
 
 interface Props {
   onDetected: (token: string) => void;
   onClose: () => void;
 }
 
-// Usa a BarcodeDetector API nativa (Chrome/Edge/Safari 16.4+).
-// Em navegadores sem suporte mostra apenas o campo manual.
+// O qr-scanner usa BarcodeDetector quando disponível e recorre ao seu
+// decodificador Web Worker nos navegadores sem essa API, incluindo iOS.
 export function QrScanner({ onDetected, onClose }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [phase, setPhase] = useState<"requesting" | "scanning" | "unsupported" | "denied">(() =>
-    typeof window !== "undefined" && !("BarcodeDetector" in window) ? "unsupported" : "requesting",
-  );
+  const [phase, setPhase] = useState<"requesting" | "scanning" | "denied" | "unavailable">("requesting");
   const detectedRef = useRef(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !("BarcodeDetector" in window)) return;
+    const video = videoRef.current;
+    if (!video || !navigator.mediaDevices?.getUserMedia) {
+      setPhase("unavailable");
+      return;
+    }
 
-    let stream: MediaStream | null = null;
-    let rafId: number;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const detector = new (window as any).BarcodeDetector({ formats: ["qr_code"] });
+    detectedRef.current = false;
+    const scanner = new QrScannerEngine(
+      video,
+      (result) => {
+        if (detectedRef.current) return;
+        detectedRef.current = true;
+        scanner.stop();
+        onDetected(result.data);
+      },
+      {
+        preferredCamera: "environment",
+        maxScansPerSecond: 10,
+        returnDetailedScanResult: true,
+        highlightScanRegion: false,
+        highlightCodeOutline: false,
+      },
+    );
 
-    (async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment", width: { ideal: 1280 } },
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-        setPhase("scanning");
-
-        const scan = async () => {
-          if (detectedRef.current) return;
-          if (videoRef.current && videoRef.current.readyState >= 2) {
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const codes: any[] = await detector.detect(videoRef.current);
-              if (codes.length > 0 && !detectedRef.current) {
-                detectedRef.current = true;
-                onDetected(codes[0].rawValue as string);
-                return;
-              }
-            } catch {
-              // frame inválido — continua tentando
-            }
-          }
-          rafId = requestAnimationFrame(scan);
-        };
-        rafId = requestAnimationFrame(scan);
-      } catch {
-        setPhase("denied");
-      }
-    })();
+    void scanner.start()
+      .then(() => setPhase("scanning"))
+      .catch((error: unknown) => {
+        const detail = error instanceof Error ? `${error.name} ${error.message}` : String(error);
+        setPhase(/notallowed|permission|denied/i.test(detail) ? "denied" : "unavailable");
+      });
 
     return () => {
-      cancelAnimationFrame(rafId);
-      stream?.getTracks().forEach((t) => t.stop());
+      scanner.destroy();
     };
   }, [onDetected]);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
-      {/* Barra superior */}
       <div className="flex items-center justify-between px-5 py-4">
         <p className="text-sm font-medium text-white/80">
           {phase === "scanning" ? "Aponte para o QR code do atleta" : "Leitor de QR code"}
@@ -80,7 +68,6 @@ export function QrScanner({ onDetected, onClose }: Props) {
         </button>
       </div>
 
-      {/* Câmera + overlay */}
       {(phase === "requesting" || phase === "scanning") && (
         <div className="relative flex-1 overflow-hidden">
           <video
@@ -90,7 +77,6 @@ export function QrScanner({ onDetected, onClose }: Props) {
             muted
             className="h-full w-full object-cover"
           />
-          {/* Moldura central */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="size-60 rounded-3xl border-2 border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]" />
           </div>
@@ -102,19 +88,18 @@ export function QrScanner({ onDetected, onClose }: Props) {
         </div>
       )}
 
-      {/* Sem suporte */}
-      {(phase === "unsupported" || phase === "denied") && (
+      {(phase === "unavailable" || phase === "denied") && (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
           <div className="flex size-16 items-center justify-center rounded-full bg-white/10">
-            {phase === "unsupported" ? (
+            {phase === "unavailable" ? (
               <QrCode className="size-8 text-white/40" />
             ) : (
               <AlertCircle className="size-8 text-amber-400" />
             )}
           </div>
           <p className="text-sm text-white/60">
-            {phase === "unsupported"
-              ? "Seu navegador não suporta leitura de QR automaticamente. Use o campo de código manual abaixo."
+            {phase === "unavailable"
+              ? "Não foi possível abrir uma câmera neste aparelho. Use o campo de código manual abaixo."
               : "Câmera bloqueada. Permita o acesso à câmera nas configurações do navegador ou use o campo de código manual abaixo."}
           </p>
           <button
