@@ -4,29 +4,7 @@ import { ArrowLeft, CheckCircle2, Clock, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CheckinClient } from "@/components/checkin/CheckinClient";
 import { PresenceItem } from "@/components/checkin/PresenceItem";
-
-type CredentialRow = {
-  id: string;
-  user_id: string;
-  role: string;
-  qr_token: string;
-  code: string | null;
-  checked_in: boolean;
-  checkin_at: string | null;
-  checked_in_by: string | null;
-};
-
-type ProfileRow = {
-  id: string;
-  nome: string;
-  username: string;
-};
-
-type CredentialDisplay = CredentialRow & {
-  nome: string;
-  username: string;
-  scannerNome: string | null;
-};
+import { getCheckinDirectory } from "@/lib/checkin-directory";
 
 export default async function StaffQrcodePage({
   params,
@@ -61,36 +39,8 @@ export default async function StaffQrcodePage({
 
   if (!camp) notFound();
 
-  const { data: rawCreds } = await supabase
-    .from("credentials")
-    .select("id, user_id, role, qr_token, code, checked_in, checkin_at, checked_in_by")
-    .eq("championship_id", id);
-
-  const creds: CredentialRow[] = rawCreds ?? [];
-
-  const athleteIds = [...new Set(creds.map((c) => c.user_id))];
-  const scannerIds = [...new Set(creds.map((c) => c.checked_in_by).filter(Boolean))] as string[];
-  const allIds     = [...new Set([...athleteIds, ...scannerIds])];
-
-  let profiles: ProfileRow[] = [];
-  if (allIds.length > 0) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, nome, username")
-      .in("id", allIds);
-    profiles = (data ?? []) as ProfileRow[];
-  }
-
-  const profileMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
-
-  const allList: CredentialDisplay[] = creds
-    .map((c) => ({
-      ...c,
-      nome:        profileMap[c.user_id]?.nome     ?? "Atleta",
-      username:    profileMap[c.user_id]?.username ?? "",
-      scannerNome: c.checked_in_by ? (profileMap[c.checked_in_by]?.nome ?? null) : null,
-    }))
-    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  const allList = await getCheckinDirectory(id, user.id);
+  if (!allList) notFound();
 
   const total       = allList.length;
   const confirmados = allList.filter((c) => c.checked_in).length;
@@ -128,8 +78,8 @@ export default async function StaffQrcodePage({
             <p className="mt-1 text-sm text-white/40">Credenciamento · portaria</p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 pt-1">
-            <div className="rounded-2xl bg-white/10 p-4">
+          <div className="grid grid-cols-2 gap-3 pt-1 sm:grid-cols-3">
+            <div className="col-span-2 rounded-2xl bg-white/10 p-4 sm:col-span-1">
               <div className="flex items-center gap-1.5 text-white/50">
                 <Users className="size-4" />
                 <p className="text-xs">Total</p>
@@ -210,6 +160,7 @@ export default async function StaffQrcodePage({
                       username={c.username}
                       checkinAt={c.checkin_at}
                       scannerNome={c.scannerNome}
+                      isPair={c.kind === "pair"}
                     />
                   ) : (
                     <li key={c.id} className="flex items-center gap-3 px-4 py-3">
@@ -218,9 +169,11 @@ export default async function StaffQrcodePage({
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-gray-900">{c.nome}</p>
-                        {c.username && (
+                        {c.kind === "pair" ? (
+                          <p className="text-xs text-gray-400">Ingresso da dupla</p>
+                        ) : c.username ? (
                           <p className="text-xs text-gray-400">@{c.username}</p>
-                        )}
+                        ) : null}
                       </div>
                       <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500">
                         Pendente

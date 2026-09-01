@@ -11,23 +11,7 @@ import { StatCard } from "@/components/shell/StatCard";
 import { SectionHeader } from "@/components/shell/SectionHeader";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { Surface } from "@/components/shell/Surface";
-
-type CredentialRow = {
-  id: string;
-  user_id: string;
-  role: string;
-  qr_token: string;
-  code: string | null;
-  checked_in: boolean;
-  checkin_at: string | null;
-  checked_in_by: string | null;
-};
-
-type CredentialDisplay = CredentialRow & {
-  nome: string;
-  username: string;
-  scannerNome: string | null;
-};
+import { getCheckinDirectory } from "@/lib/checkin-directory";
 
 const PAGE_SIZE = 50;
 
@@ -65,33 +49,22 @@ export default async function CheckinPage({
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
 
-  const { data: directoryData } = await supabase.rpc("organizer_credential_directory", {
-    p_championship_id: id,
-    p_filter: filtroAtivo,
-    p_limit: PAGE_SIZE,
-    p_offset: (page - 1) * PAGE_SIZE,
-  });
-  type CredentialDirectoryRow = CredentialRow & {
-    nome: string;
-    username: string;
-    scanner_nome: string | null;
-  };
-  const directory = (directoryData ?? {}) as unknown as {
-    items?: CredentialDirectoryRow[];
-    total?: number;
-    confirmed?: number;
-    filteredTotal?: number;
-  };
-  const lista: CredentialDisplay[] = (directory.items ?? []).map((item) => ({
-    ...item,
-    scannerNome: item.scanner_nome,
-  }));
-  const total = Number(directory.total ?? 0);
-  const confirmados = Number(directory.confirmed ?? 0);
-  const pendentes   = total - confirmados;
-  const filteredTotal = Number(directory.filteredTotal ?? 0);
+  const allList = await getCheckinDirectory(id, user.id);
+  if (!allList) notFound();
+
+  const total = allList.length;
+  const confirmados = allList.filter((item) => item.checked_in).length;
+  const pendentes = total - confirmados;
+  const filteredList =
+    filtroAtivo === "presentes"
+      ? allList.filter((item) => item.checked_in)
+      : filtroAtivo === "pendentes"
+        ? allList.filter((item) => !item.checked_in)
+        : allList;
+  const filteredTotal = filteredList.length;
   const totalPages = Math.max(1, Math.ceil(filteredTotal / PAGE_SIZE));
   if (page > totalPages) redirect(checkinHref(id, filtroAtivo, totalPages));
+  const lista = filteredList.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const FILTROS = [
     { key: "todos",     label: `Todos (${total})` },
@@ -103,8 +76,8 @@ export default async function CheckinPage({
     <PageContainer width="wide" className="space-y-6 py-8">
       <PageHeader title="Check-in" description="Portaria · credenciamento e controle de presença." />
 
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Total" value={total} icon={Users} />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <StatCard label="Credenciais" value={total} icon={Users} className="col-span-2 sm:col-span-1" />
         <StatCard label="Confirmados" value={confirmados} icon={UserCheck} tone="success" />
         <StatCard label="Pendentes" value={pendentes} icon={UserX} tone={pendentes > 0 ? "warning" : "default"} />
       </div>
@@ -159,6 +132,7 @@ export default async function CheckinPage({
                     username={c.username}
                     checkinAt={c.checkin_at}
                     scannerNome={c.scannerNome}
+                    isPair={c.kind === "pair"}
                   />
                 ) : (
                   // Pendente — linha simples
@@ -168,9 +142,11 @@ export default async function CheckinPage({
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-ink">{c.nome}</p>
-                      {c.username && (
+                      {c.kind === "pair" ? (
+                        <p className="text-xs text-ink-muted">Ingresso da dupla</p>
+                      ) : c.username ? (
                         <p className="text-xs text-ink-muted">@{c.username}</p>
-                      )}
+                      ) : null}
                     </div>
                     <span className="shrink-0 rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-ink-muted">
                       Pendente

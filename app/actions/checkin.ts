@@ -95,14 +95,17 @@ export async function markCheckin(
   const admin = createAdminClient();
   const { data: ticket } = await admin
     .from("athlete_tickets")
-    .select("id, comprador_nome, status_pagamento, checked_in")
+    .select("id, comprador_nome, parceiro_nome, status_pagamento, checked_in")
     .eq("championship_id", championshipId)
     .or(`qr_token.eq.${token},code.eq.${tokenUpper}`)
     .maybeSingle();
 
   if (!ticket) return { error: "Código não encontrado neste campeonato" };
 
-  const nome = ticket.comprador_nome?.trim() || "Atleta";
+  const nome = [ticket.comprador_nome, ticket.parceiro_nome]
+    .map((name) => name?.trim())
+    .filter(Boolean)
+    .join(" + ") || "Dupla";
   if (ticket.status_pagamento !== "pago") return { error: "Ingresso não está ativo" };
   if (ticket.checked_in) return { alreadyDone: true, nome };
 

@@ -36,9 +36,9 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
     startTransition(async () => {
       const result = await markCheckin(token, championshipId);
       if ("ok" in result) {
-        showToast("success", `✓  ${result.nome} confirmado!`);
+        showToast("success", `Check-in confirmado: ${result.nome}.`);
       } else if ("alreadyDone" in result) {
-        showToast("already", `${result.nome} já estava confirmado.`);
+        showToast("already", `Check-in já realizado: ${result.nome}.`);
       } else {
         showToast("error", result.error);
       }
@@ -70,7 +70,7 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
       {/* Toast de resultado */}
       {toast && (
         <div
-          className={`fixed left-4 right-4 top-4 z-40 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium shadow-xl transition-all ${TOAST_STYLE[toast.type]}`}
+          className={`fixed left-4 right-4 top-[max(1rem,env(safe-area-inset-top))] z-40 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium shadow-xl transition-all ${TOAST_STYLE[toast.type]}`}
         >
           {TOAST_ICON[toast.type]}
           {toast.message}
@@ -94,9 +94,9 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
         </button>
 
         {/* Separador */}
-        <div className="flex items-center gap-3 text-xs text-gray-400">
+        <div className="flex items-center gap-2 text-center text-xs text-gray-400 sm:gap-3">
           <div className="h-px flex-1 bg-gray-100" />
-          ou digite o código manualmente
+          <span className="shrink-0">ou digite o código manualmente</span>
           <div className="h-px flex-1 bg-gray-100" />
         </div>
 
@@ -110,7 +110,7 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
               if (e.key === "Enter" && manualToken.trim()) handleToken(manualToken.trim());
             }}
             placeholder="Cole ou digite o código do QR"
-            className="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <button
             disabled={!manualToken.trim() || isPending}

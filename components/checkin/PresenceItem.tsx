@@ -8,6 +8,7 @@ interface Props {
   username: string;
   checkinAt: string;
   scannerNome: string | null;
+  isPair?: boolean;
 }
 
 function formatDateTime(iso: string) {
@@ -15,7 +16,7 @@ function formatDateTime(iso: string) {
   return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
-export function PresenceItem({ nome, username, checkinAt, scannerNome }: Props) {
+export function PresenceItem({ nome, username, checkinAt, scannerNome, isPair = false }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -31,8 +32,12 @@ export function PresenceItem({ nome, username, checkinAt, scannerNome }: Props) 
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium text-gray-900">{nome}</p>
-          {username && <p className="text-xs text-gray-400">@{username}</p>}
+          <p className="line-clamp-2 font-medium text-gray-900">{nome}</p>
+          {isPair ? (
+            <p className="text-xs text-gray-400">Ingresso da dupla</p>
+          ) : username ? (
+            <p className="text-xs text-gray-400">@{username}</p>
+          ) : null}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">

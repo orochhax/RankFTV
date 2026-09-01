@@ -63,8 +63,8 @@ export function ChampionshipShell({
       <div className="relative border-b border-border bg-surface">
         <PageContainer width="wide" className="space-y-2 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <nav aria-label="Trilha" className="flex flex-wrap items-center gap-1 text-xs text-ink-muted">
+            <div className="min-w-0 flex-1">
+              <nav aria-label="Trilha" className="flex min-w-0 items-center gap-1 overflow-hidden text-xs text-ink-muted">
                 <Link href="/painel/campeonatos" className="inline-flex items-center gap-1 hover:text-blue-600">
                   <ArrowLeft className="size-3" /> Meus campeonatos
                 </Link>
@@ -73,16 +73,16 @@ export function ChampionshipShell({
                   <span className="truncate font-medium text-ink">{champ.nome}</span>
                 ) : (
                   <>
-                    <Link href={`/painel/campeonatos/${champ.id}`} className="truncate hover:text-blue-600">
+                    <Link href={`/painel/campeonatos/${champ.id}`} className="hidden truncate hover:text-blue-600 sm:inline">
                       {champ.nome}
                     </Link>
-                    <ChevronRight className="size-3 shrink-0" />
+                    <ChevronRight className="hidden size-3 shrink-0 sm:block" />
                     <span className="truncate font-medium text-ink">{sectionTitle}</span>
                   </>
                 )}
               </nav>
-              <div className="mt-1.5 flex items-center gap-2">
-                <h1 className="truncate text-lg font-bold text-ink">{champ.nome}</h1>
+              <div className="mt-1.5 flex min-w-0 items-start gap-2">
+                <h1 className="line-clamp-2 min-w-0 flex-1 text-base font-bold leading-tight text-ink sm:text-lg">{champ.nome}</h1>
                 <StatusBadge status={champ.status} />
               </div>
             </div>
