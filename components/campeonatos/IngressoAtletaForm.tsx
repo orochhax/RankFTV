@@ -32,11 +32,11 @@ export type CategoriaOpcao = {
 
 const CAMISAS = ["PP", "P", "M", "G", "GG", "XG", "XGG"];
 
-type Etapa = "categoria" | "dados";
-const ETAPAS: { key: Etapa | "pagamento"; label: string }[] = [
+type Etapa = "categoria" | "dados" | "revisao";
+const ETAPAS: { key: Etapa; label: string }[] = [
   { key: "categoria", label: "Categoria" },
   { key: "dados", label: "Dados dos atletas" },
-  { key: "pagamento", label: "Pagamento" },
+  { key: "revisao", label: "Revisão e pagamento" },
 ];
 
 function BarraDeProgresso({ etapa }: { etapa: Etapa }) {
@@ -160,6 +160,7 @@ export function IngressoAtletaForm({
   const [metodoPagamento, setMetodoPagamento] = useState<"pix" | "cartao">("pix");
   const [values, setValues] = useState<Record<string, string>>({});
   const [dismissedErrors, setDismissedErrors] = useState<Partial<Record<ComprarAtletaField, number>>>({});
+  const [reviewErrors, setReviewErrors] = useState<Partial<Record<ComprarAtletaField, string>>>({});
   const [state, formAction, pending] = useActionState<ComprarAtletaState, FormData>(
     comprarIngressoAtleta,
     {},
@@ -167,15 +168,20 @@ export function IngressoAtletaForm({
   const compradorNomeRef = useRef<HTMLInputElement>(null);
   const compradorCpfRef = useRef<HTMLInputElement>(null);
   const compradorEmailRef = useRef<HTMLInputElement>(null);
+  const compradorEmailConfirmacaoRef = useRef<HTMLInputElement>(null);
   const parceiroNomeRef = useRef<HTMLInputElement>(null);
   const parceiroCpfRef = useRef<HTMLInputElement>(null);
   const parceiroEmailRef = useRef<HTMLInputElement>(null);
+  const parceiroEmailConfirmacaoRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const visibleFieldError = (field: ComprarAtletaField) =>
-    dismissedErrors[field] === state.validationAttempt ? undefined : state.fieldErrors?.[field];
+    reviewErrors[field]
+      ?? (dismissedErrors[field] === state.validationAttempt ? undefined : state.fieldErrors?.[field]);
 
   function updateValue(field: string, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
+    setReviewErrors((current) => ({ ...current, [field]: undefined }));
     if (state.fieldErrors?.[field as ComprarAtletaField]) {
       setDismissedErrors((current) => ({
         ...current,
@@ -186,6 +192,7 @@ export function IngressoAtletaForm({
 
   function updateAthleteEmail(field: AthleteEmailField, email: string) {
     setValues((current) => setAthleteEmail(current, field, email));
+    setReviewErrors((current) => ({ ...current, [field]: undefined }));
     if (state.fieldErrors?.[field]) {
       setDismissedErrors((current) => ({
         ...current,
@@ -199,20 +206,63 @@ export function IngressoAtletaForm({
       comprador_nome: compradorNomeRef,
       comprador_cpf: compradorCpfRef,
       comprador_email: compradorEmailRef,
+      comprador_email_confirmacao: compradorEmailConfirmacaoRef,
       parceiro_nome: parceiroNomeRef,
       parceiro_cpf: parceiroCpfRef,
       parceiro_email: parceiroEmailRef,
+      parceiro_email_confirmacao: parceiroEmailConfirmacaoRef,
     };
     const firstInvalid = ([
       "comprador_nome",
       "comprador_cpf",
       "comprador_email",
+      "comprador_email_confirmacao",
       "parceiro_nome",
       "parceiro_cpf",
       "parceiro_email",
+      "parceiro_email_confirmacao",
     ] as ComprarAtletaField[]).find((field) => state.fieldErrors?.[field]);
-    if (firstInvalid) refs[firstInvalid].current?.focus();
+    if (firstInvalid) {
+      requestAnimationFrame(() => {
+        setEtapa("dados");
+        requestAnimationFrame(() => refs[firstInvalid].current?.focus());
+      });
+    }
   }, [state.fieldErrors, state.validationAttempt]);
+
+  function abrirRevisao() {
+    if (!formRef.current?.reportValidity()) return;
+
+    const compradorEmail = (values.comprador_email ?? "").trim().toLowerCase();
+    const compradorConfirmacao = (values.comprador_email_confirmacao ?? "").trim().toLowerCase();
+    const parceiroEmail = (values.parceiro_email ?? "").trim().toLowerCase();
+    const parceiroConfirmacao = (values.parceiro_email_confirmacao ?? "").trim().toLowerCase();
+    const errors: Partial<Record<ComprarAtletaField, string>> = {};
+
+    if (compradorEmail !== compradorConfirmacao) {
+      errors.comprador_email_confirmacao = "A confirmação precisa ser igual ao e-mail do atleta 1.";
+    }
+    if (parceiroEmail !== parceiroConfirmacao) {
+      errors.parceiro_email_confirmacao = "A confirmação precisa ser igual ao e-mail do atleta 2.";
+    }
+    if (compradorEmail && compradorEmail === parceiroEmail) {
+      errors.parceiro_email = "Use um e-mail diferente para cada atleta receber sua própria credencial.";
+    }
+
+    setReviewErrors(errors);
+    const firstInvalid = errors.comprador_email_confirmacao
+      ? compradorEmailConfirmacaoRef
+      : errors.parceiro_email
+        ? parceiroEmailRef
+        : errors.parceiro_email_confirmacao
+          ? parceiroEmailConfirmacaoRef
+          : null;
+    if (firstInvalid) {
+      firstInvalid.current?.focus();
+      return;
+    }
+    setEtapa("revisao");
+  }
 
   const input =
     "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -325,13 +375,14 @@ export function IngressoAtletaForm({
       )}
 
       {/* Etapa 2 — dados dos atletas + pagamento */}
-      {etapa === "dados" && catSelecionada && (
-        <form action={formAction} className="space-y-6">
+      {etapa !== "categoria" && catSelecionada && (
+        <form ref={formRef} action={formAction} className="space-y-6">
           <input type="hidden" name="championship_id" value={championshipId} />
           <input type="hidden" name="category_id"     value={catSelecionada.id} />
           <input type="hidden" name="categoria_nome"  value={catSelecionada.nome} />
           <input type="hidden" name="metodo_pagamento" value={metodoPagamento} />
 
+          <div hidden={etapa !== "dados"} className="space-y-6">
           {/* Resumo da categoria escolhida */}
           <div className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4">
             <div className="min-w-0">
@@ -434,6 +485,28 @@ export function IngressoAtletaForm({
                 />
               )}
               <p className="mt-1 text-xs text-gray-400">O ingresso e QR de entrada chegam nesse e-mail.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Confirme seu e-mail</label>
+              <input
+                ref={compradorEmailConfirmacaoRef}
+                name="comprador_email_confirmacao"
+                type="email"
+                className={`mt-1 ${input} ${visibleFieldError("comprador_email_confirmacao") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
+                placeholder="Digite novamente, sem copiar e colar"
+                value={values.comprador_email_confirmacao ?? ""}
+                onChange={(event) => updateValue("comprador_email_confirmacao", event.target.value)}
+                onPaste={(event) => event.preventDefault()}
+                aria-invalid={!!visibleFieldError("comprador_email_confirmacao")}
+                aria-describedby={visibleFieldError("comprador_email_confirmacao") ? "comprador-email-confirmacao-error" : undefined}
+                autoComplete="off"
+                required
+              />
+              {visibleFieldError("comprador_email_confirmacao") && (
+                <p id="comprador-email-confirmacao-error" className="mt-1 text-xs font-medium text-red-600">
+                  {visibleFieldError("comprador_email_confirmacao")}
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -568,6 +641,28 @@ export function IngressoAtletaForm({
               )}
               <p className="mt-1 text-xs text-gray-400">O ingresso e QR de entrada chegam nesse e-mail.</p>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Confirme o e-mail do parceiro</label>
+              <input
+                ref={parceiroEmailConfirmacaoRef}
+                name="parceiro_email_confirmacao"
+                type="email"
+                className={`mt-1 ${input} ${visibleFieldError("parceiro_email_confirmacao") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
+                placeholder="Digite novamente, sem copiar e colar"
+                value={values.parceiro_email_confirmacao ?? ""}
+                onChange={(event) => updateValue("parceiro_email_confirmacao", event.target.value)}
+                onPaste={(event) => event.preventDefault()}
+                aria-invalid={!!visibleFieldError("parceiro_email_confirmacao")}
+                aria-describedby={visibleFieldError("parceiro_email_confirmacao") ? "parceiro-email-confirmacao-error" : undefined}
+                autoComplete="off"
+                required
+              />
+              {visibleFieldError("parceiro_email_confirmacao") && (
+                <p id="parceiro-email-confirmacao-error" className="mt-1 text-xs font-medium text-red-600">
+                  {visibleFieldError("parceiro_email_confirmacao")}
+                </p>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Gênero</label>
@@ -681,22 +776,74 @@ export function IngressoAtletaForm({
             </div>
           )}
 
+          <button
+            type="button"
+            onClick={abrirRevisao}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          >
+            Revisar dados antes de pagar
+          </button>
+          </div>
+
+          {etapa === "revisao" && (
+            <section className="space-y-5" aria-labelledby="revisao-title">
+              <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+                <p id="revisao-title" className="text-sm font-semibold text-blue-900">Revise antes de confirmar</p>
+                <p className="mt-1 text-xs text-blue-700">
+                  Cada ingresso e QR será enviado somente para o e-mail mostrado abaixo.
+                </p>
+              </div>
+
+              <div className="divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white">
+                <div className="p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Atleta 1</p>
+                  <p className="mt-1 font-semibold text-gray-900">{values.comprador_nome}</p>
+                  <p className="break-all text-sm text-blue-700">{values.comprador_email?.trim().toLowerCase()}</p>
+                </div>
+                <div className="p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Atleta 2</p>
+                  <p className="mt-1 font-semibold text-gray-900">{values.parceiro_nome}</p>
+                  <p className="break-all text-sm text-blue-700">{values.parceiro_email?.trim().toLowerCase()}</p>
+                </div>
+                <div className="flex items-center justify-between gap-3 p-4 text-sm">
+                  <div>
+                    <p className="font-medium text-gray-900">Categoria {catSelecionada.nome}</p>
+                    <p className="text-gray-500">
+                      {isGratis ? "Inscrição gratuita" : metodoPagamento === "pix" ? "Pagamento por Pix" : "Pagamento por cartão"}
+                    </p>
+                  </div>
+                  <p className="shrink-0 font-bold text-gray-900">{isGratis ? "Grátis" : formatBRL(total)}</p>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setEtapa("dados")}
+                  disabled={pending}
+                  className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                >
+                  Corrigir dados
+                </button>
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {pending && <Loader2 className="size-4 animate-spin" />}
+                  {isGratis
+                    ? "Confirmar inscrição grátis"
+                    : `Confirmar e pagar com ${metodoPagamento === "pix" ? "Pix" : "cartão"}`}
+                </button>
+              </div>
+            </section>
+          )}
+
           {state.error && (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 ring-1 ring-red-100">
               {state.error}
             </p>
           )}
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-          >
-            {pending && <Loader2 className="size-4 animate-spin" />}
-            {isGratis
-              ? "Confirmar inscrição grátis"
-              : `Continuar com ${metodoPagamento === "pix" ? "Pix" : "cartão"} — ${formatBRL(total)}`}
-          </button>
         </form>
       )}
     </div>
