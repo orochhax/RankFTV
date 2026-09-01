@@ -91,6 +91,7 @@ test("a guest pair receives two linked individual entry credentials", () => {
   assert.match(athletePage, /\.from\("athlete_ticket_credentials"\)/);
   assert.match(athleteStatus, /Cada atleta deve apresentar sua própria credencial/);
   assert.match(athleteStatus, /credentials\.map/);
+  assert.match(athleteStatus, /mx-auto grid w-full max-w-3xl/);
 });
 
 test("refund details preserve request, confirmation and cancellation history", () => {
