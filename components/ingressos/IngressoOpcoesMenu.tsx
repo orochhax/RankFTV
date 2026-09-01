@@ -13,6 +13,8 @@ import {
   cancelarIngressoPlateia,
   type TitularidadePlateiaInput,
 } from "@/app/campeonatos/[id]/plateia/ingresso/[ticketId]/actions";
+import type { RefundPolicyDecision } from "@/lib/refund-policy";
+import { RefundPolicySummary } from "@/components/ingressos/RefundPolicySummary";
 
 type DadosAtleta = {
   compradorNome:   string;
@@ -34,9 +36,21 @@ type DadosPlateia = {
   compradorCpf:   string | null;
 };
 
-type Props =
-  | { tipo: "atleta"; ticketId: string; accessToken: string; billingType: string | null; dadosAtuais: DadosAtleta }
-  | { tipo: "plateia"; ticketId: string; accessToken: string; billingType: string | null; dadosAtuais: DadosPlateia };
+type RefundContext = {
+  ticketId: string;
+  accessToken: string;
+  billingType: string | null;
+  refundPolicy: RefundPolicyDecision;
+  purchasedAt: string;
+  eventStartDate: string | null;
+  baseAmount: number;
+  paidAmount: number | null;
+};
+
+type Props = RefundContext & (
+  | { tipo: "atleta"; dadosAtuais: DadosAtleta }
+  | { tipo: "plateia"; dadosAtuais: DadosPlateia }
+);
 
 const inputCls =
   "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
@@ -96,6 +110,11 @@ export function IngressoOpcoesMenu(props: Props) {
           ticketId={props.ticketId}
           accessToken={props.accessToken}
           billingType={props.billingType}
+          refundPolicy={props.refundPolicy}
+          purchasedAt={props.purchasedAt}
+          eventStartDate={props.eventStartDate}
+          baseAmount={props.baseAmount}
+          paidAmount={props.paidAmount}
           onClose={() => setModal(null)}
         />
       )}
@@ -300,12 +319,22 @@ function CancelarModal({
   ticketId,
   accessToken,
   billingType,
+  refundPolicy,
+  purchasedAt,
+  eventStartDate,
+  baseAmount,
+  paidAmount,
   onClose,
 }: {
   tipo: "atleta" | "plateia";
   ticketId: string;
   accessToken: string;
   billingType: string | null;
+  refundPolicy: RefundPolicyDecision;
+  purchasedAt: string;
+  eventStartDate: string | null;
+  baseAmount: number;
+  paidAmount: number | null;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -371,22 +400,34 @@ function CancelarModal({
         <p className="font-semibold text-gray-900">Cancelar este ingresso?</p>
       </div>
 
-      <div className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-600 space-y-1.5">
-        <p>Se ainda não foi pago, é só cancelado, sem cobrança.</p>
-        <p>Se já foi pago: até 7 dias da compra, estorno total. Depois de 7 dias, estorno parcial (sem a taxa de serviço), conforme o CDC.</p>
-        <p className="font-medium text-gray-800">Essa ação não pode ser desfeita.</p>
-      </div>
+      <RefundPolicySummary
+        decision={refundPolicy}
+        purchasedAt={purchasedAt}
+        eventStartDate={eventStartDate}
+        baseAmount={baseAmount}
+        paidAmount={paidAmount}
+      />
+
+      {refundPolicy.allowed && (
+        <p className="mt-3 text-sm font-medium text-gray-800">
+          Ao confirmar, o ingresso e o QR Code serão cancelados. Essa ação não pode ser desfeita.
+        </p>
+      )}
 
       {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
 
       <div className="mt-5 flex flex-col gap-2">
         <button
           onClick={confirmar}
-          disabled={pending}
+          disabled={pending || !refundPolicy.allowed}
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 py-3 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 transition-colors"
         >
           {pending && <Loader2 className="size-4 animate-spin" />}
-          {pending ? "Cancelando…" : "Sim, cancelar ingresso"}
+          {pending
+            ? "Cancelando…"
+            : refundPolicy.allowed
+              ? "Sim, cancelar ingresso"
+              : "Cancelamento indisponível"}
         </button>
         <button
           onClick={onClose}

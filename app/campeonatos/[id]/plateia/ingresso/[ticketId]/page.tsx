@@ -10,6 +10,7 @@ import { formatBRL } from "@/lib/format";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { calcularTotalComprador } from "@/lib/taxas";
+import { decideRefundPolicy } from "@/lib/refund-policy";
 
 function dataBR(iso: string) {
   return new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", {
@@ -36,11 +37,12 @@ export default async function IngressoPlateiaPage({
   const supabase = createAdminClient();
   const { data: t } = await supabase
     .from("spectator_tickets")
-    .select("id, tipo_nome, comprador_nome, comprador_email, comprador_cpf, valor, quantidade, itens, status_pagamento, billing_type, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at")
+    .select("id, championship_id, tipo_nome, comprador_nome, comprador_email, comprador_cpf, valor, quantidade, itens, status_pagamento, billing_type, asaas_payment_id, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at, created_at")
     .eq("id", ticketId)
     .eq("access_token", accessToken)
     .maybeSingle();
   if (!t) notFound();
+  if (t.championship_id !== champId) notFound();
 
   const { data: refundOperation } = await supabase
     .from("financial_operations")
@@ -88,6 +90,13 @@ export default async function IngressoPlateiaPage({
     .maybeSingle();
 
   const pago = t.status_pagamento === "pago";
+  const refundPolicy = decideRefundPolicy({
+    purchasedAt: t.created_at,
+    eventStartDate: champ?.data_inicio ?? null,
+    checkedIn: !!t.checked_in,
+    paymentStatus: t.status_pagamento,
+    hasProviderCharge: !!t.asaas_payment_id && Number(t.valor) > 0,
+  });
 
   // QR de entrada (gerado do qr_token) só quando pago
   let entradaQr: string | null = null;
@@ -116,6 +125,11 @@ export default async function IngressoPlateiaPage({
                 ticketId={t.id}
                 accessToken={accessToken}
                 billingType={t.billing_type}
+                refundPolicy={refundPolicy}
+                purchasedAt={t.created_at}
+                eventStartDate={champ?.data_inicio ?? null}
+                baseAmount={Number(t.valor)}
+                paidAmount={paymentOperation?.amount == null ? null : Number(paymentOperation.amount)}
                 dadosAtuais={{
                 compradorNome:  t.comprador_nome,
                 compradorEmail: t.comprador_email,

@@ -21,6 +21,7 @@ import {
 import { getClientIp } from "@/lib/rate-limit";
 import { normalizeCpf } from "@/lib/cpf";
 import { isValidAthleteName } from "@/lib/athlete-display-name";
+import { decideRefundPolicy, refundPolicyError } from "@/lib/refund-policy";
 
 export type CardPaymentInput = {
   ticketId:    string;
@@ -264,9 +265,8 @@ export async function alterarTitularidadeAtleta(
 }
 
 // ── Cancelar ingresso ────────────────────────────────────────────────────────
-// Pendente: só marca cancelado (nada foi cobrado ainda). Pago: estorna via
-// Asaas com a mesma regra de 7 dias (CDC) já usada na inscrição de dupla —
-// total até 7 dias da compra, parcial (sem a taxa de serviço) depois disso.
+// A decisão é refeita no servidor com as datas persistidas. A interface apenas
+// explica o resultado; nunca autoriza o cancelamento por conta própria.
 export async function cancelarIngressoAtleta(
   ticketId: string,
   accessTokenRaw: string,
@@ -277,16 +277,29 @@ export async function cancelarIngressoAtleta(
 
   const { data: ticket } = await admin
     .from("athlete_tickets")
-    .select("id, championship_id, valor, status_pagamento, asaas_payment_id, created_at")
+    .select("id, championship_id, valor, status_pagamento, asaas_payment_id, created_at, checked_in")
     .eq("id", ticketId)
     .eq("access_token", accessToken)
     .maybeSingle();
 
   if (!ticket) return { ok: false, error: "Ingresso não encontrado." };
-  if (ticket.status_pagamento === "estornado")
+  if (["estornado", "expirado"].includes(ticket.status_pagamento))
     return { ok: false, error: "Esse ingresso já foi cancelado." };
 
   const path = `/campeonatos/${ticket.championship_id}/comprar/ingresso/${ticketId}`;
+  const { data: championship } = await admin
+    .from("championships")
+    .select("data_inicio")
+    .eq("id", ticket.championship_id)
+    .maybeSingle();
+  const policy = decideRefundPolicy({
+    purchasedAt: ticket.created_at,
+    eventStartDate: championship?.data_inicio ?? null,
+    checkedIn: !!ticket.checked_in,
+    paymentStatus: ticket.status_pagamento,
+    hasProviderCharge: !!ticket.asaas_payment_id && Number(ticket.valor) > 0,
+  });
+  if (!policy.allowed) return { ok: false, error: refundPolicyError(policy) };
 
   // Ainda não pago — cancela sem mexer em pagamento nenhum.
   if (ticket.status_pagamento === "pendente") {
@@ -305,9 +318,7 @@ export async function cancelarIngressoAtleta(
   }
 
   // Pago de verdade — estorna via Asaas.
-  const diasDesdeCompra = (Date.now() - new Date(ticket.created_at).getTime()) / (1000 * 60 * 60 * 24);
-  const dentroDoPrazo   = diasDesdeCompra <= 7;
-  const valorParcial    = dentroDoPrazo ? undefined : Number(ticket.valor);
+  const valorParcial = policy.refundMode === "partial" ? Number(ticket.valor) : undefined;
 
   // Confirma que o pedido segue pago sem alterar seu estado antes de o
   // provedor aceitar o reembolso. A operacao financeira faz a trava duravel.

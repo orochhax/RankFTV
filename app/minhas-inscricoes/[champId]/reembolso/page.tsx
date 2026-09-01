@@ -2,10 +2,13 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, AlertTriangle, Info } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { formatBRL, formatDateRangeBR } from "@/lib/format";
+import { formatDateRangeBR } from "@/lib/format";
 import { ReembolsoForm } from "./ReembolsoForm";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { decideRefundPolicy } from "@/lib/refund-policy";
+import { RefundPolicySummary } from "@/components/ingressos/RefundPolicySummary";
 
 export default async function ReembolsoPage({
   params,
@@ -25,12 +28,13 @@ export default async function ReembolsoPage({
 
   const { data: reg } = await supabase
     .from("registrations")
-    .select("id, valor, status_pagamento, team_id, championship_id, category_id, created_at")
+    .select("id, valor, status_pagamento, asaas_payment_id, team_id, championship_id, category_id, created_at")
     .eq("id", regId)
     .single();
 
   if (!reg) notFound();
   if (reg.status_pagamento !== "pago") redirect(`/minhas-inscricoes/${champId}`);
+  if (reg.championship_id !== champId) notFound();
 
   // Verifica pertencimento
   const { data: team } = await supabase
@@ -43,22 +47,42 @@ export default async function ReembolsoPage({
     redirect("/minhas-inscricoes");
   }
 
-  const [champRes, catRes] = await Promise.all([
-    supabase.from("championships").select("nome, data_inicio, data_fim, cidade, estado").eq("id", champId).single(),
+  const admin = createAdminClient();
+  const athleteIds = [team.atleta1_id, team.atleta2_id].filter(Boolean) as string[];
+  const [champRes, catRes, usedCredentialRes, paymentOperationRes] = await Promise.all([
+    supabase.from("championships").select("nome, data_inicio, data_fim, cidade, estado").eq("id", reg.championship_id).single(),
     supabase.from("championship_categories").select("nome").eq("id", reg.category_id).single(),
+    admin
+      .from("credentials")
+      .select("id")
+      .eq("championship_id", reg.championship_id)
+      .eq("role", "atleta")
+      .eq("checked_in", true)
+      .in("user_id", athleteIds)
+      .limit(1)
+      .maybeSingle(),
+    admin
+      .from("financial_operations")
+      .select("amount")
+      .eq("flow", "registration")
+      .eq("operation_type", "payment")
+      .eq("record_id", reg.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const champ = champRes.data;
   const cat   = catRes.data;
   const valorInscricao = Number(reg.valor);
 
-  const agora = new Date();
-  const diasDesdeCompra   = (agora.getTime() - new Date(reg.created_at).getTime()) / (1000 * 60 * 60 * 24);
-  const dentroDosPrazo7d  = diasDesdeCompra <= 7;
-  // Dentro de 7 dias → Asaas devolve tudo (taxa inclusa); fora → só valor da inscrição
-  const textoValorReembolso = dentroDosPrazo7d
-    ? "Valor integral pago (inscrição + taxa de serviço)"
-    : `Apenas o valor da inscrição — ${formatBRL(valorInscricao)}`;
+  const refundPolicy = decideRefundPolicy({
+    purchasedAt: reg.created_at,
+    eventStartDate: champ?.data_inicio ?? null,
+    checkedIn: !!usedCredentialRes.data,
+    paymentStatus: reg.status_pagamento,
+    hasProviderCharge: !!reg.asaas_payment_id && Number(reg.valor) > 0,
+  });
 
   return (
     <div className="min-h-screen">
@@ -101,35 +125,30 @@ export default async function ReembolsoPage({
             </div>
           )}
 
-          {/* Valor que será reembolsado */}
-          <div className={`rounded-2xl p-4 ring-1 space-y-1 ${dentroDosPrazo7d ? "bg-blue-50 ring-blue-200" : "bg-amber-50 ring-amber-200"}`}>
-            <p className={`text-xs font-semibold uppercase tracking-wider ${dentroDosPrazo7d ? "text-blue-700" : "text-amber-700"}`}>
-              {dentroDosPrazo7d ? "Dentro do prazo de 7 dias (CDC)" : "Fora do prazo de 7 dias"}
-            </p>
-            <p className={`text-sm font-medium ${dentroDosPrazo7d ? "text-blue-800" : "text-amber-800"}`}>
-              Você receberá de volta: {textoValorReembolso}
-            </p>
-            {!dentroDosPrazo7d && (
-              <p className="text-xs text-amber-700">
-                A taxa de serviço da plataforma não é reembolsável após 7 dias da compra,
-                conforme os Termos de Uso.
-              </p>
-            )}
-          </div>
+          {champ && (
+            <RefundPolicySummary
+              decision={refundPolicy}
+              purchasedAt={reg.created_at}
+              eventStartDate={champ.data_inicio}
+              baseAmount={valorInscricao}
+              paidAmount={paymentOperationRes.data?.amount == null ? null : Number(paymentOperationRes.data.amount)}
+            />
+          )}
 
-          {/* Aviso sobre o que acontece */}
-          <div className="rounded-2xl bg-red-50 p-4 ring-1 ring-red-200 space-y-2">
-            <div className="flex items-center gap-2 font-semibold text-red-800">
-              <AlertTriangle className="size-4 shrink-0" />
-              O que acontece ao confirmar
+          {refundPolicy.allowed && (
+            <div className="rounded-2xl bg-red-50 p-4 ring-1 ring-red-200 space-y-2">
+              <div className="flex items-center gap-2 font-semibold text-red-800">
+                <AlertTriangle className="size-4 shrink-0" />
+                O que acontece ao confirmar
+              </div>
+              <ul className="space-y-1.5 text-sm text-red-700 ml-6 list-disc">
+                <li>Uma nova solicitação fica bloqueada enquanto o reembolso é processado.</li>
+                <li>Após a confirmação financeira, a inscrição, a dupla e o QR Code são cancelados.</li>
+                <li>Pix: dinheiro de volta em até 1 dia útil.</li>
+                <li>Cartão: em até 30 dias, conforme a operadora.</li>
+              </ul>
             </div>
-            <ul className="space-y-1.5 text-sm text-red-700 ml-6 list-disc">
-              <li>Sua inscrição e credencial (QR Code) são canceladas imediatamente.</li>
-              <li>Sua dupla é removida do campeonato.</li>
-              <li>Pix: dinheiro de volta em até 1 dia útil.</li>
-              <li>Cartão: em até 30 dias, conforme a operadora.</li>
-            </ul>
-          </div>
+          )}
 
           {/* Info legal */}
           <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 flex gap-3">
@@ -143,7 +162,8 @@ export default async function ReembolsoPage({
           <ReembolsoForm
             regId={regId}
             champId={champId}
-            valorExibido={dentroDosPrazo7d ? null : valorInscricao}
+            allowed={refundPolicy.allowed}
+            valorExibido={refundPolicy.refundMode === "partial" ? valorInscricao : null}
           />
 
         </PageContainer>

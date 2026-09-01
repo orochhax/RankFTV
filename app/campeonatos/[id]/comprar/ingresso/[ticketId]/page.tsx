@@ -11,6 +11,7 @@ import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { athleteDisplayName } from "@/lib/athlete-display-name";
 import { calcularTotalComprador } from "@/lib/taxas";
+import { decideRefundPolicy } from "@/lib/refund-policy";
 
 const AVATAR_COLORS = ["bg-blue-500", "bg-blue-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
 function avatarColor(str: string) {
@@ -44,12 +45,13 @@ export default async function IngressoAtletaPage({
   const { data: t } = await supabase
     .from("athlete_tickets")
     .select(
-      "id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, billing_type, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at",
+      "id, championship_id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, billing_type, asaas_payment_id, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at, created_at",
     )
     .eq("id", ticketId)
     .eq("access_token", accessToken)
     .maybeSingle();
   if (!t) notFound();
+  if (t.championship_id !== champId) notFound();
 
   const { data: refundOperation } = await supabase
     .from("financial_operations")
@@ -92,6 +94,13 @@ export default async function IngressoAtletaPage({
   }
 
   const pago = t.status_pagamento === "pago";
+  const refundPolicy = decideRefundPolicy({
+    purchasedAt: t.created_at,
+    eventStartDate: champ?.data_inicio ?? null,
+    checkedIn: !!t.checked_in,
+    paymentStatus: t.status_pagamento,
+    hasProviderCharge: !!t.asaas_payment_id && Number(t.valor) > 0,
+  });
   const compradorPublicName = athleteDisplayName(t.comprador_nome);
   const parceiroPublicName = athleteDisplayName(t.parceiro_nome);
 
@@ -123,6 +132,11 @@ export default async function IngressoAtletaPage({
                 ticketId={t.id}
                 accessToken={accessToken}
                 billingType={t.billing_type}
+                refundPolicy={refundPolicy}
+                purchasedAt={t.created_at}
+                eventStartDate={champ?.data_inicio ?? null}
+                baseAmount={Number(t.valor)}
+                paidAmount={paymentOperation?.amount == null ? null : Number(paymentOperation.amount)}
                 dadosAtuais={{
                   compradorNome:   t.comprador_nome,
                   compradorCpf:    t.comprador_cpf,

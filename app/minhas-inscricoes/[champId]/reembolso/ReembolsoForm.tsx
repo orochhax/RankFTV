@@ -9,10 +9,12 @@ import { formatBRL } from "@/lib/format";
 export function ReembolsoForm({
   regId,
   champId,
+  allowed,
   valorExibido, // null = reembolso total (CDC 7 dias); número = apenas inscrição
 }: {
   regId:        string;
   champId:      string;
+  allowed:      boolean;
   valorExibido: number | null;
 }) {
   const router  = useRouter();
@@ -43,12 +45,12 @@ export function ReembolsoForm({
 
       <button
         onClick={confirmar}
-        disabled={pending}
+        disabled={pending || !allowed}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 py-3.5 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-60 transition-colors"
       >
         {pending
           ? <><Loader2 className="size-4 animate-spin" /> Processando…</>
-          : <><RotateCcw className="size-4" /> {labelBotao}</>}
+          : <><RotateCcw className="size-4" /> {allowed ? labelBotao : "Reembolso indisponível"}</>}
       </button>
 
       <button

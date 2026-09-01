@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { refundIdempotently } from "@/lib/payment-flows";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
+import { decideRefundPolicy, refundPolicyError } from "@/lib/refund-policy";
 
 export type TitularidadePlateiaInput = {
   ticketId: string;
@@ -78,7 +79,7 @@ export async function cancelarIngressoPlateia(
 
   const { data: ticket } = await admin
     .from("spectator_tickets")
-    .select("id, championship_id, valor, status_pagamento, asaas_payment_id, created_at")
+    .select("id, championship_id, valor, status_pagamento, asaas_payment_id, created_at, checked_in")
     .eq("id", ticketId)
     .eq("access_token", accessToken)
     .maybeSingle();
@@ -89,6 +90,20 @@ export async function cancelarIngressoPlateia(
   }
 
   const path = `/campeonatos/${ticket.championship_id}/plateia/ingresso/${ticketId}`;
+  const { data: championship } = await admin
+    .from("championships")
+    .select("data_inicio")
+    .eq("id", ticket.championship_id)
+    .maybeSingle();
+  const policy = decideRefundPolicy({
+    purchasedAt: ticket.created_at,
+    eventStartDate: championship?.data_inicio ?? null,
+    checkedIn: !!ticket.checked_in,
+    paymentStatus: ticket.status_pagamento,
+    hasProviderCharge: !!ticket.asaas_payment_id && Number(ticket.valor) > 0,
+  });
+  if (!policy.allowed) return { ok: false, error: refundPolicyError(policy) };
+
   if (ticket.status_pagamento === "pendente" || !ticket.asaas_payment_id || Number(ticket.valor) <= 0) {
     const released = await releaseSpectatorOrder(ticketId);
     if (!released.ok) return released;
@@ -96,8 +111,7 @@ export async function cancelarIngressoPlateia(
     return { ok: true, outcome: "cancelado" };
   }
 
-  const ageDays = (Date.now() - new Date(ticket.created_at).getTime()) / 86_400_000;
-  const partialAmount = ageDays <= 7 ? undefined : Number(ticket.valor);
+  const partialAmount = policy.refundMode === "partial" ? Number(ticket.valor) : undefined;
   const refund = await refundIdempotently({
     flow: "spectator_ticket",
     recordId: ticketId,
