@@ -1,6 +1,6 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 30/08/2026. Este arquivo mantém somente tarefas abertas; evidências e itens concluídos ficam no histórico de commits, deploys e execuções.
+Atualizado em 01/09/2026. Este arquivo mantém somente tarefas abertas; evidências e itens concluídos ficam no histórico de commits, deploys e execuções.
 
 ## P0 — Obrigatório antes de abrir pagamentos reais
 
@@ -10,6 +10,8 @@ Atualizado em 30/08/2026. Este arquivo mantém somente tarefas abertas; evidênc
 - [ ] Publicar nos canais de suporte o funcionamento definido: atendimento disponível 24 horas por dia, responsável `Carlos Gregório Rocha Batista`, com resposta em até 24 horas.
 - [ ] Obter revisão jurídica da política de cancelamento/reembolso adotada e do fluxo LGPD. A implementação considera reembolso integral até 7 dias, parcial depois disso até 72 horas antes do evento e bloqueio após check-in/início do evento, preservando análise integral para cancelamento/alteração relevante, duplicidade ou falha da plataforma.
 - [ ] Configurar domínio/remetente transacional, incluindo SPF, DKIM e DMARC; confirmar a entrega de e-mails em Gmail e Outlook.
+- [ ] Executar na homologação um checkout completo de dupla com dois e-mails reais e diferentes; confirmar que cada atleta recebe somente o próprio link/QR, que a recuperação por CPF + e-mail + OTP devolve somente sua credencial, que os dois check-ins são independentes e que o painel atualiza a dupla automaticamente.
+- [ ] Validar na homologação uma troca de titularidade antes do check-in: o link e o QR antigos devem parar de funcionar, a conta antiga deve perder o vínculo e os novos links devem chegar aos e-mails atualizados.
 - [ ] Confirmar no Supabase Auth os templates e os redirects de cadastro, confirmação e recuperação de senha no domínio final.
 - [ ] Configurar monitor externo e alertas para `https://www.rankftv.com/api/health`.
 - [ ] Definir quem responde a operação financeira pendente ou webhook falho e por qual canal será alertado.
