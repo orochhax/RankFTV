@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { criarOuBuscarCliente } from "@/lib/asaas";
 import { calcularTotalComprador } from "@/lib/taxas";
-import { normalizarTicketAccessToken } from "@/lib/ticket-access";
+import { gerarTicketAccessToken, normalizarTicketAccessToken } from "@/lib/ticket-access";
 import { createIdempotentCardCharge, refundIdempotently } from "@/lib/payment-flows";
 import {
   beginCardPaymentAttempt,
@@ -22,6 +22,8 @@ import { getClientIp } from "@/lib/rate-limit";
 import { normalizeCpf } from "@/lib/cpf";
 import { isValidAthleteName } from "@/lib/athlete-display-name";
 import { decideRefundPolicy, refundPolicyError } from "@/lib/refund-policy";
+import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
+import { reportOperationalEvent } from "@/lib/observability";
 
 export type CardPaymentInput = {
   ticketId:    string;
@@ -151,22 +153,36 @@ export async function pagarIngressoAtletaComCartao(
   }
 
   const pago = pagamento.paga ?? ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status ?? "");
-  await admin.from("athlete_tickets").update({
+  const { data: persistedPayment, error: persistError } = await admin.from("athlete_tickets").update({
     asaas_payment_id: pagamento.id,
     status_pagamento: pago ? "pago" : "pendente",
     invoice_url: pagamento.invoiceUrl ?? null,
     billing_type: billingType,
   })
     .eq("id", input.ticketId)
-    .eq("access_token", accessToken);
+    .eq("access_token", accessToken)
+    .select("id")
+    .maybeSingle();
+  if (persistError || !persistedPayment) {
+    await finishCardPaymentAttempt(attempt.attemptId, "ambiguous", "ticket_persistence_pending");
+    await reportOperationalEvent({
+      level: "critical",
+      event: "athlete_ticket.card_payment_persistence_failed",
+      message: "Provider accepted athlete payment but ticket state was not persisted",
+      context: { ticketId: input.ticketId, providerPaymentId: pagamento.id },
+      error: persistError,
+      alert: true,
+    });
+    return { ok: true, pago: false };
+  }
   await finishCardPaymentAttempt(attempt.attemptId, "success", pagamento.status);
+  if (pago) await deliverAthleteTicketCredentials(admin, input.ticketId);
   return { ok: true, pago };
 }
 
 // ── Alterar titularidade ────────────────────────────────────────────────────
-// Checkout de visitante: o link do ingresso É a credencial (sem login), então
-// quem tem o link pode editar. Transferência imediata, sem confirmação extra,
-// sem custo — troca os dados dos dois atletas da dupla.
+// O token pai gerencia a compra; os QRs usam links individuais separados.
+// A troca gira os segredos afetados e remove vínculos antigos com contas.
 
 export type TitularidadeAtletaInput = {
   ticketId:       string;
@@ -185,14 +201,14 @@ export type TitularidadeAtletaInput = {
 
 export async function alterarTitularidadeAtleta(
   input: TitularidadeAtletaInput,
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; accessToken?: string }> {
   const admin = createAdminClient();
   const accessToken = normalizarTicketAccessToken(input.accessToken);
   if (!accessToken) return { ok: false, error: "Link do ingresso invalido." };
 
   const { data: ticket } = await admin
     .from("athlete_tickets")
-    .select("id, championship_id, category_id, status_pagamento")
+    .select("id, championship_id, category_id, status_pagamento, checked_in, comprador_cpf, comprador_email, parceiro_cpf, parceiro_email")
     .eq("id", input.ticketId)
     .eq("access_token", accessToken)
     .maybeSingle();
@@ -200,15 +216,17 @@ export async function alterarTitularidadeAtleta(
   if (!ticket) return { ok: false, error: "Ingresso não encontrado." };
   if (ticket.status_pagamento === "estornado")
     return { ok: false, error: "Esse ingresso foi cancelado — não dá pra alterar." };
+  if (ticket.checked_in)
+    return { ok: false, error: "Não é possível alterar os atletas depois do primeiro check-in." };
 
   const compradorNome   = input.compradorNome.trim();
   const compradorCpf    = normalizeCpf(input.compradorCpf);
-  const compradorEmail  = input.compradorEmail.trim();
+  const compradorEmail  = input.compradorEmail.trim().toLowerCase();
   const compradorZap    = input.compradorZap.replace(/\D/g, "");
   const compradorGenero = input.compradorGenero;
   const parceiroNome    = input.parceiroNome.trim();
   const parceiroCpf     = normalizeCpf(input.parceiroCpf);
-  const parceiroEmail   = input.parceiroEmail.trim();
+  const parceiroEmail   = input.parceiroEmail.trim().toLowerCase();
   const parceiroZap     = input.parceiroZap.replace(/\D/g, "");
   const parceiroGenero  = input.parceiroGenero;
 
@@ -221,6 +239,8 @@ export async function alterarTitularidadeAtleta(
   if (!isValidAthleteName(parceiroNome)) return { ok: false, error: "Informe o nome do atleta 2, não o e-mail." };
   if (parceiroCpf.length !== 11) return { ok: false, error: "CPF do atleta 2 inválido (11 dígitos)." };
   if (!parceiroEmail.includes("@")) return { ok: false, error: "E-mail do atleta 2 inválido." };
+  if (parceiroEmail === compradorEmail)
+    return { ok: false, error: "Use um e-mail diferente para cada atleta receber sua própria credencial." };
   if (!parceiroZap) return { ok: false, error: "Informe o WhatsApp do atleta 2." };
   if (parceiroGenero !== "masculino" && parceiroGenero !== "feminino")
     return { ok: false, error: "Informe o gênero do atleta 2." };
@@ -241,7 +261,15 @@ export async function alterarTitularidadeAtleta(
     }
   }
 
-  const { error } = await admin
+  const buyerIdentityChanged =
+    normalizeCpf(ticket.comprador_cpf ?? "") !== compradorCpf
+    || (ticket.comprador_email ?? "").trim().toLowerCase() !== compradorEmail;
+  const partnerIdentityChanged =
+    normalizeCpf(ticket.parceiro_cpf ?? "") !== parceiroCpf
+    || (ticket.parceiro_email ?? "").trim().toLowerCase() !== parceiroEmail;
+  const nextAccessToken = buyerIdentityChanged ? gerarTicketAccessToken() : accessToken;
+
+  const { data: updatedTicket, error } = await admin
     .from("athlete_tickets")
     .update({
       comprador_nome:   compradorNome,
@@ -254,14 +282,26 @@ export async function alterarTitularidadeAtleta(
       parceiro_email:   parceiroEmail,
       parceiro_zap:     parceiroZap,
       parceiro_genero:  parceiroGenero,
+      ...(buyerIdentityChanged ? { access_token: nextAccessToken, user_id: null } : {}),
+      ...(partnerIdentityChanged ? { parceiro_user_id: null } : {}),
     })
     .eq("id", input.ticketId)
-    .eq("access_token", accessToken);
+    .eq("access_token", accessToken)
+    .eq("checked_in", false)
+    .select("id")
+    .maybeSingle();
 
   if (error) return { ok: false, error: "Erro ao salvar. Tente de novo." };
+  if (!updatedTicket) {
+    return { ok: false, error: "Não foi possível alterar: o ingresso teve check-in ou foi atualizado." };
+  }
+
+  if (ticket.status_pagamento === "pago") {
+    await deliverAthleteTicketCredentials(admin, input.ticketId);
+  }
 
   revalidatePath(`/campeonatos/${ticket.championship_id}/comprar/ingresso/${input.ticketId}`);
-  return { ok: true };
+  return { ok: true, accessToken: buyerIdentityChanged ? nextAccessToken : undefined };
 }
 
 // ── Cancelar ingresso ────────────────────────────────────────────────────────

@@ -27,6 +27,7 @@ import {
 import { normalizeCpf } from "@/lib/cpf";
 import { isValidAthleteName } from "@/lib/athlete-display-name";
 import { validaCPF } from "@/lib/validacao";
+import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
 
 // Lê e valida as 5 respostas do questionário de nível de UM dos atletas
 // (prefixo "comprador_quiz_" ou "parceiro_quiz_" no FormData) e devolve o
@@ -112,6 +113,8 @@ export async function comprarIngressoAtleta(
   }
   if (!pEmail || !pEmail.includes("@")) {
     fieldErrors.parceiro_email = "Informe o e-mail do parceiro para ele acessar o próprio ingresso.";
+  } else if (pEmail === email) {
+    fieldErrors.parceiro_email = "Use um e-mail diferente para cada atleta receber sua própria credencial.";
   }
   if (Object.keys(fieldErrors).length > 0) {
     return {
@@ -298,6 +301,7 @@ export async function comprarIngressoAtleta(
   }
 
   if (isGratis) {
+    await deliverAthleteTicketCredentials(supabase, ticket.id);
     redirect(`/campeonatos/${championshipId}/comprar/ingresso/${ticket.id}?token=${accessToken}`);
   }
 

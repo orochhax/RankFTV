@@ -33,6 +33,8 @@ test("athlete checkout preserves values and validates CPF and both access e-mail
   assert.match(action, /fieldErrors\.comprador_email/);
   assert.match(action, /fieldErrors\.parceiro_email/);
   assert.match(action, /parceiro_email[\s\S]*\.trim\(\)\.toLowerCase\(\)/);
+  assert.match(action, /pEmail === email/);
+  assert.match(action, /e-mail diferente para cada atleta/);
 });
 
 test("payment startup failures release the reserved athlete inventory", () => {
@@ -81,17 +83,58 @@ test("a guest pair receives two linked individual entry credentials", () => {
   const migration = source("supabase/production-athlete-ticket-credentials.sql");
   const athletePage = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/page.tsx");
   const athleteStatus = source("components/campeonatos/IngressoAtletaPagamento.tsx");
+  const individualPage = source("app/campeonatos/[id]/ingresso-atleta/[credentialId]/page.tsx");
+  const recovery = source("app/api/meus-ingressos/verificar/route.ts");
+  const delivery = source("lib/athlete-ticket-delivery.ts");
+  const email = source("lib/email/send.ts");
+  const ownership = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
+  const statusApi = source("app/api/athlete-credential-status/route.ts");
+  const credentialClient = source("components/campeonatos/IngressoAtletaCredencial.tsx");
+  const recoveryClaim = source("lib/ticket-recovery.ts");
+  const proxy = source("proxy.ts");
 
   assert.match(migration, /UNIQUE \(athlete_ticket_id, athlete_slot\)/i);
+  assert.match(migration, /access_token[\s\S]*gen_random_uuid/i);
+  assert.match(migration, /access_email_claimed_at/i);
+  assert.match(migration, /access_email_sent_at timestamptz DEFAULT now\(\)/i);
+  assert.match(migration, /ALTER COLUMN access_email_sent_at DROP DEFAULT/i);
   assert.match(migration, /VALUES \(1::smallint\), \(2::smallint\)/i);
   assert.match(migration, /sync_athlete_ticket_credentials/i);
   assert.match(migration, /sync_athlete_ticket_checkin_summary/i);
   assert.match(migration, /bool_or\(c\.checked_in\)/);
   assert.match(migration, /checked_in = v_any_checked/);
+  assert.match(migration, /athlete_slot = 1 AND t\.user_id = auth\.uid\(\)/);
+  assert.match(migration, /athlete_slot = 2 AND t\.parceiro_user_id = auth\.uid\(\)/);
+  assert.match(migration, /USING \(user_id = auth\.uid\(\)\)/);
+  assert.match(migration, /can_select_athlete_ticket_credential/);
+  assert.match(migration, /ATHLETE_TICKET_CREDENTIAL_DOMAIN_MISMATCH/);
   assert.match(athletePage, /\.from\("athlete_ticket_credentials"\)/);
-  assert.match(athleteStatus, /Cada atleta deve apresentar sua própria credencial/);
+  assert.match(athletePage, /\.eq\("athlete_slot", 1\)/);
+  assert.match(athleteStatus, /somente a credencial do comprador/);
   assert.match(athleteStatus, /credentials\.map/);
-  assert.match(athleteStatus, /mx-auto grid w-full max-w-3xl/);
+  assert.match(athleteStatus, /mx-auto grid w-full max-w-md/);
+  assert.match(individualPage, /\.eq\("id", credentialId\)/);
+  assert.match(individualPage, /\.eq\("access_token", accessToken\)/);
+  assert.match(individualPage, /IngressoAtletaCredencial/);
+  assert.match(recovery, /credential_access_token: credential\?\.access_token/);
+  assert.match(recovery, /access_token: null/);
+  assert.match(delivery, /enviarCredencialAtleta/);
+  assert.match(delivery, /access_email_sent_at/);
+  assert.match(delivery, /access_email_claimed_at/);
+  assert.match(delivery, /athlete_tickets!inner\(status_pagamento\)/);
+  assert.match(delivery, /idempotencyKey/);
+  assert.match(email, /if \(result\.error\)/);
+  assert.match(ownership, /access_token: nextAccessToken, user_id: null/);
+  assert.match(ownership, /parceiro_user_id: null/);
+  assert.match(ownership, /\.eq\("checked_in", false\)/);
+  assert.match(ownership, /card_payment_persistence_failed/);
+  assert.match(statusApi, /export async function POST/);
+  assert.doesNotMatch(credentialClient, /athlete-credential-status\?\$\{/);
+  assert.match(credentialClient, /setRevoked\(true\)/);
+  assert.match(recoveryClaim, /\.is\("usado_em", null\)/);
+  assert.match(recoveryClaim, /return Boolean\(claimed\)/);
+  assert.match(proxy, /Cache-Control", "private, no-store/);
+  assert.match(proxy, /Referrer-Policy", "no-referrer/);
 });
 
 test("refund details preserve request, confirmation and cancellation history", () => {

@@ -8,6 +8,7 @@ import {
   pagamentoConfirmadoHtml,
   conviteStaffHtml,
   recuperacaoIngressoHtml,
+  credencialAtletaHtml,
 } from "./templates";
 import { reportOperationalEvent } from "@/lib/observability";
 import { resolveBaseUrl } from "@/lib/site-url";
@@ -15,10 +16,29 @@ import { resolveBaseUrl } from "@/lib/site-url";
 const BASE_URL = resolveBaseUrl(process.env.NEXT_PUBLIC_BASE_URL, "http://localhost:3000");
 
 // Não lança erro — e-mail é best-effort; nunca bloqueia o fluxo principal.
-async function send(to: string, subject: string, html: string) {
-  if (!process.env.RESEND_API_KEY) return; // sem chave → silencioso em dev
+async function send(
+  to: string,
+  subject: string,
+  html: string,
+  options?: { idempotencyKey?: string },
+): Promise<boolean> {
+  if (!process.env.RESEND_API_KEY) return false; // sem chave → silencioso em dev
   try {
-    await getResend().emails.send({ from: FROM, to, subject, html });
+    const result = await getResend().emails.send(
+      { from: FROM, to, subject, html },
+      options?.idempotencyKey ? { idempotencyKey: options.idempotencyKey } : undefined,
+    );
+    if (result.error) {
+      await reportOperationalEvent({
+        level: "error",
+        event: "email.delivery_failed",
+        message: "Transactional email provider rejected delivery",
+        context: { templateSubject: subject, providerError: result.error },
+        alert: true,
+      });
+      return false;
+    }
+    return true;
   } catch (error) {
     await reportOperationalEvent({
       level: "error",
@@ -28,6 +48,7 @@ async function send(to: string, subject: string, html: string) {
       error,
       alert: true,
     });
+    return false;
   }
 }
 
@@ -141,5 +162,23 @@ export async function enviarPagamentoConfirmado(opts: {
       valorFormatado: opts.valorFormatado,
       inscricoesUrl: `${BASE_URL}/minhas-inscricoes/${opts.championshipId}`,
     }),
+  );
+}
+
+export async function enviarCredencialAtleta(opts: {
+  emailAtleta: string;
+  nomeAtleta: string;
+  nomeParceiro: string;
+  nomeCampeonato: string;
+  nomeCategoria: string;
+  credencialUrl: string;
+  gerenciarCompraUrl?: string;
+  idempotencyKey: string;
+}): Promise<boolean> {
+  return send(
+    opts.emailAtleta,
+    `Sua credencial — ${opts.nomeCampeonato}`,
+    credencialAtletaHtml(opts),
+    { idempotencyKey: opts.idempotencyKey },
   );
 }

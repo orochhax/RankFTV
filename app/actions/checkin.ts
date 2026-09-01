@@ -99,6 +99,9 @@ export async function markCheckin(
     .eq("championship_id", championshipId)
     .or(`qr_token.eq.${token},code.eq.${tokenUpper}`)
     .maybeSingle();
+  if (individualResult.error) {
+    return { error: "Não foi possível validar o ingresso agora" };
+  }
   const individualCredential = individualResult.data;
 
   if (individualCredential) {
@@ -124,11 +127,21 @@ export async function markCheckin(
       })
       .eq("id", individualCredential.id)
       .eq("checked_in", false)
+      .or(`qr_token.eq.${token},code.eq.${tokenUpper}`)
       .select("id")
       .maybeSingle();
 
     if (claimError) return { error: "Não foi possível confirmar o check-in" };
-    if (!claimed) return { alreadyDone: true, nome };
+    if (!claimed) {
+      const { data: current } = await admin
+        .from("athlete_ticket_credentials")
+        .select("checked_in")
+        .eq("id", individualCredential.id)
+        .maybeSingle();
+      return current?.checked_in
+        ? { alreadyDone: true, nome }
+        : { error: "Esta credencial foi substituída. Leia o QR mais recente" };
+    }
 
     revalidatePath(`/painel/campeonatos/${championshipId}/checkin`);
     revalidatePath(`/staff/${championshipId}/qrcode`);
@@ -145,6 +158,19 @@ export async function markCheckin(
     .maybeSingle();
 
   if (!ticket) return { error: "Código não encontrado neste campeonato" };
+
+  const existingIndividualResult = await admin
+    .from("athlete_ticket_credentials")
+    .select("id")
+    .eq("athlete_ticket_id", ticket.id)
+    .limit(1)
+    .maybeSingle();
+  if (existingIndividualResult.error) {
+    return { error: "Não foi possível validar o ingresso agora" };
+  }
+  if (existingIndividualResult.data) {
+    return { error: "Código não encontrado neste campeonato" };
+  }
 
   const nome = [ticket.comprador_nome, ticket.parceiro_nome]
     .map((name) => name?.trim())

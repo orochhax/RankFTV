@@ -15,6 +15,10 @@ const PRIVATE_ROBOTS_PREFIXES = [
   "/painel", "/perfil", "/recuperar-senha", "/staff",
 ];
 
+function isPrivateTicketPath(pathname: string): boolean {
+  return /^\/campeonatos\/[^/]+\/(?:ingresso-atleta\/[^/]+|comprar\/ingresso\/[^/]+|plateia\/ingresso\/[^/]+)$/.test(pathname);
+}
+
 export async function proxy(request: NextRequest) {
   const development = process.env.NODE_ENV === "development";
   const nonce = createRequestNonce();
@@ -35,8 +39,13 @@ export async function proxy(request: NextRequest) {
       requestId,
       production: !development,
     });
-    if (PRIVATE_ROBOTS_PREFIXES.some((prefix) => request.nextUrl.pathname === prefix || request.nextUrl.pathname.startsWith(`${prefix}/`))) {
+    const privateTicket = isPrivateTicketPath(request.nextUrl.pathname);
+    if (privateTicket || PRIVATE_ROBOTS_PREFIXES.some((prefix) => request.nextUrl.pathname === prefix || request.nextUrl.pathname.startsWith(`${prefix}/`))) {
       response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    }
+    if (privateTicket) {
+      response.headers.set("Cache-Control", "private, no-store, max-age=0");
+      response.headers.set("Referrer-Policy", "no-referrer");
     }
     return response;
   };

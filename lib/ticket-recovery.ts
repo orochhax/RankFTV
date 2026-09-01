@@ -35,7 +35,16 @@ export async function verificarCodigoRecuperacao(
     return false;
   }
 
-  // Código de uso único — marca usado antes de devolver sucesso.
-  await supabase.from("ticket_recovery_codes").update({ usado_em: new Date().toISOString() }).eq("id", pendente.id);
-  return true;
+  // Claim condicional: mesmo com duas requisições simultâneas, só uma consegue
+  // trocar usado_em de NULL. A outra recebe data=null e não obtém os tokens.
+  const claimedAt = new Date().toISOString();
+  const { data: claimed } = await supabase
+    .from("ticket_recovery_codes")
+    .update({ usado_em: claimedAt })
+    .eq("id", pendente.id)
+    .is("usado_em", null)
+    .gt("expira_em", claimedAt)
+    .select("id")
+    .maybeSingle();
+  return Boolean(claimed);
 }

@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
       .from("athlete_ticket_credentials")
       .select("id, athlete_slot, checked_in, checkin_at")
       .eq("athlete_ticket_id", id)
-      .order("athlete_slot");
+      .eq("athlete_slot", 1);
     return NextResponse.json(
       {
         ...data,

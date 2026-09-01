@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { escapeHtml, comunicadoHtml } from "@/lib/email/templates";
+import { escapeHtml, comunicadoHtml, credencialAtletaHtml } from "@/lib/email/templates";
 
 describe("escapeHtml (evita injeção de HTML/phishing em e-mail)", () => {
   test("escapa tag de script", () => {
@@ -41,5 +41,35 @@ describe("comunicadoHtml (título/mensagem livres do organizador — maior super
     });
     assert.ok(!html.includes("<script>"));
     assert.ok(html.includes("&lt;script&gt;"));
+  });
+});
+
+describe("credencialAtletaHtml", () => {
+  test("mostra apenas o link individual ao parceiro", () => {
+    const html = credencialAtletaHtml({
+      nomeAtleta: "Hugo",
+      nomeParceiro: "Gabriel",
+      nomeCampeonato: "Copa RankFTV",
+      nomeCategoria: "Masculino",
+      credencialUrl: "https://rankftv.com/credencial?token=individual",
+    });
+
+    assert.match(html, /Abrir minha credencial/);
+    assert.doesNotMatch(html, /Gerenciar esta compra/);
+  });
+
+  test("comprador recebe gerenciamento separado e URLs são escapadas", () => {
+    const html = credencialAtletaHtml({
+      nomeAtleta: "Gabriel",
+      nomeParceiro: "Hugo",
+      nomeCampeonato: "Copa RankFTV",
+      nomeCategoria: "Masculino",
+      credencialUrl: "https://rankftv.com/credencial?token=a&slot=1",
+      gerenciarCompraUrl: "https://rankftv.com/compra?token=b&modo=gestao",
+    });
+
+    assert.match(html, /Gerenciar esta compra/);
+    assert.match(html, /token=a&amp;slot=1/);
+    assert.match(html, /token=b&amp;modo=gestao/);
   });
 });

@@ -142,9 +142,9 @@ export function IngressoAtletaPagamento({
           <CheckCircle2 className="size-4" /> Inscrição confirmada
         </div>
         <p className="text-xs text-gray-500">
-          Cada atleta deve apresentar sua própria credencial na chegada.
+          Este link mostra somente a credencial do comprador. O parceiro recebe a dele no próprio e-mail.
         </p>
-        <div className="mx-auto grid w-full max-w-3xl gap-4 md:grid-cols-2">
+        <div className="mx-auto grid w-full max-w-md gap-4">
           {credentials.map((credential) => (
             <div key={credential.id} className="flex flex-col items-center rounded-2xl bg-white p-4 ring-1 ring-black/5">
               <p className="mb-2 max-w-full truncate text-sm font-semibold text-gray-900">

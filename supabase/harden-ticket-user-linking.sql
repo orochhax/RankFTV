@@ -31,14 +31,14 @@ CREATE INDEX IF NOT EXISTS athlete_tickets_user_id_idx          ON athlete_ticke
 CREATE INDEX IF NOT EXISTS athlete_tickets_parceiro_user_id_idx ON athlete_tickets(parceiro_user_id);
 CREATE INDEX IF NOT EXISTS spectator_tickets_user_id_idx        ON spectator_tickets(user_id);
 
--- RLS: dono do ingresso pelo user_id (nunca por e-mail) também pode ler o
--- próprio — política ADITIVA à já existente de organizador (permissive
--- policies do Postgres se combinam com OR, então isso não tira o acesso
--- que o organizador já tinha).
+-- RLS: somente o comprador pode ler a linha completa do pedido, pois ela
+-- contém o token gerencial. O parceiro acessa apenas sua credencial individual
+-- pela policy de athlete_ticket_credentials, nunca o pedido inteiro.
+-- A política continua aditiva à já existente de organizador.
 DROP POLICY IF EXISTS athlete_tickets_select_owner_user ON athlete_tickets;
 CREATE POLICY athlete_tickets_select_owner_user ON athlete_tickets
   FOR SELECT
-  USING (user_id = auth.uid() OR parceiro_user_id = auth.uid());
+  USING (user_id = auth.uid());
 
 DROP POLICY IF EXISTS spectator_tickets_select_owner_user ON spectator_tickets;
 CREATE POLICY spectator_tickets_select_owner_user ON spectator_tickets

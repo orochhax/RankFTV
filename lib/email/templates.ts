@@ -56,7 +56,7 @@ function base(titulo: string, corpo: string): string {
 }
 
 function btn(label: string, url: string): string {
-  return `<a href="${url}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:#1d4ed8;color:#ffffff;font-size:14px;font-weight:600;border-radius:10px;text-decoration:none;">${label}</a>`;
+  return `<a href="${escapeHtml(url)}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:#1d4ed8;color:#ffffff;font-size:14px;font-weight:600;border-radius:10px;text-decoration:none;">${escapeHtml(label)}</a>`;
 }
 
 function p(text: string): string {
@@ -163,6 +163,32 @@ export function pagamentoConfirmadoHtml(opts: {
     ${btn("Ver minha credencial", opts.inscricoesUrl)}
   `;
   return base("Pagamento confirmado!", corpo);
+}
+
+export function credencialAtletaHtml(opts: {
+  nomeAtleta: string;
+  nomeParceiro: string;
+  nomeCampeonato: string;
+  nomeCategoria: string;
+  credencialUrl: string;
+  gerenciarCompraUrl?: string;
+}): string {
+  const corpo = `
+    ${p(`Oi, <strong>${escapeHtml(opts.nomeAtleta)}</strong>!`)}
+    ${p("O pagamento da dupla foi confirmado e sua credencial individual já está disponível.")}
+    <div style="margin:16px 0;padding:16px;background:#f0fdf4;border-radius:10px;border-left:4px solid #16a34a;">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#14532d;">${escapeHtml(opts.nomeCampeonato)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Categoria: ${escapeHtml(opts.nomeCategoria)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Dupla: ${escapeHtml(opts.nomeAtleta)} + ${escapeHtml(opts.nomeParceiro)}</p>
+    </div>
+    ${p("O botão abaixo abre somente o seu QR Code. Seu parceiro receberá um link diferente no e-mail dele.")}
+    ${p("Não encaminhe este link: quem tiver acesso a ele poderá visualizar a sua credencial.")}
+    ${btn("Abrir minha credencial", opts.credencialUrl)}
+    ${opts.gerenciarCompraUrl
+      ? `${p("Como comprador, você também pode acompanhar o pagamento, corrigir os dados da dupla ou solicitar cancelamento pelo link gerencial.")}${btn("Gerenciar esta compra", opts.gerenciarCompraUrl)}`
+      : ""}
+  `;
+  return base("Sua credencial individual chegou!", corpo);
 }
 
 export function comunicadoHtml(opts: {

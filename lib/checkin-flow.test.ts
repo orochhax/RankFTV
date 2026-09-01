@@ -16,6 +16,10 @@ test("athlete check-in accepts authenticated and guest credentials", () => {
   assert.match(source, /qr_token\.eq\.\$\{token\},code\.eq\.\$\{tokenUpper\}/);
   assert.match(source, /ticket\.status_pagamento !== "pago"/);
   assert.match(source, /display_name_snapshot/);
+  assert.match(source, /existingIndividualResult/);
+  assert.match(source, /if \(individualResult\.error\)/);
+  assert.match(source, /if \(existingIndividualResult\.error\)/);
+  assert.match(source, /Esta credencial foi substituída/);
 });
 
 test("check-in claims each QR only once", () => {

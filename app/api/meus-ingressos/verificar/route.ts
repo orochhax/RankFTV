@@ -68,6 +68,32 @@ export async function POST(req: NextRequest) {
       .limit(50),
   ]);
 
+  type CredentialRow = {
+    id: string;
+    athlete_ticket_id: string;
+    athlete_slot: number;
+    display_name_snapshot: string;
+    access_token: string;
+    code: string;
+    checked_in: boolean;
+  };
+  const athleteTicketIds = [
+    ...(ath1.data ?? []).map((row) => row.id),
+    ...(ath2.data ?? []).map((row) => row.id),
+  ];
+  const credentialResult = athleteTicketIds.length > 0
+    ? await supabase
+        .from("athlete_ticket_credentials")
+        .select("id, athlete_ticket_id, athlete_slot, display_name_snapshot, access_token, code, checked_in")
+        .in("athlete_ticket_id", athleteTicketIds)
+    : { data: [] as CredentialRow[], error: null };
+  const credentialMap = new Map<string, CredentialRow>();
+  if (!credentialResult.error) {
+    for (const credential of (credentialResult.data ?? []) as CredentialRow[]) {
+      credentialMap.set(`${credential.athlete_ticket_id}:${credential.athlete_slot}`, credential);
+    }
+  }
+
   type Row = { id: string; championship_id: string; championships: unknown; [k: string]: unknown };
   function champNome(row: Row): string {
     const c = row.championships as { nome?: string } | null;
@@ -75,36 +101,48 @@ export async function POST(req: NextRequest) {
   }
 
   const atleta = [
-    ...(ath1.data ?? []).map((r) => ({
-      tipo: "atleta" as const,
-      ticket_id: r.id,
-      championship_id: r.championship_id,
-      campeonato_nome: champNome(r as Row),
-      categoria_nome: r.categoria_nome ?? null,
-      tipo_nome: null,
-      comprador_nome: r.comprador_nome,
-      parceiro_nome: r.parceiro_nome ?? null,
-      valor: Number(r.valor),
-      status_pagamento: r.status_pagamento,
-      code: r.code ?? null,
-      access_token: r.access_token ?? null,
-      checked_in: r.checked_in,
-    })),
-    ...(ath2.data ?? []).map((r) => ({
-      tipo: "atleta" as const,
-      ticket_id: r.id,
-      championship_id: r.championship_id,
-      campeonato_nome: champNome(r as Row),
-      categoria_nome: r.categoria_nome ?? null,
-      tipo_nome: null,
-      comprador_nome: r.comprador_nome,
-      parceiro_nome: r.parceiro_nome ?? null,
-      valor: Number(r.valor),
-      status_pagamento: r.status_pagamento,
-      code: r.code ?? null,
-      access_token: r.access_token ?? null,
-      checked_in: r.checked_in,
-    })),
+    ...(ath1.data ?? []).map((r) => {
+      const credential = credentialMap.get(`${r.id}:1`);
+      return {
+        tipo: "atleta" as const,
+        ticket_id: r.id,
+        championship_id: r.championship_id,
+        campeonato_nome: champNome(r as Row),
+        categoria_nome: r.categoria_nome ?? null,
+        tipo_nome: null,
+        comprador_nome: r.comprador_nome,
+        parceiro_nome: r.parceiro_nome ?? null,
+        valor: Number(r.valor),
+        status_pagamento: r.status_pagamento,
+        code: credential?.code ?? r.code ?? null,
+        access_token: r.access_token ?? null,
+        checked_in: credential?.checked_in ?? r.checked_in,
+        athlete_name: credential?.display_name_snapshot ?? r.comprador_nome,
+        credential_id: null,
+        credential_access_token: null,
+      };
+    }),
+    ...(ath2.data ?? []).map((r) => {
+      const credential = credentialMap.get(`${r.id}:2`);
+      return {
+        tipo: "atleta" as const,
+        ticket_id: r.id,
+        championship_id: r.championship_id,
+        campeonato_nome: champNome(r as Row),
+        categoria_nome: r.categoria_nome ?? null,
+        tipo_nome: null,
+        comprador_nome: r.comprador_nome,
+        parceiro_nome: r.parceiro_nome ?? null,
+        valor: Number(r.valor),
+        status_pagamento: r.status_pagamento,
+        code: credential?.code ?? null,
+        access_token: null,
+        checked_in: credential?.checked_in ?? false,
+        athlete_name: credential?.display_name_snapshot ?? r.parceiro_nome,
+        credential_id: credential?.id ?? null,
+        credential_access_token: credential?.access_token ?? null,
+      };
+    }),
   ];
 
   const plateiaList = (plateia.data ?? []).map((r) => ({

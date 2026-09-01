@@ -18,6 +18,9 @@ export type Ingresso = {
   parceiro_nome?:   string | null;
   championship_id:  string;
   ticket_id:        string;
+  credential_id?:   string | null;
+  credential_access_token?: string | null;
+  athlete_name?:    string | null;
 };
 
 export function IngressoCard({
@@ -42,10 +45,14 @@ export function IngressoCard({
   const parceiroPublicName = athleteDisplayName(ing.parceiro_nome);
 
   const params = new URLSearchParams();
-  if (ing.access_token) params.set("token", ing.access_token);
+  const individualCredential = isAtleta && ing.credential_id && ing.credential_access_token;
+  if (individualCredential) params.set("token", ing.credential_access_token!);
+  else if (ing.access_token) params.set("token", ing.access_token);
   if (origem) params.set("voltar", origem);
   const suffix = params.toString() ? `?${params.toString()}` : "";
-  const href = `/campeonatos/${ing.championship_id}/${isAtleta ? "comprar" : "plateia"}/ingresso/${ing.ticket_id}${suffix}`;
+  const href = individualCredential
+    ? `/campeonatos/${ing.championship_id}/ingresso-atleta/${ing.credential_id}${suffix}`
+    : `/campeonatos/${ing.championship_id}/${isAtleta ? "comprar" : "plateia"}/ingresso/${ing.ticket_id}${suffix}`;
 
   return (
     <Link
@@ -77,8 +84,10 @@ export function IngressoCard({
       <div className="flex items-center justify-between gap-3 bg-white px-5 py-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            {isAtleta
-              ? <><span className="font-medium">{compradorPublicName}</span> + <span className="font-medium">{parceiroPublicName}</span></>
+            {isAtleta && ing.athlete_name
+              ? <span className="font-medium">Credencial de {athleteDisplayName(ing.athlete_name)}</span>
+              : isAtleta
+                ? <><span className="font-medium">{compradorPublicName}</span> + <span className="font-medium">{parceiroPublicName}</span></>
               : <span className="font-medium truncate">{compradorPublicName}</span>}
           </div>
 

@@ -194,7 +194,16 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
 
       if (!res.ok) { setError(res.error ?? "Erro ao salvar."); return; }
       props.onClose();
-      router.refresh();
+      const rotatedAccessToken = "accessToken" in res && typeof res.accessToken === "string"
+        ? res.accessToken
+        : null;
+      if (rotatedAccessToken) {
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.set("token", rotatedAccessToken);
+        router.replace(`${nextUrl.pathname}${nextUrl.search}`);
+      } else {
+        router.refresh();
+      }
     });
   }
 
@@ -202,7 +211,7 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
     <ModalShell onClose={props.onClose}>
       <p className="mb-1 text-lg font-semibold text-gray-900">Alterar titularidade</p>
       <p className="mb-5 text-xs text-gray-500">
-        A troca é imediata e gratuita. O QR de entrada continua o mesmo.
+        A troca é imediata e gratuita. Links e QRs dos atletas alterados serão substituídos e enviados aos novos e-mails.
       </p>
 
       <div className="space-y-4">

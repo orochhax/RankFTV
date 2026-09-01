@@ -72,39 +72,75 @@ export default async function MinhasComprasPage({
       supabase.from("profiles").select("tamanho_camisa").eq("id", user.id).maybeSingle(),
     ]);
 
+  type IndividualCredentialRow = {
+    id: string;
+    athlete_ticket_id: string;
+    athlete_slot: number;
+    display_name_snapshot: string;
+    access_token: string;
+    code: string;
+    checked_in: boolean;
+  };
+  const athleteTicketIdsForCredentials = [
+    ...(athleteBuyer ?? []).map((row) => row.id),
+    ...(athletePartner ?? []).map((row) => row.id),
+  ];
+  const credentialResult = athleteTicketIdsForCredentials.length > 0
+    ? await admin
+        .from("athlete_ticket_credentials")
+        .select("id, athlete_ticket_id, athlete_slot, display_name_snapshot, access_token, code, checked_in")
+        .in("athlete_ticket_id", athleteTicketIdsForCredentials)
+    : { data: [] as IndividualCredentialRow[], error: null };
+  const credentialMap = new Map<string, IndividualCredentialRow>();
+  if (!credentialResult.error) {
+    for (const credential of (credentialResult.data ?? []) as IndividualCredentialRow[]) {
+      credentialMap.set(`${credential.athlete_ticket_id}:${credential.athlete_slot}`, credential);
+    }
+  }
+
   const athleteTickets: Ingresso[] = [
-    ...(athleteBuyer ?? []).map((row) => ({
-      tipo: "atleta" as const,
-      ticket_id: row.id,
-      championship_id: row.championship_id,
-      campeonato_nome: championshipName(row as TicketRow),
-      categoria_nome: row.categoria_nome ?? null,
-      tipo_nome: null,
-      comprador_nome: row.comprador_nome,
-      parceiro_nome: row.parceiro_nome ?? null,
-      valor: Number(row.valor),
-      status_pagamento: row.status_pagamento,
-      code: row.code ?? null,
-      access_token: row.access_token ?? null,
-      checked_in: row.checked_in,
-      id: row.id,
-    })),
-    ...(athletePartner ?? []).map((row) => ({
-      tipo: "atleta" as const,
-      ticket_id: row.id,
-      championship_id: row.championship_id,
-      campeonato_nome: championshipName(row as TicketRow),
-      categoria_nome: row.categoria_nome ?? null,
-      tipo_nome: null,
-      comprador_nome: row.comprador_nome,
-      parceiro_nome: row.parceiro_nome ?? null,
-      valor: Number(row.valor),
-      status_pagamento: row.status_pagamento,
-      code: row.code ?? null,
-      access_token: row.access_token ?? null,
-      checked_in: row.checked_in,
-      id: row.id,
-    })),
+    ...(athleteBuyer ?? []).map((row) => {
+      const credential = credentialMap.get(`${row.id}:1`);
+      return {
+        tipo: "atleta" as const,
+        ticket_id: row.id,
+        championship_id: row.championship_id,
+        campeonato_nome: championshipName(row as TicketRow),
+        categoria_nome: row.categoria_nome ?? null,
+        tipo_nome: null,
+        comprador_nome: row.comprador_nome,
+        parceiro_nome: row.parceiro_nome ?? null,
+        valor: Number(row.valor),
+        status_pagamento: row.status_pagamento,
+        code: credential?.code ?? row.code ?? null,
+        access_token: row.access_token ?? null,
+        checked_in: credential?.checked_in ?? row.checked_in,
+        athlete_name: credential?.display_name_snapshot ?? row.comprador_nome,
+        id: row.id,
+      };
+    }),
+    ...(athletePartner ?? []).map((row) => {
+      const credential = credentialMap.get(`${row.id}:2`);
+      return {
+        tipo: "atleta" as const,
+        ticket_id: row.id,
+        championship_id: row.championship_id,
+        campeonato_nome: championshipName(row as TicketRow),
+        categoria_nome: row.categoria_nome ?? null,
+        tipo_nome: null,
+        comprador_nome: row.comprador_nome,
+        parceiro_nome: row.parceiro_nome ?? null,
+        valor: Number(row.valor),
+        status_pagamento: row.status_pagamento,
+        code: credential?.code ?? row.code ?? null,
+        access_token: null,
+        credential_id: credential?.id ?? null,
+        credential_access_token: credential?.access_token ?? null,
+        checked_in: credential?.checked_in ?? row.checked_in,
+        athlete_name: credential?.display_name_snapshot ?? row.parceiro_nome,
+        id: row.id,
+      };
+    }),
   ];
 
   const seenAthleteTickets = new Set<string>();

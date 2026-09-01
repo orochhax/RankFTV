@@ -60,7 +60,8 @@ export default async function IngressoAtletaPage({
     .from("athlete_ticket_credentials")
     .select("id, athlete_slot, display_name_snapshot, qr_token, code, checked_in, checkin_at")
     .eq("athlete_ticket_id", ticketId)
-    .order("athlete_slot");
+    .eq("athlete_slot", 1)
+    .maybeSingle();
 
   const { data: refundOperation } = await supabase
     .from("financial_operations")
@@ -122,11 +123,11 @@ export default async function IngressoAtletaPage({
     checked_in: boolean;
     checkin_at: string | null;
   };
-  const individualCredentials = individualCredentialResult.error
-    ? []
-    : (individualCredentialResult.data ?? []) as CredentialRow[];
-  const credentialSources: CredentialRow[] = individualCredentials.length > 0
-    ? individualCredentials
+  const individualCredential = individualCredentialResult.error
+    ? null
+    : individualCredentialResult.data as CredentialRow | null;
+  const credentialSources: CredentialRow[] = individualCredential
+    ? [individualCredential]
     : [{
         id: `legacy:${t.id}`,
         athlete_slot: 1,
