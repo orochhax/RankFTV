@@ -1,14 +1,29 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2, Search, ShieldCheck } from "lucide-react";
+import { History, Loader2, RefreshCcw, Search, ShieldCheck } from "lucide-react";
 import {
   buscarIngressosSuporte,
   corrigirEmailAtletaSuporte,
+  listarLogsSuporte,
+  type SupportAuditLog,
   type SupportTicket,
 } from "@/app/admin/suporte/actions";
 
-export function TicketSupportCenter() {
+const FIELD_LABELS: Record<string, string> = {
+  comprador_nome: "nome do atleta 1",
+  comprador_cpf: "CPF do atleta 1",
+  comprador_email: "e-mail do atleta 1",
+  comprador_zap: "WhatsApp do atleta 1",
+  comprador_genero: "gênero do atleta 1",
+  parceiro_nome: "nome do atleta 2",
+  parceiro_cpf: "CPF do atleta 2",
+  parceiro_email: "e-mail do atleta 2",
+  parceiro_zap: "WhatsApp do atleta 2",
+  parceiro_genero: "gênero do atleta 2",
+};
+
+export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAuditLog[] }) {
   const [term, setTerm] = useState("");
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +31,19 @@ export function TicketSupportCenter() {
   const [editing, setEditing] = useState<{ ticket: SupportTicket; slot: 1 | 2 } | null>(null);
   const [newEmail, setNewEmail] = useState("");
   const [reason, setReason] = useState("");
+  const [logs, setLogs] = useState(initialLogs);
+  const [logsTicketId, setLogsTicketId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [logsPending, startLogsTransition] = useTransition();
+
+  function loadLogs(ticketId?: string) {
+    startLogsTransition(async () => {
+      const result = await listarLogsSuporte(ticketId);
+      if (!result.ok) { setError(result.error ?? "Falha ao carregar histórico."); return; }
+      setLogs(result.logs ?? []);
+      setLogsTicketId(ticketId ?? null);
+    });
+  }
 
   function search() {
     setError(null);
@@ -46,6 +73,7 @@ export function TicketSupportCenter() {
       setReason("");
       const refreshed = await buscarIngressosSuporte(term);
       if (refreshed.ok) setTickets(refreshed.tickets ?? []);
+      loadLogs(logsTicketId ?? undefined);
     });
   }
 
@@ -109,9 +137,69 @@ export function TicketSupportCenter() {
                 );
               })}
             </div>
+            <button
+              type="button"
+              onClick={() => loadLogs(ticket.id)}
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700"
+            >
+              <History className="size-4" /> Ver histórico deste ingresso
+            </button>
           </article>
         ))}
       </div>
+
+      <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <History className="size-5 text-blue-600" /> Histórico de alterações
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              {logsTicketId ? "Mostrando somente o ingresso selecionado." : "Últimas 100 ações auditadas em ingressos."}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {logsTicketId && (
+              <button type="button" onClick={() => loadLogs()} className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700">
+                Mostrar todos
+              </button>
+            )}
+            <button type="button" onClick={() => loadLogs(logsTicketId ?? undefined)} disabled={logsPending} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 disabled:opacity-60">
+              <RefreshCcw className={`size-3.5 ${logsPending ? "animate-spin" : ""}`} /> Atualizar
+            </button>
+          </div>
+        </div>
+        <div className="mt-4 divide-y divide-gray-100">
+          {logs.length === 0 && <p className="py-6 text-center text-sm text-gray-500">Nenhuma alteração auditada.</p>}
+          {logs.map((log) => (
+            <article key={log.id} className="py-4 first:pt-0 last:pb-0">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-medium text-gray-900">{log.actionLabel}</p>
+                  <p className="text-sm text-gray-600">{log.ticketLabel}</p>
+                </div>
+                <time className="text-xs text-gray-400" dateTime={log.createdAt}>
+                  {new Date(log.createdAt).toLocaleString("pt-BR", { timeZone: "America/Bahia" })}
+                </time>
+              </div>
+              <p className="mt-2 text-sm text-gray-700"><span className="font-medium">Quem:</span> {log.actorLabel}</p>
+              {log.athleteSlot && <p className="mt-1 text-sm text-gray-600">Atleta afetado: {log.athleteSlot}</p>}
+              {log.fields.length > 0 && (
+                <p className="mt-1 text-sm text-gray-600">
+                  Campos: {log.fields.map((field) => FIELD_LABELS[field] ?? field).join(", ")}
+                </p>
+              )}
+              {(log.oldEmailMasked || log.newEmailMasked) && (
+                <p className="mt-1 text-sm text-gray-600">
+                  E-mail: {log.oldEmailMasked ?? "—"} → {log.newEmailMasked ?? "—"}
+                </p>
+              )}
+              {log.reason && <p className="mt-2 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700"><span className="font-medium">Motivo:</span> {log.reason}</p>}
+              {log.ticketId && <p className="mt-2 font-mono text-[11px] text-gray-400">{log.ticketId}</p>}
+            </article>
+          ))}
+        </div>
+      </section>
 
       {editing && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 px-4">

@@ -25,6 +25,21 @@ export type SupportTicket = {
   createdAt: string;
 };
 
+export type SupportAuditLog = {
+  id: string;
+  action: string;
+  actionLabel: string;
+  actorLabel: string;
+  ticketId: string | null;
+  ticketLabel: string;
+  createdAt: string;
+  fields: string[];
+  athleteSlot: number | null;
+  reason: string | null;
+  oldEmailMasked: string | null;
+  newEmailMasked: string | null;
+};
+
 async function requireCeo() {
   const supabase = await createClient();
   const [{ data: { user } }, role] = await Promise.all([
@@ -36,6 +51,86 @@ async function requireCeo() {
 }
 
 const TICKET_SELECT = "id, championship_id, category_id, status_pagamento, checked_in, comprador_nome, comprador_cpf, comprador_email, parceiro_nome, parceiro_cpf, parceiro_email, created_at";
+
+const SUPPORT_AUDIT_ACTIONS = [
+  "athlete_ticket_identity_changed",
+  "athlete_ticket_email_correction_requested",
+  "athlete_ticket_email_corrected_by_support",
+] as const;
+
+function maskEmail(email: string): string {
+  const [name, domain] = email.split("@");
+  if (!domain) return "***";
+  return `${name.slice(0, 2)}***@${domain}`;
+}
+
+export async function listarLogsSuporte(ticketId?: string): Promise<{ ok: boolean; error?: string; logs?: SupportAuditLog[] }> {
+  await requireCeo();
+  if (ticketId && !/^[0-9a-f-]{36}$/i.test(ticketId)) return { ok: false, error: "Ingresso inválido." };
+  const admin = createAdminClient();
+  let query = admin
+    .from("security_audit_log")
+    .select("id, actor_id, acao, alvo_id, detalhes, created_at")
+    .eq("alvo_tabela", "athlete_tickets")
+    .in("acao", [...SUPPORT_AUDIT_ACTIONS])
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (ticketId) query = query.eq("alvo_id", ticketId);
+  const { data: rows, error } = await query;
+  if (error) return { ok: false, error: "Não foi possível carregar o histórico." };
+
+  const actorIds = [...new Set((rows ?? []).map((row) => row.actor_id).filter(Boolean))] as string[];
+  const ticketIds = [...new Set((rows ?? []).map((row) => row.alvo_id).filter(Boolean))] as string[];
+  const [{ data: actors }, { data: tickets }] = await Promise.all([
+    actorIds.length
+      ? admin.from("profiles").select("id, nome, username").in("id", actorIds)
+      : Promise.resolve({ data: [] }),
+    ticketIds.length
+      ? admin.from("athlete_tickets").select("id, comprador_nome, parceiro_nome").in("id", ticketIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+  const actorMap = new Map((actors ?? []).map((actor) => [actor.id, actor]));
+  const ticketMap = new Map((tickets ?? []).map((ticket) => [ticket.id, ticket]));
+  const actionLabels: Record<string, string> = {
+    athlete_ticket_identity_changed: "Dados alterados pelo comprador",
+    athlete_ticket_email_correction_requested: "Correção assistida solicitada",
+    athlete_ticket_email_corrected_by_support: "E-mail corrigido pelo suporte",
+  };
+
+  return {
+    ok: true,
+    logs: (rows ?? []).map((row) => {
+      const details = (row.detalhes ?? {}) as Record<string, unknown>;
+      const actor = row.actor_id ? actorMap.get(row.actor_id) : null;
+      const origin = typeof details.origem === "string" ? details.origem : null;
+      const ticket = row.alvo_id ? ticketMap.get(row.alvo_id) : null;
+      return {
+        id: row.id,
+        action: row.acao,
+        actionLabel: actionLabels[row.acao] ?? row.acao,
+        actorLabel: actor
+          ? `${actor.nome || actor.username || "CEO"}${actor.username ? ` (@${actor.username})` : ""}`
+          : origin === "link_otp"
+            ? "Comprador via link + OTP"
+            : origin === "link_whatsapp"
+              ? "Comprador via link gerencial"
+              : "Sistema",
+        ticketId: row.alvo_id,
+        ticketLabel: ticket
+          ? `${ticket.comprador_nome} + ${ticket.parceiro_nome}`
+          : row.alvo_id
+            ? `Ingresso ${row.alvo_id.slice(0, 8)}`
+            : "Ingresso removido",
+        createdAt: row.created_at,
+        fields: Array.isArray(details.campos) ? details.campos.filter((field): field is string => typeof field === "string") : [],
+        athleteSlot: typeof details.athlete_slot === "number" ? details.athlete_slot : null,
+        reason: typeof details.motivo === "string" ? details.motivo : null,
+        oldEmailMasked: typeof details.email_anterior === "string" ? details.email_anterior : null,
+        newEmailMasked: typeof details.email_novo === "string" ? details.email_novo : null,
+      };
+    }),
+  };
+}
 
 export async function buscarIngressosSuporte(termRaw: string): Promise<{ ok: boolean; error?: string; tickets?: SupportTicket[] }> {
   await requireCeo();
@@ -132,7 +227,12 @@ export async function corrigirEmailAtletaSuporte(input: {
     acao: "athlete_ticket_email_correction_requested",
     alvoTabela: "athlete_tickets",
     alvoId: ticket.id,
-    detalhes: { athlete_slot: input.athleteSlot, motivo: reason },
+    detalhes: {
+      athlete_slot: input.athleteSlot,
+      motivo: reason,
+      email_anterior: maskEmail(oldEmail),
+      email_novo: maskEmail(newEmail),
+    },
   });
   if (!auditReady) return { ok: false, error: "A auditoria está indisponível. Nenhum dado foi alterado." };
   const updates = input.athleteSlot === 1
@@ -153,7 +253,12 @@ export async function corrigirEmailAtletaSuporte(input: {
     acao: "athlete_ticket_email_corrected_by_support",
     alvoTabela: "athlete_tickets",
     alvoId: ticket.id,
-    detalhes: { athlete_slot: input.athleteSlot },
+    detalhes: {
+      athlete_slot: input.athleteSlot,
+      motivo: reason,
+      email_anterior: maskEmail(oldEmail),
+      email_novo: maskEmail(newEmail),
+    },
   });
   if (ticket.status_pagamento === "pago") await deliverAthleteTicketCredentials(admin, ticket.id);
   if (oldEmail) await enviarAvisoAlteracaoIngresso({

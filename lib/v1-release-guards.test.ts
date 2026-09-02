@@ -30,6 +30,7 @@ test("commercial admin authorization has profiles.role as its only source of tru
 test("assisted ticket support is CEO-only and fails closed when audit is unavailable", () => {
   const page = source("app/admin/suporte/page.tsx");
   const actions = source("app/admin/suporte/actions.ts");
+  const center = source("components/admin/TicketSupportCenter.tsx");
   const menu = source("app/admin/page.tsx");
 
   assert.match(page, /isCeo\(role\)/);
@@ -38,6 +39,14 @@ test("assisted ticket support is CEO-only and fails closed when audit is unavail
   assert.match(actions, /if \(!auditReady\)/);
   assert.match(actions, /access_token: gerarTicketAccessToken\(\), user_id: null/);
   assert.match(actions, /deliverAthleteTicketCredentials/);
+  assert.match(actions, /security_audit_log/);
+  assert.match(actions, /SUPPORT_AUDIT_ACTIONS/);
+  assert.match(actions, /email_anterior: maskEmail\(oldEmail\)/);
+  assert.match(actions, /email_novo: maskEmail\(newEmail\)/);
+  assert.match(center, /Histórico de alterações/);
+  assert.match(center, /Quem:/);
+  assert.match(center, /Ver histórico deste ingresso/);
+  assert.match(page, /listarLogsSuporte/);
   assert.match(menu, /href: "\/admin\/suporte"[\s\S]*ownerOnly: true/);
 });
 
