@@ -278,7 +278,9 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
       });
 
       if (res && !res.ok) {
-        setError(res.error ?? "Erro ao salvar.");
+        const message = res.error ?? "Erro ao salvar.";
+        setError(message);
+        window.alert(message);
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     });

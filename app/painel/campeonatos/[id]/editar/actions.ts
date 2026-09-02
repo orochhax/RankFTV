@@ -144,6 +144,40 @@ export async function updateChampionship(
   if (ativas.length === 0)
     return { ok: false, error: "Adicione pelo menos uma categoria." };
 
+  const toDelete = categorias.filter((c) => c._delete && c.id);
+  const toUpdate = categorias.filter((c) => !c._delete && c.id);
+  const toInsert = categorias.filter((c) => !c._delete && !c.id);
+
+  // A exclusao vem primeiro para que uma categoria protegida interrompa toda
+  // a alteracao antes de atualizar os demais dados e antes do redirect.
+  if (toDelete.length > 0) {
+    const ids = toDelete.map((c) => c.id!);
+    const { data: deleted, error: deleteError } = await supabase
+      .from("championship_categories")
+      .delete()
+      .eq("championship_id", champId)
+      .in("id", ids)
+      .select("id");
+
+    if (
+      deleteError?.code === "23503"
+      || deleteError?.message.includes("CATEGORY_HAS_DEPENDENCIES")
+      || deleteError?.message.includes("championship_categories_has_history")
+    ) {
+      return {
+        ok: false,
+        error: "Essa categoria possui inscrições ou chaveamento e não pode ser excluída. A exclusão não cancela compras nem gera reembolso.",
+      };
+    }
+    if (deleteError) return { ok: false, error: "Erro ao excluir a categoria." };
+    if ((deleted ?? []).length !== ids.length) {
+      return {
+        ok: false,
+        error: "A categoria não foi excluída. Ela pode possuir inscrições ou chaveamento; atualize a página e tente novamente.",
+      };
+    }
+  }
+
   // Atualiza dados principais
   const { error: champErr } = await supabase
     .from("championships")
@@ -169,21 +203,9 @@ export async function updateChampionship(
 
   if (champErr) return { ok: false, error: "Erro ao atualizar campeonato." };
 
-  // Categorias: delete, update, insert
-  const toDelete = categorias.filter((c) => c._delete && c.id);
-  const toUpdate = categorias.filter((c) => !c._delete && c.id);
-  const toInsert = categorias.filter((c) => !c._delete && !c.id);
-
-  if (toDelete.length > 0) {
-    await supabase
-      .from("championship_categories")
-      .delete()
-      .in("id", toDelete.map((c) => c.id!));
-  }
-
   for (const cat of toUpdate) {
     const faixa = resolverFaixaRating(cat.nome);
-    await supabase
+    const { error: updateError } = await supabase
       .from("championship_categories")
       .update({
         nome:             cat.nome.trim(),
@@ -193,11 +215,13 @@ export async function updateChampionship(
         corte_rating_min: faixa?.min ?? 0,
         corte_rating_max: faixa?.max ?? 9999,
       })
-      .eq("id", cat.id!);
+      .eq("id", cat.id!)
+      .eq("championship_id", champId);
+    if (updateError) return { ok: false, error: "Erro ao atualizar uma categoria." };
   }
 
   if (toInsert.length > 0) {
-    await supabase.from("championship_categories").insert(
+    const { error: insertError } = await supabase.from("championship_categories").insert(
       toInsert.map((c) => {
         const faixa = resolverFaixaRating(c.nome);
         return {
@@ -211,6 +235,7 @@ export async function updateChampionship(
         };
       }),
     );
+    if (insertError) return { ok: false, error: "Erro ao adicionar uma categoria." };
   }
 
   revalidatePath(`/painel/campeonatos/${champId}`);

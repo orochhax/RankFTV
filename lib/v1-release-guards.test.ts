@@ -145,6 +145,8 @@ test("new championships do not start with an unnamed category", () => {
 
 test("categories with operational history cannot be deleted or trigger refunds", () => {
   const actions = source("app/painel/campeonatos/[id]/lotes/actions.ts");
+  const editActions = source("app/painel/campeonatos/[id]/editar/actions.ts");
+  const editForm = source("components/painel/EditarCampeonatoForm.tsx");
   const manager = source("components/painel/LotesManager.tsx");
   const migration = source("supabase/production-category-deletion-guard.sql");
 
@@ -156,6 +158,11 @@ test("categories with operational history cannot be deleted or trigger refunds",
   assert.match(actions, /if \(!deleted\)/);
   assert.match(manager, /não cancela compras nem gera reembolso/);
   assert.match(manager, /window\.alert\(message\)/);
+  assert.match(editActions, /deleteError\?\.code === "23503"/);
+  assert.match(editActions, /CATEGORY_HAS_DEPENDENCIES/);
+  assert.match(editActions, /if \(deleteError\) return \{ ok: false/);
+  assert.match(editActions, /\(deleted \?\? \[\]\)\.length !== ids\.length/);
+  assert.match(editForm, /window\.alert\(message\)/);
   assert.match(migration, /BEFORE DELETE ON championship_categories/);
   assert.match(migration, /SELECT 1 FROM registrations/);
   assert.match(migration, /SELECT 1 FROM athlete_tickets/);
