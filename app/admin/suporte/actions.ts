@@ -40,6 +40,12 @@ export type SupportAuditLog = {
   newEmailMasked: string | null;
 };
 
+export type SupportAuditFilters = {
+  ticketId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
 async function requireCeo() {
   const supabase = await createClient();
   const [{ data: { user } }, role] = await Promise.all([
@@ -64,9 +70,25 @@ function maskEmail(email: string): string {
   return `${name.slice(0, 2)}***@${domain}`;
 }
 
-export async function listarLogsSuporte(ticketId?: string): Promise<{ ok: boolean; error?: string; logs?: SupportAuditLog[] }> {
+function isValidDateKey(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
+function nextDateKey(value: string): string {
+  const parsed = new Date(`${value}T00:00:00Z`);
+  parsed.setUTCDate(parsed.getUTCDate() + 1);
+  return parsed.toISOString().slice(0, 10);
+}
+
+export async function listarLogsSuporte(filters: SupportAuditFilters = {}): Promise<{ ok: boolean; error?: string; logs?: SupportAuditLog[] }> {
   await requireCeo();
+  const { ticketId, dateFrom, dateTo } = filters;
   if (ticketId && !/^[0-9a-f-]{36}$/i.test(ticketId)) return { ok: false, error: "Ingresso inválido." };
+  if (dateFrom && !isValidDateKey(dateFrom)) return { ok: false, error: "Data inicial inválida." };
+  if (dateTo && !isValidDateKey(dateTo)) return { ok: false, error: "Data final inválida." };
+  if (dateFrom && dateTo && dateFrom > dateTo) return { ok: false, error: "A data inicial não pode ser posterior à data final." };
   const admin = createAdminClient();
   let query = admin
     .from("security_audit_log")
@@ -76,6 +98,8 @@ export async function listarLogsSuporte(ticketId?: string): Promise<{ ok: boolea
     .order("created_at", { ascending: false })
     .limit(100);
   if (ticketId) query = query.eq("alvo_id", ticketId);
+  if (dateFrom) query = query.gte("created_at", `${dateFrom}T00:00:00-03:00`);
+  if (dateTo) query = query.lt("created_at", `${nextDateKey(dateTo)}T00:00:00-03:00`);
   const { data: rows, error } = await query;
   if (error) return { ok: false, error: "Não foi possível carregar o histórico." };
 

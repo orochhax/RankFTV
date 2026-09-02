@@ -23,6 +23,11 @@ const FIELD_LABELS: Record<string, string> = {
   parceiro_genero: "gênero do atleta 2",
 };
 
+function formatDateKey(value: string): string {
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+}
+
 export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAuditLog[] }) {
   const [term, setTerm] = useState("");
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -33,16 +38,48 @@ export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAudit
   const [reason, setReason] = useState("");
   const [logs, setLogs] = useState(initialLogs);
   const [logsTicketId, setLogsTicketId] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [appliedDateFrom, setAppliedDateFrom] = useState("");
+  const [appliedDateTo, setAppliedDateTo] = useState("");
   const [pending, startTransition] = useTransition();
   const [logsPending, startLogsTransition] = useTransition();
 
-  function loadLogs(ticketId?: string) {
+  function loadLogs(options: {
+    ticketId?: string | null;
+    dateFrom?: string;
+    dateTo?: string;
+  } = {}) {
+    const ticketId = options.ticketId === undefined ? logsTicketId : options.ticketId;
+    const selectedDateFrom = options.dateFrom === undefined ? appliedDateFrom : options.dateFrom;
+    const selectedDateTo = options.dateTo === undefined ? appliedDateTo : options.dateTo;
+    setError(null);
     startLogsTransition(async () => {
-      const result = await listarLogsSuporte(ticketId);
+      const result = await listarLogsSuporte({
+        ticketId: ticketId ?? undefined,
+        dateFrom: selectedDateFrom || undefined,
+        dateTo: selectedDateTo || undefined,
+      });
       if (!result.ok) { setError(result.error ?? "Falha ao carregar histórico."); return; }
       setLogs(result.logs ?? []);
-      setLogsTicketId(ticketId ?? null);
+      setLogsTicketId(ticketId);
+      setAppliedDateFrom(selectedDateFrom);
+      setAppliedDateTo(selectedDateTo);
     });
+  }
+
+  function filterLogsByDate() {
+    if (dateFrom && dateTo && dateFrom > dateTo) {
+      setError("A data inicial não pode ser posterior à data final.");
+      return;
+    }
+    loadLogs({ dateFrom, dateTo });
+  }
+
+  function clearDateFilter() {
+    setDateFrom("");
+    setDateTo("");
+    loadLogs({ dateFrom: "", dateTo: "" });
   }
 
   function search() {
@@ -73,7 +110,7 @@ export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAudit
       setReason("");
       const refreshed = await buscarIngressosSuporte(term);
       if (refreshed.ok) setTickets(refreshed.tickets ?? []);
-      loadLogs(logsTicketId ?? undefined);
+      loadLogs();
     });
   }
 
@@ -139,7 +176,7 @@ export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAudit
             </div>
             <button
               type="button"
-              onClick={() => loadLogs(ticket.id)}
+              onClick={() => loadLogs({ ticketId: ticket.id })}
               className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700"
             >
               <History className="size-4" /> Ver histórico deste ingresso
@@ -155,19 +192,62 @@ export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAudit
               <History className="size-5 text-blue-600" /> Histórico de alterações
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              {logsTicketId ? "Mostrando somente o ingresso selecionado." : "Últimas 100 ações auditadas em ingressos."}
+              {logsTicketId ? "Mostrando somente o ingresso selecionado. " : "Últimas 100 ações auditadas em ingressos. "}
+              {(appliedDateFrom || appliedDateTo) && (
+                <span>
+                  Período: {appliedDateFrom ? formatDateKey(appliedDateFrom) : "início"} até {appliedDateTo ? formatDateKey(appliedDateTo) : "hoje"}.
+                </span>
+              )}
             </p>
           </div>
           <div className="flex gap-2">
             {logsTicketId && (
-              <button type="button" onClick={() => loadLogs()} className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700">
+              <button type="button" onClick={() => loadLogs({ ticketId: null })} className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700">
                 Mostrar todos
               </button>
             )}
-            <button type="button" onClick={() => loadLogs(logsTicketId ?? undefined)} disabled={logsPending} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 disabled:opacity-60">
+            <button type="button" onClick={() => loadLogs()} disabled={logsPending} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 disabled:opacity-60">
               <RefreshCcw className={`size-3.5 ${logsPending ? "animate-spin" : ""}`} /> Atualizar
             </button>
           </div>
+        </div>
+        <div className="mt-4 flex flex-wrap items-end gap-3 rounded-xl bg-gray-50 p-3">
+          <label className="min-w-40 flex-1 text-xs font-medium text-gray-600">
+            Data inicial
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(event) => setDateFrom(event.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500"
+            />
+          </label>
+          <label className="min-w-40 flex-1 text-xs font-medium text-gray-600">
+            Data final
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(event) => setDateTo(event.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={filterLogsByDate}
+            disabled={logsPending}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            Filtrar período
+          </button>
+          {(appliedDateFrom || appliedDateTo) && (
+            <button
+              type="button"
+              onClick={clearDateFilter}
+              disabled={logsPending}
+              className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 disabled:opacity-60"
+            >
+              Limpar datas
+            </button>
+          )}
         </div>
         <div className="mt-4 divide-y divide-gray-100">
           {logs.length === 0 && <p className="py-6 text-center text-sm text-gray-500">Nenhuma alteração auditada.</p>}

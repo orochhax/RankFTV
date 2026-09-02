@@ -41,11 +41,15 @@ test("assisted ticket support is CEO-only and fails closed when audit is unavail
   assert.match(actions, /deliverAthleteTicketCredentials/);
   assert.match(actions, /security_audit_log/);
   assert.match(actions, /SUPPORT_AUDIT_ACTIONS/);
+  assert.match(actions, /dateFrom[\s\S]*\.gte\("created_at"/);
+  assert.match(actions, /dateTo[\s\S]*\.lt\("created_at"/);
   assert.match(actions, /email_anterior: maskEmail\(oldEmail\)/);
   assert.match(actions, /email_novo: maskEmail\(newEmail\)/);
   assert.match(center, /Histórico de alterações/);
   assert.match(center, /Quem:/);
   assert.match(center, /Ver histórico deste ingresso/);
+  assert.match(center, /type="date"/);
+  assert.match(center, /Filtrar período/);
   assert.match(page, /listarLogsSuporte/);
   assert.match(menu, /href: "\/admin\/suporte"[\s\S]*ownerOnly: true/);
 });
