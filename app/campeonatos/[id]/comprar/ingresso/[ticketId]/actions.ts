@@ -1,11 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { criarOuBuscarCliente } from "@/lib/asaas";
 import { calcularTotalComprador } from "@/lib/taxas";
-import { gerarTicketAccessToken, normalizarTicketAccessToken } from "@/lib/ticket-access";
+import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 import { createIdempotentCardCharge, refundIdempotently } from "@/lib/payment-flows";
 import {
   beginCardPaymentAttempt,
@@ -19,11 +18,13 @@ import {
   normalizeCardHolderPhone,
 } from "@/lib/card-holder";
 import { getClientIp } from "@/lib/rate-limit";
-import { normalizeCpf } from "@/lib/cpf";
-import { isValidAthleteName } from "@/lib/athlete-display-name";
 import { decideRefundPolicy, refundPolicyError } from "@/lib/refund-policy";
 import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
 import { reportOperationalEvent } from "@/lib/observability";
+import {
+  confirmAthleteTicketChange,
+  requestAthleteTicketChange,
+} from "@/lib/athlete-ticket-change-security";
 
 export type CardPaymentInput = {
   ticketId:    string;
@@ -197,112 +198,8 @@ export type TitularidadeAtletaInput = {
   parceiroEmail:  string;
   parceiroZap:    string;
   parceiroGenero: string;
+  usarMesmoEmail?: boolean;
 };
-
-export async function alterarTitularidadeAtleta(
-  input: TitularidadeAtletaInput,
-): Promise<{ ok: boolean; error?: string; accessToken?: string }> {
-  const admin = createAdminClient();
-  const accessToken = normalizarTicketAccessToken(input.accessToken);
-  if (!accessToken) return { ok: false, error: "Link do ingresso invalido." };
-
-  const { data: ticket } = await admin
-    .from("athlete_tickets")
-    .select("id, championship_id, category_id, status_pagamento, checked_in, comprador_cpf, comprador_email, parceiro_cpf, parceiro_email")
-    .eq("id", input.ticketId)
-    .eq("access_token", accessToken)
-    .maybeSingle();
-
-  if (!ticket) return { ok: false, error: "Ingresso não encontrado." };
-  if (ticket.status_pagamento === "estornado")
-    return { ok: false, error: "Esse ingresso foi cancelado — não dá pra alterar." };
-  if (ticket.checked_in)
-    return { ok: false, error: "Não é possível alterar os atletas depois do primeiro check-in." };
-
-  const compradorNome   = input.compradorNome.trim();
-  const compradorCpf    = normalizeCpf(input.compradorCpf);
-  const compradorEmail  = input.compradorEmail.trim().toLowerCase();
-  const compradorZap    = input.compradorZap.replace(/\D/g, "");
-  const compradorGenero = input.compradorGenero;
-  const parceiroNome    = input.parceiroNome.trim();
-  const parceiroCpf     = normalizeCpf(input.parceiroCpf);
-  const parceiroEmail   = input.parceiroEmail.trim().toLowerCase();
-  const parceiroZap     = input.parceiroZap.replace(/\D/g, "");
-  const parceiroGenero  = input.parceiroGenero;
-
-  if (!isValidAthleteName(compradorNome)) return { ok: false, error: "Informe o nome do atleta 1, não o e-mail." };
-  if (compradorCpf.length !== 11) return { ok: false, error: "CPF do atleta 1 inválido (11 dígitos)." };
-  if (!compradorEmail.includes("@")) return { ok: false, error: "E-mail do atleta 1 inválido." };
-  if (!compradorZap) return { ok: false, error: "Informe o WhatsApp do atleta 1." };
-  if (compradorGenero !== "masculino" && compradorGenero !== "feminino")
-    return { ok: false, error: "Informe o gênero do atleta 1." };
-  if (!isValidAthleteName(parceiroNome)) return { ok: false, error: "Informe o nome do atleta 2, não o e-mail." };
-  if (parceiroCpf.length !== 11) return { ok: false, error: "CPF do atleta 2 inválido (11 dígitos)." };
-  if (!parceiroEmail.includes("@")) return { ok: false, error: "E-mail do atleta 2 inválido." };
-  if (parceiroEmail === compradorEmail)
-    return { ok: false, error: "Use um e-mail diferente para cada atleta receber sua própria credencial." };
-  if (!parceiroZap) return { ok: false, error: "Informe o WhatsApp do atleta 2." };
-  if (parceiroGenero !== "masculino" && parceiroGenero !== "feminino")
-    return { ok: false, error: "Informe o gênero do atleta 2." };
-
-  // Categoria restrita a um gênero (não mista) — os dois atletas precisam bater com ela.
-  if (ticket.category_id) {
-    const { data: categoria } = await admin
-      .from("championship_categories")
-      .select("genero")
-      .eq("id", ticket.category_id)
-      .maybeSingle();
-
-    if (categoria && categoria.genero !== "mista") {
-      const generoLabel = categoria.genero === "feminino" ? "feminina" : "masculina";
-      if (compradorGenero !== categoria.genero || parceiroGenero !== categoria.genero) {
-        return { ok: false, error: `Essa categoria é apenas ${generoLabel} — os dois atletas precisam ser do gênero ${generoLabel}.` };
-      }
-    }
-  }
-
-  const buyerIdentityChanged =
-    normalizeCpf(ticket.comprador_cpf ?? "") !== compradorCpf
-    || (ticket.comprador_email ?? "").trim().toLowerCase() !== compradorEmail;
-  const partnerIdentityChanged =
-    normalizeCpf(ticket.parceiro_cpf ?? "") !== parceiroCpf
-    || (ticket.parceiro_email ?? "").trim().toLowerCase() !== parceiroEmail;
-  const nextAccessToken = buyerIdentityChanged ? gerarTicketAccessToken() : accessToken;
-
-  const { data: updatedTicket, error } = await admin
-    .from("athlete_tickets")
-    .update({
-      comprador_nome:   compradorNome,
-      comprador_cpf:    compradorCpf,
-      comprador_email:  compradorEmail,
-      comprador_zap:    compradorZap,
-      comprador_genero: compradorGenero,
-      parceiro_nome:    parceiroNome,
-      parceiro_cpf:     parceiroCpf,
-      parceiro_email:   parceiroEmail,
-      parceiro_zap:     parceiroZap,
-      parceiro_genero:  parceiroGenero,
-      ...(buyerIdentityChanged ? { access_token: nextAccessToken, user_id: null } : {}),
-      ...(partnerIdentityChanged ? { parceiro_user_id: null } : {}),
-    })
-    .eq("id", input.ticketId)
-    .eq("access_token", accessToken)
-    .eq("checked_in", false)
-    .select("id")
-    .maybeSingle();
-
-  if (error) return { ok: false, error: "Erro ao salvar. Tente de novo." };
-  if (!updatedTicket) {
-    return { ok: false, error: "Não foi possível alterar: o ingresso teve check-in ou foi atualizado." };
-  }
-
-  if (ticket.status_pagamento === "pago") {
-    await deliverAthleteTicketCredentials(admin, input.ticketId);
-  }
-
-  revalidatePath(`/campeonatos/${ticket.championship_id}/comprar/ingresso/${input.ticketId}`);
-  return { ok: true, accessToken: buyerIdentityChanged ? nextAccessToken : undefined };
-}
 
 // ── Cancelar ingresso ────────────────────────────────────────────────────────
 // A decisão é refeita no servidor com as datas persistidas. A interface apenas
@@ -386,4 +283,19 @@ export async function cancelarIngressoAtleta(
     return { ok: false, error: "O reembolso foi aceito, mas o status aguarda reconciliacao." };
   }
   return { ok: true, outcome: "estorno_solicitado" };
+}
+
+export async function solicitarAlteracaoTitularidadeAtleta(input: TitularidadeAtletaInput) {
+  const ip = getClientIp(await headers());
+  return requestAthleteTicketChange(input, ip);
+}
+
+export async function confirmarAlteracaoTitularidadeAtleta(input: {
+  ticketId: string;
+  accessToken: string;
+  challengeId: string;
+  currentEmailCode: string;
+  newEmailCode?: string;
+}) {
+  return confirmAthleteTicketChange(input);
 }

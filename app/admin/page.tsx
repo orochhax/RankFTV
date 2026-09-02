@@ -1,10 +1,17 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight } from "lucide-react";
+import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight, LifeBuoy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRole, isAdminRole } from "@/lib/supabase/roles";
 
 const MENU = [
+  {
+    href: "/admin/suporte",
+    ownerOnly: true,
+    icon: LifeBuoy,
+    label: "Suporte a ingressos",
+    desc: "Recupere compras e corrija dados com validação e auditoria.",
+  },
   {
     href: "/admin/performance",
     ownerOnly: true,

@@ -13,6 +13,15 @@ Itens abaixo não bloqueiam o lançamento da V1. Devem ser priorizados depois do
 - [ ] Criar uma tela operacional para acompanhar entregas pendentes ou falhas e permitir nova tentativa controlada.
 - [ ] Adicionar métricas de tempo de entrega, rejeição, bounce e reclamação por provedor de e-mail.
 
+## Central de suporte administrativo
+
+- [ ] Exibir na central exclusiva do CEO o histórico cronológico de auditoria, rotações, entregas e check-ins de cada ingresso.
+- [ ] Adicionar reenvio controlado de credencial sem alterar identidade, com limite, motivo e registro de entrega.
+- [ ] Adicionar invalidação emergencial de uma credencial comprometida, com confirmação reforçada e aviso ao titular.
+- [ ] Criar uma fila de casos de suporte com estado (`aberto`, `aguardando prova`, `resolvido`), responsável e notas sem anexar documentos sensíveis desnecessários.
+- [ ] Integrar os casos de estorno Pix pendente e falhas de e-mail à central, mantendo aprovação humana e sem coletar dados bancários por WhatsApp ou e-mail.
+- [ ] Definir retenção e acesso para provas de identidade/pagamento. Não armazenar documento completo se uma confirmação mínima e auditável resolver o caso.
+
 ## Experiência do atleta
 
 - [ ] Avaliar download opcional da credencial individual em PDF, mantendo o link online como fonte principal e atualizada.

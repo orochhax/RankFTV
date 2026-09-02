@@ -223,3 +223,36 @@ export function recuperacaoIngressoHtml(opts: {
   `;
   return base("Seu código de acesso", corpo);
 }
+
+export function alteracaoIngressoOtpHtml(opts: {
+  codigo: string;
+  validadeMinutos: number;
+  destino: "atual" | "novo";
+}): string {
+  const explicacao = opts.destino === "novo"
+    ? "Use este código para confirmar que o novo e-mail informado pertence a você."
+    : "Use este código para autorizar a alteração dos dados da sua dupla.";
+  const corpo = `
+    ${p(explicacao)}
+    <div style="margin:20px 0;padding:24px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;text-align:center;">
+      <p style="margin:0;font-size:32px;font-weight:800;letter-spacing:6px;color:#1e3a8a;">${escapeHtml(opts.codigo)}</p>
+    </div>
+    ${p(`O código vale por ${opts.validadeMinutos} minutos e só pode ser usado uma vez.`)}
+    ${p("Se você não pediu essa alteração, não compartilhe o código e ignore este e-mail.")}
+  `;
+  return base("Confirme a alteração do ingresso", corpo);
+}
+
+export function avisoAlteracaoIngressoHtml(opts: {
+  nomeCampeonato: string;
+  resumo: string;
+}): string {
+  const corpo = `
+    ${p(`Os dados de uma dupla no campeonato <strong>${escapeHtml(opts.nomeCampeonato)}</strong> foram alterados.`)}
+    <div style="margin:16px 0;padding:16px;background:#fff7ed;border-radius:10px;border-left:4px solid #ea580c;">
+      <p style="margin:0;font-size:14px;color:#9a3412;line-height:1.6;">${escapeHtml(opts.resumo)}</p>
+    </div>
+    ${p("Links, códigos e QR Codes afetados foram substituídos. Se você não reconhece essa alteração, procure o suporte oficial do RankFTV.")}
+  `;
+  return base("Dados do ingresso alterados", corpo);
+}

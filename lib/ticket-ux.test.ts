@@ -71,6 +71,32 @@ test("guest ticket recovery keeps account discovery private and aligns recovered
   assert.match(page, /className="mt-8"/);
 });
 
+test("athlete ownership changes require OTP and freeze the requested payload", () => {
+  const security = source("lib/athlete-ticket-change-security.ts");
+  const actions = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
+  const modal = source("components/ingressos/IngressoOpcoesMenu.tsx");
+  const migration = source("supabase/production-athlete-ticket-change-security.sql");
+
+  assert.doesNotMatch(actions, /export async function alterarTitularidadeAtleta/);
+  assert.match(actions, /requestAthleteTicketChange/);
+  assert.match(actions, /confirmAthleteTicketChange/);
+  assert.match(security, /current_code_hash/);
+  assert.match(security, /new_email_code_hash/);
+  assert.match(security, /requested_changes: requestedChanges/);
+  assert.match(security, /checkRateLimit/);
+  assert.match(security, /bracket_confirmed_at/);
+  assert.match(security, /validaCPF/);
+  assert.match(security, /access_token: nextAccessToken, user_id: null/);
+  assert.match(security, /athlete_ticket_identity_changed/);
+  assert.match(modal, /Confirmar e alterar/);
+  assert.match(modal, /requiresNewEmailCode/);
+  assert.match(modal, /Enviar as duas credenciais para o e-mail do atleta 1/);
+  assert.match(migration, /REVOKE ALL ON athlete_ticket_change_challenges FROM PUBLIC, anon, authenticated/);
+  assert.match(migration, /FOR UPDATE/);
+  assert.match(migration, /attempts = attempts \+ 1/);
+  assert.match(security, /claim_athlete_ticket_change_challenge/);
+});
+
 test("payment startup failures release the reserved athlete inventory", () => {
   const guestAction = source("app/campeonatos/[id]/comprar/actions.ts");
   const authenticatedAction = source("app/campeonatos/[id]/inscrever/actions.ts");
@@ -121,7 +147,8 @@ test("a guest pair receives two linked individual entry credentials", () => {
   const recovery = source("app/api/meus-ingressos/verificar/route.ts");
   const delivery = source("lib/athlete-ticket-delivery.ts");
   const email = source("lib/email/send.ts");
-  const ownership = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
+  const ownership = source("lib/athlete-ticket-change-security.ts");
+  const athleteActions = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
   const statusApi = source("app/api/athlete-credential-status/route.ts");
   const credentialClient = source("components/campeonatos/IngressoAtletaCredencial.tsx");
   const recoveryClaim = source("lib/ticket-recovery.ts");
@@ -161,7 +188,7 @@ test("a guest pair receives two linked individual entry credentials", () => {
   assert.match(ownership, /access_token: nextAccessToken, user_id: null/);
   assert.match(ownership, /parceiro_user_id: null/);
   assert.match(ownership, /\.eq\("checked_in", false\)/);
-  assert.match(ownership, /card_payment_persistence_failed/);
+  assert.match(athleteActions, /card_payment_persistence_failed/);
   assert.match(statusApi, /export async function POST/);
   assert.doesNotMatch(credentialClient, /athlete-credential-status\?\$\{/);
   assert.match(credentialClient, /setRevoked\(true\)/);

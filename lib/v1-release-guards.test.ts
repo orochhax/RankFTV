@@ -27,6 +27,20 @@ test("commercial admin authorization has profiles.role as its only source of tru
   }
 });
 
+test("assisted ticket support is CEO-only and fails closed when audit is unavailable", () => {
+  const page = source("app/admin/suporte/page.tsx");
+  const actions = source("app/admin/suporte/actions.ts");
+  const menu = source("app/admin/page.tsx");
+
+  assert.match(page, /isCeo\(role\)/);
+  assert.match(actions, /if \(!user \|\| !isCeo\(role\)\)/);
+  assert.match(actions, /athlete_ticket_email_correction_requested/);
+  assert.match(actions, /if \(!auditReady\)/);
+  assert.match(actions, /access_token: gerarTicketAccessToken\(\), user_id: null/);
+  assert.match(actions, /deliverAthleteTicketCredentials/);
+  assert.match(menu, /href: "\/admin\/suporte"[\s\S]*ownerOnly: true/);
+});
+
 test("Arena paid subscriptions are opt-in and guarded in UI and server action", () => {
   assert.match(source("lib/release-flags.ts"), /ARENA_RECURRING_PAYMENTS_ENABLED\s*===\s*"1"/);
   assert.match(source("app/arenas/[handle]/assinar/[planId]/page.tsx"), /arenaRecurringPaymentsEnabled/);

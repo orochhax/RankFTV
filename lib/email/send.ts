@@ -9,11 +9,38 @@ import {
   conviteStaffHtml,
   recuperacaoIngressoHtml,
   credencialAtletaHtml,
+  alteracaoIngressoOtpHtml,
+  avisoAlteracaoIngressoHtml,
 } from "./templates";
 import { reportOperationalEvent } from "@/lib/observability";
 import { resolveBaseUrl } from "@/lib/site-url";
 
 const BASE_URL = resolveBaseUrl(process.env.NEXT_PUBLIC_BASE_URL, "http://localhost:3000");
+
+export async function enviarCodigoAlteracaoIngresso(opts: {
+  email: string;
+  codigo: string;
+  validadeMinutos: number;
+  destino: "atual" | "novo";
+}): Promise<boolean> {
+  return send(
+    opts.email,
+    "Confirme a alteração do seu ingresso",
+    alteracaoIngressoOtpHtml(opts),
+  );
+}
+
+export async function enviarAvisoAlteracaoIngresso(opts: {
+  email: string;
+  nomeCampeonato: string;
+  resumo: string;
+}): Promise<boolean> {
+  return send(
+    opts.email,
+    `Dados do ingresso alterados — ${opts.nomeCampeonato}`,
+    avisoAlteracaoIngressoHtml(opts),
+  );
+}
 
 // Não lança erro — e-mail é best-effort; nunca bloqueia o fluxo principal.
 async function send(
