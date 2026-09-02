@@ -171,7 +171,10 @@ function LoteGroupCard({
 
   function excluirGrupo() {
     const tipo = grupo.entidade === "category" ? "categoria" : "tipo de ingresso";
-    if (!confirm(`Excluir essa ${tipo}? Essa ação não pode ser desfeita.`)) return;
+    const aviso = grupo.entidade === "category"
+      ? "Excluir esta categoria vazia? Se houver qualquer inscrição ou chaveamento, a operação será bloqueada. Isso não cancela compras nem gera reembolso."
+      : `Excluir esse ${tipo}? Essa ação não pode ser desfeita.`;
+    if (!confirm(aviso)) return;
     setErroGrupo(null);
     startTransition(async () => {
       const res = grupo.entidade === "category"

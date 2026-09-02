@@ -264,28 +264,48 @@ export async function excluirCategoria(champId: string, categoriaId: string): Pr
   if (!(await entidadePertenceAoCampeonato(supabase, champId, "category", categoriaId)))
     return { ok: false, error: "Categoria não encontrada neste campeonato." };
 
-  const [{ count: inscricoesPagas }, { count: ingressosPagos }] = await Promise.all([
+  const [{ count: duplas }, { count: ingressos }, { count: participantes }, { count: partidas }] = await Promise.all([
     supabase
-      .from("registrations")
+      .from("teams")
       .select("id", { count: "exact", head: true })
       .eq("category_id", categoriaId)
-      .eq("status_pagamento", "pago"),
+      .eq("championship_id", champId),
     supabase
       .from("athlete_tickets")
       .select("id", { count: "exact", head: true })
       .eq("category_id", categoriaId)
-      .eq("status_pagamento", "pago"),
+      .eq("championship_id", champId),
+    supabase
+      .from("bracket_participants")
+      .select("id", { count: "exact", head: true })
+      .eq("category_id", categoriaId)
+      .eq("championship_id", champId),
+    supabase
+      .from("bracket_matches")
+      .select("id", { count: "exact", head: true })
+      .eq("category_id", categoriaId)
+      .eq("championship_id", champId),
   ]);
-  if ((inscricoesPagas ?? 0) > 0 || (ingressosPagos ?? 0) > 0)
-    return { ok: false, error: "Essa categoria já tem inscrições pagas — não dá pra excluir." };
+  if ((duplas ?? 0) > 0 || (ingressos ?? 0) > 0 || (participantes ?? 0) > 0 || (partidas ?? 0) > 0)
+    return {
+      ok: false,
+      error: "Essa categoria possui inscrições ou chaveamento e não pode ser excluída. A exclusão não cancela compras nem gera reembolso.",
+    };
 
-  await supabase.from("pricing_tiers").delete().eq("category_id", categoriaId);
   const { error } = await supabase
     .from("championship_categories")
     .delete()
     .eq("id", categoriaId)
     .eq("championship_id", champId);
-  if (error) return { ok: false, error: "Erro ao excluir a categoria." };
+  if (error) {
+    if (error.message.includes("CATEGORY_HAS_DEPENDENCIES")) {
+      return {
+        ok: false,
+        error: "Essa categoria possui inscrições ou chaveamento e não pode ser excluída. A exclusão não cancela compras nem gera reembolso.",
+      };
+    }
+    return { ok: false, error: "Erro ao excluir a categoria." };
+  }
 
   revalidatePath(`/painel/campeonatos/${champId}/lotes`);
   revalidatePath(`/painel/campeonatos/${champId}/editar`);

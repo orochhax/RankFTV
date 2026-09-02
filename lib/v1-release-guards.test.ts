@@ -143,6 +143,24 @@ test("new championships do not start with an unnamed category", () => {
   assert.match(form, /function removeCat\(i: number\) \{\s*setCategorias\(\(cs\) => cs\.filter/);
 });
 
+test("categories with operational history cannot be deleted or trigger refunds", () => {
+  const actions = source("app/painel/campeonatos/[id]/lotes/actions.ts");
+  const manager = source("components/painel/LotesManager.tsx");
+  const migration = source("supabase/production-category-deletion-guard.sql");
+
+  assert.match(actions, /\.from\("teams"\)[\s\S]*\.from\("athlete_tickets"\)/);
+  assert.match(actions, /\.from\("bracket_participants"\)[\s\S]*\.from\("bracket_matches"\)/);
+  assert.doesNotMatch(actions, /from\("pricing_tiers"\)\.delete\(\)\.eq\("category_id", categoriaId\)/);
+  assert.match(actions, /CATEGORY_HAS_DEPENDENCIES/);
+  assert.match(manager, /não cancela compras nem gera reembolso/);
+  assert.match(migration, /BEFORE DELETE ON championship_categories/);
+  assert.match(migration, /SELECT 1 FROM registrations/);
+  assert.match(migration, /SELECT 1 FROM athlete_tickets/);
+  assert.match(migration, /SELECT 1 FROM bracket_matches/);
+  assert.match(migration, /ERRCODE = '23503'/);
+  assert.doesNotMatch(migration, /refund|reembolso|estorno/i);
+});
+
 test("championship publishing has one secured Pix field for every paid product", () => {
   const page = source("app/painel/campeonatos/[id]/publicar/page.tsx");
   const form = source("components/painel/PublicarCampeonatoForm.tsx");
