@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { normalizarTicketAccessToken } from "@/lib/ticket-access";
+import { readAthleteCredentialSession } from "@/lib/athlete-credential-session";
 
 const PRIVATE_HEADERS = { "Cache-Control": "no-store, private" };
 
 export async function POST(req: NextRequest) {
-  let body: { id?: unknown; token?: unknown };
+  let body: { id?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Corpo inválido." }, { status: 400, headers: PRIVATE_HEADERS });
   }
   const credentialId = typeof body.id === "string" ? body.id : null;
-  const accessToken = normalizarTicketAccessToken(typeof body.token === "string" ? body.token : null);
-  if (!credentialId || !accessToken) {
+  if (!credentialId) {
     return NextResponse.json({ error: "Parâmetros inválidos." }, { status: 400, headers: PRIVATE_HEADERS });
+  }
+  const accessToken = await readAthleteCredentialSession(credentialId);
+  if (!accessToken) {
+    return NextResponse.json({ error: "Sessão expirada." }, { status: 404, headers: PRIVATE_HEADERS });
   }
 
   const admin = createAdminClient();

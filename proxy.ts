@@ -16,7 +16,7 @@ const PRIVATE_ROBOTS_PREFIXES = [
 ];
 
 function isPrivateTicketPath(pathname: string): boolean {
-  return /^\/campeonatos\/[^/]+\/(?:ingresso-atleta\/[^/]+|comprar\/ingresso\/[^/]+|plateia\/ingresso\/[^/]+)$/.test(pathname);
+  return /^\/campeonatos\/[^/]+\/(?:ingresso-atleta\/[^/]+(?:\/acessar)?|comprar\/ingresso\/[^/]+|plateia\/ingresso\/[^/]+)$/.test(pathname);
 }
 
 export async function proxy(request: NextRequest) {

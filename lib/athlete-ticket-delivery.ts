@@ -137,7 +137,7 @@ export async function deliverAthleteTicketCredentials(
     result.attempted += 1;
 
     const url = new URL(
-      `/campeonatos/${ticket.championship_id}/ingresso-atleta/${credential.id}`,
+      `/campeonatos/${ticket.championship_id}/ingresso-atleta/${credential.id}/acessar`,
       `${baseUrl}/`,
     );
     url.searchParams.set("token", credential.access_token);
@@ -187,6 +187,13 @@ export async function deliverAthleteTicketCredentials(
       }
     } else {
       result.failed += 1;
+      await supabase.from("athlete_ticket_credential_events").insert({
+        credential_id: credential.id,
+        athlete_ticket_id: ticket.id,
+        championship_id: ticket.championship_id,
+        event_type: "email_failed",
+        details: { athlete_slot: credential.athlete_slot },
+      });
       const { error: releaseError } = await supabase
         .from("athlete_ticket_credentials")
         .update({ access_email_claimed_at: null, updated_at: new Date().toISOString() })

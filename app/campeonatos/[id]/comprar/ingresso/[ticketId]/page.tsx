@@ -60,8 +60,7 @@ export default async function IngressoAtletaPage({
     .from("athlete_ticket_credentials")
     .select("id, athlete_slot, display_name_snapshot, qr_token, code, checked_in, checkin_at")
     .eq("athlete_ticket_id", ticketId)
-    .eq("athlete_slot", 1)
-    .maybeSingle();
+    .order("athlete_slot");
 
   const { data: refundOperation } = await supabase
     .from("financial_operations")
@@ -123,9 +122,10 @@ export default async function IngressoAtletaPage({
     checked_in: boolean;
     checkin_at: string | null;
   };
-  const individualCredential = individualCredentialResult.error
-    ? null
-    : individualCredentialResult.data as CredentialRow | null;
+  const allIndividualCredentials = individualCredentialResult.error
+    ? []
+    : (individualCredentialResult.data ?? []) as CredentialRow[];
+  const individualCredential = allIndividualCredentials.find((credential) => credential.athlete_slot === 1) ?? null;
   const credentialSources: CredentialRow[] = individualCredential
     ? [individualCredential]
     : [{
@@ -155,6 +155,20 @@ export default async function IngressoAtletaPage({
         : null,
     })),
   );
+  const { data: credentialHistory } = allIndividualCredentials.length
+    ? await supabase
+        .from("athlete_ticket_credential_events")
+        .select("id, credential_id, event_type, created_at")
+        .eq("athlete_ticket_id", ticketId)
+        .order("created_at", { ascending: false })
+        .limit(60)
+    : { data: [] };
+  const credentialSlotMap = new Map(allIndividualCredentials.map((credential) => [credential.id, credential.athlete_slot]));
+  const credentialHistoryLabels: Record<string, string> = {
+    issued: "Credencial emitida", rotated: "Link, QR e código substituídos", viewed: "Credencial acessada",
+    email_sent: "Enviada por e-mail", email_failed: "Falha temporária no envio", resend_requested: "Reenvio solicitado",
+    invalidated: "Credencial anterior invalidada", self_invalidated: "Substituição solicitada pelo titular", checked_in: "Check-in realizado",
+  };
 
   return (
     <div className="min-h-screen">
@@ -243,6 +257,26 @@ export default async function IngressoAtletaPage({
               pixQrBase64={t.pix_qr_code_base64}
               paymentMethod={t.billing_type === "CREDIT_CARD" || t.billing_type === "DEBIT_CARD" ? "cartao" : "pix"}
             />
+          )}
+
+          {(credentialHistory ?? []).length > 0 && (
+            <details className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+              <summary className="cursor-pointer text-sm font-semibold text-gray-900">Histórico das duas credenciais</summary>
+              <p className="mt-1 text-xs text-gray-500">Emissões, reenvios, substituições, acessos e check-ins, sem mostrar tokens.</p>
+              <ol className="mt-4 max-h-80 divide-y divide-gray-100 overflow-y-auto">
+                {(credentialHistory ?? []).map((event) => (
+                  <li key={event.id} className="flex items-center justify-between gap-3 py-3">
+                    <div>
+                      <p className="text-sm text-gray-700">{credentialHistoryLabels[event.event_type] ?? event.event_type}</p>
+                      <p className="text-xs text-gray-400">Atleta {credentialSlotMap.get(event.credential_id) ?? "—"}</p>
+                    </div>
+                    <time dateTime={event.created_at} className="shrink-0 text-xs text-gray-400">
+                      {new Date(event.created_at).toLocaleString("pt-BR", { timeZone: "America/Bahia" })}
+                    </time>
+                  </li>
+                ))}
+              </ol>
+            </details>
           )}
 
           {/* Dados do campeonato */}

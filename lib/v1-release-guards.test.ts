@@ -41,6 +41,12 @@ test("assisted ticket support is CEO-only and fails closed when audit is unavail
   assert.match(actions, /deliverAthleteTicketCredentials/);
   assert.match(actions, /security_audit_log/);
   assert.match(actions, /SUPPORT_AUDIT_ACTIONS/);
+  assert.match(actions, /reenviarCredencialSuporte/);
+  assert.match(actions, /invalidarCredencialSuporte/);
+  assert.match(actions, /Limite de 3 reenvios em 24 horas/);
+  assert.match(actions, /listarOperacaoEmails/);
+  assert.match(actions, /criarCasoSuporte/);
+  assert.match(actions, /atualizarCasoSuporte/);
   assert.match(actions, /dateFrom[\s\S]*\.gte\("created_at"/);
   assert.match(actions, /dateTo[\s\S]*\.lt\("created_at"/);
   assert.match(actions, /email_anterior: maskEmail\(oldEmail\)/);
@@ -50,6 +56,10 @@ test("assisted ticket support is CEO-only and fails closed when audit is unavail
   assert.match(center, /Ver histórico deste ingresso/);
   assert.match(center, /type="date"/);
   assert.match(center, /Filtrar período/);
+  assert.match(center, /Operação de e-mails/);
+  assert.match(center, /Fila de casos/);
+  assert.match(center, /Histórico das credenciais/);
+  assert.doesNotMatch(center, /alert\s*\(/);
   assert.match(page, /listarLogsSuporte/);
   assert.match(menu, /href: "\/admin\/suporte"[\s\S]*ownerOnly: true/);
 });
@@ -91,6 +101,15 @@ test("transactional email failures never log the recipient", () => {
   assert.doesNotMatch(email, /console\.error\([^\n]*\bto\b/);
   assert.match(email, /email\.delivery_failed/);
   assert.match(email, /reportOperationalEvent/);
+  assert.match(email, /createEmailOperationalEvent/);
+  assert.match(email, /providerMessageId: result\.data\?\.id/);
+
+  const webhook = source("app/api/webhooks/resend/route.ts");
+  assert.match(webhook, /RESEND_WEBHOOK_SECRET/);
+  assert.match(webhook, /webhooks\.verify/);
+  assert.match(webhook, /email\.bounced/);
+  assert.match(webhook, /email\.complained/);
+  assert.doesNotMatch(webhook, /\.insert\([^\n]*to:/);
 });
 
 test("critical V1 server paths use sanitized operational logging", () => {

@@ -1,11 +1,21 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { History, Loader2, RefreshCcw, Search, ShieldCheck } from "lucide-react";
+import { AlertTriangle, History, Inbox, Loader2, MailCheck, RefreshCcw, RotateCcw, Search, ShieldCheck } from "lucide-react";
 import {
+  atualizarCasoSuporte,
   buscarIngressosSuporte,
   corrigirEmailAtletaSuporte,
+  criarCasoSuporte,
+  invalidarCredencialSuporte,
+  listarCasosSuporte,
+  listarEventosCredenciaisSuporte,
   listarLogsSuporte,
+  listarOperacaoEmails,
+  reenviarCredencialSuporte,
+  type EmailOperationsSummary,
+  type SupportCase,
+  type SupportCredentialEvent,
   type SupportAuditLog,
   type SupportTicket,
 } from "@/app/admin/suporte/actions";
@@ -28,7 +38,17 @@ function formatDateKey(value: string): string {
   return `${day}/${month}/${year}`;
 }
 
-export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAuditLog[] }) {
+export function TicketSupportCenter({
+  initialLogs,
+  initialCredentialEvents,
+  initialEmailSummary,
+  initialCases,
+}: {
+  initialLogs: SupportAuditLog[];
+  initialCredentialEvents: SupportCredentialEvent[];
+  initialEmailSummary: EmailOperationsSummary | null;
+  initialCases: SupportCase[];
+}) {
   const [term, setTerm] = useState("");
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +64,21 @@ export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAudit
   const [appliedDateTo, setAppliedDateTo] = useState("");
   const [pending, startTransition] = useTransition();
   const [logsPending, startLogsTransition] = useTransition();
+  const [credentialEvents, setCredentialEvents] = useState(initialCredentialEvents);
+  const [emailSummary, setEmailSummary] = useState(initialEmailSummary);
+  const [cases, setCases] = useState(initialCases);
+  const [credentialOperation, setCredentialOperation] = useState<{
+    ticketId: string;
+    credentialId: string;
+    slot: 1 | 2;
+    type: "resend" | "invalidate";
+  } | null>(null);
+  const [operationReason, setOperationReason] = useState("");
+  const [operationConfirmation, setOperationConfirmation] = useState("");
+  const [caseDraft, setCaseDraft] = useState<{ ticketId?: string; credentialId?: string } | null>(null);
+  const [caseType, setCaseType] = useState("outro");
+  const [caseSummary, setCaseSummary] = useState("");
+  const [caseNotes, setCaseNotes] = useState<Record<string, string>>({});
 
   function loadLogs(options: {
     ticketId?: string | null;
@@ -114,6 +149,79 @@ export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAudit
     });
   }
 
+  function refreshOperations(ticketId?: string) {
+    startLogsTransition(async () => {
+      const [eventsResult, emailResult, casesResult] = await Promise.all([
+        listarEventosCredenciaisSuporte(ticketId),
+        listarOperacaoEmails(),
+        listarCasosSuporte(),
+      ]);
+      if (eventsResult.ok) setCredentialEvents(eventsResult.events ?? []);
+      if (emailResult.ok) setEmailSummary(emailResult.summary ?? null);
+      if (casesResult.ok) setCases(casesResult.cases ?? []);
+    });
+  }
+
+  function runCredentialOperation() {
+    if (!credentialOperation) return;
+    setError(null);
+    setSuccess(null);
+    startTransition(async () => {
+      const common = {
+        ticketId: credentialOperation.ticketId,
+        credentialId: credentialOperation.credentialId,
+        reason: operationReason,
+      };
+      const result = credentialOperation.type === "resend"
+        ? await reenviarCredencialSuporte(common)
+        : await invalidarCredencialSuporte({ ...common, confirmation: operationConfirmation });
+      if (!result.ok) { setError(result.error ?? "Falha na operação da credencial."); return; }
+      setSuccess(credentialOperation.type === "resend" ? "Credencial reenviada com auditoria." : "Credencial anterior invalidada e nova emissão enviada.");
+      const ticketId = credentialOperation.ticketId;
+      setCredentialOperation(null);
+      setOperationReason("");
+      setOperationConfirmation("");
+      const refreshed = await buscarIngressosSuporte(term);
+      if (refreshed.ok) setTickets(refreshed.tickets ?? []);
+      refreshOperations(ticketId);
+      loadLogs({ ticketId });
+    });
+  }
+
+  function createCase() {
+    if (!caseDraft) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await criarCasoSuporte({
+        ticketId: caseDraft.ticketId,
+        credentialId: caseDraft.credentialId,
+        caseType,
+        summary: caseSummary,
+      });
+      if (!result.ok) { setError(result.error ?? "Falha ao abrir o caso."); return; }
+      setSuccess("Caso adicionado à fila de suporte.");
+      setCaseDraft(null);
+      setCaseSummary("");
+      setCaseType("outro");
+      refreshOperations();
+    });
+  }
+
+  function updateCase(item: SupportCase, status: SupportCase["status"]) {
+    setError(null);
+    startTransition(async () => {
+      const result = await atualizarCasoSuporte({
+        caseId: item.id,
+        status,
+        note: caseNotes[item.id] ?? "Status atualizado pelo atendimento.",
+      });
+      if (!result.ok) { setError(result.error ?? "Falha ao atualizar o caso."); return; }
+      setCaseNotes((current) => ({ ...current, [item.id]: "" }));
+      setSuccess("Caso atualizado e nota registrada.");
+      refreshOperations();
+    });
+  }
+
   return (
     <div className="space-y-5">
       <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
@@ -124,6 +232,90 @@ export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAudit
           </p>
         </div>
       </div>
+
+      <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <MailCheck className="size-5 text-blue-600" /> Operação de e-mails
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">Métricas dos últimos 30 dias, sem expor os destinatários.</p>
+          </div>
+          <button type="button" onClick={() => refreshOperations()} disabled={logsPending} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 disabled:opacity-60">
+            <RefreshCcw className={`size-3.5 ${logsPending ? "animate-spin" : ""}`} /> Atualizar
+          </button>
+        </div>
+        {emailSummary ? (
+          <>
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+              {[
+                ["Aceitos", emailSummary.accepted], ["Entregues", emailSummary.delivered],
+                ["Na fila", emailSummary.queued], ["Falhas", emailSummary.failed],
+                ["Bounces", emailSummary.bounced], ["Reclamações", emailSummary.complained],
+                ["Tempo médio", emailSummary.averageDeliverySeconds === null ? "—" : `${emailSummary.averageDeliverySeconds}s`],
+              ].map(([label, value]) => (
+                <div key={String(label)} className="rounded-xl bg-gray-50 p-3">
+                  <p className="text-lg font-bold text-gray-900">{value}</p>
+                  <p className="text-[11px] text-gray-500">{label}</p>
+                </div>
+              ))}
+            </div>
+            {emailSummary.pendingCredentials.length > 0 && (
+              <div className="mt-4 max-h-72 divide-y divide-gray-100 overflow-y-auto rounded-xl border border-gray-100 px-3">
+                {emailSummary.pendingCredentials.map((item) => (
+                  <div key={item.credentialId} className="flex items-center justify-between gap-3 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-gray-900">{item.athleteName}</p>
+                      <p className="truncate text-xs text-gray-500">{item.championshipName} · atleta {item.athleteSlot}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCredentialOperation({ ticketId: item.ticketId, credentialId: item.credentialId, slot: item.athleteSlot, type: "resend" });
+                        setOperationReason("Nova tentativa controlada após falha ou atraso de entrega.");
+                      }}
+                      className="shrink-0 rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-blue-700"
+                    >
+                      Tentar novamente
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {emailSummary.pendingPixRefunds.length > 0 && (
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="text-sm font-semibold text-amber-900">Estornos Pix que exigem acompanhamento humano</p>
+                <div className="mt-2 max-h-56 divide-y divide-amber-200/70 overflow-y-auto">
+                  {emailSummary.pendingPixRefunds.map((item) => (
+                    <div key={item.operationId} className="flex items-center justify-between gap-3 py-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-amber-950">
+                          {item.amount == null ? "Valor indisponível" : item.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        </p>
+                        <p className="truncate font-mono text-[10px] text-amber-800">{item.ticketId} · {item.status}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCaseDraft({ ticketId: item.ticketId });
+                          setCaseType("estorno_pix");
+                          setCaseSummary("Acompanhar estorno Pix pendente de confirmação pelo processador de pagamentos.");
+                        }}
+                        className="shrink-0 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-amber-800 ring-1 ring-amber-300"
+                      >
+                        Abrir caso
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="mt-4 rounded-xl bg-gray-50 p-4 text-sm text-gray-500">Execute a migration operacional para ativar estas métricas.</p>
+        )}
+      </section>
+
       <div className="flex gap-2 rounded-2xl bg-white p-4 ring-1 ring-black/5">
         <input
           value={term}
@@ -157,6 +349,7 @@ export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAudit
                 const name = slot === 1 ? ticket.buyerName : ticket.partnerName;
                 const cpf = slot === 1 ? ticket.buyerCpf : ticket.partnerCpf;
                 const email = slot === 1 ? ticket.buyerEmail : ticket.partnerEmail;
+                const credential = ticket.credentials.find((item) => item.athleteSlot === slot);
                 return (
                   <div key={slot} className="rounded-xl bg-gray-50 p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Atleta {slot}</p>
@@ -170,13 +363,47 @@ export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAudit
                     >
                       Corrigir e-mail com suporte
                     </button>
+                    {credential && (
+                      <div className="mt-3 flex flex-wrap gap-2 border-t border-gray-200 pt-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCredentialOperation({ ticketId: ticket.id, credentialId: credential.id, slot, type: "resend" });
+                            setOperationReason("");
+                            setOperationConfirmation("");
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-2 text-xs font-semibold text-blue-700 ring-1 ring-blue-200"
+                        >
+                          <RotateCcw className="size-3.5" /> Reenviar
+                        </button>
+                        <button
+                          type="button"
+                          disabled={credential.checkedIn}
+                          onClick={() => {
+                            setCredentialOperation({ ticketId: ticket.id, credentialId: credential.id, slot, type: "invalidate" });
+                            setOperationReason("");
+                            setOperationConfirmation("");
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-2 text-xs font-semibold text-red-700 ring-1 ring-red-200 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <AlertTriangle className="size-3.5" /> Invalidar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setCaseDraft({ ticketId: ticket.id, credentialId: credential.id }); setCaseType("outro"); setCaseSummary(""); }}
+                          className="rounded-lg bg-white px-2.5 py-2 text-xs font-semibold text-gray-700 ring-1 ring-gray-200"
+                        >
+                          Abrir caso
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
             <button
               type="button"
-              onClick={() => loadLogs({ ticketId: ticket.id })}
+              onClick={() => { loadLogs({ ticketId: ticket.id }); refreshOperations(ticket.id); }}
               className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700"
             >
               <History className="size-4" /> Ver histórico deste ingresso
@@ -184,6 +411,71 @@ export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAudit
           </article>
         ))}
       </div>
+
+      <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <Inbox className="size-5 text-blue-600" /> Fila de casos
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">Atendimento com estado, responsável e notas. Não anexe documentos completos.</p>
+          </div>
+          <button type="button" onClick={() => { setCaseDraft({}); setCaseType("outro"); setCaseSummary(""); }} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white">
+            Abrir caso geral
+          </button>
+        </div>
+        <div className="mt-4 space-y-3">
+          {cases.length === 0 && <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-500">Nenhum caso registrado.</p>}
+          {cases.map((item) => (
+            <article key={item.id} className="rounded-xl border border-gray-100 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-medium text-gray-900">{item.summary}</p>
+                  <p className="mt-1 text-xs text-gray-500">{item.caseType.replaceAll("_", " ")} · {item.assignedLabel}</p>
+                </div>
+                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.status === "resolvido" ? "bg-emerald-50 text-emerald-700" : item.status === "aguardando_prova" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
+                  {item.status.replaceAll("_", " ")}
+                </span>
+              </div>
+              <textarea
+                value={caseNotes[item.id] ?? ""}
+                onChange={(event) => setCaseNotes((current) => ({ ...current, [item.id]: event.target.value }))}
+                rows={2}
+                maxLength={1000}
+                placeholder="Nota mínima e auditável, sem documento sensível..."
+                className="mt-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              />
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button type="button" onClick={() => updateCase(item, "aberto")} disabled={pending} className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700">Aberto</button>
+                <button type="button" onClick={() => updateCase(item, "aguardando_prova")} disabled={pending} className="rounded-lg border border-amber-200 px-3 py-2 text-xs font-semibold text-amber-700">Aguardando prova</button>
+                <button type="button" onClick={() => updateCase(item, "resolvido")} disabled={pending} className="rounded-lg border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700">Resolver</button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+          <ShieldCheck className="size-5 text-blue-600" /> Histórico das credenciais
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">Emissões, acessos, rotações, entregas e check-ins, sem exibir tokens.</p>
+        <div className="mt-4 max-h-[32rem] divide-y divide-gray-100 overflow-y-auto">
+          {credentialEvents.length === 0 && <p className="py-5 text-sm text-gray-500">Nenhum evento operacional encontrado.</p>}
+          {credentialEvents.map((event) => (
+            <article key={event.id} className="flex items-start justify-between gap-3 py-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-900">{event.eventLabel}</p>
+                <p className="text-xs text-gray-500">Atleta {event.athleteSlot ?? "—"} · {event.actorLabel}</p>
+                <p className="mt-1 font-mono text-[10px] text-gray-400">{event.ticketId}</p>
+              </div>
+              <time className="shrink-0 text-xs text-gray-400" dateTime={event.createdAt}>
+                {new Date(event.createdAt).toLocaleString("pt-BR", { timeZone: "America/Bahia" })}
+              </time>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -293,6 +585,59 @@ export function TicketSupportCenter({ initialLogs }: { initialLogs: SupportAudit
             <div className="mt-5 flex flex-col gap-2">
               <button onClick={saveEmail} disabled={pending} className="rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-60">Confirmar correção assistida</button>
               <button onClick={() => setEditing(null)} disabled={pending} className="rounded-xl bg-gray-100 py-3 text-sm font-medium text-gray-700">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {credentialOperation && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {credentialOperation.type === "resend" ? "Reenviar credencial" : "Invalidar credencial comprometida"}
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">Atleta {credentialOperation.slot}. A ação exige motivo e fica registrada.</p>
+            {credentialOperation.type === "invalidate" && (
+              <div className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">
+                O link, QR e código atuais deixarão de funcionar imediatamente. O titular receberá uma nova emissão.
+              </div>
+            )}
+            <label className="mt-5 block text-xs font-medium text-gray-600">Motivo e validações realizadas</label>
+            <textarea value={operationReason} onChange={(event) => setOperationReason(event.target.value)} rows={4} maxLength={500} className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm" />
+            {credentialOperation.type === "invalidate" && (
+              <>
+                <label className="mt-4 block text-xs font-medium text-gray-600">Digite INVALIDAR para confirmar</label>
+                <input value={operationConfirmation} onChange={(event) => setOperationConfirmation(event.target.value)} className="mt-1 w-full rounded-xl border border-red-200 px-4 py-3 text-sm" />
+              </>
+            )}
+            <div className="mt-5 flex flex-col gap-2">
+              <button onClick={runCredentialOperation} disabled={pending} className={`rounded-xl py-3 text-sm font-semibold text-white disabled:opacity-60 ${credentialOperation.type === "invalidate" ? "bg-red-600" : "bg-blue-600"}`}>
+                {pending ? "Processando..." : credentialOperation.type === "invalidate" ? "Invalidar e emitir nova" : "Reenviar agora"}
+              </button>
+              <button onClick={() => setCredentialOperation(null)} disabled={pending} className="rounded-xl bg-gray-100 py-3 text-sm font-medium text-gray-700">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {caseDraft && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-900">Abrir caso de suporte</h2>
+            <p className="mt-1 text-sm text-gray-500">Registre somente o necessário. Não cole documento completo, dados bancários ou token.</p>
+            <label className="mt-5 block text-xs font-medium text-gray-600">Tipo</label>
+            <select value={caseType} onChange={(event) => setCaseType(event.target.value)} className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm">
+              <option value="correcao_email">Correção de e-mail</option>
+              <option value="credencial_comprometida">Credencial comprometida</option>
+              <option value="falha_email">Falha de e-mail</option>
+              <option value="estorno_pix">Estorno Pix pendente</option>
+              <option value="outro">Outro</option>
+            </select>
+            <label className="mt-4 block text-xs font-medium text-gray-600">Resumo</label>
+            <textarea value={caseSummary} onChange={(event) => setCaseSummary(event.target.value)} rows={4} maxLength={500} className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm" />
+            <div className="mt-5 flex flex-col gap-2">
+              <button onClick={createCase} disabled={pending} className="rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-60">Adicionar à fila</button>
+              <button onClick={() => setCaseDraft(null)} disabled={pending} className="rounded-xl bg-gray-100 py-3 text-sm font-medium text-gray-700">Cancelar</button>
             </div>
           </div>
         </div>

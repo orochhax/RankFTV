@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronLeft, ChevronRight, Users, UserCheck, UserX } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, UserCheck, UserRoundCheck, UserX } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CheckinClient } from "@/components/checkin/CheckinClient";
 import { PresenceItem } from "@/components/checkin/PresenceItem";
@@ -8,7 +8,6 @@ import { PairPresenceItem } from "@/components/checkin/PairPresenceItem";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
-import { StatCard } from "@/components/shell/StatCard";
 import { SectionHeader } from "@/components/shell/SectionHeader";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { Surface } from "@/components/shell/Surface";
@@ -34,7 +33,7 @@ export default async function CheckinPage({
   const { id } = await params;
   const { filtro, page: pageParam } = await searchParams;
   const filtroAtivo =
-    filtro === "presentes" ? "presentes" :
+    filtro === "confirmadas" ? "confirmadas" :
     filtro === "pendentes" ? "pendentes" :
     "todos";
   const requestedPage = Number.parseInt(String(pageParam ?? "1"), 10);
@@ -59,9 +58,12 @@ export default async function CheckinPage({
     0,
   );
   const pendentes = total - confirmados;
+  const duplas = allList.filter((item) => item.kind === "pair" && item.members.length === 2);
+  const duplasConfirmadas = duplas.filter((item) => item.members.every((member) => member.checkedIn)).length;
+  const duplasPendentes = duplas.length - duplasConfirmadas;
   const filteredList =
-    filtroAtivo === "presentes"
-      ? allList.filter((item) => item.members.some((member) => member.checkedIn))
+    filtroAtivo === "confirmadas"
+      ? allList.filter((item) => item.members.every((member) => member.checkedIn))
       : filtroAtivo === "pendentes"
         ? allList.filter((item) => item.members.some((member) => !member.checkedIn))
         : allList;
@@ -71,19 +73,34 @@ export default async function CheckinPage({
   const lista = filteredList.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const FILTROS = [
-    { key: "todos",     label: `Todos (${allList.length})` },
-    { key: "pendentes", label: "Com pendentes" },
-    { key: "presentes", label: "Com presentes" },
+    { key: "todos",       label: `Todas (${allList.length})` },
+    { key: "pendentes",   label: "Pendentes" },
+    { key: "confirmadas", label: "Confirmadas" },
   ];
 
   return (
-    <PageContainer width="wide" className="space-y-6 py-8">
+    <PageContainer width="wide" className="space-y-6 pb-32 pt-8 lg:pb-8">
       <PageHeader title="Check-in" description="Portaria · credenciamento e controle de presença." />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-        <StatCard label="Atletas" value={total} icon={Users} className="col-span-2 sm:col-span-1" />
-        <StatCard label="Presentes" value={confirmados} icon={UserCheck} tone="success" />
-        <StatCard label="Pendentes" value={pendentes} icon={UserX} tone={pendentes > 0 ? "warning" : "default"} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <MetricGroup
+          title="Atletas"
+          icon={Users}
+          items={[
+            { label: "Total de atletas", value: total, tone: "text-blue-700" },
+            { label: "Atletas presentes", value: confirmados, tone: "text-success" },
+            { label: "Atletas pendentes", value: pendentes, tone: pendentes > 0 ? "text-warning" : "text-ink" },
+          ]}
+        />
+        <MetricGroup
+          title="Duplas"
+          icon={UserRoundCheck}
+          items={[
+            { label: "Duplas totais", value: duplas.length, tone: "text-blue-700" },
+            { label: "Duplas pendentes", value: duplasPendentes, tone: duplasPendentes > 0 ? "text-warning" : "text-ink" },
+            { label: "Duplas confirmadas", value: duplasConfirmadas, tone: "text-success" },
+          ]}
+        />
       </div>
 
       <Surface padding="md">
@@ -120,8 +137,8 @@ export default async function CheckinPage({
           />
         ) : lista.length === 0 ? (
           <EmptyState
-            icon={filtroAtivo === "presentes" ? UserCheck : UserX}
-            title={filtroAtivo === "presentes" ? "Nenhum atleta confirmado ainda" : "Todos confirmados!"}
+            icon={filtroAtivo === "confirmadas" ? UserCheck : UserX}
+            title={filtroAtivo === "confirmadas" ? "Nenhuma dupla confirmada ainda" : "Todos confirmados!"}
             className="mt-3"
           />
         ) : (
@@ -180,5 +197,34 @@ export default async function CheckinPage({
         )}
       </section>
     </PageContainer>
+  );
+}
+
+function MetricGroup({
+  title,
+  icon: Icon,
+  items,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: Array<{ label: string; value: number; tone: string }>;
+}) {
+  return (
+    <Surface padding="none" className="overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <span className="flex size-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+          <Icon className="size-4" />
+        </span>
+        <h2 className="text-sm font-semibold text-ink">{title}</h2>
+      </div>
+      <div className="grid grid-cols-3 divide-x divide-border">
+        {items.map((item) => (
+          <div key={item.label} className="min-w-0 px-3 py-4 text-center sm:px-4">
+            <p className={`text-2xl font-bold ${item.tone}`}>{item.value}</p>
+            <p className="mt-1 text-[11px] leading-tight text-ink-muted sm:text-xs">{item.label}</p>
+          </div>
+        ))}
+      </div>
+    </Surface>
   );
 }

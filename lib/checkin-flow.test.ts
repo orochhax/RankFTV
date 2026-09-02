@@ -7,6 +7,7 @@ const scannerSource = readFileSync("components/checkin/QrScanner.tsx", "utf8");
 const directorySource = readFileSync("lib/checkin-directory.ts", "utf8");
 const organizerPageSource = readFileSync("app/painel/campeonatos/[id]/checkin/page.tsx", "utf8");
 const clientSource = readFileSync("components/checkin/CheckinClient.tsx", "utf8");
+const pairSource = readFileSync("components/checkin/PairPresenceItem.tsx", "utf8");
 
 test("athlete check-in accepts authenticated and guest credentials", () => {
   assert.match(source, /\.from\("credentials"\)/);
@@ -49,6 +50,21 @@ test("check-in directory includes paid guest pairs in counters and presence list
   assert.match(organizerPageSource, /getCheckinDirectory\(id, user\.id\)/);
   assert.match(organizerPageSource, /member\.checkedIn/);
   assert.match(organizerPageSource, /PairPresenceItem/);
+});
+
+test("check-in groups every paid pair and renders compact accessible attendance", () => {
+  assert.match(directorySource, /\.from\("registrations"\)/);
+  assert.match(directorySource, /teams!inner\(id, atleta1_id, atleta2_id\)/);
+  assert.match(directorySource, /registeredPairItems/);
+  assert.match(organizerPageSource, /Total de atletas/);
+  assert.match(organizerPageSource, /Duplas totais/);
+  assert.match(organizerPageSource, /Duplas pendentes/);
+  assert.match(organizerPageSource, /Duplas confirmadas/);
+  assert.match(organizerPageSource, /filtro === "confirmadas"/);
+  assert.match(organizerPageSource, /pb-32/);
+  assert.match(pairSource, /aria-expanded=\{expanded\}/);
+  assert.match(pairSource, /\{confirmed\}\/\{members\.length\}/);
+  assert.match(pairSource, /member\.checkedIn \? "text-blue-700" : "text-ink-muted"/);
 });
 
 test("successful scans refresh the server-rendered directory", () => {

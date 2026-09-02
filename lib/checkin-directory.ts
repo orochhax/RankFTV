@@ -48,6 +48,15 @@ type ProfileRow = {
   username: string | null;
 };
 
+type PaidTeamRow = {
+  team_id: string;
+  teams: {
+    id: string;
+    atleta1_id: string;
+    atleta2_id: string | null;
+  } | null;
+};
+
 const DIRECTORY_LIMIT = 2000;
 
 export async function getCheckinDirectory(
@@ -73,7 +82,7 @@ export async function getCheckinDirectory(
   const authorized = championship?.organizador_id === viewerId || staff?.can_qrcode === true;
   if (!authorized) return null;
 
-  const [credentialResult, ticketResult, ticketCredentialResult] = await Promise.all([
+  const [credentialResult, ticketResult, ticketCredentialResult, paidTeamResult] = await Promise.all([
     admin
       .from("credentials")
       .select("id, user_id, checked_in, checkin_at, checked_in_by")
@@ -91,6 +100,12 @@ export async function getCheckinDirectory(
       .eq("championship_id", championshipId)
       .order("athlete_slot")
       .limit(DIRECTORY_LIMIT * 2),
+    admin
+      .from("registrations")
+      .select("team_id, teams!inner(id, atleta1_id, atleta2_id)")
+      .eq("championship_id", championshipId)
+      .eq("status_pagamento", "pago")
+      .limit(DIRECTORY_LIMIT),
   ]);
 
   const credentials = (credentialResult.data ?? []) as CredentialRow[];
@@ -100,6 +115,9 @@ export async function getCheckinDirectory(
   const ticketCredentials = ticketCredentialResult.error
     ? []
     : (ticketCredentialResult.data ?? []) as TicketCredentialRow[];
+  const paidTeams = paidTeamResult.error
+    ? []
+    : (paidTeamResult.data ?? []) as unknown as PaidTeamRow[];
   const profileIds = [
     ...new Set([
       ...credentials.flatMap((credential) => [
@@ -123,10 +141,7 @@ export async function getCheckinDirectory(
   }
   const profileMap = new Map(profiles.map((profile) => [profile.id, profile]));
 
-  const credentialItems: CheckinDirectoryItem[] = credentials.map((credential) => ({
-    id: `credential:${credential.id}`,
-    kind: "athlete",
-    members: [{
+  const directoryMember = (credential: CredentialRow): CheckinDirectoryMember => ({
       name: profileMap.get(credential.user_id)?.nome ?? "Atleta",
       username: profileMap.get(credential.user_id)?.username ?? "",
       checkedIn: credential.checked_in,
@@ -134,8 +149,33 @@ export async function getCheckinDirectory(
       scannerName: credential.checked_in_by
         ? profileMap.get(credential.checked_in_by)?.nome ?? null
         : null,
-    }],
-  }));
+  });
+
+  const credentialByUser = new Map(credentials.map((credential) => [credential.user_id, credential]));
+  const groupedCredentialIds = new Set<string>();
+  const registeredPairItems: CheckinDirectoryItem[] = [];
+  for (const row of paidTeams) {
+    const team = row.teams;
+    if (!team?.atleta2_id) continue;
+    const athlete1 = credentialByUser.get(team.atleta1_id);
+    const athlete2 = credentialByUser.get(team.atleta2_id);
+    if (!athlete1 || !athlete2 || groupedCredentialIds.has(athlete1.id) || groupedCredentialIds.has(athlete2.id)) continue;
+    groupedCredentialIds.add(athlete1.id);
+    groupedCredentialIds.add(athlete2.id);
+    registeredPairItems.push({
+      id: `team:${team.id}`,
+      kind: "pair",
+      members: [directoryMember(athlete1), directoryMember(athlete2)],
+    });
+  }
+
+  const credentialItems: CheckinDirectoryItem[] = credentials
+    .filter((credential) => !groupedCredentialIds.has(credential.id))
+    .map((credential) => ({
+      id: `credential:${credential.id}`,
+      kind: "athlete",
+      members: [directoryMember(credential)],
+    }));
 
   const credentialsByTicket = new Map<string, TicketCredentialRow[]>();
   for (const credential of ticketCredentials) {
@@ -175,7 +215,7 @@ export async function getCheckinDirectory(
     };
   });
 
-  return [...credentialItems, ...ticketItems].sort((a, b) =>
+  return [...registeredPairItems, ...credentialItems, ...ticketItems].sort((a, b) =>
     (a.members[0]?.name ?? "").localeCompare(b.members[0]?.name ?? "", "pt-BR"),
   );
 }

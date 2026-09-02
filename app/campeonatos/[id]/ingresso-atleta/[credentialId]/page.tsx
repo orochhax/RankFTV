@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, CalendarDays, MapPin, Users } from "lucide-react";
 import QRCode from "qrcode";
 import { IngressoAtletaCredencial } from "@/components/campeonatos/IngressoAtletaCredencial";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { athleteDisplayName } from "@/lib/athlete-display-name";
+import { readAthleteCredentialSession } from "@/lib/athlete-credential-session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 
@@ -32,7 +33,13 @@ export default async function CredencialIndividualPage({
 }) {
   const { id: championshipId, credentialId } = await params;
   const { token } = await searchParams;
-  const accessToken = normalizarTicketAccessToken(token);
+  const urlAccessToken = normalizarTicketAccessToken(token);
+  if (urlAccessToken) {
+    redirect(
+      `/campeonatos/${championshipId}/ingresso-atleta/${credentialId}/acessar?token=${encodeURIComponent(urlAccessToken)}`,
+    );
+  }
+  const accessToken = await readAthleteCredentialSession(credentialId);
   if (!accessToken) notFound();
 
   const admin = createAdminClient();
@@ -71,6 +78,23 @@ export default async function CredencialIndividualPage({
         errorCorrectionLevel: "M",
       })
     : null;
+  const { data: credentialEvents } = await admin
+    .from("athlete_ticket_credential_events")
+    .select("id, event_type, created_at")
+    .eq("credential_id", credential.id)
+    .order("created_at", { ascending: false })
+    .limit(30);
+  const eventLabels: Record<string, string> = {
+    issued: "Credencial emitida",
+    rotated: "Link, QR e código substituídos",
+    viewed: "Credencial acessada",
+    email_sent: "Credencial enviada por e-mail",
+    email_failed: "Falha temporária no envio",
+    resend_requested: "Reenvio solicitado",
+    invalidated: "Credencial anterior invalidada",
+    self_invalidated: "Substituição solicitada pelo titular",
+    checked_in: "Check-in realizado",
+  };
 
   return (
     <div className="min-h-screen bg-app-bg">
@@ -100,13 +124,32 @@ export default async function CredencialIndividualPage({
         <PageContainer width="wide" className="space-y-6">
           <IngressoAtletaCredencial
             credentialId={credential.id}
-            accessToken={accessToken}
             athleteName={athleteName}
             initialPaymentStatus={ticket.status_pagamento}
             initialCheckedIn={credential.checked_in}
             qrDataUrl={qrDataUrl}
             code={credential.code}
+            championshipId={championshipId}
+            championshipName={championship.nome}
+            categoryName={ticket.categoria_nome}
           />
+
+          {(credentialEvents ?? []).length > 0 && (
+            <details className="mx-auto max-w-3xl rounded-2xl bg-white p-5 ring-1 ring-black/5">
+              <summary className="cursor-pointer text-sm font-semibold text-gray-900">Histórico desta credencial</summary>
+              <p className="mt-1 text-xs text-gray-500">Nenhum token, QR ou e-mail é exibido neste histórico.</p>
+              <ol className="mt-4 divide-y divide-gray-100">
+                {(credentialEvents ?? []).map((event) => (
+                  <li key={event.id} className="flex items-center justify-between gap-3 py-3">
+                    <span className="text-sm text-gray-700">{eventLabels[event.event_type] ?? event.event_type}</span>
+                    <time dateTime={event.created_at} className="shrink-0 text-xs text-gray-400">
+                      {new Date(event.created_at).toLocaleString("pt-BR", { timeZone: "America/Bahia" })}
+                    </time>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
 
           <div className="mx-auto max-w-3xl space-y-3 rounded-2xl bg-white p-5 ring-1 ring-black/5">
             <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Sobre o campeonato</p>

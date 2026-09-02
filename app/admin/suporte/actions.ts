@@ -23,6 +23,60 @@ export type SupportTicket = {
   partnerCpf: string;
   partnerEmail: string;
   createdAt: string;
+  credentials: Array<{
+    id: string;
+    athleteSlot: 1 | 2;
+    checkedIn: boolean;
+    emailSentAt: string | null;
+  }>;
+};
+
+export type SupportCredentialEvent = {
+  id: string;
+  ticketId: string;
+  credentialId: string;
+  athleteSlot: number | null;
+  eventType: string;
+  eventLabel: string;
+  actorLabel: string;
+  createdAt: string;
+};
+
+export type EmailOperationsSummary = {
+  queued: number;
+  accepted: number;
+  delivered: number;
+  failed: number;
+  bounced: number;
+  complained: number;
+  averageDeliverySeconds: number | null;
+  pendingCredentials: Array<{
+    credentialId: string;
+    ticketId: string;
+    athleteSlot: 1 | 2;
+    athleteName: string;
+    championshipName: string;
+    createdAt: string;
+  }>;
+  pendingPixRefunds: Array<{
+    operationId: string;
+    ticketId: string;
+    amount: number | null;
+    status: string;
+    updatedAt: string;
+  }>;
+};
+
+export type SupportCase = {
+  id: string;
+  ticketId: string | null;
+  credentialId: string | null;
+  caseType: string;
+  status: "aberto" | "aguardando_prova" | "resolvido";
+  summary: string;
+  assignedLabel: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type SupportAuditLog = {
@@ -62,6 +116,8 @@ const SUPPORT_AUDIT_ACTIONS = [
   "athlete_ticket_identity_changed",
   "athlete_ticket_email_correction_requested",
   "athlete_ticket_email_corrected_by_support",
+  "athlete_ticket_credential_resent_by_support",
+  "athlete_ticket_credential_invalidated_by_support",
 ] as const;
 
 function maskEmail(email: string): string {
@@ -119,6 +175,8 @@ export async function listarLogsSuporte(filters: SupportAuditFilters = {}): Prom
     athlete_ticket_identity_changed: "Dados alterados pelo comprador",
     athlete_ticket_email_correction_requested: "Correção assistida solicitada",
     athlete_ticket_email_corrected_by_support: "E-mail corrigido pelo suporte",
+    athlete_ticket_credential_resent_by_support: "Credencial reenviada pelo suporte",
+    athlete_ticket_credential_invalidated_by_support: "Credencial invalidada pelo suporte",
   };
 
   return {
@@ -182,16 +240,34 @@ export async function buscarIngressosSuporte(termRaw: string): Promise<{ ok: boo
   const rows = [...new Map(results.flatMap((result) => result.data ?? []).map((row) => [row.id, row])).values()].slice(0, 20);
   const championshipIds = [...new Set(rows.map((row) => row.championship_id))];
   const categoryIds = [...new Set(rows.map((row) => row.category_id).filter(Boolean))] as string[];
-  const [{ data: championships }, { data: categories }] = await Promise.all([
+  const [{ data: championships }, { data: categories }, { data: credentials }] = await Promise.all([
     championshipIds.length
       ? admin.from("championships").select("id, nome").in("id", championshipIds)
       : Promise.resolve({ data: [] }),
     categoryIds.length
       ? admin.from("championship_categories").select("id, nome").in("id", categoryIds)
       : Promise.resolve({ data: [] }),
+    rows.length
+      ? admin
+          .from("athlete_ticket_credentials")
+          .select("id, athlete_ticket_id, athlete_slot, checked_in, access_email_sent_at")
+          .in("athlete_ticket_id", rows.map((row) => row.id))
+          .order("athlete_slot")
+      : Promise.resolve({ data: [] }),
   ]);
   const championshipNames = new Map((championships ?? []).map((item) => [item.id, item.nome]));
   const categoryNames = new Map((categories ?? []).map((item) => [item.id, item.nome]));
+  const credentialsByTicket = new Map<string, SupportTicket["credentials"]>();
+  for (const credential of credentials ?? []) {
+    const current = credentialsByTicket.get(credential.athlete_ticket_id) ?? [];
+    current.push({
+      id: credential.id,
+      athleteSlot: credential.athlete_slot as 1 | 2,
+      checkedIn: Boolean(credential.checked_in),
+      emailSentAt: credential.access_email_sent_at,
+    });
+    credentialsByTicket.set(credential.athlete_ticket_id, current);
+  }
   return {
     ok: true,
     tickets: rows.map((row) => ({
@@ -208,6 +284,7 @@ export async function buscarIngressosSuporte(termRaw: string): Promise<{ ok: boo
       partnerCpf: row.parceiro_cpf,
       partnerEmail: row.parceiro_email ?? "",
       createdAt: row.created_at,
+      credentials: credentialsByTicket.get(row.id) ?? [],
     })),
   };
 }
@@ -291,4 +368,344 @@ export async function corrigirEmailAtletaSuporte(input: {
     resumo: `O e-mail do atleta ${input.athleteSlot} foi corrigido pelo suporte após validação assistida.`,
   });
   return { ok: true };
+}
+
+function validUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+async function loadSupportCredential(ticketId: string, credentialId: string) {
+  const admin = createAdminClient();
+  const [{ data: ticket }, { data: credential }] = await Promise.all([
+    admin
+      .from("athlete_tickets")
+      .select("id, championship_id, status_pagamento, checked_in, comprador_nome, comprador_email, parceiro_nome, parceiro_email")
+      .eq("id", ticketId)
+      .maybeSingle(),
+    admin
+      .from("athlete_ticket_credentials")
+      .select("id, athlete_ticket_id, athlete_slot, checked_in")
+      .eq("id", credentialId)
+      .eq("athlete_ticket_id", ticketId)
+      .maybeSingle(),
+  ]);
+  return { admin, ticket, credential };
+}
+
+export async function reenviarCredencialSuporte(input: {
+  ticketId: string;
+  credentialId: string;
+  reason: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const actor = await requireCeo();
+  const reason = input.reason.trim();
+  if (!validUuid(input.ticketId) || !validUuid(input.credentialId)) return { ok: false, error: "Credencial inválida." };
+  if (reason.length < 15 || reason.length > 500) return { ok: false, error: "Registre um motivo com pelo menos 15 caracteres." };
+  const { admin, ticket, credential } = await loadSupportCredential(input.ticketId, input.credentialId);
+  if (!ticket || !credential) return { ok: false, error: "Credencial não encontrada." };
+  if (ticket.status_pagamento !== "pago") return { ok: false, error: "Somente credenciais pagas podem ser reenviadas." };
+
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { count, error: rateError } = await admin
+    .from("athlete_ticket_credential_events")
+    .select("id", { count: "exact", head: true })
+    .eq("credential_id", credential.id)
+    .eq("event_type", "resend_requested")
+    .gte("created_at", since);
+  if (rateError) return { ok: false, error: "A trilha operacional está indisponível. Nenhum reenvio foi feito." };
+  if ((count ?? 0) >= 3) return { ok: false, error: "Limite de 3 reenvios em 24 horas atingido." };
+
+  const auditReady = await registrarAuditoria({
+    actorId: actor.id,
+    acao: "athlete_ticket_credential_resent_by_support",
+    alvoTabela: "athlete_tickets",
+    alvoId: ticket.id,
+    detalhes: { athlete_slot: credential.athlete_slot, motivo: reason },
+  });
+  if (!auditReady) return { ok: false, error: "A auditoria está indisponível. Nenhum reenvio foi feito." };
+
+  await admin.from("athlete_ticket_credential_events").insert({
+    credential_id: credential.id,
+    athlete_ticket_id: ticket.id,
+    championship_id: ticket.championship_id,
+    event_type: "resend_requested",
+    actor_id: actor.id,
+    details: { athlete_slot: credential.athlete_slot, reason },
+  });
+  const { error: resetError } = await admin
+    .from("athlete_ticket_credentials")
+    .update({ access_email_sent_at: null, access_email_claimed_at: null, updated_at: new Date().toISOString() })
+    .eq("id", credential.id)
+    .eq("athlete_ticket_id", ticket.id);
+  if (resetError) return { ok: false, error: "Não foi possível preparar o reenvio." };
+  const delivery = await deliverAthleteTicketCredentials(admin, ticket.id);
+  if (delivery.sent < 1) return { ok: false, error: "A entrega não foi aceita. Ela permaneceu na fila para nova tentativa." };
+  return { ok: true };
+}
+
+export async function invalidarCredencialSuporte(input: {
+  ticketId: string;
+  credentialId: string;
+  reason: string;
+  confirmation: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const actor = await requireCeo();
+  const reason = input.reason.trim();
+  if (input.confirmation.trim().toUpperCase() !== "INVALIDAR") return { ok: false, error: "Digite INVALIDAR para confirmar." };
+  if (!validUuid(input.ticketId) || !validUuid(input.credentialId)) return { ok: false, error: "Credencial inválida." };
+  if (reason.length < 15 || reason.length > 500) return { ok: false, error: "Registre um motivo com pelo menos 15 caracteres." };
+  const { admin, ticket, credential } = await loadSupportCredential(input.ticketId, input.credentialId);
+  if (!ticket || !credential) return { ok: false, error: "Credencial não encontrada." };
+  if (ticket.status_pagamento !== "pago") return { ok: false, error: "A credencial não está ativa." };
+  if (ticket.checked_in || credential.checked_in) return { ok: false, error: "Invalidação bloqueada após o check-in." };
+
+  const { error: eventStoreError } = await admin
+    .from("athlete_ticket_credential_events")
+    .select("id")
+    .eq("credential_id", credential.id)
+    .limit(1);
+  if (eventStoreError) return { ok: false, error: "A trilha operacional está indisponível. A credencial não foi alterada." };
+
+  const auditReady = await registrarAuditoria({
+    actorId: actor.id,
+    acao: "athlete_ticket_credential_invalidated_by_support",
+    alvoTabela: "athlete_tickets",
+    alvoId: ticket.id,
+    detalhes: { athlete_slot: credential.athlete_slot, motivo: reason },
+  });
+  if (!auditReady) return { ok: false, error: "A auditoria está indisponível. A credencial não foi alterada." };
+
+  const { error: rotateError } = await admin
+    .from("athlete_ticket_credentials")
+    .update({
+      access_token: crypto.randomUUID(),
+      qr_token: crypto.randomUUID(),
+      code: `A${credential.athlete_slot}${crypto.randomUUID().replaceAll("-", "").slice(0, 8).toUpperCase()}`,
+      access_email_sent_at: null,
+      access_email_claimed_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", credential.id)
+    .eq("athlete_ticket_id", ticket.id)
+    .eq("checked_in", false);
+  if (rotateError) return { ok: false, error: "Não foi possível invalidar a credencial." };
+
+  await admin.from("athlete_ticket_credential_events").insert({
+    credential_id: credential.id,
+    athlete_ticket_id: ticket.id,
+    championship_id: ticket.championship_id,
+    event_type: "invalidated",
+    actor_id: actor.id,
+    details: { athlete_slot: credential.athlete_slot, reason },
+  });
+  const email = credential.athlete_slot === 1 ? ticket.comprador_email : ticket.parceiro_email;
+  const { data: championship } = await admin.from("championships").select("nome").eq("id", ticket.championship_id).maybeSingle();
+  if (email) await enviarAvisoAlteracaoIngresso({
+    email,
+    nomeCampeonato: championship?.nome ?? "seu campeonato",
+    resumo: `A credencial do atleta ${credential.athlete_slot} foi invalidada pelo suporte. Um novo link foi emitido.`,
+  });
+  const delivery = await deliverAthleteTicketCredentials(admin, ticket.id);
+  if (delivery.sent < 1) return { ok: true };
+  return { ok: true };
+}
+
+export async function listarEventosCredenciaisSuporte(ticketId?: string): Promise<{
+  ok: boolean;
+  error?: string;
+  events?: SupportCredentialEvent[];
+}> {
+  await requireCeo();
+  if (ticketId && !validUuid(ticketId)) return { ok: false, error: "Ingresso inválido." };
+  const admin = createAdminClient();
+  let query = admin
+    .from("athlete_ticket_credential_events")
+    .select("id, credential_id, athlete_ticket_id, event_type, actor_id, details, created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (ticketId) query = query.eq("athlete_ticket_id", ticketId);
+  const { data: rows, error } = await query;
+  if (error) return { ok: false, error: "Não foi possível carregar os eventos das credenciais." };
+  const actorIds = [...new Set((rows ?? []).map((row) => row.actor_id).filter(Boolean))] as string[];
+  const credentialIds = [...new Set((rows ?? []).map((row) => row.credential_id))];
+  const [{ data: actors }, { data: credentials }] = await Promise.all([
+    actorIds.length ? admin.from("profiles").select("id, nome, username").in("id", actorIds) : Promise.resolve({ data: [] }),
+    credentialIds.length ? admin.from("athlete_ticket_credentials").select("id, athlete_slot").in("id", credentialIds) : Promise.resolve({ data: [] }),
+  ]);
+  const actorMap = new Map((actors ?? []).map((actor) => [actor.id, actor.nome || actor.username || "CEO"]));
+  const slotMap = new Map((credentials ?? []).map((credential) => [credential.id, credential.athlete_slot]));
+  const labels: Record<string, string> = {
+    issued: "Credencial emitida", rotated: "Links e QR substituídos", viewed: "Credencial acessada",
+    email_sent: "E-mail enviado", email_failed: "Falha no envio", resend_requested: "Reenvio solicitado",
+    invalidated: "Invalidação emergencial", checked_in: "Check-in realizado",
+  };
+  return {
+    ok: true,
+    events: (rows ?? []).map((row) => ({
+      id: row.id,
+      ticketId: row.athlete_ticket_id,
+      credentialId: row.credential_id,
+      athleteSlot: slotMap.get(row.credential_id) ?? (row.details as { athlete_slot?: number } | null)?.athlete_slot ?? null,
+      eventType: row.event_type,
+      eventLabel: labels[row.event_type] ?? row.event_type,
+      actorLabel: row.actor_id ? actorMap.get(row.actor_id) ?? "Usuário autorizado" : "Sistema",
+      createdAt: row.created_at,
+    })),
+  };
+}
+
+export async function listarOperacaoEmails(): Promise<{ ok: boolean; error?: string; summary?: EmailOperationsSummary }> {
+  await requireCeo();
+  const admin = createAdminClient();
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const [
+    { data: emails, error: emailError },
+    { data: pending, error: pendingError },
+    { data: pendingRefunds, error: refundError },
+  ] = await Promise.all([
+    admin
+      .from("transactional_email_events")
+      .select("status, requested_at, delivered_at")
+      .gte("requested_at", since)
+      .order("requested_at", { ascending: false })
+      .limit(5000),
+    admin
+      .from("athlete_ticket_credentials")
+      .select("id, athlete_ticket_id, athlete_slot, display_name_snapshot, created_at")
+      .is("access_email_sent_at", null)
+      .order("created_at")
+      .limit(50),
+    admin
+      .from("financial_operations")
+      .select("id, record_id, amount, status, updated_at")
+      .eq("flow", "athlete_ticket")
+      .eq("operation_type", "refund")
+      .eq("billing_type", "PIX")
+      .in("status", ["processing", "provider_created", "ambiguous", "failed"])
+      .order("updated_at", { ascending: false })
+      .limit(50),
+  ]);
+  if (emailError || pendingError || refundError) return { ok: false, error: "A operação de suporte ainda não está disponível." };
+  const pendingRows = pending ?? [];
+  const ticketIds = [...new Set(pendingRows.map((row) => row.athlete_ticket_id))];
+  const { data: tickets } = ticketIds.length
+    ? await admin.from("athlete_tickets").select("id, championship_id, status_pagamento").in("id", ticketIds).eq("status_pagamento", "pago")
+    : { data: [] };
+  const paidTicketMap = new Map((tickets ?? []).map((ticket) => [ticket.id, ticket]));
+  const championshipIds = [...new Set((tickets ?? []).map((ticket) => ticket.championship_id))];
+  const { data: championships } = championshipIds.length
+    ? await admin.from("championships").select("id, nome").in("id", championshipIds)
+    : { data: [] };
+  const championshipMap = new Map((championships ?? []).map((item) => [item.id, item.nome]));
+  const rows = emails ?? [];
+  const count = (status: string) => rows.filter((row) => row.status === status).length;
+  const deliveryDurations = rows
+    .filter((row) => row.delivered_at)
+    .map((row) => (Date.parse(row.delivered_at!) - Date.parse(row.requested_at)) / 1000)
+    .filter((value) => Number.isFinite(value) && value >= 0);
+  return {
+    ok: true,
+    summary: {
+      queued: count("queued"), accepted: count("accepted"), delivered: count("delivered"),
+      failed: count("failed") + count("suppressed"), bounced: count("bounced"), complained: count("complained"),
+      averageDeliverySeconds: deliveryDurations.length
+        ? Math.round(deliveryDurations.reduce((sum, value) => sum + value, 0) / deliveryDurations.length)
+        : null,
+      pendingCredentials: pendingRows.flatMap((row) => {
+        const ticket = paidTicketMap.get(row.athlete_ticket_id);
+        if (!ticket) return [];
+        return [{
+          credentialId: row.id,
+          ticketId: row.athlete_ticket_id,
+          athleteSlot: row.athlete_slot as 1 | 2,
+          athleteName: row.display_name_snapshot,
+          championshipName: championshipMap.get(ticket.championship_id) ?? "Campeonato",
+          createdAt: row.created_at,
+        }];
+      }),
+      pendingPixRefunds: (pendingRefunds ?? []).map((operation) => ({
+        operationId: operation.id,
+        ticketId: operation.record_id,
+        amount: operation.amount == null ? null : Number(operation.amount),
+        status: operation.status,
+        updatedAt: operation.updated_at,
+      })),
+    },
+  };
+}
+
+export async function listarCasosSuporte(): Promise<{ ok: boolean; error?: string; cases?: SupportCase[] }> {
+  await requireCeo();
+  const admin = createAdminClient();
+  const { data: rows, error } = await admin
+    .from("support_cases")
+    .select("id, athlete_ticket_id, credential_id, case_type, status, summary, assigned_to, created_at, updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(100);
+  if (error) return { ok: false, error: "A fila de suporte ainda não está disponível." };
+  const actorIds = [...new Set((rows ?? []).map((row) => row.assigned_to).filter(Boolean))] as string[];
+  const { data: actors } = actorIds.length
+    ? await admin.from("profiles").select("id, nome, username").in("id", actorIds)
+    : { data: [] };
+  const actorMap = new Map((actors ?? []).map((actor) => [actor.id, actor.nome || actor.username || "CEO"]));
+  return {
+    ok: true,
+    cases: (rows ?? []).map((row) => ({
+      id: row.id,
+      ticketId: row.athlete_ticket_id,
+      credentialId: row.credential_id,
+      caseType: row.case_type,
+      status: row.status,
+      summary: row.summary,
+      assignedLabel: row.assigned_to ? actorMap.get(row.assigned_to) ?? "CEO" : "Sem responsável",
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    })),
+  };
+}
+
+export async function criarCasoSuporte(input: {
+  ticketId?: string;
+  credentialId?: string;
+  caseType: string;
+  summary: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const actor = await requireCeo();
+  const summary = input.summary.trim();
+  if (summary.length < 10 || summary.length > 500) return { ok: false, error: "Resuma o caso em 10 a 500 caracteres." };
+  if (input.ticketId && !validUuid(input.ticketId)) return { ok: false, error: "Ingresso inválido." };
+  if (input.credentialId && !validUuid(input.credentialId)) return { ok: false, error: "Credencial inválida." };
+  const allowedTypes = ["correcao_email", "credencial_comprometida", "falha_email", "estorno_pix", "outro"];
+  if (!allowedTypes.includes(input.caseType)) return { ok: false, error: "Tipo de caso inválido." };
+  const { error } = await createAdminClient().from("support_cases").insert({
+    athlete_ticket_id: input.ticketId ?? null,
+    credential_id: input.credentialId ?? null,
+    case_type: input.caseType,
+    summary,
+    assigned_to: actor.id,
+    created_by: actor.id,
+  });
+  return error ? { ok: false, error: "Não foi possível abrir o caso." } : { ok: true };
+}
+
+export async function atualizarCasoSuporte(input: {
+  caseId: string;
+  status: "aberto" | "aguardando_prova" | "resolvido";
+  note: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const actor = await requireCeo();
+  const note = input.note.trim();
+  if (!validUuid(input.caseId)) return { ok: false, error: "Caso inválido." };
+  if (note.length < 3 || note.length > 1000) return { ok: false, error: "Registre uma nota de 3 a 1000 caracteres." };
+  const admin = createAdminClient();
+  const now = new Date().toISOString();
+  const { data: updated, error } = await admin
+    .from("support_cases")
+    .update({ status: input.status, assigned_to: actor.id, resolved_at: input.status === "resolvido" ? now : null, updated_at: now })
+    .eq("id", input.caseId)
+    .select("id")
+    .maybeSingle();
+  if (error || !updated) return { ok: false, error: "Não foi possível atualizar o caso." };
+  const { error: noteError } = await admin.from("support_case_notes").insert({ case_id: input.caseId, author_id: actor.id, note });
+  return noteError ? { ok: false, error: "O estado mudou, mas a nota não foi registrada." } : { ok: true };
 }

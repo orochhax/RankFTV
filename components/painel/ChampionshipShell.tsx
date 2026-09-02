@@ -60,11 +60,9 @@ export function ChampionshipShell({
   return (
     <div className="min-h-screen bg-app-bg">
       {/* ── Cabeçalho contextual: breadcrumb + nome + status + ações ── */}
-      <div className="relative border-b border-border bg-surface">
-        <PageContainer width="wide" className="space-y-2 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <nav aria-label="Trilha" className="flex min-w-0 items-center gap-1 overflow-hidden text-xs text-ink-muted">
+      <div className="relative border-b border-border bg-gradient-to-b from-blue-50/70 to-surface">
+        <PageContainer width="wide" className="py-4 sm:py-5">
+          <nav aria-label="Trilha" className="flex min-w-0 items-center gap-1 overflow-hidden text-xs text-ink-muted">
                 <Link href="/painel/campeonatos" className="inline-flex items-center gap-1 hover:text-blue-600">
                   <ArrowLeft className="size-3" /> Meus campeonatos
                 </Link>
@@ -80,18 +78,23 @@ export function ChampionshipShell({
                     <span className="truncate font-medium text-ink">{sectionTitle}</span>
                   </>
                 )}
-              </nav>
-              <div className="mt-1.5 flex min-w-0 items-start gap-2">
-                <h1 className="line-clamp-2 min-w-0 flex-1 text-base font-bold leading-tight text-ink sm:text-lg">{champ.nome}</h1>
+          </nav>
+
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0 flex-1">
+              <h1 className="line-clamp-2 text-lg font-bold leading-tight tracking-tight text-ink sm:text-xl">
+                {champ.nome}
+              </h1>
+              <div className="mt-2">
                 <StatusBadge status={champ.status} />
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:shrink-0">
               <a
                 href={`/campeonatos/${champ.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:border-blue-300 hover:text-blue-600"
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-ink-muted shadow-sm transition-all hover:border-blue-300 hover:text-blue-600 hover:shadow"
               >
                 <ExternalLink className="size-3.5" /> Página pública
               </a>
@@ -101,7 +104,7 @@ export function ChampionshipShell({
                   onClick={() => setMenuOpen((v) => !v)}
                   aria-expanded={menuOpen}
                   aria-haspopup="menu"
-                  className="inline-flex items-center gap-1.5 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500"
+                  className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-500 hover:shadow-md"
                 >
                   <Menu className="size-3.5" /> Gerenciar
                 </button>

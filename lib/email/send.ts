@@ -14,6 +14,7 @@ import {
 } from "./templates";
 import { reportOperationalEvent } from "@/lib/observability";
 import { resolveBaseUrl } from "@/lib/site-url";
+import { createEmailOperationalEvent, updateEmailOperationalEvent } from "@/lib/email/operations";
 
 const BASE_URL = resolveBaseUrl(process.env.NEXT_PUBLIC_BASE_URL, "http://localhost:3000");
 
@@ -47,15 +48,23 @@ async function send(
   to: string,
   subject: string,
   html: string,
-  options?: { idempotencyKey?: string },
+  options?: { idempotencyKey?: string; templateKey?: string },
 ): Promise<boolean> {
-  if (!process.env.RESEND_API_KEY) return false; // sem chave → silencioso em dev
+  const eventId = await createEmailOperationalEvent({
+    recipient: to,
+    templateKey: options?.templateKey ?? "transactional",
+  });
+  if (!process.env.RESEND_API_KEY) {
+    await updateEmailOperationalEvent({ id: eventId, status: "failed", failureCategory: "provider_not_configured" });
+    return false;
+  }
   try {
     const result = await getResend().emails.send(
       { from: FROM, to, subject, html },
       options?.idempotencyKey ? { idempotencyKey: options.idempotencyKey } : undefined,
     );
     if (result.error) {
+      await updateEmailOperationalEvent({ id: eventId, status: "failed", failureCategory: "provider_rejected" });
       await reportOperationalEvent({
         level: "error",
         event: "email.delivery_failed",
@@ -65,8 +74,14 @@ async function send(
       });
       return false;
     }
+    await updateEmailOperationalEvent({
+      id: eventId,
+      status: "accepted",
+      providerMessageId: result.data?.id,
+    });
     return true;
   } catch (error) {
+    await updateEmailOperationalEvent({ id: eventId, status: "failed", failureCategory: "provider_exception" });
     await reportOperationalEvent({
       level: "error",
       event: "email.delivery_failed",
@@ -206,6 +221,6 @@ export async function enviarCredencialAtleta(opts: {
     opts.emailAtleta,
     `Sua credencial — ${opts.nomeCampeonato}`,
     credencialAtletaHtml(opts),
-    { idempotencyKey: opts.idempotencyKey },
+    { idempotencyKey: opts.idempotencyKey, templateKey: "athlete_credential" },
   );
 }

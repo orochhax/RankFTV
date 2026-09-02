@@ -153,6 +153,8 @@ test("a guest pair receives two linked individual entry credentials", () => {
   const credentialClient = source("components/campeonatos/IngressoAtletaCredencial.tsx");
   const recoveryClaim = source("lib/ticket-recovery.ts");
   const proxy = source("proxy.ts");
+  const accessRoute = source("app/campeonatos/[id]/ingresso-atleta/[credentialId]/acessar/route.ts");
+  const session = source("lib/athlete-credential-session.ts");
 
   assert.match(migration, /UNIQUE \(athlete_ticket_id, athlete_slot\)/i);
   assert.match(migration, /access_token[\s\S]*gen_random_uuid/i);
@@ -170,7 +172,8 @@ test("a guest pair receives two linked individual entry credentials", () => {
   assert.match(migration, /can_select_athlete_ticket_credential/);
   assert.match(migration, /ATHLETE_TICKET_CREDENTIAL_DOMAIN_MISMATCH/);
   assert.match(athletePage, /\.from\("athlete_ticket_credentials"\)/);
-  assert.match(athletePage, /\.eq\("athlete_slot", 1\)/);
+  assert.match(athletePage, /allIndividualCredentials\.find\(\(credential\) => credential\.athlete_slot === 1\)/);
+  assert.match(athletePage, /credentialHistory/);
   assert.match(athleteStatus, /somente a credencial do comprador/);
   assert.match(athleteStatus, /credentials\.map/);
   assert.match(athleteStatus, /mx-auto grid w-full max-w-md/);
@@ -190,8 +193,19 @@ test("a guest pair receives two linked individual entry credentials", () => {
   assert.match(ownership, /\.eq\("checked_in", false\)/);
   assert.match(athleteActions, /card_payment_persistence_failed/);
   assert.match(statusApi, /export async function POST/);
+  assert.match(statusApi, /readAthleteCredentialSession/);
+  assert.doesNotMatch(statusApi, /body\.token/);
   assert.doesNotMatch(credentialClient, /athlete-credential-status\?\$\{/);
+  assert.doesNotMatch(credentialClient, /accessToken/);
   assert.match(credentialClient, /setRevoked\(true\)/);
+  assert.match(accessRoute, /httpOnly: true/);
+  assert.match(accessRoute, /sameSite: "lax"/);
+  assert.match(accessRoute, /NextResponse\.redirect\(cleanUrl, 303\)/);
+  assert.match(session, /2 \* 60 \* 60/);
+  assert.match(individualPage, /readAthleteCredentialSession/);
+  assert.match(individualPage, /Histórico desta credencial/);
+  assert.match(credentialClient, /Baixar PDF/);
+  assert.match(credentialClient, /Link foi compartilhado/);
   assert.match(recoveryClaim, /\.is\("usado_em", null\)/);
   assert.match(recoveryClaim, /return Boolean\(claimed\)/);
   assert.match(proxy, /Cache-Control", "private, no-store/);

@@ -79,4 +79,19 @@ test("operational retention never exposes its privileged function to clients", (
   assert.match(sql, /REVOKE ALL ON FUNCTION purge_rankftv_operational_data\(\) FROM PUBLIC, anon, authenticated/i);
   assert.match(sql, /interval '6 years'/i);
   assert.match(sql, /interval '180 days'/i);
+  assert.match(sql, /athlete_ticket_credential_events/i);
+  assert.match(sql, /transactional_email_events/i);
+  assert.match(sql, /support_cases/i);
+});
+
+test("credential operations are private, auditable and never persist bearer material", () => {
+  const sql = migration("production-credential-operations.sql");
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS athlete_ticket_credential_events/i);
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS transactional_email_events/i);
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS support_cases/i);
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS support_case_notes/i);
+  assert.match(sql, /REVOKE ALL ON athlete_ticket_credential_events FROM PUBLIC, anon, authenticated/i);
+  assert.match(sql, /REVOKE ALL ON transactional_email_events FROM PUBLIC, anon, authenticated/i);
+  assert.match(sql, /AFTER INSERT OR UPDATE OF access_token, qr_token, code/i);
+  assert.doesNotMatch(sql, /token_value|access_token\s+text|qr_token\s+text/i);
 });
