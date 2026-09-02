@@ -184,14 +184,12 @@ function LoteGroupCard({
         if (!res.ok) {
           const message = res.error ?? "Erro ao excluir.";
           setErroGrupo(message);
-          window.alert(message);
           return;
         }
         router.refresh();
       } catch {
         const message = "Não foi possível concluir a exclusão. Atualize a página e tente novamente.";
         setErroGrupo(message);
-        window.alert(message);
       }
     });
   }
@@ -278,7 +276,7 @@ function LoteGroupCard({
         </div>
       </div>
       {editandoValor && erro && <p className="mt-1 text-right text-xs text-red-600">{erro}</p>}
-      {erroGrupo && <p className="mt-1 text-xs text-red-600">{erroGrupo}</p>}
+      {erroGrupo && <p role="alert" className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-700 ring-1 ring-red-200">{erroGrupo}</p>}
       {!expanded && (
         <p className="mt-1 text-xs text-gray-400">
           {grupo.lotes.length > 0 ? `${grupo.lotes.length} lote${grupo.lotes.length > 1 ? "s" : ""} configurado${grupo.lotes.length > 1 ? "s" : ""}` : "Sem lotes"}

@@ -157,18 +157,32 @@ test("categories with operational history cannot be deleted or trigger refunds",
   assert.match(actions, /\.delete\(\)[\s\S]*\.select\("id"\)[\s\S]*\.maybeSingle\(\)/);
   assert.match(actions, /if \(!deleted\)/);
   assert.match(manager, /não cancela compras nem gera reembolso/);
-  assert.match(manager, /window\.alert\(message\)/);
+  assert.match(manager, /role="alert"/);
   assert.match(editActions, /deleteError\?\.code === "23503"/);
   assert.match(editActions, /CATEGORY_HAS_DEPENDENCIES/);
   assert.match(editActions, /if \(deleteError\) return \{ ok: false/);
   assert.match(editActions, /\(deleted \?\? \[\]\)\.length !== ids\.length/);
-  assert.match(editForm, /window\.alert\(message\)/);
+  assert.match(editForm, /role="alert"/);
   assert.match(migration, /BEFORE DELETE ON championship_categories/);
   assert.match(migration, /SELECT 1 FROM registrations/);
   assert.match(migration, /SELECT 1 FROM athlete_tickets/);
   assert.match(migration, /SELECT 1 FROM bracket_matches/);
   assert.match(migration, /ERRCODE = '23503'/);
   assert.doesNotMatch(migration, /refund|reembolso|estorno/i);
+});
+
+test("application errors never use native browser alerts", () => {
+  for (const file of [
+    "components/painel/EditarCampeonatoForm.tsx",
+    "components/painel/LotesManager.tsx",
+    "components/admin/AdminStatusSelect.tsx",
+    "components/admin/AdminDeleteNoticia.tsx",
+    "components/admin/AdminDeleteCampeonato.tsx",
+  ]) {
+    const contents = source(file);
+    assert.doesNotMatch(contents, /(?:window\.)?alert\s*\(/);
+    assert.match(contents, /role="alert"/);
+  }
 });
 
 test("championship publishing has one secured Pix field for every paid product", () => {

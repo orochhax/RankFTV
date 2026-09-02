@@ -26,16 +26,18 @@ export function AdminStatusSelect({
 }) {
   const [status, setStatus] = useState(currentStatus);
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function handleSelect(novo: string) {
     if (novo === status) { setOpen(false); return; }
     if (!confirm(`Mudar status para "${STATUS_LABELS[novo]}"?`)) return;
     setOpen(false);
+    setError(null);
     startTransition(async () => {
       const res = await updateChampionshipStatus(champId, novo);
       if (res.ok) setStatus(novo);
-      else alert(res.error ?? "Erro ao mudar status.");
+      else setError(res.error ?? "Erro ao mudar status.");
     });
   }
 
@@ -64,6 +66,7 @@ export function AdminStatusSelect({
           ))}
         </div>
       )}
+      {error && <p role="alert" className="mt-1 max-w-56 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700 ring-1 ring-red-200">{error}</p>}
     </div>
   );
 }

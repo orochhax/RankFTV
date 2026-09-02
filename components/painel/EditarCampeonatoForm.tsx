@@ -280,7 +280,6 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
       if (res && !res.ok) {
         const message = res.error ?? "Erro ao salvar.";
         setError(message);
-        window.alert(message);
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     });
@@ -362,7 +361,7 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
 
     <div className="space-y-6">
       {error && (
-        <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
+        <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
           {error}
         </div>
       )}
