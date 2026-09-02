@@ -185,6 +185,22 @@ test("application errors never use native browser alerts", () => {
   }
 });
 
+test("payment UX is provider-neutral while privacy disclosure stays transparent", () => {
+  for (const file of [
+    "components/painel/ReconciliarInscricaoButton.tsx",
+    "components/arena/FinanceiroAlunoClient.tsx",
+  ]) {
+    assert.doesNotMatch(source(file), /Asaas/i);
+  }
+
+  const financePage = source("app/painel/campeonatos/[id]/financeiro/page.tsx");
+  assert.doesNotMatch(financePage, /Verifique o status real no Asaas/i);
+  assert.match(financePage, /processador de pagamentos/);
+  const financeActions = source("app/painel/campeonatos/[id]/financeiro/actions.ts");
+  assert.doesNotMatch(financeActions, /message:\s*[`\"][^\n]*Asaas/i);
+  assert.match(source("app/privacidade/page.tsx"), /Asaas/);
+});
+
 test("championship publishing has one secured Pix field for every paid product", () => {
   const page = source("app/painel/campeonatos/[id]/publicar/page.tsx");
   const form = source("components/painel/PublicarCampeonatoForm.tsx");

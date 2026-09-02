@@ -48,15 +48,14 @@ export async function reconciliarInscricao(
     .maybeSingle();
 
   if (!reg || reg.championship_id !== champId) return { ok: false, message: "Inscrição não encontrada." };
-  if (!reg.asaas_payment_id) return { ok: false, message: "Essa inscrição não tem cobrança gerada no Asaas." };
+  if (!reg.asaas_payment_id) return { ok: false, message: "Essa inscrição não tem cobrança gerada no processador de pagamentos." };
   if (reg.status_pagamento !== "pendente") return { ok: false, message: "Essa inscrição já não está pendente." };
 
   let cobranca;
   try {
     cobranca = await consultarCobranca(reg.asaas_payment_id);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Erro desconhecido";
-    return { ok: false, message: `Erro ao consultar o Asaas: ${msg}` };
+  } catch {
+    return { ok: false, message: "Não foi possível consultar o processador de pagamentos agora." };
   }
 
   if (STATUS_CONFIRMADO.has(cobranca.status)) {
@@ -68,19 +67,19 @@ export async function reconciliarInscricao(
     revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
     revalidatePath(`/painel/campeonatos/${champId}/inscricoes`);
     return resultado.ok
-      ? { ok: true, message: "Pagamento confirmado no Asaas — inscrição atualizada." }
-      : { ok: false, message: `Encontrado como pago no Asaas, mas falhou ao atualizar: ${resultado.error}` };
+      ? { ok: true, message: "Pagamento confirmado — inscrição atualizada." }
+      : { ok: false, message: `Pagamento confirmado pelo processador, mas a inscrição não pôde ser atualizada: ${resultado.error}` };
   }
 
   if (STATUS_ESTORNADO.has(cobranca.status)) {
     const resultado = await estornarInscricao(admin, registrationId);
     revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
     return resultado.ok
-      ? { ok: true, message: "Cobrança estornada/reembolsada no Asaas — inscrição atualizada." }
+      ? { ok: true, message: "Cobrança estornada/reembolsada — inscrição atualizada." }
       : { ok: false, message: `Falhou ao estornar: ${resultado.error}` };
   }
 
-  return { ok: false, message: `Ainda pendente no Asaas (status: ${cobranca.status}).` };
+  return { ok: false, message: "A cobrança continua pendente no processador de pagamentos." };
 }
 
 // Mesma reconciliação, pro checkout de visitante (athlete_tickets, botão
@@ -108,15 +107,14 @@ export async function reconciliarIngressoAtleta(
     .maybeSingle();
 
   if (!ticket || ticket.championship_id !== champId) return { ok: false, message: "Ingresso não encontrado." };
-  if (!ticket.asaas_payment_id) return { ok: false, message: "Esse ingresso não tem cobrança gerada no Asaas." };
+  if (!ticket.asaas_payment_id) return { ok: false, message: "Esse ingresso não tem cobrança gerada no processador de pagamentos." };
   if (ticket.status_pagamento !== "pendente") return { ok: false, message: "Esse ingresso já não está pendente." };
 
   let cobranca;
   try {
     cobranca = await consultarCobranca(ticket.asaas_payment_id);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Erro desconhecido";
-    return { ok: false, message: `Erro ao consultar o Asaas: ${msg}` };
+  } catch {
+    return { ok: false, message: "Não foi possível consultar o processador de pagamentos agora." };
   }
 
   if (STATUS_CONFIRMADO.has(cobranca.status)) {
@@ -128,19 +126,19 @@ export async function reconciliarIngressoAtleta(
     revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
     revalidatePath(`/painel/campeonatos/${champId}/inscricoes`);
     return resultado.ok
-      ? { ok: true, message: "Pagamento confirmado no Asaas — ingresso atualizado." }
-      : { ok: false, message: `Encontrado como pago no Asaas, mas falhou ao atualizar: ${resultado.error}` };
+      ? { ok: true, message: "Pagamento confirmado — ingresso atualizado." }
+      : { ok: false, message: `Pagamento confirmado pelo processador, mas o ingresso não pôde ser atualizado: ${resultado.error}` };
   }
 
   if (STATUS_ESTORNADO.has(cobranca.status)) {
     const resultado = await estornarAthleteTicket(admin, ticketId);
     revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
     return resultado.ok
-      ? { ok: true, message: "Cobrança estornada/reembolsada no Asaas — ingresso atualizado." }
+      ? { ok: true, message: "Cobrança estornada/reembolsada — ingresso atualizado." }
       : { ok: false, message: `Falhou ao estornar: ${resultado.error}` };
   }
 
-  return { ok: false, message: `Ainda pendente no Asaas (status: ${cobranca.status}).` };
+  return { ok: false, message: "A cobrança continua pendente no processador de pagamentos." };
 }
 
 /**

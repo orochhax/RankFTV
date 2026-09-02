@@ -19,7 +19,7 @@ export async function solicitarReembolso(regId: string): Promise<{ ok: boolean; 
     .single();
   if (!reg) return { ok: false, error: "Inscricao nao encontrada." };
   if (reg.status_pagamento !== "pago") return { ok: false, error: "Esta inscricao nao pode ser estornada." };
-  if (!reg.asaas_payment_id) return { ok: false, error: "Cobranca nao encontrada no Asaas." };
+  if (!reg.asaas_payment_id) return { ok: false, error: "Cobranca nao encontrada no processador de pagamentos." };
 
   const { data: team } = await supabase
     .from("teams")

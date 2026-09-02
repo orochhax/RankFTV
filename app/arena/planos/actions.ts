@@ -158,7 +158,7 @@ export async function arquivarPlano(planId: string, handle: string): Promise<{ e
   revalidatePath(`/arena/planos`);
   revalidatePath(`/arenas/${handle}`);
   return falhas > 0
-    ? { error: `Plano arquivado, mas ${falhas} assinatura(s) não puderam ser canceladas no Asaas — veja a lista de alunos.` }
+    ? { error: `Plano arquivado, mas ${falhas} assinatura(s) não puderam ser canceladas no processador de pagamentos — veja a lista de alunos.` }
     : {};
 }
 
@@ -227,7 +227,7 @@ export async function updatePlan(formData: FormData): Promise<{ error?: string }
   revalidatePath(`/arena/planos`);
   revalidatePath(`/arenas/${handle}`);
   return falhas > 0
-    ? { error: `Novo preço salvo, mas ${falhas} assinatura(s) da versão antiga não puderam ser canceladas no Asaas — veja a lista de alunos.` }
+    ? { error: `Novo preço salvo, mas ${falhas} assinatura(s) da versão antiga não puderam ser canceladas no processador de pagamentos — veja a lista de alunos.` }
     : {};
 }
 

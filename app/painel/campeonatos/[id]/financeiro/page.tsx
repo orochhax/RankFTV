@@ -202,9 +202,9 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
           <div>
             <h2 className="text-sm font-semibold text-ink">Pendentes com cobrança gerada</h2>
             <p className="text-xs text-ink-muted">
-              Pagamento pode ter sido feito mas a confirmação automática (webhook) ainda não
-              chegou. Verifique o status real no Asaas antes de considerar como falha — isso
-              nunca edita o registro na mão, só atualiza conforme a resposta do Asaas.
+              O pagamento pode ter sido feito, mas a confirmação automática ainda não
+              chegou. Verifique o status real no processador de pagamentos antes de considerar
+              como falha — isso nunca edita o registro na mão, apenas sincroniza a resposta oficial.
             </p>
           </div>
           <div className="divide-y divide-border">
