@@ -292,19 +292,32 @@ export async function excluirCategoria(champId: string, categoriaId: string): Pr
       error: "Essa categoria possui inscrições ou chaveamento e não pode ser excluída. A exclusão não cancela compras nem gera reembolso.",
     };
 
-  const { error } = await supabase
+  const { data: deleted, error } = await supabase
     .from("championship_categories")
     .delete()
     .eq("id", categoriaId)
-    .eq("championship_id", champId);
+    .eq("championship_id", champId)
+    .select("id")
+    .maybeSingle();
   if (error) {
-    if (error.message.includes("CATEGORY_HAS_DEPENDENCIES")) {
+    if (
+      error.code === "23503"
+      || error.message.includes("CATEGORY_HAS_DEPENDENCIES")
+      || error.message.includes("championship_categories_has_history")
+    ) {
       return {
         ok: false,
         error: "Essa categoria possui inscrições ou chaveamento e não pode ser excluída. A exclusão não cancela compras nem gera reembolso.",
       };
     }
+    await reportOperationalEvent({ level: "error", event: "championship_category.delete_failed", error });
     return { ok: false, error: "Erro ao excluir a categoria." };
+  }
+  if (!deleted) {
+    return {
+      ok: false,
+      error: "A categoria não foi excluída. Ela pode possuir inscrições ou chaveamento; atualize a página e tente novamente.",
+    };
   }
 
   revalidatePath(`/painel/campeonatos/${champId}/lotes`);

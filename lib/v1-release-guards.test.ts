@@ -152,7 +152,10 @@ test("categories with operational history cannot be deleted or trigger refunds",
   assert.match(actions, /\.from\("bracket_participants"\)[\s\S]*\.from\("bracket_matches"\)/);
   assert.doesNotMatch(actions, /from\("pricing_tiers"\)\.delete\(\)\.eq\("category_id", categoriaId\)/);
   assert.match(actions, /CATEGORY_HAS_DEPENDENCIES/);
+  assert.match(actions, /\.delete\(\)[\s\S]*\.select\("id"\)[\s\S]*\.maybeSingle\(\)/);
+  assert.match(actions, /if \(!deleted\)/);
   assert.match(manager, /não cancela compras nem gera reembolso/);
+  assert.match(manager, /window\.alert\(message\)/);
   assert.match(migration, /BEFORE DELETE ON championship_categories/);
   assert.match(migration, /SELECT 1 FROM registrations/);
   assert.match(migration, /SELECT 1 FROM athlete_tickets/);

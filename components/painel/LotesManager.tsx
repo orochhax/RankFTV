@@ -177,11 +177,22 @@ function LoteGroupCard({
     if (!confirm(aviso)) return;
     setErroGrupo(null);
     startTransition(async () => {
-      const res = grupo.entidade === "category"
-        ? await excluirCategoria(champId, grupo.entidadeId)
-        : await excluirTipoIngresso(champId, grupo.entidadeId);
-      if (!res.ok) { setErroGrupo(res.error ?? "Erro ao excluir."); return; }
-      router.refresh();
+      try {
+        const res = grupo.entidade === "category"
+          ? await excluirCategoria(champId, grupo.entidadeId)
+          : await excluirTipoIngresso(champId, grupo.entidadeId);
+        if (!res.ok) {
+          const message = res.error ?? "Erro ao excluir.";
+          setErroGrupo(message);
+          window.alert(message);
+          return;
+        }
+        router.refresh();
+      } catch {
+        const message = "Não foi possível concluir a exclusão. Atualize a página e tente novamente.";
+        setErroGrupo(message);
+        window.alert(message);
+      }
     });
   }
 
