@@ -38,6 +38,8 @@ test("athlete checkout preserves values and validates CPF and both access e-mail
   assert.match(form, /Revise antes de confirmar/);
   assert.match(form, /Corrigir dados/);
   assert.match(form, /Confirmar e pagar com/);
+  assert.match(form, /setDismissedServerErrorState\(state\)/);
+  assert.match(form, /dismissedServerErrorState !== state/);
   assert.match(action, /fieldErrors\.comprador_email/);
   assert.match(action, /fieldErrors\.parceiro_email/);
   assert.match(action, /fieldErrors\.comprador_email_confirmacao/);

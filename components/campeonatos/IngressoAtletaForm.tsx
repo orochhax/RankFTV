@@ -165,6 +165,7 @@ export function IngressoAtletaForm({
     comprarIngressoAtleta,
     {},
   );
+  const [dismissedServerErrorState, setDismissedServerErrorState] = useState<ComprarAtletaState | null>(null);
   const compradorNomeRef = useRef<HTMLInputElement>(null);
   const compradorCpfRef = useRef<HTMLInputElement>(null);
   const compradorEmailRef = useRef<HTMLInputElement>(null);
@@ -819,7 +820,10 @@ export function IngressoAtletaForm({
               <div className="grid gap-3 sm:grid-cols-2">
                 <button
                   type="button"
-                  onClick={() => setEtapa("dados")}
+                  onClick={() => {
+                    setDismissedServerErrorState(state);
+                    setEtapa("dados");
+                  }}
                   disabled={pending}
                   className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
                 >
@@ -839,7 +843,7 @@ export function IngressoAtletaForm({
             </section>
           )}
 
-          {state.error && (
+          {state.error && dismissedServerErrorState !== state && (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 ring-1 ring-red-100">
               {state.error}
             </p>
