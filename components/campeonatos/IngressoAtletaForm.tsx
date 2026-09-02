@@ -158,6 +158,7 @@ export function IngressoAtletaForm({
   const [catSelecionada, setCat] = useState<CategoriaOpcao | null>(null);
   const [cupom, setCupom] = useState<CupomAplicado | null>(null);
   const [metodoPagamento, setMetodoPagamento] = useState<"pix" | "cartao">("pix");
+  const [usarMesmoEmail, setUsarMesmoEmail] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
   const [dismissedErrors, setDismissedErrors] = useState<Partial<Record<ComprarAtletaField, number>>>({});
   const [reviewErrors, setReviewErrors] = useState<Partial<Record<ComprarAtletaField, string>>>({});
@@ -192,14 +193,44 @@ export function IngressoAtletaForm({
   }
 
   function updateAthleteEmail(field: AthleteEmailField, email: string) {
-    setValues((current) => setAthleteEmail(current, field, email));
-    setReviewErrors((current) => ({ ...current, [field]: undefined }));
+    setValues((current) => {
+      const next = setAthleteEmail(current, field, email);
+      if (field === "comprador_email" && usarMesmoEmail) {
+        return {
+          ...next,
+          parceiro_email: email,
+          parceiro_email_confirmacao: email,
+        };
+      }
+      return next;
+    });
+    setReviewErrors((current) => ({
+      ...current,
+      [field]: undefined,
+      ...(field === "comprador_email" && usarMesmoEmail
+        ? { parceiro_email: undefined, parceiro_email_confirmacao: undefined }
+        : {}),
+    }));
     if (state.fieldErrors?.[field]) {
       setDismissedErrors((current) => ({
         ...current,
         [field]: state.validationAttempt ?? 0,
       }));
     }
+  }
+
+  function toggleMesmoEmail(checked: boolean) {
+    setUsarMesmoEmail(checked);
+    setValues((current) => ({
+      ...current,
+      parceiro_email: checked ? current.comprador_email ?? "" : "",
+      parceiro_email_confirmacao: checked ? current.comprador_email ?? "" : "",
+    }));
+    setReviewErrors((current) => ({
+      ...current,
+      parceiro_email: undefined,
+      parceiro_email_confirmacao: undefined,
+    }));
   }
 
   useEffect(() => {
@@ -246,7 +277,7 @@ export function IngressoAtletaForm({
     if (parceiroEmail !== parceiroConfirmacao) {
       errors.parceiro_email_confirmacao = "A confirmação precisa ser igual ao e-mail do atleta 2.";
     }
-    if (compradorEmail && compradorEmail === parceiroEmail) {
+    if (compradorEmail && compradorEmail === parceiroEmail && !usarMesmoEmail) {
       errors.parceiro_email = "Use um e-mail diferente para cada atleta receber sua própria credencial.";
     }
 
@@ -277,6 +308,7 @@ export function IngressoAtletaForm({
   const taxa       = calcularTaxaComprador(valorFinal, metodoTaxa, isElite);
   const total      = calcularTotalComprador(valorFinal, metodoTaxa, isElite);
   const emailDaConta = authenticatedEmail?.trim() || null;
+  const podeCompartilharEmail = (values.comprador_email ?? "").trim().includes("@");
 
   return (
     <div className="space-y-6">
@@ -382,6 +414,7 @@ export function IngressoAtletaForm({
           <input type="hidden" name="category_id"     value={catSelecionada.id} />
           <input type="hidden" name="categoria_nome"  value={catSelecionada.nome} />
           <input type="hidden" name="metodo_pagamento" value={metodoPagamento} />
+          <input type="hidden" name="usar_mesmo_email" value={usarMesmoEmail ? "1" : "0"} />
 
           <div hidden={etapa !== "dados"} className="space-y-6">
           {/* Resumo da categoria escolhida */}
@@ -487,6 +520,24 @@ export function IngressoAtletaForm({
               )}
               <p className="mt-1 text-xs text-gray-400">O ingresso e QR de entrada chegam nesse e-mail.</p>
             </div>
+            {podeCompartilharEmail && (
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                <input
+                  type="checkbox"
+                  checked={usarMesmoEmail}
+                  onChange={(event) => toggleMesmoEmail(event.target.checked)}
+                  className="mt-0.5 size-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-blue-900">
+                    Usar este e-mail para os dois atletas
+                  </span>
+                  <span className="mt-0.5 block text-xs text-blue-700">
+                    Os dois ingressos serão enviados para a mesma caixa de entrada, mas continuarão com QR codes e check-ins individuais.
+                  </span>
+                </span>
+              </label>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700">Confirme seu e-mail</label>
               <input
@@ -613,6 +664,8 @@ export function IngressoAtletaForm({
                 />
               </div>
             </div>
+            {!usarMesmoEmail ? (
+            <>
             <div>
               <label className="block text-sm font-medium text-gray-700">E-mail</label>
               <input
@@ -664,6 +717,14 @@ export function IngressoAtletaForm({
                 </p>
               )}
             </div>
+            </>
+            ) : (
+              <div className="rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-800 ring-1 ring-blue-100">
+                O ingresso do atleta 2 também será enviado para <strong className="break-all">{values.comprador_email}</strong>.
+                <input type="hidden" name="parceiro_email" value={values.comprador_email ?? ""} />
+                <input type="hidden" name="parceiro_email_confirmacao" value={values.comprador_email ?? ""} />
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Gênero</label>
@@ -794,6 +855,12 @@ export function IngressoAtletaForm({
                   Cada ingresso e QR será enviado somente para o e-mail mostrado abaixo.
                 </p>
               </div>
+
+              {usarMesmoEmail && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  Você escolheu receber as duas credenciais no mesmo e-mail. Quem tiver acesso a essa caixa poderá acessar e recuperar os dois ingressos individuais.
+                </div>
+              )}
 
               <div className="divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white">
                 <div className="p-4">

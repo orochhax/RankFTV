@@ -69,6 +69,7 @@ export async function comprarIngressoAtleta(
   const categoryId     = (formData.get("category_id") as string) || null;
   const categoriaNome  = (formData.get("categoria_nome") as string) || null;
   const metodoPagamento = parseAthleteTicketPaymentChoice(formData.get("metodo_pagamento"));
+  const usarMesmoEmail = formData.get("usar_mesmo_email") === "1";
 
   if (!metodoPagamento) return { error: "Selecione Pix ou cartão para continuar." };
 
@@ -120,7 +121,9 @@ export async function comprarIngressoAtleta(
   }
   if (!pEmail || !pEmail.includes("@")) {
     fieldErrors.parceiro_email = "Informe o e-mail do parceiro para ele acessar o próprio ingresso.";
-  } else if (pEmail === email) {
+  } else if (usarMesmoEmail && pEmail !== email) {
+    fieldErrors.parceiro_email = "Confirme novamente o uso do mesmo e-mail para os dois atletas.";
+  } else if (!usarMesmoEmail && pEmail === email) {
     fieldErrors.parceiro_email = "Use um e-mail diferente para cada atleta receber sua própria credencial.";
   }
   if (!pEmailConfirmacao || pEmailConfirmacao !== pEmail) {

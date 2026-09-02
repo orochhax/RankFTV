@@ -34,6 +34,10 @@ test("athlete checkout preserves values and validates CPF and both access e-mail
   assert.match(form, /name="parceiro_email_confirmacao"/);
   assert.match(form, /compradorEmail !== compradorConfirmacao/);
   assert.match(form, /parceiroEmail !== parceiroConfirmacao/);
+  assert.match(form, /Usar este e-mail para os dois atletas/);
+  assert.match(form, /name="usar_mesmo_email"/);
+  assert.match(form, /Quem tiver acesso a essa caixa poderá acessar e recuperar os dois ingressos individuais/);
+  assert.match(form, /name="parceiro_email" value=\{values\.comprador_email/);
   assert.match(form, /Revisar dados antes de pagar/);
   assert.match(form, /Revise antes de confirmar/);
   assert.match(form, /Corrigir dados/);
@@ -46,6 +50,9 @@ test("athlete checkout preserves values and validates CPF and both access e-mail
   assert.match(action, /fieldErrors\.parceiro_email_confirmacao/);
   assert.match(action, /emailConfirmacao !== email/);
   assert.match(action, /pEmailConfirmacao !== pEmail/);
+  assert.match(action, /formData\.get\("usar_mesmo_email"\) === "1"/);
+  assert.match(action, /usarMesmoEmail && pEmail !== email/);
+  assert.match(action, /!usarMesmoEmail && pEmail === email/);
   assert.match(action, /parceiro_email[\s\S]*\.trim\(\)\.toLowerCase\(\)/);
   assert.match(action, /pEmail === email/);
   assert.match(action, /e-mail diferente para cada atleta/);
