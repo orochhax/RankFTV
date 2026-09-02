@@ -43,26 +43,38 @@ export function GraficoVendasDiarias({ dados }: { dados: DiaVenda[] }) {
   }
 
   const temVendas = dados.some((d) => d.total > 0);
+  const larguraMinima = Math.max(dados.length * 18, 280);
+
+  function formatarEixo(valor: number) {
+    if (valor === 0) return "R$ 0";
+    if (Math.abs(valor) < 1000) {
+      return `R$ ${Math.round(valor).toLocaleString("pt-BR")}`;
+    }
+    const milhares = valor / 1000;
+    return `R$ ${milhares.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
+  }
 
   return (
-    <div className="w-full overflow-x-auto">
-      <div style={{ minWidth: Math.max(dados.length * 28, 300) }}>
+    <div className="w-full max-w-full overflow-x-auto overscroll-x-contain pb-2">
+      <div style={{ minWidth: larguraMinima }}>
         <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={dados} barSize={16} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+          <BarChart data={dados} barSize={14} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
             <CartesianGrid vertical={false} stroke="#f0f0f0" />
             <XAxis
               dataKey="label"
               tick={{ fontSize: 10, fill: "#9ca3af" }}
               tickLine={false}
               axisLine={false}
-              interval={dados.length > 30 ? Math.floor(dados.length / 15) : 0}
+              interval="preserveStartEnd"
+              minTickGap={18}
+              tickMargin={8}
             />
             <YAxis
-              tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+              tickFormatter={formatarEixo}
               tick={{ fontSize: 10, fill: "#9ca3af" }}
               tickLine={false}
               axisLine={false}
-              width={40}
+              width={56}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f3f4f6" }} />
             {/* Bar invisível para passar o count ao tooltip */}

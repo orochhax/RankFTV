@@ -192,45 +192,46 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     valorInscricao: c.valorInscricao,
   }));
 
+  const cobrancasPendentesSection = (
+    pendentesComCobranca.length > 0 || pendentesTicketsComCobranca.length > 0
+  ) ? (
+    <Surface padding="md" className="space-y-3">
+      <div>
+        <h2 className="text-sm font-semibold text-ink">Cobranças pendentes</h2>
+        <p className="text-xs text-ink-muted">
+          O pagamento pode ter sido feito, mas a confirmação automática ainda não
+          chegou. Verifique o status real no processador de pagamentos antes de considerar
+          como falha — isso nunca edita o registro na mão, apenas sincroniza a resposta oficial.
+        </p>
+      </div>
+      <div className="max-h-96 divide-y divide-border overflow-y-auto overscroll-contain pr-1">
+        {pendentesComCobranca.map((p) => (
+          <div key={p.id} className="flex items-center justify-between gap-3 py-2.5">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-ink">
+                {p.teams?.atleta1_id ? (nomeAtleta1Map[p.teams.atleta1_id] ?? "Atleta") : "Atleta"}
+              </p>
+              <p className="text-xs text-ink-muted">{formatBRL(Number(p.valor))}</p>
+            </div>
+            <ReconciliarInscricaoButton champId={id} registrationId={p.id} />
+          </div>
+        ))}
+        {pendentesTicketsComCobranca.map((p) => (
+          <div key={p.id} className="flex items-center justify-between gap-3 py-2.5">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-ink">{p.comprador_nome}</p>
+              <p className="text-xs text-ink-muted">{formatBRL(Number(p.valor))}</p>
+            </div>
+            <ReconciliarInscricaoButton champId={id} registrationId={p.id} tipo="athlete_ticket" />
+          </div>
+        ))}
+      </div>
+    </Surface>
+  ) : null;
+
   return (
     <PageContainer width="wide" className="space-y-6 py-8">
       <PageHeader title="Financeiro" description="Entradas, taxas e repasses desse campeonato." />
-      <ChavePixClient chavePix={chavePix} />
-
-      {(pendentesComCobranca.length > 0 || pendentesTicketsComCobranca.length > 0) && (
-        <Surface padding="md" className="space-y-3">
-          <div>
-            <h2 className="text-sm font-semibold text-ink">Pendentes com cobrança gerada</h2>
-            <p className="text-xs text-ink-muted">
-              O pagamento pode ter sido feito, mas a confirmação automática ainda não
-              chegou. Verifique o status real no processador de pagamentos antes de considerar
-              como falha — isso nunca edita o registro na mão, apenas sincroniza a resposta oficial.
-            </p>
-          </div>
-          <div className="divide-y divide-border">
-            {pendentesComCobranca.map((p) => (
-              <div key={p.id} className="flex items-center justify-between gap-3 py-2.5">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-ink">
-                    {p.teams?.atleta1_id ? (nomeAtleta1Map[p.teams.atleta1_id] ?? "Atleta") : "Atleta"}
-                  </p>
-                  <p className="text-xs text-ink-muted">{formatBRL(Number(p.valor))}</p>
-                </div>
-                <ReconciliarInscricaoButton champId={id} registrationId={p.id} />
-              </div>
-            ))}
-            {pendentesTicketsComCobranca.map((p) => (
-              <div key={p.id} className="flex items-center justify-between gap-3 py-2.5">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-ink">{p.comprador_nome}</p>
-                  <p className="text-xs text-ink-muted">{formatBRL(Number(p.valor))}</p>
-                </div>
-                <ReconciliarInscricaoButton champId={id} registrationId={p.id} tipo="athlete_ticket" />
-              </div>
-            ))}
-          </div>
-        </Surface>
-      )}
 
       <FinanceiroConteudoClient
         champId={id}
@@ -244,6 +245,8 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
         isElite={isElite}
         feePendente={feePendente}
         vendasDiarias={vendasDiarias}
+        chavePixSection={<ChavePixClient chavePix={chavePix} />}
+        cobrancasPendentesSection={cobrancasPendentesSection}
       />
       <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} permitirCancelar />
     </PageContainer>

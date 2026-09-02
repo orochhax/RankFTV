@@ -201,6 +201,21 @@ test("payment UX is provider-neutral while privacy disclosure stays transparent"
   assert.match(source("app/privacidade/page.tsx"), /Asaas/);
 });
 
+test("championship finances keep the operational blocks ordered and mobile-safe", () => {
+  const content = source("components/painel/FinanceiroConteudoClient.tsx");
+  const page = source("app/painel/campeonatos/[id]/financeiro/page.tsx");
+  const chart = source("components/painel/GraficoVendasDiarias.tsx");
+
+  assert.match(
+    content,
+    /Saldo líquido[\s\S]*Status dos pagamentos[\s\S]*chavePixSection[\s\S]*Vendas por dia[\s\S]*cobrancasPendentesSection/,
+  );
+  assert.match(page, /max-h-96[\s\S]*overflow-y-auto/);
+  assert.match(chart, /interval="preserveStartEnd"/);
+  assert.match(chart, /minTickGap=\{18\}/);
+  assert.doesNotMatch(chart, /toFixed\(0\)\}k/);
+});
+
 test("championship publishing has one secured Pix field for every paid product", () => {
   const page = source("app/painel/campeonatos/[id]/publicar/page.tsx");
   const form = source("components/painel/PublicarCampeonatoForm.tsx");
