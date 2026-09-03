@@ -109,6 +109,11 @@ Baseline medido em 03/09/2026 antes do burndown da opção B: 1.223 avisos em
 risco; os refactors arquiteturais abaixo não bloqueiam o lançamento e devem ser
 executados gradualmente, sempre com lint, typecheck, testes e build.
 
+Após a opção B, foram eliminados os 70 avisos mecânicos identificados (regex,
+imports duplicados, remoção dinâmica tipada, saída operacional direta,
+`finally` inseguro e export anônimo). O baseline restante é de 1.153 avisos em
+352 arquivos, todos cobertos pelas tarefas abaixo.
+
 - [ ] Criar uma camada de repositories/services e remover os 219 acessos
   diretos a dados identificados em 176 arquivos, começando pelos fluxos de
   autenticação, pagamentos, reembolsos e permissões.
