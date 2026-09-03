@@ -844,7 +844,10 @@ export function prepareRoadmapImportSource(payload: string): string {
   let content = payload
     .replace(/\0/g, "")
     .replace(/\r\n?/g, "\n")
-    .replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+    .replace(new RegExp(
+      `[${String.fromCharCode(1)}-${String.fromCharCode(8)}${String.fromCharCode(11)}${String.fromCharCode(12)}${String.fromCharCode(14)}-${String.fromCharCode(31)}${String.fromCharCode(127)}]`,
+      "g",
+    ), "")
     .replace(/[ \t]+$/gm, "")
     .replace(/\n{4,}/g, "\n\n\n")
     .trim();

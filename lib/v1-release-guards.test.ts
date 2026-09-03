@@ -221,7 +221,7 @@ test("payment UX is provider-neutral while privacy disclosure stays transparent"
   assert.doesNotMatch(financePage, /Verifique o status real no Asaas/i);
   assert.match(financePage, /processador de pagamentos/);
   const financeActions = source("app/painel/campeonatos/[id]/financeiro/actions.ts");
-  assert.doesNotMatch(financeActions, /message:\s*[`\"][^\n]*Asaas/i);
+  assert.doesNotMatch(financeActions, /message:\s*[`"][^\n]*Asaas/i);
   assert.match(source("app/privacidade/page.tsx"), /Asaas/);
 });
 
