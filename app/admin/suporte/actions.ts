@@ -424,21 +424,30 @@ export async function reenviarCredencialSuporte(input: {
   });
   if (!auditReady) return { ok: false, error: "A auditoria está indisponível. Nenhum reenvio foi feito." };
 
-  await admin.from("athlete_ticket_credential_events").insert({
-    credential_id: credential.id,
-    athlete_ticket_id: ticket.id,
-    championship_id: ticket.championship_id,
-    event_type: "resend_requested",
-    actor_id: actor.id,
-    details: { athlete_slot: credential.athlete_slot, reason },
-  });
+  const { data: resendEvent, error: resendEventError } = await admin
+    .from("athlete_ticket_credential_events")
+    .insert({
+      credential_id: credential.id,
+      athlete_ticket_id: ticket.id,
+      championship_id: ticket.championship_id,
+      event_type: "resend_requested",
+      actor_id: actor.id,
+      details: { athlete_slot: credential.athlete_slot, reason },
+    })
+    .select("id")
+    .single();
+  if (resendEventError || !resendEvent) {
+    return { ok: false, error: "Não foi possível registrar a tentativa. Nenhum reenvio foi feito." };
+  }
   const { error: resetError } = await admin
     .from("athlete_ticket_credentials")
     .update({ access_email_sent_at: null, access_email_claimed_at: null, updated_at: new Date().toISOString() })
     .eq("id", credential.id)
     .eq("athlete_ticket_id", ticket.id);
   if (resetError) return { ok: false, error: "Não foi possível preparar o reenvio." };
-  const delivery = await deliverAthleteTicketCredentials(admin, ticket.id);
+  const delivery = await deliverAthleteTicketCredentials(admin, ticket.id, {
+    idempotencyScope: `support-resend-${resendEvent.id}`,
+  });
   if (delivery.sent < 1) return { ok: false, error: "A entrega não foi aceita. Ela permaneceu na fila para nova tentativa." };
   return { ok: true };
 }

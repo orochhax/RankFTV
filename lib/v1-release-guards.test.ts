@@ -42,6 +42,7 @@ test("assisted ticket support is CEO-only and fails closed when audit is unavail
   assert.match(actions, /security_audit_log/);
   assert.match(actions, /SUPPORT_AUDIT_ACTIONS/);
   assert.match(actions, /reenviarCredencialSuporte/);
+  assert.match(actions, /idempotencyScope: `support-resend-\$\{resendEvent\.id\}`/);
   assert.match(actions, /invalidarCredencialSuporte/);
   assert.match(actions, /Limite de 3 reenvios em 24 horas/);
   assert.match(actions, /listarOperacaoEmails/);
@@ -59,6 +60,8 @@ test("assisted ticket support is CEO-only and fails closed when audit is unavail
   assert.match(center, /Operação de e-mails/);
   assert.match(center, /Fila de casos/);
   assert.match(center, /Histórico das credenciais/);
+  assert.match(center, /setOperationError/);
+  assert.match(center, /role="alert"/);
   assert.doesNotMatch(center, /alert\s*\(/);
   assert.match(page, /listarLogsSuporte/);
   assert.match(menu, /href: "\/admin\/suporte"[\s\S]*ownerOnly: true/);

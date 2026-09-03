@@ -75,6 +75,7 @@ export function TicketSupportCenter({
   } | null>(null);
   const [operationReason, setOperationReason] = useState("");
   const [operationConfirmation, setOperationConfirmation] = useState("");
+  const [operationError, setOperationError] = useState<string | null>(null);
   const [caseDraft, setCaseDraft] = useState<{ ticketId?: string; credentialId?: string } | null>(null);
   const [caseType, setCaseType] = useState("outro");
   const [caseSummary, setCaseSummary] = useState("");
@@ -166,6 +167,7 @@ export function TicketSupportCenter({
     if (!credentialOperation) return;
     setError(null);
     setSuccess(null);
+    setOperationError(null);
     startTransition(async () => {
       const common = {
         ticketId: credentialOperation.ticketId,
@@ -175,12 +177,16 @@ export function TicketSupportCenter({
       const result = credentialOperation.type === "resend"
         ? await reenviarCredencialSuporte(common)
         : await invalidarCredencialSuporte({ ...common, confirmation: operationConfirmation });
-      if (!result.ok) { setError(result.error ?? "Falha na operação da credencial."); return; }
+      if (!result.ok) {
+        setOperationError(result.error ?? "Falha na operação da credencial.");
+        return;
+      }
       setSuccess(credentialOperation.type === "resend" ? "Credencial reenviada com auditoria." : "Credencial anterior invalidada e nova emissão enviada.");
       const ticketId = credentialOperation.ticketId;
       setCredentialOperation(null);
       setOperationReason("");
       setOperationConfirmation("");
+      setOperationError(null);
       const refreshed = await buscarIngressosSuporte(term);
       if (refreshed.ok) setTickets(refreshed.tickets ?? []);
       refreshOperations(ticketId);
@@ -271,6 +277,7 @@ export function TicketSupportCenter({
                     <button
                       type="button"
                       onClick={() => {
+                        setOperationError(null);
                         setCredentialOperation({ ticketId: item.ticketId, credentialId: item.credentialId, slot: item.athleteSlot, type: "resend" });
                         setOperationReason("Nova tentativa controlada após falha ou atraso de entrega.");
                       }}
@@ -368,6 +375,7 @@ export function TicketSupportCenter({
                         <button
                           type="button"
                           onClick={() => {
+                            setOperationError(null);
                             setCredentialOperation({ ticketId: ticket.id, credentialId: credential.id, slot, type: "resend" });
                             setOperationReason("");
                             setOperationConfirmation("");
@@ -380,6 +388,7 @@ export function TicketSupportCenter({
                           type="button"
                           disabled={credential.checkedIn}
                           onClick={() => {
+                            setOperationError(null);
                             setCredentialOperation({ ticketId: ticket.id, credentialId: credential.id, slot, type: "invalidate" });
                             setOperationReason("");
                             setOperationConfirmation("");
@@ -610,11 +619,25 @@ export function TicketSupportCenter({
                 <input value={operationConfirmation} onChange={(event) => setOperationConfirmation(event.target.value)} className="mt-1 w-full rounded-xl border border-red-200 px-4 py-3 text-sm" />
               </>
             )}
+            {operationError && (
+              <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {operationError}
+              </div>
+            )}
             <div className="mt-5 flex flex-col gap-2">
               <button onClick={runCredentialOperation} disabled={pending} className={`rounded-xl py-3 text-sm font-semibold text-white disabled:opacity-60 ${credentialOperation.type === "invalidate" ? "bg-red-600" : "bg-blue-600"}`}>
                 {pending ? "Processando..." : credentialOperation.type === "invalidate" ? "Invalidar e emitir nova" : "Reenviar agora"}
               </button>
-              <button onClick={() => setCredentialOperation(null)} disabled={pending} className="rounded-xl bg-gray-100 py-3 text-sm font-medium text-gray-700">Cancelar</button>
+              <button
+                onClick={() => {
+                  setCredentialOperation(null);
+                  setOperationError(null);
+                }}
+                disabled={pending}
+                className="rounded-xl bg-gray-100 py-3 text-sm font-medium text-gray-700"
+              >
+                Cancelar
+              </button>
             </div>
           </div>
         </div>

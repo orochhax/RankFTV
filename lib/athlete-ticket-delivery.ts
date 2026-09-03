@@ -34,6 +34,7 @@ function deliveryBaseUrl(): string {
 export async function deliverAthleteTicketCredentials(
   supabase: SupabaseClient,
   ticketId: string,
+  options?: { idempotencyScope?: string },
 ): Promise<AthleteTicketDeliveryResult> {
   const result: AthleteTicketDeliveryResult = { attempted: 0, sent: 0, failed: 0 };
   const { data: ticket, error: ticketError } = await supabase
@@ -158,7 +159,9 @@ export async function deliverAthleteTicketCredentials(
       nomeCategoria: ticket.categoria_nome ?? "Dupla",
       credencialUrl: url.toString(),
       gerenciarCompraUrl: managementUrl?.toString(),
-      idempotencyKey: `athlete-credential-${credential.id}-${credential.access_token}`,
+      idempotencyKey: options?.idempotencyScope
+        ? `athlete-credential-${credential.id}-${credential.access_token}-${options.idempotencyScope}`
+        : `athlete-credential-${credential.id}-${credential.access_token}`,
     });
 
     if (sent) {

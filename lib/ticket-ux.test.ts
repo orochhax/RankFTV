@@ -187,6 +187,7 @@ test("a guest pair receives two linked individual entry credentials", () => {
   assert.match(delivery, /access_email_claimed_at/);
   assert.match(delivery, /athlete_tickets!inner\(status_pagamento\)/);
   assert.match(delivery, /idempotencyKey/);
+  assert.match(delivery, /options\?\.idempotencyScope/);
   assert.match(email, /if \(result\.error\)/);
   assert.match(ownership, /access_token: nextAccessToken, user_id: null/);
   assert.match(ownership, /parceiro_user_id: null/);
