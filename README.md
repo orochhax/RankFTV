@@ -12,6 +12,8 @@ as ferramentas pessoais ficam fora do escopo desse release.
 - [DOCUMENTACAO.md](DOCUMENTACAO.md): fonte técnica atual sobre rotas, componentes, dados e fluxos.
 - [AUDITORIA-PRODUCAO.md](AUDITORIA-PRODUCAO.md): segurança, pendências externas e prontidão para produção.
 - [PENDENCIAS-V1.md](PENDENCIAS-V1.md): fonte única do fechamento, evidências e bloqueios da V1.
+- [MELHORIAS-PENDENTES.md](MELHORIAS-PENDENTES.md): melhorias pós-V1 orientadas por uso real.
+- [PESQUISA-CONCORRENTES.md](PESQUISA-CONCORRENTES.md): matriz de comparação e roteiro de pesquisa do mercado.
 - [RUNBOOK-PRODUCAO.md](RUNBOOK-PRODUCAO.md): ordem controlada de deploy, migrations e rollback.
 - [PLANO-PIVO-ARENA.md](PLANO-PIVO-ARENA.md): registro histórico do pivô de produto; não deve substituir a documentação atual.
 
@@ -48,6 +50,7 @@ Integrações externas:
 - Asaas: Pix, cartão, assinaturas, webhooks e repasses.
 - Resend: e-mails transacionais.
 - Vercel: deploy e crons diários de liquidação, conciliação, retenção e análise interna.
+- GitHub Actions: conciliação financeira subdiária, depois da configuração dos secrets de Production e da promoção do workflow para a branch padrão.
 
 ## Requisitos
 
@@ -82,7 +85,7 @@ Nunca versione `.env.local`. Variáveis sem o prefixo `NEXT_PUBLIC_` são exclus
 | `SUPABASE_SERVICE_ROLE_KEY` | Servidor | Operações administrativas que ignoram RLS. |
 | `NEXT_PUBLIC_BASE_URL` | Público | URL canônica usada em links e callbacks. |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Público | Chave pública do CAPTCHA; o segredo fica no Supabase Auth. |
-| `ADMIN_EMAIL` | Servidor | Identifica a única conta administrativa principal. |
+| `ADMIN_EMAIL` | Servidor | Identifica o dono de módulos pessoais internos; não concede acesso ao painel comercial. |
 | `ASAAS_BASE_URL` | Servidor | Endpoint da API Asaas do ambiente atual. |
 | `ASAAS_API_KEY` | Servidor | Credencial da API Asaas. |
 | `ASAAS_WEBHOOK_TOKEN` | Servidor | Autentica os webhooks recebidos do Asaas. |
@@ -94,6 +97,8 @@ Nunca versione `.env.local`. Variáveis sem o prefixo `NEXT_PUBLIC_` são exclus
 | `OPENAI_LIFE_OS_MODEL` | Servidor | Modelo usado na leitura diaria das 05:00. |
 | `RESEND_API_KEY` | Servidor | Envio de e-mails transacionais. |
 | `RESEND_FROM_EMAIL` | Servidor | Remetente em domínio verificado; obrigatório para envio real. |
+| `RESEND_WEBHOOK_SECRET` | Servidor | Valida a assinatura dos eventos de entrega recebidos do Resend. |
+| `EMAIL_EVENT_HASH_SECRET` | Servidor | Gera o hash irreversível usado nas métricas de destinatário. |
 | `OBSERVABILITY_HTTP_ENDPOINT` / `OBSERVABILITY_HTTP_TOKEN` | Servidor | Coletor autenticado de observabilidade. |
 | `OPERATIONS_ALERT_WEBHOOK_URL` | Servidor | Canal de alertas operacionais. |
 | `APP_VERSION` | Servidor | Identifica a versão em health check e telemetria. |
@@ -177,17 +182,17 @@ Veja a sequência completa, as correções e os riscos residuais em [AUDITORIA-P
 
 - [ ] Definir `NEXT_PUBLIC_BASE_URL` com o domínio HTTPS final.
 - [ ] Revisar Site URL e Redirect URLs no Supabase Auth; configurar política de senha, proteção anti-bot/CAPTCHA e MFA da conta admin.
-- [ ] Confirmar que a conta principal usa ADMIN_EMAIL e possui profiles.role = ceo.
+- [ ] Confirmar que a conta operacional possui `profiles.role = ceo`; `ADMIN_EMAIL` não concede acesso comercial.
 - [ ] Trocar Asaas Sandbox por produção com credenciais próprias.
 - [ ] Cadastrar os webhooks Asaas no domínio final e validar token, eventos, repetição e estorno.
-- [ ] Verificar domínio e remetente no Resend, incluindo SPF e DKIM.
-- [ ] Confirmar o cron diário da Vercel e alertas para falha de liquidação/repasse.
+- [ ] Verificar domínio e remetente no Resend, incluindo SPF, DKIM e DMARC; validar o webhook de entrega.
+- [ ] Confirmar os crons diários da Vercel e, na branch padrão, o workflow subdiário de conciliação do GitHub Actions.
 - [ ] Ativar backups/PITR, logs, monitoramento e conciliação financeira.
 
 ### Homologação
 
 - [ ] Testar cadastro, login, recuperação, perfil e permissões em desktop e mobile.
-- [ ] Testar campeonato, convite de dupla, inscrição, Pix, cartão recusado/aprovado, QR, check-in, estorno e repasse.
+- [ ] Testar campeonato, convite de dupla, inscrição, Pix, cartão recusado/aprovado, duas credenciais individuais, recuperação por CPF + e-mail + OTP, QR, check-in, estorno e repasse.
 - [ ] Testar arena, aluno, aula, presença, mensalidade, diária e aluguel, incluindo a taxa de serviço em cada método.
 - [ ] Fazer uma transação real controlada de baixo valor antes da abertura pública.
 - [ ] Validar páginas públicas, links diretos, voltar/avançar, notificações e rotas focadas.

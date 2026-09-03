@@ -1,7 +1,114 @@
 # Auditoria de seguranca e prontidao para producao - RankFTV
 
 Data da revisao: 14/07/2026
-Ultima atualizacao: 07/08/2026
+Ultima atualizacao: 03/09/2026
+
+## Atualizacao 03/09/2026 - credenciais individuais, suporte e reembolso
+
+Esta secao substitui o estado operacional das secoes historicas abaixo. O
+release continua bloqueado para pagamentos reais ate concluir os itens P0 de
+`PENDENCIAS-V1.md`.
+
+### Implementado no codigo
+
+- Cada compra de dupla em `athlete_tickets` possui duas linhas em
+  `athlete_ticket_credentials`, com token de acesso, QR, codigo e check-in
+  individuais. O resumo legado do pedido indica se ao menos um atleta chegou.
+- O checkout permite usar o mesmo e-mail para os dois atletas sem juntar as
+  credenciais. A recuperacao exige correspondencia exata de CPF + e-mail e OTP;
+  cada sessao acessa somente a credencial autorizada.
+- A troca de titularidade exige OTP para mudancas sensiveis, gira links e QRs
+  afetados, desvincula identidades antigas e envia avisos. O fluxo e bloqueado
+  depois de check-in, inicio do evento ou confirmacao do chaveamento.
+- `/admin/suporte` e exclusivo de `profiles.role = ceo`. Busca ingresso,
+  corrige e-mail com justificativa, reenvia com limite, invalida credencial e
+  registra casos/notas. A auditoria possui periodo por data, e o painel agrega
+  eventos de credencial e metricas de entrega sem expor destinatarios.
+- O webhook Resend valida assinatura e registra estados aceito, entregue,
+  atrasado, bounce, reclamacao, falha e supressao. A retencao cobre os novos
+  eventos operacionais e casos de suporte.
+- Uma categoria com inscricao, ingresso ou chaveamento nao pode ser apagada. O
+  erro aparece dentro do site, sem `alert()` nativo, e a exclusao nao cancela
+  compras nem gera reembolso.
+- A unicidade de participante por campeonato + categoria cobre o fluxo
+  autenticado e o checkout rapido, inclusive concorrencia entre os dois.
+- O financeiro do organizador prioriza saldo liquido, status, chave Pix, grafico
+  responsivo e lista rolavel de pendencias. O nome do provedor nao aparece nos
+  textos operacionais destinados ao organizador.
+- Cancelamento e reembolso usam operacao duravel e idempotente. Reembolso
+  integral envia o total; parcial preserva a taxa conforme a regra atual. A
+  conciliacao consulta `GET /payments/{id}/refunds`: somente `DONE` confirma a
+  devolucao; `CANCELLED` vira falha terminal assistida sem cancelar ingresso ou
+  liberar inventario.
+- O workflow `.github/workflows/financial-reconciliation.yml` esta preparado
+  para conciliacao a cada dez minutos no dominio de producao. Ele ainda depende
+  de chegar a branch padrao e dos secrets do environment `production` no
+  GitHub; o cron diario da Vercel continua como contingencia.
+
+### Evidencias informadas da homologacao Sandbox
+
+- Duas credenciais foram emitidas e cada link mostrou somente um ingresso.
+- O uso de um unico e-mail para a dupla e a revisao antes do pagamento foram
+  testados.
+- Recuperacao, OTP, troca protegida, invalidacao do link antigo e entrega do
+  novo ingresso funcionaram.
+- Correcao assistida pelo CEO notificou o e-mail antigo e entregou a nova
+  credencial ao endereco corrigido.
+- Reenvio registrou auditoria; o e-mail chegou e o webhook alterou a metrica de
+  aceito para entregue, com tempo medio calculado.
+- Exclusao de categoria com historico foi recusada com mensagem dentro da
+  interface, preservando categoria e ingressos.
+- As migrations de credenciais, seguranca de alteracao, operacao de
+  credenciais/retencao e protecao de categoria foram executadas no ambiente de
+  homologacao conforme as confirmacoes do responsavel.
+
+### Bloqueios e resultado financeiro real do teste
+
+No teste de 03/09/2026, o pedido de reembolso integral de R$ 108,00 foi criado
+e autorizado no processador, mas a consulta posterior retornou `CANCELLED`, sem
+devolucao confirmada. Depois da correcao, a conciliacao marcou a operacao
+interna como cancelada e o cliente passou a ver que o caso precisa de
+atendimento. Esse teste nao e evidencia de reembolso concluido.
+
+Continuam pendentes: obter um reembolso Pix e um de cartao com estado `DONE` em
+teste controlado; fechar o procedimento do CEO para falha terminal; configurar
+e validar dominio/e-mail/webhook no ambiente Production; habilitar e observar o
+agendamento subdiario; testar backup/restore; concluir juridico, suporte e
+monitoramento; e implementar o e-mail importante para mudanca de data, horario
+ou local do campeonato.
+
+### Validacoes locais de 03/09/2026
+
+- `npm run audit:prod`: aprovado, zero vulnerabilidades conhecidas.
+- `npm run lint`: aprovado, sem erros.
+- `npm run typecheck`: aprovado, sem erros.
+- `npm test`: 660/660 testes aprovados.
+- `npm run build`: aprovado no Next.js 16.3.0, incluindo TypeScript e geracao
+  das 59 paginas estaticas coletadas pelo build.
+- `git diff --check`: aprovado; somente avisos locais de conversao LF/CRLF no
+  Windows.
+
+Os E2E mutantes e qualquer nova operacao remota nao foram executados nesta
+revisao documental. As evidencias Sandbox acima foram informadas pelo
+responsavel ao longo da homologacao e nao foram recriadas por este fechamento.
+
+### Migrations acumuladas desta etapa
+
+Executar somente na ordem e com as verificacoes de `RUNBOOK-PRODUCAO.md`:
+
+1. `supabase/financial-operations.sql`
+2. `supabase/payment-card-attempt-security.sql`
+3. `supabase/production-spectator-ticket-items.sql`
+4. `supabase/production-order-inventory-release.sql`
+5. `supabase/asaas-webhook-idempotency.sql`
+6. `supabase/production-query-indexes.sql`
+7. `supabase/production-athlete-ticket-credentials.sql`
+8. `supabase/production-athlete-ticket-change-security.sql`
+9. `supabase/production-bracket-participants.sql`
+10. `supabase/production-participant-category-uniqueness.sql`
+11. `supabase/production-category-deletion-guard.sql`
+12. `supabase/production-credential-operations.sql`
+13. `supabase/production-data-retention.sql`
 
 ## Atualizacao 07/08/2026 - hardening para trafego e pagamentos reais
 

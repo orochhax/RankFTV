@@ -1,25 +1,50 @@
 # Melhorias pendentes
 
-Os itens de segurança das credenciais, operação de e-mails, central de
-suporte, PDF e painel de check-in foram implementados. O histórico permanece
-registrado no Git.
+Atualizado em 03/09/2026. Este arquivo reúne melhorias que não bloqueiam a
+V1. Obrigações de lançamento e segurança permanecem em `PENDENCIAS-V1.md`.
 
-## Dependência externa: carteiras digitais
+## Experiência do atleta
 
 - [ ] Emitir passes oficiais para Apple Wallet e Google Wallet. A integração
   exige conta de emissor, certificados/chaves privadas e aprovação das duas
-  plataformas. Até essas credenciais existirem, o link online limpo e o PDF
-  individual são as opções suportadas; não será criado um passe não assinado
-  que pareça oficial.
+  plataformas. Até isso existir, manter o link protegido e o PDF individual.
+- [ ] Criar lista de espera por categoria, com consentimento, posição clara e
+  convite com prazo quando uma vaga for liberada.
+- [ ] Melhorar a contingência de check-in para conexão instável, sem permitir
+  uso duplicado do mesmo ingresso.
+- [ ] Centralizar avisos importantes do campeonato no ingresso e no e-mail,
+  incluindo mudança de data, horário ou local.
 
-## Ativação operacional necessária
+## Experiência do organizador
 
-- [ ] Executar `supabase/production-credential-operations.sql` no projeto de
-  homologação e, depois, executar novamente
-  `supabase/production-data-retention.sql`.
-- [ ] Configurar `RESEND_WEBHOOK_SECRET` e `EMAIL_EVENT_HASH_SECRET` na Vercel,
-  cadastrar o endpoint `/api/webhooks/resend` no provedor de e-mail e fazer
-  novo deploy.
+- [ ] Criar visão operacional por quadra, com partidas atuais, próximas
+  chamadas, atrasos e conflitos.
+- [ ] Evoluir o placar ao vivo e uma página pública leve para acompanhamento.
+- [ ] Adicionar relatórios exportáveis de vendas, presença, categorias e
+  repasses, preservando os dados pessoais dos atletas.
+- [ ] Criar alertas internos configuráveis para pagamento pendente, webhook
+  falho, reembolso assistido e repasse recusado.
 
-Depois da validação em homologação, estas duas tarefas de ativação também
-devem ser removidas deste arquivo.
+## Administração e suporte
+
+- [ ] Evoluir os casos de suporte com filtros, prioridade, responsável, SLA,
+  anexos seguros e histórico de resolução.
+- [ ] Criar painéis de tendência para entrega de e-mails, recuperação de
+  ingresso, invalidação de links e alterações assistidas.
+- [ ] Avaliar permissões administrativas granulares se outras pessoas entrarem
+  na operação; enquanto isso, manter o painel sensível exclusivo do papel CEO.
+
+## Evolução de produto
+
+- [ ] Priorizar as próximas entregas usando dados reais e a matriz de
+  `PESQUISA-CONCORRENTES.md`.
+- [ ] Planejar Arena comercial, assinaturas recorrentes, aplicativo/PWA
+  ampliado e analytics avançado somente depois da estabilização da V1.
+
+## Itens concluídos
+
+As credenciais individuais, recuperação segura, troca protegida, suporte do
+CEO, auditoria, webhook/métricas de e-mail, PDF, check-in e proteção contra
+exclusão de categoria com histórico já foram implementados e homologados no
+Sandbox. As migrations operacionais e de retenção também foram executadas
+nesse ambiente; a promoção para Production continua controlada pelo runbook.

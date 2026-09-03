@@ -19,6 +19,20 @@ genérica nem retomar um ranking nacional na V1. O foco atual continua sendo:
 3. gestão de arenas, alunos, aulas e cobranças;
 4. experiência confiável antes, durante e depois do evento.
 
+### Estado do RankFTV em 03/09/2026
+
+Já foram homologados no Sandbox: duas credenciais individuais por dupla,
+e-mail compartilhado opcional, recuperação exata por CPF + e-mail + OTP, troca
+protegida com invalidação dos links antigos, suporte exclusivo do CEO com
+auditoria e acompanhamento de entrega pelo webhook de e-mail. Esses itens agora
+viram regressão obrigatória, não lacuna de produto.
+
+O principal risco ainda aberto na jornada de compra é o fechamento financeiro:
+o teste de reembolso de R$ 108,00 terminou como `CANCELLED` no processador. A
+interface e a conciliação tratam o estado com segurança, mas ainda falta provar
+um Pix e um cartão com devolução `DONE`. Também falta comunicar automaticamente
+mudanças de data, horário ou local aos titulares de ingressos pagos.
+
 ## 2. Tese de diferenciação
 
 As plataformas genéricas são fortes em descoberta, marketing e bilheteria.
@@ -294,9 +308,11 @@ a cada trimestre, pois os produtos mudam.
 ### Antes de pagamentos reais — confiança e operação
 
 1. concluir todas as pendências P0 já registradas em `PENDENCIAS-V1.md`;
-2. fechar o fluxo de estorno Pix/cartão, inclusive autorização e conciliação;
+2. concluir um estorno Pix e um de cartão com `DONE`, inclusive autorização,
+   conciliação e falhas terminais como `CANCELLED`;
 3. enviar alertas importantes quando data, horário ou local mudar;
-4. validar entrega de e-mail, recuperação, troca de titularidade e invalidação;
+4. manter regressão automatizada e smoke de entrega, recuperação, troca de
+   titularidade e invalidação;
 5. documentar e testar a contingência de check-in sem conexão;
 6. executar o smoke final completo em produção controlada.
 

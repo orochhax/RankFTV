@@ -1,6 +1,6 @@
 # Documentação técnica do RankFTV
 
-> Fonte técnica canônica do estado atual do repositório em 19/08/2026.
+> Fonte técnica canônica do estado atual do repositório em 03/09/2026.
 >
 > Este documento descreve o que está implementado no código. Configurações de
 > serviços externos e riscos que ainda impedem afirmar “100% em produção” ficam
@@ -27,8 +27,10 @@ bloqueios operacionais estão centralizados em `PENDENCIAS-V1.md`.
   cobrança das aulas em que está designado; gerente tem as mesmas permissões
   do dono sobre aulas, presenças e financeiro da arena;
 - staff: acessa somente os campeonatos e funções autorizados no convite;
-- admin/CEO: o proxy exige profiles.role igual a admin ou ceo; algumas ações
-  também aceitam ADMIN_EMAIL como fallback, e /admin/usuarios exige role ceo.
+- admin/CEO: o acesso comercial a `/admin` usa exclusivamente `profiles.role`
+  igual a `admin` ou `ceo`; `/admin/usuarios` e `/admin/suporte` exigem `ceo`.
+  `ADMIN_EMAIL` identifica apenas o dono dos módulos pessoais internos e não
+  concede permissão comercial.
 
 Essas capacidades não são apenas decisões visuais. Páginas, Server Actions,
 RLS, grants, funções SQL e verificações de propriedade continuam responsáveis
@@ -44,7 +46,7 @@ pela autorização efetiva.
 | Pagamentos | Asaas para Pix, cartão, assinaturas, webhooks e repasses |
 | E-mail | Resend |
 | Gráficos e documentos | Recharts, qrcode e jsPDF |
-| Deploy e tarefas | Vercel e cron definido em vercel.json |
+| Deploy e tarefas | Vercel, crons definidos em vercel.json e GitHub Actions para conciliação subdiária |
 
 Requisito local: Node.js 20.9 ou superior.
 
@@ -76,7 +78,7 @@ npm run test:e2e
 | NEXT_PUBLIC_SUPABASE_ANON_KEY | público | chave pública/anon |
 | SUPABASE_SERVICE_ROLE_KEY | servidor | operações administrativas autorizadas |
 | NEXT_PUBLIC_BASE_URL | público | origem canônica de links e callbacks |
-| ADMIN_EMAIL | servidor | conta administrativa principal |
+| ADMIN_EMAIL | servidor | dono dos módulos pessoais internos; não concede acesso comercial |
 | ASAAS_BASE_URL | servidor | endpoint Sandbox ou produção |
 | ASAAS_API_KEY | servidor | autenticação da API Asaas |
 | ASAAS_WEBHOOK_TOKEN | servidor | validação do webhook |
@@ -84,6 +86,8 @@ npm run test:e2e
 | CRON_SECRET | servidor | proteção do cron de liquidação |
 | RESEND_API_KEY | servidor | envio transacional |
 | RESEND_FROM_EMAIL | servidor | remetente verificado |
+| RESEND_WEBHOOK_SECRET | servidor | assinatura dos eventos recebidos do Resend |
+| EMAIL_EVENT_HASH_SECRET | servidor | HMAC irreversível de destinatários nas métricas |
 | OBSERVABILITY_HTTP_ENDPOINT | servidor | coletor configurável de erros e métricas |
 | OBSERVABILITY_HTTP_TOKEN | servidor | autenticação do coletor |
 | OPERATIONS_ALERT_WEBHOOK_URL | servidor | canal operacional de alertas |
@@ -111,7 +115,7 @@ O layout raiz em app/layout.tsx resolve no servidor:
 - existência de conta de organizador;
 - propriedade de arena;
 - convites aceitos de staff;
-- exibição do atalho administrativo por ADMIN_EMAIL;
+- exibição do atalho administrativo por `profiles.role` (`admin` ou `ceo`);
 - soma de notificações, convites de staff e convites de dupla pendentes.
 
 Essas informações são entregues ao AppShell. A navegação interna usa Link e o
@@ -193,16 +197,16 @@ Itens declarados em components/shell/app-nav-items.ts:
 | Organizador | /painel | possui organizer_accounts |
 | Minhas arenas | /arena | possui arena |
 | Staff | /staff | possui convite aceito |
-| Administração | /admin | atalho exibido quando o e-mail é ADMIN_EMAIL |
+| Administração | /admin | `profiles.role` igual a `admin` ou `ceo` |
 
 A rota Campeonatos também fica ativa dentro de /campeonatos. Minhas arenas
 fica ativa em /arena e seus descendentes. A rota atual, e não um estado local
 isolado, determina o item selecionado.
 
-O atalho e a autorização administrativa ainda usam fontes diferentes: o layout
-global verifica ADMIN_EMAIL, enquanto proxy.ts exige role admin/ceo. Na prática,
-a conta principal de lançamento deve ter e-mail igual a ADMIN_EMAIL e role ceo.
-Essa regra deve ser unificada antes de delegar administração a outra conta.
+O layout, o proxy e os helpers comerciais usam a mesma fonte de verdade:
+`profiles.role`. O papel `admin` acessa as áreas administrativas gerais; ações
+sensíveis de suporte e administração de usuários exigem `ceo`. A variável
+`ADMIN_EMAIL` permanece limitada aos módulos pessoais internos.
 
 ## 5. Catálogo de rotas
 
@@ -222,6 +226,8 @@ seja pública: cada página aplica sua autenticação e autorização.
 | /campeonatos/[id]/pagamento/[registrationId] | pagamento da inscrição |
 | /campeonatos/[id]/comprar | ingresso de atleta/visitante |
 | /campeonatos/[id]/comprar/ingresso/[ticketId] | pagamento e credencial do ingresso de atleta |
+| /campeonatos/[id]/ingresso-atleta/[credentialId] | credencial individual protegida de um integrante da dupla |
+| /campeonatos/[id]/ingresso-atleta/[credentialId]/acessar | troca do token de e-mail por sessão segura da credencial |
 | /campeonatos/[id]/plateia | escolha/compra de ingresso de espectador |
 | /campeonatos/[id]/plateia/ingresso/[ticketId] | pagamento e credencial de plateia |
 | /campeonatos/[id]/chaveamento | chaveamento público |
@@ -331,21 +337,28 @@ existem por compatibilidade. Não devem ser usadas para criar navegação nova.
 | /admin/destaques | destaques da Home |
 | /admin/taxas | configuração de taxas |
 | /admin/usuarios | administração de usuários |
+| /admin/suporte | suporte a ingressos, reenvio/invalidação, casos, auditoria e métricas de e-mail; exclusivo do CEO |
 | /admin/gastos e /admin/gasto-mensal | controles internos de gastos |
 | /admin/performance | ferramenta interna de performance |
 
-O proxy protege todo /admin por role admin/ceo. /admin/usuarios é exclusivo de
-role ceo. Helpers de ações administrativas também aceitam ADMIN_EMAIL como
-fallback, mas esse fallback não substitui a verificação anterior do proxy.
+O proxy protege todo `/admin` por `profiles.role` `admin`/`ceo`.
+`/admin/usuarios` e `/admin/suporte` são exclusivos de `ceo`, inclusive nas
+Server Actions. Não existe fallback de e-mail para autorização comercial.
 
 ### 5.6 APIs
 
 | Endpoint | Função |
 | --- | --- |
 | POST /api/webhooks/asaas | eventos de pagamento do Asaas |
-| POST /api/arena/webhook | handler específico/legado para cobranças mens: |
+| POST /api/webhooks/resend | eventos assinados de entrega, atraso, bounce, reclamação e falha de e-mail |
+| POST /api/arena/webhook | handler específico/legado para cobranças mensais |
 | GET /api/cron/repasse-liquidacao | liquidação diária protegida por segredo |
+| GET ou POST /api/cron/financial-reconciliation | conciliação financeira e retentativa segura de credenciais pendentes |
+| GET /api/cron/data-retention | retenção operacional protegida por segredo |
+| GET /api/health | estado sanitizado da aplicação e dependências |
 | POST /api/meus-ingressos | consulta de ingresso sem dados sensíveis na URL |
+| POST /api/meus-ingressos/verificar | valida OTP da recuperação e cria sessão limitada |
+| GET /api/athlete-credential-status | atualização protegida do estado da credencial individual |
 | GET /api/ticket-status | atualização protegida do status do ingresso |
 | GET /api/users/search | busca limitada de usuário para convite |
 
@@ -370,11 +383,17 @@ possa ser executado inteiro e sem verificar dependências.
 ### Campeonatos
 
 - championships e championship_categories;
-- registrations, teams e credentials;
+- registrations, teams, credentials e `bracket_participants`;
 - pricing_tiers e coupons;
 - bracket_matches e tabelas auxiliares de chaveamento;
 - spectator_ticket_types e spectator_tickets;
-- athlete_tickets;
+- athlete_tickets e `athlete_ticket_credentials`, com QR, código, acesso e
+  check-in independentes para cada integrante;
+- `athlete_ticket_change_challenges`, para OTP e confirmação de alterações
+  sensíveis;
+- `athlete_ticket_credential_events`, `transactional_email_events`,
+  `support_cases` e `support_case_notes`, para operação e auditoria sem guardar
+  token, QR ou destinatário em texto puro;
 - shirt_production e estruturas de equipe;
 - rating_history, conquistas e resultados.
 
@@ -451,11 +470,31 @@ de visitante, inscrição autenticada, convite de parceiro e testes de servidor.
 
 ### 7.2 Ingresso de visitante
 
-1. O comprador informa os dados exigidos no checkout.
-2. O servidor cria ingresso e cobrança.
-3. O link privado usa token de acesso.
-4. A consulta perdida usa POST, rate limit e não devolve QR sem autorização.
-5. Webhook, check-in e repasse reutilizam o registro interno.
+1. O comprador escolhe a categoria e informa os dados dos dois atletas. Pode
+   usar um único e-mail para a dupla; a revisão mostra explicitamente qual
+   endereço receberá cada credencial.
+2. O servidor valida CPF, e-mail, elegibilidade, duplicidade e estoque, cria o
+   pedido pai em `athlete_tickets` e inicia a cobrança durável.
+3. Depois da confirmação do pagamento, cada integrante recebe uma linha em
+   `athlete_ticket_credentials`, com token de acesso, QR, código e check-in
+   próprios. Mesmo quando o e-mail é compartilhado, os ingressos permanecem
+   individuais.
+4. O link enviado por e-mail troca o token por uma sessão limitada àquela
+   credencial. Um link substituído, invalidado ou pertencente a outro atleta
+   não abre o ingresso.
+5. A recuperação pública exige correspondência exata de CPF e e-mail antes do
+   OTP. A resposta inicial é neutra para reduzir enumeração de dados, e o QR só
+   aparece depois da confirmação do código.
+6. Alterações sensíveis de titularidade exigem OTP no e-mail atual; trocar o
+   e-mail do comprador também exige confirmação do novo endereço. Mudança de
+   identidade gira links, códigos e QRs afetados, remove vínculos antigos e
+   dispara avisos. Alterações ficam bloqueadas após check-in, início do evento
+   ou confirmação do chaveamento.
+7. Correção assistida, reenvio e invalidação são exclusivos do CEO em
+   `/admin/suporte`, exigem motivo e ficam na auditoria. O histórico exibido ao
+   atleta omite falhas técnicas temporárias e não expõe tokens nem e-mails.
+8. O campo legado de check-in do pedido passa a significar que pelo menos um
+   dos integrantes chegou; cada presença continua registrada individualmente.
 
 ### 7.3 Arena
 
@@ -624,6 +663,19 @@ Uma transferência encerrada pelo provedor recebe uma nova geração
 `externalReference:retry:N` na tentativa seguinte; estado pendente ou ambíguo
 continua preso à referência original.
 
+Reembolsos são consultados também pelo endpoint dedicado do provedor
+`GET /payments/{id}/refunds`. Somente `DONE` confirma a devolução e permite
+invalidar o ingresso/liberar inventário exatamente uma vez. Estados pendentes
+ou que exigem autorização continuam em conciliação. `CANCELLED` é falha
+terminal assistida: o sistema não repete automaticamente, mantém ingresso e
+estoque ativos e exibe o caso ao cliente e ao CEO.
+
+No plano Hobby, o cron da Vercel permanece diário. O workflow
+`.github/workflows/financial-reconciliation.yml` está preparado para chamar o
+endpoint a cada dez minutos, mas só opera depois de chegar à branch padrão e
+receber `FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET` no ambiente `production`
+do GitHub Actions.
+
 ### 7.6 Pedido de plateia normalizado
 
 Pedidos novos gravam uma linha por item em `spectator_ticket_items`, incluindo
@@ -696,7 +748,7 @@ sanitização mascara e-mail, telefone, CPF, tokens, chaves Pix e dados de cart�
 `/api/health` expõe somente estado, versão e dependências sem segredos. O
 provedor de observabilidade e o canal de alerta são configuráveis por ambiente.
 
-### 8.1 Migrations do release de 07/08/2026
+### 8.1 Migrations acumuladas do release até 03/09/2026
 
 Aplicar exatamente na ordem de `RUNBOOK-PRODUCAO.md`:
 
@@ -706,12 +758,21 @@ Aplicar exatamente na ordem de `RUNBOOK-PRODUCAO.md`:
 4. `production-order-inventory-release.sql`;
 5. `asaas-webhook-idempotency.sql`;
 6. `production-query-indexes.sql`;
-7. `production-data-retention.sql`.
+7. `production-athlete-ticket-credentials.sql`;
+8. `production-athlete-ticket-change-security.sql`;
+9. `production-bracket-participants.sql`;
+10. `production-participant-category-uniqueness.sql`;
+11. `production-category-deletion-guard.sql`;
+12. `production-credential-operations.sql`;
+13. `production-data-retention.sql`.
 
 As migrations são aditivas e idempotentes, têm RLS mínimo e preservam dados
-existentes. Backfill, validação, implantação gradual e rollback estão no
-runbook; configurações que dependem do responsável estão em
-`PENDENCIAS-V1.md`.
+existentes. `production-athlete-ticket-credentials.sql` precisa vir antes das
+operações de credencial, e a retenção precisa ser a última porque referencia
+as tabelas operacionais novas. A restrição de participante deve ser precedida
+pela auditoria de conflitos legados descrita no runbook. Backfill, validação,
+implantação gradual e rollback estão no runbook; configurações que dependem do
+responsável estão em `PENDENCIAS-V1.md`.
 
 ## 9. Estado dos dados
 
@@ -734,8 +795,9 @@ confirmados fora do repositório:
 - domínio final e NEXT_PUBLIC_BASE_URL;
 - URLs de Auth, CAPTCHA, política de senha e MFA do admin no Supabase;
 - credenciais de produção, webhook e eventos do Asaas;
-- domínio, SPF/DKIM e remetente do Resend;
-- crons da Vercel, coletor de observabilidade e canal de alertas;
+- domínio, SPF/DKIM/DMARC, remetente e webhook do Resend;
+- crons da Vercel, workflow subdiário do GitHub Actions, coletor de
+  observabilidade e canal de alertas;
 - backups/PITR e processo de restauração;
 - homologação financeira real controlada;
 - aviso de privacidade/LGPD e resposta a incidentes.
