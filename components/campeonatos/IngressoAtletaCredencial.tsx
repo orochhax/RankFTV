@@ -160,15 +160,15 @@ export function IngressoAtletaCredencial({
           <Download className="size-4" /> Baixar PDF
         </button>
         <button type="button" onClick={() => setConfirmReplacement(true)} disabled={checkedIn} className="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-200 px-4 py-3 text-sm font-semibold text-amber-700 disabled:opacity-40">
-          <AlertTriangle className="size-4" /> Link foi compartilhado
+          <AlertTriangle className="size-4" /> Proteger meu ingresso
         </button>
       </div>
       {operationError && <p role="alert" className="mt-3 w-full rounded-xl bg-red-50 p-3 text-sm text-red-700">{operationError}</p>}
       {operationMessage && <p className="mt-3 w-full rounded-xl bg-blue-50 p-3 text-sm text-blue-700">{operationMessage}</p>}
       {confirmReplacement && (
         <div className="mt-3 w-full rounded-xl bg-amber-50 p-4 text-left ring-1 ring-amber-200">
-          <p className="text-sm font-semibold text-amber-900">Substituir link, QR e código?</p>
-          <p className="mt-1 text-xs text-amber-800">Use somente se perdeu ou compartilhou a credencial. A nova versão será enviada apenas ao e-mail cadastrado.</p>
+          <p className="text-sm font-semibold text-amber-900">Gerar uma nova credencial?</p>
+          <p className="mt-1 text-xs text-amber-800">Use esta proteção se perdeu o ingresso ou compartilhou o link com outra pessoa. O link, o QR e o código atuais deixarão de funcionar, e uma nova credencial será enviada somente ao e-mail cadastrado.</p>
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={replaceCredential} disabled={operationPending} className="rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-60">{operationPending ? "Protegendo..." : "Sim, substituir"}</button>
             <button type="button" onClick={() => setConfirmReplacement(false)} disabled={operationPending} className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-gray-700">Cancelar</button>

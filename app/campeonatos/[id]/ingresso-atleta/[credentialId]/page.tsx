@@ -82,6 +82,7 @@ export default async function CredencialIndividualPage({
     .from("athlete_ticket_credential_events")
     .select("id, event_type, created_at")
     .eq("credential_id", credential.id)
+    .in("event_type", ["issued", "rotated", "viewed", "email_sent", "invalidated", "self_invalidated", "checked_in"])
     .order("created_at", { ascending: false })
     .limit(30);
   const eventLabels: Record<string, string> = {
@@ -89,8 +90,6 @@ export default async function CredencialIndividualPage({
     rotated: "Link, QR e código substituídos",
     viewed: "Credencial acessada",
     email_sent: "Credencial enviada por e-mail",
-    email_failed: "Falha temporária no envio",
-    resend_requested: "Reenvio solicitado",
     invalidated: "Credencial anterior invalidada",
     self_invalidated: "Substituição solicitada pelo titular",
     checked_in: "Check-in realizado",

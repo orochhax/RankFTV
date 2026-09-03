@@ -160,13 +160,14 @@ export default async function IngressoAtletaPage({
         .from("athlete_ticket_credential_events")
         .select("id, credential_id, event_type, created_at")
         .eq("athlete_ticket_id", ticketId)
+        .in("event_type", ["issued", "rotated", "viewed", "email_sent", "invalidated", "self_invalidated", "checked_in"])
         .order("created_at", { ascending: false })
         .limit(60)
     : { data: [] };
   const credentialSlotMap = new Map(allIndividualCredentials.map((credential) => [credential.id, credential.athlete_slot]));
   const credentialHistoryLabels: Record<string, string> = {
     issued: "Credencial emitida", rotated: "Link, QR e código substituídos", viewed: "Credencial acessada",
-    email_sent: "Enviada por e-mail", email_failed: "Falha temporária no envio", resend_requested: "Reenvio solicitado",
+    email_sent: "Enviada por e-mail",
     invalidated: "Credencial anterior invalidada", self_invalidated: "Substituição solicitada pelo titular", checked_in: "Check-in realizado",
   };
 
@@ -262,7 +263,7 @@ export default async function IngressoAtletaPage({
           {(credentialHistory ?? []).length > 0 && (
             <details className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
               <summary className="cursor-pointer text-sm font-semibold text-gray-900">Histórico das duas credenciais</summary>
-              <p className="mt-1 text-xs text-gray-500">Emissões, reenvios, substituições, acessos e check-ins, sem mostrar tokens.</p>
+              <p className="mt-1 text-xs text-gray-500">Emissões, substituições, acessos e check-ins, sem mostrar tokens.</p>
               <ol className="mt-4 max-h-80 divide-y divide-gray-100 overflow-y-auto">
                 {(credentialHistory ?? []).map((event) => (
                   <li key={event.id} className="flex items-center justify-between gap-3 py-3">

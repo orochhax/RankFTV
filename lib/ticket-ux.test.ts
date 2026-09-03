@@ -206,7 +206,14 @@ test("a guest pair receives two linked individual entry credentials", () => {
   assert.match(individualPage, /readAthleteCredentialSession/);
   assert.match(individualPage, /Histórico desta credencial/);
   assert.match(credentialClient, /Baixar PDF/);
-  assert.match(credentialClient, /Link foi compartilhado/);
+  assert.match(credentialClient, /Proteger meu ingresso/);
+  assert.match(credentialClient, /compartilhou o link com outra pessoa/);
+  assert.match(individualPage, /\.in\("event_type", \["issued", "rotated", "viewed", "email_sent", "invalidated", "self_invalidated", "checked_in"\]\)/);
+  assert.doesNotMatch(individualPage, /email_failed: "Falha temporária no envio"/);
+  assert.doesNotMatch(individualPage, /resend_requested: "Reenvio solicitado"/);
+  assert.match(athletePage, /\.in\("event_type", \["issued", "rotated", "viewed", "email_sent", "invalidated", "self_invalidated", "checked_in"\]\)/);
+  assert.doesNotMatch(athletePage, /email_failed: "Falha temporária no envio"/);
+  assert.doesNotMatch(athletePage, /resend_requested: "Reenvio solicitado"/);
   assert.match(recoveryClaim, /\.is\("usado_em", null\)/);
   assert.match(recoveryClaim, /return Boolean\(claimed\)/);
   assert.match(proxy, /Cache-Control", "private, no-store/);
