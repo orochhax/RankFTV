@@ -1,5 +1,5 @@
 export type RefundTimelineStep = {
-  key: "requested" | "awaiting" | "completed" | "cancelled";
+  key: "requested" | "awaiting" | "failed" | "completed" | "cancelled";
   date: string | null;
 };
 
@@ -39,6 +39,7 @@ export function buildRefundTimeline({
 }: RefundTimelineInput): RefundTimelineStep[] {
   const hasRefund = Boolean(refundStatus || requestedAt);
   const refundCompleted = refundStatus === "refunded";
+  const refundFailed = ["failed", "cancelled", "CANCELLED", "REFUND_CANCELLED"].includes(refundStatus ?? "");
   const steps: RefundTimelineStep[] = [];
 
   if (hasRefund) {
@@ -47,6 +48,8 @@ export function buildRefundTimeline({
 
   if (refundCompleted) {
     steps.push({ key: "completed", date: completedAt });
+  } else if (refundFailed) {
+    steps.push({ key: "failed", date: completedAt });
   } else if (hasRefund) {
     steps.push({ key: "awaiting", date: null });
   }

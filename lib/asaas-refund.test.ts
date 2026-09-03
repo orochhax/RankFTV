@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 
-import { refundStatusFromRefunds } from "./payment-provider-state";
+import { refundProviderState, refundProviderStatus, refundStatusFromRefunds } from "./payment-provider-state";
 
 test("keeps a received payment pending while its Pix refund is processing", () => {
   assert.equal(refundStatusFromRefunds([{ status: "PENDING" }]), "REFUND_REQUESTED");
@@ -11,11 +11,20 @@ test("keeps a received payment pending while its Pix refund is processing", () =
     refundStatusFromRefunds([{ status: "AWAITING_CRITICAL_ACTION_AUTHORIZATION" }]),
     "REFUND_REQUESTED",
   );
+  assert.equal(
+    refundStatusFromRefunds([{ status: "AWAITING_CUSTOMER_EXTERNAL_AUTHORIZATION" }]),
+    "REFUND_REQUESTED",
+  );
 });
 
 test("confirms a refund only when Asaas reports DONE", () => {
   assert.equal(refundStatusFromRefunds([{ status: "DONE" }]), "REFUNDED");
-  assert.equal(refundStatusFromRefunds([{ status: "CANCELLED" }]), null);
+});
+
+test("treats a cancelled provider refund as a terminal failure", () => {
+  assert.equal(refundStatusFromRefunds([{ status: "CANCELLED" }]), "REFUND_CANCELLED");
+  assert.equal(refundProviderStatus([{ status: "CANCELLED" }]), "CANCELLED");
+  assert.equal(refundProviderState("CANCELLED"), "failed");
 });
 
 test("a pending refund takes precedence over an older completed refund", () => {

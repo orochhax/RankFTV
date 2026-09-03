@@ -31,6 +31,11 @@ const TIMELINE_COPY: Record<
     description: "Você não precisa repetir a solicitação.",
     tone: "amber",
   },
+  failed: {
+    title: "Reembolso precisa de atendimento",
+    description: "A devolução não foi concluída automaticamente. O ingresso continua ativo.",
+    tone: "red",
+  },
   completed: {
     title: "Estorno confirmado",
     description: "O processamento do reembolso foi confirmado.",
@@ -86,6 +91,7 @@ export function RefundStatusPanel({
 }: RefundStatusPanelProps) {
   const hasRefund = Boolean(refundStatus || requestedAt);
   const refundCompleted = refundStatus === "refunded";
+  const refundFailed = ["failed", "cancelled", "CANCELLED", "REFUND_CANCELLED"].includes(refundStatus ?? "");
   const isCard = billingType === "CREDIT_CARD" || billingType === "DEBIT_CARD";
   const paymentMethod = isCard ? "cartão" : billingType === "PIX" ? "Pix" : "forma de pagamento usada";
 
@@ -98,16 +104,22 @@ export function RefundStatusPanel({
 
   const title = refundCompleted
     ? "Reembolso concluído"
+    : refundFailed
+      ? "Reembolso precisa de atendimento"
     : hasRefund
       ? "Estorno solicitado"
       : "Ingresso cancelado";
   const summary = refundCompleted
     ? "O reembolso foi confirmado, a vaga está liberada e este ingresso não pode mais ser usado."
+    : refundFailed
+      ? "A devolução não foi concluída automaticamente. O ingresso continua ativo. Não solicite novamente; o suporte precisa acompanhar este caso."
     : hasRefund
       ? "Sua solicitação foi registrada. Você não precisa fazer nada nem repetir a solicitação."
       : "A compra foi cancelada sem cobrança. A vaga está liberada e este ingresso não pode mais ser usado.";
   const summaryTone = refundCompleted
     ? "border-emerald-200 bg-emerald-50"
+    : refundFailed
+      ? "border-red-200 bg-red-50"
     : hasRefund
       ? "border-amber-200 bg-amber-50"
       : "border-red-200 bg-red-50";
@@ -143,8 +155,12 @@ export function RefundStatusPanel({
                 <p>O prazo final depende da forma de pagamento e da instituição financeira.</p>
               )}
             </div>
-            <p className={`mt-4 text-sm font-semibold ${refundCompleted ? "text-emerald-700" : "text-amber-700"}`}>
-              {refundCompleted ? "Processamento do reembolso confirmado." : "Confirmação do reembolso ainda pendente."}
+            <p className={`mt-4 text-sm font-semibold ${refundCompleted ? "text-emerald-700" : refundFailed ? "text-red-700" : "text-amber-700"}`}>
+              {refundCompleted
+                ? "Processamento do reembolso confirmado."
+                : refundFailed
+                  ? "A devolução não foi concluída automaticamente."
+                  : "Confirmação do reembolso ainda pendente."}
             </p>
           </>
         ) : (

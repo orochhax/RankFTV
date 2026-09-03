@@ -34,6 +34,18 @@ test("confirmed refund ends with cancellation and monotonic event dates", () => 
   ]);
 });
 
+test("cancelled provider attempt asks for support and does not cancel the ticket", () => {
+  assert.deepEqual(buildRefundTimeline({
+    refundStatus: "cancelled",
+    requestedAt: "2026-09-03T11:08:00-03:00",
+    completedAt: "2026-09-03T11:26:00-03:00",
+    cancelledAt: null,
+  }), [
+    { key: "requested", date: "2026-09-03T11:08:00-03:00" },
+    { key: "failed", date: "2026-09-03T11:26:00-03:00" },
+  ]);
+});
+
 test("cancellation without a refund keeps its own event date", () => {
   assert.deepEqual(buildRefundTimeline({
     refundStatus: null,
@@ -52,6 +64,7 @@ test("public refund panel uses provider-neutral wording", () => {
   );
 
   assert.doesNotMatch(panel, /Asaas/i);
+  assert.match(panel, /Reembolso precisa de atendimento/);
   assert.match(panel, /Aguardando confirmação do reembolso/);
   assert.match(panel, /Processamento do reembolso confirmado/);
   assert.match(panel, /O cancelamento foi finalizado/);

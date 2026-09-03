@@ -300,7 +300,9 @@ export function TicketSupportCenter({
                           {item.amount == null ? "Valor indisponível" : item.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </p>
                         <p className="truncate text-xs text-amber-800">
-                          {item.providerStatus === "REFUND_REQUESTED"
+                          {item.providerStatus === "CANCELLED" || ["cancelled", "failed"].includes(item.status)
+                            ? "Estorno não concluído — atendimento necessário"
+                            : item.providerStatus === "REFUND_REQUESTED"
                             ? "Aguardando processamento financeiro"
                             : item.providerStatus === "AWAITING_CRITICAL_ACTION_AUTHORIZATION"
                               ? "Aguardando autorização financeira"
@@ -313,7 +315,11 @@ export function TicketSupportCenter({
                         onClick={() => {
                           setCaseDraft({ ticketId: item.ticketId });
                           setCaseType("estorno_pix");
-                          setCaseSummary("Acompanhar estorno Pix pendente de confirmação pelo processador de pagamentos.");
+                          setCaseSummary(
+                            item.providerStatus === "CANCELLED" || ["cancelled", "failed"].includes(item.status)
+                              ? "Acompanhar estorno Pix não concluído e orientar o cliente."
+                              : "Acompanhar estorno Pix pendente de confirmação pelo processador de pagamentos.",
+                          );
                         }}
                         className="shrink-0 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-amber-800 ring-1 ring-amber-300"
                       >

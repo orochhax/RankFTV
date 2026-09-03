@@ -591,7 +591,7 @@ export async function listarOperacaoEmails(): Promise<{ ok: boolean; error?: str
       .eq("flow", "athlete_ticket")
       .eq("operation_type", "refund")
       .eq("billing_type", "PIX")
-      .in("status", ["processing", "provider_created", "ambiguous", "failed"])
+      .in("status", ["processing", "provider_created", "ambiguous", "failed", "cancelled"])
       .order("updated_at", { ascending: false })
       .limit(50),
   ]);

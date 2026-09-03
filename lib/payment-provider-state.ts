@@ -6,8 +6,17 @@ export function transferProviderState(status: string): "confirmed" | "pending" |
   return "pending";
 }
 
-export function refundProviderState(status: string): "confirmed" | "pending" {
-  return status === "REFUNDED" ? "confirmed" : "pending";
+const PENDING_REFUND_STATUSES = new Set([
+  "PENDING",
+  "REFUND_REQUESTED",
+  "AWAITING_CRITICAL_ACTION_AUTHORIZATION",
+  "AWAITING_CUSTOMER_EXTERNAL_AUTHORIZATION",
+]);
+
+export function refundProviderState(status: string): "confirmed" | "pending" | "failed" {
+  if (status === "REFUNDED") return "confirmed";
+  if (["CANCELLED", "REFUND_CANCELLED"].includes(status)) return "failed";
+  return "pending";
 }
 
 /**
@@ -16,12 +25,25 @@ export function refundProviderState(status: string): "confirmed" | "pending" {
  */
 export function refundStatusFromRefunds(
   refunds: ReadonlyArray<{ status: string }> | null | undefined,
-): "REFUND_REQUESTED" | "REFUNDED" | null {
-  if (refunds?.some((refund) => ["PENDING", "AWAITING_CRITICAL_ACTION_AUTHORIZATION"].includes(refund.status))) {
+): "REFUND_REQUESTED" | "REFUNDED" | "REFUND_CANCELLED" | null {
+  if (refunds?.some((refund) => PENDING_REFUND_STATUSES.has(refund.status))) {
     return "REFUND_REQUESTED";
   }
   if (refunds?.some((refund) => refund.status === "DONE")) return "REFUNDED";
+  if (refunds?.some((refund) => refund.status === "CANCELLED")) return "REFUND_CANCELLED";
   return null;
+}
+
+export function refundProviderStatus(
+  refunds: ReadonlyArray<{ status: string }> | null | undefined,
+): string | null {
+  const normalizedStatus = refundStatusFromRefunds(refunds);
+  if (normalizedStatus === "REFUND_REQUESTED") {
+    return refunds?.find((refund) => PENDING_REFUND_STATUSES.has(refund.status))?.status
+      ?? normalizedStatus;
+  }
+  if (normalizedStatus === "REFUND_CANCELLED") return "CANCELLED";
+  return normalizedStatus;
 }
 
 export function mustReconcileWithoutCreating(input: {

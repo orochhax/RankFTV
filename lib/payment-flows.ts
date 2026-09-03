@@ -21,7 +21,7 @@ import {
   type FinancialExecutionResult,
   type FinancialFlow,
 } from "@/lib/financial-operations";
-import { refundProviderState, refundStatusFromRefunds, transferProviderState } from "@/lib/payment-provider-state";
+import { refundProviderState, refundProviderStatus, refundStatusFromRefunds, transferProviderState } from "@/lib/payment-provider-state";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type CommonInput = {
@@ -185,9 +185,7 @@ export async function refundIdempotently(input: {
     lookup: async () => {
       const refunds = await listarEstornosCobranca(input.originalPaymentId);
       const refundStatus = refundStatusFromRefunds(refunds);
-      const providerStatus = refundStatus === "REFUND_REQUESTED"
-        ? refunds.find((refund) => !["DONE", "CANCELLED"].includes(refund.status))?.status ?? refundStatus
-        : refundStatus;
+      const providerStatus = refundProviderStatus(refunds);
       return refundStatus
         ? { id: input.originalPaymentId, status: providerStatus! }
         : null;
@@ -195,19 +193,28 @@ export async function refundIdempotently(input: {
     create: async () => {
       const payment = await reembolsarPagamento(input.originalPaymentId, input.amount);
       const refunds = await listarEstornosCobranca(input.originalPaymentId);
-      const refundStatus = refundStatusFromRefunds(refunds);
-      const providerStatus = refundStatus === "REFUND_REQUESTED"
-        ? refunds.find((refund) => !["DONE", "CANCELLED"].includes(refund.status))?.status ?? refundStatus
-        : refundStatus;
+      const providerStatus = refundProviderStatus(refunds);
       return {
         id: payment.id,
         status: providerStatus ?? payment.status,
       };
     },
-    completedStatus: (provider) => refundProviderState(provider.status) === "confirmed"
-      ? "refunded"
-      : "provider_created",
+    completedStatus: (provider) => {
+      const state = refundProviderState(provider.status);
+      if (state === "confirmed") return "refunded";
+      if (state === "failed") return "cancelled";
+      return "provider_created";
+    },
   });
+  if (result.ok && refundProviderState(result.provider.status) === "failed") {
+    return {
+      ok: false,
+      operationId: result.operationId,
+      inProgress: false,
+      ambiguous: false,
+      error: "O reembolso nÃ£o foi concluÃ­do automaticamente. Procure o suporte.",
+    };
+  }
   if (result.ok && refundProviderState(result.provider.status) === "pending") {
     return {
       ok: false,

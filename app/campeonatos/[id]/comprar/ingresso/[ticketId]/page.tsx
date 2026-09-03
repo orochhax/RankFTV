@@ -84,7 +84,9 @@ export default async function IngressoAtletaPage({
   const terminal = t.status_pagamento === "estornado" || t.status_pagamento === "expirado";
   const refundStatus = refundOperation?.provider_status === "REFUNDED"
     ? "refunded"
-    : refundOperation?.status ?? null;
+    : refundOperation?.provider_status === "CANCELLED" || ["cancelled", "failed"].includes(refundOperation?.status ?? "")
+      ? "failed"
+      : refundOperation?.status ?? null;
 
   const { data: champ } = await supabase
     .from("championships")

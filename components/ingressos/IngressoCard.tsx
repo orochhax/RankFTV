@@ -35,12 +35,15 @@ export function IngressoCard({
   const pago       = ing.status_pagamento === "pago";
   const estornado  = ing.status_pagamento === "estornado";
   const isAtleta   = ing.tipo === "atleta";
+  const refundFailed = ["failed", "cancelled", "CANCELLED", "REFUND_CANCELLED"].includes(ing.refund_status ?? "");
   const refundLabel = ing.refund_status === "refunded"
     ? "Estorno confirmado"
+    : refundFailed
+      ? "Reembolso precisa de atendimento"
     : ing.refund_status
       ? "Estorno solicitado"
       : null;
-  const estornoEmAndamento = !!refundLabel && !estornado;
+  const estornoEmAndamento = !!refundLabel && !estornado && !refundFailed;
   const compradorPublicName = isAtleta ? athleteDisplayName(ing.comprador_nome) : ing.comprador_nome;
   const parceiroPublicName = athleteDisplayName(ing.parceiro_nome);
 
@@ -92,7 +95,11 @@ export function IngressoCard({
           </div>
 
           <div className="mt-2 flex items-center gap-1 text-xs font-semibold">
-            {estornoEmAndamento ? (
+            {refundFailed ? (
+              <span className="flex items-center gap-1 text-red-600">
+                <Clock className="size-3.5" /> {refundLabel}
+              </span>
+            ) : estornoEmAndamento ? (
               <span className="flex items-center gap-1 text-amber-700">
                 <Clock className="size-3.5" /> {refundLabel}
               </span>
