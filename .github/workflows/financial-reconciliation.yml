@@ -1,0 +1,46 @@
+name: Financial reconciliation
+
+on:
+  schedule:
+    # GitHub Actions schedules are best-effort. The job remains idempotent, so a
+    # delayed or repeated run only reconciles the same pending operations safely.
+    - cron: "7,17,27,37,47,57 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: financial-reconciliation-production
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    env:
+      FINANCIAL_RECONCILIATION_URL: ${{ secrets.FINANCIAL_RECONCILIATION_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+    steps:
+      - name: Validate production target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$FINANCIAL_RECONCILIATION_URL"
+          test -n "$CRON_SECRET"
+          test "$FINANCIAL_RECONCILIATION_URL" = "https://www.rankftv.com/api/cron/financial-reconciliation"
+
+      - name: Reconcile pending financial operations
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            --retry 2 \
+            --retry-all-errors \
+            --connect-timeout 10 \
+            --max-time 50 \
+            --header "Authorization: Bearer $CRON_SECRET" \
+            --header "X-Request-ID: github-financial-reconciliation-$GITHUB_RUN_ID" \
+            "$FINANCIAL_RECONCILIATION_URL"
