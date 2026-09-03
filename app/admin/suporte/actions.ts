@@ -63,6 +63,7 @@ export type EmailOperationsSummary = {
     ticketId: string;
     amount: number | null;
     status: string;
+    providerStatus: string | null;
     updatedAt: string;
   }>;
 };
@@ -586,7 +587,7 @@ export async function listarOperacaoEmails(): Promise<{ ok: boolean; error?: str
       .limit(50),
     admin
       .from("financial_operations")
-      .select("id, record_id, amount, status, updated_at")
+      .select("id, record_id, amount, status, provider_status, updated_at")
       .eq("flow", "athlete_ticket")
       .eq("operation_type", "refund")
       .eq("billing_type", "PIX")
@@ -637,6 +638,7 @@ export async function listarOperacaoEmails(): Promise<{ ok: boolean; error?: str
         ticketId: operation.record_id,
         amount: operation.amount == null ? null : Number(operation.amount),
         status: operation.status,
+        providerStatus: operation.provider_status,
         updatedAt: operation.updated_at,
       })),
     },

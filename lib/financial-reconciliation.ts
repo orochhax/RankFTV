@@ -7,6 +7,7 @@ import {
   buscarTransferenciaPorReferencia,
   consultarCobranca,
   consultarPixQrCode,
+  listarEstornosCobranca,
   type StatusCobranca,
 } from "@/lib/asaas";
 import { financialProviderStatusToWebhookEvent } from "@/lib/financial-operations";
@@ -142,16 +143,20 @@ async function reconcilePayment(operation: ReconcileOperation) {
 async function reconcileRefund(operation: ReconcileOperation) {
   const originalPaymentId = String(operation.metadata?.originalPaymentId ?? "");
   if (!originalPaymentId) throw new Error("refund_original_payment_missing");
-  const payment = await consultarCobranca(originalPaymentId);
-  const refundStatus = refundStatusFromRefunds(payment.refunds);
+  const refunds = await listarEstornosCobranca(originalPaymentId);
+  const refundStatus = refundStatusFromRefunds(refunds);
+  const providerStatus = refundStatus === "REFUND_REQUESTED"
+    ? refunds.find((refund) => !["DONE", "CANCELLED"].includes(refund.status))?.status ?? refundStatus
+    : refundStatus;
   if (refundStatus !== "REFUNDED") {
     await recordProvider(operation, {
-      id: payment.id,
-      status: refundStatus ?? payment.status,
+      id: originalPaymentId,
+      status: providerStatus ?? "REFUND_NOT_FOUND",
     }, "provider_created");
-    await reschedule(operation, `refund_status_${refundStatus ?? payment.status}`, 300);
+    await reschedule(operation, `refund_status_${providerStatus ?? "REFUND_NOT_FOUND"}`, 300);
     return "pending" as const;
   }
+  const payment = await consultarCobranca(originalPaymentId);
   await dispatchPaymentEvent({ ...payment, status: "REFUNDED" });
   await recordProvider(operation, { id: payment.id, status: refundStatus }, "refunded");
   return "reconciled" as const;

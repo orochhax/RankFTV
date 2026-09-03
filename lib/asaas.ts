@@ -425,17 +425,28 @@ export type StatusCobranca = {
   invoiceUrl?: string;
   externalReference?: string;
   subscription?: string;
-  refunds?: Array<{
-    status: string;
-    value?: number;
-    dateCreated?: string;
-    transactionReceiptUrl?: string | null;
-  }>;
+  refunds?: StatusEstornoCobranca[];
+};
+
+export type StatusEstornoCobranca = {
+  status: string;
+  value?: number;
+  dateCreated?: string;
+  transactionReceiptUrl?: string | null;
 };
 
 
 export async function consultarCobranca(asaasPaymentId: string): Promise<StatusCobranca> {
   return request<StatusCobranca>(`/payments/${asaasPaymentId}`);
+}
+
+// A consulta da cobrança nem sempre inclui o array de estornos. A rota
+// dedicada é a fonte indicada pelo Asaas para conciliação pontual.
+export async function listarEstornosCobranca(asaasPaymentId: string): Promise<StatusEstornoCobranca[]> {
+  const result = await request<{ data?: StatusEstornoCobranca[] }>(
+    `/payments/${asaasPaymentId}/refunds`,
+  );
+  return result.data ?? [];
 }
 
 export async function buscarCobrancaPorReferencia(externalReference: string): Promise<StatusCobranca | null> {

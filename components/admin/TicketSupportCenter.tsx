@@ -299,7 +299,14 @@ export function TicketSupportCenter({
                         <p className="text-sm font-medium text-amber-950">
                           {item.amount == null ? "Valor indisponível" : item.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </p>
-                        <p className="truncate font-mono text-[10px] text-amber-800">{item.ticketId} · {item.status}</p>
+                        <p className="truncate text-xs text-amber-800">
+                          {item.providerStatus === "REFUND_REQUESTED"
+                            ? "Aguardando processamento financeiro"
+                            : item.providerStatus === "AWAITING_CRITICAL_ACTION_AUTHORIZATION"
+                              ? "Aguardando autorização financeira"
+                              : "Aguardando confirmação financeira"}
+                        </p>
+                        <p className="truncate font-mono text-[10px] text-amber-700">{item.ticketId}</p>
                       </div>
                       <button
                         type="button"

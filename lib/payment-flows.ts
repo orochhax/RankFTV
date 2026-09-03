@@ -6,10 +6,10 @@ import {
   buscarTransferenciaPorReferencia,
   cobrarComToken,
   consultarPixQrCode,
-  consultarCobranca,
   criarAssinaturaCartao,
   criarCobranca,
   criarCobrancaCartao,
+  listarEstornosCobranca,
   reembolsarPagamento,
   transferirPix,
   type CartaoInput,
@@ -183,17 +183,25 @@ export async function refundIdempotently(input: {
     correlationId: input.correlationId,
     metadata: { originalPaymentId: input.originalPaymentId.slice(0, 80) },
     lookup: async () => {
-      const payment = await consultarCobranca(input.originalPaymentId);
-      const refundStatus = refundStatusFromRefunds(payment.refunds);
+      const refunds = await listarEstornosCobranca(input.originalPaymentId);
+      const refundStatus = refundStatusFromRefunds(refunds);
+      const providerStatus = refundStatus === "REFUND_REQUESTED"
+        ? refunds.find((refund) => !["DONE", "CANCELLED"].includes(refund.status))?.status ?? refundStatus
+        : refundStatus;
       return refundStatus
-        ? { id: payment.id, status: refundStatus }
+        ? { id: input.originalPaymentId, status: providerStatus! }
         : null;
     },
     create: async () => {
       const payment = await reembolsarPagamento(input.originalPaymentId, input.amount);
+      const refunds = await listarEstornosCobranca(input.originalPaymentId);
+      const refundStatus = refundStatusFromRefunds(refunds);
+      const providerStatus = refundStatus === "REFUND_REQUESTED"
+        ? refunds.find((refund) => !["DONE", "CANCELLED"].includes(refund.status))?.status ?? refundStatus
+        : refundStatus;
       return {
         id: payment.id,
-        status: refundStatusFromRefunds(payment.refunds) ?? payment.status,
+        status: providerStatus ?? payment.status,
       };
     },
     completedStatus: (provider) => refundProviderState(provider.status) === "confirmed"

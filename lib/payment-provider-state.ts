@@ -17,7 +17,9 @@ export function refundProviderState(status: string): "confirmed" | "pending" {
 export function refundStatusFromRefunds(
   refunds: ReadonlyArray<{ status: string }> | null | undefined,
 ): "REFUND_REQUESTED" | "REFUNDED" | null {
-  if (refunds?.some((refund) => refund.status === "PENDING")) return "REFUND_REQUESTED";
+  if (refunds?.some((refund) => ["PENDING", "AWAITING_CRITICAL_ACTION_AUTHORIZATION"].includes(refund.status))) {
+    return "REFUND_REQUESTED";
+  }
   if (refunds?.some((refund) => refund.status === "DONE")) return "REFUNDED";
   return null;
 }
