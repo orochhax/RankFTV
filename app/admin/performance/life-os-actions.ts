@@ -1,5 +1,3 @@
-"use server";
-
 export * from "./life-os-actions/events-and-tasks";
 export * from "./life-os-actions/study-and-academy";
 export * from "./life-os-actions/study-roadmap-config";
