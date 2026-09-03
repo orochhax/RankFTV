@@ -11,6 +11,10 @@ const root = resolve(fileURLToPath(new URL("../", import.meta.url)));
 loadEnvConfig(root);
 
 const execute = process.argv.includes("--execute");
+
+function writeOutput(message) {
+  process.stdout.write(`${message}\n`);
+}
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
@@ -41,10 +45,10 @@ if (admins.length !== 1) {
 
 const admin = admins[0];
 const otherUsers = users.filter((user) => user.id !== admin.id);
-console.log(`Conta administrativa encontrada. Contas a remover: ${otherUsers.length}.`);
+writeOutput(`Conta administrativa encontrada. Contas a remover: ${otherUsers.length}.`);
 
 if (!execute) {
-  console.log("Conferencia concluida; nenhum dado foi alterado. Rode novamente com --execute.");
+  writeOutput("Conferencia concluida; nenhum dado foi alterado. Rode novamente com --execute.");
 } else {
 
 // Ordem: filhos antes dos pais. Dados financeiros pessoais e configuracao da
@@ -90,11 +94,11 @@ for (const table of tablesToEmpty) {
     .delete({ count: "exact" })
     .not("id", "is", null);
   if (error?.code === "PGRST205") {
-    console.log(`${table}: tabela de legado ausente; ignorada.`);
+    writeOutput(`${table}: tabela de legado ausente; ignorada.`);
     continue;
   }
   if (error) throw new Error(`Falha ao limpar ${table}: ${error.message}`);
-  console.log(`${table}: ${count ?? 0} removidos.`);
+  writeOutput(`${table}: ${count ?? 0} removidos.`);
 }
 
 // Conteudo social de contas que serao apagadas. A pagina do admin e preservada.
@@ -102,7 +106,7 @@ for (const table of ["page_followers", "organizer_accounts", "profiles_private",
   const column = table === "pages" ? "owner_id" : table === "profiles" ? "id" : "user_id";
   const { error } = await supabase.from(table).delete().neq(column, admin.id);
   if (error?.code === "PGRST205") {
-    console.log(`${table}: tabela de legado ausente; ignorada.`);
+    writeOutput(`${table}: tabela de legado ausente; ignorada.`);
     continue;
   }
   if (error) throw new Error(`Falha ao limpar ${table}: ${error.message}`);
@@ -126,5 +130,5 @@ if (remaining.length !== 1 || remaining[0].id !== admin.id) {
   throw new Error(`Pos-condicao invalida: restaram ${remaining.length} contas.`);
 }
 
-console.log("Limpeza concluida: somente a conta administrativa permanece.");
+writeOutput("Limpeza concluida: somente a conta administrativa permanece.");
 }

@@ -6,6 +6,7 @@ import type { Response as OpenAIResponse } from "openai/resources/responses/resp
 import { addDays, hojeISO } from "@/lib/performance";
 import { getOpenAIClient } from "@/lib/openai";
 import { openAIReasoningEffort, openAIRoadmapMaxOutputTokens } from "@/lib/openai-config";
+import { reportOperationalEvent } from "@/lib/observability";
 import { buildRoadmapPlan, generatedRoadmapSchema, languageRoadmapSystemInstructions, ROADMAP_AI_DAILY_LIMIT, ROADMAP_IMPORT_AI_MAX_CHARS, roadmapDailyLimitReached, roadmapDraftStats, roadmapPromptInput, roadmapSystemInstructions, type GenerateRoadmapResult, type RoadmapAiAnswers } from "@/lib/study-roadmap-ai";
 import { createAdminClient, requireRoadmapAiUser, reval } from "./shared";
 
@@ -147,7 +148,12 @@ export async function finalizeRoadmapProviderResponse(
 }
 
 export async function failRoadmapGeneration(ctx: RoadmapAiContext, generationId: string, error: unknown): Promise<void> {
-  console.error("[roadmap-ai] generation failed", generationId, roadmapGenerationDiagnostic(error));
+  await reportOperationalEvent({
+    level: "error",
+    event: "roadmap_ai.generation_failed",
+    context: { generationId },
+    error: roadmapGenerationDiagnostic(error),
+  });
   const message = roadmapAiError(error);
   await ctx.supabase.from("perf_study_roadmap_generation").update({
     status: "failed",

@@ -41,6 +41,10 @@ const createdUsers = [];
 let staffRowId = null;
 let browser;
 
+function writeOutput(message) {
+  process.stdout.write(`${message}\n`);
+}
+
 async function createTemporaryUser(label, role = "user") {
   const suffix = randomUUID().replaceAll("-", "");
   const email = `rankftv-${label}-${suffix}@example.com`;
@@ -269,7 +273,7 @@ try {
   const { data: buckets, error: bucketsError } = await admin.storage.listBuckets();
   if (bucketsError) throw bucketsError;
 
-  console.log(JSON.stringify({
+  writeOutput(JSON.stringify({
     ok: true,
     roles: {
       organizer: "own_panel_and_financial_rows_only",

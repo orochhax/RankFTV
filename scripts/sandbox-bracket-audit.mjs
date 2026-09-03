@@ -37,6 +37,11 @@ const admin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 let browser;
+let cleanupError;
+
+function writeOutput(message) {
+  process.stdout.write(`${message}\n`);
+}
 let createdMatchIds = [];
 
 async function organizerEmail() {
@@ -133,7 +138,7 @@ try {
   }
   await context.close();
 
-  console.log(JSON.stringify({
+  writeOutput(JSON.stringify({
     ok: true,
     participants: participants.length,
     matches: matches.length,
@@ -143,6 +148,8 @@ try {
   if (browser) await browser.close();
   if (createdMatchIds.length > 0) {
     const { error } = await admin.from("bracket_matches").delete().in("id", createdMatchIds);
-    if (error) throw error;
+    if (error) cleanupError = error;
   }
 }
+
+if (cleanupError) throw cleanupError;

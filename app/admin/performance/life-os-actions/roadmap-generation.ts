@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { after } from "next/server";
 import type { Response as OpenAIResponse } from "openai/resources/responses/responses";
 import { getOpenAIClient } from "@/lib/openai";
+import { reportOperationalEvent } from "@/lib/observability";
 import { ROADMAP_AI_PROMPT_VERSION, roadmapAiAnswersSchema, roadmapGoalFromContext, roadmapHorizon, roadmapLanguageFormats, type GenerateRoadmapResult } from "@/lib/study-roadmap-ai";
 import { Res, requireRoadmapAiUser, reval, text, formValues } from "./shared";
 import { roadmapGenerationGate, roadmapGenerationDiagnostic, roadmapGenerationTitle, finalizeRoadmapProviderResponse, failRoadmapGeneration, processRoadmapGeneration } from "./roadmap-generation-support";
@@ -132,7 +133,12 @@ export async function sincronizarGeracoesRoadmapLifeOS(): Promise<Res & { update
         await failRoadmapGeneration(ctx, generation.id, retrieveError);
         updated += 1;
       } else {
-        console.warn("[roadmap-ai] provider status unavailable", generation.id, roadmapGenerationDiagnostic(retrieveError));
+        await reportOperationalEvent({
+          level: "warn",
+          event: "roadmap_ai.provider_status_unavailable",
+          context: { generationId: generation.id },
+          error: roadmapGenerationDiagnostic(retrieveError),
+        });
       }
       continue;
     }

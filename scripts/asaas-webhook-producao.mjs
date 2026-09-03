@@ -16,8 +16,16 @@ const API_KEY     = process.env.ASAAS_API_KEY;
 const WH_TOKEN    = process.env.ASAAS_WEBHOOK_TOKEN;
 const PROD_URL    = "https://www.rankftv.com/api/webhooks/asaas";
 
+function writeOutput(message) {
+  process.stdout.write(`${message}\n`);
+}
+
+function writeError(message) {
+  process.stderr.write(`${message}\n`);
+}
+
 if (!BASE_URL || !API_KEY || !WH_TOKEN) {
-  console.error("❌  Variáveis faltando no .env.local (ASAAS_BASE_URL, ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN)");
+  writeError("❌  Variáveis faltando no .env.local (ASAAS_BASE_URL, ASAAS_API_KEY, ASAAS_WEBHOOK_TOKEN)");
   process.exit(1);
 }
 
@@ -39,16 +47,16 @@ async function req(method, path, body) {
 // 1. Lista webhooks existentes
 const lista = await req("GET", "/webhooks");
 const webhooks = lista.data ?? lista ?? [];
-console.log(`\n📋  Webhooks cadastrados: ${webhooks.length}`);
-webhooks.forEach((w) => console.log(`   · [${w.id}] ${w.url}  (ativo: ${w.enabled})`));
+writeOutput(`\n📋  Webhooks cadastrados: ${webhooks.length}`);
+webhooks.forEach((w) => writeOutput(`   · [${w.id}] ${w.url}  (ativo: ${w.enabled})`));
 
 // 2. Remove os antigos (túnel ou qualquer URL diferente da produção)
 for (const w of webhooks) {
   if (w.url !== PROD_URL) {
     await req("DELETE", `/webhooks/${w.id}`);
-    console.log(`🗑️   Removido: ${w.url}`);
+    writeOutput(`🗑️   Removido: ${w.url}`);
   } else {
-    console.log(`✅  Já existe apontando pro prod: ${w.url}`);
+    writeOutput(`✅  Já existe apontando pro prod: ${w.url}`);
     process.exit(0);
   }
 }
@@ -72,9 +80,12 @@ const payload = {
 
 const criado = await req("POST", "/webhooks", payload);
 if (criado?.id) {
-  console.log(`\n🎉  Webhook criado com sucesso!`);
-  console.log(`   ID:  ${criado.id}`);
-  console.log(`   URL: ${criado.url}`);
+  writeOutput("\n🎉  Webhook criado com sucesso!");
+  writeOutput(`   ID:  ${criado.id}`);
+  writeOutput(`   URL: ${criado.url}`);
 } else {
-  console.error("\n❌  Falha ao criar:", JSON.stringify(criado, null, 2));
+  const errorCodes = Array.isArray(criado?.errors)
+    ? criado.errors.map((error) => error?.code).filter(Boolean)
+    : [];
+  writeError(`\n❌  Falha ao criar webhook${errorCodes.length ? ` (${errorCodes.join(", ")})` : "."}`);
 }
