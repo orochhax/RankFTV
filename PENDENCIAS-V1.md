@@ -102,6 +102,29 @@ uma devolução não concluída.
 
 ## P2 — Depois do lançamento e com pessoas usando
 
+### Dívida técnica do ESLint — opção A adiada
+
+Baseline medido em 03/09/2026 antes do burndown da opção B: 1.223 avisos em
+359 arquivos. A opção B corrige agora somente mudanças mecânicas e de baixo
+risco; os refactors arquiteturais abaixo não bloqueiam o lançamento e devem ser
+executados gradualmente, sempre com lint, typecheck, testes e build.
+
+- [ ] Criar uma camada de repositories/services e remover os 219 acessos
+  diretos a dados identificados em 176 arquivos, começando pelos fluxos de
+  autenticação, pagamentos, reembolsos e permissões.
+- [ ] Corrigir os 89 imports entre camadas identificados em 83 arquivos sem
+  transformar a exceção atual em relaxamento permanente da configuração.
+- [ ] Reduzir as 314 ocorrências de complexidade em 199 arquivos, as 173
+  funções com excesso de statements e os avisos relacionados a profundidade,
+  callbacks e quantidade de parâmetros, preservando comportamento e contratos.
+- [ ] Dividir gradualmente os 67 arquivos ainda acima de 350 linhas e as 99
+  funções acima do orçamento, usando lotes pequenos e commits independentes.
+- [ ] Substituir as 165 non-null assertions em 56 arquivos por validações ou
+  estreitamento de tipos explícitos, priorizando primeiro código executado em
+  produção e deixando fixtures/testes por último.
+- [ ] Encerrar a dívida somente quando `npm run lint` chegar a zero avisos e
+  `npm run typecheck`, `npm test` e `npm run build` passarem na mesma revisão.
+
 - [ ] Revisar mensalmente métricas, falhas e chamados de suporte para ajustar
   SLA, textos, política operacional e alertas.
 - [ ] Priorizar melhorias com dados reais e com a matriz de
