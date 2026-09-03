@@ -5,6 +5,13 @@ import test from "node:test";
 
 const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), "utf8");
+const lifeOsActions = () => [
+  "study-roadmap-config.ts",
+  "it-career-create.ts",
+  "study-roadmap-items.ts",
+  "roadmap-generation.ts",
+  "roadmap-drafts.ts",
+].map((file) => read(`app/admin/performance/life-os-actions/${file}`)).join("\n");
 
 test("a migration identifica o formato TI, persiste project_spec e protege a hierarquia", () => {
   const sql = read("supabase/performance-it-career-roadmaps.sql");
@@ -35,7 +42,7 @@ test("a limpeza antiga exige allowlists explícitas e nunca varre todas as skill
 });
 
 test("o servidor recebe interesses, força desafios e reserva IA para idiomas", () => {
-  const actions = read("app/admin/performance/life-os-actions.ts");
+  const actions = lifeOsActions();
   assert.match(actions, /export async function criarRoadmapTiPredefinidoLifeOS/);
   assert.match(actions, /const interestIds = formValues\(formData, "interest_ids", 3\)/);
   assert.match(actions, /formValues\(formData, "interest_ids", 4\)\.length > 3/);
@@ -57,7 +64,7 @@ test("o servidor recebe interesses, força desafios e reserva IA para idiomas", 
 
 test("o wizard envia interest_ids em ordem e apresenta desafios como obrigatórios", () => {
   const wizard = read("components/performance/ItCareerRoadmapWizard.tsx");
-  const actions = read("app/admin/performance/life-os-actions.ts");
+  const actions = lifeOsActions();
 
   for (const field of [
     "career_id",
@@ -101,7 +108,7 @@ test("o wizard envia interest_ids em ordem e apresenta desafios como obrigatóri
 test("a versão 4 agenda questões, gera specs guiadas e estima conclusão com margem", () => {
   const catalog = read("lib/it-career-roadmaps.ts");
   const wizard = read("components/performance/ItCareerRoadmapWizard.tsx");
-  const actions = read("app/admin/performance/life-os-actions.ts");
+  const actions = lifeOsActions();
 
   assert.match(catalog, /schemaVersion: 4/);
   assert.match(catalog, /version: 4/);

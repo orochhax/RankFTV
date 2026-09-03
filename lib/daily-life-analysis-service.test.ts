@@ -11,7 +11,7 @@ const cronSource = readFileSync(
   "utf8",
 );
 const actionsSource = readFileSync(
-  "app/admin/performance/life-os-actions.ts",
+  "app/admin/performance/life-os-actions/investments.ts",
   "utf8",
 );
 

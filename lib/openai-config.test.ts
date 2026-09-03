@@ -28,10 +28,11 @@ test("roadmaps extensos recebem um limite de saida compativel com o modelo confi
 });
 
 test("a geracao em segundo plano usa o orcamento ampliado sem alongar a importacao sincrona", () => {
-  const actionsSource = readFileSync(
-    new URL("../app/admin/performance/life-os-actions.ts", import.meta.url),
+  const actionFiles = ["study-roadmap-items.ts", "roadmap-generation-support.ts"];
+  const actionsSource = actionFiles.map((file) => readFileSync(
+    new URL(`../app/admin/performance/life-os-actions/${file}`, import.meta.url),
     "utf8",
-  );
+  )).join("\n");
 
   assert.match(actionsSource, /responses\.parse\([\s\S]{0,1200}max_output_tokens: 30_000/);
   assert.match(actionsSource, /responses\.create\([\s\S]{0,1800}max_output_tokens: openAIRoadmapMaxOutputTokens\(process\.env\.OPENAI_ROADMAP_MAX_OUTPUT_TOKENS\)/);
