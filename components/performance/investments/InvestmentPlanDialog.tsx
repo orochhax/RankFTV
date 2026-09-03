@@ -147,9 +147,11 @@ function InvestmentPlanDialogContent({
     if (relatedFieldIds.length) {
       setFieldErrors((current) => {
         if (!relatedFieldIds.some((id) => current[id])) return current;
-        const next = { ...current };
-        for (const id of relatedFieldIds) delete next[id];
-        return next;
+        return Object.fromEntries(
+          Object.entries(current).filter(
+            ([id]) => !relatedFieldIds.includes(id as PlanFieldId),
+          ),
+        );
       });
     }
     setError(null);

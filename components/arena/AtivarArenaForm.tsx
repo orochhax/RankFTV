@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { ativarArena, type AtivarArenaState } from "@/app/perfil/ativar-arena/actions";
