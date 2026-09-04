@@ -11,6 +11,7 @@ import {
   type ChampionshipDiscoveryFilters,
 } from "@/lib/championship-discovery";
 import type { Championship } from "@/lib/types";
+import { trackPublicFunnel } from "@/lib/public-funnel-client";
 
 const PAGE_SIZE = 12;
 const fieldClass =
@@ -42,6 +43,12 @@ export function CampeonatosSection({
     const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
     window.history.replaceState(window.history.state, "", nextUrl);
   }, [filters]);
+
+  useEffect(() => {
+    if (!temFiltro) return;
+    const timer = window.setTimeout(() => trackPublicFunnel({ event: "search_used" }), 700);
+    return () => window.clearTimeout(timer);
+  }, [filters, temFiltro]);
 
   function update(patch: Partial<ChampionshipDiscoveryFilters>) {
     setFilters((current) => ({ ...current, ...patch }));

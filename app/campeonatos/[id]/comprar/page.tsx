@@ -12,10 +12,10 @@ export default async function ComprarAtletaPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ categoria?: string }>;
+  searchParams: Promise<{ categoria?: string; convite?: string }>;
 }) {
   const { id } = await params;
-  const { categoria: initialCategoryId } = await searchParams;
+  const { categoria: initialCategoryId, convite: waitlistInviteToken } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -99,6 +99,7 @@ export default async function ComprarAtletaPage({
                 usaMotorCategoria={categoryLevelRecommendationEnabled(champ.usa_motor_categoria)}
                 authenticatedEmail={user?.email?.trim() || null}
                 initialCategoryId={initialCategoryId ?? null}
+                waitlistInviteToken={waitlistInviteToken ?? null}
               />
             </div>
           )}

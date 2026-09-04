@@ -1,10 +1,17 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight, LifeBuoy } from "lucide-react";
+import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRole, isAdminRole } from "@/lib/supabase/roles";
 
 const MENU = [
+  {
+    href: "/admin/funil",
+    ownerOnly: true,
+    icon: ChartNoAxesColumnIncreasing,
+    label: "Funil público",
+    desc: "Acompanhe abandono, tempo e conversão da descoberta ao pagamento.",
+  },
   {
     href: "/admin/suporte",
     ownerOnly: true,

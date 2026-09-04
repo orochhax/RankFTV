@@ -28,6 +28,7 @@ import { normalizeCpf } from "@/lib/cpf";
 import { isValidAthleteName } from "@/lib/athlete-display-name";
 import { validaCPF } from "@/lib/validacao";
 import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
+import { hashWaitlistInvite } from "@/lib/waitlist";
 
 // Lê e valida as 5 respostas do questionário de nível de UM dos atletas
 // (prefixo "comprador_quiz_" ou "parceiro_quiz_" no FormData) e devolve o
@@ -311,6 +312,19 @@ export async function comprarIngressoAtleta(
       return { error: participantCategoryConflictMessage };
     }
     return { error: "Erro ao gerar o ingresso. Tente novamente." };
+  }
+
+  const waitlistInvite = String(formData.get("waitlist_invite") ?? "");
+  if (waitlistInvite.length >= 32 && waitlistInvite.length <= 100) {
+    await createAdminClient()
+      .from("championship_category_waitlist")
+      .update({ status: "converted", converted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq("invite_token_hash", hashWaitlistInvite(waitlistInvite))
+      .eq("championship_id", championshipId)
+      .eq("category_id", categoryId)
+      .eq("email", email)
+      .eq("status", "invited")
+      .gt("invite_expires_at", new Date().toISOString());
   }
 
   if (isGratis) {

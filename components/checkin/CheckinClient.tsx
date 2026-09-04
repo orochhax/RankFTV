@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { QrCode, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { markCheckin } from "@/app/actions/checkin";
+import { getPendingCheckins, queuePendingCheckin, removePendingCheckin } from "@/lib/offline-checkin-client";
 
 // Carrega o scanner só no client (usa APIs do navegador)
 const QrScanner = dynamic(
@@ -12,7 +13,7 @@ const QrScanner = dynamic(
   { ssr: false },
 );
 
-type ToastType = "success" | "already" | "error";
+type ToastType = "success" | "already" | "queued" | "error";
 interface Toast {
   type: ToastType;
   message: string;
@@ -23,6 +24,7 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
   const [toast, setToast] = useState<Toast | null>(null);
   const [manualToken, setManualToken] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [queuedCount, setQueuedCount] = useState(0);
   const router = useRouter();
 
   const showToast = (type: ToastType, message: string) => {
@@ -30,30 +32,71 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
     setTimeout(() => setToast(null), 3500);
   };
 
+  const syncQueue = async () => {
+    if (!navigator.onLine) return;
+    const pending = getPendingCheckins().filter((item) => item.championshipId === championshipId);
+    for (const item of pending) {
+      try {
+        const result = await markCheckin(item.token, championshipId);
+        if ("ok" in result || "alreadyDone" in result) removePendingCheckin(item);
+        else if (result.error.includes("não encontrado") || result.error.includes("não está ativo")) removePendingCheckin(item);
+      } catch {
+        break;
+      }
+    }
+    setQueuedCount(getPendingCheckins().filter((item) => item.championshipId === championshipId).length);
+    router.refresh();
+  };
+
+  useEffect(() => {
+    const onOnline = () => void syncQueue();
+    window.addEventListener("online", onOnline);
+    const timer = window.setTimeout(() => void syncQueue(), 0);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("online", onOnline);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [championshipId]);
+
   const handleToken = (token: string) => {
     setScanning(false);
     if (!token.trim()) return;
+    if (!navigator.onLine) {
+      const next = queuePendingCheckin({ championshipId, token: token.trim(), scannedAt: new Date().toISOString() });
+      setQueuedCount(next.filter((item) => item.championshipId === championshipId).length);
+      showToast("queued", "Sem conexão: leitura guardada como pendente. A confirmação será feita ao reconectar.");
+      return;
+    }
     startTransition(async () => {
-      const result = await markCheckin(token, championshipId);
-      if ("ok" in result) {
-        showToast("success", `Check-in confirmado: ${result.nome}.`);
-      } else if ("alreadyDone" in result) {
-        showToast("already", `Check-in já realizado: ${result.nome}.`);
-      } else {
-        showToast("error", result.error);
+      try {
+        const result = await markCheckin(token, championshipId);
+        if ("ok" in result) {
+          showToast("success", `Check-in confirmado: ${result.nome}.`);
+        } else if ("alreadyDone" in result) {
+          showToast("already", `Check-in já realizado: ${result.nome}.`);
+        } else {
+          showToast("error", result.error);
+        }
+        router.refresh();
+      } catch {
+        const next = queuePendingCheckin({ championshipId, token: token.trim(), scannedAt: new Date().toISOString() });
+        setQueuedCount(next.filter((item) => item.championshipId === championshipId).length);
+        showToast("queued", "Conexão instável: leitura pendente até o servidor confirmar.");
       }
-      router.refresh();
     });
   };
 
   const TOAST_STYLE: Record<ToastType, string> = {
     success: "bg-blue-500 text-white",
     already: "bg-amber-500 text-white",
+    queued: "bg-violet-600 text-white",
     error: "bg-red-500 text-white",
   };
   const TOAST_ICON: Record<ToastType, React.ReactNode> = {
     success: <CheckCircle2 className="size-5 shrink-0" />,
     already: <AlertCircle className="size-5 shrink-0" />,
+    queued: <Loader2 className="size-5 shrink-0" />,
     error: <XCircle className="size-5 shrink-0" />,
   };
 
@@ -79,6 +122,7 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
 
       {/* Painel de ação */}
       <div className="space-y-3">
+        {queuedCount > 0 && <div role="status" className="flex items-center justify-between gap-3 rounded-xl bg-violet-50 px-3 py-2 text-xs text-violet-800 ring-1 ring-violet-100"><span>{queuedCount} leitura{queuedCount === 1 ? "" : "s"} aguardando confirmação do servidor.</span><button type="button" onClick={() => void syncQueue()} className="font-semibold underline">Sincronizar</button></div>}
         {/* Botão principal — abre câmera */}
         <button
           onClick={() => setScanning(true)}

@@ -9,6 +9,7 @@ import { formatBRL } from "@/lib/format";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 import { pagarIngressoAtletaComCartao } from "@/app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions";
 import { CardHolderContactFields } from "@/components/pagamento/CardHolderContactFields";
+import { trackPublicFunnel } from "@/lib/public-funnel-client";
 
 type Tipo = "credito" | "debito";
 
@@ -40,6 +41,8 @@ type Props = {
   pixCopyPaste: string | null;
   pixQrBase64:  string | null;
   paymentMethod: "pix" | "cartao";
+  championshipId: string;
+  categoryId: string | null;
 };
 
 export function IngressoAtletaPagamento({
@@ -53,13 +56,22 @@ export function IngressoAtletaPagamento({
   pixCopyPaste,
   pixQrBase64,
   paymentMethod,
+  championshipId,
+  categoryId,
 }: Props) {
   const router = useRouter();
   const [statusPagamento, setStatusPagamento] = useState(initialStatusPagamento);
   const [credentials, setCredentials] = useState(initialCredentials);
   const stoppedRef = useRef(false);
+  const paymentTrackedRef = useRef(false);
 
   const pago = statusPagamento === "pago";
+
+  useEffect(() => {
+    if (!pago || paymentTrackedRef.current) return;
+    paymentTrackedRef.current = true;
+    trackPublicFunnel({ event: "payment_confirmed", championshipId, categoryId });
+  }, [categoryId, championshipId, pago]);
 
   async function gerarEntradaQrs() {
     const generated = await Promise.all(credentials.map(async (credential) => {

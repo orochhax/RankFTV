@@ -63,6 +63,14 @@ function p(text: string): string {
   return `<p style="margin:8px 0;font-size:15px;color:#374151;line-height:1.6;">${text}</p>`;
 }
 
+export function conviteListaEsperaHtml(opts: { championshipName: string; categoryName: string; url: string; hours: number }): string {
+  return base("Uma vaga ficou disponível", `
+    ${p(`Há uma vaga disponível em <strong>${escapeHtml(opts.championshipName)}</strong>.`)}
+    ${p(`Categoria: <strong>${escapeHtml(opts.categoryName)}</strong>. Seu convite é pessoal e expira em ${opts.hours} horas.`)}
+    ${btn("Continuar inscrição", opts.url)}
+  `);
+}
+
 // ── Templates ────────────────────────────────────────────────────────────────
 
 export function conviteDuplaHtml(opts: {

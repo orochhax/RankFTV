@@ -57,25 +57,25 @@ V1. Obrigações de lançamento e segurança permanecem em `PENDENCIAS-V1.md`.
   estiver autenticado, oferecer preenchimento conveniente com dados permitidos;
   se não estiver, seguir como convidado e disponibilizar ingresso, recuperação
   e pós-venda pelos fluxos protegidos já homologados.
-- [ ] Medir o funil público por etapa — busca, visualização do campeonato,
+- [x] Medir o funil público por etapa — busca, visualização do campeonato,
   seleção de categoria, início dos dados, revisão e pagamento confirmado — e
   comparar abandono, tempo e conversão antes e depois da nova home.
 - [ ] Emitir passes oficiais para Apple Wallet e Google Wallet. A integração
   exige conta de emissor, certificados/chaves privadas e aprovação das duas
   plataformas. Até isso existir, manter o link protegido e o PDF individual.
-- [ ] Criar lista de espera por categoria, com consentimento, posição clara e
+- [x] Criar lista de espera por categoria, com consentimento, posição clara e
   convite com prazo quando uma vaga for liberada.
-- [ ] Melhorar a contingência de check-in para conexão instável, sem permitir
+- [x] Melhorar a contingência de check-in para conexão instável, sem permitir
   uso duplicado do mesmo ingresso.
-- [ ] Centralizar avisos importantes do campeonato no ingresso e no e-mail,
+- [x] Centralizar avisos importantes do campeonato no ingresso e no e-mail,
   incluindo mudança de data, horário ou local.
 
 ## Experiência do organizador
 
-- [ ] Criar visão operacional por quadra, com partidas atuais, próximas
+- [x] Criar visão operacional por quadra, com partidas atuais, próximas
   chamadas, atrasos e conflitos.
-- [ ] Evoluir o placar ao vivo e uma página pública leve para acompanhamento.
-- [ ] Adicionar relatórios exportáveis de vendas, presença, categorias e
+- [x] Evoluir o placar ao vivo e uma página pública leve para acompanhamento.
+- [x] Adicionar relatórios exportáveis de vendas, presença, categorias e
   repasses, preservando os dados pessoais dos atletas.
 - [ ] Criar alertas internos configuráveis para pagamento pendente, webhook
   falho, reembolso assistido e repasse recusado.

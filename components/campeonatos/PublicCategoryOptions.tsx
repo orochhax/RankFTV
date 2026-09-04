@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Check, Clock3, Trophy, Users } from "lucide-react";
 import { formatBRL, generoLabel } from "@/lib/format";
 import { resolveCategoryPriceComposition } from "@/lib/category-price-display";
 import type { GeneroCategoria } from "@/lib/types";
+import { trackPublicFunnel } from "@/lib/public-funnel-client";
+import { WaitlistForm } from "@/components/campeonatos/WaitlistForm";
 
 export type PublicCategoryOption = {
   id: string;
@@ -69,9 +73,9 @@ export function PublicCategoryOptions({
               </div>
 
               {category.soldOut ? (
-                <span aria-disabled="true" className="mt-3 flex items-center justify-center rounded-xl bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-400">Sem vagas</span>
+                <><span aria-disabled="true" className="mt-3 flex items-center justify-center rounded-xl bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-400">Sem vagas</span><WaitlistForm championshipId={championshipId} categoryId={category.id} /></>
               ) : (
-                <Link href={`/campeonatos/${championshipId}/comprar?categoria=${encodeURIComponent(category.id)}`} className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700">
+                <Link onClick={() => trackPublicFunnel({ event: "category_selected", championshipId, categoryId: category.id })} href={`/campeonatos/${championshipId}/comprar?categoria=${encodeURIComponent(category.id)}`} className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700">
                   <Check className="size-4" />Escolher categoria <ArrowRight className="size-4" />
                 </Link>
               )}

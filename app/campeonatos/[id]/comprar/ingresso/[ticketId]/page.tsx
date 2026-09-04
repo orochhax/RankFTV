@@ -15,6 +15,7 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { athleteDisplayName } from "@/lib/athlete-display-name";
 import { calcularTotalComprador } from "@/lib/taxas";
 import { decideRefundPolicy } from "@/lib/refund-policy";
+import { ChampionshipNotices } from "@/components/campeonatos/ChampionshipNotices";
 
 const AVATAR_COLORS = ["bg-blue-500", "bg-blue-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
 function avatarColor(str: string) {
@@ -93,6 +94,8 @@ export default async function IngressoAtletaPage({
     .select("nome, is_elite, data_inicio, data_fim, cidade, estado, local, regulamento")
     .eq("id", champId)
     .maybeSingle();
+  const { data: noticeRows } = await supabase.from("championship_notices").select("id, title, message, created_at").eq("championship_id", champId).order("created_at", { ascending: false }).limit(10);
+  const notices = (noticeRows ?? []).map((notice) => ({ id: notice.id, title: notice.title, message: notice.message, createdAt: notice.created_at }));
 
   let categoriaGenero: "masculino" | "feminino" | "mista" | null = null;
   if (t.category_id) {
@@ -239,6 +242,7 @@ export default async function IngressoAtletaPage({
       {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
       <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:shadow-none">
         <PageContainer width="wide" className="space-y-6">
+          <ChampionshipNotices notices={notices} />
           {hasRefundOperation || terminal ? (
             <RefundStatusPanel
               billingType={t.billing_type}
@@ -259,6 +263,8 @@ export default async function IngressoAtletaPage({
               pixCopyPaste={t.pix_copy_paste}
               pixQrBase64={t.pix_qr_code_base64}
               paymentMethod={t.billing_type === "CREDIT_CARD" || t.billing_type === "DEBIT_CARD" ? "cartao" : "pix"}
+              championshipId={champId}
+              categoryId={t.category_id}
             />
           )}
 

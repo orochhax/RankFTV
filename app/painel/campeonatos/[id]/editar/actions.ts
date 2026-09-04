@@ -7,6 +7,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { GeneroCategoria } from "@/lib/types";
 import { resolverFaixaRating } from "@/lib/motor-categoria";
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
+import { buildChampionshipChangeNotice } from "@/lib/championship-notices-core";
+import { publishChampionshipChangeNotice } from "@/lib/championship-notices";
 
 export async function atualizarBannerCampeonato(
   champId: string,
@@ -116,7 +118,7 @@ export async function updateChampionship(
   // Confirma que o usuário é o organizador
   const { data: champ } = await supabase
     .from("championships")
-    .select("organizador_id")
+    .select("organizador_id, nome, data_inicio, data_fim, cidade, estado, local")
     .eq("id", champId)
     .single();
   if (!champ || champ.organizador_id !== user.id)
@@ -236,6 +238,21 @@ export async function updateChampionship(
       }),
     );
     if (insertError) return { ok: false, error: "Erro ao adicionar uma categoria." };
+  }
+
+  const changeNotice = buildChampionshipChangeNotice(
+    { dataInicio: champ.data_inicio, dataFim: champ.data_fim, cidade: champ.cidade, estado: champ.estado, local: champ.local },
+    { dataInicio: input.dataInicio, dataFim: input.dataFim, cidade: input.cidade.trim(), estado: input.estado.trim().toUpperCase().slice(0, 2), local: input.local?.trim() ?? "" },
+  );
+  if (changeNotice) {
+    const { data: recipients } = await supabase.rpc("organizer_championship_recipients", { p_championship_id: champId, p_user_ids: null });
+    await publishChampionshipChangeNotice({
+      championshipId: champId,
+      championshipName: nome,
+      actorId: user.id,
+      notice: changeNotice,
+      authenticatedRecipients: ((recipients ?? []) as Array<{ email: string; nome: string }>).map((recipient) => ({ email: recipient.email, nome: recipient.nome })),
+    });
   }
 
   revalidatePath(`/painel/campeonatos/${champId}`);

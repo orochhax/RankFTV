@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard, Pencil, ClipboardList, QrCode, Trophy, Shirt,
-  Wallet, TicketPercent, Layers, Users, MessageSquare,
+  Wallet, TicketPercent, Layers, Users, MessageSquare, ListPlus, Grid2X2, FileDown,
   Armchair, ListChecks, BadgeDollarSign, ScanLine,
 } from "lucide-react";
 
@@ -36,7 +36,9 @@ export const CHAMPIONSHIP_NAV_GROUPS: ChampionshipNavGroup[] = [
       { key: "inscricoes", label: "Inscrições", icon: ClipboardList, href: (id) => `/painel/campeonatos/${id}/inscricoes` },
       { key: "checkin", label: "Check-in", icon: QrCode, href: (id) => `/painel/campeonatos/${id}/checkin` },
       { key: "chaveamento", label: "Chaveamento", icon: Trophy, href: (id) => `/painel/campeonatos/${id}/chaveamento` },
+      { key: "quadras", label: "Operação por quadra", icon: Grid2X2, href: (id) => `/painel/campeonatos/${id}/quadras` },
       { key: "camisas", label: "Camisas / Kit", icon: Shirt, href: (id) => `/painel/campeonatos/${id}/camisas` },
+      { key: "lista-espera", label: "Lista de espera", icon: ListPlus, href: (id) => `/painel/campeonatos/${id}/lista-espera` },
     ],
   },
   {
@@ -45,6 +47,7 @@ export const CHAMPIONSHIP_NAV_GROUPS: ChampionshipNavGroup[] = [
       { key: "financeiro", label: "Financeiro", icon: Wallet, href: (id) => `/painel/campeonatos/${id}/financeiro` },
       { key: "cupons", label: "Cupons", icon: TicketPercent, href: (id) => `/painel/campeonatos/${id}/cupons` },
       { key: "lotes", label: "Lotes", icon: Layers, href: (id) => `/painel/campeonatos/${id}/lotes` },
+      { key: "relatorios", label: "Relatórios", icon: FileDown, href: (id) => `/painel/campeonatos/${id}/relatorios` },
     ],
   },
   {

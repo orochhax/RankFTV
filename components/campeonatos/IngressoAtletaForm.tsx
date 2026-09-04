@@ -18,6 +18,7 @@ import {
   setAthleteEmail,
   type AthleteEmailField,
 } from "@/lib/athlete-email-suggestion";
+import { trackPublicFunnel } from "@/lib/public-funnel-client";
 
 export type CategoriaOpcao = {
   id: string;
@@ -148,6 +149,7 @@ export function IngressoAtletaForm({
   usaMotorCategoria,
   authenticatedEmail,
   initialCategoryId,
+  waitlistInviteToken,
 }: {
   championshipId: string;
   categorias: CategoriaOpcao[];
@@ -155,6 +157,7 @@ export function IngressoAtletaForm({
   usaMotorCategoria: boolean;
   authenticatedEmail: string | null;
   initialCategoryId?: string | null;
+  waitlistInviteToken?: string | null;
 }) {
   const initialCategory = categorias.find(
     (category) => category.id === initialCategoryId && !category.esgotado,
@@ -181,6 +184,17 @@ export function IngressoAtletaForm({
   const parceiroEmailRef = useRef<HTMLInputElement>(null);
   const parceiroEmailConfirmacaoRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const initialDataTracked = useRef(false);
+
+  useEffect(() => {
+    if (!initialCategory || initialDataTracked.current) return;
+    initialDataTracked.current = true;
+    trackPublicFunnel({
+      event: "athlete_data_started",
+      championshipId,
+      categoryId: initialCategory.id,
+    });
+  }, [championshipId, initialCategory]);
 
   const visibleFieldError = (field: ComprarAtletaField) =>
     reviewErrors[field]
@@ -298,6 +312,11 @@ export function IngressoAtletaForm({
       firstInvalid.current?.focus();
       return;
     }
+    trackPublicFunnel({
+      event: "checkout_reviewed",
+      championshipId,
+      categoryId: catSelecionada?.id,
+    });
     setEtapa("revisao");
   }
 
@@ -333,7 +352,11 @@ export function IngressoAtletaForm({
                 key={cat.id}
                 type="button"
                 disabled={cat.esgotado}
-                onClick={() => { setCat(sel ? null : cat); setCupom(null); }}
+                onClick={() => {
+                  setCat(sel ? null : cat);
+                  setCupom(null);
+                  if (!sel) trackPublicFunnel({ event: "category_selected", championshipId, categoryId: cat.id });
+                }}
                 className={`flex w-full flex-col items-stretch gap-3 rounded-2xl border p-4 text-left transition-colors sm:flex-row sm:items-center sm:justify-between ${
                   cat.esgotado
                     ? "cursor-not-allowed border-gray-200 bg-gray-50 opacity-60"
@@ -403,7 +426,11 @@ export function IngressoAtletaForm({
 
           <button
             type="button"
-            onClick={() => catSelecionada && setEtapa("dados")}
+            onClick={() => {
+              if (!catSelecionada) return;
+              trackPublicFunnel({ event: "athlete_data_started", championshipId, categoryId: catSelecionada.id });
+              setEtapa("dados");
+            }}
             disabled={!catSelecionada}
             className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -420,6 +447,7 @@ export function IngressoAtletaForm({
           <input type="hidden" name="categoria_nome"  value={catSelecionada.nome} />
           <input type="hidden" name="metodo_pagamento" value={metodoPagamento} />
           <input type="hidden" name="usar_mesmo_email" value={usarMesmoEmail ? "1" : "0"} />
+          {waitlistInviteToken && <input type="hidden" name="waitlist_invite" value={waitlistInviteToken} />}
 
           <div hidden={etapa !== "dados"} className="space-y-6">
           {/* Resumo da categoria escolhida */}
