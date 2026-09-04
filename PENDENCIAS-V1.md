@@ -1,6 +1,6 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 03/09/2026. Este arquivo mantém somente tarefas abertas. O que já
+Atualizado em 04/09/2026. Este arquivo mantém somente tarefas abertas. O que já
 foi implementado ou homologado está registrado em `AUDITORIA-PRODUCAO.md`, no
 histórico do Git e nos deploys de homologação.
 
@@ -58,8 +58,18 @@ uma devolução não concluída.
   DKIM e DMARC, e confirmar entrega em Gmail e Outlook. O webhook Resend e suas
   métricas já foram homologados no Sandbox, mas precisam de configuração e
   evidência separadas em Production.
-- [ ] Confirmar no Supabase Auth de produção os templates, Site URL, Redirect
-  URLs, política de senha, CAPTCHA e MFA da conta CEO.
+- [ ] Concluir a configuração do Supabase Auth de produção:
+  - [x] Site URL, Redirect URLs e CAPTCHA configurados em produção.
+  - [x] Política mínima elevada de 6 para 8 caracteres em 04/09/2026, alinhada
+    à validação atual do cadastro, perfil e recuperação de senha.
+  - [x] Conta administrativa do painel Supabase protegida com TOTP principal e
+    fator de backup sincronizado no Ente Auth, ambos testados em sessão limpa.
+    O limite de sessões `AAL1` ficou desligado para não interromper usuários
+    enquanto o RankFTV ainda não possui desafio MFA na interface.
+  - [ ] Revisar os templates de autenticação e testar cadastro, login e
+    recuperação de senha em produção após a alteração da política.
+  - [ ] Implementar, cadastrar e exigir MFA para o usuário CEO dentro do
+    RankFTV, incluindo desafio no login, recuperação e proteção por `AAL2`.
 - [ ] Configurar monitor externo e alertas para
   `https://www.rankftv.com/api/health`.
 - [ ] Definir quem responde a operação financeira pendente, reembolso
