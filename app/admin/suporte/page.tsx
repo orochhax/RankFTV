@@ -9,6 +9,7 @@ import {
   listarEventosCredenciaisSuporte,
   listarLogsSuporte,
   listarOperacaoEmails,
+  listarTendenciasSuporte,
 } from "./actions";
 
 export default async function AdminSupportPage() {
@@ -18,11 +19,12 @@ export default async function AdminSupportPage() {
     getUserRole(supabase),
   ]);
   if (!user || !isCeo(role)) redirect("/");
-  const [history, credentialHistory, emailOperations, supportCases] = await Promise.all([
+  const [history, credentialHistory, emailOperations, supportCases, trends] = await Promise.all([
     listarLogsSuporte(),
     listarEventosCredenciaisSuporte(),
     listarOperacaoEmails(),
     listarCasosSuporte(),
+    listarTendenciasSuporte(),
   ]);
   return (
     <div className="w-full space-y-6 px-6 py-8">
@@ -38,6 +40,7 @@ export default async function AdminSupportPage() {
         initialCredentialEvents={credentialHistory.events ?? []}
         initialEmailSummary={emailOperations.summary ?? null}
         initialCases={supportCases.cases ?? []}
+        initialTrends={trends.trends ?? []}
       />
     </div>
   );

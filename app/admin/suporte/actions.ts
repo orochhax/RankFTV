@@ -8,6 +8,11 @@ import { gerarTicketAccessToken } from "@/lib/ticket-access";
 import { registrarAuditoria } from "@/lib/audit";
 import { enviarAvisoAlteracaoIngresso } from "@/lib/email/send";
 import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
+import { isSupportPriority, supportSlaDueAt, type SupportPriority } from "@/lib/support-sla";
+import { randomUUID } from "node:crypto";
+import { buildSupportTrend, type DatedSupportEvent, type SupportTrendPoint } from "@/lib/support-trends";
+
+export type { SupportTrendPoint } from "@/lib/support-trends";
 
 export type SupportTicket = {
   id: string;
@@ -78,6 +83,10 @@ export type SupportCase = {
   assignedLabel: string;
   createdAt: string;
   updatedAt: string;
+  priority: SupportPriority;
+  slaDueAt: string | null;
+  attachments: Array<{ id: string; name: string; url: string }>;
+  notes: Array<{ id: string; text: string; createdAt: string }>;
 };
 
 export type SupportAuditLog = {
@@ -100,6 +109,35 @@ export type SupportAuditFilters = {
   dateFrom?: string;
   dateTo?: string;
 };
+
+export async function listarTendenciasSuporte(): Promise<{ ok: boolean; error?: string; trends?: SupportTrendPoint[] }> {
+  await requireCeo();
+  const admin = createAdminClient();
+  const since = new Date();
+  since.setUTCDate(since.getUTCDate() - 29);
+  since.setUTCHours(0, 0, 0, 0);
+  const sinceIso = since.toISOString();
+  const [emails, recoveries, invalidations, assisted] = await Promise.all([
+    admin.from("transactional_email_events").select("delivered_at").eq("status", "delivered").gte("delivered_at", sinceIso).limit(10000),
+    admin.from("ticket_recovery_codes").select("usado_em").not("usado_em", "is", null).gte("usado_em", sinceIso).limit(10000),
+    admin.from("athlete_ticket_credential_events").select("created_at").eq("event_type", "invalidated").gte("created_at", sinceIso).limit(10000),
+    admin.from("security_audit_log").select("created_at").in("acao", [
+      "athlete_ticket_email_corrected_by_support",
+      "athlete_ticket_credential_resent_by_support",
+      "athlete_ticket_credential_invalidated_by_support",
+    ]).gte("created_at", sinceIso).limit(10000),
+  ]);
+  if (emails.error || recoveries.error || invalidations.error || assisted.error) {
+    return { ok: false, error: "Não foi possível carregar as tendências operacionais." };
+  }
+  const events: DatedSupportEvent[] = [
+    ...(emails.data ?? []).map((row) => ({ metric: "emailDelivered" as const, occurredAt: row.delivered_at })),
+    ...(recoveries.data ?? []).map((row) => ({ metric: "ticketRecovered" as const, occurredAt: row.usado_em })),
+    ...(invalidations.data ?? []).map((row) => ({ metric: "linkInvalidated" as const, occurredAt: row.created_at })),
+    ...(assisted.data ?? []).map((row) => ({ metric: "assistedChange" as const, occurredAt: row.created_at })),
+  ];
+  return { ok: true, trends: buildSupportTrend(events) };
+}
 
 async function requireCeo() {
   const supabase = await createClient();
@@ -650,7 +688,7 @@ export async function listarCasosSuporte(): Promise<{ ok: boolean; error?: strin
   const admin = createAdminClient();
   const { data: rows, error } = await admin
     .from("support_cases")
-    .select("id, athlete_ticket_id, credential_id, case_type, status, summary, assigned_to, created_at, updated_at")
+    .select("id, athlete_ticket_id, credential_id, case_type, status, summary, assigned_to, priority, sla_due_at, created_at, updated_at")
     .order("updated_at", { ascending: false })
     .limit(100);
   if (error) return { ok: false, error: "A fila de suporte ainda não está disponível." };
@@ -659,6 +697,16 @@ export async function listarCasosSuporte(): Promise<{ ok: boolean; error?: strin
     ? await admin.from("profiles").select("id, nome, username").in("id", actorIds)
     : { data: [] };
   const actorMap = new Map((actors ?? []).map((actor) => [actor.id, actor.nome || actor.username || "CEO"]));
+  const caseIds = (rows ?? []).map((row) => row.id);
+  const [{ data: attachmentRows }, { data: noteRows }] = await Promise.all([
+    caseIds.length ? admin.from("support_case_attachments").select("id, case_id, storage_path, original_name").in("case_id", caseIds) : Promise.resolve({ data: [] }),
+    caseIds.length ? admin.from("support_case_notes").select("id, case_id, note, created_at").in("case_id", caseIds).order("created_at", { ascending: false }).limit(500) : Promise.resolve({ data: [] }),
+  ]);
+  const attachments = new Map<string, SupportCase["attachments"]>();
+  for (const attachment of attachmentRows ?? []) {
+    const { data: signed } = await admin.storage.from("support-attachments").createSignedUrl(attachment.storage_path, 600);
+    attachments.set(attachment.case_id, [...(attachments.get(attachment.case_id) ?? []), { id: attachment.id, name: attachment.original_name, url: signed?.signedUrl ?? "" }]);
+  }
   return {
     ok: true,
     cases: (rows ?? []).map((row) => ({
@@ -671,6 +719,10 @@ export async function listarCasosSuporte(): Promise<{ ok: boolean; error?: strin
       assignedLabel: row.assigned_to ? actorMap.get(row.assigned_to) ?? "CEO" : "Sem responsável",
       createdAt: row.created_at,
       updatedAt: row.updated_at,
+      priority: (row.priority ?? "normal") as SupportPriority,
+      slaDueAt: row.sla_due_at,
+      attachments: attachments.get(row.id) ?? [],
+      notes: (noteRows ?? []).filter((note) => note.case_id === row.id).map((note) => ({ id: note.id, text: note.note, createdAt: note.created_at })),
     })),
   };
 }
@@ -680,6 +732,7 @@ export async function criarCasoSuporte(input: {
   credentialId?: string;
   caseType: string;
   summary: string;
+  priority?: SupportPriority;
 }): Promise<{ ok: boolean; error?: string }> {
   const actor = await requireCeo();
   const summary = input.summary.trim();
@@ -688,6 +741,7 @@ export async function criarCasoSuporte(input: {
   if (input.credentialId && !validUuid(input.credentialId)) return { ok: false, error: "Credencial inválida." };
   const allowedTypes = ["correcao_email", "credencial_comprometida", "falha_email", "estorno_pix", "outro"];
   if (!allowedTypes.includes(input.caseType)) return { ok: false, error: "Tipo de caso inválido." };
+  const priority = isSupportPriority(input.priority) ? input.priority : "normal";
   const { error } = await createAdminClient().from("support_cases").insert({
     athlete_ticket_id: input.ticketId ?? null,
     credential_id: input.credentialId ?? null,
@@ -695,8 +749,28 @@ export async function criarCasoSuporte(input: {
     summary,
     assigned_to: actor.id,
     created_by: actor.id,
+    priority,
+    sla_due_at: supportSlaDueAt(priority),
   });
   return error ? { ok: false, error: "Não foi possível abrir o caso." } : { ok: true };
+}
+
+const SUPPORT_MIMES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
+
+export async function prepararAnexoSuporte(input: { caseId: string; name: string; type: string; size: number }) {
+  await requireCeo();
+  if (!validUuid(input.caseId) || !SUPPORT_MIMES.has(input.type) || input.size <= 0 || input.size > 5 * 1024 * 1024) return { ok: false as const, error: "Anexo inválido. Use imagem ou PDF de até 5 MB." };
+  const extension = input.type === "application/pdf" ? "pdf" : input.type.split("/")[1];
+  const path = `${input.caseId}/${randomUUID()}.${extension}`;
+  const { data, error } = await createAdminClient().storage.from("support-attachments").createSignedUploadUrl(path);
+  return error || !data ? { ok: false as const, error: "Não foi possível preparar o anexo." } : { ok: true as const, path, token: data.token };
+}
+
+export async function confirmarAnexoSuporte(input: { caseId: string; path: string; name: string; type: string; size: number }) {
+  const actor = await requireCeo();
+  if (!validUuid(input.caseId) || !input.path.startsWith(`${input.caseId}/`) || !SUPPORT_MIMES.has(input.type) || input.size <= 0 || input.size > 5 * 1024 * 1024) return { ok: false, error: "Anexo inválido." };
+  const { error } = await createAdminClient().from("support_case_attachments").insert({ case_id: input.caseId, storage_path: input.path, original_name: input.name.slice(0, 180), mime_type: input.type, size_bytes: input.size, uploaded_by: actor.id });
+  return error ? { ok: false, error: "Não foi possível registrar o anexo." } : { ok: true };
 }
 
 export async function atualizarCasoSuporte(input: {

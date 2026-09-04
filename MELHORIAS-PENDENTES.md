@@ -63,6 +63,8 @@ V1. Obrigações de lançamento e segurança permanecem em `PENDENCIAS-V1.md`.
 - [ ] Emitir passes oficiais para Apple Wallet e Google Wallet. A integração
   exige conta de emissor, certificados/chaves privadas e aprovação das duas
   plataformas. Até isso existir, manter o link protegido e o PDF individual.
+  A preparação de variáveis, diagnóstico exclusivo do CEO e o runbook estão
+  prontos; a emissão permanece bloqueada até os cadastros externos.
 - [x] Criar lista de espera por categoria, com consentimento, posição clara e
   convite com prazo quando uma vaga for liberada.
 - [x] Melhorar a contingência de check-in para conexão instável, sem permitir
@@ -77,23 +79,23 @@ V1. Obrigações de lançamento e segurança permanecem em `PENDENCIAS-V1.md`.
 - [x] Evoluir o placar ao vivo e uma página pública leve para acompanhamento.
 - [x] Adicionar relatórios exportáveis de vendas, presença, categorias e
   repasses, preservando os dados pessoais dos atletas.
-- [ ] Criar alertas internos configuráveis para pagamento pendente, webhook
+- [x] Criar alertas internos configuráveis para pagamento pendente, webhook
   falho, reembolso assistido e repasse recusado.
 
 ## Administração e suporte
 
-- [ ] Evoluir os casos de suporte com filtros, prioridade, responsável, SLA,
+- [x] Evoluir os casos de suporte com filtros, prioridade, responsável, SLA,
   anexos seguros e histórico de resolução.
-- [ ] Criar painéis de tendência para entrega de e-mails, recuperação de
+- [x] Criar painéis de tendência para entrega de e-mails, recuperação de
   ingresso, invalidação de links e alterações assistidas.
-- [ ] Avaliar permissões administrativas granulares se outras pessoas entrarem
+- [x] Avaliar permissões administrativas granulares se outras pessoas entrarem
   na operação; enquanto isso, manter o painel sensível exclusivo do papel CEO.
 
 ## Evolução de produto
 
-- [ ] Priorizar as próximas entregas usando dados reais e a matriz de
+- [x] Priorizar as próximas entregas usando dados reais e a matriz de
   `PESQUISA-CONCORRENTES.md`.
-- [ ] Planejar Arena comercial, assinaturas recorrentes, aplicativo/PWA
+- [x] Planejar Arena comercial, assinaturas recorrentes, aplicativo/PWA
   ampliado e analytics avançado somente depois da estabilização da V1.
 
 ## Itens concluídos

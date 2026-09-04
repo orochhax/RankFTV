@@ -12,13 +12,17 @@ import {
   listarEventosCredenciaisSuporte,
   listarLogsSuporte,
   listarOperacaoEmails,
+  listarTendenciasSuporte,
   reenviarCredencialSuporte,
   type EmailOperationsSummary,
   type SupportCase,
   type SupportCredentialEvent,
   type SupportAuditLog,
   type SupportTicket,
+  type SupportTrendPoint,
 } from "@/app/admin/suporte/actions";
+import { SupportAttachmentUpload } from "@/components/admin/SupportAttachmentUpload";
+import type { SupportPriority } from "@/lib/support-sla";
 
 const FIELD_LABELS: Record<string, string> = {
   comprador_nome: "nome do atleta 1",
@@ -43,11 +47,13 @@ export function TicketSupportCenter({
   initialCredentialEvents,
   initialEmailSummary,
   initialCases,
+  initialTrends,
 }: {
   initialLogs: SupportAuditLog[];
   initialCredentialEvents: SupportCredentialEvent[];
   initialEmailSummary: EmailOperationsSummary | null;
   initialCases: SupportCase[];
+  initialTrends: SupportTrendPoint[];
 }) {
   const [term, setTerm] = useState("");
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -67,6 +73,7 @@ export function TicketSupportCenter({
   const [credentialEvents, setCredentialEvents] = useState(initialCredentialEvents);
   const [emailSummary, setEmailSummary] = useState(initialEmailSummary);
   const [cases, setCases] = useState(initialCases);
+  const [trends, setTrends] = useState(initialTrends);
   const [credentialOperation, setCredentialOperation] = useState<{
     ticketId: string;
     credentialId: string;
@@ -78,8 +85,24 @@ export function TicketSupportCenter({
   const [operationError, setOperationError] = useState<string | null>(null);
   const [caseDraft, setCaseDraft] = useState<{ ticketId?: string; credentialId?: string } | null>(null);
   const [caseType, setCaseType] = useState("outro");
+  const [casePriority, setCasePriority] = useState<SupportPriority>("normal");
+  const [caseStatusFilter, setCaseStatusFilter] = useState("todos");
+  const [casePriorityFilter, setCasePriorityFilter] = useState("todos");
+  const [caseAssigneeFilter, setCaseAssigneeFilter] = useState("todos");
+  const [caseSlaFilter, setCaseSlaFilter] = useState("todos");
+  const [currentTimestamp] = useState(() => Date.now());
   const [caseSummary, setCaseSummary] = useState("");
   const [caseNotes, setCaseNotes] = useState<Record<string, string>>({});
+  const visibleCases = cases.filter((item) =>
+    (caseStatusFilter === "todos" || item.status === caseStatusFilter) &&
+    (casePriorityFilter === "todos" || item.priority === casePriorityFilter) &&
+    (caseAssigneeFilter === "todos" || (caseAssigneeFilter === "assigned" ? item.assignedLabel !== "Sem responsável" : item.assignedLabel === "Sem responsável")) &&
+    (caseSlaFilter === "todos" || (caseSlaFilter === "overdue"
+      ? item.status !== "resolvido" && Boolean(item.slaDueAt) && new Date(item.slaDueAt ?? 0).getTime() < currentTimestamp
+      : caseSlaFilter === "on_track"
+        ? item.status !== "resolvido" && Boolean(item.slaDueAt) && new Date(item.slaDueAt ?? 0).getTime() >= currentTimestamp
+        : !item.slaDueAt)),
+  );
 
   function loadLogs(options: {
     ticketId?: string | null;
@@ -152,14 +175,16 @@ export function TicketSupportCenter({
 
   function refreshOperations(ticketId?: string) {
     startLogsTransition(async () => {
-      const [eventsResult, emailResult, casesResult] = await Promise.all([
+      const [eventsResult, emailResult, casesResult, trendsResult] = await Promise.all([
         listarEventosCredenciaisSuporte(ticketId),
         listarOperacaoEmails(),
         listarCasosSuporte(),
+        listarTendenciasSuporte(),
       ]);
       if (eventsResult.ok) setCredentialEvents(eventsResult.events ?? []);
       if (emailResult.ok) setEmailSummary(emailResult.summary ?? null);
       if (casesResult.ok) setCases(casesResult.cases ?? []);
+      if (trendsResult.ok) setTrends(trendsResult.trends ?? []);
     });
   }
 
@@ -203,12 +228,14 @@ export function TicketSupportCenter({
         credentialId: caseDraft.credentialId,
         caseType,
         summary: caseSummary,
+        priority: casePriority,
       });
       if (!result.ok) { setError(result.error ?? "Falha ao abrir o caso."); return; }
       setSuccess("Caso adicionado à fila de suporte.");
       setCaseDraft(null);
       setCaseSummary("");
       setCaseType("outro");
+      setCasePriority("normal");
       refreshOperations();
     });
   }
@@ -336,6 +363,28 @@ export function TicketSupportCenter({
         )}
       </section>
 
+      <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+        <h2 className="text-lg font-semibold text-gray-900">Tendências operacionais</h2>
+        <p className="mt-1 text-sm text-gray-500">Últimos 30 dias em contagens agregadas, sem dados pessoais.</p>
+        <div className="mt-4 overflow-x-auto">
+          <div className="flex min-w-[720px] items-end gap-1" role="img" aria-label="Tendências diárias de entrega, recuperação, invalidação e alterações assistidas">
+            {trends.map((point) => {
+              const total = point.emailDelivered + point.ticketRecovered + point.linkInvalidated + point.assistedChange;
+              const max = Math.max(1, ...trends.map((item) => item.emailDelivered + item.ticketRecovered + item.linkInvalidated + item.assistedChange));
+              return <div key={point.day} className="group relative flex h-36 flex-1 items-end" title={`${formatDateKey(point.day)}: ${point.emailDelivered} entregas, ${point.ticketRecovered} recuperações, ${point.linkInvalidated} invalidações, ${point.assistedChange} alterações assistidas`}>
+                <div className="w-full rounded-t bg-blue-500 transition-colors group-hover:bg-blue-600" style={{ height: `${Math.max(total > 0 ? 6 : 1, (total / max) * 100)}%` }} />
+              </div>;
+            })}
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+          {([
+            ["E-mails entregues", "emailDelivered"], ["Ingressos recuperados", "ticketRecovered"],
+            ["Links invalidados", "linkInvalidated"], ["Alterações assistidas", "assistedChange"],
+          ] as const).map(([label, key]) => <div key={key} className="rounded-lg bg-gray-50 p-2"><strong className="block text-gray-900">{trends.reduce((sum, point) => sum + point[key], 0)}</strong><span className="text-gray-500">{label}</span></div>)}
+        </div>
+      </section>
+
       <div className="flex gap-2 rounded-2xl bg-white p-4 ring-1 ring-black/5">
         <input
           value={term}
@@ -440,25 +489,34 @@ export function TicketSupportCenter({
             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
               <Inbox className="size-5 text-blue-600" /> Fila de casos
             </h2>
-            <p className="mt-1 text-sm text-gray-500">Atendimento com estado, responsável e notas. Não anexe documentos completos.</p>
+            <p className="mt-1 text-sm text-gray-500">Atendimento com prioridade, responsável, prazo, anexos privados e histórico.</p>
           </div>
           <button type="button" onClick={() => { setCaseDraft({}); setCaseType("outro"); setCaseSummary(""); }} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white">
             Abrir caso geral
           </button>
         </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <select value={caseStatusFilter} onChange={(event) => setCaseStatusFilter(event.target.value)} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"><option value="todos">Todos os estados</option><option value="aberto">Abertos</option><option value="aguardando_prova">Aguardando prova</option><option value="resolvido">Resolvidos</option></select>
+          <select value={casePriorityFilter} onChange={(event) => setCasePriorityFilter(event.target.value)} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"><option value="todos">Todas as prioridades</option><option value="critical">Crítica</option><option value="high">Alta</option><option value="normal">Normal</option><option value="low">Baixa</option></select>
+          <select value={caseAssigneeFilter} onChange={(event) => setCaseAssigneeFilter(event.target.value)} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"><option value="todos">Todos os responsáveis</option><option value="assigned">Atribuídos ao CEO</option><option value="unassigned">Sem responsável</option></select>
+          <select value={caseSlaFilter} onChange={(event) => setCaseSlaFilter(event.target.value)} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"><option value="todos">Todos os SLAs</option><option value="overdue">SLA vencido</option><option value="on_track">SLA no prazo</option><option value="without">Sem SLA</option></select>
+        </div>
         <div className="mt-4 space-y-3">
-          {cases.length === 0 && <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-500">Nenhum caso registrado.</p>}
-          {cases.map((item) => (
+          {visibleCases.length === 0 && <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-500">Nenhum caso encontrado.</p>}
+          {visibleCases.map((item) => (
             <article key={item.id} className="rounded-xl border border-gray-100 p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p className="font-medium text-gray-900">{item.summary}</p>
                   <p className="mt-1 text-xs text-gray-500">{item.caseType.replaceAll("_", " ")} · {item.assignedLabel}</p>
+                  <p className="mt-1 text-xs text-gray-500">Prioridade {item.priority} · SLA {item.slaDueAt ? new Date(item.slaDueAt).toLocaleString("pt-BR") : "não definido"}</p>
                 </div>
                 <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.status === "resolvido" ? "bg-emerald-50 text-emerald-700" : item.status === "aguardando_prova" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
                   {item.status.replaceAll("_", " ")}
                 </span>
               </div>
+              {item.attachments.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{item.attachments.filter((attachment) => attachment.url).map((attachment) => <a key={attachment.id} href={attachment.url} target="_blank" rel="noreferrer" className="rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700">{attachment.name}</a>)}</div>}
+              {item.notes.length > 0 && <details className="mt-3 rounded-lg bg-gray-50 p-3"><summary className="cursor-pointer text-xs font-semibold text-gray-700">Histórico de resolução ({item.notes.length})</summary><ol className="mt-2 space-y-2">{item.notes.map((note) => <li key={note.id} className="text-xs text-gray-600"><time className="font-medium">{new Date(note.createdAt).toLocaleString("pt-BR")}</time> · {note.text}</li>)}</ol></details>}
               <textarea
                 value={caseNotes[item.id] ?? ""}
                 onChange={(event) => setCaseNotes((current) => ({ ...current, [item.id]: event.target.value }))}
@@ -471,6 +529,7 @@ export function TicketSupportCenter({
                 <button type="button" onClick={() => updateCase(item, "aberto")} disabled={pending} className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700">Aberto</button>
                 <button type="button" onClick={() => updateCase(item, "aguardando_prova")} disabled={pending} className="rounded-lg border border-amber-200 px-3 py-2 text-xs font-semibold text-amber-700">Aguardando prova</button>
                 <button type="button" onClick={() => updateCase(item, "resolvido")} disabled={pending} className="rounded-lg border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700">Resolver</button>
+                <SupportAttachmentUpload caseId={item.id} onDone={() => refreshOperations()} />
               </div>
             </article>
           ))}
@@ -669,6 +728,8 @@ export function TicketSupportCenter({
               <option value="estorno_pix">Estorno Pix pendente</option>
               <option value="outro">Outro</option>
             </select>
+            <label className="mt-4 block text-xs font-medium text-gray-600">Prioridade e prazo de SLA</label>
+            <select value={casePriority} onChange={(event) => setCasePriority(event.target.value as SupportPriority)} className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm"><option value="low">Baixa · 72h</option><option value="normal">Normal · 24h</option><option value="high">Alta · 8h</option><option value="critical">Crítica · 4h</option></select>
             <label className="mt-4 block text-xs font-medium text-gray-600">Resumo</label>
             <textarea value={caseSummary} onChange={(event) => setCaseSummary(event.target.value)} rows={4} maxLength={500} className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm" />
             <div className="mt-5 flex flex-col gap-2">
