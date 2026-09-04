@@ -13,7 +13,7 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
   if (camps.length === 0) return null;
 
   return (
-    <section className="space-y-4" aria-label="Campeonatos em destaque">
+    <section className="min-w-0 max-w-full space-y-4 overflow-hidden" aria-label="Campeonatos em destaque">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-gray-900">Campeonatos em destaque</h2>
         <div className="flex items-center gap-2">
@@ -27,10 +27,10 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
         </div>
       </div>
 
-      <div className="touch-pan-y overflow-hidden rounded-2xl" aria-roledescription="carrossel" onMouseEnter={carousel.pause} onMouseLeave={carousel.resume} onFocusCapture={carousel.pause} onBlurCapture={carousel.resume} onKeyDown={(event) => { if (event.key === "ArrowLeft") carousel.previous(); if (event.key === "ArrowRight") carousel.next(); }} {...carousel.pointerHandlers}>
-        <div className={`flex ${carousel.reducedMotion ? "" : "transition-transform duration-500 ease-out"}`} style={{ transform: `translateX(-${carousel.current * 100}%)` }}>
+      <div className="w-full max-w-full touch-pan-y overflow-hidden rounded-2xl" aria-roledescription="carrossel" onMouseEnter={carousel.pause} onMouseLeave={carousel.resume} onFocusCapture={carousel.pause} onBlurCapture={carousel.resume} onKeyDown={(event) => { if (event.key === "ArrowLeft") carousel.previous(); if (event.key === "ArrowRight") carousel.next(); }} {...carousel.pointerHandlers}>
+        <div className={`flex w-full ${carousel.reducedMotion ? "" : "transition-transform duration-500 ease-out"}`} style={{ transform: `translateX(-${carousel.current * 100}%)` }}>
           {camps.map((camp) => (
-            <div key={camp.id} className="min-w-full p-px">
+            <div key={camp.id} className="w-full min-w-0 shrink-0 p-px">
               <Link href={`/campeonatos/${camp.id}`} className="group block overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md md:flex">
                 <div className={`relative flex h-40 items-center justify-center bg-gradient-to-br md:h-48 md:w-1/2 md:shrink-0 ${camp.bannerFrom} ${camp.bannerTo}`}>
                   {camp.bannerUrl ? (

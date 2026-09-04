@@ -78,8 +78,8 @@ export function CampeonatosSection({
 
       {banner && <div className="grid gap-8 md:grid-cols-3"><div className="md:col-span-2">{banner}</div></div>}
 
-      <div className="grid items-start gap-8 md:grid-cols-3">
-        <div className="md:col-span-2">{featured}</div>
+      <div className="grid min-w-0 items-start gap-8 md:grid-cols-3">
+        <div className="min-w-0 max-w-full md:col-span-2">{featured}</div>
         {sidebar && <aside className="hidden pt-12 md:block">{sidebar}</aside>}
       </div>
 
