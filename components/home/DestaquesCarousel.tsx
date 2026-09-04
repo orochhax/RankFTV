@@ -27,7 +27,7 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
         </div>
       </div>
 
-      <div className="w-full max-w-full touch-pan-y overflow-hidden rounded-2xl" aria-roledescription="carrossel" onMouseEnter={carousel.pause} onMouseLeave={carousel.resume} onKeyDown={(event) => { if (event.key === "ArrowLeft") carousel.previous(); if (event.key === "ArrowRight") carousel.next(); }} {...carousel.pointerHandlers} {...carousel.focusHandlers}>
+      <div className="w-full max-w-full touch-pan-y overflow-hidden rounded-2xl" aria-roledescription="carrossel" onMouseEnter={carousel.pauseOnHover} onMouseLeave={carousel.resume} onKeyDown={(event) => { if (event.key === "ArrowLeft") carousel.previous(); if (event.key === "ArrowRight") carousel.next(); }} {...carousel.pointerHandlers} {...carousel.focusHandlers}>
         <div className={`flex w-full ${carousel.reducedMotion ? "" : "transition-transform duration-500 ease-out"}`} style={{ transform: `translateX(-${carousel.current * 100}%)` }}>
           {camps.map((camp) => (
             <div key={camp.id} className="w-full min-w-0 shrink-0 p-px">

@@ -21,10 +21,14 @@ export function useCarouselControls(length: number, intervalMs: number) {
   }, []);
 
   useEffect(() => {
-    if (length <= 1 || paused || reducedMotion) return;
-    const timer = window.setInterval(next, intervalMs);
-    return () => window.clearInterval(timer);
-  }, [intervalMs, length, next, paused, reducedMotion]);
+    if (length <= 1 || paused) return;
+    const timer = window.setTimeout(next, intervalMs);
+    return () => window.clearTimeout(timer);
+  }, [current, intervalMs, length, next, paused]);
+
+  function pauseOnHover() {
+    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) setPaused(true);
+  }
 
   function onPointerDown(event: ReactPointerEvent<HTMLElement>) {
     pointerStart.current = event.clientX;
@@ -64,7 +68,7 @@ export function useCarouselControls(length: number, intervalMs: number) {
     previous,
     next,
     reducedMotion,
-    pause: () => setPaused(true),
+    pauseOnHover,
     resume: () => setPaused(false),
     pointerHandlers: { onPointerDown, onPointerUp, onPointerCancel },
     focusHandlers: { onFocusCapture, onBlurCapture },
