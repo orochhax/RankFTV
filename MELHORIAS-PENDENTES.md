@@ -3,6 +3,33 @@
 Atualizado em 04/09/2026. Este arquivo reúne melhorias que não bloqueiam a
 V1. Obrigações de lançamento e segurança permanecem em `PENDENCIAS-V1.md`.
 
+## Identidade visual e banners da home
+
+- [ ] Substituir os fundos sólidos em preto puro usados na navegação, cabeçalhos,
+  cards escuros e páginas do produto por `#202020`, centralizando a cor em um
+  token semântico para evitar substituições isoladas. Preservar preto e suas
+  transparências quando tiverem função técnica, como QR Codes, máscaras de
+  imagem, backdrop de modal e contraste necessário; validar contraste e estados
+  de hover em todas as páginas afetadas.
+- [ ] Criar na home um carrossel de banners acima de “Campeonatos em destaque”,
+  separado do carrossel atual de campeonatos e responsivo para celular e
+  desktop.
+- [ ] Adicionar em `/admin/destaques` uma seção independente “Banners da home”,
+  exclusiva do CEO/admin, com upload, pré-visualização, adição, remoção,
+  ativação/desativação e ordenação. Cada banner deve aceitar imagem, texto
+  alternativo obrigatório e link opcional, com validação de tipo MIME, tamanho
+  e destino do link.
+- [ ] Não renderizar o carrossel, card vazio, título nem espaçamento residual
+  quando não existir banner ativo. Remover todos os banners pelo admin deve ser
+  uma configuração válida e refletir na home sem exigir novo deploy.
+- [ ] Permitir trocar banners com gesto de arrastar no celular e com controles
+  acessíveis no desktop. Avançar automaticamente em ciclo a cada 2 segundos,
+  pausar durante interação, hover ou foco e respeitar `prefers-reduced-motion`;
+  indicadores e botões devem informar a posição e funcionar por teclado.
+- [ ] Otimizar as imagens do carrossel, carregando primeiro somente o banner
+  visível e evitando mudança de layout, tráfego excessivo ou imagem cortada sem
+  pré-visualização das proporções usadas na home.
+
 ## Experiência do atleta
 
 - [ ] Transformar o início da home em uma vitrine pública de campeonatos,
