@@ -21,13 +21,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const quickFilters = [
-  { label: "Perto de mim", icon: Navigation },
-  { label: "Este fim de semana", icon: CalendarDays },
-  { label: "Inscrições abertas", success: true },
-  { label: "Até R$ 200", icon: Tag },
-];
-
 const featured = [
   {
     name: "CBFUT | Circuito Brasileiro — 19ª etapa",
@@ -126,12 +119,6 @@ export default function TesteHomeMobilePage() {
           </div>
           <button type="button" className={styles.searchButton}><Search aria-hidden="true" />Buscar campeonatos</button>
         </section>
-
-        <div className={styles.quickFilters} aria-label="Filtros rápidos">
-          {quickFilters.map(({ label, icon: Icon, success }) => (
-            <button type="button" key={label}>{Icon ? <Icon aria-hidden="true" /> : <span className={success ? styles.successDot : ""} />}{label}</button>
-          ))}
-        </div>
 
         <section className={styles.featuredSection}>
           <div className={styles.sectionHeading}><h2>Campeonatos em destaque</h2><Link href="/">Ver todos <ChevronRight aria-hidden="true" /></Link></div>
