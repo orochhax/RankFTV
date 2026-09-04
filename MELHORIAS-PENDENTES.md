@@ -14,6 +14,12 @@ V1. Obrigações de lançamento e segurança permanecem em `PENDENCIAS-V1.md`.
 - [ ] Criar na home um carrossel de banners acima de “Campeonatos em destaque”,
   separado do carrossel atual de campeonatos e responsivo para celular e
   desktop.
+- [ ] Transformar “Campeonatos em destaque” também em carrossel no desktop. Em
+  vez de empilhar os cards verticalmente, exibir um campeonato principal por
+  vez no espaço disponível e trocar lateralmente, reutilizando a mesma ordem e
+  rotação automática do mobile. Incluir arraste, setas e indicadores no PC,
+  pausar durante interação e ocultar controles quando houver um único destaque.
+  Este carrossel continua independente do carrossel de banners acima dele.
 - [ ] Adicionar em `/admin/destaques` uma seção independente “Banners da home”,
   exclusiva do CEO/admin, com upload, pré-visualização, adição, remoção,
   ativação/desativação e ordenação. Cada banner deve aceitar imagem, texto
