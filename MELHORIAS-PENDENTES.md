@@ -1,10 +1,32 @@
 # Melhorias pendentes
 
-Atualizado em 03/09/2026. Este arquivo reúne melhorias que não bloqueiam a
+Atualizado em 04/09/2026. Este arquivo reúne melhorias que não bloqueiam a
 V1. Obrigações de lançamento e segurança permanecem em `PENDENCIAS-V1.md`.
 
 ## Experiência do atleta
 
+- [ ] Transformar o início da home em uma vitrine pública de campeonatos,
+  inspirada no princípio de descoberta da PódioTicket, mas com identidade do
+  RankFTV. Exibir a busca antes dos destaques e permitir filtrar por cidade ou
+  estado, período, categoria/nível, faixa de preço e inscrições abertas, sem
+  exigir cadastro.
+- [ ] Tornar os filtros compartilháveis pela URL e preservar busca, filtros e
+  posição da lista ao abrir um campeonato e voltar, com experiência equivalente
+  no celular e no desktop.
+- [ ] Enriquecer os cards da home com data, cidade/local, status, categorias,
+  menor preço vigente e disponibilidade útil, sem criar falsa urgência nem
+  expor contagens que o estoque não consiga garantir em tempo real.
+- [ ] Mostrar na página pública do campeonato as categorias disponíveis, gênero,
+  lote vigente, preço base, taxa, total e estado de vagas antes de solicitar os
+  dados dos atletas. Permitir selecionar uma categoria ali e manter a seleção ao
+  avançar para a inscrição.
+- [ ] Preservar como diferencial a inscrição de dupla sem conta. Se o visitante
+  estiver autenticado, oferecer preenchimento conveniente com dados permitidos;
+  se não estiver, seguir como convidado e disponibilizar ingresso, recuperação
+  e pós-venda pelos fluxos protegidos já homologados.
+- [ ] Medir o funil público por etapa — busca, visualização do campeonato,
+  seleção de categoria, início dos dados, revisão e pagamento confirmado — e
+  comparar abandono, tempo e conversão antes e depois da nova home.
 - [ ] Emitir passes oficiais para Apple Wallet e Google Wallet. A integração
   exige conta de emissor, certificados/chaves privadas e aprovação das duas
   plataformas. Até isso existir, manter o link protegido e o PDF individual.
