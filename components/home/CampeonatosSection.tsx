@@ -20,13 +20,19 @@ export function CampeonatosSection({
   estados,
   categorias,
   initialFilters,
-  children,
+  banner,
+  featured,
+  sidebar,
+  live,
 }: {
   allCamps: Championship[];
   estados: string[];
   categorias: string[];
   initialFilters: ChampionshipDiscoveryFilters;
-  children?: ReactNode;
+  banner?: ReactNode;
+  featured?: ReactNode;
+  sidebar?: ReactNode;
+  live?: ReactNode;
 }) {
   const [filters, setFilters] = useState(initialFilters);
   const [visible, setVisible] = useState(PAGE_SIZE);
@@ -65,14 +71,24 @@ export function CampeonatosSection({
 
   return (
     <div className="space-y-8">
-      <section aria-label="Pesquisar campeonatos">
-        <ChampionshipDiscoveryBar filters={filters} estados={estados} categorias={categorias} update={update} clear={clear} onSearch={showResults} />
-        {intervaloInvalido && <p className="mt-3 text-sm font-medium text-red-600">A data final precisa ser igual ou posterior à inicial.</p>}
-      </section>
+      <div className="grid gap-8 md:grid-cols-3">
+        <section aria-label="Pesquisar campeonatos" className="md:col-span-2">
+          <ChampionshipDiscoveryBar filters={filters} estados={estados} categorias={categorias} update={update} clear={clear} onSearch={showResults} />
+          {intervaloInvalido && <p className="mt-3 text-sm font-medium text-red-600">A data final precisa ser igual ou posterior à inicial.</p>}
+        </section>
+      </div>
 
-      {children}
+      {banner && <div className="grid gap-8 md:grid-cols-3"><div className="md:col-span-2">{banner}</div></div>}
 
-      <section id="campeonatos" className="scroll-mt-4">
+      <div className="grid items-start gap-8 md:grid-cols-3">
+        <div className="md:col-span-2">{featured}</div>
+        {sidebar && <aside className="hidden md:block">{sidebar}</aside>}
+      </div>
+
+      {live && <div className="grid gap-8 md:grid-cols-3"><div className="md:col-span-2">{live}</div></div>}
+
+      <div className="grid gap-8 md:grid-cols-3">
+      <section id="campeonatos" className="scroll-mt-4 md:col-span-2">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-ink">Campeonatos</h2>
@@ -92,6 +108,7 @@ export function CampeonatosSection({
           </>
         )}
       </section>
+      </div>
     </div>
   );
 }

@@ -139,19 +139,15 @@ export default async function Home({
       {/* ── Corpo: sheet arredondada no mobile, grid larga no desktop ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:pb-16 md:shadow-none">
         <span aria-hidden="true" className="mobile-sheet-accent md:hidden" />
-        <PageContainer width="wide" className="space-y-8 md:grid md:grid-cols-3 md:items-start md:gap-8 md:space-y-0">
-          <div className="space-y-8 md:col-span-2">
-            <CampeonatosSection
-              allCamps={todosOrdenados}
-              estados={estados}
-              categorias={categorias}
-              initialFilters={initialFilters}
-            >
-              <HomeBannerCarousel banners={homeBanners} />
-
-              <DestaquesCarousel camps={destaques} />
-
-              {aoVivo.length > 0 && (
+        <PageContainer width="wide">
+          <CampeonatosSection
+            allCamps={todosOrdenados}
+            estados={estados}
+            categorias={categorias}
+            initialFilters={initialFilters}
+            banner={homeBanners.length > 0 ? <HomeBannerCarousel banners={homeBanners} /> : null}
+            featured={<DestaquesCarousel camps={destaques} />}
+            live={aoVivo.length > 0 ? (
                 <section>
                   <SectionHeader icon={Radio} iconClassName="size-4 animate-pulse text-red-500" title="Ao vivo agora" className="mb-3" />
                   <div className="grid gap-3 md:grid-cols-2">
@@ -167,12 +163,8 @@ export default async function Home({
                     ))}
                   </div>
                 </section>
-              )}
-            </CampeonatosSection>
-          </div>
-
-          {/* Painel lateral — só links reais de navegação, sem dado inventado */}
-          <aside className="hidden md:block">
+              ) : null}
+            sidebar={(
             <Surface padding="md" className="home-quick-access relative sticky top-6 overflow-hidden text-white shadow-soft shadow-black/20">
               <span
                 aria-hidden="true"
@@ -198,7 +190,8 @@ export default async function Home({
                 ))}
               </ul>
             </Surface>
-          </aside>
+            )}
+          />
         </PageContainer>
       </div>
     </div>
