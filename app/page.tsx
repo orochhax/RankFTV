@@ -84,10 +84,6 @@ export default async function Home({
     });
 
   const estados = Array.from(new Set(todosOrdenados.map((c) => c.estado))).sort();
-  const categorias = Array.from(
-    new Set(todosOrdenados.flatMap((c) => c.categorias.map((cat) => cat.nome)))
-  ).sort();
-
   const quickLinks = [
     { href: "/agenda", label: "Agenda de eventos", icon: CalendarDays },
     { href: "/arenas", label: "Arenas", icon: Building2 },
@@ -143,7 +139,6 @@ export default async function Home({
           <CampeonatosSection
             allCamps={todosOrdenados}
             estados={estados}
-            categorias={categorias}
             initialFilters={initialFilters}
             banner={homeBanners.length > 0 ? <HomeBannerCarousel banners={homeBanners} /> : null}
             featured={<DestaquesCarousel camps={destaques} />}

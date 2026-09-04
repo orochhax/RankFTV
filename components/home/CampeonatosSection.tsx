@@ -18,7 +18,6 @@ const PAGE_SIZE = 12;
 export function CampeonatosSection({
   allCamps,
   estados,
-  categorias,
   initialFilters,
   banner,
   featured,
@@ -27,7 +26,6 @@ export function CampeonatosSection({
 }: {
   allCamps: Championship[];
   estados: string[];
-  categorias: string[];
   initialFilters: ChampionshipDiscoveryFilters;
   banner?: ReactNode;
   featured?: ReactNode;
@@ -71,9 +69,9 @@ export function CampeonatosSection({
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-8 md:grid-cols-3">
-        <section aria-label="Pesquisar campeonatos" className="md:col-span-2">
-          <ChampionshipDiscoveryBar filters={filters} estados={estados} categorias={categorias} update={update} clear={clear} onSearch={showResults} />
+      <div>
+        <section aria-label="Pesquisar campeonatos">
+          <ChampionshipDiscoveryBar filters={filters} estados={estados} update={update} clear={clear} onSearch={showResults} />
           {intervaloInvalido && <p className="mt-3 text-sm font-medium text-red-600">A data final precisa ser igual ou posterior à inicial.</p>}
         </section>
       </div>
@@ -82,7 +80,7 @@ export function CampeonatosSection({
 
       <div className="grid items-start gap-8 md:grid-cols-3">
         <div className="md:col-span-2">{featured}</div>
-        {sidebar && <aside className="hidden md:block">{sidebar}</aside>}
+        {sidebar && <aside className="hidden pt-12 md:block">{sidebar}</aside>}
       </div>
 
       {live && <div className="grid gap-8 md:grid-cols-3"><div className="md:col-span-2">{live}</div></div>}
