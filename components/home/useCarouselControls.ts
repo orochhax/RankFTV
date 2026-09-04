@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { FocusEvent as ReactFocusEvent, PointerEvent as ReactPointerEvent } from "react";
 
 export function useCarouselControls(length: number, intervalMs: number) {
   const [current, setCurrent] = useState(0);
@@ -49,6 +49,15 @@ export function useCarouselControls(length: number, intervalMs: number) {
     setPaused(false);
   }
 
+  function onFocusCapture(event: ReactFocusEvent<HTMLElement>) {
+    const target = event.target;
+    if (target instanceof HTMLElement && target.matches(":focus-visible")) setPaused(true);
+  }
+
+  function onBlurCapture(event: ReactFocusEvent<HTMLElement>) {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false);
+  }
+
   return {
     current,
     goTo: setCurrent,
@@ -58,5 +67,6 @@ export function useCarouselControls(length: number, intervalMs: number) {
     pause: () => setPaused(true),
     resume: () => setPaused(false),
     pointerHandlers: { onPointerDown, onPointerUp, onPointerCancel },
+    focusHandlers: { onFocusCapture, onBlurCapture },
   };
 }

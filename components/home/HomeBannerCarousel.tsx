@@ -23,7 +23,7 @@ export function HomeBannerCarousel({ banners }: { banners: HomeBanner[] }) {
   if (active.length === 0) return null;
 
   return (
-    <section aria-roledescription="carrossel" aria-label="Banners da home" className="group relative touch-pan-y overflow-hidden rounded-3xl bg-gray-100 shadow-sm ring-1 ring-black/5" onMouseEnter={carousel.pause} onMouseLeave={carousel.resume} onFocusCapture={carousel.pause} onBlurCapture={carousel.resume} onKeyDown={(event) => { if (event.key === "ArrowLeft") carousel.previous(); if (event.key === "ArrowRight") carousel.next(); }} {...carousel.pointerHandlers}>
+    <section aria-roledescription="carrossel" aria-label="Banners da home" className="group relative touch-pan-y overflow-hidden rounded-3xl bg-gray-100 shadow-sm ring-1 ring-black/5" onMouseEnter={carousel.pause} onMouseLeave={carousel.resume} onKeyDown={(event) => { if (event.key === "ArrowLeft") carousel.previous(); if (event.key === "ArrowRight") carousel.next(); }} {...carousel.pointerHandlers} {...carousel.focusHandlers}>
       <div className={`flex ${carousel.reducedMotion ? "" : "transition-transform duration-500 ease-out"}`} style={{ transform: `translateX(-${carousel.current * 100}%)` }}>
         {active.map((banner, index) => (
           <div key={banner.id} className="relative aspect-[16/7] min-w-full md:aspect-[16/5]">
