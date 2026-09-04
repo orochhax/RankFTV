@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/supabase/roles";
+import { normalizeHomeBanners, type HomeBanner } from "@/lib/home-banners";
 
 async function checkAdmin() {
   const supabase = await createClient();
@@ -42,6 +43,29 @@ export async function salvarDestaquesArenas(
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/arenas");
+  revalidatePath("/admin/destaques");
+  return { ok: true };
+}
+
+export async function salvarBannersHome(
+  banners: HomeBanner[],
+): Promise<{ ok: boolean; error?: string }> {
+  if (!await checkAdmin()) return { ok: false, error: "Sem permissão." };
+
+  const normalized = normalizeHomeBanners(banners);
+  if (normalized.length !== banners.length) {
+    return { ok: false, error: "Há um banner inválido. Revise imagem, texto e link." };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("platform_config")
+    .update({ home_banners: normalized })
+    .eq("id", 1);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/");
   revalidatePath("/admin/destaques");
   return { ok: true };
 }

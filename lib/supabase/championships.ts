@@ -7,6 +7,7 @@ import type {
   GeneroCategoria,
 } from "@/lib/types";
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
+import { resolverPrecos } from "@/lib/lotes";
 
 // Campeonatos criados na plataforma (Supabase), mapeados para o tipo de domínio
 // usado pelos cards, listas e páginas de detalhe.
@@ -38,6 +39,7 @@ type ChampRow = {
   banner_url: string | null;
   banner_position_x: number | null;
   banner_position_y: number | null;
+  is_elite: boolean | null;
   is_vitrine: boolean | null;
   usa_motor_categoria: boolean | null;
   prevenda_inicio: string | null;
@@ -46,7 +48,7 @@ type ChampRow = {
 };
 
 const SELECT =
-  "id, organizador_id, nome, descricao, regulamento, data_inicio, data_fim, cidade, estado, local, status, taxa_plataforma, live_url, banner_url, banner_position_x, banner_position_y, is_vitrine, usa_motor_categoria, prevenda_inicio, prevenda_fim, championship_categories(id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max, max_duplas)";
+  "id, organizador_id, nome, descricao, regulamento, data_inicio, data_fim, cidade, estado, local, status, taxa_plataforma, live_url, banner_url, banner_position_x, banner_position_y, is_elite, is_vitrine, usa_motor_categoria, prevenda_inicio, prevenda_fim, championship_categories(id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max, max_duplas)";
 
 const GRADIENTS: [string, string][] = [
   ["from-blue-500", "to-cyan-400"],
@@ -80,6 +82,7 @@ function mapChampionship(row: ChampRow): Championship {
     bannerPositionX: row.banner_position_x ?? null,
     bannerPositionY: row.banner_position_y ?? null,
     liveUrl: row.live_url,
+    isElite: row.is_elite ?? false,
     isVitrine: row.is_vitrine ?? false,
     usaMotorCategoria: categoryLevelRecommendationEnabled(row.usa_motor_categoria),
     prevendaInicio: row.prevenda_inicio,
@@ -108,7 +111,21 @@ export async function getPublishedChampionships(): Promise<Championship[]> {
     .order("data_inicio", { ascending: true })
     .limit(200);
   if (error || !data) return [];
-  return (data as ChampRow[]).map(mapChampionship);
+  const championships = (data as ChampRow[]).map(mapChampionship);
+  const categories = championships.flatMap((championship) => championship.categorias);
+  const prices = await resolverPrecos(
+    "category",
+    categories.map((category) => category.id),
+    Object.fromEntries(categories.map((category) => [category.id, category.valorInscricao])),
+  );
+  return championships.map((championship) => ({
+    ...championship,
+    categorias: championship.categorias.map((category) => ({
+      ...category,
+      valorInscricao: prices[category.id]?.valor ?? category.valorInscricao,
+      esgotado: prices[category.id]?.esgotado ?? false,
+    })),
+  }));
 }
 
 // Campeonatos em andamento agora (para o card "Ao vivo" na Home).

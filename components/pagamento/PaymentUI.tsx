@@ -333,7 +333,7 @@ export function PaymentUI({
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho escuro (mesma largura contida do corpo, em toda tela) ── */}
-      <div className="bg-black pb-16 pt-6">
+      <div className="bg-brand-dark pb-16 pt-6">
         <PageContainer width="form" className="space-y-5">
           <Link
             href={`/campeonatos/${champId}`}

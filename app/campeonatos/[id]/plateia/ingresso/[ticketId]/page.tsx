@@ -112,7 +112,7 @@ export default async function IngressoPlateiaPage({
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-brand-dark">
       <PageContainer width="wide" className="py-8">
         <div className="flex items-center justify-between">
           <Link
@@ -143,7 +143,7 @@ export default async function IngressoPlateiaPage({
 
         <div className="mt-5 overflow-hidden rounded-3xl bg-white shadow-xl">
           {/* Topo */}
-          <div className="bg-black px-6 py-5 text-center">
+          <div className="bg-brand-dark px-6 py-5 text-center">
             {t.code && (
               <p className="mb-1 font-mono text-[10px] tracking-[0.25em] text-white/50">{t.code}</p>
             )}

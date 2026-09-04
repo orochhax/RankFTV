@@ -31,6 +31,7 @@
   --color-warning-bg: #fffaeb;
   --color-danger:     #dc2626;
   --color-danger-bg:  #fef3f2;
+  --color-brand-dark: #202020; /* fundos escuros sólidos da interface */
 
   --radius-card:    1rem;    /* 16px */
   --radius-card-lg: 1.5rem;  /* 24px */
@@ -83,7 +84,7 @@ input[type="week"] {
 }
 
 .rankftv-desktop-sidebar {
-  background: #000000 !important;
+  background: #202020 !important;
   border-right-color: transparent !important;
 }
 
@@ -160,7 +161,7 @@ input[type="week"] {
 /* O Surface aplica bg-surface por padrão. Esta variação precisa vencer essa
    cor sem alterar os demais cards claros do design system. */
 .home-quick-access {
-  background-color: #000000 !important;
+  background-color: #202020 !important;
   color: #ffffff !important;
   --tw-ring-color: #27272a !important;
 }

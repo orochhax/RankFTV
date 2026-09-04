@@ -9,10 +9,13 @@ import { resolverPrecos, listarLotesComStatus } from "@/lib/lotes";
 // Compra de ingresso de atleta (dupla) como visitante, sem conta.
 export default async function ComprarAtletaPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ categoria?: string }>;
 }) {
   const { id } = await params;
+  const { categoria: initialCategoryId } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -56,7 +59,7 @@ export default async function ComprarAtletaPage({
 
   return (
     <div className="min-h-screen">
-      <div className="bg-black px-6 pb-16 pt-6">
+      <div className="bg-brand-dark px-6 pb-16 pt-6">
         <div className="mx-auto max-w-xl space-y-4">
           <Link
             href={`/campeonatos/${id}`}
@@ -95,6 +98,7 @@ export default async function ComprarAtletaPage({
                 isElite={!!champ.is_elite}
                 usaMotorCategoria={categoryLevelRecommendationEnabled(champ.usa_motor_categoria)}
                 authenticatedEmail={user?.email?.trim() || null}
+                initialCategoryId={initialCategoryId ?? null}
               />
             </div>
           )}

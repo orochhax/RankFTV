@@ -176,7 +176,7 @@ export default async function IngressoAtletaPage({
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho escuro (mesma largura contida do corpo, em toda tela) ── */}
-      <div className="bg-black pb-16 pt-6">
+      <div className="bg-brand-dark pb-16 pt-6">
         <PageContainer width="wide" className="space-y-5">
           <div className="flex items-center justify-between">
             <Link

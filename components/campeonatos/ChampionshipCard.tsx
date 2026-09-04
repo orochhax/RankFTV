@@ -1,7 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Trophy } from "lucide-react";
+import { MapPin, Tags, Trophy } from "lucide-react";
 import type { Championship } from "@/lib/types";
+import { formatBRL } from "@/lib/format";
+import { lowestChampionshipPrice } from "@/lib/championship-discovery";
 
 const MESES = ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
 
@@ -28,6 +30,10 @@ export function ChampionshipCard({ championship: c }: { championship: Championsh
   const dia = data.getDate();
 
   const badge = statusBadge(c);
+  const lowestPrice = lowestChampionshipPrice(c);
+  const categoryNames = c.categorias.slice(0, 2).map((category) => category.nome).join(" · ");
+  const extraCategories = Math.max(0, c.categorias.length - 2);
+  const hasAvailableCategory = c.categorias.some((category) => !category.esgotado);
 
   return (
     <Link
@@ -80,6 +86,20 @@ export function ChampionshipCard({ championship: c }: { championship: Championsh
           <MapPin className="size-3 shrink-0" />
           <span className="truncate">{c.local} · {c.cidade}</span>
         </p>
+        {categoryNames && (
+          <p className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+            <Tags className="size-3 shrink-0" />
+            <span className="truncate">{categoryNames}{extraCategories > 0 ? ` +${extraCategories}` : ""}</span>
+          </p>
+        )}
+        {lowestPrice !== null && (
+          <p className="mt-2 text-xs font-semibold text-blue-600">
+            {lowestPrice <= 0 ? "Inscrição grátis" : `A partir de ${formatBRL(lowestPrice)}`}
+          </p>
+        )}
+        {c.categorias.length > 0 && !hasAvailableCategory && (
+          <p className="mt-2 text-xs font-semibold text-gray-500">Categorias esgotadas</p>
+        )}
       </div>
     </Link>
   );

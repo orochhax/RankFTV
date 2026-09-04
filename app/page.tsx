@@ -12,12 +12,20 @@ import { PageHeader } from "@/components/shell/PageHeader";
 import { Surface } from "@/components/shell/Surface";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { SectionHeader } from "@/components/shell/SectionHeader";
+import { HomeBannerCarousel } from "@/components/home/HomeBannerCarousel";
+import { normalizeHomeBanners } from "@/lib/home-banners";
+import { parseDiscoveryFilters } from "@/lib/championship-discovery";
 
 const STATUS_PRIORIDADE: Record<string, number> = {
   inscricoes_abertas: 0, em_andamento: 1, rascunho: 2, encerrado: 3,
 };
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const initialFilters = parseDiscoveryFilters(await searchParams);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -54,13 +62,14 @@ export default async function Home() {
     getPublishedChampionships(),
     supabase
       .from("platform_config")
-      .select("destaques_ids")
+      .select("destaques_ids, home_banners")
       .eq("id", 1)
       .single(),
     getLivChampionships(),
   ]);
 
   const destaquesIds: string[] = (configRow.data?.destaques_ids as string[] | null) ?? [];
+  const homeBanners = normalizeHomeBanners(configRow.data?.home_banners);
   const destaques = (destaquesIds.length > 0
     ? destaquesIds.map((id) => publicados.find((c) => c.id === id)).filter(Boolean) as typeof publicados
     : publicados.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento").slice(0, 3)
@@ -90,7 +99,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
-      <div className="bg-black px-6 pb-10 pt-8 md:hidden">
+      <div className="bg-brand-dark px-6 pb-10 pt-8 md:hidden">
         {profile ? (
           <div className="flex items-center gap-4">
             <Avatar
@@ -132,47 +141,34 @@ export default async function Home() {
         <span aria-hidden="true" className="mobile-sheet-accent md:hidden" />
         <PageContainer width="wide" className="space-y-8 md:grid md:grid-cols-3 md:items-start md:gap-8 md:space-y-0">
           <div className="space-y-8 md:col-span-2">
-            {/* Carrossel de destaques */}
-            <DestaquesCarousel camps={destaques} />
-
-            {/* Campeonatos ao vivo */}
-            {aoVivo.length > 0 && (
-              <section>
-                <SectionHeader icon={Radio} iconClassName="size-4 text-red-500 animate-pulse" title="Ao vivo agora" className="mb-3" />
-                <div className="grid gap-3 md:grid-cols-2">
-                  {aoVivo.map((c) => (
-                    <Link
-                      key={c.id}
-                      href={`/campeonatos/${c.id}`}
-                      className="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 ring-1 ring-red-100 hover:bg-red-50 transition-colors"
-                    >
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="size-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-                          <p className="truncate font-semibold text-gray-900">{c.nome}</p>
-                        </div>
-                        <p className="mt-0.5 text-xs text-gray-400">
-                          {formatDateRangeBR(c.dataInicio, c.dataFim)}
-                        </p>
-                        <p className="flex items-center gap-1 text-xs text-gray-400">
-                          <MapPin className="size-3" />
-                          {c.local}, {c.cidade} - {c.estado}
-                        </p>
-                      </div>
-                      <ChevronRight className="size-4 shrink-0 text-gray-300" />
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Lista de campeonatos com filtros */}
             <CampeonatosSection
               allCamps={todosOrdenados}
               estados={estados}
               categorias={categorias}
-              temAoVivo={aoVivo.length > 0}
-            />
+              initialFilters={initialFilters}
+            >
+              <HomeBannerCarousel banners={homeBanners} />
+
+              <DestaquesCarousel camps={destaques} />
+
+              {aoVivo.length > 0 && (
+                <section>
+                  <SectionHeader icon={Radio} iconClassName="size-4 animate-pulse text-red-500" title="Ao vivo agora" className="mb-3" />
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {aoVivo.map((c) => (
+                      <Link key={c.id} href={`/campeonatos/${c.id}`} className="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 ring-1 ring-red-100 transition-colors hover:bg-red-50">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2"><span className="size-2 shrink-0 animate-pulse rounded-full bg-red-500" /><p className="truncate font-semibold text-gray-900">{c.nome}</p></div>
+                          <p className="mt-0.5 text-xs text-gray-400">{formatDateRangeBR(c.dataInicio, c.dataFim)}</p>
+                          <p className="flex items-center gap-1 text-xs text-gray-400"><MapPin className="size-3" />{c.local}, {c.cidade} - {c.estado}</p>
+                        </div>
+                        <ChevronRight className="size-4 shrink-0 text-gray-300" />
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </CampeonatosSection>
           </div>
 
           {/* Painel lateral — só links reais de navegação, sem dado inventado */}

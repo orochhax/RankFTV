@@ -13,7 +13,7 @@ export default async function AdminTaxasPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-black px-6 pb-12 pt-6">
+      <div className="bg-brand-dark px-6 pb-12 pt-6">
         <div className="w-full">
           <Link href="/admin" className="mb-4 flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors w-fit">
             <ArrowLeft className="size-4" />

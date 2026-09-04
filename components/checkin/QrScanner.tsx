@@ -54,7 +54,7 @@ export function QrScanner({ onDetected, onClose }: Props) {
   }, [onDetected]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
+    <div className="fixed inset-0 z-50 flex flex-col bg-brand-dark">
       <div className="flex items-center justify-between px-5 py-4">
         <p className="text-sm font-medium text-white/80">
           {phase === "scanning" ? "Aponte para o QR code do atleta" : "Leitor de QR code"}

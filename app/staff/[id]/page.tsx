@@ -79,7 +79,7 @@ export default async function StaffCampPage({
 
   return (
     <div className="min-h-screen">
-      <div className="bg-black px-6 pb-16 pt-6">
+      <div className="bg-brand-dark px-6 pb-16 pt-6">
         <div className="w-full space-y-4">
           <Link
             href="/staff"

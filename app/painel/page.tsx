@@ -146,7 +146,7 @@ export default async function PainelOrganizadorPage() {
         <AutoRefresh intervalMs={60_000} />
 
         {/* ── Cabeçalho: faixa escura no mobile, claro + StatCards no desktop ── */}
-        <div className="bg-black px-6 pb-16 pt-8 md:hidden">
+        <div className="bg-brand-dark px-6 pb-16 pt-8 md:hidden">
           <div className="w-full space-y-5">
             <h1 className="text-2xl font-bold tracking-tight text-white">Painel do organizador</h1>
             <div className="flex items-center gap-2">{acoesCriacao}</div>

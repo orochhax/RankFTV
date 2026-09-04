@@ -147,15 +147,20 @@ export function IngressoAtletaForm({
   isElite,
   usaMotorCategoria,
   authenticatedEmail,
+  initialCategoryId,
 }: {
   championshipId: string;
   categorias: CategoriaOpcao[];
   isElite: boolean;
   usaMotorCategoria: boolean;
   authenticatedEmail: string | null;
+  initialCategoryId?: string | null;
 }) {
-  const [etapa, setEtapa] = useState<Etapa>("categoria");
-  const [catSelecionada, setCat] = useState<CategoriaOpcao | null>(null);
+  const initialCategory = categorias.find(
+    (category) => category.id === initialCategoryId && !category.esgotado,
+  ) ?? null;
+  const [etapa, setEtapa] = useState<Etapa>(initialCategory ? "dados" : "categoria");
+  const [catSelecionada, setCat] = useState<CategoriaOpcao | null>(initialCategory);
   const [cupom, setCupom] = useState<CupomAplicado | null>(null);
   const [metodoPagamento, setMetodoPagamento] = useState<"pix" | "cartao">("pix");
   const [usarMesmoEmail, setUsarMesmoEmail] = useState(false);

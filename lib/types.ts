@@ -18,6 +18,7 @@ export type Category = {
   corteRatingMin: number;
   corteRatingMax: number;
   maxDuplas?: number;
+  esgotado?: boolean;
 };
 
 export type Championship = {
@@ -40,6 +41,7 @@ export type Championship = {
   bannerPositionX?: number | null;
   bannerPositionY?: number | null;
   liveUrl?: string | null;
+  isElite?: boolean;
   isVitrine?: boolean;
   usaMotorCategoria: boolean;
   prevendaInicio?: string | null;

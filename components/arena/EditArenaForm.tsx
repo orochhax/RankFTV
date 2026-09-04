@@ -224,7 +224,7 @@ export function EditArenaForm({
                   type="button"
                   onClick={() => movePhoto(i, -1)}
                   disabled={i === 0}
-                  className="flex size-6 items-center justify-center rounded-full bg-black/70 text-white disabled:opacity-30 hover:bg-black"
+                  className="flex size-6 items-center justify-center rounded-full bg-black/70 text-white disabled:opacity-30 hover:bg-brand-dark"
                 >
                   <ChevronLeft className="size-3.5" />
                 </button>
@@ -232,7 +232,7 @@ export function EditArenaForm({
                   type="button"
                   onClick={() => movePhoto(i, 1)}
                   disabled={i === photos.length - 1}
-                  className="flex size-6 items-center justify-center rounded-full bg-black/70 text-white disabled:opacity-30 hover:bg-black"
+                  className="flex size-6 items-center justify-center rounded-full bg-black/70 text-white disabled:opacity-30 hover:bg-brand-dark"
                 >
                   <ChevronRight className="size-3.5" />
                 </button>

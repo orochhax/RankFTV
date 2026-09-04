@@ -16,7 +16,7 @@ export default async function MeusIngressosPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-black px-6 pb-16 pt-8 md:hidden">
+      <div className="bg-brand-dark px-6 pb-16 pt-8 md:hidden">
         <div className="w-full space-y-3">
           <Link
             href="/"

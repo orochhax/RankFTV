@@ -97,7 +97,7 @@ export default async function CredencialIndividualPage({
 
   return (
     <div className="min-h-screen bg-app-bg">
-      <div className="bg-black pb-16 pt-6">
+      <div className="bg-brand-dark pb-16 pt-6">
         <PageContainer width="wide" className="space-y-5">
           <Link
             href={`/campeonatos/${championshipId}`}

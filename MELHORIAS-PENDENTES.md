@@ -5,55 +5,55 @@ V1. Obrigações de lançamento e segurança permanecem em `PENDENCIAS-V1.md`.
 
 ## Identidade visual e banners da home
 
-- [ ] Substituir os fundos sólidos em preto puro usados na navegação, cabeçalhos,
+- [x] Substituir os fundos sólidos em preto puro usados na navegação, cabeçalhos,
   cards escuros e páginas do produto por `#202020`, centralizando a cor em um
   token semântico para evitar substituições isoladas. Preservar preto e suas
   transparências quando tiverem função técnica, como QR Codes, máscaras de
   imagem, backdrop de modal e contraste necessário; validar contraste e estados
   de hover em todas as páginas afetadas.
-- [ ] Criar na home um carrossel de banners acima de “Campeonatos em destaque”,
+- [x] Criar na home um carrossel de banners acima de “Campeonatos em destaque”,
   separado do carrossel atual de campeonatos e responsivo para celular e
   desktop.
-- [ ] Transformar “Campeonatos em destaque” também em carrossel no desktop. Em
+- [x] Transformar “Campeonatos em destaque” também em carrossel no desktop. Em
   vez de empilhar os cards verticalmente, exibir um campeonato principal por
   vez no espaço disponível e trocar lateralmente, reutilizando a mesma ordem e
   rotação automática do mobile. Incluir arraste, setas e indicadores no PC,
   pausar durante interação e ocultar controles quando houver um único destaque.
   Este carrossel continua independente do carrossel de banners acima dele.
-- [ ] Adicionar em `/admin/destaques` uma seção independente “Banners da home”,
+- [x] Adicionar em `/admin/destaques` uma seção independente “Banners da home”,
   exclusiva do CEO/admin, com upload, pré-visualização, adição, remoção,
   ativação/desativação e ordenação. Cada banner deve aceitar imagem, texto
   alternativo obrigatório e link opcional, com validação de tipo MIME, tamanho
   e destino do link.
-- [ ] Não renderizar o carrossel, card vazio, título nem espaçamento residual
+- [x] Não renderizar o carrossel, card vazio, título nem espaçamento residual
   quando não existir banner ativo. Remover todos os banners pelo admin deve ser
   uma configuração válida e refletir na home sem exigir novo deploy.
-- [ ] Permitir trocar banners com gesto de arrastar no celular e com controles
+- [x] Permitir trocar banners com gesto de arrastar no celular e com controles
   acessíveis no desktop. Avançar automaticamente em ciclo a cada 2 segundos,
   pausar durante interação, hover ou foco e respeitar `prefers-reduced-motion`;
   indicadores e botões devem informar a posição e funcionar por teclado.
-- [ ] Otimizar as imagens do carrossel, carregando primeiro somente o banner
+- [x] Otimizar as imagens do carrossel, carregando primeiro somente o banner
   visível e evitando mudança de layout, tráfego excessivo ou imagem cortada sem
   pré-visualização das proporções usadas na home.
 
 ## Experiência do atleta
 
-- [ ] Transformar o início da home em uma vitrine pública de campeonatos,
+- [x] Transformar o início da home em uma vitrine pública de campeonatos,
   inspirada no princípio de descoberta da PódioTicket, mas com identidade do
   RankFTV. Exibir a busca antes dos destaques e permitir filtrar por cidade ou
   estado, período, categoria/nível, faixa de preço e inscrições abertas, sem
   exigir cadastro.
-- [ ] Tornar os filtros compartilháveis pela URL e preservar busca, filtros e
+- [x] Tornar os filtros compartilháveis pela URL e preservar busca, filtros e
   posição da lista ao abrir um campeonato e voltar, com experiência equivalente
   no celular e no desktop.
-- [ ] Enriquecer os cards da home com data, cidade/local, status, categorias,
+- [x] Enriquecer os cards da home com data, cidade/local, status, categorias,
   menor preço vigente e disponibilidade útil, sem criar falsa urgência nem
   expor contagens que o estoque não consiga garantir em tempo real.
-- [ ] Mostrar na página pública do campeonato as categorias disponíveis, gênero,
+- [x] Mostrar na página pública do campeonato as categorias disponíveis, gênero,
   lote vigente, preço base, taxa, total e estado de vagas antes de solicitar os
   dados dos atletas. Permitir selecionar uma categoria ali e manter a seleção ao
   avançar para a inscrição.
-- [ ] Preservar como diferencial a inscrição de dupla sem conta. Se o visitante
+- [x] Preservar como diferencial a inscrição de dupla sem conta. Se o visitante
   estiver autenticado, oferecer preenchimento conveniente com dados permitidos;
   se não estiver, seguir como convidado e disponibilizar ingresso, recuperação
   e pós-venda pelos fluxos protegidos já homologados.

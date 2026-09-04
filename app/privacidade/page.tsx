@@ -104,7 +104,7 @@ const SECOES: Secao[] = [
 export default function PrivacidadePage() {
   return (
     <div className="min-h-screen bg-app-bg">
-      <div className="bg-black px-6 pb-16 pt-8">
+      <div className="bg-brand-dark px-6 pb-16 pt-8">
         <div className="mx-auto max-w-3xl space-y-3">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-white/50 transition-colors hover:text-white/80">
             <ArrowLeft className="size-4" /> Início
