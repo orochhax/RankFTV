@@ -1,6 +1,6 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 05/09/2026. Este arquivo acompanha as pendências de lançamento
+Atualizado em 06/09/2026. Este arquivo acompanha as pendências de lançamento
 e as entregas recentes, distinguindo implementação de homologação e publicação.
 Evidências complementares ficam em `AUDITORIA-PRODUCAO.md`, no histórico do Git
 e nos deploys de homologação.
@@ -21,7 +21,7 @@ ingresso, não libera a vaga e mostra o caso no painel do CEO. Ainda falta obter
 uma confirmação `DONE` em teste controlado e fechar o procedimento humano para
 uma devolução não concluída.
 
-### Chaveamento — atualização de 05/09/2026
+### Chaveamento — atualização de 06/09/2026
 
 - [x] Implementar cadastro manual de duplas e sorteio aleatório pelo organizador.
 - [x] Configurar o total de quadras e uma única quadra principal na página de
@@ -55,15 +55,24 @@ uma devolução não concluída.
   em azul como no site. PDF vetorial, sem captura de tela, e PNG com dimensões
   ajustadas aos limites de imagem. Desenhos testados de 8 até 256 duplas;
   arquivos PNG e PDF de 16 e 256 duplas gerados para validação técnica.
-- [x] Executar `npm run typecheck` e a suíte de 697 testes, todos aprovados na
-  última validação registrada nesta sessão; as duas rotas locais responderam
-  HTTP 200. Isso não substitui a homologação manual dos fluxos completos.
+- [x] Homologar automaticamente os cruzamentos da repescagem para 8, 16, 32,
+  64, 128 e 256 duplas: origem de cada vaga, primeira derrota, eliminação na
+  repescagem, retorno cruzado às semifinais, final, terceiro lugar, numeração
+  e distribuição de quadras. Capacidades diferentes exibem imediatamente a
+  mensagem com as seis quantidades aceitas.
+- [x] Executar `npm run typecheck`, a suíte de 708 testes e o build de produção,
+  todos aprovados na validação de 06/09/2026. Isso não substitui a homologação
+  manual dos fluxos completos.
+- [x] Executar auditoria de dependências sem vulnerabilidades conhecidas, lint
+  sem erros e Playwright local com cinco cenários aprovados e nove cenários
+  condicionais ignorados por falta de credenciais/dados E2E dedicados.
 
-A demonstração usa o banco de produção com a aplicação acessada em
-`localhost:3000`. A publicação do código atualizado no domínio público ainda
-precisa ser confirmada. O formato com repescagem atualmente aceita 8, 16, 32,
-64, 128 ou 256 duplas; quantidades intermediárias ainda precisam de tratamento.
-Detalhamento funcional em `docs/design/LOGICA-CHAVEAMENTO-V1.md`.
+A demonstração que usava o banco de produção foi removida em 06/09/2026 após a
+aprovação visual. Os links abaixo agora mostram a categoria preservada sem os
+dados falsos. A publicação do código atualizado no domínio público ainda precisa
+ser confirmada. O formato com repescagem aceita 8, 16, 32, 64, 128 ou 256
+duplas; outras quantidades são recusadas com mensagem explícita. Detalhamento
+funcional em `docs/design/LOGICA-CHAVEAMENTO-V1.md`.
 
 Links locais para revisão:
 
@@ -80,15 +89,19 @@ Links locais para revisão:
   preenchidas, confirmação dos resultados e redistribuição de quadras no
   formato com repescagem. As regras de invalidação em cascata e redistribuição
   já têm testes automatizados; falta a homologação manual da interface.
-- [ ] Revisar os cruzamentos intermediários da repescagem contra a referência
+- [x] Revisar os cruzamentos intermediários da repescagem contra a referência
   enviada e testar as quantidades de duplas suportadas, incluindo a mensagem
-  apresentada para quantidades ainda não suportadas.
+  apresentada para quantidades ainda não suportadas. A simulação integral de
+  cada formato foi aprovada em 06/09/2026.
 - [x] Homologar os downloads PNG/PDF pelos botões do painel no navegador,
   incluindo a repescagem. Conferência manual aprovada em 05/09/2026: o
   chaveamento completo foi exportado sem cards cortados e com o conteúdo e o
   visual esperados.
-- [ ] Remover os dados e resultados fictícios da Copa Bahia após a aprovação
-  visual, preservando inscrições e participantes reais.
+- [x] Remover os dados e resultados fictícios da Copa Bahia após a aprovação
+  visual, preservando inscrições e participantes reais. Em 06/09/2026 foram
+  removidos 15 ingressos fake, 15 participantes derivados, 30 eventos de
+  credencial e 30 partidas; a dupla real, a categoria e o campeonato foram
+  preservados. Um backup lógico verificável foi criado imediatamente antes.
 - [ ] Comprar e configurar um e-mail comercial no domínio do RankFTV para ser
   o canal oficial de suporte.
 - [ ] Comprar um novo chip e configurar o WhatsApp oficial de suporte.
@@ -116,11 +129,15 @@ Links locais para revisão:
 - [ ] Confirmar com o adquirente/processador o escopo PCI/SAQ aplicável ao
   formulário atual de cartão ou migrar para checkout hospedado/tokenização
   direta antes de aceitar cartões reais.
-- [ ] Verificar, implementar e testar o alerta automático quando data, horário
+- [ ] Ativar e homologar em produção o alerta automático quando data, horário
   ou local de um campeonato mudar. Cada atleta com ingresso pago e ativo deve
   receber mensagem destacada com valor anterior e novo; e-mail compartilhado
   não pode gerar duplicata idêntica. Excluir pedidos pendentes, expirados e
   estornados, com idempotência, retentativa e auditoria.
+  - [x] Implementar fila sem e-mail em texto puro, deduplicação por aviso e
+    destinatário, notificação interna, revalidação do ingresso pago no envio,
+    idempotência no provedor, auditoria e até cinco tentativas. Migration e cron
+    periódico estão prontos; falta aplicar e testar em Production.
 - [ ] Verificar o domínio/remetente transacional de produção, incluindo SPF,
   DKIM e DMARC, e confirmar entrega em Gmail e Outlook. O webhook Resend e suas
   métricas já foram homologados no Sandbox, mas precisam de configuração e
@@ -154,6 +171,10 @@ Links locais para revisão:
   `OPERATIONS_ALERT_WEBHOOK_URL` de produção com responsável e SLA.
 - [ ] Criar rotina periódica de backup lógico e de objetos do Storage, mantendo
   cópia fora da máquina do operador. O ensaio de restauração foi adiado para P2.
+  - [x] Implementar workflow semanal e manual com `pg_dump` 17, exportação de
+    todos os buckets, listagem `pg_restore`, checksums SHA-256 e artefato externo
+    retido por 30 dias. Falta cadastrar os três secrets e comprovar a primeira
+    execução agendada.
   - [x] Gerar snapshot lógico inicial de produção antes das migrations em
     `C:\Users\SnyX\Documents\RankFTV-Backups\production-20260904-213423-pre-migrations`,
     com `schema.sql`, `data.sql`, `database.dump`, checksums SHA-256 válidos e
@@ -173,11 +194,16 @@ Links locais para revisão:
     leitura após recarregamento e substituição da imagem pela conta de teste.
   - [x] Auditar as expressões das 20 policies restantes e confirmar aderência
     às regras de proprietário, administrador e leitura pública do código.
-  - [ ] Tratar a ausência do bucket privado `support-attachments` junto à
+  - [x] Tratar o bucket privado `support-attachments` junto à
     equivalência de migrations.
-    - [x] Confirmar por consulta somente de leitura que `support_cases`,
+    - [x] Registrar na consulta anterior que `support_cases`,
       `support_case_attachments`, `priority`, `sla_due_at` e o bucket ainda não
-      existem em produção; não aplicar a migration dependente isoladamente.
+      existiam ausentes em produção; a migration dependente não foi aplicada
+      isoladamente naquele estado.
+    - [x] Revalidar em 06/09/2026 que as três tabelas, as duas colunas e o
+      bucket privado agora existem, com limite de 5 MB e MIME restrito a JPEG,
+      PNG, WebP e PDF. O acesso aos objetos ocorre apenas pelo servidor; não há
+      policy direta de `storage.objects` para `anon` ou `authenticated`.
 - [ ] Confirmar a equivalência do schema de produção com o código e aplicar,
   com backup e janela sem checkout, somente as migrations homologadas que
   ainda estiverem ausentes. Seguir a ordem de `RUNBOOK-PRODUCAO.md`.
@@ -186,16 +212,20 @@ Links locais para revisão:
     ausentes. A função `purge_rankftv_operational_data`, da migration 14, já
     existe fora de ordem e não deve ser executada antes da correção controlada
     do schema.
-  - [ ] Atualizar esse inventário após as intervenções recentes no banco.
-    A migration `production-double-elimination-bracket.sql` foi aplicada
-    nesta sessão; isso não comprova equivalência de todo o schema. Conferir
-    também os registros de aplicação das migrations de quadras e duplas manuais.
+  - [x] Atualizar o inventário após as intervenções recentes no banco. Em
+    06/09/2026 foram confirmadas as tabelas e funções das migrations 7 a 13,
+    suporte/anexos, colunas de quadras, participantes manuais e repescagem.
+    Permanecem ausentes somente os três objetos da nova fila de avisos:
+    `championship_notice_deliveries`, `championship_notices.dedupe_key` e
+    `notifications.source_notice_id`.
 - [ ] Configurar no ambiente `production` do GitHub Actions os secrets
   `FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET`, após promover o workflow para
   a branch padrão. Validar a conciliação a cada dez minutos e manter o cron
   diário da Vercel como contingência.
-- [ ] Registrar o plano de rollback da aplicação. O ensaio de restore lógico
-  permanece adiado para P2 por decisão do responsável.
+- [x] Registrar o plano de rollback da aplicação. A seção 6 de
+  `RUNBOOK-PRODUCAO.md` cobre pausa de checkouts/crons, reimplantação compatível,
+  preservação de ledgers, correção para frente e conciliação com o processador.
+  O ensaio de restore lógico permanece adiado para P2 por decisão do responsável.
 - [ ] Promover de forma controlada o código homologado para produção, revisando
   diff, credenciais, URLs, redirects, webhooks e plano de rollback. Não promover
   a branch de homologação diretamente sem essa conferência.

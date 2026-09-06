@@ -1,0 +1,84 @@
+name: Production logical backup
+
+on:
+  schedule:
+    - cron: "23 3 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-logical-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Validate production target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
+          test -n "$NEXT_PUBLIC_SUPABASE_URL"
+          test -n "$SUPABASE_SERVICE_ROLE_KEY"
+          test "$NEXT_PUBLIC_SUPABASE_URL" = "https://tkyopolcxfsdbhvrgadj.supabase.co"
+          case "$SUPABASE_DB_URL" in
+            *tkyopolcxfsdbhvrgadj*supabase.com*) ;;
+            *) echo "SUPABASE_DB_URL não aponta para o projeto RankFTV de produção." >&2; exit 1 ;;
+          esac
+
+      - name: Install PostgreSQL 17 client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-common ca-certificates
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install --yes postgresql-client-17
+
+      - run: npm ci --ignore-scripts
+
+      - name: Create and verify database and Storage backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          stamp="$(date -u +%Y%m%d-%H%M%S)"
+          backup_root="$RUNNER_TEMP/rankftv-production-$stamp"
+          mkdir -p "$backup_root/database" "$backup_root/storage"
+
+          pg_dump --dbname="$SUPABASE_DB_URL" --format=custom --file="$backup_root/database/database.dump"
+          pg_dump --dbname="$SUPABASE_DB_URL" --schema-only --file="$backup_root/database/schema.sql"
+          pg_dump --dbname="$SUPABASE_DB_URL" --data-only --file="$backup_root/database/data.sql"
+          pg_restore --list "$backup_root/database/database.dump" > "$backup_root/database/database-contents.txt"
+
+          printf 'NEXT_PUBLIC_SUPABASE_URL=%s\nSUPABASE_SERVICE_ROLE_KEY=%s\n' \
+            "$NEXT_PUBLIC_SUPABASE_URL" "$SUPABASE_SERVICE_ROLE_KEY" > .env.local
+          node scripts/backup-supabase-storage.mjs "$backup_root/storage"
+          rm -f .env.local
+
+          (cd "$backup_root" && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+          (cd "$backup_root" && sha256sum --check SHA256SUMS.txt)
+      - name: Upload encrypted-at-rest backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rankftv-production-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/rankftv-production-*/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 6

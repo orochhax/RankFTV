@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { courtNumberForMatch, normalizeCourtConfiguration, type CourtConfiguration } from "@/lib/bracket-courts";
 import { buildBracketInvalidationPlan, type ProgressionMatch } from "@/lib/bracket-progression";
 import { validateBracketScore } from "@/lib/bracket-score";
-import { createDoubleEliminationPlan, type BracketFormat } from "@/lib/double-elimination";
+import { createDoubleEliminationPlan, doubleEliminationCountError, type BracketFormat } from "@/lib/double-elimination";
 
 /* ─── helpers ─── */
 
@@ -323,14 +323,14 @@ export async function generateBracket(
     primaryCourtNumber: requestedCourtConfiguration?.primaryCourtNumber ?? courtData?.primary_court_number ?? 1,
   });
 
-  const uniqueParticipantIds = [...new Set(teamIds)].slice(0, 256);
-  if (uniqueParticipantIds.length !== teamIds.length) return { ok: false, error: "A seleção contém duplas repetidas ou excede o limite permitido." };
-  if (requestedFormat === "double_elimination" && (
-    uniqueParticipantIds.length < 8 ||
-    (uniqueParticipantIds.length & (uniqueParticipantIds.length - 1)) !== 0
-  )) {
-    return { ok: false, error: "Nesta versão, a repescagem exige 8, 16, 32, 64, 128 ou 256 duplas selecionadas." };
+  const uniqueParticipantIds = [...new Set(teamIds)];
+  if (uniqueParticipantIds.length !== teamIds.length || uniqueParticipantIds.length > 256) {
+    return { ok: false, error: "A seleção contém duplas repetidas ou excede o limite permitido." };
   }
+  const countError = requestedFormat === "double_elimination"
+    ? doubleEliminationCountError(uniqueParticipantIds.length)
+    : null;
+  if (countError) return { ok: false, error: countError };
   let participantTeamIds = new Map<string, string | null>();
   if (uniqueParticipantIds.length > 0) {
     const { data: validParticipants } = await supabase

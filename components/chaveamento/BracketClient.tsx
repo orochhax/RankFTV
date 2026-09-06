@@ -6,7 +6,7 @@ import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown, ImageIcon, FileTex
 import { addManualBracketPair, assignTeam, saveScore, clearScore, resetBracket, generateBracket, confirmBracket, saveCourtConfiguration, changeMatchCourt } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
 import { formatDateTimeBR } from "@/lib/format";
 import type { CourtConfiguration } from "@/lib/bracket-courts";
-import type { BracketFormat } from "@/lib/double-elimination";
+import { doubleEliminationCountError, type BracketFormat } from "@/lib/double-elimination";
 import { validateBracketScore } from "@/lib/bracket-score";
 import { BracketGrid, MatchCard } from "@/components/chaveamento/BracketView";
 import type { BracketMatch, BracketRound } from "@/lib/types";
@@ -75,6 +75,9 @@ function SorteioPanel({
 
   const allSelected  = selected.size === availableTeams.length;
   const noneSelected = selected.size === 0;
+  const countError = selectedFormat === "double_elimination"
+    ? doubleEliminationCountError(selected.size)
+    : null;
 
   function toggleAll() {
     if (allSelected) setSelected(new Set());
@@ -254,6 +257,12 @@ function SorteioPanel({
             ))}
           </ul>
 
+          {countError && (
+            <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+              {countError}
+            </p>
+          )}
+
           {/* aviso se já existe bracket */}
           {hasExistingBracket && (
             <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">
@@ -264,7 +273,7 @@ function SorteioPanel({
           {/* botão gerar */}
           <button
             onClick={handleGenerate}
-            disabled={noneSelected || isPending}
+            disabled={noneSelected || isPending || !!countError}
             className={`w-full rounded-2xl py-3 text-sm font-semibold text-white transition-colors disabled:opacity-30 ${
               confirm
                 ? "bg-red-500 hover:bg-red-600"

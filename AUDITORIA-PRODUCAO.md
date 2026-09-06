@@ -1,7 +1,27 @@
 # Auditoria de seguranca e prontidao para producao - RankFTV
 
 Data da revisao: 14/07/2026
-Ultima atualizacao: 03/09/2026
+Ultima atualizacao: 06/09/2026
+
+## Atualizacao 06/09/2026 - inventario, avisos e backup periodico
+
+- Consulta somente de leitura confirmou em producao as tabelas, funcoes e
+  colunas de credenciais, suporte, anexos, participantes canonicos/manuais,
+  quadras e chaveamento com repescagem. O bucket `support-attachments` existe,
+  e privado, limita cada arquivo a 5 MB e aceita apenas JPEG, PNG, WebP e PDF.
+- A nova fila de avisos de mudanca de campeonato foi implementada no codigo e
+  ainda nao foi aplicada em producao. Faltam exatamente a tabela
+  `championship_notice_deliveries` e as colunas de deduplicacao/origem em
+  `championship_notices` e `notifications`.
+- O workflow semanal de backup gera dump customizado, schema e dados, baixa o
+  Storage, valida a listagem com `pg_restore` e confere hashes SHA-256. A
+  primeira execucao remota depende dos secrets protegidos no GitHub.
+- Antes da limpeza da demonstracao, foi criado o backup customizado
+  `production-20260906-141852-pre-fake-cleanup`, com 1.991 itens listados e
+  checksum SHA-256. Depois foram removidos somente 15 ingressos fake, os 15
+  participantes derivados, 30 eventos de credencial e as 30 partidas da
+  categoria Aprendiz da Copa Bahia. A dupla real foi preservada e as contagens
+  finais dos tres conjuntos falsos ficaram em zero.
 
 ## Atualizacao 03/09/2026 - credenciais individuais, suporte e reembolso
 

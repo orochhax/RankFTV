@@ -56,7 +56,10 @@ Aplicar no SQL Editor ou pipeline de migrations, uma por vez e nesta ordem:
 11. `supabase/production-category-deletion-guard.sql`
 12. `supabase/production-credential-operations.sql`
 13. `supabase/support-case-enhancements.sql`
-14. `supabase/production-data-retention.sql`
+14. `supabase/notifications.sql`
+15. `supabase/championship-notices.sql`
+16. `supabase/production-championship-change-notifications.sql`
+17. `supabase/production-data-retention.sql`
 
 Os scripts sao aditivos e idempotentes. Ainda assim, nao os execute em paralelo.
 O backfill de plateia e a criacao de indices podem disputar I/O com o trafego;
@@ -67,6 +70,21 @@ nao altere nem estorne dados em lote para forcar a instalacao. A migration de
 credenciais e obrigatoria antes de `production-credential-operations.sql`.
 `support-case-enhancements.sql` depende das tabelas de suporte criadas por essa
 migration e deve vir logo depois. A retencao deve ser executada por ultimo.
+O processador de avisos de alteracao de campeonato somente pode ser publicado
+depois das tres migrations de notificacao. Ele grava a fila sem e-mail em texto
+puro, tenta o primeiro envio imediatamente e deixa as retentativas para o cron
+`/api/cron/championship-change-notifications`.
+
+### 2.1 Backup periodico fora da maquina do operador
+
+O workflow `.github/workflows/production-backup.yml` executa semanalmente e
+tambem aceita disparo manual. Configure no ambiente protegido `production` os
+secrets `SUPABASE_DB_URL`, `NEXT_PUBLIC_SUPABASE_URL` e
+`SUPABASE_SERVICE_ROLE_KEY`. O job recusa outro project ref, usa `pg_dump` 17,
+exporta todos os buckets, valida o arquivo customizado com `pg_restore`, confere
+SHA-256 e mantem o artefato por 30 dias. Restrinja a leitura dos artefatos aos
+administradores do repositorio e copie mensalmente um deles para o cofre externo
+definido pela operacao.
 
 ## 3. Validacao do banco
 

@@ -2,6 +2,14 @@ export type BracketFormat = "single_elimination" | "double_elimination";
 export type BracketSection = "winners" | "losers" | "grand_final" | "reset_final" | "third_place";
 export type BracketSlot = "a" | "b";
 
+export const SUPPORTED_DOUBLE_ELIMINATION_COUNTS = [8, 16, 32, 64, 128, 256] as const;
+
+export function doubleEliminationCountError(count: number): string | null {
+  return (SUPPORTED_DOUBLE_ELIMINATION_COUNTS as readonly number[]).includes(count)
+    ? null
+    : "Nesta versão, a repescagem exige 8, 16, 32, 64, 128 ou 256 duplas selecionadas.";
+}
+
 export type DoubleEliminationMatchPlan = {
   key: string;
   section: BracketSection;
@@ -27,9 +35,8 @@ function slotFor(index: number): BracketSlot {
  */
 export function createDoubleEliminationPlan(participantIds: Array<string | null>): DoubleEliminationMatchPlan[] {
   const n = participantIds.length;
-  if (n < 8 || (n & (n - 1)) !== 0) {
-    throw new Error("A repescagem exige ao menos 8 posições em potência de 2.");
-  }
+  const countError = doubleEliminationCountError(n);
+  if (countError) throw new Error(countError);
 
   const qualificationRounds = Math.log2(n) - 1;
   const losersRounds = 2 * qualificationRounds - 2;

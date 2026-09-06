@@ -117,6 +117,18 @@ test("transactional email failures never log the recipient", () => {
   assert.doesNotMatch(webhook, /\.insert\([^\n]*to:/);
 });
 
+test("production backup exports database and Storage with verified checksums", () => {
+  const workflow = source(".github/workflows/production-backup.yml");
+  assert.match(workflow, /schedule:/);
+  assert.match(workflow, /pg_dump --dbname="\$SUPABASE_DB_URL" --format=custom/);
+  assert.match(workflow, /pg_restore --list/);
+  assert.match(workflow, /backup-supabase-storage\.mjs/);
+  assert.match(workflow, /sha256sum --check SHA256SUMS\.txt/);
+  assert.match(workflow, /retention-days: 30/);
+  assert.match(workflow, /environment: production/);
+  assert.match(workflow, /SUPABASE_SERVICE_ROLE_KEY: \$\{\{ secrets\.SUPABASE_SERVICE_ROLE_KEY \}\}/);
+});
+
 test("critical V1 server paths use sanitized operational logging", () => {
   for (const file of [
     "lib/arena-notify.ts",

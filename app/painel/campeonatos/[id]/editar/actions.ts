@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -243,6 +244,7 @@ export async function updateChampionship(
   const changeNotice = buildChampionshipChangeNotice(
     { dataInicio: champ.data_inicio, dataFim: champ.data_fim, cidade: champ.cidade, estado: champ.estado, local: champ.local },
     { dataInicio: input.dataInicio, dataFim: input.dataFim, cidade: input.cidade.trim(), estado: input.estado.trim().toUpperCase().slice(0, 2), local: input.local?.trim() ?? "" },
+    randomUUID(),
   );
   if (changeNotice) {
     const { data: recipients } = await supabase.rpc("organizer_championship_recipients", { p_championship_id: champId, p_user_ids: null });
@@ -251,7 +253,7 @@ export async function updateChampionship(
       championshipName: nome,
       actorId: user.id,
       notice: changeNotice,
-      authenticatedRecipients: ((recipients ?? []) as Array<{ email: string; nome: string }>).map((recipient) => ({ email: recipient.email, nome: recipient.nome })),
+      authenticatedRecipients: ((recipients ?? []) as Array<{ user_id: string; email: string; nome: string }>).map((recipient) => ({ userId: recipient.user_id, email: recipient.email, nome: recipient.nome })),
     });
   }
 
