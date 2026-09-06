@@ -4,6 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { courtNumberForMatch, normalizeCourtConfiguration, type CourtConfiguration } from "@/lib/bracket-courts";
+import { buildBracketInvalidationPlan, type ProgressionMatch } from "@/lib/bracket-progression";
+import { validateBracketScore } from "@/lib/bracket-score";
+import { createDoubleEliminationPlan, type BracketFormat } from "@/lib/double-elimination";
 
 /* ─── helpers ─── */
 
@@ -62,19 +66,271 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+function validateCourtConfiguration(input: CourtConfiguration): string | null {
+  if (!Number.isInteger(input.totalCourts) || input.totalCourts < 1 || input.totalCourts > 32) {
+    return "Informe um total de quadras entre 1 e 32.";
+  }
+  if (!Number.isInteger(input.primaryCourtNumber) || input.primaryCourtNumber < 1 || input.primaryCourtNumber > input.totalCourts) {
+    return "Escolha uma quadra principal válida.";
+  }
+  return null;
+}
+
+async function persistCourtConfiguration(
+  champId: string,
+  configuration: CourtConfiguration,
+  redistributeExistingMatches: boolean,
+): Promise<{ ok: boolean; error?: string }> {
+  const validationError = validateCourtConfiguration(configuration);
+  if (validationError) return { ok: false, error: validationError };
+
+  const normalized = normalizeCourtConfiguration(configuration);
+  const admin = createAdminClient();
+  const { error: championshipError } = await admin
+    .from("championships")
+    .update({
+      total_courts: normalized.totalCourts,
+      main_court_count: 1,
+      primary_court_number: normalized.primaryCourtNumber,
+    })
+    .eq("id", champId);
+
+  if (championshipError) {
+    return { ok: false, error: "Não foi possível salvar a configuração das quadras." };
+  }
+
+  if (!redistributeExistingMatches) return { ok: true };
+
+  const { data: matches, error: matchesError } = await admin
+    .from("bracket_matches")
+    .select("id, category_id, round_index, match_index, is_third_place, bracket_section, section_round_index")
+    .eq("championship_id", champId);
+
+  if (matchesError) {
+    return { ok: false, error: "As quadras foram salvas, mas não foi possível redistribuir os jogos existentes." };
+  }
+
+  const totalRoundsByCategory = new Map<string, number>();
+  for (const match of matches ?? []) {
+    if (match.bracket_section !== "winners" || match.is_third_place) continue;
+    const current = totalRoundsByCategory.get(match.category_id) ?? 0;
+    totalRoundsByCategory.set(match.category_id, Math.max(current, (match.section_round_index ?? match.round_index) + 1));
+  }
+
+  for (const match of matches ?? []) {
+    const totalRounds = totalRoundsByCategory.get(match.category_id) ?? 1;
+    const courtLabel = String(courtNumberForMatch(normalized, {
+      roundIndex: match.section_round_index ?? match.round_index,
+      matchIndex: match.match_index,
+      totalRounds,
+      secondaryMatch: match.is_third_place || match.bracket_section === "losers" || match.bracket_section === "third_place",
+    }));
+    const { error } = await admin
+      .from("bracket_matches")
+      .update({ court_label: courtLabel })
+      .eq("id", match.id);
+    if (error) {
+      return { ok: false, error: "As quadras foram salvas, mas alguns jogos não puderam ser redistribuídos." };
+    }
+  }
+
+  return { ok: true };
+}
+
+async function invalidateDependentMatches(
+  champId: string,
+  catId: string,
+  sourceMatchId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("bracket_matches")
+    .select("id, round_index, match_index, bracket_section, is_third_place, winner_participant_id, next_winner_match_id, next_winner_slot, next_loser_match_id, next_loser_slot")
+    .eq("championship_id", champId)
+    .eq("category_id", catId);
+  if (error) return { ok: false, error: "Não foi possível verificar os jogos dependentes." };
+
+  const plan = buildBracketInvalidationPlan((data ?? []) as ProgressionMatch[], sourceMatchId);
+  for (const step of plan) {
+    const clearParticipantA = step.slots.includes("a");
+    const clearParticipantB = step.slots.includes("b");
+    const { error: updateError } = await admin
+      .from("bracket_matches")
+      .update({
+        ...(clearParticipantA ? { participant_a_id: null, team_a_id: null } : {}),
+        ...(clearParticipantB ? { participant_b_id: null, team_b_id: null } : {}),
+        sets_a: null,
+        sets_b: null,
+        winner_id: null,
+        winner_participant_id: null,
+        set_details: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", step.matchId)
+      .eq("championship_id", champId)
+      .eq("category_id", catId);
+    if (updateError) return { ok: false, error: "Não foi possível limpar todos os jogos dependentes." };
+
+    // A RPC também funciona como reversão quando o resultado já foi limpo.
+    const { error: ratingError } = await admin.rpc("apply_bracket_match_rating", {
+      p_match_id: step.matchId,
+    });
+    if (ratingError) return { ok: false, error: "Os jogos foram limpos, mas não foi possível reverter todo o rating." };
+  }
+
+  return { ok: true };
+}
+
+export async function saveCourtConfiguration(
+  champId: string,
+  configuration: CourtConfiguration,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  if (!(await canManageBracket(supabase, champId))) {
+    return { ok: false, error: "Sem permissão para configurar as quadras deste campeonato." };
+  }
+
+  const result = await persistCourtConfiguration(champId, configuration, true);
+  if (result.ok) {
+    revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
+    revalidatePath(`/staff/${champId}/chaveamento`);
+    revalidatePath(`/campeonatos/${champId}/chaveamento`);
+  }
+  return result;
+}
+
+export async function changeMatchCourt(
+  matchId: string,
+  champId: string,
+  courtNumber: number,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  if (!(await canManageBracket(supabase, champId))) {
+    return { ok: false, error: "Sem permissão para alterar a quadra deste jogo." };
+  }
+  if (!Number.isInteger(courtNumber) || courtNumber < 1) {
+    return { ok: false, error: "Escolha uma quadra válida." };
+  }
+
+  const { data: championship } = await supabase
+    .from("championships")
+    .select("total_courts")
+    .eq("id", champId)
+    .single();
+  if (!championship || courtNumber > (championship.total_courts ?? 1)) {
+    return { ok: false, error: "Essa quadra não faz parte do campeonato." };
+  }
+
+  const { data: match, error } = await supabase
+    .from("bracket_matches")
+    .update({ court_label: String(courtNumber), updated_at: new Date().toISOString() })
+    .eq("id", matchId)
+    .eq("championship_id", champId)
+    .select("id")
+    .maybeSingle();
+  if (error || !match) {
+    return { ok: false, error: "Não foi possível alterar a quadra deste jogo." };
+  }
+
+  revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
+  revalidatePath(`/staff/${champId}/chaveamento`);
+  revalidatePath(`/campeonatos/${champId}/chaveamento`);
+  return { ok: true };
+}
+
+export async function addManualBracketPair(
+  champId: string,
+  catId: string,
+  athleteA: string,
+  athleteB: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || !(await canManageBracket(supabase, champId))) {
+    return { ok: false, error: "Sem permissão para alterar este chaveamento." };
+  }
+  if (!(await categoryBelongsToChampionship(supabase, champId, catId))) {
+    return { ok: false, error: "Categoria inválida." };
+  }
+
+  const firstName = athleteA.trim().replace(/\s+/g, " ").slice(0, 80);
+  const secondName = athleteB.trim().replace(/\s+/g, " ").slice(0, 80);
+  if (firstName.length < 2 || secondName.length < 2) {
+    return { ok: false, error: "Informe o nome dos dois atletas da dupla." };
+  }
+  if (firstName.localeCompare(secondName, "pt-BR", { sensitivity: "base" }) === 0) {
+    return { ok: false, error: "Os dois atletas da dupla precisam ser pessoas diferentes." };
+  }
+
+  const { error } = await createAdminClient().from("bracket_participants").insert({
+    championship_id: champId,
+    category_id: catId,
+    source_type: "manual",
+    display_name_snapshot: `${firstName} & ${secondName}`,
+    active: true,
+    created_by: user.id,
+  });
+  if (error?.code === "23505") return { ok: false, error: "Essa dupla já foi adicionada." };
+  if (error) return { ok: false, error: "Não foi possível adicionar a dupla." };
+
+  revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
+  return { ok: true };
+}
+
 /* ─── gerar bracket por sorteio ─── */
 
 export async function generateBracket(
   champId: string,
   catId:   string,
   teamIds: string[],
+  requestedCourtConfiguration?: CourtConfiguration,
+  requestedFormat: BracketFormat = "single_elimination",
 ) {
   const supabase = await createClient();
-  if (!(await canManageBracket(supabase, champId))) return;
-  if (!(await categoryBelongsToChampionship(supabase, champId, catId))) return;
+  if (!(await canManageBracket(supabase, champId))) return { ok: false, error: "Sem permissão para gerar este chaveamento." };
+  if (!(await categoryBelongsToChampionship(supabase, champId, catId))) return { ok: false, error: "Categoria inválida." };
+  if (requestedFormat !== "single_elimination" && requestedFormat !== "double_elimination") {
+    return { ok: false, error: "Formato de chaveamento inválido." };
+  }
+
+  const { data: existingMatches } = await supabase
+    .from("bracket_matches")
+    .select("winner_participant_id")
+    .eq("championship_id", champId)
+    .eq("category_id", catId);
+  const hasResults = (existingMatches ?? []).some((match) => !!match.winner_participant_id);
+  const { data: category } = await supabase
+    .from("championship_categories")
+    .select("bracket_format")
+    .eq("id", catId)
+    .single();
+  if (hasResults && category?.bracket_format !== requestedFormat) {
+    return { ok: false, error: "Limpe o chaveamento antes de trocar o formato, pois já existem resultados lançados." };
+  }
+
+  if (requestedCourtConfiguration) {
+    const saved = await persistCourtConfiguration(champId, requestedCourtConfiguration, false);
+    if (!saved.ok) return saved;
+  }
+
+  const { data: courtData } = await supabase
+    .from("championships")
+    .select("total_courts, primary_court_number")
+    .eq("id", champId)
+    .single();
+  const courtConfiguration = normalizeCourtConfiguration({
+    totalCourts: requestedCourtConfiguration?.totalCourts ?? courtData?.total_courts ?? 1,
+    primaryCourtNumber: requestedCourtConfiguration?.primaryCourtNumber ?? courtData?.primary_court_number ?? 1,
+  });
 
   const uniqueParticipantIds = [...new Set(teamIds)].slice(0, 256);
-  if (uniqueParticipantIds.length !== teamIds.length) return;
+  if (uniqueParticipantIds.length !== teamIds.length) return { ok: false, error: "A seleção contém duplas repetidas ou excede o limite permitido." };
+  if (requestedFormat === "double_elimination" && (
+    uniqueParticipantIds.length < 8 ||
+    (uniqueParticipantIds.length & (uniqueParticipantIds.length - 1)) !== 0
+  )) {
+    return { ok: false, error: "Nesta versão, a repescagem exige 8, 16, 32, 64, 128 ou 256 duplas selecionadas." };
+  }
   let participantTeamIds = new Map<string, string | null>();
   if (uniqueParticipantIds.length > 0) {
     const { data: validParticipants } = await supabase
@@ -84,7 +340,7 @@ export async function generateBracket(
       .eq("championship_id", champId)
       .eq("category_id", catId)
       .eq("active", true);
-    if ((validParticipants ?? []).length !== uniqueParticipantIds.length) return;
+    if ((validParticipants ?? []).length !== uniqueParticipantIds.length) return { ok: false, error: "Uma ou mais duplas selecionadas não estão disponíveis." };
     participantTeamIds = new Map(
       (validParticipants ?? []).map((participant) => [participant.id, participant.team_id]),
     );
@@ -111,6 +367,47 @@ export async function generateBracket(
     ...Array(n - shuffled.length).fill(null),
   ];
 
+  const { error: formatError } = await supabase
+    .from("championship_categories")
+    .update({ bracket_format: requestedFormat, bracket_confirmed_at: null })
+    .eq("id", catId);
+  if (formatError) return { ok: false, error: "Não foi possível salvar o formato do chaveamento." };
+
+  if (requestedFormat === "double_elimination") {
+    const plan = createDoubleEliminationPlan(slots);
+    const mainTotalRounds = totalRounds + 1;
+    const idsByKey = new Map(plan.map((match) => [match.key, crypto.randomUUID()]));
+    const rows = plan.map((match) => ({
+      id: idsByKey.get(match.key),
+      championship_id: champId,
+      category_id: catId,
+      round_index: match.roundIndex,
+      match_index: match.matchIndex,
+      bracket_section: match.section,
+      section_round_index: match.sectionRoundIndex,
+      is_third_place: match.section === "third_place",
+      participant_a_id: match.participantAId,
+      participant_b_id: match.participantBId,
+      team_a_id: match.participantAId ? (participantTeamIds.get(match.participantAId) ?? null) : null,
+      team_b_id: match.participantBId ? (participantTeamIds.get(match.participantBId) ?? null) : null,
+      next_winner_match_id: match.nextWinnerKey ? idsByKey.get(match.nextWinnerKey) : null,
+      next_winner_slot: match.nextWinnerSlot,
+      next_loser_match_id: match.nextLoserKey ? idsByKey.get(match.nextLoserKey) : null,
+      next_loser_slot: match.nextLoserSlot,
+      court_label: String(courtNumberForMatch(courtConfiguration, {
+        roundIndex: match.sectionRoundIndex,
+        matchIndex: match.matchIndex,
+        totalRounds: mainTotalRounds,
+        secondaryMatch: match.section === "losers" || match.section === "third_place",
+      })),
+    }));
+    const { error } = await createAdminClient().from("bracket_matches").insert(rows);
+    if (error) return { ok: false, error: "Não foi possível criar a chave de dupla eliminação." };
+    revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
+    revalidatePath(`/campeonatos/${champId}/chaveamento`);
+    return { ok: true };
+  }
+
   const rows = [];
   for (let r = 0; r < totalRounds; r++) {
     const matchCount = n / Math.pow(2, r + 1);
@@ -120,6 +417,8 @@ export async function generateBracket(
         category_id:     catId,
         round_index:     r,
         match_index:     m,
+        bracket_section: "winners",
+        section_round_index: r,
         participant_a_id: r === 0 ? (slots[m * 2]     ?? null) : null,
         participant_b_id: r === 0 ? (slots[m * 2 + 1] ?? null) : null,
         team_a_id: r === 0 && slots[m * 2]
@@ -128,6 +427,11 @@ export async function generateBracket(
         team_b_id: r === 0 && slots[m * 2 + 1]
           ? (participantTeamIds.get(slots[m * 2 + 1]!) ?? null)
           : null,
+        court_label: String(courtNumberForMatch(courtConfiguration, {
+          roundIndex: r,
+          matchIndex: m,
+          totalRounds,
+        })),
       });
     }
   }
@@ -146,10 +450,20 @@ export async function generateBracket(
       team_a_id:       null,
       team_b_id:       null,
       is_third_place:  true,
+      bracket_section: "third_place",
+      section_round_index: 0,
+      court_label: String(courtNumberForMatch(courtConfiguration, {
+        roundIndex: totalRounds,
+        matchIndex: 0,
+        totalRounds,
+        secondaryMatch: true,
+      })),
     });
   }
 
   revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
+  revalidatePath(`/campeonatos/${champId}/chaveamento`);
+  return { ok: true };
 }
 
 export async function assignTeam(
@@ -211,21 +525,13 @@ export async function saveScore(
   setDetails: Array<{ a: number; b: number }> | null,
 ) {
   const supabase = await createClient();
-  if (!(await canManageBracket(supabase, champId))) return;
-  if (!Number.isInteger(setsA) || !Number.isInteger(setsB) || setsA < 0 || setsB < 0 || setsA > 9 || setsB > 9)
-    return;
-  if (setsA === setsB) return;
-  if (
-    setDetails?.some(
-      (set) =>
-        !Number.isInteger(set.a) || !Number.isInteger(set.b) ||
-        set.a < 0 || set.b < 0 || set.a > 99 || set.b > 99,
-    )
-  ) return;
+  if (!(await canManageBracket(supabase, champId))) return { ok: false, error: "Sem permissão para salvar este placar." };
+  const scoreValidationError = validateBracketScore(setsA, setsB, setDetails);
+  if (scoreValidationError) return { ok: false, error: scoreValidationError };
 
   const { data: securedMatch } = await supabase
     .from("bracket_matches")
-    .select("winner_participant_id, participant_a_id, participant_b_id, team_a_id, team_b_id, round_index, match_index, category_id")
+    .select("winner_participant_id, participant_a_id, participant_b_id, team_a_id, team_b_id, round_index, match_index, category_id, bracket_section, next_winner_match_id, next_winner_slot, next_loser_match_id, next_loser_slot")
     .eq("id", matchId)
     .eq("championship_id", champId)
     .eq("category_id", catId)
@@ -241,8 +547,18 @@ export async function saveScore(
   const winnerTeamId = setsA > setsB
     ? securedMatch.team_a_id
     : securedMatch.team_b_id;
+  const loserParticipantId = winnerParticipantId === teamAId ? teamBId : teamAId;
+  const loserTeamId = winnerParticipantId === teamAId ? securedMatch.team_b_id : securedMatch.team_a_id;
 
-  await supabase
+  if (
+    securedMatch.winner_participant_id &&
+    securedMatch.winner_participant_id !== winnerParticipantId
+  ) {
+    const invalidation = await invalidateDependentMatches(champId, catId, matchId);
+    if (!invalidation.ok) return invalidation;
+  }
+
+  const { error: scoreError } = await supabase
     .from("bracket_matches")
     .update({
       sets_a:      setsA,
@@ -255,9 +571,66 @@ export async function saveScore(
     .eq("id", matchId)
     .eq("championship_id", champId)
     .eq("category_id", catId);
+  if (scoreError) return { ok: false, error: "Não foi possível salvar o placar." };
 
-  // Avança o vencedor para a próxima rodada
-  if (winnerParticipantId) {
+  async function sendParticipant(
+    destinationId: string | null,
+    slot: string | null,
+    participantId: string | null,
+    legacyTeamId: string | null,
+  ) {
+    if (!destinationId || !participantId || (slot !== "a" && slot !== "b")) return;
+    await supabase
+      .from("bracket_matches")
+      .update({
+        [slot === "a" ? "participant_a_id" : "participant_b_id"]: participantId,
+        [slot === "a" ? "team_a_id" : "team_b_id"]: legacyTeamId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", destinationId)
+      .eq("championship_id", champId)
+      .eq("category_id", catId);
+  }
+
+  if (securedMatch.bracket_section === "grand_final" && winnerParticipantId && teamAId && teamBId) {
+    const { data: resetFinal } = await supabase
+      .from("bracket_matches")
+      .select("id")
+      .eq("championship_id", champId)
+      .eq("category_id", catId)
+      .eq("bracket_section", "reset_final")
+      .maybeSingle();
+    if (resetFinal && winnerParticipantId === teamBId) {
+      await supabase.from("bracket_matches").update({
+        participant_a_id: teamAId,
+        participant_b_id: teamBId,
+        team_a_id: securedMatch.team_a_id,
+        team_b_id: securedMatch.team_b_id,
+        updated_at: new Date().toISOString(),
+      }).eq("id", resetFinal.id);
+    } else if (resetFinal && winnerParticipantId === teamAId) {
+      // Se o invicto vence a grande final, não há partida de reset. Limpa um
+      // eventual resultado antigo caso o placar da grande final tenha sido editado.
+      await supabase.from("bracket_matches").update({
+        participant_a_id: null,
+        participant_b_id: null,
+        team_a_id: null,
+        team_b_id: null,
+        sets_a: null,
+        sets_b: null,
+        winner_id: null,
+        winner_participant_id: null,
+        set_details: null,
+        updated_at: new Date().toISOString(),
+      }).eq("id", resetFinal.id);
+    }
+  } else if (winnerParticipantId && securedMatch.next_winner_match_id) {
+    await sendParticipant(securedMatch.next_winner_match_id, securedMatch.next_winner_slot, winnerParticipantId, winnerTeamId);
+    await sendParticipant(securedMatch.next_loser_match_id, securedMatch.next_loser_slot, loserParticipantId, loserTeamId);
+  }
+
+  // Compatibilidade com chaves simples criadas antes dos vínculos explícitos.
+  if (winnerParticipantId && !securedMatch.next_winner_match_id && securedMatch.bracket_section === "winners") {
     const nextRound = roundIndex + 1;
     const nextMatch = Math.floor(matchIndex / 2);
     const nextParticipantSlot = matchIndex % 2 === 0 ? "participant_a_id" : "participant_b_id";
@@ -334,26 +707,45 @@ export async function saveScore(
   }
 
   revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
+  revalidatePath(`/staff/${champId}/chaveamento`);
+  revalidatePath(`/campeonatos/${champId}/chaveamento`);
+  return { ok: true };
 }
 
 export async function clearScore(matchId: string, champId: string) {
   const supabase = await createClient();
-  if (!(await canManageBracket(supabase, champId))) return;
-  await supabase
+  if (!(await canManageBracket(supabase, champId))) return { ok: false, error: "Sem permissão para limpar este placar." };
+  const { data: match } = await supabase
+    .from("bracket_matches")
+    .select("category_id")
+    .eq("id", matchId)
+    .eq("championship_id", champId)
+    .maybeSingle();
+  if (!match) return { ok: false, error: "Partida não encontrada." };
+
+  const invalidation = await invalidateDependentMatches(champId, match.category_id, matchId);
+  if (!invalidation.ok) return invalidation;
+
+  const { error } = await supabase
     .from("bracket_matches")
     .update({
       sets_a: null,
       sets_b: null,
       winner_id: null,
       winner_participant_id: null,
+      set_details: null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", matchId)
     .eq("championship_id", champId);
+  if (error) return { ok: false, error: "Não foi possível limpar o placar." };
   // Reverte o rating que esse resultado tinha aplicado (idempotente — RPC
   // não faz nada se essa partida nunca teve rating aplicado).
   await createAdminClient().rpc("apply_bracket_match_rating", { p_match_id: matchId });
   revalidatePath(`/painel/campeonatos/${champId}/chaveamento`);
+  revalidatePath(`/staff/${champId}/chaveamento`);
+  revalidatePath(`/campeonatos/${champId}/chaveamento`);
+  return { ok: true };
 }
 
 export async function resetBracket(champId: string, catId: string) {
@@ -394,15 +786,15 @@ export async function confirmBracket(
   // Verifica que a final tem vencedor
   const { data: matches } = await supabase
     .from("bracket_matches")
-    .select("round_index, winner_participant_id, is_third_place")
+    .select("round_index, winner_participant_id, participant_a_id, participant_b_id, is_third_place, bracket_section")
     .eq("championship_id", champId)
     .eq("category_id", catId);
 
   if (!matches || matches.length === 0)
     return { ok: false, error: "Chaveamento não gerado." };
 
-  const regularMatches = matches.filter((m) => !m.is_third_place);
-  const thirdPlace     = matches.find((m) => m.is_third_place);
+  const regularMatches = matches.filter((m) => !m.is_third_place && m.bracket_section !== "reset_final");
+  const thirdPlace     = matches.find((m) => m.is_third_place || m.bracket_section === "third_place");
 
   if (regularMatches.length === 0)
     return { ok: false, error: "Chaveamento não gerado." };
@@ -410,8 +802,7 @@ export async function confirmBracket(
   const maxRound     = Math.max(...regularMatches.map((m) => m.round_index));
   const finalMatches = regularMatches.filter((m) => m.round_index === maxRound);
   const hasChampeão  = finalMatches.every((m) => m.winner_participant_id);
-  if (!hasChampeão)
-    return { ok: false, error: "O chaveamento ainda não está completo." };
+  if (!hasChampeão) return { ok: false, error: "O chaveamento ainda não está completo." };
 
   if (thirdPlace && !thirdPlace.winner_participant_id)
     return { ok: false, error: "A partida pelo 3º lugar ainda não tem resultado." };

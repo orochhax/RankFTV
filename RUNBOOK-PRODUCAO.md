@@ -55,7 +55,8 @@ Aplicar no SQL Editor ou pipeline de migrations, uma por vez e nesta ordem:
 10. `supabase/production-participant-category-uniqueness.sql`
 11. `supabase/production-category-deletion-guard.sql`
 12. `supabase/production-credential-operations.sql`
-13. `supabase/production-data-retention.sql`
+13. `supabase/support-case-enhancements.sql`
+14. `supabase/production-data-retention.sql`
 
 Os scripts sao aditivos e idempotentes. Ainda assim, nao os execute em paralelo.
 O backfill de plateia e a criacao de indices podem disputar I/O com o trafego;
@@ -63,8 +64,9 @@ use janela de manutencao em uma base com volume relevante. A migration de
 unicidade interrompe a instalacao se encontrar ingresso ativo sem categoria ou
 identidade duplicada na mesma categoria. Audite e resolva cada conflito antes;
 nao altere nem estorne dados em lote para forcar a instalacao. A migration de
-credenciais e obrigatoria antes de `production-credential-operations.sql`, e a
-retencao deve ser executada por ultimo.
+credenciais e obrigatoria antes de `production-credential-operations.sql`.
+`support-case-enhancements.sql` depende das tabelas de suporte criadas por essa
+migration e deve vir logo depois. A retencao deve ser executada por ultimo.
 
 ## 3. Validacao do banco
 
@@ -279,6 +281,36 @@ GitHub e conferir pelo menos uma execucao manual e uma agendada.
   anos; tentativas de cartao por 180 dias; auditoria, eventos de credencial,
   falhas de e-mail e casos de suporte resolvidos por 730 dias; webhooks e
   e-mails entregues/aceitos por 400 dias; desafios de alteracao por 30 dias.
+
+### 5.1 Responsavel operacional inicial
+
+Enquanto a V1 operar sem equipe de suporte, `Carlos Gregorio Rocha Batista` e
+o responsavel primario por pagamento pendente, reembolso cancelado, webhook
+falho e repasse recusado. O canal temporario e o e-mail pessoal cadastrado nos
+servicos de monitoramento, sem registrar o endereco em repositorio. O prazo
+maximo para iniciar a analise e responder ao solicitante e de 24 horas.
+
+Quando o e-mail comercial e o WhatsApp oficiais forem ativados, substituir o
+canal temporario nos monitores e alertas sem remover o contato anterior antes
+de testar a entrega nos canais novos. O WhatsApp serve para comunicacao; dados
+bancarios, chaves Pix, documentos e segredos nunca devem ser solicitados por
+ele ou por e-mail.
+
+Procedimento minimo por tipo de alerta:
+
+1. pagamento pendente: consultar a conciliacao e o estado no processador antes
+   de qualquer intervencao; nunca confirmar manualmente sem evidencia;
+2. reembolso cancelado: manter ingresso e estoque inalterados, abrir ou revisar
+   o caso de suporte e seguir o procedimento de devolucao assistida;
+3. webhook falho: localizar o evento por `correlation_id` ou ID interno,
+   confirmar origem e assinatura e somente entao usar um replay idempotente;
+4. repasse recusado: manter a operacao pendente, conferir favorecido e resposta
+   do processador e nunca criar outro repasse sem reconciliar o primeiro.
+
+O monitor externo inicial usa o UptimeRobot a cada cinco minutos, exige a
+presenca de `"status":"ok"` em `/api/health` e envia alerta por e-mail. A
+notificacao de teste foi recebida em 04/09/2026. Esse monitor nao substitui os
+alertas internos definidos por `OPERATIONS_ALERT_WEBHOOK_URL`.
 
 ## 6. Rollback
 

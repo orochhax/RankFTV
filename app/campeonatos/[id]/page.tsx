@@ -7,8 +7,6 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { formatDateRangeBR, generoLabel } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
-import { listarLotesComStatus, resolverPrecos } from "@/lib/lotes";
-import { PublicCategoryOptions } from "@/components/campeonatos/PublicCategoryOptions";
 import { PublicFunnelEvent } from "@/components/analytics/PublicFunnelEvent";
 import { ChampionshipNotices } from "@/components/campeonatos/ChampionshipNotices";
 
@@ -136,38 +134,6 @@ export default async function CampeonatoDetalhePage({
     .eq("championship_id", id)
     .eq("ativo", true);
   const temIngressoPlateia = (ingressoPlateiaCount ?? 0) > 0;
-
-  /* ── Categorias públicas e preço vigente ── */
-  const { data: categoryRows } = isVitrine
-    ? { data: [] }
-    : await supabase
-        .from("championship_categories")
-        .select("id, nome, genero, valor_inscricao")
-        .eq("championship_id", id)
-        .order("valor_inscricao", { ascending: true });
-  const categoryIds = (categoryRows ?? []).map((category) => category.id);
-  const [categoryPrices, categoryTiers] = await Promise.all([
-    resolverPrecos(
-      "category",
-      categoryIds,
-      Object.fromEntries(
-        (categoryRows ?? []).map((category) => [category.id, Number(category.valor_inscricao)]),
-      ),
-    ),
-    listarLotesComStatus("category", categoryIds),
-  ]);
-  const publicCategories = (categoryRows ?? []).map((category) => {
-    const activeTier = categoryTiers[category.id]?.find((tier) => tier.status === "ativo");
-    return {
-      id: category.id,
-      name: category.nome,
-      gender: category.genero,
-      price: categoryPrices[category.id]?.valor ?? Number(category.valor_inscricao),
-      soldOut: categoryPrices[category.id]?.esgotado ?? false,
-      activeBatchName: activeTier?.nome ?? null,
-      activeBatchEndsAt: activeTier?.dataFim ?? null,
-    };
-  });
 
   return (
     <div className="w-full space-y-8 px-6 py-8">
@@ -310,14 +276,6 @@ export default async function CampeonatoDetalhePage({
             </p>
           </div>
         </div>
-      )}
-
-      {!isVitrine && (
-        <PublicCategoryOptions
-          championshipId={championship.id}
-          categories={publicCategories}
-          isElite={championship.isElite ?? false}
-        />
       )}
 
       {/* Escolha principal: jogar (atleta) ou assistir (plateia) */}

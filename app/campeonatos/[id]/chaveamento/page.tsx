@@ -20,7 +20,7 @@ async function getDbBracketCategories(
 
   const { data: matches } = await supabase
     .from("bracket_matches")
-    .select("id, round_index, match_index, participant_a_id, participant_b_id, sets_a, sets_b, winner_participant_id, category_id")
+    .select("id, round_index, match_index, participant_a_id, participant_b_id, sets_a, sets_b, set_details, winner_participant_id, category_id, is_third_place, court_label, bracket_section, section_round_index")
     .eq("championship_id", champId)
     .order("round_index")
     .order("match_index");
@@ -49,35 +49,67 @@ async function getDbBracketCategories(
   const catIds = [...new Set(matches.map((m) => m.category_id))];
   const { data: cats } = await supabase
     .from("championship_categories")
-    .select("id, nome")
+    .select("id, nome, bracket_format")
     .in("id", catIds);
   const catNomes: Record<string, string> = Object.fromEntries(
     (cats ?? []).map((c) => [c.id, c.nome]),
   );
+  const catFormatos: Record<string, "single_elimination" | "double_elimination"> = Object.fromEntries(
+    (cats ?? []).map((c) => [c.id, c.bracket_format === "double_elimination" ? "double_elimination" : "single_elimination"]),
+  );
 
   // Agrupa por categoria → rodadas → confrontos
   const byCat = new Map<string, Map<number, BracketMatch[]>>();
+  const losersByCat = new Map<string, Map<number, BracketMatch[]>>();
+  const thirdPlaceByCat = new Map<string, BracketMatch>();
+  const grandFinalByCat = new Map<string, BracketMatch>();
+  const resetFinalByCat = new Map<string, BracketMatch>();
+  const matchNumberByCat = new Map<string, number>();
   for (const m of matches) {
-    if (!byCat.has(m.category_id)) byCat.set(m.category_id, new Map());
-    const byRound = byCat.get(m.category_id)!;
-    if (!byRound.has(m.round_index)) byRound.set(m.round_index, []);
-
     const winnerId = m.winner_participant_id;
     const isWinA = winnerId && winnerId === m.participant_a_id;
     const isWinB = winnerId && winnerId === m.participant_b_id;
+    const numero = (matchNumberByCat.get(m.category_id) ?? 0) + 1;
+    matchNumberByCat.set(m.category_id, numero);
 
     const scoreStr =
       m.sets_a !== null && m.sets_b !== null
         ? `${m.sets_a} × ${m.sets_b}`
         : undefined;
 
-    byRound.get(m.round_index)!.push({
+    const match: BracketMatch = {
       id: m.id,
+      numero,
       duplaA: { nomes: splitNomes(m.participant_a_id ? (participantNames[m.participant_a_id] ?? "A definir") : "A definir") },
       duplaB: { nomes: splitNomes(m.participant_b_id ? (participantNames[m.participant_b_id] ?? "A definir") : "A definir") },
       placar: scoreStr,
+      sets: Array.isArray(m.set_details)
+        ? m.set_details.filter(
+            (set): set is { a: number; b: number } =>
+              typeof set === "object" &&
+              set !== null &&
+              typeof (set as { a?: unknown }).a === "number" &&
+              typeof (set as { b?: unknown }).b === "number",
+          )
+        : undefined,
+      quadra: m.court_label ? `Quadra ${m.court_label}` : undefined,
       winner: isWinA ? "a" : isWinB ? "b" : null,
-    });
+    };
+
+    const section = m.bracket_section ?? (m.is_third_place ? "third_place" : "winners");
+    if (section === "third_place") {
+      thirdPlaceByCat.set(m.category_id, match);
+      continue;
+    }
+    if (section === "grand_final") { grandFinalByCat.set(m.category_id, match); continue; }
+    if (section === "reset_final") { resetFinalByCat.set(m.category_id, match); continue; }
+
+    const target = section === "losers" ? losersByCat : byCat;
+    if (!target.has(m.category_id)) target.set(m.category_id, new Map());
+    const byRound = target.get(m.category_id)!;
+    const sectionRound = m.section_round_index ?? m.round_index;
+    if (!byRound.has(sectionRound)) byRound.set(sectionRound, []);
+    byRound.get(sectionRound)!.push(match);
   }
 
   function getRoundName(ri: number, total: number): string {
@@ -98,11 +130,19 @@ async function getDbBracketCategories(
         nome: getRoundName(ri, totalRounds),
         matches: ms,
       }));
+    const repescagem: BracketRound[] = Array.from(losersByCat.get(catId)?.entries() ?? [])
+      .sort(([a], [b]) => a - b)
+      .map(([ri, ms]) => ({ nome: `Repescagem ${ri + 1}`, matches: ms }));
 
     categories.push({
       id: catId,
       nome: catNomes[catId] ?? "Categoria",
       rounds,
+      terceiroLugar: thirdPlaceByCat.get(catId),
+      formato: catFormatos[catId] ?? "single_elimination",
+      repescagem,
+      grandeFinal: grandFinalByCat.get(catId),
+      finalReset: resetFinalByCat.get(catId),
     });
   }
 

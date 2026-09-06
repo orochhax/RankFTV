@@ -38,7 +38,7 @@ test("bracket writes validate active participants and mirror legacy team referen
   assert.match(actions, /participant_b_id/);
   assert.match(actions, /winner_participant_id/);
   assert.match(actions, /winner_id:\s+winnerTeamId/);
-  assert.match(actions, /\.select\("round_index, winner_participant_id, is_third_place"\)/);
+  assert.match(actions, /\.select\("round_index, winner_participant_id,[^"]*bracket_section/);
   assert.match(migration, /CREATE TRIGGER bracket_matches_participant_domain/);
 });
 

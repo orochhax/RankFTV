@@ -764,12 +764,14 @@ Aplicar exatamente na ordem de `RUNBOOK-PRODUCAO.md`:
 10. `production-participant-category-uniqueness.sql`;
 11. `production-category-deletion-guard.sql`;
 12. `production-credential-operations.sql`;
-13. `production-data-retention.sql`.
+13. `support-case-enhancements.sql`;
+14. `production-data-retention.sql`.
 
 As migrations são aditivas e idempotentes, têm RLS mínimo e preservam dados
 existentes. `production-athlete-ticket-credentials.sql` precisa vir antes das
-operações de credencial, e a retenção precisa ser a última porque referencia
-as tabelas operacionais novas. A restrição de participante deve ser precedida
+operações de credencial; `support-case-enhancements.sql` depende das tabelas
+criadas por `production-credential-operations.sql`; e a retenção precisa ser a
+última porque referencia as tabelas operacionais novas. A restrição de participante deve ser precedida
 pela auditoria de conflitos legados descrita no runbook. Backfill, validação,
 implantação gradual e rollback estão no runbook; configurações que dependem do
 responsável estão em `PENDENCIAS-V1.md`.

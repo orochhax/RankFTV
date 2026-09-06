@@ -9,6 +9,7 @@ import type {
   RoundDisplay,
   SetDetail,
 } from "@/app/painel/campeonatos/[id]/chaveamento/page";
+import type { BracketFormat, BracketSection } from "@/lib/double-elimination";
 
 type ParticipantRow = {
   id: string;
@@ -84,10 +85,11 @@ export default async function StaffChaveamentoPage({
   // bracket_confirmed_at
   const catIds = Object.keys(catMeta);
   let confirmedAtMap: Record<string, string | null> = {};
+  let formatMap: Record<string, BracketFormat> = {};
   if (catIds.length > 0) {
     const { data: catRows } = await supabase
       .from("championship_categories")
-      .select("id, bracket_confirmed_at")
+      .select("id, bracket_confirmed_at, bracket_format")
       .in("id", catIds);
     confirmedAtMap = Object.fromEntries(
       (catRows ?? []).map((c) => [
@@ -95,21 +97,27 @@ export default async function StaffChaveamentoPage({
         (c as { id: string; bracket_confirmed_at: string | null }).bracket_confirmed_at ?? null,
       ]),
     );
+    formatMap = Object.fromEntries(
+      (catRows ?? []).map((c) => [c.id, (c.bracket_format ?? "single_elimination") as BracketFormat]),
+    );
   }
 
   const categorias  = Object.entries(catMeta).map(([cid, m]) => ({ id: cid, ...m }));
   const activeCatId = cat && categorias.some((c) => c.id === cat) ? cat : categorias[0]?.id ?? null;
   const confirmedAt = activeCatId ? (confirmedAtMap[activeCatId] ?? null) : null;
+  const bracketFormat = activeCatId ? (formatMap[activeCatId] ?? "single_elimination") : "single_elimination";
 
   const totalDuplas = Object.values(teamsByCat).reduce((s, t) => s + t.length, 0);
 
   let rounds: RoundDisplay[]          = [];
+  let loserRounds: RoundDisplay[] = [];
   let thirdPlaceMatch: MatchDisplay | null = null;
+  let hasResults = false;
 
   if (activeCatId) {
     const { data: dbMatches } = await supabase
       .from("bracket_matches")
-      .select("id, round_index, match_index, participant_a_id, participant_b_id, sets_a, sets_b, winner_participant_id, set_details, is_third_place")
+      .select("id, round_index, match_index, participant_a_id, participant_b_id, sets_a, sets_b, winner_participant_id, set_details, is_third_place, court_label, bracket_section, section_round_index")
       .eq("championship_id", id)
       .eq("category_id", activeCatId)
       .order("round_index")
@@ -121,8 +129,13 @@ export default async function StaffChaveamentoPage({
         for (const t of teams) teamMap[t.id] = t.nome;
       }
 
+      hasResults = dbMatches.some((match) => !!match.winner_participant_id);
+      const sectionOf = (match: typeof dbMatches[0]) => (match.bracket_section ?? (match.is_third_place ? "third_place" : "winners")) as BracketSection;
+      const matchNumbers = new Map(dbMatches.map((match, index) => [match.id, index + 1]));
+
       const toDisplay = (m: typeof dbMatches[0]): MatchDisplay => ({
         dbId:       m.id,
+        numero:     matchNumbers.get(m.id) ?? 0,
         roundIndex: m.round_index,
         matchIndex: m.match_index,
         teamA:      m.participant_a_id ? { id: m.participant_a_id, nome: teamMap[m.participant_a_id] ?? "Dupla" } : null,
@@ -131,18 +144,21 @@ export default async function StaffChaveamentoPage({
         setsB:      m.sets_b,
         winnerId:   m.winner_participant_id,
         setDetails: (m.set_details as SetDetail[] | null) ?? null,
+        courtLabel: m.court_label,
+        section: sectionOf(m),
       });
 
-      const regularMatches = dbMatches.filter((m) => !(m as { is_third_place?: boolean }).is_third_place);
-      const thirdRow       = dbMatches.find((m)  =>  (m as { is_third_place?: boolean }).is_third_place);
-
+      const thirdRow = dbMatches.find((m) => sectionOf(m) === "third_place");
       if (thirdRow) thirdPlaceMatch = toDisplay(thirdRow);
-
       const roundsMap = new Map<number, MatchDisplay[]>();
-      for (const m of regularMatches) {
-        const ri = m.round_index;
-        if (!roundsMap.has(ri)) roundsMap.set(ri, []);
-        roundsMap.get(ri)!.push(toDisplay(m));
+      const loserRoundsMap = new Map<number, MatchDisplay[]>();
+      for (const m of dbMatches) {
+        const section = sectionOf(m);
+        if (section !== "winners" && section !== "losers") continue;
+        const ri = m.section_round_index ?? m.round_index;
+        const target = section === "winners" ? roundsMap : loserRoundsMap;
+        if (!target.has(ri)) target.set(ri, []);
+        target.get(ri)!.push(toDisplay(m));
       }
 
       const totalRounds = roundsMap.size;
@@ -153,6 +169,9 @@ export default async function StaffChaveamentoPage({
           roundIndex,
           matches,
         }));
+      loserRounds = Array.from(loserRoundsMap.entries())
+        .sort(([a], [b]) => a - b)
+        .map(([roundIndex, matches]) => ({ nome: `Repescagem ${roundIndex + 1}`, roundIndex, matches }));
     }
   }
 
@@ -225,6 +244,9 @@ export default async function StaffChaveamentoPage({
                 confirmedAt={confirmedAt}
                 thirdPlaceMatch={thirdPlaceMatch}
                 canConfirm={false}
+                bracketFormat={bracketFormat}
+                hasResults={hasResults}
+                loserRounds={loserRounds}
               />
             </>
           )}

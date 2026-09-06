@@ -6,7 +6,7 @@ import test from "node:test";
 const sql = readFileSync(
   join(process.cwd(), "supabase", "performance-it-career-roadmaps.sql"),
   "utf8",
-);
+).replace(/\r\n/g, "\n");
 
 function functionDefinition(name: string): string {
   const definition = sql.match(

@@ -1,275 +1,58 @@
 import type { RoundDisplay, MatchDisplay } from "@/app/painel/campeonatos/[id]/chaveamento/page";
+import { createBracketExportScene, bracketRasterScale, type ExportOptions, type ExportScene } from "@/lib/bracket-export";
 
-/* ─── constantes de layout ─── */
-const CW    = 220;  // largura do card
-const CH    = 86;   // altura do card
-const CS    = 94;   // slot por confronto (CH + 8px gap)
-const CONN  = 44;   // largura da coluna de conector
-const HDR   = 36;   // altura do cabeçalho (nome da rodada)
-const PAD   = 28;   // padding externo
-const SCALE = 2;    // densidade de pixel (qualidade 2×)
-
-const ptFor  = (ri: number) => (Math.pow(2, ri) * CS - CH) / 2;
-const gapFor = (ri: number) =>  Math.pow(2, ri) * CS - CH;
-
-/* ─── helpers ─── */
-
-function rrect(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number, w: number, h: number, r: number,
-) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.arcTo(x + w, y,     x + w, y + r,     r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-  ctx.lineTo(x + r, y + h);
-  ctx.arcTo(x,     y + h, x,     y + h - r, r);
-  ctx.lineTo(x,     y + r);
-  ctx.arcTo(x,     y,     x + r, y,         r);
-  ctx.closePath();
-}
-
-function fitText(ctx: CanvasRenderingContext2D, text: string, maxW: number): string {
-  if (ctx.measureText(text).width <= maxW) return text;
-  let t = text;
-  while (t.length > 0 && ctx.measureText(t + "…").width > maxW) t = t.slice(0, -1);
-  return t + "…";
-}
-
-/* ─── resultado da função ─── */
-export type BracketExport = { dataUrl: string; logicalW: number; logicalH: number };
-
-const THIRD_GAP = 32; // espaço entre o bracket principal e a partida de 3º lugar
-
-/* ─── função principal ─── */
-export function drawBracket(rounds: RoundDisplay[], thirdPlaceMatch?: MatchDisplay | null): BracketExport {
-  const nRounds    = rounds.length;
-  const firstCount = rounds[0]?.matches.length ?? 1;
-
-  const logicalW = PAD * 2 + nRounds * CW + Math.max(0, nRounds - 1) * CONN;
-  const bracketH =
-    PAD * 2 + HDR + ptFor(0) +
-    firstCount * CH +
-    Math.max(0, firstCount - 1) * gapFor(0);
-
-  const logicalH = thirdPlaceMatch
-    ? bracketH + THIRD_GAP + HDR + CH + PAD
-    : bracketH;
-
-  const canvas  = document.createElement("canvas");
-  canvas.width  = logicalW * SCALE;
-  canvas.height = logicalH * SCALE;
-
-  const ctx = canvas.getContext("2d")!;
-  ctx.scale(SCALE, SCALE);
-
-  /* fundo */
-  ctx.fillStyle = "#f8fafc";
-  ctx.fillRect(0, 0, logicalW, logicalH);
-
-  rounds.forEach((round, ri) => {
-    const colX = PAD + ri * (CW + CONN);
-    const P    = ptFor(ri);
-
-    /* nome da rodada */
-    ctx.save();
-    ctx.font      = "bold 10px system-ui, -apple-system, sans-serif";
-    ctx.fillStyle = "#9ca3af";
-    ctx.textAlign = "center";
-    ctx.fillText(round.nome.toUpperCase(), colX + CW / 2, PAD + HDR - 10);
-    ctx.restore();
-
-    round.matches.forEach((match, mi) => {
-      const Y   = PAD + HDR + P + mi * (CH + gapFor(ri));
-      const mid = Y + CH / 2;
-
-      const winA = !!match.winnerId && match.winnerId === match.teamA?.id;
-      const winB = !!match.winnerId && match.winnerId === match.teamB?.id;
-
-      /* sombra + fundo branco */
-      ctx.save();
-      ctx.shadowColor   = "rgba(0,0,0,0.08)";
-      ctx.shadowBlur    = 8;
-      ctx.shadowOffsetY = 2;
-      ctx.fillStyle     = "#ffffff";
-      rrect(ctx, colX, Y, CW, CH, 10);
-      ctx.fill();
-      ctx.restore();
-
-      /* borda */
-      ctx.strokeStyle = "#e5e7eb";
-      ctx.lineWidth   = 1;
-      rrect(ctx, colX, Y, CW, CH, 10);
-      ctx.stroke();
-
-      /* highlight do vencedor (clipa no card) */
-      if (winA || winB) {
-        ctx.save();
-        rrect(ctx, colX, Y, CW, CH, 10);
-        ctx.clip();
-        ctx.fillStyle = "#ecfdf5";
-        if (winA) ctx.fillRect(colX, Y, CW, CH / 2);
-        if (winB) ctx.fillRect(colX, Y + CH / 2, CW, CH / 2);
-        ctx.restore();
-      }
-
-      /* divisor central */
-      ctx.strokeStyle = "#f3f4f6";
-      ctx.lineWidth   = 1;
+export function drawBracket(rounds: RoundDisplay[], third?: MatchDisplay | null, options: ExportOptions = {}) {
+  const scene = createBracketExportScene(rounds, third, options);
+  const scale = bracketRasterScale(scene);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.floor(scene.width * scale);
+  canvas.height = Math.floor(scene.height * scale);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Não foi possível criar a imagem. Tente exportar em PDF.");
+  ctx.scale(scale, scale);
+  ctx.fillStyle = "#f3f5fa";
+  ctx.fillRect(0, 0, scene.width, scene.height);
+  for (const shape of scene.shapes) {
+    ctx.fillStyle = shape.fill;
+    if (shape.kind === "text") {
+      ctx.font = `${shape.bold ? "600" : "400"} ${shape.size}px Arial, sans-serif`;
+      ctx.fillText(shape.value, shape.x, shape.y);
+    } else if (shape.kind === "rect") {
       ctx.beginPath();
-      ctx.moveTo(colX + 1, mid);
-      ctx.lineTo(colX + CW - 1, mid);
-      ctx.stroke();
-
-      /* placar */
-      if (match.setsA !== null && match.setsB !== null) {
-        ctx.save();
-        ctx.font      = "bold 10px system-ui, -apple-system, sans-serif";
-        ctx.fillStyle = "#6b7280";
-        ctx.textAlign = "center";
-        ctx.fillText(`${match.setsA} × ${match.setsB}`, colX + CW / 2, mid + 4);
-        ctx.restore();
-      }
-
-      /* nome Dupla A */
-      ctx.save();
-      ctx.font      = `${winA ? "600" : "400"} 11.5px system-ui, -apple-system, sans-serif`;
-      ctx.fillStyle = winA ? "#065f46" : (match.teamA ? "#111827" : "#9ca3af");
-      ctx.textAlign = "left";
-      ctx.fillText(
-        fitText(ctx, match.teamA?.nome ?? "A definir", CW - 24),
-        colX + 10, Y + CH / 4 + 4,
-      );
-      ctx.restore();
-
-      /* nome Dupla B */
-      ctx.save();
-      ctx.font      = `${winB ? "600" : "400"} 11.5px system-ui, -apple-system, sans-serif`;
-      ctx.fillStyle = winB ? "#065f46" : (match.teamB ? "#111827" : "#9ca3af");
-      ctx.textAlign = "left";
-      ctx.fillText(
-        fitText(ctx, match.teamB?.nome ?? "A definir", CW - 24),
-        colX + 10, Y + CH * 3 / 4 + 4,
-      );
-      ctx.restore();
-
-      /* linhas conectoras */
-      if (ri < nRounds - 1) {
-        const nextMi  = Math.floor(mi / 2);
-        const nextP   = ptFor(ri + 1);
-        const nextY   = PAD + HDR + nextP + nextMi * (CH + gapFor(ri + 1));
-        const nextMid = nextY + CH / 2;
-
-        const sx = colX + CW;
-        const mx = sx + CONN / 2;
-        const ex = sx + CONN;
-
-        ctx.strokeStyle = "#d1d5db";
-        ctx.lineWidth   = 1.5;
-        ctx.lineCap     = "round";
-        ctx.beginPath();
-
-        /* stub horizontal deste confronto */
-        ctx.moveTo(sx, mid);
-        ctx.lineTo(mx, mid);
-
-        /* barra vertical (apenas no par de cima, índice par) */
-        if (mi % 2 === 0 && mi + 1 < round.matches.length) {
-          const pairY   = PAD + HDR + P + (mi + 1) * (CH + gapFor(ri));
-          const pairMid = pairY + CH / 2;
-          ctx.moveTo(mx, mid);
-          ctx.lineTo(mx, pairMid);
-        }
-
-        /* saída horizontal para o próximo confronto */
-        ctx.moveTo(mx, nextMid);
-        ctx.lineTo(ex, nextMid);
-
-        ctx.stroke();
-      }
-    });
-  });
-
-  /* ─── partida pelo 3º lugar ─── */
-  if (thirdPlaceMatch) {
-    const cardY  = bracketH + THIRD_GAP + HDR;
-    const cardX  = PAD;
-    const match  = thirdPlaceMatch;
-    const winA   = !!match.winnerId && match.winnerId === match.teamA?.id;
-    const winB   = !!match.winnerId && match.winnerId === match.teamB?.id;
-    const mid    = cardY + CH / 2;
-
-    /* label */
-    ctx.save();
-    ctx.font      = "bold 10px system-ui, -apple-system, sans-serif";
-    ctx.fillStyle = "#9ca3af";
-    ctx.textAlign = "left";
-    ctx.fillText("DISPUTA DE 3º LUGAR", cardX, bracketH + THIRD_GAP + HDR - 10);
-    ctx.restore();
-
-    /* fundo branco + sombra */
-    ctx.save();
-    ctx.shadowColor   = "rgba(0,0,0,0.08)";
-    ctx.shadowBlur    = 8;
-    ctx.shadowOffsetY = 2;
-    ctx.fillStyle     = "#ffffff";
-    rrect(ctx, cardX, cardY, CW, CH, 10);
-    ctx.fill();
-    ctx.restore();
-
-    /* borda */
-    ctx.strokeStyle = "#e5e7eb";
-    ctx.lineWidth   = 1;
-    rrect(ctx, cardX, cardY, CW, CH, 10);
-    ctx.stroke();
-
-    /* highlight vencedor */
-    if (winA || winB) {
-      ctx.save();
-      rrect(ctx, cardX, cardY, CW, CH, 10);
-      ctx.clip();
-      ctx.fillStyle = "#ecfdf5";
-      if (winA) ctx.fillRect(cardX, cardY, CW, CH / 2);
-      if (winB) ctx.fillRect(cardX, cardY + CH / 2, CW, CH / 2);
-      ctx.restore();
+      ctx.roundRect(shape.x, shape.y, shape.w, shape.h, shape.radius);
+      ctx.fill();
+      if (shape.stroke) { ctx.strokeStyle = shape.stroke; ctx.lineWidth = 1; ctx.stroke(); }
+    } else {
+      ctx.strokeStyle = shape.fill; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(shape.x, shape.y); ctx.lineTo(shape.x2, shape.y2); ctx.stroke();
     }
-
-    /* divisor */
-    ctx.strokeStyle = "#f3f4f6";
-    ctx.lineWidth   = 1;
-    ctx.beginPath();
-    ctx.moveTo(cardX + 1, mid);
-    ctx.lineTo(cardX + CW - 1, mid);
-    ctx.stroke();
-
-    /* placar */
-    if (match.setsA !== null && match.setsB !== null) {
-      ctx.save();
-      ctx.font      = "bold 10px system-ui, -apple-system, sans-serif";
-      ctx.fillStyle = "#6b7280";
-      ctx.textAlign = "center";
-      ctx.fillText(`${match.setsA} × ${match.setsB}`, cardX + CW / 2, mid + 4);
-      ctx.restore();
-    }
-
-    /* nome A */
-    ctx.save();
-    ctx.font      = `${winA ? "600" : "400"} 11.5px system-ui, -apple-system, sans-serif`;
-    ctx.fillStyle = winA ? "#065f46" : (match.teamA ? "#111827" : "#9ca3af");
-    ctx.textAlign = "left";
-    ctx.fillText(fitText(ctx, match.teamA?.nome ?? "A definir", CW - 24), cardX + 10, cardY + CH / 4 + 4);
-    ctx.restore();
-
-    /* nome B */
-    ctx.save();
-    ctx.font      = `${winB ? "600" : "400"} 11.5px system-ui, -apple-system, sans-serif`;
-    ctx.fillStyle = winB ? "#065f46" : (match.teamB ? "#111827" : "#9ca3af");
-    ctx.textAlign = "left";
-    ctx.fillText(fitText(ctx, match.teamB?.nome ?? "A definir", CW - 24), cardX + 10, cardY + CH * 3 / 4 + 4);
-    ctx.restore();
   }
+  const dataUrl = canvas.toDataURL("image/png");
+  if (dataUrl === "data:,") throw new Error("Imagem excedeu o limite do navegador. Exporte em PDF.");
+  return { dataUrl, logicalW: scene.width, logicalH: scene.height };
+}
 
-  return { dataUrl: canvas.toDataURL("image/png"), logicalW, logicalH };
+export async function createBracketPdf(scene: ExportScene) {
+  const { jsPDF } = await import("jspdf");
+  // PDF has a 14,400-point page limit. Scale coordinates, keeping text/vector
+  // data intact and all matches inside the MediaBox, even for 256 pairs.
+  const scale = Math.min(1, 12000 / Math.max(scene.width, scene.height));
+  const w = scene.width * scale, h = scene.height * scale;
+  const pdf = new jsPDF({ unit: "pt", format: [w, h], orientation: w > h ? "landscape" : "portrait", compress: true });
+  pdf.setFillColor("#f3f5fa"); pdf.rect(0, 0, w, h, "F");
+  for (const s of scene.shapes) {
+    if (s.kind === "text") {
+      pdf.setFont("helvetica", s.bold ? "bold" : "normal");
+      pdf.setFontSize(s.size * scale); pdf.setTextColor(s.fill);
+      pdf.text(s.value, s.x * scale, s.y * scale);
+    } else if (s.kind === "rect") {
+      pdf.setFillColor(s.fill); pdf.setLineWidth(scale);
+      if (s.stroke) pdf.setDrawColor(s.stroke);
+      pdf.roundedRect(s.x * scale, s.y * scale, s.w * scale, s.h * scale, s.radius * scale, s.radius * scale, s.stroke ? "FD" : "F");
+    } else {
+      pdf.setDrawColor(s.fill); pdf.setLineWidth(1.5 * scale);
+      pdf.line(s.x * scale, s.y * scale, s.x2 * scale, s.y2 * scale);
+    }
+  }
+  return pdf;
 }

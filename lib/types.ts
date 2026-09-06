@@ -55,9 +55,12 @@ export type BracketDupla = {
 
 export type BracketMatch = {
   id: string;
+  numero: number;
   duplaA: BracketDupla;
   duplaB: BracketDupla;
   placar?: string;
+  sets?: Array<{ a: number; b: number }>;
+  quadra?: string;
   winner: "a" | "b" | null;
 };
 
@@ -71,6 +74,10 @@ export type BracketCategory = {
   nome: string;
   rounds: BracketRound[];
   terceiroLugar?: BracketMatch;
+  formato?: "single_elimination" | "double_elimination";
+  repescagem?: BracketRound[];
+  grandeFinal?: BracketMatch;
+  finalReset?: BracketMatch;
 };
 
 export type RatingPoint = { mes: string; rating: number };

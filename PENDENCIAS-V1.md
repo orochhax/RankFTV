@@ -1,8 +1,9 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 04/09/2026. Este arquivo mantém somente tarefas abertas. O que já
-foi implementado ou homologado está registrado em `AUDITORIA-PRODUCAO.md`, no
-histórico do Git e nos deploys de homologação.
+Atualizado em 05/09/2026. Este arquivo acompanha as pendências de lançamento
+e as entregas recentes, distinguindo implementação de homologação e publicação.
+Evidências complementares ficam em `AUDITORIA-PRODUCAO.md`, no histórico do Git
+e nos deploys de homologação.
 
 ## Estado atual da homologação
 
@@ -20,8 +21,74 @@ ingresso, não libera a vaga e mostra o caso no painel do CEO. Ainda falta obter
 uma confirmação `DONE` em teste controlado e fechar o procedimento humano para
 uma devolução não concluída.
 
+### Chaveamento — atualização de 05/09/2026
+
+- [x] Implementar cadastro manual de duplas e sorteio aleatório pelo organizador.
+- [x] Configurar o total de quadras e uma única quadra principal na página de
+  chaveamento do painel, com distribuição automática e alteração manual da
+  quadra de cada partida.
+- [x] Exibir identificação da quadra, número do jogo, placar e destaque azul
+  para a dupla vencedora; a página pública também mostra pontos por set.
+- [x] Corrigir a repescagem conforme a referência enviada: duas duplas
+  classificam pela chave superior e duas pela repescagem; as quatro disputam
+  semifinais cruzadas na chave principal, seguidas de final única e disputa
+  de terceiro lugar. Não há final externa nem final de reset nesse modelo.
+- [x] Integrar o pódio ao resultado da final principal e da disputa de terceiro.
+- [x] Separar as fases da repescagem em colunas no painel.
+- [x] Refazer a demonstração da Copa Bahia, categoria Aprendiz, com 16 duplas e
+  30 jogos: 14 de classificação superior, 12 de repescagem, duas semifinais,
+  uma final e uma disputa de terceiro lugar.
+- [x] Proteger a edição e a limpeza de placares: quando o vencedor de uma
+  partida muda, os participantes, placares, pódio e ratings dependentes são
+  invalidados em cascata antes da nova propagação.
+- [x] Validar a coerência entre o placar geral e os pontos de cada set, tanto
+  no formulário quanto no servidor, recusando sets empatados, incompletos ou
+  com contagem de vencedores diferente do resultado informado.
+- [x] Unificar a apresentação do painel e da página pública: ambos usam os
+  mesmos cards, conectores, pontos por set, destaque do vencedor e organização
+  da chave principal e repescagem; somente o painel adiciona a edição ao clique.
+- [x] Corrigir a redistribuição automática para reservar a quadra principal às
+  decisões da chave principal e tratar repescagem e terceiro lugar como jogos
+  secundários; a escolha manual por partida continua disponível.
+- [x] Refazer PNG e PDF a partir dos dados do chaveamento completo, incluindo
+  repescagem, terceiro lugar, pódio, quadras e pontos por set, com vencedores
+  em azul como no site. PDF vetorial, sem captura de tela, e PNG com dimensões
+  ajustadas aos limites de imagem. Desenhos testados de 8 até 256 duplas;
+  arquivos PNG e PDF de 16 e 256 duplas gerados para validação técnica.
+- [x] Executar `npm run typecheck` e a suíte de 697 testes, todos aprovados na
+  última validação registrada nesta sessão; as duas rotas locais responderam
+  HTTP 200. Isso não substitui a homologação manual dos fluxos completos.
+
+A demonstração usa o banco de produção com a aplicação acessada em
+`localhost:3000`. A publicação do código atualizado no domínio público ainda
+precisa ser confirmada. O formato com repescagem atualmente aceita 8, 16, 32,
+64, 128 ou 256 duplas; quantidades intermediárias ainda precisam de tratamento.
+Detalhamento funcional em `docs/design/LOGICA-CHAVEAMENTO-V1.md`.
+
+Links locais para revisão:
+
+- [Painel do organizador](http://localhost:3000/painel/campeonatos/61212887-0228-4fcb-9f45-016f0399b01e/chaveamento)
+- [Página pública](http://localhost:3000/campeonatos/61212887-0228-4fcb-9f45-016f0399b01e/chaveamento)
+
 ## P0 — Obrigatório antes de abrir pagamentos reais
 
+- [ ] Homologar manualmente o chaveamento corrigido no painel e na página
+  pública, em desktop e mobile: sorteio, encaminhamento de vencedores e
+  perdedores, retorno da repescagem às semifinais, final, terceiro lugar,
+  pódio e troca manual de quadra.
+- [ ] Validar correção e limpeza de placares com partidas posteriores já
+  preenchidas, confirmação dos resultados e redistribuição de quadras no
+  formato com repescagem. As regras de invalidação em cascata e redistribuição
+  já têm testes automatizados; falta a homologação manual da interface.
+- [ ] Revisar os cruzamentos intermediários da repescagem contra a referência
+  enviada e testar as quantidades de duplas suportadas, incluindo a mensagem
+  apresentada para quantidades ainda não suportadas.
+- [x] Homologar os downloads PNG/PDF pelos botões do painel no navegador,
+  incluindo a repescagem. Conferência manual aprovada em 05/09/2026: o
+  chaveamento completo foi exportado sem cards cortados e com o conteúdo e o
+  visual esperados.
+- [ ] Remover os dados e resultados fictícios da Copa Bahia após a aprovação
+  visual, preservando inscrições e participantes reais.
 - [ ] Comprar e configurar um e-mail comercial no domínio do RankFTV para ser
   o canal oficial de suporte.
 - [ ] Comprar um novo chip e configurar o WhatsApp oficial de suporte.
@@ -58,38 +125,77 @@ uma devolução não concluída.
   DKIM e DMARC, e confirmar entrega em Gmail e Outlook. O webhook Resend e suas
   métricas já foram homologados no Sandbox, mas precisam de configuração e
   evidência separadas em Production.
-- [ ] Concluir a configuração do Supabase Auth de produção:
-  - [x] Site URL, Redirect URLs e CAPTCHA configurados em produção.
-  - [x] Política mínima elevada de 6 para 8 caracteres em 04/09/2026, alinhada
-    à validação atual do cadastro, perfil e recuperação de senha.
-  - [x] Conta administrativa do painel Supabase protegida com TOTP principal e
-    fator de backup sincronizado no Ente Auth, ambos testados em sessão limpa.
-    O limite de sessões `AAL1` ficou desligado para não interromper usuários
-    enquanto o RankFTV ainda não possui desafio MFA na interface.
-  - [ ] Revisar os templates de autenticação e testar cadastro, login e
-    recuperação de senha em produção após a alteração da política.
-  - [ ] Implementar, cadastrar e exigir MFA para o usuário CEO dentro do
-    RankFTV, incluindo desafio no login, recuperação e proteção por `AAL2`.
-- [ ] Configurar monitor externo e alertas para
+- [x] Confirmar no Supabase Auth de produção os templates, Site URL, Redirect
+  URLs, política de senha, CAPTCHA e MFA da conta CEO.
+  - [x] Definir `https://www.rankftv.com` como Site URL e manter somente
+    `https://www.rankftv.com/auth/callback` na lista de Redirect URLs.
+  - [x] Revisar os templates de e-mail usados por cadastro e recuperação.
+    - [x] Personalizar e salvar o template `Confirm signup`.
+    - [x] Personalizar e salvar o template `Reset password`.
+    - [x] Testar em produção a entrega e o destino do link de recuperação.
+    - [x] Concluir a troca de senha e validar um novo login com a conta de teste.
+    - [x] Testar em produção o cadastro, a confirmação do e-mail e o destino
+      após a confirmação.
+  - [x] Confirmar a política de senha de produção.
+  - [x] Ativar e testar o CAPTCHA nos fluxos públicos de autenticação.
+  - [x] Habilitar TOTP no projeto e cadastrar MFA principal e de contingência
+    na conta CEO.
+- [x] Configurar monitor externo e alertas para
   `https://www.rankftv.com/api/health`.
-- [ ] Definir quem responde a operação financeira pendente, reembolso
+  - [x] Monitor externo no UptimeRobot a cada cinco minutos, exigindo
+    `"status":"ok"`, com estado `Up` e notificação por e-mail testada.
+- [x] Definir quem responde a operação financeira pendente, reembolso
   cancelado, webhook falho e repasse recusado, e por qual canal será alertado.
+  - [x] Carlos Gregório Rocha Batista será o responsável inicial, com alerta
+    temporário no e-mail pessoal cadastrado nos serviços e prazo máximo de 24
+    horas; migrar para os canais oficiais depois de adquiri-los e testar a
+    entrega. Procedimento detalhado na seção 5.1 de `RUNBOOK-PRODUCAO.md`.
 - [ ] Configurar `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN` e
   `OPERATIONS_ALERT_WEBHOOK_URL` de produção com responsável e SLA.
-- [ ] Criar rotina periódica de backup lógico, guardar uma cópia fora da
-  máquina do operador, incluir objetos do Storage e executar um ensaio de
-  restauração.
+- [ ] Criar rotina periódica de backup lógico e de objetos do Storage, mantendo
+  cópia fora da máquina do operador. O ensaio de restauração foi adiado para P2.
+  - [x] Gerar snapshot lógico inicial de produção antes das migrations em
+    `C:\Users\SnyX\Documents\RankFTV-Backups\production-20260904-213423-pre-migrations`,
+    com `schema.sql`, `data.sql`, `database.dump`, checksums SHA-256 válidos e
+    leitura do arquivo customizado confirmada pelo `pg_restore` (1.451 itens).
+  - [x] Baixar os 30 objetos dos cinco buckets de produção para a subpasta
+    `storage`, preservando os caminhos originais; validar os 23.669.825 bytes e
+    todos os hashes SHA-256 contra `storage-manifest.json`.
+  - [x] Guardar uma cópia do ZIP completo fora da máquina do operador,
+    confirmado manualmente pelo responsável em 04/09/2026.
 - [ ] Conferir buckets reais do Supabase: acesso, policies, limites de tamanho
   e tipos MIME permitidos.
+  - [x] Remover o bucket legado e vazio `page-banners`, não utilizado pelo
+    código atual.
+  - [x] Confirmar limites e tipos MIME de `arenas`, `noticias`, `page-images`,
+    `regulamentos` e `avatars`.
+  - [x] Remover três policies legadas duplicadas de `avatars` e testar upload,
+    leitura após recarregamento e substituição da imagem pela conta de teste.
+  - [x] Auditar as expressões das 20 policies restantes e confirmar aderência
+    às regras de proprietário, administrador e leitura pública do código.
+  - [ ] Tratar a ausência do bucket privado `support-attachments` junto à
+    equivalência de migrations.
+    - [x] Confirmar por consulta somente de leitura que `support_cases`,
+      `support_case_attachments`, `priority`, `sla_due_at` e o bucket ainda não
+      existem em produção; não aplicar a migration dependente isoladamente.
 - [ ] Confirmar a equivalência do schema de produção com o código e aplicar,
   com backup e janela sem checkout, somente as migrations homologadas que
   ainda estiverem ausentes. Seguir a ordem de `RUNBOOK-PRODUCAO.md`.
+  - [x] Inventariar as tabelas e confirmar que os objetos principais das
+    migrations 1 a 6 existem; os objetos esperados das migrations 7 a 13 estão
+    ausentes. A função `purge_rankftv_operational_data`, da migration 14, já
+    existe fora de ordem e não deve ser executada antes da correção controlada
+    do schema.
+  - [ ] Atualizar esse inventário após as intervenções recentes no banco.
+    A migration `production-double-elimination-bracket.sql` foi aplicada
+    nesta sessão; isso não comprova equivalência de todo o schema. Conferir
+    também os registros de aplicação das migrations de quadras e duplas manuais.
 - [ ] Configurar no ambiente `production` do GitHub Actions os secrets
   `FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET`, após promover o workflow para
   a branch padrão. Validar a conciliação a cada dez minutos e manter o cron
   diário da Vercel como contingência.
-- [ ] Registrar o plano de rollback da aplicação e ensaiar o restore lógico em
-  um projeto Supabase controlado.
+- [ ] Registrar o plano de rollback da aplicação. O ensaio de restore lógico
+  permanece adiado para P2 por decisão do responsável.
 - [ ] Promover de forma controlada o código homologado para produção, revisando
   diff, credenciais, URLs, redirects, webhooks e plano de rollback. Não promover
   a branch de homologação diretamente sem essa conferência.
@@ -111,6 +217,11 @@ uma devolução não concluída.
   aparelhos antes do primeiro evento com público.
 
 ## P2 — Depois do lançamento e com pessoas usando
+
+- [ ] Executar ensaio de restauração em ambiente descartável, incluindo banco
+  e Storage. Adiado para depois da V1 por decisão do responsável em 04/09/2026;
+  o arquivo customizado foi validado pelo `pg_restore`, mas não houve
+  restauração completa.
 
 ### Dívida técnica do ESLint — opção A adiada
 

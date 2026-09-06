@@ -1,105 +1,41 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown, ImageIcon, FileText, AlignLeft, Lock, CheckCircle2, Share2 } from "lucide-react";
-import { assignTeam, saveScore, clearScore, resetBracket, generateBracket, confirmBracket } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
+import { addManualBracketPair, assignTeam, saveScore, clearScore, resetBracket, generateBracket, confirmBracket, saveCourtConfiguration, changeMatchCourt } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
 import { formatDateTimeBR } from "@/lib/format";
+import type { CourtConfiguration } from "@/lib/bracket-courts";
+import type { BracketFormat } from "@/lib/double-elimination";
+import { validateBracketScore } from "@/lib/bracket-score";
+import { BracketGrid, MatchCard } from "@/components/chaveamento/BracketView";
+import type { BracketMatch, BracketRound } from "@/lib/types";
 import type { TeamDisplay, MatchDisplay, RoundDisplay, SetDetail } from "@/app/painel/campeonatos/[id]/chaveamento/page";
 
-/* ─── layout constants ─── */
-const HEADER_H = 28;   // altura fixa do cabeçalho com nome da rodada
-const CARD_H   = 93;   // altura fixa do card (36 slot + 20 score + 1 divider + 36 slot)
-const SLOT_H   = 101;  // slot efetivo por confronto na grade (CARD_H + 8 gap)
-
-function paddingTopFor(ri: number) { return (Math.pow(2, ri) * SLOT_H - CARD_H) / 2; }
-function gapFor(ri: number)        { return Math.pow(2, ri) * SLOT_H - CARD_H; }
-
-/* ─── sub-componentes ─── */
-
-function SlotRow({
-  team,
-  winner,
-  bye,
-}: {
-  team: TeamDisplay | null;
-  winner: boolean;
-  bye: boolean;
-}) {
-  if (bye) {
-    return (
-      <div className="flex h-9 items-center gap-2 bg-gray-50 px-3">
-        <div className="size-1.5 rounded-full bg-gray-200" />
-        <span className="text-xs italic text-gray-300">BYE</span>
-      </div>
-    );
-  }
-  if (!team) {
-    return (
-      <div className="flex h-9 items-center gap-2 px-3">
-        <div className="size-1.5 rounded-full bg-gray-200" />
-        <span className="text-xs text-gray-300">A definir</span>
-      </div>
-    );
-  }
-  return (
-    <div className={`flex h-9 items-center gap-2 px-3 ${winner ? "bg-blue-50" : ""}`}>
-      <div className={`size-1.5 shrink-0 rounded-full ${winner ? "bg-blue-500" : "bg-blue-400"}`} />
-      <span className={`truncate text-xs font-medium ${winner ? "text-blue-700" : "text-gray-800"}`}>
-        {team.nome}
-      </span>
-      {winner && <Trophy className="ml-auto size-3 shrink-0 text-blue-400" />}
-    </div>
-  );
+function splitTeamName(name: string | undefined): [string, string] {
+  if (!name) return ["A definir", ""];
+  const parts = name.split(" & ");
+  return [parts[0] ?? name, parts[1] ?? ""];
 }
 
-function ScoreArea({ setsA, setsB, hasScore }: { setsA: number | null; setsB: number | null; hasScore: boolean }) {
-  return (
-    <div
-      className={`flex items-center justify-center px-3 ${hasScore ? "bg-gray-50" : ""}`}
-      style={{ height: "20px" }}
-    >
-      {hasScore && (
-        <span className="text-[11px] font-semibold tabular-nums text-gray-500">
-          {setsA} × {setsB}
-        </span>
-      )}
-    </div>
-  );
+function toSharedMatch(match: MatchDisplay): BracketMatch {
+  return {
+    id: match.dbId,
+    numero: match.numero,
+    duplaA: { nomes: splitTeamName(match.teamA?.nome) },
+    duplaB: { nomes: splitTeamName(match.teamB?.nome) },
+    placar: match.setsA !== null && match.setsB !== null ? `${match.setsA} × ${match.setsB}` : undefined,
+    sets: match.setDetails ?? undefined,
+    quadra: match.courtLabel ? `Quadra ${match.courtLabel}` : undefined,
+    winner: match.winnerId === match.teamA?.id ? "a" : match.winnerId === match.teamB?.id ? "b" : null,
+  };
 }
 
-/* ─── conector entre rodadas ─── */
-
-function ConnectorColumn({ roundIndex, matchCount }: { roundIndex: number; matchCount: number }) {
-  const ri    = roundIndex;
-  const pairs = matchCount / 2;
-  const W     = 32;
-  const MID   = W / 2;
-  const h     = Math.ceil(
-    HEADER_H + paddingTopFor(ri) + matchCount * CARD_H + Math.max(0, matchCount - 1) * gapFor(ri),
-  );
-
-  const lines = [];
-  for (let p = 0; p < pairs; p++) {
-    const y1 = HEADER_H + SLOT_H * Math.pow(2, ri) * (2 * p + 0.5);
-    const y2 = HEADER_H + SLOT_H * Math.pow(2, ri) * (2 * p + 1.5);
-    const ym = (y1 + y2) / 2;
-    lines.push(
-      <g key={p}>
-        <line x1={0}   y1={y1} x2={MID} y2={y1} />
-        <line x1={MID} y1={y1} x2={MID} y2={y2} />
-        <line x1={0}   y1={y2} x2={MID} y2={y2} />
-        <line x1={MID} y1={ym} x2={W}   y2={ym} />
-      </g>
-    );
-  }
-
-  return (
-    <svg width={W} height={h} className="shrink-0 self-start overflow-visible">
-      <g stroke="#d1d5db" strokeWidth={1.5} fill="none" strokeLinecap="round">
-        {lines}
-      </g>
-    </svg>
-  );
+function toSharedRounds(rounds: RoundDisplay[]): BracketRound[] {
+  return rounds.map((round) => ({
+    nome: round.nome,
+    matches: round.matches.map(toSharedMatch),
+  }));
 }
 
 /* ─── sorteio ─── */
@@ -109,17 +45,32 @@ function SorteioPanel({
   hasExistingBracket,
   champId,
   catId,
+  courtConfiguration,
+  bracketFormat,
+  hasResults,
 }: {
   availableTeams:    TeamDisplay[];
   hasExistingBracket: boolean;
   champId:           string;
   catId:             string;
+  courtConfiguration?: CourtConfiguration;
+  bracketFormat: BracketFormat;
+  hasResults: boolean;
 }) {
+  const router = useRouter();
   const [open, setOpen]       = useState(!hasExistingBracket);
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(availableTeams.map((t) => t.id)),
   );
   const [confirm, setConfirm]     = useState(false);
+  const [athleteA, setAthleteA] = useState("");
+  const [athleteB, setAthleteB] = useState("");
+  const [pairError, setPairError] = useState<string | null>(null);
+  const [courtError, setCourtError] = useState<string | null>(null);
+  const [courtSaved, setCourtSaved] = useState(false);
+  const [totalCourts, setTotalCourts] = useState(courtConfiguration?.totalCourts ?? 1);
+  const [primaryCourtNumber, setPrimaryCourtNumber] = useState(courtConfiguration?.primaryCourtNumber ?? 1);
+  const [selectedFormat, setSelectedFormat] = useState<BracketFormat>(bracketFormat);
   const [isPending, startTransition] = useTransition();
 
   const allSelected  = selected.size === availableTeams.length;
@@ -142,8 +93,48 @@ function SorteioPanel({
   function handleGenerate() {
     if (hasExistingBracket && !confirm) { setConfirm(true); return; }
     setConfirm(false);
+    setCourtError(null);
     startTransition(async () => {
-      await generateBracket(champId, catId, Array.from(selected));
+      const result = await generateBracket(champId, catId, Array.from(selected), {
+        totalCourts,
+        primaryCourtNumber,
+      }, selectedFormat);
+      if (!result?.ok) {
+        setCourtError(result?.error ?? "Não foi possível gerar o chaveamento.");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  function handleSaveCourts() {
+    setCourtError(null);
+    setCourtSaved(false);
+    startTransition(async () => {
+      const result = await saveCourtConfiguration(champId, {
+        totalCourts,
+        primaryCourtNumber,
+      });
+      if (!result.ok) {
+        setCourtError(result.error ?? "Não foi possível salvar as quadras.");
+        return;
+      }
+      setCourtSaved(true);
+      router.refresh();
+    });
+  }
+
+  function handleAddPair() {
+    setPairError(null);
+    startTransition(async () => {
+      const result = await addManualBracketPair(champId, catId, athleteA, athleteB);
+      if (!result.ok) {
+        setPairError(result.error ?? "Não foi possível adicionar a dupla.");
+        return;
+      }
+      setAthleteA("");
+      setAthleteB("");
+      router.refresh();
     });
   }
 
@@ -168,6 +159,71 @@ function SorteioPanel({
 
       {open && (
         <div className="space-y-4 border-t border-gray-100 px-5 pb-5 pt-4">
+          <div className="rounded-xl border border-gray-200 bg-white p-4">
+            <p className="text-sm font-semibold text-gray-900">Formato do chaveamento</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <label className={`cursor-pointer rounded-xl border p-3 ${selectedFormat === "single_elimination" ? "border-blue-500 bg-blue-50" : "border-gray-200"}`}>
+                <input type="radio" className="mr-2 accent-blue-600" checked={selectedFormat === "single_elimination"} disabled={hasResults} onChange={() => setSelectedFormat("single_elimination")} />
+                <span className="text-sm font-semibold text-gray-900">Eliminatória simples</span>
+                <span className="mt-1 block pl-5 text-xs text-gray-500">Uma derrota elimina; semifinalistas disputam o 3º lugar.</span>
+              </label>
+              <label className={`cursor-pointer rounded-xl border p-3 ${selectedFormat === "double_elimination" ? "border-blue-500 bg-blue-50" : "border-gray-200"}`}>
+                <input type="radio" className="mr-2 accent-blue-600" checked={selectedFormat === "double_elimination"} disabled={hasResults} onChange={() => setSelectedFormat("double_elimination")} />
+                <span className="text-sm font-semibold text-gray-900">Repescagem</span>
+                <span className="mt-1 block pl-5 text-xs text-gray-500">A primeira derrota leva à repescagem; duas duplas retornam às semifinais.</span>
+              </label>
+            </div>
+            {hasResults && <p className="mt-2 text-xs font-medium text-amber-600">O formato está bloqueado porque já existem resultados. Limpe o chaveamento para trocar.</p>}
+          </div>
+
+          {courtConfiguration && (
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Quadras do campeonato</p>
+                <p className="mt-0.5 text-xs text-gray-500">O sistema distribui os jogos automaticamente e reserva a principal para as decisões.</p>
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-gray-700">Total de quadras</span>
+                  <input type="number" min={1} max={32} value={totalCourts} onChange={(event) => {
+                    const next = Math.max(1, Math.min(32, Number(event.target.value) || 1));
+                    setTotalCourts(next);
+                    setPrimaryCourtNumber((current) => Math.min(current, next));
+                    setCourtSaved(false);
+                  }} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-gray-700">Quadra principal</span>
+                  <select value={primaryCourtNumber} onChange={(event) => {
+                    setPrimaryCourtNumber(Number(event.target.value));
+                    setCourtSaved(false);
+                  }} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500">
+                    {Array.from({ length: totalCourts }, (_, index) => index + 1).map((court) => (
+                      <option key={court} value={court}>Quadra {court}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button type="button" onClick={handleSaveCourts} disabled={isPending} className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40">
+                  {isPending ? "Salvando…" : "Salvar configuração"}
+                </button>
+                {courtSaved && <span className="text-xs font-medium text-emerald-600">Configuração salva e jogos redistribuídos.</span>}
+              </div>
+              {courtError && <p className="mt-2 text-xs font-medium text-red-600">{courtError}</p>}
+            </div>
+          )}
+
+          <div className="rounded-xl bg-blue-50 p-3 ring-1 ring-blue-100">
+            <p className="text-xs font-semibold text-blue-900">Adicionar dupla ao sorteio</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+              <input value={athleteA} onChange={(event) => setAthleteA(event.target.value)} placeholder="Nome do atleta 1" className="min-w-0 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500" />
+              <input value={athleteB} onChange={(event) => setAthleteB(event.target.value)} placeholder="Nome do atleta 2" className="min-w-0 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500" />
+              <button type="button" onClick={handleAddPair} disabled={isPending || !athleteA.trim() || !athleteB.trim()} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">Adicionar</button>
+            </div>
+            {pairError && <p className="mt-2 text-xs font-medium text-red-600">{pairError}</p>}
+          </div>
+
           {/* selecionar todas */}
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-500">
@@ -239,14 +295,17 @@ function MatchModal({
   availableTeams,
   champId,
   catId,
+  totalCourts,
   onClose,
 }: {
   state:          ModalState;
   availableTeams: TeamDisplay[];
   champId:        string;
   catId:          string;
+  totalCourts?:   number;
   onClose:        () => void;
 }) {
+  const router = useRouter();
   const { match, roundNome } = state;
   const [activeSlot, setActiveSlot] = useState<"a" | "b" | null>(null);
   const [search, setSearch]         = useState("");
@@ -255,6 +314,9 @@ function MatchModal({
   const [setDetails, setSetDetails] = useState<Array<{ a: string; b: string }>>(() =>
     match.setDetails?.map((s: SetDetail) => ({ a: s.a.toString(), b: s.b.toString() })) ?? [],
   );
+  const [selectedCourt, setSelectedCourt] = useState(Number(match.courtLabel) || 1);
+  const [courtError, setCourtError] = useState<string | null>(null);
+  const [scoreError, setScoreError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const sa = parseInt(setsA);
@@ -268,6 +330,7 @@ function MatchModal({
   const canSaveScore = !!match.teamA && !!match.teamB && setsA !== "" && setsB !== "";
 
   function updateSetDetail(idx: number, field: "a" | "b", val: string) {
+    setScoreError(null);
     setSetDetails((prev) => {
       const next = [...prev];
       while (next.length <= idx) next.push({ a: "", b: "" });
@@ -289,15 +352,32 @@ function MatchModal({
 
   function handleSaveScore() {
     if (isNaN(sa) || isNaN(sb)) return;
-    const details: Array<{ a: number; b: number }> | null =
-      totalSets > 0
-        ? Array.from({ length: totalSets }, (_, i) => ({
-            a: parseInt(setDetails[i]?.a ?? "") || 0,
-            b: parseInt(setDetails[i]?.b ?? "") || 0,
-          }))
-        : null;
+    setCourtError(null);
+    setScoreError(null);
+    const rawDetails = Array.from({ length: totalSets }, (_, i) => ({
+      a: setDetails[i]?.a?.trim() ?? "",
+      b: setDetails[i]?.b?.trim() ?? "",
+    }));
+    const firstIncompleteSet = rawDetails.findIndex((set) => set.a === "" || set.b === "");
+    if (firstIncompleteSet >= 0) {
+      setScoreError(`Preencha os pontos das duas duplas no set ${firstIncompleteSet + 1}.`);
+      return;
+    }
+    const details = rawDetails.map((set) => ({ a: Number(set.a), b: Number(set.b) }));
+    const validationError = validateBracketScore(sa, sb, details);
+    if (validationError) {
+      setScoreError(validationError);
+      return;
+    }
     startTransition(async () => {
-      await saveScore(
+      if (totalCourts) {
+        const courtResult = await changeMatchCourt(match.dbId, champId, selectedCourt);
+        if (!courtResult.ok) {
+          setCourtError(courtResult.error ?? "Não foi possível alterar a quadra.");
+          return;
+        }
+      }
+      const scoreResult = await saveScore(
         match.dbId, sa, sb,
         match.teamA?.id ?? null,
         match.teamB?.id ?? null,
@@ -305,13 +385,35 @@ function MatchModal({
         match.roundIndex, match.matchIndex,
         details,
       );
+      if (scoreResult && !scoreResult.ok) {
+        setScoreError(scoreResult.error ?? "Não foi possível salvar o placar.");
+        return;
+      }
+      onClose();
+    });
+  }
+
+  function handleSaveCourt() {
+    setCourtError(null);
+    startTransition(async () => {
+      const result = await changeMatchCourt(match.dbId, champId, selectedCourt);
+      if (!result.ok) {
+        setCourtError(result.error ?? "Não foi possível alterar a quadra.");
+        return;
+      }
+      router.refresh();
       onClose();
     });
   }
 
   function handleClearScore() {
+    setCourtError(null);
     startTransition(async () => {
-      await clearScore(match.dbId, champId);
+      const result = await clearScore(match.dbId, champId);
+      if (result && !result.ok) {
+        setCourtError(result.error ?? "Não foi possível limpar o placar.");
+        return;
+      }
       onClose();
     });
   }
@@ -375,13 +477,42 @@ function MatchModal({
             {roundNome}
           </p>
           <p className="mt-0.5 text-sm font-semibold text-gray-900">
-            Confronto {match.matchIndex + 1}
+            Jogo #{match.numero}{match.courtLabel ? ` · Quadra ${match.courtLabel}` : ""}
           </p>
         </div>
         <button onClick={onClose} className="rounded-lg p-1 hover:bg-gray-100">
           <X className="size-4 text-gray-500" />
         </button>
       </div>
+
+      {totalCourts && (
+        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-3">
+          <label className="block text-xs font-semibold text-blue-900" htmlFor={`court-${match.dbId}`}>
+            Quadra deste jogo
+          </label>
+          <div className="mt-2 flex gap-2">
+            <select
+              id={`court-${match.dbId}`}
+              value={selectedCourt}
+              onChange={(event) => { setSelectedCourt(Number(event.target.value)); setCourtError(null); }}
+              className="min-w-0 flex-1 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500"
+            >
+              {Array.from({ length: totalCourts }, (_, index) => index + 1).map((court) => (
+                <option key={court} value={court}>Quadra {court}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={handleSaveCourt}
+              disabled={isPending}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
+            >
+              {isPending ? "Salvando…" : "Salvar quadra"}
+            </button>
+          </div>
+          {courtError && <p className="mt-2 text-xs font-medium text-red-600">{courtError}</p>}
+        </div>
+      )}
 
       {/* slots + placar */}
       <div className="mt-4 overflow-hidden rounded-2xl ring-1 ring-black/8">
@@ -407,7 +538,7 @@ function MatchModal({
             min={0}
             max={9}
             value={setsA}
-            onChange={(e) => setSetsA(e.target.value)}
+            onChange={(e) => { setSetsA(e.target.value); setScoreError(null); }}
             className="w-12 rounded-lg border border-gray-200 bg-white px-2 py-1 text-center text-sm font-semibold outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             placeholder="—"
           />
@@ -417,7 +548,7 @@ function MatchModal({
             min={0}
             max={9}
             value={setsB}
-            onChange={(e) => setSetsB(e.target.value)}
+            onChange={(e) => { setSetsB(e.target.value); setScoreError(null); }}
             className="w-12 rounded-lg border border-gray-200 bg-white px-2 py-1 text-center text-sm font-semibold outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             placeholder="—"
           />
@@ -481,6 +612,11 @@ function MatchModal({
       </div>
 
       {/* ações */}
+      {scoreError && (
+        <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700" role="alert">
+          {scoreError}
+        </p>
+      )}
       <button
         onClick={handleSaveScore}
         disabled={!canSaveScore || isPending}
@@ -518,7 +654,10 @@ type Podium = {
   fourth: TeamDisplay | null;
 };
 
-function computePodium(rounds: RoundDisplay[], thirdPlaceMatch: MatchDisplay | null): Podium | null {
+function computePodium(
+  rounds: RoundDisplay[],
+  thirdPlaceMatch: MatchDisplay | null,
+): Podium | null {
   if (rounds.length === 0) return null;
   const finalRound = rounds[rounds.length - 1];
   const finalMatch = finalRound.matches[0];
@@ -552,6 +691,44 @@ function computePodium(rounds: RoundDisplay[], thirdPlaceMatch: MatchDisplay | n
   return { first, second, thirds, fourth };
 }
 
+function FinalResultsPanel({ podium }: { podium: Podium | null }) {
+  const first = podium?.first ?? null;
+  const second = podium?.second ?? null;
+  const third = podium?.thirds[0] ?? null;
+  const results = [
+    { position: "1º", label: "Campeões", team: first, style: "border-amber-300 bg-amber-50 text-amber-700" },
+    { position: "2º", label: "Vice-campeões", team: second, style: "border-slate-300 bg-slate-50 text-slate-600" },
+    { position: "3º", label: "Terceiro lugar", team: third, style: "border-orange-300 bg-orange-50 text-orange-700" },
+  ];
+
+  return (
+    <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="mb-3 flex items-center gap-2">
+        <Trophy className="size-5 text-blue-600" />
+        <div>
+          <h2 className="text-sm font-bold text-gray-900">Resultado final</h2>
+          <p className="text-[11px] text-gray-400">O pódio é atualizado automaticamente</p>
+        </div>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {results.map((result) => (
+          <div key={result.position} className={`rounded-xl border p-3 ${result.style}`}>
+            <div className="flex items-center gap-2">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/80 text-sm font-black shadow-sm">{result.position}</span>
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wider opacity-70">{result.label}</p>
+                <p className={`truncate text-xs font-bold ${result.team ? "text-gray-900" : "opacity-60"}`}>
+                  {result.team?.nome ?? "A definir"}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function BracketClient({
   champId,
   catId,
@@ -560,6 +737,10 @@ export function BracketClient({
   confirmedAt,
   thirdPlaceMatch,
   canConfirm = true,
+  courtConfiguration,
+  bracketFormat = "single_elimination",
+  hasResults = false,
+  loserRounds = [],
 }: {
   champId:          string;
   catId:            string;
@@ -568,16 +749,21 @@ export function BracketClient({
   confirmedAt:      string | null;
   thirdPlaceMatch:  MatchDisplay | null;
   canConfirm?:      boolean;
+  courtConfiguration?: CourtConfiguration;
+  bracketFormat?: BracketFormat;
+  hasResults?: boolean;
+  loserRounds?: RoundDisplay[];
 }) {
   const [modalState, setModalState]         = useState<ModalState | null>(null);
   const [confirmReset, setConfirmReset]     = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmError, setConfirmError]     = useState<string | null>(null);
   const [exporting, setExporting]           = useState<"image" | "pdf" | "text" | "instagram" | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
   const [isPending, startTransition]        = useTransition();
 
   const isConfirmed = !!confirmedAt;
-  const podium      = computePodium(rounds, thirdPlaceMatch);
+  const podium = computePodium(rounds, thirdPlaceMatch);
 
   function openModal(match: MatchDisplay, roundNome: string) {
     if (isConfirmed) return; // read-only quando confirmado
@@ -597,34 +783,34 @@ export function BracketClient({
   }
 
   async function exportAsImage() {
+    setExportError(null);
     setExporting("image");
     try {
       const { drawBracket } = await import("@/components/chaveamento/drawBracket");
-      const { dataUrl } = drawBracket(rounds, thirdPlaceMatch);
+      const { dataUrl } = drawBracket(rounds, thirdPlaceMatch, { loserRounds });
       const a = document.createElement("a");
       a.download = "chaveamento.png";
       a.href = dataUrl;
       a.click();
+    } catch {
+      setExportError("Não foi possível gerar o PNG. Tente novamente ou exporte em PDF.");
     } finally {
       setExporting(null);
     }
   }
 
   async function exportAsPdf() {
+    setExportError(null);
     setExporting("pdf");
     try {
-      const [{ drawBracket }, { jsPDF }] = await Promise.all([
+      const [{ createBracketPdf }, { createBracketExportScene }] = await Promise.all([
         import("@/components/chaveamento/drawBracket"),
-        import("jspdf"),
+        import("@/lib/bracket-export"),
       ]);
-      const { dataUrl, logicalW, logicalH } = drawBracket(rounds, thirdPlaceMatch);
-      const pdf = new jsPDF({
-        orientation: logicalW > logicalH ? "landscape" : "portrait",
-        unit: "px",
-        format: [logicalW, logicalH],
-      });
-      pdf.addImage(dataUrl, "PNG", 0, 0, logicalW, logicalH);
+      const pdf = await createBracketPdf(createBracketExportScene(rounds, thirdPlaceMatch, { loserRounds }));
       pdf.save("chaveamento.pdf");
+    } catch {
+      setExportError("Não foi possível gerar o PDF. Tente novamente.");
     } finally {
       setExporting(null);
     }
@@ -636,14 +822,15 @@ export function BracketClient({
     lines.push("CHAVEAMENTO");
     lines.push("=".repeat(50));
 
-    for (const round of rounds) {
+    for (const round of [...rounds, ...loserRounds, ...(thirdPlaceMatch ? [{ nome: "Disputa de 3º lugar", matches: [thirdPlaceMatch] }] : [])]) {
       lines.push("");
       lines.push(round.nome.toUpperCase());
       lines.push("-".repeat(30));
-      round.matches.forEach((match, i) => {
+      round.matches.forEach((match) => {
         const a = match.teamA?.nome ?? "A definir";
         const b = match.teamB?.nome ?? "A definir";
-        let line = `Confronto ${i + 1}: ${a} vs ${b}`;
+        let line = `Jogo #${match.numero} · Quadra ${match.courtLabel ?? "a definir"}: ${a} vs ${b}`;
+        if (match.setDetails?.length) line += ` · Sets: ${match.setDetails.map((set) => `${set.a} × ${set.b}`).join(" / ")}`;
         if (match.setsA !== null && match.setsB !== null) {
           line += `  [${match.setsA} x ${match.setsB}]`;
         }
@@ -681,15 +868,17 @@ export function BracketClient({
   }
 
   async function exportAsInstagram() {
+    setExportError(null);
     setExporting("instagram");
     try {
       const { drawBracket } = await import("@/components/chaveamento/drawBracket");
-      const { dataUrl: bracketUrl } = drawBracket(rounds, thirdPlaceMatch);
+      const { dataUrl: bracketUrl } = drawBracket(rounds, thirdPlaceMatch, { loserRounds });
 
       // Carrega o bracket como imagem para redimensionar
-      const bracketImg = await new Promise<HTMLImageElement>((resolve) => {
+      const bracketImg = await new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("Falha ao gerar imagem"));
         img.src = bracketUrl;
       });
 
@@ -735,6 +924,8 @@ export function BracketClient({
       a.download = "chaveamento-instagram.png";
       a.href     = canvas.toDataURL("image/png");
       a.click();
+    } catch {
+      setExportError("Não foi possível gerar a imagem para Instagram. Tente novamente.");
     } finally {
       setExporting(null);
     }
@@ -749,6 +940,16 @@ export function BracketClient({
   }
 
   const hasExistingBracket = rounds.length > 0;
+  const sharedRounds = toSharedRounds(rounds);
+  const sharedLoserRounds = toSharedRounds(loserRounds);
+  const editableMatchesById = new Map(
+    [...rounds, ...loserRounds].flatMap((round) => round.matches).map((match) => [match.dbId, match]),
+  );
+
+  function openSharedMatch(match: BracketMatch, round: BracketRound) {
+    const editableMatch = editableMatchesById.get(match.id);
+    if (editableMatch) openModal(editableMatch, round.nome);
+  }
 
   return (
     <>
@@ -844,6 +1045,8 @@ export function BracketClient({
         </div>
       )}
 
+      {hasExistingBracket && <FinalResultsPanel podium={podium} />}
+
       {/* sorteio — oculto após confirmação */}
       {!isConfirmed && (
         <SorteioPanel
@@ -851,99 +1054,46 @@ export function BracketClient({
           hasExistingBracket={hasExistingBracket}
           champId={champId}
           catId={catId}
+          courtConfiguration={courtConfiguration}
+          bracketFormat={bracketFormat}
+          hasResults={hasResults}
         />
       )}
 
-      {/* bracket */}
-      {hasExistingBracket && <div className="overflow-x-auto pb-6">
-        <div className="flex" style={{ minWidth: "max-content" }}>
-          {rounds.flatMap((round, idx) => {
-            const ri     = round.roundIndex;
-            const pt     = paddingTopFor(ri);
-            const isLast = idx === rounds.length - 1;
-
-            const col = (
-              <div key={`round-${ri}`} className="flex flex-col">
-                {/* label em fluxo normal — altura fixa igual a HEADER_H */}
-                <div className="flex shrink-0 items-end justify-center pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400" style={{ height: `${HEADER_H}px` }}>
-                  {round.nome}
-                </div>
-
-                {/* cards */}
-                <div
-                  className="flex flex-col"
-                  style={{ paddingTop: `${pt}px`, gap: `${gapFor(ri)}px` }}
-                >
-                  {round.matches.map((match) => {
-                    const byeA    = !match.teamA && !!match.teamB;
-                    const byeB    = !match.teamB && !!match.teamA;
-                    const isTBD   = !match.teamA && !match.teamB;
-                    const hasScore = match.setsA !== null && match.setsB !== null;
-
-                    return (
-                      <button
-                        key={match.dbId}
-                        onClick={() => openModal(match, round.nome)}
-                        className={`w-52 overflow-hidden rounded-xl text-left transition-all ${
-                          isTBD
-                            ? "bg-gray-50 ring-1 ring-black/5 hover:ring-gray-300"
-                            : "bg-white shadow-sm ring-1 ring-black/10 hover:shadow-md hover:ring-blue-400"
-                        }`}
-                      >
-                        <SlotRow team={match.teamA} winner={match.winnerId === match.teamA?.id} bye={byeA} />
-                        <ScoreArea setsA={match.setsA} setsB={match.setsB} hasScore={hasScore} />
-                        <div className="h-px bg-gray-100" />
-                        <SlotRow team={match.teamB} winner={match.winnerId === match.teamB?.id} bye={byeB} />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-
-            return isLast
-              ? [col]
-              : [col, <ConnectorColumn key={`conn-${ri}`} roundIndex={ri} matchCount={round.matches.length} />];
-          })}
+      {/* Mesma apresentação da página pública; no painel os cards abrem a edição. */}
+      {hasExistingBracket && (
+        <div className="overflow-hidden rounded-xl bg-gray-50 p-4 ring-1 ring-black/5">
+          {bracketFormat === "double_elimination" && (
+            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-blue-700">Chave principal</p>
+          )}
+          <BracketGrid rounds={sharedRounds} onMatchClick={openSharedMatch} disabled={isConfirmed} />
         </div>
-      </div>}
+      )}
+
+      {bracketFormat === "double_elimination" && loserRounds.length > 0 && (
+        <div className="overflow-hidden rounded-xl bg-amber-50 p-4 ring-1 ring-amber-200">
+          <div className="mb-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-amber-700">Chave de repescagem</p>
+            <p className="text-[11px] text-gray-500">A segunda derrota elimina a dupla.</p>
+          </div>
+          <BracketGrid rounds={sharedLoserRounds} onMatchClick={openSharedMatch} disabled={isConfirmed} />
+        </div>
+      )}
 
       {/* Partida pelo 3º lugar */}
       {thirdPlaceMatch && (
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-            Disputa de 3º Lugar
-          </p>
-          <button
+        <div>
+          <p className="mb-2 text-xs font-semibold text-gray-400">Disputa de 3° Lugar</p>
+          <MatchCard
+            match={toSharedMatch(thirdPlaceMatch)}
             onClick={() => openModal(thirdPlaceMatch, "3º Lugar")}
             disabled={isConfirmed}
-            className={`w-full overflow-hidden rounded-xl text-left transition-all ${
-              isConfirmed
-                ? "bg-white shadow-sm ring-1 ring-black/10 cursor-default"
-                : "bg-white shadow-sm ring-1 ring-black/10 hover:shadow-md hover:ring-amber-400"
-            }`}
-          >
-            <SlotRow
-              team={thirdPlaceMatch.teamA}
-              winner={thirdPlaceMatch.winnerId === thirdPlaceMatch.teamA?.id}
-              bye={false}
-            />
-            <ScoreArea
-              setsA={thirdPlaceMatch.setsA}
-              setsB={thirdPlaceMatch.setsB}
-              hasScore={thirdPlaceMatch.setsA !== null && thirdPlaceMatch.setsB !== null}
-            />
-            <div className="h-px bg-gray-100" />
-            <SlotRow
-              team={thirdPlaceMatch.teamB}
-              winner={thirdPlaceMatch.winnerId === thirdPlaceMatch.teamB?.id}
-              bye={false}
-            />
-          </button>
+          />
         </div>
       )}
 
       {/* rodapé */}
+      {exportError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{exportError}</p>}
       {hasExistingBracket && (
         <div className="space-y-3">
           {/* exportar */}
@@ -1030,6 +1180,7 @@ export function BracketClient({
           availableTeams={availableTeams}
           champId={champId}
           catId={catId}
+          totalCourts={courtConfiguration?.totalCourts}
           onClose={() => setModalState(null)}
         />
       )}
