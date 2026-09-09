@@ -23,6 +23,7 @@ import {
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type MonthlyBudgetCategory, type PersonFilter, type ExpenseChartPoint, type EscopoEdicao,
 } from "@/lib/monthly-budget";
 import { CategoriasMensaisPainel } from "@/components/admin/gasto-mensal/CategoriasMensaisPainel";
+import { CofrinhosReposicao } from "@/components/admin/gasto-mensal/CofrinhosReposicao";
 
 const COR_CARLOS = "#2563eb"; // blue-600
 const COR_JULIA  = "#f43f5e"; // rose-500
@@ -104,6 +105,7 @@ export function GastoMensalClient({
   todayMonthKey,
   categories,
   todayDateKey,
+  savingsWithdrawals,
 }: {
   expenses: MonthlyBudgetExpense[];
   incomes: MonthlyBudgetIncome[];
@@ -111,6 +113,7 @@ export function GastoMensalClient({
   todayMonthKey: string;
   categories: MonthlyBudgetCategory[];
   todayDateKey: string;
+  savingsWithdrawals: import("@/lib/monthly-budget").SavingsWithdrawal[];
 }) {
   const router = useRouter();
 
@@ -283,6 +286,12 @@ export function GastoMensalClient({
           <Tags className="size-4" /> Categorias
         </button>
       </div>
+
+      <CofrinhosReposicao
+        withdrawals={savingsWithdrawals}
+        todayDateKey={todayDateKey}
+        onMessage={setMensagemSucesso}
+      />
 
       {/* ── Checklist de despesas ── */}
       <section>

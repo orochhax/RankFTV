@@ -7,6 +7,7 @@ import {
   monthsBetweenCount, buildExpenseDrafts, buildIncomeDrafts, MAX_REPEAT_MONTHS,
   dueDateForMonth, idsNoEscopoDeEdicao, resolverAjusteIntervalo, resolverPeriodoEdicao,
   buildEventSnapshot, historyEventToRpcPayload,
+  hojeISOBahia,
   type PersonSelecao, type SplitMode, type EscopoEdicao, type MonthlyBudgetOccurrenceSnapshot,
 } from "@/lib/monthly-budget";
 
@@ -843,6 +844,106 @@ export async function removerCategoriaMensal(id: string): Promise<Res> {
   const ctx = await requireAdmin();
   if (!ctx) return { ok: false, error: "Acesso negado." };
   const { error } = await ctx.supabase.rpc("mb_remove_monthly_category", { p_id: id });
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+// ── Reposição de cofrinhos ─────────────────────────────────────────────────
+
+function textoLimitado(value: unknown, max: number): string {
+  return typeof value === "string" ? value.trim().slice(0, max + 1) : "";
+}
+
+function dataISOValida(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
+export async function criarRetiradaCofrinho(input: {
+  jarName: string;
+  purpose: string;
+  amount: string;
+  withdrawnOn: string;
+  note?: string;
+}): Promise<Res> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const jarName = textoLimitado(input.jarName, 80);
+  const purpose = textoLimitado(input.purpose, 160);
+  const note = textoLimitado(input.note, 500);
+  const amount = parseBRLInput(input.amount);
+  if (!jarName || jarName.length > 80) return { ok: false, error: "Informe o nome do cofrinho (até 80 caracteres)." };
+  if (!purpose || purpose.length > 160) return { ok: false, error: "Informe para que o dinheiro foi usado (até 160 caracteres)." };
+  if (!Number.isFinite(amount) || amount <= 0) return { ok: false, error: "Informe um valor de retirada maior que zero." };
+  if (!dataISOValida(input.withdrawnOn)) return { ok: false, error: "Informe uma data de retirada válida." };
+  if (input.withdrawnOn > hojeISOBahia()) return { ok: false, error: "A data da retirada não pode estar no futuro." };
+  if (note.length > 500) return { ok: false, error: "A observação deve ter até 500 caracteres." };
+
+  const { error } = await ctx.supabase.from("monthly_budget_savings_withdrawals").insert({
+    user_id: ctx.user.id,
+    jar_name: jarName,
+    purpose,
+    amount,
+    withdrawn_on: input.withdrawnOn,
+    note: note || null,
+  });
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function adicionarReposicaoCofrinho(input: {
+  withdrawalId: string;
+  amount: string;
+  repaidOn: string;
+  note?: string;
+}): Promise<Res> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const amount = parseBRLInput(input.amount);
+  const note = textoLimitado(input.note, 500);
+  if (!input.withdrawalId) return { ok: false, error: "Retirada inválida." };
+  if (!Number.isFinite(amount) || amount <= 0) return { ok: false, error: "Informe um valor de reposição maior que zero." };
+  if (!dataISOValida(input.repaidOn)) return { ok: false, error: "Informe uma data de reposição válida." };
+  if (input.repaidOn > hojeISOBahia()) return { ok: false, error: "A data da reposição não pode estar no futuro." };
+  if (note.length > 500) return { ok: false, error: "A observação deve ter até 500 caracteres." };
+
+  const { error } = await ctx.supabase.rpc("mb_add_savings_repayment", {
+    p_withdrawal_id: input.withdrawalId,
+    p_amount: amount,
+    p_repaid_on: input.repaidOn,
+    p_note: note || null,
+  });
+  if (error) {
+    const message = error.message.includes("ultrapassa")
+      ? "O valor informado ultrapassa o que ainda falta repor."
+      : error.message;
+    return { ok: false, error: message };
+  }
+  reval();
+  return { ok: true };
+}
+
+export async function apagarRetiradaCofrinho(id: string): Promise<Res> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  if (!id) return { ok: false, error: "Retirada inválida." };
+  const { error } = await ctx.supabase.from("monthly_budget_savings_withdrawals")
+    .delete().eq("id", id).eq("user_id", ctx.user.id);
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
+export async function apagarReposicaoCofrinho(id: string): Promise<Res> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  if (!id) return { ok: false, error: "Reposição inválida." };
+  const { error } = await ctx.supabase.from("monthly_budget_savings_repayments")
+    .delete().eq("id", id).eq("user_id", ctx.user.id);
   if (error) return { ok: false, error: error.message };
   reval();
   return { ok: true };

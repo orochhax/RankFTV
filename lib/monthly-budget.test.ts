@@ -11,9 +11,11 @@ import {
   formatDateTimeBahia, createdAtDateKeyBahia, contagensDoEscopo,
   buildEventSnapshot, periodoResumoLabel, diffEventSnapshots, historyEventToRpcPayload,
   mapHistoryEventRow, groupHistoryEventsByEntity, filtrarHistorico, sortHistoryByOccurredAtDesc,
+  savingsWithdrawalProgress, savingsTotals,
   HISTORY_FILTROS_VAZIOS,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type EscopoEdicao,
   type MonthlyBudgetOccurrenceSnapshot, type MonthlyBudgetHistoryEvent, type HistoryEventRow,
+  type SavingsWithdrawal,
 } from "@/lib/monthly-budget";
 
 function expense(overrides: Partial<MonthlyBudgetExpense> & { id: string }): MonthlyBudgetExpense {
@@ -54,6 +56,53 @@ describe("virada de ano (dezembro/janeiro)", () => {
 
   test("lastFourMonthKeys atravessa a virada do ano corretamente", () => {
     assert.deepEqual(lastFourMonthKeys("2027-01"), ["2026-10", "2026-11", "2026-12", "2027-01"]);
+  });
+});
+
+describe("reposição de cofrinhos", () => {
+  const withdrawal = (amount: number, repayments: number[]): SavingsWithdrawal => ({
+    id: crypto.randomUUID(),
+    jarName: "Reserva de emergência",
+    purpose: "Imprevisto",
+    amount,
+    withdrawnOn: "2026-09-01",
+    note: null,
+    createdAt: "2026-09-01T12:00:00.000Z",
+    repayments: repayments.map((value, index) => ({
+      id: `rep-${index}`,
+      withdrawalId: "withdrawal",
+      amount: value,
+      repaidOn: `2026-09-${String(index + 2).padStart(2, "0")}`,
+      note: null,
+      createdAt: "2026-09-02T12:00:00.000Z",
+    })),
+  });
+
+  test("calcula reposições parciais sem misturar depósitos mensais", () => {
+    const progress = savingsWithdrawalProgress(withdrawal(1_000, [200, 150]));
+    assert.equal(progress.withdrawn, 1_000);
+    assert.equal(progress.repaid, 350);
+    assert.equal(progress.remaining, 650);
+    assert.equal(progress.percentage, 35);
+    assert.equal(progress.isComplete, false);
+  });
+
+  test("marca a retirada como concluída quando todo o valor foi reposto", () => {
+    const progress = savingsWithdrawalProgress(withdrawal(500, [125, 375]));
+    assert.equal(progress.remaining, 0);
+    assert.equal(progress.percentage, 100);
+    assert.equal(progress.isComplete, true);
+  });
+
+  test("resume retiradas e reposições de vários cofrinhos", () => {
+    const totals = savingsTotals([withdrawal(1_000, [400]), withdrawal(500, [500])]);
+    assert.deepEqual(totals, {
+      withdrawn: 1_500,
+      repaid: 900,
+      remaining: 600,
+      percentage: 60,
+      isComplete: false,
+    });
   });
 });
 

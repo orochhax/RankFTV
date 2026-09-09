@@ -57,6 +57,55 @@ export type MonthlyBudgetCategory = {
   updatedAt: string;
 };
 
+// Retiradas de cofrinhos são um controle separado do orçamento mensal. Uma
+// retirada cria um valor a repor; cada devolução fica registrada abaixo dela.
+// Depósitos mensais normais nunca são lançados aqui.
+export type SavingsRepayment = {
+  id: string;
+  withdrawalId: string;
+  amount: number;
+  repaidOn: string;
+  note: string | null;
+  createdAt: string;
+};
+
+export type SavingsWithdrawal = {
+  id: string;
+  jarName: string;
+  purpose: string;
+  amount: number;
+  withdrawnOn: string;
+  note: string | null;
+  createdAt: string;
+  repayments: SavingsRepayment[];
+};
+
+export type SavingsWithdrawalProgress = {
+  withdrawn: number;
+  repaid: number;
+  remaining: number;
+  percentage: number;
+  isComplete: boolean;
+};
+
+export function savingsWithdrawalProgress(withdrawal: SavingsWithdrawal): SavingsWithdrawalProgress {
+  const repaid = withdrawal.repayments.reduce((sum, repayment) => sum + repayment.amount, 0);
+  const remaining = Math.max(0, withdrawal.amount - repaid);
+  const percentage = withdrawal.amount > 0 ? Math.min(100, (repaid / withdrawal.amount) * 100) : 0;
+  return { withdrawn: withdrawal.amount, repaid, remaining, percentage, isComplete: remaining < 0.005 };
+}
+
+export function savingsTotals(withdrawals: SavingsWithdrawal[]): SavingsWithdrawalProgress {
+  const withdrawn = withdrawals.reduce((sum, withdrawal) => sum + withdrawal.amount, 0);
+  const repaid = withdrawals.reduce(
+    (sum, withdrawal) => sum + withdrawal.repayments.reduce((subtotal, repayment) => subtotal + repayment.amount, 0),
+    0,
+  );
+  const remaining = Math.max(0, withdrawn - repaid);
+  const percentage = withdrawn > 0 ? Math.min(100, (repaid / withdrawn) * 100) : 0;
+  return { withdrawn, repaid, remaining, percentage, isComplete: remaining < 0.005 };
+}
+
 type PersonAmounts = { amountCarlos: number; amountJulia: number };
 
 // ── Conversão de mês/data ────────────────────────────────────────────────────

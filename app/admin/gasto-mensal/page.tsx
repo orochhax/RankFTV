@@ -6,6 +6,7 @@ import { GastoMensalClient } from "@/components/admin/gasto-mensal/GastoMensalCl
 import {
   dbDateToMonthKey, defaultMonthKey, hojeISOBahia,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type MonthlyBudgetCategory,
+  type SavingsRepayment, type SavingsWithdrawal,
 } from "@/lib/monthly-budget";
 
 export const metadata = { title: "Gasto mensal — Admin" };
@@ -43,7 +44,13 @@ export default async function GastoMensalPage() {
   if (!user || user.email !== process.env.ADMIN_EMAIL) redirect("/");
   const todayDateKey = hojeISOBahia();
 
-  const [{ data: expensesData, error: expensesError }, { data: incomesData, error: incomesError }, { data: categoriesData }] = await Promise.all([
+  const [
+    { data: expensesData, error: expensesError },
+    { data: incomesData, error: incomesError },
+    { data: categoriesData },
+    { data: withdrawalsData },
+    { data: repaymentsData },
+  ] = await Promise.all([
     supabase
       .from("monthly_budget_expenses")
       .select("id, month_key, name, amount_carlos, amount_julia, is_paid, paid_at, due_date, repeat_group_id, category_id, created_at, updated_at")
@@ -56,6 +63,12 @@ export default async function GastoMensalPage() {
       .order("month_key", { ascending: false }),
     supabase.from("monthly_budget_categories").select("id, name, active, created_at, updated_at")
       .eq("user_id", user.id).eq("active", true).order("name"),
+    supabase.from("monthly_budget_savings_withdrawals")
+      .select("id, jar_name, purpose, amount, withdrawn_on, note, created_at")
+      .eq("user_id", user.id).order("withdrawn_on", { ascending: false }),
+    supabase.from("monthly_budget_savings_repayments")
+      .select("id, withdrawal_id, amount, repaid_on, note, created_at")
+      .eq("user_id", user.id).order("repaid_on", { ascending: false }),
   ]);
 
   // Compatibilidade durante a aplicação da migração de categorias: nunca
@@ -102,6 +115,21 @@ export default async function GastoMensalPage() {
   const categories: MonthlyBudgetCategory[] = (categoriesData ?? []).map((r) => ({
     id: r.id, name: r.name, active: r.active, createdAt: r.created_at, updatedAt: r.updated_at,
   }));
+  const repayments = (repaymentsData ?? []).map((r): SavingsRepayment => ({
+    id: r.id, withdrawalId: r.withdrawal_id, amount: Number(r.amount), repaidOn: r.repaid_on,
+    note: r.note, createdAt: r.created_at,
+  }));
+  const repaymentsByWithdrawal = new Map<string, SavingsRepayment[]>();
+  for (const repayment of repayments) {
+    const group = repaymentsByWithdrawal.get(repayment.withdrawalId) ?? [];
+    group.push(repayment);
+    repaymentsByWithdrawal.set(repayment.withdrawalId, group);
+  }
+  const withdrawals: SavingsWithdrawal[] = (withdrawalsData ?? []).map((r) => ({
+    id: r.id, jarName: r.jar_name, purpose: r.purpose, amount: Number(r.amount),
+    withdrawnOn: r.withdrawn_on, note: r.note, createdAt: r.created_at,
+    repayments: repaymentsByWithdrawal.get(r.id) ?? [],
+  }));
 
   return (
     <div className="min-h-screen">
@@ -131,6 +159,7 @@ export default async function GastoMensalPage() {
             todayMonthKey={todayDateKey.slice(0, 7)}
             todayDateKey={todayDateKey}
             categories={categories}
+            savingsWithdrawals={withdrawals}
           />
         </div>
       </div>
