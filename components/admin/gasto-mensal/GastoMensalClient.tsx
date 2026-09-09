@@ -105,6 +105,7 @@ export function GastoMensalClient({
   todayMonthKey,
   categories,
   todayDateKey,
+  savingsJars,
   savingsWithdrawals,
 }: {
   expenses: MonthlyBudgetExpense[];
@@ -113,6 +114,7 @@ export function GastoMensalClient({
   todayMonthKey: string;
   categories: MonthlyBudgetCategory[];
   todayDateKey: string;
+  savingsJars: import("@/lib/monthly-budget").SavingsJar[];
   savingsWithdrawals: import("@/lib/monthly-budget").SavingsWithdrawal[];
 }) {
   const router = useRouter();
@@ -288,6 +290,7 @@ export function GastoMensalClient({
       </div>
 
       <CofrinhosReposicao
+        jars={savingsJars}
         withdrawals={savingsWithdrawals}
         todayDateKey={todayDateKey}
         onMessage={setMensagemSucesso}

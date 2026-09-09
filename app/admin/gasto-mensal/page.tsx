@@ -6,7 +6,7 @@ import { GastoMensalClient } from "@/components/admin/gasto-mensal/GastoMensalCl
 import {
   dbDateToMonthKey, defaultMonthKey, hojeISOBahia,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type MonthlyBudgetCategory,
-  type SavingsRepayment, type SavingsWithdrawal,
+  type SavingsJar, type SavingsMovement, type SavingsRepayment, type SavingsWithdrawal,
 } from "@/lib/monthly-budget";
 
 export const metadata = { title: "Gasto mensal — Admin" };
@@ -48,6 +48,8 @@ export default async function GastoMensalPage() {
     { data: expensesData, error: expensesError },
     { data: incomesData, error: incomesError },
     { data: categoriesData },
+    { data: jarsData },
+    { data: movementsData },
     { data: withdrawalsData },
     { data: repaymentsData },
   ] = await Promise.all([
@@ -63,8 +65,14 @@ export default async function GastoMensalPage() {
       .order("month_key", { ascending: false }),
     supabase.from("monthly_budget_categories").select("id, name, active, created_at, updated_at")
       .eq("user_id", user.id).eq("active", true).order("name"),
+    supabase.from("monthly_budget_savings_jars")
+      .select("id, name, institution, note, created_at")
+      .eq("user_id", user.id).order("created_at", { ascending: true }),
+    supabase.from("monthly_budget_savings_movements")
+      .select("id, jar_id, movement_type, amount_delta, movement_date, note, withdrawal_id, repayment_id, created_at")
+      .eq("user_id", user.id).order("movement_date", { ascending: false }).order("created_at", { ascending: false }),
     supabase.from("monthly_budget_savings_withdrawals")
-      .select("id, jar_name, purpose, amount, withdrawn_on, note, created_at")
+      .select("id, jar_id, jar_name, purpose, amount, withdrawn_on, note, created_at")
       .eq("user_id", user.id).order("withdrawn_on", { ascending: false }),
     supabase.from("monthly_budget_savings_repayments")
       .select("id, withdrawal_id, amount, repaid_on, note, created_at")
@@ -115,6 +123,21 @@ export default async function GastoMensalPage() {
   const categories: MonthlyBudgetCategory[] = (categoriesData ?? []).map((r) => ({
     id: r.id, name: r.name, active: r.active, createdAt: r.created_at, updatedAt: r.updated_at,
   }));
+  const movements = (movementsData ?? []).map((r): SavingsMovement => ({
+    id: r.id, jarId: r.jar_id, type: r.movement_type as SavingsMovement["type"],
+    amountDelta: Number(r.amount_delta), movementDate: r.movement_date, note: r.note,
+    withdrawalId: r.withdrawal_id, repaymentId: r.repayment_id, createdAt: r.created_at,
+  }));
+  const movementsByJar = new Map<string, SavingsMovement[]>();
+  for (const movement of movements) {
+    const group = movementsByJar.get(movement.jarId) ?? [];
+    group.push(movement);
+    movementsByJar.set(movement.jarId, group);
+  }
+  const savingsJars: SavingsJar[] = (jarsData ?? []).map((r) => ({
+    id: r.id, name: r.name, institution: r.institution, note: r.note, createdAt: r.created_at,
+    movements: movementsByJar.get(r.id) ?? [],
+  }));
   const repayments = (repaymentsData ?? []).map((r): SavingsRepayment => ({
     id: r.id, withdrawalId: r.withdrawal_id, amount: Number(r.amount), repaidOn: r.repaid_on,
     note: r.note, createdAt: r.created_at,
@@ -126,7 +149,7 @@ export default async function GastoMensalPage() {
     repaymentsByWithdrawal.set(repayment.withdrawalId, group);
   }
   const withdrawals: SavingsWithdrawal[] = (withdrawalsData ?? []).map((r) => ({
-    id: r.id, jarName: r.jar_name, purpose: r.purpose, amount: Number(r.amount),
+    id: r.id, jarId: r.jar_id, jarName: r.jar_name, purpose: r.purpose, amount: Number(r.amount),
     withdrawnOn: r.withdrawn_on, note: r.note, createdAt: r.created_at,
     repayments: repaymentsByWithdrawal.get(r.id) ?? [],
   }));
@@ -160,6 +183,7 @@ export default async function GastoMensalPage() {
             todayDateKey={todayDateKey}
             categories={categories}
             savingsWithdrawals={withdrawals}
+            savingsJars={savingsJars}
           />
         </div>
       </div>

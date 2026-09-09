@@ -11,11 +11,11 @@ import {
   formatDateTimeBahia, createdAtDateKeyBahia, contagensDoEscopo,
   buildEventSnapshot, periodoResumoLabel, diffEventSnapshots, historyEventToRpcPayload,
   mapHistoryEventRow, groupHistoryEventsByEntity, filtrarHistorico, sortHistoryByOccurredAtDesc,
-  savingsWithdrawalProgress, savingsTotals,
+  savingsWithdrawalProgress, savingsTotals, savingsJarBalance, savingsTotalBalance,
   HISTORY_FILTROS_VAZIOS,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type EscopoEdicao,
   type MonthlyBudgetOccurrenceSnapshot, type MonthlyBudgetHistoryEvent, type HistoryEventRow,
-  type SavingsWithdrawal,
+  type SavingsWithdrawal, type SavingsJar,
 } from "@/lib/monthly-budget";
 
 function expense(overrides: Partial<MonthlyBudgetExpense> & { id: string }): MonthlyBudgetExpense {
@@ -62,6 +62,7 @@ describe("virada de ano (dezembro/janeiro)", () => {
 describe("reposição de cofrinhos", () => {
   const withdrawal = (amount: number, repayments: number[]): SavingsWithdrawal => ({
     id: crypto.randomUUID(),
+    jarId: "jar-1",
     jarName: "Reserva de emergência",
     purpose: "Imprevisto",
     amount,
@@ -103,6 +104,21 @@ describe("reposição de cofrinhos", () => {
       percentage: 60,
       isComplete: false,
     });
+  });
+
+  test("saldo do cofrinho soma aportes e reposições e desconta retiradas", () => {
+    const jar: SavingsJar = {
+      id: "jar-1", name: "Reserva", institution: "Mercado Pago", note: null,
+      createdAt: "2026-09-01T12:00:00.000Z",
+      movements: [
+        { id: "m1", jarId: "jar-1", type: "opening_balance", amountDelta: 1_000, movementDate: "2026-09-01", note: null, withdrawalId: null, repaymentId: null, createdAt: "" },
+        { id: "m2", jarId: "jar-1", type: "contribution", amountDelta: 200, movementDate: "2026-10-01", note: null, withdrawalId: null, repaymentId: null, createdAt: "" },
+        { id: "m3", jarId: "jar-1", type: "withdrawal", amountDelta: -300, movementDate: "2026-10-02", note: null, withdrawalId: "w1", repaymentId: null, createdAt: "" },
+        { id: "m4", jarId: "jar-1", type: "repayment", amountDelta: 100, movementDate: "2026-10-03", note: null, withdrawalId: null, repaymentId: "r1", createdAt: "" },
+      ],
+    };
+    assert.equal(savingsJarBalance(jar), 1_000);
+    assert.equal(savingsTotalBalance([jar, { ...jar, id: "jar-2", movements: [] }]), 1_000);
   });
 });
 

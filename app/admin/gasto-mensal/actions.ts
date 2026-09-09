@@ -862,8 +862,72 @@ function dataISOValida(value: unknown): value is string {
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
+export async function criarCofrinho(input: {
+  name: string;
+  institution?: string;
+  openingBalance: string;
+  asOf: string;
+  note?: string;
+}): Promise<Res> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const name = textoLimitado(input.name, 80);
+  const institution = textoLimitado(input.institution, 80);
+  const note = textoLimitado(input.note, 500);
+  const openingBalance = parseBRLInput(input.openingBalance || "0");
+  if (!name || name.length > 80) return { ok: false, error: "Informe o nome do cofrinho (até 80 caracteres)." };
+  if (institution.length > 80) return { ok: false, error: "A instituição deve ter até 80 caracteres." };
+  if (!Number.isFinite(openingBalance) || openingBalance < 0) return { ok: false, error: "Informe um saldo inicial válido." };
+  if (!dataISOValida(input.asOf)) return { ok: false, error: "Informe uma data de saldo válida." };
+  if (input.asOf > hojeISOBahia()) return { ok: false, error: "A data do saldo não pode estar no futuro." };
+  if (note.length > 500) return { ok: false, error: "A observação deve ter até 500 caracteres." };
+
+  const { error } = await ctx.supabase.rpc("mb_create_savings_jar", {
+    p_name: name,
+    p_institution: institution || null,
+    p_opening_balance: openingBalance,
+    p_as_of: input.asOf,
+    p_note: note || null,
+  });
+  if (error) {
+    const message = error.message.toLowerCase().includes("unique") || error.message.toLowerCase().includes("duplicate")
+      ? "Já existe um cofrinho com esse nome."
+      : error.message;
+    return { ok: false, error: message };
+  }
+  reval();
+  return { ok: true };
+}
+
+export async function adicionarAporteCofrinho(input: {
+  jarId: string;
+  amount: string;
+  contributedOn: string;
+  note?: string;
+}): Promise<Res> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { ok: false, error: "Acesso negado." };
+  const amount = parseBRLInput(input.amount);
+  const note = textoLimitado(input.note, 500);
+  if (!input.jarId) return { ok: false, error: "Cofrinho inválido." };
+  if (!Number.isFinite(amount) || amount <= 0) return { ok: false, error: "Informe um valor de aporte maior que zero." };
+  if (!dataISOValida(input.contributedOn)) return { ok: false, error: "Informe uma data de aporte válida." };
+  if (input.contributedOn > hojeISOBahia()) return { ok: false, error: "A data do aporte não pode estar no futuro." };
+  if (note.length > 500) return { ok: false, error: "A observação deve ter até 500 caracteres." };
+
+  const { error } = await ctx.supabase.rpc("mb_add_savings_contribution", {
+    p_jar_id: input.jarId,
+    p_amount: amount,
+    p_contributed_on: input.contributedOn,
+    p_note: note || null,
+  });
+  if (error) return { ok: false, error: error.message };
+  reval();
+  return { ok: true };
+}
+
 export async function criarRetiradaCofrinho(input: {
-  jarName: string;
+  jarId: string;
   purpose: string;
   amount: string;
   withdrawnOn: string;
@@ -871,26 +935,29 @@ export async function criarRetiradaCofrinho(input: {
 }): Promise<Res> {
   const ctx = await requireAdmin();
   if (!ctx) return { ok: false, error: "Acesso negado." };
-  const jarName = textoLimitado(input.jarName, 80);
   const purpose = textoLimitado(input.purpose, 160);
   const note = textoLimitado(input.note, 500);
   const amount = parseBRLInput(input.amount);
-  if (!jarName || jarName.length > 80) return { ok: false, error: "Informe o nome do cofrinho (até 80 caracteres)." };
+  if (!input.jarId) return { ok: false, error: "Selecione o cofrinho da retirada." };
   if (!purpose || purpose.length > 160) return { ok: false, error: "Informe para que o dinheiro foi usado (até 160 caracteres)." };
   if (!Number.isFinite(amount) || amount <= 0) return { ok: false, error: "Informe um valor de retirada maior que zero." };
   if (!dataISOValida(input.withdrawnOn)) return { ok: false, error: "Informe uma data de retirada válida." };
   if (input.withdrawnOn > hojeISOBahia()) return { ok: false, error: "A data da retirada não pode estar no futuro." };
   if (note.length > 500) return { ok: false, error: "A observação deve ter até 500 caracteres." };
 
-  const { error } = await ctx.supabase.from("monthly_budget_savings_withdrawals").insert({
-    user_id: ctx.user.id,
-    jar_name: jarName,
-    purpose,
-    amount,
-    withdrawn_on: input.withdrawnOn,
-    note: note || null,
+  const { error } = await ctx.supabase.rpc("mb_create_savings_withdrawal", {
+    p_jar_id: input.jarId,
+    p_purpose: purpose,
+    p_amount: amount,
+    p_withdrawn_on: input.withdrawnOn,
+    p_note: note || null,
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    const message = error.message.toLowerCase().includes("saldo insuficiente")
+      ? "O cofrinho não tem saldo suficiente para essa retirada."
+      : error.message;
+    return { ok: false, error: message };
+  }
   reval();
   return { ok: true };
 }

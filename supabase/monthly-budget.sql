@@ -13,9 +13,23 @@
 -- receitas/despesas mensais. Ela acompanha somente retiradas extraordinárias
 -- e as devoluções feitas para cobri-las.
 
+CREATE TABLE IF NOT EXISTS monthly_budget_savings_jars (
+  id          uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id     uuid        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  name        text        NOT NULL CHECK (char_length(btrim(name)) BETWEEN 1 AND 80),
+  institution text        CHECK (institution IS NULL OR char_length(institution) <= 80),
+  note        text        CHECK (note IS NULL OR char_length(note) <= 500),
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mb_savings_jars_user_name
+  ON monthly_budget_savings_jars(user_id, lower(name));
+
 CREATE TABLE IF NOT EXISTS monthly_budget_savings_withdrawals (
   id           uuid          DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id      uuid          NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  jar_id       uuid,
   jar_name     text          NOT NULL CHECK (char_length(btrim(jar_name)) BETWEEN 1 AND 80),
   purpose      text          NOT NULL CHECK (char_length(btrim(purpose)) BETWEEN 1 AND 160),
   amount       numeric(12,2) NOT NULL CHECK (amount > 0),
@@ -24,6 +38,10 @@ CREATE TABLE IF NOT EXISTS monthly_budget_savings_withdrawals (
   created_at   timestamptz   NOT NULL DEFAULT now(),
   updated_at   timestamptz   NOT NULL DEFAULT now()
 );
+
+-- A tabela pode já existir por causa da primeira versão da funcionalidade.
+ALTER TABLE monthly_budget_savings_withdrawals
+  ADD COLUMN IF NOT EXISTS jar_id uuid;
 
 CREATE TABLE IF NOT EXISTS monthly_budget_savings_repayments (
   id            uuid          DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -35,15 +53,91 @@ CREATE TABLE IF NOT EXISTS monthly_budget_savings_repayments (
   created_at     timestamptz   NOT NULL DEFAULT now()
 );
 
+-- Livro-caixa do saldo real. Aporte comum e reposição são tipos diferentes:
+-- ambos aumentam o saldo, mas só "repayment" reduz uma retirada pendente.
+CREATE TABLE IF NOT EXISTS monthly_budget_savings_movements (
+  id            uuid          DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id        uuid          NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  jar_id         uuid          NOT NULL REFERENCES monthly_budget_savings_jars(id) ON DELETE RESTRICT,
+  movement_type  text          NOT NULL CHECK (movement_type IN ('opening_balance', 'contribution', 'withdrawal', 'repayment')),
+  amount_delta   numeric(12,2) NOT NULL CHECK (amount_delta <> 0),
+  movement_date  date          NOT NULL,
+  note           text          CHECK (note IS NULL OR char_length(note) <= 500),
+  withdrawal_id  uuid          REFERENCES monthly_budget_savings_withdrawals(id) ON DELETE CASCADE,
+  repayment_id   uuid          REFERENCES monthly_budget_savings_repayments(id) ON DELETE CASCADE,
+  created_at     timestamptz   NOT NULL DEFAULT now(),
+  CONSTRAINT mb_savings_movement_sign CHECK (
+    (movement_type = 'withdrawal' AND amount_delta < 0)
+    OR (movement_type <> 'withdrawal' AND amount_delta > 0)
+  )
+);
+
+-- Compatibilidade com retiradas criadas na primeira versão: transforma cada
+-- nome antigo em um cofrinho real e passa a ligá-lo por id.
+INSERT INTO monthly_budget_savings_jars (user_id, name)
+SELECT DISTINCT w.user_id, btrim(w.jar_name)
+FROM monthly_budget_savings_withdrawals w
+WHERE NOT EXISTS (
+  SELECT 1 FROM monthly_budget_savings_jars j
+  WHERE j.user_id = w.user_id AND lower(j.name) = lower(btrim(w.jar_name))
+);
+
+UPDATE monthly_budget_savings_withdrawals w
+SET jar_id = j.id
+FROM monthly_budget_savings_jars j
+WHERE w.jar_id IS NULL AND j.user_id = w.user_id
+  AND lower(j.name) = lower(btrim(w.jar_name));
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'mb_savings_withdrawals_jar_fk') THEN
+    ALTER TABLE monthly_budget_savings_withdrawals ADD CONSTRAINT mb_savings_withdrawals_jar_fk
+      FOREIGN KEY (jar_id) REFERENCES monthly_budget_savings_jars(id) ON DELETE RESTRICT;
+  END IF;
+END $$;
+
+ALTER TABLE monthly_budget_savings_withdrawals ALTER COLUMN jar_id SET NOT NULL;
+
 CREATE INDEX IF NOT EXISTS idx_mb_savings_withdrawals_user_date
   ON monthly_budget_savings_withdrawals(user_id, withdrawn_on DESC);
 CREATE INDEX IF NOT EXISTS idx_mb_savings_repayments_withdrawal
   ON monthly_budget_savings_repayments(withdrawal_id);
 CREATE INDEX IF NOT EXISTS idx_mb_savings_repayments_user_date
   ON monthly_budget_savings_repayments(user_id, repaid_on DESC);
+CREATE INDEX IF NOT EXISTS idx_mb_savings_withdrawals_jar ON monthly_budget_savings_withdrawals(jar_id);
+CREATE INDEX IF NOT EXISTS idx_mb_savings_movements_user_date ON monthly_budget_savings_movements(user_id, movement_date DESC);
+CREATE INDEX IF NOT EXISTS idx_mb_savings_movements_jar_date ON monthly_budget_savings_movements(jar_id, movement_date DESC, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mb_savings_movements_withdrawal
+  ON monthly_budget_savings_movements(withdrawal_id) WHERE withdrawal_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mb_savings_movements_repayment
+  ON monthly_budget_savings_movements(repayment_id) WHERE repayment_id IS NOT NULL;
+
+INSERT INTO monthly_budget_savings_movements
+  (user_id, jar_id, movement_type, amount_delta, movement_date, note, withdrawal_id)
+SELECT w.user_id, w.jar_id, 'withdrawal', -w.amount, w.withdrawn_on, w.purpose, w.id
+FROM monthly_budget_savings_withdrawals w
+WHERE NOT EXISTS (
+  SELECT 1 FROM monthly_budget_savings_movements m WHERE m.withdrawal_id = w.id
+);
+
+INSERT INTO monthly_budget_savings_movements
+  (user_id, jar_id, movement_type, amount_delta, movement_date, note, repayment_id)
+SELECT r.user_id, w.jar_id, 'repayment', r.amount, r.repaid_on, r.note, r.id
+FROM monthly_budget_savings_repayments r
+JOIN monthly_budget_savings_withdrawals w ON w.id = r.withdrawal_id
+WHERE NOT EXISTS (
+  SELECT 1 FROM monthly_budget_savings_movements m WHERE m.repayment_id = r.id
+);
 
 ALTER TABLE monthly_budget_savings_withdrawals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE monthly_budget_savings_repayments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monthly_budget_savings_jars ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monthly_budget_savings_movements ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS mb_savings_jars_owner_all ON monthly_budget_savings_jars;
+CREATE POLICY mb_savings_jars_owner_all ON monthly_budget_savings_jars
+  FOR ALL TO authenticated
+  USING (user_id = (SELECT auth.uid()))
+  WITH CHECK (user_id = (SELECT auth.uid()));
 
 DROP POLICY IF EXISTS mb_savings_withdrawals_owner_all ON monthly_budget_savings_withdrawals;
 CREATE POLICY mb_savings_withdrawals_owner_all ON monthly_budget_savings_withdrawals
@@ -58,8 +152,135 @@ DROP POLICY IF EXISTS mb_savings_repayments_owner_delete ON monthly_budget_savin
 CREATE POLICY mb_savings_repayments_owner_delete ON monthly_budget_savings_repayments
   FOR DELETE TO authenticated USING (user_id = (SELECT auth.uid()));
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON monthly_budget_savings_withdrawals TO authenticated;
+DROP POLICY IF EXISTS mb_savings_movements_owner_select ON monthly_budget_savings_movements;
+CREATE POLICY mb_savings_movements_owner_select ON monthly_budget_savings_movements
+  FOR SELECT TO authenticated USING (user_id = (SELECT auth.uid()));
+
+REVOKE INSERT, UPDATE ON monthly_budget_savings_withdrawals FROM authenticated;
+GRANT SELECT, DELETE ON monthly_budget_savings_withdrawals TO authenticated;
 GRANT SELECT, DELETE ON monthly_budget_savings_repayments TO authenticated;
+REVOKE INSERT, UPDATE, DELETE ON monthly_budget_savings_jars FROM authenticated;
+GRANT SELECT ON monthly_budget_savings_jars TO authenticated;
+GRANT SELECT ON monthly_budget_savings_movements TO authenticated;
+
+CREATE OR REPLACE FUNCTION mb_create_savings_jar(
+  p_name text,
+  p_institution text,
+  p_opening_balance numeric,
+  p_as_of date,
+  p_note text DEFAULT NULL
+) RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_user_id uuid := auth.uid();
+  v_jar_id uuid;
+BEGIN
+  IF v_user_id IS NULL THEN RAISE EXCEPTION 'Acesso negado'; END IF;
+  IF p_name IS NULL OR char_length(btrim(p_name)) NOT BETWEEN 1 AND 80 THEN RAISE EXCEPTION 'Nome inválido'; END IF;
+  IF p_institution IS NOT NULL AND char_length(p_institution) > 80 THEN RAISE EXCEPTION 'Instituição muito longa'; END IF;
+  IF p_opening_balance IS NULL OR p_opening_balance < 0 THEN RAISE EXCEPTION 'Saldo inicial inválido'; END IF;
+  IF p_as_of IS NULL THEN RAISE EXCEPTION 'Data inválida'; END IF;
+  IF p_as_of > current_date THEN RAISE EXCEPTION 'A data não pode estar no futuro'; END IF;
+  IF p_note IS NOT NULL AND char_length(p_note) > 500 THEN RAISE EXCEPTION 'Observação muito longa'; END IF;
+
+  INSERT INTO public.monthly_budget_savings_jars (user_id, name, institution, note)
+  VALUES (v_user_id, btrim(p_name), NULLIF(btrim(p_institution), ''), NULLIF(btrim(p_note), ''))
+  RETURNING id INTO v_jar_id;
+
+  IF p_opening_balance > 0 THEN
+    INSERT INTO public.monthly_budget_savings_movements
+      (user_id, jar_id, movement_type, amount_delta, movement_date, note)
+    VALUES (v_user_id, v_jar_id, 'opening_balance', p_opening_balance, p_as_of, 'Saldo informado ao criar o cofrinho');
+  END IF;
+  RETURN v_jar_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION mb_create_savings_jar(text, text, numeric, date, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION mb_create_savings_jar(text, text, numeric, date, text) TO authenticated;
+
+CREATE OR REPLACE FUNCTION mb_add_savings_contribution(
+  p_jar_id uuid,
+  p_amount numeric,
+  p_contributed_on date,
+  p_note text DEFAULT NULL
+) RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_user_id uuid := auth.uid();
+  v_id uuid;
+BEGIN
+  IF v_user_id IS NULL THEN RAISE EXCEPTION 'Acesso negado'; END IF;
+  IF p_amount IS NULL OR p_amount <= 0 THEN RAISE EXCEPTION 'Valor inválido'; END IF;
+  IF p_contributed_on IS NULL THEN RAISE EXCEPTION 'Data inválida'; END IF;
+  IF p_contributed_on > current_date THEN RAISE EXCEPTION 'A data não pode estar no futuro'; END IF;
+  IF p_note IS NOT NULL AND char_length(p_note) > 500 THEN RAISE EXCEPTION 'Observação muito longa'; END IF;
+  PERFORM 1 FROM public.monthly_budget_savings_jars
+    WHERE id = p_jar_id AND user_id = v_user_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Cofrinho não encontrado'; END IF;
+
+  INSERT INTO public.monthly_budget_savings_movements
+    (user_id, jar_id, movement_type, amount_delta, movement_date, note)
+  VALUES (v_user_id, p_jar_id, 'contribution', p_amount, p_contributed_on, NULLIF(btrim(p_note), ''))
+  RETURNING id INTO v_id;
+  RETURN v_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION mb_add_savings_contribution(uuid, numeric, date, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION mb_add_savings_contribution(uuid, numeric, date, text) TO authenticated;
+
+CREATE OR REPLACE FUNCTION mb_create_savings_withdrawal(
+  p_jar_id uuid,
+  p_purpose text,
+  p_amount numeric,
+  p_withdrawn_on date,
+  p_note text DEFAULT NULL
+) RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_user_id uuid := auth.uid();
+  v_jar_name text;
+  v_balance numeric(12,2);
+  v_id uuid;
+BEGIN
+  IF v_user_id IS NULL THEN RAISE EXCEPTION 'Acesso negado'; END IF;
+  IF p_purpose IS NULL OR char_length(btrim(p_purpose)) NOT BETWEEN 1 AND 160 THEN RAISE EXCEPTION 'Motivo inválido'; END IF;
+  IF p_amount IS NULL OR p_amount <= 0 THEN RAISE EXCEPTION 'Valor inválido'; END IF;
+  IF p_withdrawn_on IS NULL THEN RAISE EXCEPTION 'Data inválida'; END IF;
+  IF p_withdrawn_on > current_date THEN RAISE EXCEPTION 'A data não pode estar no futuro'; END IF;
+  IF p_note IS NOT NULL AND char_length(p_note) > 500 THEN RAISE EXCEPTION 'Observação muito longa'; END IF;
+
+  SELECT name INTO v_jar_name FROM public.monthly_budget_savings_jars
+    WHERE id = p_jar_id AND user_id = v_user_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Cofrinho não encontrado'; END IF;
+  SELECT COALESCE(sum(amount_delta), 0) INTO v_balance
+    FROM public.monthly_budget_savings_movements WHERE jar_id = p_jar_id;
+  IF p_amount > v_balance THEN RAISE EXCEPTION 'Saldo insuficiente no cofrinho'; END IF;
+
+  INSERT INTO public.monthly_budget_savings_withdrawals
+    (user_id, jar_id, jar_name, purpose, amount, withdrawn_on, note)
+  VALUES (v_user_id, p_jar_id, v_jar_name, btrim(p_purpose), p_amount, p_withdrawn_on, NULLIF(btrim(p_note), ''))
+  RETURNING id INTO v_id;
+
+  INSERT INTO public.monthly_budget_savings_movements
+    (user_id, jar_id, movement_type, amount_delta, movement_date, note, withdrawal_id)
+  VALUES (v_user_id, p_jar_id, 'withdrawal', -p_amount, p_withdrawn_on, btrim(p_purpose), v_id);
+  RETURN v_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION mb_create_savings_withdrawal(uuid, text, numeric, date, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION mb_create_savings_withdrawal(uuid, text, numeric, date, text) TO authenticated;
 
 -- Serializa duas reposições simultâneas da mesma retirada e impede que a soma
 -- devolvida ultrapasse o valor retirado.
@@ -77,15 +298,17 @@ DECLARE
   v_user_id uuid := auth.uid();
   v_withdrawn numeric(12,2);
   v_withdrawn_on date;
+  v_jar_id uuid;
   v_repaid numeric(12,2);
   v_id uuid;
 BEGIN
   IF v_user_id IS NULL THEN RAISE EXCEPTION 'Acesso negado'; END IF;
   IF p_amount IS NULL OR p_amount <= 0 THEN RAISE EXCEPTION 'Valor inválido'; END IF;
   IF p_repaid_on IS NULL THEN RAISE EXCEPTION 'Data inválida'; END IF;
+  IF p_repaid_on > current_date THEN RAISE EXCEPTION 'A data não pode estar no futuro'; END IF;
   IF p_note IS NOT NULL AND char_length(p_note) > 500 THEN RAISE EXCEPTION 'Observação muito longa'; END IF;
 
-  SELECT amount, withdrawn_on INTO v_withdrawn, v_withdrawn_on
+  SELECT amount, withdrawn_on, jar_id INTO v_withdrawn, v_withdrawn_on, v_jar_id
   FROM public.monthly_budget_savings_withdrawals
   WHERE id = p_withdrawal_id AND user_id = v_user_id
   FOR UPDATE;
@@ -105,6 +328,9 @@ BEGIN
     (withdrawal_id, user_id, amount, repaid_on, note)
   VALUES (p_withdrawal_id, v_user_id, p_amount, p_repaid_on, NULLIF(btrim(p_note), ''))
   RETURNING id INTO v_id;
+  INSERT INTO public.monthly_budget_savings_movements
+    (user_id, jar_id, movement_type, amount_delta, movement_date, note, repayment_id)
+  VALUES (v_user_id, v_jar_id, 'repayment', p_amount, p_repaid_on, NULLIF(btrim(p_note), ''), v_id);
   RETURN v_id;
 END;
 $$;
