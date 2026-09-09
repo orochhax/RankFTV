@@ -9,6 +9,109 @@
 -- — cada linha é só uma tarefa (despesa ou receita) de um mês específico.
 -- =============================================================
 
+-- A seção "Reposição de cofrinhos" é intencionalmente independente das
+-- receitas/despesas mensais. Ela acompanha somente retiradas extraordinárias
+-- e as devoluções feitas para cobri-las.
+
+CREATE TABLE IF NOT EXISTS monthly_budget_savings_withdrawals (
+  id           uuid          DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id      uuid          NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  jar_name     text          NOT NULL CHECK (char_length(btrim(jar_name)) BETWEEN 1 AND 80),
+  purpose      text          NOT NULL CHECK (char_length(btrim(purpose)) BETWEEN 1 AND 160),
+  amount       numeric(12,2) NOT NULL CHECK (amount > 0),
+  withdrawn_on date          NOT NULL,
+  note         text          CHECK (note IS NULL OR char_length(note) <= 500),
+  created_at   timestamptz   NOT NULL DEFAULT now(),
+  updated_at   timestamptz   NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS monthly_budget_savings_repayments (
+  id            uuid          DEFAULT gen_random_uuid() PRIMARY KEY,
+  withdrawal_id uuid          NOT NULL REFERENCES monthly_budget_savings_withdrawals(id) ON DELETE CASCADE,
+  user_id        uuid          NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  amount         numeric(12,2) NOT NULL CHECK (amount > 0),
+  repaid_on      date          NOT NULL,
+  note           text          CHECK (note IS NULL OR char_length(note) <= 500),
+  created_at     timestamptz   NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_mb_savings_withdrawals_user_date
+  ON monthly_budget_savings_withdrawals(user_id, withdrawn_on DESC);
+CREATE INDEX IF NOT EXISTS idx_mb_savings_repayments_withdrawal
+  ON monthly_budget_savings_repayments(withdrawal_id);
+CREATE INDEX IF NOT EXISTS idx_mb_savings_repayments_user_date
+  ON monthly_budget_savings_repayments(user_id, repaid_on DESC);
+
+ALTER TABLE monthly_budget_savings_withdrawals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monthly_budget_savings_repayments ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS mb_savings_withdrawals_owner_all ON monthly_budget_savings_withdrawals;
+CREATE POLICY mb_savings_withdrawals_owner_all ON monthly_budget_savings_withdrawals
+  FOR ALL TO authenticated
+  USING (user_id = (SELECT auth.uid()))
+  WITH CHECK (user_id = (SELECT auth.uid()));
+
+DROP POLICY IF EXISTS mb_savings_repayments_owner_select ON monthly_budget_savings_repayments;
+CREATE POLICY mb_savings_repayments_owner_select ON monthly_budget_savings_repayments
+  FOR SELECT TO authenticated USING (user_id = (SELECT auth.uid()));
+DROP POLICY IF EXISTS mb_savings_repayments_owner_delete ON monthly_budget_savings_repayments;
+CREATE POLICY mb_savings_repayments_owner_delete ON monthly_budget_savings_repayments
+  FOR DELETE TO authenticated USING (user_id = (SELECT auth.uid()));
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON monthly_budget_savings_withdrawals TO authenticated;
+GRANT SELECT, DELETE ON monthly_budget_savings_repayments TO authenticated;
+
+-- Serializa duas reposições simultâneas da mesma retirada e impede que a soma
+-- devolvida ultrapasse o valor retirado.
+CREATE OR REPLACE FUNCTION mb_add_savings_repayment(
+  p_withdrawal_id uuid,
+  p_amount numeric,
+  p_repaid_on date,
+  p_note text DEFAULT NULL
+) RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_user_id uuid := auth.uid();
+  v_withdrawn numeric(12,2);
+  v_withdrawn_on date;
+  v_repaid numeric(12,2);
+  v_id uuid;
+BEGIN
+  IF v_user_id IS NULL THEN RAISE EXCEPTION 'Acesso negado'; END IF;
+  IF p_amount IS NULL OR p_amount <= 0 THEN RAISE EXCEPTION 'Valor inválido'; END IF;
+  IF p_repaid_on IS NULL THEN RAISE EXCEPTION 'Data inválida'; END IF;
+  IF p_note IS NOT NULL AND char_length(p_note) > 500 THEN RAISE EXCEPTION 'Observação muito longa'; END IF;
+
+  SELECT amount, withdrawn_on INTO v_withdrawn, v_withdrawn_on
+  FROM public.monthly_budget_savings_withdrawals
+  WHERE id = p_withdrawal_id AND user_id = v_user_id
+  FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Retirada não encontrada'; END IF;
+  IF p_repaid_on < v_withdrawn_on THEN
+    RAISE EXCEPTION 'A reposição não pode ser anterior à retirada';
+  END IF;
+
+  SELECT COALESCE(sum(amount), 0) INTO v_repaid
+  FROM public.monthly_budget_savings_repayments
+  WHERE withdrawal_id = p_withdrawal_id;
+  IF v_repaid + p_amount > v_withdrawn THEN
+    RAISE EXCEPTION 'A reposição ultrapassa o valor que ainda falta';
+  END IF;
+
+  INSERT INTO public.monthly_budget_savings_repayments
+    (withdrawal_id, user_id, amount, repaid_on, note)
+  VALUES (p_withdrawal_id, v_user_id, p_amount, p_repaid_on, NULLIF(btrim(p_note), ''))
+  RETURNING id INTO v_id;
+  RETURN v_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION mb_add_savings_repayment(uuid, numeric, date, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION mb_add_savings_repayment(uuid, numeric, date, text) TO authenticated;
+
 CREATE TABLE IF NOT EXISTS monthly_budget_expenses (
   id             uuid          DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id        uuid          NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -283,6 +386,7 @@ CREATE OR REPLACE FUNCTION mb_write_expense_event(
   p_event jsonb
 ) RETURNS uuid
 LANGUAGE plpgsql
+SET search_path = public, pg_temp
 AS $$
 DECLARE
   v_uid uuid := auth.uid();
@@ -359,7 +463,8 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION mb_write_expense_event(uuid[], jsonb, jsonb, jsonb) TO authenticated;
+REVOKE ALL ON FUNCTION mb_write_expense_event(uuid[], jsonb, jsonb, jsonb) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION mb_write_expense_event(uuid[], jsonb, jsonb, jsonb) TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION mb_write_income_event(
   p_ids_to_delete uuid[],
@@ -368,6 +473,7 @@ CREATE OR REPLACE FUNCTION mb_write_income_event(
   p_event jsonb
 ) RETURNS uuid
 LANGUAGE plpgsql
+SET search_path = public, pg_temp
 AS $$
 DECLARE
   v_uid uuid := auth.uid();
@@ -442,7 +548,8 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION mb_write_income_event(uuid[], jsonb, jsonb, jsonb) TO authenticated;
+REVOKE ALL ON FUNCTION mb_write_income_event(uuid[], jsonb, jsonb, jsonb) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION mb_write_income_event(uuid[], jsonb, jsonb, jsonb) TO authenticated, service_role;
 
 -- Marcar/desmarcar como paga não muda nome/valor/mês — só is_paid/paid_at.
 -- Função própria (não reaproveita mb_write_expense_event) porque a ação
@@ -454,6 +561,7 @@ CREATE OR REPLACE FUNCTION mb_toggle_expense_paid(
   p_event jsonb
 ) RETURNS uuid
 LANGUAGE plpgsql
+SET search_path = public, pg_temp
 AS $$
 DECLARE
   v_uid uuid := auth.uid();
@@ -508,7 +616,8 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION mb_toggle_expense_paid(uuid, boolean, jsonb) TO authenticated;
+REVOKE ALL ON FUNCTION mb_toggle_expense_paid(uuid, boolean, jsonb) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION mb_toggle_expense_paid(uuid, boolean, jsonb) TO authenticated, service_role;
 
 -- =============================================================
 -- Backfill idempotente: um evento 'imported' por repeat_group_id que ainda
@@ -612,6 +721,7 @@ WHERE NOT EXISTS (
 CREATE OR REPLACE FUNCTION mb_remove_monthly_category(p_id uuid)
 RETURNS void
 LANGUAGE plpgsql
+SET search_path = public, pg_temp
 AS $$
 DECLARE
   v_uid uuid := auth.uid();
@@ -629,6 +739,7 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION mb_remove_monthly_category(uuid) TO authenticated;
+REVOKE ALL ON FUNCTION mb_remove_monthly_category(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION mb_remove_monthly_category(uuid) TO authenticated, service_role;
 
 NOTIFY pgrst, 'reload schema';
