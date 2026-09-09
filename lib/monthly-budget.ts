@@ -71,6 +71,7 @@ export type SavingsRepayment = {
 
 export type SavingsWithdrawal = {
   id: string;
+  jarId: string;
   jarName: string;
   purpose: string;
   amount: number;
@@ -79,6 +80,37 @@ export type SavingsWithdrawal = {
   createdAt: string;
   repayments: SavingsRepayment[];
 };
+
+export type SavingsMovementType = "opening_balance" | "contribution" | "withdrawal" | "repayment";
+
+export type SavingsMovement = {
+  id: string;
+  jarId: string;
+  type: SavingsMovementType;
+  amountDelta: number;
+  movementDate: string;
+  note: string | null;
+  withdrawalId: string | null;
+  repaymentId: string | null;
+  createdAt: string;
+};
+
+export type SavingsJar = {
+  id: string;
+  name: string;
+  institution: string | null;
+  note: string | null;
+  createdAt: string;
+  movements: SavingsMovement[];
+};
+
+export function savingsJarBalance(jar: SavingsJar): number {
+  return jar.movements.reduce((sum, movement) => sum + movement.amountDelta, 0);
+}
+
+export function savingsTotalBalance(jars: SavingsJar[]): number {
+  return jars.reduce((sum, jar) => sum + savingsJarBalance(jar), 0);
+}
 
 export type SavingsWithdrawalProgress = {
   withdrawn: number;
