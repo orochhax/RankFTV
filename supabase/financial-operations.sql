@@ -87,7 +87,27 @@ DECLARE
   v_operation financial_operations%ROWTYPE;
   v_should_execute boolean := false;
   v_previous_status text;
+  v_ticket_status text;
+  v_ticket_checked_in boolean;
 BEGIN
+  IF p_flow = 'athlete_ticket' AND p_operation_type = 'refund' THEN
+    SELECT t.status_pagamento, t.checked_in
+    INTO v_ticket_status, v_ticket_checked_in
+    FROM athlete_tickets t
+    WHERE t.id = p_record_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'ATHLETE_TICKET_NOT_FOUND' USING ERRCODE = 'P0001';
+    END IF;
+    IF v_ticket_status IS DISTINCT FROM 'pago' THEN
+      RAISE EXCEPTION 'ATHLETE_TICKET_NOT_ACTIVE' USING ERRCODE = 'P0001';
+    END IF;
+    IF v_ticket_checked_in THEN
+      RAISE EXCEPTION 'ATHLETE_TICKET_ALREADY_CHECKED_IN' USING ERRCODE = 'P0001';
+    END IF;
+  END IF;
+
   INSERT INTO financial_operations (
     flow, operation_type, record_id, external_reference, amount,
     billing_type, actor_id, correlation_id, metadata

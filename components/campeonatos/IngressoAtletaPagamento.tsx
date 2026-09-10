@@ -10,6 +10,7 @@ import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 import { pagarIngressoAtletaComCartao } from "@/app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions";
 import { CardHolderContactFields } from "@/components/pagamento/CardHolderContactFields";
 import { trackPublicFunnel } from "@/lib/public-funnel-client";
+import { ReservationCountdown } from "@/components/checkout/ReservationCountdown";
 
 type Tipo = "credito" | "debito";
 
@@ -43,6 +44,8 @@ type Props = {
   paymentMethod: "pix" | "cartao";
   championshipId: string;
   categoryId: string | null;
+  checkoutExpiresAt: string | null;
+  serverNow: string;
 };
 
 export function IngressoAtletaPagamento({
@@ -58,6 +61,8 @@ export function IngressoAtletaPagamento({
   paymentMethod,
   championshipId,
   categoryId,
+  checkoutExpiresAt,
+  serverNow,
 }: Props) {
   const router = useRouter();
   const [statusPagamento, setStatusPagamento] = useState(initialStatusPagamento);
@@ -99,7 +104,12 @@ export function IngressoAtletaPagamento({
     async function check() {
       if (stoppedRef.current) return;
       try {
-        const res = await fetch(`/api/ticket-status?tipo=atleta&id=${ticketId}&token=${accessToken}`, { cache: "no-store" });
+        const res = await fetch("/api/ticket-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tipo: "atleta", id: ticketId, token: accessToken }),
+          cache: "no-store",
+        });
         if (res.ok) {
           const data = await res.json();
           const nextStatus = String(data.status_pagamento ?? "pendente");
@@ -198,6 +208,14 @@ export function IngressoAtletaPagamento({
 
   return (
     <div className="space-y-5">
+      {checkoutExpiresAt && (
+        <ReservationCountdown
+          key={`${ticketId}:${checkoutExpiresAt}`}
+          id={ticketId}
+          expiresAt={checkoutExpiresAt}
+          serverNow={serverNow}
+        />
+      )}
       {paymentMethod === "pix" ? (
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="flex items-center gap-1.5 text-sm font-medium text-amber-600">

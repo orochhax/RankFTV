@@ -210,6 +210,39 @@ input[type="week"] {
   }
 }
 
+/* A home usa um único feixe que acompanha os dois cantos arredondados. */
+.home-mobile-sheet-accent {
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 2;
+  width: 100%;
+  height: 28px;
+  overflow: visible;
+}
+
+.home-mobile-sheet-accent path {
+  fill: none;
+  stroke: #2929ff;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 10 90;
+  filter: drop-shadow(0 0 4px rgba(77, 77, 255, 0.95));
+  animation: home-mobile-sheet-accent-sweep 2.2s linear infinite;
+}
+
+@keyframes home-mobile-sheet-accent-sweep {
+  from { stroke-dashoffset: 10; }
+  to { stroke-dashoffset: -90; }
+}
+
+/* O hambúrguer fica à esquerda, então o card abre para dentro da tela. */
+.home-header-menu > div > div {
+  right: auto;
+  left: 0;
+}
+
 /* Sem modo escuro automático: o fundo geral usa app-bg e as superfícies
    preservam as cores definidas pelos tokens, independentemente do sistema. */
 

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   isParticipantCategoryConflict,
   participantCategoryConflictMessage,
+  resolveCheckoutAthleteUserId,
 } from "./participant-registration";
 
 test("reconhece somente a violação de participante por categoria", () => {
@@ -20,4 +21,23 @@ test("reconhece somente a violação de participante por categoria", () => {
 
 test("mensagem não revela qual integrante causou o conflito", () => {
   assert.match(participantCategoryConflictMessage, /você ou seu parceiro/i);
+});
+
+test("conta logada só vira identidade do atleta quando o CPF do perfil corresponde", () => {
+  const userId = crypto.randomUUID();
+  assert.equal(resolveCheckoutAthleteUserId({
+    sessionUserId: userId,
+    profileCpf: "529.982.247-25",
+    athleteCpf: "52998224725",
+  }), userId);
+  assert.equal(resolveCheckoutAthleteUserId({
+    sessionUserId: userId,
+    profileCpf: "529.982.247-25",
+    athleteCpf: "86420975310",
+  }), null);
+  assert.equal(resolveCheckoutAthleteUserId({
+    sessionUserId: userId,
+    profileCpf: null,
+    athleteCpf: "52998224725",
+  }), null);
 });

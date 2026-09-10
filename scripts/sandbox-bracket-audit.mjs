@@ -8,8 +8,6 @@ const required = [
   "E2E_CHAMPIONSHIP_ID",
   "E2E_CATEGORY_ID",
   "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  "SUPABASE_SERVICE_ROLE_KEY",
   "VERCEL_AUTOMATION_BYPASS_SECRET",
 ];
 for (const key of required) {
@@ -21,6 +19,8 @@ if (process.env.E2E_DISPOSABLE_SANDBOX !== "RANKFTV_DISPOSABLE_SANDBOX") {
 
 const baseUrl = process.env.E2E_BASE_URL.replace(/\/$/, "");
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL.replace(/\/$/, "");
+const secretKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!secretKey) throw new Error("missing_supabase_secret_key");
 const projectRef = process.env.E2E_SANDBOX_SUPABASE_PROJECT_REF.toLowerCase();
 const previewHost = new URL(baseUrl).hostname.toLowerCase();
 const supabaseHost = new URL(supabaseUrl).hostname.toLowerCase();
@@ -33,7 +33,7 @@ if (projectRef === "tkyopolcxfsdbhvrgadj" || supabaseHost !== `${projectRef}.sup
 
 const championshipId = process.env.E2E_CHAMPIONSHIP_ID;
 const categoryId = process.env.E2E_CATEGORY_ID;
-const admin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+const admin = createClient(supabaseUrl, secretKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 let browser;

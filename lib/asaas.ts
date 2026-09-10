@@ -19,6 +19,19 @@ import { isAmbiguousAsaasFailure } from "@/lib/asaas-errors";
 
 const ASAAS_TIMEOUT_MS = 15_000;
 
+function resolveAsaasApiKey(): string | undefined {
+  if (process.env.ASAAS_API_KEY) return process.env.ASAAS_API_KEY;
+  if (process.env.NODE_ENV !== "development") return undefined;
+
+  const sandboxFallback = process.env.RANKFTV_SANDBOX_ASAAS_API_KEY_BASE64;
+  if (!sandboxFallback) return undefined;
+  try {
+    return Buffer.from(sandboxFallback, "base64").toString("utf8") || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export class AsaasApiError extends Error {
   constructor(
     message: string,
@@ -50,7 +63,7 @@ function errorDescription(body: string): string {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const baseUrl = process.env.ASAAS_BASE_URL;
-  const apiKey  = process.env.ASAAS_API_KEY;
+  const apiKey  = resolveAsaasApiKey();
 
   if (!baseUrl || !apiKey) {
     throw new Error("ASAAS_BASE_URL ou ASAAS_API_KEY não configurados no .env.local");
@@ -429,6 +442,8 @@ export type StatusCobranca = {
 };
 
 export type StatusEstornoCobranca = {
+  id?: string;
+  payment?: string;
   status: string;
   value?: number;
   dateCreated?: string;
@@ -438,6 +453,13 @@ export type StatusEstornoCobranca = {
 
 export async function consultarCobranca(asaasPaymentId: string): Promise<StatusCobranca> {
   return request<StatusCobranca>(`/payments/${asaasPaymentId}`);
+}
+
+// Cancela uma cobranca ainda pendente. O chamador deve consultar o estado
+// imediatamente antes e, se esta chamada falhar, manter o estoque reservado
+// para a conciliacao — nunca liberar uma vaga enquanto o Pix ainda puder cair.
+export async function cancelarCobrancaPendente(asaasPaymentId: string): Promise<void> {
+  await request<unknown>(`/payments/${asaasPaymentId}`, { method: "DELETE" });
 }
 
 // A consulta da cobrança nem sempre inclui o array de estornos. A rota
@@ -521,8 +543,16 @@ export async function transferirPix(input: {
 export type StatusTransferencia = {
   id: string;
   status: string;
+  value?: number;
+  operationType?: string;
   externalReference?: string;
+  pixAddressKey?: string;
+  bankAccount?: { pixAddressKey?: string | null } | null;
 };
+
+export async function consultarTransferencia(id: string): Promise<StatusTransferencia> {
+  return request<StatusTransferencia>(`/transfers/${encodeURIComponent(id)}`);
+}
 
 // The transfer list has no documented externalReference filter. Reconciliation
 // scans a bounded recent window and never creates a second transfer when the

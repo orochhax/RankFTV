@@ -8,7 +8,6 @@ import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { formatDateRangeBR, generoLabel } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { PublicFunnelEvent } from "@/components/analytics/PublicFunnelEvent";
-import { ChampionshipNotices } from "@/components/campeonatos/ChampionshipNotices";
 
 type AtletaDisplay = {
   id: string;
@@ -54,8 +53,6 @@ export default async function CampeonatoDetalhePage({
   const backLabel = voltarCriado ? "Voltar" : "Campeonatos";
 
   const supabase = await createClient();
-  const { data: noticeRows } = await supabase.from("championship_notices").select("id, title, message, created_at").eq("championship_id", id).order("created_at", { ascending: false }).limit(10);
-  const notices = (noticeRows ?? []).map((notice) => ({ id: notice.id, title: notice.title, message: notice.message, createdAt: notice.created_at }));
 
   /* ── Duplas inscritas (pagas) ── */
   let duplas: DuplaDisplay[] = [];
@@ -218,9 +215,6 @@ export default async function CampeonatoDetalhePage({
           </div>
         )}
       </div>
-
-      {/* Cronograma */}
-      <ChampionshipNotices notices={notices} />
 
       {/* Cronograma */}
       <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">

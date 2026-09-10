@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { criarOuBuscarCliente, type MetodoPagamento } from "@/lib/asaas";
+import { criarOuBuscarCliente } from "@/lib/asaas";
 import { createIdempotentCharge } from "@/lib/payment-flows";
 import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
 import { buscarCupomValido, type CupomValido } from "@/lib/cupons";
@@ -17,6 +17,8 @@ import {
 } from "@/lib/participant-registration";
 import { reportOperationalEvent } from "@/lib/observability";
 import { validaCPF } from "@/lib/validacao";
+import { authenticatedRegistrationCoreSchema } from "@/lib/checkout-input-schemas";
+import { checkoutLegalConsentRecord, hasCheckoutLegalConsent } from "@/lib/legal-consent";
 
 export type InscreverState = { error?: string };
 
@@ -28,18 +30,31 @@ export async function inscreverDupla(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const privileged = createAdminClient();
+  const legalAccepted = hasCheckoutLegalConsent(formData.get("aceite_termos"));
+  if (!legalAccepted) {
+    return { error: "Aceite os Termos de Uso e a Política de Privacidade para continuar." };
+  }
 
-  const championshipId   = formData.get("championship_id") as string;
-  const categoryId       = formData.get("category_id") as string;
-  const parceiroUsername = ((formData.get("parceiro_username") as string) ?? "").trim().replace(/^@/, "");
-  const cpfInput         = ((formData.get("cpf") as string) ?? "").replace(/\D/g, "");
-  const metodo           = ((formData.get("metodo_pagamento") as string) ?? "pix") as MetodoPagamento;
-  const ratingDupla      = parseInt(formData.get("rating_dupla") as string) || 0;
-  const sandbaggingFlag  = formData.get("sandbagging") === "1";
-  const tamanhoCamisa    = ((formData.get("tamanho_camisa") as string) ?? "").trim();
-  const cupomCodigo      = ((formData.get("cupom_codigo") as string) ?? "").trim();
-
-  if (!tamanhoCamisa) return { error: "Selecione o tamanho da camisa." };
+  const parsedInput = authenticatedRegistrationCoreSchema.safeParse({
+    championshipId: String(formData.get("championship_id") ?? ""),
+    categoryId: String(formData.get("category_id") ?? ""),
+    parceiroUsername: String(formData.get("parceiro_username") ?? "").trim().replace(/^@/, ""),
+    cpfInput: String(formData.get("cpf") ?? "").trim(),
+    metodo: String(formData.get("metodo_pagamento") ?? "pix"),
+    tamanhoCamisa: String(formData.get("tamanho_camisa") ?? ""),
+    cupomCodigo: String(formData.get("cupom_codigo") ?? "").trim(),
+    legalAccepted,
+  });
+  if (!parsedInput.success) return { error: "Dados da inscrição inválidos. Revise o formulário." };
+  const {
+    championshipId,
+    categoryId,
+    parceiroUsername,
+    metodo,
+    tamanhoCamisa,
+    cupomCodigo,
+  } = parsedInput.data;
+  const cpfInput = parsedInput.data.cpfInput.replace(/\D/g, "");
 
   // ── Carrega perfil, campeonato e categoria em paralelo ────────
   // category_id é filtrado por championship_id aqui (defesa em profundidade
@@ -141,6 +156,7 @@ export async function inscreverDupla(
   // profiles não tem e-mail (fica em auth.users); busca só id/nome aqui e o
   // e-mail (pro convite) via admin client logo abaixo.
   let atleta2Id: string | null = null;
+  let parceiroRating: number | null = null;
   let parceiroDados: { id: string; nome: string; email?: string } | null = null;
   if (parceiroUsername) {
     const { data: parceiro } = await supabase
@@ -167,6 +183,7 @@ export async function inscreverDupla(
       return { error: `@${parceiroUsername}: ${elegibilidadeParceiro.error}` };
 
     atleta2Id = parceiro.id;
+    parceiroRating = Number(parceiro.rating ?? 0);
 
     const admin = createAdminClient();
     const { data: authData } = await admin.auth.admin.getUserById(parceiro.id);
@@ -227,8 +244,10 @@ export async function inscreverDupla(
       atleta2_id:        atleta2Id,
       parceiro_username: parceiroUsername || null,
       status:            teamStatus,
-      sandbagging_flag:  sandbaggingFlag,
-      rating_dupla:      ratingDupla || null,
+      sandbagging_flag:  false,
+      rating_dupla:      atleta2Id && parceiroRating !== null
+        ? Math.round((Number(profile.rating ?? 0) + parceiroRating) / 2)
+        : Number(profile.rating ?? 0) || null,
     })
     .select("id")
     .single();
@@ -256,6 +275,7 @@ export async function inscreverDupla(
       lote_id:          loteId,
       status_pagamento: isGratis ? "pago" : "pendente",
       billing_type:     isGratis ? null : (BILLING_TYPE[metodo] ?? null),
+      ...checkoutLegalConsentRecord(),
     })
     .select("id")
     .single();

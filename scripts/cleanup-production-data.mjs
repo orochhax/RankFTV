@@ -16,11 +16,11 @@ function writeOutput(message) {
   process.stdout.write(`${message}\n`);
 }
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const serviceRole = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
 
 if (!url || !serviceRole || !adminEmail) {
-  throw new Error("Faltam NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY ou ADMIN_EMAIL.");
+  throw new Error("Faltam NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY ou ADMIN_EMAIL.");
 }
 
 const supabase = createClient(url, serviceRole, {

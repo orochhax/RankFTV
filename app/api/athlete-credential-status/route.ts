@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { readAthleteCredentialSession } from "@/lib/athlete-credential-session";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { z } from "zod";
 
 const PRIVATE_HEADERS = { "Cache-Control": "no-store, private" };
+const credentialStatusSchema = z.object({ id: z.uuid() }).strict();
 
 export async function POST(req: NextRequest) {
-  let body: { id?: unknown };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Corpo inválido." }, { status: 400, headers: PRIVATE_HEADERS });
+  if (!(await checkRateLimit(`athlete-credential-status:${getClientIp(req.headers)}`, 120, 60))) {
+    return NextResponse.json({ error: "Muitas consultas. Aguarde um minuto." }, { status: 429, headers: PRIVATE_HEADERS });
   }
-  const credentialId = typeof body.id === "string" ? body.id : null;
-  if (!credentialId) {
+  const parsed = credentialStatusSchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
     return NextResponse.json({ error: "Parâmetros inválidos." }, { status: 400, headers: PRIVATE_HEADERS });
   }
+  const credentialId = parsed.data.id;
   const accessToken = await readAthleteCredentialSession(credentialId);
   if (!accessToken) {
     return NextResponse.json({ error: "Sessão expirada." }, { status: 404, headers: PRIVATE_HEADERS });

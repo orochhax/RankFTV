@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Radio, MapPin, CalendarDays, Building2, Ticket, ShoppingBag } from "lucide-react";
+import { Bell, ChevronRight, Radio, MapPin, CalendarDays, Building2, Ticket, ShoppingBag } from "lucide-react";
 import { PersonaSwitcher } from "@/components/home/PersonaSwitcher";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
@@ -95,7 +95,27 @@ export default async function Home({
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
-      <div className="bg-brand-dark px-6 pb-10 pt-8 md:hidden">
+      <div className="bg-black px-6 pb-12 pt-5 md:hidden">
+        <div className="mb-3 flex h-11 items-center gap-2">
+          <div className="home-header-menu">
+            <HamburgerMenu unreadCount={0} organizerHabilitado={organizerHabilitado} />
+          </div>
+          <Link href="/" className="text-2xl font-extrabold tracking-[-0.04em] text-white" aria-label="RankFTV — início">
+            Rank<span className="text-blue-600">FTV</span>
+          </Link>
+          <Link
+            href="/notificacoes"
+            className="relative ml-auto grid size-11 place-items-center text-white"
+            aria-label={unreadCount > 0 ? `${unreadCount} notificações pendentes` : "Notificações"}
+          >
+            <Bell className="size-6" />
+            {unreadCount > 0 ? (
+              <span className="absolute right-0 top-0 grid min-w-4 place-items-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-4 text-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            ) : null}
+          </Link>
+        </div>
         {profile ? (
           <div className="flex items-center gap-4">
             <Avatar
@@ -112,9 +132,6 @@ export default async function Home({
                 {profile.nome.split(" ")[0]}
               </h1>
               <p className="text-sm text-gray-400">@{profile.username}</p>
-            </div>
-            <div className="md:hidden">
-              <HamburgerMenu unreadCount={unreadCount} organizerHabilitado={organizerHabilitado} />
             </div>
           </div>
         ) : (
@@ -134,12 +151,15 @@ export default async function Home({
 
       {/* ── Corpo: sheet arredondada no mobile, grid larga no desktop ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:pb-16 md:shadow-none">
-        <span aria-hidden="true" className="mobile-sheet-accent md:hidden" />
+        <svg aria-hidden="true" className="home-mobile-sheet-accent md:hidden" viewBox="0 0 430 28" preserveAspectRatio="none">
+          <path d="M0 28 A28 28 0 0 1 28 0 H402 A28 28 0 0 1 430 28" pathLength="100" />
+        </svg>
         <PageContainer width="wide">
           <CampeonatosSection
             allCamps={todosOrdenados}
             estados={estados}
             initialFilters={initialFilters}
+            collapsibleSearch
             banner={homeBanners.length > 0 ? <HomeBannerCarousel banners={homeBanners} /> : null}
             featured={<DestaquesCarousel camps={destaques} />}
             live={aoVivo.length > 0 ? (

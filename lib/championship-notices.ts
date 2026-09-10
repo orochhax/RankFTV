@@ -1,6 +1,5 @@
 import "server-only";
 
-import { createHash, createHmac } from "node:crypto";
 import { registrarAuditoria } from "@/lib/audit";
 import { createEmailOperationalEvent, updateEmailOperationalEvent } from "@/lib/email/operations";
 import { getResend, FROM } from "@/lib/email/resend";
@@ -8,11 +7,22 @@ import { comunicadoHtml } from "@/lib/email/templates";
 import { reportOperationalEvent } from "@/lib/observability";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildChampionshipChangeNotice } from "@/lib/championship-notices-core";
+import { emailRecipientDigest } from "@/lib/email/recipient-digest";
+import { isEmailRecipientAllowed } from "@/lib/email/recipient-allowlist";
 
-type AuthenticatedRecipient = { userId: string; email: string; nome: string };
+export type AuthenticatedRecipient = { userId: string; email: string; nome: string };
 type RecipientSource = "authenticated" | "athlete_ticket";
 type RecipientSlot = "user" | "buyer" | "partner";
 type RecipientCandidate = { source: RecipientSource; ref: string; slot: RecipientSlot; email: string; name: string };
+export type PreparedChampionshipNoticeRecipients = {
+  deliveries: Array<{
+    recipient_source: RecipientSource;
+    recipient_ref: string;
+    recipient_slot: RecipientSlot;
+    recipient_hash: string;
+  }>;
+  notificationUserIds: string[];
+};
 type DeliveryRow = {
   id: string;
   notice_id: string;
@@ -28,14 +38,6 @@ const MAX_ATTEMPTS = 5;
 
 function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
-}
-
-function recipientDigest(email: string): string {
-  const normalized = normalizeEmail(email);
-  const secret = process.env.EMAIL_EVENT_HASH_SECRET ?? process.env.PAYMENT_FINGERPRINT_SECRET;
-  return secret
-    ? createHmac("sha256", secret).update(normalized).digest("hex")
-    : createHash("sha256").update(normalized).digest("hex");
 }
 
 export function championshipNoticeRetryAt(attemptCount: number, now = Date.now()): string {
@@ -74,6 +76,7 @@ async function markDeliveryFailure(row: DeliveryRow, category: string) {
     status: attempts >= MAX_ATTEMPTS ? "suppressed" : "failed",
     attempt_count: attempts,
     next_attempt_at: championshipNoticeRetryAt(attempts),
+    claimed_at: null,
     last_error_category: category.slice(0, 120),
     updated_at: new Date().toISOString(),
   }).eq("id", row.id);
@@ -84,17 +87,10 @@ export async function processPendingChampionshipNoticeDeliveries(options?: {
   limit?: number;
 }): Promise<{ processed: number; accepted: number; failed: number; suppressed: number }> {
   const admin = createAdminClient();
-  const now = new Date().toISOString();
-  let query = admin
-    .from("championship_notice_deliveries")
-    .select("id, notice_id, championship_id, recipient_source, recipient_ref, recipient_slot, recipient_hash, attempt_count")
-    .in("status", ["queued", "failed"])
-    .lte("next_attempt_at", now)
-    .lt("attempt_count", MAX_ATTEMPTS)
-    .order("next_attempt_at", { ascending: true })
-    .limit(Math.min(Math.max(options?.limit ?? 100, 1), 250));
-  if (options?.noticeId) query = query.eq("notice_id", options.noticeId);
-  const { data, error } = await query;
+  const { data, error } = await admin.rpc("claim_championship_notice_deliveries", {
+    p_notice_id: options?.noticeId ?? null,
+    p_limit: Math.min(Math.max(options?.limit ?? 50, 1), 250),
+  });
   if (error) {
     await reportOperationalEvent({
       level: "error", event: "championship_notice.queue_read_failed",
@@ -107,10 +103,21 @@ export async function processPendingChampionshipNoticeDeliveries(options?: {
   for (const row of (data ?? []) as DeliveryRow[]) {
     result.processed += 1;
     const recipient = await resolveDeliveryRecipient(row);
-    if (!recipient || recipientDigest(recipient.email) !== row.recipient_hash) {
+    if (!recipient || emailRecipientDigest(recipient.email) !== row.recipient_hash) {
       await admin.from("championship_notice_deliveries").update({
         status: "suppressed", attempt_count: row.attempt_count + 1,
-        last_error_category: "recipient_no_longer_eligible", updated_at: new Date().toISOString(),
+        claimed_at: null, last_error_category: "recipient_no_longer_eligible",
+        updated_at: new Date().toISOString(),
+      }).eq("id", row.id);
+      result.suppressed += 1;
+      continue;
+    }
+
+    if (!isEmailRecipientAllowed(recipient.email, process.env.CHAMPIONSHIP_NOTICE_EMAIL_ALLOWLIST)) {
+      await admin.from("championship_notice_deliveries").update({
+        status: "suppressed", attempt_count: row.attempt_count + 1,
+        claimed_at: null, last_error_category: "recipient_not_allowlisted",
+        updated_at: new Date().toISOString(),
       }).eq("id", row.id);
       result.suppressed += 1;
       continue;
@@ -152,7 +159,7 @@ export async function processPendingChampionshipNoticeDeliveries(options?: {
       await admin.from("championship_notice_deliveries").update({
         status: "accepted", provider_message_id: sent.data?.id ?? null,
         attempt_count: row.attempt_count + 1, accepted_at: acceptedAt,
-        last_error_category: null, updated_at: acceptedAt,
+        claimed_at: null, last_error_category: null, updated_at: acceptedAt,
       }).eq("id", row.id);
       result.accepted += 1;
     } catch (error) {
@@ -167,6 +174,51 @@ export async function processPendingChampionshipNoticeDeliveries(options?: {
     }
   }
   return result;
+}
+
+export async function prepareChampionshipNoticeRecipients(input: {
+  championshipId: string;
+  authenticatedRecipients: AuthenticatedRecipient[];
+}): Promise<PreparedChampionshipNoticeRecipients> {
+  const { data: guestTickets, error: ticketError } = await createAdminClient()
+    .from("athlete_tickets")
+    .select("id, comprador_email, comprador_nome, parceiro_email, parceiro_nome")
+    .eq("championship_id", input.championshipId)
+    .eq("status_pagamento", "pago");
+  if (ticketError) throw ticketError;
+
+  const recipients = new Map<string, RecipientCandidate>();
+  for (const recipient of input.authenticatedRecipients) {
+    if (!recipient.email) continue;
+    recipients.set(normalizeEmail(recipient.email), {
+      source: "authenticated", ref: recipient.userId, slot: "user",
+      email: recipient.email, name: recipient.nome || "Atleta",
+    });
+  }
+  for (const ticket of guestTickets ?? []) {
+    if (ticket.comprador_email && !recipients.has(normalizeEmail(ticket.comprador_email))) {
+      recipients.set(normalizeEmail(ticket.comprador_email), {
+        source: "athlete_ticket", ref: ticket.id, slot: "buyer",
+        email: ticket.comprador_email, name: ticket.comprador_nome || "Atleta",
+      });
+    }
+    if (ticket.parceiro_email && !recipients.has(normalizeEmail(ticket.parceiro_email))) {
+      recipients.set(normalizeEmail(ticket.parceiro_email), {
+        source: "athlete_ticket", ref: ticket.id, slot: "partner",
+        email: ticket.parceiro_email, name: ticket.parceiro_nome || "Atleta",
+      });
+    }
+  }
+
+  return {
+    deliveries: [...recipients.values()].map((recipient) => ({
+      recipient_source: recipient.source,
+      recipient_ref: recipient.ref,
+      recipient_slot: recipient.slot,
+      recipient_hash: emailRecipientDigest(recipient.email),
+    })),
+    notificationUserIds: [...new Set(input.authenticatedRecipients.map((recipient) => recipient.userId))],
+  };
 }
 
 export async function publishChampionshipChangeNotice(input: {
@@ -189,48 +241,25 @@ export async function publishChampionshipChangeNotice(input: {
       .eq("dedupe_key", input.notice.dedupeKey).single();
     if (noticeError || !notice) throw noticeError ?? new Error("notice_not_found_after_upsert");
 
-    const { data: guestTickets, error: ticketError } = await admin.from("athlete_tickets")
-      .select("id, comprador_email, comprador_nome, parceiro_email, parceiro_nome")
-      .eq("championship_id", input.championshipId).eq("status_pagamento", "pago");
-    if (ticketError) throw ticketError;
-
-    const recipients = new Map<string, RecipientCandidate>();
-    for (const recipient of input.authenticatedRecipients) {
-      if (!recipient.email) continue;
-      recipients.set(normalizeEmail(recipient.email), {
-        source: "authenticated", ref: recipient.userId, slot: "user",
-        email: recipient.email, name: recipient.nome || "Atleta",
-      });
-    }
-    for (const ticket of guestTickets ?? []) {
-      if (ticket.comprador_email && !recipients.has(normalizeEmail(ticket.comprador_email))) recipients.set(normalizeEmail(ticket.comprador_email), {
-        source: "athlete_ticket", ref: ticket.id, slot: "buyer",
-        email: ticket.comprador_email, name: ticket.comprador_nome || "Atleta",
-      });
-      if (ticket.parceiro_email && !recipients.has(normalizeEmail(ticket.parceiro_email))) recipients.set(normalizeEmail(ticket.parceiro_email), {
-        source: "athlete_ticket", ref: ticket.id, slot: "partner",
-        email: ticket.parceiro_email, name: ticket.parceiro_nome || "Atleta",
-      });
-    }
-
-    const candidates = [...recipients.values()];
-    if (candidates.length > 0) {
+    const prepared = await prepareChampionshipNoticeRecipients({
+      championshipId: input.championshipId,
+      authenticatedRecipients: input.authenticatedRecipients,
+    });
+    if (prepared.deliveries.length > 0) {
       const { error: deliveryError } = await admin.from("championship_notice_deliveries").upsert(
-        candidates.map((recipient) => ({
+        prepared.deliveries.map((recipient) => ({
           notice_id: notice.id, championship_id: input.championshipId,
-          recipient_source: recipient.source, recipient_ref: recipient.ref,
-          recipient_slot: recipient.slot, recipient_hash: recipientDigest(recipient.email),
+          ...recipient,
         })),
         { onConflict: "notice_id,recipient_hash", ignoreDuplicates: true },
       );
       if (deliveryError) throw deliveryError;
     }
 
-    const authenticated = [...new Map(input.authenticatedRecipients.map((recipient) => [recipient.userId, recipient])).values()];
-    if (authenticated.length > 0) {
+    if (prepared.notificationUserIds.length > 0) {
       const { error: notificationError } = await admin.from("notifications").upsert(
-        authenticated.map((recipient) => ({
-          user_id: recipient.userId, championship_id: input.championshipId,
+        prepared.notificationUserIds.map((userId) => ({
+          user_id: userId, championship_id: input.championshipId,
           tipo: "championship_change", titulo: input.notice.title,
           mensagem: input.notice.message, source_notice_id: notice.id,
         })),
@@ -242,10 +271,10 @@ export async function publishChampionshipChangeNotice(input: {
     await registrarAuditoria({
       actorId: input.actorId, acao: "championship.change_notice_queued",
       alvoTabela: "championships", alvoId: input.championshipId,
-      detalhes: { noticeId: notice.id, recipientCount: candidates.length, kind: input.notice.kind },
+      detalhes: { noticeId: notice.id, recipientCount: prepared.deliveries.length, kind: input.notice.kind },
     });
     const processed = await processPendingChampionshipNoticeDeliveries({ noticeId: notice.id, limit: 50 });
-    return { noticeId: notice.id, queued: candidates.length, accepted: processed.accepted };
+    return { noticeId: notice.id, queued: prepared.deliveries.length, accepted: processed.accepted };
   } catch (error) {
     await reportOperationalEvent({
       level: "error", event: "championship_notice.publish_failed",

@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
+const supabaseUrl = new URL(
+  process.env.NEXT_PUBLIC_SUPABASE_URL
+    ?? "https://tkyopolcxfsdbhvrgadj.supabase.co",
+);
 
 // Libera as Server Actions vindas do túnel do cloudflared (teste do lado do
 // atleta) SÓ quando ALLOW_TUNNEL_ORIGIN=1 estiver no .env.local. Em produção a
@@ -9,7 +13,7 @@ const isDev = process.env.NODE_ENV === "development";
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
-      bodySizeLimit: "8mb",
+      bodySizeLimit: "1mb",
       ...(process.env.ALLOW_TUNNEL_ORIGIN === "1"
         ? { allowedOrigins: ["*.trycloudflare.com"] }
         : {}),
@@ -18,8 +22,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "*.supabase.co",
+        protocol: supabaseUrl.protocol === "http:" ? "http" : "https",
+        hostname: supabaseUrl.hostname,
         pathname: "/storage/v1/object/public/**",
       },
     ],

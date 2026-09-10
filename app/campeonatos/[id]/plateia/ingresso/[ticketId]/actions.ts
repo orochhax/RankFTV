@@ -5,6 +5,10 @@ import { refundIdempotently } from "@/lib/payment-flows";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 import { decideRefundPolicy, refundPolicyError } from "@/lib/refund-policy";
+import {
+  spectatorCancellationSchema,
+  spectatorOwnershipChangeSchema,
+} from "@/lib/ticket-action-schemas";
 
 export type TitularidadePlateiaInput = {
   ticketId: string;
@@ -31,6 +35,10 @@ async function releaseSpectatorOrder(ticketId: string): Promise<{ ok: boolean; e
 export async function alterarTitularidadePlateia(
   input: TitularidadePlateiaInput,
 ): Promise<{ ok: boolean; error?: string }> {
+  const parsed = spectatorOwnershipChangeSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Dados do ingresso inválidos." };
+  input = parsed.data;
+
   const admin = createAdminClient();
   const accessToken = normalizarTicketAccessToken(input.accessToken);
   if (!accessToken) return { ok: false, error: "Link do ingresso invalido." };
@@ -73,6 +81,11 @@ export async function cancelarIngressoPlateia(
   ticketId: string,
   accessTokenRaw: string,
 ): Promise<{ ok: boolean; error?: string; outcome?: "cancelado" | "estorno_solicitado" }> {
+  const parsed = spectatorCancellationSchema.safeParse({ ticketId, accessToken: accessTokenRaw });
+  if (!parsed.success) return { ok: false, error: "Dados do ingresso inválidos." };
+  ticketId = parsed.data.ticketId;
+  accessTokenRaw = parsed.data.accessToken;
+
   const admin = createAdminClient();
   const accessToken = normalizarTicketAccessToken(accessTokenRaw);
   if (!accessToken) return { ok: false, error: "Link do ingresso invalido." };

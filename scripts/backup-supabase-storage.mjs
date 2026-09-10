@@ -59,7 +59,8 @@ if (!outputArgument) {
 }
 
 const env = parseEnv(await readFile(path.resolve(".env.local"), "utf8"));
-if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+const supabaseSecretKey = env.SUPABASE_SECRET_KEY ?? env.SUPABASE_SERVICE_ROLE_KEY;
+if (!env.NEXT_PUBLIC_SUPABASE_URL || !supabaseSecretKey) {
   throw new Error("Credenciais do Supabase ausentes em .env.local");
 }
 
@@ -68,7 +69,7 @@ await mkdir(outputRoot, { recursive: true });
 
 const supabase = createClient(
   env.NEXT_PUBLIC_SUPABASE_URL,
-  env.SUPABASE_SERVICE_ROLE_KEY,
+  supabaseSecretKey,
   { auth: { autoRefreshToken: false, persistSession: false } },
 );
 

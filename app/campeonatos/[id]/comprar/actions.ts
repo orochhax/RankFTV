@@ -1,14 +1,14 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { criarOuBuscarCliente } from "@/lib/asaas";
 import { createIdempotentCharge } from "@/lib/payment-flows";
 import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
 import { buscarCupomValido } from "@/lib/cupons";
-import { resolverEClaimarLote } from "@/lib/lotes";
 import { gerarTicketAccessToken } from "@/lib/ticket-access";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { checarElegibilidadeCategoria } from "@/lib/inscricao-elegibilidade";
@@ -23,12 +23,120 @@ import {
 import {
   isParticipantCategoryConflict,
   participantCategoryConflictMessage,
+  resolveCheckoutAthleteUserId,
 } from "@/lib/participant-registration";
 import { normalizeCpf } from "@/lib/cpf";
 import { isValidAthleteName } from "@/lib/athlete-display-name";
 import { validaCPF } from "@/lib/validacao";
 import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
 import { hashWaitlistInvite } from "@/lib/waitlist";
+import { guestAthleteCheckoutCoreSchema } from "@/lib/checkout-input-schemas";
+import { checkoutLegalConsentRecord, hasCheckoutLegalConsent } from "@/lib/legal-consent";
+import {
+  ATHLETE_CHECKOUT_RESERVATION_MINUTES,
+  athleteCheckoutCookieName,
+  checkoutReservationErrorMessage,
+  generateCheckoutReservationToken,
+  hashCheckoutReservationToken,
+  isCheckoutReservationToken,
+  parseAthleteCheckoutReservation,
+  type AthleteCheckoutReservation,
+} from "@/lib/checkout-reservation";
+
+const reservationInputSchema = z.object({
+  championshipId: z.uuid(),
+  categoryId: z.uuid(),
+}).strict();
+
+export type ReserveAthleteCategoryResult =
+  | ({ ok: true } & AthleteCheckoutReservation)
+  | { ok: false; error: string };
+
+export async function reservarCategoriaAtleta(
+  championshipId: string,
+  categoryId: string,
+): Promise<ReserveAthleteCategoryResult> {
+  const parsed = reservationInputSchema.safeParse({ championshipId, categoryId });
+  if (!parsed.success) return { ok: false, error: "Campeonato ou categoria inválidos." };
+  const reservationInput = parsed.data;
+
+  const requestHeaders = await headers();
+  const ip = getClientIp(requestHeaders);
+  if (!(await checkRateLimit(`athlete-reservation:${ip}`, 20, 600))) {
+    return { ok: false, error: "Muitas tentativas de reserva. Aguarde alguns minutos." };
+  }
+
+  const sessionClient = await createClient();
+  const { data: { user } } = await sessionClient.auth.getUser();
+  const cookieStore = await cookies();
+  const cookieName = athleteCheckoutCookieName(championshipId);
+  const savedToken = cookieStore.get(cookieName)?.value;
+  let token = isCheckoutReservationToken(savedToken)
+    ? savedToken
+    : generateCheckoutReservationToken();
+  const admin = createAdminClient();
+
+  async function reserve(currentToken: string) {
+    return admin.rpc("reserve_athlete_checkout", {
+      p_token_hash: hashCheckoutReservationToken(currentToken),
+      p_championship_id: reservationInput.championshipId,
+      p_category_id: reservationInput.categoryId,
+      p_user_id: user?.id ?? null,
+      p_duration_minutes: ATHLETE_CHECKOUT_RESERVATION_MINUTES,
+    });
+  }
+
+  let result = await reserve(token);
+  if (result.error?.message.includes("checkout_reservation_category_change_required")) {
+    await admin.rpc("release_athlete_checkout_reservation", {
+      p_token_hash: hashCheckoutReservationToken(token),
+      p_force: true,
+    });
+    result = await reserve(token);
+  } else if (result.error?.message.includes("checkout_reservation_token_consumed")) {
+    token = generateCheckoutReservationToken();
+    result = await reserve(token);
+  }
+
+  const reservation = parseAthleteCheckoutReservation(result.data);
+  if (result.error || !reservation) {
+    await reportOperationalEvent({
+      level: "warn",
+      event: "athlete_checkout.reservation_failed",
+      message: "Athlete checkout reservation could not be created",
+      error: result.error,
+      context: { championshipId, categoryId },
+    });
+    return {
+      ok: false,
+      error: checkoutReservationErrorMessage(result.error?.message ?? "reservation_invalid_response"),
+    };
+  }
+
+  cookieStore.set(cookieName, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: `/campeonatos/${championshipId}/comprar`,
+    maxAge: (ATHLETE_CHECKOUT_RESERVATION_MINUTES + 5) * 60,
+  });
+
+  return { ok: true, ...reservation };
+}
+
+export async function expirarReservaCategoriaAtleta(championshipId: string): Promise<void> {
+  const parsed = z.uuid().safeParse(championshipId);
+  if (!parsed.success) return;
+  const cookieStore = await cookies();
+  const cookieName = athleteCheckoutCookieName(parsed.data);
+  const token = cookieStore.get(cookieName)?.value;
+  if (!isCheckoutReservationToken(token)) return;
+
+  await createAdminClient().rpc("release_athlete_checkout_reservation", {
+    p_token_hash: hashCheckoutReservationToken(token),
+    p_force: false,
+  });
+}
 
 // Lê e valida as 5 respostas do questionário de nível de UM dos atletas
 // (prefixo "comprador_quiz_" ou "parceiro_quiz_" no FormData) e devolve o
@@ -71,6 +179,7 @@ export async function comprarIngressoAtleta(
   const categoriaNome  = (formData.get("categoria_nome") as string) || null;
   const metodoPagamento = parseAthleteTicketPaymentChoice(formData.get("metodo_pagamento"));
   const usarMesmoEmail = formData.get("usar_mesmo_email") === "1";
+  const legalAccepted = hasCheckoutLegalConsent(formData.get("aceite_termos"));
 
   if (!metodoPagamento) return { error: "Selecione Pix ou cartão para continuar." };
 
@@ -94,6 +203,10 @@ export async function comprarIngressoAtleta(
   const pCamisa  = (formData.get("parceiro_camisa") as string) || null;
 
   const cupomCodigo = ((formData.get("cupom_codigo") as string) ?? "").trim();
+
+  if (!legalAccepted) {
+    return { error: "Aceite os Termos de Uso e a Política de Privacidade para continuar." };
+  }
 
   const fieldErrors: ComprarAtletaState["fieldErrors"] = {};
   if (!isValidAthleteName(nome)) {
@@ -137,7 +250,34 @@ export async function comprarIngressoAtleta(
     };
   }
 
-  if (!categoryId)                         return { error: "Selecione uma categoria." };
+  if (!categoryId) return { error: "Selecione uma categoria." };
+  const parsedInput = guestAthleteCheckoutCoreSchema.safeParse({
+    championshipId,
+    categoryId,
+    categoriaNome,
+    metodoPagamento,
+    usarMesmoEmail,
+    nome,
+    cpf,
+    email,
+    emailConfirmacao,
+    zap,
+    genero,
+    nascimento: nasc,
+    camisa,
+    parceiroNome: pNome,
+    parceiroCpf: pCpf,
+    parceiroEmail: pEmail,
+    parceiroEmailConfirmacao: pEmailConfirmacao,
+    parceiroZap: pZap,
+    parceiroGenero: pGenero,
+    parceiroCamisa: pCamisa,
+    cupomCodigo,
+    legalAccepted,
+  });
+  if (!parsedInput.success) {
+    return { error: "Dados da compra inválidos. Revise o formulário." };
+  }
 
   // Checkout de visitante (sem login) — rate limit por IP e por e-mail.
   const ip = getClientIp(await headers());
@@ -155,7 +295,15 @@ export async function comprarIngressoAtleta(
 
   const supabase = createAdminClient();
 
-  const [{ data: champ }, { data: cat }] = await Promise.all([
+  const buyerProfilePromise = buyerUser
+    ? supabase
+        .from("profiles_private")
+        .select("cpf")
+        .eq("user_id", buyerUser.id)
+        .maybeSingle()
+    : Promise.resolve({ data: null });
+
+  const [{ data: champ }, { data: cat }, { data: buyerProfile }] = await Promise.all([
     supabase
       .from("championships")
       .select("nome, status, organizador_id, is_elite, usa_motor_categoria")
@@ -167,7 +315,14 @@ export async function comprarIngressoAtleta(
       .eq("id", categoryId)
       .eq("championship_id", championshipId)
       .maybeSingle(),
+    buyerProfilePromise,
   ]);
+
+  const athleteUserId = resolveCheckoutAthleteUserId({
+    sessionUserId: buyerUser?.id,
+    profileCpf: buyerProfile?.cpf,
+    athleteCpf: cpf,
+  });
 
   if (!champ) return { error: "Campeonato não encontrado." };
   if (!cat)   return { error: "Categoria não encontrada." };
@@ -223,12 +378,40 @@ export async function comprarIngressoAtleta(
     cupomPreview = cupom;
   }
 
-  // Preço "de tabela" nunca é confiado do client — sempre buscado do banco
-  // pelo categoryId. O valor definitivo (lote vigente) só é travado no
-  // claim atômico logo abaixo.
-  const valorBaseCategoria = Number(cat.valor_inscricao);
+  // A categoria foi reservada antes da abertura desta etapa. O token bruto
+  // fica somente no cookie HttpOnly; o banco persiste apenas seu hash. O preco
+  // e o lote abaixo sao o snapshot atomico daquela reserva, nao valores do
+  // formulario nem uma nova reivindicacao.
+  const cookieStore = await cookies();
+  const reservationCookieName = athleteCheckoutCookieName(championshipId);
+  const reservationToken = cookieStore.get(reservationCookieName)?.value;
+  if (!isCheckoutReservationToken(reservationToken)) {
+    return { error: "Sua reserva não foi encontrada. Volte à categoria e reserve a vaga novamente." };
+  }
+  const reservationHash = hashCheckoutReservationToken(reservationToken);
+  const { data: reservation } = await supabase
+    .from("checkout_reservations")
+    .select("id, championship_id, category_id, pricing_tier_id, price_snapshot, status, expires_at")
+    .eq("token_hash", reservationHash)
+    .eq("championship_id", championshipId)
+    .eq("category_id", categoryId)
+    .eq("status", "active")
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+  if (!reservation) {
+    await supabase.rpc("release_athlete_checkout_reservation", {
+      p_token_hash: reservationHash,
+      p_force: false,
+    });
+    return { error: "O tempo da reserva terminou. Volte à categoria para tentar reservar novamente." };
+  }
 
-  if (valorBaseCategoria > 0) {
+  const valorReservado = Number(reservation.price_snapshot);
+  if (!Number.isFinite(valorReservado) || valorReservado < 0) {
+    return { error: "Não foi possível validar o preço reservado. Tente reservar novamente." };
+  }
+
+  if (valorReservado > 0) {
     const { data: org } = await supabase
       .from("organizer_accounts")
       .select("chave_pix")
@@ -238,11 +421,10 @@ export async function comprarIngressoAtleta(
       return { error: "O organizador ainda não ativou o recebimento. Tente mais tarde." };
   }
 
-  // ── Reivindica lote + cupom (atômico) ──────────────────────────
-  const claimLote = await resolverEClaimarLote("category", categoryId, valorBaseCategoria, 1);
-  if (!claimLote.ok) return { error: claimLote.error };
-  let valorFinal = claimLote.valor;
-  const loteId = claimLote.loteId;
+  // O lote ja pertence a reserva. O cupom continua sendo reivindicado somente
+  // agora, pois ele e informado depois da escolha da categoria.
+  let valorFinal = valorReservado;
+  const loteId = reservation.pricing_tier_id;
 
   let cupomId: string | null = null;
   if (cupomPreview) {
@@ -250,7 +432,6 @@ export async function comprarIngressoAtleta(
     valorFinal = Math.round((valorFinal - desconto) * 100) / 100;
     const { data: claimed } = await supabase.rpc("claim_coupon_use", { p_coupon_id: cupomPreview.id });
     if (!claimed) {
-      if (loteId) await supabase.rpc("release_pricing_tier", { p_tier_id: loteId, p_qty: 1 });
       return { error: "Esse cupom acabou de esgotar. Tente novamente sem ele." };
     }
     cupomId = cupomPreview.id;
@@ -258,9 +439,12 @@ export async function comprarIngressoAtleta(
 
   const isGratis = valorFinal <= 0;
 
-  async function liberarReivindicacoes() {
+  async function liberarReservaECupom() {
     if (cupomId) await supabase.rpc("release_coupon_use", { p_coupon_id: cupomId });
-    if (loteId)  await supabase.rpc("release_pricing_tier", { p_tier_id: loteId, p_qty: 1 });
+    await supabase.rpc("release_athlete_checkout_reservation", {
+      p_token_hash: reservationHash,
+      p_force: true,
+    });
   }
 
   const code = Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -288,13 +472,15 @@ export async function comprarIngressoAtleta(
       valor:                valorFinal,
       cupom_id:             cupomId,
       lote_id:              loteId,
+      checkout_reservation_id: reservation.id,
       status_pagamento:     isGratis ? "pago" : "pendente",
       billing_type:         athleteTicketInitialBillingType(metodoPagamento, isGratis),
       code,
       access_token:         accessToken,
-      user_id:              buyerUser?.id ?? null,
+      user_id:              athleteUserId,
       comprador_rating:     compradorRating,
       parceiro_rating:      parceiroRating,
+      ...checkoutLegalConsentRecord(),
     })
     .select("id")
     .single();
@@ -307,12 +493,21 @@ export async function comprarIngressoAtleta(
       error: insErr,
       alert: true,
     });
-    await liberarReivindicacoes();
+    // Conflito de participante é corrigível dentro do próprio formulário.
+    // Preserve a vaga até o prazo original; só devolva o cupom reivindicado,
+    // pois ele será validado novamente na próxima tentativa.
     if (isParticipantCategoryConflict(insErr)) {
+      if (cupomId) await supabase.rpc("release_coupon_use", { p_coupon_id: cupomId });
       return { error: participantCategoryConflictMessage };
+    }
+    await liberarReservaECupom();
+    if (insErr?.message.includes("checkout_reservation_expired")) {
+      return { error: "O tempo da reserva terminou. Volte à categoria para tentar novamente." };
     }
     return { error: "Erro ao gerar o ingresso. Tente novamente." };
   }
+
+  cookieStore.delete(reservationCookieName);
 
   const waitlistInvite = String(formData.get("waitlist_invite") ?? "");
   if (waitlistInvite.length >= 32 && waitlistInvite.length <= 100) {
@@ -353,8 +548,10 @@ export async function comprarIngressoAtleta(
 
     if (!operacao.ok) {
       if (!operacao.ambiguous && !operacao.inProgress) {
-        await liberarReivindicacoes();
-        await supabase.from("athlete_tickets").update({ status_pagamento: "expirado" }).eq("id", ticket.id);
+        await supabase.rpc("release_athlete_ticket_inventory", {
+          p_ticket_id: ticket.id,
+          p_target_status: "expirado",
+        });
       }
       return { error: operacao.error };
     }

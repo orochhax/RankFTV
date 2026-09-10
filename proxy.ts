@@ -6,6 +6,7 @@ import {
   createRequestId,
   createRequestNonce,
 } from "@/lib/security-headers";
+import { getSupabasePublicConfig } from "@/lib/supabase/config";
 
 // Rotas que exigem role admin ou ceo
 const ADMIN_ROUTES = ["/admin"];
@@ -32,6 +33,7 @@ export async function proxy(request: NextRequest) {
   const createNextResponse = () =>
     NextResponse.next({ request: { headers: requestHeaders } });
   let supabaseResponse = createNextResponse();
+  const supabaseConfig = getSupabasePublicConfig();
 
   const secure = (response: NextResponse) => {
     applyRequestSecurityHeaders(response.headers, {
@@ -59,9 +61,10 @@ export async function proxy(request: NextRequest) {
   };
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseConfig.url,
+    supabaseConfig.publishableKey,
     {
+      cookieOptions: { secure: !development },
       cookies: {
         getAll() {
           return request.cookies.getAll();

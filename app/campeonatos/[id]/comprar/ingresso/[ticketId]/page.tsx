@@ -15,7 +15,6 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { athleteDisplayName } from "@/lib/athlete-display-name";
 import { calcularTotalComprador } from "@/lib/taxas";
 import { decideRefundPolicy } from "@/lib/refund-policy";
-import { ChampionshipNotices } from "@/components/campeonatos/ChampionshipNotices";
 
 const AVATAR_COLORS = ["bg-blue-500", "bg-blue-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
 function avatarColor(str: string) {
@@ -49,7 +48,7 @@ export default async function IngressoAtletaPage({
   const { data: t } = await supabase
     .from("athlete_tickets")
     .select(
-      "id, championship_id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, billing_type, asaas_payment_id, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at, created_at",
+      "id, championship_id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, billing_type, asaas_payment_id, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at, checkout_expires_at, created_at",
     )
     .eq("id", ticketId)
     .eq("access_token", accessToken)
@@ -94,9 +93,6 @@ export default async function IngressoAtletaPage({
     .select("nome, is_elite, data_inicio, data_fim, cidade, estado, local, regulamento")
     .eq("id", champId)
     .maybeSingle();
-  const { data: noticeRows } = await supabase.from("championship_notices").select("id, title, message, created_at").eq("championship_id", champId).order("created_at", { ascending: false }).limit(10);
-  const notices = (noticeRows ?? []).map((notice) => ({ id: notice.id, title: notice.title, message: notice.message, createdAt: notice.created_at }));
-
   let categoriaGenero: "masculino" | "feminino" | "mista" | null = null;
   if (t.category_id) {
     const { data: cat } = await supabase
@@ -242,7 +238,6 @@ export default async function IngressoAtletaPage({
       {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
       <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:shadow-none">
         <PageContainer width="wide" className="space-y-6">
-          <ChampionshipNotices notices={notices} />
           {hasRefundOperation || terminal ? (
             <RefundStatusPanel
               billingType={t.billing_type}
@@ -265,6 +260,8 @@ export default async function IngressoAtletaPage({
               paymentMethod={t.billing_type === "CREDIT_CARD" || t.billing_type === "DEBIT_CARD" ? "cartao" : "pix"}
               championshipId={champId}
               categoryId={t.category_id}
+              checkoutExpiresAt={t.checkout_expires_at}
+              serverNow={new Date().toISOString()}
             />
           )}
 

@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processPendingChampionshipNoticeDeliveries } from "@/lib/championship-notices";
+import { isCronAuthorized } from "@/lib/cron-auth";
 
 export const dynamic = "force-dynamic";
 
 async function run(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!isCronAuthorized(request.headers)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json({ ok: true, ...(await processPendingChampionshipNoticeDeliveries({ limit: 250 })) });
+  return NextResponse.json({ ok: true, ...(await processPendingChampionshipNoticeDeliveries({ limit: 50 })) });
 }
 
 export const GET = run;

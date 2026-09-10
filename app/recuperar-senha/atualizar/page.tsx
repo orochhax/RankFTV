@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Surface } from "@/components/shell/Surface";
+import { passwordUpdateErrorMessage } from "@/lib/auth-error-messages";
+import { passwordUpdateInputSchema } from "@/lib/auth-input-schemas";
 
 export default function AtualizarSenhaPage() {
   const supabase = createClient();
@@ -34,21 +36,21 @@ export default function AtualizarSenhaPage() {
     e.preventDefault();
     setErro(null);
 
-    if (senha.length < 8) {
-      setErro("A senha precisa ter pelo menos 8 caracteres.");
-      return;
-    }
-    if (senha !== confirmacao) {
-      setErro("As senhas não coincidem.");
+    const parsed = passwordUpdateInputSchema.safeParse({
+      password: senha,
+      confirmation: confirmacao,
+    });
+    if (!parsed.success) {
+      setErro("Use de 8 a 128 caracteres e repita exatamente a mesma senha.");
       return;
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: senha });
+    const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
     setLoading(false);
 
     if (error) {
-      setErro("Não foi possível atualizar a senha. O link pode ter expirado — solicite um novo.");
+      setErro(passwordUpdateErrorMessage(error));
       return;
     }
 

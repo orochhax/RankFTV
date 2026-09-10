@@ -23,6 +23,7 @@ export function CampeonatosSection({
   featured,
   sidebar,
   live,
+  collapsibleSearch = false,
 }: {
   allCamps: Championship[];
   estados: string[];
@@ -31,6 +32,7 @@ export function CampeonatosSection({
   featured?: ReactNode;
   sidebar?: ReactNode;
   live?: ReactNode;
+  collapsibleSearch?: boolean;
 }) {
   const [filters, setFilters] = useState(initialFilters);
   const [visible, setVisible] = useState(PAGE_SIZE);
@@ -71,7 +73,7 @@ export function CampeonatosSection({
     <div className="space-y-8">
       <div>
         <section aria-label="Pesquisar campeonatos">
-          <ChampionshipDiscoveryBar filters={filters} estados={estados} update={update} clear={clear} onSearch={showResults} />
+          <ChampionshipDiscoveryBar filters={filters} estados={estados} update={update} clear={clear} onSearch={showResults} collapsibleOnMobile={collapsibleSearch} />
           {intervaloInvalido && <p className="mt-3 text-sm font-medium text-red-600">A data final precisa ser igual ou posterior à inicial.</p>}
         </section>
       </div>

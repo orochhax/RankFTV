@@ -1,3 +1,5 @@
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+
 type ViaCepResponse = {
   erro?: boolean;
   logradouro?: string;
@@ -7,9 +9,12 @@ type ViaCepResponse = {
 };
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ cep: string }> },
 ) {
+  if (!(await checkRateLimit(`cep:${getClientIp(request.headers)}`, 60, 60))) {
+    return Response.json({ error: "Muitas consultas. Aguarde um minuto." }, { status: 429 });
+  }
   const { cep: rawCep } = await context.params;
   const cep = rawCep.replace(/\D/g, "");
 

@@ -17,6 +17,10 @@ import {
   normalizeCardHolderPhone,
 } from "@/lib/card-holder";
 import { getClientIp } from "@/lib/rate-limit";
+import {
+  invalidPaymentInput,
+  registrationCardPaymentSchema,
+} from "@/lib/payment-input-schemas";
 
 export type CardPaymentInput = {
   registrationId: string;
@@ -40,6 +44,10 @@ export type CardPaymentResult =
 export async function pagarComCartao(
   input: CardPaymentInput
 ): Promise<CardPaymentResult> {
+  const parsed = registrationCardPaymentSchema.safeParse(input);
+  if (!parsed.success) return invalidPaymentInput();
+  input = parsed.data;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada. Faça login novamente." };

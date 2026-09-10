@@ -53,7 +53,12 @@ export function IngressoPlateiaStatus({
     async function check() {
       if (stoppedRef.current) return;
       try {
-        const res = await fetch(`/api/ticket-status?tipo=plateia&id=${ticketId}&token=${accessToken}`, { cache: "no-store" });
+        const res = await fetch("/api/ticket-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tipo: "plateia", id: ticketId, token: accessToken }),
+          cache: "no-store",
+        });
         if (res.ok) {
           const data = await res.json();
           const nextStatus = String(data.status_pagamento ?? "pendente");

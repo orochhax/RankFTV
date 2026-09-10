@@ -67,5 +67,6 @@ test("public refund panel uses provider-neutral wording", () => {
   assert.match(panel, /Reembolso precisa de atendimento/);
   assert.match(panel, /Aguardando confirmação do reembolso/);
   assert.match(panel, /Processamento do reembolso confirmado/);
+  assert.doesNotMatch(panel, /Confirmação do reembolso ainda pendente/);
   assert.match(panel, /O cancelamento foi finalizado/);
 });

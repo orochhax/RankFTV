@@ -3,6 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { z } from "zod";
+
+const checkinInputSchema = z.object({
+  input: z.string().trim().min(1).max(64).regex(/^[A-Za-z0-9-]+$/),
+  championshipId: z.uuid(),
+}).strict();
 
 export type CheckinResult =
   | { ok: true; nome: string }
@@ -13,6 +19,10 @@ export async function markCheckin(
   input: string,
   championshipId: string,
 ): Promise<CheckinResult> {
+  const parsed = checkinInputSchema.safeParse({ input, championshipId });
+  if (!parsed.success) return { error: "Código inválido" };
+  const token = parsed.data.input;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Não autenticado" };
@@ -40,14 +50,7 @@ export async function markCheckin(
     return { error: "Sem permissão para este campeonato" };
   }
 
-  const token      = input.trim();
   const tokenUpper = token.toUpperCase();
-
-  // Só aceita o formato esperado (UUID do qr_token ou código alfanumérico).
-  // Isso impede injeção de filtro no PostgREST via vírgula/parênteses no `.or()`.
-  if (!/^[A-Za-z0-9-]{1,64}$/.test(token)) {
-    return { error: "Código inválido" };
-  }
 
   const { data: cred } = await supabase
     .from("credentials")

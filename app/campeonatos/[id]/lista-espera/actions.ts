@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { normalizeWaitlistEmail, validWaitlistEmail } from "@/lib/waitlist";
+import { championshipWaitlistSchema } from "@/lib/ticket-action-schemas";
 
 export async function entrarNaListaEspera(input: {
   championshipId: string;
@@ -11,6 +12,13 @@ export async function entrarNaListaEspera(input: {
   email: string;
   consent: boolean;
 }): Promise<{ ok: boolean; position?: number; error?: string }> {
+  const parsed = championshipWaitlistSchema.safeParse({
+    ...input,
+    email: normalizeWaitlistEmail(input.email),
+  });
+  if (!parsed.success) return { ok: false, error: "Dados da lista de espera inválidos." };
+  input = parsed.data;
+
   if (!input.consent) return { ok: false, error: "Confirme que aceita receber o convite por e-mail." };
   const email = normalizeWaitlistEmail(input.email);
   if (!validWaitlistEmail(email)) return { ok: false, error: "Informe um e-mail válido." };

@@ -7,6 +7,39 @@ function source(relativePath: string): string {
   return readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
 
+test("Sandbox preserves Asaas keys containing dollar signs without a production fallback", () => {
+  const startup = source("scripts/dev-sandbox.ps1");
+  const asaas = source("lib/asaas.ts");
+
+  assert.match(startup, /RANKFTV_SANDBOX_ASAAS_API_KEY_BASE64/);
+  assert.match(startup, /ToBase64String/);
+  assert.match(asaas, /process\.env\.NODE_ENV !== "development"/);
+  assert.match(asaas, /RANKFTV_SANDBOX_ASAAS_API_KEY_BASE64/);
+  assert.doesNotMatch(asaas, /NEXT_PUBLIC_.*ASAAS_API_KEY/);
+});
+
+test("Sandbox preserves the Resend key without adding a production fallback", () => {
+  const startup = source("scripts/dev-sandbox.ps1");
+  const resend = source("lib/email/resend.ts");
+  const send = source("lib/email/send.ts");
+
+  assert.match(startup, /RANKFTV_SANDBOX_RESEND_API_KEY_BASE64/);
+  assert.match(resend, /process\.env\.NODE_ENV !== "development"/);
+  assert.match(resend, /RANKFTV_SANDBOX_RESEND_API_KEY_BASE64/);
+  assert.match(send, /resolveResendApiKey\(\)/);
+  assert.doesNotMatch(resend, /NEXT_PUBLIC_.*RESEND_API_KEY/);
+});
+
+test("Sandbox may shorten an athlete checkout reservation without changing production", () => {
+  const reservation = source("lib/checkout-reservation.ts");
+  const sandboxEnv = source(".env.sandbox.local");
+
+  assert.match(sandboxEnv, /^ATHLETE_CHECKOUT_RESERVATION_MINUTES=1$/m);
+  assert.match(reservation, /process\.env\.NODE_ENV === "development"/);
+  assert.match(reservation, /PRODUCTION_ATHLETE_CHECKOUT_RESERVATION_MINUTES = 15/);
+  assert.match(reservation, /value < 1 \|\| value > PRODUCTION_ATHLETE_CHECKOUT_RESERVATION_MINUTES/);
+});
+
 test("commercial admin authorization has profiles.role as its only source of truth", () => {
   const roles = source("lib/supabase/roles.ts");
   assert.doesNotMatch(roles, /user\.email\s*&&\s*user\.email\s*===\s*process\.env\.ADMIN_EMAIL/);
@@ -185,6 +218,7 @@ test("categories with operational history cannot be deleted or trigger refunds",
   const editForm = source("components/painel/EditarCampeonatoForm.tsx");
   const manager = source("components/painel/LotesManager.tsx");
   const migration = source("supabase/production-category-deletion-guard.sql");
+  const transactionMigration = source("supabase/production-championship-update-transaction.sql");
 
   assert.match(actions, /\.from\("teams"\)[\s\S]*\.from\("athlete_tickets"\)/);
   assert.match(actions, /\.from\("bracket_participants"\)[\s\S]*\.from\("bracket_matches"\)/);
@@ -194,10 +228,12 @@ test("categories with operational history cannot be deleted or trigger refunds",
   assert.match(actions, /if \(!deleted\)/);
   assert.match(manager, /não cancela compras nem gera reembolso/);
   assert.match(manager, /role="alert"/);
-  assert.match(editActions, /deleteError\?\.code === "23503"/);
+  assert.match(editActions, /transactionError\.code === "23503"/);
   assert.match(editActions, /CATEGORY_HAS_DEPENDENCIES/);
-  assert.match(editActions, /if \(deleteError\) return \{ ok: false/);
-  assert.match(editActions, /\(deleted \?\? \[\]\)\.length !== ids\.length/);
+  assert.match(editActions, /update_championship_transaction/);
+  assert.match(editActions, /CATEGORY_WRITE_FAILED/);
+  assert.match(transactionMigration, /DELETE FROM public\.championship_categories/);
+  assert.match(transactionMigration, /v_affected <> 1/);
   assert.match(editForm, /role="alert"/);
   assert.match(migration, /BEFORE DELETE ON championship_categories/);
   assert.match(migration, /SELECT 1 FROM registrations/);
@@ -205,6 +241,20 @@ test("categories with operational history cannot be deleted or trigger refunds",
   assert.match(migration, /SELECT 1 FROM bracket_matches/);
   assert.match(migration, /ERRCODE = '23503'/);
   assert.doesNotMatch(migration, /refund|reembolso|estorno/i);
+});
+
+test("athlete check-in is suspended atomically while a refund is active", () => {
+  const migration = source("supabase/production-athlete-ticket-refund-checkin-guard.sql");
+  const manualCheck = source("supabase/manual-tests/athlete-ticket-refund-checkin-guard-check.sql");
+
+  assert.match(migration, /FROM athlete_tickets t[\s\S]*FOR UPDATE/);
+  assert.match(migration, /p_flow = 'athlete_ticket'[\s\S]*p_operation_type = 'refund'/);
+  assert.match(migration, /ATHLETE_TICKET_ALREADY_CHECKED_IN/);
+  assert.match(migration, /f\.status NOT IN \('failed', 'cancelled'\)/);
+  assert.match(migration, /BEFORE UPDATE OF checked_in ON athlete_ticket_credentials/);
+  assert.match(migration, /BEFORE UPDATE OF checked_in ON athlete_tickets/);
+  assert.match(manualCheck, /ATHLETE_TICKET_REFUND_PENDING/);
+  assert.match(manualCheck, /FALHA: check-in aceito durante reembolso ativo/);
 });
 
 test("application errors never use native browser alerts", () => {

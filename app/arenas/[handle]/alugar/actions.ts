@@ -9,6 +9,10 @@ import {
   cardBlockedMessage,
   finishCardPaymentAttempt,
 } from "@/lib/payment-security";
+import {
+  arenaRentalPaymentSchema,
+  invalidPaymentInput,
+} from "@/lib/payment-input-schemas";
 
 export type AlugarInput = {
   planId:      string;
@@ -31,6 +35,10 @@ export type AlugarResult =
   | { ok: false; error: string };
 
 export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
+  const parsed = arenaRentalPaymentSchema.safeParse(input);
+  if (!parsed.success) return invalidPaymentInput();
+  input = parsed.data;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada. Faça login novamente." };
@@ -54,6 +62,14 @@ export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
     .single();
 
   if (!plan) return { ok: false, error: "Plano de aluguel não encontrado." };
+
+  const { data: arena } = await supabase
+    .from("arenas")
+    .select("id")
+    .eq("id", plan.arena_id)
+    .eq("handle", input.handle)
+    .maybeSingle();
+  if (!arena) return { ok: false, error: "Plano de aluguel não encontrado." };
 
   if (input.tipo === "debito" && !plan.aceita_debito) {
     return { ok: false, error: "Esta arena não aceita débito para aluguel." };

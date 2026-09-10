@@ -89,6 +89,7 @@ Nunca versione `.env.local`. Variáveis sem o prefixo `NEXT_PUBLIC_` são exclus
 | `ASAAS_BASE_URL` | Servidor | Endpoint da API Asaas do ambiente atual. |
 | `ASAAS_API_KEY` | Servidor | Credencial da API Asaas. |
 | `ASAAS_WEBHOOK_TOKEN` | Servidor | Autentica os webhooks recebidos do Asaas. |
+| `ASAAS_WITHDRAWAL_AUTH_TOKEN` | Servidor | Autentica o webhook especial que autoriza saídas e estornos Pix. |
 | `ARENA_RECURRING_PAYMENTS_ENABLED` | Servidor | Mantém novas recorrências pagas da Arena beta fechadas por padrão. |
 | `PAYMENT_FINGERPRINT_SECRET` | Servidor | HMAC usado pelo bloqueio contra testes abusivos de cartão. |
 | `CRON_SECRET` | Servidor | Protege os endpoints em `/api/cron/*`. |

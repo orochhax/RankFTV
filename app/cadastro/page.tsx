@@ -9,6 +9,7 @@ import { validaCpfCnpj, idadeEm, soDigitos } from "@/lib/validacao";
 import type { Genero } from "@/lib/types";
 import { Surface } from "@/components/shell/Surface";
 import Turnstile, { type TurnstileHandle } from "@/components/auth/Turnstile";
+import { signupInputSchema } from "@/lib/auth-input-schemas";
 
 // Quando a site key existe, o Supabase está com captcha ligado e exige o token.
 const captchaEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -104,12 +105,35 @@ function CadastroForm() {
       return;
     }
 
-    const metadata: Record<string, string> = { nome, username, genero };
-    if (modoOrganizador) {
+    const parsed = signupInputSchema.safeParse({
+      nome,
+      email: email.trim().toLowerCase(),
+      password: senha,
+      username,
+      genero,
+      captchaToken,
+      organizer: modoOrganizador ? {
+        telefone: soDigitos(telefone),
+        cpfCnpj: soDigitos(cpfCnpj),
+        nascimento,
+      } : null,
+    });
+    if (!parsed.success) {
+      setErro("Revise os dados do cadastro e tente novamente.");
+      setLoading(false);
+      return;
+    }
+
+    const metadata: Record<string, string> = {
+      nome: parsed.data.nome,
+      username: parsed.data.username,
+      genero: parsed.data.genero,
+    };
+    if (parsed.data.organizer) {
       metadata.modo = "organizador";
-      metadata.telefone = soDigitos(telefone);
-      metadata.cpf_cnpj = soDigitos(cpfCnpj);
-      metadata.data_nascimento = nascimento;
+      metadata.telefone = parsed.data.organizer.telefone;
+      metadata.cpf_cnpj = parsed.data.organizer.cpfCnpj;
+      metadata.data_nascimento = parsed.data.organizer.nascimento;
     }
 
     const callbackUrl = new URL("/auth/callback", window.location.origin);
@@ -122,30 +146,31 @@ function CadastroForm() {
     else if (safeNext) callbackUrl.searchParams.set("next", safeNext);
 
     const { error } = await supabase.auth.signUp({
-      email,
-      password: senha,
+      email: parsed.data.email,
+      password: parsed.data.password,
       options: {
         data: metadata,
         emailRedirectTo: callbackUrl.toString(),
-        ...(captchaToken ? { captchaToken } : {}),
+        captchaToken: parsed.data.captchaToken,
       },
     });
 
     if (error) {
-      const msg = error.message || "";
       setErro(
-        msg.includes("already registered")
+        error.code === "user_already_exists"
           ? "Esse e-mail já está cadastrado."
-          : msg.includes("sending") || msg === "{}"
+          : error.code === "email_provider_disabled" || error.code === "unexpected_failure"
           ? "Erro ao enviar o e-mail de confirmação. Verifique as configurações de SMTP."
-          : msg || "Erro ao criar conta. Tente novamente."
+          : error.code === "over_request_rate_limit"
+            ? "Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente."
+            : "Erro ao criar conta. Revise os dados e tente novamente."
       );
       setLoading(false);
       // Token é de uso único: gera um novo pra próxima tentativa.
       captchaRef.current?.reset();
       setCaptchaToken(null);
     } else {
-      router.push(`/cadastro/verificar-email?email=${encodeURIComponent(email)}`);
+      router.push(`/cadastro/verificar-email?email=${encodeURIComponent(parsed.data.email)}`);
     }
   }
 

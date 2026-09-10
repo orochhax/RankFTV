@@ -16,6 +16,7 @@ import {
   type MetodoPagamento,
   type TitularInput,
 } from "@/lib/asaas";
+import { withdrawalRecipientDigest } from "@/lib/asaas-withdrawal-authorization";
 import {
   executeFinancialOperation,
   type FinancialExecutionResult,
@@ -231,6 +232,16 @@ export async function transferIdempotently(input: CommonInput & {
   pixKey: string;
   description: string;
 }): Promise<FinancialExecutionResult<{ id: string; status: string; externalReference?: string }>> {
+  const recipientHashSecret = process.env.PAYMENT_FINGERPRINT_SECRET;
+  if (!recipientHashSecret) {
+    return {
+      ok: false,
+      operationId: "",
+      inProgress: false,
+      ambiguous: false,
+      error: "A protecao de autorizacao do repasse nao esta configurada.",
+    };
+  }
   const { data: resolvedReference, error: referenceError } = await createAdminClient().rpc(
     "financial_resolve_transfer_reference",
     {
@@ -258,7 +269,11 @@ export async function transferIdempotently(input: CommonInput & {
     amount: input.amount,
     actorId: input.actorId,
     correlationId: input.correlationId,
-    metadata: { ...input.metadata, baseExternalReference: input.externalReference },
+    metadata: {
+      ...input.metadata,
+      baseExternalReference: input.externalReference,
+      recipientDigest: withdrawalRecipientDigest(input.pixKey, recipientHashSecret),
+    },
     lookup: () => buscarTransferenciaPorReferencia(externalReference),
     retryUncertainOperation: false,
     create: () => transferirPix({

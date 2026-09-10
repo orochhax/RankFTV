@@ -20,14 +20,16 @@ jobs:
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Validate production target
@@ -36,7 +38,10 @@ jobs:
           set -euo pipefail
           test -n "$SUPABASE_DB_URL"
           test -n "$NEXT_PUBLIC_SUPABASE_URL"
-          test -n "$SUPABASE_SERVICE_ROLE_KEY"
+          supabase_secret_key="${SUPABASE_SECRET_KEY:-$SUPABASE_SERVICE_ROLE_KEY}"
+          test -n "$supabase_secret_key"
+          test -n "$BACKUP_ENCRYPTION_PASSPHRASE"
+          test "${#BACKUP_ENCRYPTION_PASSPHRASE}" -ge 32
           test "$NEXT_PUBLIC_SUPABASE_URL" = "https://tkyopolcxfsdbhvrgadj.supabase.co"
           case "$SUPABASE_DB_URL" in
             *tkyopolcxfsdbhvrgadj*supabase.com*) ;;
@@ -60,6 +65,8 @@ jobs:
           set -euo pipefail
           stamp="$(date -u +%Y%m%d-%H%M%S)"
           backup_root="$RUNNER_TEMP/rankftv-production-$stamp"
+          archive="$RUNNER_TEMP/rankftv-production-$stamp.tar.gz"
+          encrypted="$archive.enc"
           mkdir -p "$backup_root/database" "$backup_root/storage"
 
           pg_dump --dbname="$SUPABASE_DB_URL" --format=custom --file="$backup_root/database/database.dump"
@@ -67,18 +74,30 @@ jobs:
           pg_dump --dbname="$SUPABASE_DB_URL" --data-only --file="$backup_root/database/data.sql"
           pg_restore --list "$backup_root/database/database.dump" > "$backup_root/database/database-contents.txt"
 
-          printf 'NEXT_PUBLIC_SUPABASE_URL=%s\nSUPABASE_SERVICE_ROLE_KEY=%s\n' \
-            "$NEXT_PUBLIC_SUPABASE_URL" "$SUPABASE_SERVICE_ROLE_KEY" > .env.local
+          supabase_secret_key="${SUPABASE_SECRET_KEY:-$SUPABASE_SERVICE_ROLE_KEY}"
+          printf 'NEXT_PUBLIC_SUPABASE_URL=%s\nSUPABASE_SECRET_KEY=%s\n' \
+            "$NEXT_PUBLIC_SUPABASE_URL" "$supabase_secret_key" > .env.local
+          trap 'rm -f .env.local' EXIT
           node scripts/backup-supabase-storage.mjs "$backup_root/storage"
           rm -f .env.local
+          trap - EXIT
 
           (cd "$backup_root" && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
           (cd "$backup_root" && sha256sum --check SHA256SUMS.txt)
-      - name: Upload encrypted-at-rest backup artifact
-        uses: actions/upload-artifact@v4
+
+          tar -C "$RUNNER_TEMP" -czf "$archive" "$(basename "$backup_root")"
+          printf '%s' "$BACKUP_ENCRYPTION_PASSPHRASE" | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -in "$archive" -out "$encrypted" -pass stdin
+          printf '%s' "$BACKUP_ENCRYPTION_PASSPHRASE" | openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$encrypted" -out "$archive.verify" -pass stdin
+          tar -tzf "$archive.verify" > /dev/null
+          sha256sum "$encrypted" > "$encrypted.sha256"
+          rm -rf "$backup_root" "$archive" "$archive.verify"
+      - name: Upload client-side encrypted backup artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: rankftv-production-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/rankftv-production-*/
+          path: |
+            ${{ runner.temp }}/rankftv-production-*.tar.gz.enc
+            ${{ runner.temp }}/rankftv-production-*.tar.gz.enc.sha256
           if-no-files-found: error
           retention-days: 30
           compression-level: 6

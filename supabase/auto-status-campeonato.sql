@@ -5,6 +5,7 @@
 CREATE OR REPLACE FUNCTION auto_update_championship_status()
 RETURNS void
 LANGUAGE plpgsql
+SET search_path = public, pg_temp
 AS $$
 BEGIN
   -- inscricoes_abertas → em_andamento: quando a data de início do evento chegou
@@ -20,6 +21,12 @@ BEGIN
     AND data_fim < CURRENT_DATE;
 END;
 $$;
+
+-- Executada apenas pelo agendador/backend; clientes nao precisam desta RPC.
+REVOKE ALL ON FUNCTION auto_update_championship_status()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION auto_update_championship_status()
+  TO service_role;
 
 -- ── 2. Agendamento: roda todo dia às 03:00 (horário do servidor) ──
 -- Remove job anterior se já existir (ignora erro se não existir)

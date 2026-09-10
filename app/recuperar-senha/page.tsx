@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Surface } from "@/components/shell/Surface";
 import Turnstile, { type TurnstileHandle } from "@/components/auth/Turnstile";
+import { passwordRecoveryInputSchema } from "@/lib/auth-input-schemas";
 
 // Quando a site key existe, o Supabase está com captcha ligado e exige o token
 // também no envio do e-mail de recuperação.
@@ -30,14 +31,24 @@ export default function RecuperarSenhaPage() {
     setMensagem(null);
     setErro(null);
 
+    const parsed = passwordRecoveryInputSchema.safeParse({
+      email: email.trim().toLowerCase(),
+      captchaToken,
+    });
+    if (!parsed.success) {
+      setErro("Informe um e-mail válido.");
+      setLoading(false);
+      return;
+    }
+
     // O link do e-mail cai no /auth/callback (que já valida o token) e de lá é
     // redirecionado pra tela de definir a nova senha.
     const redirectTo = new URL("/auth/callback", window.location.origin);
     redirectTo.searchParams.set("next", "/recuperar-senha/atualizar");
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
       redirectTo: redirectTo.toString(),
-      ...(captchaToken ? { captchaToken } : {}),
+      ...(parsed.data.captchaToken ? { captchaToken: parsed.data.captchaToken } : {}),
     });
 
     setLoading(false);

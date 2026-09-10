@@ -2,16 +2,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { reportOperationalEvent } from "@/lib/observability";
 import { hashRateLimitKey } from "@/lib/rate-limit-core";
 
-/**
- * Extrai o IP do cliente a partir dos headers. A Vercel seta x-forwarded-for.
- * Pega so o primeiro IP da lista. Cai para "unknown" se nao achar.
- */
-export function getClientIp(headers: Headers): string {
-  const fwd = headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0].trim();
-  return headers.get("x-real-ip")?.trim() || "unknown";
-}
+export { getClientIp } from "@/lib/rate-limit-core";
 
+/**
+ * A Vercel sobrescreve estes headers na borda. Priorizamos a variante própria,
+ * que não é substituída por um proxy colocado na frente da Vercel.
+ */
 /**
  * Rate limit por chave. Retorna true se a requisicao pode prosseguir.
  * Falha fechada: endpoints publicos com CPF/email nao podem liberar tudo

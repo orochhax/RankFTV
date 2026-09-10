@@ -6,8 +6,15 @@ import { refundIdempotently } from "@/lib/payment-flows";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { decideRefundPolicy, refundPolicyError } from "@/lib/refund-policy";
+import { z } from "zod";
+
+const registrationIdSchema = z.uuid();
 
 export async function solicitarReembolso(regId: string): Promise<{ ok: boolean; error?: string }> {
+  const parsedId = registrationIdSchema.safeParse(regId);
+  if (!parsedId.success) return { ok: false, error: "Inscricao invalida." };
+  const registrationId = parsedId.data;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Nao autenticado." };
@@ -15,7 +22,7 @@ export async function solicitarReembolso(regId: string): Promise<{ ok: boolean; 
   const { data: reg } = await supabase
     .from("registrations")
     .select("id, valor, status_pagamento, asaas_payment_id, team_id, championship_id, created_at")
-    .eq("id", regId)
+    .eq("id", registrationId)
     .single();
   if (!reg) return { ok: false, error: "Inscricao nao encontrada." };
   if (reg.status_pagamento !== "pago") return { ok: false, error: "Esta inscricao nao pode ser estornada." };
@@ -60,7 +67,7 @@ export async function solicitarReembolso(regId: string): Promise<{ ok: boolean; 
   const partialAmount = policy.refundMode === "partial" ? Number(reg.valor) : undefined;
   const refund = await refundIdempotently({
     flow: "registration",
-    recordId: regId,
+    recordId: registrationId,
     originalPaymentId: reg.asaas_payment_id,
     amount: partialAmount,
     actorId: user.id,
@@ -74,7 +81,7 @@ export async function solicitarReembolso(regId: string): Promise<{ ok: boolean; 
     };
   }
 
-  const updated = await estornarInscricao(admin, regId);
+  const updated = await estornarInscricao(admin, registrationId);
   if (!updated.ok) {
     return { ok: false, error: "O reembolso foi aceito, mas o status aguarda reconciliacao." };
   }

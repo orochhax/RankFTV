@@ -1,18 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { CalendarDays, CircleDollarSign, MapPin, Search, X } from "lucide-react";
+import { CalendarDays, ChevronDown, CircleDollarSign, MapPin, Search, X } from "lucide-react";
 import type { ChampionshipDiscoveryFilters } from "@/lib/championship-discovery";
 
 const inputClass = "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 type Panel = "location" | "dates" | "price";
+
+function panelAlignment(alignRight: boolean, mobileAlignRight: boolean) {
+  if (mobileAlignRight) return "right-0";
+  if (alignRight) return "left-0 md:left-auto md:right-0";
+  return "left-0";
+}
 
 function formatDate(value: string) {
   if (!value) return "";
   return new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
-function Segment({ icon, title, summary, active, onClick, children, alignRight = false }: {
+function Segment({ icon, title, summary, active, onClick, children, alignRight = false, mobileAlignRight = false }: {
   icon: ReactNode;
   title: string;
   summary: string;
@@ -20,6 +26,7 @@ function Segment({ icon, title, summary, active, onClick, children, alignRight =
   onClick: () => void;
   children: ReactNode;
   alignRight?: boolean;
+  mobileAlignRight?: boolean;
 }) {
   return <div className="relative min-w-0 flex-1">
     <button type="button" onClick={onClick} aria-expanded={active} className={`flex min-h-[74px] w-full items-center gap-3 rounded-2xl px-4 text-left transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 md:rounded-none md:px-5 ${active ? "bg-gray-50" : ""}`}>
@@ -29,18 +36,20 @@ function Segment({ icon, title, summary, active, onClick, children, alignRight =
         <span className="mt-0.5 block truncate text-xs text-gray-500 sm:text-sm">{summary}</span>
       </span>
     </button>
-    {active && <div className={`absolute top-[calc(100%+10px)] z-30 w-[min(21rem,calc(100vw-3rem))] rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-xl ${alignRight ? "right-0" : "left-0"}`}>{children}</div>}
+    {active && <div className={`absolute top-[calc(100%+10px)] z-30 w-[min(21rem,calc(100vw-3rem))] rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-xl ${panelAlignment(alignRight, mobileAlignRight)}`}>{children}</div>}
   </div>;
 }
 
-export function ChampionshipDiscoveryBar({ filters, estados, update, clear, onSearch }: {
+export function ChampionshipDiscoveryBar({ filters, estados, update, clear, onSearch, collapsibleOnMobile = false }: {
   filters: ChampionshipDiscoveryFilters;
   estados: string[];
   update: (patch: Partial<ChampionshipDiscoveryFilters>) => void;
   clear: () => void;
   onSearch: () => void;
+  collapsibleOnMobile?: boolean;
 }) {
   const [open, setOpen] = useState<Panel | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const hasFilters = Object.entries(filters).some(([, value]) => value !== "" && value !== false);
   const locationSummary = filters.location || filters.state || filters.query || "Selecione um local";
@@ -69,7 +78,23 @@ export function ChampionshipDiscoveryBar({ filters, estados, update, clear, onSe
   }
 
   return <div ref={rootRef} className="relative">
-    <div className="grid grid-cols-2 gap-px rounded-[2rem] bg-white p-2 shadow-[0_3px_16px_rgba(0,0,0,0.12)] ring-1 ring-black/5 md:flex md:items-center md:gap-0 md:rounded-full md:p-1.5">
+    {collapsibleOnMobile ? (
+      <button
+        type="button"
+        onClick={() => { setExpanded((current) => !current); setOpen(null); }}
+        aria-expanded={expanded}
+        aria-controls="mobile-championship-search"
+        className="flex h-14 w-full items-center gap-3 rounded-2xl bg-white px-4 text-left shadow-[0_3px_16px_rgba(0,0,0,0.12)] ring-1 ring-black/5 md:hidden"
+      >
+        <Search className="size-5 text-gray-500" aria-hidden="true" />
+        <span className="flex-1 text-sm font-semibold text-gray-900">Buscar campeonatos</span>
+        <ChevronDown className={`size-5 text-gray-500 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
+      </button>
+    ) : null}
+    <div
+      id={collapsibleOnMobile ? "mobile-championship-search" : undefined}
+      className={`${collapsibleOnMobile && !expanded ? "hidden md:flex" : "grid"} ${collapsibleOnMobile && expanded ? "mt-3" : ""} grid-cols-2 gap-px rounded-[2rem] bg-white p-2 shadow-[0_3px_16px_rgba(0,0,0,0.12)] ring-1 ring-black/5 md:flex md:items-center md:gap-0 md:rounded-full md:p-1.5`}
+    >
       <Segment icon={<MapPin className="size-6" strokeWidth={1.8} />} title="Local" summary={locationSummary} active={open === "location"} onClick={() => toggle("location")}>
         <div className="space-y-3">
           <label className="block text-xs font-semibold text-gray-700">Cidade ou local<input value={filters.location} onChange={(event) => update({ location: event.target.value })} placeholder="Ex.: Salvador" className={`${inputClass} mt-1`} /></label>
@@ -78,7 +103,7 @@ export function ChampionshipDiscoveryBar({ filters, estados, update, clear, onSe
         </div>
       </Segment>
       <span aria-hidden="true" className="hidden h-10 w-px bg-gray-200 md:block" />
-      <Segment icon={<CalendarDays className="size-6" strokeWidth={1.8} />} title="Datas" summary={datesSummary} active={open === "dates"} onClick={() => toggle("dates")} alignRight>
+      <Segment icon={<CalendarDays className="size-6" strokeWidth={1.8} />} title="Datas" summary={datesSummary} active={open === "dates"} onClick={() => toggle("dates")} alignRight mobileAlignRight>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block text-xs font-semibold text-gray-700">De<input type="date" value={filters.dateFrom} onChange={(event) => update({ dateFrom: event.target.value })} className={`${inputClass} mt-1`} /></label>
           <label className="block text-xs font-semibold text-gray-700">Até<input type="date" value={filters.dateTo} onChange={(event) => update({ dateTo: event.target.value })} className={`${inputClass} mt-1`} /></label>

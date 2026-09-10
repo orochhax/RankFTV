@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
+import Link from "next/link";
 import { Loader2, Ticket, Minus, Plus } from "lucide-react";
 import { comprarIngresso, type ComprarState } from "@/app/campeonatos/[id]/plateia/actions";
 import { formatBRL } from "@/lib/format";
@@ -179,6 +180,26 @@ export function IngressoPlateiaForm({
       {state.error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 ring-1 ring-red-100">{state.error}</p>
       )}
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+        <input
+          type="checkbox"
+          name="aceite_termos"
+          required
+          className="mt-0.5 size-4 shrink-0 cursor-pointer accent-blue-600"
+        />
+        <span className="text-sm leading-relaxed text-gray-600">
+          Li e concordo com os{" "}
+          <Link href="/termos" target="_blank" className="font-medium text-blue-600 underline hover:text-blue-700">
+            Termos de Uso
+          </Link>{" "}
+          e com a{" "}
+          <Link href="/privacidade" target="_blank" className="font-medium text-blue-600 underline hover:text-blue-700">
+            Política de Privacidade
+          </Link>{" "}
+          da RankFTV.
+        </span>
+      </label>
 
       <button
         type="submit"

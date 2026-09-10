@@ -1,19 +1,11 @@
 import "server-only";
 
-import { createHash, createHmac } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { emailRecipientDigest } from "@/lib/email/recipient-digest";
 
 export type EmailOperationalStatus =
   | "queued" | "accepted" | "delivered" | "delayed"
   | "bounced" | "complained" | "failed" | "suppressed";
-
-function recipientDigest(email: string): string {
-  const normalized = email.trim().toLowerCase();
-  const secret = process.env.EMAIL_EVENT_HASH_SECRET ?? process.env.PAYMENT_FINGERPRINT_SECRET;
-  return secret
-    ? createHmac("sha256", secret).update(normalized).digest("hex")
-    : createHash("sha256").update(normalized).digest("hex");
-}
 
 export async function createEmailOperationalEvent(input: {
   recipient: string;
@@ -23,7 +15,7 @@ export async function createEmailOperationalEvent(input: {
     .from("transactional_email_events")
     .insert({
       template_key: input.templateKey,
-      recipient_hash: recipientDigest(input.recipient),
+      recipient_hash: emailRecipientDigest(input.recipient),
       status: "queued",
     })
     .select("id")
@@ -74,7 +66,7 @@ export async function applyEmailProviderEvent(input: {
       provider: "resend",
       provider_message_id: input.providerMessageId,
       template_key: "provider_event",
-      recipient_hash: recipientDigest(input.recipient),
+      recipient_hash: emailRecipientDigest(input.recipient),
       ...values,
       requested_at: input.occurredAt,
     });

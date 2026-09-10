@@ -155,13 +155,13 @@ export function RefundStatusPanel({
                 <p>O prazo final depende da forma de pagamento e da instituição financeira.</p>
               )}
             </div>
-            <p className={`mt-4 text-sm font-semibold ${refundCompleted ? "text-emerald-700" : refundFailed ? "text-red-700" : "text-amber-700"}`}>
-              {refundCompleted
-                ? "Processamento do reembolso confirmado."
-                : refundFailed
-                  ? "A devolução não foi concluída automaticamente."
-                  : "Confirmação do reembolso ainda pendente."}
-            </p>
+            {(refundCompleted || refundFailed) ? (
+              <p className={`mt-4 text-sm font-semibold ${refundCompleted ? "text-emerald-700" : "text-red-700"}`}>
+                {refundCompleted
+                  ? "Processamento do reembolso confirmado."
+                  : "A devolução não foi concluída automaticamente."}
+              </p>
+            ) : null}
           </>
         ) : (
           <p className="mt-2 text-sm leading-6 text-slate-600">

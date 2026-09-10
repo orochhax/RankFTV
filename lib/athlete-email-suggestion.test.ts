@@ -40,7 +40,8 @@ test("o checkout mostra a sugestão apenas como ação para cada atleta", () => 
   const page = source("app/campeonatos/[id]/comprar/page.tsx");
   const form = source("components/campeonatos/IngressoAtletaForm.tsx");
 
-  assert.match(page, /authenticatedEmail=\{user\?\.email\?\.trim\(\) \|\| null\}/);
+  assert.match(page, /email: user\.email\?\.trim\(\) \?\? ""/);
+  assert.match(page, /authenticatedAthlete=\{authenticatedAthlete\}/);
   assert.match(form, /value=\{values\.comprador_email \?\? ""\}/);
   assert.match(form, /value=\{values\.parceiro_email \?\? ""\}/);
   assert.doesNotMatch(form, /defaultValue=\{authenticatedEmail/);

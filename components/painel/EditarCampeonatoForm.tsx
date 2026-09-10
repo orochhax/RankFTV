@@ -110,6 +110,12 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
   );
 
   const visiveis = categorias.filter((c) => !c._delete);
+  const notificaAtletas =
+    dataInicio !== initial.dataInicio ||
+    dataFim !== initial.dataFim ||
+    cidade.trim() !== initial.cidade.trim() ||
+    estado.trim().toUpperCase() !== initial.estado.trim().toUpperCase() ||
+    local.trim() !== initial.local.trim();
 
   function updateCat(i: number, patch: Partial<CatForm>) {
     setCategorias((cs) => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
@@ -313,6 +319,15 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
               </li>
             ))}
           </ul>
+
+          {notificaAtletas && (
+            <div role="alert" className="mb-5 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+              <p className="font-semibold">Aviso automático aos atletas</p>
+              <p className="mt-1">
+                Ao salvar alterações na data ou no local, todos os atletas com inscrição paga e ativa receberão um e-mail e uma notificação com as informações anteriores e novas.
+              </p>
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <button

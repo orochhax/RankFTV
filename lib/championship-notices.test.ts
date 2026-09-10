@@ -36,9 +36,51 @@ test("a later repetition of the same transition can create a new operational not
 
 test("championship notice delivery persists hashes and resolves recipients just in time", () => {
   const source = readFileSync(new URL("./championship-notices.ts", import.meta.url), "utf8");
-  assert.match(source, /recipient_hash: recipientDigest/);
+  assert.match(source, /recipient_hash: emailRecipientDigest/);
   assert.match(source, /getUserById\(row\.recipient_ref\)/);
   assert.match(source, /status_pagamento !== "pago"/);
   assert.match(source, /idempotencyKey: `championship-change-/);
   assert.doesNotMatch(source, /championship_notice_deliveries[\s\S]{0,400}recipient_email/);
+});
+
+test("notification worker atomically claims deliveries before contacting the provider", () => {
+  const worker = readFileSync(new URL("./championship-notices.ts", import.meta.url), "utf8");
+  const migration = readFileSync(
+    new URL("../supabase/production-championship-notification-claims.sql", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(worker, /rpc\("claim_championship_notice_deliveries"/);
+  assert.doesNotMatch(worker, /\.from\("championship_notice_deliveries"\)\s*\.select/);
+  assert.match(migration, /FOR UPDATE SKIP LOCKED/);
+  assert.match(migration, /status = 'processing'/);
+  assert.match(migration, /claimed_at < now\(\) - interval '15 minutes'/);
+  assert.match(migration, /REVOKE ALL ON FUNCTION[\s\S]*FROM PUBLIC, anon, authenticated/);
+});
+
+test("organizer is warned before a date or location change notifies athletes", () => {
+  const form = readFileSync(
+    new URL("../components/painel/EditarCampeonatoForm.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(form, /const notificaAtletas/);
+  assert.match(form, /Aviso automático aos atletas/);
+  assert.match(form, /todos os atletas com inscrição paga e ativa receberão um e-mail e uma notificação/);
+});
+
+test("historical championship changes are not exposed on public or ticket pages", () => {
+  const publicPage = readFileSync(
+    new URL("../app/campeonatos/[id]/page.tsx", import.meta.url),
+    "utf8",
+  );
+  const ticketPage = readFileSync(
+    new URL("../app/campeonatos/[id]/comprar/ingresso/[ticketId]/page.tsx", import.meta.url),
+    "utf8",
+  );
+
+  for (const page of [publicPage, ticketPage]) {
+    assert.doesNotMatch(page, /ChampionshipNotices/);
+    assert.doesNotMatch(page, /from\("championship_notices"\)/);
+  }
 });

@@ -4,6 +4,7 @@ import { buildItCareerWorkspaceBundle, collectWorkspaceRowsByIds, type ItCareerW
 import { itCareerIds, itCareerLevelIds, type ItCareerId, type ItCareerLevelId, type ItCareerProjectSpec } from "@/lib/it-career-roadmaps";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { reportOperationalEvent } from "@/lib/observability";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -80,7 +81,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const modulesResult = await supabase.from("perf_study_roadmap_module")
     .select("id, title, objective, success_criteria, order_index, module_code, level_code")
     .eq("roadmap_id", roadmap.id).eq("user_id", auth.user.id).order("order_index", { ascending: true });
-  if (modulesResult.error) return Response.json({ error: modulesResult.error.message }, { status: 500 });
+  if (modulesResult.error) {
+    await reportOperationalEvent({ level: "error", event: "study_workspace.modules_failed", error: modulesResult.error });
+    return Response.json({ error: "Não foi possível preparar o workspace." }, { status: 500 });
+  }
   const modules = modulesResult.data ?? [];
   const targetIndex = requestedModuleId ? modules.findIndex((module) => module.id === requestedModuleId) : -1;
   if ((kind === "module" || kind === "through_module") && targetIndex < 0) return Response.json({ error: "Módulo não encontrado." }, { status: 404 });
@@ -89,14 +93,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const itemResult = await supabase.from("perf_study_roadmap_item")
     .select("id, module_id, parent_item_id, title, description, estimated_minutes, content_role, subtopics, preparation_steps, practice_exercises, evidence_prompt, project_spec, item_code, counts_for_progress, status")
     .eq("roadmap_id", roadmap.id).eq("user_id", auth.user.id).order("order_index", { ascending: true });
-  if (itemResult.error) return Response.json({ error: itemResult.error.message }, { status: 500 });
+  if (itemResult.error) {
+    await reportOperationalEvent({ level: "error", event: "study_workspace.items_failed", error: itemResult.error });
+    return Response.json({ error: "Não foi possível preparar o workspace." }, { status: 500 });
+  }
   const items = itemResult.data ?? [];
   const includedModuleIds = new Set(includedRows.map((module) => module.id));
   const assessmentIds = items
     .filter((item) => item.content_role === "assessment" && includedModuleIds.has(item.module_id))
     .map((item) => item.id);
   const publicQuestionResult = await loadPublicQuestions(auth.user.id, assessmentIds);
-  if (publicQuestionResult.error) return Response.json({ error: publicQuestionResult.error }, { status: 500 });
+  if (publicQuestionResult.error) {
+    await reportOperationalEvent({ level: "error", event: "study_workspace.questions_failed", error: new Error(publicQuestionResult.error) });
+    return Response.json({ error: "Não foi possível preparar o workspace." }, { status: 500 });
+  }
   const publicQuestions = publicQuestionResult.data;
 
   if ((kind === "module" || kind === "through_module") && targetIndex > 0) {
@@ -185,6 +195,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
   } catch (error) {
-    return Response.json({ error: error instanceof Error ? error.message : "Não foi possível preparar o workspace." }, { status: 500 });
+    await reportOperationalEvent({ level: "error", event: "study_workspace.bundle_failed", error });
+    return Response.json({ error: "Não foi possível preparar o workspace." }, { status: 500 });
   }
 }

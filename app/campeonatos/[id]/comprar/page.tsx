@@ -1,10 +1,22 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { ArrowLeft, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
-import { IngressoAtletaForm, type CategoriaOpcao } from "@/components/campeonatos/IngressoAtletaForm";
+import {
+  IngressoAtletaForm,
+  type AuthenticatedAthleteProfile,
+  type CategoriaOpcao,
+} from "@/components/campeonatos/IngressoAtletaForm";
 import { resolverPrecos, listarLotesComStatus } from "@/lib/lotes";
+import {
+  athleteCheckoutCookieName,
+  hashCheckoutReservationToken,
+  isCheckoutReservationToken,
+  type AthleteCheckoutReservation,
+} from "@/lib/checkout-reservation";
 
 // Compra de ingresso de atleta (dupla) como visitante, sem conta.
 export default async function ComprarAtletaPage({
@@ -18,43 +30,99 @@ export default async function ComprarAtletaPage({
   const { categoria: initialCategoryId, convite: waitlistInviteToken } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const cookieStore = await cookies();
+  const reservationToken = cookieStore.get(athleteCheckoutCookieName(id))?.value;
 
-  const { data: champ } = await supabase
-    .from("championships")
-    .select("nome, cidade, estado, status, is_elite, usa_motor_categoria")
-    .eq("id", id)
-    .maybeSingle();
+  const [{ data: champ }, { data: cats }, { data: profile }, { data: privateProfile }] = await Promise.all([
+    supabase
+      .from("championships")
+      .select("nome, cidade, estado, status, is_elite, usa_motor_categoria")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("championship_categories")
+      .select("id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max")
+      .eq("championship_id", id)
+      .order("valor_inscricao", { ascending: true }),
+    user
+      ? supabase
+          .from("profiles")
+          .select("nome, genero, tamanho_camisa")
+          .eq("id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    user
+      ? supabase
+          .from("profiles_private")
+          .select("cpf, telefone")
+          .eq("user_id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
   if (!champ) notFound();
 
-  const { data: cats } = await supabase
-    .from("championship_categories")
-    .select("id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max")
-    .eq("championship_id", id)
-    .order("valor_inscricao", { ascending: true });
+  const authenticatedAthlete: AuthenticatedAthleteProfile | null = user
+    ? {
+        name: profile?.nome?.trim() ?? "",
+        email: user.email?.trim() ?? "",
+        cpf: privateProfile?.cpf?.trim() ?? "",
+        whatsapp: privateProfile?.telefone?.trim() ?? "",
+        gender: profile?.genero?.trim() ?? "",
+        shirt: profile?.tamanho_camisa?.trim() ?? "",
+      }
+    : null;
 
   const vendaAberta =
     champ.status === "inscricoes_abertas" || champ.status === "em_andamento";
 
   // Preço vigente (lote atual, se houver) — sobrepõe o valor "de tabela".
   const categoryIds = (cats ?? []).map((c) => c.id);
-  const [precos, lotesPorCategoria] = await Promise.all([
+  const reservationPromise = isCheckoutReservationToken(reservationToken)
+    ? createAdminClient()
+        .from("checkout_reservations")
+        .select("id, category_id, expires_at, price_snapshot, pricing_tier_id")
+        .eq("token_hash", hashCheckoutReservationToken(reservationToken))
+        .eq("championship_id", id)
+        .eq("status", "active")
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle()
+    : Promise.resolve({ data: null });
+  const [precos, lotesPorCategoria, reservationResult] = await Promise.all([
     resolverPrecos(
       "category",
       categoryIds,
       Object.fromEntries((cats ?? []).map((c) => [c.id, Number(c.valor_inscricao)])),
     ),
     listarLotesComStatus("category", categoryIds),
+    reservationPromise,
   ]);
+
+  const existingReservation = reservationResult.data;
+  const initialReservation: AthleteCheckoutReservation | null = existingReservation
+    ? {
+        id: existingReservation.id,
+        categoryId: existingReservation.category_id,
+        expiresAt: existingReservation.expires_at,
+        serverNow: new Date().toISOString(),
+        price: Number(existingReservation.price_snapshot),
+        pricingTierId: existingReservation.pricing_tier_id,
+        reused: true,
+      }
+    : null;
 
   const categorias: CategoriaOpcao[] = (cats ?? []).map((c) => ({
     id:             c.id,
     nome:           c.nome,
     genero:         c.genero,
-    valorInscricao: precos[c.id].valor,
+    valorInscricao: initialReservation && initialReservation.categoryId === c.id
+      ? initialReservation.price
+      : precos[c.id].valor,
     corteRatingMin: Number(c.corte_rating_min ?? 0),
     corteRatingMax: Number(c.corte_rating_max ?? 0),
     lotes:          lotesPorCategoria[c.id] ?? [],
-    esgotado:       precos[c.id].esgotado,
+    esgotado:       initialReservation && initialReservation.categoryId === c.id
+      ? false
+      : precos[c.id].esgotado,
   }));
 
   return (
@@ -97,9 +165,10 @@ export default async function ComprarAtletaPage({
                 categorias={categorias}
                 isElite={!!champ.is_elite}
                 usaMotorCategoria={categoryLevelRecommendationEnabled(champ.usa_motor_categoria)}
-                authenticatedEmail={user?.email?.trim() || null}
+                authenticatedAthlete={authenticatedAthlete}
                 initialCategoryId={initialCategoryId ?? null}
                 waitlistInviteToken={waitlistInviteToken ?? null}
+                initialReservation={initialReservation}
               />
             </div>
           )}

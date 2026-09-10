@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { criarOuBuscarCliente } from "@/lib/asaas";
+import { AsaasApiError, criarOuBuscarCliente } from "@/lib/asaas";
 import { calcularTotalComprador } from "@/lib/taxas";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 import { createIdempotentCardCharge, refundIdempotently } from "@/lib/payment-flows";
@@ -25,6 +25,10 @@ import {
   confirmAthleteTicketChange,
   requestAthleteTicketChange,
 } from "@/lib/athlete-ticket-change-security";
+import {
+  athleteTicketCardPaymentSchema,
+  invalidPaymentInput,
+} from "@/lib/payment-input-schemas";
 
 export type CardPaymentInput = {
   ticketId:    string;
@@ -53,6 +57,10 @@ export type CardPaymentResult =
 export async function pagarIngressoAtletaComCartao(
   input: CardPaymentInput,
 ): Promise<CardPaymentResult> {
+  const parsed = athleteTicketCardPaymentSchema.safeParse(input);
+  if (!parsed.success) return invalidPaymentInput();
+  input = parsed.data;
+
   const admin = createAdminClient();
   const telefone = normalizeCardHolderPhone(input.telefone);
   const cep = input.cep.replace(/\D/g, "");
@@ -68,13 +76,29 @@ export async function pagarIngressoAtletaComCartao(
 
   const { data: ticket } = await admin
     .from("athlete_tickets")
-    .select("id, championship_id, comprador_nome, comprador_cpf, comprador_email, valor, status_pagamento, billing_type")
+    .select("id, championship_id, comprador_nome, comprador_cpf, comprador_email, valor, status_pagamento, billing_type, checkout_expires_at")
     .eq("id", input.ticketId)
     .eq("access_token", accessToken)
     .maybeSingle();
 
   if (!ticket) return { ok: false, error: "Ingresso não encontrado." };
   if (ticket.status_pagamento === "pago") return { ok: true, pago: true };
+  if (["expirado", "estornado"].includes(ticket.status_pagamento)) {
+    return { ok: false, error: "Esta reserva não está mais disponível." };
+  }
+  if (ticket.checkout_expires_at && Date.parse(ticket.checkout_expires_at) <= Date.now()) {
+    const { data: expired } = await admin.rpc("expire_athlete_ticket_inventory_if_pending", {
+      p_ticket_id: ticket.id,
+    });
+    if (expired) return { ok: false, error: "O tempo da reserva terminou. Faça uma nova inscrição." };
+    const { data: latest } = await admin
+      .from("athlete_tickets")
+      .select("status_pagamento")
+      .eq("id", ticket.id)
+      .maybeSingle();
+    if (latest?.status_pagamento === "pago") return { ok: true, pago: true };
+    return { ok: false, error: "Não foi possível confirmar a reserva. Atualize a página." };
+  }
   if (ticket.billing_type === "PIX") {
     return { ok: false, error: "Este ingresso foi iniciado no Pix. Crie uma nova compra para pagar com cartão." };
   }
@@ -92,8 +116,26 @@ export async function pagarIngressoAtletaComCartao(
       email:   ticket.comprador_email,
       cpfCnpj: ticket.comprador_cpf,
     });
-  } catch {
-    return { ok: false, error: "Erro ao registrar dados do pagador." };
+  } catch (error) {
+    await reportOperationalEvent({
+      level: "error",
+      event: "athlete_ticket.customer_registration_failed",
+      message: "Athlete ticket payer could not be registered with provider",
+      context: {
+        ticketId: ticket.id,
+        providerErrorCode: error instanceof AsaasApiError ? error.code : "unexpected_error",
+        providerStatus: error instanceof AsaasApiError ? error.status : null,
+      },
+      error,
+      alert: true,
+    });
+    if (error instanceof AsaasApiError && error.status === 429) {
+      return { ok: false, error: "Muitas tentativas. Aguarde um minuto e tente novamente." };
+    }
+    return {
+      ok: false,
+      error: "Não foi possível conectar ao pagamento. Aguarde um instante e tente novamente.",
+    };
   }
 
   const billingType = input.tipo === "credito" ? "CREDIT_CARD" : "DEBIT_CARD";

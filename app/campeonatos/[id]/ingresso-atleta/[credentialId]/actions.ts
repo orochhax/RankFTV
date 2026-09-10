@@ -4,11 +4,16 @@ import { readAthleteCredentialSession } from "@/lib/athlete-credential-session";
 import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
 import { enviarAvisoAlteracaoIngresso } from "@/lib/email/send";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { athleteCredentialReplacementSchema } from "@/lib/ticket-action-schemas";
 
 export async function substituirCredencialComprometida(input: {
   championshipId: string;
   credentialId: string;
 }): Promise<{ ok: boolean; error?: string }> {
+  const parsed = athleteCredentialReplacementSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Credencial inválida." };
+  input = parsed.data;
+
   const accessToken = await readAthleteCredentialSession(input.credentialId);
   if (!accessToken) return { ok: false, error: "Sua sessão expirou. Recupere o ingresso novamente." };
   const admin = createAdminClient();

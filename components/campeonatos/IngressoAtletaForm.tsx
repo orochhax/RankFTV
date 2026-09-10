@@ -1,9 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import { Loader2, Trophy, Check, CreditCard, QrCode } from "lucide-react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { AlertCircle, Loader2, Trophy, Check, CreditCard, QrCode } from "lucide-react";
 import {
   comprarIngressoAtleta,
+  expirarReservaCategoriaAtleta,
+  reservarCategoriaAtleta,
   type ComprarAtletaField,
   type ComprarAtletaState,
 } from "@/app/campeonatos/[id]/comprar/actions";
@@ -19,6 +21,9 @@ import {
   type AthleteEmailField,
 } from "@/lib/athlete-email-suggestion";
 import { trackPublicFunnel } from "@/lib/public-funnel-client";
+import { LegalDocumentDialog } from "@/components/legal/LegalDocumentDialog";
+import type { AthleteCheckoutReservation } from "@/lib/checkout-reservation";
+import { ReservationCountdown } from "@/components/checkout/ReservationCountdown";
 
 export type CategoriaOpcao = {
   id: string;
@@ -29,6 +34,15 @@ export type CategoriaOpcao = {
   corteRatingMax: number;
   lotes: LoteComStatus[];
   esgotado: boolean;
+};
+
+export type AuthenticatedAthleteProfile = {
+  name: string;
+  email: string;
+  cpf: string;
+  whatsapp: string;
+  gender: string;
+  shirt: string;
 };
 
 const CAMISAS = ["PP", "P", "M", "G", "GG", "XG", "XGG"];
@@ -147,26 +161,35 @@ export function IngressoAtletaForm({
   categorias,
   isElite,
   usaMotorCategoria,
-  authenticatedEmail,
+  authenticatedAthlete,
   initialCategoryId,
   waitlistInviteToken,
+  initialReservation,
 }: {
   championshipId: string;
   categorias: CategoriaOpcao[];
   isElite: boolean;
   usaMotorCategoria: boolean;
-  authenticatedEmail: string | null;
+  authenticatedAthlete: AuthenticatedAthleteProfile | null;
   initialCategoryId?: string | null;
   waitlistInviteToken?: string | null;
+  initialReservation?: AthleteCheckoutReservation | null;
 }) {
-  const initialCategory = categorias.find(
+  const reservedCategory = categorias.find(
+    (category) => category.id === initialReservation?.categoryId,
+  ) ?? null;
+  const initialCategory = reservedCategory ?? categorias.find(
     (category) => category.id === initialCategoryId && !category.esgotado,
   ) ?? null;
-  const [etapa, setEtapa] = useState<Etapa>(initialCategory ? "dados" : "categoria");
+  const [etapa, setEtapa] = useState<Etapa>(reservedCategory ? "dados" : "categoria");
   const [catSelecionada, setCat] = useState<CategoriaOpcao | null>(initialCategory);
+  const [reservation, setReservation] = useState<AthleteCheckoutReservation | null>(initialReservation ?? null);
+  const [reservationError, setReservationError] = useState<string | null>(null);
+  const [reservationPending, startReservationTransition] = useTransition();
   const [cupom, setCupom] = useState<CupomAplicado | null>(null);
   const [metodoPagamento, setMetodoPagamento] = useState<"pix" | "cartao">("pix");
   const [usarMesmoEmail, setUsarMesmoEmail] = useState(false);
+  const [usarDadosDaConta, setUsarDadosDaConta] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
   const [dismissedErrors, setDismissedErrors] = useState<Partial<Record<ComprarAtletaField, number>>>({});
   const [reviewErrors, setReviewErrors] = useState<Partial<Record<ComprarAtletaField, string>>>({});
@@ -184,17 +207,20 @@ export function IngressoAtletaForm({
   const parceiroEmailRef = useRef<HTMLInputElement>(null);
   const parceiroEmailConfirmacaoRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const expirationDialogRef = useRef<HTMLDialogElement>(null);
+  const categorySectionRef = useRef<HTMLDivElement>(null);
   const initialDataTracked = useRef(false);
+  const valuesBeforeAccountAutofill = useRef<Record<string, string> | null>(null);
 
   useEffect(() => {
-    if (!initialCategory || initialDataTracked.current) return;
+    if (!reservedCategory || initialDataTracked.current) return;
     initialDataTracked.current = true;
     trackPublicFunnel({
       event: "athlete_data_started",
       championshipId,
-      categoryId: initialCategory.id,
+      categoryId: reservedCategory.id,
     });
-  }, [championshipId, initialCategory]);
+  }, [championshipId, reservedCategory]);
 
   const visibleFieldError = (field: ComprarAtletaField) =>
     reviewErrors[field]
@@ -252,6 +278,47 @@ export function IngressoAtletaForm({
     }));
   }
 
+  function toggleDadosDaConta(checked: boolean) {
+    if (!authenticatedAthlete) return;
+
+    setUsarDadosDaConta(checked);
+    setValues((current) => {
+      if (!checked) {
+        const previous = valuesBeforeAccountAutofill.current;
+        valuesBeforeAccountAutofill.current = null;
+        return previous ?? current;
+      }
+
+      valuesBeforeAccountAutofill.current = current;
+      const next: Record<string, string> = {
+        ...current,
+        comprador_nome: authenticatedAthlete.name || current.comprador_nome || "",
+        comprador_cpf: authenticatedAthlete.cpf
+          ? formatCpf(authenticatedAthlete.cpf)
+          : current.comprador_cpf || "",
+        comprador_zap: authenticatedAthlete.whatsapp || current.comprador_zap || "",
+        comprador_email: authenticatedAthlete.email || current.comprador_email || "",
+        comprador_email_confirmacao:
+          authenticatedAthlete.email || current.comprador_email_confirmacao || "",
+        comprador_genero: authenticatedAthlete.gender || current.comprador_genero || "",
+        comprador_camisa: authenticatedAthlete.shirt || current.comprador_camisa || "",
+      };
+
+      if (usarMesmoEmail && next.comprador_email) {
+        next.parceiro_email = next.comprador_email;
+        next.parceiro_email_confirmacao = next.comprador_email;
+      }
+      return next;
+    });
+    setReviewErrors((current) => ({
+      ...current,
+      comprador_nome: undefined,
+      comprador_cpf: undefined,
+      comprador_email: undefined,
+      comprador_email_confirmacao: undefined,
+    }));
+  }
+
   useEffect(() => {
     const refs = {
       comprador_nome: compradorNomeRef,
@@ -280,6 +347,60 @@ export function IngressoAtletaForm({
       });
     }
   }, [state.fieldErrors, state.validationAttempt]);
+
+  useEffect(() => {
+    if (!state.error?.includes("tempo da reserva")) return;
+    const timeout = window.setTimeout(() => {
+      setReservation(null);
+      setEtapa("categoria");
+      setDismissedServerErrorState(state);
+      expirationDialogRef.current?.showModal();
+    }, 0);
+    return () => window.clearTimeout(timeout);
+  }, [state.error]);
+
+  function continuarComCategoria() {
+    if (!catSelecionada) return;
+    setReservationError(null);
+    startReservationTransition(async () => {
+      const result = await reservarCategoriaAtleta(championshipId, catSelecionada.id);
+      if (!result.ok) {
+        setReservationError(result.error);
+        return;
+      }
+      const selectedWithReservedPrice = {
+        ...catSelecionada,
+        valorInscricao: result.price,
+        esgotado: false,
+      };
+      setCat(selectedWithReservedPrice);
+      setCupom(null);
+      setReservation(result);
+      trackPublicFunnel({
+        event: "athlete_data_started",
+        championshipId,
+        categoryId: selectedWithReservedPrice.id,
+      });
+      setEtapa("dados");
+    });
+  }
+
+  function handleReservationExpired() {
+    setReservation(null);
+    setReservationError(null);
+    setEtapa("categoria");
+    expirationDialogRef.current?.showModal();
+    startReservationTransition(async () => {
+      await expirarReservaCategoriaAtleta(championshipId);
+    });
+  }
+
+  function acknowledgeReservationExpiration() {
+    expirationDialogRef.current?.close();
+    requestAnimationFrame(() => {
+      categorySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   function abrirRevisao() {
     if (!formRef.current?.reportValidity()) return;
@@ -321,9 +442,9 @@ export function IngressoAtletaForm({
   }
 
   const input =
-    "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-xs placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
   const select =
-    "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
+    "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   const valor      = catSelecionada?.valorInscricao ?? 0;
   const valorFinal = cupom ? Math.max(0, valor - cupom.desconto) : valor;
@@ -331,16 +452,53 @@ export function IngressoAtletaForm({
   const metodoTaxa = metodoPagamento === "cartao" ? "credito" : "pix";
   const taxa       = calcularTaxaComprador(valorFinal, metodoTaxa, isElite);
   const total      = calcularTotalComprador(valorFinal, metodoTaxa, isElite);
-  const emailDaConta = authenticatedEmail?.trim() || null;
+  const emailDaConta = authenticatedAthlete?.email.trim() || null;
   const podeCompartilharEmail = (values.comprador_email ?? "").trim().includes("@");
 
   return (
     <div className="space-y-6">
+      <dialog
+        ref={expirationDialogRef}
+        aria-labelledby="reservation-expired-title"
+        aria-describedby="reservation-expired-description"
+        className="m-auto w-[min(calc(100%-2rem),400px)] rounded-3xl bg-white p-0 text-gray-950 shadow-2xl backdrop:bg-gray-950/70"
+      >
+        <div className="p-6 text-center">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-50 text-red-600 ring-1 ring-red-100">
+            <AlertCircle aria-hidden="true" className="size-6" />
+          </div>
+          <h2 id="reservation-expired-title" className="mt-4 text-xl font-bold">
+            O tempo da reserva terminou
+          </h2>
+          <p id="reservation-expired-description" className="mt-2 text-sm leading-6 text-gray-600">
+            A vaga foi liberada. Escolha novamente a categoria para iniciar uma nova reserva.
+          </p>
+          <button
+            type="button"
+            autoFocus
+            onClick={acknowledgeReservationExpiration}
+            className="mt-6 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          >
+            OK
+          </button>
+        </div>
+      </dialog>
+
       <BarraDeProgresso etapa={etapa} />
+
+      {reservation && (
+        <ReservationCountdown
+          key={reservation.id}
+          id={reservation.id}
+          expiresAt={reservation.expiresAt}
+          serverNow={reservation.serverNow}
+          onExpired={handleReservationExpired}
+        />
+      )}
 
       {/* Etapa 1 — escolha da categoria */}
       {etapa === "categoria" && (
-        <div className="space-y-2">
+        <div ref={categorySectionRef} className="scroll-mt-4 space-y-2">
           <p className="text-sm font-medium text-gray-700">Escolha a categoria da dupla</p>
           {categorias.map((cat) => {
             const sel = catSelecionada?.id === cat.id;
@@ -355,6 +513,7 @@ export function IngressoAtletaForm({
                 onClick={() => {
                   setCat(sel ? null : cat);
                   setCupom(null);
+                  setReservationError(null);
                   if (!sel) trackPublicFunnel({ event: "category_selected", championshipId, categoryId: cat.id });
                 }}
                 className={`flex w-full flex-col items-stretch gap-3 rounded-2xl border p-4 text-left transition-colors sm:flex-row sm:items-center sm:justify-between ${
@@ -426,16 +585,19 @@ export function IngressoAtletaForm({
 
           <button
             type="button"
-            onClick={() => {
-              if (!catSelecionada) return;
-              trackPublicFunnel({ event: "athlete_data_started", championshipId, categoryId: catSelecionada.id });
-              setEtapa("dados");
-            }}
-            disabled={!catSelecionada}
+            onClick={continuarComCategoria}
+            disabled={!catSelecionada || reservationPending}
             className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Continuar
+            {reservationPending && <Loader2 className="size-4 animate-spin" />}
+            {reservationPending ? "Reservando vaga…" : "Continuar com esta categoria"}
           </button>
+          {reservationError && (
+            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700" aria-live="polite">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              <p className="text-sm">{reservationError}</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -449,25 +611,53 @@ export function IngressoAtletaForm({
           <input type="hidden" name="usar_mesmo_email" value={usarMesmoEmail ? "1" : "0"} />
           {waitlistInviteToken && <input type="hidden" name="waitlist_invite" value={waitlistInviteToken} />}
 
-          <div hidden={etapa !== "dados"} className="space-y-6">
+          <div hidden={etapa !== "dados"} className="space-y-5">
           {/* Resumo da categoria escolhida */}
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+          <div className="flex items-center justify-between gap-3 rounded-2xl bg-gray-950 px-4 py-3.5 text-white shadow-sm">
             <div className="min-w-0">
-              <p className="text-xs text-gray-500">Categoria escolhida</p>
-              <p className="font-medium text-gray-900">Categoria {catSelecionada.nome}</p>
+              <p className="text-[11px] font-medium uppercase tracking-wide text-white/50">Categoria escolhida</p>
+              <p className="mt-0.5 truncate font-semibold">{catSelecionada.nome}</p>
+              <p className="mt-0.5 text-xs text-white/60">
+                {catSelecionada.genero === "mista"
+                  ? "Dupla mista"
+                  : `Dupla ${catSelecionada.genero === "masculino" ? "masculina" : "feminina"}`}
+              </p>
             </div>
             <button
               type="button"
               onClick={() => { setEtapa("categoria"); setCupom(null); }}
-              className="shrink-0 text-xs font-semibold text-blue-600 hover:underline"
+              className="shrink-0 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
               Trocar
             </button>
           </div>
 
           {/* Seus dados */}
-          <section className="space-y-3">
-            <p className="text-sm font-semibold text-gray-800">Seus dados (atleta 1)</p>
+          <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm" aria-labelledby="atleta-1-title">
+            <div className="flex items-center gap-3 border-b border-gray-100 bg-blue-50/70 px-4 py-3.5">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">1</span>
+              <div>
+                <h2 id="atleta-1-title" className="text-sm font-semibold text-gray-950">Atleta 1</h2>
+                <p className="text-xs text-gray-500">Dados da primeira pessoa da dupla</p>
+              </div>
+            </div>
+            <div className="space-y-4 p-4">
+            {authenticatedAthlete && (
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/70 p-3.5">
+                <input
+                  type="checkbox"
+                  checked={usarDadosDaConta}
+                  onChange={(event) => toggleDadosDaConta(event.target.checked)}
+                  className="mt-0.5 size-4 shrink-0 accent-blue-600"
+                />
+                <span className="text-sm text-blue-950">
+                  <span className="block font-semibold">Você é um dos atletas?</span>
+                  <span className="mt-0.5 block text-xs text-blue-700">
+                    Sim, sou o atleta 1. Preencher meus dados usando a conta logada.
+                  </span>
+                </span>
+              </label>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700">Nome completo</label>
               <input
@@ -551,22 +741,22 @@ export function IngressoAtletaForm({
                   onUse={() => updateAthleteEmail("comprador_email", emailDaConta)}
                 />
               )}
-              <p className="mt-1 text-xs text-gray-400">O ingresso e QR de entrada chegam nesse e-mail.</p>
+              <p className="mt-1 text-xs text-gray-500">Enviaremos o ingresso e o QR para este endereço.</p>
             </div>
             {podeCompartilharEmail && (
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-3">
                 <input
                   type="checkbox"
                   checked={usarMesmoEmail}
                   onChange={(event) => toggleMesmoEmail(event.target.checked)}
-                  className="mt-0.5 size-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                  className="mt-0.5 size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <span>
-                  <span className="block text-sm font-semibold text-blue-900">
+                  <span className="block text-sm font-semibold text-gray-800">
                     Usar este e-mail para os dois atletas
                   </span>
-                  <span className="mt-0.5 block text-xs text-blue-700">
-                    Os dois ingressos serão enviados para a mesma caixa de entrada, mas continuarão com QR codes e check-ins individuais.
+                  <span className="mt-0.5 block text-xs text-gray-500">
+                    Os ingressos continuam individuais, mesmo na mesma caixa de entrada.
                   </span>
                 </span>
               </label>
@@ -578,10 +768,9 @@ export function IngressoAtletaForm({
                 name="comprador_email_confirmacao"
                 type="email"
                 className={`mt-1 ${input} ${visibleFieldError("comprador_email_confirmacao") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
-                placeholder="Digite novamente, sem copiar e colar"
+                placeholder="Repita o e-mail"
                 value={values.comprador_email_confirmacao ?? ""}
                 onChange={(event) => updateValue("comprador_email_confirmacao", event.target.value)}
-                onPaste={(event) => event.preventDefault()}
                 aria-invalid={!!visibleFieldError("comprador_email_confirmacao")}
                 aria-describedby={visibleFieldError("comprador_email_confirmacao") ? "comprador-email-confirmacao-error" : undefined}
                 autoComplete="off"
@@ -608,11 +797,6 @@ export function IngressoAtletaForm({
                   <option value="feminino">Feminino</option>
                   <option value="outro">Outro</option>
                 </select>
-                <p className="mt-1 text-xs text-gray-400">
-                  {catSelecionada.genero !== "mista"
-                    ? `Categoria restrita ao gênero ${catSelecionada.genero === "masculino" ? "masculino" : "feminino"}.`
-                    : "Categoria mista — aceita qualquer gênero."}
-                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Camisa (kit)</label>
@@ -627,6 +811,7 @@ export function IngressoAtletaForm({
                 </select>
               </div>
             </div>
+            </div>
           </section>
 
           {usaMotorCategoria && (
@@ -639,8 +824,15 @@ export function IngressoAtletaForm({
           )}
 
           {/* Dados do parceiro */}
-          <section className="space-y-3">
-            <p className="text-sm font-semibold text-gray-800">Dados do parceiro (atleta 2)</p>
+          <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm" aria-labelledby="atleta-2-title">
+            <div className="flex items-center gap-3 border-b border-gray-100 bg-emerald-50/70 px-4 py-3.5">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">2</span>
+              <div>
+                <h2 id="atleta-2-title" className="text-sm font-semibold text-gray-950">Atleta 2</h2>
+                <p className="text-xs text-gray-500">Dados da segunda pessoa da dupla</p>
+              </div>
+            </div>
+            <div className="space-y-4 p-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Nome completo</label>
               <input
@@ -726,7 +918,7 @@ export function IngressoAtletaForm({
                   onUse={() => updateAthleteEmail("parceiro_email", emailDaConta)}
                 />
               )}
-              <p className="mt-1 text-xs text-gray-400">O ingresso e QR de entrada chegam nesse e-mail.</p>
+              <p className="mt-1 text-xs text-gray-500">Enviaremos o ingresso e o QR para este endereço.</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Confirme o e-mail do parceiro</label>
@@ -735,10 +927,9 @@ export function IngressoAtletaForm({
                 name="parceiro_email_confirmacao"
                 type="email"
                 className={`mt-1 ${input} ${visibleFieldError("parceiro_email_confirmacao") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
-                placeholder="Digite novamente, sem copiar e colar"
+                placeholder="Repita o e-mail"
                 value={values.parceiro_email_confirmacao ?? ""}
                 onChange={(event) => updateValue("parceiro_email_confirmacao", event.target.value)}
-                onPaste={(event) => event.preventDefault()}
                 aria-invalid={!!visibleFieldError("parceiro_email_confirmacao")}
                 aria-describedby={visibleFieldError("parceiro_email_confirmacao") ? "parceiro-email-confirmacao-error" : undefined}
                 autoComplete="off"
@@ -752,7 +943,7 @@ export function IngressoAtletaForm({
             </div>
             </>
             ) : (
-              <div className="rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-800 ring-1 ring-blue-100">
+              <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-700 ring-1 ring-gray-200">
                 O ingresso do atleta 2 também será enviado para <strong className="break-all">{values.comprador_email}</strong>.
                 <input type="hidden" name="parceiro_email" value={values.comprador_email ?? ""} />
                 <input type="hidden" name="parceiro_email_confirmacao" value={values.comprador_email ?? ""} />
@@ -773,11 +964,6 @@ export function IngressoAtletaForm({
                   <option value="feminino">Feminino</option>
                   <option value="outro">Outro</option>
                 </select>
-                <p className="mt-1 text-xs text-gray-400">
-                  {catSelecionada.genero !== "mista"
-                    ? `Categoria restrita ao gênero ${catSelecionada.genero === "masculino" ? "masculino" : "feminino"}.`
-                    : "Categoria mista — aceita qualquer gênero."}
-                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Camisa (kit)</label>
@@ -791,6 +977,7 @@ export function IngressoAtletaForm({
                   {CAMISAS.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
+            </div>
             </div>
           </section>
 
@@ -917,6 +1104,26 @@ export function IngressoAtletaForm({
                 </div>
               </div>
 
+              <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+                <input
+                  id="aceite-termos-atleta"
+                  type="checkbox"
+                  name="aceite_termos"
+                  required
+                  className="mt-0.5 size-4 shrink-0 cursor-pointer accent-blue-600"
+                />
+                <div className="min-w-0 text-sm leading-relaxed text-gray-600">
+                  <label htmlFor="aceite-termos-atleta" className="cursor-pointer">
+                    Li e concordo com os documentos da RankFTV:
+                  </label>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <LegalDocumentDialog document="terms" />
+                    <span aria-hidden="true" className="text-gray-300">•</span>
+                    <LegalDocumentDialog document="privacy" />
+                  </div>
+                </div>
+              </div>
+
               <div className="grid gap-3 sm:grid-cols-2">
                 <button
                   type="button"
@@ -944,7 +1151,14 @@ export function IngressoAtletaForm({
           )}
 
           {state.error && dismissedServerErrorState !== state && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 ring-1 ring-red-100">
+            <p
+              aria-live="polite"
+              className={`rounded-lg px-3 py-2 text-sm ring-1 ${
+                state.error.startsWith("Pagamento recebido para processamento")
+                  ? "bg-amber-50 text-amber-800 ring-amber-200"
+                  : "bg-red-50 text-red-600 ring-red-100"
+              }`}
+            >
               {state.error}
             </p>
           )}

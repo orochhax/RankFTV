@@ -40,6 +40,7 @@ yarn-error.log*
 
 # cofre local de credenciais (nunca versionar)
 /.secrets.local
+/CONTAS-TESTE.local.md
 
 # vercel
 .vercel

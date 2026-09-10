@@ -1,6 +1,6 @@
 "use server";
 
-import { getResend, FROM } from "./resend";
+import { getResend, FROM, resolveResendApiKey } from "./resend";
 import {
   conviteDuplaHtml,
   inscricaoConfirmadaHtml,
@@ -54,7 +54,7 @@ async function send(
     recipient: to,
     templateKey: options?.templateKey ?? "transactional",
   });
-  if (!process.env.RESEND_API_KEY) {
+  if (!resolveResendApiKey()) {
     await updateEmailOperationalEvent({ id: eventId, status: "failed", failureCategory: "provider_not_configured" });
     return false;
   }
