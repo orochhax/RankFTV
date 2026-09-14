@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { login } from "./support/auth";
+import { hasSandboxLogin, login } from "./support/auth";
 
 function scriptDirective(csp: string) {
   return csp.split(";").map((part) => part.trim()).find((part) => part.startsWith("script-src")) ?? "";
@@ -48,8 +48,10 @@ test("login remains usable on a narrow viewport", async ({ page }) => {
 });
 
 test("athlete can reach the unified purchases area", async ({ page }) => {
-  test.skip(!process.env.E2E_ATHLETE_EMAIL || !process.env.E2E_ATHLETE_PASSWORD, "Sandbox athlete credentials were not configured");
-  await login(page, process.env.E2E_ATHLETE_EMAIL!, process.env.E2E_ATHLETE_PASSWORD!);
+  const email = process.env.E2E_ATHLETE_EMAIL;
+  test.skip(!hasSandboxLogin(email, process.env.E2E_ATHLETE_PASSWORD), "Sandbox athlete credentials were not configured");
+  if (!email) throw new Error("Sandbox athlete e-mail was not configured");
+  await login(page, email, process.env.E2E_ATHLETE_PASSWORD);
   await page.goto("/minhas-compras?aba=atleta");
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
   await expect(page.getByRole("heading", { name: "Minhas compras" })).toBeVisible();
@@ -58,8 +60,10 @@ test("athlete can reach the unified purchases area", async ({ page }) => {
 });
 
 test("organizer can reach the management panel", async ({ page }) => {
-  test.skip(!process.env.E2E_ORGANIZER_EMAIL || !process.env.E2E_ORGANIZER_PASSWORD, "Sandbox organizer credentials were not configured");
-  await login(page, process.env.E2E_ORGANIZER_EMAIL!, process.env.E2E_ORGANIZER_PASSWORD!);
+  const email = process.env.E2E_ORGANIZER_EMAIL;
+  test.skip(!hasSandboxLogin(email, process.env.E2E_ORGANIZER_PASSWORD), "Sandbox organizer credentials were not configured");
+  if (!email) throw new Error("Sandbox organizer e-mail was not configured");
+  await login(page, email, process.env.E2E_ORGANIZER_PASSWORD);
   await page.goto("/painel");
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
   await expect(page.locator("body")).toContainText(/campeonato|organizador/i);

@@ -17,6 +17,7 @@
     "test": "node --import tsx --test lib/**/*.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
+    "test:e2e:sandbox": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-e2e-sandbox.ps1",
     "types:supabase:generate": "node scripts/supabase-types.mjs --write",
     "types:supabase:check": "node scripts/supabase-types.mjs",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
