@@ -38,13 +38,14 @@ P1/P2 não alteram esse percentual.
 
 ### Checkout, pagamentos e credenciais
 
-- [ ] Fechar a única corrida ainda não homologada da reserva: pagamento Pix e
-  cartão exatamente no limite de expiração. Comprovar no Sandbox que o Asaas é
-  consultado antes de liberar a vaga e que não há dupla cobrança, dupla vaga ou
-  credencial duplicada. Recarregamento, duas abas, abandono, expiração e os
-  pagamentos fora do limite já foram homologados. Em 14/09, o caminho de cartão
-  vencido foi corrigido para usar essa reconciliação antes de liberar estoque;
-  falta a prova ponta a ponta no prazo curto do Sandbox.
+- [ ] Fechar a única corrida ainda não homologada da reserva: pagamento com
+  cartão no limite de expiração. No Sandbox, o Pix foi confirmado manualmente
+  depois de o cronômetro zerar e a inscrição/QR foram emitidos sem nova compra,
+  comprovando a reconciliação conservadora antes de liberar a vaga. Ainda falta
+  comprovar no cartão que não há dupla cobrança, dupla vaga ou credencial
+  duplicada. Recarregamento, duas abas, abandono, expiração e os pagamentos
+  fora do limite já foram homologados. Em 14/09, o caminho de cartão vencido
+  foi corrigido para usar essa reconciliação antes de liberar estoque.
 - [ ] Concluir a homologação de reembolso sem conta para Pix e cartão nos
   cenários ainda não cobertos: parcial, repetição, timeout, saldo insuficiente,
   cobrança inelegível e tentativa do parceiro. Pix e cartão integrais e o
