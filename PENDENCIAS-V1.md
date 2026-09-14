@@ -320,8 +320,12 @@ que não alterem a segurança ou a correção financeira do fluxo lançado.
     estoque reservado e gerar alerta operacional.
   - [ ] Homologar no navegador do Sandbox os cenários completos de Pix e cartão,
     incluindo recarregamento, duas abas, abandono, expiração e pagamento no
-    último instante. O navegador automatizado não estava conectado em
-    09/09/2026; executar com uma sessão disponível antes de promover.
+    último instante. A automação do navegador já está conectada; falta isolar e
+    concluir somente a corrida de pagamento exatamente no limite do prazo.
+    - [x] Automação repetível em 14/09/2026: Chromium, Firefox, WebKit e seus
+      perfis móveis preservaram o mesmo ID e o mesmo vencimento ao recarregar,
+      abrir uma segunda aba e retornar à categoria. O banco confirmou uma única
+      reserva ativa e a liberação repetida manteve o mesmo estado e horário.
     - [x] Reserva criada ao avançar da categoria e preservada após recarregar a
       página, sem reiniciar os 15 minutos. Validado manualmente em mobile em
       09/09/2026; a conferência direta no banco confirmou exatamente uma
