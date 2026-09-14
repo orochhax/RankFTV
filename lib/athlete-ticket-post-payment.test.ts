@@ -32,9 +32,19 @@ test("a confirmação reúne o resumo exigido sem expor a credencial no link", (
     "Inscrição confirmada",
     "Resumo do pedido",
     "Credenciais enviadas para",
-    "Ver meus ingressos",
+    "Sobre o campeonato",
     "Guarde este link privado",
   ]) assert.match(component, new RegExp(text));
   assert.match(component, /athleteOrderReference\(ticketId\)/);
   assert.doesNotMatch(component, /href=\{`[^`]*accessToken/);
+});
+
+test("a página do ingresso não exibe o histórico operacional das credenciais", () => {
+  const page = readFileSync(
+    new URL("../app/campeonatos/[id]/comprar/ingresso/[ticketId]/page.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.doesNotMatch(page, /Histórico das duas credenciais/);
+  assert.doesNotMatch(page, /athlete_ticket_credential_events/);
 });

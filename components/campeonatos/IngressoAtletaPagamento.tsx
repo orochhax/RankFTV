@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, Loader2, AlertCircle } from "lucide-react";
+import { CheckCircle2, Clock, Loader2, AlertCircle, CalendarDays, MapPin } from "lucide-react";
+import Link from "next/link";
 import QRCode from "qrcode";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { formatBRL } from "@/lib/format";
@@ -59,6 +60,9 @@ type Props = {
   partnerEmail: string;
   organizerName: string | null;
   organizerPhone: string | null;
+  championshipDateLabel: string | null;
+  championshipLocationLabel: string | null;
+  championshipHref: string;
 };
 
 export function IngressoAtletaPagamento({
@@ -84,6 +88,9 @@ export function IngressoAtletaPagamento({
   partnerEmail,
   organizerName,
   organizerPhone,
+  championshipDateLabel,
+  championshipLocationLabel,
+  championshipHref,
 }: Props) {
   const router = useRouter();
   const [statusPagamento, setStatusPagamento] = useState(initialStatusPagamento);
@@ -183,58 +190,68 @@ export function IngressoAtletaPagamento({
 
   if (pago) {
     return (
-      <div className="space-y-5 text-center">
-        <div className="flex items-center justify-center gap-1.5 text-sm font-semibold text-blue-600">
-          <CheckCircle2 className="size-4" /> Inscrição confirmada
+      <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-3xl bg-white text-center shadow-sm ring-1 ring-black/5">
+        <div className="border-b border-gray-100 px-5 py-5 sm:px-8">
+          <div className="flex items-center justify-center gap-1.5 text-sm font-semibold text-blue-600">
+            <CheckCircle2 className="size-4" /> Inscrição confirmada
+          </div>
+          <p className="mt-2 text-xs text-gray-500">
+            Este link mostra somente a credencial do comprador. O parceiro recebe a dele no próprio e-mail.
+          </p>
         </div>
-        <p className="text-xs text-gray-500">
-          Este link mostra somente a credencial do comprador. O parceiro recebe a dele no próprio e-mail.
-        </p>
-        <div id="meus-ingressos" className="mx-auto grid w-full max-w-md gap-4">
-          {credentials.map((credential) => (
-            <div key={credential.id} className="flex flex-col items-center rounded-2xl bg-white p-4 ring-1 ring-black/5">
-              <p className="mb-2 max-w-full truncate text-sm font-semibold text-gray-900">
-                {credential.name}
-              </p>
-              {credential.qrDataUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={credential.qrDataUrl}
-                  alt={`QR de entrada de ${credential.name}`}
-                  width={220}
-                  height={220}
-                  className={`rounded-2xl ${credential.checkedIn ? "opacity-40 grayscale" : ""}`}
-                />
-              )}
-              <p className={`mt-2 text-xs ${credential.checkedIn ? "font-medium text-blue-600" : "text-gray-400"}`}>
-                {credential.checkedIn ? "Check-in já realizado" : "Apresente este QR na entrada"}
-              </p>
-              {credential.code && (
-                <p className="mt-1 font-mono text-xs tracking-[0.2em] text-gray-400">{credential.code}</p>
-              )}
+        <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,0.8fr)]">
+          <div id="meus-ingressos" className="grid content-start gap-4 bg-gray-50/70 p-5 sm:p-8 lg:border-r lg:border-gray-100">
+            {credentials.map((credential) => (
+              <div key={credential.id} className="flex flex-col items-center rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+                <p className="mb-2 max-w-full truncate text-sm font-semibold text-gray-900">
+                  {credential.name}
+                </p>
+                {credential.qrDataUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={credential.qrDataUrl}
+                    alt={`QR de entrada de ${credential.name}`}
+                    width={220}
+                    height={220}
+                    className={`rounded-2xl ${credential.checkedIn ? "opacity-40 grayscale" : ""}`}
+                  />
+                )}
+                <p className={`mt-2 text-xs ${credential.checkedIn ? "font-medium text-blue-600" : "text-gray-400"}`}>
+                  {credential.checkedIn ? "Check-in já realizado" : "Apresente este QR na entrada"}
+                </p>
+                {credential.code && (
+                  <p className="mt-1 font-mono text-xs tracking-[0.2em] text-gray-400">{credential.code}</p>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="p-5 text-left sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Resumo do pedido</p>
+            <dl className="mt-3 space-y-2 text-sm">
+              <div className="flex justify-between gap-4"><dt className="text-gray-500">Pedido</dt><dd className="font-mono font-medium text-gray-900">{athleteOrderReference(ticketId)}</dd></div>
+              <div className="flex justify-between gap-4"><dt className="text-gray-500">Pagamento</dt><dd className="font-medium text-gray-900">{athletePaymentMethodLabel(paymentMethod)}</dd></div>
+              <div className="flex justify-between gap-4"><dt className="text-gray-500">Campeonato</dt><dd className="text-right font-medium text-gray-900">{championshipName}</dd></div>
+              {categoryName && <div className="flex justify-between gap-4"><dt className="text-gray-500">Categoria</dt><dd className="text-right font-medium text-gray-900">{categoryName}</dd></div>}
+            </dl>
+            <div className="mt-4 border-t border-gray-100 pt-3">
+              <p className="text-xs font-medium text-gray-500">Credenciais enviadas para</p>
+              <p className="mt-1 text-sm text-gray-900">{buyerName} · {buyerEmail}</p>
+              <p className="mt-1 text-sm text-gray-900">{partnerName} · {partnerEmail}</p>
             </div>
-          ))}
-        </div>
-        <div className="mx-auto w-full max-w-md rounded-2xl bg-white p-4 text-left ring-1 ring-black/5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Resumo do pedido</p>
-          <dl className="mt-3 space-y-2 text-sm">
-            <div className="flex justify-between gap-4"><dt className="text-gray-500">Pedido</dt><dd className="font-mono font-medium text-gray-900">{athleteOrderReference(ticketId)}</dd></div>
-            <div className="flex justify-between gap-4"><dt className="text-gray-500">Pagamento</dt><dd className="font-medium text-gray-900">{athletePaymentMethodLabel(paymentMethod)}</dd></div>
-            <div className="flex justify-between gap-4"><dt className="text-gray-500">Campeonato</dt><dd className="text-right font-medium text-gray-900">{championshipName}</dd></div>
-            {categoryName && <div className="flex justify-between gap-4"><dt className="text-gray-500">Categoria</dt><dd className="text-right font-medium text-gray-900">{categoryName}</dd></div>}
-          </dl>
-          <div className="mt-4 border-t border-gray-100 pt-3">
-            <p className="text-xs font-medium text-gray-500">Credenciais enviadas para</p>
-            <p className="mt-1 text-sm text-gray-900">{buyerName} · {buyerEmail}</p>
-            <p className="mt-1 text-sm text-gray-900">{partnerName} · {partnerEmail}</p>
-          </div>
-          <div className="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-500">
-            <p>Guarde este link privado e apresente o QR individual na entrada.</p>
-            <p className="mt-1">Contato: {organizerPhone ? <a className="font-medium text-blue-600 hover:underline" href={`tel:${organizerPhone.replace(/\D/g, "")}`}>{organizerName ?? "Organizador"} · {organizerPhone}</a> : `${organizerName ?? "Organizador"} — consulte a página do campeonato.`}</p>
+            <div className="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-500">
+              <p>Guarde este link privado e apresente o QR individual na entrada.</p>
+              <p className="mt-1">Contato: {organizerPhone ? <a className="font-medium text-blue-600 hover:underline" href={`tel:${organizerPhone.replace(/\D/g, "")}`}>{organizerName ?? "Organizador"} · {organizerPhone}</a> : `${organizerName ?? "Organizador"} — consulte a página do campeonato.`}</p>
+            </div>
           </div>
         </div>
-        <a href="#meus-ingressos" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white hover:bg-blue-700">Ver meus ingressos</a>
-        <p className="text-xs text-blue-600">Salve o link desta página para acessar depois.</p>
+        <div className="border-t border-gray-100 bg-gray-50/70 px-5 py-5 text-left sm:px-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Sobre o campeonato</p>
+          <p className="mt-2 font-semibold text-gray-900">{championshipName}</p>
+          {championshipDateLabel && <p className="mt-2 flex items-center gap-2 text-sm text-gray-600"><CalendarDays className="size-4 shrink-0 text-gray-400" />{championshipDateLabel}</p>}
+          {championshipLocationLabel && <p className="mt-2 flex items-center gap-2 text-sm text-gray-600"><MapPin className="size-4 shrink-0 text-gray-400" />{championshipLocationLabel}</p>}
+          <Link href={championshipHref} className="mt-3 inline-block text-sm font-medium text-blue-600 hover:underline">Ver página do campeonato</Link>
+        </div>
+        <p className="px-5 py-4 text-xs text-blue-600">Salve o link desta página para acessar depois.</p>
       </div>
     );
   }

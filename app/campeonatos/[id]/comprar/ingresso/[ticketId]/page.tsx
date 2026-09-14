@@ -160,21 +160,12 @@ export default async function IngressoAtletaPage({
         : null,
     })),
   );
-  const { data: credentialHistory } = allIndividualCredentials.length
-    ? await supabase
-        .from("athlete_ticket_credential_events")
-        .select("id, credential_id, event_type, created_at")
-        .eq("athlete_ticket_id", ticketId)
-        .in("event_type", ["issued", "rotated", "viewed", "email_sent", "invalidated", "self_invalidated", "checked_in"])
-        .order("created_at", { ascending: false })
-        .limit(60)
-    : { data: [] };
-  const credentialSlotMap = new Map(allIndividualCredentials.map((credential) => [credential.id, credential.athlete_slot]));
-  const credentialHistoryLabels: Record<string, string> = {
-    issued: "Credencial emitida", rotated: "Link, QR e código substituídos", viewed: "Credencial acessada",
-    email_sent: "Enviada por e-mail",
-    invalidated: "Credencial anterior invalidada", self_invalidated: "Substituição solicitada pelo titular", checked_in: "Check-in realizado",
-  };
+  const championshipDateLabel = champ?.data_inicio
+    ? `${dataBR(champ.data_inicio)}${champ.data_fim && champ.data_fim !== champ.data_inicio ? ` a ${dataBR(champ.data_fim)}` : ""}`
+    : null;
+  const championshipLocationLabel = (champ?.local || champ?.cidade)
+    ? [champ.local, champ.cidade && `${champ.cidade}/${champ.estado}`].filter(Boolean).join(" · ")
+    : null;
 
   return (
     <div className="min-h-screen">
@@ -274,45 +265,27 @@ export default async function IngressoAtletaPage({
               partnerEmail={t.parceiro_email}
               organizerName={organizerProfile?.nome ?? null}
               organizerPhone={organizerAccount?.telefone ?? null}
+              championshipDateLabel={championshipDateLabel}
+              championshipLocationLabel={championshipLocationLabel}
+              championshipHref={`/campeonatos/${champId}`}
             />
           )}
 
-          {(credentialHistory ?? []).length > 0 && (
-            <details className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-              <summary className="cursor-pointer text-sm font-semibold text-gray-900">Histórico das duas credenciais</summary>
-              <p className="mt-1 text-xs text-gray-500">Emissões, substituições, acessos e check-ins, sem mostrar tokens.</p>
-              <ol className="mt-4 max-h-80 divide-y divide-gray-100 overflow-y-auto">
-                {(credentialHistory ?? []).map((event) => (
-                  <li key={event.id} className="flex items-center justify-between gap-3 py-3">
-                    <div>
-                      <p className="text-sm text-gray-700">{credentialHistoryLabels[event.event_type] ?? event.event_type}</p>
-                      <p className="text-xs text-gray-400">Atleta {credentialSlotMap.get(event.credential_id) ?? "—"}</p>
-                    </div>
-                    <time dateTime={event.created_at} className="shrink-0 text-xs text-gray-400">
-                      {new Date(event.created_at).toLocaleString("pt-BR", { timeZone: "America/Bahia" })}
-                    </time>
-                  </li>
-                ))}
-              </ol>
-            </details>
-          )}
-
-          {/* Dados do campeonato */}
-          {champ && (
+          {/* No pagamento pendente, os dados continuam como contexto abaixo do checkout. */}
+          {champ && !pago && (
             <div className="space-y-3 rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5">
               <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Sobre o campeonato</p>
               <p className="font-semibold text-gray-900">{champ.nome}</p>
-              {champ.data_inicio && (
+              {championshipDateLabel && (
                 <p className="flex items-center gap-2 text-sm text-gray-600">
                   <CalendarDays className="size-4 shrink-0 text-gray-400" />
-                  {dataBR(champ.data_inicio)}
-                  {champ.data_fim && champ.data_fim !== champ.data_inicio && ` a ${dataBR(champ.data_fim)}`}
+                  {championshipDateLabel}
                 </p>
               )}
-              {(champ.local || champ.cidade) && (
+              {championshipLocationLabel && (
                 <p className="flex items-center gap-2 text-sm text-gray-600">
                   <MapPin className="size-4 shrink-0 text-gray-400" />
-                  {[champ.local, champ.cidade && `${champ.cidade}/${champ.estado}`].filter(Boolean).join(" · ")}
+                  {championshipLocationLabel}
                 </p>
               )}
               <Link

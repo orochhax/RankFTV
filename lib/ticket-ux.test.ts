@@ -271,10 +271,10 @@ test("a guest pair receives two linked individual entry credentials", () => {
   assert.match(migration, /ATHLETE_TICKET_CREDENTIAL_DOMAIN_MISMATCH/);
   assert.match(athletePage, /\.from\("athlete_ticket_credentials"\)/);
   assert.match(athletePage, /allIndividualCredentials\.find\(\(credential\) => credential\.athlete_slot === 1\)/);
-  assert.match(athletePage, /credentialHistory/);
+  assert.doesNotMatch(athletePage, /athlete_ticket_credential_events/);
   assert.match(athleteStatus, /somente a credencial do comprador/);
   assert.match(athleteStatus, /credentials\.map/);
-  assert.match(athleteStatus, /mx-auto grid w-full max-w-md/);
+  assert.match(athleteStatus, /id="meus-ingressos"/);
   assert.match(individualPage, /\.eq\("id", credentialId\)/);
   assert.match(individualPage, /\.eq\("access_token", accessToken\)/);
   assert.match(individualPage, /IngressoAtletaCredencial/);
@@ -309,9 +309,6 @@ test("a guest pair receives two linked individual entry credentials", () => {
   assert.match(individualPage, /\.in\("event_type", \["issued", "rotated", "viewed", "email_sent", "invalidated", "self_invalidated", "checked_in"\]\)/);
   assert.doesNotMatch(individualPage, /email_failed: "Falha temporária no envio"/);
   assert.doesNotMatch(individualPage, /resend_requested: "Reenvio solicitado"/);
-  assert.match(athletePage, /\.in\("event_type", \["issued", "rotated", "viewed", "email_sent", "invalidated", "self_invalidated", "checked_in"\]\)/);
-  assert.doesNotMatch(athletePage, /email_failed: "Falha temporária no envio"/);
-  assert.doesNotMatch(athletePage, /resend_requested: "Reenvio solicitado"/);
   assert.match(recoveryClaim, /\.is\("usado_em", null\)/);
   assert.match(recoveryClaim, /return Boolean\(claimed\)/);
   assert.match(proxy, /Cache-Control", "private, no-store/);
