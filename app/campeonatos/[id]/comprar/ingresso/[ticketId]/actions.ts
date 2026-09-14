@@ -29,6 +29,7 @@ import {
   athleteTicketCardPaymentSchema,
   invalidPaymentInput,
 } from "@/lib/payment-input-schemas";
+import { expireAthleteCheckoutIfNeeded } from "@/lib/athlete-checkout-expiration";
 
 export type CardPaymentInput = {
   ticketId:    string;
@@ -87,17 +88,20 @@ export async function pagarIngressoAtletaComCartao(
     return { ok: false, error: "Esta reserva não está mais disponível." };
   }
   if (ticket.checkout_expires_at && Date.parse(ticket.checkout_expires_at) <= Date.now()) {
-    const { data: expired } = await admin.rpc("expire_athlete_ticket_inventory_if_pending", {
-      p_ticket_id: ticket.id,
-    });
-    if (expired) return { ok: false, error: "O tempo da reserva terminou. Faça uma nova inscrição." };
-    const { data: latest } = await admin
-      .from("athlete_tickets")
-      .select("status_pagamento")
-      .eq("id", ticket.id)
-      .maybeSingle();
-    if (latest?.status_pagamento === "pago") return { ok: true, pago: true };
-    return { ok: false, error: "Não foi possível confirmar a reserva. Atualize a página." };
+    // Não libera a vaga diretamente: uma cobrança de cartão pode ter sido
+    // recebida pelo processador no último instante. A reconciliação consulta o
+    // provedor antes de cancelar ou expirar o estoque.
+    const expiration = await expireAthleteCheckoutIfNeeded(ticket.id);
+    if (expiration.status === "pago") return { ok: true, pago: true };
+    if (expiration.status === "expirado") {
+      return { ok: false, error: "O tempo da reserva terminou. Faça uma nova inscrição." };
+    }
+    return {
+      ok: false,
+      error: expiration.reconciliationPending
+        ? "Pagamento em análise. Aguarde a confirmação antes de tentar novamente."
+        : "Não foi possível confirmar a reserva. Atualize a página.",
+    };
   }
   if (ticket.billing_type === "PIX") {
     return { ok: false, error: "Este ingresso foi iniciado no Pix. Crie uma nova compra para pagar com cartão." };

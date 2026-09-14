@@ -42,7 +42,9 @@ P1/P2 não alteram esse percentual.
   cartão exatamente no limite de expiração. Comprovar no Sandbox que o Asaas é
   consultado antes de liberar a vaga e que não há dupla cobrança, dupla vaga ou
   credencial duplicada. Recarregamento, duas abas, abandono, expiração e os
-  pagamentos fora do limite já foram homologados.
+  pagamentos fora do limite já foram homologados. Em 14/09, o caminho de cartão
+  vencido foi corrigido para usar essa reconciliação antes de liberar estoque;
+  falta a prova ponta a ponta no prazo curto do Sandbox.
 - [ ] Homologar visualmente, no Sandbox, o pós-pagamento da inscrição de atleta.
   A implementação e os testes agora distinguem “Aguardando pagamento”,
   “Pagamento em análise” e “Inscrição confirmada”; no sucesso mostram

@@ -107,6 +107,19 @@ test("payment startup failures release the reserved athlete inventory", () => {
   assert.match(authenticatedAction, /customer_or_payment_start_failed/);
 });
 
+test("cartão no limite da reserva reconcilia o provedor antes de liberar estoque", () => {
+  const action = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
+  const expiryBranch = action.indexOf("ticket.checkout_expires_at && Date.parse(ticket.checkout_expires_at) <= Date.now()");
+
+  assert.ok(expiryBranch >= 0);
+  const branch = action.slice(expiryBranch, action.indexOf('if (ticket.billing_type === "PIX")', expiryBranch));
+  assert.match(action, /import \{ expireAthleteCheckoutIfNeeded \}/);
+  assert.match(branch, /await expireAthleteCheckoutIfNeeded\(ticket\.id\)/);
+  assert.match(branch, /expiration\.status === "pago"/);
+  assert.match(branch, /expiration\.reconciliationPending/);
+  assert.doesNotMatch(branch, /expire_athlete_ticket_inventory_if_pending/);
+});
+
 test("card customer failures are observable without exposing payer data", () => {
   const action = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
   const failureEvent = action.indexOf("athlete_ticket.customer_registration_failed");
