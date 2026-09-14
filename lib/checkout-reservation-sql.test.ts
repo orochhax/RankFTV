@@ -15,7 +15,10 @@ test("reserva a categoria sob lock e sem expor o token bruto", () => {
   assert.match(sql, /FROM public\.championship_categories AS c[\s\S]*FOR UPDATE/i);
   assert.match(sql, /status_pagamento IN \('pendente', 'pago'\)/i);
   assert.match(sql, /checkout_category_sold_out/i);
+  assert.match(sql, /p_duration_minutes < 1 OR p_duration_minutes > 30/i);
   assert.match(sql, /REVOKE ALL ON TABLE public\.checkout_reservations FROM PUBLIC, anon, authenticated/i);
+  assert.match(sql, /REVOKE ALL ON FUNCTION public\.reserve_athlete_checkout[\s\S]*FROM PUBLIC, anon, authenticated/i);
+  assert.match(sql, /GRANT EXECUTE ON FUNCTION public\.reserve_athlete_checkout[\s\S]*TO service_role/i);
 });
 
 test("reutiliza a mesma reserva sem reiniciar o prazo e consome no ingresso", () => {

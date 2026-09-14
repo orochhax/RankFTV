@@ -1,6 +1,8 @@
 -- Reserva temporaria da vaga da dupla antes da coleta dos participantes.
 -- Aplicar primeiro no Sandbox. A reserva ocupa o lote e a capacidade da
--- categoria por 15 minutos e e consumida atomicamente ao criar o ingresso.
+-- categoria por 15 minutos em producao e e consumida atomicamente ao criar o
+-- ingresso. O limite minimo de 1 minuto permite testes acelerados no Sandbox;
+-- a duracao efetiva continua definida exclusivamente pelo servidor.
 
 CREATE TABLE IF NOT EXISTS public.checkout_reservations (
   id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -175,7 +177,7 @@ BEGIN
   IF p_token_hash IS NULL OR p_token_hash !~ '^[0-9a-f]{64}$' THEN
     RAISE EXCEPTION 'checkout_reservation_token_invalid';
   END IF;
-  IF p_duration_minutes IS NULL OR p_duration_minutes < 5 OR p_duration_minutes > 30 THEN
+  IF p_duration_minutes IS NULL OR p_duration_minutes < 1 OR p_duration_minutes > 30 THEN
     RAISE EXCEPTION 'checkout_reservation_duration_invalid';
   END IF;
 

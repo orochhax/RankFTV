@@ -51,6 +51,36 @@
   --font-sans: var(--font-inter);
 }
 
+/* Elementos interativos mostram de forma consistente que podem ser clicados.
+   :where() mantém a especificidade em zero para que cursores específicos de
+   componentes (como arrastar ou redimensionar) continuem tendo prioridade. */
+:where(
+  a[href],
+  button:not(:disabled),
+  summary,
+  select:not(:disabled),
+  label[for],
+  label:has(input:not(:disabled)),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="file"]:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="link"]:not([aria-disabled="true"])
+) {
+  cursor: pointer;
+}
+
+:where(
+  button:disabled,
+  select:disabled,
+  input[type="checkbox"]:disabled,
+  input[type="radio"]:disabled,
+  input[type="file"]:disabled,
+  [aria-disabled="true"]
+) {
+  cursor: not-allowed;
+}
+
 /* ── Zoom automático ao focar campo no mobile (Safari/iOS) ──────────────
    iOS Safari dá zoom automático quando o campo focado tem fonte computada
    menor que 16px. O app usa text-sm (14px) e text-xs (12px) em quase todo

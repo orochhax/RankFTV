@@ -1,13 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FocusEvent as ReactFocusEvent, PointerEvent as ReactPointerEvent } from "react";
+import type {
+  FocusEvent as ReactFocusEvent,
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
 
 export function useCarouselControls(length: number, intervalMs: number) {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const pointerStart = useRef<number | null>(null);
+  const pointerMoved = useRef(false);
 
   const previous = useCallback(() => setCurrent((value) => (value - 1 + length) % length), [length]);
   const next = useCallback(() => setCurrent((value) => (value + 1) % length), [length]);
@@ -31,9 +36,19 @@ export function useCarouselControls(length: number, intervalMs: number) {
   }
 
   function onPointerDown(event: ReactPointerEvent<HTMLElement>) {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
     pointerStart.current = event.clientX;
+    pointerMoved.current = false;
     setPaused(true);
-    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function onPointerMove(event: ReactPointerEvent<HTMLElement>) {
+    const start = pointerStart.current;
+    if (start === null || Math.abs(event.clientX - start) < 8) return;
+    pointerMoved.current = true;
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
   }
 
   function onPointerUp(event: ReactPointerEvent<HTMLElement>) {
@@ -50,7 +65,15 @@ export function useCarouselControls(length: number, intervalMs: number) {
 
   function onPointerCancel() {
     pointerStart.current = null;
+    pointerMoved.current = false;
     setPaused(false);
+  }
+
+  function onClickCapture(event: ReactMouseEvent<HTMLElement>) {
+    if (!pointerMoved.current) return;
+    pointerMoved.current = false;
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   function onFocusCapture(event: ReactFocusEvent<HTMLElement>) {
@@ -70,7 +93,7 @@ export function useCarouselControls(length: number, intervalMs: number) {
     reducedMotion,
     pauseOnHover,
     resume: () => setPaused(false),
-    pointerHandlers: { onPointerDown, onPointerUp, onPointerCancel },
+    pointerHandlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onClickCapture },
     focusHandlers: { onFocusCapture, onBlurCapture },
   };
 }
