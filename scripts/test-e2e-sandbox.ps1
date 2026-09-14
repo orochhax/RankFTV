@@ -1,3 +1,4 @@
+[CmdletBinding(PositionalBinding = $false)]
 param(
   [switch]$AllowFinancialMutations,
   [string]$BaseUrl = "https://rank-ftv-git-sandbox-homologacao-devcarlosrochas-projects.vercel.app",
@@ -36,6 +37,7 @@ $env:E2E_BASE_URL = $BaseUrl.TrimEnd("/")
 $env:E2E_SANDBOX_SUPABASE_PROJECT_REF = "obfqzifcvsqnygwmtpnx"
 $env:E2E_DISPOSABLE_SANDBOX = "RANKFTV_DISPOSABLE_SANDBOX"
 $env:E2E_AUTH_MODE = "sandbox-magic-link"
+$env:E2E_SERIAL_AUTH = "1"
 if ($env:VERCEL_PROTECTION_BYPASS) {
   $env:VERCEL_AUTOMATION_BYPASS_SECRET = $env:VERCEL_PROTECTION_BYPASS
 }
