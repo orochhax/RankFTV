@@ -21,7 +21,7 @@ export async function login(page: Page, email: string, password?: string) {
 
     const callback = "/auth/callback"
       + `?token_hash=${encodeURIComponent(data.properties.hashed_token)}`
-      + "&type=magiclink&next=%2F";
+      + "&type=email&next=%2F";
     await page.goto(callback, { waitUntil: "domcontentloaded" });
     await expect(page).not.toHaveURL(/\/login(?:\?|$)/, { timeout: 20_000 });
     return;
