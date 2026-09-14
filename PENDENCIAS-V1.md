@@ -7,8 +7,8 @@ e nos deploys de homologação.
 
 ## Progresso da V1
 
-`██████████████▋░░░░░` **73% concluído** — 102 de 139 itens P0 marcados como
-feitos; faltam 37. A conta inclui todos os itens e subitens da seção P0
+`██████████████▊░░░░░` **74% concluído** — 103 de 139 itens P0 marcados como
+feitos; faltam 36. A conta inclui todos os itens e subitens da seção P0
 (obrigatórios antes de abrir pagamentos reais) e exclui P1/P2, classificados
 neste arquivo como estabilização ou evolução depois do lançamento.
 
@@ -165,8 +165,12 @@ que não alterem a segurança ou a correção financeira do fluxo lançado.
       executar novamente o Security Advisor. Em 08/09/2026, a view preservou
       acesso para `anon`/`authenticated`, a auditoria retornou sete verificações
       verdadeiras e cinco listas vazias, e o Advisor passou a exibir zero erros.
-  - [ ] Concluir a revisão dos 33 warnings e 15 sugestões restantes do Security
-    Advisor. A exportação dos 33 warnings foi classificada em 08/09/2026:
+  - [x] Concluir a revisão dos warnings e sugestões restantes do Security
+    Advisor. Em 14/09/2026, a execução atual no Dashboard do Sandbox retornou
+    0 errors, 28 warnings e 20 sugestões: os warnings são `pg_trgm`, a RPC
+    pública limitada `list_public_arena_cards` e 26 RPCs autenticadas já
+    revisadas; as sugestões são tabelas internas com RLS ativo e sem policy
+    para clientes. Nenhuma alteração adicional é necessária nesta etapa.
     - [x] Auditar as 26 advertências de RPCs `SECURITY DEFINER`: uma é a leitura
       pública limitada `list_public_arena_cards` e as outras 25 são RPCs
       autenticadas intencionais. Todas têm checagem interna de identidade,
