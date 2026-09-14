@@ -43,12 +43,13 @@ P1/P2 não alteram esse percentual.
   consultado antes de liberar a vaga e que não há dupla cobrança, dupla vaga ou
   credencial duplicada. Recarregamento, duas abas, abandono, expiração e os
   pagamentos fora do limite já foram homologados.
-- [ ] Completar o pós-pagamento da inscrição de atleta. Os estados reais
-  “Aguardando pagamento”, “Pagamento em análise” e “Inscrição confirmada” já
-  existem, mas o sucesso ainda precisa mostrar número do pedido, método,
-  campeonato, categoria, participantes, e-mails de entrega, ação principal
-  “Ver meus ingressos”, instruções de acesso e contato do organizador, sem
-  competir com a credencial.
+- [ ] Homologar visualmente, no Sandbox, o pós-pagamento da inscrição de atleta.
+  A implementação e os testes agora distinguem “Aguardando pagamento”,
+  “Pagamento em análise” e “Inscrição confirmada”; no sucesso mostram
+  referência do pedido, método, campeonato, categoria, participantes, e-mails
+  de entrega, ação “Ver meus ingressos”, instruções e contato do organizador.
+  Falta apenas conferir o resultado em navegador conectado, sem criar nova
+  cobrança.
 - [ ] Concluir a homologação de reembolso sem conta para Pix e cartão nos
   cenários ainda não cobertos: parcial, repetição, timeout, saldo insuficiente,
   cobrança inelegível e tentativa do parceiro. Pix e cartão integrais e o

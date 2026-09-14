@@ -90,7 +90,7 @@ export default async function IngressoAtletaPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome, is_elite, data_inicio, data_fim, cidade, estado, local, regulamento")
+    .select("nome, is_elite, data_inicio, data_fim, cidade, estado, local, regulamento, organizador_id")
     .eq("id", champId)
     .maybeSingle();
   let categoriaGenero: "masculino" | "feminino" | "mista" | null = null;
@@ -102,6 +102,10 @@ export default async function IngressoAtletaPage({
       .maybeSingle();
     categoriaGenero = (cat?.genero as "masculino" | "feminino" | "mista" | undefined) ?? null;
   }
+  const [{ data: organizerProfile }, { data: organizerAccount }] = await Promise.all([
+    supabase.from("profiles").select("nome").eq("id", champ?.organizador_id ?? "").maybeSingle(),
+    supabase.from("organizer_accounts").select("telefone").eq("user_id", champ?.organizador_id ?? "").maybeSingle(),
+  ]);
 
   const pago = t.status_pagamento === "pago";
   const refundPolicy = decideRefundPolicy({
@@ -262,6 +266,14 @@ export default async function IngressoAtletaPage({
               categoryId={t.category_id}
               checkoutExpiresAt={t.checkout_expires_at}
               serverNow={new Date().toISOString()}
+              championshipName={champ?.nome ?? "Campeonato"}
+              categoryName={t.categoria_nome}
+              buyerName={compradorPublicName}
+              partnerName={parceiroPublicName}
+              buyerEmail={t.comprador_email}
+              partnerEmail={t.parceiro_email}
+              organizerName={organizerProfile?.nome ?? null}
+              organizerPhone={organizerAccount?.telefone ?? null}
             />
           )}
 

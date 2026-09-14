@@ -11,6 +11,11 @@ import { pagarIngressoAtletaComCartao } from "@/app/campeonatos/[id]/comprar/ing
 import { CardHolderContactFields } from "@/components/pagamento/CardHolderContactFields";
 import { trackPublicFunnel } from "@/lib/public-funnel-client";
 import { ReservationCountdown } from "@/components/checkout/ReservationCountdown";
+import {
+  athleteOrderReference,
+  athletePaymentMethodLabel,
+  athletePostPaymentState,
+} from "@/lib/athlete-ticket-post-payment";
 
 type Tipo = "credito" | "debito";
 
@@ -46,6 +51,14 @@ type Props = {
   categoryId: string | null;
   checkoutExpiresAt: string | null;
   serverNow: string;
+  championshipName: string;
+  categoryName: string | null;
+  buyerName: string;
+  partnerName: string;
+  buyerEmail: string;
+  partnerEmail: string;
+  organizerName: string | null;
+  organizerPhone: string | null;
 };
 
 export function IngressoAtletaPagamento({
@@ -63,14 +76,24 @@ export function IngressoAtletaPagamento({
   categoryId,
   checkoutExpiresAt,
   serverNow,
+  championshipName,
+  categoryName,
+  buyerName,
+  partnerName,
+  buyerEmail,
+  partnerEmail,
+  organizerName,
+  organizerPhone,
 }: Props) {
   const router = useRouter();
   const [statusPagamento, setStatusPagamento] = useState(initialStatusPagamento);
   const [credentials, setCredentials] = useState(initialCredentials);
+  const [paymentInAnalysis, setPaymentInAnalysis] = useState(false);
   const stoppedRef = useRef(false);
   const paymentTrackedRef = useRef(false);
 
   const pago = statusPagamento === "pago";
+  const postPaymentState = athletePostPaymentState(statusPagamento, paymentInAnalysis);
 
   useEffect(() => {
     if (!pago || paymentTrackedRef.current) return;
@@ -132,6 +155,7 @@ export function IngressoAtletaPagamento({
           }
           if (nextStatus !== statusPagamento) {
             setStatusPagamento(nextStatus);
+            if (["pago", "estornado", "expirado"].includes(nextStatus)) setPaymentInAnalysis(false);
             if (nextStatus === "pago") await gerarEntradaQrs();
             router.refresh();
           }
@@ -166,7 +190,7 @@ export function IngressoAtletaPagamento({
         <p className="text-xs text-gray-500">
           Este link mostra somente a credencial do comprador. O parceiro recebe a dele no próprio e-mail.
         </p>
-        <div className="mx-auto grid w-full max-w-md gap-4">
+        <div id="meus-ingressos" className="mx-auto grid w-full max-w-md gap-4">
           {credentials.map((credential) => (
             <div key={credential.id} className="flex flex-col items-center rounded-2xl bg-white p-4 ring-1 ring-black/5">
               <p className="mb-2 max-w-full truncate text-sm font-semibold text-gray-900">
@@ -191,6 +215,25 @@ export function IngressoAtletaPagamento({
             </div>
           ))}
         </div>
+        <div className="mx-auto w-full max-w-md rounded-2xl bg-white p-4 text-left ring-1 ring-black/5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Resumo do pedido</p>
+          <dl className="mt-3 space-y-2 text-sm">
+            <div className="flex justify-between gap-4"><dt className="text-gray-500">Pedido</dt><dd className="font-mono font-medium text-gray-900">{athleteOrderReference(ticketId)}</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-gray-500">Pagamento</dt><dd className="font-medium text-gray-900">{athletePaymentMethodLabel(paymentMethod)}</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-gray-500">Campeonato</dt><dd className="text-right font-medium text-gray-900">{championshipName}</dd></div>
+            {categoryName && <div className="flex justify-between gap-4"><dt className="text-gray-500">Categoria</dt><dd className="text-right font-medium text-gray-900">{categoryName}</dd></div>}
+          </dl>
+          <div className="mt-4 border-t border-gray-100 pt-3">
+            <p className="text-xs font-medium text-gray-500">Credenciais enviadas para</p>
+            <p className="mt-1 text-sm text-gray-900">{buyerName} · {buyerEmail}</p>
+            <p className="mt-1 text-sm text-gray-900">{partnerName} · {partnerEmail}</p>
+          </div>
+          <div className="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-500">
+            <p>Guarde este link privado e apresente o QR individual na entrada.</p>
+            <p className="mt-1">Contato: {organizerPhone ? <a className="font-medium text-blue-600 hover:underline" href={`tel:${organizerPhone.replace(/\D/g, "")}`}>{organizerName ?? "Organizador"} · {organizerPhone}</a> : `${organizerName ?? "Organizador"} — consulte a página do campeonato.`}</p>
+          </div>
+        </div>
+        <a href="#meus-ingressos" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white hover:bg-blue-700">Ver meus ingressos</a>
         <p className="text-xs text-blue-600">Salve o link desta página para acessar depois.</p>
       </div>
     );
@@ -216,7 +259,13 @@ export function IngressoAtletaPagamento({
           serverNow={serverNow}
         />
       )}
-      {paymentMethod === "pix" ? (
+      {postPaymentState === "analysis" ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center">
+          <Clock className="mx-auto size-6 text-amber-600" />
+          <p className="mt-2 text-sm font-semibold text-amber-900">Pagamento em análise</p>
+          <p className="mt-1 text-xs text-amber-800">O processador ainda não confirmou a cobrança. Atualizaremos esta página e enviaremos a credencial por e-mail assim que ela for aprovada.</p>
+        </div>
+      ) : paymentMethod === "pix" ? (
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="flex items-center gap-1.5 text-sm font-medium text-amber-600">
             <Clock className="size-4" /> Aguardando pagamento
@@ -248,8 +297,10 @@ export function IngressoAtletaPagamento({
           isElite={isElite}
           onPago={async () => {
             setStatusPagamento("pago");
+            setPaymentInAnalysis(false);
             await gerarEntradaQrs();
           }}
+          onAnalysis={() => setPaymentInAnalysis(true)}
         />
       )}
     </div>
@@ -262,12 +313,14 @@ function CardForm({
   valor,
   isElite,
   onPago,
+  onAnalysis,
 }: {
   ticketId: string;
   accessToken: string;
   valor: number;
   isElite: boolean;
   onPago: () => void;
+  onAnalysis: () => void;
 }) {
   const [pending, setPending] = useState(false);
   const [tipo,    setTipo]    = useState<Tipo>("credito");
@@ -335,7 +388,7 @@ function CardForm({
 
     if (!res.ok) { setError(res.error); return; }
     if (res.pago) onPago();
-    else setError("Pagamento em análise. Aguarde a confirmação por e-mail.");
+    else onAnalysis();
   }
 
   const inputCls = "mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";

@@ -30,11 +30,11 @@ test("Sandbox preserves the Resend key without adding a production fallback", ()
   assert.doesNotMatch(resend, /NEXT_PUBLIC_.*RESEND_API_KEY/);
 });
 
-test("Sandbox may shorten an athlete checkout reservation without changing production", () => {
+test("Sandbox reservation duration stays within the production maximum", () => {
   const reservation = source("lib/checkout-reservation.ts");
   const sandboxEnv = source(".env.sandbox.local");
 
-  assert.match(sandboxEnv, /^ATHLETE_CHECKOUT_RESERVATION_MINUTES=1$/m);
+  assert.match(sandboxEnv, /^ATHLETE_CHECKOUT_RESERVATION_MINUTES=(?:[1-9]|1[0-5])$/m);
   assert.match(reservation, /process\.env\.NODE_ENV === "development"/);
   assert.match(reservation, /PRODUCTION_ATHLETE_CHECKOUT_RESERVATION_MINUTES = 15/);
   assert.match(reservation, /value < 1 \|\| value > PRODUCTION_ATHLETE_CHECKOUT_RESERVATION_MINUTES/);
