@@ -1,9 +1,21 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 09/09/2026. Este arquivo acompanha as pendências de lançamento
+Atualizado em 14/09/2026. Este arquivo acompanha as pendências de lançamento
 e as entregas recentes, distinguindo implementação de homologação e publicação.
 Evidências complementares ficam em `AUDITORIA-PRODUCAO.md`, no histórico do Git
 e nos deploys de homologação.
+
+## Progresso da V1
+
+`██████████████▋░░░░░` **73% concluído** — 102 de 139 itens P0 marcados como
+feitos; faltam 37. A conta inclui todos os itens e subitens da seção P0
+(obrigatórios antes de abrir pagamentos reais) e exclui P1/P2, classificados
+neste arquivo como estabilização ou evolução depois do lançamento.
+
+Atualizar esta barra e os números sempre que um item ou subitem P0 mudar de
+estado ou uma nova pendência P0 for adicionada/removida. Recalcular como
+itens P0 concluídos ÷ total de checkboxes P0, arredondado para baixo; atualizar
+também a data no início do arquivo. Itens P1/P2 não alteram o percentual da V1.
 
 ## Estado atual da homologação
 
