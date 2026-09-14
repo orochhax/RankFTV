@@ -19,6 +19,14 @@ const admin = createClient(EXPECTED_URL, secretKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
+async function clearLocalReservationRateLimit() {
+  // Cada engine pode chegar ao Next local com um IP diferente. Em vez de
+  // enfraquecer o guard real, o inicializador remove apenas os contadores
+  // hashados de rate limit no Sandbox antes da suíte E2E descartável.
+  const { error } = await admin.from("rate_limits").delete().like("key", "rl:%");
+  if (error) throw error;
+}
+
 async function findUserByEmail(targetEmail) {
   for (let page = 1; page <= 20; page += 1) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 100 });
@@ -64,5 +72,6 @@ const { error: privateError } = await admin.from("profiles_private").upsert({
 }, { onConflict: "user_id" });
 if (privateError) throw privateError;
 
-process.stdout.write(`Conta E2E de atleta pronta no Sandbox: ${user.id}\n`);
+await clearLocalReservationRateLimit();
 
+process.stdout.write(`Conta E2E de atleta pronta no Sandbox: ${user.id}\n`);

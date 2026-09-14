@@ -40,6 +40,15 @@ async function forceRelease(tokenHash: string) {
   return data;
 }
 
+async function releasedReservationByHash(tokenHash: string) {
+  let latest = await reservationByHash(tokenHash);
+  await expect.poll(async () => {
+    latest = await reservationByHash(tokenHash);
+    return latest.status === "released" && Boolean(latest.released_at);
+  }, { timeout: 5_000 }).toBe(true);
+  return latest;
+}
+
 async function createReservation(page: Page, context: BrowserContext) {
   await page.goto(checkoutPath);
   await page.getByRole("button", { name: "Continuar com esta categoria" }).click();
@@ -50,10 +59,19 @@ async function createReservation(page: Page, context: BrowserContext) {
   return { initial: await reservationByHash(tokenHash), tokenHash };
 }
 
+async function fillTemporaryParticipantDraft(page: Page) {
+  const athleteTwo = page.getByRole("region", { name: "Atleta 2" });
+  await athleteTwo.getByLabel("Nome completo").fill("Parceira Reserva Sandbox");
+  await athleteTwo.getByLabel("E-mail", { exact: true }).fill("reserva-parceira@example.com");
+}
+
 async function verifyReloadAndSecondTab(page: Page, context: BrowserContext) {
   await page.reload();
   await expect(page.getByText("Vaga reservada", { exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Atleta 1" })).toBeVisible();
+  const athleteTwo = page.getByRole("region", { name: "Atleta 2" });
+  await expect(athleteTwo.getByLabel("Nome completo")).toHaveValue("Parceira Reserva Sandbox");
+  await expect(athleteTwo.getByLabel("E-mail", { exact: true })).toHaveValue("reserva-parceira@example.com");
   const secondPage = await context.newPage();
   await secondPage.goto(checkoutPath);
   await expect(secondPage.getByRole("region", { name: "Atleta 1" })).toBeVisible();
@@ -88,14 +106,14 @@ function verifyInitialReservation(initial: Awaited<ReturnType<typeof reservation
 
 async function verifyIdempotentRelease(tokenHash: string) {
   expect(await forceRelease(tokenHash)).toBe(true);
-  const firstRelease = await reservationByHash(tokenHash);
+  const firstRelease = await releasedReservationByHash(tokenHash);
   expect(await forceRelease(tokenHash)).toBe(false);
-  const repeatedRelease = await reservationByHash(tokenHash);
+  const repeatedRelease = await releasedReservationByHash(tokenHash);
   expect(repeatedRelease.status).toBe("released");
   expect(repeatedRelease.released_at).toBe(firstRelease.released_at);
 }
 
-test("athlete reservation survives reload and a second tab without duplication", async ({ page, context }) => {
+test("athlete reservation and same-tab participant draft survive reload without duplication", async ({ page, context }) => {
   test.skip(!mutationsEnabled, "Checkout mutation tests were not enabled for the disposable Sandbox");
   test.slow();
   const email = process.env.E2E_ATHLETE_EMAIL;
@@ -110,6 +128,7 @@ test("athlete reservation survives reload and a second tab without duplication",
     tokenHash = created.tokenHash;
     const { initial } = created;
     const userId = verifyInitialReservation(initial);
+    await fillTemporaryParticipantDraft(page);
     await verifyReloadAndSecondTab(page, context);
     await verifyReusedReservation(page, tokenHash, initial);
     await verifyOnlyOneActiveReservation(userId);

@@ -410,12 +410,15 @@ que não alterem a segurança ou a correção financeira do fluxo lançado.
     preço e taxa, com ação específica “Continuar com esta categoria”. Depois de
     concluída, recolher a etapa e mostrar um resumo com check, categoria, tipo
     da dupla e ação “Trocar”. A quantidade restante combina no servidor o
-    limite da categoria, o lote vigente, ingressos e reservas ativas.
+    limite da categoria, o lote vigente, inscrições autenticadas, ingressos e
+    reservas ativas.
   - [x] Etapa 2 — Participantes: permitir preenchimento pela conta, coletar os
     dados dos dois atletas, camisa e gênero e deixar explícito qual e-mail
     receberá cada credencial individual, incluindo a opção consciente de usar
     o mesmo e-mail. Depois de concluída, recolher a etapa e mostrar os dois
-    nomes com check e ação “Editar”.
+    nomes com check e ação “Editar”. Os dados digitados ficam somente na
+    `sessionStorage` da aba e voltam após recarregar enquanto a reserva real
+    estiver válida; expirado o prazo, o rascunho é descartado.
   - [x] Etapa 3 — Revisão e pagamento: reunir categoria, nomes e e-mails, cupom,
     Pix ou cartão, valores, taxas, Termos de Uso e Política de Privacidade em
     cards, com botão final específico “Pagar com Pix” ou “Pagar com cartão”.

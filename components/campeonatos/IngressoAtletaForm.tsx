@@ -25,6 +25,10 @@ import { LegalDocumentDialog } from "@/components/legal/LegalDocumentDialog";
 import type { AthleteCheckoutReservation } from "@/lib/checkout-reservation";
 import { ReservationCountdown } from "@/components/checkout/ReservationCountdown";
 import {
+  athleteCheckoutDraftStorageKey,
+  parseAthleteCheckoutDraft,
+} from "@/lib/athlete-checkout-draft";
+import {
   AthleteCheckoutCompletedSteps,
   AthleteCheckoutFooterSummary,
 } from "@/components/checkout/AthleteCheckoutSummary";
@@ -197,6 +201,7 @@ export function IngressoAtletaForm({
   const [usarMesmoEmail, setUsarMesmoEmail] = useState(false);
   const [usarDadosDaConta, setUsarDadosDaConta] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [draftReadyKey, setDraftReadyKey] = useState<string | null>(null);
   const [dismissedErrors, setDismissedErrors] = useState<Partial<Record<ComprarAtletaField, number>>>({});
   const [reviewErrors, setReviewErrors] = useState<Partial<Record<ComprarAtletaField, string>>>({});
   const [state, formAction, pending] = useActionState<ComprarAtletaState, FormData>(
@@ -217,6 +222,9 @@ export function IngressoAtletaForm({
   const categorySectionRef = useRef<HTMLDivElement>(null);
   const initialDataTracked = useRef(false);
   const valuesBeforeAccountAutofill = useRef<Record<string, string> | null>(null);
+  const checkoutDraftKey = reservation
+    ? athleteCheckoutDraftStorageKey(championshipId, reservation.id)
+    : null;
 
   useEffect(() => {
     if (!reservedCategory || initialDataTracked.current) return;
@@ -227,6 +235,45 @@ export function IngressoAtletaForm({
       categoryId: reservedCategory.id,
     });
   }, [championshipId, reservedCategory]);
+
+  useEffect(() => {
+    if (!checkoutDraftKey || !reservation) return;
+
+    const timer = window.setTimeout(() => {
+      try {
+        const draft = parseAthleteCheckoutDraft(
+          window.sessionStorage.getItem(checkoutDraftKey),
+          reservation.expiresAt,
+        );
+        if (!draft) {
+          window.sessionStorage.removeItem(checkoutDraftKey);
+        } else {
+          setValues(draft.values);
+          setMetodoPagamento(draft.paymentMethod);
+          setUsarMesmoEmail(draft.useSameEmail);
+        }
+      } catch {
+        // Storage pode estar bloqueado pelo navegador; o checkout continua funcional.
+      }
+      setDraftReadyKey(checkoutDraftKey);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [checkoutDraftKey, reservation]);
+
+  useEffect(() => {
+    if (!checkoutDraftKey || !reservation || draftReadyKey !== checkoutDraftKey) return;
+    try {
+      window.sessionStorage.setItem(checkoutDraftKey, JSON.stringify({
+        version: 1,
+        expiresAt: reservation.expiresAt,
+        values,
+        paymentMethod: metodoPagamento,
+        useSameEmail: usarMesmoEmail,
+      }));
+    } catch {
+      // Não interrompe a inscrição se o armazenamento temporário estiver indisponível.
+    }
+  }, [checkoutDraftKey, draftReadyKey, metodoPagamento, reservation, usarMesmoEmail, values]);
 
   const visibleFieldError = (field: ComprarAtletaField) =>
     reviewErrors[field]
@@ -357,13 +404,14 @@ export function IngressoAtletaForm({
   useEffect(() => {
     if (!state.error?.includes("tempo da reserva")) return;
     const timeout = window.setTimeout(() => {
+      if (checkoutDraftKey) window.sessionStorage.removeItem(checkoutDraftKey);
       setReservation(null);
       setEtapa("categoria");
       setDismissedServerErrorState(state);
       expirationDialogRef.current?.showModal();
     }, 0);
     return () => window.clearTimeout(timeout);
-  }, [state.error]);
+  }, [checkoutDraftKey, state.error]);
 
   function continuarComCategoria() {
     if (!catSelecionada) return;
@@ -392,6 +440,7 @@ export function IngressoAtletaForm({
   }
 
   function handleReservationExpired() {
+    if (checkoutDraftKey) window.sessionStorage.removeItem(checkoutDraftKey);
     setReservation(null);
     setReservationError(null);
     setEtapa("categoria");
