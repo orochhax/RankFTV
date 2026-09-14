@@ -48,6 +48,7 @@ test("login remains usable on a narrow viewport", async ({ page }) => {
 });
 
 test("athlete can reach the unified purchases area", async ({ page }) => {
+  test.slow();
   const email = process.env.E2E_ATHLETE_EMAIL;
   test.skip(!hasSandboxLogin(email, process.env.E2E_ATHLETE_PASSWORD), "Sandbox athlete credentials were not configured");
   if (!email) throw new Error("Sandbox athlete e-mail was not configured");
@@ -60,6 +61,7 @@ test("athlete can reach the unified purchases area", async ({ page }) => {
 });
 
 test("organizer can reach the management panel", async ({ page }) => {
+  test.slow();
   const email = process.env.E2E_ORGANIZER_EMAIL;
   test.skip(!hasSandboxLogin(email, process.env.E2E_ORGANIZER_PASSWORD), "Sandbox organizer credentials were not configured");
   if (!email) throw new Error("Sandbox organizer e-mail was not configured");

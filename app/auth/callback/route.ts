@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { EmailOtpType } from "@supabase/supabase-js";
+import type { EmailOtpType, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { validaCpfCnpj, idadeEm, soDigitos } from "@/lib/validacao";
 
@@ -9,12 +9,8 @@ import { validaCpfCnpj, idadeEm, soDigitos } from "@/lib/validacao";
 // Roda uma vez por confirmação; escrever de novo não tem efeito colateral.
 async function sincronizarCadastro(
   supabase: Awaited<ReturnType<typeof createClient>>,
+  user: User,
 ): Promise<void> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
-
   const meta = user.user_metadata as Record<string, string | undefined>;
 
   if (meta.genero === "masculino" || meta.genero === "feminino" || meta.genero === "outro") {
@@ -68,18 +64,24 @@ export async function GET(request: Request) {
 
   // 1) Fluxo OTP (token_hash) — preferido
   if (tokenHash && type) {
-    const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+    const { data, error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     if (!error) {
-      await sincronizarCadastro(supabase);
+      // Metadados de cadastro só precisam ser copiados na confirmação inicial.
+      // Login por magic link e recuperação não devem regravar o perfil.
+      if (type === "signup" && data.user) {
+        await sincronizarCadastro(supabase, data.user);
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
   // 2) Fluxo PKCE (code) — fallback
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      await sincronizarCadastro(supabase);
+      if (data.user) {
+        await sincronizarCadastro(supabase, data.user);
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
