@@ -35,20 +35,31 @@ async function fillAuthenticatedAthletes(page: Page) {
   const athleteOne = page.getByRole("region", { name: "Atleta 1" });
   const athleteTwo = page.getByRole("region", { name: "Atleta 2" });
   await expect(athleteOne).toBeVisible();
+  const categorySummary = page.getByRole("region", { name: "Categoria concluída" });
+  await expect(categorySummary).toContainText("Categoria escolhida");
+  await expect(categorySummary.getByRole("button", { name: "Trocar" })).toBeVisible();
+  const footerSummary = page.getByRole("complementary", { name: "Resumo da compra" });
+  await expect(footerSummary).toContainText("2 atletas");
+  await footerSummary.locator("summary").click();
+  await expect(footerSummary).toContainText("Inscrição");
+  await expect(footerSummary).toContainText("Taxa de serviço");
   await athleteOne.getByRole("checkbox", { name: /Você é um dos atletas/ }).check();
-  await athleteTwo.locator('input[name="parceiro_nome"]').fill("Parceira E2E Sandbox");
-  await athleteTwo.locator('input[name="parceiro_cpf"]').fill("11144477735");
-  await athleteTwo.locator('input[name="parceiro_email"]').fill("parceira-e2e@example.com");
-  await athleteTwo.locator('input[name="parceiro_email_confirmacao"]').fill("parceira-e2e@example.com");
-  await athleteTwo.locator('select[name="parceiro_genero"]').selectOption("feminino");
+  await athleteTwo.getByLabel("Nome completo").fill("Parceira E2E Sandbox");
+  await athleteTwo.getByLabel("CPF").fill("11144477735");
+  await athleteTwo.getByLabel("E-mail", { exact: true }).fill("parceira-e2e@example.com");
+  await athleteTwo.getByLabel("Confirme o e-mail do parceiro").fill("parceira-e2e@example.com");
+  await athleteTwo.getByLabel("Gênero").selectOption("feminino");
   await page.getByRole("button", { name: "Revisar dados antes de pagar" }).click();
 }
 
 async function verifyAthleteLegalConsent(page: Page) {
   await expect(page.getByText("Revise antes de confirmar")).toBeVisible();
+  const participantsSummary = page.getByRole("region", { name: "Participantes concluídos" });
+  await expect(participantsSummary).toContainText("Parceira E2E Sandbox");
+  await expect(participantsSummary.getByRole("button", { name: "Editar" })).toBeVisible();
   const consent = page.getByRole("checkbox", { name: /Li e concordo/ });
   await expect(consent).not.toBeChecked();
-  await page.getByRole("button", { name: /Confirmar e pagar/ }).click();
+  await page.getByRole("button", { name: /Pagar com/ }).click();
   await expect(consent).toBeFocused();
   await expect(page).toHaveURL(new RegExp(`/campeonatos/${championshipId}/comprar`));
   await expectLegalDialog(page, "Termos de Uso", "Termos de Uso da RankFTV", "/termos");
@@ -83,6 +94,7 @@ test("authenticated athlete cannot submit without consent and opens both legal d
   try {
     await login(page, email, process.env.E2E_ATHLETE_PASSWORD);
     await page.goto(`/campeonatos/${championshipId}/comprar?categoria=${categoryId}`);
+    await expect(page.getByRole("button", { pressed: true })).toContainText(/vagas? disponíveis|Sem limite de vagas/);
     await page.getByRole("button", { name: "Continuar com esta categoria" }).click();
 
     const athleteOne = page.getByRole("region", { name: "Atleta 1" });
@@ -102,9 +114,9 @@ test("spectator checkout cannot submit without consent and opens separate legal 
   test.slow();
   await page.goto(`/campeonatos/${championshipId}/plateia`);
   await page.getByRole("button", { name: "Aumentar" }).first().click();
-  await page.locator('input[name="nome"]').fill("Espectador E2E Sandbox");
-  await page.locator('input[name="email"]').fill("espectador-e2e@example.com");
-  await page.locator('input[name="cpf"]').fill("52998224725");
+  await page.getByLabel("Seu nome").fill("Espectador E2E Sandbox");
+  await page.getByLabel("E-mail", { exact: true }).fill("espectador-e2e@example.com");
+  await page.getByLabel("CPF").fill("52998224725");
 
   const consent = page.getByRole("checkbox", { name: /Li e concordo/ });
   await expect(consent).not.toBeChecked();

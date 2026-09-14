@@ -5,6 +5,7 @@ import { ArrowLeft, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
+import { availableCategorySpots } from "@/lib/category-availability";
 import {
   IngressoAtletaForm,
   type AuthenticatedAthleteProfile,
@@ -18,6 +19,15 @@ import {
   type AthleteCheckoutReservation,
 } from "@/lib/checkout-reservation";
 
+function countByCategory(rows: Array<{ category_id: string | null }> | null) {
+  const counts = new Map<string, number>();
+  for (const row of rows ?? []) {
+    if (!row.category_id) continue;
+    counts.set(row.category_id, (counts.get(row.category_id) ?? 0) + 1);
+  }
+  return counts;
+}
+
 // Compra de ingresso de atleta (dupla) como visitante, sem conta.
 export default async function ComprarAtletaPage({
   params,
@@ -29,6 +39,7 @@ export default async function ComprarAtletaPage({
   const { id } = await params;
   const { categoria: initialCategoryId, convite: waitlistInviteToken } = await searchParams;
   const supabase = await createClient();
+  const admin = createAdminClient();
   const { data: { user } } = await supabase.auth.getUser();
   const cookieStore = await cookies();
   const reservationToken = cookieStore.get(athleteCheckoutCookieName(id))?.value;
@@ -41,7 +52,7 @@ export default async function ComprarAtletaPage({
       .maybeSingle(),
     supabase
       .from("championship_categories")
-      .select("id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max")
+      .select("id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max, max_duplas")
       .eq("championship_id", id)
       .order("valor_inscricao", { ascending: true }),
     user
@@ -78,7 +89,7 @@ export default async function ComprarAtletaPage({
   // Preço vigente (lote atual, se houver) — sobrepõe o valor "de tabela".
   const categoryIds = (cats ?? []).map((c) => c.id);
   const reservationPromise = isCheckoutReservationToken(reservationToken)
-    ? createAdminClient()
+    ? admin
         .from("checkout_reservations")
         .select("id, category_id, expires_at, price_snapshot, pricing_tier_id")
         .eq("token_hash", hashCheckoutReservationToken(reservationToken))
@@ -87,7 +98,29 @@ export default async function ComprarAtletaPage({
         .gt("expires_at", new Date().toISOString())
         .maybeSingle()
     : Promise.resolve({ data: null });
-  const [precos, lotesPorCategoria, reservationResult] = await Promise.all([
+  const occupiedTicketsPromise = categoryIds.length > 0
+    ? admin
+        .from("athlete_tickets")
+        .select("category_id")
+        .in("category_id", categoryIds)
+        .not("status_pagamento", "in", "(cancelado,estornado,expirado)")
+    : Promise.resolve({ data: [] });
+  const occupiedRegistrationsPromise = categoryIds.length > 0
+    ? admin
+        .from("registrations")
+        .select("category_id")
+        .in("category_id", categoryIds)
+        .in("status_pagamento", ["pendente", "pago"])
+    : Promise.resolve({ data: [] });
+  const activeReservationsPromise = categoryIds.length > 0
+    ? admin
+        .from("checkout_reservations")
+        .select("category_id")
+        .in("category_id", categoryIds)
+        .eq("status", "active")
+        .gt("expires_at", new Date().toISOString())
+    : Promise.resolve({ data: [] });
+  const [precos, lotesPorCategoria, reservationResult, occupiedTickets, occupiedRegistrations, activeReservations] = await Promise.all([
     resolverPrecos(
       "category",
       categoryIds,
@@ -95,7 +128,13 @@ export default async function ComprarAtletaPage({
     ),
     listarLotesComStatus("category", categoryIds),
     reservationPromise,
+    occupiedTicketsPromise,
+    occupiedRegistrationsPromise,
+    activeReservationsPromise,
   ]);
+  const ticketCountByCategory = countByCategory(occupiedTickets.data);
+  const registrationCountByCategory = countByCategory(occupiedRegistrations.data);
+  const reservationCountByCategory = countByCategory(activeReservations.data);
 
   const existingReservation = reservationResult.data;
   const initialReservation: AthleteCheckoutReservation | null = existingReservation
@@ -110,20 +149,31 @@ export default async function ComprarAtletaPage({
       }
     : null;
 
-  const categorias: CategoriaOpcao[] = (cats ?? []).map((c) => ({
-    id:             c.id,
-    nome:           c.nome,
-    genero:         c.genero,
-    valorInscricao: initialReservation && initialReservation.categoryId === c.id
-      ? initialReservation.price
-      : precos[c.id].valor,
-    corteRatingMin: Number(c.corte_rating_min ?? 0),
-    corteRatingMax: Number(c.corte_rating_max ?? 0),
-    lotes:          lotesPorCategoria[c.id] ?? [],
-    esgotado:       initialReservation && initialReservation.categoryId === c.id
-      ? false
-      : precos[c.id].esgotado,
-  }));
+  const categorias: CategoriaOpcao[] = (cats ?? []).map((c) => {
+    const lotes = lotesPorCategoria[c.id] ?? [];
+    const occupiedPairs = (ticketCountByCategory.get(c.id) ?? 0)
+      + (registrationCountByCategory.get(c.id) ?? 0)
+      + (reservationCountByCategory.get(c.id) ?? 0);
+    return {
+      id:             c.id,
+      nome:           c.nome,
+      genero:         c.genero,
+      valorInscricao: initialReservation && initialReservation.categoryId === c.id
+        ? initialReservation.price
+        : precos[c.id].valor,
+      corteRatingMin: Number(c.corte_rating_min ?? 0),
+      corteRatingMax: Number(c.corte_rating_max ?? 0),
+      lotes,
+      esgotado:       initialReservation && initialReservation.categoryId === c.id
+        ? false
+        : precos[c.id].esgotado,
+      vagasDisponiveis: availableCategorySpots(
+        c.max_duplas,
+        occupiedPairs,
+        lotes.find((tier) => tier.status === "ativo"),
+      ),
+    };
+  });
 
   return (
     <div className="min-h-screen">

@@ -24,6 +24,10 @@ import { trackPublicFunnel } from "@/lib/public-funnel-client";
 import { LegalDocumentDialog } from "@/components/legal/LegalDocumentDialog";
 import type { AthleteCheckoutReservation } from "@/lib/checkout-reservation";
 import { ReservationCountdown } from "@/components/checkout/ReservationCountdown";
+import {
+  AthleteCheckoutCompletedSteps,
+  AthleteCheckoutFooterSummary,
+} from "@/components/checkout/AthleteCheckoutSummary";
 
 export type CategoriaOpcao = {
   id: string;
@@ -34,6 +38,7 @@ export type CategoriaOpcao = {
   corteRatingMax: number;
   lotes: LoteComStatus[];
   esgotado: boolean;
+  vagasDisponiveis: number | null;
 };
 
 export type AuthenticatedAthleteProfile = {
@@ -137,8 +142,9 @@ function QuestionarioNivel({
       </div>
       {PERGUNTAS_NIVEL.map((p) => (
         <div key={p.key}>
-          <label className="block text-sm font-medium text-gray-700">{p.pergunta}</label>
+          <label htmlFor={`${prefixo}${p.key}`} className="block text-sm font-medium text-gray-700">{p.pergunta}</label>
           <select
+            id={`${prefixo}${p.key}`}
             name={`${prefixo}${p.key}`}
             className={`mt-1 ${select}`}
             value={values[`${prefixo}${p.key}`] ?? ""}
@@ -456,7 +462,7 @@ export function IngressoAtletaForm({
   const podeCompartilharEmail = (values.comprador_email ?? "").trim().includes("@");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 sm:pb-24">
       <dialog
         ref={expirationDialogRef}
         aria-labelledby="reservation-expired-title"
@@ -510,6 +516,7 @@ export function IngressoAtletaForm({
                 key={cat.id}
                 type="button"
                 disabled={cat.esgotado}
+                aria-pressed={sel}
                 onClick={() => {
                   setCat(sel ? null : cat);
                   setCupom(null);
@@ -540,11 +547,20 @@ export function IngressoAtletaForm({
                     </p>
                     {cat.esgotado ? (
                       <p className="text-xs text-gray-400">Vagas esgotadas</p>
-                    ) : loteAtivo && (
-                      <p className="text-xs text-amber-600">
-                        {loteAtivo.nome}
-                        {loteAtivo.dataFim && ` · até ${new Date(loteAtivo.dataFim).toLocaleDateString("pt-BR")}`}
-                      </p>
+                    ) : (
+                      <>
+                        {loteAtivo ? (
+                          <p className="text-xs text-amber-600">
+                            {loteAtivo.nome}
+                            {loteAtivo.dataFim && ` · até ${new Date(loteAtivo.dataFim).toLocaleDateString("pt-BR")}`}
+                          </p>
+                        ) : null}
+                        <p className="text-xs text-gray-500">
+                          {cat.vagasDisponiveis === null
+                            ? "Sem limite de vagas informado"
+                            : `${cat.vagasDisponiveis} ${cat.vagasDisponiveis === 1 ? "vaga disponível" : "vagas disponíveis"}`}
+                        </p>
+                      </>
                     )}
                   </div>
                 </div>
@@ -611,27 +627,25 @@ export function IngressoAtletaForm({
           <input type="hidden" name="usar_mesmo_email" value={usarMesmoEmail ? "1" : "0"} />
           {waitlistInviteToken && <input type="hidden" name="waitlist_invite" value={waitlistInviteToken} />}
 
-          <div hidden={etapa !== "dados"} className="space-y-5">
-          {/* Resumo da categoria escolhida */}
-          <div className="flex items-center justify-between gap-3 rounded-2xl bg-gray-950 px-4 py-3.5 text-white shadow-sm">
-            <div className="min-w-0">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-white/50">Categoria escolhida</p>
-              <p className="mt-0.5 truncate font-semibold">{catSelecionada.nome}</p>
-              <p className="mt-0.5 text-xs text-white/60">
-                {catSelecionada.genero === "mista"
-                  ? "Dupla mista"
-                  : `Dupla ${catSelecionada.genero === "masculino" ? "masculina" : "feminina"}`}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => { setEtapa("categoria"); setCupom(null); }}
-              className="shrink-0 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-            >
-              Trocar
-            </button>
-          </div>
+          <AthleteCheckoutCompletedSteps
+            step={etapa}
+            categoryName={catSelecionada.nome}
+            categoryGender={catSelecionada.genero}
+            buyerName={values.comprador_nome ?? "Atleta 1"}
+            buyerEmail={values.comprador_email ?? ""}
+            partnerName={values.parceiro_nome ?? "Atleta 2"}
+            partnerEmail={values.parceiro_email ?? ""}
+            onChangeCategory={() => {
+              setEtapa("categoria");
+              setCupom(null);
+            }}
+            onEditParticipants={() => {
+              setDismissedServerErrorState(state);
+              setEtapa("dados");
+            }}
+          />
 
+          <div hidden={etapa !== "dados"} className="space-y-5">
           {/* Seus dados */}
           <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm" aria-labelledby="atleta-1-title">
             <div className="flex items-center gap-3 border-b border-gray-100 bg-blue-50/70 px-4 py-3.5">
@@ -659,8 +673,9 @@ export function IngressoAtletaForm({
               </label>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Nome completo</label>
+              <label htmlFor="comprador_nome" className="block text-sm font-medium text-gray-700">Nome completo</label>
               <input
+                id="comprador_nome"
                 ref={compradorNomeRef}
                 name="comprador_nome"
                 className={`mt-1 ${input} ${visibleFieldError("comprador_nome") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
@@ -680,8 +695,9 @@ export function IngressoAtletaForm({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700">CPF</label>
+                <label htmlFor="comprador_cpf" className="block text-sm font-medium text-gray-700">CPF</label>
                 <input
+                  id="comprador_cpf"
                   ref={compradorCpfRef}
                   name="comprador_cpf"
                   inputMode="numeric"
@@ -702,8 +718,9 @@ export function IngressoAtletaForm({
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
+                <label htmlFor="comprador_zap" className="block text-sm font-medium text-gray-700">WhatsApp</label>
                 <input
+                  id="comprador_zap"
                   name="comprador_zap"
                   inputMode="numeric"
                   className={`mt-1 ${input}`}
@@ -715,8 +732,9 @@ export function IngressoAtletaForm({
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">E-mail</label>
+              <label htmlFor="comprador_email" className="block text-sm font-medium text-gray-700">E-mail</label>
               <input
+                id="comprador_email"
                 ref={compradorEmailRef}
                 name="comprador_email"
                 type="email"
@@ -762,8 +780,9 @@ export function IngressoAtletaForm({
               </label>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Confirme seu e-mail</label>
+              <label htmlFor="comprador_email_confirmacao" className="block text-sm font-medium text-gray-700">Confirme seu e-mail</label>
               <input
+                id="comprador_email_confirmacao"
                 ref={compradorEmailConfirmacaoRef}
                 name="comprador_email_confirmacao"
                 type="email"
@@ -784,8 +803,9 @@ export function IngressoAtletaForm({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Gênero</label>
+                <label htmlFor="comprador_genero" className="block text-sm font-medium text-gray-700">Gênero</label>
                 <select
+                  id="comprador_genero"
                   name="comprador_genero"
                   className={`mt-1 ${select}`}
                   value={values.comprador_genero ?? ""}
@@ -799,8 +819,9 @@ export function IngressoAtletaForm({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Camisa (kit)</label>
+                <label htmlFor="comprador_camisa" className="block text-sm font-medium text-gray-700">Camisa (kit)</label>
                 <select
+                  id="comprador_camisa"
                   name="comprador_camisa"
                   className={`mt-1 ${select}`}
                   value={values.comprador_camisa ?? ""}
@@ -834,8 +855,9 @@ export function IngressoAtletaForm({
             </div>
             <div className="space-y-4 p-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Nome completo</label>
+              <label htmlFor="parceiro_nome" className="block text-sm font-medium text-gray-700">Nome completo</label>
               <input
+                id="parceiro_nome"
                 ref={parceiroNomeRef}
                 name="parceiro_nome"
                 className={`mt-1 ${input} ${visibleFieldError("parceiro_nome") ? "border-red-400 ring-1 ring-red-300 focus:ring-red-400" : ""}`}
@@ -855,8 +877,9 @@ export function IngressoAtletaForm({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700">CPF</label>
+                <label htmlFor="parceiro_cpf" className="block text-sm font-medium text-gray-700">CPF</label>
                 <input
+                  id="parceiro_cpf"
                   ref={parceiroCpfRef}
                   name="parceiro_cpf"
                   inputMode="numeric"
@@ -877,8 +900,9 @@ export function IngressoAtletaForm({
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
+                <label htmlFor="parceiro_zap" className="block text-sm font-medium text-gray-700">WhatsApp</label>
                 <input
+                  id="parceiro_zap"
                   name="parceiro_zap"
                   inputMode="numeric"
                   className={`mt-1 ${input}`}
@@ -892,8 +916,9 @@ export function IngressoAtletaForm({
             {!usarMesmoEmail ? (
             <>
             <div>
-              <label className="block text-sm font-medium text-gray-700">E-mail</label>
+              <label htmlFor="parceiro_email" className="block text-sm font-medium text-gray-700">E-mail</label>
               <input
+                id="parceiro_email"
                 ref={parceiroEmailRef}
                 name="parceiro_email"
                 type="email"
@@ -921,8 +946,9 @@ export function IngressoAtletaForm({
               <p className="mt-1 text-xs text-gray-500">Enviaremos o ingresso e o QR para este endereço.</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Confirme o e-mail do parceiro</label>
+              <label htmlFor="parceiro_email_confirmacao" className="block text-sm font-medium text-gray-700">Confirme o e-mail do parceiro</label>
               <input
+                id="parceiro_email_confirmacao"
                 ref={parceiroEmailConfirmacaoRef}
                 name="parceiro_email_confirmacao"
                 type="email"
@@ -951,8 +977,9 @@ export function IngressoAtletaForm({
             )}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Gênero</label>
+                <label htmlFor="parceiro_genero" className="block text-sm font-medium text-gray-700">Gênero</label>
                 <select
+                  id="parceiro_genero"
                   name="parceiro_genero"
                   className={`mt-1 ${select}`}
                   value={values.parceiro_genero ?? ""}
@@ -966,8 +993,9 @@ export function IngressoAtletaForm({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Camisa (kit)</label>
+                <label htmlFor="parceiro_camisa" className="block text-sm font-medium text-gray-700">Camisa (kit)</label>
                 <select
+                  id="parceiro_camisa"
                   name="parceiro_camisa"
                   className={`mt-1 ${select}`}
                   value={values.parceiro_camisa ?? ""}
@@ -1093,14 +1121,23 @@ export function IngressoAtletaForm({
                   <p className="mt-1 font-semibold text-gray-900">{values.parceiro_nome}</p>
                   <p className="break-all text-sm text-blue-700">{values.parceiro_email?.trim().toLowerCase()}</p>
                 </div>
-                <div className="flex items-center justify-between gap-3 p-4 text-sm">
-                  <div>
-                    <p className="font-medium text-gray-900">Categoria {catSelecionada.nome}</p>
-                    <p className="text-gray-500">
-                      {isGratis ? "Inscrição gratuita" : metodoPagamento === "pix" ? "Pagamento por Pix" : "Pagamento por cartão"}
-                    </p>
+                <div className="space-y-2 p-4 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-gray-900">Categoria {catSelecionada.nome}</p>
+                      <p className="text-gray-500">
+                        {isGratis ? "Inscrição gratuita" : metodoPagamento === "pix" ? "Pagamento por Pix" : "Pagamento por cartão"}
+                      </p>
+                    </div>
+                    <p className="shrink-0 font-bold text-gray-900">{isGratis ? "Grátis" : formatBRL(total)}</p>
                   </div>
-                  <p className="shrink-0 font-bold text-gray-900">{isGratis ? "Grátis" : formatBRL(total)}</p>
+                  {!isGratis ? (
+                    <div className="space-y-1 border-t border-gray-100 pt-2 text-xs text-gray-500">
+                      <div className="flex justify-between"><span>Inscrição</span><span>{formatBRL(valor)}</span></div>
+                      {cupom ? <div className="flex justify-between text-blue-700"><span>Cupom {cupom.codigo}</span><span>- {formatBRL(cupom.desconto)}</span></div> : null}
+                      <div className="flex justify-between"><span>Taxa de serviço</span><span>+ {formatBRL(taxa)}</span></div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
@@ -1144,7 +1181,7 @@ export function IngressoAtletaForm({
                   {pending && <Loader2 className="size-4 animate-spin" />}
                   {isGratis
                     ? "Confirmar inscrição grátis"
-                    : `Confirmar e pagar com ${metodoPagamento === "pix" ? "Pix" : "cartão"}`}
+                    : `Pagar com ${metodoPagamento === "pix" ? "Pix" : "cartão"}`}
                 </button>
               </div>
             </section>
@@ -1164,6 +1201,18 @@ export function IngressoAtletaForm({
           )}
         </form>
       )}
+
+      {etapa !== "categoria" && catSelecionada ? (
+        <AthleteCheckoutFooterSummary
+          categoryName={catSelecionada.nome}
+          basePrice={valor}
+          couponCode={cupom?.codigo}
+          discount={cupom?.desconto ?? 0}
+          serviceFee={taxa}
+          total={total}
+          paymentMethod={metodoPagamento}
+        />
+      ) : null}
     </div>
   );
 }

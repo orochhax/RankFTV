@@ -406,26 +406,29 @@ que não alterem a segurança ou a correção financeira do fluxo lançado.
     status do provedor e ID interno do ingresso, sem nome, CPF, e-mail ou dados
     do cartão. Conexão, credencial, consulta de cliente e cobrança completa no
     Asaas Sandbox foram validadas em 09/09/2026.
-  - [ ] Etapa 1 — Categoria: exibir categoria, gênero, quantidade de vagas,
+  - [x] Etapa 1 — Categoria: exibir categoria, gênero, quantidade de vagas,
     preço e taxa, com ação específica “Continuar com esta categoria”. Depois de
     concluída, recolher a etapa e mostrar um resumo com check, categoria, tipo
-    da dupla e ação “Trocar”.
-  - [ ] Etapa 2 — Participantes: permitir preenchimento pela conta, coletar os
+    da dupla e ação “Trocar”. A quantidade restante combina no servidor o
+    limite da categoria, o lote vigente, ingressos e reservas ativas.
+  - [x] Etapa 2 — Participantes: permitir preenchimento pela conta, coletar os
     dados dos dois atletas, camisa e gênero e deixar explícito qual e-mail
     receberá cada credencial individual, incluindo a opção consciente de usar
     o mesmo e-mail. Depois de concluída, recolher a etapa e mostrar os dois
     nomes com check e ação “Editar”.
-  - [ ] Etapa 3 — Revisão e pagamento: reunir categoria, nomes e e-mails, cupom,
+  - [x] Etapa 3 — Revisão e pagamento: reunir categoria, nomes e e-mails, cupom,
     Pix ou cartão, valores, taxas, Termos de Uso e Política de Privacidade em
     cards, com botão final específico “Pagar com Pix” ou “Pagar com cartão”.
-  - [ ] Manter durante o checkout um resumo minimizado no rodapé com total e
+  - [x] Manter durante o checkout um resumo minimizado no rodapé com total e
     quantidade de atletas; “Ver resumo” deve abrir a composição de categoria,
     inscrição, taxa, cupom, forma de pagamento e total sem cobrir o campo em
     foco nem o botão principal e respeitando a área segura do celular.
-  - [ ] Exibir nas etapas 2 e 3 o cronômetro da reserva real iniciada ao concluir
+  - [x] Exibir nas etapas 2 e 3 o cronômetro da reserva real iniciada ao concluir
     a etapa 1, conforme o item anterior, sem contador meramente visual, e validar
     acessibilidade, teclado, foco, mensagens de erro e funcionamento em mobile
-    e desktop.
+    e desktop. Em 14/09/2026, os campos passaram a ter rótulos associados e os
+    resumos, o aceite obrigatório e os documentos foram aprovados nos cinco
+    perfis Playwright de desktop e mobile.
   - [ ] Criar o pós-pagamento com estados distintos e verdadeiros: “Aguardando
     pagamento” para Pix criado, “Pagamento em análise” quando o processador não
     tiver confirmado e “Inscrição confirmada” somente após confirmação. No
