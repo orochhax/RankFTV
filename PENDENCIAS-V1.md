@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`██████████████▊░░░░░` **74% concluído** — 103 dos 139 marcos P0 originais
-foram concluídos; restam 36 marcos atômicos, agrupados abaixo em 33 entradas
+`██████████████▊░░░░░` **74% concluído** — 104 dos 139 marcos P0 originais
+foram concluídos; restam 35 marcos atômicos, agrupados abaixo em 32 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -45,13 +45,6 @@ P1/P2 não alteram esse percentual.
   pagamentos fora do limite já foram homologados. Em 14/09, o caminho de cartão
   vencido foi corrigido para usar essa reconciliação antes de liberar estoque;
   falta a prova ponta a ponta no prazo curto do Sandbox.
-- [ ] Homologar visualmente, no Sandbox, o pós-pagamento da inscrição de atleta.
-  A implementação e os testes agora distinguem “Aguardando pagamento”,
-  “Pagamento em análise” e “Inscrição confirmada”; no sucesso mostram
-  referência do pedido, método, campeonato, categoria, participantes, e-mails
-  de entrega, ação “Ver meus ingressos”, instruções e contato do organizador.
-  Falta apenas conferir o resultado em navegador conectado, sem criar nova
-  cobrança.
 - [ ] Concluir a homologação de reembolso sem conta para Pix e cartão nos
   cenários ainda não cobertos: parcial, repetição, timeout, saldo insuficiente,
   cobrança inelegível e tentativa do parceiro. Pix e cartão integrais e o
