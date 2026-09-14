@@ -273,14 +273,20 @@ que não alterem a segurança ou a correção financeira do fluxo lançado.
       autenticado e plateia. A validação também ocorre no servidor, e cada
       pedido novo registra data e versões aceitas. Estrutura aplicada no
       Sandbox e cobertura automatizada adicionada em 08/09/2026.
-    - [ ] Homologar no navegador que os três checkouts não avançam sem o aceite
+    - [x] Homologar no navegador que os três checkouts não avançam sem o aceite
       e que os links abrem separadamente os Termos e a Privacidade.
       - [x] Atleta visitante: em 09/09/2026, o navegador bloqueou o botão sem
         criar cobrança e exibiu a validação para marcar o aceite. Após o aceite,
         foi criada uma única cobrança Pix pendente de R$ 108 no Sandbox; ela não
         será paga e expirará normalmente, liberando a reserva.
-      - [ ] Atleta autenticado.
-      - [ ] Plateia.
+      - [x] Atleta autenticado: em 14/09/2026, a tentativa sem aceite ficou na
+        revisão, focou o checkbox obrigatório e não criou cobrança. Termos e
+        Privacidade abriram em diálogos separados; a reserva fictícia foi
+        liberada ao final. Fluxo aprovado em Chromium, Firefox, WebKit e nos
+        perfis móveis de Chromium e WebKit.
+      - [x] Plateia: em 14/09/2026, a tentativa sem aceite ficou no formulário
+        e focou o checkbox obrigatório, sem criar pedido ou cobrança. Termos e
+        Privacidade abriram em páginas separadas nos mesmos cinco perfis E2E.
 
 - [ ] Implementar e homologar uma validade curta para a reserva de vagas no
   checkout, calculada e persistida pelo servidor. A reserva deve ser criada

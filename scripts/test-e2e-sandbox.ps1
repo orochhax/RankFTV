@@ -45,9 +45,11 @@ if ($env:VERCEL_PROTECTION_BYPASS) {
 if ($AllowFinancialMutations) {
   $env:E2E_ASAAS_MUTATION_TESTS = "1"
   $env:E2E_CARD_GUARD_MUTATION_TESTS = "1"
+  $env:E2E_CHECKOUT_MUTATION_TESTS = "1"
 } else {
   $env:E2E_ASAAS_MUTATION_TESTS = "0"
   $env:E2E_CARD_GUARD_MUTATION_TESTS = "0"
+  $env:E2E_CHECKOUT_MUTATION_TESTS = "0"
 }
 
 Set-Location -LiteralPath $projectRoot

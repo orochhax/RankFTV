@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { sandboxMagicLinkEnabled, sandboxMagicLinkIssues } from "./e2e-auth-safety";
+import {
+  sandboxBrowserMutationEnabled,
+  sandboxMagicLinkEnabled,
+  sandboxMagicLinkIssues,
+} from "./e2e-auth-safety";
 
 const safeEnv = {
   E2E_AUTH_MODE: "sandbox-magic-link",
@@ -32,3 +36,18 @@ test("permite localhost quando o banco continua sendo o Sandbox", () => {
   assert.deepEqual(sandboxMagicLinkIssues({ ...safeEnv, E2E_BASE_URL: "http://127.0.0.1:3000" }), []);
 });
 
+test("habilita mutação de navegador somente com flag e as travas do Sandbox", () => {
+  assert.equal(sandboxBrowserMutationEnabled("E2E_CHECKOUT_MUTATION_TESTS", {
+    ...safeEnv,
+    E2E_CHECKOUT_MUTATION_TESTS: "1",
+  }), true);
+  assert.equal(sandboxBrowserMutationEnabled("E2E_CHECKOUT_MUTATION_TESTS", {
+    ...safeEnv,
+    E2E_CHECKOUT_MUTATION_TESTS: "0",
+  }), false);
+  assert.throws(() => sandboxBrowserMutationEnabled("E2E_CHECKOUT_MUTATION_TESTS", {
+    ...safeEnv,
+    E2E_BASE_URL: "https://www.rankftv.com",
+    E2E_CHECKOUT_MUTATION_TESTS: "1",
+  }), /bloqueada/);
+});

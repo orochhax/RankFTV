@@ -48,3 +48,11 @@ export function sandboxMagicLinkEnabled(env: Env = process.env): boolean {
   return true;
 }
 
+export function sandboxBrowserMutationEnabled(flagName: string, env: Env = process.env): boolean {
+  if (env[flagName] !== "1") return false;
+  const issues = sandboxMagicLinkIssues(env);
+  if (issues.length > 0) {
+    throw new Error(`Mutação E2E no navegador bloqueada: ${issues.join("; ")}.`);
+  }
+  return true;
+}
