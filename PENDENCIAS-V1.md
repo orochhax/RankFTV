@@ -1,14 +1,14 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 14/09/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 15/09/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
 `AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
 
 ## Progresso da V1
 
-`███████████████▏░░░░` **75% concluído** — 105 dos 139 marcos P0 originais
-foram concluídos; restam 34 marcos atômicos, agrupados abaixo em 31 entradas
+`███████████████▏░░░░` **75% concluído** — 105 dos 140 marcos P0 originais
+foram concluídos; restam 35 marcos atômicos, agrupados abaixo em 32 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -19,6 +19,10 @@ P1/P2 não alteram esse percentual.
 
 ### Segurança, autenticação e dados
 
+- [ ] Impedir que um `@usuário` escolhido em um cadastro cujo e-mail nunca foi
+  confirmado fique reservado indefinidamente. Definir expiração e limpeza
+  segura para contas pendentes, preservar perfis confirmados e homologar nova
+  tentativa com o mesmo `@usuário`, inclusive sob concorrência.
 - [ ] Aplicar em produção, numa janela controlada e depois da homologação, o
   grant mínimo de `supabase/production-security-20-point-hardening.sql`.
   Repetir a auditoria `supabase/manual-tests/security-posture-check.sql` e o
