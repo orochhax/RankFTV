@@ -3,13 +3,29 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { getSupabasePublicConfig } from "@/lib/supabase/config";
 import { Surface } from "@/components/shell/Surface";
 import { passwordUpdateErrorMessage } from "@/lib/auth-error-messages";
 import { passwordUpdateInputSchema } from "@/lib/auth-input-schemas";
 
+function createRecoveryClient() {
+  const config = getSupabasePublicConfig();
+  return createSupabaseClient(config.url, config.publishableKey, {
+    auth: {
+      // O cliente SSR padrão usa PKCE. Esta tela recebe, do Supabase, o fluxo
+      // implícito no fragmento da URL; a sessão é efêmera e só serve para
+      // autorizar a alteração de senha.
+      flowType: "implicit",
+      detectSessionInUrl: true,
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
 export default function AtualizarSenhaPage() {
-  const supabase = createClient();
+  const [supabase] = useState(createRecoveryClient);
 
   // "checking": confirmando se o link criou uma sessão válida de recuperação
   // (o /auth/callback já trocou o token do e-mail por uma sessão antes de
@@ -57,7 +73,7 @@ export default function AtualizarSenhaPage() {
     setStatus("done");
     setSenha("");
     setConfirmacao("");
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
   }
 
   return (

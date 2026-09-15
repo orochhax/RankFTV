@@ -41,10 +41,11 @@ export default function RecuperarSenhaPage() {
       return;
     }
 
-    // O link do e-mail cai no /auth/callback (que já valida o token) e de lá é
-    // redirecionado pra tela de definir a nova senha.
-    const redirectTo = new URL("/auth/callback", window.location.origin);
-    redirectTo.searchParams.set("next", "/recuperar-senha/atualizar");
+    // Links de recuperação do Supabase podem devolver a sessão no fragmento
+    // (#access_token=...). Fragmentos não chegam a Route Handlers, então o
+    // retorno vai direto para esta tela cliente, onde o browser client do
+    // Supabase consome a sessão de recuperação antes de trocar a senha.
+    const redirectTo = new URL("/recuperar-senha/atualizar", window.location.origin);
 
     const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
       redirectTo: redirectTo.toString(),

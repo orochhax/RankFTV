@@ -43,3 +43,14 @@ test("public ranking view executes with the caller permissions", () => {
   assert.match(migration, /ALTER VIEW public\.ranking_entries SET \(security_invoker = true\)/i);
   assert.match(audit, /views_without_security_invoker/i);
 });
+
+test("password recovery sends implicit-flow sessions to the browser page", () => {
+  const recovery = source("app/recuperar-senha/page.tsx");
+  const update = source("app/recuperar-senha/atualizar/page.tsx");
+
+  assert.match(recovery, /new URL\("\/recuperar-senha\/atualizar", window\.location\.origin\)/);
+  assert.doesNotMatch(recovery, /new URL\("\/auth\/callback", window\.location\.origin\)/);
+  assert.match(update, /flowType: "implicit"/);
+  assert.match(update, /persistSession: false/);
+  assert.match(update, /signOut\(\{ scope: "local" \}\)/);
+});
