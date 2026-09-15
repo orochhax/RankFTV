@@ -50,6 +50,8 @@ test("password recovery sends implicit-flow sessions to the browser page", () =>
 
   assert.match(recovery, /new URL\("\/recuperar-senha\/atualizar", window\.location\.origin\)/);
   assert.doesNotMatch(recovery, /new URL\("\/auth\/callback", window\.location\.origin\)/);
+  assert.match(recovery, /flowType: "implicit"/);
+  assert.match(recovery, /persistSession: false/);
   assert.match(update, /flowType: "implicit"/);
   assert.match(update, /persistSession: false/);
   assert.match(update, /signOut\(\{ scope: "local" \}\)/);

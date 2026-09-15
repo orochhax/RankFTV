@@ -2,7 +2,8 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { getSupabasePublicConfig } from "@/lib/supabase/config";
 import { Surface } from "@/components/shell/Surface";
 import Turnstile, { type TurnstileHandle } from "@/components/auth/Turnstile";
 import { passwordRecoveryInputSchema } from "@/lib/auth-input-schemas";
@@ -12,7 +13,17 @@ import { passwordRecoveryInputSchema } from "@/lib/auth-input-schemas";
 const captchaEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 export default function RecuperarSenhaPage() {
-  const supabase = createClient();
+  const config = getSupabasePublicConfig();
+  // A recuperação não depende de uma sessão prévia. Usamos o mesmo fluxo
+  // implícito da tela de atualização para que o link seja utilizável em outro
+  // navegador ou dispositivo, sem exigir o verificador PKCE local.
+  const supabase = createSupabaseClient(config.url, config.publishableKey, {
+    auth: {
+      flowType: "implicit",
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
   const captchaRef = useRef<TurnstileHandle>(null);
 
   const [email, setEmail] = useState("");
