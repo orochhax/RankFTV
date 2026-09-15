@@ -23,7 +23,12 @@ P1/P2 não alteram esse percentual.
   grant mínimo de `supabase/production-security-20-point-hardening.sql`.
   Repetir a auditoria `supabase/manual-tests/security-posture-check.sql` e o
   Security Advisor em modo somente leitura; registrar qualquer lista não vazia.
-  O Sandbox já foi corrigido e revisado.
+  O Sandbox já foi corrigido e revisado. A auditoria de produção em 14/09
+  encontrou `handle_new_user()` sem `search_path` fixo, a view
+  `ranking_entries` como `SECURITY DEFINER`, EXECUTE público indevido em
+  funções de atendimento/triggers e grants de TRUNCATE/TRIGGER para anon.
+  Buckets públicos e tabelas internas com RLS sem policy exigem revisão de
+  intenção, mas não aparecem como exposição direta de linhas nesta auditoria.
 - [ ] Encerrar a validação conjunta, no navegador do Sandbox, de entradas
   válidas e inválidas para cadastro, login, recuperação, inscrição, compras e
   pagamentos. A implementação com Zod, reautorização e mensagens públicas já
