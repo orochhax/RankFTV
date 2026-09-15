@@ -23,7 +23,9 @@ P1/P2 não alteram esse percentual.
   grant mínimo de `supabase/production-security-20-point-hardening.sql`.
   Repetir a auditoria `supabase/manual-tests/security-posture-check.sql` e o
   Security Advisor em modo somente leitura; registrar qualquer lista não vazia.
-  O Sandbox já foi corrigido e revisado. A auditoria de produção em 14/09
+  O Sandbox já foi corrigido e revisado: em 14/09, os três checks SQL
+  retornaram somente resultados aprovados e listas vazias (postura estrutural,
+  permissões/search_path das funções e trigger de perfil). A auditoria de produção em 14/09
   encontrou `handle_new_user()` sem `search_path` fixo, a view
   `ranking_entries` como `SECURITY DEFINER`, EXECUTE público indevido em
   funções de atendimento/triggers e grants de TRUNCATE/TRIGGER para anon.
