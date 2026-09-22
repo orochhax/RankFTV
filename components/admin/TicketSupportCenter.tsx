@@ -323,8 +323,11 @@ export function TicketSupportCenter({
                   {emailSummary.pendingPixRefunds.map((item) => (
                     <div key={item.operationId} className="flex items-center justify-between gap-3 py-3">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-amber-950">
-                          {item.amount == null ? "Valor indisponível" : item.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        <p className="truncate text-sm font-semibold text-amber-950">
+                          {item.buyerName} / {item.partnerName}
+                        </p>
+                        <p className="truncate text-xs text-amber-800">
+                          {item.categoryName ?? "Categoria não informada"} · {item.amount == null ? "Valor indisponível" : item.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </p>
                         <p className="truncate text-xs text-amber-800">
                           {item.providerStatus === "CANCELLED" || ["cancelled", "failed"].includes(item.status)

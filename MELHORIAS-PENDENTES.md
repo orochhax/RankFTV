@@ -1,7 +1,8 @@
 # Melhorias pendentes
 
-Atualizado em 04/09/2026. Este arquivo reúne melhorias que não bloqueiam a
-V1. Obrigações de lançamento e segurança permanecem em `PENDENCIAS-V1.md`.
+Atualizado em 17/09/2026. Este arquivo reúne melhorias que não bloqueiam a
+V1. Obrigações de lançamento, segurança e evolução pós-lançamento permanecem
+em `PENDENCIAS-V1.md`.
 
 ## Identidade visual e banners da home
 
@@ -60,11 +61,6 @@ V1. Obrigações de lançamento e segurança permanecem em `PENDENCIAS-V1.md`.
 - [x] Medir o funil público por etapa — busca, visualização do campeonato,
   seleção de categoria, início dos dados, revisão e pagamento confirmado — e
   comparar abandono, tempo e conversão antes e depois da nova home.
-- [ ] Emitir passes oficiais para Apple Wallet e Google Wallet. A integração
-  exige conta de emissor, certificados/chaves privadas e aprovação das duas
-  plataformas. Até isso existir, manter o link protegido e o PDF individual.
-  A preparação de variáveis, diagnóstico exclusivo do CEO e o runbook estão
-  prontos; a emissão permanece bloqueada até os cadastros externos.
 - [x] Criar lista de espera por categoria, com consentimento, posição clara e
   convite com prazo quando uma vaga for liberada.
 - [x] Melhorar a contingência de check-in para conexão instável, sem permitir
@@ -105,3 +101,5 @@ CEO, auditoria, webhook/métricas de e-mail, PDF, check-in e proteção contra
 exclusão de categoria com histórico já foram implementados e homologados no
 Sandbox. As migrations operacionais e de retenção também foram executadas
 nesse ambiente; a promoção para Production continua controlada pelo runbook.
+A emissão de passes Apple Wallet e Google Wallet foi transferida para o P2 de
+`PENDENCIAS-V1.md`.

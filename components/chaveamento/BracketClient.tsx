@@ -28,6 +28,8 @@ function toSharedMatch(match: MatchDisplay): BracketMatch {
     sets: match.setDetails ?? undefined,
     quadra: match.courtLabel ? `Quadra ${match.courtLabel}` : undefined,
     winner: match.winnerId === match.teamA?.id ? "a" : match.winnerId === match.teamB?.id ? "b" : null,
+    veioDaRepescagemA: match.veioDaRepescagemA,
+    veioDaRepescagemB: match.veioDaRepescagemB,
   };
 }
 
@@ -657,8 +659,8 @@ function ModalShell({ children, onClose }: { children: React.ReactNode; onClose:
 /* ─── componente principal ─── */
 
 type Podium = {
-  first:  TeamDisplay;
-  second: TeamDisplay;
+  first:  TeamDisplay | null;
+  second: TeamDisplay | null;
   thirds: TeamDisplay[];
   fourth: TeamDisplay | null;
 };
@@ -670,10 +672,13 @@ function computePodium(
   if (rounds.length === 0) return null;
   const finalRound = rounds[rounds.length - 1];
   const finalMatch = finalRound.matches[0];
-  if (!finalMatch?.winnerId || !finalMatch.teamA || !finalMatch.teamB) return null;
-
-  const first  = finalMatch.winnerId === finalMatch.teamA.id ? finalMatch.teamA : finalMatch.teamB;
-  const second = finalMatch.winnerId === finalMatch.teamA.id ? finalMatch.teamB : finalMatch.teamA;
+  const hasFinalResult = !!finalMatch?.winnerId && !!finalMatch.teamA && !!finalMatch.teamB;
+  const first = hasFinalResult
+    ? finalMatch.winnerId === finalMatch.teamA!.id ? finalMatch.teamA! : finalMatch.teamB!
+    : null;
+  const second = hasFinalResult
+    ? finalMatch.winnerId === finalMatch.teamA!.id ? finalMatch.teamB! : finalMatch.teamA!
+    : null;
 
   const thirds: TeamDisplay[] = [];
   let fourth: TeamDisplay | null = null;
@@ -687,7 +692,7 @@ function computePodium(
       : thirdPlaceMatch.teamA;
     thirds.push(thirdWinner);
     fourth = thirdLoser;
-  } else if (rounds.length >= 2) {
+  } else if (hasFinalResult && rounds.length >= 2) {
     // Fallback: semifinalistas perdedores (3º lugar empatado)
     const semiRound = rounds[rounds.length - 2];
     for (const m of semiRound.matches) {
@@ -983,14 +988,14 @@ export function BracketClient({
                 <span className="text-xl">🥇</span>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">1º lugar</p>
-                  <p className="text-sm font-semibold text-gray-900">{podium.first.nome}</p>
+                  <p className="text-sm font-semibold text-gray-900">{podium.first?.nome ?? "A definir"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xl">🥈</span>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">2º lugar</p>
-                  <p className="text-sm font-medium text-gray-800">{podium.second.nome}</p>
+                  <p className="text-sm font-medium text-gray-800">{podium.second?.nome ?? "A definir"}</p>
                 </div>
               </div>
               {podium.thirds.map((t, i) => (
@@ -1167,9 +1172,9 @@ export function BracketClient({
           {!isConfirmed && canConfirm && (
             <button
               onClick={() => { setConfirmError(null); setShowConfirmModal(true); }}
-              disabled={!podium || isPending}
+              disabled={!podium?.first || !podium.second || isPending}
               className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold transition-colors ${
-                podium
+                podium?.first && podium.second
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "cursor-not-allowed bg-gray-100 text-gray-400"
               }`}

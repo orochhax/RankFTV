@@ -173,7 +173,26 @@ export async function refundIdempotently(input: {
   actorId?: string | null;
   correlationId?: string | null;
 }): Promise<FinancialExecutionResult<{ id: string; status: string }>> {
-  const externalReference = `refund:${input.flow}:${input.recordId}`;
+  const baseExternalReference = `refund:${input.flow}:${input.recordId}`;
+  const { data: resolvedReference, error: referenceError } = await createAdminClient().rpc(
+    "financial_resolve_refund_reference",
+    {
+      p_flow: input.flow,
+      p_record_id: input.recordId,
+      p_base_reference: baseExternalReference,
+    },
+  );
+  if (referenceError || typeof resolvedReference !== "string" || !resolvedReference) {
+    return {
+      ok: false,
+      operationId: "",
+      inProgress: false,
+      ambiguous: true,
+      error: "A protecao do reembolso esta indisponivel. Nenhuma nova solicitacao foi criada.",
+    };
+  }
+
+  const externalReference = resolvedReference;
   const result = await executeFinancialOperation({
     flow: input.flow,
     operationType: "refund",
@@ -187,7 +206,9 @@ export async function refundIdempotently(input: {
       const refunds = await listarEstornosCobranca(input.originalPaymentId);
       const refundStatus = refundStatusFromRefunds(refunds);
       const providerStatus = refundProviderStatus(refunds);
-      return refundStatus
+      // Uma devolucao cancelada e terminal. Ela deve ficar registrada na
+      // operacao anterior, sem impedir a nova tentativa com referencia :retry.
+      return refundStatus && refundProviderState(providerStatus!) !== "failed"
         ? { id: input.originalPaymentId, status: providerStatus! }
         : null;
     },

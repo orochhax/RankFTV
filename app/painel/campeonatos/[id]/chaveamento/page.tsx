@@ -34,6 +34,8 @@ export type MatchDisplay = {
   setDetails: SetDetail[] | null;
   courtLabel: string | null;
   section?: BracketSection;
+  veioDaRepescagemA?: boolean;
+  veioDaRepescagemB?: boolean;
 };
 export type RoundDisplay = {
   nome:       string;
@@ -140,7 +142,7 @@ export default async function ChaveamentoPage({
   if (activeCatId) {
     const { data: dbMatches } = await supabase
       .from("bracket_matches")
-      .select("id, round_index, match_index, participant_a_id, participant_b_id, sets_a, sets_b, winner_participant_id, set_details, is_third_place, court_label, bracket_section, section_round_index")
+      .select("id, round_index, match_index, participant_a_id, participant_b_id, sets_a, sets_b, winner_participant_id, set_details, is_third_place, court_label, bracket_section, section_round_index, next_winner_match_id")
       .eq("championship_id", id)
       .eq("category_id", activeCatId)
       .order("round_index")
@@ -156,6 +158,17 @@ export default async function ChaveamentoPage({
       const sectionOf = (match: typeof dbMatches[0]) => (match.bracket_section ?? (match.is_third_place ? "third_place" : "winners")) as BracketSection;
       const matchNumbers = new Map(dbMatches.map((match, index) => [match.id, index + 1]));
 
+      const matchesById = new Map(dbMatches.map((match) => [match.id, match]));
+      const returnedToMainRound = new Map<string, number>();
+      for (const match of dbMatches) {
+        if (sectionOf(match) !== "losers" || !match.next_winner_match_id || !match.winner_participant_id) continue;
+        const destination = matchesById.get(match.next_winner_match_id);
+        if (!destination || sectionOf(destination) !== "winners") continue;
+        returnedToMainRound.set(
+          match.winner_participant_id,
+          destination.section_round_index ?? destination.round_index,
+        );
+      }
       const toDisplay = (m: typeof dbMatches[0]): MatchDisplay => ({
         dbId:       m.id,
         numero:     matchNumbers.get(m.id) ?? 0,
@@ -169,6 +182,8 @@ export default async function ChaveamentoPage({
         setDetails: (m.set_details as SetDetail[] | null) ?? null,
         courtLabel: m.court_label,
         section: sectionOf(m),
+        veioDaRepescagemA: sectionOf(m) === "winners" && !!m.participant_a_id && (returnedToMainRound.get(m.participant_a_id) ?? Infinity) <= (m.section_round_index ?? m.round_index),
+        veioDaRepescagemB: sectionOf(m) === "winners" && !!m.participant_b_id && (returnedToMainRound.get(m.participant_b_id) ?? Infinity) <= (m.section_round_index ?? m.round_index),
       });
 
       const thirdRow = dbMatches.find((m) => sectionOf(m) === "third_place");

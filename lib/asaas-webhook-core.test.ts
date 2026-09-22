@@ -36,8 +36,10 @@ test("validates provider payload shape before database access", () => {
 test("maps confirmations and refunds to monotonic domain states", () => {
   assert.equal(asaasEventDomainStatus("PAYMENT_CONFIRMED"), "pago");
   assert.equal(asaasEventDomainStatus("PAYMENT_REFUNDED"), "estornado");
+  assert.equal(asaasEventDomainStatus("PAYMENT_PARTIALLY_REFUNDED"), "estornado");
   assert.equal(asaasEventDomainStatus("PAYMENT_CREATED"), null);
   assert.ok((asaasEventRank("PAYMENT_REFUNDED") ?? 0) > (asaasEventRank("PAYMENT_CONFIRMED") ?? 0));
+  assert.ok((asaasEventRank("PAYMENT_REFUNDED") ?? 0) > (asaasEventRank("PAYMENT_PARTIALLY_REFUNDED") ?? 0));
 });
 
 test("rejects duplicate-rank and out-of-order regressions", () => {

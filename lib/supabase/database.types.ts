@@ -2586,6 +2586,74 @@ export type Database = {
         }
         Relationships: []
       }
+      organizer_financial_notification_deliveries: {
+        Row: {
+          accepted_at: string | null
+          amount: number | null
+          attempt_count: number
+          championship_id: string
+          claimed_at: string | null
+          created_at: string
+          event_kind: string
+          id: string
+          last_error_category: string | null
+          next_attempt_at: string
+          organizer_id: string
+          payment_id: string
+          provider_message_id: string | null
+          recipient_hash: string | null
+          record_id: string
+          record_type: string
+          source_key: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          amount?: number | null
+          attempt_count?: number
+          championship_id: string
+          claimed_at?: string | null
+          created_at?: string
+          event_kind: string
+          id?: string
+          last_error_category?: string | null
+          next_attempt_at?: string
+          organizer_id: string
+          payment_id: string
+          provider_message_id?: string | null
+          recipient_hash?: string | null
+          record_id: string
+          record_type: string
+          source_key: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          amount?: number | null
+          attempt_count?: number
+          championship_id?: string
+          claimed_at?: string | null
+          created_at?: string
+          event_kind?: string
+          id?: string
+          last_error_category?: string | null
+          next_attempt_at?: string
+          organizer_id?: string
+          payment_id?: string
+          provider_message_id?: string | null
+          recipient_hash?: string | null
+          record_id?: string
+          record_type?: string
+          source_key?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: "organizer_financial_notification_deliveries_championship_id_fkey"; columns: ["championship_id"]; isOneToOne: false; referencedRelation: "championships"; referencedColumns: ["id"] },
+        ]
+      }
       organizer_accounts: {
         Row: {
           asaas_account_id: string | null
@@ -6034,6 +6102,10 @@ export type Database = {
           recipient_source: string
         }[]
       }
+      claim_organizer_financial_notification_deliveries: {
+        Args: { p_limit?: number }
+        Returns: { amount: number | null; attempt_count: number; championship_id: string; event_kind: string; id: string; organizer_id: string; payment_id: string; record_id: string; record_type: string }[]
+      }
       claim_coupon_use: { Args: { p_coupon_id: string }; Returns: boolean }
       claim_elite_fee: {
         Args: { p_champ_id: string; p_max: number }
@@ -6162,6 +6234,14 @@ export type Database = {
       }
       financial_resolve_transfer_reference: {
         Args: { p_base_reference: string; p_flow: string; p_record_id: string }
+        Returns: string
+      }
+      financial_resolve_refund_reference: {
+        Args: {
+          p_base_reference: string
+          p_flow: string
+          p_record_id: string
+        }
         Returns: string
       }
       finish_card_payment_attempt: {

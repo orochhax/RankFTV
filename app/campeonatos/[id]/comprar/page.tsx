@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 import { availableCategorySpots } from "@/lib/category-availability";
+import { formatDateRangeBR } from "@/lib/format";
 import {
   IngressoAtletaForm,
   type AuthenticatedAthleteProfile,
@@ -47,7 +48,7 @@ export default async function ComprarAtletaPage({
   const [{ data: champ }, { data: cats }, { data: profile }, { data: privateProfile }] = await Promise.all([
     supabase
       .from("championships")
-      .select("nome, cidade, estado, status, is_elite, usa_motor_categoria")
+      .select("nome, cidade, estado, local, data_inicio, data_fim, status, is_elite, usa_motor_categoria")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -71,6 +72,15 @@ export default async function ComprarAtletaPage({
       : Promise.resolve({ data: null }),
   ]);
   if (!champ) notFound();
+
+  const championshipReviewSummary = {
+    name: champ.nome,
+    dateLabel: formatDateRangeBR(champ.data_inicio, champ.data_fim),
+    locationLabel: [
+      champ.local?.trim(),
+      [champ.cidade?.trim(), champ.estado?.trim()].filter(Boolean).join("/"),
+    ].filter(Boolean).join(" · ") || "Local a confirmar",
+  };
 
   const authenticatedAthlete: AuthenticatedAthleteProfile | null = user
     ? {
@@ -154,6 +164,12 @@ export default async function ComprarAtletaPage({
     const occupiedPairs = (ticketCountByCategory.get(c.id) ?? 0)
       + (registrationCountByCategory.get(c.id) ?? 0)
       + (reservationCountByCategory.get(c.id) ?? 0);
+    const vagasDisponiveis = availableCategorySpots(
+      c.max_duplas,
+      occupiedPairs,
+      lotes.find((tier) => tier.status === "ativo"),
+    );
+    const hasExistingReservation = initialReservation?.categoryId === c.id;
     return {
       id:             c.id,
       nome:           c.nome,
@@ -164,14 +180,13 @@ export default async function ComprarAtletaPage({
       corteRatingMin: Number(c.corte_rating_min ?? 0),
       corteRatingMax: Number(c.corte_rating_max ?? 0),
       lotes,
-      esgotado:       initialReservation && initialReservation.categoryId === c.id
+      // A reserva já criada pelo próprio visitante continua acessível até
+      // expirar. Para as demais categorias, não permita iniciar o checkout
+      // quando a capacidade real ou o lote vigente já chegaram a zero.
+      esgotado: hasExistingReservation
         ? false
-        : precos[c.id].esgotado,
-      vagasDisponiveis: availableCategorySpots(
-        c.max_duplas,
-        occupiedPairs,
-        lotes.find((tier) => tier.status === "ativo"),
-      ),
+        : precos[c.id].esgotado || vagasDisponiveis === 0,
+      vagasDisponiveis,
     };
   });
 
@@ -212,6 +227,7 @@ export default async function ComprarAtletaPage({
               </p>
               <IngressoAtletaForm
                 championshipId={id}
+                championshipSummary={championshipReviewSummary}
                 categorias={categorias}
                 isElite={!!champ.is_elite}
                 usaMotorCategoria={categoryLevelRecommendationEnabled(champ.usa_motor_categoria)}

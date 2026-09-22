@@ -32,12 +32,19 @@ test("athlete checkout preserves values and validates CPF and both access e-mail
   assert.match(form, /visibleFieldError\("parceiro_email"\)/);
   assert.match(form, /name="comprador_email_confirmacao"/);
   assert.match(form, /name="parceiro_email_confirmacao"/);
-  assert.match(form, /compradorEmail !== compradorConfirmacao/);
-  assert.match(form, /parceiroEmail !== parceiroConfirmacao/);
+  assert.match(form, /buyerEmailConfirmation !== buyerEmail/);
+  assert.match(form, /partnerEmailConfirmation !== partnerEmail/);
+  assert.match(form, /validateAthleteFields\(values, usarMesmoEmail\)/);
+  assert.match(form, /<form[\s\S]*noValidate/);
+  assert.match(form, /visibleFieldError\("comprador_zap"\)/);
+  assert.match(form, /visibleFieldError\("parceiro_genero"\)/);
   assert.match(form, /Usar este e-mail para os dois atletas/);
   assert.match(form, /name="usar_mesmo_email"/);
-  assert.match(form, /Quem tiver acesso a essa caixa poderá acessar e recuperar os dois ingressos individuais/);
-  assert.match(form, /name="parceiro_email" value=\{values\.comprador_email/);
+  assert.match(
+    form,
+    /Quem tiver acesso a essa caixa poderá acessar e recuperar os\s+dois ingressos individuais/,
+  );
+  assert.match(form, /parceiro_email: checked \? \(current\.comprador_email/);
   assert.match(form, /Revisar dados antes de pagar/);
   assert.match(form, /Revise antes de confirmar/);
   assert.match(form, /Corrigir dados/);
@@ -63,9 +70,18 @@ test("guest ticket recovery keeps account discovery private and aligns recovered
   const page = source("app/meus-ingressos/MeusIngressosDeslogado.tsx");
 
   assert.match(request, /cpf[\s\S]*comprador_email[\s\S]*email/);
-  assert.match(request, /parceiro_cpf[\s\S]*cpf[\s\S]*parceiro_email[\s\S]*email/);
-  assert.match(request, /O código só será enviado se o CPF e o e-mail coincidirem/);
-  assert.match(request, /Por segurança, não confirmamos nesta tela se existe uma inscrição/);
+  assert.match(
+    request,
+    /parceiro_cpf[\s\S]*cpf[\s\S]*parceiro_email[\s\S]*email/,
+  );
+  assert.match(
+    request,
+    /O código só será enviado se o CPF e o e-mail coincidirem/,
+  );
+  assert.match(
+    request,
+    /Por segurança, não confirmamos nesta tela se existe uma inscrição/,
+  );
   assert.match(page, /results\.length === 1/);
   assert.match(page, /mx-auto w-full max-w-xl/);
   assert.match(page, /className="mt-8"/);
@@ -73,11 +89,18 @@ test("guest ticket recovery keeps account discovery private and aligns recovered
 
 test("athlete ownership changes require OTP and freeze the requested payload", () => {
   const security = source("lib/athlete-ticket-change-security.ts");
-  const actions = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
+  const actions = source(
+    "app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts",
+  );
   const modal = source("components/ingressos/IngressoOpcoesMenu.tsx");
-  const migration = source("supabase/production-athlete-ticket-change-security.sql");
+  const migration = source(
+    "supabase/production-athlete-ticket-change-security.sql",
+  );
 
-  assert.doesNotMatch(actions, /export async function alterarTitularidadeAtleta/);
+  assert.doesNotMatch(
+    actions,
+    /export async function alterarTitularidadeAtleta/,
+  );
   assert.match(actions, /requestAthleteTicketChange/);
   assert.match(actions, /confirmAthleteTicketChange/);
   assert.match(security, /current_code_hash/);
@@ -91,7 +114,10 @@ test("athlete ownership changes require OTP and freeze the requested payload", (
   assert.match(modal, /Confirmar e alterar/);
   assert.match(modal, /requiresNewEmailCode/);
   assert.match(modal, /Enviar as duas credenciais para o e-mail do atleta 1/);
-  assert.match(migration, /REVOKE ALL ON athlete_ticket_change_challenges FROM PUBLIC, anon, authenticated/);
+  assert.match(
+    migration,
+    /REVOKE ALL ON athlete_ticket_change_challenges FROM PUBLIC, anon, authenticated/,
+  );
   assert.match(migration, /FOR UPDATE/);
   assert.match(migration, /attempts = attempts \+ 1/);
   assert.match(security, /claim_athlete_ticket_change_challenge/);
@@ -99,7 +125,9 @@ test("athlete ownership changes require OTP and freeze the requested payload", (
 
 test("payment startup failures release the reserved athlete inventory", () => {
   const guestAction = source("app/campeonatos/[id]/comprar/actions.ts");
-  const authenticatedAction = source("app/campeonatos/[id]/inscrever/actions.ts");
+  const authenticatedAction = source(
+    "app/campeonatos/[id]/inscrever/actions.ts",
+  );
 
   assert.match(guestAction, /release_athlete_ticket_inventory/);
   assert.match(authenticatedAction, /release_registration_inventory/);
@@ -108,11 +136,18 @@ test("payment startup failures release the reserved athlete inventory", () => {
 });
 
 test("cartão no limite da reserva reconcilia o provedor antes de liberar estoque", () => {
-  const action = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
-  const expiryBranch = action.indexOf("ticket.checkout_expires_at && Date.parse(ticket.checkout_expires_at) <= Date.now()");
+  const action = source(
+    "app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts",
+  );
+  const expiryBranch = action.indexOf(
+    "ticket.checkout_expires_at && Date.parse(ticket.checkout_expires_at) <= Date.now()",
+  );
 
   assert.ok(expiryBranch >= 0);
-  const branch = action.slice(expiryBranch, action.indexOf('if (ticket.billing_type === "PIX")', expiryBranch));
+  const branch = action.slice(
+    expiryBranch,
+    action.indexOf('if (ticket.billing_type === "PIX")', expiryBranch),
+  );
   assert.match(action, /import \{ expireAthleteCheckoutIfNeeded \}/);
   assert.match(branch, /await expireAthleteCheckoutIfNeeded\(ticket\.id\)/);
   assert.match(branch, /expiration\.status === "pago"/);
@@ -121,8 +156,12 @@ test("cartão no limite da reserva reconcilia o provedor antes de liberar estoqu
 });
 
 test("card customer failures are observable without exposing payer data", () => {
-  const action = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
-  const failureEvent = action.indexOf("athlete_ticket.customer_registration_failed");
+  const action = source(
+    "app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts",
+  );
+  const failureEvent = action.indexOf(
+    "athlete_ticket.customer_registration_failed",
+  );
 
   assert.ok(failureEvent >= 0);
   assert.match(action, /error instanceof AsaasApiError/);
@@ -137,8 +176,13 @@ test("card customer failures are observable without exposing payer data", () => 
 
 test("conflito corrigível de participante preserva a reserva da categoria", () => {
   const guestAction = source("app/campeonatos/[id]/comprar/actions.ts");
-  const conflictBranch = guestAction.indexOf("if (isParticipantCategoryConflict(insErr))");
-  const genericRelease = guestAction.indexOf("await liberarReservaECupom();", conflictBranch);
+  const conflictBranch = guestAction.indexOf(
+    "if (isParticipantCategoryConflict(insErr))",
+  );
+  const genericRelease = guestAction.indexOf(
+    "await liberarReservaECupom();",
+    conflictBranch,
+  );
 
   assert.ok(conflictBranch >= 0);
   assert.ok(genericRelease > conflictBranch);
@@ -153,10 +197,18 @@ test("conflito corrigível de participante preserva a reserva da categoria", () 
 });
 
 test("pending Pix tickets display the persisted charged amount including fees", () => {
-  const athletePage = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/page.tsx");
-  const athleteStatus = source("components/campeonatos/IngressoAtletaPagamento.tsx");
-  const spectatorPage = source("app/campeonatos/[id]/plateia/ingresso/[ticketId]/page.tsx");
-  const spectatorStatus = source("components/plateia/IngressoPlateiaStatus.tsx");
+  const athletePage = source(
+    "app/campeonatos/[id]/comprar/ingresso/[ticketId]/page.tsx",
+  );
+  const athleteStatus = source(
+    "components/campeonatos/IngressoAtletaPagamento.tsx",
+  );
+  const spectatorPage = source(
+    "app/campeonatos/[id]/plateia/ingresso/[ticketId]/page.tsx",
+  );
+  const spectatorStatus = source(
+    "components/plateia/IngressoPlateiaStatus.tsx",
+  );
 
   assert.match(athletePage, /paymentOperation\?\.amount/);
   assert.match(spectatorPage, /paymentOperation\?\.amount/);
@@ -175,19 +227,31 @@ test("existing provider customer is synchronized before a new charge", () => {
 test("payment polling stops on every terminal ticket status", () => {
   const athlete = source("components/campeonatos/IngressoAtletaPagamento.tsx");
   const ticketStatusApi = source("app/api/ticket-status/route.ts");
-  assert.match(athlete, /\["estornado", "expirado"\]\.includes\(statusPagamento\)/);
-  assert.match(athlete, /credentials\.every\(\(credential\) => credential\.checkedIn\)/);
+  assert.match(
+    athlete,
+    /\["estornado", "expirado"\]\.includes\(statusPagamento\)/,
+  );
+  assert.match(
+    athlete,
+    /credentials\.every\(\(credential\) => credential\.checkedIn\)/,
+  );
   assert.match(athlete, /router\.refresh\(\)/);
   assert.match(ticketStatusApi, /export async function POST/);
   assert.doesNotMatch(athlete, /ticket-status\?tipo=/);
-  assert.match(athlete, /JSON\.stringify\(\{ tipo: "atleta", id: ticketId, token: accessToken \}\)/);
+  assert.match(
+    athlete,
+    /JSON\.stringify\(\{ tipo: "atleta", id: ticketId, token: accessToken \}\)/,
+  );
 
   const spectator = source("components/plateia/IngressoPlateiaStatus.tsx");
   assert.match(spectator, /if \(statusPagamento !== "pendente"\) return/);
   assert.match(spectator, /if \(nextStatus !== "pendente"\)/);
   assert.match(spectator, /router\.refresh\(\)/);
   assert.doesNotMatch(spectator, /ticket-status\?tipo=/);
-  assert.match(spectator, /JSON\.stringify\(\{ tipo: "plateia", id: ticketId, token: accessToken \}\)/);
+  assert.match(
+    spectator,
+    /JSON\.stringify\(\{ tipo: "plateia", id: ticketId, token: accessToken \}\)/,
+  );
 });
 
 test("logged-in athlete can fill athlete 1 from their own private profile", () => {
@@ -201,7 +265,7 @@ test("logged-in athlete can fill athlete 1 from their own private profile", () =
   assert.match(page, /authenticatedAthlete=\{authenticatedAthlete\}/);
   assert.match(form, /Você é um dos atletas\?/);
   assert.match(form, /Sim, sou o atleta 1/);
-  assert.match(form, /comprador_nome: authenticatedAthlete\.name/);
+  assert.match(form, /authenticatedAthlete\.name \|\| current\.comprador_nome/);
   assert.match(form, /comprador_email_confirmacao:/);
   assert.match(form, /comprador_cpf: authenticatedAthlete\.cpf/);
 });
@@ -210,7 +274,9 @@ test("all championship checkouts require and persist legal consent", () => {
   const athleteForm = source("components/campeonatos/IngressoAtletaForm.tsx");
   const athleteAction = source("app/campeonatos/[id]/comprar/actions.ts");
   const registrationForm = source("components/campeonatos/InscricaoForm.tsx");
-  const registrationAction = source("app/campeonatos/[id]/inscrever/actions.ts");
+  const registrationAction = source(
+    "app/campeonatos/[id]/inscrever/actions.ts",
+  );
   const spectatorForm = source("components/plateia/IngressoPlateiaForm.tsx");
   const spectatorAction = source("app/campeonatos/[id]/plateia/actions.ts");
   const migration = source("supabase/production-checkout-legal-consent.sql");
@@ -238,20 +304,34 @@ test("all championship checkouts require and persist legal consent", () => {
 });
 
 test("a guest pair receives two linked individual entry credentials", () => {
-  const migration = source("supabase/production-athlete-ticket-credentials.sql");
-  const athletePage = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/page.tsx");
-  const athleteStatus = source("components/campeonatos/IngressoAtletaPagamento.tsx");
-  const individualPage = source("app/campeonatos/[id]/ingresso-atleta/[credentialId]/page.tsx");
+  const migration = source(
+    "supabase/production-athlete-ticket-credentials.sql",
+  );
+  const athletePage = source(
+    "app/campeonatos/[id]/comprar/ingresso/[ticketId]/page.tsx",
+  );
+  const athleteStatus = source(
+    "components/campeonatos/IngressoAtletaPagamento.tsx",
+  );
+  const individualPage = source(
+    "app/campeonatos/[id]/ingresso-atleta/[credentialId]/page.tsx",
+  );
   const recovery = source("app/api/meus-ingressos/verificar/route.ts");
   const delivery = source("lib/athlete-ticket-delivery.ts");
   const email = source("lib/email/send.ts");
   const ownership = source("lib/athlete-ticket-change-security.ts");
-  const athleteActions = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
+  const athleteActions = source(
+    "app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts",
+  );
   const statusApi = source("app/api/athlete-credential-status/route.ts");
-  const credentialClient = source("components/campeonatos/IngressoAtletaCredencial.tsx");
+  const credentialClient = source(
+    "components/campeonatos/IngressoAtletaCredencial.tsx",
+  );
   const recoveryClaim = source("lib/ticket-recovery.ts");
   const proxy = source("proxy.ts");
-  const accessRoute = source("app/campeonatos/[id]/ingresso-atleta/[credentialId]/acessar/route.ts");
+  const accessRoute = source(
+    "app/campeonatos/[id]/ingresso-atleta/[credentialId]/acessar/route.ts",
+  );
   const session = source("lib/athlete-credential-session.ts");
 
   assert.match(migration, /UNIQUE \(athlete_ticket_id, athlete_slot\)/i);
@@ -265,12 +345,18 @@ test("a guest pair receives two linked individual entry credentials", () => {
   assert.match(migration, /bool_or\(c\.checked_in\)/);
   assert.match(migration, /checked_in = v_any_checked/);
   assert.match(migration, /athlete_slot = 1 AND t\.user_id = auth\.uid\(\)/);
-  assert.match(migration, /athlete_slot = 2 AND t\.parceiro_user_id = auth\.uid\(\)/);
+  assert.match(
+    migration,
+    /athlete_slot = 2 AND t\.parceiro_user_id = auth\.uid\(\)/,
+  );
   assert.match(migration, /USING \(user_id = auth\.uid\(\)\)/);
   assert.match(migration, /can_select_athlete_ticket_credential/);
   assert.match(migration, /ATHLETE_TICKET_CREDENTIAL_DOMAIN_MISMATCH/);
   assert.match(athletePage, /\.from\("athlete_ticket_credentials"\)/);
-  assert.match(athletePage, /allIndividualCredentials\.find\(\(credential\) => credential\.athlete_slot === 1\)/);
+  assert.match(
+    athletePage,
+    /allIndividualCredentials\.find\(\(credential\) => credential\.athlete_slot === 1\)/,
+  );
   assert.doesNotMatch(athletePage, /athlete_ticket_credential_events/);
   assert.match(athleteStatus, /somente a credencial do comprador/);
   assert.match(athleteStatus, /credentials\.map/);
@@ -306,8 +392,14 @@ test("a guest pair receives two linked individual entry credentials", () => {
   assert.match(credentialClient, /Baixar PDF/);
   assert.match(credentialClient, /Proteger meu ingresso/);
   assert.match(credentialClient, /compartilhou o link com outra pessoa/);
-  assert.match(individualPage, /\.in\("event_type", \["issued", "rotated", "viewed", "email_sent", "invalidated", "self_invalidated", "checked_in"\]\)/);
-  assert.doesNotMatch(individualPage, /email_failed: "Falha temporária no envio"/);
+  assert.match(
+    individualPage,
+    /\.in\("event_type", \["issued", "rotated", "viewed", "email_sent", "invalidated", "self_invalidated", "checked_in"\]\)/,
+  );
+  assert.doesNotMatch(
+    individualPage,
+    /email_failed: "Falha temporária no envio"/,
+  );
   assert.doesNotMatch(individualPage, /resend_requested: "Reenvio solicitado"/);
   assert.match(recoveryClaim, /\.is\("usado_em", null\)/);
   assert.match(recoveryClaim, /return Boolean\(claimed\)/);
@@ -318,8 +410,12 @@ test("a guest pair receives two linked individual entry credentials", () => {
 test("refund details preserve request, confirmation and cancellation history", () => {
   const panel = source("components/ingressos/RefundStatusPanel.tsx");
   const menu = source("components/ingressos/IngressoOpcoesMenu.tsx");
-  const athleteActions = source("app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts");
-  const spectatorActions = source("app/campeonatos/[id]/plateia/ingresso/[ticketId]/actions.ts");
+  const athleteActions = source(
+    "app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts",
+  );
+  const spectatorActions = source(
+    "app/campeonatos/[id]/plateia/ingresso/[ticketId]/actions.ts",
+  );
   const athleteCancellation = athleteActions.slice(
     athleteActions.indexOf("export async function cancelarIngressoAtleta"),
   );

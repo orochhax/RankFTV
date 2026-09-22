@@ -173,6 +173,17 @@ export function pagamentoConfirmadoHtml(opts: {
   return base("Pagamento confirmado!", corpo);
 }
 
+export function organizerFinancialNotificationHtml(opts: { nomeOrganizador: string; nomeCampeonato: string; heading: string; detail: string; valorFormatado?: string | null }): string {
+  return base(escapeHtml(opts.heading), `
+    ${p(`Olá, <strong>${escapeHtml(opts.nomeOrganizador)}</strong>.`)}
+    ${p(escapeHtml(opts.detail))}
+    <div style="margin:16px 0;padding:16px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#1e3a8a;">${escapeHtml(opts.nomeCampeonato)}</p>
+      ${opts.valorFormatado ? `<p style="margin:4px 0 0;font-size:13px;color:#1d4ed8;">Valor: ${escapeHtml(opts.valorFormatado)}</p>` : ""}
+    </div>
+  `);
+}
+
 export function credencialAtletaHtml(opts: {
   nomeAtleta: string;
   nomeParceiro: string;

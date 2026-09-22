@@ -41,8 +41,8 @@ export function MatchCard({
   disabled?: boolean;
 }) {
   const rows = [
-    { dupla: match.duplaA, isWinner: match.winner === "a", side: "a" as const },
-    { dupla: match.duplaB, isWinner: match.winner === "b", side: "b" as const },
+    { dupla: match.duplaA, isWinner: match.winner === "a", side: "a" as const, veioDaRepescagem: match.veioDaRepescagemA },
+    { dupla: match.duplaB, isWinner: match.winner === "b", side: "b" as const, veioDaRepescagem: match.veioDaRepescagemB },
   ];
   const decided = match.winner !== null;
 
@@ -71,13 +71,13 @@ export function MatchCard({
         </div>
       </div>
 
-      {rows.map(({ dupla, isWinner, side }, idx) => {
+      {rows.map(({ dupla, isWinner, side, veioDaRepescagem }, idx) => {
         const nameColor = isWinner ? "text-white" : decided ? "text-gray-500" : "text-gray-700";
         return (
           <div
             key={idx}
             className={[
-              "flex min-h-14 items-center gap-2 px-3 py-2",
+              "relative flex min-h-14 items-center gap-2 px-3 py-2",
               idx === 1 ? "border-t border-gray-100" : "",
               isWinner ? "bg-blue-600" : "bg-white",
             ].filter(Boolean).join(" ")}
@@ -89,6 +89,11 @@ export function MatchCard({
                 <p className={`truncate font-semibold leading-tight ${nameColor}`}>{dupla.nomes[1]}</p>
               )}
             </div>
+            {veioDaRepescagem && (
+              <span className="absolute bottom-0 right-0 size-0 border-b-[14px] border-l-[14px] border-b-amber-400 border-l-transparent" title="Veio da repescagem">
+                <span className="sr-only">Veio da repescagem</span>
+              </span>
+            )}
             {match.sets && match.sets.length > 0 && (
               <div className="flex shrink-0 gap-1" aria-label={`Pontos da dupla ${side.toUpperCase()} por set`}>
                 {match.sets.map((set, setIndex) => (

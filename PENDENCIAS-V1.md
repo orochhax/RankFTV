@@ -1,14 +1,14 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 15/09/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 17/09/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
 `AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
 
 ## Progresso da V1
 
-`███████████████▎░░░░` **76% concluído** — 106 dos 140 marcos P0 originais
-foram concluídos; restam 34 marcos atômicos, agrupados abaixo em 31 entradas
+`███████████████▊░░░░` **79% concluído** — 111 dos 140 marcos P0 originais
+foram concluídos; restam 29 marcos atômicos, agrupados abaixo em 28 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -32,9 +32,14 @@ P1/P2 não alteram esse percentual.
   Buckets públicos e tabelas internas com RLS sem policy exigem revisão de
   intenção, mas não aparecem como exposição direta de linhas nesta auditoria.
 - [ ] Encerrar a validação conjunta, no navegador do Sandbox, de entradas
-  válidas e inválidas para cadastro, login, recuperação, inscrição, compras e
-  pagamentos. A implementação com Zod, reautorização e mensagens públicas já
-  está no código; falta a evidência funcional completa depois do deploy.
+  válidas e inválidas para login, inscrição, compras e pagamentos. O cadastro
+  público foi homologado em 16/09: campos sem usuário ou e-mail bloquearam a
+  criação, e a conta Sandbox de teste foi criada. A recuperação pública de
+  ingresso foi homologada em 16/09: par inválido
+  recebeu resposta neutra; CPF/e-mail válidos entregaram o código por e-mail,
+  recuperaram somente a credencial correspondente e o código foi consumido em
+  uso único. A implementação com Zod, reautorização e mensagens públicas já
+  está no código; falta a evidência funcional completa dos demais fluxos.
 - [ ] Confirmar a equivalência do schema de produção com o código e aplicar,
   com backup e janela sem checkout, somente migrations já homologadas. Seguir
   a ordem de `RUNBOOK-PRODUCAO.md` e registrar objetos aplicados.
@@ -46,33 +51,33 @@ P1/P2 não alteram esse percentual.
 ### Checkout, pagamentos e credenciais
 
 - [ ] Concluir a homologação de reembolso sem conta para Pix e cartão nos
-  cenários ainda não cobertos: parcial, repetição, timeout, saldo insuficiente,
-  cobrança inelegível e tentativa do parceiro. Pix e cartão integrais e o
-  estado terminal `CANCELLED` já foram comprovados no Sandbox.
-- [ ] Definir e ensaiar o procedimento do CEO para reembolso Pix não concluído:
+  cenários ainda não cobertos: parcial no cartão, repetição, timeout, saldo
+  insuficiente, cobrança inelegível e tentativa do parceiro. Pix e cartão
+  integrais, Pix parcial de R$ 20,00 (ingresso Larissa/Mateus, em 16/09/2026)
+  e o estado terminal `CANCELLED` já foram comprovados no Sandbox. O Pix
+  parcial foi confirmado no Asaas e conciliado no RankFTV com liberação da
+  vaga; o webhook Sandbox passou a observar `PAYMENT_PARTIALLY_REFUNDED`.
+- [x] Definir e ensaiar o procedimento do CEO para reembolso Pix não concluído:
   autenticar solicitante pelo link gerencial ou CPF + e-mail + OTP, abrir caso
   auditável e nunca pedir chave Pix, conta bancária ou cartão por e-mail ou
-  WhatsApp.
+  WhatsApp. Ensaio Sandbox concluído em 16/09/2026 para Rafael Teste Sandbox /
+  Diego Teste Sandbox: caso criado, atribuído, registrado como aguardando prova
+  e resolvido sem dados financeiros adicionais.
 - [ ] Confirmar com o adquirente/processador o escopo PCI/SAQ aplicável ao
   formulário atual de cartão ou migrar para checkout hospedado/tokenização
   direta antes de aceitar cartões reais.
 
 ### Operação de campeonatos
 
-- [ ] Homologar manualmente o chaveamento corrigido no painel e na página
-  pública, em desktop e mobile: sorteio, vencedores/perdedores, retorno da
-  repescagem, semifinais, final, terceiro lugar, pódio e troca de quadra.
-- [ ] Homologar na interface a correção e limpeza de placares quando partidas
-  posteriores já estão preenchidas, incluindo confirmação de resultados e
-  redistribuição de quadras. As regras de cascata já têm testes automatizados.
 - [ ] Ativar e homologar em produção os avisos de alteração de data, horário ou
   local. Confirmar destinatários pagos/ativos, deduplicação de e-mail
   compartilhado, retentativas, auditoria e exclusão de pendentes, expirados e
   estornados. A fila e a homologação funcional no Sandbox já existem.
-- [ ] Implementar e homologar notificações ao organizador para cada pagamento,
-  cancelamento e estorno confirmados.
-  - [ ] Persistir entrega em fila idempotente antes do envio, com retentativa
-    para `429`/`5xx`, recuperação de worker interrompido e estado auditável.
+- [x] Implementar fila idempotente de notificações ao organizador para cada pagamento,
+  estorno integral ou parcial confirmado; entrega imediata pelo webhook e
+  recuperação diária por cron. Migration aplicada no Sandbox em 21/09/2026.
+  Pendente: publicar a branch de homologação e confirmar o recebimento com uma
+  cobrança de teste.
   - [ ] Configurar e medir limites do Resend em produção, alertar fila
     acumulada/falha definitiva e manter contingência no painel.
   - [ ] Homologar no Sandbox pagamento, cancelamento, estorno, evento repetido,
@@ -108,6 +113,8 @@ P1/P2 não alteram esse percentual.
   cancelamento, reembolso e financeiro.
 - [ ] Executar teste de capacidade com k6 e dados falsos, somente depois dos
   fluxos críticos estáveis no Sandbox.
+  - [x] Script somente-leitura e roteiro seguro preparados em
+    `scripts/k6-sandbox-smoke.js` e `docs/TESTE-CAPACIDADE-SANDBOX.md`.
   - [ ] Cobrir navegação pública, login, painel, campeonatos, chaveamento,
     consultas de ingresso/QR e placares; mutações e pagamentos só no Sandbox.
   - [ ] Subir gradualmente 5, 10 e 25 usuários virtuais, aplicar pico controlado
@@ -163,6 +170,11 @@ P1/P2 não alteram esse percentual.
 
 ## P2 — Depois do lançamento
 
+- [ ] Emitir passes oficiais para Apple Wallet e Google Wallet. Obter contas
+  de emissor, certificados/chaves privadas e aprovação das duas plataformas;
+  depois implementar e homologar a emissão dos passes. Até lá, manter o link
+  protegido e o PDF individual. A preparação das variáveis, o diagnóstico
+  exclusivo do CEO e o runbook já estão prontos.
 - [ ] Adicionar login/cadastro Google, com vínculo seguro de contas e coleta
   gradual de perfil.
 - [ ] Remover `style-src 'unsafe-inline'` da CSP após migrar estilos dinâmicos.

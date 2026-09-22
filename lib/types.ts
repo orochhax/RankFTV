@@ -58,6 +58,8 @@ export type BracketMatch = {
   numero: number;
   duplaA: BracketDupla;
   duplaB: BracketDupla;
+  veioDaRepescagemA?: boolean;
+  veioDaRepescagemB?: boolean;
   placar?: string;
   sets?: Array<{ a: number; b: number }>;
   quadra?: string;

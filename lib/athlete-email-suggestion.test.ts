@@ -45,8 +45,8 @@ test("o checkout mostra a sugestão apenas como ação para cada atleta", () => 
   assert.match(form, /value=\{values\.comprador_email \?\? ""\}/);
   assert.match(form, /value=\{values\.parceiro_email \?\? ""\}/);
   assert.doesNotMatch(form, /defaultValue=\{authenticatedEmail/);
-  assert.match(form, /onUse=\{\(\) => updateAthleteEmail\("comprador_email", emailDaConta\)\}/);
-  assert.match(form, /onUse=\{\(\) => updateAthleteEmail\("parceiro_email", emailDaConta\)\}/);
-  assert.match(form, /onChange=\{\(event\) => updateAthleteEmail\("comprador_email", event\.target\.value\)\}/);
-  assert.match(form, /onChange=\{\(event\) => updateAthleteEmail\("parceiro_email", event\.target\.value\)\}/);
+  assert.match(form, /onUse=\{\s*\(\)\s*=>\s*updateAthleteEmail\(\s*"comprador_email",\s*emailDaConta,?\s*\)\s*\}/);
+  assert.match(form, /onUse=\{\s*\(\)\s*=>\s*updateAthleteEmail\(\s*"parceiro_email",\s*emailDaConta,?\s*\)\s*\}/);
+  assert.match(form, /onChange=\{\s*\(event\)\s*=>\s*updateAthleteEmail\(\s*"comprador_email",\s*event\.target\.value,?\s*\)\s*\}/);
+  assert.match(form, /onChange=\{\(event\)\s*=>\s*updateAthleteEmail\(\s*"parceiro_email",\s*event\.target\.value,?\s*\)\s*\}/);
 });

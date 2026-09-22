@@ -88,8 +88,8 @@ export default async function CheckinPage({
           icon={Users}
           items={[
             { label: "Total de atletas", value: total, tone: "text-blue-700" },
-            { label: "Atletas presentes", value: confirmados, tone: "text-success" },
             { label: "Atletas pendentes", value: pendentes, tone: pendentes > 0 ? "text-warning" : "text-ink" },
+            { label: "Atletas confirmados", value: confirmados, tone: "text-success" },
           ]}
         />
         <MetricGroup

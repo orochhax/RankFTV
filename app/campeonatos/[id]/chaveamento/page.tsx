@@ -20,12 +20,26 @@ async function getDbBracketCategories(
 
   const { data: matches } = await supabase
     .from("bracket_matches")
-    .select("id, round_index, match_index, participant_a_id, participant_b_id, sets_a, sets_b, set_details, winner_participant_id, category_id, is_third_place, court_label, bracket_section, section_round_index")
+    .select("id, round_index, match_index, participant_a_id, participant_b_id, sets_a, sets_b, set_details, winner_participant_id, category_id, is_third_place, court_label, bracket_section, section_round_index, next_winner_match_id")
     .eq("championship_id", champId)
     .order("round_index")
     .order("match_index");
 
   if (!matches || matches.length === 0) return null;
+
+  const sectionOf = (match: typeof matches[number]) =>
+    match.bracket_section ?? (match.is_third_place ? "third_place" : "winners");
+  const matchesById = new Map(matches.map((match) => [match.id, match]));
+  const returnedToMainRound = new Map<string, number>();
+  for (const match of matches) {
+    if (sectionOf(match) !== "losers" || !match.next_winner_match_id || !match.winner_participant_id) continue;
+    const destination = matchesById.get(match.next_winner_match_id);
+    if (!destination || sectionOf(destination) !== "winners") continue;
+    returnedToMainRound.set(
+      match.winner_participant_id,
+      destination.section_round_index ?? destination.round_index,
+    );
+  }
 
   // Coleta os participantes canônicos, incluindo checkout rápido sem conta.
   const participantIds = [
@@ -94,9 +108,11 @@ async function getDbBracketCategories(
         : undefined,
       quadra: m.court_label ? `Quadra ${m.court_label}` : undefined,
       winner: isWinA ? "a" : isWinB ? "b" : null,
+      veioDaRepescagemA: sectionOf(m) === "winners" && !!m.participant_a_id && (returnedToMainRound.get(m.participant_a_id) ?? Infinity) <= (m.section_round_index ?? m.round_index),
+      veioDaRepescagemB: sectionOf(m) === "winners" && !!m.participant_b_id && (returnedToMainRound.get(m.participant_b_id) ?? Infinity) <= (m.section_round_index ?? m.round_index),
     };
 
-    const section = m.bracket_section ?? (m.is_third_place ? "third_place" : "winners");
+    const section = sectionOf(m);
     if (section === "third_place") {
       thirdPlaceByCat.set(m.category_id, match);
       continue;
@@ -162,11 +178,25 @@ export default async function ChaveamentoPublicPage({
   const dbChamp = await getDbChampionshipById(id);
   if (!dbChamp) notFound();
 
-  const categories = await getDbBracketCategories(id);
-  if (!categories || categories.length === 0) notFound();
+  const supabase = createAdminClient();
+  const [bracketCategories, { data: championshipCategories }] = await Promise.all([
+    getDbBracketCategories(id),
+    supabase
+      .from("championship_categories")
+      .select("id, nome")
+      .eq("championship_id", id),
+  ]);
+  if (!championshipCategories || championshipCategories.length === 0) notFound();
 
-  const activeCat =
-    categories.find((c) => c.id === cat) ?? categories[0];
+  const activeCategoryId = championshipCategories.some((category) => category.id === cat)
+    ? cat!
+    : bracketCategories?.[0]?.id ?? championshipCategories[0].id;
+  const activeCategory = championshipCategories.find((category) => category.id === activeCategoryId)!;
+  const activeCat = bracketCategories?.find((category) => category.id === activeCategoryId);
+  const categoryHasBracket = new Set(bracketCategories?.map((category) => category.id));
+  const categoriesByBracketStatus = [...championshipCategories].sort(
+    (a, b) => Number(categoryHasBracket.has(b.id)) - Number(categoryHasBracket.has(a.id)),
+  );
 
   return (
     <div className="w-full space-y-8 px-6 py-8 pb-24">
@@ -185,26 +215,39 @@ export default async function ChaveamentoPublicPage({
       </div>
 
       {/* Abas de categoria */}
-      {categories.length > 1 && (
+      {championshipCategories.length > 1 && (
         <div className="flex flex-wrap gap-2">
-          {categories.map((c) => (
+          {categoriesByBracketStatus.map((category) => {
+            const hasBracket = categoryHasBracket.has(category.id);
+            const isActive = category.id === activeCategoryId;
+            return (
             <Link
-              key={c.id}
-              href={`/campeonatos/${id}/chaveamento?cat=${c.id}`}
+              key={category.id}
+              href={`/campeonatos/${id}/chaveamento?cat=${category.id}`}
               className={[
                 "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                c.id === activeCat.id
+                isActive && hasBracket
                   ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                  : hasBracket
+                    ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    : "bg-gray-100 text-gray-400",
               ].join(" ")}
             >
-              {c.nome}
+              {category.nome}
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      <BracketCategoryView category={activeCat} />
+      {activeCat ? (
+        <BracketCategoryView category={activeCat} />
+      ) : (
+        <section className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-center">
+          <p className="text-sm font-semibold text-gray-400">{activeCategory.nome}</p>
+          <p className="mt-1 text-sm text-gray-400">Chaveamento ainda não definido.</p>
+        </section>
+      )}
     </div>
   );
 }

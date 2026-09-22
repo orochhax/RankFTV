@@ -41,4 +41,6 @@ test("refund reconciliation uses the provider's dedicated refund listing", () =>
   assert.match(asaas, /\/payments\/\$\{asaasPaymentId\}\/refunds/);
   assert.match(reconciliation, /listarEstornosCobranca\(originalPaymentId\)/);
   assert.match(flows, /listarEstornosCobranca\(input\.originalPaymentId\)/);
+  assert.match(flows, /financial_resolve_refund_reference/);
+  assert.match(flows, /refundProviderState\(providerStatus!\) !== "failed"/);
 });

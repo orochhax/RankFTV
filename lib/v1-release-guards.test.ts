@@ -80,6 +80,9 @@ test("assisted ticket support is CEO-only and fails closed when audit is unavail
   assert.match(actions, /Limite de 3 reenvios em 24 horas/);
   assert.match(actions, /listarOperacaoEmails/);
   assert.match(actions, /provider_status/);
+  assert.match(actions, /const ticket = refundTicketMap\.get\(operation\.record_id\)/);
+  assert.match(actions, /ticket\?\.billing_type !== "PIX"/);
+  assert.doesNotMatch(actions, /\.eq\("billing_type", "PIX"\)/);
   assert.match(actions, /criarCasoSuporte/);
   assert.match(actions, /atualizarCasoSuporte/);
   assert.match(actions, /dateFrom[\s\S]*\.gte\("created_at"/);
@@ -95,6 +98,8 @@ test("assisted ticket support is CEO-only and fails closed when audit is unavail
   assert.match(center, /Fila de casos/);
   assert.match(center, /Histórico das credenciais/);
   assert.match(center, /Aguardando autorização financeira/);
+  assert.match(center, /item\.buyerName/);
+  assert.match(center, /item\.categoryName/);
   assert.match(center, /setOperationError/);
   assert.match(center, /role="alert"/);
   assert.doesNotMatch(center, /alert\s*\(/);

@@ -66,6 +66,9 @@ export type EmailOperationsSummary = {
   pendingPixRefunds: Array<{
     operationId: string;
     ticketId: string;
+    buyerName: string;
+    partnerName: string;
+    categoryName: string | null;
     amount: number | null;
     status: string;
     providerStatus: string | null;
@@ -628,18 +631,26 @@ export async function listarOperacaoEmails(): Promise<{ ok: boolean; error?: str
       .select("id, record_id, amount, status, provider_status, updated_at")
       .eq("flow", "athlete_ticket")
       .eq("operation_type", "refund")
-      .eq("billing_type", "PIX")
       .in("status", ["processing", "provider_created", "ambiguous", "failed", "cancelled"])
       .order("updated_at", { ascending: false })
       .limit(50),
   ]);
   if (emailError || pendingError || refundError) return { ok: false, error: "A operação de suporte ainda não está disponível." };
   const pendingRows = pending ?? [];
+  const refundRows = pendingRefunds ?? [];
   const ticketIds = [...new Set(pendingRows.map((row) => row.athlete_ticket_id))];
-  const { data: tickets } = ticketIds.length
-    ? await admin.from("athlete_tickets").select("id, championship_id, status_pagamento").in("id", ticketIds).eq("status_pagamento", "pago")
-    : { data: [] };
+  const refundTicketIds = [...new Set(refundRows.map((row) => row.record_id))];
+  const [{ data: tickets, error: ticketsError }, { data: refundTickets, error: refundTicketsError }] = await Promise.all([
+    ticketIds.length
+      ? admin.from("athlete_tickets").select("id, championship_id, status_pagamento").in("id", ticketIds).eq("status_pagamento", "pago")
+      : Promise.resolve({ data: [], error: null }),
+    refundTicketIds.length
+      ? admin.from("athlete_tickets").select("id, billing_type, comprador_nome, parceiro_nome, categoria_nome").in("id", refundTicketIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (ticketsError || refundTicketsError) return { ok: false, error: "A operação de suporte ainda não está disponível." };
   const paidTicketMap = new Map((tickets ?? []).map((ticket) => [ticket.id, ticket]));
+  const refundTicketMap = new Map((refundTickets ?? []).map((ticket) => [ticket.id, ticket]));
   const championshipIds = [...new Set((tickets ?? []).map((ticket) => ticket.championship_id))];
   const { data: championships } = championshipIds.length
     ? await admin.from("championships").select("id, nome").in("id", championshipIds)
@@ -671,14 +682,23 @@ export async function listarOperacaoEmails(): Promise<{ ok: boolean; error?: str
           createdAt: row.created_at,
         }];
       }),
-      pendingPixRefunds: (pendingRefunds ?? []).map((operation) => ({
-        operationId: operation.id,
-        ticketId: operation.record_id,
-        amount: operation.amount == null ? null : Number(operation.amount),
-        status: operation.status,
-        providerStatus: operation.provider_status,
-        updatedAt: operation.updated_at,
-      })),
+      // A operação de estorno não carrega necessariamente o método original.
+      // O ingresso é a fonte de verdade para separar Pix de cartão.
+      pendingPixRefunds: refundRows.flatMap((operation) => {
+        const ticket = refundTicketMap.get(operation.record_id);
+        if (ticket?.billing_type !== "PIX") return [];
+        return [{
+          operationId: operation.id,
+          ticketId: operation.record_id,
+          buyerName: ticket.comprador_nome,
+          partnerName: ticket.parceiro_nome,
+          categoryName: ticket.categoria_nome,
+          amount: operation.amount == null ? null : Number(operation.amount),
+          status: operation.status,
+          providerStatus: operation.provider_status,
+          updatedAt: operation.updated_at,
+        }];
+      }),
     },
   };
 }
