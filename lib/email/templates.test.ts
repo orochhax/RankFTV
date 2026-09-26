@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { escapeHtml, comunicadoHtml, credencialAtletaHtml } from "@/lib/email/templates";
+import { escapeHtml, comunicadoHtml, credencialAtletaHtml, organizerFinancialNotificationHtml } from "@/lib/email/templates";
 
 describe("escapeHtml (evita injeção de HTML/phishing em e-mail)", () => {
   test("escapa tag de script", () => {
@@ -71,5 +71,25 @@ describe("credencialAtletaHtml", () => {
     assert.match(html, /Gerenciar esta compra/);
     assert.match(html, /token=a&amp;slot=1/);
     assert.match(html, /token=b&amp;modo=gestao/);
+  });
+});
+
+describe("organizerFinancialNotificationHtml", () => {
+  test("inclui o resumo operacional sem expor CPF ou e-mail", () => {
+    const html = organizerFinancialNotificationHtml({
+      nomeOrganizador: "Organizador",
+      nomeCampeonato: "Copa RankFTV",
+      heading: "Pagamento confirmado",
+      detail: "Um pagamento foi confirmado para o seu campeonato.",
+      valorFormatado: "R$ 23,99",
+      nomeCategoria: "Intermediário",
+      formaPagamento: "Pix",
+      participantes: ["Camila", "Diego"],
+    });
+
+    assert.match(html, /Categoria: Intermediário/);
+    assert.match(html, /Forma de pagamento: Pix/);
+    assert.match(html, /Atletas: Camila \+ Diego/);
+    assert.doesNotMatch(html, /CPF|@/);
   });
 });

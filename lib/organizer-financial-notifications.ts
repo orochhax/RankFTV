@@ -10,8 +10,59 @@ import { organizerFinancialNotificationCopy, organizerFinancialNotificationRetry
 
 const MAX_ATTEMPTS = 5;
 type Delivery = { id: string; organizer_id: string; championship_id: string; payment_id: string; event_kind: OrganizerFinancialNotificationKind; record_type: string; record_id: string; amount: number | null; attempt_count: number };
+type FinancialNotificationDetails = { nomeCategoria: string | null; formaPagamento: string | null; participantes: string[] };
 
 const formatBRL = (value: number | null) => value == null ? null : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+
+function billingTypeLabel(value: string | null): string | null {
+  const labels: Record<string, string> = {
+    PIX: "Pix", BOLETO: "Boleto", CREDIT_CARD: "Cartão de crédito", DEBIT_CARD: "Cartão de débito",
+  };
+  return value ? (labels[value] ?? value) : null;
+}
+
+async function financialNotificationDetails(admin: ReturnType<typeof createAdminClient>, row: Delivery): Promise<FinancialNotificationDetails> {
+  if (row.record_type === "athlete_ticket") {
+    const { data } = await admin.from("athlete_tickets")
+      .select("categoria_nome, billing_type, comprador_nome, parceiro_nome")
+      .eq("id", row.record_id).maybeSingle();
+    return {
+      nomeCategoria: data?.categoria_nome ?? null,
+      formaPagamento: billingTypeLabel(data?.billing_type ?? null),
+      participantes: [data?.comprador_nome, data?.parceiro_nome].filter((nome): nome is string => Boolean(nome)),
+    };
+  }
+
+  if (row.record_type === "spectator_ticket") {
+    const { data } = await admin.from("spectator_tickets")
+      .select("tipo_nome, billing_type, comprador_nome")
+      .eq("id", row.record_id).maybeSingle();
+    return {
+      nomeCategoria: data?.tipo_nome ?? null,
+      formaPagamento: billingTypeLabel(data?.billing_type ?? null),
+      participantes: data?.comprador_nome ? [data.comprador_nome] : [],
+    };
+  }
+
+  const { data: registration } = await admin.from("registrations")
+    .select("category_id, team_id, billing_type").eq("id", row.record_id).maybeSingle();
+  if (!registration) return { nomeCategoria: null, formaPagamento: null, participantes: [] };
+
+  const [{ data: category }, { data: team }] = await Promise.all([
+    admin.from("championship_categories").select("nome").eq("id", registration.category_id).maybeSingle(),
+    admin.from("teams").select("atleta1_id, atleta2_id").eq("id", registration.team_id).maybeSingle(),
+  ]);
+  const athleteIds = [team?.atleta1_id, team?.atleta2_id].filter((id): id is string => Boolean(id));
+  const { data: profiles } = athleteIds.length
+    ? await admin.from("profiles").select("id, nome").in("id", athleteIds)
+    : { data: [] };
+  const namesById = new Map((profiles ?? []).map((profile) => [profile.id, profile.nome]));
+  return {
+    nomeCategoria: category?.nome ?? null,
+    formaPagamento: billingTypeLabel(registration.billing_type),
+    participantes: athleteIds.map((id) => namesById.get(id)).filter((nome): nome is string => Boolean(nome)),
+  };
+}
 
 async function markFailure(row: Delivery, category: string) {
   const attempts = row.attempt_count + 1;
@@ -41,8 +92,11 @@ export async function processPendingOrganizerFinancialNotifications(limit = 50) 
   const result = { processed: 0, accepted: 0, failed: 0, suppressed: 0 };
   for (const row of (data ?? []) as Delivery[]) {
     result.processed++;
-    const [{ data: user }, { data: profile }, { data: championship }] = await Promise.all([
+    const [{ data: user }, { data: profile }, { data: championship }, details] = await Promise.all([
       admin.auth.admin.getUserById(row.organizer_id), admin.from("profiles").select("nome").eq("id", row.organizer_id).maybeSingle(), admin.from("championships").select("nome").eq("id", row.championship_id).maybeSingle(),
+      // Os detalhes enriquecem o e-mail, mas não podem impedir a confirmação
+      // financeira caso exista um registro legado incompleto.
+      financialNotificationDetails(admin, row).catch(() => ({ nomeCategoria: null, formaPagamento: null, participantes: [] })),
     ]);
     const email = user.user?.email;
     if (!email || !championship) {
@@ -52,7 +106,7 @@ export async function processPendingOrganizerFinancialNotifications(limit = 50) 
     if (!process.env.RESEND_API_KEY) { await updateEmailOperationalEvent({ id: eventId, status: "failed", failureCategory: "provider_not_configured" }); await markFailure(row, "provider_not_configured"); result.failed++; continue; }
     const copy = organizerFinancialNotificationCopy(row.event_kind);
     try {
-      const sent = await getResend().emails.send({ from: FROM, to: email, subject: `${copy.subject} — ${championship.nome}`, html: organizerFinancialNotificationHtml({ nomeOrganizador: profile?.nome || user.user?.user_metadata?.nome || "Organizador", nomeCampeonato: championship.nome, heading: copy.heading, detail: copy.detail, valorFormatado: formatBRL(row.amount) }) }, { idempotencyKey: `organizer-financial-${row.payment_id}-${row.event_kind}` });
+      const sent = await getResend().emails.send({ from: FROM, to: email, subject: `${copy.subject} — ${championship.nome}`, html: organizerFinancialNotificationHtml({ nomeOrganizador: profile?.nome || user.user?.user_metadata?.nome || "Organizador", nomeCampeonato: championship.nome, heading: copy.heading, detail: copy.detail, valorFormatado: formatBRL(row.amount), ...details }) }, { idempotencyKey: `organizer-financial-${row.payment_id}-${row.event_kind}` });
       if (sent.error) { await updateEmailOperationalEvent({ id: eventId, status: "failed", failureCategory: "provider_rejected" }); await markFailure(row, "provider_rejected"); result.failed++; continue; }
       const now = new Date().toISOString();
       await updateEmailOperationalEvent({ id: eventId, status: "accepted", providerMessageId: sent.data?.id });
