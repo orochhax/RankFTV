@@ -139,6 +139,13 @@ export default defineConfig([
       "@typescript-eslint/no-require-imports": "off",
     },
   },
+  {
+    // k6 provides these modules at runtime; they are not Node dependencies.
+    files: ["scripts/k6-*.js"],
+    rules: {
+      "import-x/no-unresolved": "off",
+    },
+  },
   globalIgnores([
     ".claude/**",
     ".github/agents/**",
