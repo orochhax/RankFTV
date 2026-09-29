@@ -1,7 +1,30 @@
 # Auditoria de seguranca e prontidao para producao - RankFTV
 
 Data da revisao: 14/07/2026
-Ultima atualizacao: 06/09/2026
+Ultima atualizacao: 29/09/2026
+
+## Atualizacao 29/09/2026 - notificacao financeira e dependencias
+
+- A fila financeira do organizador foi aplicada no Sandbox. Uma cobranca Pix
+  de R$ 23,99 confirmou o ingresso e gerou exatamente uma entrega aceita, na
+  primeira tentativa, sem erro. O e-mail recebido exibiu campeonato, categoria,
+  forma de pagamento, valor e os dois atletas.
+- Next.js e `eslint-config-next` foram atualizados de 16.3.0 para 16.3.7, e o
+  override do Sharp passou de 0.35.3 para 0.35.4, eliminando os alertas criticos
+  e altos encontrados na verificacao inicial.
+- `npm run audit:prod`: aprovado, zero vulnerabilidades conhecidas.
+- `npm run lint`: aprovado, zero erros; permanecem 1.288 avisos de qualidade
+  registrados como baseline e fora deste ajuste de seguranca.
+- `npm run typecheck`: aprovado, sem erros.
+- `npm test`: 795/795 testes aprovados.
+- `npm run build`: aprovado no Next.js 16.3.7, incluindo TypeScript e geracao
+  das 67 paginas estaticas coletadas pelo build.
+- `npm run test:e2e`: 25 testes publicos aprovados nos cinco perfis de
+  navegador e 60 ignorados por dependerem de contas, dados ou flags explicitas
+  do Sandbox. O teste de plateia deixou de usar silenciosamente um campeonato
+  removido e agora exige `E2E_CHAMPIONSHIP_ID` valido.
+- O teste de capacidade ainda nao foi executado porque o executavel `k6` nao
+  esta instalado nesta maquina. O script permanece restrito a Preview/Sandbox.
 
 ## Atualizacao 06/09/2026 - inventario, avisos e backup periodico
 

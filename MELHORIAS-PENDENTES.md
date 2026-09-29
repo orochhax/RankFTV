@@ -1,6 +1,6 @@
 # Melhorias pendentes
 
-Atualizado em 17/09/2026. Este arquivo reúne melhorias que não bloqueiam a
+Atualizado em 29/09/2026. Este arquivo reúne melhorias que não bloqueiam a
 V1. Obrigações de lançamento, segurança e evolução pós-lançamento permanecem
 em `PENDENCIAS-V1.md`.
 
@@ -93,6 +93,57 @@ em `PENDENCIAS-V1.md`.
   `PESQUISA-CONCORRENTES.md`.
 - [x] Planejar Arena comercial, assinaturas recorrentes, aplicativo/PWA
   ampliado e analytics avançado somente depois da estabilização da V1.
+
+## Pós-lançamento — ArenaOS: gestão comercial de arenas
+
+Status: ideia registrada para depois do lançamento e da estabilização da V1,
+conforme os critérios de `PLANO-POS-V1.md`. Nome provisório: **ArenaOS**.
+Público comprador: dono da arena. Proposta: centralizar a operação e gerar
+receita recorrente com gestão, independentemente do desempenho dos atletas.
+
+- [ ] Mapear o que o módulo de arenas do RankFTV já oferece antes de expandir
+  ou criar um produto separado.
+- [ ] Centralizar quadras, professores, alunos, planos, horários, reservas,
+  turmas, aulas experimentais, mensalidades e cobranças Pix/cartão recorrentes.
+- [ ] Integrar torneios, ranking, lista de espera e comunicação pelo WhatsApp.
+- [ ] Medir ocupação por quadra, dia e faixa de horário. Exemplo de diagnóstico:
+  “Quadra 2 fica ociosa 63% das vezes entre 14h e 17h”.
+- [ ] Sugerir ações comerciais a partir desses dados, como “Crie promoção
+  terça às 15h — R$ 50/h”, com aprovação do responsável antes da publicação.
+- [ ] Detectar alunos inativos e oferecer campanhas de retorno. Exemplo:
+  “17 alunos estão há mais de 14 dias sem jogar”, seguido de convite para
+  reservar um horário disponível com o professor.
+- [ ] Planejar campanhas de WhatsApp com consentimento, opção de sair e
+  regras configuráveis para evitar mensagens repetidas.
+- [ ] Validar assinatura de R$ 249/mês e receita transacional de 0,5% a 1%
+  sobre reservas; são hipóteses comerciais, não preços aprovados.
+
+Cenários ilustrativos de receita mensal recorrente, antes de custos e sem
+incluir taxas transacionais: 100 arenas × R$ 249 = R$ 24.900;
+500 arenas = R$ 124.500; 2.000 arenas = R$ 498.000. Não são previsão de vendas.
+
+## Pós-lançamento — Meu CT digital: SaaS para professores
+
+Status: ideia registrada para depois do lançamento. Público comprador:
+professor de futevôlei. Proposta: reunir WhatsApp, planilha, Pix, Instagram e
+agenda em uma operação simples, com possibilidade de começar menor que o ArenaOS.
+
+- [ ] Validar um MVP com agenda, cadastro de alunos, cobrança e integração
+  com WhatsApp, aproveitando recursos existentes do RankFTV.
+- [ ] Criar página pública por professor com horários, local, níveis, planos
+  e agendamento de aula experimental. Exemplo conceitual de endereço:
+  `meufutevolei.com/professorjoao` (domínio ainda não definido).
+- [ ] Permitir gestão de alunos, mensalidades, presença, evolução e turmas.
+- [ ] Adicionar CRM com as etapas: experimental → interessado → matriculado
+  → mensalista → inativo.
+- [ ] Criar lembretes de acompanhamento, por exemplo: “Pedro fez aula
+  experimental há 2 dias e ainda não fechou plano”.
+- [ ] Planejar mensagens e acompanhamento automático com consentimento e
+  controles do professor, medindo conversão de experimental em matrícula.
+- [ ] Validar assinatura entre R$ 49 e R$ 99/mês com professores piloto;
+  faixa sugerida, ainda não aprovada.
+- [ ] Comparar os pilotos das duas propostas antes de decidir a ordem de
+  implementação e se serão módulos do RankFTV ou produtos independentes.
 
 ## Itens concluídos
 

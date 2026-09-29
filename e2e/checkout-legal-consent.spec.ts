@@ -10,6 +10,7 @@ const categoryId = process.env.E2E_CATEGORY_ID
   ?? "bffb27fb-4ecf-4275-8d7a-2e75a0f16659";
 const athleteCookieName = `rankftv_athlete_checkout_${championshipId}`;
 const athleteMutationsEnabled = sandboxBrowserMutationEnabled("E2E_CHECKOUT_MUTATION_TESTS");
+const spectatorFixtureConfigured = Boolean(process.env.E2E_CHAMPIONSHIP_ID);
 
 function sandboxAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -111,6 +112,7 @@ test("authenticated athlete cannot submit without consent and opens both legal d
 });
 
 test("spectator checkout cannot submit without consent and opens separate legal pages", async ({ page, context }) => {
+  test.skip(!spectatorFixtureConfigured, "Configure E2E_CHAMPIONSHIP_ID com um campeonato Sandbox que venda ingressos de plateia");
   test.slow();
   await page.goto(`/campeonatos/${championshipId}/plateia`);
   await page.getByRole("button", { name: "Aumentar" }).first().click();

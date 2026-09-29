@@ -1,6 +1,6 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 17/09/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 29/09/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
 `AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
@@ -76,8 +76,9 @@ P1/P2 não alteram esse percentual.
 - [x] Implementar fila idempotente de notificações ao organizador para cada pagamento,
   estorno integral ou parcial confirmado; entrega imediata pelo webhook e
   recuperação diária por cron. Migration aplicada no Sandbox em 21/09/2026.
-  Pendente: publicar a branch de homologação e confirmar o recebimento com uma
-  cobrança de teste.
+  A branch de homologação foi publicada e, em 29/09/2026, uma cobrança Pix de
+  R$ 23,99 confirmou o ingresso e entregou ao organizador um e-mail com
+  campeonato, categoria, forma de pagamento, valor e nomes da dupla.
   - [ ] Configurar e medir limites do Resend em produção, alertar fila
     acumulada/falha definitiva e manter contingência no painel.
   - [ ] Homologar no Sandbox pagamento, cancelamento, estorno, evento repetido,
