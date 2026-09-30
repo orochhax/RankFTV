@@ -1,7 +1,37 @@
 # Auditoria de seguranca e prontidao para producao - RankFTV
 
 Data da revisao: 14/07/2026
-Ultima atualizacao: 29/09/2026
+Ultima atualizacao: 30/09/2026
+
+## Atualizacao 30/09/2026 - promocao controlada e prova operacional
+
+- O PR #4 foi aprovado pelos checks obrigatorios e mesclado por squash. A
+  producao foi promovida sem copiar secrets para o repositorio.
+- A branch `master` passou a exigir os checks atualizados `verify` e Vercel,
+  inclusive para administradores, sem force-push ou exclusao, com historico
+  linear e resolucao de conversas. O environment `Production` aceita somente
+  branches protegidas.
+- `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET`, `EMAIL_EVENT_HASH_SECRET` e
+  `ASAAS_WITHDRAWAL_AUTH_TOKEN` foram cadastrados na Vercel Production. Os tres
+  destinos de observabilidade continuam sem valor configurado.
+- Os workers de avisos de campeonato e financeiros do organizador foram
+  disparados manualmente em producao e concluiram com sucesso nas execucoes
+  `36708232283` e `36708235880`.
+- A primeira execucao da conciliacao financeira falhou de forma segura com
+  `checkout_reservation_expiration_failed`. A causa foi a ausencia da migration
+  `production-athlete-checkout-reservations.sql` na ordem do runbook, embora o
+  codigo implantado ja dependesse da RPC correspondente.
+- O PR #15 adicionou a migration a ordem oficial e um workflow manual fixo,
+  atomico e restrito ao projeto de producao. A execucao `36708976564` aplicou a
+  migration e confirmou tabela, colunas e funcoes. A repeticao da conciliacao,
+  execucao `36709050462`, terminou com sucesso.
+- O release operacional final e o commit `b5fa6f4a9632`, deployment Vercel
+  `dpl_65HNiDgLQkxhh3RHcCg5foqcuJCi`, Ready em 30/09/2026 as 08:30 BRT. A CI
+  `36708963025` aprovou audit, lint, tipos, 797 testes, build e 30 testes de
+  navegador; 55 cenarios condicionais foram ignorados conforme suas flags.
+- O smoke final somente-leitura confirmou home HTTP 200, health `ok`, banco
+  `ok`, release `b5fa6f4a9632` e redirecionamento anonimo de `/admin` para
+  `/login`. O smoke transacional completo permanece pendente.
 
 ## Atualizacao 29/09/2026 - notificacao financeira e dependencias
 
@@ -89,7 +119,7 @@ Ultima atualizacao: 29/09/2026
   criptografado de banco e Storage. O preflight confirmou PostgreSQL 17.6,
   nenhuma conexao ativa, nenhuma inscricao nos 30 minutos anteriores, nenhum
   ingresso ativo sem categoria e nenhuma identidade duplicada por categoria.
-- As 26 migrations do runbook foram aplicadas/reconciliadas sequencialmente. Os
+- As 27 migrations do runbook foram aplicadas/reconciliadas sequencialmente. Os
   scripts sem transacao propria foram executados de forma atomica; nenhum erro
   de instalacao permaneceu aberto.
 - A primeira auditoria encontrou tres lacunas de ordenacao no runbook: hardening
