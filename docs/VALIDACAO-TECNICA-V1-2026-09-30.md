@@ -30,14 +30,19 @@ financeiro mutável apontou para Production.
    chaveamento, placar ao vivo e consulta privada de ingresso/QR.
 10. O workflow `production-performance-audit.yml` mede conexões, esperas,
     transações longas, locks, deadlocks, temporários e tempos agregados por
-    `queryid`, em transação somente leitura e sem imprimir SQL.
+    `queryid`, em transação somente leitura e sem imprimir SQL. A execução
+    `36784797528` confirmou timeouts locais de 30/5/30 segundos, zero conexão
+    ativa em espera, zero transação acima de um minuto, zero lock aguardando e
+    zero sessão bloqueada.
 11. O pico histórico de 26,74 s não se repetiu nem no ensaio rápido nem no
     completo autenticado. O ensaio completo fez 6.297 requisições em 17
     minutos, a 6,17 req/s, com erro HTTP de 0,23%, média de 503,14 ms, p95 de
     752,44 ms e máximo de 3,63 s. Os p95 por fluxo ficaram entre 471,69 ms e
     941,58 ms. Todos os thresholds passaram e nenhuma iteração foi
     interrompida. Os logs do pico histórico já expiraram, por isso não é
-    possível atribuir sua causa retroativamente.
+    possível atribuir sua causa retroativamente. Nas estatísticas acumuladas do
+    banco, o maior `max_exec_time` sanitizado foi 6,88 s; isso também não
+    reproduziu o outlier e não permite inferir que a origem antiga foi o banco.
 12. Lint passou sem erros, TypeScript e build passaram, 802 testes passaram,
     `npm audit` terminou com zero vulnerabilidades e a busca por padrões de
     segredos não encontrou credenciais versionadas.
@@ -47,7 +52,10 @@ financeiro mutável apontou para Production.
 14. O roteiro supervisionado completo está em `docs/SMOKE-TRANSACIONAL-V1.md`.
 15. Checklist, runbook e auditoria devem manter os IDs de execução e separar
     claramente o que ainda exige prova externa.
-16. A entrega técnica está no PR #20, protegida por CI e Preview da Vercel.
+16. A entrega técnica foi mesclada pelos PRs #20 e #21. A versão final da
+    `master` passou pela CI `36784784375`; o worker protegido `36784801615` processou a fila
+    financeira e o scanner de alertas, ambos com sucesso. A implantação Vercel
+    do commit `9c06c2660d75a3b19ca2fb7963e1a8341d9e1893` ficou Ready.
 
 ## E2E Sandbox desta rodada
 

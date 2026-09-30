@@ -27,6 +27,21 @@ Ultima atualizacao: 30/09/2026
   `docs/SMOKE-TRANSACIONAL-V1.md`. Entrega real em Gmail/Outlook, operações
   específicas no Asaas e pagamentos reais permanecem supervisionados e não
   foram simulados em Production.
+- O PR #20 foi mesclado no commit `aca514ff7968`; a CI de `master`
+  `36783902045` aprovou todos os gates e a Vercel concluiu o deploy. O smoke
+  pós-deploy repetiu 12/12 respostas esperadas, com média de 332 ms e máximo de
+  645 ms.
+- A primeira leitura de espera classificava conexões ociosas em `ClientRead`
+  como espera operacional. O PR #21 corrigiu a métrica para conexões ativas e
+  fixou timeouts dentro da transação. Na execução somente leitura
+  `36784797528` houve 0 conexões ativas em espera, 0 transações acima de um
+  minuto, 0 locks aguardando e 0 sessões bloqueadas. O maior tempo máximo
+  acumulado por `queryid` foi 6,88 s; nenhum texto SQL foi impresso.
+- A execução protegida `36784801615` processou a fila financeira e o scanner
+  de alertas operacionais com sucesso usando o segredo do environment
+  Production. Nenhum segredo local antigo foi promovido ou exposto.
+- A CI final da `master`, execução `36784784375`, aprovou auditoria de
+  dependências, lint, tipos, 802 testes, build e 30 cenários Playwright.
 
 ## Atualizacao 30/09/2026 - promocao controlada e prova operacional
 

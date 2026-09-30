@@ -178,7 +178,10 @@ P1/P2 não alteram esse percentual.
     fez 6.297 requisições em 17 minutos: 6,17 RPS, 0,23% de erro HTTP, média de
     503,14 ms, p95 de 752,44 ms e máximo de 3,63 s. O workflow
     `production-performance-audit.yml` faz a correlação segura do banco sem
-    imprimir texto SQL ou dados pessoais.
+    imprimir texto SQL ou dados pessoais. A execução `36784797528` confirmou
+    zero conexão ativa em espera, transação acima de um minuto, lock aguardando
+    ou sessão bloqueada; o maior tempo máximo acumulado por `queryid` foi
+    6,88 s.
   - [x] Aprovar inicialmente com menos de 1% de erros, p95 de API abaixo de
     1,5 s, páginas em 2–3 s e zero duplicação financeira ou operacional. Todos
     os thresholds passaram, nenhuma iteração foi interrompida e o E2E

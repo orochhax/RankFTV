@@ -419,3 +419,8 @@ configuracoes externas ainda abertas permanecem em `PENDENCIAS-V1.md`.
 5. Registrar as métricas em `docs/VALIDACAO-TECNICA-V1-2026-09-30.md`. Pix,
    cartão e entrega em caixas reais continuam seguindo o roteiro supervisionado
    de `docs/SMOKE-TRANSACIONAL-V1.md`.
+
+Evidência desta janela: auditoria SQL `36784797528`, worker financeiro e
+scanner de alertas `36784801615`, CI final pós-merge `36784784375` e smoke pós-deploy
+com 12/12 respostas esperadas. A auditoria corrigida encontrou zero espera
+ativa, transação longa, lock aguardando ou sessão bloqueada.
