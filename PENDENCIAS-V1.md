@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`████████████████▊░░░` **84% concluído** — 118 dos 140 marcos P0 originais
-foram concluídos; restam 22 marcos atômicos, agrupados abaixo em 21 entradas
+`█████████████████░░░` **85% concluído** — 119 dos 140 marcos P0 originais
+foram concluídos; restam 21 marcos atômicos, agrupados abaixo em 20 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -127,9 +127,14 @@ P1/P2 não alteram esse percentual.
   resposta reais.
 - [ ] Obter revisão jurídica da política de cancelamento/reembolso e do fluxo
   LGPD.
-- [ ] Configurar `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN` e
-  `OPERATIONS_ALERT_WEBHOOK_URL` de produção com responsável e SLA. As três
-  variáveis estavam ausentes na Vercel Production em 29/09/2026.
+- [x] Configurar `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN` e
+  `OPERATIONS_ALERT_WEBHOOK_URL` de produção com responsável e SLA. Em
+  30/09/2026, as três variáveis foram cadastradas como secrets na Vercel
+  Production. O Better Stack aceitou o evento de teste, o webhook do Slack
+  entregou a mensagem no canal `#alertas-rankftv` e a conciliação financeira
+  `36718714462` concluiu com sucesso depois do redeploy. Carlos Gregório Rocha
+  Batista ficou registrado como responsável primário, com resposta inicial em
+  até 15 minutos para alerta crítico e em até uma hora para alta prioridade.
 - [x] Cadastrar os quatro secrets do workflow de backup e comprovar a primeira
   execução de backup lógico e de Storage fora da máquina do operador. Em
   30/09/2026, a execução manual `36652847512` concluiu com sucesso usando o

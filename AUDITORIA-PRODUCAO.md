@@ -12,8 +12,16 @@ Ultima atualizacao: 30/09/2026
   linear e resolucao de conversas. O environment `Production` aceita somente
   branches protegidas.
 - `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET`, `EMAIL_EVENT_HASH_SECRET` e
-  `ASAAS_WITHDRAWAL_AUTH_TOKEN` foram cadastrados na Vercel Production. Os tres
-  destinos de observabilidade continuam sem valor configurado.
+  `ASAAS_WITHDRAWAL_AUTH_TOKEN` foram cadastrados na Vercel Production.
+- `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN` e
+  `OPERATIONS_ALERT_WEBHOOK_URL` foram cadastrados como secrets na Vercel
+  Production. O Better Stack aceitou o evento de teste e o Slack recebeu o
+  alerta no canal privado `#alertas-rankftv`. Carlos Gregório Rocha Batista foi
+  registrado como responsável primário, com SLA de resposta inicial de 15
+  minutos para alertas críticos e uma hora para alta prioridade.
+- O redeploy ficou Ready e `/api/health` confirmou aplicação e banco `ok` no
+  release `fd058f57d51f`. A conciliação financeira `36718714462`, executada
+  depois da configuração, terminou com sucesso.
 - Os workers de avisos de campeonato e financeiros do organizador foram
   disparados manualmente em producao e concluiram com sucesso nas execucoes
   `36708232283` e `36708235880`.
