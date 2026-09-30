@@ -401,3 +401,21 @@ trilha de auditoria.
 Registrar commit, horario, migrations, contagens do backfill, resultado dos
 gates, cobrancas sandbox usadas, incidentes e responsavel pela liberacao. As
 configuracoes externas ainda abertas permanecem em `PENDENCIAS-V1.md`.
+
+### Evidência técnica de 30/09/2026
+
+1. Executar `node scripts/production-readonly-smoke.mjs` antes e depois da
+   promoção. O script recusa qualquer host diferente de `www.rankftv.com` e não
+   realiza mutações.
+2. Executar `scripts/run-k6-sandbox.ps1` somente contra Preview conectado ao
+   projeto Sandbox. O wrapper cria sessões temporárias e sempre remove o
+   arquivo local no encerramento.
+3. Para webhooks mutáveis, usar exclusivamente a fixture descartável do
+   Playwright. Ela valida repetição, reembolso e evento fora de ordem, e limpa
+   os registros ao final.
+4. Depois do merge, disparar `production-performance-audit.yml`. O workflow
+   exige o ref exato de Production e executa a auditoria SQL em transação
+   `READ ONLY`, sem imprimir texto de consulta ou dados pessoais.
+5. Registrar as métricas em `docs/VALIDACAO-TECNICA-V1-2026-09-30.md`. Pix,
+   cartão e entrega em caixas reais continuam seguindo o roteiro supervisionado
+   de `docs/SMOKE-TRANSACIONAL-V1.md`.
