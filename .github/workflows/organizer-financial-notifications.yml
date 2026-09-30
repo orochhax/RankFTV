@@ -32,3 +32,19 @@ jobs:
             --header "Authorization: Bearer $CRON_SECRET" \
             --header "X-Request-ID: github-organizer-financial-notifications-$GITHUB_RUN_ID" \
             https://www.rankftv.com/api/cron/organizer-financial-notifications
+
+      - name: Scan operational email alerts
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "$CRON_SECRET"
+          curl --fail-with-body --silent --show-error \
+            --retry 2 \
+            --retry-all-errors \
+            --connect-timeout 10 \
+            --max-time 240 \
+            --request POST \
+            --header "Authorization: Bearer $CRON_SECRET" \
+            --header "X-Request-ID: github-operational-alerts-$GITHUB_RUN_ID" \
+            https://www.rankftv.com/api/cron/operational-alerts

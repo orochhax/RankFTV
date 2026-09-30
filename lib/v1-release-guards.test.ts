@@ -176,6 +176,8 @@ test("production performance audit is read-only and never prints query text", ()
   assert.match(workflow, /default_transaction_read_only=on/);
   assert.match(workflow, /EXPECTED_DATABASE_REF: tkyopolcxfsdbhvrgadj/);
   assert.match(sql, /BEGIN READ ONLY/);
+  assert.match(sql, /SET LOCAL statement_timeout = '30s'/);
+  assert.match(sql, /state = 'active'[\s\S]*wait_event_type IS NOT NULL/);
   assert.match(sql, /waiting_locks/);
   assert.match(sql, /transactions_over_one_minute/);
   assert.match(sql, /max_exec_time/);
@@ -196,6 +198,8 @@ test("organizer financial notification retries run through the protected product
   assert.match(workflow, /--retry 2/);
   assert.match(workflow, /--request POST/);
   assert.match(workflow, /https:\/\/www\.rankftv\.com\/api\/cron\/organizer-financial-notifications/);
+  assert.match(workflow, /Scan operational email alerts/);
+  assert.match(workflow, /https:\/\/www\.rankftv\.com\/api\/cron\/operational-alerts/);
 });
 
 test("critical V1 server paths use sanitized operational logging", () => {
