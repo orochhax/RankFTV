@@ -1,5 +1,6 @@
 const SANDBOX_CONFIRMATION = "RANKFTV_DISPOSABLE_SANDBOX";
 const PRODUCTION_SUPABASE_REF = "tkyopolcxfsdbhvrgadj";
+const RANKFTV_PREVIEW_HOST = /^(?:rank-ftv-git-sandbox-homologacao(?:-[a-z0-9-]+)?|rank-[a-z0-9-]+-devcarlosrochas-projects)\.vercel\.app$/;
 
 type Env = Record<string, string | undefined>;
 
@@ -21,8 +22,8 @@ export function financialMutationSandboxIssues(env: Env): string[] {
   if (env.E2E_DISPOSABLE_SANDBOX !== SANDBOX_CONFIRMATION) {
     issues.push("confirmação explícita do Sandbox descartável ausente");
   }
-  if (!targetHost || !targetHost.endsWith(".vercel.app") || !targetHost.includes("sandbox-homologacao")) {
-    issues.push("E2E_BASE_URL não é o Preview sandbox-homologacao da Vercel");
+  if (!targetHost || !RANKFTV_PREVIEW_HOST.test(targetHost)) {
+    issues.push("E2E_BASE_URL não é um Preview reconhecido do RankFTV na Vercel");
   }
   if (!sandboxRef) {
     issues.push("referência do projeto Supabase Sandbox ausente");

@@ -1,5 +1,6 @@
 const SANDBOX_SUPABASE_URL = "https://obfqzifcvsqnygwmtpnx.supabase.co";
 const SANDBOX_CONFIRMATION = "RANKFTV_DISPOSABLE_SANDBOX";
+const RANKFTV_PREVIEW_HOST = /^(?:rank-ftv-git-sandbox-homologacao(?:-[a-z0-9-]+)?|rank-[a-z0-9-]+-devcarlosrochas-projects)\.vercel\.app$/;
 
 type Env = Record<string, string | undefined>;
 
@@ -30,10 +31,10 @@ export function sandboxMagicLinkIssues(env: Env): string[] {
     || (
       targetHost !== "localhost"
       && targetHost !== "127.0.0.1"
-      && !(targetHost.endsWith(".vercel.app") && targetHost.includes("sandbox-homologacao"))
+      && !RANKFTV_PREVIEW_HOST.test(targetHost)
     )
   ) {
-    issues.push("destino não é localhost nem Preview sandbox-homologacao");
+    issues.push("destino não é localhost nem Preview reconhecido do RankFTV");
   }
 
   return issues;
