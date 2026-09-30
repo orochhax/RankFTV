@@ -68,6 +68,21 @@ Ultima atualizacao: 29/09/2026
   variaveis de observabilidade. O DNS publico possui SPF no subdominio `send`,
   DKIM e DMARC em modo de monitoramento (`p=none`).
 
+## Atualizacao 30/09/2026 - primeiro backup remoto criptografado
+
+- O workflow `Production logical backup` foi promovido para a branch `master` e
+  seus quatro secrets foram cadastrados no environment protegido `Production`.
+- A execucao manual `36652847512` terminou com sucesso: validou o destino de
+  producao, usou explicitamente `pg_dump`/`pg_restore` 17, gerou os dumps do
+  banco, exportou o Storage, conferiu os hashes SHA-256, criptografou e verificou
+  o pacote antes do upload.
+- O artefato privado `rankftv-production-36652847512-1` possui 25.015.975 bytes,
+  nao estava expirado na verificacao e tem retencao ate 30/10/2026. O conteudo
+  nao foi baixado nem exposto durante a auditoria.
+- O backup remove o bloqueio operacional que impedia o hardening do banco, mas
+  as migrations continuam dependendo de uma janela controlada sem checkout e
+  de validacao posterior. O teste de restauracao isolada ainda deve ser ensaiado.
+
 ## Atualizacao 06/09/2026 - inventario, avisos e backup periodico
 
 - Consulta somente de leitura confirmou em producao as tabelas, funcoes e

@@ -122,12 +122,12 @@ P1/P2 não alteram esse percentual.
 - [ ] Configurar `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN` e
   `OPERATIONS_ALERT_WEBHOOK_URL` de produção com responsável e SLA. As três
   variáveis estavam ausentes na Vercel Production em 29/09/2026.
-- [ ] Cadastrar os quatro secrets do workflow de backup e comprovar a primeira
-  execução agendada de backup lógico e de Storage fora da máquina do operador.
-  O workflow, o snapshot inicial e a cópia externa já existem. A variável
-  `NEXT_PUBLIC_SUPABASE_URL` já foi cadastrada no environment `Production`; ainda
-  faltam a conexão do banco, a chave elevada e a senha de criptografia. O
-  workflow de backup ainda não aparecia na branch padrão em 29/09/2026.
+- [x] Cadastrar os quatro secrets do workflow de backup e comprovar a primeira
+  execução de backup lógico e de Storage fora da máquina do operador. Em
+  30/09/2026, a execução manual `36652847512` concluiu com sucesso usando o
+  cliente PostgreSQL 17, validou banco e Storage, criptografou o pacote antes do
+  upload e publicou um artefato privado de 25.015.975 bytes, retido até
+  30/10/2026. O agendamento semanal permanece ativo na branch padrão.
 
 ### Lançamento
 

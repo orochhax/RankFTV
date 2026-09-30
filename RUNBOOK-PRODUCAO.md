@@ -99,6 +99,13 @@ SHA-256 e mantem o artefato por 30 dias. Restrinja a leitura dos artefatos aos
 administradores do repositorio e copie mensalmente um deles para o cofre externo
 definido pela operacao.
 
+Primeira evidencia remota: a execucao manual `36652847512`, em 30/09/2026,
+concluiu todas as etapas e publicou o artefato privado
+`rankftv-production-36652847512-1` (25.015.975 bytes), com retencao ate
+30/10/2026. Essa evidencia comprova a geracao; o ensaio de restauracao em um
+projeto isolado continua sendo uma etapa separada e obrigatoria antes do
+lancamento.
+
 ## 3. Validacao do banco
 
 ### 3.1 Objetos e permissoes
