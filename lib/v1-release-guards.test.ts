@@ -167,6 +167,16 @@ test("production backup exports database and Storage with verified checksums", (
   assert.match(workflow, /SUPABASE_SERVICE_ROLE_KEY: \$\{\{ secrets\.SUPABASE_SERVICE_ROLE_KEY \}\}/);
 });
 
+test("organizer financial notification retries run through the protected production worker", () => {
+  const workflow = source(".github/workflows/organizer-financial-notifications.yml");
+  assert.match(workflow, /cron: "4,19,34,49 \* \* \* \*"/);
+  assert.match(workflow, /environment: production/);
+  assert.match(workflow, /CRON_SECRET: \$\{\{ secrets\.CRON_SECRET \}\}/);
+  assert.match(workflow, /--retry 2/);
+  assert.match(workflow, /--request POST/);
+  assert.match(workflow, /https:\/\/www\.rankftv\.com\/api\/cron\/organizer-financial-notifications/);
+});
+
 test("critical V1 server paths use sanitized operational logging", () => {
   for (const file of [
     "lib/arena-notify.ts",

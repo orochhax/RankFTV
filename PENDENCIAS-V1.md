@@ -21,6 +21,12 @@ P1/P2 não alteram esse percentual.
 
 - [ ] Aplicar em produção, numa janela controlada e depois da homologação, o
   grant mínimo de `supabase/production-security-20-point-hardening.sql`.
+  A leitura de produção em 29/09 também confirmou que
+  `production-security-advisor-function-hardening.sql` e
+  `production-ranking-entries-security-invoker.sql` ainda precisam ser
+  aplicadas: os `search_path` esperados não estão fixos, a função interna
+  `auto_update_championship_status()` continua exposta a clientes e a view
+  `ranking_entries` ainda não usa os privilégios do chamador.
   Repetir a auditoria `supabase/manual-tests/security-posture-check.sql` e o
   Security Advisor em modo somente leitura; registrar qualquer lista não vazia.
   O Sandbox já foi corrigido e revisado: em 14/09, os três checks SQL
@@ -31,6 +37,8 @@ P1/P2 não alteram esse percentual.
   funções de atendimento/triggers e grants de TRUNCATE/TRIGGER para anon.
   Buckets públicos e tabelas internas com RLS sem policy exigem revisão de
   intenção, mas não aparecem como exposição direta de linhas nesta auditoria.
+  A repetição somente-leitura em 29/09 confirmou que os mesmos controles ainda
+  aguardam aplicação em produção.
 - [ ] Encerrar a validação conjunta, no navegador do Sandbox, de entradas
   válidas e inválidas para login, inscrição, compras e pagamentos. O cadastro
   público foi homologado em 16/09: campos sem usuário ou e-mail bloquearam a
@@ -53,6 +61,10 @@ P1/P2 não alteram esse percentual.
   dez execuções recentes terminaram com sucesso, porém os intervalos observados
   foram de horas, não dez minutos; corrigir o agendamento ou adotar um executor
   subdiário confiável, mantendo o cron diário da Vercel como contingência.
+- [ ] Promover e comprovar os workers de avisos de campeonato e financeiros do
+  organizador. Ambos possuem workflow periódico de 15 minutos nesta branch e
+  cron diário de contingência na Vercel, mas só serão agendados pelo GitHub após
+  entrarem na branch padrão e receberem `CRON_SECRET` no environment protegido.
 
 ### Checkout, pagamentos e credenciais
 

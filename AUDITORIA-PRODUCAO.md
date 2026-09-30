@@ -39,6 +39,11 @@ Ultima atualizacao: 29/09/2026
   por `anon`, acesso anonimo a `credentials` e grants indevidos de
   `TRUNCATE/TRIGGER`. O hardening continua bloqueado ate backup e janela sem
   checkout.
+- O check complementar do Security Advisor confirmou que as cinco funcoes
+  auditadas existem, mas seus `search_path` e grants ainda nao correspondem ao
+  baseline homologado. `auto_update_championship_status()` continua acessivel
+  por clientes. As migrations de hardening do Advisor, da view de ranking e dos
+  20 pontos foram adicionadas explicitamente ao inicio do runbook.
 - Os objetos financeiros, de ingresso e credenciais listados no runbook estao
   presentes. Ainda nao existem em producao `championship_notice_deliveries`,
   `organizer_financial_notification_deliveries` nem suas funcoes de claim.
@@ -46,6 +51,10 @@ Ultima atualizacao: 29/09/2026
   terminaram com sucesso, mas ocorreram com intervalos de horas. Os dois secrets
   estao no repositorio, nao no environment protegido `Production`, que permanece
   vazio. Backup e avisos de campeonato ainda nao aparecem na branch padrao.
+- Foi acrescentado um workflow idempotente a cada 15 minutos para drenar a fila
+  de avisos financeiros do organizador, com retry de transporte e contingencia
+  diaria na Vercel. Ele permanece inativo ate a promocao para a branch padrao e
+  a configuracao do `CRON_SECRET` no environment protegido.
 - Na Vercel Production faltam o remetente e webhook do Resend, o segredo
   dedicado de hash de e-mail, o token de autorizacao de saques e as tres
   variaveis de observabilidade. O DNS publico possui SPF no subdominio `send`,

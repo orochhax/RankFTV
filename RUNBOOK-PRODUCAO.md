@@ -1,6 +1,6 @@
 # Runbook de producao do RankFTV
 
-Atualizado em 03/09/2026. Este procedimento cobre apenas o produto Rank
+Atualizado em 29/09/2026. Este procedimento cobre apenas o produto Rank
 Futevolei. Nao inclui Performance nem os controles financeiros pessoais
 hospedados temporariamente no mesmo repositorio.
 
@@ -43,26 +43,34 @@ npm run test:e2e
 
 Aplicar no SQL Editor ou pipeline de migrations, uma por vez e nesta ordem:
 
-1. `supabase/financial-operations.sql`
-2. `supabase/payment-card-attempt-security.sql`
-3. `supabase/production-spectator-ticket-items.sql`
-4. `supabase/production-order-inventory-release.sql`
-5. `supabase/asaas-webhook-idempotency.sql`
-6. `supabase/production-query-indexes.sql`
-7. `supabase/production-athlete-ticket-credentials.sql`
-8. `supabase/production-athlete-ticket-change-security.sql`
-9. `supabase/production-bracket-participants.sql`
-10. `supabase/production-participant-category-uniqueness.sql`
-11. `supabase/production-category-deletion-guard.sql`
-12. `supabase/production-credential-operations.sql`
-13. `supabase/support-case-enhancements.sql`
-14. `supabase/notifications.sql`
-15. `supabase/championship-notices.sql`
-16. `supabase/production-championship-change-notifications.sql`
-17. `supabase/organizer-financial-notifications.sql`
-18. `supabase/production-data-retention.sql`
+1. `supabase/production-security-advisor-function-hardening.sql`
+2. `supabase/production-ranking-entries-security-invoker.sql`
+3. `supabase/production-security-20-point-hardening.sql`
+4. `supabase/financial-operations.sql`
+5. `supabase/payment-card-attempt-security.sql`
+6. `supabase/production-spectator-ticket-items.sql`
+7. `supabase/production-order-inventory-release.sql`
+8. `supabase/asaas-webhook-idempotency.sql`
+9. `supabase/production-query-indexes.sql`
+10. `supabase/production-athlete-ticket-credentials.sql`
+11. `supabase/production-athlete-ticket-change-security.sql`
+12. `supabase/production-bracket-participants.sql`
+13. `supabase/production-participant-category-uniqueness.sql`
+14. `supabase/production-category-deletion-guard.sql`
+15. `supabase/production-credential-operations.sql`
+16. `supabase/support-case-enhancements.sql`
+17. `supabase/notifications.sql`
+18. `supabase/championship-notices.sql`
+19. `supabase/production-championship-change-notifications.sql`
+20. `supabase/organizer-financial-notifications.sql`
+21. `supabase/production-data-retention.sql`
 
 Os scripts sao aditivos e idempotentes. Ainda assim, nao os execute em paralelo.
+Depois dos tres primeiros, executar os checks somente-leitura
+`supabase/manual-tests/security-advisor-function-hardening-check.sql`,
+`supabase/manual-tests/ranking-entries-security-check.sql` e
+`supabase/manual-tests/security-posture-check.sql`; todas as verificacoes devem
+ser verdadeiras e todas as listas de revisao devem estar vazias.
 O backfill de plateia e a criacao de indices podem disputar I/O com o trafego;
 use janela de manutencao em uma base com volume relevante. A migration de
 unicidade interrompe a instalacao se encontrar ingresso ativo sem categoria ou
