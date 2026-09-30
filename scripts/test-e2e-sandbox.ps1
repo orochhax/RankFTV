@@ -46,6 +46,8 @@ if ($AllowFinancialMutations) {
   $env:E2E_ASAAS_MUTATION_TESTS = "1"
   $env:E2E_CARD_GUARD_MUTATION_TESTS = "1"
   $env:E2E_CHECKOUT_MUTATION_TESTS = "1"
+  Remove-Item Env:E2E_ASAAS_PAYMENT_ID -ErrorAction SilentlyContinue
+  Remove-Item Env:E2E_ASAAS_EXTERNAL_REFERENCE -ErrorAction SilentlyContinue
 } else {
   $env:E2E_ASAAS_MUTATION_TESTS = "0"
   $env:E2E_CARD_GUARD_MUTATION_TESTS = "0"
