@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`██████████████████░░` **89% concluído** — 125 dos 140 marcos P0 originais
-foram concluídos; restam 15 marcos atômicos, agrupados abaixo em 11 entradas
+`██████████████████░░` **90% concluído** — 126 dos 140 marcos P0 originais
+foram concluídos; restam 14 marcos atômicos, agrupados abaixo em 10 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -115,13 +115,15 @@ P1/P2 não alteram esse percentual.
     descartável confirmou repetição, reembolso e evento fora de ordem; testes
     de contrato confirmaram backoff nas quatro primeiras falhas e supressão na
     quinta. A carga autenticada ficou dentro dos thresholds.
-- [ ] Verificar em produção o domínio/remetente transacional: SPF, DKIM, DMARC
+- [x] Verificar em produção o domínio/remetente transacional: SPF, DKIM, DMARC
   e entrega em Gmail e Outlook. Em 29/09, DNS público confirmou SPF em
   `send.rankftv.com` e DMARC em monitoramento (`p=none`). Em 30/09,
   `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET` e o segredo dedicado de hash
-  foram cadastrados na Vercel Production. Ainda faltam comprovar DKIM e entrega
-  real em Gmail e Outlook; a chave disponível do Resend não autoriza consultar
-  a API de domínios.
+  foram cadastrados na Vercel Production. Em 30/09, o DNS público confirmou SPF
+  em `send.rankftv.com`, DKIM em `resend._domainkey.rankftv.com` e DMARC em
+  monitoramento (`p=none`). O Gmail recebeu o aviso financeiro real da RankFTV;
+  a caixa Microsoft 365 `infortel.net.br` recebeu o teste supervisionado
+  diretamente na Caixa de Entrada, sem cobrança e sem cair no lixo eletrônico.
 
 ### Operação, suporte e conformidade
 
