@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`████████████████▏░░░` **81% concluído** — 113 dos 140 marcos P0 originais
-foram concluídos; restam 27 marcos atômicos, agrupados abaixo em 26 entradas
+`████████████████▊░░░` **84% concluído** — 118 dos 140 marcos P0 originais
+foram concluídos; restam 22 marcos atômicos, agrupados abaixo em 21 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -54,7 +54,7 @@ P1/P2 não alteram esse percentual.
   com backup e janela sem checkout, somente migrations já homologadas. Seguir
   a ordem de `RUNBOOK-PRODUCAO.md` e registrar objetos aplicados. Auditoria
   somente-leitura de 29/09 confirmou os objetos financeiros e de credenciais
-  principais. Em 30/09, as 26 migrations do runbook foram reconciliadas em
+  principais. Em 30/09, as 27 migrations do runbook foram reconciliadas em
   ordem, incluindo as filas `championship_notice_deliveries` e
   `organizer_financial_notification_deliveries`, funções de claim, hardening de
   perfil e RPCs transacionais de campeonato. O inventário final não encontrou
@@ -62,18 +62,16 @@ P1/P2 não alteram esse percentual.
   financeira pendente ou destinatário em texto puro. Permanece para revisão
   operacional um webhook `PAYMENT_RECEIVED` de 20/08/2026 marcado como `failed`
   após oito tentativas; não foi feito replay sem evidência do provedor.
-- [ ] Configurar no ambiente `Production` do GitHub Actions
+- [x] Configurar no ambiente `Production` do GitHub Actions
   `FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET`, após promover o workflow para
-  a branch padrão. Em 29/09, a URL fixa foi cadastrada no environment
-  `Production`; `CRON_SECRET` continua apenas no nível geral do repositório e
-  precisa ser confirmado/movido sem revelar seu valor. O workflow está ativo e as
-  dez execuções recentes terminaram com sucesso, porém os intervalos observados
-  foram de horas, não dez minutos; corrigir o agendamento ou adotar um executor
-  subdiário confiável, mantendo o cron diário da Vercel como contingência.
-- [ ] Promover e comprovar os workers de avisos de campeonato e financeiros do
-  organizador. Ambos possuem workflow periódico de 15 minutos nesta branch e
-  cron diário de contingência na Vercel, mas só serão agendados pelo GitHub após
-  entrarem na branch padrão e receberem `CRON_SECRET` no environment protegido.
+  a branch padrão. Em 30/09, ambos os secrets foram confirmados no environment
+  protegido e a execução manual `36709050462` concluiu a reconciliação em
+  produção. O cron diário da Vercel permanece como contingência; a pontualidade
+  do agendamento subdiário do GitHub deve continuar sendo observada.
+- [x] Promover e comprovar os workers de avisos de campeonato e financeiros do
+  organizador. Ambos entraram na branch padrão, receberam `CRON_SECRET` no
+  environment protegido e as execuções manuais `36708232283` e `36708235880`
+  terminaram com sucesso em produção em 30/09/2026.
 
 ### Checkout, pagamentos e credenciais
 
@@ -112,9 +110,11 @@ P1/P2 não alteram esse percentual.
     indisponibilidade temporária e pico, garantindo um aviso por evento.
 - [ ] Verificar em produção o domínio/remetente transacional: SPF, DKIM, DMARC
   e entrega em Gmail e Outlook. Em 29/09, DNS público confirmou SPF em
-  `send.rankftv.com`, DKIM e DMARC em monitoramento (`p=none`). Ainda faltam
-  configurar `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET` e o segredo dedicado
-  de hash no ambiente Production, além de comprovar entrega em Gmail e Outlook.
+  `send.rankftv.com` e DMARC em monitoramento (`p=none`). Em 30/09,
+  `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET` e o segredo dedicado de hash
+  foram cadastrados na Vercel Production. Ainda faltam comprovar DKIM e entrega
+  real em Gmail e Outlook; a chave disponível do Resend não autoriza consultar
+  a API de domínios.
 
 ### Operação, suporte e conformidade
 
@@ -139,14 +139,14 @@ P1/P2 não alteram esse percentual.
 
 ### Lançamento
 
-- [ ] Proteger a branch `master` e o environment `Production` de acordo com a
-  política operacional escolhida. Em 29/09, ambos estavam sem regras de
-  proteção; definir checks obrigatórios (`verify` e Vercel), impedir merge com
-  checks falhando e decidir se haverá aprovação humana sem bloquear o único
-  administrador do repositório.
-- [ ] Promover de forma controlada o código homologado para produção, revisando
-  diff, credenciais, URLs, redirects, webhooks e rollback. Não promover esta
-  branch de homologação diretamente.
+- [x] Proteger a branch `master` e o environment `Production`. Em 30/09, a
+  branch passou a exigir `verify` e Vercel atualizados, inclusive para o
+  administrador, sem force-push ou exclusão e com histórico linear e resolução
+  de conversas. O environment aceita somente branches protegidas; não exige
+  aprovação separada porque existe apenas um administrador.
+- [x] Promover de forma controlada o código homologado para produção. O PR #4
+  passou pelos gates, foi mesclado por squash e implantado; o ajuste posterior
+  do PR #15 também passou pelos mesmos gates antes da migração complementar.
 - [ ] Executar smoke final em produção: cadastro, login, recuperação, checkout,
   Pix, cartão, credenciais individuais, e-mail, QR, check-in, chaveamento,
   cancelamento, reembolso e financeiro.
@@ -170,8 +170,12 @@ P1/P2 não alteram esse percentual.
   - [ ] Corrigir gargalos e repetir; depois, fazer teste pequeno e supervisionado
     em produção sem pagamentos artificiais.
 - [ ] Definir data de abertura de pagamentos reais somente depois dos demais P0.
-- [ ] Registrar o release: commit, deployment, horário, migrations, evidências
-  e responsáveis.
+- [x] Registrar o release: commit `b5fa6f4a9632`, deployment Vercel
+  `dpl_65HNiDgLQkxhh3RHcCg5foqcuJCi` Ready em 30/09/2026 às 08:30 BRT,
+  27 migrations reconciliadas, CI `36708963025`, migração complementar
+  `36708976564`, reconciliação `36709050462` e responsável operacional Carlos
+  Gregório Rocha Batista. Evidências detalhadas estão em
+  `AUDITORIA-PRODUCAO.md`.
 
 ## P1 — Estabilização depois do lançamento
 
