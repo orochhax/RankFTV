@@ -59,7 +59,8 @@ Aplicar no SQL Editor ou pipeline de migrations, uma por vez e nesta ordem:
 14. `supabase/notifications.sql`
 15. `supabase/championship-notices.sql`
 16. `supabase/production-championship-change-notifications.sql`
-17. `supabase/production-data-retention.sql`
+17. `supabase/organizer-financial-notifications.sql`
+18. `supabase/production-data-retention.sql`
 
 Os scripts sao aditivos e idempotentes. Ainda assim, nao os execute em paralelo.
 O backfill de plateia e a criacao de indices podem disputar I/O com o trafego;
@@ -70,17 +71,21 @@ nao altere nem estorne dados em lote para forcar a instalacao. A migration de
 credenciais e obrigatoria antes de `production-credential-operations.sql`.
 `support-case-enhancements.sql` depende das tabelas de suporte criadas por essa
 migration e deve vir logo depois. A retencao deve ser executada por ultimo.
-O processador de avisos de alteracao de campeonato somente pode ser publicado
-depois das tres migrations de notificacao. Ele grava a fila sem e-mail em texto
-puro, tenta o primeiro envio imediatamente e deixa as retentativas para o cron
-`/api/cron/championship-change-notifications`.
+Os processadores de avisos de alteracao de campeonato e de eventos financeiros
+do organizador somente podem ser publicados depois das migrations de suas
+filas. Eles gravam destinatarios apenas como hash, tentam o primeiro envio
+imediatamente e deixam as retentativas para os crons
+`/api/cron/championship-change-notifications` e
+`/api/cron/organizer-financial-notifications`.
 
 ### 2.1 Backup periodico fora da maquina do operador
 
 O workflow `.github/workflows/production-backup.yml` executa semanalmente e
 tambem aceita disparo manual. Configure no ambiente protegido `production` os
-secrets `SUPABASE_DB_URL`, `NEXT_PUBLIC_SUPABASE_URL` e
-`SUPABASE_SERVICE_ROLE_KEY`. O job recusa outro project ref, usa `pg_dump` 17,
+secrets `SUPABASE_DB_URL`, `NEXT_PUBLIC_SUPABASE_URL`,
+`BACKUP_ENCRYPTION_PASSPHRASE` e `SUPABASE_SECRET_KEY` (ou, como fallback,
+`SUPABASE_SERVICE_ROLE_KEY`). O job recusa outro project ref, exige pelo menos
+32 caracteres na senha de criptografia, usa `pg_dump` 17,
 exporta todos os buckets, valida o arquivo customizado com `pg_restore`, confere
 SHA-256 e mantem o artefato por 30 dias. Restrinja a leitura dos artefatos aos
 administradores do repositorio e copie mensalmente um deles para o cofre externo
@@ -105,7 +110,9 @@ select to_regclass('public.financial_operations') as financial_operations,
        to_regclass('public.athlete_ticket_credential_events') as credential_events,
        to_regclass('public.transactional_email_events') as email_events,
        to_regclass('public.support_cases') as support_cases,
-       to_regclass('public.support_case_notes') as support_case_notes;
+       to_regclass('public.support_case_notes') as support_case_notes,
+       to_regclass('public.championship_notice_deliveries') as championship_notice_deliveries,
+       to_regclass('public.organizer_financial_notification_deliveries') as organizer_financial_notification_deliveries;
 
 select routine_name
 from information_schema.routines
@@ -121,6 +128,8 @@ where routine_schema = 'public'
     'claim_athlete_ticket_change_challenge',
     'block_nonempty_championship_category_delete',
     'log_athlete_ticket_credential_event',
+    'claim_championship_notice_deliveries',
+    'claim_organizer_financial_notification_deliveries',
     'purge_rankftv_operational_data'
   )
 order by routine_name;

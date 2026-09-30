@@ -42,11 +42,17 @@ P1/P2 não alteram esse percentual.
   está no código; falta a evidência funcional completa dos demais fluxos.
 - [ ] Confirmar a equivalência do schema de produção com o código e aplicar,
   com backup e janela sem checkout, somente migrations já homologadas. Seguir
-  a ordem de `RUNBOOK-PRODUCAO.md` e registrar objetos aplicados.
+  a ordem de `RUNBOOK-PRODUCAO.md` e registrar objetos aplicados. Auditoria
+  somente-leitura de 29/09 confirmou os objetos financeiros e de credenciais
+  principais; faltam em produção `championship_notice_deliveries`,
+  `organizer_financial_notification_deliveries` e suas funções de claim.
 - [ ] Configurar no ambiente `production` do GitHub Actions
   `FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET`, após promover o workflow para
-  a branch padrão. Confirmar a conciliação a cada dez minutos e manter o cron
-  diário da Vercel como contingência.
+  a branch padrão. Os secrets existem hoje no nível geral do repositório, mas o
+  environment protegido `Production` está vazio. O workflow está ativo e as
+  dez execuções recentes terminaram com sucesso, porém os intervalos observados
+  foram de horas, não dez minutos; corrigir o agendamento ou adotar um executor
+  subdiário confiável, mantendo o cron diário da Vercel como contingência.
 
 ### Checkout, pagamentos e credenciais
 
@@ -84,8 +90,10 @@ P1/P2 não alteram esse percentual.
   - [ ] Homologar no Sandbox pagamento, cancelamento, estorno, evento repetido,
     indisponibilidade temporária e pico, garantindo um aviso por evento.
 - [ ] Verificar em produção o domínio/remetente transacional: SPF, DKIM, DMARC
-  e entrega em Gmail e Outlook. O Resend e o webhook já foram homologados no
-  Sandbox.
+  e entrega em Gmail e Outlook. Em 29/09, DNS público confirmou SPF em
+  `send.rankftv.com`, DKIM e DMARC em monitoramento (`p=none`). Ainda faltam
+  configurar `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET` e o segredo dedicado
+  de hash no ambiente Production, além de comprovar entrega em Gmail e Outlook.
 
 ### Operação, suporte e conformidade
 
@@ -99,10 +107,13 @@ P1/P2 não alteram esse percentual.
 - [ ] Obter revisão jurídica da política de cancelamento/reembolso e do fluxo
   LGPD.
 - [ ] Configurar `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN` e
-  `OPERATIONS_ALERT_WEBHOOK_URL` de produção com responsável e SLA.
+  `OPERATIONS_ALERT_WEBHOOK_URL` de produção com responsável e SLA. As três
+  variáveis estavam ausentes na Vercel Production em 29/09/2026.
 - [ ] Cadastrar os quatro secrets do workflow de backup e comprovar a primeira
   execução agendada de backup lógico e de Storage fora da máquina do operador.
-  O workflow, o snapshot inicial e a cópia externa já existem.
+  O workflow, o snapshot inicial e a cópia externa já existem. O environment
+  `Production` do GitHub ainda estava sem secrets e o workflow de backup ainda
+  não aparecia na branch padrão em 29/09/2026.
 
 ### Lançamento
 

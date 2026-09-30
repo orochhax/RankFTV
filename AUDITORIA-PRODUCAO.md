@@ -30,6 +30,26 @@ Ultima atualizacao: 29/09/2026
   usuarios foi sustentado por cinco minutos. Houve um maximo isolado de 26,74 s;
   Vercel, Supabase e consultas internas ainda precisam ser correlacionados para
   explicar esse outlier antes do teste supervisionado em producao.
+- A saude publica de producao retornou HTTP 200 e banco `ok` em 86 ms. HTTPS,
+  redirect do dominio raiz para `www`, CSP com nonce, HSTS, protecao contra
+  frame e redirect anonimo de `/admin` para login foram confirmados.
+- A auditoria SQL somente-leitura de producao confirmou RLS nas tabelas
+  expostas, mas encontrou `handle_new_user()` sem `search_path`, a view
+  `ranking_entries` sem `security_invoker`, funcoes privilegiadas executaveis
+  por `anon`, acesso anonimo a `credentials` e grants indevidos de
+  `TRUNCATE/TRIGGER`. O hardening continua bloqueado ate backup e janela sem
+  checkout.
+- Os objetos financeiros, de ingresso e credenciais listados no runbook estao
+  presentes. Ainda nao existem em producao `championship_notice_deliveries`,
+  `organizer_financial_notification_deliveries` nem suas funcoes de claim.
+- No GitHub, a conciliacao financeira esta ativa e as dez execucoes recentes
+  terminaram com sucesso, mas ocorreram com intervalos de horas. Os dois secrets
+  estao no repositorio, nao no environment protegido `Production`, que permanece
+  vazio. Backup e avisos de campeonato ainda nao aparecem na branch padrao.
+- Na Vercel Production faltam o remetente e webhook do Resend, o segredo
+  dedicado de hash de e-mail, o token de autorizacao de saques e as tres
+  variaveis de observabilidade. O DNS publico possui SPF no subdominio `send`,
+  DKIM e DMARC em modo de monitoramento (`p=none`).
 
 ## Atualizacao 06/09/2026 - inventario, avisos e backup periodico
 
