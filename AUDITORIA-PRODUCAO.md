@@ -57,6 +57,12 @@ Ultima atualizacao: 29/09/2026
   de avisos financeiros do organizador, com retry de transporte e contingencia
   diaria na Vercel. Ele permanece inativo ate a promocao para a branch padrao e
   a configuracao do `CRON_SECRET` no environment protegido.
+- A branch `master` e o environment `Production` nao possuem regras de
+  protecao. O PR rascunho #4 foi aberto sem merge automatico; checks obrigatorios
+  e a politica de aprovacao ainda precisam ser definidos antes da promocao.
+- O Preview final do PR respondeu HTTP 200 na home, login e health, redirecionou
+  `/admin` anonimo para login e confirmou banco `ok` em 81 ms no release
+  `0bd5351`.
 - Na Vercel Production faltam o remetente e webhook do Resend, o segredo
   dedicado de hash de e-mail, o token de autorizacao de saques e as tres
   variaveis de observabilidade. O DNS publico possui SPF no subdominio `send`,

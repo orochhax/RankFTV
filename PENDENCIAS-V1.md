@@ -124,13 +124,18 @@ P1/P2 não alteram esse percentual.
   variáveis estavam ausentes na Vercel Production em 29/09/2026.
 - [ ] Cadastrar os quatro secrets do workflow de backup e comprovar a primeira
   execução agendada de backup lógico e de Storage fora da máquina do operador.
-  O workflow, o snapshot inicial e a cópia externa já existem. O environment
+  O workflow, o snapshot inicial e a cópia externa já existem. A variável
   `NEXT_PUBLIC_SUPABASE_URL` já foi cadastrada no environment `Production`; ainda
   faltam a conexão do banco, a chave elevada e a senha de criptografia. O
   workflow de backup ainda não aparecia na branch padrão em 29/09/2026.
 
 ### Lançamento
 
+- [ ] Proteger a branch `master` e o environment `Production` de acordo com a
+  política operacional escolhida. Em 29/09, ambos estavam sem regras de
+  proteção; definir checks obrigatórios (`verify` e Vercel), impedir merge com
+  checks falhando e decidir se haverá aprovação humana sem bloquear o único
+  administrador do repositório.
 - [ ] Promover de forma controlada o código homologado para produção, revisando
   diff, credenciais, URLs, redirects, webhooks e rollback. Não promover esta
   branch de homologação diretamente.
