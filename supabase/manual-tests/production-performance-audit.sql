@@ -3,6 +3,10 @@
 
 BEGIN READ ONLY;
 
+SET LOCAL statement_timeout = '30s';
+SET LOCAL lock_timeout = '5s';
+SET LOCAL idle_in_transaction_session_timeout = '30s';
+
 SELECT
   now() AS observed_at,
   current_database() AS database_name,
@@ -14,7 +18,11 @@ SELECT
 SELECT
   count(*) FILTER (WHERE pid <> pg_backend_pid()) AS connections,
   count(*) FILTER (WHERE pid <> pg_backend_pid() AND state = 'active') AS active_connections,
-  count(*) FILTER (WHERE pid <> pg_backend_pid() AND wait_event IS NOT NULL) AS waiting_connections,
+  count(*) FILTER (
+    WHERE pid <> pg_backend_pid()
+      AND state = 'active'
+      AND wait_event_type IS NOT NULL
+  ) AS waiting_connections,
   count(*) FILTER (
     WHERE pid <> pg_backend_pid()
       AND xact_start IS NOT NULL
