@@ -167,6 +167,12 @@ test("production backup exports database and Storage with verified checksums", (
   assert.match(workflow, /SUPABASE_SERVICE_ROLE_KEY: \$\{\{ secrets\.SUPABASE_SERVICE_ROLE_KEY \}\}/);
 });
 
+test("CI cancels stale runs from the same branch", () => {
+  const workflow = source(".github/workflows/ci.yml");
+  assert.match(workflow, /group: ci-\$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}/);
+  assert.match(workflow, /cancel-in-progress: true/);
+});
+
 test("organizer financial notification retries run through the protected production worker", () => {
   const workflow = source(".github/workflows/organizer-financial-notifications.yml");
   assert.match(workflow, /cron: "4,19,34,49 \* \* \* \*"/);

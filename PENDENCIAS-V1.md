@@ -54,10 +54,11 @@ P1/P2 não alteram esse percentual.
   somente-leitura de 29/09 confirmou os objetos financeiros e de credenciais
   principais; faltam em produção `championship_notice_deliveries`,
   `organizer_financial_notification_deliveries` e suas funções de claim.
-- [ ] Configurar no ambiente `production` do GitHub Actions
+- [ ] Configurar no ambiente `Production` do GitHub Actions
   `FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET`, após promover o workflow para
-  a branch padrão. Os secrets existem hoje no nível geral do repositório, mas o
-  environment protegido `Production` está vazio. O workflow está ativo e as
+  a branch padrão. Em 29/09, a URL fixa foi cadastrada no environment
+  `Production`; `CRON_SECRET` continua apenas no nível geral do repositório e
+  precisa ser confirmado/movido sem revelar seu valor. O workflow está ativo e as
   dez execuções recentes terminaram com sucesso, porém os intervalos observados
   foram de horas, não dez minutos; corrigir o agendamento ou adotar um executor
   subdiário confiável, mantendo o cron diário da Vercel como contingência.
@@ -124,8 +125,9 @@ P1/P2 não alteram esse percentual.
 - [ ] Cadastrar os quatro secrets do workflow de backup e comprovar a primeira
   execução agendada de backup lógico e de Storage fora da máquina do operador.
   O workflow, o snapshot inicial e a cópia externa já existem. O environment
-  `Production` do GitHub ainda estava sem secrets e o workflow de backup ainda
-  não aparecia na branch padrão em 29/09/2026.
+  `NEXT_PUBLIC_SUPABASE_URL` já foi cadastrada no environment `Production`; ainda
+  faltam a conexão do banco, a chave elevada e a senha de criptografia. O
+  workflow de backup ainda não aparecia na branch padrão em 29/09/2026.
 
 ### Lançamento
 

@@ -300,7 +300,7 @@ as 10:00 UTC como contingencia. O repositorio inclui
 `.github/workflows/financial-reconciliation.yml`, com agenda a cada dez minutos
 e alvo fixo em `https://www.rankftv.com/api/cron/financial-reconciliation`.
 Antes de depender dele, promover o workflow para a branch padrao, configurar
-`FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET` no environment `production` do
+`FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET` no environment `Production` do
 GitHub e conferir pelo menos uma execucao manual e uma agendada.
 
 ## 5. Monitoramento e alertas

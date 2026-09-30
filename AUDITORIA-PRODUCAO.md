@@ -49,8 +49,10 @@ Ultima atualizacao: 29/09/2026
   `organizer_financial_notification_deliveries` nem suas funcoes de claim.
 - No GitHub, a conciliacao financeira esta ativa e as dez execucoes recentes
   terminaram com sucesso, mas ocorreram com intervalos de horas. Os dois secrets
-  estao no repositorio, nao no environment protegido `Production`, que permanece
-  vazio. Backup e avisos de campeonato ainda nao aparecem na branch padrao.
+  estavam no repositorio. A URL fixa da conciliacao e a URL publica do Supabase
+  foram cadastradas no environment protegido `Production`; `CRON_SECRET` e os
+  demais secrets sensiveis ainda dependem de confirmacao. Backup e avisos de
+  campeonato ainda nao aparecem na branch padrao.
 - Foi acrescentado um workflow idempotente a cada 15 minutos para drenar a fila
   de avisos financeiros do organizador, com retry de transporte e contingencia
   diaria na Vercel. Ele permanece inativo ate a promocao para a branch padrao e
