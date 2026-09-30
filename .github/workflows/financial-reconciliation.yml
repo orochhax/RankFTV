@@ -18,7 +18,7 @@ jobs:
   reconcile:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    environment: production
+    environment: Production
     env:
       FINANCIAL_RECONCILIATION_URL: ${{ secrets.FINANCIAL_RECONCILIATION_URL }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}

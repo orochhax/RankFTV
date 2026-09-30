@@ -15,7 +15,7 @@ jobs:
   deliver:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    environment: production
+    environment: Production
     steps:
       - name: Process pending deliveries
         env:
