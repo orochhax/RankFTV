@@ -1,14 +1,14 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 29/09/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 30/09/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
 `AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
 
 ## Progresso da V1
 
-`███████████████▊░░░░` **79% concluído** — 111 dos 140 marcos P0 originais
-foram concluídos; restam 29 marcos atômicos, agrupados abaixo em 28 entradas
+`████████████████▏░░░` **81% concluído** — 113 dos 140 marcos P0 originais
+foram concluídos; restam 27 marcos atômicos, agrupados abaixo em 26 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -19,7 +19,7 @@ P1/P2 não alteram esse percentual.
 
 ### Segurança, autenticação e dados
 
-- [ ] Aplicar em produção, numa janela controlada e depois da homologação, o
+- [x] Aplicar em produção, numa janela controlada e depois da homologação, o
   grant mínimo de `supabase/production-security-20-point-hardening.sql`.
   A leitura de produção em 29/09 também confirmou que
   `production-security-advisor-function-hardening.sql` e
@@ -37,8 +37,10 @@ P1/P2 não alteram esse percentual.
   funções de atendimento/triggers e grants de TRUNCATE/TRIGGER para anon.
   Buckets públicos e tabelas internas com RLS sem policy exigem revisão de
   intenção, mas não aparecem como exposição direta de linhas nesta auditoria.
-  A repetição somente-leitura em 29/09 confirmou que os mesmos controles ainda
-  aguardam aplicação em produção.
+  Em 30/09, os três hardenings foram aplicados em produção e repetidos depois da
+  criação das novas tabelas. Os checks confirmaram todas as colunas verdadeiras
+  e listas de revisão vazias: RLS, `search_path`, `security_invoker`, grants de
+  funções, escrita anônima e acesso a credenciais ficaram no baseline esperado.
 - [ ] Encerrar a validação conjunta, no navegador do Sandbox, de entradas
   válidas e inválidas para login, inscrição, compras e pagamentos. O cadastro
   público foi homologado em 16/09: campos sem usuário ou e-mail bloquearam a
@@ -48,12 +50,18 @@ P1/P2 não alteram esse percentual.
   recuperaram somente a credencial correspondente e o código foi consumido em
   uso único. A implementação com Zod, reautorização e mensagens públicas já
   está no código; falta a evidência funcional completa dos demais fluxos.
-- [ ] Confirmar a equivalência do schema de produção com o código e aplicar,
+- [x] Confirmar a equivalência do schema de produção com o código e aplicar,
   com backup e janela sem checkout, somente migrations já homologadas. Seguir
   a ordem de `RUNBOOK-PRODUCAO.md` e registrar objetos aplicados. Auditoria
   somente-leitura de 29/09 confirmou os objetos financeiros e de credenciais
-  principais; faltam em produção `championship_notice_deliveries`,
-  `organizer_financial_notification_deliveries` e suas funções de claim.
+  principais. Em 30/09, as 26 migrations do runbook foram reconciliadas em
+  ordem, incluindo as filas `championship_notice_deliveries` e
+  `organizer_financial_notification_deliveries`, funções de claim, hardening de
+  perfil e RPCs transacionais de campeonato. O inventário final não encontrou
+  tabela ou função ausente, conflito de categoria, backfill incompleto, operação
+  financeira pendente ou destinatário em texto puro. Permanece para revisão
+  operacional um webhook `PAYMENT_RECEIVED` de 20/08/2026 marcado como `failed`
+  após oito tentativas; não foi feito replay sem evidência do provedor.
 - [ ] Configurar no ambiente `Production` do GitHub Actions
   `FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET`, após promover o workflow para
   a branch padrão. Em 29/09, a URL fixa foi cadastrada no environment

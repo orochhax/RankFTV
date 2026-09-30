@@ -83,6 +83,32 @@ Ultima atualizacao: 29/09/2026
   as migrations continuam dependendo de uma janela controlada sem checkout e
   de validacao posterior. O teste de restauracao isolada ainda deve ser ensaiado.
 
+## Atualizacao 30/09/2026 - migrations e hardening de producao
+
+- Antes da janela, a execucao `36655950084` gerou e verificou um novo backup
+  criptografado de banco e Storage. O preflight confirmou PostgreSQL 17.6,
+  nenhuma conexao ativa, nenhuma inscricao nos 30 minutos anteriores, nenhum
+  ingresso ativo sem categoria e nenhuma identidade duplicada por categoria.
+- As 26 migrations do runbook foram aplicadas/reconciliadas sequencialmente. Os
+  scripts sem transacao propria foram executados de forma atomica; nenhum erro
+  de instalacao permaneceu aberto.
+- A primeira auditoria encontrou tres lacunas de ordenacao no runbook: hardening
+  de perfil ausente, claim da fila de avisos ausente e privilegios herdados em
+  `championship_notices`. As migrations correspondentes foram aplicadas, o
+  hardening global foi repetido e a migration-base foi corrigida para revogar
+  todos os privilegios antes de conceder somente `SELECT` aos clientes.
+- Todos os checks finais de seguranca, perfil, ranking, filas e RPCs de
+  campeonato retornaram verdadeiros, com listas de revisao vazias. O inventario
+  final nao encontrou tabelas/funcoes ausentes, backfill incompleto, divergencia
+  de quantidade, operacao financeira pendente, bloqueio de cartao, acesso de
+  cliente as filas ou coluna de destinatario em texto puro.
+- Existe um webhook historico `PAYMENT_RECEIVED`, criado em 20/08/2026, ainda
+  com status `failed` apos oito tentativas e sem evento posterior bem-sucedido.
+  Ele requer conciliacao com o provedor; nenhum replay ou confirmacao manual foi
+  feito sem evidencia externa.
+- O smoke posterior retornou HTTP 200 na home e no health, banco `ok` em 36 ms
+  e redirecionamento anonimo de `/admin` para `/login`.
+
 ## Atualizacao 06/09/2026 - inventario, avisos e backup periodico
 
 - Consulta somente de leitura confirmou em producao as tabelas, funcoes e

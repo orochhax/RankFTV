@@ -15,8 +15,9 @@ DROP POLICY IF EXISTS championship_notices_public_read ON public.championship_no
 CREATE POLICY championship_notices_public_read ON public.championship_notices FOR SELECT USING (
   EXISTS (SELECT 1 FROM public.championships c WHERE c.id = championship_id AND c.status <> 'rascunho')
 );
-REVOKE INSERT, UPDATE, DELETE ON public.championship_notices FROM anon, authenticated;
+REVOKE ALL ON public.championship_notices FROM PUBLIC, anon, authenticated;
 GRANT SELECT ON public.championship_notices TO anon, authenticated;
+GRANT ALL ON public.championship_notices TO service_role;
 
 COMMIT;
 NOTIFY pgrst, 'reload schema';
