@@ -23,8 +23,13 @@ Ultima atualizacao: 29/09/2026
   navegador e 60 ignorados por dependerem de contas, dados ou flags explicitas
   do Sandbox. O teste de plateia deixou de usar silenciosamente um campeonato
   removido e agora exige `E2E_CHAMPIONSHIP_ID` valido.
-- O teste de capacidade ainda nao foi executado porque o executavel `k6` nao
-  esta instalado nesta maquina. O script permanece restrito a Preview/Sandbox.
+- O k6 2.2.0 foi instalado e o ensaio somente-leitura foi concluido no Preview
+  `rank-5b2dt9r7m-devcarlosrochas-projects.vercel.app`. Em 17 minutos, a rampa
+  de 5, 10 e 25 usuarios virtuais completou 6.715 requisicoes, com 0% de erro,
+  media de 356,36 ms, p95 de 463,65 ms e 6,57 requisicoes/s. O pico de 25
+  usuarios foi sustentado por cinco minutos. Houve um maximo isolado de 26,74 s;
+  Vercel, Supabase e consultas internas ainda precisam ser correlacionados para
+  explicar esse outlier antes do teste supervisionado em producao.
 
 ## Atualizacao 06/09/2026 - inventario, avisos e backup periodico
 

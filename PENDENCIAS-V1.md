@@ -118,12 +118,17 @@ P1/P2 não alteram esse percentual.
     `scripts/k6-sandbox-smoke.js` e `docs/TESTE-CAPACIDADE-SANDBOX.md`.
   - [ ] Cobrir navegação pública, login, painel, campeonatos, chaveamento,
     consultas de ingresso/QR e placares; mutações e pagamentos só no Sandbox.
-  - [ ] Subir gradualmente 5, 10 e 25 usuários virtuais, aplicar pico controlado
-    e sustentar ao menos 15 minutos; interromper se houver risco.
+  - [x] Subir gradualmente 5, 10 e 25 usuários virtuais, aplicar pico controlado
+    e sustentar ao menos 15 minutos; concluído no Preview em 29/09/2026, com
+    17 minutos totais e cinco minutos sustentados em 25 usuários.
   - [ ] Medir RPS, erros, média e p95, banco, queries lentas, bloqueios,
-    timeouts Vercel e falhas externas.
+    timeouts Vercel e falhas externas. A camada HTTP já foi medida: 6,57 RPS,
+    0% de erro, média de 356,36 ms e p95 de 463,65 ms em 6.715 requisições;
+    falta correlacionar banco, Vercel e o outlier máximo de 26,74 s.
   - [ ] Aprovar inicialmente com menos de 1% de erros, p95 de API abaixo de
-    1,5 s, páginas em 2–3 s e zero duplicação financeira ou operacional.
+    1,5 s, páginas em 2–3 s e zero duplicação financeira ou operacional. Os
+    critérios HTTP públicos passaram; autenticação, rotas operacionais e
+    ausência de duplicação ainda precisam de evidência própria.
   - [ ] Corrigir gargalos e repetir; depois, fazer teste pequeno e supervisionado
     em produção sem pagamentos artificiais.
 - [ ] Definir data de abertura de pagamentos reais somente depois dos demais P0.

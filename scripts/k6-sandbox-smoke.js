@@ -6,7 +6,7 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 const baseUrl = (__ENV.BASE_URL || "").replace(/\/$/, "");
-if (!/^https:\/\/rank-ftv-(git-sandbox-homologacao|[a-z0-9-]+-devcarlosrochas-projects)\.vercel\.app$/i.test(baseUrl)) {
+if (!/^https:\/\/(?:rank-ftv-git-sandbox-homologacao|rank-[a-z0-9]+-devcarlosrochas-projects)\.vercel\.app$/i.test(baseUrl)) {
   throw new Error("Refusing load test: BASE_URL must be an explicit RankFTV Sandbox/Preview URL.");
 }
 
@@ -27,7 +27,7 @@ export const options = {
 
 const publicPaths = ["/", "/campeonatos", "/meus-ingressos"];
 
-export default function () {
+export default function publicReadSmoke() {
   const path = publicPaths[(__VU + __ITER) % publicPaths.length];
   const response = http.get(`${baseUrl}${path}`, { tags: { flow: "public_read" } });
   check(response, { "returns a public page": (res) => res.status >= 200 && res.status < 400 });
