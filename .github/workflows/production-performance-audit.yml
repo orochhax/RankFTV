@@ -1,0 +1,54 @@
+name: Production performance audit
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: production-performance-audit
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    environment: Production
+    timeout-minutes: 10
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      EXPECTED_DATABASE_REF: tkyopolcxfsdbhvrgadj
+      PGOPTIONS: -c default_transaction_read_only=on -c statement_timeout=30000 -c lock_timeout=5000
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Validate production target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
+          case "$SUPABASE_DB_URL" in
+            *"$EXPECTED_DATABASE_REF"*) ;;
+            *) echo "SUPABASE_DB_URL não aponta para o projeto RankFTV de produção." >&2; exit 1 ;;
+          esac
+
+      - name: Install PostgreSQL 17 client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          curl --fail --silent --show-error https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            | sudo gpg --dearmor --yes --output /usr/share/postgresql-common/pgdg/apt.postgresql.org.gpg
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.gpg] https://apt.postgresql.org/pub/repos/apt $(. /etc/os-release && echo "$VERSION_CODENAME")-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Run sanitized read-only audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/lib/postgresql/17/bin/psql \
+            --no-psqlrc \
+            --dbname="$SUPABASE_DB_URL" \
+            --file=supabase/manual-tests/production-performance-audit.sql
