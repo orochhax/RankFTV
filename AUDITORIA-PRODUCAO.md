@@ -24,9 +24,8 @@ Ultima atualizacao: 30/09/2026
   274 ms e máximo de 1.026 ms, cobrindo health, páginas públicas e legais,
   robots, sitemap, CSP, fronteira autenticada e rejeições esperadas.
 - O roteiro transacional completo foi separado em
-  `docs/SMOKE-TRANSACIONAL-V1.md`. Entrega real em Gmail/Outlook, operações
-  específicas no Asaas e pagamentos reais permanecem supervisionados e não
-  foram simulados em Production.
+  `docs/SMOKE-TRANSACIONAL-V1.md`. Operações específicas no Asaas e pagamentos
+  reais permanecem supervisionados e não foram simulados em Production.
 - O PR #20 foi mesclado no commit `aca514ff7968`; a CI de `master`
   `36783902045` aprovou todos os gates e a Vercel concluiu o deploy. O smoke
   pós-deploy repetiu 12/12 respostas esperadas, com média de 332 ms e máximo de
@@ -42,6 +41,10 @@ Ultima atualizacao: 30/09/2026
   Production. Nenhum segredo local antigo foi promovido ou exposto.
 - A CI final da `master`, execução `36784784375`, aprovou auditoria de
   dependências, lint, tipos, 802 testes, build e 30 cenários Playwright.
+- SPF, DKIM e DMARC foram confirmados por DNS público. Além da entrega anterior
+  no Gmail, um teste transacional sem cobrança foi aceito pelo Resend e chegou
+  diretamente à Caixa de Entrada de uma conta corporativa hospedada no
+  Microsoft 365, sem cair no lixo eletrônico.
 
 ## Atualizacao 30/09/2026 - promocao controlada e prova operacional
 

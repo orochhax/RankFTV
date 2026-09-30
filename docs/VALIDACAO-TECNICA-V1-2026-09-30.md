@@ -65,12 +65,17 @@ financeiro mutável apontou para Production.
 - Reserva autenticada, aceite legal do atleta e bloqueio do checkout de plateia
   sem consentimento passaram.
 
+## Operação externa concluída
+
+- Entrega real comprovada no Gmail e no Microsoft 365/Outlook. O teste do
+  Microsoft 365 chegou diretamente à Caixa de Entrada de
+  `carlos.rocha@infortel.net.br`, sem criar cobrança.
+
 ## Operações externas ainda necessárias
 
-1. Comprovar entrega real em Gmail e Outlook.
-2. Executar reembolso parcial no cartão e saldo insuficiente no Asaas Sandbox.
-3. Executar Pix e cartão reais em Production, supervisionados.
-4. Contratar e configurar o e-mail comercial.
-5. Aprovar os dados publicados em Termos/Privacidade e obter revisão jurídica.
-6. Obter do Asaas a confirmação formal do escopo PCI/SAQ.
-7. Definir data de lançamento e horário real de suporte.
+1. Executar reembolso parcial no cartão e saldo insuficiente no Asaas Sandbox.
+2. Executar Pix e cartão reais em Production, supervisionados.
+3. Contratar e configurar o e-mail comercial.
+4. Aprovar os dados publicados em Termos/Privacidade e obter revisão jurídica.
+5. Obter do Asaas a confirmação formal do escopo PCI/SAQ.
+6. Definir data de lançamento e horário real de suporte.
