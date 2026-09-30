@@ -69,10 +69,13 @@ jobs:
           encrypted="$archive.enc"
           mkdir -p "$backup_root/database" "$backup_root/storage"
 
-          pg_dump --dbname="$SUPABASE_DB_URL" --format=custom --file="$backup_root/database/database.dump"
-          pg_dump --dbname="$SUPABASE_DB_URL" --schema-only --file="$backup_root/database/schema.sql"
-          pg_dump --dbname="$SUPABASE_DB_URL" --data-only --file="$backup_root/database/data.sql"
-          pg_restore --list "$backup_root/database/database.dump" > "$backup_root/database/database-contents.txt"
+          pg17_bin="/usr/lib/postgresql/17/bin"
+          test -x "$pg17_bin/pg_dump"
+          test -x "$pg17_bin/pg_restore"
+          "$pg17_bin/pg_dump" --dbname="$SUPABASE_DB_URL" --format=custom --file="$backup_root/database/database.dump"
+          "$pg17_bin/pg_dump" --dbname="$SUPABASE_DB_URL" --schema-only --file="$backup_root/database/schema.sql"
+          "$pg17_bin/pg_dump" --dbname="$SUPABASE_DB_URL" --data-only --file="$backup_root/database/data.sql"
+          "$pg17_bin/pg_restore" --list "$backup_root/database/database.dump" > "$backup_root/database/database-contents.txt"
 
           supabase_secret_key="${SUPABASE_SECRET_KEY:-$SUPABASE_SERVICE_ROLE_KEY}"
           printf 'NEXT_PUBLIC_SUPABASE_URL=%s\nSUPABASE_SECRET_KEY=%s\n' \
