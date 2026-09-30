@@ -3,6 +3,31 @@
 Data da revisao: 14/07/2026
 Ultima atualizacao: 30/09/2026
 
+## Atualizacao 30/09/2026 - prontidao operacional da V1
+
+- A migration de alertas operacionais de e-mail foi aplicada em producao pela
+  execucao `36779269155`. Ela adicionou detecção de fila acumulada e falha
+  definitiva, índices, RLS e grants mínimos; o painel `/admin/alertas` ganhou a
+  contingência correspondente, restrita ao CEO.
+- O Preview `rank-hd1go3z38-devcarlosrochas-projects.vercel.app` passou por
+  webhook descartável repetido, reembolso e evento fora de ordem. A fixture
+  confirmou uma única transição financeira, duas credenciais individuais e um
+  único aviso ao organizador por evento, com limpeza posterior.
+- A suíte local aprovou lint sem erros, TypeScript, build, 802 testes e
+  `npm audit` completo e de produção sem vulnerabilidades. A busca por padrões
+  de segredo não encontrou credenciais versionadas.
+- O ensaio autenticado completo do k6 fez 6.297 requisições em 17 minutos com
+  até 25 usuários virtuais: 6,17 req/s, erro HTTP de 0,23%, média de 503,14 ms,
+  p95 de 752,44 ms e máximo de 3,63 s. Todos os thresholds passaram, nenhuma
+  iteração foi interrompida e o pico histórico de 26,74 s não se repetiu.
+- O smoke somente leitura de produção aprovou 12 requisições, com média de
+  274 ms e máximo de 1.026 ms, cobrindo health, páginas públicas e legais,
+  robots, sitemap, CSP, fronteira autenticada e rejeições esperadas.
+- O roteiro transacional completo foi separado em
+  `docs/SMOKE-TRANSACIONAL-V1.md`. Entrega real em Gmail/Outlook, operações
+  específicas no Asaas e pagamentos reais permanecem supervisionados e não
+  foram simulados em Production.
+
 ## Atualizacao 30/09/2026 - promocao controlada e prova operacional
 
 - O PR #4 foi aprovado pelos checks obrigatorios e mesclado por squash. A

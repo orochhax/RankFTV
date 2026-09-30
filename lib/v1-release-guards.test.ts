@@ -168,6 +168,20 @@ test("production backup exports database and Storage with verified checksums", (
   assert.match(workflow, /SUPABASE_SERVICE_ROLE_KEY: \$\{\{ secrets\.SUPABASE_SERVICE_ROLE_KEY \}\}/);
 });
 
+test("production performance audit is read-only and never prints query text", () => {
+  const workflow = source(".github/workflows/production-performance-audit.yml");
+  const sql = source("supabase/manual-tests/production-performance-audit.sql");
+
+  assert.match(workflow, /environment: Production/);
+  assert.match(workflow, /default_transaction_read_only=on/);
+  assert.match(workflow, /EXPECTED_DATABASE_REF: tkyopolcxfsdbhvrgadj/);
+  assert.match(sql, /BEGIN READ ONLY/);
+  assert.match(sql, /waiting_locks/);
+  assert.match(sql, /transactions_over_one_minute/);
+  assert.match(sql, /max_exec_time/);
+  assert.doesNotMatch(sql, /SELECT\s+query\s*,/i);
+});
+
 test("CI cancels stale runs from the same branch", () => {
   const workflow = source(".github/workflows/ci.yml");
   assert.match(workflow, /group: ci-\$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}/);

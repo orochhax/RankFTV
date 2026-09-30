@@ -6,9 +6,8 @@ import { getResend, FROM } from "@/lib/email/resend";
 import { organizerFinancialNotificationHtml } from "@/lib/email/templates";
 import { reportOperationalEvent } from "@/lib/observability";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { organizerFinancialNotificationCopy, organizerFinancialNotificationRetryAt, organizerFinancialNotificationSourceKey, type OrganizerFinancialNotificationKind } from "@/lib/organizer-financial-notifications-core";
+import { organizerFinancialNotificationCopy, organizerFinancialNotificationFailure, organizerFinancialNotificationSourceKey, type OrganizerFinancialNotificationKind } from "@/lib/organizer-financial-notifications-core";
 
-const MAX_ATTEMPTS = 5;
 type Delivery = { id: string; organizer_id: string; championship_id: string; payment_id: string; event_kind: OrganizerFinancialNotificationKind; record_type: string; record_id: string; amount: number | null; attempt_count: number };
 type FinancialNotificationDetails = { nomeCategoria: string | null; formaPagamento: string | null; participantes: string[] };
 
@@ -65,10 +64,10 @@ async function financialNotificationDetails(admin: ReturnType<typeof createAdmin
 }
 
 async function markFailure(row: Delivery, category: string) {
-  const attempts = row.attempt_count + 1;
+  const failure = organizerFinancialNotificationFailure(row.attempt_count);
   await createAdminClient().from("organizer_financial_notification_deliveries").update({
-    status: attempts >= MAX_ATTEMPTS ? "suppressed" : "failed", attempt_count: attempts,
-    next_attempt_at: organizerFinancialNotificationRetryAt(attempts), claimed_at: null,
+    status: failure.status, attempt_count: failure.attempts,
+    next_attempt_at: failure.nextAttemptAt, claimed_at: null,
     last_error_category: category.slice(0, 120), updated_at: new Date().toISOString(),
   }).eq("id", row.id);
 }

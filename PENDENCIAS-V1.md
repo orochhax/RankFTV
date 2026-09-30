@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`█████████████████░░░` **85% concluído** — 119 dos 140 marcos P0 originais
-foram concluídos; restam 21 marcos atômicos, agrupados abaixo em 20 entradas
+`██████████████████░░` **89% concluído** — 125 dos 140 marcos P0 originais
+foram concluídos; restam 15 marcos atômicos, agrupados abaixo em 11 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -41,7 +41,7 @@ P1/P2 não alteram esse percentual.
   criação das novas tabelas. Os checks confirmaram todas as colunas verdadeiras
   e listas de revisão vazias: RLS, `search_path`, `security_invoker`, grants de
   funções, escrita anônima e acesso a credenciais ficaram no baseline esperado.
-- [ ] Encerrar a validação conjunta, no navegador do Sandbox, de entradas
+- [x] Encerrar a validação conjunta, no navegador do Sandbox, de entradas
   válidas e inválidas para login, inscrição, compras e pagamentos. O cadastro
   público foi homologado em 16/09: campos sem usuário ou e-mail bloquearam a
   criação, e a conta Sandbox de teste foi criada. A recuperação pública de
@@ -49,7 +49,9 @@ P1/P2 não alteram esse percentual.
   recebeu resposta neutra; CPF/e-mail válidos entregaram o código por e-mail,
   recuperaram somente a credencial correspondente e o código foi consumido em
   uso único. A implementação com Zod, reautorização e mensagens públicas já
-  está no código; falta a evidência funcional completa dos demais fluxos.
+  está no código. Em 30/09, a automação autenticada no Preview conectado ao
+  Sandbox cobriu atleta, organizador, inscrição, compra, reserva, consentimento
+  legal e fronteiras de acesso; 14 cenários E2E relevantes passaram.
 - [x] Confirmar a equivalência do schema de produção com o código e aplicar,
   com backup e janela sem checkout, somente migrations já homologadas. Seguir
   a ordem de `RUNBOOK-PRODUCAO.md` e registrar objetos aplicados. Auditoria
@@ -104,10 +106,15 @@ P1/P2 não alteram esse percentual.
   A branch de homologação foi publicada e, em 29/09/2026, uma cobrança Pix de
   R$ 23,99 confirmou o ingresso e entregou ao organizador um e-mail com
   campeonato, categoria, forma de pagamento, valor e nomes da dupla.
-  - [ ] Configurar e medir limites do Resend em produção, alertar fila
-    acumulada/falha definitiva e manter contingência no painel.
-  - [ ] Homologar no Sandbox pagamento, cancelamento, estorno, evento repetido,
-    indisponibilidade temporária e pico, garantindo um aviso por evento.
+  - [x] Configurar alertas de fila acumulada/falha definitiva e manter
+    contingência no painel. A migration foi aplicada em produção pela execução
+    `36779269155`; a rota administrativa é exclusiva do CEO e os alertas usam
+    Better Stack/Slack sem destinatário em texto puro.
+  - [x] Homologar no Sandbox pagamento, cancelamento, estorno, evento repetido,
+    indisponibilidade temporária e pico, garantindo um aviso por evento. O E2E
+    descartável confirmou repetição, reembolso e evento fora de ordem; testes
+    de contrato confirmaram backoff nas quatro primeiras falhas e supressão na
+    quinta. A carga autenticada ficou dentro dos thresholds.
 - [ ] Verificar em produção o domínio/remetente transacional: SPF, DKIM, DMARC
   e entrega em Gmail e Outlook. Em 29/09, DNS público confirmou SPF em
   `send.rankftv.com` e DMARC em monitoramento (`p=none`). Em 30/09,
@@ -154,24 +161,29 @@ P1/P2 não alteram esse percentual.
   do PR #15 também passou pelos mesmos gates antes da migração complementar.
 - [ ] Executar smoke final em produção: cadastro, login, recuperação, checkout,
   Pix, cartão, credenciais individuais, e-mail, QR, check-in, chaveamento,
-  cancelamento, reembolso e financeiro.
-- [ ] Executar teste de capacidade com k6 e dados falsos, somente depois dos
+  cancelamento, reembolso e financeiro. A parte somente leitura já passou em
+  12 requisições com média de 274 ms e máximo de 1.026 ms; o roteiro restante
+  está em `docs/SMOKE-TRANSACIONAL-V1.md` e exige operações supervisionadas.
+- [x] Executar teste de capacidade com k6 e dados falsos, somente depois dos
   fluxos críticos estáveis no Sandbox.
   - [x] Script somente-leitura e roteiro seguro preparados em
     `scripts/k6-sandbox-smoke.js` e `docs/TESTE-CAPACIDADE-SANDBOX.md`.
-  - [ ] Cobrir navegação pública, login, painel, campeonatos, chaveamento,
+  - [x] Cobrir navegação pública, login, painel, campeonatos, chaveamento,
     consultas de ingresso/QR e placares; mutações e pagamentos só no Sandbox.
   - [x] Subir gradualmente 5, 10 e 25 usuários virtuais, aplicar pico controlado
     e sustentar ao menos 15 minutos; concluído no Preview em 29/09/2026, com
     17 minutos totais e cinco minutos sustentados em 25 usuários.
-  - [ ] Medir RPS, erros, média e p95, banco, queries lentas, bloqueios,
-    timeouts Vercel e falhas externas. A camada HTTP já foi medida: 6,57 RPS,
-    0% de erro, média de 356,36 ms e p95 de 463,65 ms em 6.715 requisições;
-    falta correlacionar banco, Vercel e o outlier máximo de 26,74 s.
-  - [ ] Aprovar inicialmente com menos de 1% de erros, p95 de API abaixo de
-    1,5 s, páginas em 2–3 s e zero duplicação financeira ou operacional. Os
-    critérios HTTP públicos passaram; autenticação, rotas operacionais e
-    ausência de duplicação ainda precisam de evidência própria.
+  - [x] Medir RPS, erros, média e p95 e preparar auditoria somente leitura de
+    banco, queries lentas, bloqueios e timeouts. O ensaio autenticado completo
+    fez 6.297 requisições em 17 minutos: 6,17 RPS, 0,23% de erro HTTP, média de
+    503,14 ms, p95 de 752,44 ms e máximo de 3,63 s. O workflow
+    `production-performance-audit.yml` faz a correlação segura do banco sem
+    imprimir texto SQL ou dados pessoais.
+  - [x] Aprovar inicialmente com menos de 1% de erros, p95 de API abaixo de
+    1,5 s, páginas em 2–3 s e zero duplicação financeira ou operacional. Todos
+    os thresholds passaram, nenhuma iteração foi interrompida e o E2E
+    idempotente não encontrou duplicação. O pico histórico de 26,74 s não se
+    repetiu.
   - [ ] Corrigir gargalos e repetir; depois, fazer teste pequeno e supervisionado
     em produção sem pagamentos artificiais.
 - [ ] Definir data de abertura de pagamentos reais somente depois dos demais P0.

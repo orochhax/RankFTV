@@ -81,6 +81,7 @@ async function verifyReloadAndSecondTab(page: Page, context: BrowserContext) {
 async function verifyReusedReservation(page: Page, tokenHash: string, initial: Awaited<ReturnType<typeof reservationByHash>>) {
   await page.getByRole("button", { name: "Trocar", exact: true }).click();
   await page.getByRole("button", { name: "Continuar com esta categoria" }).click();
+  await expect(page.getByRole("region", { name: "Atleta 1" })).toBeVisible();
   const reused = await reservationByHash(tokenHash);
   expect(reused.id).toBe(initial.id);
   expect(reused.expires_at).toBe(initial.expires_at);

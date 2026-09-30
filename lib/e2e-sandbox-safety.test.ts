@@ -19,6 +19,11 @@ test("autoriza mutações somente com flag estrita e Sandbox coerente", () => {
   }), true);
   assert.equal(financialMutationSandboxEnabled("E2E_ASAAS_MUTATION_TESTS", {
     ...safeEnv,
+    E2E_BASE_URL: "https://rank-jx55tcqhm-devcarlosrochas-projects.vercel.app",
+    E2E_ASAAS_MUTATION_TESTS: "1",
+  }), true);
+  assert.equal(financialMutationSandboxEnabled("E2E_ASAAS_MUTATION_TESTS", {
+    ...safeEnv,
     E2E_ASAAS_MUTATION_TESTS: "0",
   }), false);
 });
@@ -31,7 +36,7 @@ test("bloqueia domínio de produção e Supabase de produção", () => {
     E2E_SANDBOX_SUPABASE_PROJECT_REF: "tkyopolcxfsdbhvrgadj",
   });
   assert.ok(issues.some((issue) => issue.includes("produção")));
-  assert.ok(issues.some((issue) => issue.includes("sandbox-homologacao")));
+  assert.ok(issues.some((issue) => issue.includes("Preview reconhecido")));
 });
 
 test("bloqueia referência declarada diferente da URL do Supabase", () => {
