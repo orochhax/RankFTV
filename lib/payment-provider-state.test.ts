@@ -24,7 +24,7 @@ test("payout retries preserve Pix immediacy and card settlement windows", () => 
 
 test("refund does not release domain inventory before provider acceptance", () => {
   assert.equal(refundProviderState("REFUNDED"), "confirmed");
-  assert.equal(refundProviderState("REFUND_REQUESTED"), "confirmed");
+  assert.equal(refundProviderState("REFUND_REQUESTED"), "pending");
   assert.equal(refundProviderState("PENDING"), "pending");
 });
 

@@ -31,8 +31,10 @@ export function PresenceItem({ nome, username, checkinAt, scannerNome }: Props) 
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium text-gray-900">{nome}</p>
-          {username && <p className="text-xs text-gray-400">@{username}</p>}
+          <p className="line-clamp-2 font-medium text-gray-900">{nome}</p>
+          {username ? (
+            <p className="text-xs text-gray-400">@{username}</p>
+          ) : null}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">

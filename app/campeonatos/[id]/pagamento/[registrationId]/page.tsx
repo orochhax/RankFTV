@@ -51,7 +51,7 @@ export default async function PagamentoPage({
 
   if (isPago) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-brand-dark">
         <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
           <div className="w-full max-w-sm rounded-3xl bg-white p-10 text-center shadow-xl">
             <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-blue-100">
@@ -69,8 +69,8 @@ export default async function PagamentoPage({
             >
               Ver campeonato
             </Link>
-            <Link href="/minhas-inscricoes" className="mt-3 block text-sm text-gray-400 hover:text-gray-600">
-              Minhas inscrições
+            <Link href="/minhas-compras?aba=atleta" className="mt-3 block text-sm text-gray-400 hover:text-gray-600">
+              Minhas compras
             </Link>
           </div>
         </div>

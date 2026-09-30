@@ -6,6 +6,7 @@ import {
   createRequestId,
   createRequestNonce,
 } from "@/lib/security-headers";
+import { getSupabasePublicConfig } from "@/lib/supabase/config";
 
 // Rotas que exigem role admin ou ceo
 const ADMIN_ROUTES = ["/admin"];
@@ -14,6 +15,10 @@ const PRIVATE_ROBOTS_PREFIXES = [
   "/meus-ingressos", "/minhas-compras", "/minhas-inscricoes", "/notificacoes",
   "/painel", "/perfil", "/recuperar-senha", "/staff",
 ];
+
+function isPrivateTicketPath(pathname: string): boolean {
+  return /^\/campeonatos\/[^/]+\/(?:ingresso-atleta\/[^/]+(?:\/acessar)?|comprar\/ingresso\/[^/]+|plateia\/ingresso\/[^/]+)$/.test(pathname);
+}
 
 export async function proxy(request: NextRequest) {
   const development = process.env.NODE_ENV === "development";
@@ -28,6 +33,7 @@ export async function proxy(request: NextRequest) {
   const createNextResponse = () =>
     NextResponse.next({ request: { headers: requestHeaders } });
   let supabaseResponse = createNextResponse();
+  const supabaseConfig = getSupabasePublicConfig();
 
   const secure = (response: NextResponse) => {
     applyRequestSecurityHeaders(response.headers, {
@@ -35,8 +41,13 @@ export async function proxy(request: NextRequest) {
       requestId,
       production: !development,
     });
-    if (PRIVATE_ROBOTS_PREFIXES.some((prefix) => request.nextUrl.pathname === prefix || request.nextUrl.pathname.startsWith(`${prefix}/`))) {
+    const privateTicket = isPrivateTicketPath(request.nextUrl.pathname);
+    if (privateTicket || PRIVATE_ROBOTS_PREFIXES.some((prefix) => request.nextUrl.pathname === prefix || request.nextUrl.pathname.startsWith(`${prefix}/`))) {
       response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    }
+    if (privateTicket) {
+      response.headers.set("Cache-Control", "private, no-store, max-age=0");
+      response.headers.set("Referrer-Policy", "no-referrer");
     }
     return response;
   };
@@ -50,20 +61,24 @@ export async function proxy(request: NextRequest) {
   };
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseConfig.url,
+    supabaseConfig.publishableKey,
     {
+      cookieOptions: { secure: !development },
       cookies: {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet, headers) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = createNextResponse();
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
+          );
+          Object.entries(headers).forEach(([name, value]) =>
+            supabaseResponse.headers.set(name, value)
           );
         },
       },
@@ -73,8 +88,9 @@ export async function proxy(request: NextRequest) {
   // Renova o token — sempre necessário
   let user: { id: string } | null = null;
   try {
-    const auth = await supabase.auth.getUser();
-    user = auth.data.user;
+    const auth = await supabase.auth.getClaims();
+    const subject = auth.data?.claims?.sub;
+    user = typeof subject === "string" ? { id: subject } : null;
   } catch {
     // Public pages and security headers remain available during a temporary
     // auth-provider outage. Protected routes still fail closed below.

@@ -70,8 +70,8 @@ function InvestmentMovementDialogContent({
   const clearFieldError = (field: MovementField) => {
     setFieldErrors((current) => {
       if (!current[field]) return current;
-      const next = { ...current };
-      delete next[field];
+      const { [field]: clearedField, ...next } = current;
+      void clearedField;
       return next;
     });
     setError(null);

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import type { EmailOtpType } from "@supabase/supabase-js";
+import type { EmailOtpType, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { validaCpfCnpj, idadeEm, soDigitos } from "@/lib/validacao";
+
+type CadastroSyncResult = "ok" | "username_taken";
 
 // Depois que a sessão é confirmada, sincroniza os dados que vieram no
 // metadata do signUp (gênero sempre; telefone/CPF-CNPJ/nascimento só quando
@@ -9,16 +11,27 @@ import { validaCpfCnpj, idadeEm, soDigitos } from "@/lib/validacao";
 // Roda uma vez por confirmação; escrever de novo não tem efeito colateral.
 async function sincronizarCadastro(
   supabase: Awaited<ReturnType<typeof createClient>>,
-): Promise<void> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
-
+  user: User,
+): Promise<CadastroSyncResult> {
   const meta = user.user_metadata as Record<string, string | undefined>;
 
-  if (meta.genero === "masculino" || meta.genero === "feminino" || meta.genero === "outro") {
-    await supabase.from("profiles").update({ genero: meta.genero }).eq("id", user.id);
+  const genero =
+    meta.genero === "masculino" || meta.genero === "feminino" || meta.genero === "outro"
+      ? meta.genero
+      : null;
+  const username = (meta.username ?? "").trim().toLowerCase();
+
+  if (genero || /^[a-z0-9_.]{3,30}$/.test(username)) {
+    const profileUpdate: { genero?: typeof genero; username?: string } = {};
+    if (genero) profileUpdate.genero = genero;
+    if (/^[a-z0-9_.]{3,30}$/.test(username)) profileUpdate.username = username;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update(profileUpdate)
+      .eq("id", user.id);
+    if (error?.code === "23505") return "username_taken";
+    if (error) throw error;
   }
 
   if (meta.modo === "organizador") {
@@ -45,6 +58,8 @@ async function sincronizarCadastro(
       );
     }
   }
+
+  return "ok";
 }
 
 // Rota chamada pelo link de confirmação de e-mail do Supabase.
@@ -68,18 +83,30 @@ export async function GET(request: Request) {
 
   // 1) Fluxo OTP (token_hash) — preferido
   if (tokenHash && type) {
-    const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+    const { data, error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     if (!error) {
-      await sincronizarCadastro(supabase);
+      // Metadados de cadastro só precisam ser copiados na confirmação inicial.
+      // Login por magic link e recuperação não devem regravar o perfil.
+      if (type === "signup" && data.user) {
+        const result = await sincronizarCadastro(supabase, data.user);
+        if (result === "username_taken") {
+          return NextResponse.redirect(`${origin}/cadastro/escolher-usuario`);
+        }
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
   // 2) Fluxo PKCE (code) — fallback
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      await sincronizarCadastro(supabase);
+      if (data.user) {
+        const result = await sincronizarCadastro(supabase, data.user);
+        if (result === "username_taken") {
+          return NextResponse.redirect(`${origin}/cadastro/escolher-usuario`);
+        }
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

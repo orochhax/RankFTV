@@ -25,15 +25,17 @@ export function StatCard({
   icon: Icon,
   tone = "default",
   hint,
+  className = "",
 }: {
   label: string;
   value: string | number;
   icon?: React.ComponentType<{ className?: string }>;
   tone?: Tone;
   hint?: string;
+  className?: string;
 }) {
   return (
-    <Surface padding="md">
+    <Surface padding="md" className={className}>
       <div className="flex items-start justify-between gap-2">
         <p className="text-xs font-medium text-ink-muted">{label}</p>
         {Icon && (

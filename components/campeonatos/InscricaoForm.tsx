@@ -139,9 +139,17 @@ export function InscricaoForm({
             target="_blank"
             className="font-medium text-blue-600 underline hover:text-blue-700"
           >
-            Termos de Uso e Política de Privacidade
+            Termos de Uso
           </Link>{" "}
-          da plataforma RankFTV.
+          e com a{" "}
+          <Link
+            href="/privacidade"
+            target="_blank"
+            className="font-medium text-blue-600 underline hover:text-blue-700"
+          >
+            Política de Privacidade
+          </Link>{" "}
+          da RankFTV.
         </span>
       </label>
 

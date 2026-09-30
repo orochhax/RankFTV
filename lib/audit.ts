@@ -13,16 +13,18 @@ export async function registrarAuditoria(input: {
   alvoTabela?: string;
   alvoId?: string;
   detalhes?: Record<string, unknown>;
-}): Promise<void> {
+}): Promise<boolean> {
   try {
     const admin = createAdminClient();
-    await admin.from("security_audit_log").insert({
+    const { error } = await admin.from("security_audit_log").insert({
       actor_id:    input.actorId,
       acao:        input.acao,
       alvo_tabela: input.alvoTabela ?? null,
       alvo_id:     input.alvoId ?? null,
       detalhes:    input.detalhes ?? null,
     });
+    if (error) throw error;
+    return true;
   } catch (err) {
     await reportOperationalEvent({
       level: "error",
@@ -32,5 +34,6 @@ export async function registrarAuditoria(input: {
       error: err,
       alert: true,
     });
+    return false;
   }
 }

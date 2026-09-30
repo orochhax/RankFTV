@@ -5,8 +5,12 @@ import QRCode from "qrcode";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { IngressoPlateiaStatus } from "@/components/plateia/IngressoPlateiaStatus";
 import { IngressoOpcoesMenu } from "@/components/ingressos/IngressoOpcoesMenu";
+import { RefundStatusPanel } from "@/components/ingressos/RefundStatusPanel";
 import { formatBRL } from "@/lib/format";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { calcularTotalComprador } from "@/lib/taxas";
+import { decideRefundPolicy } from "@/lib/refund-policy";
 
 function dataBR(iso: string) {
   return new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", {
@@ -33,11 +37,38 @@ export default async function IngressoPlateiaPage({
   const supabase = createAdminClient();
   const { data: t } = await supabase
     .from("spectator_tickets")
-    .select("id, tipo_nome, comprador_nome, comprador_email, comprador_cpf, valor, quantidade, itens, status_pagamento, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in")
+    .select("id, championship_id, tipo_nome, comprador_nome, comprador_email, comprador_cpf, valor, quantidade, itens, status_pagamento, billing_type, asaas_payment_id, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at, created_at")
     .eq("id", ticketId)
     .eq("access_token", accessToken)
     .maybeSingle();
   if (!t) notFound();
+  if (t.championship_id !== champId) notFound();
+
+  const { data: refundOperation } = await supabase
+    .from("financial_operations")
+    .select("status, provider_status, created_at, updated_at, completed_at")
+    .eq("flow", "spectator_ticket")
+    .eq("operation_type", "refund")
+    .eq("record_id", ticketId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const { data: paymentOperation } = await supabase
+    .from("financial_operations")
+    .select("amount")
+    .eq("flow", "spectator_ticket")
+    .eq("operation_type", "payment")
+    .eq("record_id", ticketId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const hasRefundOperation = Boolean(refundOperation);
+  const terminal = t.status_pagamento === "estornado" || t.status_pagamento === "expirado";
+  const refundStatus = refundOperation?.provider_status === "REFUNDED"
+    ? "refunded"
+    : refundOperation?.provider_status === "CANCELLED" || ["cancelled", "failed"].includes(refundOperation?.status ?? "")
+      ? "failed"
+      : refundOperation?.status ?? null;
 
   const { data: normalizedItems } = await supabase
     .from("spectator_ticket_items")
@@ -56,11 +87,18 @@ export default async function IngressoPlateiaPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome, data_inicio, data_fim, cidade, estado, local")
+    .select("nome, is_elite, data_inicio, data_fim, cidade, estado, local")
     .eq("id", champId)
     .maybeSingle();
 
   const pago = t.status_pagamento === "pago";
+  const refundPolicy = decideRefundPolicy({
+    purchasedAt: t.created_at,
+    eventStartDate: champ?.data_inicio ?? null,
+    checkedIn: !!t.checked_in,
+    paymentStatus: t.status_pagamento,
+    hasProviderCharge: !!t.asaas_payment_id && Number(t.valor) > 0,
+  });
 
   // QR de entrada (gerado do qr_token) só quando pago
   let entradaQr: string | null = null;
@@ -74,8 +112,8 @@ export default async function IngressoPlateiaPage({
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="mx-auto max-w-md px-6 py-8">
+    <div className="min-h-screen bg-brand-dark">
+      <PageContainer width="wide" className="py-8">
         <div className="flex items-center justify-between">
           <Link
             href={backHref}
@@ -83,11 +121,17 @@ export default async function IngressoPlateiaPage({
           >
             <ArrowLeft className="size-4" /> {voltar === "minhas-compras" ? "Minhas Compras" : (champ?.nome ?? "Campeonato")}
           </Link>
-          {t.status_pagamento !== "estornado" && (
+          {!terminal && !hasRefundOperation && (
               <IngressoOpcoesMenu
                 tipo="plateia"
                 ticketId={t.id}
                 accessToken={accessToken}
+                billingType={t.billing_type}
+                refundPolicy={refundPolicy}
+                purchasedAt={t.created_at}
+                eventStartDate={champ?.data_inicio ?? null}
+                baseAmount={Number(t.valor)}
+                paidAmount={paymentOperation?.amount == null ? null : Number(paymentOperation.amount)}
                 dadosAtuais={{
                 compradorNome:  t.comprador_nome,
                 compradorEmail: t.comprador_email,
@@ -99,7 +143,7 @@ export default async function IngressoPlateiaPage({
 
         <div className="mt-5 overflow-hidden rounded-3xl bg-white shadow-xl">
           {/* Topo */}
-          <div className="bg-black px-6 py-5 text-center">
+          <div className="bg-brand-dark px-6 py-5 text-center">
             {t.code && (
               <p className="mb-1 font-mono text-[10px] tracking-[0.25em] text-white/50">{t.code}</p>
             )}
@@ -124,19 +168,29 @@ export default async function IngressoPlateiaPage({
           )}
 
           <div className="px-6 py-6">
-            <IngressoPlateiaStatus
-              ticketId={t.id}
-              accessToken={accessToken}
-              initialStatusPagamento={t.status_pagamento}
-              initialCheckedIn={t.checked_in}
-              initialEntradaQr={entradaQr}
-              qrToken={t.qr_token}
-              code={t.code}
-              quantidade={Number(t.quantidade)}
-              valor={Number(t.valor)}
-              pixCopyPaste={t.pix_copy_paste}
-              pixQrBase64={t.pix_qr_code_base64}
-            />
+            {hasRefundOperation || terminal ? (
+              <RefundStatusPanel
+                billingType={t.billing_type}
+                refundStatus={refundStatus}
+                requestedAt={refundOperation?.created_at ?? null}
+                completedAt={refundOperation?.completed_at ?? (refundStatus === "refunded" ? refundOperation?.updated_at ?? null : null)}
+                cancelledAt={t.inventory_released_at ?? null}
+              />
+            ) : (
+              <IngressoPlateiaStatus
+                ticketId={t.id}
+                accessToken={accessToken}
+                initialStatusPagamento={t.status_pagamento}
+                initialCheckedIn={t.checked_in}
+                initialEntradaQr={entradaQr}
+                qrToken={t.qr_token}
+                code={t.code}
+                quantidade={Number(t.quantidade)}
+                pixAmount={Number(paymentOperation?.amount ?? calcularTotalComprador(Number(t.valor), "pix", !!champ?.is_elite))}
+                pixCopyPaste={t.pix_copy_paste}
+                pixQrBase64={t.pix_qr_code_base64}
+              />
+            )}
           </div>
 
           {/* Dados do campeonato */}
@@ -166,7 +220,7 @@ export default async function IngressoPlateiaPage({
             </div>
           )}
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

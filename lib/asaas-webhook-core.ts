@@ -7,7 +7,7 @@ export const ASAAS_CONFIRMED_EVENTS = new Set([
 
 export const ASAAS_REFUNDED_EVENTS = new Set([
   "PAYMENT_REFUNDED",
-  "PAYMENT_REFUND_REQUESTED",
+  "PAYMENT_PARTIALLY_REFUNDED",
   "PAYMENT_DELETED",
   "PAYMENT_CHARGEBACK_REQUESTED",
   "PAYMENT_CHARGEBACK_DISPUTE",
@@ -18,8 +18,8 @@ const ASAAS_EVENT_RANK: Record<string, number> = {
   PAYMENT_UPDATED: 10,
   PAYMENT_CONFIRMED: 30,
   PAYMENT_RECEIVED: 30,
-  PAYMENT_REFUND_REQUESTED: 40,
   PAYMENT_REFUNDED: 50,
+  PAYMENT_PARTIALLY_REFUNDED: 45,
   PAYMENT_DELETED: 50,
   PAYMENT_CHARGEBACK_REQUESTED: 50,
   PAYMENT_CHARGEBACK_DISPUTE: 50,
@@ -68,6 +68,12 @@ export function asaasEventRank(event: string): number | null {
 export function asaasEventDomainStatus(event: string): "pago" | "estornado" | null {
   if (ASAAS_CONFIRMED_EVENTS.has(event)) return "pago";
   if (ASAAS_REFUNDED_EVENTS.has(event)) return "estornado";
+  return null;
+}
+
+export function asaasEventFinancialOperationStatus(event: string): "confirmed" | "refunded" | null {
+  if (ASAAS_CONFIRMED_EVENTS.has(event)) return "confirmed";
+  if (ASAAS_REFUNDED_EVENTS.has(event)) return "refunded";
   return null;
 }
 

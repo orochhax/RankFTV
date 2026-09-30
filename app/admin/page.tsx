@@ -1,10 +1,38 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight } from "lucide-react";
+import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing, BellRing, BadgeCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRole, isAdminRole } from "@/lib/supabase/roles";
 
 const MENU = [
+  {
+    href: "/admin/carteiras",
+    ownerOnly: true,
+    icon: BadgeCheck,
+    label: "Carteiras digitais",
+    desc: "Acompanhe a preparação de Apple Wallet e Google Wallet.",
+  },
+  {
+    href: "/admin/alertas",
+    ownerOnly: true,
+    icon: BellRing,
+    label: "Alertas operacionais",
+    desc: "Configure e trate exceções críticas da operação.",
+  },
+  {
+    href: "/admin/funil",
+    ownerOnly: true,
+    icon: ChartNoAxesColumnIncreasing,
+    label: "Funil público",
+    desc: "Acompanhe abandono, tempo e conversão da descoberta ao pagamento.",
+  },
+  {
+    href: "/admin/suporte",
+    ownerOnly: true,
+    icon: LifeBuoy,
+    label: "Suporte a ingressos",
+    desc: "Recupere compras e corrija dados com validação e auditoria.",
+  },
   {
     href: "/admin/performance",
     ownerOnly: true,

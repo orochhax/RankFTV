@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical, UserPen, XCircle, Loader2, AlertTriangle } from "lucide-react";
+import { MoreVertical, UserPen, XCircle, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
 import {
-  alterarTitularidadeAtleta,
+  confirmarAlteracaoTitularidadeAtleta,
+  solicitarAlteracaoTitularidadeAtleta,
   cancelarIngressoAtleta,
   type TitularidadeAtletaInput,
 } from "@/app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions";
@@ -13,6 +14,8 @@ import {
   cancelarIngressoPlateia,
   type TitularidadePlateiaInput,
 } from "@/app/campeonatos/[id]/plateia/ingresso/[ticketId]/actions";
+import type { RefundPolicyDecision } from "@/lib/refund-policy";
+import { RefundPolicySummary } from "@/components/ingressos/RefundPolicySummary";
 
 type DadosAtleta = {
   compradorNome:   string;
@@ -34,9 +37,21 @@ type DadosPlateia = {
   compradorCpf:   string | null;
 };
 
-type Props =
-  | { tipo: "atleta"; ticketId: string; accessToken: string; dadosAtuais: DadosAtleta }
-  | { tipo: "plateia"; ticketId: string; accessToken: string; dadosAtuais: DadosPlateia };
+type RefundContext = {
+  ticketId: string;
+  accessToken: string;
+  billingType: string | null;
+  refundPolicy: RefundPolicyDecision;
+  purchasedAt: string;
+  eventStartDate: string | null;
+  baseAmount: number;
+  paidAmount: number | null;
+};
+
+type Props = RefundContext & (
+  | { tipo: "atleta"; dadosAtuais: DadosAtleta }
+  | { tipo: "plateia"; dadosAtuais: DadosPlateia }
+);
 
 const inputCls =
   "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
@@ -91,17 +106,43 @@ export function IngressoOpcoesMenu(props: Props) {
         <TitularidadeModal {...props} onClose={() => setModal(null)} />
       )}
       {modal === "cancelar" && (
-        <CancelarModal tipo={props.tipo} ticketId={props.ticketId} accessToken={props.accessToken} onClose={() => setModal(null)} />
+        <CancelarModal
+          tipo={props.tipo}
+          ticketId={props.ticketId}
+          accessToken={props.accessToken}
+          billingType={props.billingType}
+          refundPolicy={props.refundPolicy}
+          purchasedAt={props.purchasedAt}
+          eventStartDate={props.eventStartDate}
+          baseAmount={props.baseAmount}
+          paidAmount={props.paidAmount}
+          onClose={() => setModal(null)}
+        />
       )}
     </>
   );
 }
 
-function ModalShell({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+function ModalShell({
+  children,
+  onClose,
+  closeOnBackdrop = true,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  closeOnBackdrop?: boolean;
+}) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-md rounded-3xl bg-white p-6 shadow-xl max-h-[85vh] overflow-y-auto">
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={closeOnBackdrop ? onClose : undefined}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="relative z-10 w-full max-w-md rounded-3xl bg-white p-6 shadow-xl max-h-[85vh] overflow-y-auto"
+      >
         {children}
       </div>
     </div>
@@ -112,6 +153,14 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [challenge, setChallenge] = useState<null | {
+    id: string;
+    currentEmailMasked: string;
+    requiresNewEmailCode: boolean;
+    newEmailMasked?: string;
+  }>(null);
+  const [currentEmailCode, setCurrentEmailCode] = useState("");
+  const [newEmailCode, setNewEmailCode] = useState("");
 
   const atleta = props.tipo === "atleta";
   const d = props.dadosAtuais;
@@ -128,6 +177,9 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
   const [parceiroEmail,   setParceiroEmail]   = useState(atleta ? (d as DadosAtleta).parceiroEmail ?? "" : "");
   const [parceiroZap,     setParceiroZap]     = useState(atleta ? (d as DadosAtleta).parceiroZap ?? "" : "");
   const [parceiroGenero,  setParceiroGenero]  = useState(atleta ? (d as DadosAtleta).parceiroGenero ?? "" : "");
+  const [usarMesmoEmail, setUsarMesmoEmail] = useState(
+    atleta && d.compradorEmail.trim().toLowerCase() === ((d as DadosAtleta).parceiroEmail ?? "").trim().toLowerCase(),
+  );
 
   const generoConflita =
     atleta &&
@@ -140,11 +192,12 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
     setError(null);
     startTransition(async () => {
       const res = atleta
-        ? await alterarTitularidadeAtleta({
+        ? await solicitarAlteracaoTitularidadeAtleta({
             ticketId: props.ticketId,
             accessToken: props.accessToken,
             compradorNome, compradorCpf, compradorEmail, compradorZap, compradorGenero,
             parceiroNome, parceiroCpf, parceiroEmail, parceiroZap, parceiroGenero,
+            usarMesmoEmail,
           } satisfies TitularidadeAtletaInput)
         : await alterarTitularidadePlateia({
             ticketId: props.ticketId,
@@ -153,16 +206,105 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
           } satisfies TitularidadePlateiaInput);
 
       if (!res.ok) { setError(res.error ?? "Erro ao salvar."); return; }
+      if (atleta && "completed" in res && !res.completed) {
+        setChallenge({
+          id: res.challengeId,
+          currentEmailMasked: res.currentEmailMasked,
+          requiresNewEmailCode: res.requiresNewEmailCode,
+          newEmailMasked: res.newEmailMasked,
+        });
+        return;
+      }
       props.onClose();
-      router.refresh();
+      const rotatedAccessToken = "accessToken" in res && typeof res.accessToken === "string"
+        ? res.accessToken
+        : null;
+      if (rotatedAccessToken) {
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.set("token", rotatedAccessToken);
+        router.replace(`${nextUrl.pathname}${nextUrl.search}`);
+      } else {
+        router.refresh();
+      }
     });
+  }
+
+  function confirmarCodigos() {
+    if (!challenge) return;
+    setError(null);
+    startTransition(async () => {
+      const res = await confirmarAlteracaoTitularidadeAtleta({
+        ticketId: props.ticketId,
+        accessToken: props.accessToken,
+        challengeId: challenge.id,
+        currentEmailCode,
+        newEmailCode: challenge.requiresNewEmailCode ? newEmailCode : undefined,
+      });
+      if (!res.ok) { setError(res.error ?? "Não foi possível confirmar."); return; }
+      props.onClose();
+      if (res.accessToken) {
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.set("token", res.accessToken);
+        router.replace(`${nextUrl.pathname}${nextUrl.search}`);
+      } else {
+        router.refresh();
+      }
+    });
+  }
+
+  if (atleta && challenge) {
+    return (
+      <ModalShell onClose={props.onClose} closeOnBackdrop={false}>
+        <p className="mb-1 text-lg font-semibold text-gray-900">Confirme a alteração</p>
+        <p className="mb-5 text-sm text-gray-600">
+          Enviamos um código para o e-mail atual do comprador. Os dados só serão alterados depois da confirmação.
+        </p>
+        <label className={labelCls}>Código enviado para {challenge.currentEmailMasked}</label>
+        <input
+          className={`${inputCls} text-center tracking-[0.35em]`}
+          inputMode="numeric"
+          maxLength={6}
+          value={currentEmailCode}
+          onChange={(event) => setCurrentEmailCode(event.target.value.replace(/\D/g, ""))}
+          placeholder="000000"
+        />
+        {challenge.requiresNewEmailCode && (
+          <div className="mt-4">
+            <label className={labelCls}>Código enviado para o novo e-mail {challenge.newEmailMasked}</label>
+            <input
+              className={`${inputCls} text-center tracking-[0.35em]`}
+              inputMode="numeric"
+              maxLength={6}
+              value={newEmailCode}
+              onChange={(event) => setNewEmailCode(event.target.value.replace(/\D/g, ""))}
+              placeholder="000000"
+            />
+          </div>
+        )}
+        {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
+        <div className="mt-5 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={confirmarCodigos}
+            disabled={pending || currentEmailCode.length !== 6 || (challenge.requiresNewEmailCode && newEmailCode.length !== 6)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {pending && <Loader2 className="size-4 animate-spin" />}
+            {pending ? "Confirmando…" : "Confirmar e alterar"}
+          </button>
+          <button type="button" onClick={() => { setChallenge(null); setError(null); }} disabled={pending} className="w-full rounded-2xl bg-gray-100 py-3 text-sm font-medium text-gray-700">
+            Voltar e corrigir dados
+          </button>
+        </div>
+      </ModalShell>
+    );
   }
 
   return (
     <ModalShell onClose={props.onClose}>
       <p className="mb-1 text-lg font-semibold text-gray-900">Alterar titularidade</p>
       <p className="mb-5 text-xs text-gray-500">
-        A troca é imediata e gratuita. O QR de entrada continua o mesmo.
+        A troca é imediata e gratuita. Links e QRs dos atletas alterados serão substituídos e enviados aos novos e-mails.
       </p>
 
       <div className="space-y-4">
@@ -187,6 +329,15 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
             </div>
             {atleta && (
               <>
+                <label className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs font-medium text-blue-900">
+                  <input
+                    type="checkbox"
+                    checked={usarMesmoEmail}
+                    onChange={(event) => setUsarMesmoEmail(event.target.checked)}
+                    className="size-4 rounded border-blue-300"
+                  />
+                  Enviar as duas credenciais para o e-mail do atleta 1
+                </label>
                 <div>
                   <label className={labelCls}>WhatsApp</label>
                   <input required className={inputCls} inputMode="numeric" value={compradorZap} onChange={(e) => setCompradorZap(e.target.value)} />
@@ -228,10 +379,12 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
                   <label className={labelCls}>CPF</label>
                   <input required className={inputCls} inputMode="numeric" maxLength={11} value={parceiroCpf} onChange={(e) => setParceiroCpf(e.target.value.replace(/\D/g, ""))} />
                 </div>
-                <div>
-                  <label className={labelCls}>E-mail</label>
-                  <input required className={inputCls} type="email" value={parceiroEmail} onChange={(e) => setParceiroEmail(e.target.value)} />
-                </div>
+                {!usarMesmoEmail && (
+                  <div>
+                    <label className={labelCls}>E-mail</label>
+                    <input required className={inputCls} type="email" value={parceiroEmail} onChange={(e) => setParceiroEmail(e.target.value)} />
+                  </div>
+                )}
               </div>
               <div>
                 <label className={labelCls}>WhatsApp</label>
@@ -293,16 +446,29 @@ function CancelarModal({
   tipo,
   ticketId,
   accessToken,
+  billingType,
+  refundPolicy,
+  purchasedAt,
+  eventStartDate,
+  baseAmount,
+  paidAmount,
   onClose,
 }: {
   tipo: "atleta" | "plateia";
   ticketId: string;
   accessToken: string;
+  billingType: string | null;
+  refundPolicy: RefundPolicyDecision;
+  purchasedAt: string;
+  eventStartDate: string | null;
+  baseAmount: number;
+  paidAmount: number | null;
   onClose: () => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<"cancelado" | "estorno" | null>(null);
 
   function confirmar() {
     setError(null);
@@ -312,9 +478,45 @@ function CancelarModal({
         : await cancelarIngressoPlateia(ticketId, accessToken);
 
       if (!res.ok) { setError(res.error ?? "Erro ao cancelar."); return; }
+      setSuccess(res.outcome === "estorno_solicitado" ? "estorno" : "cancelado");
+    });
+  }
+
+  if (success) {
+    const isRefund = success === "estorno";
+    const isCard = billingType === "CREDIT_CARD" || billingType === "DEBIT_CARD";
+    const title = isRefund
+      ? "Seu reembolso foi solicitado com sucesso"
+      : "Ingresso cancelado com sucesso";
+    const description = isRefund
+      ? isCard
+        ? "Acompanhe a confirmação neste ingresso. Depois de confirmado, o crédito pode levar até 10 dias úteis para aparecer na fatura."
+        : billingType === "PIX"
+          ? "Acompanhe a confirmação neste ingresso. No Pix, a devolução será enviada à conta usada no pagamento."
+          : "Acompanhe a confirmação e o prazo do reembolso nos detalhes deste ingresso."
+      : "A vaga foi liberada e o ingresso continuará disponível no seu histórico.";
+
+    function showUpdatedTicket() {
       onClose();
       router.refresh();
-    });
+    }
+
+    return (
+      <ModalShell onClose={showUpdatedTicket} closeOnBackdrop={false}>
+        <div className="py-3 text-center">
+          <CheckCircle2 className="mx-auto size-12 text-emerald-600" />
+          <h2 className="mt-4 text-lg font-semibold text-gray-900">{title}</h2>
+          <p className="mt-2 text-sm text-gray-600">{description}</p>
+          <button
+            type="button"
+            onClick={showUpdatedTicket}
+            className="mt-6 w-full rounded-2xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+          >
+            OK
+          </button>
+        </div>
+      </ModalShell>
+    );
   }
 
   return (
@@ -326,22 +528,34 @@ function CancelarModal({
         <p className="font-semibold text-gray-900">Cancelar este ingresso?</p>
       </div>
 
-      <div className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-600 space-y-1.5">
-        <p>Se ainda não foi pago, é só cancelado, sem cobrança.</p>
-        <p>Se já foi pago: até 7 dias da compra, estorno total. Depois de 7 dias, estorno parcial (sem a taxa de serviço), conforme o CDC.</p>
-        <p className="font-medium text-gray-800">Essa ação não pode ser desfeita.</p>
-      </div>
+      <RefundPolicySummary
+        decision={refundPolicy}
+        purchasedAt={purchasedAt}
+        eventStartDate={eventStartDate}
+        baseAmount={baseAmount}
+        paidAmount={paidAmount}
+      />
+
+      {refundPolicy.allowed && (
+        <p className="mt-3 text-sm font-medium text-gray-800">
+          Ao confirmar, o ingresso e o QR Code serão cancelados. Essa ação não pode ser desfeita.
+        </p>
+      )}
 
       {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
 
       <div className="mt-5 flex flex-col gap-2">
         <button
           onClick={confirmar}
-          disabled={pending}
+          disabled={pending || !refundPolicy.allowed}
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 py-3 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 transition-colors"
         >
           {pending && <Loader2 className="size-4 animate-spin" />}
-          {pending ? "Cancelando…" : "Sim, cancelar ingresso"}
+          {pending
+            ? "Cancelando…"
+            : refundPolicy.allowed
+              ? "Sim, cancelar ingresso"
+              : "Cancelamento indisponível"}
         </button>
         <button
           onClick={onClose}

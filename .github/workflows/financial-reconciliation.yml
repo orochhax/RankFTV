@@ -2,8 +2,8 @@ name: Financial reconciliation
 
 on:
   schedule:
-    # Runs around every ten minutes away from the hour, when GitHub has the
-    # highest chance of delaying scheduled jobs. Reconciliation is idempotent.
+    # GitHub Actions schedules are best-effort. The job remains idempotent, so a
+    # delayed or repeated run only reconciles the same pending operations safely.
     - cron: "7,17,27,37,47,57 * * * *"
   workflow_dispatch:
 
@@ -18,7 +18,7 @@ jobs:
   reconcile:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    environment: production
+    environment: Production
     env:
       FINANCIAL_RECONCILIATION_URL: ${{ secrets.FINANCIAL_RECONCILIATION_URL }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}

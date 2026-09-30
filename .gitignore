@@ -15,6 +15,7 @@
 /playwright-report
 /test-results
 /blob-report
+/tmp
 
 # next.js
 /.next/
@@ -37,8 +38,15 @@ yarn-error.log*
 .env*
 !.env.example
 
+# cofre local de credenciais (nunca versionar)
+/.secrets.local
+/CONTAS-TESTE.local.md
+
 # vercel
 .vercel
+
+# Supabase CLI local state
+/supabase/.temp/
 
 # typescript
 *.tsbuildinfo

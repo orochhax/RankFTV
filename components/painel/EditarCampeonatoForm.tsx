@@ -99,7 +99,6 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
   const [local, setLocal]                     = useState(initial.local);
   const [liveUrl, setLiveUrl]                 = useState(initial.liveUrl ?? "");
   const [status, setStatus]                   = useState(initial.status);
-  const [usaMotorCategoria, setUsaMotorCategoria] = useState(initial.usaMotorCategoria);
   const [categorias, setCategorias]           = useState<CatForm[]>(
     initial.categorias.map((c) => ({
       id:             c.id,
@@ -111,6 +110,12 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
   );
 
   const visiveis = categorias.filter((c) => !c._delete);
+  const notificaAtletas =
+    dataInicio !== initial.dataInicio ||
+    dataFim !== initial.dataFim ||
+    cidade.trim() !== initial.cidade.trim() ||
+    estado.trim().toUpperCase() !== initial.estado.trim().toUpperCase() ||
+    local.trim() !== initial.local.trim();
 
   function updateCat(i: number, patch: Partial<CatForm>) {
     setCategorias((cs) => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
@@ -160,8 +165,8 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
     if (liveUrl.trim()    !== (initial.liveUrl ?? "").trim()) lista.push("Link da transmissão ao vivo alterado");
     if (pdfFile)                                         lista.push("PDF do regulamento substituído");
     if (!pdfUrl && initial.regulamentoPdfUrl)            lista.push("PDF do regulamento removido");
-    if (usaMotorCategoria !== initial.usaMotorCategoria)
-      lista.push(usaMotorCategoria ? "Recomendação de categoria ligada" : "Recomendação de categoria desligada");
+    if (initial.usaMotorCategoria)
+      lista.push("Recomendação de categoria desativada na V1");
 
     // Categorias
     const removidas = categorias.filter((c) => c._delete && c.id);
@@ -274,19 +279,20 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
         prevendaFim:      prevendaFim      || undefined,
         cidade, estado, local, liveUrl,
         status,
-        usaMotorCategoria,
+        usaMotorCategoria: false,
         categorias: payload,
       });
 
       if (res && !res.ok) {
-        setError(res.error ?? "Erro ao salvar.");
+        const message = res.error ?? "Erro ao salvar.";
+        setError(message);
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nome, descricao, regulamento, pdfUrl, pdfFile, dataInicio, dataFim,
       inscricoesInicio, inscricoesFim, prevendaInicio, prevendaFim,
-      cidade, estado, local, liveUrl, status, usaMotorCategoria, categorias]);
+      cidade, estado, local, liveUrl, status, categorias]);
 
   return (
     <>
@@ -313,6 +319,15 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
               </li>
             ))}
           </ul>
+
+          {notificaAtletas && (
+            <div role="alert" className="mb-5 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+              <p className="font-semibold">Aviso automático aos atletas</p>
+              <p className="mt-1">
+                Ao salvar alterações na data ou no local, todos os atletas com inscrição paga e ativa receberão um e-mail e uma notificação com as informações anteriores e novas.
+              </p>
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <button
@@ -361,7 +376,7 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
 
     <div className="space-y-6">
       {error && (
-        <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
+        <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
           {error}
         </div>
       )}
@@ -679,37 +694,6 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
             );
           })}
         </div>
-      </div>
-
-      {/* Recomendação de categoria */}
-      <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-        <label className="flex items-start justify-between gap-4">
-          <span>
-            <span className="block text-sm font-semibold text-gray-800">
-              Recomendar categoria pro atleta
-            </span>
-            <span className="mt-0.5 block text-xs text-gray-400">
-              O atleta responde um questionário de 5 perguntas sobre o próprio nível antes de
-              se inscrever, e a plataforma recomenda a categoria certa pra ele. Se desligar, o
-              atleta escolhe a categoria livremente, sem passar pelo questionário.
-            </span>
-          </span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={usaMotorCategoria}
-            onClick={() => setUsaMotorCategoria((v) => !v)}
-            className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-              usaMotorCategoria ? "bg-blue-600" : "bg-gray-200"
-            }`}
-          >
-            <span
-              className={`inline-block size-4 transform rounded-full bg-white transition-transform ${
-                usaMotorCategoria ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
-        </label>
       </div>
 
       {/* Ações */}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Ticket, Users, CheckCircle2, Clock, ChevronRight } from "lucide-react";
+import { athleteDisplayName } from "@/lib/athlete-display-name";
 
 export type Ingresso = {
   id:               string;
@@ -12,10 +13,14 @@ export type Ingresso = {
   code:             string | null;
   access_token:     string | null;
   checked_in:       boolean;
+  refund_status?:    string | null;
   comprador_nome:   string;
   parceiro_nome?:   string | null;
   championship_id:  string;
   ticket_id:        string;
+  credential_id?:   string | null;
+  credential_access_token?: string | null;
+  athlete_name?:    string | null;
 };
 
 export function IngressoCard({
@@ -30,19 +35,34 @@ export function IngressoCard({
   const pago       = ing.status_pagamento === "pago";
   const estornado  = ing.status_pagamento === "estornado";
   const isAtleta   = ing.tipo === "atleta";
+  const refundFailed = ["failed", "cancelled", "CANCELLED", "REFUND_CANCELLED"].includes(ing.refund_status ?? "");
+  const refundLabel = ing.refund_status === "refunded"
+    ? "Estorno confirmado"
+    : refundFailed
+      ? "Reembolso precisa de atendimento"
+    : ing.refund_status
+      ? "Estorno solicitado"
+      : null;
+  const estornoEmAndamento = !!refundLabel && !estornado && !refundFailed;
+  const compradorPublicName = isAtleta ? athleteDisplayName(ing.comprador_nome) : ing.comprador_nome;
+  const parceiroPublicName = athleteDisplayName(ing.parceiro_nome);
 
   const params = new URLSearchParams();
-  if (ing.access_token) params.set("token", ing.access_token);
+  const individualCredential = isAtleta && ing.credential_id && ing.credential_access_token;
+  if (individualCredential) params.set("token", ing.credential_access_token!);
+  else if (ing.access_token) params.set("token", ing.access_token);
   if (origem) params.set("voltar", origem);
   const suffix = params.toString() ? `?${params.toString()}` : "";
-  const href = `/campeonatos/${ing.championship_id}/${isAtleta ? "comprar" : "plateia"}/ingresso/${ing.ticket_id}${suffix}`;
+  const href = individualCredential
+    ? `/campeonatos/${ing.championship_id}/ingresso-atleta/${ing.credential_id}${suffix}`
+    : `/campeonatos/${ing.championship_id}/${isAtleta ? "comprar" : "plateia"}/ingresso/${ing.ticket_id}${suffix}`;
 
   return (
     <Link
       href={href}
       className="block overflow-hidden rounded-2xl ring-1 ring-black/5 transition-shadow hover:shadow-md"
     >
-      <div className="bg-black px-5 py-4">
+      <div className="bg-brand-dark px-5 py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             {isAtleta
@@ -67,14 +87,26 @@ export function IngressoCard({
       <div className="flex items-center justify-between gap-3 bg-white px-5 py-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            {isAtleta && ing.parceiro_nome
-              ? <><span className="font-medium">{ing.comprador_nome}</span> + <span className="font-medium">{ing.parceiro_nome}</span></>
-              : <span className="font-medium truncate">{ing.comprador_nome}</span>}
+            {isAtleta && ing.athlete_name
+              ? <span className="font-medium">Credencial de {athleteDisplayName(ing.athlete_name)}</span>
+              : isAtleta
+                ? <><span className="font-medium">{compradorPublicName}</span> + <span className="font-medium">{parceiroPublicName}</span></>
+              : <span className="font-medium truncate">{compradorPublicName}</span>}
           </div>
 
           <div className="mt-2 flex items-center gap-1 text-xs font-semibold">
-            {estornado ? (
-              <span className="text-red-500">Cancelado</span>
+            {refundFailed ? (
+              <span className="flex items-center gap-1 text-red-600">
+                <Clock className="size-3.5" /> {refundLabel}
+              </span>
+            ) : estornoEmAndamento ? (
+              <span className="flex items-center gap-1 text-amber-700">
+                <Clock className="size-3.5" /> {refundLabel}
+              </span>
+            ) : estornado ? (
+              <span className={refundLabel ? "text-blue-600" : "text-red-500"}>
+                {refundLabel ?? "Cancelado"}
+              </span>
             ) : pago ? (
               <span className="flex items-center gap-1 text-blue-600">
                 <CheckCircle2 className="size-3.5" /> Confirmado

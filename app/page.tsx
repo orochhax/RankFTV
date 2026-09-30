@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Radio, MapPin, CalendarDays, Building2, Ticket, ClipboardList } from "lucide-react";
+import { Bell, ChevronRight, Radio, MapPin, CalendarDays, Building2, Ticket, ShoppingBag } from "lucide-react";
 import { PersonaSwitcher } from "@/components/home/PersonaSwitcher";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
@@ -12,12 +12,20 @@ import { PageHeader } from "@/components/shell/PageHeader";
 import { Surface } from "@/components/shell/Surface";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { SectionHeader } from "@/components/shell/SectionHeader";
+import { HomeBannerCarousel } from "@/components/home/HomeBannerCarousel";
+import { normalizeHomeBanners } from "@/lib/home-banners";
+import { parseDiscoveryFilters } from "@/lib/championship-discovery";
 
 const STATUS_PRIORIDADE: Record<string, number> = {
   inscricoes_abertas: 0, em_andamento: 1, rascunho: 2, encerrado: 3,
 };
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const initialFilters = parseDiscoveryFilters(await searchParams);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -54,13 +62,14 @@ export default async function Home() {
     getPublishedChampionships(),
     supabase
       .from("platform_config")
-      .select("destaques_ids")
+      .select("destaques_ids, home_banners")
       .eq("id", 1)
       .single(),
     getLivChampionships(),
   ]);
 
   const destaquesIds: string[] = (configRow.data?.destaques_ids as string[] | null) ?? [];
+  const homeBanners = normalizeHomeBanners(configRow.data?.home_banners);
   const destaques = (destaquesIds.length > 0
     ? destaquesIds.map((id) => publicados.find((c) => c.id === id)).filter(Boolean) as typeof publicados
     : publicados.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento").slice(0, 3)
@@ -75,21 +84,38 @@ export default async function Home() {
     });
 
   const estados = Array.from(new Set(todosOrdenados.map((c) => c.estado))).sort();
-  const categorias = Array.from(
-    new Set(todosOrdenados.flatMap((c) => c.categorias.map((cat) => cat.nome)))
-  ).sort();
-
   const quickLinks = [
     { href: "/agenda", label: "Agenda de eventos", icon: CalendarDays },
     { href: "/arenas", label: "Arenas", icon: Building2 },
-    { href: "/meus-ingressos", label: "Meus ingressos", icon: Ticket },
-    ...(profile ? [{ href: "/minhas-inscricoes", label: "Minhas inscrições", icon: ClipboardList }] : []),
+    ...(profile
+      ? [{ href: "/minhas-compras", label: "Minhas compras", icon: ShoppingBag }]
+      : [{ href: "/meus-ingressos", label: "Consultar ingresso", icon: Ticket }]),
   ];
 
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
-      <div className="bg-black px-6 pb-10 pt-8 md:hidden">
+      <div className="bg-black px-6 pb-12 pt-5 md:hidden">
+        <div className="mb-3 flex h-11 items-center gap-2">
+          <div className="home-header-menu">
+            <HamburgerMenu unreadCount={0} organizerHabilitado={organizerHabilitado} />
+          </div>
+          <Link href="/" className="text-2xl font-extrabold tracking-[-0.04em] text-white" aria-label="RankFTV — início">
+            Rank<span className="text-blue-600">FTV</span>
+          </Link>
+          <Link
+            href="/notificacoes"
+            className="relative ml-auto grid size-11 place-items-center text-white"
+            aria-label={unreadCount > 0 ? `${unreadCount} notificações pendentes` : "Notificações"}
+          >
+            <Bell className="size-6" />
+            {unreadCount > 0 ? (
+              <span className="absolute right-0 top-0 grid min-w-4 place-items-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-4 text-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            ) : null}
+          </Link>
+        </div>
         {profile ? (
           <div className="flex items-center gap-4">
             <Avatar
@@ -106,9 +132,6 @@ export default async function Home() {
                 {profile.nome.split(" ")[0]}
               </h1>
               <p className="text-sm text-gray-400">@{profile.username}</p>
-            </div>
-            <div className="md:hidden">
-              <HamburgerMenu unreadCount={unreadCount} organizerHabilitado={organizerHabilitado} />
             </div>
           </div>
         ) : (
@@ -128,54 +151,35 @@ export default async function Home() {
 
       {/* ── Corpo: sheet arredondada no mobile, grid larga no desktop ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:pb-16 md:shadow-none">
-        <span aria-hidden="true" className="mobile-sheet-accent md:hidden" />
-        <PageContainer width="wide" className="space-y-8 md:grid md:grid-cols-3 md:items-start md:gap-8 md:space-y-0">
-          <div className="space-y-8 md:col-span-2">
-            {/* Carrossel de destaques */}
-            <DestaquesCarousel camps={destaques} />
-
-            {/* Campeonatos ao vivo */}
-            {aoVivo.length > 0 && (
-              <section>
-                <SectionHeader icon={Radio} iconClassName="size-4 text-red-500 animate-pulse" title="Ao vivo agora" className="mb-3" />
-                <div className="grid gap-3 md:grid-cols-2">
-                  {aoVivo.map((c) => (
-                    <Link
-                      key={c.id}
-                      href={`/campeonatos/${c.id}`}
-                      className="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 ring-1 ring-red-100 hover:bg-red-50 transition-colors"
-                    >
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="size-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-                          <p className="truncate font-semibold text-gray-900">{c.nome}</p>
+        <svg aria-hidden="true" className="home-mobile-sheet-accent md:hidden" viewBox="0 0 430 28" preserveAspectRatio="none">
+          <path d="M0 28 A28 28 0 0 1 28 0 H402 A28 28 0 0 1 430 28" pathLength="100" />
+        </svg>
+        <PageContainer width="wide">
+          <CampeonatosSection
+            allCamps={todosOrdenados}
+            estados={estados}
+            initialFilters={initialFilters}
+            collapsibleSearch
+            banner={homeBanners.length > 0 ? <HomeBannerCarousel banners={homeBanners} /> : null}
+            featured={<DestaquesCarousel camps={destaques} />}
+            live={aoVivo.length > 0 ? (
+                <section>
+                  <SectionHeader icon={Radio} iconClassName="size-4 animate-pulse text-red-500" title="Ao vivo agora" className="mb-3" />
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {aoVivo.map((c) => (
+                      <Link key={c.id} href={`/campeonatos/${c.id}`} className="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 ring-1 ring-red-100 transition-colors hover:bg-red-50">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2"><span className="size-2 shrink-0 animate-pulse rounded-full bg-red-500" /><p className="truncate font-semibold text-gray-900">{c.nome}</p></div>
+                          <p className="mt-0.5 text-xs text-gray-400">{formatDateRangeBR(c.dataInicio, c.dataFim)}</p>
+                          <p className="flex items-center gap-1 text-xs text-gray-400"><MapPin className="size-3" />{c.local}, {c.cidade} - {c.estado}</p>
                         </div>
-                        <p className="mt-0.5 text-xs text-gray-400">
-                          {formatDateRangeBR(c.dataInicio, c.dataFim)}
-                        </p>
-                        <p className="flex items-center gap-1 text-xs text-gray-400">
-                          <MapPin className="size-3" />
-                          {c.local}, {c.cidade} - {c.estado}
-                        </p>
-                      </div>
-                      <ChevronRight className="size-4 shrink-0 text-gray-300" />
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Lista de campeonatos com filtros */}
-            <CampeonatosSection
-              allCamps={todosOrdenados}
-              estados={estados}
-              categorias={categorias}
-              temAoVivo={aoVivo.length > 0}
-            />
-          </div>
-
-          {/* Painel lateral — só links reais de navegação, sem dado inventado */}
-          <aside className="hidden md:block">
+                        <ChevronRight className="size-4 shrink-0 text-gray-300" />
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+            sidebar={(
             <Surface padding="md" className="home-quick-access relative sticky top-6 overflow-hidden text-white shadow-soft shadow-black/20">
               <span
                 aria-hidden="true"
@@ -201,7 +205,8 @@ export default async function Home() {
                 ))}
               </ul>
             </Surface>
-          </aside>
+            )}
+          />
         </PageContainer>
       </div>
     </div>

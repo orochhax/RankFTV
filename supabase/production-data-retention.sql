@@ -13,6 +13,10 @@ DECLARE
   v_card_attempts integer := 0;
   v_card_guards integer := 0;
   v_audit integer := 0;
+  v_ticket_change_challenges integer := 0;
+  v_credential_events integer := 0;
+  v_email_events integer := 0;
+  v_support_cases integer := 0;
   v_financial integer := 0;
 BEGIN
   DELETE FROM asaas_webhook_events
@@ -31,6 +35,25 @@ BEGIN
   DELETE FROM security_audit_log WHERE created_at < now() - interval '730 days';
   GET DIAGNOSTICS v_audit = ROW_COUNT;
 
+  DELETE FROM athlete_ticket_change_challenges
+   WHERE created_at < now() - interval '30 days';
+  GET DIAGNOSTICS v_ticket_change_challenges = ROW_COUNT;
+
+  DELETE FROM athlete_ticket_credential_events
+   WHERE created_at < now() - interval '730 days';
+  GET DIAGNOSTICS v_credential_events = ROW_COUNT;
+
+  DELETE FROM transactional_email_events
+   WHERE (status IN ('delivered', 'accepted') AND created_at < now() - interval '400 days')
+      OR (status IN ('failed', 'bounced', 'complained', 'suppressed', 'delayed', 'queued')
+          AND created_at < now() - interval '730 days');
+  GET DIAGNOSTICS v_email_events = ROW_COUNT;
+
+  DELETE FROM support_cases
+   WHERE status = 'resolvido'
+     AND resolved_at < now() - interval '730 days';
+  GET DIAGNOSTICS v_support_cases = ROW_COUNT;
+
   DELETE FROM financial_operations
    WHERE created_at < now() - interval '6 years'
      AND status IN ('provider_created', 'confirmed', 'refunded', 'failed', 'cancelled');
@@ -41,6 +64,10 @@ BEGIN
     'cardAttempts', v_card_attempts,
     'cardGuards', v_card_guards,
     'auditEvents', v_audit,
+    'ticketChangeChallenges', v_ticket_change_challenges,
+    'credentialEvents', v_credential_events,
+    'emailEvents', v_email_events,
+    'supportCases', v_support_cases,
     'financialOperations', v_financial
   );
 END;

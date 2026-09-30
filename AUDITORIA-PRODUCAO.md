@@ -1,7 +1,240 @@
 # Auditoria de seguranca e prontidao para producao - RankFTV
 
 Data da revisao: 14/07/2026
-Ultima atualizacao: 07/08/2026
+Ultima atualizacao: 29/09/2026
+
+## Atualizacao 29/09/2026 - notificacao financeira e dependencias
+
+- A fila financeira do organizador foi aplicada no Sandbox. Uma cobranca Pix
+  de R$ 23,99 confirmou o ingresso e gerou exatamente uma entrega aceita, na
+  primeira tentativa, sem erro. O e-mail recebido exibiu campeonato, categoria,
+  forma de pagamento, valor e os dois atletas.
+- Next.js e `eslint-config-next` foram atualizados de 16.3.0 para 16.3.7, e o
+  override do Sharp passou de 0.35.3 para 0.35.4, eliminando os alertas criticos
+  e altos encontrados na verificacao inicial.
+- `npm run audit:prod`: aprovado, zero vulnerabilidades conhecidas.
+- `npm run lint`: aprovado, zero erros; permanecem 1.288 avisos de qualidade
+  registrados como baseline e fora deste ajuste de seguranca.
+- `npm run typecheck`: aprovado, sem erros.
+- `npm test`: 795/795 testes aprovados.
+- `npm run build`: aprovado no Next.js 16.3.7, incluindo TypeScript e geracao
+  das 67 paginas estaticas coletadas pelo build.
+- `npm run test:e2e`: 25 testes publicos aprovados nos cinco perfis de
+  navegador e 60 ignorados por dependerem de contas, dados ou flags explicitas
+  do Sandbox. O teste de plateia deixou de usar silenciosamente um campeonato
+  removido e agora exige `E2E_CHAMPIONSHIP_ID` valido.
+- O k6 2.2.0 foi instalado e o ensaio somente-leitura foi concluido no Preview
+  `rank-5b2dt9r7m-devcarlosrochas-projects.vercel.app`. Em 17 minutos, a rampa
+  de 5, 10 e 25 usuarios virtuais completou 6.715 requisicoes, com 0% de erro,
+  media de 356,36 ms, p95 de 463,65 ms e 6,57 requisicoes/s. O pico de 25
+  usuarios foi sustentado por cinco minutos. Houve um maximo isolado de 26,74 s;
+  Vercel, Supabase e consultas internas ainda precisam ser correlacionados para
+  explicar esse outlier antes do teste supervisionado em producao.
+- A saude publica de producao retornou HTTP 200 e banco `ok` em 86 ms. HTTPS,
+  redirect do dominio raiz para `www`, CSP com nonce, HSTS, protecao contra
+  frame e redirect anonimo de `/admin` para login foram confirmados.
+- A auditoria SQL somente-leitura de producao confirmou RLS nas tabelas
+  expostas, mas encontrou `handle_new_user()` sem `search_path`, a view
+  `ranking_entries` sem `security_invoker`, funcoes privilegiadas executaveis
+  por `anon`, acesso anonimo a `credentials` e grants indevidos de
+  `TRUNCATE/TRIGGER`. O hardening continua bloqueado ate backup e janela sem
+  checkout.
+- O check complementar do Security Advisor confirmou que as cinco funcoes
+  auditadas existem, mas seus `search_path` e grants ainda nao correspondem ao
+  baseline homologado. `auto_update_championship_status()` continua acessivel
+  por clientes. As migrations de hardening do Advisor, da view de ranking e dos
+  20 pontos foram adicionadas explicitamente ao inicio do runbook.
+- Os objetos financeiros, de ingresso e credenciais listados no runbook estao
+  presentes. Ainda nao existem em producao `championship_notice_deliveries`,
+  `organizer_financial_notification_deliveries` nem suas funcoes de claim.
+- No GitHub, a conciliacao financeira esta ativa e as dez execucoes recentes
+  terminaram com sucesso, mas ocorreram com intervalos de horas. Os dois secrets
+  estavam no repositorio. A URL fixa da conciliacao e a URL publica do Supabase
+  foram cadastradas no environment protegido `Production`; `CRON_SECRET` e os
+  demais secrets sensiveis ainda dependem de confirmacao. Backup e avisos de
+  campeonato ainda nao aparecem na branch padrao.
+- Foi acrescentado um workflow idempotente a cada 15 minutos para drenar a fila
+  de avisos financeiros do organizador, com retry de transporte e contingencia
+  diaria na Vercel. Ele permanece inativo ate a promocao para a branch padrao e
+  a configuracao do `CRON_SECRET` no environment protegido.
+- A branch `master` e o environment `Production` nao possuem regras de
+  protecao. O PR rascunho #4 foi aberto sem merge automatico; checks obrigatorios
+  e a politica de aprovacao ainda precisam ser definidos antes da promocao.
+- O Preview final do PR respondeu HTTP 200 na home, login e health, redirecionou
+  `/admin` anonimo para login e confirmou banco `ok` em 81 ms no release
+  `0bd5351`.
+- Na Vercel Production faltam o remetente e webhook do Resend, o segredo
+  dedicado de hash de e-mail, o token de autorizacao de saques e as tres
+  variaveis de observabilidade. O DNS publico possui SPF no subdominio `send`,
+  DKIM e DMARC em modo de monitoramento (`p=none`).
+
+## Atualizacao 30/09/2026 - primeiro backup remoto criptografado
+
+- O workflow `Production logical backup` foi promovido para a branch `master` e
+  seus quatro secrets foram cadastrados no environment protegido `Production`.
+- A execucao manual `36652847512` terminou com sucesso: validou o destino de
+  producao, usou explicitamente `pg_dump`/`pg_restore` 17, gerou os dumps do
+  banco, exportou o Storage, conferiu os hashes SHA-256, criptografou e verificou
+  o pacote antes do upload.
+- O artefato privado `rankftv-production-36652847512-1` possui 25.015.975 bytes,
+  nao estava expirado na verificacao e tem retencao ate 30/10/2026. O conteudo
+  nao foi baixado nem exposto durante a auditoria.
+- O backup remove o bloqueio operacional que impedia o hardening do banco, mas
+  as migrations continuam dependendo de uma janela controlada sem checkout e
+  de validacao posterior. O teste de restauracao isolada ainda deve ser ensaiado.
+
+## Atualizacao 30/09/2026 - migrations e hardening de producao
+
+- Antes da janela, a execucao `36655950084` gerou e verificou um novo backup
+  criptografado de banco e Storage. O preflight confirmou PostgreSQL 17.6,
+  nenhuma conexao ativa, nenhuma inscricao nos 30 minutos anteriores, nenhum
+  ingresso ativo sem categoria e nenhuma identidade duplicada por categoria.
+- As 26 migrations do runbook foram aplicadas/reconciliadas sequencialmente. Os
+  scripts sem transacao propria foram executados de forma atomica; nenhum erro
+  de instalacao permaneceu aberto.
+- A primeira auditoria encontrou tres lacunas de ordenacao no runbook: hardening
+  de perfil ausente, claim da fila de avisos ausente e privilegios herdados em
+  `championship_notices`. As migrations correspondentes foram aplicadas, o
+  hardening global foi repetido e a migration-base foi corrigida para revogar
+  todos os privilegios antes de conceder somente `SELECT` aos clientes.
+- Todos os checks finais de seguranca, perfil, ranking, filas e RPCs de
+  campeonato retornaram verdadeiros, com listas de revisao vazias. O inventario
+  final nao encontrou tabelas/funcoes ausentes, backfill incompleto, divergencia
+  de quantidade, operacao financeira pendente, bloqueio de cartao, acesso de
+  cliente as filas ou coluna de destinatario em texto puro.
+- Existe um webhook historico `PAYMENT_RECEIVED`, criado em 20/08/2026, ainda
+  com status `failed` apos oito tentativas e sem evento posterior bem-sucedido.
+  Ele requer conciliacao com o provedor; nenhum replay ou confirmacao manual foi
+  feito sem evidencia externa.
+- O smoke posterior retornou HTTP 200 na home e no health, banco `ok` em 36 ms
+  e redirecionamento anonimo de `/admin` para `/login`.
+
+## Atualizacao 06/09/2026 - inventario, avisos e backup periodico
+
+- Consulta somente de leitura confirmou em producao as tabelas, funcoes e
+  colunas de credenciais, suporte, anexos, participantes canonicos/manuais,
+  quadras e chaveamento com repescagem. O bucket `support-attachments` existe,
+  e privado, limita cada arquivo a 5 MB e aceita apenas JPEG, PNG, WebP e PDF.
+- A nova fila de avisos de mudanca de campeonato foi implementada no codigo e
+  ainda nao foi aplicada em producao. Faltam exatamente a tabela
+  `championship_notice_deliveries` e as colunas de deduplicacao/origem em
+  `championship_notices` e `notifications`.
+- O workflow semanal de backup gera dump customizado, schema e dados, baixa o
+  Storage, valida a listagem com `pg_restore` e confere hashes SHA-256. A
+  primeira execucao remota depende dos secrets protegidos no GitHub.
+- Antes da limpeza da demonstracao, foi criado o backup customizado
+  `production-20260906-141852-pre-fake-cleanup`, com 1.991 itens listados e
+  checksum SHA-256. Depois foram removidos somente 15 ingressos fake, os 15
+  participantes derivados, 30 eventos de credencial e as 30 partidas da
+  categoria Aprendiz da Copa Bahia. A dupla real foi preservada e as contagens
+  finais dos tres conjuntos falsos ficaram em zero.
+
+## Atualizacao 03/09/2026 - credenciais individuais, suporte e reembolso
+
+Esta secao substitui o estado operacional das secoes historicas abaixo. O
+release continua bloqueado para pagamentos reais ate concluir os itens P0 de
+`PENDENCIAS-V1.md`.
+
+### Implementado no codigo
+
+- Cada compra de dupla em `athlete_tickets` possui duas linhas em
+  `athlete_ticket_credentials`, com token de acesso, QR, codigo e check-in
+  individuais. O resumo legado do pedido indica se ao menos um atleta chegou.
+- O checkout permite usar o mesmo e-mail para os dois atletas sem juntar as
+  credenciais. A recuperacao exige correspondencia exata de CPF + e-mail e OTP;
+  cada sessao acessa somente a credencial autorizada.
+- A troca de titularidade exige OTP para mudancas sensiveis, gira links e QRs
+  afetados, desvincula identidades antigas e envia avisos. O fluxo e bloqueado
+  depois de check-in, inicio do evento ou confirmacao do chaveamento.
+- `/admin/suporte` e exclusivo de `profiles.role = ceo`. Busca ingresso,
+  corrige e-mail com justificativa, reenvia com limite, invalida credencial e
+  registra casos/notas. A auditoria possui periodo por data, e o painel agrega
+  eventos de credencial e metricas de entrega sem expor destinatarios.
+- O webhook Resend valida assinatura e registra estados aceito, entregue,
+  atrasado, bounce, reclamacao, falha e supressao. A retencao cobre os novos
+  eventos operacionais e casos de suporte.
+- Uma categoria com inscricao, ingresso ou chaveamento nao pode ser apagada. O
+  erro aparece dentro do site, sem `alert()` nativo, e a exclusao nao cancela
+  compras nem gera reembolso.
+- A unicidade de participante por campeonato + categoria cobre o fluxo
+  autenticado e o checkout rapido, inclusive concorrencia entre os dois.
+- O financeiro do organizador prioriza saldo liquido, status, chave Pix, grafico
+  responsivo e lista rolavel de pendencias. O nome do provedor nao aparece nos
+  textos operacionais destinados ao organizador.
+- Cancelamento e reembolso usam operacao duravel e idempotente. Reembolso
+  integral envia o total; parcial preserva a taxa conforme a regra atual. A
+  conciliacao consulta `GET /payments/{id}/refunds`: somente `DONE` confirma a
+  devolucao; `CANCELLED` vira falha terminal assistida sem cancelar ingresso ou
+  liberar inventario.
+- O workflow `.github/workflows/financial-reconciliation.yml` esta preparado
+  para conciliacao a cada dez minutos no dominio de producao. Ele ainda depende
+  de chegar a branch padrao e dos secrets do environment `production` no
+  GitHub; o cron diario da Vercel continua como contingencia.
+
+### Evidencias informadas da homologacao Sandbox
+
+- Duas credenciais foram emitidas e cada link mostrou somente um ingresso.
+- O uso de um unico e-mail para a dupla e a revisao antes do pagamento foram
+  testados.
+- Recuperacao, OTP, troca protegida, invalidacao do link antigo e entrega do
+  novo ingresso funcionaram.
+- Correcao assistida pelo CEO notificou o e-mail antigo e entregou a nova
+  credencial ao endereco corrigido.
+- Reenvio registrou auditoria; o e-mail chegou e o webhook alterou a metrica de
+  aceito para entregue, com tempo medio calculado.
+- Exclusao de categoria com historico foi recusada com mensagem dentro da
+  interface, preservando categoria e ingressos.
+- As migrations de credenciais, seguranca de alteracao, operacao de
+  credenciais/retencao e protecao de categoria foram executadas no ambiente de
+  homologacao conforme as confirmacoes do responsavel.
+
+### Bloqueios e resultado financeiro real do teste
+
+No teste de 03/09/2026, o pedido de reembolso integral de R$ 108,00 foi criado
+e autorizado no processador, mas a consulta posterior retornou `CANCELLED`, sem
+devolucao confirmada. Depois da correcao, a conciliacao marcou a operacao
+interna como cancelada e o cliente passou a ver que o caso precisa de
+atendimento. Esse teste nao e evidencia de reembolso concluido.
+
+Continuam pendentes: obter um reembolso Pix e um de cartao com estado `DONE` em
+teste controlado; fechar o procedimento do CEO para falha terminal; configurar
+e validar dominio/e-mail/webhook no ambiente Production; habilitar e observar o
+agendamento subdiario; testar backup/restore; concluir juridico, suporte e
+monitoramento; e implementar o e-mail importante para mudanca de data, horario
+ou local do campeonato.
+
+### Validacoes locais de 03/09/2026
+
+- `npm run audit:prod`: aprovado, zero vulnerabilidades conhecidas.
+- `npm run lint`: aprovado, sem erros.
+- `npm run typecheck`: aprovado, sem erros.
+- `npm test`: 660/660 testes aprovados.
+- `npm run build`: aprovado no Next.js 16.3.0, incluindo TypeScript e geracao
+  das 59 paginas estaticas coletadas pelo build.
+- `git diff --check`: aprovado; somente avisos locais de conversao LF/CRLF no
+  Windows.
+
+Os E2E mutantes e qualquer nova operacao remota nao foram executados nesta
+revisao documental. As evidencias Sandbox acima foram informadas pelo
+responsavel ao longo da homologacao e nao foram recriadas por este fechamento.
+
+### Migrations acumuladas desta etapa
+
+Executar somente na ordem e com as verificacoes de `RUNBOOK-PRODUCAO.md`:
+
+1. `supabase/financial-operations.sql`
+2. `supabase/payment-card-attempt-security.sql`
+3. `supabase/production-spectator-ticket-items.sql`
+4. `supabase/production-order-inventory-release.sql`
+5. `supabase/asaas-webhook-idempotency.sql`
+6. `supabase/production-query-indexes.sql`
+7. `supabase/production-athlete-ticket-credentials.sql`
+8. `supabase/production-athlete-ticket-change-security.sql`
+9. `supabase/production-bracket-participants.sql`
+10. `supabase/production-participant-category-uniqueness.sql`
+11. `supabase/production-category-deletion-guard.sql`
+12. `supabase/production-credential-operations.sql`
+13. `supabase/production-data-retention.sql`
 
 ## Atualizacao 07/08/2026 - hardening para trafego e pagamentos reais
 
@@ -52,7 +285,7 @@ externos continuam manuais e nao foram presumidas.
 
 Ordem, consultas de validacao, backfill, deploy e rollback estao em
 `RUNBOOK-PRODUCAO.md`. O que exige conta, segredo ou decisao do responsavel esta
-em `PENDENCIAS-MANUAIS.md`.
+em `PENDENCIAS-V1.md`.
 
 ### Validacoes locais de 07/08/2026
 
@@ -111,7 +344,7 @@ bloqueados ate concluir o runbook e todas as pendencias manuais.
 Segunda rodada de auditoria, em paralelo a atualizacao acima (branches
 diferentes, mesclados depois). Cobriu autorizacao, pagamentos, concorrencia e
 privacidade em codigo — nao so recomendacao. Resumo; detalhe completo e
-passo a passo de aplicacao ficaram em `PENDENCIAS.md`.
+passo a passo de aplicacao ficaram em `PENDENCIAS-V1.md`.
 
 - Presenca de aula de arena passou a ser feita só por RPC atômica (gênero,
   vaga e crédito derivados no banco); fim da escrita direta na tabela pelo
@@ -153,7 +386,7 @@ passo a passo de aplicacao ficaram em `PENDENCIAS.md`.
 - N+1 corrigido na contagem de alunos da listagem de arenas.
 - **LGPD: CPF pessoal e endereço residencial removidos dos Termos de Uso
   (ficou placeholder `[PENDENTE]` até ter o dado empresarial correto — ver
-  `PENDENCIAS.md`); Política de Privacidade criada em `/privacidade`;
+  `PENDENCIAS-V1.md`); Política de Privacidade criada em `/privacidade`;
   exportação de dados e solicitação de exclusão de conta implementadas em
   `/perfil/conta` (item 6 antigo desta lista, ver abaixo).**
 
@@ -161,7 +394,7 @@ Migrations novas em `supabase/harden-*.sql`, `supabase/add-security-audit-log.sq
 e `supabase/add-ticket-recovery-otp.sql` — já aplicadas no banco em 20-21/07.
 Pendências reais (dado de empresa pros Termos, CAPTCHA/rate limit de
 login-cadastro no painel do Supabase, limitações conhecidas) estão todas em
-`PENDENCIAS.md`, com passo a passo.
+`PENDENCIAS-V1.md`, com passo a passo.
 
 ## Resultado executivo
 
@@ -299,7 +532,7 @@ Nunca copiar a chave Sandbox para producao nem expor `SUPABASE_SERVICE_ROLE_KEY`
    direitos do titular) e exportação/exclusão de conta implementadas em
    `/perfil/conta`. Ainda falta: dado de identificação empresarial real nos
    Termos/Privacidade (hoje é um placeholder `[PENDENTE]`, ver
-   `PENDENCIAS.md`) e um procedimento formal de resposta a incidentes.
+   `PENDENCIAS-V1.md`) e um procedimento formal de resposta a incidentes.
 7. Os testes atuais cobrem a logica financeira local, mas nao ha suite E2E para
    cadastro, convite, pagamento, webhook, check-in, painel de organizador e
    arena. Esses fluxos precisam de um roteiro de homologacao antes da abertura.

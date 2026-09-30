@@ -18,6 +18,7 @@ export type Category = {
   corteRatingMin: number;
   corteRatingMax: number;
   maxDuplas?: number;
+  esgotado?: boolean;
 };
 
 export type Championship = {
@@ -40,6 +41,7 @@ export type Championship = {
   bannerPositionX?: number | null;
   bannerPositionY?: number | null;
   liveUrl?: string | null;
+  isElite?: boolean;
   isVitrine?: boolean;
   usaMotorCategoria: boolean;
   prevendaInicio?: string | null;
@@ -53,9 +55,14 @@ export type BracketDupla = {
 
 export type BracketMatch = {
   id: string;
+  numero: number;
   duplaA: BracketDupla;
   duplaB: BracketDupla;
+  veioDaRepescagemA?: boolean;
+  veioDaRepescagemB?: boolean;
   placar?: string;
+  sets?: Array<{ a: number; b: number }>;
+  quadra?: string;
   winner: "a" | "b" | null;
 };
 
@@ -69,6 +76,10 @@ export type BracketCategory = {
   nome: string;
   rounds: BracketRound[];
   terceiroLugar?: BracketMatch;
+  formato?: "single_elimination" | "double_elimination";
+  repescagem?: BracketRound[];
+  grandeFinal?: BracketMatch;
+  finalReset?: BracketMatch;
 };
 
 export type RatingPoint = { mes: string; rating: number };

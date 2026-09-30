@@ -63,6 +63,11 @@ export function ExcluirCampeonatoButton({ champId, champNome }: { champId: strin
                 <li>· O campeonato some da lista pública</li>
               </ul>
               <p>
+                Por segurança, a exclusão será recusada se já existir qualquer
+                inscrição ou compra iniciada. Nesse caso, use os fluxos de
+                cancelamento e reembolso para preservar o histórico.
+              </p>
+              <p>
                 Para confirmar, digite exatamente:
               </p>
               <p className="rounded-lg bg-gray-100 px-3 py-2 font-mono text-xs text-gray-700 select-all">

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   asaasBillingCompetence,
   asaasEventDomainStatus,
+  asaasEventFinancialOperationStatus,
   asaasEventOrderingDecision,
   asaasEventRank,
   asaasWebhookEventId,
@@ -35,8 +36,10 @@ test("validates provider payload shape before database access", () => {
 test("maps confirmations and refunds to monotonic domain states", () => {
   assert.equal(asaasEventDomainStatus("PAYMENT_CONFIRMED"), "pago");
   assert.equal(asaasEventDomainStatus("PAYMENT_REFUNDED"), "estornado");
+  assert.equal(asaasEventDomainStatus("PAYMENT_PARTIALLY_REFUNDED"), "estornado");
   assert.equal(asaasEventDomainStatus("PAYMENT_CREATED"), null);
   assert.ok((asaasEventRank("PAYMENT_REFUNDED") ?? 0) > (asaasEventRank("PAYMENT_CONFIRMED") ?? 0));
+  assert.ok((asaasEventRank("PAYMENT_REFUNDED") ?? 0) > (asaasEventRank("PAYMENT_PARTIALLY_REFUNDED") ?? 0));
 });
 
 test("rejects duplicate-rank and out-of-order regressions", () => {
@@ -66,4 +69,9 @@ test("maps chargeback events as terminal refunds", () => {
   assert.equal(asaasEventDomainStatus("PAYMENT_CHARGEBACK_REQUESTED"), "estornado");
   assert.equal(asaasEventDomainStatus("PAYMENT_CHARGEBACK_DISPUTE"), "estornado");
   assert.equal(asaasEventRank("PAYMENT_CHARGEBACK_REQUESTED"), 50);
+  assert.equal(asaasEventFinancialOperationStatus("PAYMENT_CONFIRMED"), "confirmed");
+  assert.equal(asaasEventFinancialOperationStatus("PAYMENT_RECEIVED"), "confirmed");
+  assert.equal(asaasEventFinancialOperationStatus("PAYMENT_REFUNDED"), "refunded");
+  assert.equal(asaasEventFinancialOperationStatus("PAYMENT_CHARGEBACK_REQUESTED"), "refunded");
+  assert.equal(asaasEventFinancialOperationStatus("PAYMENT_CREATED"), null);
 });

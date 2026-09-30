@@ -19,6 +19,19 @@ import { isAmbiguousAsaasFailure } from "@/lib/asaas-errors";
 
 const ASAAS_TIMEOUT_MS = 15_000;
 
+function resolveAsaasApiKey(): string | undefined {
+  if (process.env.ASAAS_API_KEY) return process.env.ASAAS_API_KEY;
+  if (process.env.NODE_ENV !== "development") return undefined;
+
+  const sandboxFallback = process.env.RANKFTV_SANDBOX_ASAAS_API_KEY_BASE64;
+  if (!sandboxFallback) return undefined;
+  try {
+    return Buffer.from(sandboxFallback, "base64").toString("utf8") || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export class AsaasApiError extends Error {
   constructor(
     message: string,
@@ -50,7 +63,7 @@ function errorDescription(body: string): string {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const baseUrl = process.env.ASAAS_BASE_URL;
-  const apiKey  = process.env.ASAAS_API_KEY;
+  const apiKey  = resolveAsaasApiKey();
 
   if (!baseUrl || !apiKey) {
     throw new Error("ASAAS_BASE_URL ou ASAAS_API_KEY não configurados no .env.local");
@@ -99,16 +112,31 @@ export async function criarOuBuscarCliente(input: {
   email: string;
   cpfCnpj: string;
 }): Promise<{ id: string }> {
-  const busca = await request<{ data: Array<{ id: string }> }>(
-    `/customers?cpfCnpj=${input.cpfCnpj}`
+  const name = input.name.trim();
+  const email = input.email.trim().toLowerCase();
+  const busca = await request<{ data: Array<{ id: string; name?: string; email?: string }> }>(
+    `/customers?cpfCnpj=${encodeURIComponent(input.cpfCnpj)}`
   );
-  if (busca.data.length > 0) return { id: busca.data[0].id };
+  if (busca.data.length > 0) {
+    const existing = busca.data[0];
+    const updates: { name?: string; email?: string } = {};
+    if ((existing.name ?? "").trim() !== name) updates.name = name;
+    if ((existing.email ?? "").trim().toLowerCase() !== email) updates.email = email;
+
+    if (Object.keys(updates).length > 0) {
+      await request(`/customers/${existing.id}`, {
+        method: "PUT",
+        body: JSON.stringify(updates),
+      });
+    }
+    return { id: existing.id };
+  }
 
   return request<{ id: string }>("/customers", {
     method: "POST",
     body: JSON.stringify({
-      name:     input.name,
-      email:    input.email,
+      name,
+      email,
       cpfCnpj: input.cpfCnpj,
     }),
   });
@@ -188,6 +216,7 @@ export type CobrancaCartaoInput = {
   cartao: CartaoInput;
   titular: TitularInput;
   parcelas?: number;
+  remoteIp?: string;
 };
 
 export type CobrancaCartaoResultado = {
@@ -217,6 +246,7 @@ export async function criarCobrancaCartao(input: CobrancaCartaoInput): Promise<C
       ccv: input.cartao.ccv,
     },
     creditCardHolderInfo: input.titular,
+    ...(input.remoteIp ? { remoteIp: input.remoteIp } : {}),
   };
 
   const parcelas = Math.max(1, Math.floor(input.parcelas ?? 1));
@@ -291,6 +321,9 @@ export type TitularInput = {
   cpfCnpj:       string;
   postalCode:    string;
   addressNumber: string;
+  addressComplement?: string | null;
+  phone?:         string;
+  mobilePhone?:   string;
 };
 
 export type CartaoTokenizado = {
@@ -382,8 +415,8 @@ export async function cancelarAssinatura(subscriptionId: string): Promise<void> 
 export async function reembolsarPagamento(
   asaasPaymentId: string,
   valorParcial?: number,   // omitir = reembolso total; informar = reembolso parcial
-): Promise<{ id: string; status: string }> {
-  return request<{ id: string; status: string }>(`/payments/${asaasPaymentId}/refund`, {
+): Promise<StatusCobranca> {
+  return request<StatusCobranca>(`/payments/${asaasPaymentId}/refund`, {
     method: "POST",
     body: valorParcial != null
       ? JSON.stringify({ value: parseFloat(valorParcial.toFixed(2)) })
@@ -405,10 +438,37 @@ export type StatusCobranca = {
   invoiceUrl?: string;
   externalReference?: string;
   subscription?: string;
+  refunds?: StatusEstornoCobranca[];
 };
+
+export type StatusEstornoCobranca = {
+  id?: string;
+  payment?: string;
+  status: string;
+  value?: number;
+  dateCreated?: string;
+  transactionReceiptUrl?: string | null;
+};
+
 
 export async function consultarCobranca(asaasPaymentId: string): Promise<StatusCobranca> {
   return request<StatusCobranca>(`/payments/${asaasPaymentId}`);
+}
+
+// Cancela uma cobranca ainda pendente. O chamador deve consultar o estado
+// imediatamente antes e, se esta chamada falhar, manter o estoque reservado
+// para a conciliacao — nunca liberar uma vaga enquanto o Pix ainda puder cair.
+export async function cancelarCobrancaPendente(asaasPaymentId: string): Promise<void> {
+  await request<unknown>(`/payments/${asaasPaymentId}`, { method: "DELETE" });
+}
+
+// A consulta da cobrança nem sempre inclui o array de estornos. A rota
+// dedicada é a fonte indicada pelo Asaas para conciliação pontual.
+export async function listarEstornosCobranca(asaasPaymentId: string): Promise<StatusEstornoCobranca[]> {
+  const result = await request<{ data?: StatusEstornoCobranca[] }>(
+    `/payments/${asaasPaymentId}/refunds`,
+  );
+  return result.data ?? [];
 }
 
 export async function buscarCobrancaPorReferencia(externalReference: string): Promise<StatusCobranca | null> {
@@ -483,8 +543,16 @@ export async function transferirPix(input: {
 export type StatusTransferencia = {
   id: string;
   status: string;
+  value?: number;
+  operationType?: string;
   externalReference?: string;
+  pixAddressKey?: string;
+  bankAccount?: { pixAddressKey?: string | null } | null;
 };
+
+export async function consultarTransferencia(id: string): Promise<StatusTransferencia> {
+  return request<StatusTransferencia>(`/transfers/${encodeURIComponent(id)}`);
+}
 
 // The transfer list has no documented externalReference filter. Reconciliation
 // scans a bounded recent window and never creates a second transfer when the

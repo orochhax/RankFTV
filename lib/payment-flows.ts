@@ -6,22 +6,23 @@ import {
   buscarTransferenciaPorReferencia,
   cobrarComToken,
   consultarPixQrCode,
-  consultarCobranca,
   criarAssinaturaCartao,
   criarCobranca,
   criarCobrancaCartao,
+  listarEstornosCobranca,
   reembolsarPagamento,
   transferirPix,
   type CartaoInput,
   type MetodoPagamento,
   type TitularInput,
 } from "@/lib/asaas";
+import { withdrawalRecipientDigest } from "@/lib/asaas-withdrawal-authorization";
 import {
   executeFinancialOperation,
   type FinancialExecutionResult,
   type FinancialFlow,
 } from "@/lib/financial-operations";
-import { refundProviderState, transferProviderState } from "@/lib/payment-provider-state";
+import { refundProviderState, refundProviderStatus, refundStatusFromRefunds, transferProviderState } from "@/lib/payment-provider-state";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type CommonInput = {
@@ -81,6 +82,7 @@ export async function createIdempotentCardCharge(input: CommonInput & {
   card: CartaoInput;
   holder: TitularInput;
   installments?: number;
+  remoteIp?: string;
 }): Promise<FinancialExecutionResult<PaymentProviderResult>> {
   return executeFinancialOperation<PaymentProviderResult>({
     flow: input.flow,
@@ -102,6 +104,7 @@ export async function createIdempotentCardCharge(input: CommonInput & {
       cartao: input.card,
       titular: input.holder,
       parcelas: input.installments,
+      remoteIp: input.remoteIp,
     }),
   });
 }
@@ -170,7 +173,26 @@ export async function refundIdempotently(input: {
   actorId?: string | null;
   correlationId?: string | null;
 }): Promise<FinancialExecutionResult<{ id: string; status: string }>> {
-  const externalReference = `refund:${input.flow}:${input.recordId}`;
+  const baseExternalReference = `refund:${input.flow}:${input.recordId}`;
+  const { data: resolvedReference, error: referenceError } = await createAdminClient().rpc(
+    "financial_resolve_refund_reference",
+    {
+      p_flow: input.flow,
+      p_record_id: input.recordId,
+      p_base_reference: baseExternalReference,
+    },
+  );
+  if (referenceError || typeof resolvedReference !== "string" || !resolvedReference) {
+    return {
+      ok: false,
+      operationId: "",
+      inProgress: false,
+      ambiguous: true,
+      error: "A protecao do reembolso esta indisponivel. Nenhuma nova solicitacao foi criada.",
+    };
+  }
+
+  const externalReference = resolvedReference;
   const result = await executeFinancialOperation({
     flow: input.flow,
     operationType: "refund",
@@ -181,16 +203,40 @@ export async function refundIdempotently(input: {
     correlationId: input.correlationId,
     metadata: { originalPaymentId: input.originalPaymentId.slice(0, 80) },
     lookup: async () => {
-      const payment = await consultarCobranca(input.originalPaymentId);
-      return ["REFUNDED", "REFUND_REQUESTED"].includes(payment.status)
-        ? { id: payment.id, status: payment.status }
+      const refunds = await listarEstornosCobranca(input.originalPaymentId);
+      const refundStatus = refundStatusFromRefunds(refunds);
+      const providerStatus = refundProviderStatus(refunds);
+      // Uma devolucao cancelada e terminal. Ela deve ficar registrada na
+      // operacao anterior, sem impedir a nova tentativa com referencia :retry.
+      return refundStatus && refundProviderState(providerStatus!) !== "failed"
+        ? { id: input.originalPaymentId, status: providerStatus! }
         : null;
     },
-    create: () => reembolsarPagamento(input.originalPaymentId, input.amount),
-    completedStatus: (provider) => refundProviderState(provider.status) === "confirmed"
-      ? "refunded"
-      : "provider_created",
+    create: async () => {
+      const payment = await reembolsarPagamento(input.originalPaymentId, input.amount);
+      const refunds = await listarEstornosCobranca(input.originalPaymentId);
+      const providerStatus = refundProviderStatus(refunds);
+      return {
+        id: payment.id,
+        status: providerStatus ?? payment.status,
+      };
+    },
+    completedStatus: (provider) => {
+      const state = refundProviderState(provider.status);
+      if (state === "confirmed") return "refunded";
+      if (state === "failed") return "cancelled";
+      return "provider_created";
+    },
   });
+  if (result.ok && refundProviderState(result.provider.status) === "failed") {
+    return {
+      ok: false,
+      operationId: result.operationId,
+      inProgress: false,
+      ambiguous: false,
+      error: "O reembolso nÃ£o foi concluÃ­do automaticamente. Procure o suporte.",
+    };
+  }
   if (result.ok && refundProviderState(result.provider.status) === "pending") {
     return {
       ok: false,
@@ -207,6 +253,16 @@ export async function transferIdempotently(input: CommonInput & {
   pixKey: string;
   description: string;
 }): Promise<FinancialExecutionResult<{ id: string; status: string; externalReference?: string }>> {
+  const recipientHashSecret = process.env.PAYMENT_FINGERPRINT_SECRET;
+  if (!recipientHashSecret) {
+    return {
+      ok: false,
+      operationId: "",
+      inProgress: false,
+      ambiguous: false,
+      error: "A protecao de autorizacao do repasse nao esta configurada.",
+    };
+  }
   const { data: resolvedReference, error: referenceError } = await createAdminClient().rpc(
     "financial_resolve_transfer_reference",
     {
@@ -234,7 +290,11 @@ export async function transferIdempotently(input: CommonInput & {
     amount: input.amount,
     actorId: input.actorId,
     correlationId: input.correlationId,
-    metadata: { ...input.metadata, baseExternalReference: input.externalReference },
+    metadata: {
+      ...input.metadata,
+      baseExternalReference: input.externalReference,
+      recipientDigest: withdrawalRecipientDigest(input.pixKey, recipientHashSecret),
+    },
     lookup: () => buscarTransferenciaPorReferencia(externalReference),
     retryUncertainOperation: false,
     create: () => transferirPix({

@@ -1,6 +1,6 @@
 "use server";
 
-import { getResend, FROM } from "./resend";
+import { getResend, FROM, resolveResendApiKey } from "./resend";
 import {
   conviteDuplaHtml,
   inscricaoConfirmadaHtml,
@@ -8,18 +8,80 @@ import {
   pagamentoConfirmadoHtml,
   conviteStaffHtml,
   recuperacaoIngressoHtml,
+  credencialAtletaHtml,
+  alteracaoIngressoOtpHtml,
+  avisoAlteracaoIngressoHtml,
 } from "./templates";
 import { reportOperationalEvent } from "@/lib/observability";
 import { resolveBaseUrl } from "@/lib/site-url";
+import { createEmailOperationalEvent, updateEmailOperationalEvent } from "@/lib/email/operations";
 
 const BASE_URL = resolveBaseUrl(process.env.NEXT_PUBLIC_BASE_URL, "http://localhost:3000");
 
+export async function enviarCodigoAlteracaoIngresso(opts: {
+  email: string;
+  codigo: string;
+  validadeMinutos: number;
+  destino: "atual" | "novo";
+}): Promise<boolean> {
+  return send(
+    opts.email,
+    "Confirme a alteração do seu ingresso",
+    alteracaoIngressoOtpHtml(opts),
+  );
+}
+
+export async function enviarAvisoAlteracaoIngresso(opts: {
+  email: string;
+  nomeCampeonato: string;
+  resumo: string;
+}): Promise<boolean> {
+  return send(
+    opts.email,
+    `Dados do ingresso alterados — ${opts.nomeCampeonato}`,
+    avisoAlteracaoIngressoHtml(opts),
+  );
+}
+
 // Não lança erro — e-mail é best-effort; nunca bloqueia o fluxo principal.
-async function send(to: string, subject: string, html: string) {
-  if (!process.env.RESEND_API_KEY) return; // sem chave → silencioso em dev
+async function send(
+  to: string,
+  subject: string,
+  html: string,
+  options?: { idempotencyKey?: string; templateKey?: string },
+): Promise<boolean> {
+  const eventId = await createEmailOperationalEvent({
+    recipient: to,
+    templateKey: options?.templateKey ?? "transactional",
+  });
+  if (!resolveResendApiKey()) {
+    await updateEmailOperationalEvent({ id: eventId, status: "failed", failureCategory: "provider_not_configured" });
+    return false;
+  }
   try {
-    await getResend().emails.send({ from: FROM, to, subject, html });
+    const result = await getResend().emails.send(
+      { from: FROM, to, subject, html },
+      options?.idempotencyKey ? { idempotencyKey: options.idempotencyKey } : undefined,
+    );
+    if (result.error) {
+      await updateEmailOperationalEvent({ id: eventId, status: "failed", failureCategory: "provider_rejected" });
+      await reportOperationalEvent({
+        level: "error",
+        event: "email.delivery_failed",
+        message: "Transactional email provider rejected delivery",
+        context: { templateSubject: subject, providerError: result.error },
+        alert: true,
+      });
+      return false;
+    }
+    await updateEmailOperationalEvent({
+      id: eventId,
+      status: "accepted",
+      providerMessageId: result.data?.id,
+    });
+    return true;
   } catch (error) {
+    await updateEmailOperationalEvent({ id: eventId, status: "failed", failureCategory: "provider_exception" });
     await reportOperationalEvent({
       level: "error",
       event: "email.delivery_failed",
@@ -28,6 +90,7 @@ async function send(to: string, subject: string, html: string) {
       error,
       alert: true,
     });
+    return false;
   }
 }
 
@@ -141,5 +204,23 @@ export async function enviarPagamentoConfirmado(opts: {
       valorFormatado: opts.valorFormatado,
       inscricoesUrl: `${BASE_URL}/minhas-inscricoes/${opts.championshipId}`,
     }),
+  );
+}
+
+export async function enviarCredencialAtleta(opts: {
+  emailAtleta: string;
+  nomeAtleta: string;
+  nomeParceiro: string;
+  nomeCampeonato: string;
+  nomeCategoria: string;
+  credencialUrl: string;
+  gerenciarCompraUrl?: string;
+  idempotencyKey: string;
+}): Promise<boolean> {
+  return send(
+    opts.emailAtleta,
+    `Sua credencial — ${opts.nomeCampeonato}`,
+    credencialAtletaHtml(opts),
+    { idempotencyKey: opts.idempotencyKey, templateKey: "athlete_credential" },
   );
 }

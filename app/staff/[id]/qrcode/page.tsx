@@ -4,29 +4,8 @@ import { ArrowLeft, CheckCircle2, Clock, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CheckinClient } from "@/components/checkin/CheckinClient";
 import { PresenceItem } from "@/components/checkin/PresenceItem";
-
-type CredentialRow = {
-  id: string;
-  user_id: string;
-  role: string;
-  qr_token: string;
-  code: string | null;
-  checked_in: boolean;
-  checkin_at: string | null;
-  checked_in_by: string | null;
-};
-
-type ProfileRow = {
-  id: string;
-  nome: string;
-  username: string;
-};
-
-type CredentialDisplay = CredentialRow & {
-  nome: string;
-  username: string;
-  scannerNome: string | null;
-};
+import { PairPresenceItem } from "@/components/checkin/PairPresenceItem";
+import { getCheckinDirectory } from "@/lib/checkin-directory";
 
 export default async function StaffQrcodePage({
   params,
@@ -61,40 +40,15 @@ export default async function StaffQrcodePage({
 
   if (!camp) notFound();
 
-  const { data: rawCreds } = await supabase
-    .from("credentials")
-    .select("id, user_id, role, qr_token, code, checked_in, checkin_at, checked_in_by")
-    .eq("championship_id", id);
+  const allList = await getCheckinDirectory(id, user.id);
+  if (!allList) notFound();
 
-  const creds: CredentialRow[] = rawCreds ?? [];
-
-  const athleteIds = [...new Set(creds.map((c) => c.user_id))];
-  const scannerIds = [...new Set(creds.map((c) => c.checked_in_by).filter(Boolean))] as string[];
-  const allIds     = [...new Set([...athleteIds, ...scannerIds])];
-
-  let profiles: ProfileRow[] = [];
-  if (allIds.length > 0) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, nome, username")
-      .in("id", allIds);
-    profiles = (data ?? []) as ProfileRow[];
-  }
-
-  const profileMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
-
-  const allList: CredentialDisplay[] = creds
-    .map((c) => ({
-      ...c,
-      nome:        profileMap[c.user_id]?.nome     ?? "Atleta",
-      username:    profileMap[c.user_id]?.username ?? "",
-      scannerNome: c.checked_in_by ? (profileMap[c.checked_in_by]?.nome ?? null) : null,
-    }))
-    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-
-  const total       = allList.length;
-  const confirmados = allList.filter((c) => c.checked_in).length;
-  const pendentes   = total - confirmados;
+  const total = allList.reduce((sum, item) => sum + item.members.length, 0);
+  const confirmados = allList.reduce(
+    (sum, item) => sum + item.members.filter((member) => member.checkedIn).length,
+    0,
+  );
+  const pendentes = total - confirmados;
 
   const filtroAtivo =
     filtro === "presentes" ? "presentes" :
@@ -102,19 +56,19 @@ export default async function StaffQrcodePage({
     "todos";
 
   const lista =
-    filtroAtivo === "presentes" ? allList.filter((c) =>  c.checked_in) :
-    filtroAtivo === "pendentes" ? allList.filter((c) => !c.checked_in) :
+    filtroAtivo === "presentes" ? allList.filter((item) => item.members.some((member) => member.checkedIn)) :
+    filtroAtivo === "pendentes" ? allList.filter((item) => item.members.some((member) => !member.checkedIn)) :
     allList;
 
   const FILTROS = [
-    { key: "todos",     label: `Todos (${total})` },
-    { key: "pendentes", label: `Pendentes (${pendentes})` },
-    { key: "presentes", label: `Presentes (${confirmados})` },
+    { key: "todos",     label: `Todos (${allList.length})` },
+    { key: "pendentes", label: "Com pendentes" },
+    { key: "presentes", label: "Com presentes" },
   ];
 
   return (
     <div className="min-h-screen">
-      <div className="bg-black px-6 pb-16 pt-6">
+      <div className="bg-brand-dark px-6 pb-16 pt-6">
         <div className="w-full space-y-4">
           <Link
             href={`/staff/${id}`}
@@ -128,18 +82,18 @@ export default async function StaffQrcodePage({
             <p className="mt-1 text-sm text-white/40">Credenciamento · portaria</p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 pt-1">
-            <div className="rounded-2xl bg-white/10 p-4">
+          <div className="grid grid-cols-2 gap-3 pt-1 sm:grid-cols-3">
+            <div className="col-span-2 rounded-2xl bg-white/10 p-4 sm:col-span-1">
               <div className="flex items-center gap-1.5 text-white/50">
                 <Users className="size-4" />
-                <p className="text-xs">Total</p>
+                <p className="text-xs">Atletas</p>
               </div>
               <p className="mt-1 text-2xl font-bold text-white">{total}</p>
             </div>
             <div className="rounded-2xl bg-blue-500/20 p-4">
               <div className="flex items-center gap-1.5 text-blue-400">
                 <CheckCircle2 className="size-4" />
-                <p className="text-xs">Confirmados</p>
+                <p className="text-xs">Presentes</p>
               </div>
               <p className="mt-1 text-2xl font-bold text-blue-300">{confirmados}</p>
             </div>
@@ -202,32 +156,37 @@ export default async function StaffQrcodePage({
               </div>
             ) : (
               <ol className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-                {lista.map((c) =>
-                  c.checked_in && c.checkin_at ? (
+                {lista.map((item) => {
+                  if (item.kind === "pair") {
+                    return <PairPresenceItem key={item.id} members={item.members} />;
+                  }
+                  const member = item.members[0];
+                  if (!member) return null;
+                  return member.checkedIn && member.checkinAt ? (
                     <PresenceItem
-                      key={c.id}
-                      nome={c.nome}
-                      username={c.username}
-                      checkinAt={c.checkin_at}
-                      scannerNome={c.scannerNome}
+                      key={item.id}
+                      nome={member.name}
+                      username={member.username}
+                      checkinAt={member.checkinAt}
+                      scannerNome={member.scannerName}
                     />
                   ) : (
-                    <li key={c.id} className="flex items-center gap-3 px-4 py-3">
+                    <li key={item.id} className="flex items-center gap-3 px-4 py-3">
                       <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
                         <Clock className="size-4 text-gray-400" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-gray-900">{c.nome}</p>
-                        {c.username && (
-                          <p className="text-xs text-gray-400">@{c.username}</p>
+                        <p className="truncate font-medium text-gray-900">{member.name}</p>
+                        {member.username && (
+                          <p className="text-xs text-gray-400">@{member.username}</p>
                         )}
                       </div>
                       <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500">
                         Pendente
                       </span>
                     </li>
-                  )
-                )}
+                  );
+                })}
               </ol>
             )}
           </section>

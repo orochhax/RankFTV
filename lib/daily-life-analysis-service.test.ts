@@ -11,7 +11,7 @@ const cronSource = readFileSync(
   "utf8",
 );
 const actionsSource = readFileSync(
-  "app/admin/performance/life-os-actions.ts",
+  "app/admin/performance/life-os-actions/investments.ts",
   "utf8",
 );
 
@@ -74,7 +74,7 @@ test("investment collection includes withdrawals and the active versioned plan",
 test("legacy contribution fallback is restricted to a missing canonical relation", () => {
   assert.match(serviceSource, /function isMissingRelation/);
   const fallbackBranch = serviceSource.match(
-    /if \(isMissingRelation\(contributionsResult\.error\)\) \{[\s\S]*?canonicalContributionState = "migration_missing";[\s\S]*?\n  \}/,
+    /if \(isMissingRelation\(contributionsResult\.error\)\) \{[\s\S]*?canonicalContributionState = "migration_missing";[\s\S]*?\n {2}\}/,
   )?.[0];
   assert.ok(fallbackBranch);
   assert.match(fallbackBranch, /from\("personal_finance_entries"\)/);

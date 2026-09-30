@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { publicAsaasError } from "@/lib/financial-error-messages";
 import { AsaasApiError } from "@/lib/asaas";
 import { mustReconcileWithoutCreating } from "@/lib/payment-provider-state";
 
@@ -55,9 +56,17 @@ export function sanitizeFinancialMetadata(input: Record<string, unknown> | undef
   );
 }
 
-function publicFinancialError(error: unknown): { message: string; code: string; ambiguous: boolean } {
+function publicFinancialError(
+  error: unknown,
+  billingType?: string | null,
+): { message: string; code: string; ambiguous: boolean } {
   if (error instanceof AsaasApiError) {
-    return { message: error.message, code: error.code, ambiguous: error.ambiguous };
+    return publicAsaasError({
+      status: error.status,
+      code: error.code,
+      ambiguous: error.ambiguous,
+      billingType,
+    });
   }
   return {
     message: "Nao foi possivel concluir a operacao financeira.",
@@ -176,7 +185,7 @@ export async function executeFinancialOperation<T extends ProviderRecord>(input:
 
     return finish(await input.create(), false);
   } catch (err) {
-    const safe = publicFinancialError(err);
+    const safe = publicFinancialError(err, input.billingType);
     const operationWasAlreadyProtected = !operation.shouldExecute
       && ["provider_created", "confirmed", "refunded", "cancelled"].includes(operation.status);
     if (operationWasAlreadyProtected) {
@@ -210,7 +219,7 @@ export async function executeFinancialOperation<T extends ProviderRecord>(input:
 export function financialProviderStatusToWebhookEvent(status: string | undefined): string | null {
   if (!status) return null;
   if (["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(status)) return "PAYMENT_CONFIRMED";
-  if (["REFUNDED", "REFUND_REQUESTED", "CHARGEBACK_REQUESTED", "CHARGEBACK_DISPUTE"].includes(status)) {
+  if (["REFUNDED", "CHARGEBACK_REQUESTED", "CHARGEBACK_DISPUTE"].includes(status)) {
     return "PAYMENT_REFUNDED";
   }
   return null;

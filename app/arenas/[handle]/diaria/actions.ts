@@ -9,6 +9,10 @@ import {
   cardBlockedMessage,
   finishCardPaymentAttempt,
 } from "@/lib/payment-security";
+import {
+  arenaDailyPaymentSchema,
+  invalidPaymentInput,
+} from "@/lib/payment-input-schemas";
 
 export type DiariaInput = {
   planId:      string;
@@ -30,6 +34,10 @@ export type DiariaResult =
   | { ok: false; error: string };
 
 export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
+  const parsed = arenaDailyPaymentSchema.safeParse(input);
+  if (!parsed.success) return invalidPaymentInput();
+  input = parsed.data;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada. Faça login novamente." };
@@ -53,6 +61,14 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
     .single();
 
   if (!plan) return { ok: false, error: "Plano de diária não encontrado." };
+
+  const { data: arena } = await supabase
+    .from("arenas")
+    .select("id")
+    .eq("id", plan.arena_id)
+    .eq("handle", input.handle)
+    .maybeSingle();
+  if (!arena) return { ok: false, error: "Plano de diária não encontrado." };
 
   if (input.tipo === "debito" && !plan.aceita_debito) {
     return { ok: false, error: "Esta arena não aceita débito para diária." };

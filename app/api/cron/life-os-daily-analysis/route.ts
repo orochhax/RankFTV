@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateDailyLifeAnalysis } from "@/lib/daily-life-analysis-service";
+import { isCronAuthorized } from "@/lib/cron-auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -46,11 +47,7 @@ async function findPerformanceOwnerId(
 }
 
 export async function GET(request: NextRequest) {
-  const authorization = request.headers.get("authorization");
-  if (
-    !process.env.CRON_SECRET ||
-    authorization !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  if (!isCronAuthorized(request.headers)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

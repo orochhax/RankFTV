@@ -1,11 +1,18 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import type { GeneroCategoria } from "@/lib/types";
 import { resolverFaixaRating } from "@/lib/motor-categoria";
+import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
+import { buildChampionshipChangeNotice } from "@/lib/championship-notices-core";
+import {
+  prepareChampionshipNoticeRecipients,
+  processPendingChampionshipNoticeDeliveries,
+} from "@/lib/championship-notices";
+import { championshipIdSchema, championshipUpdateSchema } from "@/lib/championship-update-schema";
 
 export async function atualizarBannerCampeonato(
   champId: string,
@@ -37,38 +44,30 @@ export async function atualizarBannerCampeonato(
 export async function excluirCampeonato(
   champId: string,
 ): Promise<{ ok: boolean; error?: string }> {
+  const parsedChampId = championshipIdSchema.safeParse(champId);
+  if (!parsedChampId.success) {
+    return { ok: false, error: "Campeonato inválido." };
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Não autenticado." };
 
-  const { data: champ } = await supabase
-    .from("championships")
-    .select("organizador_id")
-    .eq("id", champId)
-    .single();
-  if (!champ || champ.organizador_id !== user.id)
-    return { ok: false, error: "Sem permissão." };
-
-  // As escritas privilegiadas abaixo so acontecem depois de confirmar, com o
-  // client da sessao, que o usuario e o organizador. Isso evita que as novas
-  // permissoes restritas deixem registros orfaos ou facam a exclusao falhar.
-  const admin = createAdminClient();
-  const dependencias = [
-    "registrations",
-    "teams",
-    "bracket_matches",
-    "credentials",
-    "shirt_production",
-    "championship_categories",
-  ] as const;
-
-  for (const tabela of dependencias) {
-    const { error } = await admin.from(tabela).delete().eq("championship_id", champId);
-    if (error) return { ok: false, error: "Erro ao excluir os dados do campeonato." };
+  const { error: deleteError } = await supabase.rpc("delete_championship_transaction", {
+    p_championship_id: parsedChampId.data,
+  });
+  if (deleteError) {
+    if (deleteError.message.includes("CHAMPIONSHIP_HAS_PURCHASE_HISTORY")) {
+      return {
+        ok: false,
+        error: "Este campeonato possui inscrição ou compra iniciada e não pode ser apagado. Preserve o histórico e trate cancelamentos ou reembolsos pelo fluxo correto.",
+      };
+    }
+    if (deleteError.code === "42501") {
+      return { ok: false, error: "Sem permissão para excluir este campeonato." };
+    }
+    return { ok: false, error: "Não foi possível excluir o campeonato. Nenhum dado foi apagado." };
   }
-
-  const { error: deleteError } = await admin.from("championships").delete().eq("id", champId);
-  if (deleteError) return { ok: false, error: "Erro ao excluir o campeonato." };
 
   revalidatePath("/campeonatos");
   revalidatePath("/painel");
@@ -106,8 +105,14 @@ export type UpdateChampionshipInput = {
 
 export async function updateChampionship(
   champId: string,
-  input: UpdateChampionshipInput,
+  rawInput: UpdateChampionshipInput,
 ): Promise<{ ok: boolean; error?: string }> {
+  const parsed = championshipUpdateSchema.safeParse({ champId, input: rawInput });
+  if (!parsed.success) {
+    return { ok: false, error: "Os dados do campeonato são inválidos. Revise os campos e tente novamente." };
+  }
+  const input = parsed.data.input;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Não autenticado." };
@@ -115,7 +120,7 @@ export async function updateChampionship(
   // Confirma que o usuário é o organizador
   const { data: champ } = await supabase
     .from("championships")
-    .select("organizador_id")
+    .select("organizador_id, nome, data_inicio, data_fim, cidade, estado, local")
     .eq("id", champId)
     .single();
   if (!champ || champ.organizador_id !== user.id)
@@ -143,73 +148,122 @@ export async function updateChampionship(
   if (ativas.length === 0)
     return { ok: false, error: "Adicione pelo menos uma categoria." };
 
-  // Atualiza dados principais
-  const { error: champErr } = await supabase
-    .from("championships")
-    .update({
-      nome,
-      descricao:            input.descricao?.trim() ?? "",
-      regulamento:          input.regulamento?.trim() ?? "",
-      regulamento_pdf_url:  input.regulamentoPdfUrl ?? null,
-      data_inicio:          input.dataInicio,
-      data_fim:          input.dataFim,
-      inscricoes_inicio: input.inscricoesInicio || null,
-      inscricoes_fim:    input.inscricoesFim    || null,
-      prevenda_inicio:   input.prevendaInicio   || null,
-      prevenda_fim:      input.prevendaFim      || null,
-      cidade:            input.cidade.trim(),
-      estado:            input.estado.trim().toUpperCase().slice(0, 2),
-      local:             input.local?.trim() ?? "",
-      live_url:          input.liveUrl?.trim() || null,
-      status:            input.status,
-      usa_motor_categoria: input.usaMotorCategoria,
-    })
-    .eq("id", champId);
-
-  if (champErr) return { ok: false, error: "Erro ao atualizar campeonato." };
-
-  // Categorias: delete, update, insert
   const toDelete = categorias.filter((c) => c._delete && c.id);
   const toUpdate = categorias.filter((c) => !c._delete && c.id);
   const toInsert = categorias.filter((c) => !c._delete && !c.id);
 
-  if (toDelete.length > 0) {
-    await supabase
-      .from("championship_categories")
-      .delete()
-      .in("id", toDelete.map((c) => c.id!));
+  const changeNotice = buildChampionshipChangeNotice(
+    { dataInicio: champ.data_inicio, dataFim: champ.data_fim, cidade: champ.cidade, estado: champ.estado, local: champ.local },
+    { dataInicio: input.dataInicio, dataFim: input.dataFim, cidade: input.cidade.trim(), estado: input.estado.trim().toUpperCase().slice(0, 2), local: input.local?.trim() ?? "" },
+    randomUUID(),
+  );
+  let preparedNotice = { deliveries: [], notificationUserIds: [] } as Awaited<
+    ReturnType<typeof prepareChampionshipNoticeRecipients>
+  >;
+  if (changeNotice) {
+    const { data: recipients, error: recipientsError } = await supabase.rpc(
+      "organizer_championship_recipients",
+      { p_championship_id: champId, p_user_ids: null },
+    );
+    if (recipientsError) {
+      return { ok: false, error: "Não foi possível identificar os atletas que precisam receber o aviso. Nenhuma alteração foi aplicada." };
+    }
+    try {
+      preparedNotice = await prepareChampionshipNoticeRecipients({
+        championshipId: champId,
+        authenticatedRecipients: ((recipients ?? []) as Array<{ user_id: string; email: string; nome: string }>).map(
+          (recipient) => ({ userId: recipient.user_id, email: recipient.email, nome: recipient.nome }),
+        ),
+      });
+    } catch {
+      return { ok: false, error: "Não foi possível preparar os avisos aos atletas. Nenhuma alteração foi aplicada." };
+    }
   }
 
-  for (const cat of toUpdate) {
-    const faixa = resolverFaixaRating(cat.nome);
-    await supabase
-      .from("championship_categories")
-      .update({
-        nome:             cat.nome.trim(),
-        genero:           cat.genero,
-        valor_inscricao:  Math.max(0, Number(cat.valorInscricao) || 0),
-        max_duplas:       cat.maxDuplas && cat.maxDuplas > 0 ? cat.maxDuplas : null,
+  const categoryOperations = [
+    ...toDelete.map((category) => ({ operation: "delete", id: category.id })),
+    ...toUpdate.map((category) => {
+      const faixa = resolverFaixaRating(category.nome);
+      return {
+        operation: "update",
+        id: category.id,
+        nome: category.nome.trim(),
+        genero: category.genero,
+        valor_inscricao: Math.max(0, Math.round(Number(category.valorInscricao) || 0)),
+        max_duplas: category.maxDuplas && category.maxDuplas > 0 ? category.maxDuplas : null,
         corte_rating_min: faixa?.min ?? 0,
         corte_rating_max: faixa?.max ?? 9999,
-      })
-      .eq("id", cat.id!);
+      };
+    }),
+    ...toInsert.map((category) => {
+      const faixa = resolverFaixaRating(category.nome);
+      return {
+        operation: "insert",
+        nome: category.nome.trim(),
+        genero: category.genero,
+        valor_inscricao: Math.max(0, Math.round(Number(category.valorInscricao) || 0)),
+        max_duplas: category.maxDuplas && category.maxDuplas > 0 ? category.maxDuplas : null,
+        corte_rating_min: faixa?.min ?? 0,
+        corte_rating_max: faixa?.max ?? 9999,
+      };
+    }),
+  ];
+
+  const { data: noticeId, error: transactionError } = await supabase.rpc(
+    "update_championship_transaction",
+    {
+      p_championship_id: champId,
+      p_championship: {
+        nome,
+        descricao: input.descricao?.trim() ?? "",
+        regulamento: input.regulamento?.trim() ?? "",
+        regulamento_pdf_url: input.regulamentoPdfUrl ?? null,
+        data_inicio: input.dataInicio,
+        data_fim: input.dataFim,
+        inscricoes_inicio: input.inscricoesInicio || null,
+        inscricoes_fim: input.inscricoesFim || null,
+        prevenda_inicio: input.prevendaInicio || null,
+        prevenda_fim: input.prevendaFim || null,
+        cidade: input.cidade.trim(),
+        estado: input.estado.trim().toUpperCase().slice(0, 2),
+        local: input.local?.trim() ?? "",
+        live_url: input.liveUrl?.trim() || null,
+        status: input.status,
+        usa_motor_categoria: categoryLevelRecommendationEnabled(input.usaMotorCategoria),
+      },
+      p_category_operations: categoryOperations,
+      p_notice: changeNotice
+        ? {
+            kind: changeNotice.kind,
+            title: changeNotice.title,
+            message: changeNotice.message,
+            dedupe_key: changeNotice.dedupeKey,
+          }
+        : null,
+      p_deliveries: preparedNotice.deliveries,
+      p_notification_user_ids: preparedNotice.notificationUserIds,
+    },
+  );
+
+  if (transactionError) {
+    if (
+      transactionError.code === "23503"
+      || transactionError.message.includes("CATEGORY_HAS_DEPENDENCIES")
+      || transactionError.message.includes("championship_categories_has_history")
+    ) {
+      return {
+        ok: false,
+        error: "Essa categoria possui inscrições ou chaveamento e não pode ser excluída. A exclusão não cancela compras nem gera reembolso.",
+      };
+    }
+    if (transactionError.message.includes("CATEGORY_WRITE_FAILED")) {
+      return { ok: false, error: "Uma categoria mudou enquanto você editava. Atualize a página e tente novamente. Nenhuma alteração foi aplicada." };
+    }
+    return { ok: false, error: "Não foi possível salvar o campeonato. Nenhuma alteração foi aplicada." };
   }
 
-  if (toInsert.length > 0) {
-    await supabase.from("championship_categories").insert(
-      toInsert.map((c) => {
-        const faixa = resolverFaixaRating(c.nome);
-        return {
-          championship_id:  champId,
-          nome:             c.nome.trim(),
-          genero:           c.genero,
-          valor_inscricao:  Math.max(0, Math.round(Number(c.valorInscricao) || 0)),
-          corte_rating_min: faixa?.min ?? 0,
-          corte_rating_max: faixa?.max ?? 9999,
-          max_duplas:       c.maxDuplas && c.maxDuplas > 0 ? c.maxDuplas : null,
-        };
-      }),
-    );
+  if (noticeId) {
+    await processPendingChampionshipNoticeDeliveries({ noticeId, limit: 50 });
   }
 
   revalidatePath(`/painel/campeonatos/${champId}`);

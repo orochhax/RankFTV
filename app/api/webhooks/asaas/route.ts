@@ -10,11 +10,15 @@ import { addMonthsISO } from "@/lib/arena-dates";
 import { pixKeyEmCooldown } from "@/lib/pix";
 import { executeArenaPayout } from "@/lib/arena-payout";
 import { reportOperationalEvent } from "@/lib/observability";
+import { listarEstornosCobranca } from "@/lib/asaas";
+import { sameMoney } from "@/lib/asaas-withdrawal-authorization";
+import { processPendingOrganizerFinancialNotifications, queueOrganizerFinancialNotification } from "@/lib/organizer-financial-notifications";
 import {
   ASAAS_CONFIRMED_EVENTS,
   ASAAS_REFUNDED_EVENTS,
   asaasBillingCompetence,
   asaasEventDomainStatus,
+  asaasEventFinancialOperationStatus,
   asaasEventRank,
   asaasWebhookEventId,
   isValidAsaasWebhookPayload,
@@ -27,6 +31,101 @@ const DIAS_LIQUIDACAO: Record<string, number> = {
   DEBIT_CARD:  3,
   CREDIT_CARD: 32,
 };
+
+async function notifyOrganizerFinancialEvent(input: {
+  championshipId: string;
+  recordType: "registration" | "athlete_ticket" | "spectator_ticket";
+  recordId: string;
+  payment: AsaasWebhookPayload["payment"];
+  event: string;
+}) {
+  const kind = input.event === "PAYMENT_PARTIALLY_REFUNDED"
+    ? "refund_partially_confirmed"
+    : ASAAS_CONFIRMED_EVENTS.has(input.event)
+      ? "payment_confirmed"
+      : "refund_confirmed";
+  await queueOrganizerFinancialNotification({
+    championshipId: input.championshipId, paymentId: input.payment.id, kind,
+    recordType: input.recordType, recordId: input.recordId,
+    // O payload parcial não traz o valor devolvido de forma confiável; não
+    // exibimos um total potencialmente errado para o organizador.
+    amount: kind === "refund_partially_confirmed" ? null : input.payment.value,
+  });
+  // A entrega é imediata; o cron reprocessa somente as tentativas que falharem.
+  await processPendingOrganizerFinancialNotifications(10);
+}
+
+async function syncFinancialPaymentOperation(body: AsaasWebhookPayload): Promise<void> {
+  const targetStatus = asaasEventFinancialOperationStatus(body.event);
+  if (!targetStatus || !body.payment.externalReference) return;
+
+  const admin = createAdminClient();
+  const selectOperation = "id, provider_id";
+  let { data: operation, error } = await admin
+    .from("financial_operations")
+    .select(selectOperation)
+    .eq("operation_type", "payment")
+    .eq("provider_id", body.payment.id)
+    .maybeSingle();
+
+  if (error) throw new Error(`financial_operation_lookup_failed:${error.message}`);
+  if (!operation) {
+    const byReference = await admin
+      .from("financial_operations")
+      .select(selectOperation)
+      .eq("operation_type", "payment")
+      .eq("external_reference", body.payment.externalReference)
+      .maybeSingle();
+    operation = byReference.data;
+    error = byReference.error;
+  }
+
+  if (error) throw new Error(`financial_operation_lookup_failed:${error.message}`);
+  if (!operation) return;
+  if (operation.provider_id && operation.provider_id !== body.payment.id) {
+    throw new Error("financial_provider_id_conflict");
+  }
+
+  const { error: completeError } = await admin.rpc("financial_complete_operation", {
+    p_operation_id: operation.id,
+    p_provider_id: body.payment.id,
+    p_provider_status: body.payment.status,
+    p_status: targetStatus,
+  });
+  if (completeError) {
+    throw new Error(`financial_operation_sync_failed:${completeError.message}`);
+  }
+}
+
+// A partial refund is terminal for a ticket only when it matches the refund
+// requested by RankFTV. Other partial refunds must not invalidate access.
+async function completedPartialRefundOperation(body: AsaasWebhookPayload): Promise<string | null> {
+  const admin = createAdminClient();
+  const { data: operations, error } = await admin.from("financial_operations")
+    .select("id, flow, record_id, amount")
+    .eq("operation_type", "refund")
+    .eq("provider_id", body.payment.id)
+    .in("status", ["processing", "provider_created", "ambiguous"])
+    .limit(2);
+  if (error) throw error;
+  if (!operations?.length) return null;
+  if (operations.length !== 1) throw new Error("partial_refund_operation_ambiguous");
+
+  const operation = operations[0];
+  const prefixes: Record<string, string> = {
+    registration: "",
+    athlete_ticket: "athl:",
+    spectator_ticket: "spec:",
+  };
+  const prefix = prefixes[operation.flow];
+  if (prefix == null || body.payment.externalReference !== `${prefix}${operation.record_id}`) return null;
+
+  const refunds = await listarEstornosCobranca(body.payment.id);
+  if (!refunds.some((refund) => refund.status === "DONE" && sameMoney(refund.value, operation.amount))) {
+    throw new Error("partial_refund_not_confirmed_by_provider");
+  }
+  return operation.id;
+}
 
 async function handleAsaasWebhook(req: NextRequest) {
   try {
@@ -74,6 +173,19 @@ async function handleAsaasWebhook(req: NextRequest) {
       return false;
     }
     return true;
+  }
+
+  // A cobrança pode chegar atrasada, pertencer a uma parcela antiga ou já ter sido
+  // substituída por outra cobrança do mesmo registro. Isso deve ser auditado, mas
+  // não pode devolver 4xx ao Asaas: ele reenvia, penaliza a fila e bloqueia eventos
+  // válidos posteriores. A confirmação do domínio continua bloqueada pelo vínculo
+  // exato entre o payment.id e o registro.
+  function acknowledgePaymentOwnershipMismatch() {
+    return NextResponse.json({
+      ok: true,
+      ignored: true,
+      reason: "payment_ownership_mismatch",
+    });
   }
 
   async function processarRepasseArena(
@@ -222,7 +334,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("mens:")) {
     const chargeId = registrationId.slice("mens:".length);
     if (!(await paymentBelongsToRecord("student_charges", chargeId))) {
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
     }
 
     if (ASAAS_CONFIRMED_EVENTS.has(event)) {
@@ -262,7 +374,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("arena_rental:")) {
     const rentalId = registrationId.slice("arena_rental:".length);
     if (!(await paymentBelongsToRecord("arena_rentals", rentalId)))
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
 
     if (ASAAS_CONFIRMED_EVENTS.has(event)) {
       await supabase
@@ -310,7 +422,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("arena_daily:")) {
     const passId = registrationId.slice("arena_daily:".length);
     if (!(await paymentBelongsToRecord("arena_daily_passes", passId)))
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
 
     if (ASAAS_CONFIRMED_EVENTS.has(event)) {
       await supabase
@@ -363,7 +475,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("arena_class_charge:")) {
     const attendanceId = registrationId.slice("arena_class_charge:".length);
     if (!(await paymentBelongsToRecord("arena_attendance", attendanceId)))
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
 
     if (ASAAS_CONFIRMED_EVENTS.has(event)) {
       await supabase
@@ -414,7 +526,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("athl:")) {
     const ticketId = registrationId.slice(5);
     if (!(await paymentBelongsToRecord("athlete_tickets", ticketId)))
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
 
     const resultado = novoStatus === "pago"
       ? await confirmarAthleteTicketPago(supabase, ticketId, { id: payment.id, billingType: payment.billingType })
@@ -432,6 +544,9 @@ async function handleAsaasWebhook(req: NextRequest) {
       return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
     }
 
+    const { data: athleteTicket } = await supabase.from("athlete_tickets").select("championship_id").eq("id", ticketId).maybeSingle();
+    if (athleteTicket?.championship_id) await notifyOrganizerFinancialEvent({ championshipId: athleteTicket.championship_id, recordType: "athlete_ticket", recordId: ticketId, payment, event });
+
     return NextResponse.json({ ok: true, tipo: "atleta_ticket", status: novoStatus });
   }
 
@@ -440,7 +555,7 @@ async function handleAsaasWebhook(req: NextRequest) {
   if (registrationId.startsWith("spec:")) {
     const ticketId = registrationId.slice(5);
     if (!(await paymentBelongsToRecord("spectator_tickets", ticketId)))
-      return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+      return acknowledgePaymentOwnershipMismatch();
 
     await supabase
       .from("spectator_tickets")
@@ -458,6 +573,8 @@ async function handleAsaasWebhook(req: NextRequest) {
       if (releaseError) {
         return NextResponse.json({ error: "Falha ao liberar inventario do pedido" }, { status: 500 });
       }
+      const { data: refundedTicket } = await supabase.from("spectator_tickets").select("championship_id").eq("id", ticketId).maybeSingle();
+      if (refundedTicket?.championship_id) await notifyOrganizerFinancialEvent({ championshipId: refundedTicket.championship_id, recordType: "spectator_ticket", recordId: ticketId, payment, event });
       return NextResponse.json({ ok: true, tipo: "espectador", status: novoStatus });
     }
 
@@ -513,11 +630,13 @@ async function handleAsaasWebhook(req: NextRequest) {
       }
     }
 
+    if (ticket?.championship_id) await notifyOrganizerFinancialEvent({ championshipId: ticket.championship_id, recordType: "spectator_ticket", recordId: ticketId, payment, event });
+
     return NextResponse.json({ ok: true, tipo: "espectador", status: novoStatus });
   }
 
   if (!(await paymentBelongsToRecord("registrations", registrationId)))
-    return NextResponse.json({ error: "Pagamento nao confere" }, { status: 409 });
+    return acknowledgePaymentOwnershipMismatch();
 
   // 2/3/4. Atualiza status, ativa dupla/credenciais/repasse (pago) ou reverte
   // (estornado) — lógica compartilhada com a reconciliação manual do painel
@@ -538,6 +657,9 @@ async function handleAsaasWebhook(req: NextRequest) {
     });
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
+
+  const { data: registration } = await supabase.from("registrations").select("championship_id").eq("id", registrationId).maybeSingle();
+  if (registration?.championship_id) await notifyOrganizerFinancialEvent({ championshipId: registration.championship_id, recordType: "registration", recordId: registrationId, payment, event });
 
   return NextResponse.json({ ok: true, status: novoStatus });
   } catch (err) {
@@ -576,6 +698,24 @@ export async function POST(req: NextRequest) {
     body = parsed;
   } catch {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  }
+
+  let partialRefundOperationId: string | null = null;
+  if (body.event === "PAYMENT_PARTIALLY_REFUNDED") {
+    try {
+      partialRefundOperationId = await completedPartialRefundOperation(body);
+    } catch (error) {
+      await reportOperationalEvent({
+        level: "error",
+        event: "webhook.partial_refund_verification_failed",
+        message: "Partial refund could not be verified against the provider and ledger",
+        context: { paymentId: body.payment.id },
+        error,
+        alert: true,
+      });
+      return NextResponse.json({ error: "Partial refund verification failed" }, { status: 503 });
+    }
+    if (!partialRefundOperationId) return NextResponse.json({ ok: true, ignored: true });
   }
 
   const rank = asaasEventRank(body.event);
@@ -647,7 +787,39 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 
-  const success = response.status < 400;
+  let success = response.status < 400;
+  if (success) {
+    const responseBody = await response.clone().json().catch(() => null) as { ignored?: boolean } | null;
+    if (!responseBody?.ignored) {
+      try {
+        await syncFinancialPaymentOperation(body);
+        if (partialRefundOperationId) {
+          const { error: refundError } = await admin.rpc("financial_complete_operation", {
+            p_operation_id: partialRefundOperationId,
+            p_provider_id: body.payment.id,
+            p_provider_status: "REFUNDED",
+            p_status: "refunded",
+          });
+          if (refundError) throw refundError;
+        }
+      } catch (error) {
+        success = false;
+        response = NextResponse.json(
+          { error: "Webhook financial state synchronization failed" },
+          { status: 500 },
+        );
+        await reportOperationalEvent({
+          level: "critical",
+          event: "webhook.financial_operation_sync_failed",
+          message: "Webhook domain state changed but its financial operation did not synchronize",
+          requestId: correlationId,
+          context: { eventId, paymentId: body.payment.id, eventType: body.event },
+          error,
+          alert: true,
+        });
+      }
+    }
+  }
   await admin.rpc("complete_asaas_webhook_event", {
     p_event_id: eventId,
     p_success: success,

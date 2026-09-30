@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import QRCode from "qrcode";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { formatBRL } from "@/lib/format";
@@ -15,7 +16,7 @@ type Props = {
   qrToken: string | null;
   code: string | null;
   quantidade: number;
-  valor: number;
+  pixAmount: number;
   pixCopyPaste: string | null;
   pixQrBase64: string | null;
 };
@@ -32,10 +33,11 @@ export function IngressoPlateiaStatus({
   qrToken,
   code,
   quantidade,
-  valor,
+  pixAmount,
   pixCopyPaste,
   pixQrBase64,
 }: Props) {
+  const router = useRouter();
   const [statusPagamento, setStatusPagamento] = useState(initialStatusPagamento);
   const [checkedIn, setCheckedIn] = useState(initialCheckedIn);
   const [entradaQr, setEntradaQr] = useState(initialEntradaQr);
@@ -44,20 +46,27 @@ export function IngressoPlateiaStatus({
   const pago = statusPagamento === "pago";
 
   useEffect(() => {
-    if (pago) return; // já confirmado — não precisa mais checar
+    if (statusPagamento !== "pendente") return;
     stoppedRef.current = false;
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
     async function check() {
       if (stoppedRef.current) return;
       try {
-        const res = await fetch(`/api/ticket-status?tipo=plateia&id=${ticketId}&token=${accessToken}`, { cache: "no-store" });
+        const res = await fetch("/api/ticket-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tipo: "plateia", id: ticketId, token: accessToken }),
+          cache: "no-store",
+        });
         if (res.ok) {
           const data = await res.json();
-          if (data.status_pagamento === "pago") {
-            setStatusPagamento("pago");
+          const nextStatus = String(data.status_pagamento ?? "pendente");
+          if (nextStatus !== "pendente") {
+            stoppedRef.current = true;
+            setStatusPagamento(nextStatus);
             setCheckedIn(!!data.checked_in);
-            if (qrToken) {
+            if (nextStatus === "pago" && qrToken) {
               const dataUrl = await QRCode.toDataURL(qrToken, {
                 width: 280,
                 margin: 2,
@@ -66,6 +75,7 @@ export function IngressoPlateiaStatus({
               });
               setEntradaQr(dataUrl);
             }
+            router.refresh();
             return;
           }
         }
@@ -75,11 +85,18 @@ export function IngressoPlateiaStatus({
       if (!stoppedRef.current) timer = setTimeout(check, 3000);
     }
 
-    timer = setTimeout(check, 3000);
-    const maxTimer = setTimeout(() => { stoppedRef.current = true; clearTimeout(timer); }, 20 * 60 * 1000);
+    void check();
+    const maxTimer = setTimeout(() => {
+      stoppedRef.current = true;
+      if (timer) clearTimeout(timer);
+    }, 20 * 60 * 1000);
 
-    return () => { stoppedRef.current = true; clearTimeout(timer); clearTimeout(maxTimer); };
-  }, [pago, ticketId, accessToken, qrToken]);
+    return () => {
+      stoppedRef.current = true;
+      if (timer) clearTimeout(timer);
+      clearTimeout(maxTimer);
+    };
+  }, [statusPagamento, ticketId, accessToken, qrToken, router]);
 
   if (pago) {
     return (
@@ -105,6 +122,16 @@ export function IngressoPlateiaStatus({
     );
   }
 
+  if (statusPagamento === "estornado" || statusPagamento === "expirado") {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
+        <AlertCircle className="mx-auto size-6 text-red-600" />
+        <p className="mt-2 text-sm font-semibold text-red-900">Este ingresso foi cancelado</p>
+        <p className="mt-1 text-xs text-red-700">Atualizando o histórico da compra…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center gap-4 text-center">
       <div className="flex items-center gap-1.5 text-sm font-medium text-amber-600">
@@ -118,7 +145,7 @@ export function IngressoPlateiaStatus({
           <Clock className="size-10 text-gray-300" />
         </div>
       )}
-      <p className="text-lg font-bold text-gray-900">{formatBRL(Number(valor))}</p>
+      <p className="text-lg font-bold text-gray-900">{formatBRL(pixAmount)}</p>
       {pixCopyPaste && (
         <div className="flex w-full items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 ring-1 ring-black/5">
           <span className="flex-1 truncate font-mono text-xs text-gray-500">{pixCopyPaste}</span>

@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Surface } from "@/components/shell/Surface";
 import Turnstile, { type TurnstileHandle } from "@/components/auth/Turnstile";
+import { loginInputSchema } from "@/lib/auth-input-schemas";
 
 // Quando a site key existe, o Supabase está com captcha ligado e exige o token.
 const captchaEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -37,14 +38,33 @@ export default function LoginPage() {
     setLoading(true);
     setErro(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
+    const parsed = loginInputSchema.safeParse({
+      email: email.trim().toLowerCase(),
       password: senha,
-      options: captchaToken ? { captchaToken } : undefined,
+      captchaToken,
+    });
+    if (!parsed.success) {
+      setErro("Informe um e-mail válido e uma senha de até 128 caracteres.");
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: parsed.data.email,
+      password: parsed.data.password,
+      options: parsed.data.captchaToken ? { captchaToken: parsed.data.captchaToken } : undefined,
     });
 
     if (error) {
-      setErro("E-mail ou senha incorretos.");
+      setErro(
+        error.code === "captcha_failed"
+          ? "A verificação de segurança falhou. Aguarde o CAPTCHA recarregar e tente novamente."
+          : error.code === "email_not_confirmed"
+            ? "Confirme seu e-mail antes de entrar."
+            : error.code === "over_request_rate_limit"
+              ? "Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente."
+              : "E-mail ou senha incorretos."
+      );
       setLoading(false);
       // Token é de uso único: gera um novo pra próxima tentativa.
       captchaRef.current?.reset();

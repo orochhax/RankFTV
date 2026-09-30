@@ -69,7 +69,9 @@ function AtletaCard({ label, atleta }: { label: string; atleta: Atleta }) {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{label}</p>
           <p className="text-sm font-semibold text-gray-900">{atleta.nome}</p>
-          <p className="text-xs text-gray-400">@{atleta.username}</p>
+          {atleta.username && (
+            <p className="text-xs text-gray-400">@{atleta.username}</p>
+          )}
         </div>
       </div>
 

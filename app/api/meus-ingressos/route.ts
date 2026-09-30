@@ -38,7 +38,11 @@ export async function POST(req: NextRequest) {
 
   const allowedPar = await checkRateLimit(`ingressos:par:${cpf}:${email}`, 3, 600);
   const respostaGenerica = NextResponse.json(
-    { ok: true, mensagem: "Se encontrarmos ingressos com esse CPF e e-mail, enviamos um código de acesso pro e-mail informado." },
+    {
+      ok: true,
+      mensagem:
+        "O código só será enviado se o CPF e o e-mail coincidirem com os dados da compra. Por segurança, não confirmamos nesta tela se existe uma inscrição.",
+    },
     { headers: PRIVATE_RESPONSE_HEADERS },
   );
   if (!allowedPar) return respostaGenerica; // já mandou código recente demais — não reenvia, resposta igual

@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { formatDateRangeBR, generoLabel } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { PublicFunnelEvent } from "@/components/analytics/PublicFunnelEvent";
 
 type AtletaDisplay = {
   id: string;
@@ -133,6 +134,7 @@ export default async function CampeonatoDetalhePage({
 
   return (
     <div className="w-full space-y-8 px-6 py-8">
+      <PublicFunnelEvent event="championship_viewed" championshipId={championship.id} />
       <Link
         href={backHref}
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"

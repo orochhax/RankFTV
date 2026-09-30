@@ -6,6 +6,7 @@ import type { GeneroCategoria } from "@/lib/types";
 import { calcularTierDoQuiz, type QuizAnswers } from "@/lib/tier";
 import { RATING_POR_CATEGORIA } from "@/lib/motor-categoria";
 import { PRECO_ELITE } from "@/lib/elite";
+import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 
 function resolverFaixaRating(nome: string) {
   const base = nome
@@ -149,7 +150,7 @@ export async function createChampionship(
       tier_quiz: input.tierQuiz,
       is_elite: input.elite ?? false,
       premium_fee_pendente: input.elite ? PRECO_ELITE : 0,
-      usa_motor_categoria: input.usaMotorCategoria ?? true,
+      usa_motor_categoria: categoryLevelRecommendationEnabled(input.usaMotorCategoria),
     })
     .select("id")
     .single();

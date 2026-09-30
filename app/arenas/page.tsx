@@ -122,7 +122,7 @@ export default async function ArenasPage({
 
   return (
     <div className="min-h-screen">
-      <div className="bg-black px-6 pb-10 pt-8 md:hidden">
+      <div className="bg-brand-dark px-6 pb-10 pt-8 md:hidden">
         <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-300">Beta</p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight text-white">Arenas</h1>
         <p className="mt-3 text-sm text-white/50">Encontre arenas e consulte aulas, planos e horários disponíveis.</p>

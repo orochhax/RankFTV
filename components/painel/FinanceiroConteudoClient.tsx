@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
 import { Crown, DollarSign, Eye, EyeOff, ChevronRight, Info } from "lucide-react";
@@ -39,6 +40,8 @@ type Props = {
   isElite: boolean;
   feePendente: number;
   vendasDiarias: DiaVenda[];
+  chavePixSection: ReactNode;
+  cobrancasPendentesSection: ReactNode;
 };
 
 export function FinanceiroConteudoClient({
@@ -53,6 +56,8 @@ export function FinanceiroConteudoClient({
   isElite,
   feePendente,
   vendasDiarias,
+  chavePixSection,
+  cobrancasPendentesSection,
 }: Props) {
   const [mostrar, setMostrar] = useState(true);
   const val = (v: number) => (mostrar ? formatBRL(v) : "R$ ••••••");
@@ -95,45 +100,6 @@ export function FinanceiroConteudoClient({
         </div>
       </div>
 
-      {/* Transação Plano Elite — some quando 100% quitado */}
-      {isElite && feePendente > 0 && (
-        <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 space-y-3">
-          <div className="flex items-center gap-2">
-            <Crown className="size-4 text-amber-500" />
-            <span className="text-sm font-semibold text-amber-900">Plano Elite — ativação</span>
-          </div>
-
-          <div className="flex justify-between text-xs font-semibold text-amber-700">
-            <span>Saldo devedor</span>
-            <span className="text-red-600">{mostrar ? formatBRL(-feePendente) : "••••••"}</span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-amber-200">
-            <div
-              className="h-full rounded-full bg-amber-500 transition-all"
-              style={{ width: `${Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}%` }}
-            />
-          </div>
-          <p className="text-xs text-amber-600">
-            {Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}% quitado — abatido automaticamente das próximas inscrições pagas.
-          </p>
-
-          <p className="rounded-xl bg-amber-100 p-3 text-xs leading-relaxed text-amber-800">
-            Você não paga nada agora. O valor de {formatBRL(PRECO_ELITE)} é descontado
-            automaticamente dos repasses das suas próximas inscrições pagas — sem nenhum custo no bolso.
-          </p>
-        </div>
-      )}
-
-      {/* Gráfico de vendas diárias */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
-          Vendas por dia
-        </h2>
-        <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-          <GraficoVendasDiarias dados={vendasDiarias} />
-        </div>
-      </section>
-
       {/* Status dos pagamentos */}
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
@@ -162,6 +128,51 @@ export function FinanceiroConteudoClient({
           <MetodoCard emoji="🏦" label="Débito" valor={totalDebito} val={val} />
         </div>
       </section>
+
+      {/* Chave Pix */}
+      {chavePixSection}
+
+      {/* Gráfico de vendas diárias */}
+      <section className="min-w-0">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+          Vendas por dia
+        </h2>
+        <div className="min-w-0 rounded-2xl bg-white p-4 ring-1 ring-black/5 sm:p-5">
+          <GraficoVendasDiarias dados={vendasDiarias} />
+        </div>
+      </section>
+
+      {/* Cobranças pendentes */}
+      {cobrancasPendentesSection}
+
+      {/* Transação Plano Elite — some quando 100% quitado */}
+      {isElite && feePendente > 0 && (
+        <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 space-y-3">
+          <div className="flex items-center gap-2">
+            <Crown className="size-4 text-amber-500" />
+            <span className="text-sm font-semibold text-amber-900">Plano Elite — ativação</span>
+          </div>
+
+          <div className="flex justify-between text-xs font-semibold text-amber-700">
+            <span>Saldo devedor</span>
+            <span className="text-red-600">{mostrar ? formatBRL(-feePendente) : "••••••"}</span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-amber-200">
+            <div
+              className="h-full rounded-full bg-amber-500 transition-all"
+              style={{ width: `${Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}%` }}
+            />
+          </div>
+          <p className="text-xs text-amber-600">
+            {Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}% quitado — abatido automaticamente das próximas inscrições pagas.
+          </p>
+
+          <p className="rounded-xl bg-amber-100 p-3 text-xs leading-relaxed text-amber-800">
+            Você não paga nada agora. O valor de {formatBRL(PRECO_ELITE)} é descontado
+            automaticamente dos repasses das suas próximas inscrições pagas — sem nenhum custo no bolso.
+          </p>
+        </div>
+      )}
 
       {/* Arrecadação por categoria — gráfico de barras */}
       {categorias.length > 0 && (

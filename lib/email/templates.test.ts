@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { escapeHtml, comunicadoHtml } from "@/lib/email/templates";
+import { escapeHtml, comunicadoHtml, credencialAtletaHtml, organizerFinancialNotificationHtml } from "@/lib/email/templates";
 
 describe("escapeHtml (evita injeção de HTML/phishing em e-mail)", () => {
   test("escapa tag de script", () => {
@@ -41,5 +41,55 @@ describe("comunicadoHtml (título/mensagem livres do organizador — maior super
     });
     assert.ok(!html.includes("<script>"));
     assert.ok(html.includes("&lt;script&gt;"));
+  });
+});
+
+describe("credencialAtletaHtml", () => {
+  test("mostra apenas o link individual ao parceiro", () => {
+    const html = credencialAtletaHtml({
+      nomeAtleta: "Hugo",
+      nomeParceiro: "Gabriel",
+      nomeCampeonato: "Copa RankFTV",
+      nomeCategoria: "Masculino",
+      credencialUrl: "https://rankftv.com/credencial?token=individual",
+    });
+
+    assert.match(html, /Abrir minha credencial/);
+    assert.doesNotMatch(html, /Gerenciar esta compra/);
+  });
+
+  test("comprador recebe gerenciamento separado e URLs são escapadas", () => {
+    const html = credencialAtletaHtml({
+      nomeAtleta: "Gabriel",
+      nomeParceiro: "Hugo",
+      nomeCampeonato: "Copa RankFTV",
+      nomeCategoria: "Masculino",
+      credencialUrl: "https://rankftv.com/credencial?token=a&slot=1",
+      gerenciarCompraUrl: "https://rankftv.com/compra?token=b&modo=gestao",
+    });
+
+    assert.match(html, /Gerenciar esta compra/);
+    assert.match(html, /token=a&amp;slot=1/);
+    assert.match(html, /token=b&amp;modo=gestao/);
+  });
+});
+
+describe("organizerFinancialNotificationHtml", () => {
+  test("inclui o resumo operacional sem expor CPF ou e-mail", () => {
+    const html = organizerFinancialNotificationHtml({
+      nomeOrganizador: "Organizador",
+      nomeCampeonato: "Copa RankFTV",
+      heading: "Pagamento confirmado",
+      detail: "Um pagamento foi confirmado para o seu campeonato.",
+      valorFormatado: "R$ 23,99",
+      nomeCategoria: "Intermediário",
+      formaPagamento: "Pix",
+      participantes: ["Camila", "Diego"],
+    });
+
+    assert.match(html, /Categoria: Intermediário/);
+    assert.match(html, /Forma de pagamento: Pix/);
+    assert.match(html, /Atletas: Camila \+ Diego/);
+    assert.doesNotMatch(html, /CPF|@/);
   });
 });

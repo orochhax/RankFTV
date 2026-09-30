@@ -9,6 +9,11 @@ import {
   cardBlockedMessage,
   finishCardPaymentAttempt,
 } from "@/lib/payment-security";
+import {
+  arenaStoredCardRemovalSchema,
+  arenaStoredCardSchema,
+  invalidPaymentInput,
+} from "@/lib/payment-input-schemas";
 
 export type SalvarCartaoInput = {
   arenaId:        string;
@@ -31,6 +36,10 @@ export type SalvarCartaoResult =
 // CVV vão só nesta chamada, direto pro Asaas (tokenização) — nunca chegam a
 // ser gravados no Supabase, só o token e os metadados não sensíveis.
 export async function salvarCartaoArena(input: SalvarCartaoInput): Promise<SalvarCartaoResult> {
+  const parsed = arenaStoredCardSchema.safeParse(input);
+  if (!parsed.success) return invalidPaymentInput();
+  input = parsed.data;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada. Faça login novamente." };
@@ -60,6 +69,14 @@ export async function salvarCartaoArena(input: SalvarCartaoInput): Promise<Salva
     .eq("status", "ativo")
     .maybeSingle();
   if (!vinculo) return { ok: false, error: "Você não é aluno ativo desta arena." };
+
+  const { data: arena } = await supabase
+    .from("arenas")
+    .select("id")
+    .eq("id", input.arenaId)
+    .eq("handle", input.handle)
+    .maybeSingle();
+  if (!arena) return { ok: false, error: "Arena não encontrada." };
 
   const { data: profile } = await supabase.from("profiles").select("nome").eq("id", user.id).single();
   if (!profile) return { ok: false, error: "Perfil não encontrado." };
@@ -123,12 +140,15 @@ export async function salvarCartaoArena(input: SalvarCartaoInput): Promise<Salva
       e instanceof AsaasApiError && e.ambiguous ? "ambiguous" : "declined",
       e instanceof AsaasApiError ? e.code : "unexpected_error",
     );
-    const msg = e instanceof Error ? e.message : "Erro ao registrar o cartão.";
-    return { ok: false, error: msg.includes("Asaas") ? "Não foi possível registrar o cartão. Confira os dados e tente de novo." : msg };
+    return { ok: false, error: "Não foi possível registrar o cartão. Confira os dados e tente de novo." };
   }
 }
 
 export async function removerCartaoArena(arenaId: string): Promise<SalvarCartaoResult> {
+  const parsed = arenaStoredCardRemovalSchema.safeParse({ arenaId });
+  if (!parsed.success) return { ok: false, error: "Arena inválida." };
+  arenaId = parsed.data.arenaId;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada." };

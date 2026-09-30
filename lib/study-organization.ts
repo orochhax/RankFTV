@@ -105,7 +105,11 @@ function stableSuffix(value: string): string {
 }
 
 function cleanDisplayText(value: string, fallback: string): string {
-  const cleaned = String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+  const controlCharacters = new RegExp(
+    `[${String.fromCharCode(0)}-${String.fromCharCode(31)}${String.fromCharCode(127)}]`,
+    "g",
+  );
+  const cleaned = String(value ?? "").replace(controlCharacters, " ").replace(/\s+/g, " ").trim();
   return (cleaned || fallback).slice(0, 120);
 }
 
@@ -128,7 +132,7 @@ function windowsCommand(rootFolder: string, folders: string[]): string {
     "setlocal DisableDelayedExpansion",
     `set "STUDY_ROOT=%USERPROFILE%\\Estudos\\${rootFolder}"`,
     "if not exist \"%STUDY_ROOT%\" mkdir \"%STUDY_ROOT%\"",
-    ...folders.map((folder) => `if not exist \"%STUDY_ROOT%\\${folder}\" mkdir \"%STUDY_ROOT%\\${folder}\"`),
+    ...folders.map((folder) => `if not exist "%STUDY_ROOT%\\${folder}" mkdir "%STUDY_ROOT%\\${folder}"`),
     "endlocal",
   ].join("\n");
 }
@@ -136,8 +140,8 @@ function windowsCommand(rootFolder: string, folders: string[]): string {
 function posixCommand(rootFolder: string, folders: string[]): string {
   const root = `$HOME/Estudos/${rootFolder}`;
   return [
-    `mkdir -p \"${root}\"`,
-    ...folders.map((folder) => `mkdir -p \"${root}/${folder}\"`),
+    `mkdir -p "${root}"`,
+    ...folders.map((folder) => `mkdir -p "${root}/${folder}"`),
   ].join("\n");
 }
 

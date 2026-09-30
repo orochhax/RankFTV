@@ -2,16 +2,28 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { getSupabasePublicConfig } from "@/lib/supabase/config";
 import { Surface } from "@/components/shell/Surface";
 import Turnstile, { type TurnstileHandle } from "@/components/auth/Turnstile";
+import { passwordRecoveryInputSchema } from "@/lib/auth-input-schemas";
 
 // Quando a site key existe, o Supabase está com captcha ligado e exige o token
 // também no envio do e-mail de recuperação.
 const captchaEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 export default function RecuperarSenhaPage() {
-  const supabase = createClient();
+  const config = getSupabasePublicConfig();
+  // A recuperação não depende de uma sessão prévia. Usamos o mesmo fluxo
+  // implícito da tela de atualização para que o link seja utilizável em outro
+  // navegador ou dispositivo, sem exigir o verificador PKCE local.
+  const supabase = createSupabaseClient(config.url, config.publishableKey, {
+    auth: {
+      flowType: "implicit",
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
   const captchaRef = useRef<TurnstileHandle>(null);
 
   const [email, setEmail] = useState("");
@@ -30,14 +42,25 @@ export default function RecuperarSenhaPage() {
     setMensagem(null);
     setErro(null);
 
-    // O link do e-mail cai no /auth/callback (que já valida o token) e de lá é
-    // redirecionado pra tela de definir a nova senha.
-    const redirectTo = new URL("/auth/callback", window.location.origin);
-    redirectTo.searchParams.set("next", "/recuperar-senha/atualizar");
+    const parsed = passwordRecoveryInputSchema.safeParse({
+      email: email.trim().toLowerCase(),
+      captchaToken,
+    });
+    if (!parsed.success) {
+      setErro("Informe um e-mail válido.");
+      setLoading(false);
+      return;
+    }
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    // Links de recuperação do Supabase podem devolver a sessão no fragmento
+    // (#access_token=...). Fragmentos não chegam a Route Handlers, então o
+    // retorno vai direto para esta tela cliente, onde o browser client do
+    // Supabase consome a sessão de recuperação antes de trocar a senha.
+    const redirectTo = new URL("/recuperar-senha/atualizar", window.location.origin);
+
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
       redirectTo: redirectTo.toString(),
-      ...(captchaToken ? { captchaToken } : {}),
+      ...(parsed.data.captchaToken ? { captchaToken: parsed.data.captchaToken } : {}),
     });
 
     setLoading(false);

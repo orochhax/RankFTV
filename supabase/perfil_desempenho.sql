@@ -8,7 +8,7 @@ ALTER TABLE external_results
   ADD COLUMN IF NOT EXISTS categoria text;
 
 DROP VIEW IF EXISTS ranking_entries;
-CREATE VIEW ranking_entries AS
+CREATE VIEW ranking_entries WITH (security_invoker = true) AS
 SELECT
   er.id,
   er.tournament_id,

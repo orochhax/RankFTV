@@ -1,6 +1,6 @@
 # Runbook de producao do RankFTV
 
-Atualizado em 07/08/2026. Este procedimento cobre apenas o produto Rank
+Atualizado em 30/09/2026. Este procedimento cobre apenas o produto Rank
 Futevolei. Nao inclui Performance nem os controles financeiros pessoais
 hospedados temporariamente no mesmo repositorio.
 
@@ -37,23 +37,83 @@ npm run test:e2e
    `add-elite-fee-collection.sql` e `add-security-audit-log.sql`.
 5. Conferir que Production nao usa URL ou chave do Asaas Sandbox.
 6. Configurar as variaveis descritas em `.env.example` e
-   `PENDENCIAS-MANUAIS.md`, sem copiar valores para logs ou tickets.
+   `PENDENCIAS-V1.md`, sem copiar valores para logs ou tickets.
 
 ## 2. Ordem das migrations
 
 Aplicar no SQL Editor ou pipeline de migrations, uma por vez e nesta ordem:
 
-1. `supabase/financial-operations.sql`
-2. `supabase/payment-card-attempt-security.sql`
-3. `supabase/production-spectator-ticket-items.sql`
-4. `supabase/production-order-inventory-release.sql`
-5. `supabase/asaas-webhook-idempotency.sql`
-6. `supabase/production-query-indexes.sql`
-7. `supabase/production-data-retention.sql`
+1. `supabase/production-security-advisor-function-hardening.sql`
+2. `supabase/production-ranking-entries-security-invoker.sql`
+3. `supabase/production-security-20-point-hardening.sql`
+4. `supabase/production-auth-profile-input-hardening.sql`
+5. `supabase/production-auth-pending-username-release.sql`
+6. `supabase/financial-operations.sql`
+7. `supabase/payment-card-attempt-security.sql`
+8. `supabase/production-spectator-ticket-items.sql`
+9. `supabase/production-order-inventory-release.sql`
+10. `supabase/asaas-webhook-idempotency.sql`
+11. `supabase/production-query-indexes.sql`
+12. `supabase/production-athlete-ticket-credentials.sql`
+13. `supabase/production-athlete-ticket-change-security.sql`
+14. `supabase/production-bracket-participants.sql`
+15. `supabase/production-participant-category-uniqueness.sql`
+16. `supabase/production-category-deletion-guard.sql`
+17. `supabase/production-credential-operations.sql`
+18. `supabase/support-case-enhancements.sql`
+19. `supabase/notifications.sql`
+20. `supabase/championship-notices.sql`
+21. `supabase/production-championship-change-notifications.sql`
+22. `supabase/production-championship-notification-claims.sql`
+23. `supabase/production-championship-delete-transaction.sql`
+24. `supabase/production-championship-update-transaction.sql`
+25. `supabase/organizer-financial-notifications.sql`
+26. `supabase/production-data-retention.sql`
 
 Os scripts sao aditivos e idempotentes. Ainda assim, nao os execute em paralelo.
+Depois dos tres primeiros, executar os checks somente-leitura
+`supabase/manual-tests/security-advisor-function-hardening-check.sql`,
+`supabase/manual-tests/ranking-entries-security-check.sql` e
+`supabase/manual-tests/security-posture-check.sql`; todas as verificacoes devem
+ser verdadeiras e todas as listas de revisao devem estar vazias.
+Depois de criar novas tabelas no schema `public`, repetir
+`production-security-20-point-hardening.sql` e o check de postura. Isso garante
+que tabelas criadas depois do primeiro hardening tambem nao herdem privilegios
+de `TRUNCATE` ou `TRIGGER` para clientes.
 O backfill de plateia e a criacao de indices podem disputar I/O com o trafego;
-use janela de manutencao em uma base com volume relevante.
+use janela de manutencao em uma base com volume relevante. A migration de
+unicidade interrompe a instalacao se encontrar ingresso ativo sem categoria ou
+identidade duplicada na mesma categoria. Audite e resolva cada conflito antes;
+nao altere nem estorne dados em lote para forcar a instalacao. A migration de
+credenciais e obrigatoria antes de `production-credential-operations.sql`.
+`support-case-enhancements.sql` depende das tabelas de suporte criadas por essa
+migration e deve vir logo depois. A retencao deve ser executada por ultimo.
+Os processadores de avisos de alteracao de campeonato e de eventos financeiros
+do organizador somente podem ser publicados depois das migrations de suas
+filas. Eles gravam destinatarios apenas como hash, tentam o primeiro envio
+imediatamente e deixam as retentativas para os crons
+`/api/cron/championship-change-notifications` e
+`/api/cron/organizer-financial-notifications`.
+
+### 2.1 Backup periodico fora da maquina do operador
+
+O workflow `.github/workflows/production-backup.yml` executa semanalmente e
+tambem aceita disparo manual. Configure no ambiente protegido `production` os
+secrets `SUPABASE_DB_URL`, `NEXT_PUBLIC_SUPABASE_URL`,
+`BACKUP_ENCRYPTION_PASSPHRASE` e `SUPABASE_SECRET_KEY` (ou, como fallback,
+`SUPABASE_SERVICE_ROLE_KEY`). O job recusa outro project ref, exige pelo menos
+32 caracteres na senha de criptografia, usa `pg_dump` 17,
+exporta todos os buckets, valida o arquivo customizado com `pg_restore`, confere
+SHA-256 e mantem o artefato por 30 dias. Restrinja a leitura dos artefatos aos
+administradores do repositorio e copie mensalmente um deles para o cofre externo
+definido pela operacao.
+
+Primeira evidencia remota: a execucao manual `36652847512`, em 30/09/2026,
+concluiu todas as etapas e publicou o artefato privado
+`rankftv-production-36652847512-1` (25.015.975 bytes), com retencao ate
+30/10/2026. Essa evidencia comprova a geracao; o ensaio de restauracao em um
+projeto isolado continua sendo uma etapa separada e obrigatoria antes do
+lancamento.
 
 ## 3. Validacao do banco
 
@@ -67,7 +127,16 @@ select to_regclass('public.financial_operations') as financial_operations,
        to_regclass('public.payment_card_attempts') as payment_card_attempts,
        to_regclass('public.payment_card_guards') as payment_card_guards,
        to_regclass('public.spectator_ticket_items') as spectator_ticket_items,
-       to_regclass('public.asaas_webhook_events') as asaas_webhook_events;
+       to_regclass('public.asaas_webhook_events') as asaas_webhook_events,
+       to_regclass('public.athlete_ticket_credentials') as athlete_ticket_credentials,
+       to_regclass('public.athlete_ticket_change_challenges') as athlete_ticket_change_challenges,
+       to_regclass('public.bracket_participants') as bracket_participants,
+       to_regclass('public.athlete_ticket_credential_events') as credential_events,
+       to_regclass('public.transactional_email_events') as email_events,
+       to_regclass('public.support_cases') as support_cases,
+       to_regclass('public.support_case_notes') as support_case_notes,
+       to_regclass('public.championship_notice_deliveries') as championship_notice_deliveries,
+       to_regclass('public.organizer_financial_notification_deliveries') as organizer_financial_notification_deliveries;
 
 select routine_name
 from information_schema.routines
@@ -79,14 +148,22 @@ where routine_schema = 'public'
     'create_spectator_ticket_order',
     'release_spectator_ticket_order',
     'claim_asaas_webhook_event',
+    'can_select_athlete_ticket_credential',
+    'claim_athlete_ticket_change_challenge',
+    'block_nonempty_championship_category_delete',
+    'log_athlete_ticket_credential_event',
+    'claim_championship_notice_deliveries',
+    'claim_organizer_financial_notification_deliveries',
     'purge_rankftv_operational_data'
   )
 order by routine_name;
 ```
 
-Todas as tabelas devem existir e as sete funcoes devem aparecer. Validar RLS
-com `anon` e `authenticated`: ledgers financeiros, tentativas de cartao,
-relatorio de backfill e ledger de webhook nao podem ser lidos diretamente.
+Todas as tabelas e funcoes listadas devem existir. Validar RLS com `anon` e
+`authenticated`: ledgers financeiros, tentativas de cartao, relatorio de
+backfill, ledger de webhook, operacao de e-mail, casos de suporte e eventos de
+credencial nao podem ser lidos diretamente. Um atleta autenticado so pode ler
+sua propria credencial individual pela policy prevista.
 
 ### 3.2 Backfill de plateia
 
@@ -122,10 +199,10 @@ from financial_operations
 group by status
 order by status;
 
-select id, operation_type, external_reference, flow, status, attempt_count,
-       next_reconcile_at, last_error_code, last_error_message
+select id, operation_type, external_reference, flow, status, provider_status,
+       attempt_count, next_reconcile_at, last_error_code, last_error_message
 from financial_operations
-where status in ('initialized', 'processing', 'ambiguous')
+where status in ('initialized', 'provider_created', 'processing', 'ambiguous')
 order by next_reconcile_at nulls first, created_at;
 
 select status, count(*)
@@ -144,6 +221,9 @@ Nao deve haver duas linhas com a mesma combinacao
 `operation_type + external_reference`, nem dois pagamentos/assinaturas com o
 mesmo `provider_id`. Uma operacao `ambiguous` deve permanecer reservada e ir
 para conciliacao; nao apague pedido ou libere estoque para tentar novamente.
+Em reembolso, somente `DONE` no endpoint dedicado de refunds confirma a
+devolucao. `CANCELLED` e terminal e exige suporte: nao repetir a devolucao, nao
+cancelar o ingresso e nao liberar inventario automaticamente.
 
 ### 3.4 Card testing
 
@@ -163,6 +243,46 @@ order by flow, outcome;
 As tabelas guardam hashes/identificadores mascarados. PAN, CVV, CPF, token de
 cartao e corpo integral da requisicao nunca devem aparecer nelas ou nos logs.
 
+### 3.5 Credenciais, e-mails e suporte
+
+```sql
+select event_type, count(*)
+from athlete_ticket_credential_events
+group by event_type
+order by event_type;
+
+select status, count(*)
+from transactional_email_events
+where created_at >= now() - interval '30 days'
+group by status
+order by status;
+
+select count(*) as entregas_pendentes
+from athlete_ticket_credentials
+where access_email_sent_at is null;
+
+select status, count(*)
+from support_cases
+group by status
+order by status;
+```
+
+Confirmar que eventos de e-mail guardam somente `recipient_hash`, nunca o
+destinatario em texto puro, e que os eventos de credencial nao guardam token,
+QR ou codigo. Testar duas credenciais por dupla, acesso isolado, recuperacao
+exata por CPF + e-mail + OTP, e-mail compartilhado, rotacao do link antigo,
+reenvio limitado e auditoria do CEO.
+
+### 3.6 Integridade de categoria e participantes
+
+Antes da migration de unicidade, revisar os conflitos levantados pelo bloco de
+preflight no inicio de `production-participant-category-uniqueness.sql`. Depois,
+em uma restauracao local descartavel, executar
+`participant-category-uniqueness-test.sql`; o teste abre transacao e faz
+rollback. Na aplicacao, confirmar que uma categoria vazia pode ser excluida e
+que uma categoria com inscricao, ingresso ou chaveamento exibe erro dentro do
+site e permanece intacta.
+
 ## 4. Deploy gradual
 
 1. Implantar em Preview com as mesmas integracoes de sandbox usadas no teste.
@@ -173,8 +293,9 @@ cartao e corpo integral da requisicao nunca devem aparecer nelas ou nos logs.
 4. Executar Playwright. Os cenarios destrutivos exigem
    `E2E_ASAAS_MUTATION_TESTS=1` e/ou `E2E_CARD_GUARD_MUTATION_TESTS=1` somente
    em sandbox descartavel.
-5. Homologar inscricao, ingresso de atleta, pedido multi-item de plateia,
-   mensalidade, aluguel, diaria e aula avulsa em Pix/cartao aplicavel.
+5. Homologar inscricao, duas credenciais individuais de atleta, recuperacao,
+   troca protegida, pedido multi-item de plateia, mensalidade, aluguel, diaria
+   e aula avulsa em Pix/cartao aplicavel.
 6. Repetir clique/requisicao e simular timeout depois da criacao no provedor.
    Confirmar uma unica cobranca por `externalReference` e conciliacao posterior.
 7. Reenviar webhook duplicado e fora de ordem. Confirmar que status terminal nao
@@ -183,13 +304,20 @@ cartao e corpo integral da requisicao nunca devem aparecer nelas ou nos logs.
    Uma nova referencia `:retry:N` so pode surgir depois de falha terminal.
 9. Confirmar os crons protegidos por `CRON_SECRET`: conciliacao financeira,
    liquidacao/repasse e retencao.
-10. Promover o mesmo commit e repetir health check e smoke tests sem mutacoes.
+10. Confirmar assinatura do webhook Resend e transicao de e-mail aceito para
+    entregue, sem expor destinatarios nas metricas.
+11. Confirmar que `/admin/suporte` e exclusivo de `profiles.role = ceo` e que
+    correcao, reenvio, invalidacao e casos ficam na auditoria.
+12. Promover o mesmo commit e repetir health check e smoke tests sem mutacoes.
 
 No plano Hobby da Vercel, todas as expressoes em `vercel.json` precisam executar
 no maximo uma vez por dia. A conciliacao financeira fica agendada diariamente
-as 10:00 UTC; tentar restaurar `*/10 * * * *` nesse plano bloqueia o deploy
-inteiro. Para reconciliacao subdiaria, primeiro migrar o projeto para Vercel Pro
-ou configurar um agendador externo autenticado com `CRON_SECRET`.
+as 10:00 UTC como contingencia. O repositorio inclui
+`.github/workflows/financial-reconciliation.yml`, com agenda a cada dez minutos
+e alvo fixo em `https://www.rankftv.com/api/cron/financial-reconciliation`.
+Antes de depender dele, promover o workflow para a branch padrao, configurar
+`FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET` no environment `Production` do
+GitHub e conferir pelo menos uma execucao manual e uma agendada.
 
 ## 5. Monitoramento e alertas
 
@@ -201,8 +329,39 @@ ou configurar um agendador externo autenticado com `CRON_SECRET`.
 - Pesquisar logs por `correlation_id`, `flow` e ID interno, nunca por dado
   financeiro sensivel.
 - Executar a retencao pelo cron. Evidencia financeira terminal fica por seis
-  anos; tentativas de cartao por 180 dias; auditoria por 730 dias; webhooks
-  processados por 400 dias e falhos por 730 dias.
+  anos; tentativas de cartao por 180 dias; auditoria, eventos de credencial,
+  falhas de e-mail e casos de suporte resolvidos por 730 dias; webhooks e
+  e-mails entregues/aceitos por 400 dias; desafios de alteracao por 30 dias.
+
+### 5.1 Responsavel operacional inicial
+
+Enquanto a V1 operar sem equipe de suporte, `Carlos Gregorio Rocha Batista` e
+o responsavel primario por pagamento pendente, reembolso cancelado, webhook
+falho e repasse recusado. O canal temporario e o e-mail pessoal cadastrado nos
+servicos de monitoramento, sem registrar o endereco em repositorio. O prazo
+maximo para iniciar a analise e responder ao solicitante e de 24 horas.
+
+Quando o e-mail comercial e o WhatsApp oficiais forem ativados, substituir o
+canal temporario nos monitores e alertas sem remover o contato anterior antes
+de testar a entrega nos canais novos. O WhatsApp serve para comunicacao; dados
+bancarios, chaves Pix, documentos e segredos nunca devem ser solicitados por
+ele ou por e-mail.
+
+Procedimento minimo por tipo de alerta:
+
+1. pagamento pendente: consultar a conciliacao e o estado no processador antes
+   de qualquer intervencao; nunca confirmar manualmente sem evidencia;
+2. reembolso cancelado: manter ingresso e estoque inalterados, abrir ou revisar
+   o caso de suporte e seguir o procedimento de devolucao assistida;
+3. webhook falho: localizar o evento por `correlation_id` ou ID interno,
+   confirmar origem e assinatura e somente entao usar um replay idempotente;
+4. repasse recusado: manter a operacao pendente, conferir favorecido e resposta
+   do processador e nunca criar outro repasse sem reconciliar o primeiro.
+
+O monitor externo inicial usa o UptimeRobot a cada cinco minutos, exige a
+presenca de `"status":"ok"` em `/api/health` e envia alerta por e-mail. A
+notificacao de teste foi recebida em 04/09/2026. Esse monitor nao substitui os
+alertas internos definidos por `OPERATIONS_ALERT_WEBHOOK_URL`.
 
 ## 6. Rollback
 
@@ -227,4 +386,4 @@ trilha de auditoria.
 
 Registrar commit, horario, migrations, contagens do backfill, resultado dos
 gates, cobrancas sandbox usadas, incidentes e responsavel pela liberacao. As
-configuracoes externas ainda abertas permanecem em `PENDENCIAS-MANUAIS.md`.
+configuracoes externas ainda abertas permanecem em `PENDENCIAS-V1.md`.

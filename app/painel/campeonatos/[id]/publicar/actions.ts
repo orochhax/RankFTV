@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { salvarChavePix } from "@/app/painel/campeonatos/[id]/financeiro/actions";
 
 export type PublicarState = { error?: string };
 
@@ -41,12 +42,20 @@ export async function publicarCampeonato(
   if (!champ) return { error: "Campeonato não encontrado." };
   if (champ.organizador_id !== user.id) return { error: "Você não tem permissão." };
 
-  // Categorias pagas?
-  const { data: cats } = await supabase
-    .from("championship_categories")
-    .select("valor_inscricao")
-    .eq("championship_id", championshipId);
+  // Produtos pagos exigem uma chave Pix, tanto para atletas quanto para plateia.
+  const [{ data: cats }, { data: ingressos }] = await Promise.all([
+    supabase
+      .from("championship_categories")
+      .select("valor_inscricao")
+      .eq("championship_id", championshipId),
+    supabase
+      .from("spectator_ticket_types")
+      .select("valor")
+      .eq("championship_id", championshipId),
+  ]);
   const temCategoriaPaga = (cats ?? []).some((c) => Number(c.valor_inscricao) > 0);
+  const temIngressoPago = (ingressos ?? []).some((i) => Number(i.valor) > 0);
+  const temProdutoPago = temCategoriaPaga || temIngressoPago;
 
   // Chave Pix já cadastrada?
   const { data: orgAccount } = await supabase
@@ -58,18 +67,17 @@ export async function publicarCampeonato(
 
   // Se tem categoria paga e ainda não tem Pix, coleta e salva agora.
   // (CPF/CNPJ, nascimento e telefone já foram coletados na ativação.)
-  if (temCategoriaPaga && !temChavePix) {
+  if (temProdutoPago && !temChavePix) {
     const chavePix = ((formData.get("chave_pix") as string) ?? "").trim();
 
     if (!chavePix || chavePix.length < 5) {
       return { error: "Informe uma chave Pix válida para receber os pagamentos." };
     }
 
-    const { error: upErr } = await supabase
-      .from("organizer_accounts")
-      .update({ chave_pix: chavePix })
-      .eq("user_id", user.id);
-    if (upErr) return { error: "Erro ao salvar seus dados de recebimento. Tente de novo." };
+    const resultadoPix = await salvarChavePix(chavePix);
+    if (!resultadoPix.ok) {
+      return { error: resultadoPix.error ?? "Erro ao salvar seus dados de recebimento. Tente de novo." };
+    }
   }
 
   // Publica e salva as configurações de parcelamento.

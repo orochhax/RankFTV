@@ -31,6 +31,8 @@ test("spectator migration preserves every normalized line and reports uncertain 
   assert.match(sql, /jsonb_array_length\(st\.itens\) > 0[\s\S]*WHEN st\.ticket_type_id IS NOT NULL THEN 1/i);
   assert.match(sql, /CREATE OR REPLACE FUNCTION create_spectator_ticket_order/i);
   assert.match(sql, /CREATE OR REPLACE FUNCTION release_spectator_ticket_order/i);
+  assert.match(sql, /SELECT tt\.id, tt\.nome, tt\.valor, tt\.max_quantidade, tt\.vendidos, tt\.ativo/i);
+  assert.match(sql, /SELECT pt\.id, pt\.nome, pt\.valor, pt\.quantidade_maxima, pt\.vendidos/i);
   assert.match(sql, /ORDER BY ticket_type_id, pricing_tier_id, id[\s\S]*FOR UPDATE/i);
   assert.match(sql, /usos_atuais = GREATEST\(0, usos_atuais - 1\)/i);
 });
@@ -77,4 +79,19 @@ test("operational retention never exposes its privileged function to clients", (
   assert.match(sql, /REVOKE ALL ON FUNCTION purge_rankftv_operational_data\(\) FROM PUBLIC, anon, authenticated/i);
   assert.match(sql, /interval '6 years'/i);
   assert.match(sql, /interval '180 days'/i);
+  assert.match(sql, /athlete_ticket_credential_events/i);
+  assert.match(sql, /transactional_email_events/i);
+  assert.match(sql, /support_cases/i);
+});
+
+test("credential operations are private, auditable and never persist bearer material", () => {
+  const sql = migration("production-credential-operations.sql");
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS athlete_ticket_credential_events/i);
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS transactional_email_events/i);
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS support_cases/i);
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS support_case_notes/i);
+  assert.match(sql, /REVOKE ALL ON athlete_ticket_credential_events FROM PUBLIC, anon, authenticated/i);
+  assert.match(sql, /REVOKE ALL ON transactional_email_events FROM PUBLIC, anon, authenticated/i);
+  assert.match(sql, /AFTER INSERT OR UPDATE OF access_token, qr_token, code/i);
+  assert.doesNotMatch(sql, /token_value|access_token\s+text|qr_token\s+text/i);
 });

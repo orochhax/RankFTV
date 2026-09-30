@@ -1,0 +1,73 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+
+const source = readFileSync("app/actions/checkin.ts", "utf8");
+const scannerSource = readFileSync("components/checkin/QrScanner.tsx", "utf8");
+const directorySource = readFileSync("lib/checkin-directory.ts", "utf8");
+const organizerPageSource = readFileSync("app/painel/campeonatos/[id]/checkin/page.tsx", "utf8");
+const clientSource = readFileSync("components/checkin/CheckinClient.tsx", "utf8");
+const pairSource = readFileSync("components/checkin/PairPresenceItem.tsx", "utf8");
+
+test("athlete check-in accepts authenticated and guest credentials", () => {
+  assert.match(source, /\.from\("credentials"\)/);
+  assert.match(source, /\.from\("athlete_ticket_credentials"\)/);
+  assert.match(source, /\.from\("athlete_tickets"\)/);
+  assert.match(source, /\.eq\("championship_id", championshipId\)/);
+  assert.match(source, /qr_token\.eq\.\$\{token\},code\.eq\.\$\{tokenUpper\}/);
+  assert.match(source, /ticket\.status_pagamento !== "pago"/);
+  assert.match(source, /display_name_snapshot/);
+  assert.match(source, /existingIndividualResult/);
+  assert.match(source, /if \(individualResult\.error\)/);
+  assert.match(source, /if \(existingIndividualResult\.error\)/);
+  assert.match(source, /Esta credencial foi substituída/);
+});
+
+test("check-in claims each QR only once", () => {
+  const atomicClaims = source.match(/\.eq\("checked_in", false\)/g) ?? [];
+  assert.equal(atomicClaims.length, 3);
+  assert.match(source, /if \(!claimed\) return \{ alreadyDone: true, nome \}/);
+  assert.match(source, /current\?\.checked_in[\s\S]*alreadyDone: true/);
+});
+
+test("camera scanner keeps an iOS-compatible decoder fallback", () => {
+  assert.match(scannerSource, /from "qr-scanner"/);
+  assert.match(scannerSource, /preferredCamera: "environment"/);
+  assert.match(scannerSource, /returnDetailedScanResult: true/);
+  assert.match(scannerSource, /scanner\.start\(\)/);
+  assert.match(scannerSource, /scanner\.destroy\(\)/);
+  assert.match(scannerSource, /playsInline/);
+  assert.doesNotMatch(scannerSource, /!\("BarcodeDetector" in window\)/);
+});
+
+test("check-in directory includes paid guest pairs in counters and presence list", () => {
+  assert.match(directorySource, /\.from\("credentials"\)/);
+  assert.match(directorySource, /\.from\("athlete_tickets"\)/);
+  assert.match(directorySource, /\.from\("athlete_ticket_credentials"\)/);
+  assert.match(directorySource, /\.eq\("status_pagamento", "pago"\)/);
+  assert.match(directorySource, /kind: "pair"/);
+  assert.match(directorySource, /members/);
+  assert.match(organizerPageSource, /getCheckinDirectory\(id, user\.id\)/);
+  assert.match(organizerPageSource, /member\.checkedIn/);
+  assert.match(organizerPageSource, /PairPresenceItem/);
+});
+
+test("check-in groups every paid pair and renders compact accessible attendance", () => {
+  assert.match(directorySource, /\.from\("registrations"\)/);
+  assert.match(directorySource, /teams!inner\(id, atleta1_id, atleta2_id\)/);
+  assert.match(directorySource, /registeredPairItems/);
+  assert.match(organizerPageSource, /Total de atletas/);
+  assert.match(organizerPageSource, /Duplas totais/);
+  assert.match(organizerPageSource, /Duplas pendentes/);
+  assert.match(organizerPageSource, /Duplas confirmadas/);
+  assert.match(organizerPageSource, /filtro === "confirmadas"/);
+  assert.match(organizerPageSource, /pb-32/);
+  assert.match(pairSource, /aria-expanded=\{expanded\}/);
+  assert.match(pairSource, /\{confirmed\}\/\{members\.length\}/);
+  assert.match(pairSource, /member\.checkedIn \? "text-blue-700" : "text-ink-muted"/);
+});
+
+test("successful scans refresh the server-rendered directory", () => {
+  assert.match(clientSource, /await markCheckin\(token, championshipId\)/);
+  assert.match(clientSource, /router\.refresh\(\)/);
+});

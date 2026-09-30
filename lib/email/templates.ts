@@ -56,11 +56,19 @@ function base(titulo: string, corpo: string): string {
 }
 
 function btn(label: string, url: string): string {
-  return `<a href="${url}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:#1d4ed8;color:#ffffff;font-size:14px;font-weight:600;border-radius:10px;text-decoration:none;">${label}</a>`;
+  return `<a href="${escapeHtml(url)}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:#1d4ed8;color:#ffffff;font-size:14px;font-weight:600;border-radius:10px;text-decoration:none;">${escapeHtml(label)}</a>`;
 }
 
 function p(text: string): string {
   return `<p style="margin:8px 0;font-size:15px;color:#374151;line-height:1.6;">${text}</p>`;
+}
+
+export function conviteListaEsperaHtml(opts: { championshipName: string; categoryName: string; url: string; hours: number }): string {
+  return base("Uma vaga ficou disponível", `
+    ${p(`Há uma vaga disponível em <strong>${escapeHtml(opts.championshipName)}</strong>.`)}
+    ${p(`Categoria: <strong>${escapeHtml(opts.categoryName)}</strong>. Seu convite é pessoal e expira em ${opts.hours} horas.`)}
+    ${btn("Continuar inscrição", opts.url)}
+  `);
 }
 
 // ── Templates ────────────────────────────────────────────────────────────────
@@ -165,6 +173,56 @@ export function pagamentoConfirmadoHtml(opts: {
   return base("Pagamento confirmado!", corpo);
 }
 
+export function organizerFinancialNotificationHtml(opts: {
+  nomeOrganizador: string;
+  nomeCampeonato: string;
+  heading: string;
+  detail: string;
+  valorFormatado?: string | null;
+  nomeCategoria?: string | null;
+  formaPagamento?: string | null;
+  participantes?: string[];
+}): string {
+  const participantes = opts.participantes?.filter(Boolean) ?? [];
+  return base(escapeHtml(opts.heading), `
+    ${p(`Olá, <strong>${escapeHtml(opts.nomeOrganizador)}</strong>.`)}
+    ${p(escapeHtml(opts.detail))}
+    <div style="margin:16px 0;padding:16px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#1e3a8a;">${escapeHtml(opts.nomeCampeonato)}</p>
+      ${opts.nomeCategoria ? `<p style="margin:4px 0 0;font-size:13px;color:#1d4ed8;">Categoria: ${escapeHtml(opts.nomeCategoria)}</p>` : ""}
+      ${opts.formaPagamento ? `<p style="margin:4px 0 0;font-size:13px;color:#1d4ed8;">Forma de pagamento: ${escapeHtml(opts.formaPagamento)}</p>` : ""}
+      ${opts.valorFormatado ? `<p style="margin:4px 0 0;font-size:13px;color:#1d4ed8;">Valor: ${escapeHtml(opts.valorFormatado)}</p>` : ""}
+      ${participantes.length ? `<p style="margin:4px 0 0;font-size:13px;color:#1d4ed8;">${participantes.length === 1 ? "Participante" : "Atletas"}: ${participantes.map(escapeHtml).join(" + ")}</p>` : ""}
+    </div>
+  `);
+}
+
+export function credencialAtletaHtml(opts: {
+  nomeAtleta: string;
+  nomeParceiro: string;
+  nomeCampeonato: string;
+  nomeCategoria: string;
+  credencialUrl: string;
+  gerenciarCompraUrl?: string;
+}): string {
+  const corpo = `
+    ${p(`Oi, <strong>${escapeHtml(opts.nomeAtleta)}</strong>!`)}
+    ${p("O pagamento da dupla foi confirmado e sua credencial individual já está disponível.")}
+    <div style="margin:16px 0;padding:16px;background:#f0fdf4;border-radius:10px;border-left:4px solid #16a34a;">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#14532d;">${escapeHtml(opts.nomeCampeonato)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Categoria: ${escapeHtml(opts.nomeCategoria)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#16a34a;">Dupla: ${escapeHtml(opts.nomeAtleta)} + ${escapeHtml(opts.nomeParceiro)}</p>
+    </div>
+    ${p("O botão abaixo abre somente o seu QR Code. Seu parceiro receberá um link diferente no e-mail dele.")}
+    ${p("Não encaminhe este link: quem tiver acesso a ele poderá visualizar a sua credencial.")}
+    ${btn("Abrir minha credencial", opts.credencialUrl)}
+    ${opts.gerenciarCompraUrl
+      ? `${p("Como comprador, você também pode acompanhar o pagamento, corrigir os dados da dupla ou solicitar cancelamento pelo link gerencial.")}${btn("Gerenciar esta compra", opts.gerenciarCompraUrl)}`
+      : ""}
+  `;
+  return base("Sua credencial individual chegou!", corpo);
+}
+
 export function comunicadoHtml(opts: {
   nomeAtleta: string;
   nomeCampeonato: string;
@@ -196,4 +254,37 @@ export function recuperacaoIngressoHtml(opts: {
     ${p("Se você não pediu isso, pode ignorar este e-mail — ninguém consegue ver seus ingressos sem esse código.")}
   `;
   return base("Seu código de acesso", corpo);
+}
+
+export function alteracaoIngressoOtpHtml(opts: {
+  codigo: string;
+  validadeMinutos: number;
+  destino: "atual" | "novo";
+}): string {
+  const explicacao = opts.destino === "novo"
+    ? "Use este código para confirmar que o novo e-mail informado pertence a você."
+    : "Use este código para autorizar a alteração dos dados da sua dupla.";
+  const corpo = `
+    ${p(explicacao)}
+    <div style="margin:20px 0;padding:24px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;text-align:center;">
+      <p style="margin:0;font-size:32px;font-weight:800;letter-spacing:6px;color:#1e3a8a;">${escapeHtml(opts.codigo)}</p>
+    </div>
+    ${p(`O código vale por ${opts.validadeMinutos} minutos e só pode ser usado uma vez.`)}
+    ${p("Se você não pediu essa alteração, não compartilhe o código e ignore este e-mail.")}
+  `;
+  return base("Confirme a alteração do ingresso", corpo);
+}
+
+export function avisoAlteracaoIngressoHtml(opts: {
+  nomeCampeonato: string;
+  resumo: string;
+}): string {
+  const corpo = `
+    ${p(`Os dados de uma dupla no campeonato <strong>${escapeHtml(opts.nomeCampeonato)}</strong> foram alterados.`)}
+    <div style="margin:16px 0;padding:16px;background:#fff7ed;border-radius:10px;border-left:4px solid #ea580c;">
+      <p style="margin:0;font-size:14px;color:#9a3412;line-height:1.6;">${escapeHtml(opts.resumo)}</p>
+    </div>
+    ${p("Links, códigos e QR Codes afetados foram substituídos. Se você não reconhece essa alteração, procure o suporte oficial do RankFTV.")}
+  `;
+  return base("Dados do ingresso alterados", corpo);
 }

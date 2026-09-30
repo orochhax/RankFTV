@@ -14,7 +14,8 @@ function actionSource(source: string, name: string, nextName: string): string {
 }
 
 test("roadmap de TI guarda perguntas para os arquivos sem contabilizá-las no site", () => {
-  const actions = read("app/admin/performance/life-os-actions.ts");
+  const actions = read("app/admin/performance/life-os-actions/it-career-create.ts")
+    + read("app/admin/performance/life-os-actions/study-roadmap-items.ts");
   const create = actionSource(actions, "criarRoadmapTiPredefinidoLifeOS", "ativarRoadmapEstudosLifeOS");
   assert.match(create, /content_role: topic\.role/);
   assert.match(create, /practice_exercises: officialTopic\.activities\.slice\(0, 8\)/);
@@ -46,7 +47,7 @@ test("pagina nao carrega perguntas de roadmaps de TI", () => {
 });
 
 test("modulo seguinte depende somente dos assuntos contabilizados", () => {
-  const actions = read("app/admin/performance/life-os-actions.ts");
+  const actions = read("app/admin/performance/life-os-actions/it-career-support.ts");
   const workspace = read("components/performance/StudiesWorkspace.tsx");
   assert.match(actions, /async function previousItCareerModuleCompletionError/);
   assert.match(actions, /\.neq\("counts_for_progress", false\)/);

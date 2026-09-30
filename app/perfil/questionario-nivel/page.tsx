@@ -3,12 +3,15 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { QuestionarioNivelForm } from "@/components/perfil/QuestionarioNivelForm";
+import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 
 export default async function QuestionarioNivelPage({
   searchParams,
 }: {
   searchParams: Promise<{ redirect?: string }>;
 }) {
+  if (!categoryLevelRecommendationEnabled()) redirect("/perfil");
+
   const { redirect: redirectTo } = await searchParams;
 
   const supabase = await createClient();

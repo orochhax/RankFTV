@@ -31,6 +31,7 @@
   --color-warning-bg: #fffaeb;
   --color-danger:     #dc2626;
   --color-danger-bg:  #fef3f2;
+  --color-brand-dark: #202020; /* fundos escuros sólidos da interface */
 
   --radius-card:    1rem;    /* 16px */
   --radius-card-lg: 1.5rem;  /* 24px */
@@ -48,6 +49,36 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
+}
+
+/* Elementos interativos mostram de forma consistente que podem ser clicados.
+   :where() mantém a especificidade em zero para que cursores específicos de
+   componentes (como arrastar ou redimensionar) continuem tendo prioridade. */
+:where(
+  a[href],
+  button:not(:disabled),
+  summary,
+  select:not(:disabled),
+  label[for],
+  label:has(input:not(:disabled)),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="file"]:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="link"]:not([aria-disabled="true"])
+) {
+  cursor: pointer;
+}
+
+:where(
+  button:disabled,
+  select:disabled,
+  input[type="checkbox"]:disabled,
+  input[type="radio"]:disabled,
+  input[type="file"]:disabled,
+  [aria-disabled="true"]
+) {
+  cursor: not-allowed;
 }
 
 /* ── Zoom automático ao focar campo no mobile (Safari/iOS) ──────────────
@@ -83,7 +114,7 @@ input[type="week"] {
 }
 
 .rankftv-desktop-sidebar {
-  background: #000000 !important;
+  background: #202020 !important;
   border-right-color: transparent !important;
 }
 
@@ -160,7 +191,7 @@ input[type="week"] {
 /* O Surface aplica bg-surface por padrão. Esta variação precisa vencer essa
    cor sem alterar os demais cards claros do design system. */
 .home-quick-access {
-  background-color: #000000 !important;
+  background-color: #202020 !important;
   color: #ffffff !important;
   --tw-ring-color: #27272a !important;
 }
@@ -207,6 +238,39 @@ input[type="week"] {
   to {
     background-position: 0 0, 0 0;
   }
+}
+
+/* A home usa um único feixe que acompanha os dois cantos arredondados. */
+.home-mobile-sheet-accent {
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 2;
+  width: 100%;
+  height: 28px;
+  overflow: visible;
+}
+
+.home-mobile-sheet-accent path {
+  fill: none;
+  stroke: #2929ff;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 10 90;
+  filter: drop-shadow(0 0 4px rgba(77, 77, 255, 0.95));
+  animation: home-mobile-sheet-accent-sweep 2.2s linear infinite;
+}
+
+@keyframes home-mobile-sheet-accent-sweep {
+  from { stroke-dashoffset: 10; }
+  to { stroke-dashoffset: -90; }
+}
+
+/* O hambúrguer fica à esquerda, então o card abre para dentro da tela. */
+.home-header-menu > div > div {
+  right: auto;
+  left: 0;
 }
 
 /* Sem modo escuro automático: o fundo geral usa app-bg e as superfícies

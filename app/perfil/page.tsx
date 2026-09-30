@@ -88,7 +88,7 @@ export default async function PerfilPage() {
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho azul (contido em toda tela, sem esticar borda a borda) ── */}
-      <div className="bg-black px-6 pb-16 pt-6 md:pb-10">
+      <div className="bg-brand-dark px-6 pb-16 pt-6 md:pb-10">
         <PageContainer width="wide" className="space-y-4">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors w-fit md:hidden">
             <ArrowLeft className="size-4" />
@@ -124,11 +124,9 @@ export default async function PerfilPage() {
                 <p className="text-lg font-bold text-gray-900">{profile.rating > 0 ? profile.rating : "—"}</p>
               </div>
               <p className="mt-1 text-xs text-gray-400">
-                Sua pontuação de nível, calculada a partir do questionário de nível — usada pra
-                recomendar sua categoria nos campeonatos que ativam essa opção.{" "}
-                <Link href="/perfil/questionario-nivel" className="font-medium text-blue-600 hover:underline">
-                  {profile.rating > 0 ? "Refazer questionário" : "Responder questionário"}
-                </Link>
+                Sua pontuação competitiva é atualizada pelos resultados registrados. A
+                autoavaliação e a recomendação automática de categoria ficam para uma versão
+                futura.
               </p>
             </div>
 
@@ -208,7 +206,7 @@ export default async function PerfilPage() {
               {organizerAccount?.habilitado ? (
                 <Link
                   href="/painel"
-                  className="block rounded-2xl bg-black p-5 text-white transition-colors hover:bg-[#17171d]"
+                  className="block rounded-2xl bg-brand-dark p-5 text-white transition-colors hover:bg-[#17171d]"
                 >
                   <p className="text-base font-semibold">
                     {totalCampeonatos === 0
@@ -225,7 +223,7 @@ export default async function PerfilPage() {
                   </p>
                 </Link>
               ) : organizerAccount && !organizerAccount.habilitado ? (
-                <div className="rounded-2xl bg-black p-5 text-white">
+                <div className="rounded-2xl bg-brand-dark p-5 text-white">
                   <p className="text-base font-semibold">Conta em análise</p>
                   <p className="mt-1 text-sm text-white/50">
                     Você recebe uma notificação quando ela for aprovada.
@@ -234,7 +232,7 @@ export default async function PerfilPage() {
               ) : (
                 <Link
                   href="/perfil/ativar-organizador"
-                  className="block rounded-2xl bg-black p-5 text-white transition-colors hover:bg-[#17171d]"
+                  className="block rounded-2xl bg-brand-dark p-5 text-white transition-colors hover:bg-[#17171d]"
                 >
                   <p className="text-base font-semibold">Vire organizador</p>
                   <p className="mt-1 text-sm text-white/50">

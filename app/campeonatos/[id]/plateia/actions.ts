@@ -11,10 +11,11 @@ import { createClient } from "@/lib/supabase/server";
 import { calcularDesconto, calcularTotalComprador } from "@/lib/taxas";
 import { gerarTicketAccessToken } from "@/lib/ticket-access";
 import { resolverPrecos } from "@/lib/lotes";
+import { spectatorCheckoutSchema } from "@/lib/checkout-input-schemas";
+import { checkoutLegalConsentRecord, hasCheckoutLegalConsent } from "@/lib/legal-consent";
 
 export type ComprarState = { error?: string };
 
-type RequestedItem = { ticketTypeId: string; qty: number };
 type CreatedOrder = {
   ticket_id: string;
   valor: number | string;
@@ -47,31 +48,33 @@ export async function comprarIngresso(
   _prev: ComprarState,
   formData: FormData,
 ): Promise<ComprarState> {
-  const championshipId = String(formData.get("championship_id") ?? "");
-  const nome = String(formData.get("nome") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const cpf = String(formData.get("cpf") ?? "").replace(/\D/g, "");
-  const cupomCodigo = String(formData.get("cupom_codigo") ?? "").trim();
-
-  let requested: RequestedItem[];
+  let requested: unknown;
   try {
-    const parsed = JSON.parse(String(formData.get("itens") ?? "[]")) as RequestedItem[];
-    requested = Array.isArray(parsed) ? parsed : [];
+    requested = JSON.parse(String(formData.get("itens") ?? "[]"));
   } catch {
     return { error: "Pedido invalido." };
   }
-
-  if (!nome) return { error: "Informe seu nome." };
-  if (!email.includes("@")) return { error: "Informe um e-mail valido." };
+  const legalAccepted = hasCheckoutLegalConsent(formData.get("aceite_termos"));
+  if (!legalAccepted) {
+    return { error: "Aceite os Termos de Uso e a Política de Privacidade para continuar." };
+  }
+  const parsedInput = spectatorCheckoutSchema.safeParse({
+    championshipId: String(formData.get("championship_id") ?? ""),
+    nome: String(formData.get("nome") ?? "").trim(),
+    email: String(formData.get("email") ?? "").trim().toLowerCase(),
+    cpf: String(formData.get("cpf") ?? "").replace(/\D/g, ""),
+    cupomCodigo: String(formData.get("cupom_codigo") ?? "").trim(),
+    legalAccepted,
+    items: requested,
+  });
+  if (!parsedInput.success) return { error: "Pedido invalido. Revise os dados informados." };
+  const { championshipId, nome, email, cpf, cupomCodigo, items } = parsedInput.data;
 
   const quantities = new Map<string, number>();
-  for (const item of requested) {
-    if (!item?.ticketTypeId) continue;
-    const qty = Math.floor(Number(item.qty));
-    if (!Number.isFinite(qty) || qty <= 0) continue;
+  for (const item of items) {
+    const qty = item.qty;
     quantities.set(item.ticketTypeId, (quantities.get(item.ticketTypeId) ?? 0) + qty);
   }
-  if (quantities.size === 0) return { error: "Escolha pelo menos um ingresso." };
   if ([...quantities.values()].some((qty) => qty > 20)) {
     return { error: "O limite e de 20 ingressos por tipo em cada pedido." };
   }
@@ -144,6 +147,15 @@ export async function comprarIngresso(
 
   const order = (Array.isArray(created) ? created[0] : created) as CreatedOrder | null;
   if (createError || !order) return { error: spectatorOrderError(createError?.message ?? "") };
+
+  const { error: consentError } = await admin
+    .from("spectator_tickets")
+    .update(checkoutLegalConsentRecord())
+    .eq("id", order.ticket_id);
+  if (consentError) {
+    await releaseOrder(order.ticket_id);
+    return { error: "Nao foi possivel registrar o aceite dos termos. Tente novamente." };
+  }
 
   const orderValue = Number(order.valor);
   if (orderValue <= 0) {

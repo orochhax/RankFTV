@@ -135,7 +135,7 @@ function CartaoForm({ arenaId, handle, onClose }: { arenaId: string; handle: str
             </button>
           </div>
           <p className="text-center text-xs text-gray-400">
-            Seus dados de cartão são processados com segurança pelo Asaas e não ficam armazenados aqui.
+            Seus dados de cartão são enviados com segurança ao processador de pagamentos e não ficam armazenados aqui.
           </p>
         </form>
       </div>

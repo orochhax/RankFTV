@@ -56,6 +56,6 @@ export async function vincularComprasAntigas(
 
   const vinculados = (r1.data?.length ?? 0) + (r2.data?.length ?? 0) + (r3.data?.length ?? 0);
 
-  revalidatePath("/meus-ingressos");
+  revalidatePath("/minhas-compras");
   return { ok: true, vinculados };
 }

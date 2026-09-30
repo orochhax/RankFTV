@@ -152,7 +152,7 @@ export function habitBestWeekday(habit: Habit, logs: HabitLog[]): string | null 
 }
 
 function cleanMarkdown(value: string): string {
-  return value.replace(/`([^`]+)`/g, "$1").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1").trim();
+  return value.replace(/`([^`]+)`/g, "$1").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").trim();
 }
 
 function sectionKind(section: string): ParsedRoadmapItem["itemKind"] {

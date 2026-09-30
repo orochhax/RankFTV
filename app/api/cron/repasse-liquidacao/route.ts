@@ -8,6 +8,7 @@ import {
 import { pixKeyEmCooldown } from "@/lib/pix";
 import { executeArenaPayout } from "@/lib/arena-payout";
 import { reportOperationalEvent } from "@/lib/observability";
+import { isCronAuthorized } from "@/lib/cron-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,7 @@ export const dynamic = "force-dynamic";
 
 async function runSettlement(req: NextRequest) {
   // Auth: a Vercel envia Authorization: Bearer ${CRON_SECRET} nas chamadas de cron.
-  const auth = req.headers.get("authorization");
-  if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isCronAuthorized(req.headers)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

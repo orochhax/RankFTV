@@ -4,10 +4,17 @@ import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
 import QRCode from "qrcode";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Avatar } from "@/components/ui/Avatar";
-import { IngressoAtletaPagamento } from "@/components/campeonatos/IngressoAtletaPagamento";
+import {
+  IngressoAtletaPagamento,
+  type AthleteEntryCredential,
+} from "@/components/campeonatos/IngressoAtletaPagamento";
 import { IngressoOpcoesMenu } from "@/components/ingressos/IngressoOpcoesMenu";
+import { RefundStatusPanel } from "@/components/ingressos/RefundStatusPanel";
 import { normalizarTicketAccessToken } from "@/lib/ticket-access";
 import { PageContainer } from "@/components/shell/PageContainer";
+import { athleteDisplayName } from "@/lib/athlete-display-name";
+import { calcularTotalComprador } from "@/lib/taxas";
+import { decideRefundPolicy } from "@/lib/refund-policy";
 
 const AVATAR_COLORS = ["bg-blue-500", "bg-blue-500", "bg-violet-500", "bg-orange-500", "bg-rose-500", "bg-teal-500"];
 function avatarColor(str: string) {
@@ -41,19 +48,51 @@ export default async function IngressoAtletaPage({
   const { data: t } = await supabase
     .from("athlete_tickets")
     .select(
-      "id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in",
+      "id, championship_id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, billing_type, asaas_payment_id, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at, checkout_expires_at, created_at",
     )
     .eq("id", ticketId)
     .eq("access_token", accessToken)
     .maybeSingle();
   if (!t) notFound();
+  if (t.championship_id !== champId) notFound();
+
+  const individualCredentialResult = await supabase
+    .from("athlete_ticket_credentials")
+    .select("id, athlete_slot, display_name_snapshot, qr_token, code, checked_in, checkin_at")
+    .eq("athlete_ticket_id", ticketId)
+    .order("athlete_slot");
+
+  const { data: refundOperation } = await supabase
+    .from("financial_operations")
+    .select("status, provider_status, created_at, updated_at, completed_at")
+    .eq("flow", "athlete_ticket")
+    .eq("operation_type", "refund")
+    .eq("record_id", ticketId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const { data: paymentOperation } = await supabase
+    .from("financial_operations")
+    .select("amount")
+    .eq("flow", "athlete_ticket")
+    .eq("operation_type", "payment")
+    .eq("record_id", ticketId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const hasRefundOperation = Boolean(refundOperation);
+  const terminal = t.status_pagamento === "estornado" || t.status_pagamento === "expirado";
+  const refundStatus = refundOperation?.provider_status === "REFUNDED"
+    ? "refunded"
+    : refundOperation?.provider_status === "CANCELLED" || ["cancelled", "failed"].includes(refundOperation?.status ?? "")
+      ? "failed"
+      : refundOperation?.status ?? null;
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome, is_elite, data_inicio, data_fim, cidade, estado, local, regulamento")
+    .select("nome, is_elite, data_inicio, data_fim, cidade, estado, local, regulamento, organizador_id")
     .eq("id", champId)
     .maybeSingle();
-
   let categoriaGenero: "masculino" | "feminino" | "mista" | null = null;
   if (t.category_id) {
     const { data: cat } = await supabase
@@ -63,24 +102,76 @@ export default async function IngressoAtletaPage({
       .maybeSingle();
     categoriaGenero = (cat?.genero as "masculino" | "feminino" | "mista" | undefined) ?? null;
   }
+  const [{ data: organizerProfile }, { data: organizerAccount }] = await Promise.all([
+    supabase.from("profiles").select("nome").eq("id", champ?.organizador_id ?? "").maybeSingle(),
+    supabase.from("organizer_accounts").select("telefone").eq("user_id", champ?.organizador_id ?? "").maybeSingle(),
+  ]);
 
   const pago = t.status_pagamento === "pago";
+  const refundPolicy = decideRefundPolicy({
+    purchasedAt: t.created_at,
+    eventStartDate: champ?.data_inicio ?? null,
+    checkedIn: !!t.checked_in,
+    paymentStatus: t.status_pagamento,
+    hasProviderCharge: !!t.asaas_payment_id && Number(t.valor) > 0,
+  });
+  const compradorPublicName = athleteDisplayName(t.comprador_nome);
+  const parceiroPublicName = athleteDisplayName(t.parceiro_nome);
 
-  let entradaQr: string | null = null;
-  if (pago && t.qr_token) {
-    entradaQr = await QRCode.toDataURL(t.qr_token, {
-      width:                280,
-      margin:               2,
-      color:                { dark: "#000000", light: "#ffffff" },
-      errorCorrectionLevel: "M",
-    });
-  }
+  type CredentialRow = {
+    id: string;
+    athlete_slot: number;
+    display_name_snapshot: string;
+    qr_token: string | null;
+    code: string | null;
+    checked_in: boolean;
+    checkin_at: string | null;
+  };
+  const allIndividualCredentials = individualCredentialResult.error
+    ? []
+    : (individualCredentialResult.data ?? []) as CredentialRow[];
+  const individualCredential = allIndividualCredentials.find((credential) => credential.athlete_slot === 1) ?? null;
+  const credentialSources: CredentialRow[] = individualCredential
+    ? [individualCredential]
+    : [{
+        id: `legacy:${t.id}`,
+        athlete_slot: 1,
+        display_name_snapshot: `${compradorPublicName} + ${parceiroPublicName}`,
+        qr_token: t.qr_token,
+        code: t.code,
+        checked_in: t.checked_in,
+        checkin_at: null,
+      }];
+  const initialCredentials: AthleteEntryCredential[] = await Promise.all(
+    credentialSources.map(async (credential) => ({
+      id: credential.id,
+      name: athleteDisplayName(credential.display_name_snapshot),
+      qrToken: credential.qr_token,
+      code: credential.code,
+      checkedIn: credential.checked_in,
+      checkinAt: credential.checkin_at,
+      qrDataUrl: pago && credential.qr_token
+        ? await QRCode.toDataURL(credential.qr_token, {
+            width: 280,
+            margin: 2,
+            color: { dark: "#000000", light: "#ffffff" },
+            errorCorrectionLevel: "M",
+          })
+        : null,
+    })),
+  );
+  const championshipDateLabel = champ?.data_inicio
+    ? `${dataBR(champ.data_inicio)}${champ.data_fim && champ.data_fim !== champ.data_inicio ? ` a ${dataBR(champ.data_fim)}` : ""}`
+    : null;
+  const championshipLocationLabel = (champ?.local || champ?.cidade)
+    ? [champ.local, champ.cidade && `${champ.cidade}/${champ.estado}`].filter(Boolean).join(" · ")
+    : null;
 
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho escuro (mesma largura contida do corpo, em toda tela) ── */}
-      <div className="bg-black pb-16 pt-6">
-        <PageContainer width="form" className="space-y-5">
+      <div className="bg-brand-dark pb-16 pt-6">
+        <PageContainer width="wide" className="space-y-5">
           <div className="flex items-center justify-between">
             <Link
               href={backHref}
@@ -88,11 +179,17 @@ export default async function IngressoAtletaPage({
             >
               <ArrowLeft className="size-4" /> {voltar === "minhas-compras" ? "Minhas Compras" : "Voltar ao campeonato"}
             </Link>
-            {t.status_pagamento !== "estornado" && (
+            {!terminal && !hasRefundOperation && (
               <IngressoOpcoesMenu
                 tipo="atleta"
                 ticketId={t.id}
                 accessToken={accessToken}
+                billingType={t.billing_type}
+                refundPolicy={refundPolicy}
+                purchasedAt={t.created_at}
+                eventStartDate={champ?.data_inicio ?? null}
+                baseAmount={Number(t.valor)}
+                paidAmount={paymentOperation?.amount == null ? null : Number(paymentOperation.amount)}
                 dadosAtuais={{
                   compradorNome:   t.comprador_nome,
                   compradorCpf:    t.comprador_cpf,
@@ -120,59 +217,75 @@ export default async function IngressoAtletaPage({
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <Avatar nome={t.comprador_nome} color={avatarColor(t.comprador_nome)} size="sm" />
-              <span className="text-sm font-medium text-white">{t.comprador_nome}</span>
+              <Avatar nome={compradorPublicName} color={avatarColor(compradorPublicName)} size="sm" />
+              <span className="text-sm font-medium text-white">{compradorPublicName}</span>
             </div>
-            {t.parceiro_nome && (
-              <>
-                <span className="text-white/30">+</span>
-                <div className="flex items-center gap-2">
-                  <Avatar nome={t.parceiro_nome} color={avatarColor(t.parceiro_nome)} size="sm" />
-                  <span className="text-sm font-medium text-white">{t.parceiro_nome}</span>
-                </div>
-              </>
-            )}
+            <span className="text-white/30">+</span>
+            <div className="flex items-center gap-2">
+              <Avatar nome={parceiroPublicName} color={avatarColor(parceiroPublicName)} size="sm" />
+              <span className="text-sm font-medium text-white">{parceiroPublicName}</span>
+            </div>
           </div>
 
-          {t.code && (
-            <p className="font-mono text-[11px] tracking-[0.25em] text-white/30">{t.code}</p>
-          )}
         </PageContainer>
       </div>
 
       {/* ── Corpo: sheet arredondada no mobile, fundo neutro no desktop ── */}
       <div className="relative -mt-6 min-h-screen rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:shadow-none">
-        <PageContainer width="form" className="space-y-6">
-          <IngressoAtletaPagamento
-            ticketId={t.id}
-            accessToken={accessToken}
-            isElite={!!champ?.is_elite}
-            initialStatusPagamento={t.status_pagamento}
-            initialCheckedIn={t.checked_in}
-            initialEntradaQr={entradaQr}
-            qrToken={t.qr_token}
-            code={t.code}
-            valor={Number(t.valor)}
-            pixCopyPaste={t.pix_copy_paste}
-            pixQrBase64={t.pix_qr_code_base64}
-          />
+        <PageContainer width="wide" className="space-y-6">
+          {hasRefundOperation || terminal ? (
+            <RefundStatusPanel
+              billingType={t.billing_type}
+              refundStatus={refundStatus}
+              requestedAt={refundOperation?.created_at ?? null}
+              completedAt={refundOperation?.completed_at ?? (refundStatus === "refunded" ? refundOperation?.updated_at ?? null : null)}
+              cancelledAt={t.inventory_released_at ?? null}
+            />
+          ) : (
+            <IngressoAtletaPagamento
+              ticketId={t.id}
+              accessToken={accessToken}
+              isElite={!!champ?.is_elite}
+              initialStatusPagamento={t.status_pagamento}
+              initialCredentials={initialCredentials}
+              valor={Number(t.valor)}
+              pixAmount={Number(paymentOperation?.amount ?? calcularTotalComprador(Number(t.valor), "pix", !!champ?.is_elite))}
+              pixCopyPaste={t.pix_copy_paste}
+              pixQrBase64={t.pix_qr_code_base64}
+              paymentMethod={t.billing_type === "CREDIT_CARD" || t.billing_type === "DEBIT_CARD" ? "cartao" : "pix"}
+              championshipId={champId}
+              categoryId={t.category_id}
+              checkoutExpiresAt={t.checkout_expires_at}
+              serverNow={new Date().toISOString()}
+              championshipName={champ?.nome ?? "Campeonato"}
+              categoryName={t.categoria_nome}
+              buyerName={compradorPublicName}
+              partnerName={parceiroPublicName}
+              buyerEmail={t.comprador_email}
+              partnerEmail={t.parceiro_email}
+              organizerName={organizerProfile?.nome ?? null}
+              organizerPhone={organizerAccount?.telefone ?? null}
+              championshipDateLabel={championshipDateLabel}
+              championshipLocationLabel={championshipLocationLabel}
+              championshipHref={`/campeonatos/${champId}`}
+            />
+          )}
 
-          {/* Dados do campeonato */}
-          {champ && (
+          {/* No pagamento pendente, os dados continuam como contexto abaixo do checkout. */}
+          {champ && !pago && (
             <div className="space-y-3 rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5">
               <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Sobre o campeonato</p>
               <p className="font-semibold text-gray-900">{champ.nome}</p>
-              {champ.data_inicio && (
+              {championshipDateLabel && (
                 <p className="flex items-center gap-2 text-sm text-gray-600">
                   <CalendarDays className="size-4 shrink-0 text-gray-400" />
-                  {dataBR(champ.data_inicio)}
-                  {champ.data_fim && champ.data_fim !== champ.data_inicio && ` a ${dataBR(champ.data_fim)}`}
+                  {championshipDateLabel}
                 </p>
               )}
-              {(champ.local || champ.cidade) && (
+              {championshipLocationLabel && (
                 <p className="flex items-center gap-2 text-sm text-gray-600">
                   <MapPin className="size-4 shrink-0 text-gray-400" />
-                  {[champ.local, champ.cidade && `${champ.cidade}/${champ.estado}`].filter(Boolean).join(" · ")}
+                  {championshipLocationLabel}
                 </p>
               )}
               <Link

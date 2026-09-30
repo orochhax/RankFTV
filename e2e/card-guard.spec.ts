@@ -1,25 +1,31 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
+import { financialMutationSandboxEnabled } from "../lib/e2e-sandbox-safety";
 
-const enabled = process.env.E2E_CARD_GUARD_MUTATION_TESTS === "1"
+const enabled = financialMutationSandboxEnabled("E2E_CARD_GUARD_MUTATION_TESTS")
   && Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL)
-  && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  && Boolean(process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 function sandboxClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    (process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY)!,
     { auth: { persistSession: false, autoRefreshToken: false } },
   );
 }
 
-async function beginAttempt(client: ReturnType<typeof sandboxClient>, seed: string, order: string) {
+async function beginAttempt(
+  client: ReturnType<typeof sandboxClient>,
+  seed: string,
+  order: string,
+  ipSeed = seed,
+) {
   const { data, error } = await client.rpc("begin_card_payment_attempt", {
     p_flow: "registration",
     p_order_reference: order,
     p_actor_id: null,
-    p_ip_hash: `ip-${seed}`,
+    p_ip_hash: `ip-${ipSeed}`,
     p_card_fingerprint: `card-${seed}`,
     p_card_last4: "4242",
   });
@@ -30,7 +36,7 @@ async function beginAttempt(client: ReturnType<typeof sandboxClient>, seed: stri
 async function cleanup(client: ReturnType<typeof sandboxClient>, seed: string, orders: string[]) {
   await client.from("payment_card_attempts").delete().in("order_reference", orders);
   await client.from("payment_card_guards").delete().or(
-    `scope_key.eq.card:card-${seed},scope_key.eq.ip:ip-${seed},scope_key.like.order:registration:${seed}%`,
+    `scope_key.eq.card:card-${seed},scope_key.like.ip:ip-${seed}%,scope_key.like.order:registration:${seed}%`,
   );
 }
 
@@ -81,7 +87,16 @@ test("sandbox cooldown blocks declines and a successful accepted attempt unlocks
       p_provider_code: "fixture_success",
     });
     expect(error).toBeNull();
-    expect((await beginAttempt(client, seed, order)).allowed).toBe(true);
+
+    const { data: releasedGuards, error: releasedError } = await client
+      .from("payment_card_guards")
+      .select("scope_key,blocked_until")
+      .in("scope_key", [`card:card-${seed}`, `order:registration:${order}`]);
+    expect(releasedError).toBeNull();
+    expect(releasedGuards).toHaveLength(2);
+    expect(releasedGuards?.every((guard) => guard.blocked_until === null)).toBe(true);
+
+    expect((await beginAttempt(client, seed, order, `${seed}-fresh`)).allowed).toBe(true);
   } finally {
     await cleanup(client, seed, [order]);
   }

@@ -3,13 +3,22 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { criarOuBuscarCliente, type MetodoPagamento } from "@/lib/asaas";
+import { criarOuBuscarCliente } from "@/lib/asaas";
 import { createIdempotentCharge } from "@/lib/payment-flows";
 import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
 import { buscarCupomValido, type CupomValido } from "@/lib/cupons";
 import { resolverPrecos, resolverEClaimarLote } from "@/lib/lotes";
 import { enviarConviteDupla, enviarInscricaoConfirmada } from "@/lib/email/send";
 import { checarElegibilidadeCategoria, resolverCpfInscricao, podeConvidarComoParceiro } from "@/lib/inscricao-elegibilidade";
+import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
+import {
+  isParticipantCategoryConflict,
+  participantCategoryConflictMessage,
+} from "@/lib/participant-registration";
+import { reportOperationalEvent } from "@/lib/observability";
+import { validaCPF } from "@/lib/validacao";
+import { authenticatedRegistrationCoreSchema } from "@/lib/checkout-input-schemas";
+import { checkoutLegalConsentRecord, hasCheckoutLegalConsent } from "@/lib/legal-consent";
 
 export type InscreverState = { error?: string };
 
@@ -21,18 +30,31 @@ export async function inscreverDupla(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const privileged = createAdminClient();
+  const legalAccepted = hasCheckoutLegalConsent(formData.get("aceite_termos"));
+  if (!legalAccepted) {
+    return { error: "Aceite os Termos de Uso e a Política de Privacidade para continuar." };
+  }
 
-  const championshipId   = formData.get("championship_id") as string;
-  const categoryId       = formData.get("category_id") as string;
-  const parceiroUsername = ((formData.get("parceiro_username") as string) ?? "").trim().replace(/^@/, "");
-  const cpfInput         = ((formData.get("cpf") as string) ?? "").replace(/\D/g, "");
-  const metodo           = ((formData.get("metodo_pagamento") as string) ?? "pix") as MetodoPagamento;
-  const ratingDupla      = parseInt(formData.get("rating_dupla") as string) || 0;
-  const sandbaggingFlag  = formData.get("sandbagging") === "1";
-  const tamanhoCamisa    = ((formData.get("tamanho_camisa") as string) ?? "").trim();
-  const cupomCodigo      = ((formData.get("cupom_codigo") as string) ?? "").trim();
-
-  if (!tamanhoCamisa) return { error: "Selecione o tamanho da camisa." };
+  const parsedInput = authenticatedRegistrationCoreSchema.safeParse({
+    championshipId: String(formData.get("championship_id") ?? ""),
+    categoryId: String(formData.get("category_id") ?? ""),
+    parceiroUsername: String(formData.get("parceiro_username") ?? "").trim().replace(/^@/, ""),
+    cpfInput: String(formData.get("cpf") ?? "").trim(),
+    metodo: String(formData.get("metodo_pagamento") ?? "pix"),
+    tamanhoCamisa: String(formData.get("tamanho_camisa") ?? ""),
+    cupomCodigo: String(formData.get("cupom_codigo") ?? "").trim(),
+    legalAccepted,
+  });
+  if (!parsedInput.success) return { error: "Dados da inscrição inválidos. Revise o formulário." };
+  const {
+    championshipId,
+    categoryId,
+    parceiroUsername,
+    metodo,
+    tamanhoCamisa,
+    cupomCodigo,
+  } = parsedInput.data;
+  const cpfInput = parsedInput.data.cpfInput.replace(/\D/g, "");
 
   // ── Carrega perfil, campeonato e categoria em paralelo ────────
   // category_id é filtrado por championship_id aqui (defesa em profundidade
@@ -64,7 +86,7 @@ export async function inscreverDupla(
   const elegibilidade = checarElegibilidadeCategoria(
     { genero: profile.genero, rating: profile.rating },
     { genero: cat.genero, corteRatingMin: cat.corte_rating_min, corteRatingMax: cat.corte_rating_max },
-    champ.usa_motor_categoria ?? true,
+    categoryLevelRecommendationEnabled(champ.usa_motor_categoria),
   );
   if (!elegibilidade.ok) return { error: elegibilidade.error };
 
@@ -77,13 +99,14 @@ export async function inscreverDupla(
     .from("teams")
     .select("id")
     .eq("championship_id", championshipId)
+    .eq("category_id", categoryId)
     .neq("status", "cancelado")
     .or(`atleta1_id.eq.${user.id},atleta2_id.eq.${user.id}`)
     .limit(1)
     .maybeSingle();
 
   if (inscricaoExistente) {
-    return { error: "Você já está inscrito neste campeonato." };
+    return { error: participantCategoryConflictMessage };
   }
 
   const valorBaseCategoria = Number(cat.valor_inscricao);
@@ -112,8 +135,8 @@ export async function inscreverDupla(
   const cpf = resolverCpfInscricao(cpfSalvo, cpfInput);
 
   // CPF só é obrigatório para inscrições pagas (Asaas exige)
-  if (!isGratisPreview && (!cpf || cpf.length !== 11)) {
-    return { error: "CPF obrigatório (somente números, 11 dígitos)." };
+  if (!isGratisPreview && !validaCPF(cpf)) {
+    return { error: "CPF inválido. Confira os números informados." };
   }
 
   // Chave Pix do organizador só é necessária para inscrições pagas
@@ -133,6 +156,7 @@ export async function inscreverDupla(
   // profiles não tem e-mail (fica em auth.users); busca só id/nome aqui e o
   // e-mail (pro convite) via admin client logo abaixo.
   let atleta2Id: string | null = null;
+  let parceiroRating: number | null = null;
   let parceiroDados: { id: string; nome: string; email?: string } | null = null;
   if (parceiroUsername) {
     const { data: parceiro } = await supabase
@@ -153,12 +177,13 @@ export async function inscreverDupla(
     const elegibilidadeParceiro = checarElegibilidadeCategoria(
       { genero: parceiro.genero, rating: parceiro.rating },
       { genero: cat.genero, corteRatingMin: cat.corte_rating_min, corteRatingMax: cat.corte_rating_max },
-      champ.usa_motor_categoria ?? true,
+      categoryLevelRecommendationEnabled(champ.usa_motor_categoria),
     );
     if (!elegibilidadeParceiro.ok)
       return { error: `@${parceiroUsername}: ${elegibilidadeParceiro.error}` };
 
     atleta2Id = parceiro.id;
+    parceiroRating = Number(parceiro.rating ?? 0);
 
     const admin = createAdminClient();
     const { data: authData } = await admin.auth.admin.getUserById(parceiro.id);
@@ -219,19 +244,19 @@ export async function inscreverDupla(
       atleta2_id:        atleta2Id,
       parceiro_username: parceiroUsername || null,
       status:            teamStatus,
-      sandbagging_flag:  sandbaggingFlag,
-      rating_dupla:      ratingDupla || null,
+      sandbagging_flag:  false,
+      rating_dupla:      atleta2Id && parceiroRating !== null
+        ? Math.round((Number(profile.rating ?? 0) + parceiroRating) / 2)
+        : Number(profile.rating ?? 0) || null,
     })
     .select("id")
     .single();
   if (teamError || !team) {
     await liberarReivindicacoes();
-    // 23505 (unique_violation) no índice teams_one_active_per_atleta1 =
-    // clique duplo/retry criou uma segunda tentativa concorrente pra mesma
-    // pessoa neste campeonato — a primeira já passou. Nunca chega a chamar
-    // o Asaas nesta segunda tentativa.
-    if (teamError?.code === "23505") {
-      return { error: "Você já está inscrito neste campeonato." };
+    // A trava por participante + categoria cobre clique duplo, parceiro e o
+    // checkout rápido. A tentativa recusada nunca chega a chamar o Asaas.
+    if (isParticipantCategoryConflict(teamError)) {
+      return { error: participantCategoryConflictMessage };
     }
     return { error: "Erro ao criar dupla." };
   }
@@ -250,11 +275,13 @@ export async function inscreverDupla(
       lote_id:          loteId,
       status_pagamento: isGratis ? "pago" : "pendente",
       billing_type:     isGratis ? null : (BILLING_TYPE[metodo] ?? null),
+      ...checkoutLegalConsentRecord(),
     })
     .select("id")
     .single();
   if (regError || !reg) {
     await liberarReivindicacoes();
+    await admin.from("teams").update({ status: "cancelado" }).eq("id", team.id);
     return { error: "Erro ao criar inscrição." };
   }
 
@@ -338,7 +365,18 @@ export async function inscreverDupla(
         invoice_url:        cobranca.invoiceUrl ?? null,
       })
       .eq("id", reg.id);
-  } catch {
+  } catch (error) {
+    await reportOperationalEvent({
+      level: "error",
+      event: "registration.customer_or_payment_start_failed",
+      message: "Registration payment could not be started",
+      error,
+      alert: true,
+    });
+    await admin.rpc("release_registration_inventory", {
+      p_registration_id: reg.id,
+      p_target_status: "expirado",
+    });
     return { error: "Não foi possível iniciar o pagamento. Tente novamente em instantes." };
   }
 

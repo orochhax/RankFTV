@@ -206,10 +206,10 @@ function pythonTopicExercises(topic: ItCareerWorkspaceTopic): string {
   }).join("\n\n");
   const questions = topic.questions?.length
     ? topic.questions.map((question, index) => question.type === "ordering"
-      ? `# ${index + 1}. [${safeInlineText(question.sessionTitle)}] ${safeInlineText(question.prompt)}\n# Organize os índices destas opções na sequência escolhida:\n${question.options.map((option, optionIndex) => `# ${optionIndex}: ${safeInlineText(option)}`).join("\n")}\nordem_${index + 1}: list[int] = []\njustificativa_${index + 1} = \"\"\"\nExplique aqui a ordem escolhida.\n\"\"\"`
-      : `# ${index + 1}. [${safeInlineText(question.sessionTitle)}] ${safeInlineText(question.prompt)}\n# Opções:\n${question.options.map((option) => `# - [ ] ${safeInlineText(option)}`).join("\n")}\nresposta_${index + 1} = \"\"\njustificativa_${index + 1} = \"\"\"\nEscreva aqui por que escolheu essa resposta.\n\"\"\"`).join("\n\n")
-    : `# 1. Explique o conceito principal de ${safeInlineText(topic.title)}.\nresposta_1 = \"\"\n\n# 2. Qual caso de borda merece um teste?\nresposta_2 = \"\"`;
-  return `\"\"\"${safeInlineText(topic.title)}\n\nEste arquivo já contém as atividades e perguntas do assunto.\nImplemente cada resposta logo abaixo do comentário indicado.\n\"\"\"\n\n${templateActivities}${exercises}\n\n\n# PERGUNTAS DE REVISÃO\n# Preencha as variáveis e justifique suas escolhas.\n\n${questions}\n`;
+      ? `# ${index + 1}. [${safeInlineText(question.sessionTitle)}] ${safeInlineText(question.prompt)}\n# Organize os índices destas opções na sequência escolhida:\n${question.options.map((option, optionIndex) => `# ${optionIndex}: ${safeInlineText(option)}`).join("\n")}\nordem_${index + 1}: list[int] = []\njustificativa_${index + 1} = """\nExplique aqui a ordem escolhida.\n"""`
+      : `# ${index + 1}. [${safeInlineText(question.sessionTitle)}] ${safeInlineText(question.prompt)}\n# Opções:\n${question.options.map((option) => `# - [ ] ${safeInlineText(option)}`).join("\n")}\nresposta_${index + 1} = ""\njustificativa_${index + 1} = """\nEscreva aqui por que escolheu essa resposta.\n"""`).join("\n\n")
+    : `# 1. Explique o conceito principal de ${safeInlineText(topic.title)}.\nresposta_1 = ""\n\n# 2. Qual caso de borda merece um teste?\nresposta_2 = ""`;
+  return `"""${safeInlineText(topic.title)}\n\nEste arquivo já contém as atividades e perguntas do assunto.\nImplemente cada resposta logo abaixo do comentário indicado.\n"""\n\n${templateActivities}${exercises}\n\n\n# PERGUNTAS DE REVISÃO\n# Preencha as variáveis e justifique suas escolhas.\n\n${questions}\n`;
 }
 
 function typescriptTopicExercises(topic: ItCareerWorkspaceTopic): string {
@@ -223,9 +223,9 @@ function typescriptTopicExercises(topic: ItCareerWorkspaceTopic): string {
   }).join("\n\n");
   const questions = topic.questions?.length
     ? topic.questions.map((question, index) => question.type === "ordering"
-      ? `// ${index + 1}. [${safeInlineText(question.sessionTitle)}] ${safeInlineText(question.prompt)}\n${question.options.map((option, optionIndex) => `// ${optionIndex}: ${safeInlineText(option)}`).join("\n")}\nexport const ordem${index + 1}: number[] = [];\nexport const justificativa${index + 1} = \"\";`
-      : `// ${index + 1}. [${safeInlineText(question.sessionTitle)}] ${safeInlineText(question.prompt)}\n${question.options.map((option) => `// - [ ] ${safeInlineText(option)}`).join("\n")}\nexport const resposta${index + 1} = \"\";\nexport const justificativa${index + 1} = \"\";`).join("\n\n")
-    : `// Explique o conceito principal e registre um caso de borda.\nexport const resposta1 = \"\";`;
+      ? `// ${index + 1}. [${safeInlineText(question.sessionTitle)}] ${safeInlineText(question.prompt)}\n${question.options.map((option, optionIndex) => `// ${optionIndex}: ${safeInlineText(option)}`).join("\n")}\nexport const ordem${index + 1}: number[] = [];\nexport const justificativa${index + 1} = "";`
+      : `// ${index + 1}. [${safeInlineText(question.sessionTitle)}] ${safeInlineText(question.prompt)}\n${question.options.map((option) => `// - [ ] ${safeInlineText(option)}`).join("\n")}\nexport const resposta${index + 1} = "";\nexport const justificativa${index + 1} = "";`).join("\n\n")
+    : `// Explique o conceito principal e registre um caso de borda.\nexport const resposta1 = "";`;
   return `/** Atividades: ${safeInlineText(topic.title)}. Responda diretamente neste arquivo. */\n\n${templateActivities}${exercises}\n\n// PERGUNTAS DE REVISÃO\n${questions}\n`;
 }
 

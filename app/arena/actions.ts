@@ -420,14 +420,14 @@ async function processarCobrancaAvulsa(attendanceId: string): Promise<{ ok: bool
 
     await resolver(
       paga, pagamento.id, cartao.asaas_customer_id,
-      paga ? null : `Status Asaas: ${pagamento.status ?? "pendente"}`,
+      paga ? null : `Status do processador: ${pagamento.status ?? "pendente"}`,
     );
     await finishCardPaymentAttempt(attempt.attemptId, "success", pagamento.status);
 
     if (!paga) {
       await notificarResponsaveisArena(
         info.arena_id, "Cobrança de aula avulsa pendente",
-        "Uma cobrança de aula avulsa não foi confirmada de imediato pelo Asaas. Acompanhe o status na lista da aula.",
+        "Uma cobrança de aula avulsa não foi confirmada de imediato pelo processador de pagamentos. Acompanhe o status na lista da aula.",
       );
       await notificarArena(
         info.user_id, "Pagamento pendente",

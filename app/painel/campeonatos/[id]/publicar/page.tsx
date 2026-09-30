@@ -3,7 +3,6 @@ import { Zap, CreditCard, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PublicarCampeonatoForm } from "@/components/painel/PublicarCampeonatoForm";
 import { PlanoTaxas } from "@/components/painel/PlanoTaxas";
-import { ChavePixClient } from "@/components/painel/ChavePixClient";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 
@@ -54,11 +53,12 @@ export default async function PublicarPage({
   ]);
 
   const temCategoriaPaga     = (cats ?? []).some((c) => Number(c.valor_inscricao) > 0);
+  const temIngressoPago      = (tiposIngresso ?? []).some((t) => Number(t.valor) > 0);
+  const temProdutoPago       = temCategoriaPaga || temIngressoPago;
   const temChavePix          = !!orgAccount?.chave_pix;
-  const precisaPix           = temCategoriaPaga && !temChavePix;
+  const precisaPix           = temProdutoPago && !temChavePix;
   const isElite              = !!champ?.is_elite;
   const feePendente          = Number(champ?.premium_fee_pendente ?? 0);
-  const temIngresso          = (tiposIngresso ?? []).some((t) => Number(t.valor) > 0);
   const maxParcelasInscricao = (champ as Record<string, unknown>).max_parcelas_inscricao as number ?? 1;
   const maxParcelasIngresso  = (champ as Record<string, unknown>).max_parcelas_ingresso  as number ?? 1;
 
@@ -69,12 +69,7 @@ export default async function PublicarPage({
         description={`Ao publicar, ${champ.nome} fica visível pra todo mundo e as inscrições abrem.`}
       />
 
-      {/* Chave Pix — visível sempre que há categorias pagas */}
-      {temCategoriaPaga && (
-        <ChavePixClient chavePix={orgAccount?.chave_pix ?? null} />
-      )}
-
-      {temCategoriaPaga ? (
+      {temProdutoPago ? (
         <>
           {/* Como funciona o repasse */}
           <div className="rounded-card-lg bg-blue-50 p-5 ring-1 ring-blue-100">
@@ -82,7 +77,7 @@ export default async function PublicarPage({
             <ul className="mt-3 space-y-2 text-sm text-blue-800">
               <li className="flex items-start gap-2">
                 <Zap className="mt-0.5 size-4 shrink-0 text-blue-500" />
-                Atleta paga a inscrição + a taxa de serviço (Pix ou cartão)
+                Comprador paga o produto + a taxa de serviço (Pix ou cartão)
               </li>
               <li className="flex items-start gap-2">
                 <ShieldCheck className="mt-0.5 size-4 shrink-0 text-blue-500" />
@@ -123,7 +118,7 @@ export default async function PublicarPage({
         championshipId={id}
         precisaPix={precisaPix}
         temCategoriaPaga={temCategoriaPaga}
-        temIngresso={temIngresso}
+        temIngresso={temIngressoPago}
         maxParcelasInscricao={maxParcelasInscricao}
         maxParcelasIngresso={maxParcelasIngresso}
       />

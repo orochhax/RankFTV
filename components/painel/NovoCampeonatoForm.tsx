@@ -66,13 +66,10 @@ export function NovoCampeonatoForm() {
   const [local, setLocal] = useState("");
   const [liveUrl, setLiveUrl] = useState("");
 
-  const [categorias, setCategorias] = useState<CatForm[]>([
-    { nome: "", genero: "masculino", valorInscricao: "", maxDuplas: "" },
-  ]);
+  const [categorias, setCategorias] = useState<CatForm[]>([]);
   const [ingressos, setIngressos] = useState<IngForm[]>([{ nome: "", valor: "", quantidade: "" }]);
   const [quiz, setQuiz] = useState<Partial<QuizAnswers>>({});
   const [elite, setElite] = useState(false);
-  const [usaMotorCategoria, setUsaMotorCategoria] = useState(true);
 
   const [vender, setVender] = useState<{ atleta: boolean; plateia: boolean }>({ atleta: true, plateia: false });
   const [stepIdx, setStepIdx] = useState(0);
@@ -101,7 +98,7 @@ export function NovoCampeonatoForm() {
   }
   const nomesUsados = new Set(categorias.map((c) => c.nome));
   function removeCat(i: number) {
-    setCategorias((cs) => (cs.length === 1 ? cs : cs.filter((_, j) => j !== i)));
+    setCategorias((cs) => cs.filter((_, j) => j !== i));
   }
 
   function updateIng(i: number, patch: Partial<IngForm>) {
@@ -201,7 +198,9 @@ export function NovoCampeonatoForm() {
         // Plateia-only não tem nível — manda quiz vazio (tier vira "local").
         tierQuiz: (vender.atleta ? (quiz as QuizAnswers) : ({} as QuizAnswers)),
         elite,
-        usaMotorCategoria: vender.atleta ? usaMotorCategoria : false,
+        // A recomendação de categoria fica desativada na V1. O questionário
+        // acima classifica o evento (Local/Open/Elite), não o atleta.
+        usaMotorCategoria: false,
         categorias: vender.atleta
           ? categorias.filter((c) => c.nome.trim()).map<CategoriaInput>((c) => ({
               nome: c.nome, genero: c.genero, valorInscricao: Number(c.valorInscricao) || 0, maxDuplas: Number(c.maxDuplas) || undefined,
@@ -441,43 +440,13 @@ export function NovoCampeonatoForm() {
                         <div><label className={labelClass}>Gênero</label><select className={inputClass} value={cat.genero} onChange={(e) => updateCat(i, { genero: e.target.value as GeneroCategoria })}>{GENEROS.map((g) => (<option key={g.value} value={g.value}>{g.label}</option>))}</select></div>
                         <div><label className={labelClass}>Valor (R$)</label><input type="number" min={0} className={inputClass} value={cat.valorInscricao} onChange={(e) => updateCat(i, { valorInscricao: e.target.value })} placeholder="100" /></div>
                         <div><label className={labelClass}>Máx. duplas</label><input type="number" min={1} className={inputClass} value={cat.maxDuplas} onChange={(e) => updateCat(i, { maxDuplas: e.target.value })} placeholder="∞" /></div>
-                        <button type="button" onClick={() => removeCat(i)} disabled={categorias.length === 1} aria-label="Remover categoria" className="mb-1 inline-flex size-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"><Trash2 className="size-4" /></button>
+                        <button type="button" onClick={() => removeCat(i)} aria-label="Remover categoria" className="mb-1 inline-flex size-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600"><Trash2 className="size-4" /></button>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-                <label className="flex items-start justify-between gap-4">
-                  <span>
-                    <span className="block text-sm font-semibold text-gray-800">
-                      Recomendar categoria pro atleta
-                    </span>
-                    <span className="mt-0.5 block text-xs text-gray-400">
-                      O atleta responde um questionário de 5 perguntas sobre o próprio nível
-                      antes de se inscrever, e a plataforma recomenda a categoria certa pra ele.
-                      Se desligar, o atleta escolhe a categoria livremente, sem passar pelo
-                      questionário.
-                    </span>
-                  </span>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={usaMotorCategoria}
-                    onClick={() => setUsaMotorCategoria((v) => !v)}
-                    className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                      usaMotorCategoria ? "bg-blue-600" : "bg-gray-200"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block size-4 transform rounded-full bg-white transition-transform ${
-                        usaMotorCategoria ? "translate-x-6" : "translate-x-1"
-                      }`}
-                    />
-                  </button>
-                </label>
-              </div>
             </>
           )}
         </>

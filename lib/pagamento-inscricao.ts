@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { executarRepasse, executarRepasseAtletaTicket } from "@/lib/repasse";
 import { enviarConviteDupla } from "@/lib/email/send";
+import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
 
 // Confirmação/estorno de inscrição de campeonato (tabela `registrations`) —
 // extraído do webhook do Asaas (app/api/webhooks/asaas/route.ts) pra ser
@@ -203,6 +204,8 @@ export async function confirmarAthleteTicketPago(
     .eq("id", ticketId);
 
   if (updateError) return { ok: false, error: updateError.message };
+
+  await deliverAthleteTicketCredentials(supabase, ticketId);
 
   const { data: athTicket } = await supabase
     .from("athlete_tickets")

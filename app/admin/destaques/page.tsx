@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Star, Trophy, Building2 } from "lucide-react";
+import { ArrowLeft, Star, Trophy, Building2, Images } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getPublishedChampionships } from "@/lib/supabase/championships";
 import { DestaquesEditor } from "@/components/admin/DestaquesEditor";
 import { DestaquesArenasEditor } from "@/components/admin/DestaquesArenasEditor";
 import type { ArenaDestaque } from "@/components/arenas/DestaquesArenasCarousel";
 import { isAdminUser } from "@/lib/supabase/roles";
+import { HomeBannersEditor } from "@/components/admin/HomeBannersEditor";
+import { normalizeHomeBanners } from "@/lib/home-banners";
 
 export default async function AdminDestaquesPage() {
   const supabase = await createClient();
@@ -20,13 +22,14 @@ export default async function AdminDestaquesPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("platform_config")
-      .select("destaques_ids, arenas_destaques_ids")
+      .select("destaques_ids, arenas_destaques_ids, home_banners")
       .eq("id", 1)
       .single(),
   ]);
 
   const destaquesIds: string[]       = (configRow.data?.destaques_ids as string[]        | null) ?? [];
   const arenasDestaquesIds: string[] = (configRow.data?.arenas_destaques_ids as string[] | null) ?? [];
+  const homeBanners = normalizeHomeBanners(configRow.data?.home_banners);
 
   // Busca contagem de alunos para cada arena
   const arenaList = arenaRows.data ?? [];
@@ -55,7 +58,7 @@ export default async function AdminDestaquesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-black px-6 pb-14 pt-8">
+      <div className="bg-brand-dark px-6 pb-14 pt-8">
         <div className="w-full space-y-3">
           <Link
             href="/admin"
@@ -77,6 +80,19 @@ export default async function AdminDestaquesPage() {
 
       <div className="relative -mt-6 rounded-t-3xl bg-app-bg px-6 pb-16 pt-8 shadow-sm">
         <div className="w-full space-y-12">
+
+          <section>
+            <div className="mb-5 flex items-center gap-2">
+              <Images className="size-5 text-blue-500" />
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Banners da home</h2>
+                <p className="text-xs text-gray-500">Até 8 imagens; sem banners ativos, a seção não aparece.</p>
+              </div>
+            </div>
+            <HomeBannersEditor initialBanners={homeBanners} />
+          </section>
+
+          <div className="border-t border-gray-100" />
 
           {/* Campeonatos */}
           <section>

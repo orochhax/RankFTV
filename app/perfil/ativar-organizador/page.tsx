@@ -4,20 +4,12 @@ import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AtivarOrganizadorForm } from "@/components/perfil/AtivarOrganizadorForm";
 
-export default async function AtivarOrganizadorPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ next?: string }>;
-}) {
-  const { next } = await searchParams;
-  // Só aceita caminhos internos (nunca "//host" nem URL absoluta) pra evitar open redirect.
-  const destino = next && next.startsWith("/") && !next.startsWith("//") ? next : "/painel/novo-campeonato";
-
+export default async function AtivarOrganizadorPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`/login?next=${encodeURIComponent(`/perfil/ativar-organizador?next=${destino}`)}`);
+  if (!user) redirect("/login?next=%2Fperfil%2Fativar-organizador");
 
   const { data: conta } = await supabase
     .from("organizer_accounts")
@@ -25,7 +17,7 @@ export default async function AtivarOrganizadorPage({
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (conta?.habilitado) redirect(destino);
+  if (conta?.habilitado) redirect("/painel");
 
   return (
     <div className="w-full space-y-6 px-6 py-8">
@@ -47,7 +39,7 @@ export default async function AtivarOrganizadorPage({
         </p>
       </div>
 
-      <AtivarOrganizadorForm destino={destino} />
+      <AtivarOrganizadorForm />
     </div>
   );
 }

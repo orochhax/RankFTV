@@ -69,7 +69,7 @@ export function PublicarCampeonatoForm({
       )}
 
       {/* Parcelamento no cartão */}
-      {temCategoriaPaga && (
+      {(temCategoriaPaga || temIngresso) && (
         <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
           <div>
             <p className="text-sm font-semibold text-gray-900">Parcelamento no cartão</p>
@@ -90,20 +90,22 @@ export function PublicarCampeonatoForm({
           </div>
 
           {/* Inscrições */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Inscrições de atletas
-            </label>
-            <select
-              name="max_parcelas_inscricao"
-              defaultValue={String(maxParcelasInscricao)}
-              className={selectClass}
-            >
-              {PARCELAS.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </select>
-          </div>
+          {temCategoriaPaga && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Inscrições de atletas
+              </label>
+              <select
+                name="max_parcelas_inscricao"
+                defaultValue={String(maxParcelasInscricao)}
+                className={selectClass}
+              >
+                {PARCELAS.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Ingressos de plateia (só se tiver tipos criados) */}
           {temIngresso && (

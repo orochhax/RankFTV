@@ -156,13 +156,13 @@ export default async function IngressoPage({
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho preto ── */}
-      <div className="bg-black px-6 pb-16 pt-6">
+      <div className="bg-brand-dark px-6 pb-16 pt-6">
         <div className="mx-auto max-w-md space-y-4">
           <Link
-            href="/minhas-inscricoes"
+            href="/minhas-compras?aba=atleta"
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
           >
-            <ArrowLeft className="size-4" /> Minhas inscrições
+            <ArrowLeft className="size-4" /> Minhas compras
           </Link>
 
           <div>
@@ -197,7 +197,7 @@ export default async function IngressoPage({
           {/* ── Ingresso / QR ── */}
           <div className="overflow-hidden rounded-3xl ring-1 ring-black/8 shadow-sm">
             {/* Topo do ingresso */}
-            <div className="bg-black px-5 py-4">
+            <div className="bg-brand-dark px-5 py-4">
               {/* Código curto — discreet, para digitação manual se o QR falhar */}
               {credential?.code && (
                 <p className="mb-2 text-center font-mono text-[10px] tracking-[0.25em] text-white/50">

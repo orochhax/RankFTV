@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
+import Link from "next/link";
 import { Loader2, Ticket, Minus, Plus } from "lucide-react";
 import { comprarIngresso, type ComprarState } from "@/app/campeonatos/[id]/plateia/actions";
 import { formatBRL } from "@/lib/format";
@@ -140,18 +141,18 @@ export function IngressoPlateiaForm({
       {/* Dados do comprador */}
       <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Seu nome</label>
-          <input name="nome" className={`mt-1 ${input}`} placeholder="Nome completo" required />
+          <label htmlFor="plateia_nome" className="block text-sm font-medium text-gray-700">Seu nome</label>
+          <input id="plateia_nome" name="nome" className={`mt-1 ${input}`} placeholder="Nome completo" required />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">E-mail</label>
-          <input name="email" type="email" className={`mt-1 ${input}`} placeholder="voce@email.com" required />
+          <label htmlFor="plateia_email" className="block text-sm font-medium text-gray-700">E-mail</label>
+          <input id="plateia_email" name="email" type="email" className={`mt-1 ${input}`} placeholder="voce@email.com" required />
           <p className="mt-1 text-xs text-gray-400">O ingresso com o QR de entrada vai pra esse e-mail.</p>
         </div>
         {!isGratis && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">CPF</label>
-            <input name="cpf" inputMode="numeric" className={`mt-1 ${input}`} placeholder="Somente números" />
+            <label htmlFor="plateia_cpf" className="block text-sm font-medium text-gray-700">CPF</label>
+            <input id="plateia_cpf" name="cpf" inputMode="numeric" className={`mt-1 ${input}`} placeholder="Somente números" />
           </div>
         )}
       </div>
@@ -179,6 +180,26 @@ export function IngressoPlateiaForm({
       {state.error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 ring-1 ring-red-100">{state.error}</p>
       )}
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+        <input
+          type="checkbox"
+          name="aceite_termos"
+          required
+          className="mt-0.5 size-4 shrink-0 cursor-pointer accent-blue-600"
+        />
+        <span className="text-sm leading-relaxed text-gray-600">
+          Li e concordo com os{" "}
+          <Link href="/termos" target="_blank" className="font-medium text-blue-600 underline hover:text-blue-700">
+            Termos de Uso
+          </Link>{" "}
+          e com a{" "}
+          <Link href="/privacidade" target="_blank" className="font-medium text-blue-600 underline hover:text-blue-700">
+            Política de Privacidade
+          </Link>{" "}
+          da RankFTV.
+        </span>
+      </label>
 
       <button
         type="submit"

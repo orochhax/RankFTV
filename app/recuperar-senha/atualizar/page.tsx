@@ -3,11 +3,29 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { getSupabasePublicConfig } from "@/lib/supabase/config";
 import { Surface } from "@/components/shell/Surface";
+import { passwordUpdateErrorMessage } from "@/lib/auth-error-messages";
+import { passwordUpdateInputSchema } from "@/lib/auth-input-schemas";
+
+function createRecoveryClient() {
+  const config = getSupabasePublicConfig();
+  return createSupabaseClient(config.url, config.publishableKey, {
+    auth: {
+      // O cliente SSR padrão usa PKCE. Esta tela recebe, do Supabase, o fluxo
+      // implícito no fragmento da URL; a sessão é efêmera e só serve para
+      // autorizar a alteração de senha.
+      flowType: "implicit",
+      detectSessionInUrl: true,
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
 
 export default function AtualizarSenhaPage() {
-  const supabase = createClient();
+  const [supabase] = useState(createRecoveryClient);
 
   // "checking": confirmando se o link criou uma sessão válida de recuperação
   // (o /auth/callback já trocou o token do e-mail por uma sessão antes de
@@ -34,28 +52,28 @@ export default function AtualizarSenhaPage() {
     e.preventDefault();
     setErro(null);
 
-    if (senha.length < 8) {
-      setErro("A senha precisa ter pelo menos 8 caracteres.");
-      return;
-    }
-    if (senha !== confirmacao) {
-      setErro("As senhas não coincidem.");
+    const parsed = passwordUpdateInputSchema.safeParse({
+      password: senha,
+      confirmation: confirmacao,
+    });
+    if (!parsed.success) {
+      setErro("Use de 8 a 128 caracteres e repita exatamente a mesma senha.");
       return;
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: senha });
+    const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
     setLoading(false);
 
     if (error) {
-      setErro("Não foi possível atualizar a senha. O link pode ter expirado — solicite um novo.");
+      setErro(passwordUpdateErrorMessage(error));
       return;
     }
 
     setStatus("done");
     setSenha("");
     setConfirmacao("");
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
   }
 
   return (

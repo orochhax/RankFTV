@@ -338,11 +338,11 @@ BEGIN
       RAISE EXCEPTION 'spectator_quantity_invalid';
     END IF;
 
-    SELECT id, nome, valor, max_quantidade, vendidos, ativo
+    SELECT tt.id, tt.nome, tt.valor, tt.max_quantidade, tt.vendidos, tt.ativo
       INTO v_type
-    FROM spectator_ticket_types
-    WHERE id = v_line.type_id
-      AND championship_id = p_championship_id
+    FROM spectator_ticket_types tt
+    WHERE tt.id = v_line.type_id
+      AND tt.championship_id = p_championship_id
     FOR UPDATE;
 
     IF NOT FOUND THEN
@@ -357,14 +357,14 @@ BEGIN
       SELECT 1 FROM pricing_tiers WHERE ticket_type_id = v_type.id AND ativo = true
     ) INTO v_has_tiers;
 
-    SELECT id, nome, valor, quantidade_maxima, vendidos
+    SELECT pt.id, pt.nome, pt.valor, pt.quantidade_maxima, pt.vendidos
       INTO v_tier
-    FROM pricing_tiers
-    WHERE ticket_type_id = v_type.id
-      AND ativo = true
-      AND (data_fim IS NULL OR now() <= data_fim)
-      AND (quantidade_maxima IS NULL OR vendidos < quantidade_maxima)
-    ORDER BY ordem, id
+    FROM pricing_tiers pt
+    WHERE pt.ticket_type_id = v_type.id
+      AND pt.ativo = true
+      AND (pt.data_fim IS NULL OR now() <= pt.data_fim)
+      AND (pt.quantidade_maxima IS NULL OR pt.vendidos < pt.quantidade_maxima)
+    ORDER BY pt.ordem, pt.id
     LIMIT 1
     FOR UPDATE;
     v_tier_found := FOUND;
