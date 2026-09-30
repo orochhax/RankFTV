@@ -70,10 +70,18 @@ financeiro mutável apontou para Production.
 - Entrega real comprovada no Gmail e no Microsoft 365/Outlook. O teste do
   Microsoft 365 chegou diretamente à Caixa de Entrada de
   `carlos.rocha@infortel.net.br`, sem criar cobrança.
+- O saldo insuficiente foi comprovado no Asaas Sandbox com uma transferência
+  Pix de teste R$ 100,00 acima do saldo disponível. A API retornou HTTP 400 e a
+  mensagem `Saldo insuficiente para realizar a operação`; a consulta posterior
+  confirmou que o saldo permaneceu inalterado.
 
 ## Operações externas ainda necessárias
 
-1. Executar reembolso parcial no cartão e saldo insuficiente no Asaas Sandbox.
+1. Concluir o reembolso parcial no cartão no Asaas Sandbox. A cobrança
+   descartável criada em 30/09 foi confirmada, mas o provedor respondeu que o
+   parcial só pode ser solicitado depois da carência do cartão. Repetir depois
+   da liberação e exigir estado terminal `DONE`; a prova de saldo insuficiente
+   deste mesmo item já foi concluída.
 2. Executar Pix e cartão reais em Production, supervisionados.
 3. Contratar e configurar o e-mail comercial.
 4. Aprovar os dados publicados em Termos/Privacidade e obter revisão jurídica.
