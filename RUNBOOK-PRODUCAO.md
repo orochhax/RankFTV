@@ -52,23 +52,24 @@ Aplicar no SQL Editor ou pipeline de migrations, uma por vez e nesta ordem:
 7. `supabase/payment-card-attempt-security.sql`
 8. `supabase/production-spectator-ticket-items.sql`
 9. `supabase/production-order-inventory-release.sql`
-10. `supabase/asaas-webhook-idempotency.sql`
-11. `supabase/production-query-indexes.sql`
-12. `supabase/production-athlete-ticket-credentials.sql`
-13. `supabase/production-athlete-ticket-change-security.sql`
-14. `supabase/production-bracket-participants.sql`
-15. `supabase/production-participant-category-uniqueness.sql`
-16. `supabase/production-category-deletion-guard.sql`
-17. `supabase/production-credential-operations.sql`
-18. `supabase/support-case-enhancements.sql`
-19. `supabase/notifications.sql`
-20. `supabase/championship-notices.sql`
-21. `supabase/production-championship-change-notifications.sql`
-22. `supabase/production-championship-notification-claims.sql`
-23. `supabase/production-championship-delete-transaction.sql`
-24. `supabase/production-championship-update-transaction.sql`
-25. `supabase/organizer-financial-notifications.sql`
-26. `supabase/production-data-retention.sql`
+10. `supabase/production-athlete-checkout-reservations.sql`
+11. `supabase/asaas-webhook-idempotency.sql`
+12. `supabase/production-query-indexes.sql`
+13. `supabase/production-athlete-ticket-credentials.sql`
+14. `supabase/production-athlete-ticket-change-security.sql`
+15. `supabase/production-bracket-participants.sql`
+16. `supabase/production-participant-category-uniqueness.sql`
+17. `supabase/production-category-deletion-guard.sql`
+18. `supabase/production-credential-operations.sql`
+19. `supabase/support-case-enhancements.sql`
+20. `supabase/notifications.sql`
+21. `supabase/championship-notices.sql`
+22. `supabase/production-championship-change-notifications.sql`
+23. `supabase/production-championship-notification-claims.sql`
+24. `supabase/production-championship-delete-transaction.sql`
+25. `supabase/production-championship-update-transaction.sql`
+26. `supabase/organizer-financial-notifications.sql`
+27. `supabase/production-data-retention.sql`
 
 Os scripts sao aditivos e idempotentes. Ainda assim, nao os execute em paralelo.
 Depois dos tres primeiros, executar os checks somente-leitura

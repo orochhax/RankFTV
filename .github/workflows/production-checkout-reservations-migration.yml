@@ -1,0 +1,81 @@
+name: Production checkout reservations migration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-database-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: Production
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate production target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
+          test "$NEXT_PUBLIC_SUPABASE_URL" = "https://tkyopolcxfsdbhvrgadj.supabase.co"
+          case "$SUPABASE_DB_URL" in
+            *tkyopolcxfsdbhvrgadj*supabase.com*) ;;
+            *) echo "SUPABASE_DB_URL não aponta para o projeto RankFTV de produção." >&2; exit 1 ;;
+          esac
+
+      - name: Install PostgreSQL 17 client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-common ca-certificates
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install --yes postgresql-client-17
+
+      - name: Apply checkout reservation migration atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg17_bin="/usr/lib/postgresql/17/bin"
+          test -x "$pg17_bin/psql"
+          "$pg17_bin/psql" \
+            --dbname="$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set=ON_ERROR_STOP=1 \
+            --single-transaction \
+            --file=supabase/production-athlete-checkout-reservations.sql
+
+      - name: Verify required production objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg17_bin="/usr/lib/postgresql/17/bin"
+          result="$($pg17_bin/psql \
+            --dbname="$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set=ON_ERROR_STOP=1 \
+            --tuples-only \
+            --no-align \
+            --command="SELECT
+              to_regclass('public.checkout_reservations') IS NOT NULL
+              AND to_regprocedure('public.reserve_athlete_checkout(text,uuid,uuid,uuid,integer)') IS NOT NULL
+              AND to_regprocedure('public.expire_athlete_checkout_reservations(integer)') IS NOT NULL
+              AND to_regprocedure('public.expire_athlete_ticket_inventory_if_pending(uuid)') IS NOT NULL
+              AND (
+                SELECT count(*) = 2
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'athlete_tickets'
+                  AND column_name IN ('checkout_reservation_id', 'checkout_expires_at')
+              );")"
+          test "$result" = "t"
