@@ -62,14 +62,16 @@ Aplicar no SQL Editor ou pipeline de migrations, uma por vez e nesta ordem:
 17. `supabase/production-category-deletion-guard.sql`
 18. `supabase/production-credential-operations.sql`
 19. `supabase/support-case-enhancements.sql`
-20. `supabase/notifications.sql`
-21. `supabase/championship-notices.sql`
-22. `supabase/production-championship-change-notifications.sql`
-23. `supabase/production-championship-notification-claims.sql`
-24. `supabase/production-championship-delete-transaction.sql`
-25. `supabase/production-championship-update-transaction.sql`
-26. `supabase/organizer-financial-notifications.sql`
-27. `supabase/production-data-retention.sql`
+20. `supabase/operational-alerts.sql`
+21. `supabase/notifications.sql`
+22. `supabase/championship-notices.sql`
+23. `supabase/production-championship-change-notifications.sql`
+24. `supabase/production-championship-notification-claims.sql`
+25. `supabase/production-championship-delete-transaction.sql`
+26. `supabase/production-championship-update-transaction.sql`
+27. `supabase/organizer-financial-notifications.sql`
+28. `supabase/production-operational-email-alerts.sql`
+29. `supabase/production-data-retention.sql`
 
 Os scripts sao aditivos e idempotentes. Ainda assim, nao os execute em paralelo.
 Depois dos tres primeiros, executar os checks somente-leitura
