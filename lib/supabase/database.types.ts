@@ -2514,6 +2514,9 @@ export type Database = {
       operational_alert_settings: {
         Row: {
           assisted_refund_enabled: boolean
+          email_queue_backlog_threshold: number
+          email_queue_enabled: boolean
+          email_queue_minutes: number
           enabled: boolean
           id: number
           payment_pending_enabled: boolean
@@ -2524,6 +2527,9 @@ export type Database = {
         }
         Insert: {
           assisted_refund_enabled?: boolean
+          email_queue_backlog_threshold?: number
+          email_queue_enabled?: boolean
+          email_queue_minutes?: number
           enabled?: boolean
           id?: number
           payment_pending_enabled?: boolean
@@ -2534,6 +2540,9 @@ export type Database = {
         }
         Update: {
           assisted_refund_enabled?: boolean
+          email_queue_backlog_threshold?: number
+          email_queue_enabled?: boolean
+          email_queue_minutes?: number
           enabled?: boolean
           id?: number
           payment_pending_enabled?: boolean

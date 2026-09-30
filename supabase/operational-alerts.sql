@@ -7,6 +7,9 @@ CREATE TABLE IF NOT EXISTS public.operational_alert_settings (
   webhook_failed_enabled boolean NOT NULL DEFAULT true,
   assisted_refund_enabled boolean NOT NULL DEFAULT true,
   payout_rejected_enabled boolean NOT NULL DEFAULT true,
+  email_queue_enabled boolean NOT NULL DEFAULT true,
+  email_queue_minutes integer NOT NULL DEFAULT 15 CHECK (email_queue_minutes BETWEEN 5 AND 1440),
+  email_queue_backlog_threshold integer NOT NULL DEFAULT 10 CHECK (email_queue_backlog_threshold BETWEEN 1 AND 500),
   payment_pending_minutes integer NOT NULL DEFAULT 30 CHECK (payment_pending_minutes BETWEEN 5 AND 1440),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -14,7 +17,7 @@ INSERT INTO public.operational_alert_settings (id) VALUES (1) ON CONFLICT (id) D
 
 CREATE TABLE IF NOT EXISTS public.operational_alerts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  kind text NOT NULL CHECK (kind IN ('payment_pending', 'webhook_failed', 'assisted_refund', 'payout_rejected')),
+  kind text NOT NULL CHECK (kind IN ('payment_pending', 'webhook_failed', 'assisted_refund', 'payout_rejected', 'email_queue_backlog', 'email_delivery_failed')),
   severity text NOT NULL CHECK (severity IN ('warning', 'critical')),
   title text NOT NULL,
   entity_type text NOT NULL,
