@@ -83,7 +83,13 @@ P1/P2 não alteram esse percentual.
   integrais, Pix parcial de R$ 20,00 (ingresso Larissa/Mateus, em 16/09/2026)
   e o estado terminal `CANCELLED` já foram comprovados no Sandbox. O Pix
   parcial foi confirmado no Asaas e conciliado no RankFTV com liberação da
-  vaga; o webhook Sandbox passou a observar `PAYMENT_PARTIALLY_REFUNDED`.
+  vaga; o webhook Sandbox passou a observar `PAYMENT_PARTIALLY_REFUNDED`. Em
+  30/09, uma transferência Pix de teste R$ 100,00 acima do saldo disponível
+  retornou HTTP 400 com `Saldo insuficiente para realizar a operação`; nenhum
+  valor saiu da conta. A cobrança descartável de cartão foi confirmada, mas o
+  Asaas recusou o parcial no mesmo dia com a regra de carência informada pela
+  própria API. Repetir o parcial depois da liberação do provedor e só marcar
+  este item concluído quando o estorno retornar estado terminal `DONE`.
 - [x] Definir e ensaiar o procedimento do CEO para reembolso Pix não concluído:
   autenticar solicitante pelo link gerencial ou CPF + e-mail + OTP, abrir caso
   auditável e nunca pedir chave Pix, conta bancária ou cartão por e-mail ou
