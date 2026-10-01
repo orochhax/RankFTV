@@ -254,7 +254,8 @@ test("new championships do not start with an unnamed category", () => {
 
   assert.match(form, /useState<CatForm\[\]>\(\[\]\)/);
   assert.match(form, /if \(!ativa\) addCat\(preset\)/);
-  assert.match(form, /onClick=\{\(\) => addCat\(""\)\}/);
+  assert.match(form, /onClick=\{\(\) => addCat\("", true\)\}/);
+  assert.match(form, /noTopo \? \[categoria, \.\.\.cs\] : \[\.\.\.cs, categoria\]/);
   assert.match(form, /function removeCat\(i: number\) \{\s*setCategorias\(\(cs\) => cs\.filter/);
 });
 

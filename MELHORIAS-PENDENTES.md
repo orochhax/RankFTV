@@ -4,6 +4,12 @@ Atualizado em 29/09/2026. Este arquivo reúne melhorias que não bloqueiam a
 V1. Obrigações de lançamento, segurança e evolução pós-lançamento permanecem
 em `PENDENCIAS-V1.md`.
 
+## Formulário de campeonatos
+
+- [x] Ao clicar em “Outros” para criar uma categoria personalizada, inserir o
+  card vazio no topo da lista e preservar a ordem relativa das categorias já
+  existentes. Aplicado na criação e na edição em 01/10/2026.
+
 ## Identidade visual e banners da home
 
 - [x] Substituir os fundos sólidos em preto puro usados na navegação, cabeçalhos,
