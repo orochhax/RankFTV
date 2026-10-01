@@ -127,9 +127,9 @@ registrar apenas uma revalidação quando ela for necessária.
 
 ## 2026-10-01 — Carteira individual, saques e antecipação do organizador
 
-- Status: implementação local concluída na branch isolada
-  `feat/organizer-wallet`; ainda não aplicada no Supabase nem promovida para
-  produção.
+- Status: implementação concluída na branch isolada `feat/organizer-wallet` e
+  migration aplicada no Sandbox. Ainda não promovida para produção e ainda
+  dependente da homologação transacional com o Asaas.
 - Banco: criada `supabase/organizer-wallet-withdrawals.sql`, com recebíveis
   líquidos separados por organizador e campeonato, RLS de leitura própria,
   escrita financeira revogada do navegador, reserva atômica por advisory lock,
@@ -155,15 +155,19 @@ registrar apenas uma revalidação quando ela for necessária.
   gastam o mesmo saldo, a mesma chave idempotente não duplica saque e outro
   organizador recebe `WALLET_FORBIDDEN`. O teste está em
   `lib/organizer-wallet-security.test.ts`.
-- Verificação pós-deploy preparada em
-  `supabase/manual-tests/organizer-wallet-check.sql`; o resultado esperado é
-  uma linha com todas as onze colunas em `true`.
+- Verificação estrutural pós-migration executada no Sandbox por meio de
+  `supabase/manual-tests/organizer-wallet-check.sql`: as onze colunas
+  retornaram `true`. Foram comprovadas as quatro tabelas financeiras, as três
+  funções de snapshot/reserva, RLS nos recebíveis e saques, ausência de escrita
+  financeira para `anon`/`authenticated` e unicidade de antecipação ativa por
+  recebível. Esse resultado comprova a instalação e as barreiras estruturais;
+  não substitui os testes de movimentação efetiva no Asaas.
 - Validação local: lint aprovado; typecheck aprovado; 808/808 testes aprovados;
   build de produção do Next.js aprovado. Dependência de teste PGlite adicionada
   somente em `devDependencies`, sem vulnerabilidade de produção introduzida.
-- Ordem obrigatória de promoção: aplicar a migration no Sandbox, publicar o
-  código, executar a matriz financeira e somente depois repetir migration e
-  deploy em produção. Não publicar o código antes das novas RPCs/tabelas.
+- Próxima etapa obrigatória: publicar o código em ambiente ligado ao mesmo
+  Sandbox, executar a matriz financeira e somente depois repetir migration e
+  deploy em produção, em janela sem checkout e com backup confirmado.
 - Versionamento remoto: commit `9c0c05f` enviado para
   `feat/organizer-wallet`; PR #33 aberta. Preview da Vercel aprovado. CI
   `36891054559` aprovado em 5 min 57 s: auditoria de produção, lint, typecheck,
