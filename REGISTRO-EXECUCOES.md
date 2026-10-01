@@ -164,6 +164,12 @@ registrar apenas uma revalidação quando ela for necessária.
 - Ordem obrigatória de promoção: aplicar a migration no Sandbox, publicar o
   código, executar a matriz financeira e somente depois repetir migration e
   deploy em produção. Não publicar o código antes das novas RPCs/tabelas.
+- Versionamento remoto: commit `9c0c05f` enviado para
+  `feat/organizer-wallet`; PR #33 aberta. Preview da Vercel aprovado. CI
+  `36891054559` aprovado em 5 min 57 s: auditoria de produção, lint, typecheck,
+  808 testes unitários/contrato, build e Playwright (30 aprovados, 55 ignorados
+  por configuração segura) concluíram sem falha. Permanecem somente avisos
+  legados e o aviso de depreciação do Node 20 nas actions do GitHub.
 
 ## 2026-09-30 — Checkout hospedado e hardening de V1
 
