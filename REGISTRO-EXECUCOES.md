@@ -5,6 +5,26 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-01 — Auditoria do questionário de nível do evento
+
+- Status: diagnóstico concluído; nenhuma funcionalidade, dado de produção ou
+  esquema foi alterado.
+- Resultado: as cinco perguntas de “Nível do evento” não alimentam a pontuação
+  nem o ranking ativo. A estrutura de ranking usa `external_tournaments.tier`,
+  que é independente dos campos `championships.tier` e
+  `championships.tier_quiz` preenchidos ao criar campeonatos no RankFTV.
+- Uso atual encontrado: o questionário calcula apenas o selo visual
+  Local/Open/Elite no painel do organizador. O selo pode ainda subir por
+  quantidade de duplas pagas, mas não afeta inscrição, pagamento, chaveamento,
+  publicação, notificações ou repasse.
+- Confirmação relacionada: a recomendação de categoria por nível de atleta
+  permanece intencionalmente desativada na V1 pela flag
+  `categoryLevelRecommendationEnabled`, que retorna `false`.
+- Decisão pendente de produto: remover o questionário obrigatório do fluxo de
+  criação, manter os campos históricos sem exclusão destrutiva e retirar o selo
+  visual. Isto não inclui `is_elite` (plano comercial/financeiro) nem lotes de
+  preço, que são conceitos distintos e devem permanecer.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
