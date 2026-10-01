@@ -94,8 +94,9 @@ export function NovoCampeonatoForm() {
   function updateCat(i: number, patch: Partial<CatForm>) {
     setCategorias((cs) => cs.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   }
-  function addCat(nomeCat = "") {
-    setCategorias((cs) => [...cs, { nome: nomeCat, genero: "masculino", valorInscricao: "", maxDuplas: "" }]);
+  function addCat(nomeCat = "", noTopo = false) {
+    const categoria: CatForm = { nome: nomeCat, genero: "masculino", valorInscricao: "", maxDuplas: "" };
+    setCategorias((cs) => (noTopo ? [categoria, ...cs] : [...cs, categoria]));
   }
   const nomesUsados = new Set(categorias.map((c) => c.nome));
   function removeCat(i: number) {
@@ -438,7 +439,7 @@ export function NovoCampeonatoForm() {
                       </button>
                     );
                   })}
-                  <button type="button" onClick={() => addCat("")} className="rounded-full border border-dashed border-gray-400 px-3 py-1 text-sm font-medium text-gray-700 hover:border-gray-600 hover:text-gray-900">+ Outros</button>
+                  <button type="button" onClick={() => addCat("", true)} className="rounded-full border border-dashed border-gray-400 px-3 py-1 text-sm font-medium text-gray-700 hover:border-gray-600 hover:text-gray-900">+ Outros</button>
                 </div>
                 <div className="space-y-3">
                   {categorias.map((cat, i) => (
