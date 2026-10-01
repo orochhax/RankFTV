@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { FinanceiroConteudoClient, type AnticipatableReceivable, type WalletSnapshot } from "@/components/painel/FinanceiroConteudoClient";
+import { FinanceiroConteudoClient, type WalletReceivable, type WalletSnapshot } from "@/components/painel/FinanceiroConteudoClient";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { ChavePixClient } from "@/components/painel/ChavePixClient";
@@ -37,7 +37,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const isElite     = !!champExtra?.is_elite;
   const feePendente = Number(champExtra?.premium_fee_pendente ?? 0);
 
-  const [{ data: metricData }, { data: champDates }, { data: rawPendentes }, { data: rawPendentesTickets }, { data: walletData }] = await Promise.all([
+  const [{ data: metricData }, { data: champDates }, { data: rawPendentes }, { data: rawPendentesTickets }, { data: walletData }, { data: withdrawableData }] = await Promise.all([
     supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
     supabase
       .from("championships")
@@ -63,6 +63,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
       .order("created_at", { ascending: true })
       .limit(50),
     supabase.rpc("organizer_wallet_snapshot", { p_championship_id: id }),
+    supabase.rpc("organizer_withdrawable_receivables", { p_championship_id: id }),
   ]);
 
   const walletRaw = (walletData ?? {}) as Partial<WalletSnapshot>;
@@ -76,6 +77,29 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
       ? walletRaw.schedule.map((item) => ({ date: String(item.date), amount: Number(item.amount) }))
       : [],
   };
+  type WithdrawableRow = {
+    id: string;
+    amount: number;
+    sourceId: string;
+    sourceType: string;
+    billingType: string | null;
+    availableAt: string;
+  };
+  const sourceLabels: Record<string, string> = {
+    registration: "Inscrição de dupla",
+    athlete_ticket: "Ingresso de atleta",
+    spectator_ticket: "Ingresso de plateia",
+  };
+  const withdrawableReceivables: WalletReceivable[] = Array.isArray(withdrawableData)
+    ? (withdrawableData as WithdrawableRow[]).map((row) => ({
+      id: row.id,
+      amount: Number(row.amount),
+      availableAt: row.availableAt,
+      billingType: row.billingType,
+      label: `${sourceLabels[row.sourceType] ?? "Venda"} · pedido ${row.sourceId.slice(0, 8).toUpperCase()}`,
+    }))
+    : [];
+
   const { data: anticipationRows } = await supabase
     .from("organizer_anticipations")
     .select("receivable_id")
@@ -90,14 +114,14 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     .gt("available_at", new Date().toISOString())
     .order("available_at", { ascending: true })
     .limit(100);
-  const sourceLabels: Record<string, string> = { registration: "Inscrição", athlete_ticket: "Ingresso de atleta", spectator_ticket: "Ingresso de plateia" };
-  const anticipatableReceivables: AnticipatableReceivable[] = (receivableRows ?? [])
+  const anticipatableReceivables: WalletReceivable[] = (receivableRows ?? [])
     .filter((row) => !busyReceivables.has(row.id))
     .map((row) => ({
       id: row.id,
       amount: Number(row.net_amount),
       availableAt: row.available_at,
-      label: `${sourceLabels[row.source_type] ?? "Venda"} · libera em ${new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(row.available_at))}`,
+      billingType: "CREDIT_CARD",
+      label: `${sourceLabels[row.source_type] ?? "Venda"} · pedido ${row.id.slice(0, 8).toUpperCase()}`,
     }));
 
   type StatusMetric = { status: string; count: number; total: number };
@@ -281,6 +305,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
         chavePixSection={<ChavePixClient chavePix={chavePix} />}
         cobrancasPendentesSection={cobrancasPendentesSection}
         wallet={wallet}
+        withdrawableReceivables={withdrawableReceivables}
         anticipatableReceivables={anticipatableReceivables}
       />
       <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} permitirCancelar />

@@ -88,6 +88,9 @@ P1/P2 não alteram esse percentual.
     reconciliação.
   - [x] Permitir selecionar vendas de cartão para antecipação, simular e exibir
     a taxa antes da confirmação e descontá-la somente do recebível escolhido.
+  - [x] Unificar saque e antecipação num painel de carteira com modais acessíveis;
+    permitir que o organizador selecione exatamente os ingressos do saque e
+    calcular/reservar o total de forma atômica no PostgreSQL.
   - [x] Aplicar `supabase/organizer-wallet-withdrawals.sql` no Sandbox e executar
     `supabase/manual-tests/organizer-wallet-check.sql`. Em 01/10/2026, as onze
     verificações estruturais retornaram `true`.
