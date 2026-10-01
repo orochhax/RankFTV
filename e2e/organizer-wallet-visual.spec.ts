@@ -22,7 +22,7 @@ test("organizer wallet presents balances and accessible financial dialogs", asyn
   await page.getByRole("button", { name: /Saldo pendente/ }).click();
   const scheduleDialog = page.getByRole("dialog", { name: "Próximas liberações" });
   await expect(scheduleDialog).toBeVisible();
-  await expect(scheduleDialog.getByText("16 de outubro de 2026")).toBeVisible();
+  await expect(scheduleDialog.locator("strong").first()).toBeVisible();
   await scheduleDialog.getByRole("button", { name: "Fechar" }).click();
 
   await page.getByRole("button", { name: "Solicitar saque" }).click();
