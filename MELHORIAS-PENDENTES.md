@@ -1,8 +1,16 @@
 # Melhorias pendentes
 
-Atualizado em 29/09/2026. Este arquivo reúne melhorias que não bloqueiam a
+Atualizado em 01/10/2026. Este arquivo reúne melhorias que não bloqueiam a
 V1. Obrigações de lançamento, segurança e evolução pós-lançamento permanecem
 em `PENDENCIAS-V1.md`.
+
+## Formulário de campeonatos
+
+- [x] Ao informar o início do evento, limitar o calendário de término ao mesmo
+  dia ou a dias posteriores. Datas anteriores ficam indisponíveis no seletor
+  nativo; se o organizador já havia escolhido uma data inválida e altera o
+  início, o término é limpo para exigir uma escolha válida. Aplicado tanto na
+  criação quanto na edição do campeonato em 01/10/2026.
 
 ## Identidade visual e banners da home
 
