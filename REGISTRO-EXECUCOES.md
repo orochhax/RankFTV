@@ -125,6 +125,46 @@ registrar apenas uma revalidação quando ela for necessária.
   permaneceu aberta com um check ainda pendente e estado de merge `DIRTY`.
   Nenhum merge ou promoção foi executado.
 
+## 2026-10-01 — Carteira individual, saques e antecipação do organizador
+
+- Status: implementação local concluída na branch isolada
+  `feat/organizer-wallet`; ainda não aplicada no Supabase nem promovida para
+  produção.
+- Banco: criada `supabase/organizer-wallet-withdrawals.sql`, com recebíveis
+  líquidos separados por organizador e campeonato, RLS de leitura própria,
+  escrita financeira revogada do navegador, reserva atômica por advisory lock,
+  idempotência e alocação parcial de recebíveis. A taxa Elite e a taxa de
+  antecipação ficam fora do saldo sacável.
+- Saque: o organizador informa o valor; o servidor confirma dono e campeonato,
+  saldo disponível e cooldown da chave Pix. O valor é reservado antes da
+  chamada ao Asaas. Falha terminal libera a reserva; timeout, resposta ambígua
+  ou transferência pendente mantêm o valor bloqueado até reconciliação.
+- Mudança de fluxo: vendas de campeonato não são mais transferidas
+  automaticamente. Pix entra disponível; débito e crédito entram pendentes e
+  o cron apenas promove D+3/D+32. Os repasses automáticos de receitas de arena
+  foram preservados e não participam desta carteira.
+- Antecipação: vendas de cartão pendentes podem ser selecionadas; o sistema
+  simula a taxa antes da confirmação, solicita cada antecipação e só antecipa o
+  recebível após o Asaas informar `CREDITED`. Exigência documental fica
+  registrada sem liberar dinheiro. Estados pendentes são consultados pelo
+  worker; indisponibilidade temporária não libera nem duplica saldo.
+- Painel: adicionados saldo líquido total, saldo disponível, saldo pendente,
+  detalhamento expansível de liberações por dia, saldo reservado, formulário
+  de saque e seleção de vendas para antecipação.
+- Segurança verificada em Postgres descartável: solicitações concorrentes não
+  gastam o mesmo saldo, a mesma chave idempotente não duplica saque e outro
+  organizador recebe `WALLET_FORBIDDEN`. O teste está em
+  `lib/organizer-wallet-security.test.ts`.
+- Verificação pós-deploy preparada em
+  `supabase/manual-tests/organizer-wallet-check.sql`; o resultado esperado é
+  uma linha com todas as onze colunas em `true`.
+- Validação local: lint aprovado; typecheck aprovado; 808/808 testes aprovados;
+  build de produção do Next.js aprovado. Dependência de teste PGlite adicionada
+  somente em `devDependencies`, sem vulnerabilidade de produção introduzida.
+- Ordem obrigatória de promoção: aplicar a migration no Sandbox, publicar o
+  código, executar a matriz financeira e somente depois repetir migration e
+  deploy em produção. Não publicar o código antes das novas RPCs/tabelas.
+
 ## 2026-09-30 — Checkout hospedado e hardening de V1
 
 - Status: concluído e versionado na PR #25.
