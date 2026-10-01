@@ -1,14 +1,14 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 30/09/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 01/10/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
 `AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
 
 ## Progresso da V1
 
-`██████████████████░░` **90% concluído** — 126 dos 140 marcos P0 originais
-foram concluídos; restam 14 marcos atômicos, agrupados abaixo em 10 entradas
+`██████████████████░░` **91% concluído** — 127 dos 140 marcos P0 originais
+foram concluídos; restam 13 marcos atômicos, agrupados abaixo em 9 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -96,9 +96,14 @@ P1/P2 não alteram esse percentual.
   WhatsApp. Ensaio Sandbox concluído em 16/09/2026 para Rafael Teste Sandbox /
   Diego Teste Sandbox: caso criado, atribuído, registrado como aguardando prova
   e resolvido sem dados financeiros adicionais.
-- [ ] Confirmar com o adquirente/processador o escopo PCI/SAQ aplicável ao
-  formulário atual de cartão ou migrar para checkout hospedado/tokenização
-  direta antes de aceitar cartões reais.
+- [x] Manter dados de cartão exclusivamente no checkout hospedado do Asaas,
+  antes de aceitar cartões reais. Em 01/10/2026, a PR #25 foi mesclada em
+  `master` após CI completo: os fluxos de cartão de aluguel, diária,
+  assinatura e campeonatos redirecionam ao checkout do provedor; o código e
+  os testes impedem PAN e CVV de entrarem na RankFTV. A migration de
+  `invoice_url` já havia sido aplicada em produção. A confirmação documental
+  de eventual SAQ com o Asaas deixa de ser bloqueador desta arquitetura, pois
+  o formulário de cartão não pertence à RankFTV.
 
 ### Operação de campeonatos
 
