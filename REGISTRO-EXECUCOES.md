@@ -5,6 +5,35 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-01 — Resolução de conflitos da PR #25 com `master`
+
+- Status: concluído localmente e pendente de validação remota após o envio da
+  resolução para a própria PR; nenhum merge para `master` foi feito.
+- Escopo: a resolução ocorreu no worktree isolado
+  `C:\Users\SnyX\Documents\Projeto-RankFTV-pr25-merge`. As alterações não
+  relacionadas que estavam abertas no worktree principal foram preservadas e
+  não foram modificadas.
+- Feito: todos os conflitos de integração foram resolvidos. Foi incorporada a
+  versão atual de `master` para os alertas operacionais, workflows, smoke de
+  produção somente leitura, documentação operacional e executor k6 com sessão
+  efêmera. Os fluxos de checkout de cartão, schemas e testes de pagamento da
+  PR foram preservados para impedir qualquer reintrodução de PAN ou CVV no
+  RankFTV; o cartão continua exclusivamente no checkout hospedado do Asaas.
+- Correção adicional: removido um import sem uso em
+  `SubscriptionPaymentUI.tsx`. O guard de reserva do Sandbox foi corrigido
+  para não depender de `.env.sandbox.local`, um arquivo local ignorado pelo
+  Git e ausente no CI; quando o arquivo existir, ele continua sendo validado.
+- Validação local: `npm audit --omit=dev --audit-level=high` aprovou sem
+  vulnerabilidades; lint e typecheck aprovaram (permanecem avisos legados);
+  `npm test` aprovou 806/806 testes. `next build` ficou impedido nesta máquina
+  por falha de rede ao obter a fonte Inter do Google Fonts, após chegar ao
+  bundler. Os E2E locais foram interrompidos porque o worktree isolado não
+  recebeu configuração pública do Supabase; segredos não foram copiados. A
+  Preview da Vercel da PR já havia concluído com sucesso antes desta resolução.
+- Próxima evidência obrigatória: enviar a resolução, aguardar os checks remotos
+  `verify` e Vercel e só então decidir sobre o merge, respeitando a proteção
+  da branch `master`.
+
 ## 2026-10-01 — Ampliação do teste de capacidade V1
 
 - Status: concluído no Sandbox/Preview; a correlação de infraestrutura continua

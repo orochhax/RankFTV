@@ -4,107 +4,83 @@
 // Nunca aponta para Production e não cria pagamento, inscrição ou conta.
 import http from "k6/http";
 import { check, sleep } from "k6";
-import { Rate, Trend } from "k6/metrics";
 
 const baseUrl = (__ENV.BASE_URL || "").replace(/\/$/, "");
-if (!/^https:\/\/(?:rank-ftv-git-sandbox-homologacao-devcarlosrochas-projects|rank-[a-z0-9]+-devcarlosrochas-projects)\.vercel\.app$/i.test(baseUrl)) {
+if (!/^https:\/\/(?:rank-ftv-git-sandbox-homologacao|rank-[a-z0-9-]+-devcarlosrochas-projects)\.vercel\.app$/i.test(baseUrl)) {
   throw new Error("Refusing load test: BASE_URL must be an explicit RankFTV Sandbox/Preview URL.");
 }
 
-const championshipId = (__ENV.CHAMPIONSHIP_ID || "").trim();
-const organizerChampionshipId = (__ENV.ORGANIZER_CHAMPIONSHIP_ID || championshipId).trim();
-const athleteCookieHeader = (__ENV.ATHLETE_COOKIE_HEADER || "").trim();
-const organizerCookieHeader = (__ENV.ORGANIZER_COOKIE_HEADER || "").trim();
-const smokeProfile = (__ENV.K6_PROFILE || "").trim().toLowerCase() === "smoke";
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-if (championshipId && !uuidPattern.test(championshipId)) {
-  throw new Error("Refusing load test: CHAMPIONSHIP_ID must be a UUID.");
-}
-if (organizerChampionshipId && !uuidPattern.test(organizerChampionshipId)) {
-  throw new Error("Refusing load test: ORGANIZER_CHAMPIONSHIP_ID must be a UUID.");
-}
-if ([athleteCookieHeader, organizerCookieHeader].some((header) => /[\r\n]/.test(header))) {
-  throw new Error("Refusing load test: a cookie header contains an invalid line break.");
+const sessionPath = __ENV.K6_SESSION_FILE;
+if (!sessionPath) throw new Error("K6_SESSION_FILE is required for authenticated coverage.");
+const sessions = JSON.parse(open(sessionPath));
+if (!sessions.athleteCookie || !sessions.organizerCookie || !sessions.championshipId) {
+  throw new Error("Sandbox session fixture is incomplete.");
 }
 
-const routeFailures = new Rate("rankftv_route_failures");
-const routeDuration = new Trend("rankftv_route_duration", true);
+const bypass = __ENV.VERCEL_AUTOMATION_BYPASS_SECRET;
+const baseHeaders = bypass ? { "x-vercel-protection-bypass": bypass } : {};
 
-export const options = {
-  stages: smokeProfile ? [
-    { duration: "10s", target: 1 },
-    { duration: "20s", target: 1 },
-    { duration: "5s", target: 0 },
-  ] : [
+const capacityStages = [
     { duration: "2m", target: 5 },
     { duration: "3m", target: 10 },
     { duration: "5m", target: 25 },
     { duration: "5m", target: 25 },
     { duration: "2m", target: 0 },
-  ],
+];
+const validationStages = [{ duration: "15s", target: 2 }, { duration: "5s", target: 0 }];
+
+export const options = {
+  stages: __ENV.K6_QUICK === "1" ? validationStages : capacityStages,
   thresholds: {
     http_req_failed: ["rate<0.01"],
-    http_req_duration: ["p(95)<1500"],
-    rankftv_route_failures: ["rate<0.01"],
-    "rankftv_route_duration{flow:public}": ["p(95)<1500"],
-    "rankftv_route_duration{flow:championship}": ["p(95)<1500"],
-    "rankftv_route_duration{flow:authenticated}": ["p(95)<1500"],
+    http_req_duration: ["p(95)<3000"],
+    "http_req_duration{flow:public_read}": ["p(95)<2500"],
+    "http_req_duration{flow:athlete_page}": ["p(95)<3000"],
+    "http_req_duration{flow:organizer_panel}": ["p(95)<3000"],
+    "http_req_duration{flow:championship_operation}": ["p(95)<2500"],
+    "http_req_duration{flow:ticket_status}": ["p(95)<1500"],
   },
   userAgent: "RankFTV-Sandbox-k6/1.0",
 };
 
-const routes = [
-  { name: "home", path: "/", flow: "public", authenticated: false },
-  { name: "championships", path: "/campeonatos", flow: "public", authenticated: false },
-  { name: "arenas", path: "/arenas", flow: "public", authenticated: false },
-  { name: "news", path: "/noticias", flow: "public", authenticated: false },
-  { name: "login", path: "/login", flow: "public", authenticated: false },
-  { name: "signup", path: "/cadastro", flow: "public", authenticated: false },
+const publicPaths = ["/", "/campeonatos", "/campeonatos/ao-vivo", "/meus-ingressos"];
+const athletePaths = ["/perfil", "/minhas-inscricoes", "/minhas-compras", "/meus-ingressos"];
+const organizerPaths = ["/painel", "/painel/campeonatos"];
+const championshipPaths = [
+  `/campeonatos/${sessions.championshipId}`,
+  `/campeonatos/${sessions.championshipId}/chaveamento`,
+  `/campeonatos/${sessions.championshipId}/ao-vivo`,
 ];
 
-if (championshipId) {
-  routes.push(
-    { name: "championship", path: `/campeonatos/${championshipId}`, flow: "championship", authenticated: false },
-    { name: "categories", path: `/campeonatos/${championshipId}/categorias`, flow: "championship", authenticated: false },
-    { name: "bracket", path: `/campeonatos/${championshipId}/chaveamento`, flow: "championship", authenticated: false },
-    { name: "live-score", path: `/campeonatos/${championshipId}/ao-vivo`, flow: "championship", authenticated: false },
-  );
+function get(path, flow, cookie) {
+  const headers = cookie ? { ...baseHeaders, Cookie: cookie } : baseHeaders;
+  const response = http.get(`${baseUrl}${path}`, { headers, redirects: 0, tags: { flow } });
+  check(response, {
+    [`${flow} returns expected page`]: (res) => res.status >= 200 && res.status < 400,
+    [`${flow} is not redirected to login`]: (res) => !String(res.headers.Location || "").includes("/login"),
+  });
 }
 
-if (athleteCookieHeader) {
-  routes.push(
-    { name: "purchases", path: "/minhas-compras", flow: "authenticated", cookie: athleteCookieHeader },
-    { name: "my-tickets", path: "/meus-ingressos", flow: "authenticated", cookie: athleteCookieHeader },
-  );
-}
-
-if (organizerCookieHeader) {
-  routes.push(
-    { name: "organizer-panel", path: "/painel", flow: "authenticated", cookie: organizerCookieHeader },
-    { name: "organizer-championships", path: "/painel/campeonatos", flow: "authenticated", cookie: organizerCookieHeader },
-  );
-  if (organizerChampionshipId) {
-    routes.push(
-      { name: "organizer-championship", path: `/painel/campeonatos/${organizerChampionshipId}`, flow: "authenticated", cookie: organizerCookieHeader },
-      { name: "organizer-bracket", path: `/painel/campeonatos/${organizerChampionshipId}/chaveamento`, flow: "authenticated", cookie: organizerCookieHeader },
-      { name: "organizer-checkin", path: `/painel/campeonatos/${organizerChampionshipId}/checkin`, flow: "authenticated", cookie: organizerCookieHeader },
-    );
-  }
+function ticketStatus() {
+  if (!sessions.ticket) return false;
+  const response = http.post(`${baseUrl}/api/ticket-status`, JSON.stringify({
+    id: sessions.ticket.id,
+    tipo: "atleta",
+    token: sessions.ticket.access_token,
+  }), {
+    headers: { ...baseHeaders, "Content-Type": "application/json" },
+    tags: { flow: "ticket_status" },
+  });
+  check(response, { "private ticket status succeeds": (res) => res.status === 200 });
+  return true;
 }
 
 export default function publicReadSmoke() {
-  const route = routes[(__VU + __ITER) % routes.length];
-  const response = http.get(`${baseUrl}${route.path}`, {
-    headers: route.cookie ? { Cookie: route.cookie } : undefined,
-    redirects: route.cookie ? 0 : 5,
-    tags: { flow: route.flow, route: route.name },
-  });
-  const passed = check(response, {
-    "returns the expected page": (res) => route.cookie ? res.status === 200 : res.status >= 200 && res.status < 400,
-    "does not return a server error": (res) => res.status < 500,
-  }, { flow: route.flow, route: route.name });
-  routeFailures.add(!passed, { flow: route.flow, route: route.name });
-  routeDuration.add(response.timings.duration, { flow: route.flow, route: route.name });
+  const selector = (__VU + __ITER) % 5;
+  if (selector === 0) get(publicPaths[__ITER % publicPaths.length], "public_read");
+  if (selector === 1) get(athletePaths[__ITER % athletePaths.length], "athlete_page", sessions.athleteCookie);
+  if (selector === 2) get(organizerPaths[__ITER % organizerPaths.length], "organizer_panel", sessions.organizerCookie);
+  if (selector === 3) get(championshipPaths[__ITER % championshipPaths.length], "championship_operation");
+  if (selector === 4 && !ticketStatus()) get("/meus-ingressos", "public_read");
   sleep(1 + Math.random() * 2);
 }

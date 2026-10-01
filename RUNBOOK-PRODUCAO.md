@@ -52,23 +52,26 @@ Aplicar no SQL Editor ou pipeline de migrations, uma por vez e nesta ordem:
 7. `supabase/payment-card-attempt-security.sql`
 8. `supabase/production-spectator-ticket-items.sql`
 9. `supabase/production-order-inventory-release.sql`
-10. `supabase/asaas-webhook-idempotency.sql`
-11. `supabase/production-query-indexes.sql`
-12. `supabase/production-athlete-ticket-credentials.sql`
-13. `supabase/production-athlete-ticket-change-security.sql`
-14. `supabase/production-bracket-participants.sql`
-15. `supabase/production-participant-category-uniqueness.sql`
-16. `supabase/production-category-deletion-guard.sql`
-17. `supabase/production-credential-operations.sql`
-18. `supabase/support-case-enhancements.sql`
-19. `supabase/notifications.sql`
-20. `supabase/championship-notices.sql`
-21. `supabase/production-championship-change-notifications.sql`
-22. `supabase/production-championship-notification-claims.sql`
-23. `supabase/production-championship-delete-transaction.sql`
-24. `supabase/production-championship-update-transaction.sql`
-25. `supabase/organizer-financial-notifications.sql`
-26. `supabase/production-data-retention.sql`
+10. `supabase/production-athlete-checkout-reservations.sql`
+11. `supabase/asaas-webhook-idempotency.sql`
+12. `supabase/production-query-indexes.sql`
+13. `supabase/production-athlete-ticket-credentials.sql`
+14. `supabase/production-athlete-ticket-change-security.sql`
+15. `supabase/production-bracket-participants.sql`
+16. `supabase/production-participant-category-uniqueness.sql`
+17. `supabase/production-category-deletion-guard.sql`
+18. `supabase/production-credential-operations.sql`
+19. `supabase/support-case-enhancements.sql`
+20. `supabase/operational-alerts.sql`
+21. `supabase/notifications.sql`
+22. `supabase/championship-notices.sql`
+23. `supabase/production-championship-change-notifications.sql`
+24. `supabase/production-championship-notification-claims.sql`
+25. `supabase/production-championship-delete-transaction.sql`
+26. `supabase/production-championship-update-transaction.sql`
+27. `supabase/organizer-financial-notifications.sql`
+28. `supabase/production-operational-email-alerts.sql`
+29. `supabase/production-data-retention.sql`
 
 Os scripts sao aditivos e idempotentes. Ainda assim, nao os execute em paralelo.
 Depois dos tres primeiros, executar os checks somente-leitura
@@ -322,9 +325,10 @@ GitHub e conferir pelo menos uma execucao manual e uma agendada.
 ## 5. Monitoramento e alertas
 
 - Monitorar `/api/health` externamente sem enviar credenciais.
-- Configurar `OBSERVABILITY_HTTP_ENDPOINT` e `OBSERVABILITY_HTTP_TOKEN` para o
-  coletor escolhido.
-- Configurar `OPERATIONS_ALERT_WEBHOOK_URL` em um canal com responsavel e SLA.
+- Manter `OBSERVABILITY_HTTP_ENDPOINT` e `OBSERVABILITY_HTTP_TOKEN` apontando
+  para a fonte `RankFTV Production` do Better Stack.
+- Manter `OPERATIONS_ALERT_WEBHOOK_URL` apontando para o canal privado
+  `#alertas-rankftv` do Slack.
 - Alertar falha de webhook, cron, conciliacao, estorno e repasse.
 - Pesquisar logs por `correlation_id`, `flow` e ID interno, nunca por dado
   financeiro sensivel.
@@ -337,9 +341,17 @@ GitHub e conferir pelo menos uma execucao manual e uma agendada.
 
 Enquanto a V1 operar sem equipe de suporte, `Carlos Gregorio Rocha Batista` e
 o responsavel primario por pagamento pendente, reembolso cancelado, webhook
-falho e repasse recusado. O canal temporario e o e-mail pessoal cadastrado nos
-servicos de monitoramento, sem registrar o endereco em repositorio. O prazo
-maximo para iniciar a analise e responder ao solicitante e de 24 horas.
+falho e repasse recusado. O canal operacional e `#alertas-rankftv`; enderecos,
+tokens e URLs de webhook nao devem ser registrados no repositorio.
+
+O SLA mede o tempo ate a resposta inicial e a abertura do diagnostico:
+
+- alerta critico: ate 15 minutos;
+- alerta de alta prioridade: ate uma hora.
+
+Se o problema nao for resolvido, suspender temporariamente a operacao afetada
+e iniciar o diagnostico pelos logs do Better Stack e da Vercel. Registrar no
+canal o inicio da analise, impacto, decisao de contingencia e encerramento.
 
 Quando o e-mail comercial e o WhatsApp oficiais forem ativados, substituir o
 canal temporario nos monitores e alertas sem remover o contato anterior antes
@@ -361,7 +373,9 @@ Procedimento minimo por tipo de alerta:
 O monitor externo inicial usa o UptimeRobot a cada cinco minutos, exige a
 presenca de `"status":"ok"` em `/api/health` e envia alerta por e-mail. A
 notificacao de teste foi recebida em 04/09/2026. Esse monitor nao substitui os
-alertas internos definidos por `OPERATIONS_ALERT_WEBHOOK_URL`.
+alertas internos definidos por `OPERATIONS_ALERT_WEBHOOK_URL`. Em 30/09/2026,
+o Better Stack aceitou o evento de teste e o Slack recebeu o alerta operacional
+no canal `#alertas-rankftv`.
 
 ## 6. Rollback
 
@@ -387,3 +401,26 @@ trilha de auditoria.
 Registrar commit, horario, migrations, contagens do backfill, resultado dos
 gates, cobrancas sandbox usadas, incidentes e responsavel pela liberacao. As
 configuracoes externas ainda abertas permanecem em `PENDENCIAS-V1.md`.
+
+### Evidência técnica de 30/09/2026
+
+1. Executar `node scripts/production-readonly-smoke.mjs` antes e depois da
+   promoção. O script recusa qualquer host diferente de `www.rankftv.com` e não
+   realiza mutações.
+2. Executar `scripts/run-k6-sandbox.ps1` somente contra Preview conectado ao
+   projeto Sandbox. O wrapper cria sessões temporárias e sempre remove o
+   arquivo local no encerramento.
+3. Para webhooks mutáveis, usar exclusivamente a fixture descartável do
+   Playwright. Ela valida repetição, reembolso e evento fora de ordem, e limpa
+   os registros ao final.
+4. Depois do merge, disparar `production-performance-audit.yml`. O workflow
+   exige o ref exato de Production e executa a auditoria SQL em transação
+   `READ ONLY`, sem imprimir texto de consulta ou dados pessoais.
+5. Registrar as métricas em `docs/VALIDACAO-TECNICA-V1-2026-09-30.md`. Pix,
+   cartão e entrega em caixas reais continuam seguindo o roteiro supervisionado
+   de `docs/SMOKE-TRANSACIONAL-V1.md`.
+
+Evidência desta janela: auditoria SQL `36784797528`, worker financeiro e
+scanner de alertas `36784801615`, CI final pós-merge `36784784375` e smoke pós-deploy
+com 12/12 respostas esperadas. A auditoria corrigida encontrou zero espera
+ativa, transação longa, lock aguardando ou sessão bloqueada.

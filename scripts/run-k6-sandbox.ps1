@@ -1,11 +1,7 @@
-[CmdletBinding(PositionalBinding = $false)]
+[CmdletBinding()]
 param(
-  [ValidateSet("smoke", "capacity")]
-  [string]$Profile = "smoke",
   [string]$BaseUrl = "https://rank-ftv-git-sandbox-homologacao-devcarlosrochas-projects.vercel.app",
-  [Parameter(Mandatory = $true)]
-  [string]$ChampionshipId,
-  [string]$SummaryExport
+  [switch]$Quick
 )
 
 $ErrorActionPreference = "Stop"
@@ -23,17 +19,28 @@ function Import-EnvFile([string]$Path) {
 }
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
-Import-EnvFile (Join-Path $projectRoot ".env.local")
+$sessionPath = Join-Path $projectRoot ".artifacts\k6-sandbox-session.json"
 Import-EnvFile (Join-Path $projectRoot ".secrets.local")
 Import-EnvFile (Join-Path $projectRoot ".env.sandbox.local")
 
-$env:K6_PROFILE = $Profile
-$env:K6_BASE_URL = $BaseUrl.TrimEnd("/")
-$env:K6_CHAMPIONSHIP_ID = $ChampionshipId
-if ($SummaryExport) {
-  $env:K6_SUMMARY_EXPORT = $SummaryExport
+$env:BASE_URL = $BaseUrl.TrimEnd("/")
+$env:K6_SESSION_FILE = $sessionPath
+$quickValue = if ($Quick) { "1" } else { "0" }
+if ($env:VERCEL_PROTECTION_BYPASS) {
+  $env:VERCEL_AUTOMATION_BYPASS_SECRET = $env:VERCEL_PROTECTION_BYPASS
 }
 
 Set-Location -LiteralPath $projectRoot
-& node scripts/run-k6-sandbox-auth.mjs
-exit $LASTEXITCODE
+try {
+  & node scripts/setup-k6-sandbox-session.mjs
+  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+  & k6 run -e BASE_URL=$env:BASE_URL -e K6_SESSION_FILE=$sessionPath `
+    -e K6_QUICK=$quickValue `
+    -e VERCEL_AUTOMATION_BYPASS_SECRET=$env:VERCEL_AUTOMATION_BYPASS_SECRET `
+    scripts/k6-sandbox-smoke.js
+  exit $LASTEXITCODE
+} finally {
+  if (Test-Path -LiteralPath $sessionPath) {
+    Remove-Item -LiteralPath $sessionPath -Force
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle, ArrowLeft, ArrowRight, CreditCard, Loader2, User, Dumbbell } from "lucide-react";
 import Link from "next/link";

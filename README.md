@@ -186,7 +186,7 @@ Veja a sequência completa, as correções e os riscos residuais em [AUDITORIA-P
 - [ ] Confirmar que a conta operacional possui `profiles.role = ceo`; `ADMIN_EMAIL` não concede acesso comercial.
 - [ ] Trocar Asaas Sandbox por produção com credenciais próprias.
 - [ ] Cadastrar os webhooks Asaas no domínio final e validar token, eventos, repetição e estorno.
-- [ ] Verificar domínio e remetente no Resend, incluindo SPF, DKIM e DMARC; validar o webhook de entrega.
+- [x] Verificar domínio e remetente no Resend, incluindo SPF, DKIM e DMARC; entrega real confirmada em Gmail e Microsoft 365/Outlook.
 - [ ] Confirmar os crons diários da Vercel e, na branch padrão, o workflow subdiário de conciliação do GitHub Actions.
 - [ ] Ativar backups/PITR, logs, monitoramento e conciliação financeira.
 

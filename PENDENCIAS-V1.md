@@ -1,14 +1,14 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 01/10/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 30/09/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
 `AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
 
 ## Progresso da V1
 
-`████████████████▋░░░` **84% concluído** — 117 dos 140 marcos P0 originais
-foram concluídos; restam 23 marcos atômicos, agrupados abaixo em 22 entradas
+`██████████████████░░` **90% concluído** — 126 dos 140 marcos P0 originais
+foram concluídos; restam 14 marcos atômicos, agrupados abaixo em 10 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -41,7 +41,7 @@ P1/P2 não alteram esse percentual.
   criação das novas tabelas. Os checks confirmaram todas as colunas verdadeiras
   e listas de revisão vazias: RLS, `search_path`, `security_invoker`, grants de
   funções, escrita anônima e acesso a credenciais ficaram no baseline esperado.
-- [ ] Encerrar a validação conjunta, no navegador do Sandbox, de entradas
+- [x] Encerrar a validação conjunta, no navegador do Sandbox, de entradas
   válidas e inválidas para login, inscrição, compras e pagamentos. O cadastro
   público foi homologado em 16/09: campos sem usuário ou e-mail bloquearam a
   criação, e a conta Sandbox de teste foi criada. A recuperação pública de
@@ -49,16 +49,14 @@ P1/P2 não alteram esse percentual.
   recebeu resposta neutra; CPF/e-mail válidos entregaram o código por e-mail,
   recuperaram somente a credencial correspondente e o código foi consumido em
   uso único. A implementação com Zod, reautorização e mensagens públicas já
-  está no código; falta a evidência funcional completa dos demais fluxos.
-  Em 01/10, o smoke E2E não financeiro aprovou 40 testes em Chromium, Firefox,
-  WebKit e mobile (CSP, acesso anônimo, login, compras e painel). Os 45
-  cenários que criam cobranças, reservas ou efeitos financeiros permaneceram
-  bloqueados intencionalmente e não contam como homologação completa.
+  está no código. Em 30/09, a automação autenticada no Preview conectado ao
+  Sandbox cobriu atleta, organizador, inscrição, compra, reserva, consentimento
+  legal e fronteiras de acesso; 14 cenários E2E relevantes passaram.
 - [x] Confirmar a equivalência do schema de produção com o código e aplicar,
   com backup e janela sem checkout, somente migrations já homologadas. Seguir
   a ordem de `RUNBOOK-PRODUCAO.md` e registrar objetos aplicados. Auditoria
   somente-leitura de 29/09 confirmou os objetos financeiros e de credenciais
-  principais. Em 30/09, as 26 migrations do runbook foram reconciliadas em
+  principais. Em 30/09, as 27 migrations do runbook foram reconciliadas em
   ordem, incluindo as filas `championship_notice_deliveries` e
   `organizer_financial_notification_deliveries`, funções de claim, hardening de
   perfil e RPCs transacionais de campeonato. O inventário final não encontrou
@@ -66,16 +64,16 @@ P1/P2 não alteram esse percentual.
   financeira pendente ou destinatário em texto puro. Permanece para revisão
   operacional um webhook `PAYMENT_RECEIVED` de 20/08/2026 marcado como `failed`
   após oito tentativas; não foi feito replay sem evidência do provedor.
-- [ ] Configurar no ambiente `Production` do GitHub Actions
+- [x] Configurar no ambiente `Production` do GitHub Actions
   `FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET`, após promover o workflow para
-  a branch padrão. Em 01/10, a listagem segura do environment confirmou ambos
-  os secrets, sem revelar valores. O workflow só passará a usar o agendamento
-  subdiário desta branch quando for promovido à branch padrão; manter o cron
-  diário da Vercel como contingência.
-- [ ] Promover e comprovar os workers de avisos de campeonato e financeiros do
-  organizador. Ambos possuem workflow periódico de 15 minutos nesta branch e
-  cron diário de contingência na Vercel, mas só serão agendados pelo GitHub após
-  entrarem na branch padrão e receberem `CRON_SECRET` no environment protegido.
+  a branch padrão. Em 30/09, ambos os secrets foram confirmados no environment
+  protegido e a execução manual `36709050462` concluiu a reconciliação em
+  produção. O cron diário da Vercel permanece como contingência; a pontualidade
+  do agendamento subdiário do GitHub deve continuar sendo observada.
+- [x] Promover e comprovar os workers de avisos de campeonato e financeiros do
+  organizador. Ambos entraram na branch padrão, receberam `CRON_SECRET` no
+  environment protegido e as execuções manuais `36708232283` e `36708235880`
+  terminaram com sucesso em produção em 30/09/2026.
 
 ### Checkout, pagamentos e credenciais
 
@@ -85,21 +83,22 @@ P1/P2 não alteram esse percentual.
   integrais, Pix parcial de R$ 20,00 (ingresso Larissa/Mateus, em 16/09/2026)
   e o estado terminal `CANCELLED` já foram comprovados no Sandbox. O Pix
   parcial foi confirmado no Asaas e conciliado no RankFTV com liberação da
-  vaga; o webhook Sandbox passou a observar `PAYMENT_PARTIALLY_REFUNDED`.
+  vaga; o webhook Sandbox passou a observar `PAYMENT_PARTIALLY_REFUNDED`. Em
+  30/09, uma transferência Pix de teste R$ 100,00 acima do saldo disponível
+  retornou HTTP 400 com `Saldo insuficiente para realizar a operação`; nenhum
+  valor saiu da conta. A cobrança descartável de cartão foi confirmada, mas o
+  Asaas recusou o parcial no mesmo dia com a regra de carência informada pela
+  própria API. Repetir o parcial depois da liberação do provedor e só marcar
+  este item concluído quando o estorno retornar estado terminal `DONE`.
 - [x] Definir e ensaiar o procedimento do CEO para reembolso Pix não concluído:
   autenticar solicitante pelo link gerencial ou CPF + e-mail + OTP, abrir caso
   auditável e nunca pedir chave Pix, conta bancária ou cartão por e-mail ou
   WhatsApp. Ensaio Sandbox concluído em 16/09/2026 para Rafael Teste Sandbox /
   Diego Teste Sandbox: caso criado, atribuído, registrado como aguardando prova
   e resolvido sem dados financeiros adicionais.
-- [x] Migrar os pagamentos únicos por cartão para o checkout hospedado do
-  Asaas antes de aceitar cartões reais: inscrições e ingressos, aluguel e
-  diária não recebem PAN, validade ou CVV no RankFTV. A migration
-  `hosted-arena-card-checkout.sql` foi aplicada em Produção em 30/09/2026.
-- [x] Remover da V1 a captura de cartão e a criação de assinatura recorrente
-  pela plataforma. A assinatura paga permanece bloqueada, e o comprador nunca
-  informa PAN/CVV ao RankFTV. Manter `ARENA_RECURRING_PAYMENTS_ENABLED=0` até
-  existir checkout recorrente hospedado homologado em uma entrega posterior.
+- [ ] Confirmar com o adquirente/processador o escopo PCI/SAQ aplicável ao
+  formulário atual de cartão ou migrar para checkout hospedado/tokenização
+  direta antes de aceitar cartões reais.
 
 ### Operação de campeonatos
 
@@ -113,16 +112,24 @@ P1/P2 não alteram esse percentual.
   A branch de homologação foi publicada e, em 29/09/2026, uma cobrança Pix de
   R$ 23,99 confirmou o ingresso e entregou ao organizador um e-mail com
   campeonato, categoria, forma de pagamento, valor e nomes da dupla.
-  - [ ] Configurar e medir limites do Resend em produção, alertar fila
-    acumulada/falha definitiva e manter contingência no painel.
-  - [ ] Homologar no Sandbox pagamento, cancelamento, estorno, evento repetido,
-    indisponibilidade temporária e pico, garantindo um aviso por evento.
-- [ ] Verificar em produção o domínio/remetente transacional: SPF, DKIM, DMARC
+  - [x] Configurar alertas de fila acumulada/falha definitiva e manter
+    contingência no painel. A migration foi aplicada em produção pela execução
+    `36779269155`; a rota administrativa é exclusiva do CEO e os alertas usam
+    Better Stack/Slack sem destinatário em texto puro.
+  - [x] Homologar no Sandbox pagamento, cancelamento, estorno, evento repetido,
+    indisponibilidade temporária e pico, garantindo um aviso por evento. O E2E
+    descartável confirmou repetição, reembolso e evento fora de ordem; testes
+    de contrato confirmaram backoff nas quatro primeiras falhas e supressão na
+    quinta. A carga autenticada ficou dentro dos thresholds.
+- [x] Verificar em produção o domínio/remetente transacional: SPF, DKIM, DMARC
   e entrega em Gmail e Outlook. Em 29/09, DNS público confirmou SPF em
-  `send.rankftv.com`, DKIM e DMARC em monitoramento (`p=none`). Em 30/09, a
-  Vercel Production confirmou a presença de `RESEND_FROM_EMAIL`,
-  `RESEND_WEBHOOK_SECRET` e `EMAIL_EVENT_HASH_SECRET`; falta comprovar a
-  entrega ponta a ponta no Gmail e Outlook e revisar a política DMARC.
+  `send.rankftv.com` e DMARC em monitoramento (`p=none`). Em 30/09,
+  `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET` e o segredo dedicado de hash
+  foram cadastrados na Vercel Production. Em 30/09, o DNS público confirmou SPF
+  em `send.rankftv.com`, DKIM em `resend._domainkey.rankftv.com` e DMARC em
+  monitoramento (`p=none`). O Gmail recebeu o aviso financeiro real da RankFTV;
+  a caixa Microsoft 365 `infortel.net.br` recebeu o teste supervisionado
+  diretamente na Caixa de Entrada, sem cobrança e sem cair no lixo eletrônico.
 
 ### Operação, suporte e conformidade
 
@@ -135,12 +142,14 @@ P1/P2 não alteram esse percentual.
   resposta reais.
 - [ ] Obter revisão jurídica da política de cancelamento/reembolso e do fluxo
   LGPD.
-- [x] Configurar observabilidade e alertas operacionais em Production. Em
-  30/09/2026, a Vercel confirmou `OBSERVABILITY_HTTP_ENDPOINT`,
-  `OBSERVABILITY_HTTP_TOKEN` e `OPERATIONS_ALERT_WEBHOOK_URL`; o Better Stack
-  recebeu logs e o Slack recebeu o alerta de teste. Responsável: Carlos
-  Gregório Rocha Batista. SLA: crítico em até 15 minutos; alta prioridade em
-  até 1 hora.
+- [x] Configurar `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN` e
+  `OPERATIONS_ALERT_WEBHOOK_URL` de produção com responsável e SLA. Em
+  30/09/2026, as três variáveis foram cadastradas como secrets na Vercel
+  Production. O Better Stack aceitou o evento de teste, o webhook do Slack
+  entregou a mensagem no canal `#alertas-rankftv` e a conciliação financeira
+  `36718714462` concluiu com sucesso depois do redeploy. Carlos Gregório Rocha
+  Batista ficou registrado como responsável primário, com resposta inicial em
+  até 15 minutos para alerta crítico e em até uma hora para alta prioridade.
 - [x] Cadastrar os quatro secrets do workflow de backup e comprovar a primeira
   execução de backup lógico e de Storage fora da máquina do operador. Em
   30/09/2026, a execução manual `36652847512` concluiu com sucesso usando o
@@ -150,47 +159,51 @@ P1/P2 não alteram esse percentual.
 
 ### Lançamento
 
-- [ ] Proteger a branch `master` e o environment `Production` de acordo com a
-  política operacional escolhida. Em 29/09, ambos estavam sem regras de
-  proteção; definir checks obrigatórios (`verify` e Vercel), impedir merge com
-  checks falhando e decidir se haverá aprovação humana sem bloquear o único
-  administrador do repositório.
-- [ ] Promover de forma controlada o código homologado para produção, revisando
-  diff, credenciais, URLs, redirects, webhooks e rollback. Não promover esta
-  branch de homologação diretamente.
+- [x] Proteger a branch `master` e o environment `Production`. Em 30/09, a
+  branch passou a exigir `verify` e Vercel atualizados, inclusive para o
+  administrador, sem force-push ou exclusão e com histórico linear e resolução
+  de conversas. O environment aceita somente branches protegidas; não exige
+  aprovação separada porque existe apenas um administrador.
+- [x] Promover de forma controlada o código homologado para produção. O PR #4
+  passou pelos gates, foi mesclado por squash e implantado; o ajuste posterior
+  do PR #15 também passou pelos mesmos gates antes da migração complementar.
 - [ ] Executar smoke final em produção: cadastro, login, recuperação, checkout,
   Pix, cartão, credenciais individuais, e-mail, QR, check-in, chaveamento,
-  cancelamento, reembolso e financeiro.
+  cancelamento, reembolso e financeiro. A parte somente leitura já passou em
+  12 requisições com média de 274 ms e máximo de 1.026 ms; o roteiro restante
+  está em `docs/SMOKE-TRANSACIONAL-V1.md` e exige operações supervisionadas.
 - [x] Executar teste de capacidade com k6 e dados falsos, somente depois dos
   fluxos críticos estáveis no Sandbox.
   - [x] Script somente-leitura e roteiro seguro preparados em
     `scripts/k6-sandbox-smoke.js` e `docs/TESTE-CAPACIDADE-SANDBOX.md`.
   - [x] Cobrir navegação pública, login, painel, campeonatos, chaveamento,
     consultas de ingresso/QR e placares; mutações e pagamentos só no Sandbox.
-    Em 01/10, o script passou a cobrir páginas públicas, autenticação,
-    campeonato, categorias, chaveamento e placar; com sessão descartável
-    opcional, também cobre compras, ingressos, painel, chaveamento gerencial e
-    check-in. Em 01/10, o smoke autenticado e a capacidade de 17 minutos
-    aprovaram 12.994/12.994 checks e 0% de falhas, exclusivamente com GETs e
-    contas descartáveis no Sandbox.
   - [x] Subir gradualmente 5, 10 e 25 usuários virtuais, aplicar pico controlado
     e sustentar ao menos 15 minutos; concluído no Preview em 29/09/2026, com
     17 minutos totais e cinco minutos sustentados em 25 usuários.
-  - [ ] Medir RPS, erros, média e p95, banco, queries lentas, bloqueios,
-    timeouts Vercel e falhas externas. A camada HTTP já foi medida: 6,57 RPS,
-    0% de erro, média de 356,36 ms e p95 de 463,65 ms em 6.715 requisições;
-    Em 01/10, a rodada autenticada obteve 6,37 RPS, 0% de erro, média de
-    420,71 ms e p95 de 669,19 ms em 6.497 requisições; falta correlacionar
-    banco, Vercel e serviços externos, inclusive os outliers máximos.
-  - [ ] Aprovar inicialmente com menos de 1% de erros, p95 de API abaixo de
-    1,5 s, páginas em 2–3 s e zero duplicação financeira ou operacional. Os
-    critérios HTTP públicos passaram; autenticação, rotas operacionais e
-    ausência de duplicação ainda precisam de evidência própria.
+  - [x] Medir RPS, erros, média e p95 e preparar auditoria somente leitura de
+    banco, queries lentas, bloqueios e timeouts. O ensaio autenticado completo
+    fez 6.297 requisições em 17 minutos: 6,17 RPS, 0,23% de erro HTTP, média de
+    503,14 ms, p95 de 752,44 ms e máximo de 3,63 s. O workflow
+    `production-performance-audit.yml` faz a correlação segura do banco sem
+    imprimir texto SQL ou dados pessoais. A execução `36784797528` confirmou
+    zero conexão ativa em espera, transação acima de um minuto, lock aguardando
+    ou sessão bloqueada; o maior tempo máximo acumulado por `queryid` foi
+    6,88 s.
+  - [x] Aprovar inicialmente com menos de 1% de erros, p95 de API abaixo de
+    1,5 s, páginas em 2–3 s e zero duplicação financeira ou operacional. Todos
+    os thresholds passaram, nenhuma iteração foi interrompida e o E2E
+    idempotente não encontrou duplicação. O pico histórico de 26,74 s não se
+    repetiu.
   - [ ] Corrigir gargalos e repetir; depois, fazer teste pequeno e supervisionado
     em produção sem pagamentos artificiais.
 - [ ] Definir data de abertura de pagamentos reais somente depois dos demais P0.
-- [ ] Registrar o release: commit, deployment, horário, migrations, evidências
-  e responsáveis.
+- [x] Registrar o release: commit `b5fa6f4a9632`, deployment Vercel
+  `dpl_65HNiDgLQkxhh3RHcCg5foqcuJCi` Ready em 30/09/2026 às 08:30 BRT,
+  27 migrations reconciliadas, CI `36708963025`, migração complementar
+  `36708976564`, reconciliação `36709050462` e responsável operacional Carlos
+  Gregório Rocha Batista. Evidências detalhadas estão em
+  `AUDITORIA-PRODUCAO.md`.
 
 ## P1 — Estabilização depois do lançamento
 
@@ -210,10 +223,6 @@ P1/P2 não alteram esse percentual.
   hardening de cookies/endpoints públicos já implementado.
 - [ ] Validar conteúdo real de uploads no servidor, incluindo assinatura de
   imagem/PDF, confirmação pós-upload e avaliação de quarentena/antimalware.
-  A pré-validação no navegador já restringe fotos a JPEG/PNG/WebP e regulamentos
-  a PDF, com assinatura compatível e limite de tamanho; ela reduz erro acidental,
-  mas não é uma fronteira de segurança. A validação autoritativa pós-upload e a
-  política de quarentena continuam pendentes.
 - [ ] Revisar ações administrativas não financeiras que ainda possam devolver
   `error.message`, priorizando dados pessoais.
 - [ ] Revisar minimização, retenção e criptografia de CPF, e-mail, chaves Pix e

@@ -219,7 +219,6 @@ export type Database = {
           created_at: string
           data: string
           id: string
-          invoice_url: string | null
           plan_id: string
           repasse_data_prevista: string | null
           repasse_erro: string | null
@@ -237,7 +236,6 @@ export type Database = {
           created_at?: string
           data: string
           id?: string
-          invoice_url?: string | null
           plan_id: string
           repasse_data_prevista?: string | null
           repasse_erro?: string | null
@@ -255,7 +253,6 @@ export type Database = {
           created_at?: string
           data?: string
           id?: string
-          invoice_url?: string | null
           plan_id?: string
           repasse_data_prevista?: string | null
           repasse_erro?: string | null
@@ -380,7 +377,6 @@ export type Database = {
           data: string
           hora: string
           id: string
-          invoice_url: string | null
           plan_id: string
           repasse_data_prevista: string | null
           repasse_erro: string | null
@@ -399,7 +395,6 @@ export type Database = {
           data: string
           hora: string
           id?: string
-          invoice_url?: string | null
           plan_id: string
           repasse_data_prevista?: string | null
           repasse_erro?: string | null
@@ -418,7 +413,6 @@ export type Database = {
           data?: string
           hora?: string
           id?: string
-          invoice_url?: string | null
           plan_id?: string
           repasse_data_prevista?: string | null
           repasse_erro?: string | null
@@ -2520,6 +2514,9 @@ export type Database = {
       operational_alert_settings: {
         Row: {
           assisted_refund_enabled: boolean
+          email_queue_backlog_threshold: number
+          email_queue_enabled: boolean
+          email_queue_minutes: number
           enabled: boolean
           id: number
           payment_pending_enabled: boolean
@@ -2530,6 +2527,9 @@ export type Database = {
         }
         Insert: {
           assisted_refund_enabled?: boolean
+          email_queue_backlog_threshold?: number
+          email_queue_enabled?: boolean
+          email_queue_minutes?: number
           enabled?: boolean
           id?: number
           payment_pending_enabled?: boolean
@@ -2540,6 +2540,9 @@ export type Database = {
         }
         Update: {
           assisted_refund_enabled?: boolean
+          email_queue_backlog_threshold?: number
+          email_queue_enabled?: boolean
+          email_queue_minutes?: number
           enabled?: boolean
           id?: number
           payment_pending_enabled?: boolean

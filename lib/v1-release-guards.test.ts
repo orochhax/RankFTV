@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 
@@ -32,12 +32,17 @@ test("Sandbox preserves the Resend key without adding a production fallback", ()
 
 test("Sandbox reservation duration stays within the production maximum", () => {
   const reservation = source("lib/checkout-reservation.ts");
-  const sandboxEnv = source(".env.sandbox.local");
-
-  assert.match(sandboxEnv, /^ATHLETE_CHECKOUT_RESERVATION_MINUTES=(?:[1-9]|1[0-5])$/m);
   assert.match(reservation, /process\.env\.NODE_ENV === "development"/);
   assert.match(reservation, /PRODUCTION_ATHLETE_CHECKOUT_RESERVATION_MINUTES = 15/);
   assert.match(reservation, /value < 1 \|\| value > PRODUCTION_ATHLETE_CHECKOUT_RESERVATION_MINUTES/);
+
+  // Arquivos .env locais não fazem parte do repositório nem do CI. Quando o
+  // Sandbox local existir, confira também que o valor configurado respeita a
+  // mesma barreira aplicada pelo runtime.
+  if (existsSync(path.join(process.cwd(), ".env.sandbox.local"))) {
+    const sandboxEnv = source(".env.sandbox.local");
+    assert.match(sandboxEnv, /^ATHLETE_CHECKOUT_RESERVATION_MINUTES=(?:[1-9]|1[0-5])$/m);
+  }
 });
 
 test("commercial admin authorization has profiles.role as its only source of truth", () => {

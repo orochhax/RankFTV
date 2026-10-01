@@ -1,7 +1,88 @@
 # Auditoria de seguranca e prontidao para producao - RankFTV
 
 Data da revisao: 14/07/2026
-Ultima atualizacao: 29/09/2026
+Ultima atualizacao: 30/09/2026
+
+## Atualizacao 30/09/2026 - prontidao operacional da V1
+
+- A migration de alertas operacionais de e-mail foi aplicada em producao pela
+  execucao `36779269155`. Ela adicionou detecção de fila acumulada e falha
+  definitiva, índices, RLS e grants mínimos; o painel `/admin/alertas` ganhou a
+  contingência correspondente, restrita ao CEO.
+- O Preview `rank-hd1go3z38-devcarlosrochas-projects.vercel.app` passou por
+  webhook descartável repetido, reembolso e evento fora de ordem. A fixture
+  confirmou uma única transição financeira, duas credenciais individuais e um
+  único aviso ao organizador por evento, com limpeza posterior.
+- A suíte local aprovou lint sem erros, TypeScript, build, 802 testes e
+  `npm audit` completo e de produção sem vulnerabilidades. A busca por padrões
+  de segredo não encontrou credenciais versionadas.
+- O ensaio autenticado completo do k6 fez 6.297 requisições em 17 minutos com
+  até 25 usuários virtuais: 6,17 req/s, erro HTTP de 0,23%, média de 503,14 ms,
+  p95 de 752,44 ms e máximo de 3,63 s. Todos os thresholds passaram, nenhuma
+  iteração foi interrompida e o pico histórico de 26,74 s não se repetiu.
+- O smoke somente leitura de produção aprovou 12 requisições, com média de
+  274 ms e máximo de 1.026 ms, cobrindo health, páginas públicas e legais,
+  robots, sitemap, CSP, fronteira autenticada e rejeições esperadas.
+- O roteiro transacional completo foi separado em
+  `docs/SMOKE-TRANSACIONAL-V1.md`. Operações específicas no Asaas e pagamentos
+  reais permanecem supervisionados e não foram simulados em Production.
+- O PR #20 foi mesclado no commit `aca514ff7968`; a CI de `master`
+  `36783902045` aprovou todos os gates e a Vercel concluiu o deploy. O smoke
+  pós-deploy repetiu 12/12 respostas esperadas, com média de 332 ms e máximo de
+  645 ms.
+- A primeira leitura de espera classificava conexões ociosas em `ClientRead`
+  como espera operacional. O PR #21 corrigiu a métrica para conexões ativas e
+  fixou timeouts dentro da transação. Na execução somente leitura
+  `36784797528` houve 0 conexões ativas em espera, 0 transações acima de um
+  minuto, 0 locks aguardando e 0 sessões bloqueadas. O maior tempo máximo
+  acumulado por `queryid` foi 6,88 s; nenhum texto SQL foi impresso.
+- A execução protegida `36784801615` processou a fila financeira e o scanner
+  de alertas operacionais com sucesso usando o segredo do environment
+  Production. Nenhum segredo local antigo foi promovido ou exposto.
+- A CI final da `master`, execução `36784784375`, aprovou auditoria de
+  dependências, lint, tipos, 802 testes, build e 30 cenários Playwright.
+- SPF, DKIM e DMARC foram confirmados por DNS público. Além da entrega anterior
+  no Gmail, um teste transacional sem cobrança foi aceito pelo Resend e chegou
+  diretamente à Caixa de Entrada de uma conta corporativa hospedada no
+  Microsoft 365, sem cair no lixo eletrônico.
+
+## Atualizacao 30/09/2026 - promocao controlada e prova operacional
+
+- O PR #4 foi aprovado pelos checks obrigatorios e mesclado por squash. A
+  producao foi promovida sem copiar secrets para o repositorio.
+- A branch `master` passou a exigir os checks atualizados `verify` e Vercel,
+  inclusive para administradores, sem force-push ou exclusao, com historico
+  linear e resolucao de conversas. O environment `Production` aceita somente
+  branches protegidas.
+- `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET`, `EMAIL_EVENT_HASH_SECRET` e
+  `ASAAS_WITHDRAWAL_AUTH_TOKEN` foram cadastrados na Vercel Production.
+- `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN` e
+  `OPERATIONS_ALERT_WEBHOOK_URL` foram cadastrados como secrets na Vercel
+  Production. O Better Stack aceitou o evento de teste e o Slack recebeu o
+  alerta no canal privado `#alertas-rankftv`. Carlos Gregório Rocha Batista foi
+  registrado como responsável primário, com SLA de resposta inicial de 15
+  minutos para alertas críticos e uma hora para alta prioridade.
+- O redeploy ficou Ready e `/api/health` confirmou aplicação e banco `ok` no
+  release `fd058f57d51f`. A conciliação financeira `36718714462`, executada
+  depois da configuração, terminou com sucesso.
+- Os workers de avisos de campeonato e financeiros do organizador foram
+  disparados manualmente em producao e concluiram com sucesso nas execucoes
+  `36708232283` e `36708235880`.
+- A primeira execucao da conciliacao financeira falhou de forma segura com
+  `checkout_reservation_expiration_failed`. A causa foi a ausencia da migration
+  `production-athlete-checkout-reservations.sql` na ordem do runbook, embora o
+  codigo implantado ja dependesse da RPC correspondente.
+- O PR #15 adicionou a migration a ordem oficial e um workflow manual fixo,
+  atomico e restrito ao projeto de producao. A execucao `36708976564` aplicou a
+  migration e confirmou tabela, colunas e funcoes. A repeticao da conciliacao,
+  execucao `36709050462`, terminou com sucesso.
+- O release operacional final e o commit `b5fa6f4a9632`, deployment Vercel
+  `dpl_65HNiDgLQkxhh3RHcCg5foqcuJCi`, Ready em 30/09/2026 as 08:30 BRT. A CI
+  `36708963025` aprovou audit, lint, tipos, 797 testes, build e 30 testes de
+  navegador; 55 cenarios condicionais foram ignorados conforme suas flags.
+- O smoke final somente-leitura confirmou home HTTP 200, health `ok`, banco
+  `ok`, release `b5fa6f4a9632` e redirecionamento anonimo de `/admin` para
+  `/login`. O smoke transacional completo permanece pendente.
 
 ## Atualizacao 29/09/2026 - notificacao financeira e dependencias
 
@@ -89,7 +170,7 @@ Ultima atualizacao: 29/09/2026
   criptografado de banco e Storage. O preflight confirmou PostgreSQL 17.6,
   nenhuma conexao ativa, nenhuma inscricao nos 30 minutos anteriores, nenhum
   ingresso ativo sem categoria e nenhuma identidade duplicada por categoria.
-- As 26 migrations do runbook foram aplicadas/reconciliadas sequencialmente. Os
+- As 27 migrations do runbook foram aplicadas/reconciliadas sequencialmente. Os
   scripts sem transacao propria foram executados de forma atomica; nenhum erro
   de instalacao permaneceu aberto.
 - A primeira auditoria encontrou tres lacunas de ordenacao no runbook: hardening

@@ -1,35 +1,66 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { getUserRole, isCeo } from "@/lib/supabase/roles";
+import { z } from "zod";
 import { scanOperationalAlerts } from "@/lib/operational-alerts";
+import {
+  currentCeoUser,
+  resolveOperationalAlert,
+  saveOperationalAlertSettings,
+} from "@/lib/operational-alerts-admin";
 
-async function requireCeo() {
-  const supabase = await createClient();
-  const [{ data: { user } }, role] = await Promise.all([supabase.auth.getUser(), getUserRole(supabase)]);
-  return user && isCeo(role) ? user : null;
-}
+const checkbox = z.string().optional().transform((value) => value === "on");
+const settingsSchema = z.object({
+  enabled: checkbox,
+  paymentPendingEnabled: checkbox,
+  webhookFailedEnabled: checkbox,
+  assistedRefundEnabled: checkbox,
+  payoutRejectedEnabled: checkbox,
+  emailQueueEnabled: checkbox,
+  paymentPendingMinutes: z.coerce.number().int().min(5).max(1440).catch(30),
+  emailQueueMinutes: z.coerce.number().int().min(5).max(1440).catch(15),
+  emailQueueBacklogThreshold: z.coerce.number().int().min(1).max(500).catch(10),
+});
 
 export async function salvarConfiguracaoAlertas(formData: FormData) {
-  if (!(await requireCeo())) return;
-  const minutes = Math.min(1440, Math.max(5, Number(formData.get("payment_pending_minutes")) || 30));
-  await createAdminClient().from("operational_alert_settings").update({ enabled: formData.get("enabled") === "on", payment_pending_enabled: formData.get("payment_pending_enabled") === "on", webhook_failed_enabled: formData.get("webhook_failed_enabled") === "on", assisted_refund_enabled: formData.get("assisted_refund_enabled") === "on", payout_rejected_enabled: formData.get("payout_rejected_enabled") === "on", payment_pending_minutes: minutes, updated_at: new Date().toISOString() }).eq("id", 1);
+  if (!(await currentCeoUser())) return;
+  const settings = settingsSchema.parse({
+    enabled: formData.get("enabled"),
+    paymentPendingEnabled: formData.get("payment_pending_enabled"),
+    webhookFailedEnabled: formData.get("webhook_failed_enabled"),
+    assistedRefundEnabled: formData.get("assisted_refund_enabled"),
+    payoutRejectedEnabled: formData.get("payout_rejected_enabled"),
+    emailQueueEnabled: formData.get("email_queue_enabled"),
+    paymentPendingMinutes: formData.get("payment_pending_minutes"),
+    emailQueueMinutes: formData.get("email_queue_minutes"),
+    emailQueueBacklogThreshold: formData.get("email_queue_backlog_threshold"),
+  });
+
+  await saveOperationalAlertSettings({
+    enabled: settings.enabled,
+    payment_pending_enabled: settings.paymentPendingEnabled,
+    webhook_failed_enabled: settings.webhookFailedEnabled,
+    assisted_refund_enabled: settings.assistedRefundEnabled,
+    payout_rejected_enabled: settings.payoutRejectedEnabled,
+    email_queue_enabled: settings.emailQueueEnabled,
+    payment_pending_minutes: settings.paymentPendingMinutes,
+    email_queue_minutes: settings.emailQueueMinutes,
+    email_queue_backlog_threshold: settings.emailQueueBacklogThreshold,
+  });
   revalidatePath("/admin/alertas");
 }
 
 export async function resolverAlerta(formData: FormData) {
-  const user = await requireCeo();
+  const user = await currentCeoUser();
   if (!user) return;
   const id = String(formData.get("id") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return;
-  await createAdminClient().from("operational_alerts").update({ status: "resolved", resolved_at: new Date().toISOString(), resolved_by: user.id }).eq("id", id);
+  if (!z.uuid().safeParse(id).success) return;
+  await resolveOperationalAlert(id, user.id);
   revalidatePath("/admin/alertas");
 }
 
 export async function verificarAlertas() {
-  if (!(await requireCeo())) return;
+  if (!(await currentCeoUser())) return;
   await scanOperationalAlerts();
   revalidatePath("/admin/alertas");
 }
