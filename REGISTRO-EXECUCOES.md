@@ -5,6 +5,22 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-01 — Verificação de produção dos avisos de campeonato
+
+- Status: infraestrutura e worker confirmados; homologação funcional com
+  destinatário ativo permanece pendente por exigir escolha operacional segura.
+- Evidência de banco: `championship-change-notifications-check.sql` foi
+  executado no Supabase Production e retornou as nove colunas como `true`:
+  tabelas, colunas de deduplicação, os três índices, RLS e privilégios mínimos
+  da fila estão presentes.
+- Evidência de worker: o workflow `Championship notification delivery` está
+  habilitado em `master`; as execuções agendadas recentes, inclusive
+  `36825345289` em 01/10/2026, concluíram com sucesso.
+- Limite: não foi criada nem alterada uma competição em produção. A prova final
+  requer um campeonato de teste e endereços controlados com inscrição paga ou
+  ativa; sem isso, uma alteração poderia enviar comunicação a participantes
+  reais indevidamente.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
