@@ -34,6 +34,19 @@ registrar apenas uma revalidação quando ela for necessária.
   `verify` e Vercel e só então decidir sobre o merge, respeitando a proteção
   da branch `master`.
 
+## 2026-10-01 — Validação remota da resolução da PR #25
+
+- Status: concluído. O commit de resolução `482f179` foi enviado para
+  `feat/refund-policy-homologation`; o GitHub passou a classificar a PR #25
+  como `MERGEABLE`, sem conflitos.
+- Evidência: workflow CI `36860832203` aprovado em 3 min 58 s, com auditoria
+  de dependências, lint, typecheck, 806 testes unitários/contrato, build e
+  testes Playwright aprovados. Os testes de navegador reportaram 30 aprovados
+  e 55 cenários financeiros ignorados por configuração segura.
+- Observações não bloqueantes: permanecem avisos legados de lint e um aviso de
+  depreciação do Node 20 em actions do GitHub; não houve falha de qualidade,
+  segurança ou teste. A PR permanece aberta e nenhum merge foi executado.
+
 ## 2026-10-01 — Ampliação do teste de capacidade V1
 
 - Status: concluído no Sandbox/Preview; a correlação de infraestrutura continua
