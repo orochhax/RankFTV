@@ -135,43 +135,35 @@ test("payment startup failures release the reserved athlete inventory", () => {
   assert.match(authenticatedAction, /customer_or_payment_start_failed/);
 });
 
-test("cartão no limite da reserva reconcilia o provedor antes de liberar estoque", () => {
-  const action = source(
-    "app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts",
-  );
-  const expiryBranch = action.indexOf(
-    "ticket.checkout_expires_at && Date.parse(ticket.checkout_expires_at) <= Date.now()",
-  );
+test("checkout vencido reconcilia o provedor antes de liberar estoque", () => {
+  const statusApi = source("app/api/ticket-status/route.ts");
+  const expiration = source("lib/athlete-checkout-expiration.ts");
 
-  assert.ok(expiryBranch >= 0);
-  const branch = action.slice(
-    expiryBranch,
-    action.indexOf('if (ticket.billing_type === "PIX")', expiryBranch),
-  );
-  assert.match(action, /import \{ expireAthleteCheckoutIfNeeded \}/);
-  assert.match(branch, /await expireAthleteCheckoutIfNeeded\(ticket\.id\)/);
-  assert.match(branch, /expiration\.status === "pago"/);
-  assert.match(branch, /expiration\.reconciliationPending/);
-  assert.doesNotMatch(branch, /expire_athlete_ticket_inventory_if_pending/);
+  assert.match(statusApi, /import \{ expireAthleteCheckoutIfNeeded \}/);
+  assert.match(statusApi, /await expireAthleteCheckoutIfNeeded\(id\)/);
+  assert.match(statusApi, /reconciliationPending = expiration\.reconciliationPending === true/);
+  assert.match(expiration, /consultarCobranca\(ticket\.asaas_payment_id\)/);
+  assert.match(expiration, /paymentIsConfirmed\(payment\)/);
+  assert.match(expiration, /confirmarAthleteTicketPago/);
+  assert.match(expiration, /cancelarCobrancaPendente\(payment\.id\)/);
+  assert.match(expiration, /expire_athlete_ticket_inventory_if_pending/);
 });
 
-test("card customer failures are observable without exposing payer data", () => {
-  const action = source(
-    "app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts",
-  );
+test("falhas ao iniciar a fatura do cartão são observáveis sem expor dados do pagador", () => {
+  const action = source("app/campeonatos/[id]/comprar/actions.ts");
   const failureEvent = action.indexOf(
-    "athlete_ticket.customer_registration_failed",
+    "athlete_ticket.customer_or_payment_start_failed",
   );
 
   assert.ok(failureEvent >= 0);
-  assert.match(action, /error instanceof AsaasApiError/);
-  assert.match(action, /providerErrorCode/);
-  assert.match(action, /providerStatus/);
+  assert.match(action, /createIdempotentCharge/);
+  assert.match(action, /method: metodoPagamento === "pix" \? "pix" : "credito"/);
+  assert.match(action, /invoice_url: cobranca\.invoiceUrl \?\? null/);
   assert.doesNotMatch(
     action.slice(failureEvent, failureEvent + 700),
     /comprador_(?:nome|cpf|email)/,
   );
-  assert.match(action, /Não foi possível conectar ao pagamento/);
+  assert.match(action, /Não foi possível iniciar o pagamento/);
 });
 
 test("conflito corrigível de participante preserva a reserva da categoria", () => {
@@ -320,9 +312,7 @@ test("a guest pair receives two linked individual entry credentials", () => {
   const delivery = source("lib/athlete-ticket-delivery.ts");
   const email = source("lib/email/send.ts");
   const ownership = source("lib/athlete-ticket-change-security.ts");
-  const athleteActions = source(
-    "app/campeonatos/[id]/comprar/ingresso/[ticketId]/actions.ts",
-  );
+  const athleteCheckout = source("app/campeonatos/[id]/comprar/actions.ts");
   const statusApi = source("app/api/athlete-credential-status/route.ts");
   const credentialClient = source(
     "components/campeonatos/IngressoAtletaCredencial.tsx",
@@ -376,7 +366,7 @@ test("a guest pair receives two linked individual entry credentials", () => {
   assert.match(ownership, /access_token: nextAccessToken, user_id: null/);
   assert.match(ownership, /parceiro_user_id: null/);
   assert.match(ownership, /\.eq\("checked_in", false\)/);
-  assert.match(athleteActions, /card_payment_persistence_failed/);
+  assert.match(athleteCheckout, /invoice_url: cobranca\.invoiceUrl \?\? null/);
   assert.match(statusApi, /export async function POST/);
   assert.match(statusApi, /readAthleteCredentialSession/);
   assert.doesNotMatch(statusApi, /body\.token/);

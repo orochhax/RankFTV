@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Camera, Check, Loader2, Mail, Phone, UserRound } from "lucide-react";
 import { salvarPerfil } from "@/app/admin/performance/actions";
 import { createClient } from "@/lib/supabase/client";
+import { validateImageUpload } from "@/lib/upload-preflight";
 
 type Props = {
   userId: string;
@@ -38,15 +39,12 @@ export function PerfilEditor({ userId, nome, email, telefone, dataNascimento, fo
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    if (!(["image/jpeg", "image/png", "image/webp"].includes(file.type)) || file.size > 2 * 1024 * 1024) {
-      setError("Use uma imagem JPG, PNG ou WebP de ate 2 MB.");
-      return;
-    }
+    const validation = await validateImageUpload(file, 2 * 1024 * 1024);
+    if (!validation.ok) { setError(validation.error); return; }
     setUploading(true);
     setError(null);
-    const extension = file.name.split(".").pop()?.toLocaleLowerCase("pt-BR") || "jpg";
-    const path = `${userId}/avatar.${extension}`;
-    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    const path = `${userId}/avatar.${validation.extension}`;
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: validation.mimeType });
     if (uploadError) setError("Nao foi possivel enviar a foto.");
     else {
       const { data } = supabase.storage.from("avatars").getPublicUrl(path);

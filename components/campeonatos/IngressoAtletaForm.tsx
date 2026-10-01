@@ -333,7 +333,6 @@ export function IngressoAtletaForm({
   >(comprarIngressoAtleta, {});
   const [dismissedServerErrorState, setDismissedServerErrorState] =
     useState<ComprarAtletaState | null>(null);
-  const [legalConsentMissing, setLegalConsentMissing] = useState(false);
   const compradorNomeRef = useRef<HTMLInputElement>(null);
   const compradorCpfRef = useRef<HTMLInputElement>(null);
   const compradorEmailRef = useRef<HTMLInputElement>(null);
@@ -342,7 +341,6 @@ export function IngressoAtletaForm({
   const parceiroCpfRef = useRef<HTMLInputElement>(null);
   const parceiroEmailRef = useRef<HTMLInputElement>(null);
   const parceiroEmailConfirmacaoRef = useRef<HTMLInputElement>(null);
-  const legalConsentRef = useRef<HTMLInputElement>(null);
   const expirationDialogRef = useRef<HTMLDialogElement>(null);
   const categorySectionRef = useRef<HTMLDivElement>(null);
   const initialDataTracked = useRef(false);
@@ -867,17 +865,7 @@ export function IngressoAtletaForm({
 
       {/* Etapa 2 — dados dos atletas + pagamento */}
       {etapa !== "categoria" && catSelecionada && (
-        <form
-          action={formAction}
-          noValidate
-          className="space-y-6"
-          onSubmit={(event) => {
-            if (etapa !== "revisao" || legalConsentRef.current?.checked) return;
-            event.preventDefault();
-            setLegalConsentMissing(true);
-            legalConsentRef.current?.focus();
-          }}
-        >
+        <form action={formAction} noValidate className="space-y-6">
           <input type="hidden" name="championship_id" value={championshipId} />
           <input type="hidden" name="category_id" value={catSelecionada.id} />
           <input
@@ -1786,14 +1774,10 @@ export function IngressoAtletaForm({
 
               <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4">
                 <input
-                  ref={legalConsentRef}
                   id="aceite-termos-atleta"
                   type="checkbox"
                   name="aceite_termos"
                   required
-                  aria-invalid={legalConsentMissing}
-                  aria-describedby={legalConsentMissing ? "aceite-termos-atleta-error" : undefined}
-                  onChange={() => setLegalConsentMissing(false)}
                   className="mt-0.5 size-4 shrink-0 cursor-pointer accent-blue-600"
                 />
                 <div className="min-w-0 text-sm leading-relaxed text-gray-600">
@@ -1810,11 +1794,6 @@ export function IngressoAtletaForm({
                     </span>
                     <LegalDocumentDialog document="privacy" />
                   </div>
-                  {legalConsentMissing ? (
-                    <p id="aceite-termos-atleta-error" className="mt-2 text-xs font-medium text-red-600">
-                      Confirme o aceite dos Termos e da Política de Privacidade para continuar.
-                    </p>
-                  ) : null}
                 </div>
               </div>
 

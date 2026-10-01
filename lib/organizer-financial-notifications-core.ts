@@ -16,12 +16,3 @@ export function organizerFinancialNotificationRetryAt(attemptCount: number, now 
   const delayMinutes = Math.min(24 * 60, 5 * 2 ** Math.max(0, attemptCount - 1));
   return new Date(now + delayMinutes * 60_000).toISOString();
 }
-
-export function organizerFinancialNotificationFailure(attemptCount: number, now = Date.now()) {
-  const attempts = attemptCount + 1;
-  return {
-    attempts,
-    status: attempts >= 5 ? "suppressed" as const : "failed" as const,
-    nextAttemptAt: organizerFinancialNotificationRetryAt(attempts, now),
-  };
-}

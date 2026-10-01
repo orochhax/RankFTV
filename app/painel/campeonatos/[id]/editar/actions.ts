@@ -32,7 +32,7 @@ export async function atualizarBannerCampeonato(
     .update({ banner_url: bannerUrl })
     .eq("id", champId);
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: "Não foi possível atualizar o banner. Tente novamente." };
 
   revalidatePath(`/painel/campeonatos/${champId}`);
   revalidatePath(`/painel/campeonatos/${champId}/editar`);

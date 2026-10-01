@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useTransition, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Check, Copy, CreditCard, QrCode, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
+import { Check, Copy, CreditCard, QrCode, ArrowLeft } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { formatBRL } from "@/lib/format";
-import { pagarComCartao } from "@/app/campeonatos/[id]/pagamento/[registrationId]/actions";
 import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 import { createClient } from "@/lib/supabase/client";
 import { PageContainer } from "@/components/shell/PageContainer";
-import { CardHolderContactFields } from "@/components/pagamento/CardHolderContactFields";
 
 const AVATAR_COLORS = ["bg-blue-500","bg-blue-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
 function avatarColor(str: string) {
@@ -19,16 +17,8 @@ function avatarColor(str: string) {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
-function formatCardNumber(v: string) {
-  return v.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
-}
-function formatExpiry(v: string) {
-  const d = v.replace(/\D/g, "").slice(0, 4);
-  return d.length >= 3 ? d.slice(0, 2) + "/" + d.slice(2) : d;
-}
 type Atleta = { id: string; nome: string };
 type Tab    = "pix" | "cartao";
-type Tipo   = "credito" | "debito";
 
 type Props = {
   champId:       string;
@@ -41,6 +31,8 @@ type Props = {
   atleta2:       Atleta | null;
   pixCopyPaste:  string | null;
   pixQrBase64:   string | null;
+  billingType:   string | null;
+  invoiceUrl:    string | null;
 };
 
 function CopyPixButton({ text }: { text: string }) {
@@ -58,231 +50,6 @@ function CopyPixButton({ text }: { text: string }) {
   );
 }
 
-function CardForm({ valor, isElite, registrationId, champId }: { valor: number; isElite: boolean; registrationId: string; champId: string }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [tipo,    setTipo]    = useState<Tipo>("credito");
-  const [numero,  setNumero]  = useState("");
-  const [nome,    setNome]    = useState("");
-  const [expiry,  setExpiry]  = useState("");
-  const [cvv,     setCvv]     = useState("");
-  const [telefone, setTelefone] = useState("");
-  const [cep,     setCep]     = useState("");
-  const [numeroEndereco, setNumeroEndereco] = useState("");
-  const [complemento, setComplemento] = useState("");
-  const [parcelas,setParcelas]= useState(1);
-  const [error,   setError]   = useState<string | null>(null);
-
-  // Comprador paga valor + taxa de cartão (flat, à vista ou parcelado).
-  const taxa         = calcularTaxaComprador(valor, tipo, isElite);
-  const valorAtleta  = calcularTotalComprador(valor, tipo, isElite); // valor + taxa
-  const valorParcela = valorAtleta / parcelas;
-
-  const OPCOES_PARCELAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(
-    (n) => valorAtleta / n >= 5,
-  );
-
-  function handleExpiry(v: string) {
-    const prev = expiry;
-    if (v.length < prev.length) { setExpiry(v); return; }
-    setExpiry(formatExpiry(v));
-  }
-
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    const [mes, ano] = expiry.split("/");
-    if (!mes || !ano || mes.length !== 2 || ano.length !== 2) {
-      setError("Data de validade inválida. Use MM/AA."); return;
-    }
-    const digits = numero.replace(/\s/g, "");
-    if (digits.length < 16) { setError("Número do cartão incompleto."); return; }
-    if (cvv.length < 3)     { setError("CVV inválido."); return; }
-    if (!nome.trim())       { setError("Digite o nome como está no cartão."); return; }
-
-    const telefoneDigits = telefone.replace(/\D/g, "");
-    if (telefoneDigits.length !== 10 && telefoneDigits.length !== 11) {
-      setError("Informe o celular com DDD do titular do cartão."); return;
-    }
-    if (cep.replace(/\D/g, "").length !== 8) { setError("CEP inválido."); return; }
-    if (!numeroEndereco.trim()) { setError("Informe o número do endereço do titular."); return; }
-
-    startTransition(async () => {
-      const res = await pagarComCartao({
-        registrationId,
-        tipo,
-        numero:      digits,
-        nomeTitular: nome,
-        mesValidade: mes,
-        anoValidade: "20" + ano,
-        cvv,
-        parcelas: tipo === "credito" ? parcelas : 1,
-        telefone,
-        cep,
-        numeroEndereco,
-        complemento,
-      });
-
-      if (!res.ok) { setError(res.error); return; }
-      if (res.pago) {
-        router.push(`/campeonatos/${champId}/pagamento/${registrationId}?pago=1`);
-        router.refresh();
-      } else {
-        setError("Pagamento em análise. Aguarde a confirmação por e-mail.");
-      }
-    });
-  }
-
-  const inputCls = "mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
-  const labelCls = "block text-xs font-medium text-gray-500";
-
-  return (
-    <form onSubmit={submit} className="space-y-5">
-      {/* Toggle crédito / débito */}
-      <div className="flex gap-1 rounded-2xl bg-gray-100 p-1">
-        {(["credito", "debito"] as Tipo[]).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => { setTipo(t); setParcelas(1); }}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-sm font-semibold transition-all ${
-              tipo === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {t === "credito" ? "Crédito" : "Débito"}
-          </button>
-        ))}
-      </div>
-
-      {/* Número do cartão */}
-      <div>
-        <label className={labelCls}>Número do cartão</label>
-        <div className="relative">
-          <input
-            className={`${inputCls} pr-10 font-mono tracking-widest`}
-            placeholder="0000 0000 0000 0000"
-            value={numero}
-            onChange={(e) => setNumero(formatCardNumber(e.target.value))}
-            inputMode="numeric"
-            autoComplete="cc-number"
-          />
-          <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-300" />
-        </div>
-      </div>
-
-      {/* Nome */}
-      <div>
-        <label className={labelCls}>Nome no cartão</label>
-        <input
-          className={`${inputCls} uppercase`}
-          placeholder="CARLOS ROCHA"
-          value={nome}
-          onChange={(e) => setNome(e.target.value.toUpperCase())}
-          autoComplete="cc-name"
-        />
-      </div>
-
-      {/* Validade + CVV */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={labelCls}>Validade</label>
-          <input
-            className={inputCls}
-            placeholder="MM/AA"
-            value={expiry}
-            onChange={(e) => handleExpiry(e.target.value)}
-            inputMode="numeric"
-            autoComplete="cc-exp"
-            maxLength={5}
-          />
-        </div>
-        <div>
-          <label className={labelCls}>CVV</label>
-          <input
-            className={inputCls}
-            placeholder="•••"
-            value={cvv}
-            onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-            inputMode="numeric"
-            autoComplete="cc-csc"
-            maxLength={4}
-          />
-        </div>
-      </div>
-
-      <CardHolderContactFields
-        telefone={telefone}
-        setTelefone={setTelefone}
-        cep={cep}
-        setCep={setCep}
-        numeroEndereco={numeroEndereco}
-        setNumeroEndereco={setNumeroEndereco}
-        complemento={complemento}
-        setComplemento={setComplemento}
-        inputCls={inputCls}
-        labelCls={labelCls}
-      />
-
-      {/* Parcelas — só crédito */}
-      {tipo === "credito" && (
-        <div>
-          <label className={labelCls}>Parcelamento</label>
-          <select
-            className={inputCls}
-            value={parcelas}
-            onChange={(e) => setParcelas(Number(e.target.value))}
-          >
-            {OPCOES_PARCELAS.map((n) => {
-              const vParcela = valorAtleta / n;
-              if (n === 1) return <option key={n} value={n}>À vista — {formatBRL(valorAtleta)}</option>;
-              return <option key={n} value={n}>{n}x de {formatBRL(vParcela)} sem juros</option>;
-            })}
-          </select>
-        </div>
-      )}
-
-      {/* Resumo: valor + taxa = total (comprador vê o valor final, não a %) */}
-      <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm ring-1 ring-black/5">
-        <div className="flex items-center justify-between text-gray-500">
-          <span>Ingresso</span><span>{formatBRL(valor)}</span>
-        </div>
-        <div className="mt-1 flex items-center justify-between text-gray-500">
-          <span>Taxa de serviço</span><span>+ {formatBRL(taxa)}</span>
-        </div>
-        <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2 font-semibold text-gray-900">
-          <span>Total</span><span>{formatBRL(valorAtleta)}</span>
-        </div>
-      </div>
-
-      {/* Erro */}
-      {error && (
-        <div className="flex items-start gap-2 rounded-xl bg-red-50 px-4 py-3 ring-1 ring-red-200">
-          <AlertCircle className="size-4 shrink-0 text-red-500 mt-0.5" />
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
-      )}
-
-      {/* Submit */}
-      <button
-        type="submit"
-        disabled={pending}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
-      >
-        {pending
-          ? <><Loader2 className="size-4 animate-spin" /> Processando…</>
-          : parcelas === 1
-          ? `Pagar ${formatBRL(valorAtleta)}`
-          : `Pagar ${parcelas}x de ${formatBRL(valorParcela)}`}
-      </button>
-
-      <p className="text-center text-xs text-gray-400">
-        Seus dados de cartão são processados com segurança e não ficam armazenados.
-      </p>
-    </form>
-  );
-}
-
 export function PaymentUI({
   champId,
   champNome,
@@ -294,8 +61,11 @@ export function PaymentUI({
   atleta2,
   pixCopyPaste,
   pixQrBase64,
+  billingType,
+  invoiceUrl,
 }: Props) {
-  const [tab, setTab] = useState<Tab>("pix");
+  const isCardPayment = billingType === "CREDIT_CARD" || billingType === "DEBIT_CARD";
+  const [tab, setTab] = useState<Tab>(isCardPayment ? "cartao" : "pix");
   const router = useRouter();
   const stoppedRef = useRef(false);
 
@@ -381,10 +151,10 @@ export function PaymentUI({
 
           {/* Tabs */}
           <div className="flex gap-1 rounded-2xl bg-gray-100 p-1">
-            {([
-              { key: "pix"   as Tab, label: "Pix",    icon: <QrCode className="size-4" /> },
-              { key: "cartao"as Tab, label: "Cartão",  icon: <CreditCard className="size-4" /> },
-            ]).map(({ key, label, icon }) => (
+            {(isCardPayment
+              ? [{ key: "cartao" as Tab, label: "Cartão", icon: <CreditCard className="size-4" /> }]
+              : [{ key: "pix" as Tab, label: "Pix", icon: <QrCode className="size-4" /> }]
+            ).map(({ key, label, icon }) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
@@ -467,7 +237,22 @@ export function PaymentUI({
 
           {/* ── Tab Cartão ── */}
           {tab === "cartao" && (
-            <CardForm valor={valor} isElite={isElite} registrationId={registrationId} champId={champId} />
+            <div className="space-y-5 rounded-2xl bg-white p-5 ring-1 ring-black/5">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-blue-50 p-2 text-blue-600"><CreditCard className="size-5" /></div>
+                <div>
+                  <h2 className="font-semibold text-gray-900">Pagamento seguro no Asaas</h2>
+                  <p className="mt-1 text-sm text-gray-500">Você informará os dados do cartão diretamente na página segura do Asaas. A RankFTV não recebe nem armazena número ou CVV.</p>
+                </div>
+              </div>
+              {invoiceUrl ? (
+                <a href={invoiceUrl} className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+                  Ir para o pagamento seguro
+                </a>
+              ) : (
+                <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">Não foi possível preparar o checkout do cartão. Volte e tente novamente.</p>
+              )}
+            </div>
           )}
 
         </PageContainer>

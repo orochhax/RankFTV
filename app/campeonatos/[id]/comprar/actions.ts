@@ -22,7 +22,7 @@ import { reportOperationalEvent } from "@/lib/observability";
 import {
   athleteTicketInitialBillingType,
   parseAthleteTicketPaymentChoice,
-  shouldCreateAthleteTicketPixCharge,
+  shouldCreateAthleteTicketCharge,
 } from "@/lib/athlete-ticket-payment";
 import {
   isParticipantCategoryConflict,
@@ -654,7 +654,7 @@ export async function comprarIngressoAtleta(
     );
   }
 
-  if (!shouldCreateAthleteTicketPixCharge(metodoPagamento, isGratis)) {
+  if (!shouldCreateAthleteTicketCharge(isGratis)) {
     redirect(
       `/campeonatos/${championshipId}/comprar/ingresso/${ticket.id}?token=${accessToken}`,
     );
@@ -666,17 +666,14 @@ export async function comprarIngressoAtleta(
       email,
       cpfCnpj: cpf,
     });
-    const totalComprador = calcularTotalComprador(
-      valorFinal,
-      "pix",
-      !!champ.is_elite,
-    );
+    const method = metodoPagamento === "pix" ? "pix" : "credito";
+    const totalComprador = calcularTotalComprador(valorFinal, method, !!champ.is_elite);
     const operacao = await createIdempotentCharge({
       flow: "athlete_ticket",
       recordId: ticket.id,
       customerId: customer.id,
       amount: totalComprador,
-      method: "pix",
+      method: metodoPagamento === "pix" ? "pix" : "credito",
       description: `Ingresso atleta ${champ.nome} — ${categoriaNome ?? "dupla"} (${nome} + ${pNome})`,
       externalReference: `athl:${ticket.id}`,
       actorId: buyerUser?.id ?? null,

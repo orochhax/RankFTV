@@ -12,9 +12,7 @@ export function athleteTicketInitialBillingType(
   return choice === "pix" ? "PIX" : "CREDIT_CARD";
 }
 
-export function shouldCreateAthleteTicketPixCharge(
-  choice: AthleteTicketPaymentChoice,
-  isFree: boolean,
-): boolean {
-  return !isFree && choice === "pix";
+/** A cobrança é criada antes do redirect, seja Pix ou fatura de cartão Asaas. */
+export function shouldCreateAthleteTicketCharge(isFree: boolean): boolean {
+  return !isFree;
 }

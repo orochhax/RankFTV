@@ -48,7 +48,7 @@ export default async function IngressoAtletaPage({
   const { data: t } = await supabase
     .from("athlete_tickets")
     .select(
-      "id, championship_id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, billing_type, asaas_payment_id, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at, checkout_expires_at, created_at",
+      "id, championship_id, category_id, categoria_nome, comprador_nome, comprador_cpf, comprador_email, comprador_zap, comprador_genero, parceiro_nome, parceiro_cpf, parceiro_email, parceiro_zap, parceiro_genero, valor, status_pagamento, billing_type, asaas_payment_id, invoice_url, pix_copy_paste, pix_qr_code_base64, qr_token, code, checked_in, inventory_released_at, checkout_expires_at, created_at",
     )
     .eq("id", ticketId)
     .eq("access_token", accessToken)
@@ -245,13 +245,12 @@ export default async function IngressoAtletaPage({
             <IngressoAtletaPagamento
               ticketId={t.id}
               accessToken={accessToken}
-              isElite={!!champ?.is_elite}
               initialStatusPagamento={t.status_pagamento}
               initialCredentials={initialCredentials}
-              valor={Number(t.valor)}
               pixAmount={Number(paymentOperation?.amount ?? calcularTotalComprador(Number(t.valor), "pix", !!champ?.is_elite))}
               pixCopyPaste={t.pix_copy_paste}
               pixQrBase64={t.pix_qr_code_base64}
+              invoiceUrl={t.invoice_url}
               paymentMethod={t.billing_type === "CREDIT_CARD" || t.billing_type === "DEBIT_CARD" ? "cartao" : "pix"}
               championshipId={champId}
               categoryId={t.category_id}

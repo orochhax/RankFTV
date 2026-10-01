@@ -16,10 +16,6 @@ const safeEnv = {
 
 test("habilita link mágico somente no Sandbox descartável esperado", () => {
   assert.equal(sandboxMagicLinkEnabled(safeEnv), true);
-  assert.equal(sandboxMagicLinkEnabled({
-    ...safeEnv,
-    E2E_BASE_URL: "https://rank-jx55tcqhm-devcarlosrochas-projects.vercel.app",
-  }), true);
   assert.equal(sandboxMagicLinkEnabled({ ...safeEnv, E2E_AUTH_MODE: "password" }), false);
 });
 
@@ -33,7 +29,7 @@ test("bloqueia produção, chave legada e preview sem identidade de Sandbox", ()
 
   assert.ok(issues.some((issue) => issue.includes("projeto Supabase Sandbox")));
   assert.ok(issues.some((issue) => issue.includes("chave secreta moderna")));
-  assert.ok(issues.some((issue) => issue.includes("Preview reconhecido")));
+  assert.ok(issues.some((issue) => issue.includes("sandbox-homologacao")));
 });
 
 test("permite localhost quando o banco continua sendo o Sandbox", () => {

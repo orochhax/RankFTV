@@ -254,7 +254,12 @@ export async function tornarCampeonatoElite(
     p_preco_elite: PRECO_ELITE,
   });
 
-  if (error) return { ok: false, error: error.message || "Erro ao ativar o Elite." };
+  if (error) {
+    return {
+      ok: false,
+      error: "Não foi possível ativar o Plano Elite agora. Nenhuma cobrança foi criada.",
+    };
+  }
 
   revalidatePath(`/painel/campeonatos/${champId}`, "layout");
   revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
@@ -287,7 +292,7 @@ export async function cancelarCampeonatoElite(
   if (error) {
     return {
       ok: false,
-      error: error.message || "O Plano Elite já começou a ser cobrado e não pode mais ser cancelado.",
+      error: "O Plano Elite não pôde ser cancelado. Ele pode já ter começado a ser cobrado ou estar temporariamente indisponível.",
     };
   }
 

@@ -8,6 +8,7 @@ import {
   type CategoriaEditInput,
 } from "@/app/painel/campeonatos/[id]/editar/actions";
 import { createClient } from "@/lib/supabase/client";
+import { validatePdfUpload } from "@/lib/upload-preflight";
 import type { GeneroCategoria } from "@/lib/types";
 
 type CatForm = {
@@ -577,7 +578,14 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
                 type="file"
                 accept="application/pdf"
                 className="hidden"
-                onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  const validation = await validatePdfUpload(file);
+                  if (!validation.ok) { setError(validation.error); return; }
+                  setPdfFile(file);
+                }}
               />
             </label>
           )}

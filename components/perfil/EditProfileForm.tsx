@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Camera, Check, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar } from "@/components/ui/Avatar";
+import { validateImageUpload } from "@/lib/upload-preflight";
 
 type Props = {
   userId: string;
@@ -38,15 +39,17 @@ export function EditProfileForm({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const validation = await validateImageUpload(file, 2 * 1024 * 1024);
+    if (!validation.ok) { setError(validation.error); e.target.value = ""; return; }
+
     setUploadingPhoto(true);
     setError(null);
 
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${userId}/avatar.${ext}`;
+    const path = `${userId}/avatar.${validation.extension}`;
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
-      .upload(path, file, { upsert: true });
+      .upload(path, file, { upsert: true, contentType: validation.mimeType });
 
     if (uploadError) {
       setError("Erro ao enviar foto. Verifique se o bucket 'avatars' existe no Supabase Storage.");

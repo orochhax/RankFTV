@@ -25,7 +25,7 @@ export default async function FinanceiroAlunoPage({
   if (!arena) notFound();
 
   // Confirma associação/autorização no servidor: só aluno ativo desta arena
-  // vê o próprio cartão e histórico — nunca dados de outro aluno.
+  // vê o próprio histórico de cobranças.
   const { data: vinculo } = await supabase
     .from("arena_students")
     .select("id")
@@ -35,13 +35,7 @@ export default async function FinanceiroAlunoPage({
     .maybeSingle();
   if (!vinculo) redirect(`/arenas/${handle}`);
 
-  const [{ data: cartao }, { data: mensalidades }, { data: avulsas }] = await Promise.all([
-    supabase
-      .from("arena_student_cards")
-      .select("brand, last4, exp_month, exp_year")
-      .eq("arena_id", arena.id)
-      .eq("user_id", user.id)
-      .maybeSingle(),
+  const [{ data: mensalidades }, { data: avulsas }] = await Promise.all([
     supabase
       .from("student_charges")
       .select("id, competencia, valor, status_pagamento")
@@ -89,16 +83,13 @@ export default async function FinanceiroAlunoPage({
             <Wallet className="size-6 text-blue-400" />
             <h1 className="text-2xl font-bold tracking-tight text-white">Financeiro</h1>
           </div>
-          <p className="text-sm text-white/40">Cartão padrão e histórico de cobranças nesta arena.</p>
+          <p className="text-sm text-white/40">Histórico de cobranças nesta arena.</p>
         </div>
       </div>
 
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
         <div className="w-full">
           <FinanceiroAlunoClient
-            arenaId={arena.id}
-            handle={arena.handle}
-            cartao={cartao ?? null}
             historico={historico}
             cobrancasComRetry={cobrancasComRetry}
           />

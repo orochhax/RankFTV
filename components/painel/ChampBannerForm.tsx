@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { ImagePlus, Loader2, Check, Pencil, Trash2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { validateImageUpload } from "@/lib/upload-preflight";
 import { atualizarBannerCampeonato } from "@/app/painel/campeonatos/[id]/editar/actions";
 
 type State = "idle" | "saving" | "saved";
@@ -28,18 +29,18 @@ export function ChampBannerForm({
   const [, startTransition] = useTransition();
 
   async function handleFile(file: File) {
-    if (!file.type.startsWith("image/")) { setError("Selecione uma imagem."); return; }
-    if (file.size > 5 * 1024 * 1024) { setError("Máximo 5 MB."); return; }
+    const validation = await validateImageUpload(file);
+    if (!validation.ok) { setError(validation.error); return; }
     setError("");
     setState("saving");
     setMenuOpen(false);
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setError("Sessão expirada."); setState("idle"); return; }
-    const path = `${user.id}/champ-banners/${champId}-${Date.now()}.${file.name.split(".").pop() ?? "jpg"}`;
+    const path = `${user.id}/champ-banners/${champId}-${Date.now()}.${validation.extension}`;
     const { data, error: uploadErr } = await supabase.storage
       .from("page-images")
-      .upload(path, file, { upsert: true, contentType: file.type });
+      .upload(path, file, { upsert: true, contentType: validation.mimeType });
 
     if (uploadErr) { setError("Erro ao enviar imagem."); setState("idle"); return; }
 
@@ -126,7 +127,7 @@ export function ChampBannerForm({
       {error && <p className="px-4 pb-3 text-xs text-red-600">{error}</p>}
 
       <input
-        ref={inputRef} type="file" accept="image/*" className="hidden"
+        ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
         onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }}
       />
     </div>

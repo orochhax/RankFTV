@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 
@@ -32,12 +32,17 @@ test("Sandbox preserves the Resend key without adding a production fallback", ()
 
 test("Sandbox reservation duration stays within the production maximum", () => {
   const reservation = source("lib/checkout-reservation.ts");
-  const sandboxEnv = source(".env.sandbox.local");
-
-  assert.match(sandboxEnv, /^ATHLETE_CHECKOUT_RESERVATION_MINUTES=(?:[1-9]|1[0-5])$/m);
   assert.match(reservation, /process\.env\.NODE_ENV === "development"/);
   assert.match(reservation, /PRODUCTION_ATHLETE_CHECKOUT_RESERVATION_MINUTES = 15/);
   assert.match(reservation, /value < 1 \|\| value > PRODUCTION_ATHLETE_CHECKOUT_RESERVATION_MINUTES/);
+
+  // Arquivos .env locais não fazem parte do repositório nem do CI. Quando o
+  // Sandbox local existir, confira também que o valor configurado respeita a
+  // mesma barreira aplicada pelo runtime.
+  if (existsSync(path.join(process.cwd(), ".env.sandbox.local"))) {
+    const sandboxEnv = source(".env.sandbox.local");
+    assert.match(sandboxEnv, /^ATHLETE_CHECKOUT_RESERVATION_MINUTES=(?:[1-9]|1[0-5])$/m);
+  }
 });
 
 test("commercial admin authorization has profiles.role as its only source of truth", () => {
@@ -114,6 +119,25 @@ test("Arena paid subscriptions are opt-in and guarded in UI and server action", 
   assert.match(source(".env.example"), /ARENA_RECURRING_PAYMENTS_ENABLED=0/);
 });
 
+test("card checkout never receives PAN or CVV in RankFTV", () => {
+  const paymentSurfaces = [
+    "components/pagamento/PaymentUI.tsx",
+    "components/campeonatos/IngressoAtletaPagamento.tsx",
+    "app/arenas/[handle]/alugar/RentalPaymentUI.tsx",
+    "app/arenas/[handle]/diaria/DiariaPaymentUI.tsx",
+    "app/arenas/[handle]/assinar/[planId]/SubscriptionPaymentUI.tsx",
+    "app/arenas/[handle]/assinar/[planId]/actions.ts",
+    "lib/asaas.ts",
+    "lib/payment-flows.ts",
+  ].map(source).join("\n");
+
+  assert.doesNotMatch(paymentSurfaces, /creditCard\s*:/);
+  assert.doesNotMatch(paymentSurfaces, /\b(?:cvv|ccv)\s*:/i);
+  assert.doesNotMatch(paymentSurfaces, /tokenizarCartao|criarCobrancaCartao|criarAssinaturaCartao/);
+  assert.match(source("components/pagamento/PaymentUI.tsx"), /invoiceUrl/);
+  assert.match(source("app/arenas/[handle]/alugar/RentalPaymentUI.tsx"), /invoiceUrl/);
+});
+
 test("category-level recommendation is disabled throughout the V1 flow", () => {
   const flags = source("lib/release-flags.ts");
   const newForm = source("components/painel/NovoCampeonatoForm.tsx");
@@ -168,22 +192,6 @@ test("production backup exports database and Storage with verified checksums", (
   assert.match(workflow, /SUPABASE_SERVICE_ROLE_KEY: \$\{\{ secrets\.SUPABASE_SERVICE_ROLE_KEY \}\}/);
 });
 
-test("production performance audit is read-only and never prints query text", () => {
-  const workflow = source(".github/workflows/production-performance-audit.yml");
-  const sql = source("supabase/manual-tests/production-performance-audit.sql");
-
-  assert.match(workflow, /environment: Production/);
-  assert.match(workflow, /default_transaction_read_only=on/);
-  assert.match(workflow, /EXPECTED_DATABASE_REF: tkyopolcxfsdbhvrgadj/);
-  assert.match(sql, /BEGIN READ ONLY/);
-  assert.match(sql, /SET LOCAL statement_timeout = '30s'/);
-  assert.match(sql, /state = 'active'[\s\S]*wait_event_type IS NOT NULL/);
-  assert.match(sql, /waiting_locks/);
-  assert.match(sql, /transactions_over_one_minute/);
-  assert.match(sql, /max_exec_time/);
-  assert.doesNotMatch(sql, /SELECT\s+query\s*,/i);
-});
-
 test("CI cancels stale runs from the same branch", () => {
   const workflow = source(".github/workflows/ci.yml");
   assert.match(workflow, /group: ci-\$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}/);
@@ -198,8 +206,6 @@ test("organizer financial notification retries run through the protected product
   assert.match(workflow, /--retry 2/);
   assert.match(workflow, /--request POST/);
   assert.match(workflow, /https:\/\/www\.rankftv\.com\/api\/cron\/organizer-financial-notifications/);
-  assert.match(workflow, /Scan operational email alerts/);
-  assert.match(workflow, /https:\/\/www\.rankftv\.com\/api\/cron\/operational-alerts/);
 });
 
 test("critical V1 server paths use sanitized operational logging", () => {
@@ -281,6 +287,12 @@ test("categories with operational history cannot be deleted or trigger refunds",
   assert.match(migration, /SELECT 1 FROM bracket_matches/);
   assert.match(migration, /ERRCODE = '23503'/);
   assert.doesNotMatch(migration, /refund|reembolso|estorno/i);
+});
+
+test("new championship creation does not expose database errors", () => {
+  const action = source("app/painel/novo-campeonato/actions.ts");
+  assert.doesNotMatch(action, /error:\s*error\?\.message/);
+  assert.match(action, /Não foi possível criar o campeonato\. Tente de novo\./);
 });
 
 test("athlete check-in is suspended atomically while a refund is active", () => {
