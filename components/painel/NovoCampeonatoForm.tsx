@@ -10,6 +10,10 @@ import {
 } from "@/app/painel/novo-campeonato/actions";
 import { createClient } from "@/lib/supabase/client";
 import { validatePdfUpload } from "@/lib/upload-preflight";
+import {
+  championshipEndDateMinimum,
+  reconcileChampionshipEndDate,
+} from "@/lib/championship-date-input";
 import type { GeneroCategoria } from "@/lib/types";
 import {
   QUIZ_QUESTIONS,
@@ -90,6 +94,11 @@ export function NovoCampeonatoForm() {
   const stepKey = sequence[idx];
   const isFirst = idx === 0;
   const isLast = idx === sequence.length - 1;
+
+  function updateDataInicio(value: string) {
+    setDataInicio(value);
+    setDataFim((current) => reconcileChampionshipEndDate(value, current));
+  }
 
   function updateCat(i: number, patch: Partial<CatForm>) {
     setCategorias((cs) => cs.map((c, j) => (j === i ? { ...c, ...patch } : c)));
@@ -319,11 +328,11 @@ export function NovoCampeonatoForm() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="min-w-0">
                   <label className={labelClass} htmlFor="dataInicio">Início *</label>
-                  <input id="dataInicio" type="date" className={inputClass} value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+                  <input id="dataInicio" type="date" className={inputClass} value={dataInicio} onChange={(e) => updateDataInicio(e.target.value)} />
                 </div>
                 <div className="min-w-0">
                   <label className={labelClass} htmlFor="dataFim">Fim *</label>
-                  <input id="dataFim" type="date" className={inputClass} value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+                  <input id="dataFim" type="date" min={championshipEndDateMinimum(dataInicio)} className={inputClass} value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
                 </div>
               </div>
             </div>
