@@ -91,6 +91,9 @@ P1/P2 não alteram esse percentual.
   - [x] Unificar saque e antecipação num painel de carteira com modais acessíveis;
     permitir que o organizador selecione exatamente os ingressos do saque e
     calcular/reservar o total de forma atômica no PostgreSQL.
+  - [x] Criar e homologar visualmente a massa fictícia exclusiva do campeonato
+    Sandbox Financeiro 2026 (8 pagas, 2 pendentes e 1 estornada), incluindo os
+    modais de liberações e de seleção para saque.
   - [x] Aplicar `supabase/organizer-wallet-withdrawals.sql` no Sandbox e executar
     `supabase/manual-tests/organizer-wallet-check.sql`. Em 01/10/2026, as onze
     verificações estruturais retornaram `true`.
