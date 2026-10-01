@@ -5,6 +5,48 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-01 — Auditoria do questionário de nível do evento
+
+- Status: diagnóstico concluído; nenhuma funcionalidade, dado de produção ou
+  esquema foi alterado.
+- Resultado: as cinco perguntas de “Nível do evento” não alimentam a pontuação
+  nem o ranking ativo. A estrutura de ranking usa `external_tournaments.tier`,
+  que é independente dos campos `championships.tier` e
+  `championships.tier_quiz` preenchidos ao criar campeonatos no RankFTV.
+- Uso atual encontrado: o questionário calcula apenas o selo visual
+  Local/Open/Elite no painel do organizador. O selo pode ainda subir por
+  quantidade de duplas pagas, mas não afeta inscrição, pagamento, chaveamento,
+  publicação, notificações ou repasse.
+- Confirmação relacionada: a recomendação de categoria por nível de atleta
+  permanece intencionalmente desativada na V1 pela flag
+  `categoryLevelRecommendationEnabled`, que retorna `false`.
+- Decisão pendente de produto: remover o questionário obrigatório do fluxo de
+  criação, manter os campos históricos sem exclusão destrutiva e retirar o selo
+  visual. Isto não inclui `is_elite` (plano comercial/financeiro) nem lotes de
+  preço, que são conceitos distintos e devem permanecer.
+
+## 2026-10-01 — Auditoria das promessas dos planos Padrão e Elite
+
+- Status: diagnóstico concluído; nenhum plano, preço ou fluxo foi alterado.
+- Confirmado em código: inscrição e pagamento online, QR/check-in,
+  chaveamento público com resultados, financeiro por campeonato, comunicação
+  por e-mail e notificação para inscritos pagos, e gestão de tamanhos de
+  camisa existem nos dois planos. A redução de taxa Elite também é aplicada:
+  Pix 7% versus 8% e cartão 9% versus 10%, com o mesmo piso de R$ 3,99.
+- Incompatibilidades encontradas: “categoria balanceada” está desativada na
+  V1 pela flag de release; não deve ser vendida no Elite. “Suporte pelo
+  WhatsApp” não possui canal oficial configurado, conforme a pendência de
+  compra/configuração do chip no checklist V1; não deve constar como benefício
+  disponível até sua ativação.
+- Benefícios Elite operacionais, não automáticos: call com CEO, publicação em
+  stories e destaque na home exigem execução humana. Em particular, o destaque
+  é escolhido manualmente pelo administrador e não é concedido pela ativação
+  do Elite. A redação deve deixar essa condição explícita ou removê-los.
+- Ressalva de cobertura: o painel de camisas consolida as inscrições
+  autenticadas; os atletas do checkout de visitante precisam ser incluídos nele
+  antes de a promessa poder ser considerada completa para todos os fluxos de
+  compra.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
