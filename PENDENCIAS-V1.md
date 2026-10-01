@@ -200,6 +200,10 @@ P1/P2 não alteram esse percentual.
   hardening de cookies/endpoints públicos já implementado.
 - [ ] Validar conteúdo real de uploads no servidor, incluindo assinatura de
   imagem/PDF, confirmação pós-upload e avaliação de quarentena/antimalware.
+  A pré-validação no navegador já restringe fotos a JPEG/PNG/WebP e regulamentos
+  a PDF, com assinatura compatível e limite de tamanho; ela reduz erro acidental,
+  mas não é uma fronteira de segurança. A validação autoritativa pós-upload e a
+  política de quarentena continuam pendentes.
 - [ ] Revisar ações administrativas não financeiras que ainda possam devolver
   `error.message`, priorizando dados pessoais.
 - [ ] Revisar minimização, retenção e criptografia de CPF, e-mail, chaves Pix e

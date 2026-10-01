@@ -9,6 +9,7 @@ import {
   type IngressoPlateiaInput,
 } from "@/app/painel/novo-campeonato/actions";
 import { createClient } from "@/lib/supabase/client";
+import { validatePdfUpload } from "@/lib/upload-preflight";
 import type { GeneroCategoria } from "@/lib/types";
 import {
   QUIZ_QUESTIONS,
@@ -373,7 +374,14 @@ export function NovoCampeonatoForm() {
                 <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600">
                   <FileText className="size-4" />
                   Clique para selecionar o PDF
-                  <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)} />
+                  <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file) return;
+                    const validation = await validatePdfUpload(file);
+                    if (!validation.ok) return fail(validation.error);
+                    setPdfFile(file);
+                  }} />
                 </label>
               )}
               <p className="mt-1 text-xs text-gray-400">Será disponibilizado como download na página do evento.</p>

@@ -4,6 +4,7 @@ import { useState, useRef, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Loader2, Check, Building2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { validateImageUpload } from "@/lib/upload-preflight";
 
 const ESTADOS = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
@@ -48,14 +49,15 @@ export function EditArenaForm({
   const photoRef  = useRef<HTMLInputElement>(null);
 
   async function uploadAvatar(file: File) {
+    const validation = await validateImageUpload(file);
+    if (!validation.ok) { setError(validation.error); return; }
     setUploadingAvatar(true);
     setError(null);
-    const ext  = file.name.split(".").pop() ?? "jpg";
-    const path = `${arenaId}/avatar-${crypto.randomUUID()}.${ext}`;
+    const path = `${arenaId}/avatar-${crypto.randomUUID()}.${validation.extension}`;
 
     const { error: upErr } = await supabase.storage
       .from("arenas")
-      .upload(path, file, { upsert: true });
+      .upload(path, file, { upsert: true, contentType: validation.mimeType });
 
     if (upErr) {
       setError("Erro ao enviar avatar. Verifique o bucket 'arenas'.");
@@ -68,15 +70,16 @@ export function EditArenaForm({
   }
 
   async function uploadPhoto(file: File) {
+    const validation = await validateImageUpload(file);
+    if (!validation.ok) { setError(validation.error); return; }
     setUploadingPhoto(true);
     setError(null);
-    const ext  = file.name.split(".").pop() ?? "jpg";
-    const name = `${crypto.randomUUID()}.${ext}`;
+    const name = `${crypto.randomUUID()}.${validation.extension}`;
     const path = `${arenaId}/photos/${name}`;
 
     const { error: upErr } = await supabase.storage
       .from("arenas")
-      .upload(path, file, { upsert: false });
+      .upload(path, file, { upsert: false, contentType: validation.mimeType });
 
     if (upErr) {
       setError("Erro ao enviar foto.");
@@ -182,7 +185,7 @@ export function EditArenaForm({
         <input
           ref={avatarRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           className="hidden"
           onChange={(e: ChangeEvent<HTMLInputElement>) => {
             const f = e.target.files?.[0];
@@ -256,7 +259,7 @@ export function EditArenaForm({
         <input
           ref={photoRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           className="hidden"
           onChange={(e: ChangeEvent<HTMLInputElement>) => {
             const f = e.target.files?.[0];
