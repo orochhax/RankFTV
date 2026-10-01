@@ -58,6 +58,14 @@ registrar apenas uma revalidação quando ela for necessária.
   `E2E_CHECKOUT_MUTATION_TESTS=0`. A homologação completa de compra,
   pagamento, cancelamento e estorno continua pendente e não foi repetida.
 
+## 2026-10-01 — Versionamento da entrega de capacidade
+
+- Status: concluído. O commit `544736d` (`test: ampliar carga autenticada no
+  sandbox`) foi enviado para `feat/refund-policy-homologation`, na PR #25.
+- Evidência remota no momento da consulta: Preview da Vercel aprovado; a PR
+  permaneceu aberta com um check ainda pendente e estado de merge `DIRTY`.
+  Nenhum merge ou promoção foi executado.
+
 ## 2026-09-30 — Checkout hospedado e hardening de V1
 
 - Status: concluído e versionado na PR #25.
