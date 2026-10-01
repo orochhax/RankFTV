@@ -196,6 +196,11 @@ registrar apenas uma revalidação quando ela for necessária.
 - Revalidação após a evolução: lint sem erros, typecheck aprovado, 809/809
   testes aprovados, teste PostgreSQL concorrente da seleção aprovado e build de
   produção do Next.js concluído.
+- Homologação de interface no Sandbox concluída em 01/10/2026: o organizador do
+  campeonato de teste abriu a carteira autenticada, conferiu os botões de saque
+  e antecipação, abriu o modal de saldo pendente e o modal de saque. O botão de
+  confirmação ficou desabilitado sem ingressos selecionados. O cenário está
+  automatizado em `e2e/organizer-wallet-visual.spec.ts` e passou em Chromium.
 
 ## 2026-09-30 — Checkout hospedado e hardening de V1
 
