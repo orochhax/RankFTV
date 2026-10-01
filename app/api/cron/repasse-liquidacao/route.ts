@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import {
-  executarRepasse,
-  executarRepasseAtletaTicket,
-  executarRepasseEspectador,
-} from "@/lib/repasse";
 import { pixKeyEmCooldown } from "@/lib/pix";
 import { executeArenaPayout } from "@/lib/arena-payout";
 import { reportOperationalEvent } from "@/lib/observability";
 import { isCronAuthorized } from "@/lib/cron-auth";
+import { buscarAntecipacaoPorPagamento, consultarAntecipacao } from "@/lib/asaas";
 
 export const dynamic = "force-dynamic";
 
@@ -97,167 +93,55 @@ async function runSettlement(req: NextRequest) {
     }
   }
 
-  // Inscrições pagas cujo repasse já venceu a liquidação.
-  const [scheduledRegistrations, immediatePixRegistrations] = await Promise.all([
-    supabase
-      .from("registrations")
-      .select("id, valor, billing_type, championship_id, repasse_status")
+  // Campeonatos usam carteira sob demanda: o cron apenas promove valores
+  // vencidos para "disponivel". Transferencia so nasce da solicitacao autenticada.
+  const championshipSources = ["registrations", "athlete_tickets", "spectator_tickets"] as const;
+  let repassados = 0;
+  let pulados = 0;
+  let vencidosTotal = 0;
+  for (const table of championshipSources) {
+    const { data: promoted, error: promotionError } = await supabase
+      .from(table)
+      .update({ repasse_status: "disponivel", repasse_erro: null })
       .eq("status_pagamento", "pago")
       .eq("repasse_status", "aguardando_liquidacao")
       .lte("repasse_data_prevista", agora)
-      .limit(200),
-    supabase
-      .from("registrations")
-      .select("id, valor, billing_type, championship_id, repasse_status")
-      .eq("status_pagamento", "pago")
-      .eq("repasse_status", "pendente")
-      .eq("billing_type", "PIX")
-      .limit(200),
-  ]);
-  if (scheduledRegistrations.error || immediatePixRegistrations.error) {
-    throw new Error(`registration_payout_query_${scheduledRegistrations.error?.code ?? immediatePixRegistrations.error?.code ?? "failed"}`);
-  }
-  const due = [...(scheduledRegistrations.data ?? []), ...(immediatePixRegistrations.data ?? [])];
-
-  let repassados = 0;
-  let pulados    = 0;
-  let vencidosTotal = due?.length ?? 0;
-
-  for (const reg of due ?? []) {
-    const originalStatus = reg.repasse_status === "pendente" ? "pendente" : "aguardando_liquidacao";
-    // Reivindica atomicamente a partir do mesmo estado lido.
-    const { data: claimed } = await supabase
-      .from("registrations")
-      .update({ repasse_status: "processando" })
-      .eq("id", reg.id)
-      .eq("repasse_status", originalStatus)
-      .select("id");
-    if (!claimed || claimed.length === 0) continue; // outro processo pegou
-
-    const revert = async (erro?: string) =>
-      supabase
-        .from("registrations")
-        .update({ repasse_status: originalStatus, ...(erro ? { repasse_erro: erro } : {}) })
-        .eq("id", reg.id);
-
-    const { data: champ } = await supabase
-      .from("championships")
-      .select("nome, organizador_id, is_elite, premium_fee_pendente")
-      .eq("id", reg.championship_id)
-      .single();
-    if (!champ) { await revert("Campeonato não encontrado"); falhas++; continue; }
-
-    const { data: org } = await supabase
-      .from("organizer_accounts")
-      .select("chave_pix, chave_pix_atualizada_em")
-      .eq("user_id", champ.organizador_id)
-      .single();
-    const chavePix = org?.chave_pix as string | undefined;
-    if (!chavePix) { await revert("Organizador sem chave Pix"); falhas++; continue; }
-
-    // Organizador recebe o valor cheio (a taxa foi paga pelo comprador).
-    const repasseBase = Number(reg.valor ?? 0);
-    if (repasseBase <= 0) {
-      await supabase.from("registrations").update({ repasse_status: "repassado" }).eq("id", reg.id);
-      pulados++;
-      continue;
-    }
-
-    const res = await executarRepasse(
-      supabase,
-      {
-        registrationId: reg.id,
-        championshipId: reg.championship_id,
-        champNome:      champ.nome,
-        isElite:        !!champ.is_elite,
-        feePendente:    Number(champ.premium_fee_pendente ?? 0),
-        chavePix,
-        chavePixAtualizadaEm: org?.chave_pix_atualizada_em ?? null,
-        repasseBase,
-      },
-      originalStatus,
+      .select("id")
+      .limit(200);
+    if (promotionError) throw new Error(
+      `${table}_wallet_promotion_${promotionError.code ?? "failed"}`,
     );
-    if (res.ok) repassados++; else falhas++;
+    vencidosTotal += promoted?.length ?? 0;
   }
 
-  // Ingressos avulsos de atleta e plateia tambem aguardam D+3/D+32.
-  const ticketSources = [
-    {
-      table: "athlete_tickets" as const,
-      executar: executarRepasseAtletaTicket,
-    },
-    {
-      table: "spectator_tickets" as const,
-      executar: executarRepasseEspectador,
-    },
-  ];
-
-  for (const source of ticketSources) {
-    const [scheduledTickets, immediatePixTickets] = await Promise.all([
-      supabase
-        .from(source.table)
-        .select("id, championship_id, valor, repasse_status")
-        .eq("status_pagamento", "pago")
-        .eq("repasse_status", "aguardando_liquidacao")
-        .lte("repasse_data_prevista", agora)
-        .limit(200),
-      supabase
-        .from(source.table)
-        .select("id, championship_id, valor, repasse_status")
-        .eq("status_pagamento", "pago")
-        .eq("repasse_status", "pendente")
-        .eq("billing_type", "PIX")
-        .limit(200),
-    ]);
-    if (scheduledTickets.error || immediatePixTickets.error) {
-      throw new Error(`${source.table}_payout_query_${scheduledTickets.error?.code ?? immediatePixTickets.error?.code ?? "failed"}`);
-    }
-    const tickets = [...(scheduledTickets.data ?? []), ...(immediatePixTickets.data ?? [])];
-    vencidosTotal += tickets?.length ?? 0;
-
-    for (const ticket of tickets ?? []) {
-      const originalStatus = ticket.repasse_status === "pendente" ? "pendente" : "aguardando_liquidacao";
-      const { data: claimed } = await supabase
-        .from(source.table)
-        .update({ repasse_status: "processando" })
-        .eq("id", ticket.id)
-        .eq("repasse_status", originalStatus)
-        .select("id");
-      if (!claimed || claimed.length === 0) continue;
-
-      const revert = async (erro: string) =>
-        supabase
-          .from(source.table)
-          .update({ repasse_status: originalStatus, repasse_erro: erro.slice(0, 300) })
-          .eq("id", ticket.id);
-
-      const { data: champ } = await supabase
-        .from("championships")
-        .select("nome, organizador_id")
-        .eq("id", ticket.championship_id)
-        .maybeSingle();
-      if (!champ) { await revert("Campeonato nao encontrado"); falhas++; continue; }
-
-      const { data: org } = await supabase
-        .from("organizer_accounts")
-        .select("chave_pix, chave_pix_atualizada_em")
-        .eq("user_id", champ.organizador_id)
-        .maybeSingle();
-      const chavePix = org?.chave_pix as string | undefined;
-      if (!chavePix) { await revert("Organizador sem chave Pix"); falhas++; continue; }
-
-      const res = await source.executar(
-        supabase,
-        {
-          ticketId: ticket.id,
-          champNome: champ.nome,
-          chavePix,
-          chavePixAtualizadaEm: org?.chave_pix_atualizada_em ?? null,
-          valor: Number(ticket.valor ?? 0),
-        },
-        originalStatus,
-      );
-      if (res.ok) repassados++; else falhas++;
+  const { data: pendingAnticipations, error: anticipationQueryError } = await supabase
+    .from("organizer_anticipations")
+    .select("id,payment_id,provider_anticipation_id")
+    .eq("status", "provider_pending")
+    .order("created_at", { ascending: true })
+    .limit(100);
+  if (anticipationQueryError) throw new Error(`anticipation_query_${anticipationQueryError.code ?? "failed"}`);
+  for (const item of pendingAnticipations ?? []) {
+    try {
+      const provider = item.provider_anticipation_id
+        ? await consultarAntecipacao(item.provider_anticipation_id)
+        : await buscarAntecipacaoPorPagamento(item.payment_id);
+      if (!provider) continue;
+      const providerStatus = provider.status ?? "PENDING";
+      const finalStatus = providerStatus === "CREDITED"
+        ? "credited"
+        : ["DENIED", "CANCELLED", "OVERDUE"].includes(providerStatus) ? "failed" : "provider_pending";
+      await supabase.rpc("update_organizer_anticipation", {
+        p_anticipation_id: item.id,
+        p_status: finalStatus,
+        p_quoted_fee: provider.fee ?? null,
+        p_quoted_net_value: provider.netValue ?? null,
+        p_provider_id: provider.id ?? item.provider_anticipation_id,
+        p_provider_status: providerStatus,
+        p_error_code: finalStatus === "failed" ? `provider_${providerStatus.toLowerCase()}` : null,
+      });
+    } catch {
+      // Indisponibilidade temporaria mantem a reserva e sera tentada de novo.
     }
   }
 

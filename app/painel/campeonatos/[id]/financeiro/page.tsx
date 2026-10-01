@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { FinanceiroConteudoClient } from "@/components/painel/FinanceiroConteudoClient";
+import { FinanceiroConteudoClient, type AnticipatableReceivable, type WalletSnapshot } from "@/components/painel/FinanceiroConteudoClient";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { ChavePixClient } from "@/components/painel/ChavePixClient";
@@ -37,7 +37,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const isElite     = !!champExtra?.is_elite;
   const feePendente = Number(champExtra?.premium_fee_pendente ?? 0);
 
-  const [{ data: metricData }, { data: champDates }, { data: rawPendentes }, { data: rawPendentesTickets }] = await Promise.all([
+  const [{ data: metricData }, { data: champDates }, { data: rawPendentes }, { data: rawPendentesTickets }, { data: walletData }] = await Promise.all([
     supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
     supabase
       .from("championships")
@@ -62,7 +62,43 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
       .not("asaas_payment_id", "is", null)
       .order("created_at", { ascending: true })
       .limit(50),
+    supabase.rpc("organizer_wallet_snapshot", { p_championship_id: id }),
   ]);
+
+  const walletRaw = (walletData ?? {}) as Partial<WalletSnapshot>;
+  const wallet: WalletSnapshot = {
+    totalNet: Number(walletRaw.totalNet ?? 0),
+    available: Number(walletRaw.available ?? 0),
+    pending: Number(walletRaw.pending ?? 0),
+    reserved: Number(walletRaw.reserved ?? 0),
+    withdrawn: Number(walletRaw.withdrawn ?? 0),
+    schedule: Array.isArray(walletRaw.schedule)
+      ? walletRaw.schedule.map((item) => ({ date: String(item.date), amount: Number(item.amount) }))
+      : [],
+  };
+  const { data: anticipationRows } = await supabase
+    .from("organizer_anticipations")
+    .select("receivable_id")
+    .in("status", ["reserved", "documentation_required", "provider_pending", "credited"]);
+  const busyReceivables = new Set((anticipationRows ?? []).map((row) => row.receivable_id));
+  const { data: receivableRows } = await supabase
+    .from("organizer_receivables")
+    .select("id,net_amount,available_at,source_type")
+    .eq("championship_id", id)
+    .eq("status", "active")
+    .eq("billing_type", "CREDIT_CARD")
+    .gt("available_at", new Date().toISOString())
+    .order("available_at", { ascending: true })
+    .limit(100);
+  const sourceLabels: Record<string, string> = { registration: "Inscrição", athlete_ticket: "Ingresso de atleta", spectator_ticket: "Ingresso de plateia" };
+  const anticipatableReceivables: AnticipatableReceivable[] = (receivableRows ?? [])
+    .filter((row) => !busyReceivables.has(row.id))
+    .map((row) => ({
+      id: row.id,
+      amount: Number(row.net_amount),
+      availableAt: row.available_at,
+      label: `${sourceLabels[row.source_type] ?? "Venda"} · libera em ${new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(row.available_at))}`,
+    }));
 
   type StatusMetric = { status: string; count: number; total: number };
   type BillingMetric = { type: string | null; total: number };
@@ -90,8 +126,6 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const totalPago = Number(statusMetric("pago")?.total ?? 0);
   const totalPendente = Number(statusMetric("pendente")?.total ?? 0);
   const totalEstornado = Number(statusMetric("estornado")?.total ?? 0);
-  // Elite: a ativação é descontada dos repasses — saldo pode ficar negativo até quitar.
-  const repasseLiquido = isElite ? totalPago - feePendente : totalPago;
 
   type CatSummary = { nome: string; genero: string; count: number; total: number };
   const catMap: Record<string, CatSummary> = Object.fromEntries(
@@ -235,7 +269,6 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
 
       <FinanceiroConteudoClient
         champId={id}
-        repasseLiquido={repasseLiquido}
         statusCards={STATUS_CARDS}
         totalPix={totalPix}
         totalCredito={totalCredito}
@@ -247,6 +280,8 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
         vendasDiarias={vendasDiarias}
         chavePixSection={<ChavePixClient chavePix={chavePix} />}
         cobrancasPendentesSection={cobrancasPendentesSection}
+        wallet={wallet}
+        anticipatableReceivables={anticipatableReceivables}
       />
       <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} permitirCancelar />
     </PageContainer>
