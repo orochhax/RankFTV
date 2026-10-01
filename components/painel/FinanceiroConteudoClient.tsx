@@ -1,24 +1,20 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { Crown, Eye, EyeOff, ChevronRight, CalendarDays, Loader2, WalletCards } from "lucide-react";
+import { Crown, ChevronRight } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { PRECO_ELITE } from "@/lib/elite";
 import { GraficoVendasDiarias } from "@/components/painel/GraficoVendasDiarias";
 import type { DiaVenda } from "@/app/painel/campeonatos/[id]/financeiro/page";
-import { simularAntecipacoesOrganizador, solicitarAntecipacoesOrganizador, solicitarSaqueOrganizador } from "@/app/painel/campeonatos/[id]/financeiro/actions";
+import {
+  OrganizerWalletPanel,
+  type WalletReceivable,
+  type WalletSnapshot,
+} from "@/components/painel/OrganizerWalletPanel";
 
-export type WalletSnapshot = {
-  totalNet: number;
-  available: number;
-  pending: number;
-  reserved: number;
-  withdrawn: number;
-  schedule: Array<{ date: string; amount: number }>;
-};
-export type AnticipatableReceivable = { id: string; amount: number; availableAt: string; label: string };
+export type { WalletReceivable, WalletSnapshot } from "@/components/painel/OrganizerWalletPanel";
 
 type StatusCardData = {
   slug: string;
@@ -53,7 +49,8 @@ type Props = {
   chavePixSection: ReactNode;
   cobrancasPendentesSection: ReactNode;
   wallet: WalletSnapshot;
-  anticipatableReceivables: AnticipatableReceivable[];
+  withdrawableReceivables: WalletReceivable[];
+  anticipatableReceivables: WalletReceivable[];
 };
 
 export function FinanceiroConteudoClient({
@@ -70,125 +67,24 @@ export function FinanceiroConteudoClient({
   chavePixSection,
   cobrancasPendentesSection,
   wallet,
+  withdrawableReceivables,
   anticipatableReceivables,
 }: Props) {
   const [mostrar, setMostrar] = useState(true);
   const val = (v: number) => (mostrar ? formatBRL(v) : "R$ ••••••");
-  const [scheduleOpen, setScheduleOpen] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [withdrawMessage, setWithdrawMessage] = useState<{ ok: boolean; text: string } | null>(null);
-  const [withdrawing, startWithdrawal] = useTransition();
-  const [selectedReceivables, setSelectedReceivables] = useState<string[]>([]);
-  const [anticipationQuote, setAnticipationQuote] = useState<{ fee: number; net: number; documents: number } | null>(null);
-  const [anticipationMessage, setAnticipationMessage] = useState<{ ok: boolean; text: string } | null>(null);
-  const [anticipating, startAnticipation] = useTransition();
-
-  function submitWithdrawal() {
-    const amount = Number(withdrawAmount.replace(",", "."));
-    setWithdrawMessage(null);
-    startWithdrawal(async () => {
-      const result = await solicitarSaqueOrganizador(champId, amount, crypto.randomUUID());
-      setWithdrawMessage({ ok: result.ok, text: result.message });
-      if (result.ok) setWithdrawAmount("");
-    });
-  }
 
   const maxCatTotal = Math.max(...categorias.map((c) => catMap[c.id]?.total ?? 0), 1);
 
   return (
     <div className="space-y-8">
-      {/* Carteira individual */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">Sua carteira</h2>
-          <button onClick={() => setMostrar((v) => !v)} className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-gray-700">
-            {mostrar ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-            {mostrar ? "Ocultar" : "Mostrar"}
-          </button>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <BalanceCard label="Saldo líquido total" value={val(wallet.totalNet)} tone="blue" />
-          <BalanceCard label="Saldo disponível" value={val(wallet.available)} tone="green" />
-          <button type="button" onClick={() => setScheduleOpen((open) => !open)} className="text-left">
-            <BalanceCard label="Saldo pendente" value={val(wallet.pending)} tone="amber" action />
-          </button>
-        </div>
-
-        {scheduleOpen && (
-          <div className="rounded-2xl bg-white p-4 ring-1 ring-black/10">
-            <div className="mb-3 flex items-center gap-2"><CalendarDays className="size-4 text-amber-600" /><p className="text-sm font-semibold">Próximas liberações</p></div>
-            {wallet.schedule.length === 0 ? <p className="text-sm text-gray-500">Nenhum valor aguardando liberação.</p> : (
-              <div className="divide-y divide-gray-100">
-                {wallet.schedule.map((item) => (
-                  <div key={item.date} className="flex justify-between py-2 text-sm">
-                    <span className="text-gray-600">{new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${item.date}T12:00:00Z`))}</span>
-                    <strong>{val(item.amount)}</strong>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="rounded-2xl bg-white p-4 ring-1 ring-black/10">
-          <div className="flex items-center gap-2"><WalletCards className="size-4 text-blue-600" /><h3 className="text-sm font-semibold">Solicitar saque</h3></div>
-          <p className="mt-1 text-xs text-gray-500">O valor é reservado imediatamente e nunca pode ultrapassar seu saldo disponível.</p>
-          {wallet.reserved > 0 && <p className="mt-2 text-xs font-medium text-amber-700">Em processamento: {val(wallet.reserved)}</p>}
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-            <input
-              inputMode="decimal"
-              value={withdrawAmount}
-              onChange={(event) => setWithdrawAmount(event.target.value)}
-              placeholder="Valor do saque"
-              aria-label="Valor do saque"
-              className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-            />
-            <button type="button" disabled={withdrawing || wallet.available < 0.01} onClick={submitWithdrawal} className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
-              {withdrawing && <Loader2 className="size-4 animate-spin" />} Solicitar saque
-            </button>
-          </div>
-          {withdrawMessage && <p role="status" className={`mt-2 text-xs ${withdrawMessage.ok ? "text-green-700" : "text-red-600"}`}>{withdrawMessage.text}</p>}
-        </div>
-
-        {anticipatableReceivables.length > 0 && (
-          <div className="rounded-2xl bg-white p-4 ring-1 ring-black/10">
-            <h3 className="text-sm font-semibold">Antecipar vendas no cartão</h3>
-            <p className="mt-1 text-xs text-gray-500">Escolha vendas específicas. A taxa do Asaas é mostrada antes da confirmação e descontada apenas dessas vendas.</p>
-            <div className="mt-3 max-h-56 divide-y divide-gray-100 overflow-y-auto">
-              {anticipatableReceivables.map((item) => (
-                <label key={item.id} className="flex cursor-pointer items-center justify-between gap-3 py-2 text-sm">
-                  <span className="flex min-w-0 items-center gap-2"><input type="checkbox" checked={selectedReceivables.includes(item.id)} onChange={(event) => { setAnticipationQuote(null); setSelectedReceivables((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id)); }} /><span className="truncate">{item.label}</span></span>
-                  <span className="shrink-0 font-medium">{val(item.amount)}</span>
-                </label>
-              ))}
-            </div>
-            {anticipationQuote && (
-              <div className="mt-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-900 ring-1 ring-amber-200">
-                <div className="flex justify-between"><span>Taxa de antecipação</span><strong>{val(anticipationQuote.fee)}</strong></div>
-                <div className="mt-1 flex justify-between"><span>Valor líquido antecipado</span><strong>{val(anticipationQuote.net)}</strong></div>
-                {anticipationQuote.documents > 0 && <p className="mt-2">O Asaas pediu documentos para {anticipationQuote.documents} venda(s); elas não serão enviadas sem essa regularização.</p>}
-              </div>
-            )}
-            <div className="mt-3 flex justify-end">
-              <button type="button" disabled={anticipating || selectedReceivables.length === 0} onClick={() => startAnticipation(async () => {
-                setAnticipationMessage(null);
-                if (!anticipationQuote) {
-                  const quote = await simularAntecipacoesOrganizador(champId, selectedReceivables);
-                  if (quote.ok) setAnticipationQuote({ fee: quote.fee, net: quote.net, documents: quote.documents });
-                  else setAnticipationMessage({ ok: false, text: quote.message });
-                  return;
-                }
-                const result = await solicitarAntecipacoesOrganizador(champId, selectedReceivables, anticipationQuote.fee);
-                setAnticipationMessage({ ok: result.ok, text: result.message });
-                if (result.ok) { setSelectedReceivables([]); setAnticipationQuote(null); }
-              })} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
-                {anticipating && <Loader2 className="size-4 animate-spin" />}{anticipationQuote ? "Confirmar antecipação" : "Calcular taxa"}
-              </button>
-            </div>
-            {anticipationMessage && <p role="status" className={`mt-2 text-xs ${anticipationMessage.ok ? "text-green-700" : "text-red-600"}`}>{anticipationMessage.text}</p>}
-          </div>
-        )}
-      </section>
+      <OrganizerWalletPanel
+        champId={champId}
+        wallet={wallet}
+        withdrawableReceivables={withdrawableReceivables}
+        anticipatableReceivables={anticipatableReceivables}
+        showValues={mostrar}
+        onToggleShowValues={() => setMostrar((current) => !current)}
+      />
 
       {/* Status dos pagamentos */}
       <section>
@@ -200,7 +96,7 @@ export function FinanceiroConteudoClient({
             <Link
               key={c.slug}
               href={`/painel/campeonatos/${champId}/financeiro/${c.slug}`}
-              className={`group relative rounded-2xl p-4 ring-1 transition-all hover:shadow-md hover:scale-[1.02] ${c.bg} ${c.ring}`}
+              className={`group relative rounded-2xl p-4 ring-1 transition-[box-shadow,transform] hover:scale-[1.02] hover:shadow-md ${c.bg} ${c.ring}`}
             >
               <p className={`text-xs font-medium ${c.text}`}>{c.label}</p>
               <p className={`mt-2 text-2xl font-bold ${c.text}`}>{c.count}</p>
@@ -249,7 +145,7 @@ export function FinanceiroConteudoClient({
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-amber-200">
             <div
-              className="h-full rounded-full bg-amber-500 transition-all"
+              className="h-full rounded-full bg-amber-500 transition-[width]"
               style={{ width: `${Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}%` }}
             />
           </div>
@@ -286,7 +182,7 @@ export function FinanceiroConteudoClient({
                   <div className="flex items-center gap-3">
                     <div className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
                       <div
-                        className="absolute inset-y-0 left-0 rounded-full bg-blue-500 transition-all"
+                        className="absolute inset-y-0 left-0 rounded-full bg-blue-500 transition-[width]"
                         style={{ width: `${mostrar ? pct : 0}%` }}
                       />
                     </div>
@@ -303,11 +199,6 @@ export function FinanceiroConteudoClient({
 
     </div>
   );
-}
-
-function BalanceCard({ label, value, tone, action = false }: { label: string; value: string; tone: "blue" | "green" | "amber"; action?: boolean }) {
-  const colors = { blue: "bg-blue-50 ring-blue-200 text-blue-700", green: "bg-emerald-50 ring-emerald-200 text-emerald-700", amber: "bg-amber-50 ring-amber-200 text-amber-700" };
-  return <div className={`h-full rounded-2xl p-4 ring-1 ${colors[tone]}`}><p className="text-xs font-medium">{label}</p><div className="mt-2 flex items-center justify-between"><p className="text-xl font-bold">{value}</p>{action && <ChevronRight className="size-4" />}</div></div>;
 }
 
 function MetodoCard({

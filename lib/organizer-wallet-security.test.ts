@@ -62,10 +62,41 @@ test("wallet reservation is atomic, idempotent and cannot spend another organize
   }
 });
 
+test("selected withdrawal reserves only the chosen receivables and derives the amount in Postgres", async () => {
+  const db = await database();
+  try {
+    const key = "99999999-9999-4999-8999-999999999999";
+    const result = await db.query<{ result: { id: string; amount: number; status: string } }>(`
+      SELECT reserve_organizer_withdrawal_receivables(
+        '${CHAMP}', ARRAY['${RECEIVABLE}']::uuid[], '${key}'
+      ) result
+    `);
+    assert.equal(Number(result.rows[0].result.amount), 100);
+    assert.equal(result.rows[0].result.status, "reserved");
+
+    const allocations = await db.query<{ receivable_id: string; amount: string }>(
+      "SELECT receivable_id,amount FROM organizer_withdrawal_allocations",
+    );
+    assert.deepEqual(allocations.rows, [{ receivable_id: RECEIVABLE, amount: "100.00" }]);
+
+    await assert.rejects(
+      () => db.query(`SELECT reserve_organizer_withdrawal_receivables(
+        '${CHAMP}', ARRAY['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa']::uuid[],
+        'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+      )`),
+      /WALLET_RECEIVABLE_SELECTION_UNAVAILABLE/,
+    );
+  } finally {
+    await db.close();
+  }
+});
+
 test("wallet migration keeps browser writes revoked and reservations serialized", () => {
   const sql = readFileSync(path.join(process.cwd(), "supabase/organizer-wallet-withdrawals.sql"), "utf8");
   assert.match(sql, /pg_advisory_xact_lock\(hashtextextended\('organizer-wallet:'/i);
   assert.match(sql, /REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER[\s\S]*FROM PUBLIC, anon, authenticated/i);
   assert.match(sql, /r\.organizer_id=v_user[\s\S]*r\.championship_id=p_championship_id/i);
   assert.match(sql, /w\.status IN \('reserved','submitting','provider_pending','paid'\)/i);
+  assert.match(sql, /reserve_organizer_withdrawal_receivables/i);
+  assert.match(sql, /ORDER BY r\.id[\s\S]*FOR UPDATE OF r/i);
 });

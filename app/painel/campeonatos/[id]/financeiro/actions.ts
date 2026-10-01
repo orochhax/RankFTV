@@ -309,15 +309,15 @@ export async function cancelarCampeonatoElite(
   return { ok: true };
 }
 
-export async function solicitarSaqueOrganizador(
+export async function solicitarSaqueRecebiveisOrganizador(
   champId: string,
-  amountInput: number,
+  receivableIds: string[],
   idempotencyKey: string,
 ): Promise<SolicitarSaqueResultado> {
-  const amount = Math.round(Number(amountInput) * 100) / 100;
-  if (!Number.isFinite(amount) || amount < 0.01 || amount > 10_000_000) {
-    return { ok: false, message: "Informe um valor válido para o saque." };
-  }
+  const ids = [...new Set(receivableIds)]
+    .filter((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))
+    .slice(0, 100);
+  if (ids.length === 0) return { ok: false, message: "Selecione ao menos um ingresso para sacar." };
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)) {
     return { ok: false, message: "Identificador de segurança inválido. Atualize a página." };
   }
@@ -336,28 +336,37 @@ export async function solicitarSaqueOrganizador(
     return { ok: false, message: "A chave Pix foi alterada recentemente. Por segurança, aguarde 48 horas." };
   }
 
-  const { data: reservation, error: reserveError } = await supabase.rpc("reserve_organizer_withdrawal", {
-    p_championship_id: champId,
-    p_amount: amount,
-    p_idempotency_key: idempotencyKey,
-  });
+  const { data: reservation, error: reserveError } = await supabase.rpc(
+    "reserve_organizer_withdrawal_receivables",
+    {
+      p_championship_id: champId,
+      p_receivable_ids: ids,
+      p_idempotency_key: idempotencyKey,
+    },
+  );
   if (reserveError || !reservation || typeof reservation !== "object") {
-    const insufficient = reserveError?.message?.includes("WALLET_INSUFFICIENT_AVAILABLE_BALANCE");
+    const unavailable = reserveError?.message?.includes("WALLET_RECEIVABLE_SELECTION_UNAVAILABLE");
     return {
       ok: false,
-      message: insufficient ? "O valor excede o saldo disponível." : "Não foi possível reservar esse saque.",
+      message: unavailable
+        ? "Um dos ingressos já foi reservado ou deixou de estar disponível. Atualize a página."
+        : "Não foi possível reservar os ingressos selecionados.",
     };
   }
 
-  const reservedWithdrawal = reservation as { id?: unknown; status?: unknown };
+  const reservedWithdrawal = reservation as { id?: unknown; amount?: unknown; status?: unknown };
   const withdrawalId = String(reservedWithdrawal.id ?? "");
-  if (!withdrawalId) return { ok: false, message: "A reserva do saque não pôde ser confirmada." };
+  const amount = Math.round(Number(reservedWithdrawal.amount) * 100) / 100;
+  if (!withdrawalId || !Number.isFinite(amount) || amount < 0.01) {
+    return { ok: false, message: "A reserva do saque não pôde ser confirmada." };
+  }
   const reservationStatus = String(reservedWithdrawal.status ?? "reserved");
   if (reservationStatus !== "reserved") {
     return reservationStatus === "paid"
       ? { ok: true, message: "Esse saque já foi concluído." }
       : { ok: true, pending: true, message: "Esse saque já está em processamento e continua reservado." };
   }
+
   const admin = createAdminClient();
   const { error: beginError } = await admin.rpc("begin_organizer_withdrawal_submission", {
     p_withdrawal_id: withdrawalId,
@@ -368,7 +377,7 @@ export async function solicitarSaqueOrganizador(
       p_status: "failed",
       p_error_code: "receivable_unavailable",
     });
-    return { ok: false, message: "O saldo mudou durante a solicitação. Tente novamente." };
+    return { ok: false, message: "Um dos ingressos mudou durante a solicitação. Tente novamente." };
   }
 
   const result = await transferIdempotently({
@@ -392,7 +401,6 @@ export async function solicitarSaqueOrganizador(
     revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
     return { ok: true, message: "Saque enviado para sua chave Pix." };
   }
-
   if (result.ambiguous || result.inProgress) {
     await admin.rpc("update_organizer_withdrawal", {
       p_withdrawal_id: withdrawalId,

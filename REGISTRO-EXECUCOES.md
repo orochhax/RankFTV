@@ -174,6 +174,28 @@ registrar apenas uma revalidação quando ela for necessária.
   808 testes unitários/contrato, build e Playwright (30 aprovados, 55 ignorados
   por configuração segura) concluíram sem falha. Permanecem somente avisos
   legados e o aviso de depreciação do Node 20 nas actions do GitHub.
+- Evolução visual e seleção de saques: a carteira passou a usar um painel único
+  com resumo escuro, ação conjunta de saque/antecipação e modais centrais com
+  fundo desfocado. O saldo pendente abre o calendário de liberações; o saque
+  lista os recebíveis disponíveis e reserva exatamente os ingressos escolhidos.
+- Segurança da seleção: criada a RPC
+  `reserve_organizer_withdrawal_receivables`, que deduplica IDs, confirma dono e
+  campeonato, bloqueia os recebíveis em ordem determinística e calcula o total
+  exclusivamente no PostgreSQL. O antigo saque por valor livre deixou de ser
+  executável por `authenticated`, impedindo contorno da seleção pela API.
+- Sandbox atualizado com
+  `supabase/organizer-wallet-selected-withdrawals.sql`. A verificação ampliada
+  retornou as quatorze colunas em `true`, incluindo a listagem sacável, a reserva
+  por seleção e o bloqueio do saque livre.
+- Fixture visual do campeonato `2b3bb52c-2043-4167-aa7f-9e4359bd6dd9` aplicada
+  somente no Sandbox: 8 vendas pagas, 2 pendentes e 1 estornada, todas com dados
+  pessoais fictícios e domínios `.invalid`. Os recebíveis demonstrativos somam
+  R$ 475,00 disponíveis e R$ 695,00 pendentes. Seed e limpeza idempotentes estão
+  em `supabase/manual-tests/organizer-wallet-demo-seed.sql` e
+  `supabase/manual-tests/organizer-wallet-demo-cleanup.sql`.
+- Revalidação após a evolução: lint sem erros, typecheck aprovado, 809/809
+  testes aprovados, teste PostgreSQL concorrente da seleção aprovado e build de
+  produção do Next.js concluído.
 
 ## 2026-09-30 — Checkout hospedado e hardening de V1
 
