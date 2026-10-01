@@ -39,6 +39,7 @@ export function ChampionshipShell({
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const isOverview = pathname === `/painel/campeonatos/${champ.id}`;
+  const isDraft = champ.status === "rascunho";
   const sectionTitle = championshipPageTitle(pathname, champ.id);
 
   useEffect(() => {
@@ -96,9 +97,9 @@ export function ChampionshipShell({
                 rel="noopener noreferrer"
                 className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-ink-muted shadow-sm transition-all hover:border-blue-300 hover:text-blue-600 hover:shadow"
               >
-                <ExternalLink className="size-3.5" /> Página pública
+                <ExternalLink className="size-3.5" /> {isDraft ? "Prévia pública" : "Página pública"}
               </a>
-              <div ref={menuRef} className="relative">
+              {!isDraft && <div ref={menuRef} className="relative">
                 <button
                   type="button"
                   onClick={() => setMenuOpen((v) => !v)}
@@ -119,13 +120,13 @@ export function ChampionshipShell({
                     <ChampionshipNavContent champId={champ.id} pathname={pathname} onNavigate={() => setMenuOpen(false)} />
                   </div>
                 )}
-              </div>
+              </div>}
             </div>
           </div>
         </PageContainer>
 
         {/* Drawer no mobile */}
-        {menuOpen && (
+        {!isDraft && menuOpen && (
           <div className="fixed inset-0 z-50 md:hidden">
             <button
               type="button"

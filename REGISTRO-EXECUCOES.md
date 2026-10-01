@@ -5,6 +5,20 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-01 — Rascunho sem menu operacional e resumo de planos
+
+- Status: concluído em código; pendente apenas da validação remota da PR.
+- Mudança: quando um campeonato está em `rascunho`, o cabeçalho contextual
+  mostra somente “Prévia pública” e não renderiza o menu Gerenciar, inclusive
+  no drawer móvel. Depois da publicação, o menu volta a ser exibido.
+- Mudança: a tela de criação concluída passa a exibir ao final um resumo dos
+  planos. Ele lista apenas funcionalidades confirmadas e informa que o Elite
+  reduz a taxa de serviço cobrada do comprador para 7% no Pix e 9% no cartão,
+  contra 8% e 10% no Padrão.
+- Transparência: o resumo não promete categoria balanceada, WhatsApp oficial,
+  stories, destaque automático ou call com CEO, pois esses itens não estão
+  automatizados/disponíveis na V1.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
