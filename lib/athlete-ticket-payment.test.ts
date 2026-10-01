@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   athleteTicketInitialBillingType,
   parseAthleteTicketPaymentChoice,
-  shouldCreateAthleteTicketPixCharge,
+  shouldCreateAthleteTicketCharge,
 } from "./athlete-ticket-payment";
 
 test("aceita somente as formas oferecidas no checkout do ingresso de atleta", () => {
@@ -14,26 +14,25 @@ test("aceita somente as formas oferecidas no checkout do ingresso de atleta", ()
   assert.equal(parseAthleteTicketPaymentChoice(""), null);
 });
 
-test("Pix cria cobranca imediatamente e cartao aguarda os dados do titular", () => {
+test("Pix e cartao criam a cobranca antes do checkout hospedado", () => {
   assert.equal(athleteTicketInitialBillingType("pix", false), "PIX");
-  assert.equal(shouldCreateAthleteTicketPixCharge("pix", false), true);
   assert.equal(athleteTicketInitialBillingType("cartao", false), "CREDIT_CARD");
-  assert.equal(shouldCreateAthleteTicketPixCharge("cartao", false), false);
+  assert.equal(shouldCreateAthleteTicketCharge(false), true);
 });
 
 test("ingresso gratuito nao cria cobranca no provedor", () => {
   assert.equal(athleteTicketInitialBillingType("pix", true), null);
   assert.equal(athleteTicketInitialBillingType("cartao", true), null);
-  assert.equal(shouldCreateAthleteTicketPixCharge("pix", true), false);
-  assert.equal(shouldCreateAthleteTicketPixCharge("cartao", true), false);
+  assert.equal(shouldCreateAthleteTicketCharge(true), false);
 });
 
-test("checkout adia a chamada ao provedor quando a escolha e cartao", () => {
+test("checkout cria a fatura antes de redirecionar o cartão", () => {
   const source = readFileSync(
     new URL("../app/campeonatos/[id]/comprar/actions.ts", import.meta.url),
     "utf8",
   );
 
-  assert.match(source, /shouldCreateAthleteTicketPixCharge\(metodoPagamento, isGratis\)/);
+  assert.match(source, /shouldCreateAthleteTicketCharge\(isGratis\)/);
+  assert.match(source, /method:\s*metodoPagamento === "pix" \? "pix" : "credito"/);
   assert.match(source, /billing_type:\s+athleteTicketInitialBillingType\(metodoPagamento, isGratis\)/);
 });

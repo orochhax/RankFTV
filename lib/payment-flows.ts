@@ -1,20 +1,15 @@
 import "server-only";
 
 import {
-  buscarAssinaturaPorReferencia,
   buscarCobrancaPorReferencia,
   buscarTransferenciaPorReferencia,
   cobrarComToken,
   consultarPixQrCode,
-  criarAssinaturaCartao,
   criarCobranca,
-  criarCobrancaCartao,
   listarEstornosCobranca,
   reembolsarPagamento,
   transferirPix,
-  type CartaoInput,
   type MetodoPagamento,
-  type TitularInput,
 } from "@/lib/asaas";
 import { withdrawalRecipientDigest } from "@/lib/asaas-withdrawal-authorization";
 import {
@@ -75,40 +70,6 @@ export async function createIdempotentCharge(input: CommonInput & {
   });
 }
 
-export async function createIdempotentCardCharge(input: CommonInput & {
-  customerId: string;
-  billingType: "CREDIT_CARD" | "DEBIT_CARD";
-  description: string;
-  card: CartaoInput;
-  holder: TitularInput;
-  installments?: number;
-  remoteIp?: string;
-}): Promise<FinancialExecutionResult<PaymentProviderResult>> {
-  return executeFinancialOperation<PaymentProviderResult>({
-    flow: input.flow,
-    operationType: "payment",
-    recordId: input.recordId,
-    externalReference: input.externalReference,
-    amount: input.amount,
-    billingType: input.billingType,
-    actorId: input.actorId,
-    correlationId: input.correlationId,
-    metadata: input.metadata,
-    lookup: async () => buscarCobrancaPorReferencia(input.externalReference),
-    create: () => criarCobrancaCartao({
-      customerId: input.customerId,
-      valor: input.amount,
-      billingType: input.billingType,
-      descricao: input.description,
-      externalReference: input.externalReference,
-      cartao: input.card,
-      titular: input.holder,
-      parcelas: input.installments,
-      remoteIp: input.remoteIp,
-    }),
-  });
-}
-
 export async function createIdempotentStoredCardCharge(input: CommonInput & {
   customerId: string;
   creditCardToken: string;
@@ -131,36 +92,6 @@ export async function createIdempotentStoredCardCharge(input: CommonInput & {
       valorBase: input.amount,
       descricao: input.description,
       externalReference: input.externalReference,
-    }),
-  });
-}
-
-export async function createIdempotentSubscription(input: CommonInput & {
-  customerId: string;
-  nextDueDate: string;
-  description: string;
-  card: CartaoInput;
-  holder: TitularInput;
-}): Promise<FinancialExecutionResult<{ id: string; status?: string }>> {
-  return executeFinancialOperation({
-    flow: input.flow,
-    operationType: "subscription",
-    recordId: input.recordId,
-    externalReference: input.externalReference,
-    amount: input.amount,
-    billingType: "CREDIT_CARD",
-    actorId: input.actorId,
-    correlationId: input.correlationId,
-    metadata: input.metadata,
-    lookup: async () => buscarAssinaturaPorReferencia(input.externalReference),
-    create: () => criarAssinaturaCartao({
-      customerId: input.customerId,
-      valor: input.amount,
-      nextDueDate: input.nextDueDate,
-      descricao: input.description,
-      externalReference: input.externalReference,
-      cartao: input.card,
-      titular: input.holder,
     }),
   });
 }

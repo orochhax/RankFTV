@@ -20,7 +20,7 @@ export default async function PagamentoPage({
 
   const { data: reg } = await supabase
     .from("registrations")
-    .select("id, valor, status_pagamento, pix_copy_paste, pix_qr_code_base64, team_id, championship_id, category_id")
+    .select("id, valor, status_pagamento, billing_type, invoice_url, pix_copy_paste, pix_qr_code_base64, team_id, championship_id, category_id")
     .eq("id", registrationId)
     .single();
   if (!reg) notFound();
@@ -90,6 +90,8 @@ export default async function PagamentoPage({
       atleta2={atleta2}
       pixCopyPaste={reg.pix_copy_paste ?? null}
       pixQrBase64={reg.pix_qr_code_base64 ?? null}
+      billingType={reg.billing_type}
+      invoiceUrl={reg.invoice_url}
     />
   );
 }

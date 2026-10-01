@@ -114,6 +114,25 @@ test("Arena paid subscriptions are opt-in and guarded in UI and server action", 
   assert.match(source(".env.example"), /ARENA_RECURRING_PAYMENTS_ENABLED=0/);
 });
 
+test("card checkout never receives PAN or CVV in RankFTV", () => {
+  const paymentSurfaces = [
+    "components/pagamento/PaymentUI.tsx",
+    "components/campeonatos/IngressoAtletaPagamento.tsx",
+    "app/arenas/[handle]/alugar/RentalPaymentUI.tsx",
+    "app/arenas/[handle]/diaria/DiariaPaymentUI.tsx",
+    "app/arenas/[handle]/assinar/[planId]/SubscriptionPaymentUI.tsx",
+    "app/arenas/[handle]/assinar/[planId]/actions.ts",
+    "lib/asaas.ts",
+    "lib/payment-flows.ts",
+  ].map(source).join("\n");
+
+  assert.doesNotMatch(paymentSurfaces, /creditCard\s*:/);
+  assert.doesNotMatch(paymentSurfaces, /\b(?:cvv|ccv)\s*:/i);
+  assert.doesNotMatch(paymentSurfaces, /tokenizarCartao|criarCobrancaCartao|criarAssinaturaCartao/);
+  assert.match(source("components/pagamento/PaymentUI.tsx"), /invoiceUrl/);
+  assert.match(source("app/arenas/[handle]/alugar/RentalPaymentUI.tsx"), /invoiceUrl/);
+});
+
 test("category-level recommendation is disabled throughout the V1 flow", () => {
   const flags = source("lib/release-flags.ts");
   const newForm = source("components/painel/NovoCampeonatoForm.tsx");

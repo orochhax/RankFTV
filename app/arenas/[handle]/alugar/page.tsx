@@ -52,7 +52,6 @@ export default async function AlugarQuadraPage({
       planNome={plan.nome}
       valorBase={Number(plan.valor)}
       aceitaCredito={plan.aceita_credito ?? true}
-      aceitaDebito={plan.aceita_debito ?? false}
       cpfSalvo={privRes.data?.cpf ?? null}
     />
   );

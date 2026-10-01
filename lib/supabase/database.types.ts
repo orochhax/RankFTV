@@ -219,6 +219,7 @@ export type Database = {
           created_at: string
           data: string
           id: string
+          invoice_url: string | null
           plan_id: string
           repasse_data_prevista: string | null
           repasse_erro: string | null
@@ -236,6 +237,7 @@ export type Database = {
           created_at?: string
           data: string
           id?: string
+          invoice_url?: string | null
           plan_id: string
           repasse_data_prevista?: string | null
           repasse_erro?: string | null
@@ -253,6 +255,7 @@ export type Database = {
           created_at?: string
           data?: string
           id?: string
+          invoice_url?: string | null
           plan_id?: string
           repasse_data_prevista?: string | null
           repasse_erro?: string | null
@@ -377,6 +380,7 @@ export type Database = {
           data: string
           hora: string
           id: string
+          invoice_url: string | null
           plan_id: string
           repasse_data_prevista: string | null
           repasse_erro: string | null
@@ -395,6 +399,7 @@ export type Database = {
           data: string
           hora: string
           id?: string
+          invoice_url?: string | null
           plan_id: string
           repasse_data_prevista?: string | null
           repasse_erro?: string | null
@@ -413,6 +418,7 @@ export type Database = {
           data?: string
           hora?: string
           id?: string
+          invoice_url?: string | null
           plan_id?: string
           repasse_data_prevista?: string | null
           repasse_erro?: string | null

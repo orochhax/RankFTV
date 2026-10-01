@@ -1,182 +1,26 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
-import { criarOuBuscarCliente } from "@/lib/asaas";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createIdempotentSubscription } from "@/lib/payment-flows";
-import {
-  beginCardPaymentAttempt,
-  cardBlockedMessage,
-  finishCardPaymentAttempt,
-} from "@/lib/payment-security";
 import { arenaRecurringPaymentsEnabled } from "@/lib/release-flags";
-import {
-  arenaSubscriptionPaymentSchema,
-  invalidPaymentInput,
-} from "@/lib/payment-input-schemas";
-
-export type AssinarInput = {
-  planId:      string;
-  handle:      string;
-  cpf:         string;
-  numero:      string;
-  nomeTitular: string;
-  mesValidade: string;
-  anoValidade: string;
-  cvv:         string;
-  cep:         string;
-  numeroEndereco: string;
-};
+import { createClient } from "@/lib/supabase/server";
 
 export type AssinarResult =
-  | { ok: true  }
+  | { ok: true }
   | { ok: false; error: string };
 
-export async function assinarPlano(input: AssinarInput): Promise<AssinarResult> {
+/** Nenhum dado de cartão é recebido pelo RankFTV neste fluxo. */
+export async function assinarPlano(): Promise<AssinarResult> {
   if (!arenaRecurringPaymentsEnabled()) {
-    return { ok: false, error: "Novas assinaturas pagas estão pausadas enquanto a Arena está em beta." };
-  }
-  const parsed = arenaSubscriptionPaymentSchema.safeParse(input);
-  if (!parsed.success) return invalidPaymentInput();
-  input = parsed.data;
-
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Sessão expirada. Faça login novamente." };
-  const admin = createAdminClient();
-
-  const cpfNum = input.cpf.replace(/\D/g, "");
-  const cep = input.cep.replace(/\D/g, "");
-  const numeroEndereco = input.numeroEndereco.trim();
-  if (cep.length !== 8) return { ok: false, error: "CEP invalido." };
-  if (!numeroEndereco) return { ok: false, error: "Informe o numero do endereco do titular." };
-  if (cpfNum.length !== 11) return { ok: false, error: "CPF inválido." };
-
-  const { data: plan } = await supabase
-    .from("arena_plans")
-    .select("id, arena_id, nome, valor, dia_vencimento, tipo, ativo")
-    .eq("id", input.planId)
-    .eq("tipo", "mensalidade")
-    .eq("ativo", true)
-    .single();
-
-  if (!plan) return { ok: false, error: "Plano não encontrado." };
-
-  const { data: arena } = await supabase
-    .from("arenas")
-    .select("id")
-    .eq("id", plan.arena_id)
-    .eq("handle", input.handle)
-    .maybeSingle();
-  if (!arena) return { ok: false, error: "Plano não encontrado." };
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("nome")
-    .eq("id", user.id)
-    .single();
-  if (!profile) return { ok: false, error: "Perfil não encontrado." };
-
-  const { data: existingStudent } = await supabase
-    .from("arena_students")
-    .select("id, status")
-    .eq("arena_id", plan.arena_id)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (existingStudent?.status === "ativo") {
-    return { ok: false, error: "Você já é aluno ativo desta arena." };
+    return {
+      ok: false,
+      error: "Novas assinaturas pagas estão pausadas enquanto a Arena está em beta.",
+    };
   }
 
-  let customer: { id: string };
-  try {
-    customer = await criarOuBuscarCliente({ name: profile.nome, email: user.email!, cpfCnpj: cpfNum });
-  } catch {
-    return { ok: false, error: "Erro ao registrar dados do pagador." };
-  }
-
-  // Cria ou reutiliza o vínculo de aluno
-  let studentId: string;
-  if (existingStudent) {
-    await admin
-      .from("arena_students")
-      .update({ plan_id: plan.id, asaas_customer_id: customer.id, valor_mensalidade: plan.valor })
-      .eq("id", existingStudent.id);
-    studentId = existingStudent.id;
-  } else {
-    const { data: newStudent, error: insErr } = await admin
-      .from("arena_students")
-      .insert({
-        arena_id:          plan.arena_id,
-        user_id:           user.id,
-        status:            "pendente",
-        plan_id:           plan.id,
-        valor_mensalidade: plan.valor,
-        asaas_customer_id: customer.id,
-      })
-      .select("id")
-      .single();
-    if (insErr || !newStudent) return { ok: false, error: "Erro ao criar vínculo com a arena." };
-    studentId = newStudent.id;
-  }
-
-  // Calcula data do próximo vencimento
-  const TAXA         = 0.10;
-  const valorTotal   = parseFloat((Number(plan.valor) * (1 + TAXA)).toFixed(2));
-  const diaVenc      = plan.dia_vencimento ?? 10;
-  const now          = new Date();
-  const nextDue      = new Date(now.getFullYear(), now.getMonth(), diaVenc);
-  if (nextDue <= now) nextDue.setMonth(nextDue.getMonth() + 1);
-  const nextDueDate  = nextDue.toISOString().split("T")[0];
-
-  const attempt = await beginCardPaymentAttempt({
-    flow: "arena_subscription",
-    orderReference: studentId,
-    actorId: user.id,
-    cardNumber: input.numero,
-  });
-  if (!attempt.allowed) return { ok: false, error: cardBlockedMessage(attempt.retryAfterSeconds) };
-
-  const result = await createIdempotentSubscription({
-    flow: "arena_subscription",
-    recordId: studentId,
-    externalReference: `arena_student:${studentId}`,
-    amount: valorTotal,
-    customerId: customer.id,
-    nextDueDate,
-    description: `Mensalidade ${plan.nome}`,
-    card: {
-      holderName: input.nomeTitular,
-      number: input.numero,
-      expiryMonth: input.mesValidade,
-      expiryYear: input.anoValidade,
-      ccv: input.cvv,
-    },
-    holder: {
-      name: profile.nome,
-      email: user.email!,
-      cpfCnpj: cpfNum,
-      postalCode: cep,
-      addressNumber: numeroEndereco,
-    },
-    actorId: user.id,
-    metadata: { arenaId: plan.arena_id, planId: plan.id },
-  });
-
-  if (!result.ok) {
-    await finishCardPaymentAttempt(
-      attempt.attemptId,
-      result.ambiguous || result.inProgress ? "ambiguous" : "declined",
-    );
-    return { ok: false, error: result.error };
-  }
-
-  await Promise.all([
-    admin.from("arena_students").update({ asaas_subscription_id: result.provider.id }).eq("id", studentId),
-    supabase.from("profiles_private").upsert({ user_id: user.id, cpf: cpfNum }, { onConflict: "user_id" }),
-  ]);
-  await finishCardPaymentAttempt(attempt.attemptId, "success", result.provider.status);
-  return { ok: true };
+  return {
+    ok: false,
+    error: "Assinaturas recorrentes estão em homologação. Consulte a arena para combinar a matrícula.",
+  };
 }
 
 // ── Plano gratuito (valor = 0) ────────────────────────────────────────────────
@@ -195,8 +39,8 @@ export async function assinarGratuito(planId: string): Promise<AssinarResult> {
     .eq("ativo", true)
     .single();
 
-  if (!plan)                           return { ok: false, error: "Plano não encontrado." };
-  if (Number(plan.valor) !== 0)        return { ok: false, error: "Este plano não é gratuito." };
+  if (!plan) return { ok: false, error: "Plano não encontrado." };
+  if (Number(plan.valor) !== 0) return { ok: false, error: "Este plano não é gratuito." };
 
   const { data: existing } = await supabase
     .from("arena_students")
@@ -205,7 +49,7 @@ export async function assinarGratuito(planId: string): Promise<AssinarResult> {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (existing?.status === "ativo") return { ok: true }; // já ativo, ok
+  if (existing?.status === "ativo") return { ok: true };
 
   if (existing) {
     await admin
@@ -215,7 +59,13 @@ export async function assinarGratuito(planId: string): Promise<AssinarResult> {
   } else {
     const { error } = await admin
       .from("arena_students")
-      .insert({ arena_id: plan.arena_id, user_id: user.id, plan_id: plan.id, status: "ativo", valor_mensalidade: 0 });
+      .insert({
+        arena_id: plan.arena_id,
+        user_id: user.id,
+        plan_id: plan.id,
+        status: "ativo",
+        valor_mensalidade: 0,
+      });
     if (error) return { ok: false, error: "Erro ao criar vínculo com a arena." };
   }
 
@@ -225,17 +75,17 @@ export async function assinarGratuito(planId: string): Promise<AssinarResult> {
 // ── Onboarding pós-pagamento ──────────────────────────────────────────────────
 
 export type OnboardingInput = {
-  nome:            string;
-  dataNascimento:  string; // "YYYY-MM-DD"
-  genero:          string; // "masculino" | "feminino" | "outro"
-  experiencia:     string; // "iniciante" | "menos1" | "1a3" | "mais3"
-  esportes:        string; // JSON array string
-  frequencia:      string; // "nao" | "1-2" | "3-4" | "5+"
-  autoavaliacao:   string; // "basico" | "intermediario" | "avancado"
+  nome: string;
+  dataNascimento: string;
+  genero: string;
+  experiencia: string;
+  esportes: string;
+  frequencia: string;
+  autoavaliacao: string;
 };
 
 export type OnboardingResult =
-  | { ok: true  }
+  | { ok: true }
   | { ok: false; error: string };
 
 export async function salvarOnboardingAtleta(input: OnboardingInput): Promise<OnboardingResult> {
@@ -244,18 +94,14 @@ export async function salvarOnboardingAtleta(input: OnboardingInput): Promise<On
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessão expirada." };
 
-  // Calcula rating inicial baseado nas respostas
   let rating = 800;
-
   if (input.experiencia === "menos1") rating += 100;
-  if (input.experiencia === "1a3")    rating += 350;
-  if (input.experiencia === "mais3")  rating += 600;
-
+  if (input.experiencia === "1a3") rating += 350;
+  if (input.experiencia === "mais3") rating += 600;
   if (input.autoavaliacao === "intermediario") rating += 200;
-  if (input.autoavaliacao === "avancado")      rating += 500;
-
+  if (input.autoavaliacao === "avancado") rating += 500;
   if (input.frequencia === "3-4") rating += 100;
-  if (input.frequencia === "5+")  rating += 150;
+  if (input.frequencia === "5+") rating += 150;
 
   const esportes: string[] = JSON.parse(input.esportes || "[]");
   if (esportes.includes("volei") || esportes.includes("futebol")) rating += 100;
@@ -263,11 +109,7 @@ export async function salvarOnboardingAtleta(input: OnboardingInput): Promise<On
   const [{ error }, { error: privateError }] = await Promise.all([
     admin
       .from("profiles")
-      .update({
-        nome: input.nome.trim(),
-        genero: input.genero || null,
-        rating,
-      })
+      .update({ nome: input.nome.trim(), genero: input.genero || null, rating })
       .eq("id", user.id),
     supabase
       .from("profiles_private")

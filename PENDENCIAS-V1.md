@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`████████████████▏░░░` **81% concluído** — 113 dos 140 marcos P0 originais
-foram concluídos; restam 27 marcos atômicos, agrupados abaixo em 26 entradas
+`████████████████▎░░░` **81% concluído** — 114 dos 140 marcos P0 originais
+foram concluídos; restam 26 marcos atômicos, agrupados abaixo em 25 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -90,9 +90,14 @@ P1/P2 não alteram esse percentual.
   WhatsApp. Ensaio Sandbox concluído em 16/09/2026 para Rafael Teste Sandbox /
   Diego Teste Sandbox: caso criado, atribuído, registrado como aguardando prova
   e resolvido sem dados financeiros adicionais.
-- [ ] Confirmar com o adquirente/processador o escopo PCI/SAQ aplicável ao
-  formulário atual de cartão ou migrar para checkout hospedado/tokenização
-  direta antes de aceitar cartões reais.
+- [x] Migrar os pagamentos únicos por cartão para o checkout hospedado do
+  Asaas antes de aceitar cartões reais: inscrições e ingressos, aluguel e
+  diária não recebem PAN, validade ou CVV no RankFTV. A migration
+  `hosted-arena-card-checkout.sql` foi aplicada em Produção em 30/09/2026.
+- [x] Remover da V1 a captura de cartão e a criação de assinatura recorrente
+  pela plataforma. A assinatura paga permanece bloqueada, e o comprador nunca
+  informa PAN/CVV ao RankFTV. Manter `ARENA_RECURRING_PAYMENTS_ENABLED=0` até
+  existir checkout recorrente hospedado homologado em uma entrega posterior.
 
 ### Operação de campeonatos
 

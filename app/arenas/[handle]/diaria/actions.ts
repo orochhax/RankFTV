@@ -3,12 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { criarOuBuscarCliente } from "@/lib/asaas";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createIdempotentCardCharge } from "@/lib/payment-flows";
-import {
-  beginCardPaymentAttempt,
-  cardBlockedMessage,
-  finishCardPaymentAttempt,
-} from "@/lib/payment-security";
+import { createIdempotentCharge } from "@/lib/payment-flows";
 import {
   arenaDailyPaymentSchema,
   invalidPaymentInput,
@@ -19,18 +14,11 @@ export type DiariaInput = {
   handle:      string;
   data:        string;   // "YYYY-MM-DD"
   cpf:         string;
-  tipo:        "credito" | "debito";
-  numero:      string;
-  nomeTitular: string;
-  mesValidade: string;
-  anoValidade: string;
-  cvv:         string;
-  cep:         string;
-  numeroEndereco: string;
+  tipo:        "credito";
 };
 
 export type DiariaResult =
-  | { ok: true;  pago: boolean }
+  | { ok: true; invoiceUrl: string }
   | { ok: false; error: string };
 
 export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
@@ -44,10 +32,6 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
   const admin = createAdminClient();
 
   const cpfNum = input.cpf.replace(/\D/g, "");
-  const cep = input.cep.replace(/\D/g, "");
-  const numeroEndereco = input.numeroEndereco.trim();
-  if (cep.length !== 8) return { ok: false, error: "CEP invalido." };
-  if (!numeroEndereco) return { ok: false, error: "Informe o numero do endereco do titular." };
   if (cpfNum.length !== 11) return { ok: false, error: "CPF inválido." };
 
   if (!input.data) return { ok: false, error: "Data é obrigatória." };
@@ -70,10 +54,7 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
     .maybeSingle();
   if (!arena) return { ok: false, error: "Plano de diária não encontrado." };
 
-  if (input.tipo === "debito" && !plan.aceita_debito) {
-    return { ok: false, error: "Esta arena não aceita débito para diária." };
-  }
-  if (input.tipo === "credito" && !plan.aceita_credito) {
+  if (!plan.aceita_credito) {
     return { ok: false, error: "Esta arena não aceita crédito para diária." };
   }
 
@@ -95,14 +76,6 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
   const valorBase  = Number(plan.valor);
   const valorTotal = parseFloat((valorBase * (1 + TAXA)).toFixed(2));
 
-  const attempt = await beginCardPaymentAttempt({
-    flow: "arena_daily_pass",
-    orderReference: `${plan.id}:${user.id}:${input.data}`,
-    actorId: user.id,
-    cardNumber: input.numero,
-  });
-  if (!attempt.allowed) return { ok: false, error: cardBlockedMessage(attempt.retryAfterSeconds) };
-
   const { data: passe, error: insErr } = await admin
     .from("arena_daily_passes")
     .insert({
@@ -118,43 +91,22 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
     .single();
 
   if (insErr || !passe) {
-    await finishCardPaymentAttempt(attempt.attemptId, "error", insErr?.code ?? "daily_pass_insert_failed");
     return { ok: false, error: "Erro ao criar diária." };
   }
 
-  const billingType = input.tipo === "credito" ? "CREDIT_CARD" : "DEBIT_CARD";
-
-  const result = await createIdempotentCardCharge({
+  const result = await createIdempotentCharge({
     flow: "arena_daily_pass",
     recordId: passe.id,
     externalReference: `arena_daily:${passe.id}`,
     amount: valorTotal,
     customerId: customer.id,
-    billingType,
+    method: "credito",
     description: `Diária de treino — ${input.data}`,
-    card: {
-      holderName: input.nomeTitular,
-      number: input.numero,
-      expiryMonth: input.mesValidade,
-      expiryYear: input.anoValidade,
-      ccv: input.cvv,
-    },
-    holder: {
-      name: profile.nome,
-      email: user.email!,
-      cpfCnpj: cpfNum,
-      postalCode: cep,
-      addressNumber: numeroEndereco,
-    },
     actorId: user.id,
     metadata: { arenaId: plan.arena_id, planId: plan.id },
   });
 
   if (!result.ok) {
-    await finishCardPaymentAttempt(
-      attempt.attemptId,
-      result.ambiguous || result.inProgress ? "ambiguous" : "declined",
-    );
     if (!result.ambiguous && !result.inProgress) {
       await admin.from("arena_daily_passes").update({ status_pagamento: "cancelado" }).eq("id", passe.id);
     }
@@ -162,15 +114,17 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
   }
 
   const pagamento = result.provider;
-  const pago = pagamento.paga ?? ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(pagamento.status ?? "");
+  if (!pagamento.invoiceUrl) {
+    await admin.from("arena_daily_passes").update({ status_pagamento: "cancelado" }).eq("id", passe.id);
+    return { ok: false, error: "O checkout do cartão não foi gerado. Tente novamente." };
+  }
   await Promise.all([
     admin.from("arena_daily_passes").update({
       asaas_payment_id: pagamento.id,
-      billing_type: billingType,
-      ...(pago ? { status_pagamento: "pago" } : {}),
+      billing_type: "CREDIT_CARD",
+      invoice_url: pagamento.invoiceUrl,
     }).eq("id", passe.id),
     supabase.from("profiles_private").upsert({ user_id: user.id, cpf: cpfNum }, { onConflict: "user_id" }),
   ]);
-  await finishCardPaymentAttempt(attempt.attemptId, "success", pagamento.status);
-  return { ok: true, pago };
+  return { ok: true, invoiceUrl: pagamento.invoiceUrl };
 }

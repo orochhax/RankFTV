@@ -1,18 +1,11 @@
 // Cliente da API do Asaas. Todas as chamadas passam por aqui.
 // Chaves via process.env — nunca hardcoded (ver .env.local).
 //
-// Cartão: a documentação oficial da Asaas (docs.asaas.com) não oferece SDK
-// de tokenização client-side (tipo Stripe.js/Elements) — só backend-to-
-// backend (o que este arquivo faz) ou checkout hospedado (redirect pra fora
-// do site, fora de escopo desta rodada por decisão de produto). A própria
-// Asaas trata o modelo backend-to-backend como compatível com PCI contanto
-// que a conexão seja HTTPS (garantido em produção). Dado isso: número e CVV
-// nunca são persistidos no Supabase (só token/bandeira/últimos 4 dígitos —
-// ver harden-card-token-security.sql, que também tira SELECT do token
-// reutilizável de "authenticated") e nenhum destes arquivos loga o corpo da
-// requisição nem a resposta crua do Asaas em erro — só a descrição
-// estruturada do erro (json.errors[0].description), que a própria Asaas
-// projeta pra mostrar ao usuário final.
+// Cartão: os fluxos públicos de campeonatos usam a fatura hospedada do Asaas
+// (`invoiceUrl`), sem receber número, validade ou CVV no RankFTV. Não adicione
+// campos de cartão a um Client Component para esses fluxos. As funções legadas
+// de cartão abaixo permanecem apenas enquanto os fluxos privados de arena são
+// migrados; elas não podem registrar corpo de requisição ou resposta crua.
 import "server-only"; // build quebra se isso for importado por um Client Component
 import { detectarTipoChavePix } from "@/lib/pix";
 import { isAmbiguousAsaasFailure } from "@/lib/asaas-errors";
@@ -207,152 +200,6 @@ export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriad
   return resultado;
 }
 
-export type CobrancaCartaoInput = {
-  customerId: string;
-  valor: number;
-  billingType: "CREDIT_CARD" | "DEBIT_CARD";
-  descricao: string;
-  externalReference: string;
-  cartao: CartaoInput;
-  titular: TitularInput;
-  parcelas?: number;
-  remoteIp?: string;
-};
-
-export type CobrancaCartaoResultado = {
-  id: string;
-  status: string;
-  invoiceUrl?: string;
-  billingType: string;
-  paga: boolean;
-};
-
-export async function criarCobrancaCartao(input: CobrancaCartaoInput): Promise<CobrancaCartaoResultado> {
-  const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 1);
-  const valor = Number(input.valor.toFixed(2));
-  const body: Record<string, unknown> = {
-    customer: input.customerId,
-    billingType: input.billingType,
-    value: valor,
-    dueDate: dueDate.toISOString().slice(0, 10),
-    description: input.descricao,
-    externalReference: input.externalReference,
-    creditCard: {
-      holderName: input.cartao.holderName.toUpperCase(),
-      number: input.cartao.number.replace(/\D/g, ""),
-      expiryMonth: input.cartao.expiryMonth,
-      expiryYear: input.cartao.expiryYear,
-      ccv: input.cartao.ccv,
-    },
-    creditCardHolderInfo: input.titular,
-    ...(input.remoteIp ? { remoteIp: input.remoteIp } : {}),
-  };
-
-  const parcelas = Math.max(1, Math.floor(input.parcelas ?? 1));
-  if (input.billingType === "CREDIT_CARD" && parcelas > 1) {
-    body.installmentCount = parcelas;
-    body.installmentValue = Number((valor / parcelas).toFixed(2));
-  }
-
-  const payment = await request<{ id: string; status: string; invoiceUrl?: string; billingType?: string }>(
-    "/payments",
-    { method: "POST", body: JSON.stringify(body) },
-  );
-  return {
-    id: payment.id,
-    status: payment.status,
-    invoiceUrl: payment.invoiceUrl,
-    billingType: payment.billingType ?? input.billingType,
-    paga: ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(payment.status),
-  };
-}
-
-export type AssinaturaCartaoResultado = { id: string; status?: string };
-
-export async function criarAssinaturaCartao(input: {
-  customerId: string;
-  valor: number;
-  nextDueDate: string;
-  descricao: string;
-  externalReference: string;
-  cartao: CartaoInput;
-  titular: TitularInput;
-}): Promise<AssinaturaCartaoResultado> {
-  return request<AssinaturaCartaoResultado>("/subscriptions", {
-    method: "POST",
-    body: JSON.stringify({
-      customer: input.customerId,
-      billingType: "CREDIT_CARD",
-      value: Number(input.valor.toFixed(2)),
-      nextDueDate: input.nextDueDate,
-      cycle: "MONTHLY",
-      description: input.descricao,
-      externalReference: input.externalReference,
-      creditCard: {
-        holderName: input.cartao.holderName.toUpperCase(),
-        number: input.cartao.number.replace(/\D/g, ""),
-        expiryMonth: input.cartao.expiryMonth,
-        expiryYear: input.cartao.expiryYear,
-        ccv: input.cartao.ccv,
-      },
-      creditCardHolderInfo: input.titular,
-    }),
-  });
-}
-
-// ── Cartão salvo (tokenização) ────────────────────────────────────────────────
-// Registra o cartão no Asaas sem criar cobrança nenhuma — usado pra "cadastrar
-// ou trocar o cartão padrão" fora de um checkout. O token devolvido é opaco:
-// só serve pra cobrar de novo através da própria API do Asaas. Número
-// completo e CVV vão só nesta chamada, direto pro Asaas, e nunca são
-// persistidos no Supabase — só o token, a bandeira e os 4 últimos dígitos.
-export type CartaoInput = {
-  holderName:  string;
-  number:      string;
-  expiryMonth: string;
-  expiryYear:  string;
-  ccv:         string;
-};
-
-export type TitularInput = {
-  name:          string;
-  email:         string;
-  cpfCnpj:       string;
-  postalCode:    string;
-  addressNumber: string;
-  addressComplement?: string | null;
-  phone?:         string;
-  mobilePhone?:   string;
-};
-
-export type CartaoTokenizado = {
-  creditCardToken:  string;
-  creditCardNumber: string; // 4 últimos dígitos
-  creditCardBrand:  string;
-};
-
-export async function tokenizarCartao(input: {
-  customerId: string;
-  cartao:     CartaoInput;
-  titular:    TitularInput;
-}): Promise<CartaoTokenizado> {
-  return request<CartaoTokenizado>("/creditCard/tokenize", {
-    method: "POST",
-    body: JSON.stringify({
-      customer:      input.customerId,
-      creditCard:    {
-        holderName:  input.cartao.holderName.toUpperCase(),
-        number:      input.cartao.number,
-        expiryMonth: input.cartao.expiryMonth,
-        expiryYear:  input.cartao.expiryYear,
-        ccv:         input.cartao.ccv,
-      },
-      creditCardHolderInfo: input.titular,
-    }),
-  });
-}
-
 // ── Cobrança usando um cartão já tokenizado ────────────────────────────────────
 // Usada pra cobrar depois — sem o comprador digitar o cartão de novo — como a
 // aula avulsa cobrada só quando o professor confirma presença.
@@ -371,9 +218,8 @@ export type CobrancaComTokenResultado = {
   paga:   boolean;
 };
 
-// Cobrar com um token já registrado NÃO reenvia creditCardHolderInfo — os
-// dados antifraude do titular já foram enviados uma vez, na tokenização
-// (tokenizarCartao), e ficam associados ao token no Asaas.
+// O token foi criado fora do RankFTV. Este caminho existe somente para
+// reconciliação de registros legados; novas cobranças usam checkout hospedado.
 export async function cobrarComToken(input: CobrancaComTokenInput): Promise<CobrancaComTokenResultado> {
   const valorTotal = parseFloat(Number(input.valorBase).toFixed(2));
   const dueDate = new Date();
