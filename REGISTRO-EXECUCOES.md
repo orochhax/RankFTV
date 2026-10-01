@@ -1,0 +1,69 @@
+# Registro de Execuções — RankFTV
+
+Registro permanente de ações técnicas realizadas, evidências e bloqueios. Antes
+de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
+o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
+registrar apenas uma revalidação quando ela for necessária.
+
+## 2026-10-01 — Ampliação do teste de capacidade V1
+
+- Status: concluído no Sandbox/Preview; a correlação de infraestrutura continua
+  pendente como item próprio no checklist.
+- Escopo: somente Sandbox/Preview, exclusivamente GETs; sem pagamentos,
+  inscrições, contas reais ou dados financeiros.
+- Feito: o k6 passou a cobrir home, listagem de campeonatos, arenas, notícias,
+  login, cadastro, detalhes do campeonato, categorias, chaveamento e placar.
+  O executor autenticado cria sessões efêmeras, sem imprimir ou persistir
+  cookies.
+- Evidência: a primeira amostra pública de 14 requisições teve p95 de 1,76 s
+  por uma resposta isolada de 2,22 s. A repetição autenticada, em 01/10/2026,
+  aprovou 32/32 checks, 0% de erros e p95 geral de 773,76 ms.
+- Evidência principal: perfil autenticado de 17 minutos em
+  `rank-ftv-git-sandbox-homologacao-devcarlosrochas-projects.vercel.app`, com
+  rampa até 25 VUs e cinco minutos sustentados, concluiu 6.497 requisições
+  (6,37 RPS), 12.994/12.994 checks, 0% de falhas e 0 interrupções. Média
+  420,71 ms; p95 geral 669,19 ms; p95 público 448,08 ms; p95 de campeonato
+  411,58 ms; p95 autenticado 756,81 ms; máximo 2,27 s.
+- Artefatos locais ignorados pelo Git: `.codex-artifacts/k6-authenticated-smoke-2026-10-01.json`
+  e `.codex-artifacts/k6-authenticated-capacity-2026-10-01.json`.
+- Revalidação do executor após refatoração: smoke autenticado aprovou 28/28
+  checks, 0% de falhas e p95 geral de 716,32 ms; a checagem sintática e o lint
+  dos scripts não apresentaram erros nem avisos.
+- Limite: não foram feitas mutações, pagamentos ou inscrições. A análise de
+  banco, queries lentas, bloqueios, Vercel e serviços externos exige acesso às
+  métricas correspondentes e permanece explicitamente pendente.
+
+## 2026-10-01 — Verificação de secrets dos workers P0
+
+- Status: concluído, sem alteração de segredo.
+- Evidência: a listagem segura do GitHub Environment `Production` confirmou a
+  existência de `FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET` em 01/10/2026.
+  Nenhum valor foi exibido, copiado ou registrado.
+- Resultado: o bloqueio remanescente é promover os workflows para a branch
+  padrão e comprovar sua execução periódica; não é mais o cadastro dos secrets.
+
+## 2026-10-01 — Smoke E2E não financeiro no Sandbox
+
+- Status: concluído parcialmente, dentro do escopo não financeiro.
+- Evidência: `scripts/test-e2e-sandbox.ps1` preparou a conta descartável de
+  atleta e executou Playwright contra o Preview/Sandbox. Resultado: 40 testes
+  aprovados em Chromium, Firefox, WebKit e versões mobile, em 59 segundos.
+- Cobertura aprovada: CSP, robots/sitemap, bloqueio de admin anônimo, layout
+  de login em viewport estreito, compras do atleta e painel do organizador;
+  também rejeitou token e schema inválidos de webhook antes de tocar estado
+  financeiro.
+- Limite: 45 cenários mutantes foram deliberadamente ignorados porque a
+  execução manteve `E2E_ASAAS_MUTATION_TESTS=0`,
+  `E2E_CARD_GUARD_MUTATION_TESTS=0` e
+  `E2E_CHECKOUT_MUTATION_TESTS=0`. A homologação completa de compra,
+  pagamento, cancelamento e estorno continua pendente e não foi repetida.
+
+## 2026-09-30 — Checkout hospedado e hardening de V1
+
+- Status: concluído e versionado na PR #25.
+- Evidências principais: checkout hospedado do Asaas para cartão, sem PAN/CVV
+  no RankFTV; migration `supabase/hosted-arena-card-checkout.sql` aplicada em
+  Production; observabilidade Better Stack/Slack e backup verificados.
+- Verificação de código: typecheck, build e testes automatizados passaram no
+  ciclo de 30/09. Para detalhes, consultar commits `7c26636`, `2db8e5a`,
+  `0949d3f`, `cc19773`, `f3417c3` e `b4aea09`.

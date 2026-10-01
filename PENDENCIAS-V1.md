@@ -1,14 +1,14 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 30/09/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 01/10/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
 `AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
 
 ## Progresso da V1
 
-`████████████████▎░░░` **82% concluído** — 115 dos 140 marcos P0 originais
-foram concluídos; restam 25 marcos atômicos, agrupados abaixo em 24 entradas
+`████████████████▋░░░` **84% concluído** — 117 dos 140 marcos P0 originais
+foram concluídos; restam 23 marcos atômicos, agrupados abaixo em 22 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -50,6 +50,10 @@ P1/P2 não alteram esse percentual.
   recuperaram somente a credencial correspondente e o código foi consumido em
   uso único. A implementação com Zod, reautorização e mensagens públicas já
   está no código; falta a evidência funcional completa dos demais fluxos.
+  Em 01/10, o smoke E2E não financeiro aprovou 40 testes em Chromium, Firefox,
+  WebKit e mobile (CSP, acesso anônimo, login, compras e painel). Os 45
+  cenários que criam cobranças, reservas ou efeitos financeiros permaneceram
+  bloqueados intencionalmente e não contam como homologação completa.
 - [x] Confirmar a equivalência do schema de produção com o código e aplicar,
   com backup e janela sem checkout, somente migrations já homologadas. Seguir
   a ordem de `RUNBOOK-PRODUCAO.md` e registrar objetos aplicados. Auditoria
@@ -64,12 +68,10 @@ P1/P2 não alteram esse percentual.
   após oito tentativas; não foi feito replay sem evidência do provedor.
 - [ ] Configurar no ambiente `Production` do GitHub Actions
   `FINANCIAL_RECONCILIATION_URL` e `CRON_SECRET`, após promover o workflow para
-  a branch padrão. Em 29/09, a URL fixa foi cadastrada no environment
-  `Production`; `CRON_SECRET` continua apenas no nível geral do repositório e
-  precisa ser confirmado/movido sem revelar seu valor. O workflow está ativo e as
-  dez execuções recentes terminaram com sucesso, porém os intervalos observados
-  foram de horas, não dez minutos; corrigir o agendamento ou adotar um executor
-  subdiário confiável, mantendo o cron diário da Vercel como contingência.
+  a branch padrão. Em 01/10, a listagem segura do environment confirmou ambos
+  os secrets, sem revelar valores. O workflow só passará a usar o agendamento
+  subdiário desta branch quando for promovido à branch padrão; manter o cron
+  diário da Vercel como contingência.
 - [ ] Promover e comprovar os workers de avisos de campeonato e financeiros do
   organizador. Ambos possuem workflow periódico de 15 minutos nesta branch e
   cron diário de contingência na Vercel, mas só serão agendados pelo GitHub após
@@ -159,19 +161,27 @@ P1/P2 não alteram esse percentual.
 - [ ] Executar smoke final em produção: cadastro, login, recuperação, checkout,
   Pix, cartão, credenciais individuais, e-mail, QR, check-in, chaveamento,
   cancelamento, reembolso e financeiro.
-- [ ] Executar teste de capacidade com k6 e dados falsos, somente depois dos
+- [x] Executar teste de capacidade com k6 e dados falsos, somente depois dos
   fluxos críticos estáveis no Sandbox.
   - [x] Script somente-leitura e roteiro seguro preparados em
     `scripts/k6-sandbox-smoke.js` e `docs/TESTE-CAPACIDADE-SANDBOX.md`.
-  - [ ] Cobrir navegação pública, login, painel, campeonatos, chaveamento,
+  - [x] Cobrir navegação pública, login, painel, campeonatos, chaveamento,
     consultas de ingresso/QR e placares; mutações e pagamentos só no Sandbox.
+    Em 01/10, o script passou a cobrir páginas públicas, autenticação,
+    campeonato, categorias, chaveamento e placar; com sessão descartável
+    opcional, também cobre compras, ingressos, painel, chaveamento gerencial e
+    check-in. Em 01/10, o smoke autenticado e a capacidade de 17 minutos
+    aprovaram 12.994/12.994 checks e 0% de falhas, exclusivamente com GETs e
+    contas descartáveis no Sandbox.
   - [x] Subir gradualmente 5, 10 e 25 usuários virtuais, aplicar pico controlado
     e sustentar ao menos 15 minutos; concluído no Preview em 29/09/2026, com
     17 minutos totais e cinco minutos sustentados em 25 usuários.
   - [ ] Medir RPS, erros, média e p95, banco, queries lentas, bloqueios,
     timeouts Vercel e falhas externas. A camada HTTP já foi medida: 6,57 RPS,
     0% de erro, média de 356,36 ms e p95 de 463,65 ms em 6.715 requisições;
-    falta correlacionar banco, Vercel e o outlier máximo de 26,74 s.
+    Em 01/10, a rodada autenticada obteve 6,37 RPS, 0% de erro, média de
+    420,71 ms e p95 de 669,19 ms em 6.497 requisições; falta correlacionar
+    banco, Vercel e serviços externos, inclusive os outliers máximos.
   - [ ] Aprovar inicialmente com menos de 1% de erros, p95 de API abaixo de
     1,5 s, páginas em 2–3 s e zero duplicação financeira ou operacional. Os
     critérios HTTP públicos passaram; autenticação, rotas operacionais e
