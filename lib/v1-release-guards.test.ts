@@ -284,6 +284,12 @@ test("categories with operational history cannot be deleted or trigger refunds",
   assert.doesNotMatch(migration, /refund|reembolso|estorno/i);
 });
 
+test("new championship creation does not expose database errors", () => {
+  const action = source("app/painel/novo-campeonato/actions.ts");
+  assert.doesNotMatch(action, /error:\s*error\?\.message/);
+  assert.match(action, /Não foi possível criar o campeonato\. Tente de novo\./);
+});
+
 test("athlete check-in is suspended atomically while a refund is active", () => {
   const migration = source("supabase/production-athlete-ticket-refund-checkin-guard.sql");
   const manualCheck = source("supabase/manual-tests/athlete-ticket-refund-checkin-guard-check.sql");
