@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`████████████████▎░░░` **81% concluído** — 114 dos 140 marcos P0 originais
-foram concluídos; restam 26 marcos atômicos, agrupados abaixo em 25 entradas
+`████████████████▎░░░` **82% concluído** — 115 dos 140 marcos P0 originais
+foram concluídos; restam 25 marcos atômicos, agrupados abaixo em 24 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -117,9 +117,10 @@ P1/P2 não alteram esse percentual.
     indisponibilidade temporária e pico, garantindo um aviso por evento.
 - [ ] Verificar em produção o domínio/remetente transacional: SPF, DKIM, DMARC
   e entrega em Gmail e Outlook. Em 29/09, DNS público confirmou SPF em
-  `send.rankftv.com`, DKIM e DMARC em monitoramento (`p=none`). Ainda faltam
-  configurar `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET` e o segredo dedicado
-  de hash no ambiente Production, além de comprovar entrega em Gmail e Outlook.
+  `send.rankftv.com`, DKIM e DMARC em monitoramento (`p=none`). Em 30/09, a
+  Vercel Production confirmou a presença de `RESEND_FROM_EMAIL`,
+  `RESEND_WEBHOOK_SECRET` e `EMAIL_EVENT_HASH_SECRET`; falta comprovar a
+  entrega ponta a ponta no Gmail e Outlook e revisar a política DMARC.
 
 ### Operação, suporte e conformidade
 
@@ -132,9 +133,12 @@ P1/P2 não alteram esse percentual.
   resposta reais.
 - [ ] Obter revisão jurídica da política de cancelamento/reembolso e do fluxo
   LGPD.
-- [ ] Configurar `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN` e
-  `OPERATIONS_ALERT_WEBHOOK_URL` de produção com responsável e SLA. As três
-  variáveis estavam ausentes na Vercel Production em 29/09/2026.
+- [x] Configurar observabilidade e alertas operacionais em Production. Em
+  30/09/2026, a Vercel confirmou `OBSERVABILITY_HTTP_ENDPOINT`,
+  `OBSERVABILITY_HTTP_TOKEN` e `OPERATIONS_ALERT_WEBHOOK_URL`; o Better Stack
+  recebeu logs e o Slack recebeu o alerta de teste. Responsável: Carlos
+  Gregório Rocha Batista. SLA: crítico em até 15 minutos; alta prioridade em
+  até 1 hora.
 - [x] Cadastrar os quatro secrets do workflow de backup e comprovar a primeira
   execução de backup lógico e de Storage fora da máquina do operador. Em
   30/09/2026, a execução manual `36652847512` concluiu com sucesso usando o
