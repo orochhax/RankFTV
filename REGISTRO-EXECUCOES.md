@@ -5,6 +5,21 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-01 — Merge controlado da PR #25 em `master`
+
+- Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
+  financeiros`) foi mesclada por squash em `master` no commit `255a85e6`.
+- Evidência: os três checks obrigatórios estavam aprovados antes do merge:
+  CI/verify, Vercel e Vercel Preview Comments; a PR não tinha conflitos.
+- Resultado de V1: checkout de cartão hospedado pelo Asaas passou a integrar
+  `master`. O RankFTV não recebe PAN ou CVV nos fluxos de campeonato, aluguel,
+  diária ou assinatura. A pendência PCI correspondente foi marcada concluída
+  em `PENDENCIAS-V1.md`.
+- Limite de verificação: a confirmação visual do deployment de Production da
+  Vercel continua pendente. A verificação HTTP pelo endereço configurado
+  localmente não é utilizável como prova porque a conexão foi recusada; nenhum
+  segredo foi exibido nem alterado. Não houve teste financeiro em produção.
+
 ## 2026-10-01 — Resolução de conflitos da PR #25 com `master`
 
 - Status: concluído localmente e pendente de validação remota após o envio da
