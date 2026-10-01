@@ -421,3 +421,40 @@ export async function buscarTransferenciaPorReferencia(
   }
   return null;
 }
+
+export type AntecipacaoAsaas = {
+  id?: string;
+  status?: string;
+  fee: number;
+  netValue: number;
+  totalValue?: number;
+  value?: number;
+  anticipationDate?: string;
+  dueDate?: string;
+  anticipationDays?: number;
+  isDocumentationRequired?: boolean;
+};
+
+export async function simularAntecipacaoPagamento(paymentId: string): Promise<AntecipacaoAsaas> {
+  return request<AntecipacaoAsaas>("/anticipations/simulate", {
+    method: "POST",
+    body: JSON.stringify({ payment: paymentId }),
+  });
+}
+
+export async function solicitarAntecipacaoPagamento(paymentId: string): Promise<AntecipacaoAsaas> {
+  return request<AntecipacaoAsaas>("/anticipations", {
+    method: "POST",
+    body: JSON.stringify({ payment: paymentId }),
+  });
+}
+
+export async function consultarAntecipacao(id: string): Promise<AntecipacaoAsaas> {
+  return request<AntecipacaoAsaas>(`/anticipations/${encodeURIComponent(id)}`);
+}
+
+export async function buscarAntecipacaoPorPagamento(paymentId: string): Promise<AntecipacaoAsaas | null> {
+  const query = new URLSearchParams({ payment: paymentId, limit: "100", offset: "0" });
+  const page = await request<{ data?: AntecipacaoAsaas[] }>(`/anticipations?${query}`);
+  return page.data?.[0] ?? null;
+}

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { executarRepasseEspectador } from "@/lib/repasse";
 import {
   confirmarInscricaoPaga, estornarInscricao,
   confirmarAthleteTicketPago, estornarAthleteTicket,
@@ -578,7 +577,8 @@ async function handleAsaasWebhook(req: NextRequest) {
       return NextResponse.json({ ok: true, tipo: "espectador", status: novoStatus });
     }
 
-    // Pago → repasse integral pra chave Pix do organizador
+    // Pago -> entra na carteira individual. O organizador decide quando sacar;
+    // este webhook nunca transfere automaticamente a mesma venda.
     const { data: ticket } = await supabase
       .from("spectator_tickets")
       .select("id, championship_id, valor")
@@ -586,48 +586,17 @@ async function handleAsaasWebhook(req: NextRequest) {
       .single();
 
     if (ticket) {
-      const { data: champ } = await supabase
-        .from("championships")
-        .select("nome, organizador_id")
-        .eq("id", ticket.championship_id)
-        .single();
-
-      if (champ) {
-        const { data: org } = await supabase
-          .from("organizer_accounts")
-          .select("chave_pix, chave_pix_atualizada_em")
-          .eq("user_id", champ.organizador_id)
-          .single();
-        const chavePix = org?.chave_pix as string | undefined;
-        const valor    = Number(ticket.valor ?? 0);
-
-        if (chavePix && valor > 0) {
-          const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
-          if (dias === 0) {
-            const { data: claimed } = await supabase
-              .from("spectator_tickets")
-              .update({ repasse_status: "processando" })
-              .eq("id", ticketId)
-              .eq("repasse_status", "pendente")
-              .select("id");
-            if (claimed && claimed.length > 0) {
-              await executarRepasseEspectador(
-                supabase,
-                { ticketId, champNome: champ.nome, chavePix, chavePixAtualizadaEm: org?.chave_pix_atualizada_em ?? null, valor },
-                "pendente",
-              );
-            }
-          } else {
-            const dataRepasse = new Date();
-            dataRepasse.setDate(dataRepasse.getDate() + dias);
-            await supabase
-              .from("spectator_tickets")
-              .update({ repasse_status: "aguardando_liquidacao", repasse_data_prevista: dataRepasse.toISOString() })
-              .eq("id", ticketId)
-              .eq("repasse_status", "pendente");
-          }
-        }
-      }
+      const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
+      const dataRepasse = new Date();
+      dataRepasse.setDate(dataRepasse.getDate() + dias);
+      await supabase
+        .from("spectator_tickets")
+        .update({
+          repasse_status: dias === 0 ? "disponivel" : "aguardando_liquidacao",
+          repasse_data_prevista: dataRepasse.toISOString(),
+        })
+        .eq("id", ticketId)
+        .eq("repasse_status", "pendente");
     }
 
     if (ticket?.championship_id) await notifyOrganizerFinancialEvent({ championshipId: ticket.championship_id, recordType: "spectator_ticket", recordId: ticketId, payment, event });
