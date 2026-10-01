@@ -25,6 +25,28 @@ registrar apenas uma revalidação quando ela for necessária.
   visual. Isto não inclui `is_elite` (plano comercial/financeiro) nem lotes de
   preço, que são conceitos distintos e devem permanecer.
 
+## 2026-10-01 — Auditoria das promessas dos planos Padrão e Elite
+
+- Status: diagnóstico concluído; nenhum plano, preço ou fluxo foi alterado.
+- Confirmado em código: inscrição e pagamento online, QR/check-in,
+  chaveamento público com resultados, financeiro por campeonato, comunicação
+  por e-mail e notificação para inscritos pagos, e gestão de tamanhos de
+  camisa existem nos dois planos. A redução de taxa Elite também é aplicada:
+  Pix 7% versus 8% e cartão 9% versus 10%, com o mesmo piso de R$ 3,99.
+- Incompatibilidades encontradas: “categoria balanceada” está desativada na
+  V1 pela flag de release; não deve ser vendida no Elite. “Suporte pelo
+  WhatsApp” não possui canal oficial configurado, conforme a pendência de
+  compra/configuração do chip no checklist V1; não deve constar como benefício
+  disponível até sua ativação.
+- Benefícios Elite operacionais, não automáticos: call com CEO, publicação em
+  stories e destaque na home exigem execução humana. Em particular, o destaque
+  é escolhido manualmente pelo administrador e não é concedido pela ativação
+  do Elite. A redação deve deixar essa condição explícita ou removê-los.
+- Ressalva de cobertura: o painel de camisas consolida as inscrições
+  autenticadas; os atletas do checkout de visitante precisam ser incluídos nele
+  antes de a promessa poder ser considerada completa para todos os fluxos de
+  compra.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
