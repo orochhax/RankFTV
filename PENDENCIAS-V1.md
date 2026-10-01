@@ -88,9 +88,13 @@ P1/P2 não alteram esse percentual.
     reconciliação.
   - [x] Permitir selecionar vendas de cartão para antecipação, simular e exibir
     a taxa antes da confirmação e descontá-la somente do recebível escolhido.
-  - [ ] Aplicar `supabase/organizer-wallet-withdrawals.sql` primeiro no Sandbox,
-    publicar o código depois e homologar Pix, D+3, D+32, antecipação, documento
-    exigido, falha do provedor, timeout e estorno. Repetir em produção somente
+  - [x] Aplicar `supabase/organizer-wallet-withdrawals.sql` no Sandbox e executar
+    `supabase/manual-tests/organizer-wallet-check.sql`. Em 01/10/2026, as onze
+    verificações estruturais retornaram `true`.
+  - [ ] Publicar o código em ambiente ligado ao Sandbox e homologar Pix, D+3,
+    D+32, saque parcial, antecipação parcial, documento exigido, falha do
+    provedor, timeout, concorrência e estorno.
+  - [ ] Repetir migration e deploy em produção somente após a matriz do Sandbox,
     em janela sem checkout e com backup confirmado.
 
 - [ ] Concluir a homologação de reembolso sem conta para Pix e cartão nos
