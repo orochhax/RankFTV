@@ -94,9 +94,10 @@ P1/P2 não alteram esse percentual.
   - [x] Criar e homologar visualmente a massa fictícia exclusiva do campeonato
     Sandbox Financeiro 2026 (8 pagas, 2 pendentes e 1 estornada), incluindo os
     modais de liberações e de seleção para saque.
-  - [x] Aplicar `supabase/organizer-wallet-withdrawals.sql` no Sandbox e executar
-    `supabase/manual-tests/organizer-wallet-check.sql`. Em 01/10/2026, as onze
-    verificações estruturais retornaram `true`.
+  - [x] Aplicar as migrations da carteira no Sandbox e executar
+    `supabase/manual-tests/organizer-wallet-check.sql`. Em 01/10/2026, as
+    quatorze verificações estruturais retornaram `true`, incluindo o bloqueio
+    do saque por valor livre e a reserva atômica da seleção de recebíveis.
   - [ ] Publicar o código em ambiente ligado ao Sandbox e homologar Pix, D+3,
     D+32, saque parcial, antecipação parcial, documento exigido, falha do
     provedor, timeout, concorrência e estorno.
