@@ -5,6 +5,36 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-01 — Decisão P0: parcelamento com repasse integral em D+32
+
+- Status: decisão de produto registrada; implementação e homologação pendentes
+  e bloqueiam a abertura de pagamentos reais.
+- Decisão: inscrições e ingressos devem aceitar cartão à vista ou parcelado no
+  checkout hospedado do Asaas. Mesmo se o comprador parcelar, o organizador
+  deve receber uma única transferência do valor integral em D+32, não uma
+  transferência por parcela.
+- Evidência oficial: o Asaas permite Checkout com `INSTALLMENT` e limite de
+  parcelas por `maxInstallmentCount` (1 a 21). A antecipação do parcelamento
+  completo exige simulação e solicitação com o identificador do parcelamento;
+  a liberação depende de elegibilidade, limite, análise e, às vezes,
+  documentação. A taxa é consultada por conta e é descontada no crédito da
+  antecipação — não há percentual único que possa ser divulgado pelo RankFTV.
+  Fontes: `docs.asaas.com/docs/checkout-para-cartão-de-crédito`,
+  `docs.asaas.com/docs/antecipacoes` e Central de Ajuda do Asaas em
+  01/10/2026.
+- Diagnóstico do código em 01/10: as colunas
+  `max_parcelas_inscricao`/`max_parcelas_ingresso` são persistidas na publicação,
+  mas não configuram a criação do Checkout. O fluxo atual classifica todo cartão
+  como `CREDIT_CARD` e agenda uma transferência única de D+32; ele não rastreia
+  uma antecipação, suas taxas ou o ciclo de cada parcela. Portanto, o aviso de
+  que o organizador receberia parcelado não representa uma promessa que o
+  produto deva manter e precisa ser substituído durante a implementação P0.
+- Limite de viabilidade: antecipação não é uma liquidação incondicional. Para
+  prometer D+32 a todos os organizadores, o RankFTV precisará de elegibilidade
+  prévia/antecipação automática aprovada pelo Asaas ou de reserva financeira
+  própria para cobrir antecipações recusadas; de outro modo, a promessa precisa
+  ser condicionada à aprovação da operação.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
