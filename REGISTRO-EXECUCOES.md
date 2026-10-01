@@ -15,10 +15,12 @@ registrar apenas uma revalidação quando ela for necessária.
   `master`. O RankFTV não recebe PAN ou CVV nos fluxos de campeonato, aluguel,
   diária ou assinatura. A pendência PCI correspondente foi marcada concluída
   em `PENDENCIAS-V1.md`.
-- Limite de verificação: a confirmação visual do deployment de Production da
-  Vercel continua pendente. A verificação HTTP pelo endereço configurado
-  localmente não é utilizável como prova porque a conexão foi recusada; nenhum
-  segredo foi exibido nem alterado. Não houve teste financeiro em produção.
+- Evidência de deploy: em 01/10/2026, a listagem da Vercel mostrou o deployment
+  `V1: checkout hospedado...`, commit `255a85e`, ambiente `Production` e estado
+  `Ready` (53 s). A abertura pública de campeonatos também respondeu
+  normalmente. Nenhum segredo foi exibido nem alterado.
+- Limite: não houve teste financeiro em produção; o smoke transacional continua
+  sendo uma etapa supervisionada própria.
 
 ## 2026-10-01 — Resolução de conflitos da PR #25 com `master`
 
