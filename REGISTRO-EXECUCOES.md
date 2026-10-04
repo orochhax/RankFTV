@@ -210,6 +210,13 @@ registrar apenas uma revalidação quando ela for necessária.
   possui as variáveis públicas do Supabase. O erro ocorreu antes dos cenários,
   em `getSupabasePublicConfig`; não representa aprovação nem reprovação do E2E.
   O CI/Preview conectado ao Sandbox continua obrigatório para essa cobertura.
+- Versionamento: o hardening foi consolidado no commit `2c90c7c`
+  (`fix: endurecer conciliacao financeira da carteira`) e enviado à branch
+  `feat/organizer-wallet`, na PR #33.
+- CI: execução `37229955457` aprovada em 3 min 48 s: auditoria, lint,
+  typecheck, 813 testes unitários/contrato, build e 30 cenários Playwright
+  passaram; 60 cenários ficaram ignorados por exigirem credenciais ou mutações
+  explícitas de Sandbox. O Preview da Vercel também ficou `SUCCESS`.
 
 ## 2026-10-02 — Hardening complementar da carteira do organizador
 
