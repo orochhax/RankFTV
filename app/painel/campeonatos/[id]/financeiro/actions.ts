@@ -5,8 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PRECO_ELITE } from "@/lib/elite";
 import { registrarAuditoria } from "@/lib/audit";
+import { reportOperationalEvent } from "@/lib/observability";
 import { compararTitularidadePix, pixKeyEmCooldown } from "@/lib/pix";
-import { AsaasApiError, consultarCpfCnpjTitularPix, consultarCobranca, simularAntecipacaoPagamento, solicitarAntecipacaoPagamento } from "@/lib/asaas";
+import { AsaasApiError, buscarAntecipacaoPorPagamento, consultarAntecipacao, consultarCpfCnpjTitularPix, consultarCobranca, simularAntecipacaoPagamento, solicitarAntecipacaoPagamento } from "@/lib/asaas";
 import { transferIdempotently } from "@/lib/payment-flows";
 import {
   confirmarInscricaoPaga, estornarInscricao,
@@ -487,25 +488,79 @@ export async function solicitarAntecipacoesOrganizador(
         continue;
       }
 
-      const anticipation = await solicitarAntecipacaoPagamento(paymentId);
+      const { data: claim, error: claimError } = await admin.rpc("begin_organizer_anticipation_submission", {
+        p_anticipation_id: anticipationId,
+      });
+      if (claimError || !claim || typeof claim !== "object") throw new Error("anticipation_claim_failed");
+      const claimResult = claim as { claimed?: boolean; status?: string; providerId?: string | null };
+      let anticipation: Awaited<ReturnType<typeof solicitarAntecipacaoPagamento>> | null = null;
+      if (claimResult.claimed) {
+        anticipation = await solicitarAntecipacaoPagamento(paymentId);
+      } else {
+        // Never POST twice for this reservation. Reconcile the provider first,
+        // even when the original call timed out before persisting its response.
+        anticipation = claimResult.providerId
+          ? await consultarAntecipacao(claimResult.providerId)
+          : await buscarAntecipacaoPorPagamento(paymentId);
+        if (!anticipation) {
+          await reportOperationalEvent({
+            level: "critical", event: "wallet.anticipation_missing_after_submission",
+            message: "Antecipação reservada sem confirmação local ou no provedor; reserva preservada.",
+            context: { anticipationId }, alert: true,
+          });
+          requested++;
+          continue;
+        }
+      }
       const providerStatus = anticipation.status ?? "PENDING";
+      const actualFee = Number(anticipation.fee);
+      const actualNet = Number(anticipation.netValue);
+      const credited = providerStatus === "CREDITED";
+      if (credited && (!Number.isFinite(actualFee) || !Number.isFinite(actualNet))) {
+        await admin.rpc("update_organizer_anticipation", {
+          p_anticipation_id: anticipationId, p_status: "provider_pending",
+          p_provider_id: anticipation.id ?? null, p_provider_status: providerStatus,
+          p_error_code: "provider_amounts_missing",
+        });
+        requested++;
+        continue;
+      }
       await admin.rpc("update_organizer_anticipation", {
         p_anticipation_id: anticipationId,
-        p_status: providerStatus === "CREDITED" ? "credited" : "provider_pending",
+        p_status: credited ? "credited" : "provider_pending",
         p_quoted_fee: quote.fee,
         p_quoted_net_value: quote.netValue,
         p_provider_id: anticipation.id ?? null,
         p_provider_status: providerStatus,
+        p_actual_fee: Number.isFinite(actualFee) ? actualFee : null,
+        p_actual_net_value: Number.isFinite(actualNet) ? actualNet : null,
       });
+      if (credited && (Math.abs(actualFee - Number(quote.fee)) > 0.009
+        || Math.abs(actualNet - Number(quote.netValue)) > 0.009)) {
+        await reportOperationalEvent({
+          level: "warn", event: "wallet.anticipation_provider_amount_changed",
+          message: "Taxa ou valor líquido efetivo da antecipação divergiu da simulação.",
+          context: { anticipationId, quotedFee: quote.fee, quotedNetValue: quote.netValue, actualFee, actualNet },
+          alert: true,
+        });
+      }
       requested++;
     } catch (error) {
       const ambiguous = error instanceof AsaasApiError && error.ambiguous;
       await admin.rpc("update_organizer_anticipation", {
         p_anticipation_id: anticipationId,
-        p_status: ambiguous ? "provider_pending" : "failed",
-        p_error_code: ambiguous ? "provider_response_ambiguous" : "provider_rejected",
+        // Once POST may have reached the provider, keep the receivable reserved.
+        p_status: "provider_pending",
+        p_quoted_fee: quotes.get(receivableId)?.fee ?? null,
+        p_quoted_net_value: quotes.get(receivableId)?.netValue ?? null,
+        p_error_code: ambiguous ? "provider_response_ambiguous" : "provider_response_requires_reconciliation",
       });
-      if (ambiguous) requested++; else failed++;
+      await reportOperationalEvent({
+        level: "critical", event: "wallet.anticipation_reconciliation_required",
+        message: "Antecipação permanece reservada até reconciliação do provedor.",
+        context: { anticipationId, paymentId }, error, alert: true,
+      });
+      requested++;
     }
   }
 

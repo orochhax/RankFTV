@@ -202,6 +202,39 @@ registrar apenas uma revalidação quando ela for necessária.
   confirmação ficou desabilitado sem ingressos selecionados. O cenário está
   automatizado em `e2e/organizer-wallet-visual.spec.ts` e passou em Chromium.
 
+## 2026-10-04 — Revalidação local antes de promover a carteira
+
+- Status: auditoria de dependências, lint, `typecheck`, 813 testes unitários e
+  build de produção concluíram sem falhas na branch `feat/organizer-wallet`.
+- Limite conhecido: o Playwright local foi interrompido porque esta máquina não
+  possui as variáveis públicas do Supabase. O erro ocorreu antes dos cenários,
+  em `getSupabasePublicConfig`; não representa aprovação nem reprovação do E2E.
+  O CI/Preview conectado ao Sandbox continua obrigatório para essa cobertura.
+
+## 2026-10-02 — Hardening complementar da carteira do organizador
+
+- Status: migration aplicada pelo operador no Sandbox e na produção. A consulta
+  estrutural ampliada retornou as vinte colunas como `true` nos dois ambientes.
+  O código que usa o novo fluxo continua aguardando versionamento, CI e
+  homologação transacional no Sandbox antes de ser implantado em produção.
+- Escopo: criada a migration
+  `supabase/organizer-wallet-financial-hardening.sql` para impedir novo POST de
+  antecipação após resposta ambígua, manter a reserva enquanto o provedor é
+  reconciliado, registrar taxa e valor líquido efetivos do Asaas separadamente
+  da cotação e transformar estorno, chargeback ou disputa posterior a saque em
+  débito auditável do organizador.
+- Código: webhook, cron de liquidação e ações do financeiro foram ajustados
+  para usar esses estados. O repasse automático de campeonatos permanece
+  bloqueado; recebíveis só chegam ao organizador pela carteira.
+- Verificação local em 02/10: `git diff --check`, 32 testes financeiros e de
+  guardas de V1 e `npm run typecheck` concluíram sem falhas.
+- Evidência operacional: o operador executou
+  `supabase/organizer-wallet-financial-hardening.sql` e depois
+  `supabase/manual-tests/organizer-wallet-check.sql`; os vinte checks foram
+  aprovados em ambos os projetos. Isso confirma schema, funções, RLS, revogações
+  e objetos de auditoria, mas não substitui testes de pagamento e transferência
+  contra o Asaas.
+
 ## 2026-09-30 — Checkout hospedado e hardening de V1
 
 - Status: concluído e versionado na PR #25.

@@ -7,12 +7,12 @@ import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
 // extraído do webhook do Asaas (app/api/webhooks/asaas/route.ts) pra ser
 // reutilizado também pela reconciliação manual
 // (app/painel/campeonatos/[id]/financeiro/actions.ts#reconciliarInscricao):
-// os dois caminhos precisam ativar dupla/credencial/repasse exatamente da
+// os dois caminhos precisam ativar dupla/credencial/carteira exatamente da
 // mesma forma, senão reconciliar por um caminho e não pelo outro cria
 // inconsistência nova em vez de corrigir a antiga. Idempotente nos dois
 // sentidos — chamar de novo pra uma inscrição já paga/estornada não duplica
-// nada (credencial checa existência, repasse reivindica atomicamente por
-// repasse_status='pendente', mudança de status de time é guardada pelo
+// nada (credencial checa existência, carteira é protegida por recebível único,
+// mudança de status de time é guardada pelo
 // status atual).
 
 const DIAS_LIQUIDACAO: Record<string, number> = {

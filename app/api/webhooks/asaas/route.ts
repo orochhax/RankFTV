@@ -239,6 +239,44 @@ async function handleAsaasWebhook(req: NextRequest) {
     });
   }
 
+  async function registerOrganizerAdjustment(kind: "refund" | "chargeback" | "dispute", eventKey: string, amount = payment.value) {
+    const { data: adjustment, error } = await supabase.rpc("record_organizer_receivable_adjustment", {
+      p_payment_id: payment.id,
+      p_adjustment_type: kind,
+      p_amount: amount,
+      p_provider_event_id: eventKey,
+      p_disputed: kind === "dispute" || kind === "chargeback",
+    });
+    if (error) throw new Error(`organizer_adjustment_failed:${error.code ?? "unknown"}`);
+    const result = adjustment as { found?: boolean; duplicate?: boolean; debt?: number; organizerId?: string; championshipId?: string } | null;
+    if (!result?.found) return;
+    await reportOperationalEvent({
+      level: kind === "refund" && Number(result.debt ?? 0) === 0 ? "warn" : "critical",
+      event: `wallet.receivable_${kind}`,
+      message: "Estorno ou disputa registrado na carteira; saque bloqueado até compensação ou revisão.",
+      context: { paymentId: payment.id, organizerId: result.organizerId, championshipId: result.championshipId, debt: result.debt, duplicate: result.duplicate },
+      alert: true,
+    });
+  }
+
+  async function registerPaymentAdjustments() {
+    if (event === "PAYMENT_PARTIALLY_REFUNDED") {
+      const refunds = await listarEstornosCobranca(payment.id);
+      const confirmed = refunds.filter((refund) => refund.status === "DONE" && Number(refund.value) > 0);
+      if (confirmed.length === 0) throw new Error("partial_refund_missing_provider_amount");
+      for (const refund of confirmed) {
+        await registerOrganizerAdjustment("refund", refund.id ?? `${event}:${payment.id}:${refund.value}`, Number(refund.value));
+      }
+      return;
+    }
+    const adjustmentType = event === "PAYMENT_CHARGEBACK_DISPUTE" ? "dispute"
+      : event === "PAYMENT_CHARGEBACK_REQUESTED" ? "chargeback" : "refund";
+    // A chargeback request followed by a dispute is one exposure, not two debits.
+    const key = adjustmentType === "chargeback" || adjustmentType === "dispute"
+      ? `chargeback:${payment.id}` : payment.refundId ?? `${event}:${payment.id}`;
+    await registerOrganizerAdjustment(adjustmentType, key);
+  }
+
   // ── Mensalidade de ARENA (externalReference "arena_student:<studentId>") ──
   if (registrationId.startsWith("arena_student:")) {
     const studentId = registrationId.slice("arena_student:".length);
@@ -556,6 +594,9 @@ async function handleAsaasWebhook(req: NextRequest) {
     if (!(await paymentBelongsToRecord("spectator_tickets", ticketId)))
       return acknowledgePaymentOwnershipMismatch();
 
+    if (novoStatus === "estornado") {
+      await registerPaymentAdjustments();
+    }
     await supabase
       .from("spectator_tickets")
       .update({
@@ -572,6 +613,9 @@ async function handleAsaasWebhook(req: NextRequest) {
       if (releaseError) {
         return NextResponse.json({ error: "Falha ao liberar inventario do pedido" }, { status: 500 });
       }
+      const adjustmentType = event === "PAYMENT_CHARGEBACK_DISPUTE" ? "dispute"
+        : event === "PAYMENT_CHARGEBACK_REQUESTED" ? "chargeback" : "refund";
+      await registerOrganizerAdjustment(adjustmentType, payment.refundId ?? `${event}:${payment.id}`);
       const { data: refundedTicket } = await supabase.from("spectator_tickets").select("championship_id").eq("id", ticketId).maybeSingle();
       if (refundedTicket?.championship_id) await notifyOrganizerFinancialEvent({ championshipId: refundedTicket.championship_id, recordType: "spectator_ticket", recordId: ticketId, payment, event });
       return NextResponse.json({ ok: true, tipo: "espectador", status: novoStatus });
@@ -625,6 +669,10 @@ async function handleAsaasWebhook(req: NextRequest) {
       alert: true,
     });
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
+  }
+
+  if (novoStatus === "estornado") {
+    await registerPaymentAdjustments();
   }
 
   const { data: registration } = await supabase.from("registrations").select("championship_id").eq("id", registrationId).maybeSingle();

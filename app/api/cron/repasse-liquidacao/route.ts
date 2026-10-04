@@ -8,11 +8,8 @@ import { buscarAntecipacaoPorPagamento, consultarAntecipacao } from "@/lib/asaas
 
 export const dynamic = "force-dynamic";
 
-// Job de liquidação diferida do repasse de cartão (crédito D+32 / débito D+3).
-// O webhook tenta transferir Pix na hora; falhas terminais voltam a 'pendente'
-// e entram novamente neste cron com uma referencia de retry. Cartao fica em
-// 'aguardando_liquidacao' ate D+3/D+32. O helper de repasse e o mesmo nos dois
-// caminhos, inclusive para o abatimento Elite.
+// Job legado: para campeonatos somente promove recebiveis para carteira;
+// nunca transfere pagamentos de campeonato. Repasses de arena continuam ativos.
 
 async function runSettlement(req: NextRequest) {
   // Auth: a Vercel envia Authorization: Bearer ${CRON_SECRET} nas chamadas de cron.
@@ -117,7 +114,7 @@ async function runSettlement(req: NextRequest) {
   const { data: pendingAnticipations, error: anticipationQueryError } = await supabase
     .from("organizer_anticipations")
     .select("id,payment_id,provider_anticipation_id")
-    .eq("status", "provider_pending")
+    .in("status", ["submitting", "provider_pending"])
     .order("created_at", { ascending: true })
     .limit(100);
   if (anticipationQueryError) throw new Error(`anticipation_query_${anticipationQueryError.code ?? "failed"}`);
@@ -134,11 +131,11 @@ async function runSettlement(req: NextRequest) {
       await supabase.rpc("update_organizer_anticipation", {
         p_anticipation_id: item.id,
         p_status: finalStatus,
-        p_quoted_fee: provider.fee ?? null,
-        p_quoted_net_value: provider.netValue ?? null,
         p_provider_id: provider.id ?? item.provider_anticipation_id,
         p_provider_status: providerStatus,
         p_error_code: finalStatus === "failed" ? `provider_${providerStatus.toLowerCase()}` : null,
+        p_actual_fee: finalStatus === "credited" ? provider.fee ?? null : null,
+        p_actual_net_value: finalStatus === "credited" ? provider.netValue ?? null : null,
       });
     } catch {
       // Indisponibilidade temporaria mantem a reserva e sera tentada de novo.
