@@ -1,14 +1,14 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 01/10/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 04/10/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
 `AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
 
 ## Progresso da V1
 
-`██████████████████░░` **91% concluído** — 127 dos 140 marcos P0 originais
-foram concluídos; restam 13 marcos atômicos, agrupados abaixo em 9 entradas
+`██████████████████░░` **91% concluído** — 128 dos 141 marcos P0
+foram concluídos; restam 13 marcos atômicos, agrupados abaixo em 10 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -76,6 +76,55 @@ P1/P2 não alteram esse percentual.
   terminaram com sucesso em produção em 30/09/2026.
 
 ### Checkout, pagamentos e credenciais
+
+- [ ] Promover e homologar a carteira individual e os saques sob demanda dos
+  organizadores antes de abrir pagamentos reais.
+  - [x] Implementar livro-caixa por organizador/campeonato, saldo líquido,
+    disponível, pendente por data e valor reservado.
+  - [x] Impedir saque acima do saldo, gasto duplo concorrente, escrita direta
+    pelo navegador e acesso ao saldo de outro organizador.
+  - [x] Substituir o repasse automático de vendas de campeonato por saque
+    solicitado pelo organizador, mantendo respostas ambíguas reservadas até a
+    reconciliação.
+  - [x] Permitir selecionar vendas de cartão para antecipação, simular e exibir
+    a taxa antes da confirmação e descontá-la somente do recebível escolhido.
+  - [x] Unificar saque e antecipação num painel de carteira com modais acessíveis;
+    permitir que o organizador selecione exatamente os ingressos do saque e
+    calcular/reservar o total de forma atômica no PostgreSQL.
+  - [x] Criar e homologar visualmente a massa fictícia exclusiva do campeonato
+    Sandbox Financeiro 2026 (8 pagas, 2 pendentes e 1 estornada), incluindo os
+    modais de liberações e de seleção para saque.
+  - [x] Aplicar as migrations iniciais da carteira no Sandbox e executar
+    `supabase/manual-tests/organizer-wallet-check.sql`. Em 01/10/2026, as
+    quatorze verificações estruturais retornaram `true`, incluindo o bloqueio
+    do saque por valor livre e a reserva atômica da seleção de recebíveis.
+  - [x] Implementar o hardening financeiro complementar: bloquear
+    reenvio de antecipação após resposta ambígua, conciliar valores efetivos do
+    Asaas separadamente da simulação e registrar estorno, chargeback ou disputa
+    como débito auditável do organizador antes de qualquer novo saque.
+  - [x] Aplicar e confirmar
+    `supabase/organizer-wallet-financial-hardening.sql` no Sandbox e executar
+    novamente `supabase/manual-tests/organizer-wallet-check.sql`. Em
+    02/10/2026, as vinte verificações retornaram `true` no Sandbox e na
+    produção. A migration estrutural já está nos dois ambientes.
+  - [x] Versionar o hardening, atualizar a PR #33 e aprovar os gates automáticos.
+    Em 04/10/2026, o commit `2c90c7c` passou por auditoria de dependências,
+    lint, typecheck, 813 testes unitários/contrato, build, 30 cenários de
+    navegador e Preview da Vercel.
+  - [ ] Publicar o código em ambiente ligado ao Sandbox e homologar Pix, D+3,
+    D+32, saque parcial, antecipação parcial, documento exigido, falha do
+    provedor, timeout, concorrência e estorno.
+    Em 04/10, a preparação local passou com 813/813 testes, lint e typecheck;
+    o preparador E2E foi corrigido para não colidir com usernames de contas
+    descartáveis antigas. A execução remota não financeira confirmou que o
+    host seguro `sandbox-homologacao` ainda serve uma versão anterior à
+    carteira e não reconhece o token novo. Falta publicar a branch
+    `feat/organizer-wallet` num Preview ligado ao Sandbox antes de executar a
+    matriz mutante.
+  - [ ] Implantar o código em produção somente após a matriz do Sandbox, em
+    janela sem checkout e com backup confirmado. A migration já foi aplicada e
+    validada estruturalmente em 02/10/2026; falta a prova transacional do fluxo
+    completo antes de ativar o comportamento em produção.
 
 - [ ] Concluir a homologação de reembolso sem conta para Pix e cartão nos
   cenários ainda não cobertos: parcial no cartão, repetição, timeout, saldo

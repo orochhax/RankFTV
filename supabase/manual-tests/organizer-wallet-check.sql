@@ -1,0 +1,37 @@
+-- Verificacao estrutural e somente de leitura da carteira do organizador.
+-- Todas as vinte colunas devem retornar true depois das migrations.
+SELECT
+  to_regclass('public.organizer_receivables') IS NOT NULL AS recebiveis_existem,
+  to_regclass('public.organizer_withdrawals') IS NOT NULL AS saques_existem,
+  to_regclass('public.organizer_withdrawal_allocations') IS NOT NULL AS reservas_existem,
+  to_regclass('public.organizer_anticipations') IS NOT NULL AS antecipacoes_existem,
+  to_regprocedure('public.organizer_wallet_snapshot(uuid)') IS NOT NULL AS snapshot_existe,
+  to_regprocedure('public.reserve_organizer_withdrawal(uuid,numeric,uuid)') IS NOT NULL AS reserva_atomica_existe,
+  to_regprocedure('public.reserve_organizer_anticipation(uuid)') IS NOT NULL AS reserva_antecipacao_existe,
+  to_regprocedure('public.organizer_withdrawable_receivables(uuid)') IS NOT NULL AS recebiveis_sacaveis_existem,
+  to_regprocedure('public.reserve_organizer_withdrawal_receivables(uuid,uuid[],uuid)') IS NOT NULL AS reserva_selecao_existe,
+  NOT has_function_privilege('authenticated', 'public.reserve_organizer_withdrawal(uuid,numeric,uuid)', 'EXECUTE') AS saque_livre_bloqueado,
+  COALESCE((SELECT relrowsecurity FROM pg_class WHERE oid=to_regclass('public.organizer_receivables')),false) AS rls_recebiveis,
+  COALESCE((SELECT relrowsecurity FROM pg_class WHERE oid=to_regclass('public.organizer_withdrawals')),false) AS rls_saques,
+  NOT EXISTS (
+    SELECT 1 FROM information_schema.role_table_grants
+    WHERE table_schema='public'
+      AND table_name IN ('organizer_receivables','organizer_withdrawals','organizer_withdrawal_allocations','organizer_anticipations')
+      AND grantee IN ('anon','authenticated')
+      AND privilege_type IN ('INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER')
+  ) AS navegador_sem_escrita_financeira,
+  EXISTS (
+    SELECT 1 FROM pg_indexes WHERE schemaname='public'
+      AND indexname='organizer_anticipations_active_receivable_uidx'
+  ) AS antecipacao_unica_ativa,
+  to_regclass('public.organizer_receivable_adjustments') IS NOT NULL AS livro_debitos_existe,
+  to_regclass('public.organizer_receivable_adjustment_allocations') IS NOT NULL AS compensacoes_existem,
+  to_regclass('public.organizer_financial_audit') IS NOT NULL AS auditoria_financeira_existe,
+  to_regprocedure('public.begin_organizer_anticipation_submission(uuid)') IS NOT NULL AS claim_antecipacao_existe,
+  to_regprocedure('public.record_organizer_receivable_adjustment(text,text,numeric,text,boolean)') IS NOT NULL AS rpc_estorno_atomico_existe,
+  EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='organizer_anticipations'
+      AND column_name IN ('actual_fee','actual_net_value','submission_started_at','reconciled_at')
+    GROUP BY table_schema,table_name HAVING count(*)=4
+  ) AS valores_efetivos_auditados;

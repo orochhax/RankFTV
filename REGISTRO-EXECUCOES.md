@@ -5,6 +5,31 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-04 — Preparação local e tentativa segura de E2E da carteira
+
+- Status: validação local concluída; homologação remota da carteira bloqueada
+  somente pela configuração/deployment do Preview de Sandbox.
+- Feito: o ambiente local da carteira recebeu exclusivamente configurações
+  ignoradas pelo Git para Supabase Sandbox e Asaas Sandbox. A URL do Asaas foi
+  fixada em `https://api-sandbox.asaas.com/v3`; chaves e tokens não foram
+  registrados neste arquivo nem versionados.
+- Correção no preparador: `scripts/setup-e2e-sandbox.mjs` deixou de reutilizar
+  o username estático da conta descartável. Agora deriva um username estável do
+  e-mail E2E, evitando colisão com execuções anteriores no Supabase Sandbox.
+  A conta descartável foi preparada com sucesso.
+- Evidências locais: `npm run test` aprovou 813/813; `npm run lint` e
+  `npm run typecheck` aprovaram sem erros. A checagem sintática do preparador
+  também foi aprovada.
+- Limite observado: o Preview seguro configurado no roteiro
+  (`rank-ftv-git-sandbox-homologacao-...vercel.app`) ainda serve uma versão
+  anterior à carteira individual e não possui o novo token de webhook. Por
+  isso, os E2E remotos esperam a interface antiga e o webhook assinado retorna
+  401; não é evidência de regressão do código atual.
+- Próxima ação externa: publicar `feat/organizer-wallet` em Preview conectado
+  ao Supabase/Asaas Sandbox, com as variáveis de Sandbox específicas dessa
+  branch, e então apontar o webhook do Asaas a esse deployment. Só depois
+  executar a matriz financeira mutante.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
@@ -124,6 +149,123 @@ registrar apenas uma revalidação quando ela for necessária.
 - Evidência remota no momento da consulta: Preview da Vercel aprovado; a PR
   permaneceu aberta com um check ainda pendente e estado de merge `DIRTY`.
   Nenhum merge ou promoção foi executado.
+
+## 2026-10-01 — Carteira individual, saques e antecipação do organizador
+
+- Status: implementação concluída na branch isolada `feat/organizer-wallet` e
+  migration aplicada no Sandbox. Ainda não promovida para produção e ainda
+  dependente da homologação transacional com o Asaas.
+- Banco: criada `supabase/organizer-wallet-withdrawals.sql`, com recebíveis
+  líquidos separados por organizador e campeonato, RLS de leitura própria,
+  escrita financeira revogada do navegador, reserva atômica por advisory lock,
+  idempotência e alocação parcial de recebíveis. A taxa Elite e a taxa de
+  antecipação ficam fora do saldo sacável.
+- Saque: o organizador informa o valor; o servidor confirma dono e campeonato,
+  saldo disponível e cooldown da chave Pix. O valor é reservado antes da
+  chamada ao Asaas. Falha terminal libera a reserva; timeout, resposta ambígua
+  ou transferência pendente mantêm o valor bloqueado até reconciliação.
+- Mudança de fluxo: vendas de campeonato não são mais transferidas
+  automaticamente. Pix entra disponível; débito e crédito entram pendentes e
+  o cron apenas promove D+3/D+32. Os repasses automáticos de receitas de arena
+  foram preservados e não participam desta carteira.
+- Antecipação: vendas de cartão pendentes podem ser selecionadas; o sistema
+  simula a taxa antes da confirmação, solicita cada antecipação e só antecipa o
+  recebível após o Asaas informar `CREDITED`. Exigência documental fica
+  registrada sem liberar dinheiro. Estados pendentes são consultados pelo
+  worker; indisponibilidade temporária não libera nem duplica saldo.
+- Painel: adicionados saldo líquido total, saldo disponível, saldo pendente,
+  detalhamento expansível de liberações por dia, saldo reservado, formulário
+  de saque e seleção de vendas para antecipação.
+- Segurança verificada em Postgres descartável: solicitações concorrentes não
+  gastam o mesmo saldo, a mesma chave idempotente não duplica saque e outro
+  organizador recebe `WALLET_FORBIDDEN`. O teste está em
+  `lib/organizer-wallet-security.test.ts`.
+- Verificação estrutural pós-migration executada no Sandbox por meio de
+  `supabase/manual-tests/organizer-wallet-check.sql`: as onze colunas
+  retornaram `true`. Foram comprovadas as quatro tabelas financeiras, as três
+  funções de snapshot/reserva, RLS nos recebíveis e saques, ausência de escrita
+  financeira para `anon`/`authenticated` e unicidade de antecipação ativa por
+  recebível. Esse resultado comprova a instalação e as barreiras estruturais;
+  não substitui os testes de movimentação efetiva no Asaas.
+- Validação local: lint aprovado; typecheck aprovado; 808/808 testes aprovados;
+  build de produção do Next.js aprovado. Dependência de teste PGlite adicionada
+  somente em `devDependencies`, sem vulnerabilidade de produção introduzida.
+- Próxima etapa obrigatória: publicar o código em ambiente ligado ao mesmo
+  Sandbox, executar a matriz financeira e somente depois repetir migration e
+  deploy em produção, em janela sem checkout e com backup confirmado.
+- Versionamento remoto: commit `9c0c05f` enviado para
+  `feat/organizer-wallet`; PR #33 aberta. Preview da Vercel aprovado. CI
+  `36891054559` aprovado em 5 min 57 s: auditoria de produção, lint, typecheck,
+  808 testes unitários/contrato, build e Playwright (30 aprovados, 55 ignorados
+  por configuração segura) concluíram sem falha. Permanecem somente avisos
+  legados e o aviso de depreciação do Node 20 nas actions do GitHub.
+- Evolução visual e seleção de saques: a carteira passou a usar um painel único
+  com resumo escuro, ação conjunta de saque/antecipação e modais centrais com
+  fundo desfocado. O saldo pendente abre o calendário de liberações; o saque
+  lista os recebíveis disponíveis e reserva exatamente os ingressos escolhidos.
+- Segurança da seleção: criada a RPC
+  `reserve_organizer_withdrawal_receivables`, que deduplica IDs, confirma dono e
+  campeonato, bloqueia os recebíveis em ordem determinística e calcula o total
+  exclusivamente no PostgreSQL. O antigo saque por valor livre deixou de ser
+  executável por `authenticated`, impedindo contorno da seleção pela API.
+- Sandbox atualizado com
+  `supabase/organizer-wallet-selected-withdrawals.sql`. A verificação ampliada
+  retornou as quatorze colunas em `true`, incluindo a listagem sacável, a reserva
+  por seleção e o bloqueio do saque livre.
+- Fixture visual do campeonato `2b3bb52c-2043-4167-aa7f-9e4359bd6dd9` aplicada
+  somente no Sandbox: 8 vendas pagas, 2 pendentes e 1 estornada, todas com dados
+  pessoais fictícios e domínios `.invalid`. Os recebíveis demonstrativos somam
+  R$ 475,00 disponíveis e R$ 695,00 pendentes. Seed e limpeza idempotentes estão
+  em `supabase/manual-tests/organizer-wallet-demo-seed.sql` e
+  `supabase/manual-tests/organizer-wallet-demo-cleanup.sql`.
+- Revalidação após a evolução: lint sem erros, typecheck aprovado, 809/809
+  testes aprovados, teste PostgreSQL concorrente da seleção aprovado e build de
+  produção do Next.js concluído.
+- Homologação de interface no Sandbox concluída em 01/10/2026: o organizador do
+  campeonato de teste abriu a carteira autenticada, conferiu os botões de saque
+  e antecipação, abriu o modal de saldo pendente e o modal de saque. O botão de
+  confirmação ficou desabilitado sem ingressos selecionados. O cenário está
+  automatizado em `e2e/organizer-wallet-visual.spec.ts` e passou em Chromium.
+
+## 2026-10-04 — Revalidação local antes de promover a carteira
+
+- Status: auditoria de dependências, lint, `typecheck`, 813 testes unitários e
+  build de produção concluíram sem falhas na branch `feat/organizer-wallet`.
+- Limite conhecido: o Playwright local foi interrompido porque esta máquina não
+  possui as variáveis públicas do Supabase. O erro ocorreu antes dos cenários,
+  em `getSupabasePublicConfig`; não representa aprovação nem reprovação do E2E.
+  O CI/Preview conectado ao Sandbox continua obrigatório para essa cobertura.
+- Versionamento: o hardening foi consolidado no commit `2c90c7c`
+  (`fix: endurecer conciliacao financeira da carteira`) e enviado à branch
+  `feat/organizer-wallet`, na PR #33.
+- CI: execução `37229955457` aprovada em 3 min 48 s: auditoria, lint,
+  typecheck, 813 testes unitários/contrato, build e 30 cenários Playwright
+  passaram; 60 cenários ficaram ignorados por exigirem credenciais ou mutações
+  explícitas de Sandbox. O Preview da Vercel também ficou `SUCCESS`.
+
+## 2026-10-02 — Hardening complementar da carteira do organizador
+
+- Status: migration aplicada pelo operador no Sandbox e na produção. A consulta
+  estrutural ampliada retornou as vinte colunas como `true` nos dois ambientes.
+  O código que usa o novo fluxo continua aguardando versionamento, CI e
+  homologação transacional no Sandbox antes de ser implantado em produção.
+- Escopo: criada a migration
+  `supabase/organizer-wallet-financial-hardening.sql` para impedir novo POST de
+  antecipação após resposta ambígua, manter a reserva enquanto o provedor é
+  reconciliado, registrar taxa e valor líquido efetivos do Asaas separadamente
+  da cotação e transformar estorno, chargeback ou disputa posterior a saque em
+  débito auditável do organizador.
+- Código: webhook, cron de liquidação e ações do financeiro foram ajustados
+  para usar esses estados. O repasse automático de campeonatos permanece
+  bloqueado; recebíveis só chegam ao organizador pela carteira.
+- Verificação local em 02/10: `git diff --check`, 32 testes financeiros e de
+  guardas de V1 e `npm run typecheck` concluíram sem falhas.
+- Evidência operacional: o operador executou
+  `supabase/organizer-wallet-financial-hardening.sql` e depois
+  `supabase/manual-tests/organizer-wallet-check.sql`; os vinte checks foram
+  aprovados em ambos os projetos. Isso confirma schema, funções, RLS, revogações
+  e objetos de auditoria, mas não substitui testes de pagamento e transferência
+  contra o Asaas.
 
 ## 2026-09-30 — Checkout hospedado e hardening de V1
 

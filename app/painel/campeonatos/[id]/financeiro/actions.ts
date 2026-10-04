@@ -5,8 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PRECO_ELITE } from "@/lib/elite";
 import { registrarAuditoria } from "@/lib/audit";
-import { compararTitularidadePix } from "@/lib/pix";
-import { consultarCpfCnpjTitularPix, consultarCobranca } from "@/lib/asaas";
+import { reportOperationalEvent } from "@/lib/observability";
+import { compararTitularidadePix, pixKeyEmCooldown } from "@/lib/pix";
+import { AsaasApiError, buscarAntecipacaoPorPagamento, consultarAntecipacao, consultarCpfCnpjTitularPix, consultarCobranca, simularAntecipacaoPagamento, solicitarAntecipacaoPagamento } from "@/lib/asaas";
+import { transferIdempotently } from "@/lib/payment-flows";
 import {
   confirmarInscricaoPaga, estornarInscricao,
   confirmarAthleteTicketPago, estornarAthleteTicket,
@@ -16,6 +18,12 @@ const STATUS_CONFIRMADO = new Set(["CONFIRMED", "RECEIVED"]);
 const STATUS_ESTORNADO  = new Set(["REFUNDED", "REFUND_REQUESTED", "CHARGEBACK_REQUESTED", "CHARGEBACK_DISPUTE"]);
 
 export type ReconciliarResultado = { ok: boolean; message: string };
+
+export type SolicitarSaqueResultado = {
+  ok: boolean;
+  message: string;
+  pending?: boolean;
+};
 
 /**
  * Reconcilia uma inscrição travada em "pendente" contra o status real da
@@ -300,4 +308,302 @@ export async function cancelarCampeonatoElite(
   revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
   revalidatePath(`/painel/campeonatos/${champId}/publicar`);
   return { ok: true };
+}
+
+export async function solicitarSaqueRecebiveisOrganizador(
+  champId: string,
+  receivableIds: string[],
+  idempotencyKey: string,
+): Promise<SolicitarSaqueResultado> {
+  const ids = [...new Set(receivableIds)]
+    .filter((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))
+    .slice(0, 100);
+  if (ids.length === 0) return { ok: false, message: "Selecione ao menos um ingresso para sacar." };
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)) {
+    return { ok: false, message: "Identificador de segurança inválido. Atualize a página." };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Não autenticado." };
+
+  const [{ data: champ }, { data: account }] = await Promise.all([
+    supabase.from("championships").select("organizador_id,nome").eq("id", champId).maybeSingle(),
+    supabase.from("organizer_accounts").select("chave_pix,chave_pix_atualizada_em").eq("user_id", user.id).maybeSingle(),
+  ]);
+  if (!champ || champ.organizador_id !== user.id) return { ok: false, message: "Sem permissão." };
+  if (!account?.chave_pix) return { ok: false, message: "Cadastre sua chave Pix antes de solicitar o saque." };
+  if (pixKeyEmCooldown(account.chave_pix_atualizada_em ?? null)) {
+    return { ok: false, message: "A chave Pix foi alterada recentemente. Por segurança, aguarde 48 horas." };
+  }
+
+  const { data: reservation, error: reserveError } = await supabase.rpc(
+    "reserve_organizer_withdrawal_receivables",
+    {
+      p_championship_id: champId,
+      p_receivable_ids: ids,
+      p_idempotency_key: idempotencyKey,
+    },
+  );
+  if (reserveError || !reservation || typeof reservation !== "object") {
+    const unavailable = reserveError?.message?.includes("WALLET_RECEIVABLE_SELECTION_UNAVAILABLE");
+    return {
+      ok: false,
+      message: unavailable
+        ? "Um dos ingressos já foi reservado ou deixou de estar disponível. Atualize a página."
+        : "Não foi possível reservar os ingressos selecionados.",
+    };
+  }
+
+  const reservedWithdrawal = reservation as { id?: unknown; amount?: unknown; status?: unknown };
+  const withdrawalId = String(reservedWithdrawal.id ?? "");
+  const amount = Math.round(Number(reservedWithdrawal.amount) * 100) / 100;
+  if (!withdrawalId || !Number.isFinite(amount) || amount < 0.01) {
+    return { ok: false, message: "A reserva do saque não pôde ser confirmada." };
+  }
+  const reservationStatus = String(reservedWithdrawal.status ?? "reserved");
+  if (reservationStatus !== "reserved") {
+    return reservationStatus === "paid"
+      ? { ok: true, message: "Esse saque já foi concluído." }
+      : { ok: true, pending: true, message: "Esse saque já está em processamento e continua reservado." };
+  }
+
+  const admin = createAdminClient();
+  const { error: beginError } = await admin.rpc("begin_organizer_withdrawal_submission", {
+    p_withdrawal_id: withdrawalId,
+  });
+  if (beginError) {
+    await admin.rpc("update_organizer_withdrawal", {
+      p_withdrawal_id: withdrawalId,
+      p_status: "failed",
+      p_error_code: "receivable_unavailable",
+    });
+    return { ok: false, message: "Um dos ingressos mudou durante a solicitação. Tente novamente." };
+  }
+
+  const result = await transferIdempotently({
+    flow: "payout",
+    recordId: withdrawalId,
+    externalReference: `organizer-withdrawal:${withdrawalId}`,
+    amount,
+    pixKey: account.chave_pix,
+    description: `Saque RankFTV — ${champ.nome}`.slice(0, 100),
+    actorId: user.id,
+    metadata: { sourceTable: "organizer_withdrawals", championshipId: champId },
+  });
+
+  if (result.ok) {
+    await admin.rpc("update_organizer_withdrawal", {
+      p_withdrawal_id: withdrawalId,
+      p_status: "paid",
+      p_provider_transfer_id: result.provider.id,
+      p_provider_status: result.provider.status,
+    });
+    revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+    return { ok: true, message: "Saque enviado para sua chave Pix." };
+  }
+  if (result.ambiguous || result.inProgress) {
+    await admin.rpc("update_organizer_withdrawal", {
+      p_withdrawal_id: withdrawalId,
+      p_status: "provider_pending",
+      p_error_code: result.ambiguous ? "provider_response_ambiguous" : "provider_pending",
+    });
+    revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+    return {
+      ok: true,
+      pending: true,
+      message: "Solicitação recebida. O valor permanece reservado até a confirmação do processador.",
+    };
+  }
+
+  await admin.rpc("update_organizer_withdrawal", {
+    p_withdrawal_id: withdrawalId,
+    p_status: "failed",
+    p_error_code: "provider_rejected",
+  });
+  revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+  return { ok: false, message: result.error };
+}
+
+export async function solicitarAntecipacoesOrganizador(
+  champId: string,
+  receivableIds: string[],
+  expectedFee: number,
+): Promise<SolicitarSaqueResultado> {
+  const ids = [...new Set(receivableIds)].filter((id) => /^[0-9a-f-]{36}$/i.test(id)).slice(0, 20);
+  if (ids.length === 0) return { ok: false, message: "Selecione ao menos uma venda para antecipar." };
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Não autenticado." };
+  const { data: champ } = await supabase.from("championships").select("organizador_id").eq("id", champId).maybeSingle();
+  if (!champ || champ.organizador_id !== user.id) return { ok: false, message: "Sem permissão." };
+
+  const admin = createAdminClient();
+  const { data: eligibleRows } = await admin.from("organizer_receivables")
+    .select("id,payment_id")
+    .eq("organizer_id", user.id).eq("championship_id", champId).eq("status", "active")
+    .eq("billing_type", "CREDIT_CARD").gt("available_at", new Date().toISOString()).in("id", ids);
+  if (!eligibleRows || eligibleRows.length !== ids.length) {
+    return { ok: false, message: "Uma das vendas não está disponível para antecipação." };
+  }
+  const quotes = new Map<string, Awaited<ReturnType<typeof simularAntecipacaoPagamento>>>();
+  try {
+    for (const row of eligibleRows) {
+      if (!row.payment_id) throw new Error("payment_missing");
+      quotes.set(row.id, await simularAntecipacaoPagamento(row.payment_id));
+    }
+  } catch {
+    return { ok: false, message: "Não foi possível confirmar a taxa de antecipação agora." };
+  }
+  const currentFee = Math.round([...quotes.values()].reduce((sum, quote) => sum + Number(quote.fee ?? 0), 0) * 100) / 100;
+  if (!Number.isFinite(expectedFee) || Math.abs(currentFee - expectedFee) > 0.009) {
+    return { ok: false, message: "A taxa mudou desde a simulação. Calcule novamente antes de confirmar." };
+  }
+  let requested = 0;
+  let documents = 0;
+  let failed = 0;
+  for (const receivableId of ids) {
+    const { data: reservation, error: reserveError } = await supabase.rpc("reserve_organizer_anticipation", {
+      p_receivable_id: receivableId,
+    });
+    if (reserveError || !reservation || typeof reservation !== "object") { failed++; continue; }
+    const reserved = reservation as { id?: unknown; paymentId?: unknown };
+    const anticipationId = String(reserved.id ?? "");
+    const paymentId = String(reserved.paymentId ?? "");
+    if (!anticipationId || !paymentId) { failed++; continue; }
+
+    try {
+      const quote = quotes.get(receivableId);
+      if (!quote) throw new Error("quote_missing");
+      if (quote.isDocumentationRequired) {
+        await admin.rpc("update_organizer_anticipation", {
+          p_anticipation_id: anticipationId,
+          p_status: "documentation_required",
+          p_quoted_fee: quote.fee,
+          p_quoted_net_value: quote.netValue,
+          p_error_code: "documentation_required",
+        });
+        documents++;
+        continue;
+      }
+
+      const { data: claim, error: claimError } = await admin.rpc("begin_organizer_anticipation_submission", {
+        p_anticipation_id: anticipationId,
+      });
+      if (claimError || !claim || typeof claim !== "object") throw new Error("anticipation_claim_failed");
+      const claimResult = claim as { claimed?: boolean; status?: string; providerId?: string | null };
+      let anticipation: Awaited<ReturnType<typeof solicitarAntecipacaoPagamento>> | null = null;
+      if (claimResult.claimed) {
+        anticipation = await solicitarAntecipacaoPagamento(paymentId);
+      } else {
+        // Never POST twice for this reservation. Reconcile the provider first,
+        // even when the original call timed out before persisting its response.
+        anticipation = claimResult.providerId
+          ? await consultarAntecipacao(claimResult.providerId)
+          : await buscarAntecipacaoPorPagamento(paymentId);
+        if (!anticipation) {
+          await reportOperationalEvent({
+            level: "critical", event: "wallet.anticipation_missing_after_submission",
+            message: "Antecipação reservada sem confirmação local ou no provedor; reserva preservada.",
+            context: { anticipationId }, alert: true,
+          });
+          requested++;
+          continue;
+        }
+      }
+      const providerStatus = anticipation.status ?? "PENDING";
+      const actualFee = Number(anticipation.fee);
+      const actualNet = Number(anticipation.netValue);
+      const credited = providerStatus === "CREDITED";
+      if (credited && (!Number.isFinite(actualFee) || !Number.isFinite(actualNet))) {
+        await admin.rpc("update_organizer_anticipation", {
+          p_anticipation_id: anticipationId, p_status: "provider_pending",
+          p_provider_id: anticipation.id ?? null, p_provider_status: providerStatus,
+          p_error_code: "provider_amounts_missing",
+        });
+        requested++;
+        continue;
+      }
+      await admin.rpc("update_organizer_anticipation", {
+        p_anticipation_id: anticipationId,
+        p_status: credited ? "credited" : "provider_pending",
+        p_quoted_fee: quote.fee,
+        p_quoted_net_value: quote.netValue,
+        p_provider_id: anticipation.id ?? null,
+        p_provider_status: providerStatus,
+        p_actual_fee: Number.isFinite(actualFee) ? actualFee : null,
+        p_actual_net_value: Number.isFinite(actualNet) ? actualNet : null,
+      });
+      if (credited && (Math.abs(actualFee - Number(quote.fee)) > 0.009
+        || Math.abs(actualNet - Number(quote.netValue)) > 0.009)) {
+        await reportOperationalEvent({
+          level: "warn", event: "wallet.anticipation_provider_amount_changed",
+          message: "Taxa ou valor líquido efetivo da antecipação divergiu da simulação.",
+          context: { anticipationId, quotedFee: quote.fee, quotedNetValue: quote.netValue, actualFee, actualNet },
+          alert: true,
+        });
+      }
+      requested++;
+    } catch (error) {
+      const ambiguous = error instanceof AsaasApiError && error.ambiguous;
+      await admin.rpc("update_organizer_anticipation", {
+        p_anticipation_id: anticipationId,
+        // Once POST may have reached the provider, keep the receivable reserved.
+        p_status: "provider_pending",
+        p_quoted_fee: quotes.get(receivableId)?.fee ?? null,
+        p_quoted_net_value: quotes.get(receivableId)?.netValue ?? null,
+        p_error_code: ambiguous ? "provider_response_ambiguous" : "provider_response_requires_reconciliation",
+      });
+      await reportOperationalEvent({
+        level: "critical", event: "wallet.anticipation_reconciliation_required",
+        message: "Antecipação permanece reservada até reconciliação do provedor.",
+        context: { anticipationId, paymentId }, error, alert: true,
+      });
+      requested++;
+    }
+  }
+
+  revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+  const parts = [
+    requested > 0 ? `${requested} solicitação(ões) enviada(s)` : "",
+    documents > 0 ? `${documents} exige(m) documentos do processador` : "",
+    failed > 0 ? `${failed} não elegível(is)` : "",
+  ].filter(Boolean);
+  return {
+    ok: requested > 0,
+    pending: requested > 0,
+    message: parts.join("; ") || "Nenhuma venda pôde ser antecipada.",
+  };
+}
+
+export async function simularAntecipacoesOrganizador(
+  champId: string,
+  receivableIds: string[],
+): Promise<{ ok: boolean; message: string; fee: number; net: number; documents: number }> {
+  const ids = [...new Set(receivableIds)].filter((id) => /^[0-9a-f-]{36}$/i.test(id)).slice(0, 20);
+  if (ids.length === 0) return { ok: false, message: "Selecione ao menos uma venda.", fee: 0, net: 0, documents: 0 };
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Não autenticado.", fee: 0, net: 0, documents: 0 };
+  const { data: champ } = await supabase.from("championships").select("organizador_id").eq("id", champId).maybeSingle();
+  if (!champ || champ.organizador_id !== user.id) return { ok: false, message: "Sem permissão.", fee: 0, net: 0, documents: 0 };
+  const { data: rows } = await createAdminClient().from("organizer_receivables")
+    .select("id,payment_id,net_amount")
+    .eq("organizer_id", user.id).eq("championship_id", champId).eq("status", "active")
+    .eq("billing_type", "CREDIT_CARD").gt("available_at", new Date().toISOString()).in("id", ids);
+  if (!rows || rows.length !== ids.length) return { ok: false, message: "Uma das vendas não está disponível para antecipação.", fee: 0, net: 0, documents: 0 };
+  let fee = 0; let net = 0; let documents = 0;
+  try {
+    for (const row of rows) {
+      if (!row.payment_id) throw new Error("payment_missing");
+      const quote = await simularAntecipacaoPagamento(row.payment_id);
+      fee += Number(quote.fee ?? 0);
+      net += Math.max(0, Number(row.net_amount) - Number(quote.fee ?? 0));
+      if (quote.isDocumentationRequired) documents++;
+    }
+  } catch {
+    return { ok: false, message: "O processador não conseguiu calcular a antecipação agora. Em ambiente de testes, essa simulação não é disponibilizada.", fee: 0, net: 0, documents: 0 };
+  }
+  return { ok: true, message: "Simulação calculada.", fee: Math.round(fee * 100) / 100, net: Math.round(net * 100) / 100, documents };
 }
