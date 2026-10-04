@@ -20,15 +20,18 @@ async function database() {
     CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS
       'SELECT NULLIF(current_setting(''request.jwt.claim.role'',true),'''')';
     CREATE TABLE public.championships(id uuid PRIMARY KEY, organizador_id uuid REFERENCES auth.users(id), premium_fee_pendente numeric DEFAULT 0);
-    CREATE TABLE public.registrations(id uuid PRIMARY KEY, championship_id uuid, status_pagamento text, valor numeric, asaas_payment_id text, billing_type text, repasse_data_prevista timestamptz, repasse_status text DEFAULT 'pendente', elite_fee_coletada numeric DEFAULT 0, created_at timestamptz DEFAULT now());
-    CREATE TABLE public.athlete_tickets(id uuid PRIMARY KEY, championship_id uuid, status_pagamento text, valor numeric, asaas_payment_id text, billing_type text, repasse_data_prevista timestamptz, repasse_status text DEFAULT 'pendente', created_at timestamptz DEFAULT now());
-    CREATE TABLE public.spectator_tickets(id uuid PRIMARY KEY, championship_id uuid, status_pagamento text, valor numeric, asaas_payment_id text, billing_type text, repasse_data_prevista timestamptz, repasse_status text DEFAULT 'pendente', created_at timestamptz DEFAULT now());
+    CREATE TABLE public.registrations(id uuid PRIMARY KEY, championship_id uuid, status_pagamento text, valor numeric, asaas_payment_id text, billing_type text, repasse_data_prevista timestamptz, repasse_status text DEFAULT 'pendente', repasse_erro text, elite_fee_coletada numeric DEFAULT 0, created_at timestamptz DEFAULT now());
+    CREATE TABLE public.athlete_tickets(id uuid PRIMARY KEY, championship_id uuid, status_pagamento text, valor numeric, asaas_payment_id text, billing_type text, repasse_data_prevista timestamptz, repasse_status text DEFAULT 'pendente', repasse_erro text, created_at timestamptz DEFAULT now());
+    CREATE TABLE public.spectator_tickets(id uuid PRIMARY KEY, championship_id uuid, status_pagamento text, valor numeric, asaas_payment_id text, billing_type text, repasse_data_prevista timestamptz, repasse_status text DEFAULT 'pendente', repasse_erro text, created_at timestamptz DEFAULT now());
     INSERT INTO auth.users VALUES ('${OWNER}'),('${OTHER}');
     INSERT INTO championships VALUES ('${CHAMP}','${OWNER}',0);
   `);
   const migration = readFileSync(path.join(process.cwd(), "supabase/organizer-wallet-withdrawals.sql"), "utf8");
   await db.exec(migration);
   await db.exec(migration);
+  const hardening = readFileSync(path.join(process.cwd(), "supabase/organizer-wallet-financial-hardening.sql"), "utf8");
+  await db.exec(hardening);
+  await db.exec(hardening);
   await db.exec(`
     INSERT INTO organizer_receivables(id,organizer_id,championship_id,source_type,source_id,payment_id,billing_type,gross_amount,net_amount,available_at)
     VALUES ('${RECEIVABLE}','${OWNER}','${CHAMP}','registration','55555555-5555-4555-8555-555555555555','pay_1','PIX',100,100,now()-interval '1 day');
@@ -60,6 +63,72 @@ test("wallet reservation is atomic, idempotent and cannot spend another organize
   } finally {
     await db.close();
   }
+});
+
+test("anticipation has a single submitting claim; duplicate calls can only reconcile", async () => {
+  const db = await database();
+  try {
+    await db.exec(`
+      UPDATE organizer_receivables SET available_at=now()+interval '2 days',billing_type='CREDIT_CARD' WHERE id='${RECEIVABLE}';
+      SELECT reserve_organizer_anticipation('${RECEIVABLE}');
+      SELECT set_config('request.jwt.claim.role','service_role',false);
+    `);
+    const { rows: [anticipation] } = await db.query<{ id: string }>("SELECT id FROM organizer_anticipations");
+    const [first, second] = await Promise.all([
+      db.query<{ result: { claimed: boolean; status: string } }>(`SELECT begin_organizer_anticipation_submission('${anticipation.id}') result`),
+      db.query<{ result: { claimed: boolean; status: string } }>(`SELECT begin_organizer_anticipation_submission('${anticipation.id}') result`),
+    ]);
+    assert.equal(Number(first.rows[0].result.claimed) + Number(second.rows[0].result.claimed), 1);
+    const { rows: [statusRow] } = await db.query<{ status: string }>("SELECT status FROM organizer_anticipations");
+    assert.equal(statusRow.status, "submitting");
+  } finally { await db.close(); }
+});
+
+test("refund after payout becomes organizer debt and blocks withdrawal without cross-owner leakage", async () => {
+  const db = await database();
+  try {
+    await db.exec(`
+      SELECT set_config('request.jwt.claim.role','service_role',false);
+      SELECT record_organizer_receivable_adjustment('pay_1','refund',140,'refund:pay_1',false);
+      SELECT set_config('request.jwt.claim.role','authenticated',false);
+    `);
+    const result = await db.query<{ result: { status: string; debt: number } }>(`
+      SELECT reserve_organizer_withdrawal_receivables('${CHAMP}',ARRAY['${RECEIVABLE}']::uuid[],
+        '99999999-8888-4999-8999-999999999999') result
+    `);
+    assert.equal(result.rows[0].result.status, "debt_remaining");
+    assert.equal(Number(result.rows[0].result.debt), 40);
+    await assert.rejects(
+      () => db.query(`SELECT record_organizer_receivable_adjustment('pay_1','refund',1,'different-owner-event',false)`),
+      /WALLET_SERVICE_ROLE_REQUIRED/,
+    );
+  } finally { await db.close(); }
+});
+
+test("legacy championship payout claims cannot authorize automatic transfers", async () => {
+  const db = await database();
+  try {
+    await db.exec(`INSERT INTO registrations(id,championship_id,status_pagamento,valor,asaas_payment_id)
+      VALUES('55555555-5555-4555-8555-555555555556','${CHAMP}','pago',25,'pay_legacy');
+      SELECT set_config('request.jwt.claim.role','service_role',false);`);
+    const result = await db.query<{ claimed: boolean; repasse_status: string }>(`
+      SELECT claim_registration_payout_once('55555555-5555-4555-8555-555555555556') claimed,
+        (SELECT repasse_status FROM registrations WHERE id='55555555-5555-4555-8555-555555555556') repasse_status
+    `);
+    assert.equal(result.rows[0].claimed, false);
+    assert.equal(result.rows[0].repasse_status, "pendente");
+  } finally { await db.close(); }
+});
+
+test("financial hardening SQL persists quoted and provider-confirmed values separately", () => {
+  const sql = readFileSync(path.join(process.cwd(), "supabase/organizer-wallet-financial-hardening.sql"), "utf8");
+  assert.match(sql, /actual_fee numeric/);
+  assert.match(sql, /actual_net_value numeric/);
+  assert.match(sql, /WALLET_ANTICIPATION_PROVIDER_AMOUNTS_REQUIRED/);
+  assert.match(sql, /WALLET_ANTICIPATION_TERMINAL/);
+  assert.match(sql, /WALLET_DISPUTE_HOLD/);
+  assert.match(sql, /organizer_receivable_adjustment_allocations/);
+  assert.match(sql, /WALLET_AMBIGUOUS_ANTICIPATION_CANNOT_FAIL/);
 });
 
 test("selected withdrawal reserves only the chosen receivables and derives the amount in Postgres", async () => {
