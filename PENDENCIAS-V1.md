@@ -1,14 +1,14 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 01/10/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 04/10/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
 `AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
 
 ## Progresso da V1
 
-`██████████████████░░` **90% concluído** — 127 dos 141 marcos P0
-foram concluídos; restam 14 marcos atômicos, agrupados abaixo em 10 entradas
+`██████████████████░░` **91% concluído** — 128 dos 141 marcos P0
+foram concluídos; restam 13 marcos atômicos, agrupados abaixo em 10 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -94,15 +94,26 @@ P1/P2 não alteram esse percentual.
   - [x] Criar e homologar visualmente a massa fictícia exclusiva do campeonato
     Sandbox Financeiro 2026 (8 pagas, 2 pendentes e 1 estornada), incluindo os
     modais de liberações e de seleção para saque.
-  - [x] Aplicar as migrations da carteira no Sandbox e executar
+  - [x] Aplicar as migrations iniciais da carteira no Sandbox e executar
     `supabase/manual-tests/organizer-wallet-check.sql`. Em 01/10/2026, as
     quatorze verificações estruturais retornaram `true`, incluindo o bloqueio
     do saque por valor livre e a reserva atômica da seleção de recebíveis.
+  - [x] Implementar o hardening financeiro complementar: bloquear
+    reenvio de antecipação após resposta ambígua, conciliar valores efetivos do
+    Asaas separadamente da simulação e registrar estorno, chargeback ou disputa
+    como débito auditável do organizador antes de qualquer novo saque.
+  - [x] Aplicar e confirmar
+    `supabase/organizer-wallet-financial-hardening.sql` no Sandbox e executar
+    novamente `supabase/manual-tests/organizer-wallet-check.sql`. Em
+    02/10/2026, as vinte verificações retornaram `true` no Sandbox e na
+    produção. A migration estrutural já está nos dois ambientes.
   - [ ] Publicar o código em ambiente ligado ao Sandbox e homologar Pix, D+3,
     D+32, saque parcial, antecipação parcial, documento exigido, falha do
     provedor, timeout, concorrência e estorno.
-  - [ ] Repetir migration e deploy em produção somente após a matriz do Sandbox,
-    em janela sem checkout e com backup confirmado.
+  - [ ] Implantar o código em produção somente após a matriz do Sandbox, em
+    janela sem checkout e com backup confirmado. A migration já foi aplicada e
+    validada estruturalmente em 02/10/2026; falta a prova transacional do fluxo
+    completo antes de ativar o comportamento em produção.
 
 - [ ] Concluir a homologação de reembolso sem conta para Pix e cartão nos
   cenários ainda não cobertos: parcial no cartão, repetição, timeout, saldo
