@@ -1,9 +1,12 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 const EXPECTED_URL = "https://obfqzifcvsqnygwmtpnx.supabase.co";
 const email = process.env.E2E_ATHLETE_EMAIL?.trim().toLowerCase();
 const secretKey = process.env.SUPABASE_SECRET_KEY;
+const username = email
+  ? `atleta_e2e_${createHash("sha256").update(email).digest("hex").slice(0, 12)}`
+  : null;
 
 if (process.env.NEXT_PUBLIC_SUPABASE_URL !== EXPECTED_URL) {
   throw new Error("setup_e2e_refused_unexpected_supabase");
@@ -46,7 +49,7 @@ if (!user) {
     email_confirm: true,
     user_metadata: {
       nome: "Atleta E2E Sandbox",
-      username: "atleta_e2e_sandbox",
+      username,
       genero: "masculino",
     },
   });
@@ -57,7 +60,7 @@ if (!user) {
 const { error: profileError } = await admin.from("profiles").upsert({
   id: user.id,
   nome: "Atleta E2E Sandbox",
-  username: "atleta_e2e_sandbox",
+  username,
   role: "user",
   genero: "masculino",
   tamanho_camisa: "M",

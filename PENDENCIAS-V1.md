@@ -114,6 +114,13 @@ P1/P2 não alteram esse percentual.
   - [ ] Publicar o código em ambiente ligado ao Sandbox e homologar Pix, D+3,
     D+32, saque parcial, antecipação parcial, documento exigido, falha do
     provedor, timeout, concorrência e estorno.
+    Em 04/10, a preparação local passou com 813/813 testes, lint e typecheck;
+    o preparador E2E foi corrigido para não colidir com usernames de contas
+    descartáveis antigas. A execução remota não financeira confirmou que o
+    host seguro `sandbox-homologacao` ainda serve uma versão anterior à
+    carteira e não reconhece o token novo. Falta publicar a branch
+    `feat/organizer-wallet` num Preview ligado ao Sandbox antes de executar a
+    matriz mutante.
   - [ ] Implantar o código em produção somente após a matriz do Sandbox, em
     janela sem checkout e com backup confirmado. A migration já foi aplicada e
     validada estruturalmente em 02/10/2026; falta a prova transacional do fluxo

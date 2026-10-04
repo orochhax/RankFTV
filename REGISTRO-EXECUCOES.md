@@ -5,6 +5,31 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-04 — Preparação local e tentativa segura de E2E da carteira
+
+- Status: validação local concluída; homologação remota da carteira bloqueada
+  somente pela configuração/deployment do Preview de Sandbox.
+- Feito: o ambiente local da carteira recebeu exclusivamente configurações
+  ignoradas pelo Git para Supabase Sandbox e Asaas Sandbox. A URL do Asaas foi
+  fixada em `https://api-sandbox.asaas.com/v3`; chaves e tokens não foram
+  registrados neste arquivo nem versionados.
+- Correção no preparador: `scripts/setup-e2e-sandbox.mjs` deixou de reutilizar
+  o username estático da conta descartável. Agora deriva um username estável do
+  e-mail E2E, evitando colisão com execuções anteriores no Supabase Sandbox.
+  A conta descartável foi preparada com sucesso.
+- Evidências locais: `npm run test` aprovou 813/813; `npm run lint` e
+  `npm run typecheck` aprovaram sem erros. A checagem sintática do preparador
+  também foi aprovada.
+- Limite observado: o Preview seguro configurado no roteiro
+  (`rank-ftv-git-sandbox-homologacao-...vercel.app`) ainda serve uma versão
+  anterior à carteira individual e não possui o novo token de webhook. Por
+  isso, os E2E remotos esperam a interface antiga e o webhook assinado retorna
+  401; não é evidência de regressão do código atual.
+- Próxima ação externa: publicar `feat/organizer-wallet` em Preview conectado
+  ao Supabase/Asaas Sandbox, com as variáveis de Sandbox específicas dessa
+  branch, e então apontar o webhook do Asaas a esse deployment. Só depois
+  executar a matriz financeira mutante.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
