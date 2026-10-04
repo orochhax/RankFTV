@@ -107,6 +107,10 @@ P1/P2 não alteram esse percentual.
     novamente `supabase/manual-tests/organizer-wallet-check.sql`. Em
     02/10/2026, as vinte verificações retornaram `true` no Sandbox e na
     produção. A migration estrutural já está nos dois ambientes.
+  - [x] Versionar o hardening, atualizar a PR #33 e aprovar os gates automáticos.
+    Em 04/10/2026, o commit `2c90c7c` passou por auditoria de dependências,
+    lint, typecheck, 813 testes unitários/contrato, build, 30 cenários de
+    navegador e Preview da Vercel.
   - [ ] Publicar o código em ambiente ligado ao Sandbox e homologar Pix, D+3,
     D+32, saque parcial, antecipação parcial, documento exigido, falha do
     provedor, timeout, concorrência e estorno.
