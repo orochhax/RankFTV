@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
+  ChevronDown,
   Circle,
   Clock3,
   Euro,
@@ -29,20 +30,23 @@ import {
   upsertTaskAndLinkedExpense,
   type MoveCurrency,
   type MoveExpense,
+  type MoveTaskCategory,
   type MoveTask,
   type PlannerData,
+  normalizeTaskGroups,
 } from "@/lib/portugal-move-planner";
 
 type PlannerSnapshot = PlannerData & { storageError: boolean };
 
 type EditorState =
-  | { kind: "task"; value?: MoveTask }
+  | { kind: "task"; value?: MoveTask; categoryId?: string }
+  | { kind: "category"; value?: MoveTaskCategory }
   | { kind: "expense"; value?: MoveExpense }
   | null;
 
 const STORAGE_KEY = "rankftv:personal-portugal-move:v1";
 const DEFAULT_RATE = 6.25;
-const EMPTY_DATA: PlannerData = { tasks: [], expenses: [], exchangeRate: DEFAULT_RATE };
+const EMPTY_DATA: PlannerData = { tasks: [], categories: [], expenses: [], exchangeRate: DEFAULT_RATE };
 const SERVER_SNAPSHOT: PlannerSnapshot = { ...EMPTY_DATA, storageError: false };
 let clientSnapshot: PlannerSnapshot = SERVER_SNAPSHOT;
 let clientSnapshotInitialized = false;
@@ -58,12 +62,12 @@ function readPlannerData(): PlannerData | null {
     if (!raw) return EMPTY_DATA;
     const value: unknown = JSON.parse(raw);
     if (!isRecord(value)) return null;
-    const tasks = normalizePlannerTasks(value.tasks);
-    const expenses = normalizePlannerExpenses(value.expenses, tasks);
+    const taskGroups = normalizeTaskGroups(value.categories, normalizePlannerTasks(value.tasks));
+    const expenses = normalizePlannerExpenses(value.expenses, taskGroups.tasks);
     const exchangeRate = typeof value.exchangeRate === "number" && Number.isFinite(value.exchangeRate) && value.exchangeRate > 0
       ? value.exchangeRate
       : DEFAULT_RATE;
-    return { tasks, expenses, exchangeRate };
+    return { ...taskGroups, expenses, exchangeRate };
   } catch {
     return null;
   }
@@ -97,7 +101,7 @@ function subscribeToPlanner(listener: () => void): () => void {
 
 function updatePlannerData(updater: (current: PlannerData) => PlannerData) {
   const current = getClientSnapshot();
-  const next = updater({ tasks: current.tasks, expenses: current.expenses, exchangeRate: current.exchangeRate });
+  const next = updater({ tasks: current.tasks, categories: current.categories, expenses: current.expenses, exchangeRate: current.exchangeRate });
   let storageError = false;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -186,6 +190,15 @@ export function PortugalMovePlanner() {
   const completedTasks = data.tasks.length - pendingTasks;
   const { brl: totalBRL, eur: totalEUR } = calculateUnpaidExpenseTotals(data.expenses);
   const expenseByTaskId = new Map(data.expenses.flatMap((expense) => expense.taskId ? [[expense.taskId, expense] as const] : []));
+  const tasksByCategoryId = useMemo(() => {
+    const grouped = new Map<string, MoveTask[]>();
+    for (const category of data.categories) grouped.set(category.id, []);
+    for (const task of sortedTasks) {
+      if (!task.categoryId) continue;
+      grouped.get(task.categoryId)?.push(task);
+    }
+    return grouped;
+  }, [data.categories, sortedTasks]);
   const totalInBRL = rate === null ? null : totalBRL + totalEUR * rate;
   const totalInEUR = rate === null ? null : totalEUR + totalBRL / rate;
   const nextTask = sortedTasks.find((task) => !task.completed && task.dueDate);
@@ -210,6 +223,7 @@ export function PortugalMovePlanner() {
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") ?? "").trim();
     const dueDate = String(form.get("dueDate") ?? "");
+    const categoryId = String(form.get("categoryId") ?? "");
     const rawAmount = String(form.get("amount") ?? "").trim();
     const parsedAmount = rawAmount ? parseBrazilianNumber(rawAmount) : null;
     const currency = String(form.get("currency") ?? "BRL");
@@ -231,7 +245,12 @@ export function PortugalMovePlanner() {
       name,
       dueDate,
       completed: existing?.completed ?? false,
+      categoryId,
     };
+    if (!task.categoryId || !data.categories.some((category) => category.id === task.categoryId)) {
+      setFormError("Escolha uma categoria para esta tarefa.");
+      return;
+    }
     const linkedExpense = expenseByTaskId.get(task.id);
     updatePlannerData((current) => upsertTaskAndLinkedExpense(
       current,
@@ -242,6 +261,64 @@ export function PortugalMovePlanner() {
     ));
     setFormError(null);
     setEditor(null);
+  }
+
+  function saveCategory(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (editor?.kind !== "category") return;
+    const name = String(new FormData(event.currentTarget).get("name") ?? "").trim();
+    if (!name) {
+      setFormError("Informe um nome para a categoria.");
+      return;
+    }
+    const existing = editor.value;
+    const category: MoveTaskCategory = {
+      id: existing?.id ?? crypto.randomUUID(),
+      name,
+      collapsed: existing?.collapsed ?? false,
+    };
+    updatePlannerData((current) => ({
+      ...current,
+      categories: existing
+        ? current.categories.map((item) => item.id === existing.id ? category : item)
+        : [...current.categories, category],
+    }));
+    closeEditor();
+  }
+
+  function toggleCategory(categoryId: string) {
+    updatePlannerData((current) => ({
+      ...current,
+      categories: current.categories.map((category) => category.id === categoryId
+        ? { ...category, collapsed: !category.collapsed }
+        : category),
+    }));
+  }
+
+  function removeCategory(categoryId: string) {
+    const hasTasks = data.tasks.some((task) => task.categoryId === categoryId);
+    if (hasTasks) return;
+    updatePlannerData((current) => ({
+      ...current,
+      categories: current.categories.filter((category) => category.id !== categoryId),
+    }));
+    closeEditor();
+  }
+
+  function categoryAmountSummary(tasks: MoveTask[]) {
+    const planned = { BRL: 0, EUR: 0 };
+    const open = { BRL: 0, EUR: 0 };
+    for (const task of tasks) {
+      const expense = expenseByTaskId.get(task.id);
+      if (!expense) continue;
+      planned[expense.currency] += expense.amount;
+      if (!expense.paid) open[expense.currency] += expense.amount;
+    }
+    const formatPair = (amounts: typeof planned) => [
+      amounts.BRL > 0 ? formatMoney(amounts.BRL, "BRL") : null,
+      amounts.EUR > 0 ? formatMoney(amounts.EUR, "EUR") : null,
+    ].filter(Boolean).join(" + ");
+    return { planned: formatPair(planned) || "Sem valores", open: formatPair(open) || "Nenhum" };
   }
 
   function saveExpense(event: FormEvent<HTMLFormElement>) {
@@ -300,6 +377,9 @@ export function PortugalMovePlanner() {
   const buttonSoft = "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d7a85b]";
   const inputClass = "mt-1.5 min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1f6b5e] focus:ring-4 focus:ring-[#1f6b5e]/10";
   const taskExpense = editor?.kind === "task" && editor.value ? expenseByTaskId.get(editor.value.id) : undefined;
+  const categoryHasTasks = editor?.kind === "category" && editor.value
+    ? data.tasks.some((task) => task.categoryId === editor.value?.id)
+    : false;
 
   return (
     <main className="min-h-screen bg-[#f5f7f4] px-4 py-5 text-slate-900 sm:px-7 sm:py-8 lg:px-10">
@@ -336,24 +416,45 @@ export function PortugalMovePlanner() {
         {activeSection === "tasks" ? (
           <section aria-labelledby="tasks-heading" className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#1f6b5e]">Passo a passo</p><h2 id="tasks-heading" className="mt-1 text-2xl font-semibold tracking-tight">Lista de tarefas</h2><p className="mt-1 text-sm text-slate-500">Prazos claros para cada etapa da mudança.</p></div>
-              <button type="button" onClick={() => openEditor({ kind: "task" })} className={buttonPrimary}><Plus className="size-4" /> Nova tarefa</button>
+              <div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#1f6b5e]">Passo a passo</p><h2 id="tasks-heading" className="mt-1 text-2xl font-semibold tracking-tight">Lista de tarefas</h2><p className="mt-1 text-sm text-slate-500">Organize suas tarefas por etapa e acompanhe o custo de cada grupo.</p></div>
+              <button type="button" onClick={() => openEditor({ kind: "category" })} className={buttonPrimary}><Plus className="size-4" /> Nova categoria</button>
             </div>
-            <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm">
-              {sortedTasks.length ? <ul className="divide-y divide-slate-100">
-                {sortedTasks.map((task) => {
-                  const days = dueInDays(task.dueDate);
-                  const alert = !task.completed && days !== null && days <= 10;
-                  const taskExpense = expenseByTaskId.get(task.id);
-                  return <li key={task.id} className={`flex items-start gap-3 px-4 py-4 sm:items-center sm:px-6 ${task.completed ? "bg-slate-50/70" : ""}`}>
-                    <button type="button" onClick={() => toggleTask(task.id)} aria-label={task.completed ? `Reabrir tarefa: ${task.name}` : `Concluir tarefa: ${task.name}`} aria-pressed={task.completed} className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border transition sm:mt-0 ${task.completed ? "border-[#1f6b5e] bg-[#1f6b5e] text-white" : "border-slate-300 text-transparent hover:border-[#1f6b5e]"}`}>{task.completed ? <Check className="size-3.5" /> : <Circle className="size-3.5" />}</button>
-                    <div className="min-w-0 flex-1"><p className={`font-medium ${task.completed ? "text-slate-400 line-through" : "text-slate-800"}`}>{task.name}</p><div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs"><span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${task.completed ? "border-slate-200 bg-white text-slate-500" : dueColor(days)}`}><CalendarDays className="size-3.5" />{formatDate(task.dueDate)}</span>{!task.completed && dueLabel(days) && <span className={`font-medium ${alert ? days !== null && days <= 5 ? "text-red-700" : "text-amber-800" : "text-slate-400"}`}>{dueLabel(days)}</span>}{taskExpense && <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-medium ${taskExpense.paid ? "bg-slate-100 text-slate-500 line-through" : "bg-emerald-50 text-emerald-700"}`}>{formatMoney(taskExpense.amount, taskExpense.currency)}{taskExpense.paid ? " · pago" : " · pendente"}</span>}</div></div>
-                    <div className="flex shrink-0 items-center gap-1"><button type="button" onClick={() => openEditor({ kind: "task", value: task })} aria-label={`Editar tarefa: ${task.name}`} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Pencil className="size-4" /></button><button type="button" onClick={() => removeTask(task.id)} aria-label={`Excluir tarefa: ${task.name}`} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 className="size-4" /></button></div>
-                  </li>;
-                })}
-              </ul> : <div className="px-6 py-14 text-center"><div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#e7efeb] text-[#1f6b5e]"><ListChecks className="size-6" /></div><h3 className="mt-4 font-semibold text-slate-800">Sua lista começa aqui</h3><p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-slate-500">Adicione tarefas e datas para acompanhar cada etapa da mudança.</p><button type="button" onClick={() => openEditor({ kind: "task" })} className={`${buttonSoft} mt-4`}><Plus className="size-4" /> Adicionar primeira tarefa</button></div>}
-            </div>
-            <div className="flex items-center gap-2 px-1 text-xs text-slate-500"><Clock3 className="size-4 text-[#1f6b5e]" /><span>Alertas: amarelo de 6 a 10 dias; vermelho até 5 dias e após o vencimento.</span></div>
+            {data.categories.length ? <div className="space-y-4">
+              {data.categories.map((category) => {
+                const categoryTasks = tasksByCategoryId.get(category.id) ?? [];
+                const totals = categoryAmountSummary(categoryTasks);
+                return <article key={category.id} className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+                  <div className="flex flex-col gap-3 border-b border-slate-100 bg-white p-4 sm:flex-row sm:items-center sm:px-5">
+                    <button type="button" onClick={() => toggleCategory(category.id)} aria-expanded={!category.collapsed} aria-controls={`category-tasks-${category.id}`} aria-label={`${category.collapsed ? "Expandir" : "Recolher"} categoria ${category.name}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-[#1f6b5e]">
+                      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#e7efeb] text-[#1f6b5e]"><ListChecks className="size-5" /></span>
+                      <span className="min-w-0 flex-1"><span className="block truncate font-semibold text-slate-900">{category.name}</span><span className="mt-0.5 block text-xs text-slate-500">{categoryTasks.length} {categoryTasks.length === 1 ? "tarefa" : "tarefas"} · em aberto {totals.open}</span></span>
+                      <span className="hidden text-right sm:block"><span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400">Total previsto</span><span className="mt-0.5 block font-semibold tabular-nums text-slate-900">{totals.planned}</span></span>
+                      <ChevronDown className={`size-5 shrink-0 text-slate-400 transition-transform ${category.collapsed ? "" : "rotate-180"}`} />
+                    </button>
+                    <div className="flex items-center gap-2 sm:shrink-0">
+                      <span className="min-w-0 flex-1 text-sm font-semibold tabular-nums text-slate-800 sm:hidden">Total: {totals.planned}</span>
+                      <button type="button" onClick={() => openEditor({ kind: "task", categoryId: category.id })} className={`${buttonSoft} min-h-9 px-3 text-xs`}><Plus className="size-3.5" /> Tarefa</button>
+                      <button type="button" onClick={() => openEditor({ kind: "category", value: category })} aria-label={`Editar categoria: ${category.name}`} className="grid size-9 shrink-0 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Pencil className="size-4" /></button>
+                    </div>
+                  </div>
+                  <div id={`category-tasks-${category.id}`} hidden={category.collapsed} className="p-3 sm:p-4">
+                    {categoryTasks.length ? <ul className="space-y-2">
+                      {categoryTasks.map((task) => {
+                        const days = dueInDays(task.dueDate);
+                        const alert = !task.completed && days !== null && days <= 10;
+                        const taskExpense = expenseByTaskId.get(task.id);
+                        return <li key={task.id} className={`flex items-start gap-3 rounded-2xl border border-slate-100 px-3 py-3 sm:items-center sm:px-4 ${task.completed ? "bg-slate-50/70" : "bg-white"}`}>
+                          <button type="button" onClick={() => toggleTask(task.id)} aria-label={task.completed ? `Reabrir tarefa: ${task.name}` : `Concluir tarefa: ${task.name}`} aria-pressed={task.completed} className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border transition sm:mt-0 ${task.completed ? "border-[#1f6b5e] bg-[#1f6b5e] text-white" : "border-slate-300 text-transparent hover:border-[#1f6b5e]"}`}>{task.completed ? <Check className="size-3.5" /> : <Circle className="size-3.5" />}</button>
+                          <div className="min-w-0 flex-1"><p className={`font-medium ${task.completed ? "text-slate-400 line-through" : "text-slate-800"}`}>{task.name}</p><div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs"><span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${task.completed ? "border-slate-200 bg-white text-slate-500" : dueColor(days)}`}><CalendarDays className="size-3.5" />{formatDate(task.dueDate)}</span>{!task.completed && dueLabel(days) && <span className={`font-medium ${alert ? days !== null && days <= 5 ? "text-red-700" : "text-amber-800" : "text-slate-400"}`}>{dueLabel(days)}</span>}{taskExpense && <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-medium ${taskExpense.paid ? "bg-slate-100 text-slate-500 line-through" : "bg-emerald-50 text-emerald-700"}`}>{formatMoney(taskExpense.amount, taskExpense.currency)}{taskExpense.paid ? " · pago" : " · pendente"}</span>}</div></div>
+                          <div className="flex shrink-0 items-center gap-1"><button type="button" onClick={() => openEditor({ kind: "task", value: task })} aria-label={`Editar tarefa: ${task.name}`} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Pencil className="size-4" /></button><button type="button" onClick={() => removeTask(task.id)} aria-label={`Excluir tarefa: ${task.name}`} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 className="size-4" /></button></div>
+                        </li>;
+                      })}
+                    </ul> : <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-4 py-7 text-center"><p className="text-sm font-medium text-slate-700">Nenhuma tarefa nesta categoria</p><p className="mt-1 text-xs text-slate-500">Adicione aqui as etapas relacionadas a “{category.name}”.</p><button type="button" onClick={() => openEditor({ kind: "task", categoryId: category.id })} className={`${buttonSoft} mt-3`}><Plus className="size-4" /> Adicionar tarefa</button></div>}
+                  </div>
+                </article>;
+              })}
+            </div> : <div className="rounded-3xl border border-slate-200/80 bg-white px-6 py-14 text-center shadow-sm"><div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#e7efeb] text-[#1f6b5e]"><ListChecks className="size-6" /></div><h3 className="mt-4 font-semibold text-slate-800">Crie a primeira categoria</h3><p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-slate-500">Por exemplo, “Consulado - Salvador”. Depois, adicione dentro dela as tarefas e os respectivos valores.</p><button type="button" onClick={() => openEditor({ kind: "category" })} className={`${buttonSoft} mt-4`}><Plus className="size-4" /> Criar categoria</button></div>}
+            <div className="flex items-center gap-2 px-1 text-xs text-slate-500"><Clock3 className="size-4 text-[#1f6b5e]" /><span>Alertas: amarelo de 6 a 10 dias; vermelho até 5 dias e após o vencimento. O total previsto inclui tarefas pagas; “em aberto” mostra o que ainda falta pagar.</span></div>
           </section>
         ) : (
           <section aria-labelledby="expenses-heading" className="space-y-4">
@@ -385,9 +486,9 @@ export function PortugalMovePlanner() {
 
       {editor && <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-950/45 p-4 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEditor(); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="editor-title" className="my-auto w-full max-w-lg rounded-3xl bg-white p-5 shadow-2xl sm:p-7">
-          <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#1f6b5e]">Planejamento Portugal</p><h2 id="editor-title" className="mt-1 text-xl font-semibold text-slate-900">{editor.kind === "task" ? editor.value ? "Editar tarefa" : "Nova tarefa" : editor.value ? "Editar gasto" : "Novo gasto"}</h2></div><button type="button" onClick={closeEditor} aria-label="Fechar" className="grid size-9 place-items-center rounded-xl text-slate-400 hover:bg-slate-100"><X className="size-5" /></button></div>
+          <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#1f6b5e]">Planejamento Portugal</p><h2 id="editor-title" className="mt-1 text-xl font-semibold text-slate-900">{editor.kind === "task" ? editor.value ? "Editar tarefa" : "Nova tarefa" : editor.kind === "category" ? editor.value ? "Editar categoria" : "Nova categoria" : editor.value ? "Editar gasto" : "Novo gasto"}</h2></div><button type="button" onClick={closeEditor} aria-label="Fechar" className="grid size-9 place-items-center rounded-xl text-slate-400 hover:bg-slate-100"><X className="size-5" /></button></div>
           {formError && <p role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-800">{formError}</p>}
-          {editor.kind === "task" ? <form className="mt-6 space-y-4" onSubmit={saveTask}><label className="block text-sm font-medium text-slate-700">Nome da tarefa<input autoFocus required maxLength={120} name="name" defaultValue={editor.value?.name ?? ""} placeholder="Ex.: Renovar passaporte" className={inputClass} /></label><label className="block text-sm font-medium text-slate-700">Data de vencimento<input required type="date" name="dueDate" defaultValue={editor.value?.dueDate ?? ""} className={inputClass} /></label><div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4"><p className="text-sm font-semibold text-slate-800">Valor da tarefa <span className="font-normal text-slate-400">(opcional)</span></p><div className="mt-2 grid gap-3 sm:grid-cols-[1fr_1fr]"><label className="block text-sm font-medium text-slate-700">Valor<input type="text" inputMode="decimal" name="amount" defaultValue={taskExpense?.amount.toFixed(2).replace(".", ",") ?? ""} placeholder="Ex.: 500,00" className={inputClass} /></label><label className="block text-sm font-medium text-slate-700">Moeda<select name="currency" defaultValue={taskExpense?.currency ?? "BRL"} className={inputClass}><option value="BRL">Real (BRL)</option><option value="EUR">Euro (EUR)</option></select></label></div><p className="mt-2 text-xs leading-5 text-slate-500">Ao informar um valor, o gasto vinculado ficará em aberto até você concluir a tarefa. Ao marcar o checkbox, ele será marcado como pago e sairá dos totais.</p></div><div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end"><button type="button" onClick={closeEditor} className={buttonSoft}>Cancelar</button><button type="submit" className={buttonPrimary}><Check className="size-4" />Salvar tarefa</button></div></form> : <form className="mt-6 space-y-4" onSubmit={saveExpense}><label className="block text-sm font-medium text-slate-700">Nome do gasto<input autoFocus required maxLength={120} name="name" defaultValue={editor.value?.name ?? ""} placeholder="Ex.: Tradução juramentada" className={inputClass} /></label><div className="grid gap-4 sm:grid-cols-2"><label className="block text-sm font-medium text-slate-700">Valor<input required type="text" inputMode="decimal" name="amount" defaultValue={editor.value?.amount.toFixed(2).replace(".", ",") ?? ""} placeholder="0,00" className={inputClass} /></label><label className="block text-sm font-medium text-slate-700">Moeda<select name="currency" defaultValue={editor.value?.currency ?? "BRL"} className={inputClass}><option value="BRL">Real brasileiro (BRL)</option><option value="EUR">Euro (EUR)</option></select></label></div><label className="block text-sm font-medium text-slate-700">Data de vencimento <span className="font-normal text-slate-400">(opcional)</span><input type="date" name="dueDate" defaultValue={editor.value?.dueDate ?? ""} className={inputClass} /></label><p className="rounded-xl bg-slate-50 px-3.5 py-3 text-xs leading-5 text-slate-500">Use vírgula nos centavos, por exemplo 1.250,50. O gasto será mostrado na moeda original.</p><div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end"><button type="button" onClick={closeEditor} className={buttonSoft}>Cancelar</button><button type="submit" className={buttonPrimary}><Check className="size-4" />Salvar gasto</button></div></form>}
+          {editor.kind === "task" ? <form className="mt-6 space-y-4" onSubmit={saveTask}><label className="block text-sm font-medium text-slate-700">Nome da tarefa<input autoFocus required maxLength={120} name="name" defaultValue={editor.value?.name ?? ""} placeholder="Ex.: Renovar passaporte" className={inputClass} /></label><label className="block text-sm font-medium text-slate-700">Categoria<select required name="categoryId" defaultValue={editor.value?.categoryId ?? editor.categoryId ?? data.categories[0]?.id ?? ""} className={inputClass}>{data.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label><label className="block text-sm font-medium text-slate-700">Data de vencimento<input required type="date" name="dueDate" defaultValue={editor.value?.dueDate ?? ""} className={inputClass} /></label><div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4"><p className="text-sm font-semibold text-slate-800">Valor da tarefa <span className="font-normal text-slate-400">(opcional)</span></p><div className="mt-2 grid gap-3 sm:grid-cols-[1fr_1fr]"><label className="block text-sm font-medium text-slate-700">Valor<input type="text" inputMode="decimal" name="amount" defaultValue={taskExpense?.amount.toFixed(2).replace(".", ",") ?? ""} placeholder="Ex.: 500,00" className={inputClass} /></label><label className="block text-sm font-medium text-slate-700">Moeda<select name="currency" defaultValue={taskExpense?.currency ?? "BRL"} className={inputClass}><option value="BRL">Real (BRL)</option><option value="EUR">Euro (EUR)</option></select></label></div><p className="mt-2 text-xs leading-5 text-slate-500">Ao informar um valor, o gasto vinculado ficará em aberto até você concluir a tarefa. Ao marcar o checkbox, ele será marcado como pago e sairá dos totais.</p></div><div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end"><button type="button" onClick={closeEditor} className={buttonSoft}>Cancelar</button><button type="submit" className={buttonPrimary}><Check className="size-4" />Salvar tarefa</button></div></form> : editor.kind === "category" ? <form className="mt-6 space-y-4" onSubmit={saveCategory}><label className="block text-sm font-medium text-slate-700">Nome da categoria<input autoFocus required maxLength={80} name="name" defaultValue={editor.value?.name ?? ""} placeholder="Ex.: Consulado - Salvador" className={inputClass} /></label><p className="rounded-xl bg-slate-50 px-3.5 py-3 text-xs leading-5 text-slate-500">As tarefas desta etapa e os valores associados ficarão agrupados dentro deste card. Você pode recolher ou expandir o card na lista.</p><div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">{editor.value && <button type="button" disabled={categoryHasTasks} title={categoryHasTasks ? "Mova as tarefas para outra categoria antes de excluir" : "Excluir categoria vazia"} onClick={() => { if (editor.value) removeCategory(editor.value.id); }} className={`${buttonSoft} text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-45`}><Trash2 className="size-4" />Excluir categoria</button>}<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button type="button" onClick={closeEditor} className={buttonSoft}>Cancelar</button><button type="submit" className={buttonPrimary}><Check className="size-4" />Salvar categoria</button></div></div>{categoryHasTasks && <p className="text-xs text-slate-500">Para excluir esta categoria, edite as tarefas e mova-as para outra categoria primeiro.</p>}</form> : <form className="mt-6 space-y-4" onSubmit={saveExpense}><label className="block text-sm font-medium text-slate-700">Nome do gasto<input autoFocus required maxLength={120} name="name" defaultValue={editor.value?.name ?? ""} placeholder="Ex.: Tradução juramentada" className={inputClass} /></label><div className="grid gap-4 sm:grid-cols-2"><label className="block text-sm font-medium text-slate-700">Valor<input required type="text" inputMode="decimal" name="amount" defaultValue={editor.value?.amount.toFixed(2).replace(".", ",") ?? ""} placeholder="0,00" className={inputClass} /></label><label className="block text-sm font-medium text-slate-700">Moeda<select name="currency" defaultValue={editor.value?.currency ?? "BRL"} className={inputClass}><option value="BRL">Real brasileiro (BRL)</option><option value="EUR">Euro (EUR)</option></select></label></div><label className="block text-sm font-medium text-slate-700">Data de vencimento <span className="font-normal text-slate-400">(opcional)</span><input type="date" name="dueDate" defaultValue={editor.value?.dueDate ?? ""} className={inputClass} /></label><p className="rounded-xl bg-slate-50 px-3.5 py-3 text-xs leading-5 text-slate-500">Use vírgula nos centavos, por exemplo 1.250,50. O gasto será mostrado na moeda original.</p><div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end"><button type="button" onClick={closeEditor} className={buttonSoft}>Cancelar</button><button type="submit" className={buttonPrimary}><Check className="size-4" />Salvar gasto</button></div></form>}
         </section>
       </div>}
     </main>
