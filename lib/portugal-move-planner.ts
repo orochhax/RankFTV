@@ -32,6 +32,16 @@ export function calculateUnpaidExpenseTotals(expenses: MoveExpense[]) {
   }, { brl: 0, eur: 0 });
 }
 
+export function setTaskCompletion(data: PlannerData, taskId: string, completed: boolean): PlannerData {
+  return {
+    ...data,
+    tasks: data.tasks.map((task) => task.id === taskId ? { ...task, completed } : task),
+    expenses: data.expenses.map((expense) => expense.taskId === taskId
+      ? { ...expense, paid: completed }
+      : expense),
+  };
+}
+
 export function upsertTaskAndLinkedExpense(
   data: PlannerData,
   task: MoveTask,
@@ -64,8 +74,8 @@ export function upsertTaskAndLinkedExpense(
     amount: Math.round(amount * 100) / 100,
     currency,
     dueDate: task.dueDate,
-    // Linked expenses are paid at creation. Preserve the status if edited later.
-    paid: linkedExpense?.paid ?? true,
+    // A linked expense is paid exactly when its task is marked complete.
+    paid: task.completed,
   };
 
   return {
@@ -92,22 +102,25 @@ export function normalizePlannerTasks(value: unknown): MoveTask[] {
   );
 }
 
-export function normalizePlannerExpenses(value: unknown): MoveExpense[] {
+export function normalizePlannerExpenses(value: unknown, tasks: MoveTask[] = []): MoveExpense[] {
   if (!Array.isArray(value)) return [];
+  const taskById = new Map(tasks.map((task) => [task.id, task]));
   return value.flatMap((item): MoveExpense[] => {
     if (typeof item !== "object" || item === null || Array.isArray(item)) return [];
     const expense = item as Record<string, unknown>;
     if (typeof expense.id !== "string" || typeof expense.name !== "string"
       || typeof expense.amount !== "number" || !Number.isFinite(expense.amount) || expense.amount < 0
       || (expense.currency !== "BRL" && expense.currency !== "EUR") || typeof expense.dueDate !== "string") return [];
+    const taskId = typeof expense.taskId === "string" ? expense.taskId : undefined;
+    const linkedTask = taskId ? taskById.get(taskId) : undefined;
     return [{
       id: expense.id,
       name: expense.name,
       amount: expense.amount,
       currency: expense.currency,
       dueDate: expense.dueDate,
-      paid: typeof expense.paid === "boolean" ? expense.paid : false,
-      ...(typeof expense.taskId === "string" ? { taskId: expense.taskId } : {}),
+      paid: linkedTask ? linkedTask.completed : typeof expense.paid === "boolean" ? expense.paid : false,
+      ...(linkedTask ? { taskId: linkedTask.id } : {}),
     }];
   });
 }

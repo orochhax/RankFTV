@@ -18,9 +18,12 @@ indexada.
 - As tarefas e os gastos podem ser criados, editados e excluídos. Tarefas também
   podem ser concluídas e reabertas.
 - Cada tarefa pode ter um valor opcional em BRL ou EUR. Ao informar esse valor,
-  o sistema cria ou atualiza um gasto vinculado, marcado como pago por padrão.
-  Gastos pagos continuam visíveis, riscados e em cinza, mas não entram nos totais;
-  o status pode ser alterado na própria lista de gastos.
+  o sistema cria ou atualiza um gasto vinculado. Enquanto a tarefa estiver
+  aberta, o gasto fica em aberto e entra nos totais. Marcar a tarefa como
+  concluída marca o gasto como pago; reabrir a tarefa também reabre o gasto.
+  Gastos pagos continuam visíveis, riscados e em cinza, mas não entram nos totais.
+- O status de gastos independentes pode ser alterado na própria lista. Para
+  gastos vinculados, o checkbox da tarefa é a fonte do status de pagamento.
 - Se o valor for removido da tarefa, o registro financeiro é preservado como
   gasto independente para evitar apagar histórico. Ao excluir a tarefa, o gasto
   vinculado também é preservado e deixa de estar associado à tarefa.
