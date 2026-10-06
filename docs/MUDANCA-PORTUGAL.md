@@ -17,6 +17,13 @@ indexada.
 
 - As tarefas e os gastos podem ser criados, editados e excluídos. Tarefas também
   podem ser concluídas e reabertas.
+- Cada tarefa pode ter um valor opcional em BRL ou EUR. Ao informar esse valor,
+  o sistema cria ou atualiza um gasto vinculado, marcado como pago por padrão.
+  Gastos pagos continuam visíveis, riscados e em cinza, mas não entram nos totais;
+  o status pode ser alterado na própria lista de gastos.
+- Se o valor for removido da tarefa, o registro financeiro é preservado como
+  gasto independente para evitar apagar histórico. Ao excluir a tarefa, o gasto
+  vinculado também é preservado e deixa de estar associado à tarefa.
 - Os alertas de vencimento aparecem em amarelo entre 6 e 10 dias; vencimentos
   em até 5 dias e vencidos aparecem em vermelho. Tarefas concluídas não exibem
   alertas.
