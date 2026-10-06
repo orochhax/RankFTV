@@ -3,13 +3,37 @@ import test from "node:test";
 import {
   calculateUnpaidExpenseTotals,
   normalizePlannerExpenses,
+  normalizeTaskGroups,
   setTaskCompletion,
   unlinkExpensesForTask,
   upsertTaskAndLinkedExpense,
   type PlannerData,
 } from "./portugal-move-planner";
 
-const emptyData: PlannerData = { tasks: [], expenses: [], exchangeRate: 6.25 };
+const emptyData: PlannerData = { tasks: [], categories: [], expenses: [], exchangeRate: 6.25 };
+
+test("legacy tasks receive a Geral category without changing linked task IDs", () => {
+  const tasks = [{ id: "task-1", name: "Passaporte", dueDate: "2026-10-20", completed: false }];
+  const result = normalizeTaskGroups(undefined, tasks);
+
+  assert.deepEqual(result.categories, [{ id: "legacy-general", name: "Geral", collapsed: false }]);
+  assert.deepEqual(result.tasks, [{ ...tasks[0], categoryId: "legacy-general" }]);
+});
+
+test("task groups preserve valid categories and repair missing or dangling category IDs", () => {
+  const categories = [{ id: "consulate", name: "  Consulado - Salvador  ", collapsed: true }];
+  const tasks = [
+    { id: "task-1", name: "Passaporte", dueDate: "2026-10-20", completed: false, categoryId: "consulate" },
+    { id: "task-2", name: "Passagem", dueDate: "2026-10-21", completed: false, categoryId: "deleted-category" },
+  ];
+  const result = normalizeTaskGroups(categories, tasks);
+
+  assert.equal(result.categories[0].name, "Consulado - Salvador");
+  assert.equal(result.categories[0].collapsed, true);
+  assert.equal(result.tasks[0].categoryId, "consulate");
+  assert.equal(result.tasks[1].categoryId, "legacy-general");
+  assert.equal(result.categories[1].name, "Geral");
+});
 
 test("adding an incomplete task with a price creates one linked expense in open balance", () => {
   const task = { id: "task-1", name: "Passaporte", dueDate: "2026-10-20", completed: false };

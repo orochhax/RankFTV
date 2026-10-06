@@ -1,10 +1,17 @@
 export type MoveCurrency = "BRL" | "EUR";
 
+export type MoveTaskCategory = {
+  id: string;
+  name: string;
+  collapsed: boolean;
+};
+
 export type MoveTask = {
   id: string;
   name: string;
   dueDate: string;
   completed: boolean;
+  categoryId?: string;
 };
 
 export type MoveExpense = {
@@ -19,9 +26,45 @@ export type MoveExpense = {
 
 export type PlannerData = {
   tasks: MoveTask[];
+  categories: MoveTaskCategory[];
   expenses: MoveExpense[];
   exchangeRate: number;
 };
+
+export function normalizeTaskGroups(
+  rawCategories: unknown,
+  tasks: MoveTask[],
+): { categories: MoveTaskCategory[]; tasks: MoveTask[] } {
+  const categories: MoveTaskCategory[] = [];
+  const categoryIds = new Set<string>();
+  if (Array.isArray(rawCategories)) {
+    for (const item of rawCategories) {
+      if (typeof item !== "object" || item === null || Array.isArray(item)) continue;
+      const category = item as Record<string, unknown>;
+      if (typeof category.id !== "string" || !category.id || categoryIds.has(category.id)
+        || typeof category.name !== "string" || !category.name.trim()) continue;
+      categoryIds.add(category.id);
+      categories.push({
+        id: category.id,
+        name: category.name.trim(),
+        collapsed: category.collapsed === true,
+      });
+    }
+  }
+
+  const needsLegacyCategory = tasks.some((task) => !task.categoryId || !categoryIds.has(task.categoryId));
+  if (!needsLegacyCategory) return { categories, tasks };
+
+  let legacyId = "legacy-general";
+  while (categoryIds.has(legacyId)) legacyId = `_${legacyId}`;
+  categories.push({ id: legacyId, name: "Geral", collapsed: false });
+  return {
+    categories,
+    tasks: tasks.map((task) => task.categoryId && categoryIds.has(task.categoryId)
+      ? task
+      : { ...task, categoryId: legacyId }),
+  };
+}
 
 export function calculateUnpaidExpenseTotals(expenses: MoveExpense[]) {
   return expenses.reduce((totals, expense) => {
