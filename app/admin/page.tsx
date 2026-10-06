@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing, BellRing, BadgeCheck } from "lucide-react";
+import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing, BellRing, BadgeCheck, Plane } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRole, isAdminRole } from "@/lib/supabase/roles";
+import { isPerformanceOwner } from "@/lib/performance-owner";
 
 const MENU = [
   {
@@ -55,6 +56,13 @@ const MENU = [
     desc: "Planejamento financeiro mensal de Carlos e Julia — receitas, despesas e resultado previsto.",
   },
   {
+    href: "/admin/mudanca-portugal",
+    personalOwnerOnly: true,
+    icon: Plane,
+    label: "Mudança para Portugal",
+    desc: "Lista de tarefas e controle de gastos pessoais para sua mudança.",
+  },
+  {
     href: "/admin/campeonatos",
     icon: Trophy,
     label: "Campeonatos",
@@ -92,7 +100,11 @@ export default async function AdminPage() {
   const role = await getUserRole(supabase);
 
   if (!user || !isAdminRole(role)) redirect("/");
-  const visibleMenu = MENU.filter((item) => !("ownerOnly" in item) || !item.ownerOnly || role === "ceo");
+  const personalOwner = await isPerformanceOwner(supabase, user);
+  const visibleMenu = MENU.filter((item) => {
+    if ("personalOwnerOnly" in item && item.personalOwnerOnly) return personalOwner;
+    return !("ownerOnly" in item) || !item.ownerOnly || role === "ceo";
+  });
 
   return (
     <div className="w-full px-6 py-10">
