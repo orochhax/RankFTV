@@ -47,6 +47,18 @@ test("adding an incomplete task with a price creates one linked expense in open 
   assert.deepEqual(calculateUnpaidExpenseTotals(result.expenses), { brl: 500, eur: 0 });
 });
 
+test("a task can have no due date and its linked expense remains open", () => {
+  const task = { id: "task-no-date", name: "Passagem Aérea", dueDate: "", completed: false };
+  const result = upsertTaskAndLinkedExpense(emptyData, task, 2000, "BRL", "expense-no-date");
+
+  assert.deepEqual(result.tasks, [task]);
+  assert.deepEqual(result.expenses, [{
+    id: "expense-no-date", taskId: "task-no-date", name: "Passagem Aérea", amount: 2000,
+    currency: "BRL", dueDate: "", paid: false,
+  }]);
+  assert.deepEqual(calculateUnpaidExpenseTotals(result.expenses), { brl: 2000, eur: 0 });
+});
+
 test("editing a linked task updates its expense and payment mirrors task completion", () => {
   const task = { id: "task-1", name: "Passaporte renovado", dueDate: "2026-10-21", completed: true };
   const starting: PlannerData = {
