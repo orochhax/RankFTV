@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, useSyncExternalStore, type FormEvent } from "react";
 import {
   AlertCircle,
   ArrowDownRight,
@@ -42,6 +42,8 @@ type PlannerData = {
   exchangeRate: number;
 };
 
+type PlannerSnapshot = PlannerData & { storageError: boolean };
+
 type EditorState =
   | { kind: "task"; value?: MoveTask }
   | { kind: "expense"; value?: MoveExpense }
@@ -50,6 +52,10 @@ type EditorState =
 const STORAGE_KEY = "rankftv:personal-portugal-move:v1";
 const DEFAULT_RATE = 6.25;
 const EMPTY_DATA: PlannerData = { tasks: [], expenses: [], exchangeRate: DEFAULT_RATE };
+const SERVER_SNAPSHOT: PlannerSnapshot = { ...EMPTY_DATA, storageError: false };
+let clientSnapshot: PlannerSnapshot = SERVER_SNAPSHOT;
+let clientSnapshotInitialized = false;
+const snapshotListeners = new Set<() => void>();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -77,6 +83,46 @@ function readPlannerData(): PlannerData | null {
   } catch {
     return null;
   }
+}
+
+function getClientSnapshot(): PlannerSnapshot {
+  if (typeof window === "undefined") return SERVER_SNAPSHOT;
+  if (!clientSnapshotInitialized) {
+    const stored = readPlannerData();
+    clientSnapshot = { ...(stored ?? EMPTY_DATA), storageError: stored === null };
+    clientSnapshotInitialized = true;
+  }
+  return clientSnapshot;
+}
+
+function subscribeToPlanner(listener: () => void): () => void {
+  snapshotListeners.add(listener);
+  function handleStorage(event: StorageEvent) {
+    if (event.key !== STORAGE_KEY && event.key !== null) return;
+    const stored = readPlannerData();
+    clientSnapshot = { ...(stored ?? EMPTY_DATA), storageError: stored === null };
+    clientSnapshotInitialized = true;
+    for (const notify of snapshotListeners) notify();
+  }
+  window.addEventListener("storage", handleStorage);
+  return () => {
+    snapshotListeners.delete(listener);
+    window.removeEventListener("storage", handleStorage);
+  };
+}
+
+function updatePlannerData(updater: (current: PlannerData) => PlannerData) {
+  const current = getClientSnapshot();
+  const next = updater({ tasks: current.tasks, expenses: current.expenses, exchangeRate: current.exchangeRate });
+  let storageError = false;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    storageError = true;
+  }
+  clientSnapshot = { ...next, storageError };
+  clientSnapshotInitialized = true;
+  for (const notify of snapshotListeners) notify();
 }
 
 function localDateKey(date = new Date()): string {
@@ -141,34 +187,13 @@ function dueColor(days: number | null): string {
 }
 
 export function PortugalMovePlanner() {
-  const [data, setData] = useState<PlannerData>(EMPTY_DATA);
-  const [exchangeInput, setExchangeInput] = useState(String(DEFAULT_RATE));
+  const snapshot = useSyncExternalStore(subscribeToPlanner, getClientSnapshot, () => SERVER_SNAPSHOT);
+  const { storageError, ...data } = snapshot;
+  const [exchangeDraft, setExchangeDraft] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"tasks" | "expenses">("tasks");
   const [editor, setEditor] = useState<EditorState>(null);
-  const [ready, setReady] = useState(false);
-  const [storageError, setStorageError] = useState(false);
 
-  useEffect(() => {
-    const stored = readPlannerData();
-    if (stored) {
-      setData(stored);
-      setExchangeInput(String(stored.exchangeRate));
-    } else {
-      setStorageError(true);
-    }
-    setReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      setStorageError(false);
-    } catch {
-      setStorageError(true);
-    }
-  }, [data, ready]);
-
+  const exchangeInput = exchangeDraft ?? String(data.exchangeRate);
   const validRate = parseBrazilianNumber(exchangeInput);
   const rate = Number.isFinite(validRate) && validRate > 0 ? validRate : null;
   const sortedTasks = useMemo(() => sortTasks(data.tasks), [data.tasks]);
@@ -181,11 +206,11 @@ export function PortugalMovePlanner() {
   const nextTask = sortedTasks.find((task) => !task.completed && task.dueDate);
 
   function updateTasks(updater: (tasks: MoveTask[]) => MoveTask[]) {
-    setData((current) => ({ ...current, tasks: updater(current.tasks) }));
+    updatePlannerData((current) => ({ ...current, tasks: updater(current.tasks) }));
   }
 
   function updateExpenses(updater: (expenses: MoveExpense[]) => MoveExpense[]) {
-    setData((current) => ({ ...current, expenses: updater(current.expenses) }));
+    updatePlannerData((current) => ({ ...current, expenses: updater(current.expenses) }));
   }
 
   function saveTask(event: FormEvent<HTMLFormElement>) {
@@ -309,7 +334,7 @@ export function PortugalMovePlanner() {
 
             <div className="grid gap-4 rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm sm:grid-cols-[1fr_auto] sm:items-center sm:p-5">
               <div className="flex items-start gap-3"><div className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#e7efeb] text-[#1f6b5e]"><Euro className="size-5" /></div><div><p className="font-semibold">Cotação utilizada</p><p className="mt-1 text-sm text-slate-500">Informe quantos reais equivalem a 1 euro.</p></div></div>
-              <label className="block text-xs font-semibold text-slate-600">1 EUR = <span className="sr-only">Cotação em reais por euro</span><div className="mt-1.5 flex items-center gap-2"><input type="text" inputMode="decimal" value={exchangeInput} onChange={(event) => { const value = event.target.value; setExchangeInput(value); const parsed = parseBrazilianNumber(value); if (Number.isFinite(parsed) && parsed > 0) setData((current) => ({ ...current, exchangeRate: parsed })); }} className="min-h-11 w-36 rounded-xl border border-slate-200 px-3 text-base font-semibold text-slate-900 outline-none focus:border-[#1f6b5e] focus:ring-4 focus:ring-[#1f6b5e]/10" aria-invalid={rate === null} /><span className="text-sm font-medium text-slate-500">BRL</span></div></label>
+              <label className="block text-xs font-semibold text-slate-600">1 EUR = <span className="sr-only">Cotação em reais por euro</span><div className="mt-1.5 flex items-center gap-2"><input type="text" inputMode="decimal" value={exchangeInput} onChange={(event) => { const value = event.target.value; setExchangeDraft(value); const parsed = parseBrazilianNumber(value); if (Number.isFinite(parsed) && parsed > 0) updatePlannerData((current) => ({ ...current, exchangeRate: parsed })); }} onBlur={() => { if (rate !== null) setExchangeDraft(null); }} className="min-h-11 w-36 rounded-xl border border-slate-200 px-3 text-base font-semibold text-slate-900 outline-none focus:border-[#1f6b5e] focus:ring-4 focus:ring-[#1f6b5e]/10" aria-invalid={rate === null} /><span className="text-sm font-medium text-slate-500">BRL</span></div></label>
               {rate === null && <p role="alert" className="text-xs text-red-600 sm:col-span-2">Digite uma cotação maior que zero para calcular os totais.</p>}
             </div>
 
