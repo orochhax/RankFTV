@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BookOpenCheck, BriefcaseBusiness, ChevronDown, CircleAlert, ExternalLink, GraduationCap, Plane, ShieldAlert } from "lucide-react";
 import { visaGuides, type VisaCountry, type VisaGuide } from "@/lib/visa-planner-data";
-import { visaComparisons, type VisaComparisonRow } from "@/lib/visa-planner-comparisons";
+import { withBRLConversions } from "@/lib/visa-planner-currency";
 
 const countryInfo: Record<VisaCountry, { title: string; description: string }> = {
   portugal: {
@@ -44,59 +44,7 @@ function VisaIcon({ guide }: { guide: VisaGuide }) {
   return <BookOpenCheck className="size-5" aria-hidden="true" />;
 }
 
-const comparisonStatus = {
-  required: { label: "Exigido", className: "bg-emerald-100 text-emerald-800" },
-  differs: { label: "Difere", className: "bg-blue-100 text-blue-800" },
-  depends: { label: "Depende", className: "bg-amber-100 text-amber-900" },
-  not_applicable: { label: "Não se aplica", className: "bg-slate-100 text-slate-500" },
-} as const;
-
-function ComparisonCell({ item }: { item: VisaComparisonRow["portugal"] }) {
-  const status = comparisonStatus[item.status];
-
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2.5">
-      <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${status.className}`}>
-        {status.label}
-      </span>
-      <p className={`mt-1.5 text-xs leading-5 ${item.status === "not_applicable" ? "text-slate-400" : "text-slate-700"}`}>
-        {item.text}
-      </p>
-    </div>
-  );
-}
-
-function VisaComparison({ guide }: { guide: VisaGuide }) {
-  const comparisonKey = guide.id.slice(3);
-  const rows = visaComparisons[comparisonKey];
-  if (!rows) return null;
-
-  return (
-    <section className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3.5" aria-label="Comparação entre Portugal e Espanha">
-      <h4 className="text-xs font-bold uppercase tracking-wide text-slate-700">Comparação visual</h4>
-      <p className="mt-1 text-[11px] leading-4 text-slate-500">O mesmo tema nos dois países. “Difere” destaca que a regra ou o valor não é igual.</p>
-      <div className="mt-3 space-y-3">
-        {rows.map((row) => (
-          <div key={row.topic}>
-            <h5 className="mb-1.5 text-xs font-semibold text-slate-800">{row.topic}</h5>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div className="space-y-1">
-                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500"><CountryFlag country="espanha" /> Espanha</p>
-                <ComparisonCell item={row.espanha} />
-              </div>
-              <div className="space-y-1">
-                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500"><CountryFlag country="portugal" /> Portugal</p>
-                <ComparisonCell item={row.portugal} />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function VisaCard({ guide, country }: { guide: VisaGuide; country: VisaCountry }) {
+function VisaCard({ guide, country, exchangeRate }: { guide: VisaGuide; country: VisaCountry; exchangeRate: number }) {
   const [expanded, setExpanded] = useState(false);
   const panelId = `visa-${country}-${guide.id}`;
   const warning = guide.kind === "warning";
@@ -132,10 +80,9 @@ function VisaCard({ guide, country }: { guide: VisaGuide; country: VisaCountry }
         )}
 
         <div className="grid gap-3">
-          <VisaComparison guide={guide} />
-          <InfoBlock title="Pré-requisitos" items={guide.prerequisites} tone={warning ? "amber" : "green"} />
-          <InfoBlock title="Dinheiro" items={guide.money} tone="blue" />
-          <InfoBlock title="Documentação" items={guide.documents} tone="slate" />
+          <InfoBlock title="Pré-requisitos" items={guide.prerequisites} tone={warning ? "amber" : "green"} exchangeRate={exchangeRate} />
+          <InfoBlock title="Dinheiro" items={guide.money} tone="blue" exchangeRate={exchangeRate} />
+          <InfoBlock title="Documentação" items={guide.documents} tone="slate" exchangeRate={exchangeRate} />
         </div>
 
         <div className="mt-4 border-t border-slate-100 pt-3">
@@ -155,7 +102,7 @@ function VisaCard({ guide, country }: { guide: VisaGuide; country: VisaCountry }
   );
 }
 
-function InfoBlock({ title, items, tone }: { title: string; items: string[]; tone: "amber" | "green" | "blue" | "slate" }) {
+function InfoBlock({ title, items, tone, exchangeRate }: { title: string; items: string[]; tone: "amber" | "green" | "blue" | "slate"; exchangeRate: number }) {
   const tones = {
     amber: "border-amber-100 bg-amber-50/60",
     green: "border-emerald-100 bg-emerald-50/40",
@@ -167,13 +114,13 @@ function InfoBlock({ title, items, tone }: { title: string; items: string[]; ton
     <section className={`rounded-xl border px-3.5 py-3 ${tones[tone]}`} aria-label={title}>
       <h4 className="text-xs font-bold uppercase tracking-wide text-slate-700">{title}</h4>
       <ul className="mt-2 space-y-1.5 text-xs leading-5 text-slate-600">
-        {items.map((item) => <li key={item} className="flex gap-2"><span className="mt-[7px] size-1 shrink-0 rounded-full bg-current opacity-50" aria-hidden="true" /><span>{item}</span></li>)}
+        {items.map((item) => <li key={item} className="flex gap-2"><span className="mt-[7px] size-1 shrink-0 rounded-full bg-current opacity-50" aria-hidden="true" /><span>{withBRLConversions(item, exchangeRate)}</span></li>)}
       </ul>
     </section>
   );
 }
 
-function CountryColumn({ country }: { country: VisaCountry }) {
+function CountryColumn({ country, exchangeRate }: { country: VisaCountry; exchangeRate: number }) {
   const info = countryInfo[country];
   return (
     <section aria-labelledby={`${country}-heading`} className="space-y-3">
@@ -185,25 +132,27 @@ function CountryColumn({ country }: { country: VisaCountry }) {
           </div>
         </div>
       </div>
-      {visaGuides[country].map((guide) => <VisaCard key={guide.id} guide={guide} country={country} />)}
+      {visaGuides[country].map((guide) => <VisaCard key={guide.id} guide={guide} country={country} exchangeRate={exchangeRate} />)}
     </section>
   );
 }
 
-export function VisaExplorer() {
+export function VisaExplorer({ exchangeRate }: { exchangeRate: number }) {
+  const formattedRate = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 6 }).format(exchangeRate);
+
   return (
     <section aria-labelledby="visas-heading" className="space-y-4">
       <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-3.5 text-sm text-blue-950">
         <BookOpenCheck className="mt-0.5 size-5 shrink-0 text-blue-700" aria-hidden="true" />
         <div>
-          <h2 id="visas-heading" className="font-semibold">Comparativo de vistos e entrada</h2>
-          <p className="mt-1 text-xs leading-5 text-blue-900/80">Referência para planejamento, consultada em 07/10/2026. Conversões estimadas pela cotação do <a href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/eurofxref-graph-brl.en.html" target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-2">BCE de 06/10/2026</a>: € 1 = R$ 5,5991; o câmbio bancário pode variar. Requisitos e valores podem mudar conforme nacionalidade, consulado, duração e situação familiar. Confirme nas fontes oficiais antes de pagar ou viajar. A referência de turismo considera passaporte brasileiro comum.</p>
+          <h2 id="visas-heading" className="font-semibold">Vistos e condições de entrada</h2>
+          <p className="mt-1 text-xs leading-5 text-blue-900/80">Valores em reais calculados pela cotação salva em Gastos: € 1 = R$ {formattedRate}. Referência consultada em 07/10/2026. Requisitos e valores em euros podem mudar conforme nacionalidade, consulado, duração e situação familiar. Confirme as fontes oficiais antes de pagar ou viajar. As orientações de turismo consideram passaporte brasileiro comum.</p>
         </div>
       </div>
 
       <div className="grid items-start gap-5 lg:grid-cols-2">
-        <CountryColumn country="espanha" />
-        <CountryColumn country="portugal" />
+        <CountryColumn country="espanha" exchangeRate={exchangeRate} />
+        <CountryColumn country="portugal" exchangeRate={exchangeRate} />
       </div>
     </section>
   );
