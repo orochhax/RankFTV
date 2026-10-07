@@ -4,18 +4,36 @@ import { useState } from "react";
 import { BookOpenCheck, BriefcaseBusiness, ChevronDown, CircleAlert, ExternalLink, GraduationCap, Plane, ShieldAlert } from "lucide-react";
 import { visaGuides, type VisaCountry, type VisaGuide } from "@/lib/visa-planner-data";
 
-const countryInfo: Record<VisaCountry, { title: string; flag: string; description: string }> = {
+const countryInfo: Record<VisaCountry, { title: string; description: string }> = {
   portugal: {
     title: "Portugal",
-    flag: "🇵🇹",
     description: "Regras portuguesas para trabalho, turismo, estudo e permanência.",
   },
   espanha: {
     title: "Espanha",
-    flag: "🇪🇸",
     description: "Regras espanholas para trabalho, turismo, estudo e permanência.",
   },
 };
+
+function CountryFlag({ country }: { country: VisaCountry }) {
+  if (country === "espanha") {
+    return (
+      <svg viewBox="0 0 30 20" className="h-5 w-[30px] overflow-hidden rounded-sm shadow-sm" role="img" aria-label="Bandeira da Espanha">
+        <rect width="30" height="20" fill="#AA151B" />
+        <rect y="5" width="30" height="10" fill="#F1BF00" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 30 20" className="h-5 w-[30px] overflow-hidden rounded-sm shadow-sm" role="img" aria-label="Bandeira de Portugal">
+      <rect width="12" height="20" fill="#046A38" />
+      <rect x="12" width="18" height="20" fill="#DA291C" />
+      <circle cx="12" cy="10" r="3.4" fill="#FFCD00" />
+      <path d="M10.5 7.6h3v4.2h-3z" fill="#fff" stroke="#DA291C" strokeWidth=".45" />
+    </svg>
+  );
+}
 
 function VisaIcon({ guide }: { guide: VisaGuide }) {
   if (guide.kind === "warning") return <ShieldAlert className="size-5" aria-hidden="true" />;
@@ -107,9 +125,8 @@ function CountryColumn({ country }: { country: VisaCountry }) {
     <section aria-labelledby={`${country}-heading`} className="space-y-3">
       <div className="rounded-2xl bg-[#123c36] px-4 py-4 text-white shadow-sm sm:px-5">
         <div className="flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-xl bg-white/10 text-2xl" aria-hidden="true">{info.flag}</span>
           <div>
-            <h3 id={`${country}-heading`} className="text-lg font-semibold">{info.title}</h3>
+            <h3 id={`${country}-heading`} className="flex items-center gap-2 text-lg font-semibold"><CountryFlag country={country} />{info.title}</h3>
             <p className="mt-0.5 text-xs leading-5 text-emerald-50/70">{info.description}</p>
           </div>
         </div>
@@ -126,7 +143,7 @@ export function VisaExplorer() {
         <BookOpenCheck className="mt-0.5 size-5 shrink-0 text-blue-700" aria-hidden="true" />
         <div>
           <h2 id="visas-heading" className="font-semibold">Comparativo de vistos e entrada</h2>
-          <p className="mt-1 text-xs leading-5 text-blue-900/80">Referência inicial para planejamento, conferida em 07/10/2026. Valores, formulários e documentos podem mudar e variar por nacionalidade, consulado, duração e situação familiar. Confirme tudo nas fontes oficiais antes de pagar ou viajar. A referência de turismo abaixo considera passaporte brasileiro comum.</p>
+          <p className="mt-1 text-xs leading-5 text-blue-900/80">Referência para planejamento, consultada em 07/10/2026. Conversões estimadas pela cotação do <a href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/eurofxref-graph-brl.en.html" target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-2">BCE de 06/10/2026</a>: € 1 = R$ 5,5991; o câmbio bancário pode variar. Requisitos e valores podem mudar conforme nacionalidade, consulado, duração e situação familiar. Confirme nas fontes oficiais antes de pagar ou viajar. A referência de turismo considera passaporte brasileiro comum.</p>
         </div>
       </div>
 
