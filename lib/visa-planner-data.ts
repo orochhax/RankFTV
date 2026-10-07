@@ -13,6 +13,7 @@ export type VisaGuide = {
   prerequisites: string[];
   money: string[];
   documents: string[];
+  additionalSections?: { title: string; items: string[] }[];
   sources: VisaSource[];
 };
 
@@ -199,6 +200,7 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
         "Conseguir admissão em instituição ou programa de estudos elegível.",
         "Apresentar a matrícula quando exigida para o curso.",
         "Para estudar por mais de 90 dias, solicitar a autorização/visto nacional adequado antes da viagem.",
+        "FP (Formación Profesional) é formação técnica/profissional. Confira o grau e o reconhecimento oficial do curso: as regras não são iguais para todas as modalidades.",
       ],
       money: [
         "Referência de recursos em 2026 para o estudante, por mês: € 600.",
@@ -207,6 +209,7 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
         "Cada familiar adicional, por mês: € 300.",
         "Alojamento pago antecipadamente para toda a estadia pode reduzir a quantia financeira exigida.",
         "Inclua também propinas, seguro e demais despesas. Bolsas podem contar como recursos.",
+        "Estimativa informada para um curso de 12 meses em eletricidade/energia solar: € 6.000. Não é preço confirmado nem padrão; peça o orçamento da escola e confira se o curso é elegível para o visto.",
       ],
       documents: [
         "Formulário, passaporte, fotografia e comprovante de admissão/matrícula.",
@@ -218,12 +221,44 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
         "Uma passagem só de ida pode ser compatível com o visto de estudos; confirme com o consulado antes de comprar.",
         "Para estadias longas, certificado médico e antecedentes criminais apostilados/traduzidos quando exigidos.",
       ],
+      additionalSections: [
+        {
+          title: "Trabalho durante os estudos",
+          items: [
+            "Regra geral: até 30 horas semanais, desde que o trabalho seja compatível com os estudos. A FP de regime intensivo segue regras próprias.",
+            "Estudos superiores elegíveis, incluindo FP de grau superior: o titular pode trabalhar por conta própria ou alheia sem autorização adicional.",
+            "FP de grau médio: as atividades formativas em empresa previstas no curso são permitidas; emprego fora delas pode exigir autorização de trabalho separada.",
+            "Curso de espanhol em escola de idiomas oficial ou centro credenciado pode permitir estadia legal para estudar, mas não dá autorização automática para trabalhar. É preciso pedir autorização de trabalho separada, se cabível.",
+          ],
+        },
+        {
+          title: "Família",
+          items: [
+            "Familiares de estudante de ensino superior podem pedir autorização própria para acompanhar o titular, se preencherem os requisitos.",
+            "Enquanto tiverem apenas a autorização como familiares de estudante, cônjuge e demais familiares não estão autorizados a trabalhar.",
+            "Ao solicitar a mudança para residência e trabalho, o estudante pode pedir residência para familiares que já morem com ele, mediante comprovação de renda e moradia adequada. Não é automático.",
+          ],
+        },
+        {
+          title: "Depois do curso: residência e trabalho",
+          items: [
+            "O artigo 190 permite pedir a mudança de estadia por estudos para residência e trabalho em modalidades elegíveis, como estudos superiores e FP de grau médio. Curso de idiomas, por si só, não entra nessa regra.",
+            "É necessário obter o título ou certificado de conclusão do curso e cumprir os requisitos da autorização de trabalho pretendida; concluir o curso não garante a aprovação.",
+            "O pedido pode ser apresentado nos 2 meses anteriores ou nos 3 meses posteriores ao fim da autorização de estudos ou à obtenção do título/certificado. Não existe obrigação geral de pedir exatamente 60 dias antes do fim do curso.",
+            "O documento exigido é a comprovação de que os estudos foram concluídos com aprovação; a regra não pede genericamente uma carta da escola sobre 'bom aproveitamento'.",
+          ],
+        },
+      ],
       sources: [
         { label: "Consulado da Espanha em São Paulo — estudos (PDF oficial)", url: "https://exteriores.gob.es/Consulados/SAOPAULO/es/ServiciosConsulares/Documents/Requisitos%20Visados%20estudios.pdf" },
         { label: "Consulado da Espanha em São Paulo — agendamento de vistos", url: "https://www.exteriores.gob.es/Consulados/saopaulo/es/ServiciosConsulares/Paginas/Procedimiento-para-obtener-una-cita-de-Visados.aspx" },
         { label: "Consulado da Espanha no Brasil — requisitos de visto de estudos", url: "https://www.exteriores.gob.es/es/ServiciosAlCiudadano/Paginas/Servicios-consulares.aspx?scca=Visados&scco=Brasil&scd=33&scs=Visados+Nacionales+-+Visado+de+estudios" },
         { label: "Governo da Espanha — IPREM e 2026", url: "https://www.exteriores.gob.es/Consulados/losangeles/en/ServiciosConsulares/Paginas/Consular/Visado-de-estudios.aspx" },
         { label: "Embaixada da Espanha em Brasília — visto de estudos e prova de recursos", url: "https://www.exteriores.gob.es/Embajadas/brasilia/pt/ServiciosConsulares/Paginas/Consular/Visado-de-estudios.aspx" },
+        { label: "Espanha — regulamento de estrangeiros, artigos 52, 56, 57 e 190", url: "https://www.boe.es/buscar/act.php?id=BOE-A-2024-24099" },
+        { label: "Ministério das Migrações — trabalho durante os estudos", url: "https://www.inclusion.gob.es/es/web/migraciones/w/hoja-4-bis-acceso-al-empleo-de-las-personas-titulares-de-una-autorizacion-de-estancia-de-larga-duracion-por-estudios-movilidad-de-alumnos-servicios-de-voluntariado-o-actividades-formativas" },
+        { label: "Ministério das Migrações — mudança de estudos para trabalho (PDF)", url: "https://ciudadaniaexterior.inclusion.gob.es/documents/410169/2260168/58.%2BModificaciones%2Bdesde%2Bautorizaciones%2Bde%2Bestancia%2Bpor%2Bestudios%2Bsuperiores%2C%2Bense%C3%B1anza%2Bsecundaria%2C%2Bactividades%2Bformativas%2Bo%2Bformaci%C3%B3n%2Bsanitaria%2Bespecializada.pdf/64de936f-d08f-2f17-a8ca-8c3fc2609971?t=1776767783305" },
+        { label: "Ministério das Migrações — curso de idiomas e atividades formativas", url: "https://www.inclusion.gob.es/es/web/migraciones/w/autorizacion-de-estancia-para-actividades-de-investigacion-o-formacion" },
       ],
     },
     {

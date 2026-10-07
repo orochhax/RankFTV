@@ -82,6 +82,9 @@ function VisaCard({ guide, country, exchangeRate }: { guide: VisaGuide; country:
         <div className="grid gap-3">
           <InfoBlock title="Pré-requisitos" items={guide.prerequisites} tone={warning ? "amber" : "green"} exchangeRate={exchangeRate} />
           <InfoBlock title="Dinheiro" items={guide.money} tone="blue" exchangeRate={exchangeRate} />
+          {guide.additionalSections?.map((section) => (
+            <InfoBlock key={section.title} title={section.title} items={section.items} tone="slate" exchangeRate={exchangeRate} />
+          ))}
           <InfoBlock title="Documentação" items={guide.documents} tone="slate" exchangeRate={exchangeRate} />
         </div>
 
