@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BookOpenCheck, BriefcaseBusiness, ChevronDown, CircleAlert, ExternalLink, GraduationCap, Plane, ShieldAlert } from "lucide-react";
 import { visaGuides, type VisaCountry, type VisaGuide } from "@/lib/visa-planner-data";
+import { visaComparisons, type VisaComparisonRow } from "@/lib/visa-planner-comparisons";
 
 const countryInfo: Record<VisaCountry, { title: string; description: string }> = {
   portugal: {
@@ -43,6 +44,58 @@ function VisaIcon({ guide }: { guide: VisaGuide }) {
   return <BookOpenCheck className="size-5" aria-hidden="true" />;
 }
 
+const comparisonStatus = {
+  required: { label: "Exigido", className: "bg-emerald-100 text-emerald-800" },
+  differs: { label: "Difere", className: "bg-blue-100 text-blue-800" },
+  depends: { label: "Depende", className: "bg-amber-100 text-amber-900" },
+  not_applicable: { label: "Não se aplica", className: "bg-slate-100 text-slate-500" },
+} as const;
+
+function ComparisonCell({ item }: { item: VisaComparisonRow["portugal"] }) {
+  const status = comparisonStatus[item.status];
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2.5">
+      <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${status.className}`}>
+        {status.label}
+      </span>
+      <p className={`mt-1.5 text-xs leading-5 ${item.status === "not_applicable" ? "text-slate-400" : "text-slate-700"}`}>
+        {item.text}
+      </p>
+    </div>
+  );
+}
+
+function VisaComparison({ guide }: { guide: VisaGuide }) {
+  const comparisonKey = guide.id.slice(3);
+  const rows = visaComparisons[comparisonKey];
+  if (!rows) return null;
+
+  return (
+    <section className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3.5" aria-label="Comparação entre Portugal e Espanha">
+      <h4 className="text-xs font-bold uppercase tracking-wide text-slate-700">Comparação visual</h4>
+      <p className="mt-1 text-[11px] leading-4 text-slate-500">O mesmo tema nos dois países. “Difere” destaca que a regra ou o valor não é igual.</p>
+      <div className="mt-3 space-y-3">
+        {rows.map((row) => (
+          <div key={row.topic}>
+            <h5 className="mb-1.5 text-xs font-semibold text-slate-800">{row.topic}</h5>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="space-y-1">
+                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500"><CountryFlag country="espanha" /> Espanha</p>
+                <ComparisonCell item={row.espanha} />
+              </div>
+              <div className="space-y-1">
+                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500"><CountryFlag country="portugal" /> Portugal</p>
+                <ComparisonCell item={row.portugal} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function VisaCard({ guide, country }: { guide: VisaGuide; country: VisaCountry }) {
   const [expanded, setExpanded] = useState(false);
   const panelId = `visa-${country}-${guide.id}`;
@@ -79,6 +132,7 @@ function VisaCard({ guide, country }: { guide: VisaGuide; country: VisaCountry }
         )}
 
         <div className="grid gap-3">
+          <VisaComparison guide={guide} />
           <InfoBlock title="Pré-requisitos" items={guide.prerequisites} tone={warning ? "amber" : "green"} />
           <InfoBlock title="Dinheiro" items={guide.money} tone="blue" />
           <InfoBlock title="Documentação" items={guide.documents} tone="slate" />
