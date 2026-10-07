@@ -60,7 +60,7 @@ const MENU = [
     personalOwnerOnly: true,
     icon: Plane,
     label: "Mudança para Portugal",
-    desc: "Lista de tarefas e controle de gastos pessoais para sua mudança.",
+    desc: "Tarefas, gastos e comparação de vistos para Portugal e Espanha.",
   },
   {
     href: "/admin/campeonatos",

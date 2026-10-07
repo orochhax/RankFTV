@@ -4,7 +4,7 @@ import { isPerformanceOwner } from "@/lib/performance-owner";
 import { PortugalMovePlanner } from "@/components/admin/portugal-move/PortugalMovePlanner";
 
 export const metadata = {
-  title: "Mudança para Portugal — Pessoal",
+  title: "Mudança para Europa — Pessoal",
   robots: { index: false, follow: false },
 };
 
