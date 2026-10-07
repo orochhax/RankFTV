@@ -29,7 +29,7 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
       ],
       money: [
         "A renda do contrato e os meios de subsistência do agregado são analisados conforme o caso; não há um saldo bancário universal que substitua o contrato.",
-        "A remuneração mínima portuguesa em 2026 é € 920/mês; é uma referência laboral, não uma promessa de aprovação do visto.",
+        "A remuneração mínima portuguesa em 2026 é € 920/mês (≈ R$ 5.151,17); é uma referência laboral, não uma promessa de aprovação do visto.",
       ],
       documents: [
         "Formulário, passaporte válido e fotografias.",
@@ -54,6 +54,7 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
       ],
       money: [
         "É preciso demonstrar meios suficientes para a duração da viagem e para o retorno. O valor concreto pode depender da análise da fronteira e das condições comprovadas.",
+        "A regra portuguesa publicada para estadas curtas usa € 75 por entrada (≈ R$ 419,93) + € 40 por dia (≈ R$ 223,96/dia). Como a regra é geral e a entrada brasileira pode ser isenta de visto, confirme sua aplicação ao caso com a autoridade competente.",
         "Alojamento e alimentação assegurados podem ser considerados na avaliação; confirme previamente com a autoridade/consulado competente.",
       ],
       documents: [
@@ -77,7 +78,8 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
         "O tipo de visto e a autorização posterior variam conforme nível, duração e programa de estudos.",
       ],
       money: [
-        "Comprovar meios de subsistência para a duração do plano, além de considerar propinas, alojamento e despesas de vida.",
+        "A prova de meios depende do tipo de curso e do caso. Como referência geral de subsistência em Portugal em 2026: € 920/mês (≈ R$ 5.151,17), equivalente ao salário mínimo; isso não é um mínimo universal do visto de estudante e há situações de dispensa/redução.",
+        "A taxa publicada para o pedido de visto de residência de estudo é € 90 (≈ R$ 503,92); confirme o valor e eventuais isenções junto ao consulado/MNE antes de pagar.",
         "Bolsas e algumas modalidades de mobilidade podem alterar ou dispensar parte da prova; confira a regra do curso e do consulado.",
       ],
       documents: [
@@ -88,6 +90,7 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
       sources: [
         { label: "Gov.pt — visto de residência para estudo", url: "https://www.gov.pt/servicos/pedir-um-visto-de-residencia-para-estudo-intercambio-de-estudantes-estagio-profissional-ou-voluntariado" },
         { label: "AIMA — autorização de residência para estudantes", url: "https://aima.gov.pt/pt/estudar/autorizacao-de-residencia-para-estudantes-art-92-o" },
+        { label: "AIMA — meios de subsistência", url: "https://aima.gov.pt/pt/temas-transversais/meios-de-subsistencia" },
       ],
     },
     {
@@ -126,7 +129,7 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
       ],
       money: [
         "O contrato e a autorização de trabalho são centrais; não há um saldo pessoal único que substitua essa autorização.",
-        "Salário e condições devem respeitar a legislação espanhola e a categoria profissional aplicável.",
+        "O salário mínimo interprofissional espanhol em 2026 é € 1.221/mês em 14 pagamentos (≈ R$ 6.836,50 por pagamento mensal); é referência salarial, não um requisito de saldo bancário para o visto.",
       ],
       documents: [
         "Formulário nacional, fotografia e passaporte válido.",
@@ -150,7 +153,7 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
       ],
       money: [
         "A Espanha atualiza anualmente o valor de comprovação. Para 2026, a regra publicada usa 10% do SMI por pessoa/dia e um mínimo de 90% do SMI por pessoa.",
-        "Com SMI 2026 de € 1.221/mês, isso corresponde a cerca de € 122,10/dia e mínimo de € 1.098,90; confirme o cálculo oficial perto da viagem.",
+        "Com SMI 2026 de € 1.221/mês, isso corresponde a cerca de € 122,10/dia (≈ R$ 683,65/dia) e mínimo de € 1.098,90 (≈ R$ 6.152,85 por pessoa); confirme o cálculo oficial perto da viagem.",
       ],
       documents: [
         "Passaporte válido, passagem de volta/continuação e comprovante de hospedagem ou convite.",
@@ -173,8 +176,9 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
         "Para permanência acima de 90 dias, solicitar a autorização/visto adequado antes da viagem.",
       ],
       money: [
-        "Regra-base consular: comprovar recursos equivalentes a 100% do IPREM por mês da estadia; somam-se valores para familiares acompanhantes.",
-        "O orçamento também deve cobrir propinas, alojamento, seguro e retorno. Bolsas podem compor a comprovação.",
+        "Para 2026, a regra-base é 100% do IPREM por mês de estadia: € 600/mês (≈ R$ 3.359,46). Para 12 meses, € 7.200 (≈ R$ 40.313,52). O valor de € 7.400 não é o mínimo oficial fixo que encontrei; o total depende da duração do curso.",
+        "Para familiares acompanhantes, a regra geral soma 75% do IPREM para o primeiro e 50% para cada adicional: € 450/mês (≈ R$ 2.519,60) e € 300/mês (≈ R$ 1.679,73), respectivamente. Alojamento pago antecipadamente pode alterar a comprovação aceita.",
+        "Além dos meios de subsistência, considere propinas, alojamento, seguro e retorno; bolsas podem compor a comprovação.",
       ],
       documents: [
         "Formulário, passaporte, foto e carta de admissão/matrícula.",
@@ -184,6 +188,8 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
       sources: [
         { label: "Consulado da Espanha em São Paulo — estudos (PDF oficial)", url: "https://exteriores.gob.es/Consulados/SAOPAULO/es/ServiciosConsulares/Documents/Requisitos%20Visados%20estudios.pdf" },
         { label: "Consulado da Espanha em São Paulo — agendamento de vistos", url: "https://www.exteriores.gob.es/Consulados/saopaulo/es/ServiciosConsulares/Paginas/Procedimiento-para-obtener-una-cita-de-Visados.aspx" },
+        { label: "Consulado da Espanha no Brasil — requisitos de visto de estudos", url: "https://www.exteriores.gob.es/es/ServiciosAlCiudadano/Paginas/Servicios-consulares.aspx?scca=Visados&scco=Brasil&scd=33&scs=Visados+Nacionales+-+Visado+de+estudios" },
+        { label: "Governo da Espanha — IPREM e 2026", url: "https://www.exteriores.gob.es/Consulados/losangeles/en/ServiciosConsulares/Paginas/Consular/Visado-de-estudios.aspx" },
       ],
     },
     {
