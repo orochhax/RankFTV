@@ -486,7 +486,7 @@ export function PortugalMovePlanner() {
             </div>
             <p className="flex items-center gap-2 px-1 text-xs text-slate-500"><ArrowDownRight className="size-4 text-[#1f6b5e]" />Os totais incluem apenas gastos em aberto; os pagos ficam riscados na lista e não entram na soma. Nas tarefas com custo, o checkbox controla esse status.</p>
           </section>
-        ) : <VisaExplorer />}
+        ) : <VisaExplorer exchangeRate={data.exchangeRate} />}
 
         <footer className="flex flex-col gap-2 border-t border-slate-200 pt-4 text-xs leading-5 text-slate-500 sm:flex-row sm:items-center sm:justify-between"><span>Dados armazenados neste navegador e neste dispositivo.</span><span className="inline-flex items-center gap-1.5"><CheckCircle2 className="size-3.5 text-[#1f6b5e]" />Atualização automática dos totais</span></footer>
       </div>

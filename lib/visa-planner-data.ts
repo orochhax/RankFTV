@@ -31,7 +31,7 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
       money: [
         "A remuneração e os meios de subsistência da família são avaliados conforme o caso.",
         "Saldo bancário, sozinho, não substitui o contrato de trabalho.",
-        "Salário mínimo português em 2026: € 920/mês (≈ R$ 5.151,17). É referência salarial, não garantia de visto.",
+        "Salário mínimo português em 2026, por mês: € 920. É referência salarial, não garantia de visto.",
       ],
       documents: [
         "Formulário preenchido, passaporte válido e fotografias.",
@@ -58,11 +58,10 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
         "A isenção não garante a entrada: a fronteira pode pedir comprovantes.",
       ],
       money: [
-        "Demonstre recursos para a estadia e para o retorno; a avaliação considera a duração e as condições da viagem.",
-        "Referência portuguesa publicada: € 75 por entrada (≈ R$ 419,93).",
-        "Some € 40 por dia (≈ R$ 223,96/dia) à referência acima.",
-        "Como a regra é geral e brasileiros podem ser isentos de visto, confirme a aplicação ao seu caso.",
-        "Alojamento e alimentação garantidos podem ser considerados na avaliação; confirme com a autoridade competente.",
+        "Comprove dinheiro suficiente para a estadia e o retorno.",
+        "Referência publicada para entrada: € 75.",
+        "Referência adicional por dia de estadia: € 40.",
+        "Confirme como esses valores se aplicam ao brasileiro isento de visto; alojamento e alimentação garantidos podem ser considerados.",
       ],
       documents: [
         "Passaporte válido e plano/objetivo da viagem.",
@@ -89,17 +88,19 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
       ],
       money: [
         "A comprovação financeira varia conforme o tipo e a duração do curso.",
-        "Referência geral de subsistência em 2026: € 920/mês (≈ R$ 5.151,17). Não é mínimo universal para todo visto de estudante.",
+        "Referência geral de subsistência em 2026, por mês: € 920. Não é mínimo universal para todo visto de estudante.",
         "Algumas situações permitem redução ou dispensa, por exemplo, conforme bolsa ou modalidade de mobilidade.",
-        "Taxa publicada para visto de residência de estudo: € 90 (≈ R$ 503,92); confirme o valor e eventuais isenções antes de pagar.",
+        "Taxa publicada para visto de residência de estudo: € 90. Confirme o valor e eventuais isenções antes de pagar.",
       ],
       documents: [
         "Carta de admissão ou comprovante de matrícula.",
         "Comprovante de propinas ou bolsa, quando aplicável.",
-        "Comprovante de alojamento aceito para a modalidade do visto. Não precisa ser Airbnb especificamente; confirme quais alternativas o checklist atual aceita.",
+        "Comprove alojamento conforme a modalidade do visto; não precisa ser Airbnb especificamente.",
+        "Confira no checklist atual quais formas de alojamento são aceitas.",
         "Passaporte, formulário, fotografias e seguro de saúde/viagem.",
         "Registo criminal e comprovantes financeiros, conforme o caso.",
-        "Passagem: a exigência depende da modalidade e do checklist atual. Confirme com a VFS/consulado se uma reserva só de ida é suficiente antes de comprar.",
+        "Passagem: a exigência depende da modalidade e da duração do curso.",
+        "Confirme com a VFS/consulado se uma reserva só de ida basta antes de comprar.",
       ],
       sources: [
         { label: "Gov.pt — visto de residência para estudo", url: "https://www.gov.pt/servicos/pedir-um-visto-de-residencia-para-estudo-intercambio-de-estudantes-estagio-profissional-ou-voluntariado" },
@@ -146,7 +147,7 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
       ],
       money: [
         "O contrato e a autorização de trabalho são centrais; saldo pessoal não substitui a autorização.",
-        "Salário mínimo espanhol em 2026: € 1.221 por pagamento mensal, em 14 pagamentos (≈ R$ 6.836,50 por pagamento).",
+        "Salário mínimo espanhol em 2026, por pagamento mensal: € 1.221 (14 pagamentos por ano).",
         "Esse valor é referência salarial, não saldo bancário exigido para o visto.",
       ],
       documents: [
@@ -173,10 +174,8 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
         "A fronteira pode pedir prova do motivo da viagem, hospedagem, recursos e saída do Espaço Schengen.",
       ],
       money: [
-        "A Espanha atualiza anualmente a comprovação financeira para visitantes.",
-        "Referência de 2026: 10% do SMI por pessoa/dia e um mínimo de 90% do SMI por pessoa.",
-        "Com SMI de € 1.221/mês: cerca de € 122,10/dia (≈ R$ 683,65/dia).",
-        "Mínimo de referência: € 1.098,90 (≈ R$ 6.152,85 por pessoa). Confirme o cálculo antes da viagem.",
+        "Valor exigido em 2026 por pessoa e por dia: € 122,10.",
+        "Mínimo de referência por pessoa: € 1.098,90. Confirme o valor antes da viagem.",
       ],
       documents: [
         "Passaporte válido e passagem de volta ou continuação da viagem.",
@@ -188,7 +187,7 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
       sources: [
         { label: "Acordo UE–Brasil — estadias curtas", url: "https://eur-lex.europa.eu/legal-content/PT/TXT/?uri=CELEX:02012A0921(02)-20221001" },
         { label: "Consulado da Espanha no Rio — condições de entrada", url: "https://www.exteriores.gob.es/Consulados/riodejaneiro/es/ServiciosConsulares/Paginas/index.aspx?scca=Visados&scco=Brasil&scd=246&scs=Condiciones-de-entrada-en-Espana" },
-        { label: "Governo da Espanha — SMI 2026", url: "https://www.lamoncloa.gob.es/serviciosdeprensa/notasprensa/trabajo14/Paginas/2023/140223-salario-minimo-interprofesional.aspx" },
+        { label: "União Europeia — valores de entrada na Espanha em 2026", url: "https://www.boe.es/doue/2026/2444/Z00001-00002.pdf" },
       ],
     },
     {
@@ -202,10 +201,10 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
         "Para estudar por mais de 90 dias, solicitar a autorização/visto nacional adequado antes da viagem.",
       ],
       money: [
-        "Regra-base consultada para 2026: 100% do IPREM por mês de estadia.",
-        "IPREM de referência: € 600/mês (≈ R$ 3.359,46).",
-        "Para 12 meses: € 7.200 (≈ R$ 40.313,52). O total depende da duração do curso; € 7.400 não é o mínimo fixo oficial consultado.",
-        "Primeiro familiar acompanhante: 75% do IPREM = € 450/mês (≈ R$ 2.519,60). Cada familiar adicional: 50% = € 300/mês (≈ R$ 1.679,73).",
+        "Referência de recursos em 2026 para o estudante, por mês: € 600.",
+        "Para 12 meses: € 7.200. O total depende da duração do curso.",
+        "Primeiro familiar acompanhante, por mês: € 450.",
+        "Cada familiar adicional, por mês: € 300.",
         "Alojamento pago antecipadamente para toda a estadia pode reduzir a quantia financeira exigida.",
         "Inclua também propinas, seguro e demais despesas. Bolsas podem contar como recursos.",
       ],
@@ -213,8 +212,10 @@ export const visaGuides: Record<VisaCountry, VisaGuide[]> = {
         "Formulário, passaporte, fotografia e comprovante de admissão/matrícula.",
         "Comprovantes de recursos próprios, de patrocinador ou de bolsa.",
         "Seguro médico aceito na Espanha durante o período exigido.",
-        "Airbnb/reserva: não aparece como exigência obrigatória na lista de estudos consultada. Sem alojamento pré-pago, continua necessário comprovar recursos suficientes; confirme com o consulado se pedirá informação adicional de endereço.",
-        "Passagem: a lista consultada pede comprovação de recursos para estadia e retorno, mas não afirma que a passagem de volta já precise estar comprada. Uma passagem só de ida pode ser compatível com a mudança para estudar; confirme com o consulado antes de emitir.",
+        "Airbnb: não aparece como reserva obrigatória na lista de estudos consultada.",
+        "Sem alojamento pré-pago, comprove recursos suficientes; o consulado pode pedir informações adicionais de endereço.",
+        "Passagem: a lista consultada pede recursos para estadia e retorno, mas não menciona passagem de volta já comprada.",
+        "Uma passagem só de ida pode ser compatível com o visto de estudos; confirme com o consulado antes de comprar.",
         "Para estadias longas, certificado médico e antecedentes criminais apostilados/traduzidos quando exigidos.",
       ],
       sources: [
