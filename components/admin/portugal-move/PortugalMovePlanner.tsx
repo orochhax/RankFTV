@@ -11,6 +11,7 @@ import {
   Circle,
   Clock3,
   Euro,
+  Globe2,
   ListChecks,
   MapPinned,
   Pencil,
@@ -35,6 +36,7 @@ import {
   type PlannerData,
   normalizeTaskGroups,
 } from "@/lib/portugal-move-planner";
+import { VisaExplorer } from "@/components/admin/portugal-move/VisaExplorer";
 
 type PlannerSnapshot = PlannerData & { storageError: boolean };
 
@@ -182,7 +184,7 @@ export function PortugalMovePlanner() {
   const snapshot = useSyncExternalStore(subscribeToPlanner, getClientSnapshot, () => SERVER_SNAPSHOT);
   const { storageError, ...data } = snapshot;
   const [exchangeDraft, setExchangeDraft] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"tasks" | "expenses">("tasks");
+  const [activeSection, setActiveSection] = useState<"tasks" | "expenses" | "visas">("tasks");
   const [editor, setEditor] = useState<EditorState>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -394,10 +396,10 @@ export function PortugalMovePlanner() {
           <div className="flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
             <div className="max-w-2xl">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-wide text-emerald-50">
-                <MapPinned className="size-3.5 text-[#e9c27e]" /> PLANO PESSOAL · PORTUGAL
+                <MapPinned className="size-3.5 text-[#e9c27e]" /> PLANO PESSOAL · EUROPA
               </div>
               <h1 className="max-w-xl text-3xl font-semibold tracking-tight sm:text-4xl">Uma mudança grande, organizada com calma.</h1>
-              <p className="mt-3 max-w-lg text-sm leading-6 text-emerald-50/75 sm:text-base">Junte as próximas etapas e os gastos da sua mudança em um só lugar.</p>
+              <p className="mt-3 max-w-lg text-sm leading-6 text-emerald-50/75 sm:text-base">Junte tarefas, gastos e compare os caminhos de visto para Portugal e Espanha.</p>
             </div>
             <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/10 px-4 py-3 sm:min-w-56">
               <div className="grid size-11 place-items-center rounded-xl bg-[#d7a85b]/15 text-[#f0cc8b]"><Plane className="size-5" /></div>
@@ -412,9 +414,10 @@ export function PortugalMovePlanner() {
 
         {storageError && <div role="status" className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"><AlertCircle className="mt-0.5 size-4 shrink-0" /><p>O navegador não conseguiu acessar o armazenamento local. Seus dados podem não ser salvos neste dispositivo.</p></div>}
 
-        <nav aria-label="Seções do planejador" className="flex gap-2 rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-sm sm:w-fit">
-          <button type="button" onClick={() => setActiveSection("tasks")} aria-current={activeSection === "tasks" ? "page" : undefined} className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition sm:flex-none ${activeSection === "tasks" ? "bg-[#123c36] text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}><ListChecks className="size-4" /> Tarefas <span className={`rounded-full px-2 py-0.5 text-xs ${activeSection === "tasks" ? "bg-white/15 text-white" : "bg-slate-100 text-slate-600"}`}>{pendingTasks}</span></button>
-          <button type="button" onClick={() => setActiveSection("expenses")} aria-current={activeSection === "expenses" ? "page" : undefined} className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition sm:flex-none ${activeSection === "expenses" ? "bg-[#123c36] text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}><Receipt className="size-4" /> Gastos <span className={`rounded-full px-2 py-0.5 text-xs ${activeSection === "expenses" ? "bg-white/15 text-white" : "bg-slate-100 text-slate-600"}`}>{data.expenses.length}</span></button>
+        <nav aria-label="Seções do planejador" className="flex max-w-full gap-2 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-sm sm:w-fit">
+          <button type="button" onClick={() => setActiveSection("tasks")} aria-current={activeSection === "tasks" ? "page" : undefined} className={`inline-flex min-h-11 flex-none items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-semibold transition ${activeSection === "tasks" ? "bg-[#123c36] text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}><ListChecks className="size-4" /> Tarefas <span className={`rounded-full px-2 py-0.5 text-xs ${activeSection === "tasks" ? "bg-white/15 text-white" : "bg-slate-100 text-slate-600"}`}>{pendingTasks}</span></button>
+          <button type="button" onClick={() => setActiveSection("expenses")} aria-current={activeSection === "expenses" ? "page" : undefined} className={`inline-flex min-h-11 flex-none items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-semibold transition ${activeSection === "expenses" ? "bg-[#123c36] text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}><Receipt className="size-4" /> Gastos <span className={`rounded-full px-2 py-0.5 text-xs ${activeSection === "expenses" ? "bg-white/15 text-white" : "bg-slate-100 text-slate-600"}`}>{data.expenses.length}</span></button>
+          <button type="button" onClick={() => setActiveSection("visas")} aria-current={activeSection === "visas" ? "page" : undefined} className={`inline-flex min-h-11 flex-none items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-semibold transition ${activeSection === "visas" ? "bg-[#123c36] text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}><Globe2 className="size-4" /> Vistos</button>
         </nav>
 
         {activeSection === "tasks" ? (
@@ -460,7 +463,7 @@ export function PortugalMovePlanner() {
             </div> : <div className="rounded-3xl border border-slate-200/80 bg-white px-6 py-14 text-center shadow-sm"><div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#e7efeb] text-[#1f6b5e]"><ListChecks className="size-6" /></div><h3 className="mt-4 font-semibold text-slate-800">Crie a primeira categoria</h3><p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-slate-500">Por exemplo, “Consulado - Salvador”. Depois, adicione dentro dela as tarefas e os respectivos valores.</p><button type="button" onClick={() => openEditor({ kind: "category" })} className={`${buttonSoft} mt-4`}><Plus className="size-4" /> Criar categoria</button></div>}
             <div className="flex items-center gap-2 px-1 text-xs text-slate-500"><Clock3 className="size-4 text-[#1f6b5e]" /><span>Alertas: amarelo de 6 a 10 dias; vermelho até 5 dias e após o vencimento. O total previsto inclui tarefas pagas; “em aberto” mostra o que ainda falta pagar.</span></div>
           </section>
-        ) : (
+        ) : activeSection === "expenses" ? (
           <section aria-labelledby="expenses-heading" className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#1f6b5e]">Planejamento financeiro</p><h2 id="expenses-heading" className="mt-1 text-2xl font-semibold tracking-tight">Controle de gastos</h2><p className="mt-1 text-sm text-slate-500">Registre despesas em real e euro, mantendo cada moeda original.</p></div>
@@ -483,7 +486,7 @@ export function PortugalMovePlanner() {
             </div>
             <p className="flex items-center gap-2 px-1 text-xs text-slate-500"><ArrowDownRight className="size-4 text-[#1f6b5e]" />Os totais incluem apenas gastos em aberto; os pagos ficam riscados na lista e não entram na soma. Nas tarefas com custo, o checkbox controla esse status.</p>
           </section>
-        )}
+        ) : <VisaExplorer />}
 
         <footer className="flex flex-col gap-2 border-t border-slate-200 pt-4 text-xs leading-5 text-slate-500 sm:flex-row sm:items-center sm:justify-between"><span>Dados armazenados neste navegador e neste dispositivo.</span><span className="inline-flex items-center gap-1.5"><CheckCircle2 className="size-3.5 text-[#1f6b5e]" />Atualização automática dos totais</span></footer>
       </div>
