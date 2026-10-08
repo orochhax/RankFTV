@@ -1,11 +1,18 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing, BellRing, BadgeCheck, Plane } from "lucide-react";
+import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing, BellRing, BadgeCheck, Plane, Languages } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRole, isAdminRole } from "@/lib/supabase/roles";
 import { isPerformanceOwner } from "@/lib/performance-owner";
 
 const MENU = [
+  {
+    href: "/admin/curso-ingles",
+    personalOwnerOnly: true,
+    icon: Languages,
+    label: "Roadmap de inglês",
+    desc: "Plano pessoal de um ano com progresso separado para Carlos e Júlia.",
+  },
   {
     href: "/admin/carteiras",
     ownerOnly: true,
