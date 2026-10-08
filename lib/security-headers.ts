@@ -1,4 +1,6 @@
 const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
+const YOUTUBE_EMBED_ORIGIN = "https://www.youtube-nocookie.com";
+const YOUTUBE_STANDARD_EMBED_ORIGIN = "https://www.youtube.com";
 
 export function createRequestNonce() {
   return crypto.randomUUID().replaceAll("-", "");
@@ -25,7 +27,7 @@ export function buildContentSecurityPolicy(
     "img-src 'self' data: blob: https://*.supabase.co",
     "font-src 'self' data:",
     `connect-src 'self' https://*.supabase.co wss://*.supabase.co ${TURNSTILE_ORIGIN}`,
-    `frame-src 'self' ${TURNSTILE_ORIGIN}`,
+    `frame-src 'self' ${TURNSTILE_ORIGIN} ${YOUTUBE_EMBED_ORIGIN} ${YOUTUBE_STANDARD_EMBED_ORIGIN}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
