@@ -17,6 +17,8 @@ test("production CSP uses a request nonce without unsafe inline scripts", () => 
   assert.doesNotMatch(scriptDirective ?? "", /'unsafe-inline'/);
   assert.doesNotMatch(scriptDirective ?? "", /'unsafe-eval'/);
   assert.match(csp, /challenges\.cloudflare\.com/);
+  assert.match(csp, /frame-src[^;]+www\.youtube-nocookie\.com/);
+  assert.match(csp, /frame-src[^;]+www\.youtube\.com/);
   assert.match(csp, /upgrade-insecure-requests/);
 });
 
