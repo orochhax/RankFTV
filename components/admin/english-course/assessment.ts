@@ -57,7 +57,13 @@ export const CARLOS_INITIAL_ANSWERS: Record<string, AssessmentAnswer> = {
   q16: "NS", q17: "NS", q18: "NS", q19: "NS", q20: "NS", q21: "NS", q22: "NS", q23: "NS", q24: "NS",
 };
 
+export const JULIA_INITIAL_ANSWERS: Record<string, AssessmentAnswer> = {
+  q1: "B", q2: "C", q3: "A", q4: "A", q5: "B", q6: "B", q7: "C", q8: "B",
+  q9: "C", q10: "C", q11: "NS", q12: "B", q13: "C", q14: "C", q15: "NS",
+  q16: "NS", q17: "NS", q18: "NS", q19: "NS", q20: "NS", q21: "NS", q22: "NS", q23: "NS", q24: "NS",
+};
+
 export const EMPTY_ASSESSMENT_ANSWERS: AssessmentAnswers = {
   carlos: CARLOS_INITIAL_ANSWERS,
-  julia: {},
+  julia: JULIA_INITIAL_ANSWERS,
 };
