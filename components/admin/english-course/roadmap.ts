@@ -1,3 +1,7 @@
+import { IMMERSION_BY_LEARNER, LEARNER_INTERESTS } from "./personalized-immersion";
+
+export { LEARNER_INTERESTS } from "./personalized-immersion";
+
 export type LearnerId = "carlos" | "julia";
 
 export type LessonResource = {
@@ -5,7 +9,7 @@ export type LessonResource = {
   url: string;
   duration: string;
   source: string;
-  views: string;
+  views?: string;
   startSeconds?: number;
   endSeconds?: number;
 };
@@ -55,46 +59,22 @@ export const SOURCE_STRATEGY = [
   { name: "ABC Fluent", role: "Reforço", note: "Aulas do nível 0 usadas para consolidar a base com muita repetição." },
   { name: "Você Aprende Agora", role: "Microaulas", note: "Somente vídeos objetivos e úteis; publicidade, certificados e repetições foram retirados." },
   { name: "SmallAdvantages", role: "Pronúncia e uso real", note: "Entra nos próximos ciclos como complemento, sem repetir a gramática principal." },
-  { name: "Volka e Andrew", role: "Escuta e conversação", note: "Input compreensível e shadowing já entram no A0 em trechos curtos; a duração cresce com o nível." },
+  { name: "BBC Learning English", role: "Imersão por interesse", note: "Vídeos verificados de tecnologia, esporte, psicologia, espaço, moda e outros temas são exibidos conforme o perfil de cada aluno." },
   { name: "engVid James", role: "Intermediário e avançado", note: "Reservado para vocabulário, escrita e compreensão após a base." },
 ] as const;
 
 const youtube = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 
-const IMMERSION_BY_WEEK: Record<number, { resource: LessonResource; focus: string[] }> = {
-  1: {
-    resource: { label: "Speak English Naturally With Me — Easy Vlog", url: youtube("DZP5ZL-JxSQ"), duration: "18:58", source: "Volka English", views: "510 mil" },
-    focus: ["Ouça os primeiros 3 minutos com legenda em inglês e repita cinco frases.", "Ouça de 3:00 a 6:00, anote cinco palavras reconhecidas e faça shadowing.", "Ouça de 6:00 a 9:00 sem pausar; depois repita com legenda.", "Ouça de 9:00 a 12:00 e imite o ritmo de três frases.", "Ouça de 12:00 a 15:00 e registre a ideia principal.", "Reassista aos 5 minutos mais difíceis com legenda em inglês.", "Assista a 5 minutos sem legenda e conte oralmente o que entendeu."],
-  },
-  2: {
-    resource: { label: "My Daily Routine — Comprehensible Input Vlog", url: youtube("md8u7i__omo"), duration: "27:02", source: "Volka English", views: "126 mil" },
-    focus: ["Ouça de 0:00 a 4:00 e identifique ações da rotina.", "Ouça de 4:00 a 8:00 e repita cinco frases completas.", "Ouça de 8:00 a 12:00; anote pessoas e lugares mencionados.", "Ouça de 12:00 a 16:00 com legenda em inglês e faça shadowing.", "Ouça de 16:00 a 20:00 sem traduzir; use as imagens para compreender.", "Reassista ao trecho mais difícil e repita em velocidade normal.", "Assista a 6 minutos sem legenda e resuma usando frases simples."],
-  },
-  3: {
-    resource: { label: "A Day Shopping in English — Easy Vlog", url: youtube("X3DKySerzZQ"), duration: "17:59", source: "Volka English", views: "46 mil" },
-    focus: ["Ouça de 0:00 a 3:00 e identifique lugares e objetos.", "Ouça de 3:00 a 6:00 e repita cinco palavras de compras.", "Ouça de 6:00 a 9:00 com legenda em inglês e copie duas frases.", "Ouça de 9:00 a 12:00 e imite duas perguntas.", "Ouça de 12:00 a 15:00 sem pausar e registre o contexto.", "Reassista ao trecho mais difícil fazendo shadowing.", "Assista a 5 minutos sem legenda e descreva o que viu."],
-  },
-  4: {
-    resource: { label: "Real English Listening Practice in Vietnam", url: youtube("zx6lF1TL_xI"), duration: "15:56", source: "Volka English", views: "76 mil" },
-    focus: ["Ouça de 0:00 a 3:00 e identifique palavras conhecidas.", "Ouça de 3:00 a 6:00 e repita quatro frases.", "Ouça de 6:00 a 9:00 usando apenas legenda em inglês.", "Ouça de 9:00 a 12:00 e anote lugares ou objetos.", "Ouça de 12:00 ao final sem pausar e registre a ideia central.", "Reassista a três minutos fazendo shadowing.", "Assista ao trecho favorito sem legenda e faça um resumo oral."],
-  },
-  5: {
-    resource: { label: "Natural Street Conversation — Comprehensible Input", url: youtube("mworzi0jO_Y"), duration: "21:34", source: "Volka English", views: "96 mil" },
-    focus: ["Ouça de 0:00 a 4:00 e identifique quem conversa.", "Ouça de 4:00 a 8:00 e repita três perguntas.", "Ouça de 8:00 a 12:00 com legenda em inglês e faça shadowing.", "Ouça de 12:00 a 16:00 sem traduzir palavra por palavra.", "Ouça de 16:00 a 20:00 e registre cinco expressões.", "Reassista ao diálogo mais claro e imite os dois participantes.", "Assista a 6 minutos sem legenda e reconte a conversa em dupla."],
-  },
-};
-
-function immersionActivity(day: number, week: number, weekdayIndex: number): RoadmapActivity {
-  const immersion = IMMERSION_BY_WEEK[week];
-  const segmentStart = weekdayIndex < 5 ? weekdayIndex * 180 : 0;
-  const segmentEnd = weekdayIndex < 5 ? segmentStart + 180 : 360;
+function immersionActivity(learnerId: LearnerId, day: number, week: number, weekdayIndex: number): RoadmapActivity {
+  const immersion = IMMERSION_BY_LEARNER[learnerId][week];
+  const resource = immersion.resources[weekdayIndex % immersion.resources.length];
   return {
     id: `day-${day}-listening`,
     kind: "listening",
     title: "2. Escutar e imitar",
-    description: immersion.focus[weekdayIndex],
+    description: `${LEARNER_INTERESTS[learnerId][week - 1]}: ${immersion.focus[weekdayIndex]}`,
     duration: "20–30 min",
-    resources: [{ ...immersion.resource, startSeconds: segmentStart, endSeconds: segmentEnd }],
+    resources: [{ ...resource, startSeconds: 0, endSeconds: 360 }],
   };
 }
 
@@ -282,7 +262,8 @@ const CURATED_LESSONS: CuratedLesson[] = [
 
 const WEEKDAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 
-export const ROADMAP_DAYS: RoadmapDay[] = Array.from({ length: 35 }, (_, index) => {
+function buildRoadmapDays(learnerId: LearnerId): RoadmapDay[] {
+  return Array.from({ length: 35 }, (_, index) => {
   const day = index + 1;
   const week = Math.floor(index / 7) + 1;
   const weekdayIndex = index % 7;
@@ -306,7 +287,7 @@ export const ROADMAP_DAYS: RoadmapDay[] = Array.from({ length: 35 }, (_, index) 
           duration: "25–35 min",
           resources: lesson.resources,
         },
-        immersionActivity(day, week, weekdayIndex),
+        immersionActivity(learnerId, day, week, weekdayIndex),
         {
           id: `day-${day}-practice`,
           kind: "practice",
@@ -318,7 +299,7 @@ export const ROADMAP_DAYS: RoadmapDay[] = Array.from({ length: 35 }, (_, index) 
           id: `day-${day}-speaking`,
           kind: "speaking",
           title: "4. Falar em dupla",
-          description: "Seguir o roteiro pronto com Carlos e Júlia, trocar os papéis e registrar o resultado.",
+          description: `Seguir o roteiro pronto, trocar os papéis e criar um exemplo sobre ${LEARNER_INTERESTS[learnerId][week - 1].toLowerCase()}.`,
           duration: "20–30 min",
         },
       ],
@@ -335,14 +316,23 @@ export const ROADMAP_DAYS: RoadmapDay[] = Array.from({ length: 35 }, (_, index) 
     level: week <= 2 ? "A0" : "A0 → A1",
     activities: saturday ? [
       { id: `day-${day}-review`, kind: "review", title: "1. Aprender e revisar", description: "Rever os cartões da semana e repetir apenas os trechos em que houve dificuldade.", duration: "25 min" },
-      immersionActivity(day, week, weekdayIndex),
+      immersionActivity(learnerId, day, week, weekdayIndex),
       { id: `day-${day}-quiz`, kind: "practice", title: "3. Responder sem consulta", description: "Responder ao teste pronto da semana e fazer a produção final diretamente no site.", duration: "25 min" },
-      { id: `day-${day}-speaking`, kind: "speaking", title: "4. Falar e revisar", description: "Usar o roteiro da semana em uma conversa progressivamente mais livre.", duration: "25 min" },
+      { id: `day-${day}-speaking`, kind: "speaking", title: "4. Falar e revisar", description: `Usar o roteiro da semana em uma conversa progressivamente mais livre sobre ${LEARNER_INTERESTS[learnerId][week - 1].toLowerCase()}.`, duration: "25 min" },
     ] : [
       { id: `day-${day}-review`, kind: "review", title: "1. Revisão leve", description: "Revisar apenas os erros da semana e cinco frases úteis antes da imersão.", duration: "15 min" },
-      immersionActivity(day, week, weekdayIndex),
+      immersionActivity(learnerId, day, week, weekdayIndex),
       { id: `day-${day}-mission`, kind: "practice", title: "3. Missão na vida real", description: "Levar o inglês para o celular, a casa ou uma situação cotidiana e registrar no site.", duration: "20 min" },
-      { id: `day-${day}-pair`, kind: "speaking", title: "4. Conversar em dupla", description: "Seguir o roteiro pronto, trocar os papéis e registrar a resposta diretamente no site.", duration: "30 min" },
+      { id: `day-${day}-pair`, kind: "speaking", title: "4. Conversar em dupla", description: `Seguir o roteiro pronto, trocar os papéis e incluir duas frases sobre ${LEARNER_INTERESTS[learnerId][week - 1].toLowerCase()}.`, duration: "30 min" },
     ],
   };
-});
+  });
+}
+
+export const ROADMAP_DAYS_BY_LEARNER: Record<LearnerId, RoadmapDay[]> = {
+  carlos: buildRoadmapDays("carlos"),
+  julia: buildRoadmapDays("julia"),
+};
+
+// Compatibilidade com testes e consumidores que usam o roteiro-base de Carlos.
+export const ROADMAP_DAYS = ROADMAP_DAYS_BY_LEARNER.carlos;
