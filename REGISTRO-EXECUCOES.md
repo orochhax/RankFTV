@@ -27,6 +27,17 @@ registrar apenas uma revalidação quando ela for necessária.
   Sandbox, executar o teste P0 contra fixtures descartáveis, validar rollback e
   somente então promover o mesmo commit para Production.
 
+## 2026-10-20 10:07 BRT — Publicação para revisão do candidato P0
+
+- Status: PR #49 aberta a partir de `fix/v1-security-release`, no commit
+  `c70bdf8` (`fix: harden V1 release surfaces`); nenhuma migration, Preview ou
+  Production foi aprovada como promoção nesta ação.
+- Evidência: branch enviada ao repositório remoto e PR disponível para revisão.
+  No instante da consulta, `Vercel Preview Comments` estava aprovado e os
+  checks `verify` e `Vercel` ainda estavam em execução.
+- Próximo passo: aguardar os checks, revisar o Preview e seguir somente o
+  roteiro de Sandbox documentado antes de qualquer alteração remota de banco.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
