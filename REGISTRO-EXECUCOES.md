@@ -5,6 +5,18 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-01 — Restrição de data final do campeonato
+
+- Status: implementado e em validação por PR.
+- Feito: nos formulários de criação e edição, a data final recebe como mínimo
+  a data de início. O calendário nativo deixa indisponíveis os dias anteriores,
+  preserva a possibilidade de evento de um único dia e limpa um término já
+  preenchido se ele se tornar anterior após a alteração do início.
+- Evidência local: testes dedicados aprovaram os casos de mesmo dia, data
+  anterior e data posterior; `npm run typecheck` e `npm run lint -- --quiet`
+  também aprovaram. Nenhuma regra de servidor foi removida: a validação de
+  data final anterior ao início permanece como defesa adicional.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers

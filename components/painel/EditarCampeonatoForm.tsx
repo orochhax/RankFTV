@@ -9,6 +9,10 @@ import {
 } from "@/app/painel/campeonatos/[id]/editar/actions";
 import { createClient } from "@/lib/supabase/client";
 import { validatePdfUpload } from "@/lib/upload-preflight";
+import {
+  championshipEndDateMinimum,
+  reconcileChampionshipEndDate,
+} from "@/lib/championship-date-input";
 import type { GeneroCategoria } from "@/lib/types";
 
 type CatForm = {
@@ -117,6 +121,11 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
     cidade.trim() !== initial.cidade.trim() ||
     estado.trim().toUpperCase() !== initial.estado.trim().toUpperCase() ||
     local.trim() !== initial.local.trim();
+
+  function updateDataInicio(value: string) {
+    setDataInicio(value);
+    setDataFim((current) => reconcileChampionshipEndDate(value, current));
+  }
 
   function updateCat(i: number, patch: Partial<CatForm>) {
     setCategorias((cs) => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
@@ -461,11 +470,11 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="min-w-0">
               <label className={labelClass}>Início *</label>
-              <input type="date" className={inputClass} value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+              <input type="date" className={inputClass} value={dataInicio} onChange={(e) => updateDataInicio(e.target.value)} />
             </div>
             <div className="min-w-0">
               <label className={labelClass}>Fim *</label>
-              <input type="date" className={inputClass} value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+              <input type="date" min={championshipEndDateMinimum(dataInicio)} className={inputClass} value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
             </div>
           </div>
         </div>
