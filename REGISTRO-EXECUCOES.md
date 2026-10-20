@@ -5,6 +5,18 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-20 15:02 BRT — Publicação segura do candidato de homologação P0
+
+- Status: candidato publicado em `sandbox-homologacao-p0`; nenhuma alteração
+  foi feita em Production e nenhum segredo foi exibido ou registrado.
+- Evidência: a branch aponta para `73a063f` (`fix: focus checkout consent
+  before payment`), o mesmo commit do Preview validado com 40 cenários E2E
+  não mutantes aprovados e typecheck/testes locais aprovados.
+- Bloqueio: `sandbox-homologacao` já possui histórico divergente; a tentativa
+  de integração apresentou conflitos em dezenas de arquivos. Não foi feito
+  `force-push` nem sobrescrita dessa branch. A configuração do token do
+  webhook e do alias no painel Vercel ainda precisa ser feita no Preview.
+
 ## 2026-10-20 14:52 BRT — Homologação financeira mutável e correção de consentimento
 
 - Status: validação concluída no Sandbox; nenhuma chamada ou alteração em
