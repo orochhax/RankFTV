@@ -343,6 +343,7 @@ export function IngressoAtletaForm({
   const parceiroEmailConfirmacaoRef = useRef<HTMLInputElement>(null);
   const expirationDialogRef = useRef<HTMLDialogElement>(null);
   const categorySectionRef = useRef<HTMLDivElement>(null);
+  const consentRef = useRef<HTMLInputElement>(null);
   const initialDataTracked = useRef(false);
   const valuesBeforeAccountAutofill = useRef<Record<string, string> | null>(
     null,
@@ -865,7 +866,17 @@ export function IngressoAtletaForm({
 
       {/* Etapa 2 — dados dos atletas + pagamento */}
       {etapa !== "categoria" && catSelecionada && (
-        <form action={formAction} noValidate className="space-y-6">
+        <form
+          action={formAction}
+          noValidate
+          onSubmit={(event) => {
+            if (!consentRef.current?.checked) {
+              event.preventDefault();
+              consentRef.current?.focus();
+            }
+          }}
+          className="space-y-6"
+        >
           <input type="hidden" name="championship_id" value={championshipId} />
           <input type="hidden" name="category_id" value={catSelecionada.id} />
           <input
@@ -1776,6 +1787,7 @@ export function IngressoAtletaForm({
                 <input
                   id="aceite-termos-atleta"
                   type="checkbox"
+                  ref={consentRef}
                   name="aceite_termos"
                   required
                   className="mt-0.5 size-4 shrink-0 cursor-pointer accent-blue-600"

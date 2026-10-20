@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Loader2, Ticket, Minus, Plus } from "lucide-react";
 import { comprarIngresso, type ComprarState } from "@/app/campeonatos/[id]/plateia/actions";
@@ -22,6 +22,7 @@ export function IngressoPlateiaForm({
   const [qtys, setQtys] = useState<Record<string, number>>({});
   const [cupom, setCupom] = useState<CupomAplicado | null>(null);
   const [state, formAction, pending] = useActionState<ComprarState, FormData>(comprarIngresso, {});
+  const consentRef = useRef<HTMLInputElement>(null);
 
   function setQty(id: string, q: number) {
     setQtys((prev) => ({ ...prev, [id]: Math.max(0, Math.min(20, q)) }));
@@ -51,7 +52,16 @@ export function IngressoPlateiaForm({
     "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form
+      action={formAction}
+      onSubmit={(event) => {
+        if (!consentRef.current?.checked) {
+          event.preventDefault();
+          consentRef.current?.focus();
+        }
+      }}
+      className="space-y-6"
+    >
       <input type="hidden" name="championship_id" value={championshipId} />
       <input type="hidden" name="itens" value={JSON.stringify(itens)} />
 
@@ -184,6 +194,7 @@ export function IngressoPlateiaForm({
       <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4">
         <input
           type="checkbox"
+          ref={consentRef}
           name="aceite_termos"
           required
           className="mt-0.5 size-4 shrink-0 cursor-pointer accent-blue-600"
