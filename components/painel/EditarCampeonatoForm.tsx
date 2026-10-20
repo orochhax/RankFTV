@@ -124,8 +124,8 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
 
   function addCat() {
     setCategorias((cs) => [
-      ...cs,
       { nome: "", genero: "masculino", valorInscricao: "", maxDuplas: "" },
+      ...cs,
     ]);
   }
 

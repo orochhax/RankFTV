@@ -5,6 +5,16 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-01 — Categoria personalizada inserida no topo
+
+- Status: concluído em código; pendente apenas da validação remota da PR.
+- Mudança: o botão “Outros” inclui o card de categoria em branco no topo da
+  lista, deslocando as categorias existentes para baixo sem reordená-las. A
+  mesma regra foi aplicada na edição de campeonatos.
+- Limite intencional: os presets continuam sendo acrescentados ao fim. A
+  mudança não altera a ordem que o organizador já escolheu nem dados já salvos.
+- Validação: teste de guard do fluxo de criação, typecheck e lint.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
