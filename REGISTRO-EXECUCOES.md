@@ -22,10 +22,10 @@ registrar apenas uma revalidação quando ela for necessária.
 - Status: validação mutável concluída somente no Sandbox; nenhuma chamada foi
   direcionada à Production.
 - Evidência: o Preview de `sandbox-homologacao-p0` respondeu `/api/health` com
-  HTTP 200. A suíte completa terminou com 58 aprovados, 25 ignorados e 2
-  falhas transitórias na primeira passagem. A repetição dos quatro cenários
-  afetados passou integralmente; os dois cenários restantes são de plateia e
-  continuam ignorados por fixture descartável ausente.
+  HTTP 200. A primeira passagem terminou com 58 aprovados, 25 ignorados e 2
+  falhas transitórias; a execução completa com `--retries=1` terminou com 60
+  aprovados, 25 ignorados e nenhuma falha. Os 25 cenários ignorados incluem
+  fixtures de carteira e plateia que não fazem parte deste candidato.
 - Cobertura aprovada: token/schema de webhook, guard de cartão, consentimento
   legal em desktop/mobile, reserva idempotente, CSP, autenticação e acesso por
   perfil. Nenhuma credencial ou valor secreto foi registrado.
