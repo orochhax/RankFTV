@@ -30,6 +30,18 @@ registrar apenas uma revalidação quando ela for necessária.
   legal em desktop/mobile, reserva idempotente, CSP, autenticação e acesso por
   perfil. Nenhuma credencial ou valor secreto foi registrado.
 
+## 2026-10-20 15:28 BRT — Merge do hardening P0 na V1
+
+- Status: PR #49 mesclada por squash em `master`, no commit `7a76856`.
+- Evidência: PR sem conflitos; checks `verify`, Vercel e Preview Comments
+  aprovados. O CI pós-merge de `master` também terminou com sucesso, incluindo
+  lint, typecheck, testes, build e 30 cenários E2E aprovados (55 ignorados por
+  flags/fixtures seguros).
+- Limite: nenhuma migration ou teste financeiro foi executado em Production.
+  O próximo passo operacional continua sendo backup, janela sem checkout,
+  aplicação incremental das migrations P0 e smoke final, cada um com evidência
+  própria.
+
 ## 2026-10-20 14:52 BRT — Homologação financeira mutável e correção de consentimento
 
 - Status: validação concluída no Sandbox; nenhuma chamada ou alteração em
