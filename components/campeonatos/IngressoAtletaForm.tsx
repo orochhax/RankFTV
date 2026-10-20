@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type FormEvent,
   useActionState,
   useEffect,
   useRef,
@@ -341,6 +342,7 @@ export function IngressoAtletaForm({
   const parceiroCpfRef = useRef<HTMLInputElement>(null);
   const parceiroEmailRef = useRef<HTMLInputElement>(null);
   const parceiroEmailConfirmacaoRef = useRef<HTMLInputElement>(null);
+  const consentRef = useRef<HTMLInputElement>(null);
   const expirationDialogRef = useRef<HTMLDialogElement>(null);
   const categorySectionRef = useRef<HTMLDivElement>(null);
   const initialDataTracked = useRef(false);
@@ -646,6 +648,14 @@ export function IngressoAtletaForm({
     setEtapa("revisao");
   }
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    if (etapa !== "revisao") return;
+    const formData = new FormData(event.currentTarget);
+    if (formData.get("aceite_termos")) return;
+    event.preventDefault();
+    requestAnimationFrame(() => consentRef.current?.focus());
+  }
+
   const input =
     "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-xs placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
   const select =
@@ -865,7 +875,7 @@ export function IngressoAtletaForm({
 
       {/* Etapa 2 — dados dos atletas + pagamento */}
       {etapa !== "categoria" && catSelecionada && (
-        <form action={formAction} noValidate className="space-y-6">
+        <form action={formAction} onSubmit={handleSubmit} noValidate className="space-y-6">
           <input type="hidden" name="championship_id" value={championshipId} />
           <input type="hidden" name="category_id" value={catSelecionada.id} />
           <input
@@ -1774,6 +1784,7 @@ export function IngressoAtletaForm({
 
               <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4">
                 <input
+                  ref={consentRef}
                   id="aceite-termos-atleta"
                   type="checkbox"
                   name="aceite_termos"

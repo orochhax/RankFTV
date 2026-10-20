@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getResend } from "@/lib/email/resend";
 import { applyEmailProviderEvent, type EmailOperationalStatus } from "@/lib/email/operations";
 import { reportOperationalEvent } from "@/lib/observability";
+import { hasInvalidContentLength, readBoundedRequestBody } from "@/lib/bounded-request-body";
 
 function webhookHeader(request: NextRequest, current: string, legacy: string): string {
   return request.headers.get(current) ?? request.headers.get(legacy) ?? "";
@@ -10,7 +11,14 @@ function webhookHeader(request: NextRequest, current: string, legacy: string): s
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
   if (!webhookSecret) return NextResponse.json({ error: "Webhook indisponível." }, { status: 503 });
-  const payload = await request.text();
+  const maxBytes = 256 * 1024;
+  if (hasInvalidContentLength(request, maxBytes)) {
+    return NextResponse.json({ error: "Payload muito grande." }, { status: 413 });
+  }
+  const bytes = await readBoundedRequestBody(request, maxBytes);
+  if (bytes === null) return NextResponse.json({ error: "Payload muito grande." }, { status: 413 });
+  if (bytes.length === 0) return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
+  const payload = new TextDecoder().decode(bytes);
   try {
     const event = getResend().webhooks.verify({
       payload,

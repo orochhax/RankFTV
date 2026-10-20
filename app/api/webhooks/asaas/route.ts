@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID, timingSafeEqual } from "node:crypto";
+import { hasInvalidContentLength, readBoundedRequestBody } from "@/lib/bounded-request-body";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { executarRepasseEspectador } from "@/lib/repasse";
 import {
@@ -686,10 +687,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const raw = await req.text();
-  if (!raw || raw.length > 128_000) {
+  const maxBytes = 128 * 1024;
+  if (hasInvalidContentLength(req, maxBytes)) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+  const bytes = await readBoundedRequestBody(req, maxBytes);
+  if (bytes === null) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+  if (bytes.length === 0) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
+  const raw = new TextDecoder().decode(bytes);
 
   let body: AsaasWebhookPayload;
   try {

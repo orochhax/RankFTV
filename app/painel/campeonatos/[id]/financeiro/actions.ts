@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { PRECO_ELITE } from "@/lib/elite";
 import { registrarAuditoria } from "@/lib/audit";
 import { compararTitularidadePix } from "@/lib/pix";
 import { consultarCpfCnpjTitularPix, consultarCobranca } from "@/lib/asaas";
@@ -249,10 +248,7 @@ export async function tornarCampeonatoElite(
   // direta do client (ver harden-championship-financial-fields.sql) — a RPC
   // reaplica a mesma checagem de dono e regra de negócio, mas grava como
   // service_role.
-  const { error } = await supabase.rpc("ativar_championship_elite", {
-    p_champ_id: champId,
-    p_preco_elite: PRECO_ELITE,
-  });
+  const { error } = await supabase.rpc("ativar_championship_elite", { p_champ_id: champId });
 
   if (error) {
     return {
@@ -284,10 +280,7 @@ export async function cancelarCampeonatoElite(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Não autenticado." };
 
-  const { error } = await supabase.rpc("cancelar_championship_elite", {
-    p_champ_id: champId,
-    p_preco_elite: PRECO_ELITE,
-  });
+  const { error } = await supabase.rpc("cancelar_championship_elite", { p_champ_id: champId });
 
   if (error) {
     return {

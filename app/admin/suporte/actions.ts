@@ -9,7 +9,6 @@ import { registrarAuditoria } from "@/lib/audit";
 import { enviarAvisoAlteracaoIngresso } from "@/lib/email/send";
 import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
 import { isSupportPriority, supportSlaDueAt, type SupportPriority } from "@/lib/support-sla";
-import { randomUUID } from "node:crypto";
 import { buildSupportTrend, type DatedSupportEvent, type SupportTrendPoint } from "@/lib/support-trends";
 
 export type { SupportTrendPoint } from "@/lib/support-trends";
@@ -773,24 +772,6 @@ export async function criarCasoSuporte(input: {
     sla_due_at: supportSlaDueAt(priority),
   });
   return error ? { ok: false, error: "Não foi possível abrir o caso." } : { ok: true };
-}
-
-const SUPPORT_MIMES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
-
-export async function prepararAnexoSuporte(input: { caseId: string; name: string; type: string; size: number }) {
-  await requireCeo();
-  if (!validUuid(input.caseId) || !SUPPORT_MIMES.has(input.type) || input.size <= 0 || input.size > 5 * 1024 * 1024) return { ok: false as const, error: "Anexo inválido. Use imagem ou PDF de até 5 MB." };
-  const extension = input.type === "application/pdf" ? "pdf" : input.type.split("/")[1];
-  const path = `${input.caseId}/${randomUUID()}.${extension}`;
-  const { data, error } = await createAdminClient().storage.from("support-attachments").createSignedUploadUrl(path);
-  return error || !data ? { ok: false as const, error: "Não foi possível preparar o anexo." } : { ok: true as const, path, token: data.token };
-}
-
-export async function confirmarAnexoSuporte(input: { caseId: string; path: string; name: string; type: string; size: number }) {
-  const actor = await requireCeo();
-  if (!validUuid(input.caseId) || !input.path.startsWith(`${input.caseId}/`) || !SUPPORT_MIMES.has(input.type) || input.size <= 0 || input.size > 5 * 1024 * 1024) return { ok: false, error: "Anexo inválido." };
-  const { error } = await createAdminClient().from("support_case_attachments").insert({ case_id: input.caseId, storage_path: input.path, original_name: input.name.slice(0, 180), mime_type: input.type, size_bytes: input.size, uploaded_by: actor.id });
-  return error ? { ok: false, error: "Não foi possível registrar o anexo." } : { ok: true };
 }
 
 export async function atualizarCasoSuporte(input: {

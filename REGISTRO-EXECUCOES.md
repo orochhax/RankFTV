@@ -5,6 +5,79 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-20 15:02 BRT — Publicação segura do candidato de homologação P0
+
+- Status: candidato publicado em `sandbox-homologacao-p0`; nenhuma alteração
+  foi feita em Production e nenhum segredo foi exibido ou registrado.
+- Evidência: a branch aponta para `73a063f` (`fix: focus checkout consent
+  before payment`), o mesmo commit do Preview validado com 40 cenários E2E
+  não mutantes aprovados e typecheck/testes locais aprovados.
+- Bloqueio: `sandbox-homologacao` já possui histórico divergente; a tentativa
+  de integração apresentou conflitos em dezenas de arquivos. Não foi feito
+  `force-push` nem sobrescrita dessa branch. A configuração do token do
+  webhook e do alias no painel Vercel ainda precisa ser feita no Preview.
+
+## 2026-10-20 15:10 BRT — Suíte Sandbox no Preview P0
+
+- Status: validação mutável concluída somente no Sandbox; nenhuma chamada foi
+  direcionada à Production.
+- Evidência: o Preview de `sandbox-homologacao-p0` respondeu `/api/health` com
+  HTTP 200. A primeira passagem terminou com 58 aprovados, 25 ignorados e 2
+  falhas transitórias; a execução completa com `--retries=1` terminou com 60
+  aprovados, 25 ignorados e nenhuma falha. Os 25 cenários ignorados incluem
+  fixtures de carteira e plateia que não fazem parte deste candidato.
+- Cobertura aprovada: token/schema de webhook, guard de cartão, consentimento
+  legal em desktop/mobile, reserva idempotente, CSP, autenticação e acesso por
+  perfil. Nenhuma credencial ou valor secreto foi registrado.
+
+## 2026-10-20 14:52 BRT — Homologação financeira mutável e correção de consentimento
+
+- Status: validação concluída no Sandbox; nenhuma chamada ou alteração em
+  Production.
+- Evidência: card guard concorrente e cooldown passaram; reserva de checkout
+  idempotente passou; a suíte não mutante do candidato Preview passou com
+  40/40 cenários relevantes. A execução mutável no alias Sandbox encontrou
+  5 respostas 401 por divergência do token do webhook no alias antigo e
+  5 falhas de foco no consentimento.
+- Correção: `IngressoAtletaForm` agora bloqueia o envio sem consentimento e
+  move o foco para o checkbox. A validação local no Sandbox passou 1/1 cenário
+  de consentimento (o cenário de plateia foi ignorado por fixture ausente).
+- Pendência externa: alinhar o token do webhook e o deployment do alias
+  `sandbox-homologacao` antes de repetir os cenários de webhook mutáveis.
+
+## 2026-10-20 10:06 BRT — Candidato local de hardening P0 da V1
+
+- Status: concluído localmente e pronto para revisão/Preview; não promovido ao
+  Sandbox ou Production.
+- Escopo: branch isolada `fix/v1-security-release`, criada a partir de
+  `origin/master` `5c75756`, sem tocar nas alterações pessoais não commitadas
+  do checkout principal.
+- Feito: atualizados Next.js e `eslint-config-next` para 16.4.2; limites de
+  body para webhooks/funil; endpoint CEO-only de anexo com validação de bytes;
+  health mínimo; deduplicação do funil; migrations incrementais de RPC Elite,
+  Pix e contatos; rollback documentado; e estabilização do login Playwright em
+  WebKit após corrida de hidratação.
+- Evidência: `npm run audit:prod` sem vulnerabilidades; lint e typecheck sem
+  erros; `npm test` 832 aprovados e 1 integrado destrutivo ignorado por falta
+  da trava/fixture descartável; `npm run build` aprovou no Next.js 16.4.2 com
+  70 rotas; `npm run test:e2e` aprovou 35 cenários e ignorou 50 mutantes por
+  flags de segurança. A falha inicial de WebKit foi reproduzida, corrigida e
+  confirmada nos dois perfis WebKit antes da repetição completa.
+- Próximo passo externo: revisar o diff/PR, aplicar as migrations 30 e 31 no
+  Sandbox, executar o teste P0 contra fixtures descartáveis, validar rollback e
+  somente então promover o mesmo commit para Production.
+
+## 2026-10-20 10:07 BRT — Publicação para revisão do candidato P0
+
+- Status: PR #49 aberta a partir de `fix/v1-security-release`, no commit
+  `c70bdf8` (`fix: harden V1 release surfaces`); nenhuma migration, Preview ou
+  Production foi aprovada como promoção nesta ação.
+- Evidência: branch enviada ao repositório remoto e PR disponível para revisão.
+  No instante da consulta, `Vercel Preview Comments` estava aprovado e os
+  checks `verify` e `Vercel` ainda estavam em execução.
+- Próximo passo: aguardar os checks, revisar o Preview e seguir somente o
+  roteiro de Sandbox documentado antes de qualquer alteração remota de banco.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers

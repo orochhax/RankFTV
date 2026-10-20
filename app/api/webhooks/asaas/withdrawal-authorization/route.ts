@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { hasInvalidContentLength, readBoundedRequestBody } from "@/lib/bounded-request-body";
 import { consultarTransferencia, listarEstornosCobranca } from "@/lib/asaas";
 import {
   hasUniqueAuthorizableProviderRefund,
@@ -106,8 +107,12 @@ export async function POST(req: NextRequest) {
     process.env.ASAAS_WITHDRAWAL_AUTH_TOKEN,
   )) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const raw = await req.text();
-  if (!raw || raw.length > 32_000) return refused("Payload invalido");
+  const maxBytes = 32_000;
+  if (hasInvalidContentLength(req, maxBytes)) return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  const bytes = await readBoundedRequestBody(req, maxBytes);
+  if (bytes === null) return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  if (bytes.length === 0) return refused("Payload invalido");
+  const raw = new TextDecoder().decode(bytes);
   let parsed: unknown;
   try { parsed = JSON.parse(raw); } catch { return refused("Payload invalido"); }
   const body = parseWithdrawalAuthorization(parsed);
