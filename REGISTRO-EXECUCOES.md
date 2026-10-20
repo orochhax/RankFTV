@@ -17,6 +17,19 @@ registrar apenas uma revalidação quando ela for necessária.
   `force-push` nem sobrescrita dessa branch. A configuração do token do
   webhook e do alias no painel Vercel ainda precisa ser feita no Preview.
 
+## 2026-10-20 15:10 BRT — Suíte Sandbox no Preview P0
+
+- Status: validação mutável concluída somente no Sandbox; nenhuma chamada foi
+  direcionada à Production.
+- Evidência: o Preview de `sandbox-homologacao-p0` respondeu `/api/health` com
+  HTTP 200. A suíte completa terminou com 58 aprovados, 25 ignorados e 2
+  falhas transitórias na primeira passagem. A repetição dos quatro cenários
+  afetados passou integralmente; os dois cenários restantes são de plateia e
+  continuam ignorados por fixture descartável ausente.
+- Cobertura aprovada: token/schema de webhook, guard de cartão, consentimento
+  legal em desktop/mobile, reserva idempotente, CSP, autenticação e acesso por
+  perfil. Nenhuma credencial ou valor secreto foi registrado.
+
 ## 2026-10-20 14:52 BRT — Homologação financeira mutável e correção de consentimento
 
 - Status: validação concluída no Sandbox; nenhuma chamada ou alteração em
