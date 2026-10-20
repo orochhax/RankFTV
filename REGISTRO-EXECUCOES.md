@@ -219,3 +219,20 @@ registrar apenas uma revalidação quando ela for necessária.
 - Verificação de código: typecheck, build e testes automatizados passaram no
   ciclo de 30/09. Para detalhes, consultar commits `7c26636`, `2db8e5a`,
   `0949d3f`, `cc19773`, `f3417c3` e `b4aea09`.
+
+## 2026-10-20 — Aplicação do P0 em Production
+
+- Status: concluído com evidência remota.
+- Pré-condição: backup lógico oficial de Production concluído com sucesso no
+  workflow `39475353118` antes da alteração.
+- Execução: PR #51 (`5d807c3`) adicionou o workflow guardado; a primeira
+  execução identificou que a tabela base do funil não existia e abortou a
+  deduplicação sem concluir essa etapa. A correção foi publicada na PR #53,
+  mesclada no commit `8184469`, e o workflow `39477700522` concluiu com
+  sucesso: RPC hardening, tabela base idempotente, índice de deduplicação e
+  verificação de grants.
+- Smoke: `https://www.rankftv.com/api/health` e o alias Vercel retornaram
+  HTTP 200 com `{"status":"ok"}`. A auditoria somente leitura de Production
+  (`39477800357`) também concluiu com sucesso.
+- Segurança: nenhum pagamento, cobrança, estorno ou teste de cartão foi
+  executado em Production; nenhum segredo foi registrado neste log.
