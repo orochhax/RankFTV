@@ -5,6 +5,21 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-20 14:52 BRT — Homologação financeira mutável e correção de consentimento
+
+- Status: validação concluída no Sandbox; nenhuma chamada ou alteração em
+  Production.
+- Evidência: card guard concorrente e cooldown passaram; reserva de checkout
+  idempotente passou; a suíte não mutante do candidato Preview passou com
+  40/40 cenários relevantes. A execução mutável no alias Sandbox encontrou
+  5 respostas 401 por divergência do token do webhook no alias antigo e
+  5 falhas de foco no consentimento.
+- Correção: `IngressoAtletaForm` agora bloqueia o envio sem consentimento e
+  move o foco para o checkbox. A validação local no Sandbox passou 1/1 cenário
+  de consentimento (o cenário de plateia foi ignorado por fixture ausente).
+- Pendência externa: alinhar o token do webhook e o deployment do alias
+  `sandbox-homologacao` antes de repetir os cenários de webhook mutáveis.
+
 ## 2026-10-20 10:06 BRT — Candidato local de hardening P0 da V1
 
 - Status: concluído localmente e pronto para revisão/Preview; não promovido ao
