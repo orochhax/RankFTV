@@ -53,6 +53,17 @@ jobs:
             --single-transaction \
             --file=supabase/20261020000100_p0_sensitive_rpc_hardening.sql
 
+      - name: Ensure public funnel base table atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/lib/postgresql/17/bin/psql \
+            --dbname="$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set=ON_ERROR_STOP=1 \
+            --single-transaction \
+            --file=supabase/public-funnel-analytics.sql
+
       - name: Apply public funnel deduplication atomically
         shell: bash
         run: |
