@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { executarRepasseEspectador } from "@/lib/repasse";
 import {
   confirmarInscricaoPaga, estornarInscricao,
   confirmarAthleteTicketPago, estornarAthleteTicket,
@@ -238,6 +237,44 @@ async function handleAsaasWebhook(req: NextRequest) {
       description: descricao,
       revertStatus: "pendente",
     });
+  }
+
+  async function registerOrganizerAdjustment(kind: "refund" | "chargeback" | "dispute", eventKey: string, amount = payment.value) {
+    const { data: adjustment, error } = await supabase.rpc("record_organizer_receivable_adjustment", {
+      p_payment_id: payment.id,
+      p_adjustment_type: kind,
+      p_amount: amount,
+      p_provider_event_id: eventKey,
+      p_disputed: kind === "dispute" || kind === "chargeback",
+    });
+    if (error) throw new Error(`organizer_adjustment_failed:${error.code ?? "unknown"}`);
+    const result = adjustment as { found?: boolean; duplicate?: boolean; debt?: number; organizerId?: string; championshipId?: string } | null;
+    if (!result?.found) return;
+    await reportOperationalEvent({
+      level: kind === "refund" && Number(result.debt ?? 0) === 0 ? "warn" : "critical",
+      event: `wallet.receivable_${kind}`,
+      message: "Estorno ou disputa registrado na carteira; saque bloqueado até compensação ou revisão.",
+      context: { paymentId: payment.id, organizerId: result.organizerId, championshipId: result.championshipId, debt: result.debt, duplicate: result.duplicate },
+      alert: true,
+    });
+  }
+
+  async function registerPaymentAdjustments() {
+    if (event === "PAYMENT_PARTIALLY_REFUNDED") {
+      const refunds = await listarEstornosCobranca(payment.id);
+      const confirmed = refunds.filter((refund) => refund.status === "DONE" && Number(refund.value) > 0);
+      if (confirmed.length === 0) throw new Error("partial_refund_missing_provider_amount");
+      for (const refund of confirmed) {
+        await registerOrganizerAdjustment("refund", refund.id ?? `${event}:${payment.id}:${refund.value}`, Number(refund.value));
+      }
+      return;
+    }
+    const adjustmentType = event === "PAYMENT_CHARGEBACK_DISPUTE" ? "dispute"
+      : event === "PAYMENT_CHARGEBACK_REQUESTED" ? "chargeback" : "refund";
+    // A chargeback request followed by a dispute is one exposure, not two debits.
+    const key = adjustmentType === "chargeback" || adjustmentType === "dispute"
+      ? `chargeback:${payment.id}` : payment.refundId ?? `${event}:${payment.id}`;
+    await registerOrganizerAdjustment(adjustmentType, key);
   }
 
   // ── Mensalidade de ARENA (externalReference "arena_student:<studentId>") ──
@@ -557,6 +594,9 @@ async function handleAsaasWebhook(req: NextRequest) {
     if (!(await paymentBelongsToRecord("spectator_tickets", ticketId)))
       return acknowledgePaymentOwnershipMismatch();
 
+    if (novoStatus === "estornado") {
+      await registerPaymentAdjustments();
+    }
     await supabase
       .from("spectator_tickets")
       .update({
@@ -573,12 +613,16 @@ async function handleAsaasWebhook(req: NextRequest) {
       if (releaseError) {
         return NextResponse.json({ error: "Falha ao liberar inventario do pedido" }, { status: 500 });
       }
+      const adjustmentType = event === "PAYMENT_CHARGEBACK_DISPUTE" ? "dispute"
+        : event === "PAYMENT_CHARGEBACK_REQUESTED" ? "chargeback" : "refund";
+      await registerOrganizerAdjustment(adjustmentType, payment.refundId ?? `${event}:${payment.id}`);
       const { data: refundedTicket } = await supabase.from("spectator_tickets").select("championship_id").eq("id", ticketId).maybeSingle();
       if (refundedTicket?.championship_id) await notifyOrganizerFinancialEvent({ championshipId: refundedTicket.championship_id, recordType: "spectator_ticket", recordId: ticketId, payment, event });
       return NextResponse.json({ ok: true, tipo: "espectador", status: novoStatus });
     }
 
-    // Pago → repasse integral pra chave Pix do organizador
+    // Pago -> entra na carteira individual. O organizador decide quando sacar;
+    // este webhook nunca transfere automaticamente a mesma venda.
     const { data: ticket } = await supabase
       .from("spectator_tickets")
       .select("id, championship_id, valor")
@@ -586,48 +630,17 @@ async function handleAsaasWebhook(req: NextRequest) {
       .single();
 
     if (ticket) {
-      const { data: champ } = await supabase
-        .from("championships")
-        .select("nome, organizador_id")
-        .eq("id", ticket.championship_id)
-        .single();
-
-      if (champ) {
-        const { data: org } = await supabase
-          .from("organizer_accounts")
-          .select("chave_pix, chave_pix_atualizada_em")
-          .eq("user_id", champ.organizador_id)
-          .single();
-        const chavePix = org?.chave_pix as string | undefined;
-        const valor    = Number(ticket.valor ?? 0);
-
-        if (chavePix && valor > 0) {
-          const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
-          if (dias === 0) {
-            const { data: claimed } = await supabase
-              .from("spectator_tickets")
-              .update({ repasse_status: "processando" })
-              .eq("id", ticketId)
-              .eq("repasse_status", "pendente")
-              .select("id");
-            if (claimed && claimed.length > 0) {
-              await executarRepasseEspectador(
-                supabase,
-                { ticketId, champNome: champ.nome, chavePix, chavePixAtualizadaEm: org?.chave_pix_atualizada_em ?? null, valor },
-                "pendente",
-              );
-            }
-          } else {
-            const dataRepasse = new Date();
-            dataRepasse.setDate(dataRepasse.getDate() + dias);
-            await supabase
-              .from("spectator_tickets")
-              .update({ repasse_status: "aguardando_liquidacao", repasse_data_prevista: dataRepasse.toISOString() })
-              .eq("id", ticketId)
-              .eq("repasse_status", "pendente");
-          }
-        }
-      }
+      const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
+      const dataRepasse = new Date();
+      dataRepasse.setDate(dataRepasse.getDate() + dias);
+      await supabase
+        .from("spectator_tickets")
+        .update({
+          repasse_status: dias === 0 ? "disponivel" : "aguardando_liquidacao",
+          repasse_data_prevista: dataRepasse.toISOString(),
+        })
+        .eq("id", ticketId)
+        .eq("repasse_status", "pendente");
     }
 
     if (ticket?.championship_id) await notifyOrganizerFinancialEvent({ championshipId: ticket.championship_id, recordType: "spectator_ticket", recordId: ticketId, payment, event });
@@ -656,6 +669,10 @@ async function handleAsaasWebhook(req: NextRequest) {
       alert: true,
     });
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
+  }
+
+  if (novoStatus === "estornado") {
+    await registerPaymentAdjustments();
   }
 
   const { data: registration } = await supabase.from("registrations").select("championship_id").eq("id", registrationId).maybeSingle();
