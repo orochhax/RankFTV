@@ -21,6 +21,7 @@ const health = await request("/api/health");
 assert.equal(health.status, 200);
 const healthBody = await health.json();
 assert.equal(healthBody.status, "ok");
+assert.deepEqual(Object.keys(healthBody).sort(), ["status"]);
 for (const forbidden of ["password", "secret", "service_role", "authorization"]) {
   assert.equal(JSON.stringify(healthBody).toLowerCase().includes(forbidden), false);
 }

@@ -1,23 +1,62 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 01/10/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 20/10/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
 `AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
 
 ## Progresso da V1
 
-`██████████████████░░` **91% concluído** — 127 dos 140 marcos P0 originais
-foram concluídos; restam 13 marcos atômicos, agrupados abaixo em 9 entradas
-acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
-que remover histórico concluído não faça o progresso parecer voltar a zero.
+`██████████████████░░` **88% concluído** — 127 de 144 marcos P0 foram
+concluídos; restam 17 marcos atômicos, agrupados abaixo em 13 entradas
+acionáveis. A linha de base foi ampliada para contabilizar parcelamento de
+inscrições, carteira/saque do organizador, atualização segura das dependências
+e promoção dos hardenings P0 encontrados na auditoria de 20/10.
 
 Ao concluir ou acrescentar um marco P0, atualizar a barra, os números e a data.
 P1/P2 não alteram esse percentual.
 
+### Reconciliação do estado — 20/10/2026
+
+- `origin/master` estava em `5c75756` no início desta rodada. O checkout pessoal
+  aberto possuía alterações não commitadas e não foi usado como candidato de
+  release; o trabalho da V1 foi isolado em `fix/v1-security-release`.
+- Next.js e `eslint-config-next` foram atualizados de 16.4.0 para 16.4.2. A
+  auditoria de dependências de produção retornou zero vulnerabilidades. O npm
+  ainda lista cinco vulnerabilidades altas somente na cadeia de lint de
+  desenvolvimento (`eslint-config-next`/`fast-glob`/`micromatch`/`braces`) e
+  oferece como “correção” um downgrade incompatível; não usar `--force`.
+- O release local passou a incluir limite real de stream para webhooks/funil,
+  upload de suporte pelo servidor com validação de assinatura, health público
+  mínimo, deduplicação do funil e hardening incremental das RPCs Elite, Pix e
+  contatos. As migrations ainda precisam ser aplicadas e testadas primeiro no
+  Sandbox; presença no Git não equivale a promoção remota.
+- A correção do guard E2E local foi comprovada por 30/30 cenários de segurança
+  e acesso em Chromium, Firefox, WebKit e dois perfis móveis. A bateria completa
+  do commit final permanece obrigatória antes da abertura da PR.
+- A PR #33 da carteira continuava aberta com CI/Preview aprovados e 20 checks
+  estruturais verdadeiros em Sandbox e Production. A PR #32 de parcelamento
+  também permanecia aberta. Nenhuma das duas está comprovada em Production.
+
 ## P0 — Obrigatório antes de abrir pagamentos reais
 
 ### Segurança, autenticação e dados
+
+- [x] Atualizar deliberadamente as dependências de produção afetadas. Em
+  20/10/2026, Next.js e `eslint-config-next` foram elevados para 16.4.2 sem
+  `npm audit fix --force`; `npm run audit:prod` passou com zero
+  vulnerabilidades. Lint, typecheck, testes, build e E2E precisam permanecer
+  verdes no commit final. As cinco ocorrências altas remanescentes são somente
+  da cadeia de lint de desenvolvimento e não possuem atualização segura
+  oferecida pelo npm nesta data.
+- [ ] Aplicar no Sandbox, homologar, versionar e promover o pacote incremental
+  de hardening P0 desta branch: `20261020000100_p0_sensitive_rpc_hardening.sql`,
+  `20261020000200_public_funnel_deduplication.sql`, health mínimo, limites de
+  corpo e upload de suporte validado no servidor. Executar o teste integrado
+  apenas com fixtures descartáveis e a trava
+  `P0_RPC_TEST_DISPOSABLE_SANDBOX=RANKFTV_DISPOSABLE_SANDBOX`; conferir grants,
+  overloads e rollback em `docs/ROLLBACK-P0-SENSITIVE-RPCS.md`. Production não
+  deve receber essas migrations antes da evidência de Sandbox e do Preview.
 
 - [x] Aplicar em produção, numa janela controlada e depois da homologação, o
   grant mínimo de `supabase/production-security-20-point-hardening.sql`.
@@ -96,14 +135,23 @@ P1/P2 não alteram esse percentual.
   WhatsApp. Ensaio Sandbox concluído em 16/09/2026 para Rafael Teste Sandbox /
   Diego Teste Sandbox: caso criado, atribuído, registrado como aguardando prova
   e resolvido sem dados financeiros adicionais.
-- [x] Manter dados de cartão exclusivamente no checkout hospedado do Asaas,
-  antes de aceitar cartões reais. Em 01/10/2026, a PR #25 foi mesclada em
-  `master` após CI completo: os fluxos de cartão de aluguel, diária,
-  assinatura e campeonatos redirecionam ao checkout do provedor; o código e
-  os testes impedem PAN e CVV de entrarem na RankFTV. A migration de
-  `invoice_url` já havia sido aplicada em produção. A confirmação documental
-  de eventual SAQ com o Asaas deixa de ser bloqueador desta arquitetura, pois
-  o formulário de cartão não pertence à RankFTV.
+- [ ] Obter do adquirente/processador confirmação documentada do escopo PCI/SAQ
+  aplicável. Campeonatos, ingresso de atleta, aluguel e diária usam checkout
+  hospedado do Asaas e não recebem PAN/CVV, mas o financeiro do aluno de arena
+  ainda possui fluxo de cartão salvo/tokenizado (`salvarCartaoArena` e
+  `tokenizarCartao`). Confirmar formalmente os dados trafegados, persistência do
+  token e elegibilidade antes de habilitar cobranças reais nessa superfície.
+- [ ] Implementar e homologar o parcelamento de inscrições do checkout
+  hospedado conforme a PR #32: uma cobrança `INSTALLMENT`, limite de parcelas,
+  resumo antes da confirmação e contabilização que não libere parcelas ainda
+  inelegíveis. Cobrir idempotência, timeout, conciliação, estorno,
+  chargeback e antecipação no Sandbox antes de promover.
+- [ ] Concluir a carteira individual e o saque manual do organizador da PR #33.
+  Os 20 checks estruturais já foram informados como verdadeiros em Sandbox e
+  Production, mas ainda faltam merge/promoção e a matriz transacional no
+  Preview/Sandbox: Pix, D+3/D+32, saque parcial, seleção de recebíveis,
+  antecipação, documentação, timeout/ambiguidade, concorrência, isolamento,
+  estorno, chargeback e dívida compensável.
 
 ### Operação de campeonatos
 
@@ -226,8 +274,9 @@ P1/P2 não alteram esse percentual.
   índices revalidados.
 - [ ] Homologar login, recuperação e os dois pollings no Sandbox depois do
   hardening de cookies/endpoints públicos já implementado.
-- [ ] Validar conteúdo real de uploads no servidor, incluindo assinatura de
-  imagem/PDF, confirmação pós-upload e avaliação de quarentena/antimalware.
+- [ ] Homologar no Sandbox o upload de suporte agora processado pelo servidor,
+  com limite de 4 MB e validação de assinatura/estrutura para JPEG, PNG, WebP
+  e PDF; decidir depois se quarentena/antimalware será exigida para a V1.
 - [ ] Revisar ações administrativas não financeiras que ainda possam devolver
   `error.message`, priorizando dados pessoais.
 - [ ] Revisar minimização, retenção e criptografia de CPF, e-mail, chaves Pix e

@@ -1,7 +1,33 @@
 # Auditoria de seguranca e prontidao para producao - RankFTV
 
 Data da revisao: 14/07/2026
-Ultima atualizacao: 30/09/2026
+Ultima atualizacao: 20/10/2026
+
+## Atualizacao 20/10/2026 - candidato local de hardening P0
+
+- Status: preparado e validado localmente na branch isolada
+  `fix/v1-security-release`, baseado em `origin/master` `5c75756`. Nenhuma
+  migration, configuração externa, deploy ou alteração de Production foi feita.
+- Dependências: Next.js e `eslint-config-next` foram atualizados de 16.4.0 para
+  16.4.2. `npm run audit:prod` retornou zero vulnerabilidades. O audit completo
+  ainda aponta cinco avisos altos apenas na cadeia de lint de desenvolvimento;
+  a única “correção” sugerida pelo npm é downgrade incompatível, por isso não
+  foi aplicado `npm audit fix --force`.
+- Código: webhooks Asaas/Resend e funil público passaram a limitar bytes reais
+  inclusive em request chunked; anexos de suporte são enviados ao endpoint
+  autenticado, limitados a 4 MB e validados por MIME/assinatura/terminador;
+  health público responde somente `{ "status": "ok" }`; o funil deduplica no
+  banco; e as migrations incrementais restringem preço Elite, RPCs Pix e
+  contatos do organizador. O rollback de compatibilidade está em
+  `docs/ROLLBACK-P0-SENSITIVE-RPCS.md`.
+- Validação: lint sem erros, TypeScript sem erros, 832 testes aprovados e um
+  teste integrado destrutivo corretamente ignorado sem fixture Sandbox,
+  build Next.js 16.4.2 com 70 rotas e Playwright com 35 aprovados/50 ignorados
+  por flags de mutação desligadas. O helper de login E2E foi ajustado e a
+  repetição confirmou WebKit desktop e mobile.
+- Limite: as migrations P0 aguardam aplicação e matriz de autorização em
+  Sandbox descartável; parcelamento, carteira do organizador, estornos de
+  cartão e smoke transacional de Production continuam pendências P0.
 
 ## Atualizacao 30/09/2026 - prontidao operacional da V1
 

@@ -6040,7 +6040,7 @@ export type Database = {
         Returns: undefined
       }
       ativar_championship_elite: {
-        Args: { p_champ_id: string; p_preco_elite: number }
+        Args: { p_champ_id: string }
         Returns: Json
       }
       atualizar_chave_pix_arena: {
@@ -6068,7 +6068,7 @@ export type Database = {
         Returns: boolean
       }
       cancelar_championship_elite: {
-        Args: { p_champ_id: string; p_preco_elite: number }
+        Args: { p_champ_id: string }
         Returns: Json
       }
       check_rate_limit: {

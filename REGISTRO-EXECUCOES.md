@@ -5,6 +5,28 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-20 10:06 BRT — Candidato local de hardening P0 da V1
+
+- Status: concluído localmente e pronto para revisão/Preview; não promovido ao
+  Sandbox ou Production.
+- Escopo: branch isolada `fix/v1-security-release`, criada a partir de
+  `origin/master` `5c75756`, sem tocar nas alterações pessoais não commitadas
+  do checkout principal.
+- Feito: atualizados Next.js e `eslint-config-next` para 16.4.2; limites de
+  body para webhooks/funil; endpoint CEO-only de anexo com validação de bytes;
+  health mínimo; deduplicação do funil; migrations incrementais de RPC Elite,
+  Pix e contatos; rollback documentado; e estabilização do login Playwright em
+  WebKit após corrida de hidratação.
+- Evidência: `npm run audit:prod` sem vulnerabilidades; lint e typecheck sem
+  erros; `npm test` 832 aprovados e 1 integrado destrutivo ignorado por falta
+  da trava/fixture descartável; `npm run build` aprovou no Next.js 16.4.2 com
+  70 rotas; `npm run test:e2e` aprovou 35 cenários e ignorou 50 mutantes por
+  flags de segurança. A falha inicial de WebKit foi reproduzida, corrigida e
+  confirmada nos dois perfis WebKit antes da repetição completa.
+- Próximo passo externo: revisar o diff/PR, aplicar as migrations 30 e 31 no
+  Sandbox, executar o teste P0 contra fixtures descartáveis, validar rollback e
+  somente então promover o mesmo commit para Production.
+
 ## 2026-10-01 — Merge controlado da PR #25 em `master`
 
 - Status: concluído no GitHub. A PR #25 (`V1: checkout hospedado e workers
