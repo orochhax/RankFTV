@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`██████████████████░░` **91% concluído** — 127 dos 140 marcos P0 originais
-foram concluídos; restam 13 marcos atômicos, agrupados abaixo em 9 entradas
+`██████████████████░░` **90% concluído** — 127 dos 141 marcos P0 originais
+foram concluídos; restam 14 marcos atômicos, agrupados abaixo em 10 entradas
 acionáveis. O número usa a linha de base anterior à limpeza deste arquivo, para
 que remover histórico concluído não faça o progresso parecer voltar a zero.
 
@@ -104,6 +104,23 @@ P1/P2 não alteram esse percentual.
   `invoice_url` já havia sido aplicada em produção. A confirmação documental
   de eventual SAQ com o Asaas deixa de ser bloqueador desta arquitetura, pois
   o formulário de cartão não pertence à RankFTV.
+- [ ] Implementar e homologar parcelamento hospedado de cartão para inscrições
+  e ingressos antes do lançamento. O comprador deve poder pagar à vista ou em
+  parcelas no Checkout do Asaas; o limite configurado pelo organizador precisa
+  ser enviado ao Checkout (`INSTALLMENT` e `maxInstallmentCount`), não apenas
+  salvo no campeonato. Mesmo quando o comprador parcelar, o organizador deve
+  receber uma única transferência do valor integral em D+32. Para cumprir isso,
+  o RankFTV deve: (1) criar e guardar a referência do parcelamento hospedado;
+  (2) simular e solicitar a antecipação integral no Asaas após a confirmação,
+  quando elegível; (3) só agendar o repasse único após
+  `RECEIVABLE_ANTICIPATION_CREDITED`; (4) tratar recusa, documentação
+  obrigatória, limite e falha sem prometer crédito ao organizador; e (5)
+  mostrar previamente quem suporta a taxa de antecipação. A taxa não é fixa:
+  depende da conta, limite e análise do Asaas. Como a antecipação não é
+  garantida, a promessa de D+32 exige elegibilidade/antecipação automática
+  contratada previamente ou reserva financeira própria para os casos recusados.
+  Não abrir pagamentos reais com parcelamento até validar Sandbox/Produção,
+  webhooks idempotentes, estorno/chargeback e conciliação do valor líquido.
 
 ### Operação de campeonatos
 
