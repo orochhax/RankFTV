@@ -17,6 +17,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatBRL, formatDateRangeBR, generoLabel } from "@/lib/format";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { Surface } from "@/components/shell/Surface";
+import { PlanosCampeonatoResumo } from "@/components/painel/PlanosCampeonatoResumo";
 import type { ChampionshipStatus, GeneroCategoria } from "@/lib/types";
 
 type CatRow = {
@@ -45,7 +46,7 @@ export default async function CampeonatoCriadoPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome, data_inicio, data_fim, cidade, estado, status, organizador_id")
+    .select("nome, data_inicio, data_fim, cidade, estado, status, organizador_id, is_elite")
     .eq("id", id)
     .maybeSingle();
 
@@ -191,6 +192,7 @@ export default async function CampeonatoCriadoPage({
           >
             <Eye className="size-4" /> Ver página pública (prévia)
           </Link>
+          <PlanosCampeonatoResumo elite={!!champ.is_elite} />
         </div>
       ) : (
         <div className="space-y-3">

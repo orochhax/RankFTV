@@ -4,6 +4,14 @@ Atualizado em 29/09/2026. Este arquivo reúne melhorias que não bloqueiam a
 V1. Obrigações de lançamento, segurança e evolução pós-lançamento permanecem
 em `PENDENCIAS-V1.md`.
 
+## Fluxo de publicação de campeonatos
+
+- [x] Restringir a tela de confirmação de campeonato em rascunho às ações de
+  prévia pública e publicação. O menu de gestão fica oculto até o evento ser
+  publicado, evitando acesso induzido a check-in, financeiro, chaveamento e
+  demais operações antes da abertura. Incluir no fim da tela um resumo fiel
+  dos planos Padrão e Elite em 01/10/2026.
+
 ## Identidade visual e banners da home
 
 - [x] Substituir os fundos sólidos em preto puro usados na navegação, cabeçalhos,

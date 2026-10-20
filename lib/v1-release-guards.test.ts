@@ -258,6 +258,17 @@ test("new championships do not start with an unnamed category", () => {
   assert.match(form, /function removeCat\(i: number\) \{\s*setCategorias\(\(cs\) => cs\.filter/);
 });
 
+test("draft championships do not expose the management menu before publication", () => {
+  const shell = source("components/painel/ChampionshipShell.tsx");
+  const createdPage = source("app/painel/campeonatos/[id]/criado/page.tsx");
+
+  assert.match(shell, /const isDraft = champ\.status === "rascunho"/);
+  assert.match(shell, /\{!isDraft && <div ref=\{menuRef\} className="relative">/);
+  assert.match(shell, /\{!isDraft && menuOpen && \(/);
+  assert.match(shell, /isDraft \? "Prévia pública" : "Página pública"/);
+  assert.match(createdPage, /<PlanosCampeonatoResumo elite=\{!!champ\.is_elite\} \/>/);
+});
+
 test("categories with operational history cannot be deleted or trigger refunds", () => {
   const actions = source("app/painel/campeonatos/[id]/lotes/actions.ts");
   const editActions = source("app/painel/campeonatos/[id]/editar/actions.ts");

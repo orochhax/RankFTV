@@ -1,25 +1,17 @@
 "use client";
 
 import {
-  MessageCircle, Wallet, QrCode, Sparkles, Lock, Camera,
-  Network, TrendingUp, Shirt, Megaphone, Check,
-  TrendingDown, Video, Star,
+  Wallet, QrCode, Lock, Network, TrendingUp, Megaphone, Check,
+  TrendingDown,
 } from "lucide-react";
 import { ElitePlanCard } from "./ElitePlanCard";
 
 const BENEFICIOS_PADRAO = [
-  { icon: TrendingDown,  label: "Taxas reduzidas da plataforma",                                             locked: true },
-  { icon: Video,         label: "Call ao vivo com o CEO para apresentar todas as funcionalidades",            locked: true },
-  { icon: Star,          label: "Destaque no início do site — seu campeonato fica fixado na tela inicial",   locked: true },
-  { icon: Camera,        label: "Divulgação do campeonato nos stories do @rankftv",                          locked: true },
-  { icon: MessageCircle, label: "Suporte pelo WhatsApp",                                                     locked: false },
   { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público",        locked: false },
   { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila",               locked: false },
-  { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa",              locked: true },
   { icon: Wallet,        label: "Inscrição e pagamento online — Pix na hora ou cartão em até 12x", locked: false },
   { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu",              locked: false },
-  { icon: Shirt,         label: "Camisas por tamanho — saiba quantas P/M/G/GG encomendar",                  locked: false },
-  { icon: Megaphone,     label: "Comunicação com inscritos — avise todo mundo num clique",                   locked: false },
+  { icon: Megaphone,     label: "Comunicação por e-mail e notificação aos inscritos confirmados",             locked: false },
 ];
 
 // Cards de escolha de plano (Elite x Padrão) — última etapa da criação.
@@ -36,7 +28,7 @@ export function PlanoCards({ elite, onToggle }: { elite: boolean; onToggle: (v: 
               R$0 / evento
             </span>
           </div>
-          <p className="mt-0.5 text-sm text-white/50">O que já vem incluso em todos os campeonatos:</p>
+          <p className="mt-0.5 text-sm text-white/50">Ferramentas operacionais incluídas em todos os campeonatos:</p>
         </div>
         <ul className="grid gap-x-5 gap-y-2.5 sm:grid-cols-2">
           {BENEFICIOS_PADRAO.map(({ label, locked }) => (

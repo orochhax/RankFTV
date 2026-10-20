@@ -3,24 +3,12 @@
 import { useState } from "react";
 import {
   Crown, Check, X, ArrowRight,
-  TrendingDown, Video, Star, MessageCircle, Camera,
-  Sparkles, Megaphone, Wallet, QrCode, Network, TrendingUp, Shirt,
+  TrendingDown,
   ShieldCheck, BadgeDollarSign,
 } from "lucide-react";
 
 const BENEFICIOS_ELITE = [
-  { icon: TrendingDown,  label: "Taxas reduzidas da plataforma" },
-  { icon: Video,         label: "Call ao vivo com o CEO para apresentar todas as funcionalidades" },
-  { icon: Star,          label: "Destaque no início do site — seu campeonato fica fixado na tela inicial do site" },
-  { icon: Camera,        label: "Divulgação do campeonato nos stories do @rankftv" },
-  { icon: MessageCircle, label: "Suporte priorizado direto pelo WhatsApp" },
-  { icon: Network,       label: "Chaveamento ao vivo — chave e resultados em tempo real pro público" },
-  { icon: QrCode,        label: "Check-in por QR — credencial no celular, portaria sem fila" },
-  { icon: Sparkles,      label: "Categoria balanceada — a plataforma sugere a categoria certa" },
-  { icon: Wallet,        label: "Inscrição e pagamento online — Pix na hora ou cartão em até 12x" },
-  { icon: TrendingUp,    label: "Financeiro em tempo real — veja quanto entrou e quanto é seu" },
-  { icon: Shirt,         label: "Camisas por tamanho — saiba quantas P/M/G/GG encomendar" },
-  { icon: Megaphone,     label: "Comunicação com inscritos — avise todo mundo num clique" },
+  { icon: TrendingDown,  label: "Taxa de serviço menor para quem compra: 7% no Pix e 9% no cartão" },
 ];
 
 const TERMOS = [
@@ -103,21 +91,20 @@ export function ElitePlanCard({
         <div className="rounded-2xl bg-amber-400/10 ring-1 ring-amber-400/30 p-5 mb-6">
           <div className="flex items-center gap-2 mb-2">
             <BadgeDollarSign className="size-5 text-amber-400" />
-            <p className="font-bold text-amber-300 text-base">Taxa reduzida = mais dinheiro no seu bolso</p>
+            <p className="font-bold text-amber-300 text-base">Taxa reduzida para o comprador</p>
           </div>
           <p className="text-sm text-amber-200/80 leading-relaxed">
-            No plano Padrão a plataforma retém uma taxa maior por inscrição.
-            No Elite, essa taxa cai — e a diferença vai direto pra você.
-            Num evento com R$10.000 em inscrições, isso pode representar
-            <strong className="text-amber-300"> R$100 a mais</strong> no seu bolso.
+            No plano Padrão, a taxa de serviço somada à compra é maior.
+            No Elite, ela cai para 7% no Pix e 9% no cartão, reduzindo o custo
+            final para quem se inscreve ou compra um ingresso.
           </p>
           <div className="mt-3 flex items-center gap-3 text-xs">
             <div className="rounded-lg bg-white/10 px-3 py-2 text-white/60">
-              Padrão: taxa maior
+              Padrão: 8% Pix · 10% cartão
             </div>
             <ArrowRight className="size-3.5 text-amber-400 shrink-0" />
             <div className="rounded-lg bg-amber-400/20 px-3 py-2 text-amber-300 font-semibold">
-              Elite: taxa reduzida ✓
+              Elite: 7% Pix · 9% cartão ✓
             </div>
           </div>
         </div>
