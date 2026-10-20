@@ -110,7 +110,12 @@ P1/P2 não alteram esse percentual.
 - [ ] Ativar e homologar em produção os avisos de alteração de data, horário ou
   local. Confirmar destinatários pagos/ativos, deduplicação de e-mail
   compartilhado, retentativas, auditoria e exclusão de pendentes, expirados e
-  estornados. A fila e a homologação funcional no Sandbox já existem.
+  estornados. Em 01/10/2026, a checagem somente leitura retornou os nove
+  controles como `true` (tabelas, colunas, índices, RLS e privilégios), e o
+  workflow `Championship notification delivery` registrou execuções agendadas
+  bem-sucedidas em `master`, incluindo `36825345289`. A fila e a homologação
+  funcional no Sandbox já existem; falta apenas a prova controlada com um
+  destinatário ativo de produção, sem avisar pessoas reais por engano.
 - [x] Implementar fila idempotente de notificações ao organizador para cada pagamento,
   estorno integral ou parcial confirmado; entrega imediata pelo webhook e
   recuperação diária por cron. Migration aplicada no Sandbox em 21/09/2026.
