@@ -55,40 +55,23 @@ Radar de tendências, Oportunidades, Fontes e Configurações.
 - Seguidores não têm meta semanal de crescimento; a meta configurada inicial é
   500 até 30/06/2027, com fotografia inicial de 26.
 
-## Botão “Atualizar tudo com IA” sem API paga
+## Atualização manual pelo Codex, sem API paga
 
-O botão da home não chama um modelo no navegador nem expõe credenciais. Ele
-cria um job privado em `evo_ai_jobs`. O agente instalado no computador de
-Carlos mantém um heartbeat em `evo_ai_workers`, reivindica o job de forma
-atômica e usa a sessão local já autenticada do Codex/ChatGPT.
+Não há botão na home nem chamada a um modelo no navegador. Carlos pede a
+atualização diretamente no chat e o Codex executa a pesquisa, pré-validação e
+importação local somente quando houver autorização explícita.
 
 Fluxo obrigatório:
 
-1. Carlos pede a atualização no site.
-2. Quando o PC está ligado, o agente lê métricas, contexto autorizado do cofre
-   e fontes ativas do Rocha Tech.
-3. O agente pesquisa e reavalia o radar, valida o resultado contra o banco e
-   grava uma prévia; ainda não altera os dados finais.
-4. Carlos aprova ou descarta no site.
-5. Só depois da aprovação o agente importa o radar, sincroniza os snapshots e
-   registra a análise semanal.
+1. Carlos pede a atualização no chat.
+2. O Codex lê métricas, contexto autorizado do cofre e fontes ativas do Rocha Tech.
+3. O Codex pesquisa, reavalia o radar e valida o resultado contra o banco.
+4. Depois da autorização, importa o radar, sincroniza os snapshots e registra
+   a análise semanal quando aplicável.
 
-Estados da fila: `queued_analysis`, `analyzing`, `awaiting_approval`,
-`queued_apply`, `applying`, `completed`, `failed` e `cancelled`. Existe no
-máximo um job ativo por usuário. Usuários autenticados só podem ler as próprias
-linhas; criação, aprovação e descarte passam por Server Actions autorizadas, e
-a reivindicação é exclusiva do `service_role` no agente local.
-
-Instalação do agente no Windows, depois das migrations:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-evolution-agent.ps1
-```
-
-A tarefa `RankFTV Central Agent` inicia no logon, roda oculta e usa
-`scripts/run-evolution-agent.ps1`. Artefatos e logs ficam somente em
-`.codex-artifacts/evolution-agent/`, ignorados pelo Git. O agente recusa um
-Supabase diferente do projeto fixo de Production e nunca imprime chaves.
+As tabelas históricas de execução permanecem protegidas por RLS. O agendador
+`RankFTV Central Agent` fica desativado; nenhum processo inicia atualização sem
+pedido de Carlos no chat.
 
 ## Sincronização manual e recuperação
 

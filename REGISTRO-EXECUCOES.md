@@ -1029,3 +1029,19 @@ registrar apenas uma revalidação quando ela for necessária.
   métricas foi executada nesta correção.
 - Estado ao registrar: correção aguardando CI, merge em `master`, deploy e
   reinício da tarefa. Nenhum segredo foi exibido.
+## 2026-10-21 20:32 -03:00 — Central: atualização manual e retirada do agente local
+
+- Decisão de Carlos: retirar o botão “Atualizar tudo com IA” e fazer futuras
+  atualizações diretamente pelo chat. A home deixou de consultar e exibir jobs
+  ou heartbeat; a tarefa do Windows `RankFTV Central Agent` foi parada e
+  desativada, sem excluir históricos nem tabelas.
+- Sincronização autorizada: `evolution:sync` encontrou 81 dias no roadmap e 36
+  pendências RankFTV (88%); `evolution:import` atualizou os dois snapshots em
+  Production.
+- Radar Rocha Tech: `youtube:sources` retornou 16 fontes ativas. A pesquisa
+  registrou limitações explícitas de X/Twitter e SpaceX. O preflight passou com
+  4 itens, 4 tendências, 8 ideias e cobertura das 16 fontes; a importação
+  `93a11bf9-f76f-4a12-9a06-06c3b7b268da` atualizou 3 conteúdos, incluiu 1,
+  criou 1 tendência e reordenou as 8 ideias. Nenhuma ideia nova foi criada.
+- Evidência local: `npm run typecheck` e `git diff --check` passaram. Nenhum
+  segredo foi registrado.
