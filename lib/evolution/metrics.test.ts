@@ -9,6 +9,15 @@ describe("Central de Evolução — semana de segunda a domingo", () => {
 });
 
 describe("Central de Evolução — dívida de estudo", () => {
+  it("não cobra dias anteriores ao início configurado", () => {
+    const result = computeStudyWeek([], "2026-10-21", 120, 600, "2026-10-22");
+
+    assert.deepEqual(result.failedWeekdays, []);
+    assert.equal(result.outstandingDebtMinutes, 0);
+    assert.equal(result.score, 0);
+    assert.equal(result.days[2].targetMinutes, 0);
+  });
+
   it("mantém a falha original e permite pagar a dívida depois", () => {
     const result = computeStudyWeek([
       { id: "1", studyDate: "2026-10-19", minutes: 60, source: "manual" },

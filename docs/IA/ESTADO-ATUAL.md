@@ -79,6 +79,9 @@ pendências do lançamento e qualquer estado remoto mutável deve ser reconsulta
   preflight e importou 4 itens, 4 tendências e a reavaliação das 8 ideias
   ativas em Production. O roadmap (81 dias) e RankFTV (36 pendências, 88%)
   foram sincronizados e importados na Central.
+- O acompanhamento de estudo começa em 22/10/2026, primeiro dia do roadmap.
+  O lançamento de 21/10/2026 foi removido; dias anteriores ao marco não geram
+  dívida nem cobrança.
 
 ## Histórico — reparo do agente local (21/10/2026)
 

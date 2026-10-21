@@ -58,19 +58,20 @@ export async function getEvolutionData() {
     startedAt: session.started_at ? String(session.started_at) : null,
     endedAt: session.ended_at ? String(session.ended_at) : null,
   }));
+  const sourceSnapshots = sourceSnapshotsResult.data ?? [];
+  const roadmap = (sourceSnapshots.find((snapshot) => snapshot.source_kind === "roadmap")?.payload ?? roadmapJson) as RoadmapSnapshot;
+  const rank = (sourceSnapshots.find((snapshot) => snapshot.source_kind === "rankftv")?.payload ?? rankJson) as RankSnapshot;
   const study = computeStudyWeek(
     sessions,
     today,
     Number(settings.daily_study_target_minutes),
     Number(settings.weekly_study_target_minutes),
+    roadmap.period.start,
   );
   const training = trainingResult.data ?? [];
   const weights = weightsResult.data ?? [];
   const followers = followersResult.data ?? [];
   const video = videoResult.data;
-  const sourceSnapshots = sourceSnapshotsResult.data ?? [];
-  const roadmap = (sourceSnapshots.find((snapshot) => snapshot.source_kind === "roadmap")?.payload ?? roadmapJson) as RoadmapSnapshot;
-  const rank = (sourceSnapshots.find((snapshot) => snapshot.source_kind === "rankftv")?.payload ?? rankJson) as RankSnapshot;
   const score = computeEvolutionScore({
     study,
     videoPublished: Boolean(video?.published_at),

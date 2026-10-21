@@ -20,7 +20,10 @@ export default async function EvolutionHomePage() {
   const latestFollowers = Number(data.followers[0]?.followers ?? 26);
   const followerTarget = Number(data.settings.follower_target ?? 500);
   const followerPercent = Math.min(100, Math.round((latestFollowers / Math.max(1, followerTarget)) * 100));
-  const verdict = accountability(data.score.total, data.study.outstandingDebtMinutes);
+  const studyStarted = data.today >= data.roadmap.period.start;
+  const verdict = studyStarted
+    ? accountability(data.score.total, data.study.outstandingDebtMinutes)
+    : { tone: "good", title: "A cobrança começa amanhã.", text: "Hoje está fora do período de acompanhamento. A partir de amanhã, registre o estudo e as entregas normalmente." };
   const todayStudy = data.study.days.find((day) => day.date === data.today)?.minutes ?? 0;
   const trainedToday = data.training.some((entry) => String(entry.training_date) === data.today);
   const videoStatus = data.video?.published_at ? "Publicado" : data.video?.title_snapshot ? "Em andamento" : "Ainda não escolhido";
@@ -43,12 +46,12 @@ export default async function EvolutionHomePage() {
 
       <section className="evo-dashboard-grid">
         <article className="evo-panel evo-focus-panel">
-          <div className="evo-panel-heading"><div><p className="evo-eyebrow">HOJE</p><h2>O mínimo que precisa sair</h2></div><CircleGauge size={21} /></div>
-          <div className="evo-focus-list">
+          <div className="evo-panel-heading"><div><p className="evo-eyebrow">HOJE</p><h2>{studyStarted ? "O mínimo que precisa sair" : "Início amanhã"}</h2></div><CircleGauge size={21} /></div>
+          {studyStarted ? <div className="evo-focus-list">
             <Link href="/admin/evolucao/datascience"><span className={todayStudy >= 120 ? "is-complete" : ""}>{todayStudy >= 120 ? <CheckCircle2 /> : <BookOpen />}</span><div><strong>Estudar por pelo menos 2 horas</strong><small>{formatMinutes(todayStudy)} registradas hoje</small></div><ArrowRight /></Link>
             <Link href="/admin/evolucao/insta-shape"><span className={trainedToday ? "is-complete" : ""}>{trainedToday ? <CheckCircle2 /> : <Dumbbell />}</span><div><strong>Confirmar treino no Hevy</strong><small>{trainedToday ? "Treino registrado" : "Informe apenas a parte do corpo"}</small></div><ArrowRight /></Link>
             <Link href="/admin/evolucao/rocha-tech"><span className={data.video?.published_at ? "is-complete" : ""}>{data.video?.published_at ? <CheckCircle2 /> : <Clapperboard />}</span><div><strong>Avançar o vídeo da semana</strong><small>{data.video?.title_snapshot ?? "Escolha uma ideia no ranking do Pulso.AI"}</small></div><ArrowRight /></Link>
-          </div>
+          </div> : <p>Hoje é apenas preparação. Nenhuma pendência ou cobrança será contabilizada.</p>}
         </article>
 
         <article className={`evo-panel evo-verdict is-${verdict.tone}`}>

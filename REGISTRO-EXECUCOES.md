@@ -1045,3 +1045,14 @@ registrar apenas uma revalidação quando ela for necessária.
   criou 1 tendência e reordenou as 8 ideias. Nenhuma ideia nova foi criada.
 - Evidência local: `npm run typecheck` e `git diff --check` passaram. Nenhum
   segredo foi registrado.
+## 2026-10-21 20:49 -03:00 — Central: início da cobrança em 22/10
+
+- Carlos autorizou começar a usar a Central somente em 22/10/2026.
+- Foi encontrado exatamente um lançamento de estudo em 21/10/2026, com 1
+  minuto e origem `timer`; ele foi removido. A consulta posterior confirmou
+  zero lançamentos nessa data para o proprietário da Central.
+- A métrica agora usa o início do roadmap (`2026-10-22`) como marco: dias
+  anteriores ficam fora do cálculo de dívida, falha diária e pendências do
+  cartão "Hoje". O histórico do roadmap e as metas não foram alterados.
+- Evidência local: 853 testes aprovados, 1 ignorado, typecheck, build Next.js
+  e `git diff --check` concluídos.
