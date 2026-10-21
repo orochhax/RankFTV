@@ -822,3 +822,7 @@ registrar apenas uma revalidação quando ela for necessária.
 - Os círculos de score herdados do tema escuro do Pulso.AI agora usam centro
   branco e trilha clara dentro da Central.
 - Alteração somente local; Supabase, Preview e Production não foram alterados.
+- Correção complementar: a faixa persistia porque o `AppShell` global ainda
+  reservava a largura de sua `DesktopSidebar` atrás do menu próprio da Central.
+  `/admin/evolucao` e suas subrotas agora ignoram somente esse shell global,
+  eliminando a largura invisível sem alterar as demais páginas do Admin.

@@ -22,6 +22,11 @@ export function AppShell({
 }) {
   const pathname = usePathname();
 
+  // A Central de Evolução possui navegação própria em tela cheia. Renderizá-la
+  // dentro do DesktopSidebar global deixaria a largura da barra antiga
+  // reservada atrás do menu da Central, criando uma faixa vazia à esquerda.
+  if (pathname === "/admin/evolucao" || pathname.startsWith("/admin/evolucao/")) return <>{children}</>;
+
   if (isFocusedRoute(pathname)) return <FocusedLayout>{children}</FocusedLayout>;
 
   return (
