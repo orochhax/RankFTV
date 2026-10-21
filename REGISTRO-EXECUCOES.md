@@ -5,6 +5,438 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-20 14:51 (America/Sao_Paulo) — Mix de efeitos sonoros no MP4
+
+- Status: concluído localmente. A versão do vídeo foi re-renderizada com
+  efeitos sonoros sincronizados, sem publicação, envio, impulsionamento,
+  deploy, migration ou uso de serviço externo.
+- Foram sintetizados localmente whooshes de transição, pops dos cards,
+  clicks da grade de recursos e um brilho de dois tons no CTA. A faixa foi
+  mixada em volume baixo abaixo da locução e possui 32 segundos.
+- Export final revalidado: `videos/exports/rankftv-organizadores-v1.mp4`, com
+  32 segundos, 1080 x 1920 px, 25 fps, H.264 e AAC mono. O stream de áudio
+  apresenta volume nos cinco pontos de transição verificados.
+- TypeScript, ESLint focado e `git diff --check` passaram sem erros.
+
+## 2026-10-20 14:45 (America/Sao_Paulo) — Vídeo Motion para organizadores
+
+- Status: primeira versão concluída localmente e aguardando aprovação de
+  Carlos. Nenhuma publicação, impulsionamento, envio, deploy, migration ou
+  alteração em serviço externo foi executada.
+- Briefing: anúncio vertical 9:16 para Instagram Reels/anúncios, voltado a
+  organizadores de campeonatos pequenos e médios. A mensagem é centralizar a
+  operação do campeonato, com CTA para conhecer o RankFTV.
+- Conteúdo: roteiro e cenas apresentam somente funções comprovadas no
+  produto — inscrições, duplas, chaveamento, resultados, ingressos, check-in,
+  financeiro e suporte próximo — sem números, depoimentos, parceiros ou
+  garantias inventadas.
+- Produção: criada rota isolada
+  `/video-preview/rankftv-organizadores`, animação React com `motion/react`,
+  locução local em português do Brasil com a voz Microsoft Maria, efeitos
+  sonoros sintetizados para transições/cards/CTA e pipeline Playwright +
+  `ffmpeg-static`. A credencial visível no editor não foi lida, usada, copiada
+  ou registrada.
+- Export: `videos/exports/rankftv-organizadores-v1.mp4`, 32 segundos, 1080 x
+  1920 px, 25 fps, H.264 e áudio AAC mono. O arquivo final tem cerca de 4 MB.
+- Qualidade: a primeira renderização foi descartada após identificar o
+  indicador de desenvolvimento do Next.js. A segunda renderização ocultou o
+  indicador; quadros das seis cenas e do encerramento foram inspecionados.
+
+## 2026-10-20 14:11 (America/Sao_Paulo) — Home visual v2 e campeonatos demonstrativos
+
+- Status: concluído no checkout local. O servidor de desenvolvimento ficou
+  disponível em `http://localhost:3000`; nenhum deploy, migration, escrita no
+  Supabase ou alteração em Production foi executado.
+- A modernização visual v2 aprovada foi aplicada sem mudar o conteúdo ou as
+  funcionalidades da home. O grid desktop foi corrigido para posicionar os
+  destaques e a listagem na coluna esquerda, ao lado do card de acesso rápido,
+  removendo o espaço vazio observado.
+- Foram adicionados dois fixtures exclusivamente locais, protegidos por
+  `NODE_ENV === "development"`: “Circuito Praia Azul — Etapa Rio” e “Copa
+  Sunset de Futevôlei”. Os dois aparecem na listagem e somente o primeiro é
+  inserido entre os três destaques; os campeonatos reais continuam vindo do
+  Supabase.
+- Duas imagens esportivas originais foram geradas com o ImageGen integrado,
+  sem texto nem logotipos, e otimizadas para WebP em
+  `public/banners/demo-circuito-praia-azul.webp` e
+  `public/banners/demo-copa-sunset.webp`. Os dados e as imagens são apenas para
+  demonstração visual e não representam eventos, clientes ou métricas reais.
+- Validação observada: `npm run typecheck` aprovado; ESLint focado aprovado
+  sem erros e com quatro avisos estruturais preexistentes em `app/page.tsx`;
+  `git diff --check` aprovado. A home e os dois assets retornaram HTTP 200.
+  Capturas Playwright finais em desktop e mobile confirmaram as três imagens,
+  os dois cards e o alinhamento do grid. A primeira imagem do destaque passou
+  a carregar de forma antecipada e a verificação final do navegador terminou
+  sem avisos nem erros de console.
+
+## 2026-10-20 10:56 (America/Sao_Paulo) — Limite visual da home definido
+
+- Status: Carlos rejeitou a prévia v1 que transformava a home em uma página de
+  aquisição; nenhum conceito foi implementado.
+- Decisão aprovada: a home é uma superfície operacional da plataforma. Seu
+  conteúdo, opções, seções e arquitetura devem permanecer como estão, sem hero
+  comercial ou merchandising para captar organizadores.
+- O símbolo e o logotipo atuais permanecem enquanto uma mudança específica não
+  for aprovada separadamente.
+- Próxima hipótese: modernizar somente o tratamento visual — grafite, azul de
+  ação, contraste, superfícies, bordas, raios, sombras, tipografia, ícones e
+  estados — sem criar, remover ou reorganizar funcionalidades.
+- As imagens em `docs/brand/previews/` foram marcadas como histórico rejeitado
+  e não devem orientar implementação.
+- Nenhum código de runtime, asset de produção, deploy, serviço externo, banco
+  ou dependência foi alterado.
+
+## 2026-10-20 10:50 (America/Sao_Paulo) — Prévia visual v1 da marca e da home
+
+- Status: prévia criada e aguardando aprovação explícita de Carlos; nenhuma
+  mudança de UI foi implementada.
+- A home local foi capturada em desktop e mobile. Como não havia navegador
+  disponível na automação visual conectada, as capturas foram feitas com o
+  Playwright já presente no projeto, sem interação com ambiente remoto.
+- Foram gerados com ImageGen integrado três conceitos em
+  `docs/brand/previews/`: evolução do símbolo “R”, home desktop e home mobile.
+- A proposta prioriza o organizador no primeiro fold, apresenta inscrições,
+  duplas, chaveamento, check-in e financeiro sem métricas inventadas e mantém a
+  busca de campeonatos como jornada secundária do atleta.
+- Referências usadas: capturas reais locais e `path1.png`. Os arquivos atuais
+  foram preservados; nenhum asset de produção foi substituído.
+- Nenhum deploy, serviço externo, banco, dependência ou código de runtime foi
+  alterado.
+
+## 2026-10-20 10:37 (America/Sao_Paulo) — Tom aprovado e auditoria visual
+
+- Status: Carlos aprovou as regras práticas de tom; a etapa de identidade
+  visual foi iniciada e nenhuma peça nova foi criada ou publicada.
+- Tom aprovado: conversa com “você”, linguagem brasileira simples e direta,
+  frases curtas, vocabulário do organizador, humor leve, poucos emojis e
+  persuasão baseada em problema, benefício, prova e chamada para ação.
+- Limites: sem jargão corporativo, pressão artificial, ataques a concorrentes
+  ou garantias sem evidência.
+- Materiais inspecionados: `app/icon.png`, `path1.png`, `ank FTV.png`,
+  `public/rankftv-mockup.png`, os dois banners RankFTV existentes,
+  `app/layout.tsx` e `app/globals.css`.
+- Base observada: símbolo “R” com estrela, azul `#0000FF`, preto/grafite,
+  branco, cinzas claros, tipografia Inter, alto contraste, linhas de movimento,
+  fotografia esportiva e apresentações de tela.
+- Foi proposta para aprovação uma evolução sport-tech da identidade existente,
+  preservando símbolo e azul, com dourado/âmbar reservado ao Elite.
+- Próxima etapa: aprovar ou ajustar a direção visual geral antes de fechar
+  paleta, tipografia, fotografia, grafismos e templates.
+- Nenhum código de runtime, dependência, deploy, serviço externo ou banco foi
+  alterado.
+
+## 2026-10-20 10:35 (America/Sao_Paulo) — Limites da marca aprovados
+
+- Status: Carlos aprovou todas as percepções proibidas propostas; a entrevista
+  continua aberta e nenhuma peça foi criada ou publicada.
+- A marca não deve parecer amadora ou improvisada, fria ou distante,
+  complicada ou burocrática, instável ou insegura, exagerada ou agressiva na
+  venda.
+- Foram propostas para a próxima aprovação regras práticas de linguagem direta
+  e simples, conversa com “você”, humor leve, emojis moderados e persuasão
+  baseada em benefício e prova.
+- Próxima etapa: fechar as regras operacionais do tom de voz.
+- Nenhum código de runtime, dependência, deploy, serviço externo ou banco foi
+  alterado.
+
+## 2026-10-20 10:30 (America/Sao_Paulo) — Percepção da marca aprovada
+
+- Status: Carlos aprovou as quatro percepções propostas; a entrevista continua
+  aberta e nenhuma peça foi criada ou publicada.
+- Percepções prioritárias: confiável; organizada e simples; próxima; moderna e
+  profissional.
+- Valores derivados para orientar decisões: confiabilidade, organização,
+  simplicidade, proximidade, modernidade e profissionalismo.
+- Próxima etapa: aprovar os traços que a marca nunca deve transmitir antes de
+  detalhar a linguagem verbal e visual.
+- Nenhum código de runtime, dependência, deploy, serviço externo ou banco foi
+  alterado.
+
+## 2026-10-20 10:25 (America/Sao_Paulo) — Promessa central da marca aprovada
+
+- Status: Carlos aprovou a proposta apresentada na rodada anterior.
+- Promessa central aprovada: “Organize seu campeonato inteiro em um só lugar,
+  com suporte de verdade e uma experiência profissional.”
+- Hierarquia aprovada: organização completa do campeonato lidera a mensagem;
+  suporte próximo e taxa competitiva funcionam como diferenciais.
+- Próxima etapa da entrevista: definir valores e percepções prioritárias da
+  marca antes de fechar tom de voz e identidade visual.
+- Nenhum código de runtime, dependência, deploy, serviço externo ou banco foi
+  alterado.
+
+## 2026-10-20 10:23 (America/Sao_Paulo) — Entrevista de marca, rodada 6
+
+- Status: formato da call Elite e limite da promessa de suporte registrados; a
+  entrevista continua aberta e nenhuma página, campanha ou publicação foi
+  criada.
+- A call do Evento de Elite será agendada e personalizada, sem limite de tempo
+  anunciado; terá o tempo necessário para explicar funcionalidades, revisar a
+  configuração e tirar dúvidas.
+- O WhatsApp será um canal de suporte normal e ativo durante o período de
+  inscrições. Não será comunicado como plantão, atendimento 24 horas,
+  disponibilidade ininterrupta ou resposta imediata.
+- Horários, prazo esperado de resposta, detalhes de agendamento e eventual
+  suporte especial no dia do campeonato permanecem sem promessa definida.
+- Foi proposta para aprovação a promessa central “Organize seu campeonato
+  inteiro em um só lugar, com suporte de verdade e uma experiência
+  profissional”, mantendo taxa competitiva e proximidade como diferenciais.
+- Próxima etapa: aprovar ou ajustar a hierarquia da proposta de valor.
+- Nenhum código de runtime, dependência, deploy, serviço externo ou banco foi
+  alterado.
+
+## 2026-10-20 10:18 (America/Sao_Paulo) — Entrevista de marca, rodada 5
+
+- Status: modelo inicial de acompanhamento registrado na memória de marca; a
+  entrevista continua aberta e nenhuma página, campanha ou publicação foi
+  criada.
+- Carlos definiu orientação autoguiada, com página ou documentação visual,
+  para organizadores do plano sem ativação paga e uma call ao vivo
+  personalizada com ele para clientes Elite.
+- Verificação no código: os nomes atuais são `Evento Padrão`, `Evento de Elite`
+  na contratação e `Plano Elite` no financeiro. A call ao vivo com o CEO já é
+  apresentada como benefício do Elite.
+- A interface mostra `R$ 0 / evento` para criar no Padrão, mas conserva taxas
+  normais por transação; por isso, a comunicação não deve chamá-lo de “sem
+  taxas”. O código também lista suporte pelo WhatsApp no Padrão e suporte
+  priorizado direto pelo WhatsApp no Elite.
+- Não foi localizada uma página ou central visual de orientação nos caminhos
+  pesquisados em `app/`, `docs/` e `public/`; ela permanece planejada, não
+  disponível.
+- Próxima etapa: definir duração, quantidade, agendamento e limites da call e
+  do suporte Elite.
+- Nenhum código de runtime, dependência, deploy, serviço externo ou banco foi
+  alterado.
+
+## 2026-10-20 10:14 (America/Sao_Paulo) — Entrevista de marca, rodada 4
+
+- Status: objeção principal indicada por Carlos registrada na memória de
+  marca; a entrevista continua aberta e nenhuma peça publicitária foi criada
+  ou publicada.
+- Objeção aprovada: por ser nova e desconhecida, a plataforma pode gerar medo
+  de confiar a operação do campeonato e receio de falha antes ou durante o
+  evento.
+- A convicção de Carlos de que o valor ficará claro foi preservada, mas dúvidas
+  de preço, vantagem ou troca continuam como possibilidades a validar com o
+  mercado, não como objeções já descartadas por evidência.
+- Foram propostas, ainda como hipóteses, demonstração guiada, acompanhamento
+  do primeiro evento, suporte com compromisso definido, evidências reais,
+  futuros depoimentos e uma possível condição comercial inicial.
+- Próxima etapa: decidir quais mecanismos de confiança o RankFTV realmente
+  poderá cumprir para os primeiros organizadores.
+- Nenhum código de runtime, dependência, deploy, campanha, anúncio, e-mail ou
+  serviço externo foi alterado.
+
+## 2026-10-20 10:12 (America/Sao_Paulo) — Entrevista de marca, rodada 3
+
+- Status: dores indicadas por Carlos organizadas na memória de marca; a
+  entrevista continua aberta e nenhuma peça publicitária foi criada ou
+  publicada.
+- Dores aprovadas: inscrições desorganizadas, dificuldade para controlar
+  duplas, dificuldade no chaveamento e no registro dos resultados, taxas
+  consideradas altas, plataformas visualmente ruins e sistemas lentos ou com
+  travamentos.
+- Regra de segmentação: não presumir que todos os organizadores enfrentam todos
+  os problemas. Cada anúncio ou abordagem deve trabalhar a dor correspondente
+  ao perfil e ao contexto daquele público.
+- Consequências como retrabalho, erros, confusão e perda de confiança foram
+  registradas como hipóteses, ainda dependentes de validação com organizadores
+  reais.
+- Próxima etapa: mapear objeções, fatores de confiança e critérios usados para
+  escolher ou trocar de plataforma.
+- Nenhum código de runtime, dependência, deploy, campanha, anúncio, e-mail ou
+  serviço externo foi alterado.
+
+## 2026-10-20 10:09 (America/Sao_Paulo) — Entrevista de marca, rodada 2
+
+- Status: novo bloco de respostas de Carlos registrado na memória de marca; a
+  entrevista continua aberta e nenhuma peça publicitária foi criada ou
+  publicada.
+- Público inicial definido: organizadores de campeonatos pequenos e médios de
+  futevôlei. Grandes eventos não são prioridade inicial por normalmente já
+  possuírem contratos ou relações com outras plataformas.
+- Alcance aprovado: todo o Brasil, pois a prestação do serviço e a aquisição
+  podem ocorrer online; cidade e região dos fundadores não limitam o mercado.
+- A quantidade de duplas não foi definida como critério de segmentação e não
+  deve ser inventada; ela varia conforme cada campeonato.
+- Alternativas atuais registradas: WhatsApp, planilhas, processos manuais e
+  outras plataformas.
+- A intenção é mostrar vantagens para quem já usa outra solução, mas “melhor”
+  foi preservado como objetivo competitivo. Comparação pública dependerá de
+  critérios e provas verificáveis.
+- Próxima etapa: identificar dores, consequências, objeções e critérios de
+  escolha desses organizadores.
+- Nenhum código de runtime, dependência, deploy, campanha, anúncio, e-mail ou
+  serviço externo foi alterado.
+
+## 2026-10-20 10:04 (America/Sao_Paulo) — Entrevista de marca, rodada 1
+
+- Status: respostas de Carlos sintetizadas na memória de marca; a entrevista
+  continua aberta e nenhuma peça publicitária foi criada ou publicada.
+- Definido: o organizador de campeonato é o cliente comercial prioritário;
+  atletas e plateia são compradores/usuários essenciais, mas uma aquisição
+  dedicada a atletas fica para o futuro.
+- Registrado: o organizador hospeda o evento, divulga o link do RankFTV e as
+  compras geram comissão para a plataforma, com o restante destinado ao
+  organizador conforme as regras financeiras aplicáveis.
+- Direção de valor: site melhor, taxa competitiva e suporte/acompanhamento
+  próximo. “Taxa baixa” e “suporte personalizado” só podem virar claims finais
+  depois de preço comparável e capacidade operacional definidos.
+- Tom aprovado em nível inicial: amigável, sério, profissional, próximo e
+  persuasivo, sem aparência corporativa distante.
+- Próxima etapa: identificar o organizador ideal, suas dores atuais, a
+  alternativa usada hoje e seus critérios de escolha.
+- Nenhum código de runtime, dependência, deploy, campanha, anúncio, e-mail ou
+  serviço externo foi alterado.
+
+## 2026-10-20 09:54 (America/Sao_Paulo) — Início da memória própria de marca
+
+- Status: estrutura criada e entrevista de descoberta iniciada; posicionamento,
+  público prioritário, tom de voz e identidade final ainda dependem das
+  respostas e aprovações de Carlos.
+- Criado `docs/IA/MARCA-E-COMUNICACAO.md` com separação explícita entre fatos
+  observados, decisões aprovadas, hipóteses e itens em aberto. O baseline atual
+  registra produto, públicos possíveis, logo, cores e materiais reais sem
+  convertê-los automaticamente em decisão final de marca.
+- Criado `videos/AGENTS.md` e atualizado `videos/README.md`: qualquer vídeo,
+  carrossel ou anúncio deve carregar a memória de marca, declarar objetivo,
+  público, canal, funil, mensagem, prova e CTA, sem inventar claims ou tratar
+  geração como autorização de publicação.
+- O gerador `scripts/build-ai-context.mjs` recebeu os escopos `brand` e
+  `video`; o segundo inclui também as regras locais de `videos/`, permitindo
+  que clientes de API carreguem a memória explicitamente em cada requisição.
+- Validação: `node --check` aprovou; os escopos `brand`, `video` e `all`
+  carregaram as seções esperadas, enquanto `core` e `v1` permaneceram sem o
+  conteúdo especializado; `git diff --check` não encontrou erro de whitespace.
+- Atualizados `AGENTS.md` e `docs/IA/README.md` para rotear tarefas de marca e
+  conteúdo à nova fonte canônica.
+- Removidos o clone isolado `tmp/mazyos` e
+  `docs/AVALIACAO-MAZYOS.md`. A pasta foi enviada à Lixeira do Windows e pode
+  ser recuperada enquanto não houver esvaziamento. Nenhum arquivo, skill ou
+  texto do MazyOS foi incorporado ao RankFTV.
+- Nenhum código de runtime, dependência, deploy, migration, banco, pagamento,
+  anúncio ou canal externo foi alterado.
+
+## 2026-10-20 09:44 (America/Sao_Paulo) — Instalação isolada e avaliação do MazyOS
+
+- Status: repositório público clonado em `tmp/mazyos` como referência local,
+  no commit `83ed079d1fde51b334e9ecbee5a154f4821d59fb`. Como `tmp/` já é ignorada,
+  a cópia não entrou no Git nem no runtime do RankFTV.
+- Evidência: o checkout contém 15 skills Markdown para Claude Code, sem
+  `package.json`, binário ou instalador executável. Nenhuma dependência foi
+  adicionada e nenhuma skill foi ativada.
+- Decisão: não executar `/instalar` na raiz. O fluxo upstream sobrescreveria
+  `CLAUDE.md`, recomenda renomear a pasta e inclui automações de `git add .`,
+  push, deploy e publicação social incompatíveis com este worktree sujo e com
+  o contrato operacional do RankFTV.
+- Potencial: adaptar futuramente os conceitos de SEO, calendário/conteúdo,
+  carrossel, anúncios, relatórios e respostas a avaliações em uma skill própria
+  do RankFTV, com revisão humana, autorização externa e política de segredos.
+- Limite jurídico/técnico: o commit avaliado não contém licença e várias
+  automações citam scripts, APIs e credenciais que não vêm no repositório.
+  Avaliação completa em `docs/AVALIACAO-MAZYOS.md`.
+- Nenhum deploy, migration, banco, pagamento, e-mail, anúncio ou rede social
+  foi alterado.
+
+## 2026-10-20 — Instalação do Motion e área de vídeos
+
+- Status: concluído localmente; nenhuma alteração externa, deploy, migration,
+  pagamento ou serviço de produção foi executado.
+- Feito: instalada a dependência `motion@14.4.0` no checkout principal e criada
+  a pasta `videos/` com README para organizar cenas, exports e thumbnails.
+- Evidência: `npm install motion@14.4.0` concluiu com 4 pacotes adicionados;
+  `package.json` e `package-lock.json` registram a dependência.
+- Escopo funcional observado no repositório upstream: animações para React,
+  JavaScript e Vue, incluindo gestos, springs, transições de layout, efeitos de
+  scroll e timelines. O pacote não codifica MP4/WebM por conta própria.
+- Observação: a instalação reportou as 8 vulnerabilidades altas já existentes
+  no conjunto de dependências; a atualização dessas vulnerabilidades continua
+  sendo a pendência P0 documentada e não foi feita como parte desta tarefa.
+
+## 2026-10-20 08:54 (America/Sao_Paulo) — Auditoria completa da documentação e da V1
+
+- Status: documentação canônica reconciliada com o checkout, `origin/master`,
+  PRs abertas e o worktree da carteira. Nenhum merge, deploy, migration,
+  cobrança, saque, e-mail ou configuração externa foi alterado.
+- A linha de base P0 passou para 144 marcos: 126 concluídos (88%) e 18
+  pendentes em 14 entradas. Foram adicionados explicitamente parcelamento,
+  carteira, correção das vulnerabilidades atuais e promoção dos hardenings P0
+  ainda locais.
+- `PENDENCIAS-V1.md`, `DOCUMENTACAO.md`, `AUDITORIA-PRODUCAO.md`,
+  `RUNBOOK-PRODUCAO.md`, README, smoke transacional, referência da carteira,
+  política de segredos e memória de IA foram atualizados. O catálogo agora
+  cobre rotas/APIs atuais, Node 24, Next.js 16.3.7 e a separação entre
+  implementado localmente, PR e Production.
+- Estado remoto observado: `origin/master` em `5c75756`; checkout local em
+  `50f4557`, 15 commits atrás e com histórico divergente/alterações abertas. PR
+  #33 e #32 estavam abertas com CI/Preview aprovados; PR #30 tinha `verify`
+  reprovado; a matriz N01–N15 continuava pendente.
+- Carteira: preservada a evidência de 20/20 checks estruturais verdadeiros no
+  Sandbox e em Production, sem confundir isso com código implantado ou teste
+  transacional do Asaas. O próximo passo ficou definido como homologação da PR
+  #33 em Preview ligado exclusivamente ao Sandbox.
+- Validação local: `npm run ai:context -- --scope all`, typecheck e build
+  aprovados; build gerou 71 páginas. A suíte registrou 813 testes, 812
+  aprovados e 1 ignorado. O lint crítico tipado passou com 78 avisos. Links
+  Markdown relativos e `git diff --check` passaram.
+- Gates bloqueados: lint global possui dois erros `react-hooks/set-state-in-effect`
+  em `PortugalMovePlanner.tsx`. `npm run audit:prod` encontrou três
+  vulnerabilidades altas em Next.js/Sharp/source-map-js. Nenhuma correção
+  automática foi aplicada.
+- Smoke somente leitura de Production: interrompido no primeiro contrato,
+  porque `/api/health` ainda retorna o payload detalhado antigo e o código local
+  espera somente `{ "status": "ok" }`. Nenhuma mutação ocorreu e as etapas
+  seguintes não foram usadas como evidência.
+
+## 2026-10-20 08:36 (America/Sao_Paulo) — Memória operacional obrigatória para agentes de IA
+
+- Status: infraestrutura criada também no worktree principal
+  `Projeto-RankFTV`, na branch `feat/english-roadmap-personal`, preservando as
+  alterações locais preexistentes. Nenhum deploy, migration ou serviço externo
+  foi alterado.
+- `AGENTS.md` exige em toda mensagem a leitura do núcleo em `docs/IA/`, do
+  registro de execuções, do estado Git e dos arquivos reais da tarefa.
+- `CLAUDE.md` importa o mesmo núcleo para ferramentas compatíveis. Clientes de
+  API stateless recebem o comando `npm run ai:context` para anexar essa memória
+  a cada chamada.
+- Foram criados contexto do produto, mapa de módulos, estado atual, contrato de
+  resposta, política de segredos, guia de integração da API e registro da
+  decisão arquitetural.
+- Segurança: Carlos pode fornecer ou autorizar a leitura local de credenciais
+  para tarefa específica, mas valores continuam proibidos em Git,
+  documentação, logs, prints e respostas. Nenhum segredo foi lido ou alterado
+  nesta execução.
+- Validação concluída: gerador aprovado nos escopos `core`, `v1` e `all`, os
+  oito arquivos obrigatórios encontrados no contexto, ESLint focado sem erro,
+  script confirmado no `package.json` e `git diff --check` sem erro.
+
+## 2026-10-02 — Preparação de homologação de notificações e smoke transacional
+
+- Escopo: auditoria estática de código/documentação e preparação local. Nenhuma
+  chamada a Asaas, Resend, Supabase remoto ou Production; sem cobrança, estorno,
+  e-mail enviado ou mutação de dados.
+- Feito: matriz N01–N15 em
+  `docs/MATRIZ-HOMOLOGACAO-NOTIFICACOES-V1.md`, cobrindo destinatários,
+  elegibilidade, duplicação, falhas/backoff, limite de tentativas, claim
+  concorrente, cron, auditoria, minimização e ativação controlada. Incluídos
+  limites conhecidos da revisão estática e critérios de aprovação.
+- Feito: atualizado `docs/SMOKE-TRANSACIONAL-V1.md` para indicar checkout
+  hospedado via `invoiceUrl`, não tokenização, e para definir modelo seguro de
+  evidências sem PAN/CVV, PII, URLs de checkout, QR ou secrets.
+- Escopo PCI documentado em `PENDENCIAS-V1.md`: checkout hospedado para
+  campeonatos, ingresso-atleta, aluguel e diária; assinatura recorrente de arena
+  continua bloqueada; tokenização/cartão salvo do financeiro de aluno da arena
+  exige avaliação PCI/SAQ e validação separadas.
+- A matriz registra como pendência de homologação confirmar, em Sandbox, a
+  elegibilidade de inscrições pendentes/expiradas/estornadas em cada modelo. A
+  inspeção encontrou revalidação explícita `pago` para ingresso atleta, mas não
+  considerou isso prova ponta a ponta para inscrições autenticadas.
+- Validação local: 35 testes focados aprovados; `npm test` aprovou 806/806;
+  `npm run typecheck` concluiu sem erros; `git diff --check` sem problemas. ESLint
+  não tem configuração para Markdown (quatro arquivos ignorados, zero erros);
+  build não foi executada por não envolver código de runtime. Homologação
+  supervisionada em Sandbox,
+  confirmação PCI/SAQ e ativação de Production continuam bloqueios externos.
+
 ## 2026-10-01 — Resolução de conflitos da PR #25 com `master`
 
 - Status: concluído localmente e pendente de validação remota após o envio da
@@ -46,6 +478,54 @@ registrar apenas uma revalidação quando ela for necessária.
 - Observações não bloqueantes: permanecem avisos legados de lint e um aviso de
   depreciação do Node 20 em actions do GitHub; não houve falha de qualidade,
   segurança ou teste. A PR permanece aberta e nenhum merge foi executado.
+## 2026-10-02 — Revalidação técnica local e divergência de branches
+
+- Escopo: validação local do checkout `feat/refund-policy-homologation`, sem
+  pagamentos, reembolsos, mutações financeiras no Sandbox ou alterações em
+  Production. Os segredos locais não foram exibidos nem usados nos testes.
+- Segurança do estado local: antes da integração foi criado um patch binário e
+  cópias dos arquivos locais não rastreados em
+  `C:\Users\SnyX\AppData\Local\Temp\rankftv-preserve-20261002-104358`.
+  As alterações rastreadas foram guardadas temporariamente em stash, a branch
+  foi avançada por fast-forward até `7538a1a` e o stash foi reaplicado. Os
+  arquivos de Estudos/Performance permaneceram na worktree e foram conferidos
+  por SHA-256 contra o backup.
+- Branches: `feat/v1-technical-completion` aponta para `0fc2702` e contém cinco
+  commits exclusivos em relação à branch local. A atualização de refs confirmou
+  que essa antiga branch candidata foi removida do remoto; os commits-base da
+  V1 aparecem no histórico da linha `feat/refund-policy-homologation`. A PR #25
+  foi mesclada em `master` no commit `255a85e` em 01/10/2026.
+- Estado GitHub consultado: a branch local estava 13 commits atrás de
+  `origin/feat/refund-policy-homologation`; a integração foi concluída sem
+  conflitos de código e agora o checkout aponta para `7538a1a`.
+- Validação do checkout local: `npm run audit:prod` encontrou zero
+  vulnerabilidades; `npm run typecheck` concluiu sem diagnósticos; `npm test`
+  aprovou 806/806 testes; `npm run build` concluiu e gerou 67 páginas estáticas,
+  incluindo `/admin/estudos`.
+- E2E local: `npm run test:e2e` aprovou 25 testes e ignorou 60 em Chromium,
+  Firefox, WebKit e mobile. Os ignorados dependem de contas, dados ou flags
+  mutáveis; nenhum pagamento ou reembolso foi disparado. O servidor local
+  registrou erro externo do Turnstile, sem falha nos testes aprovados.
+- Lint: foram identificados e corrigidos o import React `useTransition` não
+  usado em `app/arenas/[handle]/assinar/[planId]/SubscriptionPaymentUI.tsx` e a
+  inclusão explícita de `.codex-artifacts/` e `.codex-worktrees/` nos ignores do
+  ESLint, para não analisar worktrees locais aninhadas. O resultado final é
+  zero erros e 1.240 avisos; `npm run lint` terminou com código zero nesta
+  execução. `npx eslint` nos dois arquivos modificados passou
+  sem erros (avisos de tamanho/complexidade permanecem no componente).
+- Limite de validação da candidata remota: typecheck, lint sem warnings (`--quiet`),
+  audit e 806/806 testes passaram em worktree isolada no commit `7538a1a`. Build
+  e E2E não puderam executar nessa worktree porque o Turbopack recusa o junction
+  temporário de `node_modules` apontando para fora da raiz da worktree. A
+  validação completa de build/E2E do commit remoto exige dependências instaladas
+  dentro da worktree ou runner CI.
+- Migrations: a ordem de 26 itens e dependências descritas em
+  `RUNBOOK-PRODUCAO.md` foram revisadas. Não houve replay nem consulta a banco;
+  Supabase CLI, `psql` e base descartável não estão disponíveis localmente.
+- Bloqueios humanos/externos continuam: homologação real ou mutante com Asaas,
+  decisão jurídica/comercial, aprovações/credenciais externas, restauração de
+  backup em ambiente isolado e autorização final de produção. Nada disso foi
+  marcado como concluído.
 
 ## 2026-10-01 — Ampliação do teste de capacidade V1
 
@@ -117,3 +597,196 @@ registrar apenas uma revalidação quando ela for necessária.
 - Verificação de código: typecheck, build e testes automatizados passaram no
   ciclo de 30/09. Para detalhes, consultar commits `7c26636`, `2db8e5a`,
   `0949d3f`, `cc19773`, `f3417c3` e `b4aea09`.
+
+## 2026-10-20 — Reconciliação documental do P0
+
+- O estado da documentação foi reconciliado com a execução Production dos
+  workflows `39477700522` e `39477800357`: hardening RPC, health mínimo e
+  deduplicação do funil deixam de ser classificados como somente locais.
+- A P0 geral permanece incompleta; as pendências financeiras, parcelamento,
+  PCI/SAQ e homologações de reembolso continuam abertas. Nenhum segredo foi
+  registrado.
+
+## 2026-10-20 — Revalidação técnica da V1
+
+- `npm audit --omit=dev` retornou zero vulnerabilidades no `master` atual;
+  Next.js/`eslint-config-next` estão em 16.4.2, Sharp em 0.35.5 e
+  source-map-js em 1.2.2.
+- O worktree da carteira executou 813 testes unitários sem falhas.
+- A suíte financeira mutável no Preview antigo registrou 50 aprovados, 10
+  falhas de contrato e 25 ignorados; as falhas ocorreram antes de mutações
+  financeiras úteis (token de webhook divergente e foco de consentimento).
+  O guard bloqueou corretamente a tentativa de executar a mesma suíte no
+  Preview da PR #33 e em localhost, pois exige o alias protegido
+  `sandbox-homologacao`. Nenhum teste mutável foi executado em Production.
+
+## 2026-10-20 20:12 -03:00 — Pulso.AI no painel RankFTV
+
+- Status: publicado em Production. O card **Inteligência para YouTube** foi
+  incluído no topo de `/admin`, antes de Roadmap de inglês, e abre o módulo
+  privado em `/admin/youtube`.
+- Escopo entregue: dashboard, tendências, oportunidades, ideias, fontes e
+  configurações; coleta RSS, pesquisa manual/cron protegidas, agenda em três
+  horários de America/Bahia e referências aos canais Maestros da IA e O Custa
+  João.
+- Banco: migration incremental aplicada ao projeto Production; nove tabelas
+  `yt_*` com RLS, sem grants de cliente e com acesso de serviço. A verificação
+  após a aplicação registrou 9 tabelas protegidas, 9 fontes (8 ativas) e zero
+  grants indevidos. A primeira coleta persistiu 138 itens sem falhas de fonte.
+- IA: a chamada ao provedor retornou ausência de créditos na conta da API. Para
+  evitar retentativas e custo, `ai_provider` foi colocado em `none`; a coleta
+  permanece ativa. Reativação depende de crédito na conta da API e da seleção
+  de OpenAI pelo CEO em `/admin/youtube/configuracoes`.
+- Verificação: typecheck, build, 814 testes aprovados e audit de produção sem
+  vulnerabilidades altas. O deploy `dpl_BygE6yY4e6eWyaCu364SJzF842KV` ficou
+  READY e associado a `www.rankftv.com`; health respondeu 200, admin anônimo
+  redirecionou para login e endpoints protegidos recusaram chamadas sem sessão
+  ou segredo com 401.
+
+## 2026-10-20 20:45 -03:00 — Pulso.AI: pesquisa manual pelo Codex
+
+- Estratégia alterada por solicitação do proprietário: os crons Vercel e
+  GitHub foram desligados, as rotas automáticas retornam 410 para o CEO e a
+  OpenAI permanece desativada. O fluxo ativo é pesquisa web manual pelo Codex
+  seguida de importação validada pelo script local.
+- Banco Production: migration aditiva criou `yt_content_observations`,
+  `yt_trends`, `yt_trend_evaluations`, `yt_idea_evaluations` e
+  `yt_research_run_changes`, além dos campos de ranking/histórico. A validação
+  observada confirmou 14 tabelas `yt_*` com RLS, zero grants para cliente e a
+  função transacional `yt_apply_codex_research` disponível para `service_role`.
+- Primeira carga real: 8 itens de fontes oficiais verificáveis, 5 tendências e
+  6 ideias de vídeo foram gravados. A repetição do mesmo arquivo retornou
+  `idempotent: true`, sem nova notícia, ideia, tendência ou evento histórico.
+- Interface/documentação: dashboard mostra melhor vídeo atual, tendências e
+  ideias possuem detalhes/histórico, e `docs/YOUTUBE-RADAR-CODEX.md` descreve
+  o procedimento obrigatório para futuras sessões. Nenhum segredo foi exibido.
+- Validação: `npm test` terminou com 814 aprovados e 1 ignorado. O typecheck
+  global continua bloqueado por erro pré-existente em
+  `app/api/webhooks/resend/route.ts` (campo `to` de variante de evento), fora
+  do módulo YouTube; não foi alterado nesta execução.
+
+## 2026-10-20 21:20 -03:00 — Pulso.AI: comparação de vídeos do YouTube
+
+- Banco Production: migration incremental criou `yt_idea_youtube_references`
+  e a RPC restrita `yt_apply_codex_youtube_references`. A verificação observada
+  confirmou tabela existente, RLS ativo, zero grants para cliente e execução
+  pela `service_role`.
+- Dados: foram gravadas quatro referências verificadas para a ideia de ChatGPT
+  Slides, equilibrando atualidade e alcance. Cada referência preserva URL,
+  canal, data publicada, visualizações observadas e justificativa editorial.
+- Fluxo futuro: `scripts/youtube-import-research.ts` agora rejeita uma ideia
+  nova sem três a cinco referências do YouTube. A página de detalhe local passa
+  a exibir os comparativos.
+- Validação local: `npm test` passou com 814 aprovados e 1 ignorado; lint
+  dirigido aos arquivos alterados e `git diff --check` não encontraram erros.
+- Publicação: o deploy Production `dpl_F6kRBugz8M9xmUPPkhokEpcSkfPz` ficou
+  READY e foi associado a `www.rankftv.com`. O health público retornou 200 e
+  `/admin/youtube/ideias` permaneceu protegido, redirecionando usuário anônimo
+  com HTTP 307.
+
+## 2026-10-21 08:49 -03:00 — Pulso.AI: briefing curado e reavaliação completa
+
+- Pesquisa: foram conferidas fontes oficiais de OpenAI, Anthropic/Claude e
+  Google, a conversa comunitária recente e os vídeos de referência enviados
+  pelo proprietário. Não foi encontrado grande anúncio oficial dessas empresas
+  datado de 21/10 até o horário da execução; a aquisição da Orchestra Bio pela
+  OpenAI, de 20/10, foi registrada com prioridade editorial 70.
+- Dados Production: a execução `57fdf516-f9c0-4d74-b1ab-51a2f9e6f35e`
+  terminou `completed`, com 4 itens inseridos, 6 tendências avaliadas, 8 ideias
+  reavaliadas, 2 ideias novas e 10 referências de YouTube gravadas. O perfil
+  editorial do canal foi atualizado sem ativar provedor pago.
+- Ranking: Claude Motion entrou em #1 com 96 e Dots em #2 com 93. ChatGPT
+  Slides foi de 91 para 90 (#3); “O que acontece quando um agente de IA passa
+  dos limites?” foi de 89 para 82 (#4); voz foi de 86 para 80 (#5); algoritmo
+  conversável foi de 81 para 76 (#6); golpes foi de 78 para 73 (#7); e
+  pós-treinamento de agentes foi de 88 para 65 (#8). O histórico anterior foi
+  preservado.
+- Banco: a migration incremental
+  `supabase/youtube-full-refresh-rank-fix.sql` criou a RPC de recálculo com
+  execução exclusiva de `service_role`. A validação confirmou posições 1–8,
+  notas anteriores corretas, zero acesso de `anon`/`authenticated` e dez
+  referências ligadas à execução.
+- Interface: o Briefing Editorial ficou limitado a seis notícias em português
+  segundo recência, oportunidade, confiança e confiabilidade. O Radar de
+  Oportunidades ganhou filtros funcionais e contagens; as páginas explicam a
+  separação entre notícia, oportunidade, tendência e ideia.
+- Integridade do fluxo: `scope: "full"` exige reavaliar todas as ideias ativas;
+  títulos de notícias passam por validação de português; toda ideia nova segue
+  exigindo de três a cinco vídeos comparáveis. O guard do webhook Resend passou
+  a verificar também a presença de destinatário para compatibilidade com o
+  tipo atual do SDK e liberar o typecheck do build.
+- Verificação/publicação: lint dirigido sem erros, build Next.js completo com
+  73 páginas aprovado e deploy Production
+  `dpl_GSsFXdjwXyT6LDG4ppq8FzL1Fefd` READY em `www.rankftv.com`. Dashboard,
+  oportunidades, tendências e ideias retornaram 307 para `/login` em acesso
+  anônimo, como esperado. Nenhum segredo foi exibido.
+
+## 2026-10-21 08:55 -03:00 — Pulso.AI: arraste horizontal do quadro
+
+- A Biblioteca de ideias agora permite segurar o botão esquerdo no cabeçalho
+  ou no espaço vazio das colunas e arrastar para navegar horizontalmente.
+- O arraste iniciado sobre um cartão continua alterando a etapa editorial;
+  elementos interativos e cartões foram excluídos do gesto de navegação, e a
+  ordem das colunas permanece fixa.
+- A instrução visível no topo do quadro foi atualizada para explicar os dois
+  gestos. Lint dirigido, build Next.js completo e `git diff --check` passaram.
+- Publicação: deploy Production `dpl_CFbc6wM1s74oKAiME8utvR1rYETa` READY e
+  associado a `www.rankftv.com`.
+
+## 2026-10-21 09:08 -03:00 — Pulso.AI: fontes administráveis
+
+- Interface: a página Fontes recebeu cadastro por nome/link/tipo, edição,
+  ativação, desativação e remoção segura. A navegação lateral agora usa o nome
+  curto **Fontes**, e o texto explica que somente registros ativos orientam a
+  próxima atualização manual.
+- Banco Production: `supabase/youtube-source-management.sql` adicionou
+  `archived_at`, ampliou o tipo de fonte e manteve RLS/grants privados. A
+  verificação observada confirmou coluna e constraint novas, RLS ativo, zero
+  acesso de `anon`/`authenticated`, acesso de `service_role`, 12 fontes totais,
+  10 ativas e nenhuma arquivada. Os canais Maestros da IA e O Custa João foram
+  migrados para o controle de fontes.
+- Integridade: `npm run youtube:sources` lista o conjunto ativo de Production;
+  pesquisas completas agora precisam declarar exatamente esse conjunto e o
+  importador rejeita fonte inativa. Desligar OpenAI News impede que o próximo
+  levantamento completo inclua OpenAI.
+- Validação: lint dirigido sem erros, typecheck aprovado, 817 testes aprovados
+  e 1 ignorado, build Next.js completo com 74 páginas e `git diff --check`
+  aprovado. O deploy `dpl_8vMXtKjZEy5njdYRGwGHAKQeqTQi` ficou READY em
+  `www.rankftv.com`; a página anônima redirecionou a `/login` (307) e o POST
+  anônimo da API foi recusado com 401.
+
+## 2026-10-21 09:16 -03:00 — Pulso.AI: inspeção profunda e corte de IA
+
+- Procedimento: cada atualização manual deve abrir a listagem/feed de cada
+  fonte ativa e a página individual dos itens candidatos, conferindo data,
+  título, conteúdo e URL. A home sozinha não serve como evidência.
+- Importador: `scripts/youtube-import-research.ts` agora exige `aiRelevance`
+  com nota mínima 70 e justificativa em notícias, tendências e ideias. Itens
+  de Tesla, SpaceX ou outras empresas só passam quando IA for o tema central;
+  tecnologia genérica fica de fora.
+- Limitações: login, paywall, robots, JavaScript dinâmico e ausência de
+  transcrição podem impedir leitura completa em X/Twitter, YouTube ou sites.
+  O procedimento manda registrar essa limitação em vez de inferir conteúdo.
+
+## 2026-10-21 09:29 -03:00 — Pulso.AI: rodada completa com procedência
+
+- Pesquisa: as 10 fontes ativas foram declaradas no payload e usadas como
+  conjunto primário. Foram abertos itens oficiais recentes de Anthropic,
+  Google, NVIDIA e Higgsfield; Tesla/SpaceX e os perfis do X foram mantidos sob
+  o filtro de IA central, sem importar publicações genéricas ou não verificáveis.
+  A pesquisa de mercado separada acompanhou a recorrência de agentes e sinais
+  de busca com fontes mais visíveis.
+- Banco Production: a migration `supabase/youtube-research-provenance.sql`
+  adicionou `source_origin` a conteúdo, tendências e ideias, com constraints
+  `primary`/`market`/`mixed`, RLS preservado e acesso de cliente bloqueado. A
+  RPC `yt_apply_codex_research` foi atualizada para persistir a procedência.
+- Execução: a rodada `1f779786-f70c-4be1-8d7c-8772ea9b614e` terminou
+  `completed`, com 10 itens analisados, zero fontes falhas, 8 avaliações nas
+  posições 1–8 e 10 referências do YouTube. As notas ficaram 95, 94, 88, 84,
+  80, 76, 73 e 62, preservando o histórico e a ordem do quadro.
+- Procedência observada: entre os itens de conteúdo atuais, 5 são primários,
+  4 combinados e 9 de mercado; entre as ideias ativas, 2 são primárias, 3
+  combinadas e 3 de mercado. A UI agora mostra a etiqueta correspondente em
+  notícias, cartões e detalhe de ideias.
+- Validação: `npm run typecheck`, lint dirigido e `git diff --check` passaram.
+  O provider de IA permaneceu `none`; não houve tentativa de cobrança por API.

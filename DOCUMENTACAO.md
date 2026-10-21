@@ -1,12 +1,18 @@
 # Documentação técnica do RankFTV
 
-> Fonte técnica canônica do estado atual do repositório em 03/09/2026.
+> Fonte técnica canônica revisada em 20/10/2026.
 >
 > Este documento descreve o que está implementado no código. Configurações de
 > serviços externos e riscos que ainda impedem afirmar “100% em produção” ficam
 > em [AUDITORIA-PRODUCAO.md](AUDITORIA-PRODUCAO.md). A visão de produto fica em
 > [ftv.md](ftv.md) e o plano original da Arena é apenas histórico em
 > [PLANO-PIVO-ARENA.md](PLANO-PIVO-ARENA.md).
+
+Esta revisão descreve o código visível no checkout e separa recursos que estão
+somente em PR. O checkout auditado possuía alterações locais e estava atrás de
+`origin/master`; por isso, a existência de um arquivo nesta árvore não é prova
+de deploy. Estado de release e evidências remotas ficam em
+`PENDENCIAS-V1.md` e `AUDITORIA-PRODUCAO.md`.
 
 ## 1. Produto e perfis de acesso
 
@@ -40,7 +46,7 @@ pela autorização efetiva.
 
 | Camada | Implementação |
 | --- | --- |
-| Aplicação | Next.js 16.3.0 com App Router, React 19.2.4 e TypeScript |
+| Aplicação | Next.js 16.3.7 com App Router, React 19.2.4 e TypeScript |
 | Interface | Tailwind CSS 4, tokens em app/globals.css e lucide-react |
 | Banco/Auth/Storage | Supabase com Postgres, Auth, Storage, RLS e RPCs |
 | Pagamentos | Asaas para Pix, cartão, assinaturas, webhooks e repasses |
@@ -48,11 +54,13 @@ pela autorização efetiva.
 | Gráficos e documentos | Recharts, qrcode e jsPDF |
 | Deploy e tarefas | Vercel, crons definidos em vercel.json e GitHub Actions para conciliação subdiária |
 
-Requisito local: Node.js 20.9 ou superior.
+Requisito local: Node.js 24 (`>=24 <25`), conforme `package.json`.
 
 O lockfile fixa `nanoid` 3.3.18 por override transitivo do PostCSS. Essa versão
-substituiu a 3.3.17 após o audit de 19/08/2026 e mantém `npm audit --omit=dev`
-sem vulnerabilidades conhecidas no estado verificado.
+substituiu a 3.3.17 após o audit de 19/08/2026. Em 20/10/2026,
+`npm run audit:prod` voltou a reprovar por três advisories altos em
+Next.js/Sharp/source-map-js; consultar `PENDENCIAS-V1.md` antes de formar um
+release.
 
 ~~~bash
 npm ci
@@ -75,15 +83,21 @@ npm run test:e2e
 | Variável | Escopo | Finalidade |
 | --- | --- | --- |
 | NEXT_PUBLIC_SUPABASE_URL | público | URL do projeto Supabase |
-| NEXT_PUBLIC_SUPABASE_ANON_KEY | público | chave pública/anon |
-| SUPABASE_SERVICE_ROLE_KEY | servidor | operações administrativas autorizadas |
+| NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY | público | chave pública preferencial do Supabase |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY | público | nome legado da chave pública durante a migração |
+| SUPABASE_SECRET_KEY | servidor | chave secreta preferencial para operações administrativas |
+| SUPABASE_SERVICE_ROLE_KEY | servidor | nome legado da chave administrativa durante a migração |
 | NEXT_PUBLIC_BASE_URL | público | origem canônica de links e callbacks |
 | ADMIN_EMAIL | servidor | dono dos módulos pessoais internos; não concede acesso comercial |
 | ASAAS_BASE_URL | servidor | endpoint Sandbox ou produção |
 | ASAAS_API_KEY | servidor | autenticação da API Asaas |
 | ASAAS_WEBHOOK_TOKEN | servidor | validação do webhook |
+| ASAAS_WITHDRAWAL_AUTH_TOKEN | servidor | autenticação separada para autorização de saques/estornos |
+| ARENA_RECURRING_PAYMENTS_ENABLED | servidor | mantém recorrência paga da Arena bloqueada até homologação |
 | PAYMENT_FINGERPRINT_SECRET | servidor | HMAC dos escopos antifraude de cartão |
 | CRON_SECRET | servidor | proteção do cron de liquidação |
+| NEXT_PUBLIC_TURNSTILE_SITE_KEY | público | chave pública do CAPTCHA; o segredo fica no Supabase Auth |
+| OPENAI_API_KEY e modelos `OPENAI_*` | servidor | roadmaps e análise dos módulos pessoais |
 | RESEND_API_KEY | servidor | envio transacional |
 | RESEND_FROM_EMAIL | servidor | remetente verificado |
 | RESEND_WEBHOOK_SECRET | servidor | assinatura dos eventos recebidos do Resend |
@@ -91,7 +105,7 @@ npm run test:e2e
 | OBSERVABILITY_HTTP_ENDPOINT | servidor | coletor configurável de erros e métricas |
 | OBSERVABILITY_HTTP_TOKEN | servidor | autenticação do coletor |
 | OPERATIONS_ALERT_WEBHOOK_URL | servidor | canal operacional de alertas |
-| APP_VERSION | servidor | versão exibida no health check e telemetria |
+| APP_VERSION | servidor | versão usada na telemetria interna; não é exposta no health público |
 | ALLOW_TUNNEL_ORIGIN | desenvolvimento | origem temporária de túnel local |
 
 Somente variáveis com prefixo NEXT_PUBLIC podem chegar ao navegador. Nunca
@@ -221,6 +235,7 @@ seja pública: cada página aplica sua autenticação e autorização.
 | /agenda | agenda pública baseada em campeonatos reais |
 | /campeonatos e /campeonatos/ao-vivo | descoberta, busca, filtros e eventos em andamento |
 | /campeonatos/[id] | página pública do campeonato |
+| /campeonatos/[id]/ao-vivo | placar e acompanhamento público ao vivo |
 | /campeonatos/[id]/categorias | escolha de categoria |
 | /campeonatos/[id]/inscrever | inscrição de dupla autenticada |
 | /campeonatos/[id]/pagamento/[registrationId] | pagamento da inscrição |
@@ -240,7 +255,8 @@ seja pública: cada página aplica sua autenticação e autorização.
 | /atletas/[username] | perfil público de atleta |
 | /noticias e /noticias/[id] | listagem e leitura de notícias |
 | /login | autenticação por e-mail e senha |
-| /cadastro e /cadastro/verificar-email | criação e confirmação da conta |
+| /cadastro, /cadastro/escolher-usuario e /cadastro/verificar-email | criação, escolha do usuário e confirmação da conta |
+| /recuperar-senha e /recuperar-senha/atualizar | solicitação e conclusão da recuperação de acesso |
 | /auth/callback | callback de autenticação no servidor |
 | /perfil | visão privada do perfil |
 | /perfil/editar | dados públicos e foto |
@@ -255,8 +271,11 @@ seja pública: cada página aplica sua autenticação e autorização.
 | /minhas-inscricoes/[champId] | detalhe, dupla e credencial |
 | /minhas-inscricoes/[champId]/reembolso | solicitação de reembolso |
 | /convite/[teamId] | aceite ou recusa de convite da dupla |
+| /lista-espera/[token] | resposta protegida a convite/lista de espera |
 | /notificacoes | feed completo |
 | /termos | termos de uso |
+| /privacidade | aviso de privacidade |
+| /teste-home-mobile | rota interna de inspeção visual; não faz parte da navegação nem da V1 comercial |
 
 ### 5.2 Organizador de campeonato
 
@@ -270,6 +289,9 @@ seja pública: cada página aplica sua autenticação e autorização.
 | .../criado | confirmação pós-criação |
 | .../inscricoes | duplas e pagamentos |
 | .../financeiro e .../financeiro/[status] | receitas, taxas e repasses |
+| .../lista-espera | fila e convites de vagas do campeonato |
+| .../quadras | configuração e uso das quadras |
+| .../relatorios | relatórios operacionais do campeonato |
 | .../checkin | credenciamento |
 | .../chaveamento | grade e confrontos |
 | .../camisas | produção por tamanho |
@@ -330,6 +352,8 @@ existem por compatibilidade. Não devem ser usadas para criar navegação nova.
 | Rota ou grupo | Responsabilidade |
 | --- | --- |
 | /admin | entrada administrativa |
+| /admin/alertas | contingência e alertas operacionais; exclusivo do CEO |
+| /admin/carteiras | diagnóstico das integrações Apple/Google Wallet |
 | /admin/campeonatos | gestão da vitrine |
 | /admin/campeonatos/novo | novo item da vitrine |
 | /admin/campeonatos/[id]/editar | edição da vitrine |
@@ -340,6 +364,9 @@ existem por compatibilidade. Não devem ser usadas para criar navegação nova.
 | /admin/suporte | suporte a ingressos, reenvio/invalidação, casos, auditoria e métricas de e-mail; exclusivo do CEO |
 | /admin/gastos e /admin/gasto-mensal | controles internos de gastos |
 | /admin/performance | ferramenta interna de performance |
+| /admin/curso-ingles, /admin/estudos e /admin/performance/calendario | estudos e planejamento pessoais do dono |
+| /admin/mudanca-portugal | planejamento pessoal da mudança |
+| /admin/funil | visão administrativa do funil público |
 
 O proxy protege todo `/admin` por `profiles.role` `admin`/`ceo`.
 `/admin/usuarios` e `/admin/suporte` são exclusivos de `ceo`, inclusive nas
@@ -350,17 +377,28 @@ Server Actions. Não existe fallback de e-mail para autorização comercial.
 | Endpoint | Função |
 | --- | --- |
 | POST /api/webhooks/asaas | eventos de pagamento do Asaas |
+| POST /api/webhooks/asaas/withdrawal-authorization | autorização autenticada de saques/estornos |
 | POST /api/webhooks/resend | eventos assinados de entrega, atraso, bounce, reclamação e falha de e-mail |
 | POST /api/arena/webhook | handler específico/legado para cobranças mensais |
+| POST /api/admin/support-attachments | upload autenticado e validado de anexos do suporte |
+| POST /api/analytics/public-funnel | ingestão limitada e deduplicada de eventos públicos |
+| GET /api/campeonatos/[id]/relatorios/[tipo] | relatório autorizado do campeonato |
+| GET /api/cep/[cep] | consulta normalizada de CEP |
 | GET /api/cron/repasse-liquidacao | liquidação diária protegida por segredo |
 | GET ou POST /api/cron/financial-reconciliation | conciliação financeira e retentativa segura de credenciais pendentes |
 | GET /api/cron/data-retention | retenção operacional protegida por segredo |
-| GET /api/health | estado sanitizado da aplicação e dependências |
+| GET /api/cron/championship-change-notifications | fila de avisos de alteração |
+| GET /api/cron/organizer-financial-notifications | fila de avisos financeiros do organizador |
+| GET /api/cron/operational-alerts | scanner autenticado de alertas operacionais |
+| GET /api/cron/life-os-daily-analysis | análise diária do módulo pessoal |
+| GET /api/health | resposta pública mínima de saúde da aplicação |
+| GET /api/server-time | horário do servidor para clientes que precisam de referência consistente |
 | POST /api/meus-ingressos | consulta de ingresso sem dados sensíveis na URL |
 | POST /api/meus-ingressos/verificar | valida OTP da recuperação e cria sessão limitada |
-| GET /api/athlete-credential-status | atualização protegida do estado da credencial individual |
-| GET /api/ticket-status | atualização protegida do status do ingresso |
+| POST /api/athlete-credential-status | atualização protegida do estado da credencial individual |
+| POST /api/ticket-status | atualização protegida do status do ingresso |
 | GET /api/users/search | busca limitada de usuário para convite |
+| GET /api/performance/study-workspace/[roadmapId] | workspace pessoal de estudo, com autorização própria |
 
 Os métodos efetivos e contratos devem ser consultados nos respectivos route.ts;
 clientes não devem chamar o Supabase service role diretamente.
@@ -396,6 +434,17 @@ possa ser executado inteiro e sem verificar dependências.
   token, QR ou destinatário em texto puro;
 - shirt_production e estruturas de equipe;
 - rating_history, conquistas e resultados.
+
+#### Carteira do organizador — PR #33, ainda fora de `master`
+
+O worktree `Projeto-RankFTV-organizer-wallet` acrescenta
+`organizer_receivables`, `organizer_withdrawals`,
+`organizer_withdrawal_allocations`, `organizer_anticipations`, ajustes/dívidas,
+alocações de compensação e auditoria financeira. As RPCs reservam saque e
+antecipação atomicamente, aplicam idempotência, isolamento por proprietário e
+reconciliação de respostas ambíguas. Os 20 checks estruturais foram registrados
+como aprovados nos dois bancos, mas a PR ainda precisa da matriz Sandbox, merge
+e promoção do código. Não usar esta subseção como evidência de deploy.
 
 ### Arenas
 
@@ -745,36 +794,31 @@ servidor e validação de webhook.
 
 Logs operacionais são JSON e recebem `correlation_id`, fluxo e registro. A
 sanitização mascara e-mail, telefone, CPF, tokens, chaves Pix e dados de cartão.
-`/api/health` expõe somente estado, versão e dependências sem segredos. O
+`/api/health` expõe publicamente apenas `{ "status": "ok" }`, sem versão,
+dependências ou detalhes do banco. O
 provedor de observabilidade e o canal de alerta são configuráveis por ambiente.
 
-### 8.1 Migrations acumuladas do release até 03/09/2026
+### 8.1 Migrations e estado do schema
 
-Aplicar exatamente na ordem de `RUNBOOK-PRODUCAO.md`:
+`RUNBOOK-PRODUCAO.md` é a única fonte para a ordem operacional das migrations;
+em 20/10 ele documenta o baseline de 29 scripts reconciliado em 30/09, suas
+dependências e os candidatos ainda fora do release. Não mantenha uma segunda
+lista numerada aqui, pois ela ficaria divergente do runbook.
 
-1. `financial-operations.sql`;
-2. `payment-card-attempt-security.sql`;
-3. `production-spectator-ticket-items.sql`;
-4. `production-order-inventory-release.sql`;
-5. `asaas-webhook-idempotency.sql`;
-6. `production-query-indexes.sql`;
-7. `production-athlete-ticket-credentials.sql`;
-8. `production-athlete-ticket-change-security.sql`;
-9. `production-bracket-participants.sql`;
-10. `production-participant-category-uniqueness.sql`;
-11. `production-category-deletion-guard.sql`;
-12. `production-credential-operations.sql`;
-13. `support-case-enhancements.sql`;
-14. `production-data-retention.sql`.
+Os SQLs em `supabase/` incluem migrations incrementais, hardenings reaplicáveis,
+checks somente leitura e scripts históricos. A presença do arquivo não prova
+que ele foi executado. Toda mudança nova deve ter ordem, dependências,
+pré-check, pós-check, rollback/roll-forward e evidência por ambiente. Alterar um
+SQL já aplicado não atualiza o banco remoto; nesse caso, criar migration
+incremental e imutável.
 
-As migrations são aditivas e idempotentes, têm RLS mínimo e preservam dados
-existentes. `production-athlete-ticket-credentials.sql` precisa vir antes das
-operações de credencial; `support-case-enhancements.sql` depende das tabelas
-criadas por `production-credential-operations.sql`; e a retenção precisa ser a
-última porque referencia as tabelas operacionais novas. A restrição de participante deve ser precedida
-pela auditoria de conflitos legados descrita no runbook. Backfill, validação,
-implantação gradual e rollback estão no runbook; configurações que dependem do
-responsável estão em `PENDENCIAS-V1.md`.
+A carteira da PR #33 usa três scripts próprios, já registrados estruturalmente
+nos dois ambientes, mas ainda fora do release de aplicação. Os hardenings locais
+`20260210000100_p0_sensitive_rpc_hardening.sql` e
+`harden-public-funnel-deduplication.sql` também não devem ser promovidos até
+passarem por revisão, banco descartável/Sandbox e CI. Backfill, validação,
+implantação gradual e rollback permanecem no runbook; bloqueios e responsáveis
+ficam em `PENDENCIAS-V1.md`.
 
 ## 9. Estado dos dados
 
