@@ -69,13 +69,16 @@ pendências do lançamento e qualquer estado remoto mutável deve ser reconsulta
 
 ## Central de Evolução — reparo do agente local (21/10/2026)
 
-- A primeira solicitação de “Atualizar tudo com IA” falhou antes de iniciar a
-  pesquisa porque o script chamou uma opção não suportada pela versão local do
-  Codex. Não houve alteração de dados nem exposição de credenciais.
-- A PR #57 removeu a opção incompatível, passou pelos testes automatizados e
-  foi publicada em Production no commit `f3d4c03`. A tarefa agendada
-  `RankFTV Central Agent` foi reiniciada e voltou a informar status `online`,
-  sem erro, para a fila privada da Central.
+- As duas primeiras solicitações de “Atualizar tudo com IA” falharam antes da
+  pesquisa, sem alterar métricas, conteúdo ou snapshots. A investigação
+  confirmou duas incompatibilidades com o Codex instalado localmente: opções
+  de CLI removidas e o wrapper do PowerShell, que reinterpretava argumentos do
+  Codex quando iniciado pelo agente.
+- A PR #57 retirou a primeira opção incompatível. O reparo seguinte chama
+  diretamente o entrypoint JavaScript do Codex pelo Node, remove a flag de
+  busca obsoleta (a busca web já vem habilitada pelo Codex) e mantém o sandbox
+  em somente leitura durante a análise. A execução única do agente e o smoke
+  do CLI foram aprovados localmente, sem pesquisa ou escrita de dados.
 - O registro falho permanece apenas como histórico. Uma nova solicitação pela
   interface cria uma execução independente; ela continua exigindo aprovação de
   Carlos antes de aplicar qualquer alteração.

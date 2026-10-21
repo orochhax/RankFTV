@@ -882,3 +882,20 @@ registrar apenas uma revalidação quando ela for necessária.
   executar pesquisa ou importar radar, pois não havia job solicitado.
 - Smoke pós-deploy: `https://www.rankftv.com/api/health` retornou 200 com
   `{"status":"ok"}`; `/admin/evolucao` anônimo retornou 307 para `/login`.
+
+## 2026-10-21 16:48 -03:00 — Central de Evolução: compatibilidade do agente Codex
+
+- Diagnóstico: duas solicitações de atualização falharam antes de pesquisar ou
+  escrever dados. O Codex local rejeitou opções removidas e o wrapper do
+  PowerShell interpretou argumentos destinados ao CLI quando o agente o
+  iniciou por `spawn`.
+- Correção local: o agente Windows passou a executar diretamente o entrypoint
+  JavaScript do Codex com o Node do processo. A flag de busca obsoleta foi
+  removida porque a versão instalada já oferece busca web por padrão; a análise
+  continua em sandbox `read-only` e a aplicação continua dependente da
+  aprovação explícita de Carlos.
+- Evidência local: verificação de sintaxe, três testes específicos do agente,
+  `git diff --check`, um smoke do entrypoint e `npm run evolution:agent:once`
+  foram aprovados. Os smokes não pesquisaram nem importaram conteúdo.
+- Estado ao registrar: correção ainda aguardando CI, merge em `master`, deploy
+  e reinício da tarefa agendada. Nenhum segredo foi exibido.

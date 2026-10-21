@@ -102,8 +102,11 @@ function codexCommand() {
   const appData = process.env.APPDATA;
   if (!appData) throw new Error("CODEX_APPDATA_UNAVAILABLE");
   return {
-    command: "powershell.exe",
-    prefix: ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", path.join(appData, "npm", "codex.ps1")],
+    // O wrapper do PowerShell interpreta algumas opções como parâmetros dele
+    // quando é iniciado por spawn. Invocar o entrypoint JS diretamente
+    // preserva todos os argumentos do Codex e o stdin do agente.
+    command: process.execPath,
+    prefix: [path.join(appData, "npm", "node_modules", "@openai", "codex", "bin", "codex.js")],
   };
 }
 
@@ -241,7 +244,7 @@ async function analyzeJob(admin, userId, job) {
   const codex = codexCommand();
   const args = [
     ...codex.prefix,
-    "exec", "--ephemeral", "--ignore-user-config", "--search",
+    "exec", "--ephemeral", "--ignore-user-config",
     "--sandbox", "read-only",
     "--cd", repoRoot, "--add-dir", vaultPath,
     "--output-last-message", outputPath, "-",
