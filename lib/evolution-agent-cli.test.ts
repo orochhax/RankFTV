@@ -23,3 +23,9 @@ test("falhas estruturadas preservam uma mensagem sanitizada para diagnóstico", 
   assert.match(source, /"code" in record/);
   assert.match(source, /\[url removida\]/);
 });
+
+test("agente consulta os nomes reais das colunas editoriais de ideias", async () => {
+  const source = await readFile("scripts/evolution-local-agent.mjs", "utf8");
+  assert.match(source, /title_locked_by_user,notes/);
+  assert.doesNotMatch(source, /locked_title,user_notes/);
+});

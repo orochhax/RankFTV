@@ -83,6 +83,20 @@ pendências do lançamento e qualquer estado remoto mutável deve ser reconsulta
   interface cria uma execução independente; ela continua exigindo aprovação de
   Carlos antes de aplicar qualquer alteração.
 
+## Central de Evolução — compatibilidade do schema editorial (21/10/2026)
+
+- A execução seguinte chegou à leitura das métricas, mas encontrou dois nomes
+  de colunas que não existem em Production (`locked_title` e `user_notes`). A
+  consulta foi corrigida para o contrato real de `yt_ideas`:
+  `title_locked_by_user` e `notes`.
+- A consulta somente leitura foi confirmada diretamente contra Production, os
+  quatro testes específicos do agente passaram e `evolution:agent:once`
+  confirmou o boot sem fila. Nenhuma pesquisa, importação ou escrita de dados
+  ocorreu nesta validação.
+- A próxima etapa é publicar essa correção, reiniciar a tarefa local e criar
+  uma nova solicitação no painel. A prévia ainda exigirá aprovação de Carlos
+  antes de qualquer aplicação.
+
 ## Checkout principal observado
 
 - Worktree: `Projeto-RankFTV`.
