@@ -6,18 +6,19 @@ validada por `isPerformanceOwner`.
 
 ## Estado em 21/10/2026
 
-- Candidato de release no worktree
-  `C:\Users\SnyX\Documents\Projeto-RankFTV-evolucao`.
-- Branch: `feat/central-evolucao`, reconciliada com `origin/master` antes da
-  publicação.
-- Rota canônica: `/admin/evolucao`.
+- Publicada em Production na rota `/admin/evolucao` pelos merges das PRs #54 e
+  #55; commit de Production atual: `9be440c`.
+- Backup criptografado prévio concluído no workflow `39653560790`.
 - Migrations `supabase/evolution-center.sql` e
-  `supabase/20261021000100_evolution_ai_jobs.sql` preparadas para aplicação
-  pelo workflow manual protegido.
-- A publicação em Production só é considerada concluída depois do backup,
-  CI, merge, migration, importação inicial, instalação do agente e smoke.
-- Enquanto as tabelas não existirem, a interface abre em modo de demonstração
-  e usa os snapshots JSON versionados.
+  `supabase/20261021000100_evolution_ai_jobs.sql` aplicadas e verificadas no
+  workflow `39655806592`: 13 tabelas privadas, RLS e force RLS, nenhum grant
+  anônimo e RPC de claim exclusiva do `service_role`.
+- Snapshots iniciais do roadmap (81 dias) e das pendências do RankFTV (36, em
+  88%) foram importados em Production.
+- A tarefa local `RankFTV Central Agent` está instalada, em execução e com
+  heartbeat online do agente Codex `1.0.0`.
+- Smoke pós-deploy: `/api/health` retornou 200 com `{"status":"ok"}` e o
+  acesso anônimo a `/admin/evolucao` retornou 307 para `/login`.
 - A interface usa superfícies claras, menu lateral grafite e azul RankFTV.
   Os componentes herdados do Pulso.AI foram neutralizados dentro da Central,
   e a escala tipográfica foi ampliada em cerca de 10% para facilitar a leitura.
@@ -115,10 +116,11 @@ Esse procedimento continua disponível como recuperação, mesmo com o agente.
 - Aplicação controlada: workflow
   `.github/workflows/production-evolution-center-migration.yml`.
 
-## Gates de publicação
+## Evidências de publicação
 
-Backup criptografado antes da migration; audit, lint, typecheck, testes, build
-e CI; migration atômica seguida pelo hardening do schema público; check de 13
-tabelas com RLS/force RLS, ausência de grants anônimos e RPC de claim restrita;
-importação inicial; heartbeat local; health e redirecionamento anônimo da rota
-privada no domínio.
+Backup criptografado, audit sem vulnerabilidades altas, lint sem erros,
+typecheck, 846 testes aprovados (1 ignorado), build com 72 páginas e testes de
+navegador com 25 cenários aprovados (60 ignorados por dependerem de credenciais
+ou flags mutáveis). A migration foi aplicada de forma atômica, seguida pelo
+hardening do schema público, importação inicial, heartbeat local e smoke do
+domínio.
