@@ -946,6 +946,19 @@ registrar apenas uma revalidação quando ela for necessária.
   passaram. A correção aguarda CI, merge e reinício da tarefa antes de uma nova
   solicitação de análise.
 
+## 2026-10-21 18:18 -03:00 — Central de Evolução: pré-validação local da resposta
+
+- Diagnóstico: o smoke direto mostrou que o Codex aceitou o schema corrigido,
+  mas uma prévia completa do radar foi interrompida por limite de saída antes
+  de concluir. A tentativa não pesquisou, não importou e não alterou métricas.
+- Correção local: a opção `--output-schema` e seu arquivo auxiliar foram
+  removidos do agente. O prompt mantém a forma JSON e as regras editoriais; a
+  resposta continua passando pela pré-validação local do importador antes de
+  poder virar uma prévia. A fase de aplicação segue exigindo aprovação de
+  Carlos.
+- Evidência local: `node --check`, sete testes específicos e `git diff --check`
+  passaram. A correção aguarda CI, merge, reinício da tarefa e nova análise.
+
 ## 2026-10-21 17:39 -03:00 — Central de Evolução: títulos do radar em português
 
 - Diagnóstico: a pré-validação do payload completo bloqueou uma única notícia

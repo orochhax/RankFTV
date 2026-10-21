@@ -11,7 +11,6 @@ const PRODUCTION_SUPABASE_URL = "https://tkyopolcxfsdbhvrgadj.supabase.co";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
 const artifactDir = path.join(repoRoot, ".codex-artifacts", "evolution-agent");
-const outputSchemaPath = path.join(scriptDir, "evolution-agent-output.schema.json");
 const tsxEntrypoint = path.join(repoRoot, "node_modules", "tsx", "dist", "cli.mjs");
 const vaultPath = process.env.EVOLUTION_VAULT_PATH?.trim()
   || "C:\\Users\\SnyX\\Desktop\\Carlos Rocha";
@@ -261,7 +260,6 @@ async function analyzeJob(admin, userId, job) {
     "exec", "--ephemeral", "--ignore-user-config",
     "--sandbox", "read-only",
     "--cd", repoRoot, "--add-dir", vaultPath,
-    "--output-schema", outputSchemaPath,
     "--output-last-message", outputPath, "-",
   ];
   await run(codex.command, args, { input: buildPrompt(metrics) });
