@@ -30,7 +30,14 @@ function parseEnv(text) {
 }
 
 function sanitizedMessage(error) {
-  const raw = error instanceof Error ? error.message : String(error);
+  const record = error && typeof error === "object" ? error : null;
+  const message = record && "message" in record && typeof record.message === "string"
+    ? record.message
+    : null;
+  const code = record && "code" in record && typeof record.code === "string"
+    ? record.code
+    : null;
+  const raw = error instanceof Error ? error.message : message ? `${code ? `${code}: ` : ""}${message}` : String(error);
   return raw
     .replace(/https?:\/\/[^\s]+/g, "[url removida]")
     .replace(/[A-Za-z0-9_-]{32,}/g, "[valor removido]")
@@ -235,7 +242,7 @@ async function analyzeJob(admin, userId, job) {
   const args = [
     ...codex.prefix,
     "exec", "--ephemeral", "--ignore-user-config", "--search",
-    "--sandbox", "read-only", "--ask-for-approval", "never",
+    "--sandbox", "read-only",
     "--cd", repoRoot, "--add-dir", vaultPath,
     "--output-last-message", outputPath, "-",
   ];
