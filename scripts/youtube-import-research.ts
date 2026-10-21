@@ -112,13 +112,18 @@ function parseEnv(text: string) {
 }
 
 async function main() {
-  const input = process.argv[2];
+  const args = process.argv.slice(2);
+  const validateOnly = args.includes("--validate-only");
+  const preflight = args.includes("--preflight");
+  const input = args.find((argument) => !argument.startsWith("--"));
   if (!input) throw new Error("Uso: npm run youtube:import -- caminho/para/pesquisa.json");
-  const [rawInput, rawEnv] = await Promise.all([
-    readFile(path.resolve(input), "utf8"),
-    readFile(path.resolve(".env.local"), "utf8"),
-  ]);
+  const rawInput = await readFile(path.resolve(input), "utf8");
   const payload = importSchema.parse(JSON.parse(rawInput));
+  if (validateOnly && !preflight) {
+    process.stdout.write(`${JSON.stringify({ valid: true, items: payload.items.length, trends: payload.trends.length, ideas: payload.ideas.length })}\n`);
+    return;
+  }
+  const rawEnv = await readFile(path.resolve(".env.local"), "utf8");
   const environment = parseEnv(rawEnv);
   const url = environment.NEXT_PUBLIC_SUPABASE_URL;
   const key = environment.SUPABASE_SECRET_KEY ?? environment.SUPABASE_SERVICE_ROLE_KEY;
@@ -172,6 +177,10 @@ async function main() {
   const missingYoutubeResearch = payload.ideas.filter((idea) => !knownFingerprints.has(idea.sourceFingerprint) && !idea.youtubeReferences);
   if (missingYoutubeResearch.length) {
     throw new Error(`YOUTUBE_CODEX_IMPORT_MISSING_YOUTUBE_REFERENCES: ${missingYoutubeResearch.map((idea) => idea.sourceFingerprint).join(", ")}`);
+  }
+  if (preflight) {
+    process.stdout.write(`${JSON.stringify({ valid: true, environment: "production", items: payload.items.length, trends: payload.trends.length, ideas: payload.ideas.length, activeSources: activeSources.length })}\n`);
+    return;
   }
   const { data, error } = await supabase.rpc("yt_apply_codex_research", { payload: prepared });
   if (error) throw new Error(`YOUTUBE_CODEX_IMPORT_FAILED: ${error.message}`);

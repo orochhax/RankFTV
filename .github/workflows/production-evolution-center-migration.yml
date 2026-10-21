@@ -1,0 +1,111 @@
+name: Production evolution center migration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-database-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: Production
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate production target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
+          test "$NEXT_PUBLIC_SUPABASE_URL" = "https://tkyopolcxfsdbhvrgadj.supabase.co"
+          case "$SUPABASE_DB_URL" in
+            *tkyopolcxfsdbhvrgadj*supabase.com*) ;;
+            *) echo "SUPABASE_DB_URL não aponta para o projeto RankFTV de produção." >&2; exit 1 ;;
+          esac
+
+      - name: Install PostgreSQL 17 client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-common ca-certificates
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install --yes postgresql-client-17
+
+      - name: Verify dependencies before migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg17_bin="/usr/lib/postgresql/17/bin"
+          result="$($pg17_bin/psql --dbname="$SUPABASE_DB_URL" --no-psqlrc --set=ON_ERROR_STOP=1 --tuples-only --no-align --command="SELECT to_regclass('public.yt_ideas') IS NOT NULL;")"
+          test "$result" = "t"
+
+      - name: Apply evolution center atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg17_bin="/usr/lib/postgresql/17/bin"
+          migration="$RUNNER_TEMP/evolution-center-production.sql"
+          cat supabase/evolution-center.sql \
+              supabase/20261021000100_evolution_ai_jobs.sql > "$migration"
+          "$pg17_bin/psql" \
+            --dbname="$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set=ON_ERROR_STOP=1 \
+            --single-transaction \
+            --file="$migration"
+
+      - name: Reapply public schema client hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg17_bin="/usr/lib/postgresql/17/bin"
+          "$pg17_bin/psql" \
+            --dbname="$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set=ON_ERROR_STOP=1 \
+            --file=supabase/production-security-20-point-hardening.sql
+
+      - name: Verify private tables, policies and worker RPC
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg17_bin="/usr/lib/postgresql/17/bin"
+          result="$($pg17_bin/psql \
+            --dbname="$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set=ON_ERROR_STOP=1 \
+            --tuples-only \
+            --no-align \
+            --command="WITH expected(name) AS (VALUES
+                ('evo_settings'), ('evo_study_sessions'), ('evo_roadmap_progress'),
+                ('evo_training_logs'), ('evo_weight_logs'), ('evo_follower_snapshots'),
+                ('evo_equipment'), ('evo_weekly_videos'), ('evo_project_progress'),
+                ('evo_source_snapshots'), ('evo_ai_reviews'), ('evo_ai_jobs'), ('evo_ai_workers')
+              )
+              SELECT
+                (SELECT count(*) FROM expected e WHERE to_regclass('public.' || e.name) IS NOT NULL) = 13
+                AND NOT EXISTS (
+                  SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                  WHERE n.nspname = 'public' AND left(c.relname, 4) = 'evo_'
+                    AND (NOT c.relrowsecurity OR NOT c.relforcerowsecurity)
+                )
+                AND NOT EXISTS (
+                  SELECT 1 FROM information_schema.role_table_grants
+                  WHERE table_schema = 'public' AND left(table_name, 4) = 'evo_'
+                    AND grantee IN ('anon', 'PUBLIC')
+                )
+                AND to_regprocedure('public.evo_claim_ai_job(uuid,text,text)') IS NOT NULL
+                AND has_function_privilege('service_role', 'public.evo_claim_ai_job(uuid,text,text)', 'EXECUTE')
+                AND NOT has_function_privilege('authenticated', 'public.evo_claim_ai_job(uuid,text,text)', 'EXECUTE');")"
+          test "$result" = "t"

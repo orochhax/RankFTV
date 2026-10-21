@@ -1,9 +1,12 @@
 # Atualização manual do radar de IA pelo Codex
 
-O Pulso.AI em `/admin/youtube` é atualizado **somente quando Carlos pedir ao
-Codex**. Não existe cron ativo, job em segundo plano ou chamada a OpenAI para
-pesquisa/análise. O banco de Production recebe a importação transacional pelo
-script local; a interface lê exatamente esses mesmos registros.
+O Pulso.AI, agora acessível pela área Rocha Tech da Central, é atualizado
+**somente quando Carlos pedir**. Não existe cron de pesquisa nem chamada à API
+paga da OpenAI. Carlos pode pedir pelo chat ou pelo botão “Atualizar tudo com
+IA” em `/admin/evolucao`. Nesse segundo fluxo, o site apenas cria uma fila
+privada; o Codex autenticado no PC faz o trabalho quando a máquina está ligada.
+O banco de Production recebe a importação transacional pelo script local; a
+interface lê exatamente esses mesmos registros.
 
 ## Pedido que Carlos pode usar
 
@@ -59,13 +62,19 @@ Para um recorte, por exemplo:
 6. Para uma ideia já conhecida, mantenha o mesmo `sourceFingerprint`. Para
    uma nova, crie um fingerprint estável e descritivo. Não altere `status` de
    produção, notas do usuário ou título bloqueado por usuário.
-7. Importe somente após revisar o JSON:
+7. Valide o conteúdo e a cobertura das fontes sem escrever:
+
+```powershell
+npm run youtube:import -- --preflight .codex-artifacts/nome-da-pesquisa.json
+```
+
+8. Importe somente após Carlos revisar e aprovar a prévia:
 
 ```powershell
 npm run youtube:import -- .codex-artifacts/nome-da-pesquisa.json
 ```
 
-8. Confira o resumo seguro retornado pelo script e abra
+9. Confira o resumo seguro retornado pelo script e abra
    `/admin/youtube`, `/admin/youtube/tendencias` e `/admin/youtube/ideias`.
    Informe contagens, alterações de posição, links consultados e limitações.
 
@@ -96,6 +105,9 @@ npm run youtube:import -- .codex-artifacts/nome-da-pesquisa.json
   não altere os arquivos de agendamento sem uma solicitação explícita de
   Carlos. A arquitetura de fontes e análises permanece para uma futura
   integração, porém está inativa por decisão de produto.
+- O job `awaiting_approval` contém uma prévia privada. Rejeitar a prévia muda o
+  job para `cancelled` sem importar o radar. Aprovar muda para `queued_apply`;
+  a importação só começa quando o agente local reivindica esse estado.
 
 ## Validação de Production
 

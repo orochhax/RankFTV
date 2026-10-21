@@ -136,7 +136,7 @@ pós-deploy.
 Atualize este arquivo quando branch, evidência, bloqueio ou próximo passo mudar.
 O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 
-## Central de Evolução — implementação local (21/10/2026)
+## Central de Evolução — candidato de Production (21/10/2026)
 
 - Worktree isolado `Projeto-RankFTV-evolucao`, branch
   `feat/central-evolucao`, criado para não tocar o checkout principal sujo.
@@ -145,14 +145,22 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   `/admin/youtube` redireciona para a nova área.
 - O score usa 50% DataScience, 30% Rocha Tech e 20% Insta/Shape. RankFTV é
   informativo e não altera o score. O módulo não reutiliza Life OS.
-- A migration privada `supabase/evolution-center.sql` está escrita com RLS por
-  `user_id`, mas não foi aplicada. Não houve Preview, push ou deploy.
+- Carlos aprovou a publicação em Production e o uso do PC ligado como agente
+  local. As migrations privadas estão escritas com RLS por `user_id`; a fila
+  de IA só permite leitura autenticada do próprio usuário e reivindicação pelo
+  `service_role`.
+- O botão “Atualizar tudo com IA” cria uma solicitação no site, o Codex local
+  prepara uma prévia e Carlos precisa aprovar antes da importação. Não há API
+  paga de modelo nem pesquisa automática por cron.
+- O backup de Production `39653560790` foi concluído com sucesso antes da
+  promoção. Migration, merge, deploy e heartbeat ainda precisam ser
+  confirmados para considerar o recurso publicado.
 - `npm run evolution:sync` transforma o roadmap do cofre e
   `PENDENCIAS-V1.md` em snapshots; `npm run evolution:import` poderá importá-los
   depois de autorização explícita e da migration homologada.
-- Typecheck, 818 testes, lint dirigido sem erros, auditoria de dependências de
-  produção sem vulnerabilidades e build Next.js com 70 páginas geradas
-  passaram no worktree.
+- Typecheck, 847 testes (846 aprovados e 1 ignorado), lint sem erros, auditoria
+  de dependências de produção sem vulnerabilidades e build Next.js com 72
+  páginas geradas passaram no worktree.
 - Referência operacional completa: `docs/CENTRAL-DE-EVOLUCAO.md`.
 - A revisão visual de 21/10/2026 eliminou as cores escuras residuais herdadas
   do Pulso.AI nas páginas internas do Rocha Tech. Cards, filtros, Kanban,

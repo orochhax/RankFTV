@@ -844,3 +844,23 @@ registrar apenas uma revalidação quando ela for necessária.
   dirigido e `git diff --check` concluíram sem erros. O servidor local
   permaneceu ativo na porta 3000. Nenhum push, Preview, deploy, migration ou
   alteração externa foi executado.
+## 2026-10-21 15:34 -03:00 — Central de Evolução: candidato de Production e backup
+
+- Carlos aprovou publicar toda a Central e operar a atualização assistida pelo
+  PC enquanto ele estiver ligado.
+- A branch `feat/central-evolucao` foi reconciliada com `origin/master` para
+  preservar os hardenings que já estavam em Production.
+- Foi implementada uma fila privada com aprovação em duas fases: o site cria o
+  pedido, o Codex local produz e valida a prévia, e a importação só ocorre após
+  aprovação explícita de Carlos.
+- O agente local usa a sessão ChatGPT/Codex já autenticada, não depende de API
+  paga, recusa outro projeto Supabase e mantém logs locais ignorados pelo Git.
+- O workflow protegido da Central aplica 13 tabelas `evo_*`, repete o hardening
+  público e verifica RLS, grants e a RPC de claim exclusiva do serviço.
+- Evidência local: audit sem vulnerabilidades altas, lint sem erros, typecheck,
+  847 testes (846 aprovados e 1 ignorado) e build Next.js com 72 páginas.
+- Proteção anterior à migration: backup criptografado de Production no run
+  `39653560790`, concluído e com artefato verificado.
+- Estado ao registrar: candidato ainda não promovido; merge, migration, deploy,
+  importação inicial, tarefa local e smoke devem ser registrados em uma
+  entrada posterior.

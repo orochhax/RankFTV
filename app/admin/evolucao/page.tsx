@@ -4,6 +4,8 @@ import { evolutionProjects } from "@/lib/evolution/projects";
 import { formatDatePtBr } from "@/lib/evolution/date";
 import { formatMinutes } from "@/lib/evolution/metrics";
 import { getEvolutionData } from "@/lib/evolution/queries";
+import { summarizeAiJobResult } from "@/lib/evolution/ai-job";
+import { EvolutionAiRefresh } from "@/components/evolution/EvolutionAiRefresh";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,19 @@ export default async function EvolutionHomePage() {
   const todayStudy = data.study.days.find((day) => day.date === data.today)?.minutes ?? 0;
   const trainedToday = data.training.some((entry) => String(entry.training_date) === data.today);
   const videoStatus = data.video?.published_at ? "Publicado" : data.video?.title_snapshot ? "Em andamento" : "Ainda não escolhido";
+  const aiJob = data.aiJob ? {
+    id: String(data.aiJob.id),
+    status: String(data.aiJob.status) as import("@/lib/evolution/ai-job").EvolutionAiJobStatus,
+    stage: String(data.aiJob.stage),
+    progressMessage: String(data.aiJob.progress_message),
+    errorMessage: data.aiJob.error_message ? String(data.aiJob.error_message) : null,
+    requestedAt: String(data.aiJob.requested_at),
+    completedAt: data.aiJob.completed_at ? String(data.aiJob.completed_at) : null,
+    preview: summarizeAiJobResult(data.aiJob.result),
+  } : null;
+  const workerLastSeenAt = data.aiWorker?.last_seen_at ? new Date(String(data.aiWorker.last_seen_at)) : null;
+  const workerOnline = Boolean(workerLastSeenAt && new Date(data.fetchedAt).getTime() - workerLastSeenAt.getTime() < 45_000);
+  const workerLastSeen = workerLastSeenAt ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(workerLastSeenAt) : null;
 
   return (
     <main className="evo-page">
@@ -33,6 +48,8 @@ export default async function EvolutionHomePage() {
       </header>
 
       {!data.databaseReady ? <div className="evo-setup-banner"><AlertTriangle size={18} /><div><strong>Modo de demonstração local</strong><p>As telas estão prontas, mas os registros serão liberados somente depois de você aprovar a aplicação da migração no Supabase.</p></div></div> : null}
+
+      <EvolutionAiRefresh job={aiJob} workerOnline={workerOnline} workerLastSeen={workerLastSeen} />
 
       <section className="evo-score-grid" aria-label="Composição do score semanal">
         <article><span className="is-blue"><BookOpen size={18} /></span><div><p>DataScience</p><strong>{data.score.dataScience}<small>/50</small></strong><em>{formatMinutes(data.study.totalMinutes)} de 10h</em></div></article>

@@ -25,6 +25,8 @@
     "youtube:sources": "tsx scripts/youtube-list-sources.ts",
     "evolution:sync": "node scripts/evolution-sync-sources.mjs",
     "evolution:import": "tsx scripts/evolution-import-sources.ts",
+    "evolution:agent": "node scripts/evolution-local-agent.mjs --watch",
+    "evolution:agent:once": "node scripts/evolution-local-agent.mjs --once",
     "test:load:sandbox": "k6 run scripts/k6-sandbox-smoke.js",
     "types:supabase:generate": "node scripts/supabase-types.mjs --write",
     "types:supabase:check": "node scripts/supabase-types.mjs",

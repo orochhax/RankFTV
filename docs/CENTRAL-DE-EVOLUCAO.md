@@ -6,12 +6,16 @@ validada por `isPerformanceOwner`.
 
 ## Estado em 21/10/2026
 
-- Implementação local no worktree
+- Candidato de release no worktree
   `C:\Users\SnyX\Documents\Projeto-RankFTV-evolucao`.
-- Branch local: `feat/central-evolucao`.
+- Branch: `feat/central-evolucao`, reconciliada com `origin/master` antes da
+  publicação.
 - Rota canônica: `/admin/evolucao`.
-- Migração `supabase/evolution-center.sql` criada, mas **não aplicada**.
-- Nenhum Preview, deploy, push ou mudança em Production foi feito.
+- Migrations `supabase/evolution-center.sql` e
+  `supabase/20261021000100_evolution_ai_jobs.sql` preparadas para aplicação
+  pelo workflow manual protegido.
+- A publicação em Production só é considerada concluída depois do backup,
+  CI, merge, migration, importação inicial, instalação do agente e smoke.
 - Enquanto as tabelas não existirem, a interface abre em modo de demonstração
   e usa os snapshots JSON versionados.
 - A interface usa superfícies claras, menu lateral grafite e azul RankFTV.
@@ -45,7 +49,42 @@ Radar de tendências, Oportunidades, Fontes e Configurações.
 - Seguidores não têm meta semanal de crescimento; a meta configurada inicial é
   500 até 30/06/2027, com fotografia inicial de 26.
 
-## Sincronização manual sem API de IA
+## Botão “Atualizar tudo com IA” sem API paga
+
+O botão da home não chama um modelo no navegador nem expõe credenciais. Ele
+cria um job privado em `evo_ai_jobs`. O agente instalado no computador de
+Carlos mantém um heartbeat em `evo_ai_workers`, reivindica o job de forma
+atômica e usa a sessão local já autenticada do Codex/ChatGPT.
+
+Fluxo obrigatório:
+
+1. Carlos pede a atualização no site.
+2. Quando o PC está ligado, o agente lê métricas, contexto autorizado do cofre
+   e fontes ativas do Rocha Tech.
+3. O agente pesquisa e reavalia o radar, valida o resultado contra o banco e
+   grava uma prévia; ainda não altera os dados finais.
+4. Carlos aprova ou descarta no site.
+5. Só depois da aprovação o agente importa o radar, sincroniza os snapshots e
+   registra a análise semanal.
+
+Estados da fila: `queued_analysis`, `analyzing`, `awaiting_approval`,
+`queued_apply`, `applying`, `completed`, `failed` e `cancelled`. Existe no
+máximo um job ativo por usuário. Usuários autenticados só podem ler as próprias
+linhas; criação, aprovação e descarte passam por Server Actions autorizadas, e
+a reivindicação é exclusiva do `service_role` no agente local.
+
+Instalação do agente no Windows, depois das migrations:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-evolution-agent.ps1
+```
+
+A tarefa `RankFTV Central Agent` inicia no logon, roda oculta e usa
+`scripts/run-evolution-agent.ps1`. Artefatos e logs ficam somente em
+`.codex-artifacts/evolution-agent/`, ignorados pelo Git. O agente recusa um
+Supabase diferente do projeto fixo de Production e nunca imprime chaves.
+
+## Sincronização manual e recuperação
 
 1. Atualizar os snapshots locais:
 
@@ -59,6 +98,7 @@ Radar de tendências, Oportunidades, Fontes e Configurações.
 
 O segundo comando resolve a conta por `ADMIN_EMAIL`, exige correspondência
 única e grava apenas `evo_source_snapshots`. Nunca registrar chaves em notas.
+Esse procedimento continua disponível como recuperação, mesmo com o agente.
 
 ## Arquivos principais
 
@@ -66,13 +106,19 @@ O segundo comando resolve a conta por `ADMIN_EMAIL`, exige correspondência
 - Componentes: `components/evolution/`.
 - Métricas e consultas: `lib/evolution/`.
 - Snapshot de fontes: `data/evolution/`.
-- Scripts: `scripts/evolution-sync-sources.mjs` e
-  `scripts/evolution-import-sources.ts`.
-- Banco e RLS: `supabase/evolution-center.sql`.
+- Scripts: `scripts/evolution-sync-sources.mjs`,
+  `scripts/evolution-import-sources.ts`, `scripts/evolution-local-agent.mjs` e
+  os dois wrappers PowerShell do agente.
+- Banco e RLS: `supabase/evolution-center.sql` e
+  `supabase/20261021000100_evolution_ai_jobs.sql`.
 - Auditoria somente leitura: `supabase/manual-tests/evolution-center-check.sql`.
+- Aplicação controlada: workflow
+  `.github/workflows/production-evolution-center-migration.yml`.
 
-## Próxima etapa controlada
+## Gates de publicação
 
-Revisar visualmente em ambiente local autenticado. Depois, se Carlos aprovar,
-aplicar a migration primeiro no Sandbox/ambiente de homologação, rodar checks
-de isolamento, criar Preview e só então decidir sobre Production.
+Backup criptografado antes da migration; audit, lint, typecheck, testes, build
+e CI; migration atômica seguida pelo hardening do schema público; check de 13
+tabelas com RLS/force RLS, ausência de grants anônimos e RPC de claim restrita;
+importação inicial; heartbeat local; health e redirecionamento anônimo da rota
+privada no domínio.

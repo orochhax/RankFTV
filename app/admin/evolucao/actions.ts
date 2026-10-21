@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireEvolutionOwner } from "@/lib/evolution/access";
 import { todayInSaoPaulo } from "@/lib/evolution/date";
 import { weekRange } from "@/lib/evolution/metrics";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
@@ -14,6 +15,92 @@ function refreshEvolution() {
 
 async function assertSuccess(error: { message: string } | null) {
   if (error) throw new Error("Não foi possível salvar. Confirme se a migração da Central de Evolução foi aplicada.");
+}
+
+export type AiJobActionState = {
+  ok: boolean;
+  message: string;
+};
+
+export async function requestAiRefresh(
+  _previousState: AiJobActionState,
+): Promise<AiJobActionState> {
+  const { user } = await requireEvolutionOwner();
+  const admin = createAdminClient();
+  const { data: active, error: lookupError } = await admin
+    .from("evo_ai_jobs")
+    .select("id,status")
+    .eq("user_id", user.id)
+    .in("status", ["queued_analysis", "analyzing", "awaiting_approval", "queued_apply", "applying"])
+    .limit(1)
+    .maybeSingle();
+
+  if (lookupError) return { ok: false, message: "A fila da IA ainda não está disponível." };
+  if (active) return { ok: false, message: "Já existe uma atualização em andamento ou aguardando sua aprovação." };
+
+  const { error } = await admin.from("evo_ai_jobs").insert({
+    user_id: user.id,
+    request_kind: "full_refresh",
+    status: "queued_analysis",
+    stage: "queued",
+    progress_message: "Aguardando o computador do Carlos.",
+  });
+  if (error) return { ok: false, message: "Não foi possível criar a solicitação de atualização." };
+
+  refreshEvolution();
+  return { ok: true, message: "Solicitação criada. O agente começará quando seu computador estiver disponível." };
+}
+
+export async function approveAiRefresh(
+  _previousState: AiJobActionState,
+  formData: FormData,
+): Promise<AiJobActionState> {
+  const id = z.string().uuid().parse(formData.get("jobId"));
+  const { user } = await requireEvolutionOwner();
+  const { data, error } = await createAdminClient()
+    .from("evo_ai_jobs")
+    .update({
+      status: "queued_apply",
+      stage: "approved",
+      progress_message: "Atualização aprovada. Aguardando o computador do Carlos para aplicar.",
+      approved_at: new Date().toISOString(),
+      error_code: null,
+      error_message: null,
+    })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .eq("status", "awaiting_approval")
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) return { ok: false, message: "A prévia não está mais disponível para aprovação." };
+  refreshEvolution();
+  return { ok: true, message: "Aprovado. O agente local aplicará a atualização." };
+}
+
+export async function discardAiRefresh(
+  _previousState: AiJobActionState,
+  formData: FormData,
+): Promise<AiJobActionState> {
+  const id = z.string().uuid().parse(formData.get("jobId"));
+  const { user } = await requireEvolutionOwner();
+  const { data, error } = await createAdminClient()
+    .from("evo_ai_jobs")
+    .update({
+      status: "cancelled",
+      stage: "cancelled",
+      progress_message: "Prévia descartada por Carlos. Nenhuma atualização foi aplicada.",
+      completed_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .eq("status", "awaiting_approval")
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) return { ok: false, message: "Não foi possível descartar esta prévia." };
+  refreshEvolution();
+  return { ok: true, message: "Prévia descartada sem alterar os dados." };
 }
 
 export async function addStudySession(formData: FormData) {

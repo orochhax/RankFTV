@@ -866,3 +866,16 @@ completa não estiverem comprovadas.
 - Tratar os SQLs como mudanças incrementais e revisar ordem/dependências.
 - Atualizar este documento junto de alterações de rota, schema, shell ou fluxo.
 - Registrar em AUDITORIA-PRODUCAO.md apenas verificações realmente executadas.
+## 12. Central de Evolução pessoal
+
+A área privada `/admin/evolucao` reúne DataScience, Rocha Tech/Pulso.AI,
+Insta/Shape e acompanhamento do RankFTV para a conta CEO. Ela não integra a V1
+comercial. O botão “Atualizar tudo com IA” usa uma fila privada no Supabase e
+um agente Codex executado no computador de Carlos; o navegador nunca recebe a
+chave de serviço nem chama uma API paga de modelo. A análise produz uma prévia
+e só é importada depois da aprovação explícita no site.
+
+Arquitetura, instalação do agente, estados da fila, regras de score e gates de
+Production estão em `docs/CENTRAL-DE-EVOLUCAO.md`. O contrato editorial do
+radar continua em `docs/YOUTUBE-RADAR-CODEX.md`; a migration controlada é
+executada por `.github/workflows/production-evolution-center-migration.yml`.
