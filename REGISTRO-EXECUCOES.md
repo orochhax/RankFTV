@@ -1045,7 +1045,6 @@ registrar apenas uma revalidação quando ela for necessária.
   criou 1 tendência e reordenou as 8 ideias. Nenhuma ideia nova foi criada.
 - Evidência local: `npm run typecheck` e `git diff --check` passaram. Nenhum
   segredo foi registrado.
-
 ## 2026-10-21 20:49 -03:00 — Central: início da cobrança em 22/10
 
 - Carlos autorizou começar a usar a Central somente em 22/10/2026.
