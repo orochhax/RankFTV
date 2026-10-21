@@ -110,6 +110,20 @@ pendências do lançamento e qualquer estado remoto mutável deve ser reconsulta
   agente, passaram. A alteração aguarda CI e publicação antes de uma nova
   análise; o fluxo de aprovação antes de importar continua inalterado.
 
+## Central de Evolução — schema de saída e runner Windows (21/10/2026)
+
+- A análise seguinte pesquisou e retornou uma prévia completa, mas usou nomes
+  antigos no payload do importador. A pré-validação interrompeu o fluxo antes
+  de importar qualquer item. A investigação também confirmou que `npm.cmd`
+  não pode ser iniciado diretamente pelo `spawn` seguro do Node no Windows.
+- O agente passa a fornecer ao Codex um JSON Schema estrito que espelha o
+  contrato do importador e executa TypeScript pelo entrypoint local do TSX,
+  sem invocar wrappers `.cmd`. A sincronização JavaScript também chama o Node
+  diretamente.
+- Sintaxe, parse do schema, seis testes específicos e verificação de diff
+  passaram localmente. O candidato aguarda CI e publicação; uma nova análise
+  continuará apenas em prévia até a aprovação de Carlos.
+
 ## Checkout principal observado
 
 - Worktree: `Projeto-RankFTV`.

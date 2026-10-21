@@ -11,6 +11,8 @@ const PRODUCTION_SUPABASE_URL = "https://tkyopolcxfsdbhvrgadj.supabase.co";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
 const artifactDir = path.join(repoRoot, ".codex-artifacts", "evolution-agent");
+const outputSchemaPath = path.join(scriptDir, "evolution-agent-output.schema.json");
+const tsxEntrypoint = path.join(repoRoot, "node_modules", "tsx", "dist", "cli.mjs");
 const vaultPath = process.env.EVOLUTION_VAULT_PATH?.trim()
   || "C:\\Users\\SnyX\\Desktop\\Carlos Rocha";
 const workerId = `${os.hostname()}-${createHash("sha256").update(repoRoot).digest("hex").slice(0, 10)}`;
@@ -80,8 +82,8 @@ function run(command, args, { input, timeoutMs = 45 * 60_000 } = {}) {
   });
 }
 
-function npmCommand() {
-  return process.platform === "win32" ? "npm.cmd" : "npm";
+function runTsx(script, args = [], options) {
+  return run(process.execPath, [tsxEntrypoint, path.join(repoRoot, script), ...args], options);
 }
 
 function currentWeekStartInSaoPaulo() {
@@ -233,7 +235,7 @@ function parseAgentResult(raw) {
 async function validateResearch(jobId, result) {
   const researchPath = path.join(artifactDir, `${jobId}-research.json`);
   await writeFile(researchPath, `${JSON.stringify(result.youtube, null, 2)}\n`, "utf8");
-  await run(npmCommand(), ["run", "youtube:import", "--", "--preflight", researchPath], { timeoutMs: 5 * 60_000 });
+  await runTsx("scripts/youtube-import-research.ts", ["--preflight", researchPath], { timeoutMs: 5 * 60_000 });
   return researchPath;
 }
 
@@ -248,6 +250,7 @@ async function analyzeJob(admin, userId, job) {
     "exec", "--ephemeral", "--ignore-user-config",
     "--sandbox", "read-only",
     "--cd", repoRoot, "--add-dir", vaultPath,
+    "--output-schema", outputSchemaPath,
     "--output-last-message", outputPath, "-",
   ];
   await run(codex.command, args, { input: buildPrompt(metrics) });
@@ -267,10 +270,10 @@ async function applyJob(admin, userId, job) {
   const result = parseAgentResult(JSON.stringify(job.result));
   const researchPath = await validateResearch(job.id, result);
   await updateJob(admin, job.id, { stage: "youtube", progress_message: "Atualizando notícias, tendências e ranking do Rocha Tech." });
-  await run(npmCommand(), ["run", "youtube:import", "--", researchPath]);
+  await runTsx("scripts/youtube-import-research.ts", [researchPath]);
   await updateJob(admin, job.id, { stage: "sources", progress_message: "Sincronizando roadmap e pendências do RankFTV." });
-  await run(npmCommand(), ["run", "evolution:sync", "--", "--vault", vaultPath], { timeoutMs: 10 * 60_000 });
-  await run(npmCommand(), ["run", "evolution:import"], { timeoutMs: 10 * 60_000 });
+  await run(process.execPath, [path.join(repoRoot, "scripts", "evolution-sync-sources.mjs"), "--vault", vaultPath], { timeoutMs: 10 * 60_000 });
+  await runTsx("scripts/evolution-import-sources.ts", [], { timeoutMs: 10 * 60_000 });
   const { error: reviewError } = await admin.from("evo_ai_reviews").insert({
     user_id: userId,
     week_start: currentWeekStartInSaoPaulo(),
