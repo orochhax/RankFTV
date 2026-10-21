@@ -916,6 +916,19 @@ registrar apenas uma revalidação quando ela for necessária.
 - Estado ao registrar: correção aguardando CI, merge em `master`, deploy e
   reinício da tarefa. Nenhum segredo foi exibido.
 
+## 2026-10-21 17:39 -03:00 — Central de Evolução: títulos do radar em português
+
+- Diagnóstico: a pré-validação do payload completo bloqueou uma única notícia
+  cujo título exibido não possuía construção em português. O bloqueio ocorreu
+  antes de importação ou alteração de métricas.
+- Correção local: o JSON Schema de saída e o prompt agora exigem em
+  `item.title` um conector português, espelhando a regra do importador. Isso
+  impede que títulos em inglês sejam apresentados diretamente na Central.
+- Evidência local: parse do schema, sintaxe do agente, sete testes específicos
+  e `git diff --check` passaram. A pesquisa anterior continua não aplicada.
+- Estado ao registrar: correção aguardando CI, merge em `master`, deploy e
+  reinício da tarefa. Nenhum segredo foi exibido.
+
 ## 2026-10-21 17:28 -03:00 — Central de Evolução: schema estrito e runner do Windows
 
 - Diagnóstico: a pesquisa retornou uma prévia com conteúdo, porém os campos do

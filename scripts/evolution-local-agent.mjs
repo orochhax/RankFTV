@@ -216,6 +216,7 @@ Regras obrigatórias:
 }
 O objeto youtube deve usar scope full, declarar todas as fontes ativas em researchSourceIds e incluir todas as ideias ativas, além das novas que forem justificadas. Para ideias novas, inclua de 3 a 5 referências verificadas do YouTube.
 youtube nunca pode ser null: se uma fonte estiver inacessível, registre a limitação no payload seguindo o schema em vez de omitir o objeto.
+Todo item.title exibido na interface precisa estar em português e conter uma construção portuguesa (por exemplo, “com”, “de”, “para” ou “como”); não reutilize um título em inglês como título exibido.
 
 Métricas atuais sanitizadas:
 ${JSON.stringify(metrics)}`;
