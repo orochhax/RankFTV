@@ -14,6 +14,9 @@ validada por `isPerformanceOwner`.
 - Nenhum Preview, deploy, push ou mudança em Production foi feito.
 - Enquanto as tabelas não existirem, a interface abre em modo de demonstração
   e usa os snapshots JSON versionados.
+- A interface usa superfícies claras, menu lateral grafite e azul RankFTV.
+  Os componentes herdados do Pulso.AI foram neutralizados dentro da Central,
+  e a escala tipográfica foi ampliada em cerca de 10% para facilitar a leitura.
 
 ## Áreas
 

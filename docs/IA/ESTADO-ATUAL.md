@@ -154,6 +154,11 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   produção sem vulnerabilidades e build Next.js com 70 páginas geradas
   passaram no worktree.
 - Referência operacional completa: `docs/CENTRAL-DE-EVOLUCAO.md`.
+- A revisão visual de 21/10/2026 eliminou as cores escuras residuais herdadas
+  do Pulso.AI nas páginas internas do Rocha Tech. Cards, filtros, Kanban,
+  tabelas, fontes, formulários e detalhes agora seguem a paleta clara da
+  Central, com azul RankFTV e estados semânticos consistentes. A escala de
+  leitura foi ampliada em aproximadamente 10% sem usar zoom do navegador.
 
 ## Pulso.AI — inteligência de conteúdo para YouTube (20/10/2026)
 

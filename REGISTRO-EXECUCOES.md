@@ -826,3 +826,21 @@ registrar apenas uma revalidação quando ela for necessária.
   reservava a largura de sua `DesktopSidebar` atrás do menu próprio da Central.
   `/admin/evolucao` e suas subrotas agora ignoram somente esse shell global,
   eliminando a largura invisível sem alterar as demais páginas do Admin.
+
+## 2026-10-21 15:07 -03:00 — Central de Evolução: padronização visual e escala de leitura
+
+- A paleta clara da Central foi aplicada de forma completa aos componentes
+  herdados do Pulso.AI. Foram corrigidos fundos escuros residuais, textos com
+  contraste insuficiente, divisórias pretas e estados inconsistentes em
+  cards, filtros, oportunidades, tendências, Kanban, fontes, configurações e
+  páginas de detalhe.
+- O azul RankFTV ficou reservado a ações, seleção, links e progresso. Verde,
+  âmbar e vermelho permanecem somente em estados semânticos. O menu lateral
+  grafite foi mantido como contraste intencional e recebeu texto mais legível.
+- A escala de leitura da Central foi ampliada em aproximadamente 10% por meio
+  de tipografia, controles e espaçamentos próprios, sem depender do zoom do
+  navegador e sem alterar regras, dados, rotas ou Supabase.
+- Validação local: CSS analisado com PostCSS, `npm run typecheck`, ESLint
+  dirigido e `git diff --check` concluíram sem erros. O servidor local
+  permaneceu ativo na porta 3000. Nenhum push, Preview, deploy, migration ou
+  alteração externa foi executado.
