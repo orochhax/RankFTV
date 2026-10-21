@@ -45,3 +45,8 @@ test("agente usa schema de saída e executa scripts TypeScript sem npm.cmd", asy
   assert.match(source, /function runTsx/);
   assert.doesNotMatch(source, /function npmCommand/);
 });
+
+test("schema do agente exige título de notícia em português", async () => {
+  const schema = JSON.parse(await readFile("scripts/evolution-agent-output.schema.json", "utf8"));
+  assert.match(schema.$defs.item.properties.title.pattern, /como\|da\|das\|de\|do\|dos/);
+});

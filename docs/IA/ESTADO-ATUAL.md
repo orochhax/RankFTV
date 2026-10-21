@@ -124,6 +124,15 @@ pendências do lançamento e qualquer estado remoto mutável deve ser reconsulta
   passaram localmente. O candidato aguarda CI e publicação; uma nova análise
   continuará apenas em prévia até a aprovação de Carlos.
 
+## Central de Evolução — título de notícias em português (21/10/2026)
+
+- A pré-validação de uma pesquisa completa funcionou e bloqueou apenas um
+  título exibido em inglês, antes de qualquer importação. Isso confirmou que
+  o contrato estrito e o runner direto estão operando como esperado.
+- O schema de saída e o prompt agora exigem que todos os títulos de notícias
+  incluam construção em português, mesma regra já usada pelo importador. Sete
+  testes específicos passaram localmente; a correção aguarda CI e publicação.
+
 ## Checkout principal observado
 
 - Worktree: `Projeto-RankFTV`.
