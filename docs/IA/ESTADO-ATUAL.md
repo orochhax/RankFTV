@@ -157,6 +157,20 @@ pendências do lançamento e qualquer estado remoto mutável deve ser reconsulta
   cada URL antes da prévia. Dez testes específicos, parse do JSON e verificação
   do diff passaram localmente. A correção será publicada antes da nova análise.
 
+## Central de Evolução — pré-validação local sem limite de saída (21/10/2026)
+
+- O teste direto confirmou que o Codex aceita o schema corrigido, porém uma
+  resposta completa do radar excede o limite de saída estruturada antes de
+  finalizar. Esse limite impede a pesquisa, mas não é uma validação de
+  segurança do sistema.
+- A restrição remota foi removida. O agente continua exigindo JSON, normaliza
+  apenas os campos anuláveis e executa a pré-validação local do importador antes
+  de liberar a prévia. Assim, o mesmo contrato editorial, de fontes e de URLs
+  é verificado sem truncar a resposta; a aplicação ainda depende da aprovação
+  explícita de Carlos.
+- Sintaxe, sete testes específicos e `git diff --check` passaram localmente.
+  A alteração aguarda CI, merge e uma nova análise assistida.
+
 ## Checkout principal observado
 
 - Worktree: `Projeto-RankFTV`.
