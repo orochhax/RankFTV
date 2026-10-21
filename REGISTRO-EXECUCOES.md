@@ -864,3 +864,21 @@ registrar apenas uma revalidação quando ela for necessária.
 - Estado ao registrar: candidato ainda não promovido; merge, migration, deploy,
   importação inicial, tarefa local e smoke devem ser registrados em uma
   entrada posterior.
+
+## 2026-10-21 15:47 -03:00 — Central de Evolução: publicação e operação inicial
+
+- PR #54 foi aprovada por CI e Preview, mesclada em Production; a PR #55 tornou
+  diagnósticos da verificação SQL mais específicos e também foi mesclada.
+- Backup criptografado prévio: workflow `39653560790`, sucesso.
+- A primeira execução da migration aplicou as estruturas; o check agregado
+  final não diagnosticava a condição divergente. Nenhuma estrutura foi
+  revertida ou apagada. Após a melhoria do workflow, a execução `39655806592`
+  confirmou com sucesso as 13 tabelas, RLS/force RLS, ausência de grants
+  anônimos e RPC de claim restrita ao serviço.
+- `evolution:sync` encontrou 81 dias no roadmap e 36 pendências RankFTV (88%);
+  `evolution:import` registrou esses snapshots em Production.
+- A tarefa agendada `RankFTV Central Agent` foi instalada no Windows e está
+  ativa. O primeiro ciclo confirmou heartbeat `online`, versão `1.0.0`, sem
+  executar pesquisa ou importar radar, pois não havia job solicitado.
+- Smoke pós-deploy: `https://www.rankftv.com/api/health` retornou 200 com
+  `{"status":"ok"}`; `/admin/evolucao` anônimo retornou 307 para `/login`.

@@ -136,10 +136,10 @@ pós-deploy.
 Atualize este arquivo quando branch, evidência, bloqueio ou próximo passo mudar.
 O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 
-## Central de Evolução — candidato de Production (21/10/2026)
+## Central de Evolução — publicada em Production (21/10/2026)
 
-- Worktree isolado `Projeto-RankFTV-evolucao`, branch
-  `feat/central-evolucao`, criado para não tocar o checkout principal sujo.
+- Worktree isolado `Projeto-RankFTV-evolucao` foi usado sem tocar o checkout
+  principal sujo. PRs #54 e #55 foram mescladas no `master`.
 - A rota `/admin/evolucao` reúne DataScience, Rocha Tech/Pulso.AI,
   Insta/Shape e a leitura simplificada do RankFTV. O módulo antigo
   `/admin/youtube` redireciona para a nova área.
@@ -152,12 +152,13 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 - O botão “Atualizar tudo com IA” cria uma solicitação no site, o Codex local
   prepara uma prévia e Carlos precisa aprovar antes da importação. Não há API
   paga de modelo nem pesquisa automática por cron.
-- O backup de Production `39653560790` foi concluído com sucesso antes da
-  promoção. Migration, merge, deploy e heartbeat ainda precisam ser
-  confirmados para considerar o recurso publicado.
+- O backup de Production `39653560790` foi concluído antes da promoção. A
+  migration verificada `39655806592` confirmou as 13 tabelas privadas, RLS,
+  grants e RPC do worker. Snapshots iniciais foram importados e a tarefa
+  `RankFTV Central Agent` está em execução com heartbeat online.
 - `npm run evolution:sync` transforma o roadmap do cofre e
-  `PENDENCIAS-V1.md` em snapshots; `npm run evolution:import` poderá importá-los
-  depois de autorização explícita e da migration homologada.
+  `PENDENCIAS-V1.md` em snapshots; `npm run evolution:import` já importou a
+  fotografia inicial e permanece como recuperação manual.
 - Typecheck, 847 testes (846 aprovados e 1 ignorado), lint sem erros, auditoria
   de dependências de produção sem vulnerabilidades e build Next.js com 72
   páginas geradas passaram no worktree.
