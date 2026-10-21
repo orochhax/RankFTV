@@ -28,8 +28,6 @@ export async function getEvolutionData() {
     reviewResult,
     sourceSnapshotsResult,
     ideasResult,
-    aiJobResult,
-    aiWorkerResult,
   ] = await Promise.all([
     supabase.from("evo_settings").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("evo_study_sessions").select("id,study_date,minutes,source,started_at,ended_at").eq("user_id", user.id).gte("study_date", range.start).lte("study_date", range.end).order("study_date"),
@@ -43,8 +41,6 @@ export async function getEvolutionData() {
     supabase.from("evo_ai_reviews").select("week_start,score,verdict,actions,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("evo_source_snapshots").select("source_kind,payload").eq("user_id", user.id),
     supabase.from("yt_ideas").select("id,title,status,current_rank,score,rationale").not("status", "eq", "discarded").order("current_rank", { ascending: true }).limit(6),
-    supabase.from("evo_ai_jobs").select("id,status,stage,progress_message,result,error_code,error_message,requested_at,preview_ready_at,approved_at,completed_at,updated_at").eq("user_id", user.id).order("requested_at", { ascending: false }).limit(1).maybeSingle(),
-    supabase.from("evo_ai_workers").select("status,version,last_seen_at,last_error_code").eq("user_id", user.id).maybeSingle(),
   ]);
 
   const settings = settingsResult.data ?? {
@@ -100,8 +96,6 @@ export async function getEvolutionData() {
     projectProgress: projectProgressResult.data ?? [],
     latestReview: reviewResult.data,
     ideas: ideasResult.data ?? [],
-    aiJob: aiJobResult.data,
-    aiWorker: aiWorkerResult.data,
     score,
     roadmap,
     rank,

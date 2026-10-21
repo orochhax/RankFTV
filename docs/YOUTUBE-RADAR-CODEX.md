@@ -1,12 +1,10 @@
 # Atualização manual do radar de IA pelo Codex
 
 O Pulso.AI, agora acessível pela área Rocha Tech da Central, é atualizado
-**somente quando Carlos pedir**. Não existe cron de pesquisa nem chamada à API
-paga da OpenAI. Carlos pode pedir pelo chat ou pelo botão “Atualizar tudo com
-IA” em `/admin/evolucao`. Nesse segundo fluxo, o site apenas cria uma fila
-privada; o Codex autenticado no PC faz o trabalho quando a máquina está ligada.
-O banco de Production recebe a importação transacional pelo script local; a
-interface lê exatamente esses mesmos registros.
+**somente quando Carlos pedir diretamente no chat**. Não existe cron de
+pesquisa, chamada à API paga da OpenAI, botão ou agente agendado. O banco de
+Production recebe a importação transacional pelo script local; a interface lê
+exatamente esses mesmos registros.
 
 ## Pedido que Carlos pode usar
 
@@ -68,7 +66,7 @@ Para um recorte, por exemplo:
 npm run youtube:import -- --preflight .codex-artifacts/nome-da-pesquisa.json
 ```
 
-8. Importe somente após Carlos revisar e aprovar a prévia:
+8. Importe somente após Carlos revisar e aprovar a atualização:
 
 ```powershell
 npm run youtube:import -- .codex-artifacts/nome-da-pesquisa.json
@@ -105,9 +103,8 @@ npm run youtube:import -- .codex-artifacts/nome-da-pesquisa.json
   não altere os arquivos de agendamento sem uma solicitação explícita de
   Carlos. A arquitetura de fontes e análises permanece para uma futura
   integração, porém está inativa por decisão de produto.
-- O job `awaiting_approval` contém uma prévia privada. Rejeitar a prévia muda o
-  job para `cancelled` sem importar o radar. Aprovar muda para `queued_apply`;
-  a importação só começa quando o agente local reivindica esse estado.
+- A aprovação do Carlos é dada no chat para cada importação. Não existe fila
+  automática nem agente local reivindicando atualizações.
 
 ## Validação de Production
 

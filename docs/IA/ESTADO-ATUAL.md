@@ -67,7 +67,20 @@ aprovação e não foi publicada, enviada ou impulsionada.
 Este é um atalho, não uma prova permanente. `PENDENCIAS-V1.md` define as
 pendências do lançamento e qualquer estado remoto mutável deve ser reconsultado.
 
-## Central de Evolução — reparo do agente local (21/10/2026)
+## Central de Evolução — atualização manual, sem agente local (21/10/2026)
+
+- Decisão atual de Carlos: retirar o botão “Atualizar tudo com IA” e fazer as
+  atualizações diretamente pelo chat. A tarefa do Windows `RankFTV Central
+  Agent` foi parada e desativada; históricos e tabelas foram preservados.
+- A home deixou de consultar e exibir fila, erro ou heartbeat do agente. Não há
+  pesquisa automática, cron nem API paga: o Codex pesquisa, valida e importa
+  somente quando Carlos pedir e autorizar no chat.
+- A atualização manual `93a11bf9-f76f-4a12-9a06-06c3b7b268da` passou no
+  preflight e importou 4 itens, 4 tendências e a reavaliação das 8 ideias
+  ativas em Production. O roadmap (81 dias) e RankFTV (36 pendências, 88%)
+  foram sincronizados e importados na Central.
+
+## Histórico — reparo do agente local (21/10/2026)
 
 - As duas primeiras solicitações de “Atualizar tudo com IA” falharam antes da
   pesquisa, sem alterar métricas, conteúdo ou snapshots. A investigação
