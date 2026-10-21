@@ -959,6 +959,17 @@ registrar apenas uma revalidação quando ela for necessária.
 - Evidência local: `node --check`, sete testes específicos e `git diff --check`
   passaram. A correção aguarda CI, merge, reinício da tarefa e nova análise.
 
+## 2026-10-21 18:26 -03:00 — Central de Evolução: completude editorial do agente
+
+- Diagnóstico: a primeira análise sem schema remoto chegou à pré-validação
+  local, que bloqueou duas entradas por ausência de `aiRelevance` e
+  `sourceOrigin`. Não houve importação ou alteração de métricas.
+- Correção local: o prompt agora exige explicitamente, em toda notícia,
+  tendência e ideia, `aiRelevance` com nota e justificativa e `sourceOrigin`
+  igual a `primary`, `market` ou `mixed`, sem tradução ou omissão.
+- Evidência local: `node --check`, sete testes específicos e `git diff --check`
+  passaram. A alteração aguarda CI, merge, reinício da tarefa e nova análise.
+
 ## 2026-10-21 17:39 -03:00 — Central de Evolução: títulos do radar em português
 
 - Diagnóstico: a pré-validação do payload completo bloqueou uma única notícia

@@ -50,6 +50,8 @@ test("agente usa pré-validação local sem schema remoto limitante", async () =
 test("prompt exige título em português e normaliza nulos antes do importador", async () => {
   const source = await readFile("scripts/evolution-local-agent.mjs", "utf8");
   assert.match(source, /Todo item\.title exibido na interface precisa estar em português/);
+  assert.match(source, /aiRelevance como \{ score: inteiro entre 70 e 100, rationale: texto \}/);
+  assert.match(source, /sourceOrigin com EXATAMENTE um destes valores: "primary", "market" ou "mixed"/);
   assert.match(source, /editorialProfile === null\) delete/);
   assert.match(source, /youtubeReferences === null\) delete/);
 });

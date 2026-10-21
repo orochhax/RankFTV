@@ -171,6 +171,16 @@ pendências do lançamento e qualquer estado remoto mutável deve ser reconsulta
 - Sintaxe, sete testes específicos e `git diff --check` passaram localmente.
   A alteração aguarda CI, merge e uma nova análise assistida.
 
+## Central de Evolução — completude do payload editorial (21/10/2026)
+
+- A primeira análise sem schema remoto concluiu a pesquisa e foi bloqueada pela
+  pré-validação local, antes de importar. Duas entradas omitiram `aiRelevance`
+  e `sourceOrigin`, campos obrigatórios do contrato editorial.
+- O prompt agora declara esses campos e sua enumeração literal para cada
+  notícia, tendência e ideia. A pré-validação local continua sendo a barreira
+  final antes de mostrar a prévia. Sintaxe, sete testes específicos e
+  `git diff --check` passaram; a correção aguarda CI e publicação.
+
 ## Checkout principal observado
 
 - Worktree: `Projeto-RankFTV`.
