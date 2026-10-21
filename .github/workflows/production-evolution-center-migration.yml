@@ -81,31 +81,37 @@ jobs:
         run: |
           set -euo pipefail
           pg17_bin="/usr/lib/postgresql/17/bin"
-          result="$($pg17_bin/psql \
-            --dbname="$SUPABASE_DB_URL" \
-            --no-psqlrc \
-            --set=ON_ERROR_STOP=1 \
-            --tuples-only \
-            --no-align \
-            --command="WITH expected(name) AS (VALUES
-                ('evo_settings'), ('evo_study_sessions'), ('evo_roadmap_progress'),
-                ('evo_training_logs'), ('evo_weight_logs'), ('evo_follower_snapshots'),
-                ('evo_equipment'), ('evo_weekly_videos'), ('evo_project_progress'),
-                ('evo_source_snapshots'), ('evo_ai_reviews'), ('evo_ai_jobs'), ('evo_ai_workers')
-              )
-              SELECT
-                (SELECT count(*) FROM expected e WHERE to_regclass('public.' || e.name) IS NOT NULL) = 13
-                AND NOT EXISTS (
-                  SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-                  WHERE n.nspname = 'public' AND left(c.relname, 4) = 'evo_'
-                    AND (NOT c.relrowsecurity OR NOT c.relforcerowsecurity)
-                )
-                AND NOT EXISTS (
-                  SELECT 1 FROM information_schema.role_table_grants
-                  WHERE table_schema = 'public' AND left(table_name, 4) = 'evo_'
-                    AND grantee IN ('anon', 'PUBLIC')
-                )
-                AND to_regprocedure('public.evo_claim_ai_job(uuid,text,text)') IS NOT NULL
-                AND has_function_privilege('service_role', 'public.evo_claim_ai_job(uuid,text,text)', 'EXECUTE')
-                AND NOT has_function_privilege('authenticated', 'public.evo_claim_ai_job(uuid,text,text)', 'EXECUTE');")"
-          test "$result" = "t"
+          psql_bool() {
+            "$pg17_bin/psql" \
+              --dbname="$SUPABASE_DB_URL" \
+              --no-psqlrc \
+              --set=ON_ERROR_STOP=1 \
+              --tuples-only \
+              --no-align \
+              --command="$1"
+          }
+
+          table_count="$(psql_bool "WITH expected(name) AS (VALUES
+            ('evo_settings'), ('evo_study_sessions'), ('evo_roadmap_progress'),
+            ('evo_training_logs'), ('evo_weight_logs'), ('evo_follower_snapshots'),
+            ('evo_equipment'), ('evo_weekly_videos'), ('evo_project_progress'),
+            ('evo_source_snapshots'), ('evo_ai_reviews'), ('evo_ai_jobs'), ('evo_ai_workers')
+          ) SELECT count(*) FROM expected e WHERE to_regclass('public.' || e.name) IS NOT NULL;")"
+          test "$table_count" = "13" || { echo "EVO_VERIFY_TABLE_COUNT:$table_count" >&2; exit 1; }
+
+          protected_count="$(psql_bool "SELECT count(*) FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND left(c.relname, 4) = 'evo_'
+              AND c.relkind = 'r' AND c.relrowsecurity AND c.relforcerowsecurity;")"
+          test "$protected_count" = "13" || { echo "EVO_VERIFY_RLS_COUNT:$protected_count" >&2; exit 1; }
+
+          client_grants="$(psql_bool "SELECT count(*) FROM information_schema.role_table_grants
+            WHERE table_schema = 'public' AND left(table_name, 4) = 'evo_'
+              AND grantee IN ('anon', 'PUBLIC');")"
+          test "$client_grants" = "0" || { echo "EVO_VERIFY_ANON_GRANTS:$client_grants" >&2; exit 1; }
+
+          worker_rpc="$(psql_bool "SELECT
+            to_regprocedure('public.evo_claim_ai_job(uuid,text,text)') IS NOT NULL
+            AND has_function_privilege('service_role', 'public.evo_claim_ai_job(uuid,text,text)', 'EXECUTE')
+            AND NOT has_function_privilege('authenticated', 'public.evo_claim_ai_job(uuid,text,text)', 'EXECUTE');")"
+          test "$worker_rpc" = "t" || { echo "EVO_VERIFY_WORKER_RPC" >&2; exit 1; }
