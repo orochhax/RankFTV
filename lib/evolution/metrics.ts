@@ -30,12 +30,14 @@ export function computeStudyWeek(
   asOf: string,
   dailyTargetMinutes = 120,
   weeklyTargetMinutes = 600,
+  startDate?: string,
 ): StudyWeekMetric {
   const range = weekRange(asOf);
+  const effectiveStart = startDate ?? range.start;
   const minutesByDate = new Map<string, number>();
 
   for (const session of sessions) {
-    if (session.studyDate < range.start || session.studyDate > range.end || session.minutes <= 0) continue;
+    if (session.studyDate < range.start || session.studyDate > range.end || session.studyDate < effectiveStart || session.minutes <= 0) continue;
     minutesByDate.set(session.studyDate, (minutesByDate.get(session.studyDate) ?? 0) + session.minutes);
   }
 
@@ -45,7 +47,8 @@ export function computeStudyWeek(
   const days = Array.from({ length: 7 }, (_, index) => {
     const date = addDays(range.start, index);
     const minutes = minutesByDate.get(date) ?? 0;
-    const isWeekday = index < 5;
+    const isBeforeStart = date < effectiveStart;
+    const isWeekday = index < 5 && !isBeforeStart;
     const targetMinutes = isWeekday ? dailyTargetMinutes : 0;
     const originalDeficitMinutes = isWeekday ? Math.max(0, targetMinutes - minutes) : 0;
     const availableExtra = isWeekday ? Math.max(0, minutes - targetMinutes) : minutes;
@@ -64,16 +67,16 @@ export function computeStudyWeek(
       date,
       minutes,
       targetMinutes,
-      metDailyMinimum: !isWeekday || minutes >= dailyTargetMinutes,
+      metDailyMinimum: isBeforeStart || !isWeekday || minutes >= dailyTargetMinutes,
       originalDeficitMinutes,
       extraAppliedToDebtMinutes,
     };
   });
 
-  const elapsedWeekdays = days.filter((day, index) => index < 5 && day.date <= asOf);
+  const elapsedWeekdays = days.filter((day, index) => index < 5 && day.date >= effectiveStart && day.date <= asOf);
   const dailyCompliance = elapsedWeekdays.length
     ? elapsedWeekdays.filter((day) => day.metDailyMinimum).length / elapsedWeekdays.length
-    : 1;
+    : 0;
   const weeklyProgress = Math.min(1, totalMinutes / weeklyTargetMinutes);
 
   return {
