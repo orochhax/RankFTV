@@ -127,6 +127,23 @@ concluiu todas as etapas e publicou o artefato privado
 projeto isolado continua sendo uma etapa separada e obrigatoria antes do
 lancamento.
 
+### 2.2 Central de Evolucao pessoal
+
+A Central não integra a linha de base comercial da V1. Para publicá-la, use
+somente o workflow manual protegido
+`.github/workflows/production-evolution-center-migration.yml`. Ele recusa
+outro project ref, exige `yt_ideas`, aplica `evolution-center.sql` e
+`20261021000100_evolution_ai_jobs.sql` em uma transação, repete o hardening do
+schema público e confirma 13 tabelas com RLS/force RLS, nenhum grant anônimo e
+a RPC de claim exclusiva do `service_role`.
+
+Antes do workflow, execute `production-backup.yml` e confirme o artefato
+criptografado. Depois, importe os snapshots com `npm run evolution:sync` e
+`npm run evolution:import`, instale o agente local conforme
+`docs/CENTRAL-DE-EVOLUCAO.md` e valide o heartbeat. O rollback normal é
+reimplantar a aplicação anterior e parar a tarefa local; não remover as tabelas
+nem apagar o histórico de jobs.
+
 ## 3. Validacao do banco
 
 ### 3.1 Objetos e permissoes

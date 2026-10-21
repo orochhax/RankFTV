@@ -1,17 +1,31 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing, BellRing, BadgeCheck, Plane, Languages } from "lucide-react";
+import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing, BellRing, BadgeCheck, GraduationCap, Plane, Languages, Clapperboard } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRole, isAdminRole } from "@/lib/supabase/roles";
 import { isPerformanceOwner } from "@/lib/performance-owner";
 
 const MENU = [
   {
+    href: "/admin/evolucao",
+    personalOwnerOnly: true,
+    icon: Clapperboard,
+    label: "Central de Evolução",
+    desc: "Acompanhe DataScience, Rocha Tech, Insta/Shape e RankFTV em um único painel.",
+  },
+  {
     href: "/admin/curso-ingles",
     personalOwnerOnly: true,
     icon: Languages,
     label: "Roadmap de inglês",
     desc: "Plano pessoal de um ano com progresso separado para Carlos e Júlia.",
+  },
+  {
+    href: "/admin/estudos",
+    ownerOnly: true,
+    icon: GraduationCap,
+    label: "Central de estudos",
+    desc: "Planejamento, matérias, cronômetro e evolução em uma única página.",
   },
   {
     href: "/admin/carteiras",
@@ -67,7 +81,7 @@ const MENU = [
     personalOwnerOnly: true,
     icon: Plane,
     label: "Mudança para Portugal",
-    desc: "Tarefas, gastos e comparação de vistos para Portugal e Espanha.",
+    desc: "Lista de tarefas e controle de gastos pessoais para sua mudança.",
   },
   {
     href: "/admin/campeonatos",

@@ -1,0 +1,229 @@
+{
+  "generatedAt": "2026-10-21T17:32:49.664Z",
+  "sourcePath": "PENDENCIAS-V1.md",
+  "updatedAt": "2026-10-20",
+  "progress": {
+    "percent": 88,
+    "completed": 126,
+    "total": 144,
+    "remaining": 18
+  },
+  "items": [
+    {
+      "id": "p0-concluir-a-homologacao-de-reembolso-sem-conta-para-pix-e-cartao-nos-cenarios-ain",
+      "title": "Concluir a homologação de reembolso sem conta para Pix e cartão nos cenários ainda não cobertos: parcial no cartão, repetição, timeout, saldo insuficiente, cobrança inelegível e tentativa do parceiro",
+      "priority": "P0",
+      "summary": "Concluir a homologação de reembolso sem conta para Pix e cartão nos cenários ainda não cobertos: parcial no cartão, repetição, timeout, saldo insuficiente, cobrança inelegível e tentativa do parceiro."
+    },
+    {
+      "id": "p0-obter-do-adquirente-processador-confirmacao-documentada-do-escopo-pci-saq-aplica",
+      "title": "Obter do adquirente/processador confirmação documentada do escopo PCI/SAQ aplicável antes de aceitar cartões reais",
+      "priority": "P0",
+      "summary": "Obter do adquirente/processador confirmação documentada do escopo PCI/SAQ aplicável antes de aceitar cartões reais."
+    },
+    {
+      "id": "p0-implementar-e-homologar-o-parcelamento-de-inscricoes-no-checkout-hospedado-do-as",
+      "title": "Implementar e homologar o parcelamento de inscrições no checkout hospedado do Asaas, conforme a PR 32",
+      "priority": "P0",
+      "summary": "Implementar e homologar o parcelamento de inscrições no checkout hospedado do Asaas, conforme a PR 32."
+    },
+    {
+      "id": "p0-concluir-a-carteira-individual-e-o-saque-manual-do-organizador-da-pr-33",
+      "title": "Concluir a carteira individual e o saque manual do organizador da PR 33",
+      "priority": "P0",
+      "summary": "Concluir a carteira individual e o saque manual do organizador da PR 33."
+    },
+    {
+      "id": "p0-ativar-e-homologar-em-producao-os-avisos-de-alteracao-de-data-horario-ou-local",
+      "title": "Ativar e homologar em produção os avisos de alteração de data, horário ou local",
+      "priority": "P0",
+      "summary": "Ativar e homologar em produção os avisos de alteração de data, horário ou local."
+    },
+    {
+      "id": "p0-comprar-e-configurar-e-mail-comercial-no-dominio-rankftv-como-canal-oficial-de-s",
+      "title": "Comprar e configurar e-mail comercial no domínio RankFTV como canal oficial de suporte",
+      "priority": "P0",
+      "summary": "Comprar e configurar e-mail comercial no domínio RankFTV como canal oficial de suporte."
+    },
+    {
+      "id": "p0-publicar-nos-termos-e-na-privacidade-a-operacao-como-pessoa-fisica-identificando",
+      "title": "Publicar nos Termos e na Privacidade a operação como pessoa física, identificando o responsável como Carlos Gregório Rocha Batista, após validação jurídica dos dados que precisam ser públicos",
+      "priority": "P0",
+      "summary": "Publicar nos Termos e na Privacidade a operação como pessoa física, identificando o responsável como Carlos Gregório Rocha Batista, após validação jurídica dos dados que precisam ser públicos."
+    },
+    {
+      "id": "p0-publicar-canal-de-suporte-atendido-responsavel-horario-e-prazo-de-resposta-reais",
+      "title": "Publicar canal de suporte atendido, responsável, horário e prazo de resposta reais",
+      "priority": "P0",
+      "summary": "Publicar canal de suporte atendido, responsável, horário e prazo de resposta reais."
+    },
+    {
+      "id": "p0-obter-revisao-juridica-da-politica-de-cancelamento-reembolso-e-do-fluxo-lgpd",
+      "title": "Obter revisão jurídica da política de cancelamento/reembolso e do fluxo LGPD",
+      "priority": "P0",
+      "summary": "Obter revisão jurídica da política de cancelamento/reembolso e do fluxo LGPD."
+    },
+    {
+      "id": "p0-executar-smoke-final-em-producao-cadastro-login-recuperacao-checkout-pix-cartao-",
+      "title": "Executar smoke final em produção: cadastro, login, recuperação, checkout, Pix, cartão, credenciais individuais, e-mail, QR, check-in, chaveamento, cancelamento, reembolso e financeiro",
+      "priority": "P0",
+      "summary": "Executar smoke final em produção: cadastro, login, recuperação, checkout, Pix, cartão, credenciais individuais, e-mail, QR, check-in, chaveamento, cancelamento, reembolso e financeiro."
+    },
+    {
+      "id": "p0-definir-data-de-abertura-de-pagamentos-reais-somente-depois-dos-demais-p0",
+      "title": "Definir data de abertura de pagamentos reais somente depois dos demais P0",
+      "priority": "P0",
+      "summary": "Definir data de abertura de pagamentos reais somente depois dos demais P0."
+    },
+    {
+      "id": "p1-ativar-e-homologar-protecao-contra-senhas-vazadas-do-supabase-auth",
+      "title": "Ativar e homologar proteção contra senhas vazadas do Supabase Auth",
+      "priority": "P1",
+      "summary": "Ativar e homologar proteção contra senhas vazadas do Supabase Auth."
+    },
+    {
+      "id": "p1-comprar-chip-e-configurar-whatsapp-oficial-ate-la-manter-e-mail-comercial-e-form",
+      "title": "Comprar chip e configurar WhatsApp oficial; até lá, manter e-mail comercial e formulário como canais oficiais",
+      "priority": "P1",
+      "summary": "Comprar chip e configurar WhatsApp oficial; até lá, manter e-mail comercial e formulário como canais oficiais."
+    },
+    {
+      "id": "p1-consolidar-migrations-e-sqls-em-baseline-reproduzivel-comprovar-supabase-db-rese",
+      "title": "Consolidar migrations e SQLs em baseline reproduzível; comprovar supabase db reset em ambiente descartável e dry-run antes de produção",
+      "priority": "P1",
+      "summary": "Consolidar migrations e SQLs em baseline reproduzível; comprovar supabase db reset em ambiente descartável e dry-run antes de produção."
+    },
+    {
+      "id": "p1-executar-ensaio-prolongado-de-capacidade-com-50-e-100-usuarios-virtuais",
+      "title": "Executar ensaio prolongado de capacidade com 50 e 100 usuários virtuais",
+      "priority": "P1",
+      "summary": "Executar ensaio prolongado de capacidade com 50 e 100 usuários virtuais."
+    },
+    {
+      "id": "p1-homologar-em-navegador-real-o-pdf-de-cada-credencial-individual-ja-implementado-",
+      "title": "Homologar em navegador real o PDF de cada credencial individual já implementado, confirmando dados mínimos, QR atual validado pelo servidor, revogação/substituição e impressão no celular e no desktop",
+      "priority": "P1",
+      "summary": "Homologar em navegador real o PDF de cada credencial individual já implementado, confirmando dados mínimos, QR atual validado pelo servidor, revogação/substituição e impressão no celular e no desktop."
+    },
+    {
+      "id": "p1-acrescentar-a-confirmacao-compartilhamento-apenas-do-link-publico-do-campeonato-",
+      "title": "Acrescentar à confirmação compartilhamento apenas do link público do campeonato, nunca do pedido, QR ou token privado",
+      "priority": "P1",
+      "summary": "Acrescentar à confirmação compartilhamento apenas do link público do campeonato, nunca do pedido, QR ou token privado."
+    },
+    {
+      "id": "p1-auditar-pgtrgm-e-se-seguro-move-la-para-extensions-com-buscas-e-indices-revalida",
+      "title": "Auditar pgtrgm e, se seguro, movê-la para extensions com buscas e índices revalidados",
+      "priority": "P1",
+      "summary": "Auditar pgtrgm e, se seguro, movê-la para extensions com buscas e índices revalidados."
+    },
+    {
+      "id": "p1-homologar-login-recuperacao-e-os-dois-pollings-no-sandbox-depois-do-hardening-de",
+      "title": "Homologar login, recuperação e os dois pollings no Sandbox depois do hardening de cookies/endpoints públicos já implementado",
+      "priority": "P1",
+      "summary": "Homologar login, recuperação e os dois pollings no Sandbox depois do hardening de cookies/endpoints públicos já implementado."
+    },
+    {
+      "id": "p1-estender-a-validacao-de-conteudo-real-a-todos-os-uploads",
+      "title": "Estender a validação de conteúdo real a todos os uploads",
+      "priority": "P1",
+      "summary": "Estender a validação de conteúdo real a todos os uploads."
+    },
+    {
+      "id": "p1-concluir-a-sanitizacao-de-acoes-administrativas-nao-financeiras-que-ainda-possam",
+      "title": "Concluir a sanitização de ações administrativas não financeiras que ainda possam devolver error.message, priorizando dados pessoais",
+      "priority": "P1",
+      "summary": "Concluir a sanitização de ações administrativas não financeiras que ainda possam devolver error.message, priorizando dados pessoais."
+    },
+    {
+      "id": "p1-revisar-minimizacao-retencao-e-criptografia-de-cpf-e-mail-chaves-pix-e-backups-a",
+      "title": "Revisar minimização, retenção e criptografia de CPF, e-mail, chaves Pix e backups, além do inventário local de segredos",
+      "priority": "P1",
+      "summary": "Revisar minimização, retenção e criptografia de CPF, e-mail, chaves Pix e backups, além do inventário local de segredos."
+    },
+    {
+      "id": "p1-na-primeira-semana-acompanhar-diariamente-conciliacao-webhooks-pendencias-e-mail",
+      "title": "Na primeira semana, acompanhar diariamente conciliação, webhooks, pendências, e-mails, estornos, suporte e repasses",
+      "priority": "P1",
+      "summary": "Na primeira semana, acompanhar diariamente conciliação, webhooks, pendências, e-mails, estornos, suporte e repasses."
+    },
+    {
+      "id": "p1-validar-operacao-real-controlada-de-estorno-e-repasse-quando-houver-transacao-el",
+      "title": "Validar operação real controlada de estorno e repasse quando houver transação elegível",
+      "priority": "P1",
+      "summary": "Validar operação real controlada de estorno e repasse quando houver transação elegível."
+    },
+    {
+      "id": "p1-definir-e-testar-contingencia-de-check-in-offline-em-dois-aparelhos-antes-do-pri",
+      "title": "Definir e testar contingência de check-in offline em dois aparelhos antes do primeiro evento com público",
+      "priority": "P1",
+      "summary": "Definir e testar contingência de check-in offline em dois aparelhos antes do primeiro evento com público."
+    },
+    {
+      "id": "p1-homologar-no-sandbox-os-formularios-e-anexos-apos-reduzir-serveractions-bodysize",
+      "title": "Homologar no Sandbox os formulários e anexos após reduzir serverActions.bodySizeLimit para 1 MB",
+      "priority": "P1",
+      "summary": "Homologar no Sandbox os formulários e anexos após reduzir serverActions.bodySizeLimit para 1 MB."
+    },
+    {
+      "id": "p1-aplicar-gradualmente-os-tipos-supabase-gerados-aos-tres-clientes-e-depois-inclui",
+      "title": "Aplicar gradualmente os tipos Supabase gerados aos três clientes e depois incluir types:supabase:check no CI com token mínimo",
+      "priority": "P1",
+      "summary": "Aplicar gradualmente os tipos Supabase gerados aos três clientes e depois incluir types:supabase:check no CI com token mínimo."
+    },
+    {
+      "id": "p1-transformar-verificacoes-sql-criticas-em-pgtap-e-executar-no-ci",
+      "title": "Transformar verificações SQL críticas em pgTAP e executar no CI",
+      "priority": "P1",
+      "summary": "Transformar verificações SQL críticas em pgTAP e executar no CI."
+    },
+    {
+      "id": "p1-expandir-os-cenarios-e2e-autenticados-e-mutantes-que-ainda-sao-condicionais-a-co",
+      "title": "Expandir os cenários E2E autenticados e mutantes que ainda são condicionais à configuração de contas/dados descartáveis do Sandbox",
+      "priority": "P1",
+      "summary": "Expandir os cenários E2E autenticados e mutantes que ainda são condicionais à configuração de contas/dados descartáveis do Sandbox."
+    },
+    {
+      "id": "p1-comprovar-o-workflow-remoto-do-github-actions-inclusive-bootstrap-do-cliente-pos",
+      "title": "Comprovar o workflow remoto do GitHub Actions, inclusive bootstrap do cliente PostgreSQL e backup criptografado, e trocar nomes antigos de chaves Supabase nos ambientes remotos pela nomenclatura atual",
+      "priority": "P1",
+      "summary": "Comprovar o workflow remoto do GitHub Actions, inclusive bootstrap do cliente PostgreSQL e backup criptografado, e trocar nomes antigos de chaves Supabase nos ambientes remotos pela nomenclatura atual."
+    },
+    {
+      "id": "p2-emitir-passes-oficiais-para-apple-wallet-e-google-wallet",
+      "title": "Emitir passes oficiais para Apple Wallet e Google Wallet",
+      "priority": "P2",
+      "summary": "Emitir passes oficiais para Apple Wallet e Google Wallet."
+    },
+    {
+      "id": "p2-adicionar-login-cadastro-google-com-vinculo-seguro-de-contas-e-coleta-gradual-de",
+      "title": "Adicionar login/cadastro Google, com vínculo seguro de contas e coleta gradual de perfil",
+      "priority": "P2",
+      "summary": "Adicionar login/cadastro Google, com vínculo seguro de contas e coleta gradual de perfil."
+    },
+    {
+      "id": "p2-remover-style-src-unsafe-inline-da-csp-apos-migrar-estilos-dinamicos",
+      "title": "Remover style-src 'unsafe-inline' da CSP após migrar estilos dinâmicos",
+      "priority": "P2",
+      "summary": "Remover style-src 'unsafe-inline' da CSP após migrar estilos dinâmicos."
+    },
+    {
+      "id": "p2-ensaiar-restauracao-completa-de-banco-e-storage-em-ambiente-descartavel",
+      "title": "Ensaiar restauração completa de banco e Storage em ambiente descartável",
+      "priority": "P2",
+      "summary": "Ensaiar restauração completa de banco e Storage em ambiente descartável."
+    },
+    {
+      "id": "p2-reduzir-a-divida-tecnica-do-lint-repositories-services-imports-entre-camadas-com",
+      "title": "Reduzir a dívida técnica do lint: repositories/services, imports entre camadas, complexidade, arquivos longos, non-null assertions e TypeScript estrito; encerrar apenas quando lint, typecheck, testes e build passarem",
+      "priority": "P2",
+      "summary": "Reduzir a dívida técnica do lint: repositories/services, imports entre camadas, complexidade, arquivos longos, non-null assertions e TypeScript estrito; encerrar apenas quando lint, typecheck, testes e build passarem."
+    },
+    {
+      "id": "p2-revisar-mensalmente-metricas-falhas-e-suporte-priorizar-melhorias-reais-e-planej",
+      "title": "Revisar mensalmente métricas, falhas e suporte; priorizar melhorias reais e planejar Arena comercial, PWA, carteiras digitais e analytics avançado",
+      "priority": "P2",
+      "summary": "Revisar mensalmente métricas, falhas e suporte; priorizar melhorias reais e planejar Arena comercial, PWA, carteiras digitais e analytics avançado."
+    }
+  ]
+}

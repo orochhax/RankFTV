@@ -7,56 +7,102 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`██████████████████░░` **88% concluído** — 127 de 144 marcos P0 foram
-concluídos; restam 17 marcos atômicos, agrupados abaixo em 13 entradas
-acionáveis. A linha de base foi ampliada para contabilizar parcelamento de
-inscrições, carteira/saque do organizador, atualização segura das dependências
-e promoção dos hardenings P0 encontrados na auditoria de 20/10.
+`██████████████████░░` **88% concluído** — 126 de 144 marcos P0 foram
+concluídos; restam 18 marcos atômicos, agrupados abaixo em 14 entradas
+acionáveis. A linha de base de 140 marcos foi ampliada em 20/10/2026 com dois
+bloqueios de lançamento que ainda não estavam contabilizados: parcelamento de
+inscrições e carteira/saque do organizador; a revalidação acrescentou também a
+correção das vulnerabilidades de dependência e a promoção dos novos hardenings
+P0. Entregas parciais não contam como concluídas até a evidência correspondente
+passar.
 
 Ao concluir ou acrescentar um marco P0, atualizar a barra, os números e a data.
 P1/P2 não alteram esse percentual.
 
 ### Reconciliação do estado — 20/10/2026
 
-- `origin/master` estava em `5c75756` no início desta rodada. O checkout pessoal
-  aberto possuía alterações não commitadas e não foi usado como candidato de
-  release; o trabalho da V1 foi isolado em `fix/v1-security-release`.
-- Next.js e `eslint-config-next` foram atualizados de 16.4.0 para 16.4.2. A
-  auditoria de dependências de produção retornou zero vulnerabilidades. O npm
-  ainda lista cinco vulnerabilidades altas somente na cadeia de lint de
-  desenvolvimento (`eslint-config-next`/`fast-glob`/`micromatch`/`braces`) e
-  oferece como “correção” um downgrade incompatível; não usar `--force`.
-- O release local passou a incluir limite real de stream para webhooks/funil,
-  upload de suporte pelo servidor com validação de assinatura, health público
-  mínimo, deduplicação do funil e hardening incremental das RPCs Elite, Pix e
-  contatos. As migrations ainda precisam ser aplicadas e testadas primeiro no
-  Sandbox; presença no Git não equivale a promoção remota.
-- A correção do guard E2E local foi comprovada por 30/30 cenários de segurança
-  e acesso em Chromium, Firefox, WebKit e dois perfis móveis. A bateria completa
-  do commit final permanece obrigatória antes da abertura da PR.
-- A PR #33 da carteira continuava aberta com CI/Preview aprovados e 20 checks
-  estruturais verdadeiros em Sandbox e Production. A PR #32 de parcelamento
-  também permanecia aberta. Nenhuma das duas está comprovada em Production.
+Esta fotografia distingue código implantado, trabalho em PR e alterações
+somente locais. Nenhuma das evidências abaixo autoriza pagamento real:
+
+- `origin/master` estava em `5c75756` (PR #46) no momento da auditoria. O
+  checkout aberto, `feat/english-roadmap-personal` em `50f4557`, estava 15
+  commits atrás de `origin/master`, possuía muitas alterações não commitadas e
+  **não é um candidato de release**. Não fazer merge/rebase automático sobre
+  esse estado.
+- A PR #33 (`feat/organizer-wallet`) permanecia aberta, com CI e Preview
+  aprovados. Os 20 checks estruturais da carteira foram registrados como
+  verdadeiros no Sandbox e em Production em 02/10; isso valida objetos e
+  permissões, mas não substitui o teste transacional do Asaas nem comprova que
+  o código da PR está em produção.
+- A PR #32 documenta o parcelamento como P0 e permanecia aberta, com CI e
+  Preview aprovados. Não há evidência de implementação/homologação completa do
+  fluxo parcelado no produto.
+- A PR #27 registra evidência estrutural dos avisos de campeonato, mas a matriz
+  N01–N15 continua sem execução registrada. As PRs #28–#31 também permaneciam
+  abertas; a #30 tinha o check `verify` reprovado. Revisar, atualizar ou fechar
+  essas branches antes de formar o próximo candidato de release.
+- O checkout contém hardenings locais ainda não promovidos: limites de corpo,
+  validação server-side de anexos de suporte, minimização do health check,
+  deduplicação do funil público, sanitização parcial de erros administrativos e
+  hardening de RPCs sensíveis. Eles são trabalho em andamento, não evidência de
+  Production.
+- Revalidação local de 20/10: `npm run typecheck` passou; `npm test` registrou
+  813 testes, 812 aprovados e 1 ignorado; `npm run build` passou no Next.js
+  16.3.7 e gerou 71 páginas. O lint estrito falhou em dois usos de `setState`
+  dentro de effects de `PortugalMovePlanner.tsx` (módulo pessoal, fora da V1,
+  mas ainda bloqueia o gate global). `npm run audit:prod` falhou com três
+  vulnerabilidades altas em Next.js/Sharp/source-map-js. Portanto este checkout
+  não passa os gates de release.
+- O smoke público somente leitura de 20/10 parou no health check: Production
+  ainda respondeu com `checks`, latência, release, serviço e timestamp, enquanto
+  o código local novo exige somente `{ "status": "ok" }`. Isso confirma que o
+  hardening local não foi promovido e impede usar o restante desse smoke como
+  evidência atual de Production.
+
+### Última bateria técnica completa registrada — 02/10/2026
+
+Esta revalidação do checkout local não altera a contagem de marcos P0 e não
+substitui homologação de Sandbox/Production:
+
+- `npm run audit:prod`: zero vulnerabilidades de produção.
+- `npm run typecheck`: concluído sem erros.
+- `npm test`: 806/806 testes aprovados.
+- `npm run build`: concluído, com 67 páginas estáticas geradas; a build também
+  incluiu a rota `/admin/estudos`.
+- `npm run test:e2e`: 25 aprovados e 60 ignorados em cinco perfis de navegador;
+  os cenários ignorados dependem de contas, dados ou flags mutáveis de Sandbox.
+  O servidor local registrou erro externo do Turnstile, sem falha nos testes
+  aprovados.
+- `npm run lint`: zero erros e 1.240 avisos de baseline de qualidade; o comando
+  terminou com código zero nesta execução.
+- O replay das migrations não foi executado: este ambiente não tem Supabase CLI,
+  `psql` nem banco descartável configurado. A ordem documentada no
+  `RUNBOOK-PRODUCAO.md` foi revisada, não reaplicada.
+- A branch usada naquela execução foi sincronizada por fast-forward com
+  `origin/feat/refund-policy-homologation` no commit `7538a1a`. Esse resultado é
+  histórico e deve ser repetido no commit exato escolhido para o próximo
+  release.
 
 ## P0 — Obrigatório antes de abrir pagamentos reais
 
 ### Segurança, autenticação e dados
 
-- [x] Atualizar deliberadamente as dependências de produção afetadas. Em
-  20/10/2026, Next.js e `eslint-config-next` foram elevados para 16.4.2 sem
-  `npm audit fix --force`; `npm run audit:prod` passou com zero
-  vulnerabilidades. Lint, typecheck, testes, build e E2E precisam permanecer
-  verdes no commit final. As cinco ocorrências altas remanescentes são somente
-  da cadeia de lint de desenvolvimento e não possuem atualização segura
-  oferecida pelo npm nesta data.
-- [ ] Aplicar no Sandbox, homologar, versionar e promover o pacote incremental
-  de hardening P0 desta branch: `20261020000100_p0_sensitive_rpc_hardening.sql`,
-  `20261020000200_public_funnel_deduplication.sql`, health mínimo, limites de
-  corpo e upload de suporte validado no servidor. Executar o teste integrado
-  apenas com fixtures descartáveis e a trava
-  `P0_RPC_TEST_DISPOSABLE_SANDBOX=RANKFTV_DISPOSABLE_SANDBOX`; conferir grants,
-  overloads e rollback em `docs/ROLLBACK-P0-SENSITIVE-RPCS.md`. Production não
-  deve receber essas migrations antes da evidência de Sandbox e do Preview.
+- [x] Atualizar e validar as dependências com vulnerabilidades altas encontradas
+  em 20/10/2026. O `master` atualiza Next.js/`eslint-config-next` para 16.4.2,
+  `sharp` para 0.35.5 e `source-map-js` para 1.2.2. `npm audit --omit=dev`
+  retornou zero vulnerabilidades; typecheck, 813 testes e build também
+  passaram. A suíte mutável de navegador ainda exige o alias protegido
+  `sandbox-homologacao` para sua execução financeira.
+- [x] Revisar, versionar e promover os hardenings P0: `20260210000100_p0_sensitive_rpc_hardening.sql`, seu
+  rollback/check de permissões, health público mínimo e deduplicação do funil.
+  A homologação em Sandbox e a aplicação controlada em Production foram
+  concluídas no workflow `39477700522`, após backup lógico `39475353118`.
+  O workflow também provisionou a tabela base do funil de forma idempotente,
+  verificou o índice de deduplicação e confirmou os grants. O healthcheck de
+  Production retornou HTTP 200 com `{"status":"ok"}` e a auditoria somente
+  leitura `39477800357` terminou com sucesso. Limites de corpo, anexos e
+  sanitização administrativa permanecem itens separados quando não incluídos
+  nesse release.
 
 - [x] Aplicar em produção, numa janela controlada e depois da homologação, o
   grant mínimo de `supabase/production-security-20-point-hardening.sql`.
@@ -136,29 +182,60 @@ P1/P2 não alteram esse percentual.
   Diego Teste Sandbox: caso criado, atribuído, registrado como aguardando prova
   e resolvido sem dados financeiros adicionais.
 - [ ] Obter do adquirente/processador confirmação documentada do escopo PCI/SAQ
-  aplicável. Campeonatos, ingresso de atleta, aluguel e diária usam checkout
-  hospedado do Asaas e não recebem PAN/CVV, mas o financeiro do aluno de arena
-  ainda possui fluxo de cartão salvo/tokenizado (`salvarCartaoArena` e
-  `tokenizarCartao`). Confirmar formalmente os dados trafegados, persistência do
-  token e elegibilidade antes de habilitar cobranças reais nessa superfície.
-- [ ] Implementar e homologar o parcelamento de inscrições do checkout
-  hospedado conforme a PR #32: uma cobrança `INSTALLMENT`, limite de parcelas,
-  resumo antes da confirmação e contabilização que não libere parcelas ainda
-  inelegíveis. Cobrir idempotência, timeout, conciliação, estorno,
-  chargeback e antecipação no Sandbox antes de promover.
+  aplicável antes de aceitar cartões reais. **Migração para checkout hospedado
+  concluída para pagamentos de campeonatos:** cartão de crédito/débito abre a
+  `invoiceUrl` do Asaas; PAN/CVV não são coletados nem armazenados pela RankFTV.
+  No Pix, o pagamento é iniciado no Asaas e QR/copia-e-cola são apresentados na
+  interface RankFTV. Verificados `components/pagamento/PaymentUI.tsx`,
+  `lib/asaas.ts` e `app/campeonatos/[id]/inscrever/actions.ts` em 02/10/2026.
+  Outras superfícies também usam checkout hospedado: compra de ingresso de atleta,
+  aluguel e diária de arena retornam `invoiceUrl` e redirecionam ao Asaas. A
+  assinatura paga recorrente de arena está bloqueada por feature flag e action
+  server-side, sem cobrança ativa. **Escopo que exige revisão PCI/SAQ própria:**
+  cartão salvo/tokenizado no financeiro do aluno de arena (`salvarCartaoArena`,
+  `tokenizarCartao` em `app/arenas/[handle]/financeiro/actions.ts` e `lib/asaas.ts`),
+  usado por retentativas de cobranças da arena; confirmar dados trafegados,
+  controles, persistência do token e elegibilidade antes de habilitar/continuar
+  cobranças reais. Não confundir token de cartão com checkout hospedado. A action
+  `app/arenas/[handle]/assinar/[planId]/actions.ts` atualmente rejeita assinaturas
+  pagas mesmo com flag, mantendo-as indisponíveis. A verificação de código não
+  substitui confirmação formal PCI/SAQ nem aprovação do adquirente.
+- [ ] Implementar e homologar o parcelamento de inscrições no checkout
+  hospedado do Asaas, conforme a PR #32. O produto deve criar uma única cobrança
+  `INSTALLMENT`, respeitar `maxInstallmentCount`, mostrar quantidade/valor das
+  parcelas antes da confirmação e manter a contabilização integral D+32 ou por
+  antecipação/reserva própria, sem liberar repasse de parcelas ainda não
+  elegíveis. Cobrir idempotência, timeout, conciliação, estorno parcial/integral,
+  chargeback e diferença entre valor contratado, recebido e antecipado. Só
+  concluir depois de código, migration, testes e matriz Sandbox aprovados.
 - [ ] Concluir a carteira individual e o saque manual do organizador da PR #33.
-  Os 20 checks estruturais já foram informados como verdadeiros em Sandbox e
-  Production, mas ainda faltam merge/promoção e a matriz transacional no
-  Preview/Sandbox: Pix, D+3/D+32, saque parcial, seleção de recebíveis,
-  antecipação, documentação, timeout/ambiguidade, concorrência, isolamento,
-  estorno, chargeback e dívida compensável.
+  O schema/hardening já foi verificado por 20 checks no Sandbox e em Production,
+  e a PR possui CI/Preview aprovados, mas o código ainda não foi mesclado nem
+  promovido. No Preview conectado exclusivamente ao Sandbox, executar Pix, D+3,
+  D+32, seleção e saque parcial, antecipação e taxa, documentação exigida,
+  falha/timeout/resposta ambígua, concorrência, isolamento entre organizadores,
+  estorno, chargeback e dívida compensável. Depois, revisar o diff contra
+  `master`, promover o mesmo commit e repetir smoke controlado. O roteiro está
+  em `docs/SMOKE-TRANSACIONAL-V1.md` e a situação resumida em
+  `docs/REFERENCIA-PASSO-A-PASSO-CARTEIRA-ORGANIZADOR.md`.
 
 ### Operação de campeonatos
 
 - [ ] Ativar e homologar em produção os avisos de alteração de data, horário ou
-  local. Confirmar destinatários pagos/ativos, deduplicação de e-mail
-  compartilhado, retentativas, auditoria e exclusão de pendentes, expirados e
-  estornados. A fila e a homologação funcional no Sandbox já existem.
+  local. Implementação revisada: edição opt-in, fila idempotente por hash do
+  destinatário normalizado, deduplicação in-app por usuário/aviso, claim atômico,
+  revalidação de ingresso pago, até cinco tentativas com backoff, recuperação de
+  claim após 15 min, auditoria, allowlist opcional e cron autenticado a cada 15
+  min. Matriz de casos e critérios preparada em
+  `docs/MATRIZ-HOMOLOGACAO-NOTIFICACOES-V1.md`; roteiro de execução e evidências
+  em `docs/SMOKE-TRANSACIONAL-V1.md`. Ainda falta executar N01–N15 em Sandbox,
+  confirmar seleção de inscrições pendentes/expiradas/estornadas para os dois
+  modelos, retentativa/bounce/carga e observabilidade da fila; a revisão estática
+  não comprova esses comportamentos. A PR #27 contém nove verificações
+  estruturais verdadeiras e uma execução agendada bem-sucedida, mas isso não
+  preenche os resultados operacionais da matriz. Confirmar crons, migrations e
+  destinatários em Production na janela operacional designada. Nenhum e-mail
+  deve ser disparado fora da allowlist controlada durante essa homologação.
 - [x] Implementar fila idempotente de notificações ao organizador para cada pagamento,
   estorno integral ou parcial confirmado; entrega imediata pelo webhook e
   recuperação diária por cron. Migration aplicada no Sandbox em 21/09/2026.
@@ -266,19 +343,25 @@ P1/P2 não alteram esse percentual.
 - [ ] Consolidar migrations e SQLs em baseline reproduzível; comprovar
   `supabase db reset` em ambiente descartável e dry-run antes de produção.
 - [ ] Executar ensaio prolongado de capacidade com 50 e 100 usuários virtuais.
-- [ ] Permitir baixar cada credencial individual em PDF com dados mínimos e QR
-  validado pelo servidor.
+- [ ] Homologar em navegador real o PDF de cada credencial individual já
+  implementado, confirmando dados mínimos, QR atual validado pelo servidor,
+  revogação/substituição e impressão no celular e no desktop.
 - [ ] Acrescentar à confirmação compartilhamento apenas do link público do
   campeonato, nunca do pedido, QR ou token privado.
 - [ ] Auditar `pg_trgm` e, se seguro, movê-la para `extensions` com buscas e
   índices revalidados.
 - [ ] Homologar login, recuperação e os dois pollings no Sandbox depois do
   hardening de cookies/endpoints públicos já implementado.
-- [ ] Homologar no Sandbox o upload de suporte agora processado pelo servidor,
-  com limite de 4 MB e validação de assinatura/estrutura para JPEG, PNG, WebP
-  e PDF; decidir depois se quarentena/antimalware será exigida para a V1.
-- [ ] Revisar ações administrativas não financeiras que ainda possam devolver
-  `error.message`, priorizando dados pessoais.
+- [ ] Estender a validação de conteúdo real a todos os uploads. Anexos de
+  suporte já possuem autenticação, limite, MIME/extensão, assinatura e
+  terminadores validados no servidor; uploads públicos de imagens ainda são
+  diretos e não possuem quarentena/antimalware. Homologar também confirmação
+  pós-upload e remoção segura de objetos rejeitados.
+- [ ] Concluir a sanitização de ações administrativas não financeiras que ainda
+  possam devolver `error.message`, priorizando dados pessoais. A camada comum e
+  várias actions já foram endurecidas localmente, mas ainda existem ocorrências
+  em módulos administrativos e pessoais; não marcar como concluído até a busca
+  residual e os testes confirmarem ausência de detalhes internos no navegador.
 - [ ] Revisar minimização, retenção e criptografia de CPF, e-mail, chaves Pix e
   backups, além do inventário local de segredos.
 - [ ] Na primeira semana, acompanhar diariamente conciliação, webhooks,
