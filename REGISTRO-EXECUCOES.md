@@ -899,3 +899,19 @@ registrar apenas uma revalidação quando ela for necessária.
   foram aprovados. Os smokes não pesquisaram nem importaram conteúdo.
 - Estado ao registrar: correção ainda aguardando CI, merge em `master`, deploy
   e reinício da tarefa agendada. Nenhum segredo foi exibido.
+
+## 2026-10-21 17:13 -03:00 — Central de Evolução: schema de ideias do agente
+
+- Diagnóstico: depois de superar a inicialização do Codex, uma solicitação
+  falhou na leitura de métricas porque o agente consultava `locked_title` e
+  `user_notes`, nomes ausentes em `yt_ideas` de Production. A falha aconteceu
+  antes de qualquer pesquisa ou escrita.
+- Correção local: a consulta passou a usar `title_locked_by_user` e `notes`,
+  os nomes definidos pelo schema editorial real. Um teste de regressão protege
+  essa seleção contra retorno aos nomes inexistentes.
+- Evidência local: a leitura somente consulta em Production foi aprovada; a
+  suíte específica do agente passou com quatro testes e
+  `npm run evolution:agent:once` iniciou sem job. Nenhuma pesquisa, importação
+  ou alteração de métricas ocorreu.
+- Estado ao registrar: correção aguardando CI, merge em `master`, deploy e
+  reinício da tarefa. Nenhum segredo foi exibido.

@@ -173,7 +173,7 @@ async function collectMetrics(admin, userId) {
     admin.from("evo_follower_snapshots").select("measured_on,followers,source").eq("user_id", userId).order("measured_on", { ascending: false }).limit(12),
     admin.from("evo_weekly_videos").select("week_start,title_snapshot,published_at").eq("user_id", userId).order("week_start", { ascending: false }).limit(4),
     admin.from("evo_project_progress").select("project_id,progress,status,note,updated_at").eq("user_id", userId),
-    admin.from("yt_ideas").select("source_fingerprint,title,status,current_rank,score,rationale,editorial_state,priority,locked_title,user_notes").not("status", "eq", "discarded").order("current_rank"),
+    admin.from("yt_ideas").select("source_fingerprint,title,status,current_rank,score,rationale,editorial_state,priority,title_locked_by_user,notes").not("status", "eq", "discarded").order("current_rank"),
   ]);
   const failed = [settings, study, training, weights, followers, video, projects, ideas].find((result) => result.error);
   if (failed?.error) throw failed.error;
