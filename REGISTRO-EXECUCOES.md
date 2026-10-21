@@ -915,3 +915,20 @@ registrar apenas uma revalidação quando ela for necessária.
   ou alteração de métricas ocorreu.
 - Estado ao registrar: correção aguardando CI, merge em `master`, deploy e
   reinício da tarefa. Nenhum segredo foi exibido.
+
+## 2026-10-21 17:20 -03:00 — Central de Evolução: contrato da prévia de pesquisa
+
+- Diagnóstico: a primeira análise que chegou ao Codex produziu a cobrança
+  pessoal, mas declarou `youtube: null`. Ela interpretou a exigência de
+  executar `youtube:sources` como incompatível com o sandbox de somente leitura
+  e, corretamente, não inventou uma pesquisa incompleta. Nada foi importado.
+- Correção local: o agente agora consulta `yt_sources` em modo leitura junto
+  das métricas e fornece os IDs/URLs ativos no campo `activeSources`. O prompt
+  esclarece que leituras e pesquisa web são permitidas, proíbe escrita e deixa
+  de exigir esse comando dentro do Codex. O objeto `youtube` não pode ser nulo.
+- Evidência local: consultas somente leitura de ideias e fontes em Production
+  concluíram, com 16 fontes ativas retornadas; cinco testes específicos e
+  `git diff --check` passaram. Nenhuma pesquisa, importação ou escrita de
+  métricas foi executada nesta correção.
+- Estado ao registrar: correção aguardando CI, merge em `master`, deploy e
+  reinício da tarefa. Nenhum segredo foi exibido.

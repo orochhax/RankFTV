@@ -165,7 +165,7 @@ async function collectMetrics(admin, userId) {
   const start = new Date(now);
   start.setUTCDate(start.getUTCDate() - 14);
   const since = start.toISOString().slice(0, 10);
-  const [settings, study, training, weights, followers, video, projects, ideas] = await Promise.all([
+  const [settings, study, training, weights, followers, video, projects, ideas, activeSources] = await Promise.all([
     admin.from("evo_settings").select("daily_study_target_minutes,weekly_study_target_minutes,follower_target,current_weight_kg,goal_weight_kg").eq("user_id", userId).maybeSingle(),
     admin.from("evo_study_sessions").select("study_date,minutes,source").eq("user_id", userId).gte("study_date", since).order("study_date"),
     admin.from("evo_training_logs").select("training_date,body_parts").eq("user_id", userId).gte("training_date", since).order("training_date"),
@@ -174,8 +174,9 @@ async function collectMetrics(admin, userId) {
     admin.from("evo_weekly_videos").select("week_start,title_snapshot,published_at").eq("user_id", userId).order("week_start", { ascending: false }).limit(4),
     admin.from("evo_project_progress").select("project_id,progress,status,note,updated_at").eq("user_id", userId),
     admin.from("yt_ideas").select("source_fingerprint,title,status,current_rank,score,rationale,editorial_state,priority,title_locked_by_user,notes").not("status", "eq", "discarded").order("current_rank"),
+    admin.from("yt_sources").select("id,name,kind,url").eq("enabled", true).is("archived_at", null).order("name"),
   ]);
-  const failed = [settings, study, training, weights, followers, video, projects, ideas].find((result) => result.error);
+  const failed = [settings, study, training, weights, followers, video, projects, ideas, activeSources].find((result) => result.error);
   if (failed?.error) throw failed.error;
   return {
     capturedAt: now.toISOString(),
@@ -187,6 +188,7 @@ async function collectMetrics(admin, userId) {
     weeklyVideos: video.data ?? [],
     projects: projects.data ?? [],
     activeIdeas: ideas.data ?? [],
+    activeSources: activeSources.data ?? [],
   };
 }
 
@@ -194,13 +196,11 @@ function buildPrompt(metrics) {
   return `Você está executando uma atualização privada da Central de Evolução do Carlos.
 
 Regras obrigatórias:
-1. Leia AGENTS.md, docs/IA/README.md, docs/YOUTUBE-RADAR-CODEX.md e docs/CENTRAL-DE-EVOLUCAO.md.
-2. Não modifique arquivos, banco, Git, deploy ou serviços. Esta etapa é somente análise e pesquisa.
-3. Execute npm run youtube:sources antes da pesquisa. Pesquise apenas fontes ativas e siga integralmente docs/YOUTUBE-RADAR-CODEX.md.
-4. Use pesquisa web verificável, abra páginas individuais e reavalie todas as ideias ativas. Não invente datas, alcance ou fatos.
-5. Leia no cofre local os arquivos necessários em ${vaultPath}, especialmente Metas/Principios.md, roadmap e contexto das áreas.
-6. A cobrança deve ser direta e baseada em evidências, sem humilhação e sem punições prejudiciais.
-7. Retorne APENAS JSON válido, sem markdown, com esta forma exata:
+1. Você está em sandbox somente leitura. Pode e deve usar comandos somente de leitura para abrir AGENTS.md, docs/IA/README.md, docs/YOUTUBE-RADAR-CODEX.md, docs/CENTRAL-DE-EVOLUCAO.md, o schema em scripts/youtube-import-research.ts e os arquivos necessários em ${vaultPath}. Não modifique arquivos, banco, Git, deploy ou serviços.
+2. Não execute npm run youtube:sources: o agente local já consultou as fontes autorizadas. Use exclusivamente os IDs e URLs de activeSources nas métricas abaixo; não consulte fonte desativada ou ausente dessa lista.
+3. Use pesquisa web verificável, abra páginas individuais e reavalie todas as ideias ativas. Não invente datas, alcance ou fatos.
+4. A cobrança deve ser direta e baseada em evidências, sem humilhação e sem punições prejudiciais.
+5. Retorne APENAS JSON válido, sem markdown, com esta forma exata:
 {
   "version": 1,
   "generatedAt": "ISO-8601",
@@ -213,6 +213,7 @@ Regras obrigatórias:
   "youtube": { "payload completo aceito pelo schema de scripts/youtube-import-research.ts" }
 }
 O objeto youtube deve usar scope full, declarar todas as fontes ativas em researchSourceIds e incluir todas as ideias ativas, além das novas que forem justificadas. Para ideias novas, inclua de 3 a 5 referências verificadas do YouTube.
+youtube nunca pode ser null: se uma fonte estiver inacessível, registre a limitação no payload seguindo o schema em vez de omitir o objeto.
 
 Métricas atuais sanitizadas:
 ${JSON.stringify(metrics)}`;
