@@ -40,10 +40,12 @@ function sanitizedMessage(error) {
     ? record.code
     : null;
   const raw = error instanceof Error ? error.message : message ? `${code ? `${code}: ` : ""}${message}` : String(error);
-  return raw
+  const sanitized = raw
     .replace(/https?:\/\/[^\s]+/g, "[url removida]")
-    .replace(/[A-Za-z0-9_-]{32,}/g, "[valor removido]")
-    .slice(0, 900);
+    .replace(/[A-Za-z0-9_-]{32,}/g, "[valor removido]");
+  return sanitized.length <= 900
+    ? sanitized
+    : `${sanitized.slice(0, 420)} … ${sanitized.slice(-420)}`;
 }
 
 function log(message) {
@@ -217,6 +219,7 @@ Regras obrigatórias:
 O objeto youtube deve usar scope full, declarar todas as fontes ativas em researchSourceIds e incluir todas as ideias ativas, além das novas que forem justificadas. Para ideias novas, inclua de 3 a 5 referências verificadas do YouTube.
 youtube nunca pode ser null: se uma fonte estiver inacessível, registre a limitação no payload seguindo o schema em vez de omitir o objeto.
 Todo item.title exibido na interface precisa estar em português e conter uma construção portuguesa (por exemplo, “com”, “de”, “para” ou “como”); não reutilize um título em inglês como título exibido.
+O schema estruturado exige que todos os campos existam. Quando não houver valor aplicável, retorne null exatamente nestes campos: youtube.editorialProfile, item.entity e idea.youtubeReferences. O agente local removerá apenas esses nulls antes da pré-validação do importador.
 
 Métricas atuais sanitizadas:
 ${JSON.stringify(metrics)}`;
@@ -230,6 +233,13 @@ function parseAgentResult(raw) {
   if (typeof parsed.review.verdict !== "string" || parsed.review.verdict.length < 10) throw new Error("EVO_AGENT_REVIEW_VERDICT_INVALID");
   if (typeof parsed.review.summary !== "string" || parsed.review.summary.length < 10) throw new Error("EVO_AGENT_REVIEW_SUMMARY_INVALID");
   if (!Array.isArray(parsed.review.actions) || parsed.review.actions.length < 1 || parsed.review.actions.length > 6) throw new Error("EVO_AGENT_REVIEW_ACTIONS_INVALID");
+  if (parsed.youtube.editorialProfile === null) delete parsed.youtube.editorialProfile;
+  for (const item of parsed.youtube.items ?? []) {
+    if (item.entity === null) delete item.entity;
+  }
+  for (const idea of parsed.youtube.ideas ?? []) {
+    if (idea.youtubeReferences === null) delete idea.youtubeReferences;
+  }
   return parsed;
 }
 
