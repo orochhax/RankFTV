@@ -37,3 +37,11 @@ test("agente fornece ao Codex a lista de fontes autorizadas sem exigir comando m
   assert.match(source, /Não execute npm run youtube:sources/);
   assert.match(source, /youtube nunca pode ser null/);
 });
+
+test("agente usa schema de saída e executa scripts TypeScript sem npm.cmd", async () => {
+  const source = await readFile("scripts/evolution-local-agent.mjs", "utf8");
+  assert.match(source, /"--output-schema", outputSchemaPath/);
+  assert.match(source, /tsx", "dist", "cli\.mjs"/);
+  assert.match(source, /function runTsx/);
+  assert.doesNotMatch(source, /function npmCommand/);
+});

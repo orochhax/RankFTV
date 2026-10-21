@@ -916,6 +916,23 @@ registrar apenas uma revalidação quando ela for necessária.
 - Estado ao registrar: correção aguardando CI, merge em `master`, deploy e
   reinício da tarefa. Nenhum segredo foi exibido.
 
+## 2026-10-21 17:28 -03:00 — Central de Evolução: schema estrito e runner do Windows
+
+- Diagnóstico: a pesquisa retornou uma prévia com conteúdo, porém os campos do
+  payload do YouTube seguiam um formato antigo e a pré-validação a bloqueou
+  antes de importar. A tentativa também revelou que `npm.cmd` não é um alvo
+  executável diretamente pelo `spawn` seguro do Node no Windows.
+- Correção local: `scripts/evolution-agent-output.schema.json` tornou o
+  contrato de resposta do Codex explícito e estrito. As chamadas a importador,
+  sincronização e importação passaram a executar Node/TSX diretamente, sem
+  wrappers `.cmd`. O sandbox do Codex e a aprovação antes da aplicação foram
+  preservados.
+- Evidência local: sintaxe do agente, parse do schema JSON, seis testes
+  específicos e `git diff --check` foram aprovados. A prévia pesquisada não
+  foi importada nem aplicou métricas.
+- Estado ao registrar: correção aguardando CI, merge em `master`, deploy e
+  reinício da tarefa. Nenhum segredo foi exibido.
+
 ## 2026-10-21 17:20 -03:00 — Central de Evolução: contrato da prévia de pesquisa
 
 - Diagnóstico: a primeira análise que chegou ao Codex produziu a cobrança
