@@ -933,6 +933,19 @@ registrar apenas uma revalidação quando ela for necessária.
   e `git diff --check` passaram. Não houve importação, alteração de métricas ou
   conteúdo. A correção aguarda CI, merge, deploy e reinício da tarefa local.
 
+## 2026-10-21 18:09 -03:00 — Central de Evolução: URLs no schema do Codex
+
+- Diagnóstico: após o schema aceitar os campos opcionais, o Codex recusou a
+  próxima solicitação antes da pesquisa porque `format: uri` não é suportado
+  pelo modo de saída estruturada usado pelo agente. Não houve importação,
+  alteração de métricas ou conteúdo.
+- Correção local: URLs do schema passaram a usar a referência `url`, com padrão
+  `^https?://`. A validação completa de URLs continua sendo feita pelo
+  pré-validador do importador depois da resposta estruturada.
+- Evidência local: parse do schema, dez testes específicos e `git diff --check`
+  passaram. A correção aguarda CI, merge e reinício da tarefa antes de uma nova
+  solicitação de análise.
+
 ## 2026-10-21 17:39 -03:00 — Central de Evolução: títulos do radar em português
 
 - Diagnóstico: a pré-validação do payload completo bloqueou uma única notícia

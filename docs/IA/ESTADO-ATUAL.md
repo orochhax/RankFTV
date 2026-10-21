@@ -147,6 +147,16 @@ pendências do lançamento e qualquer estado remoto mutável deve ser reconsulta
   nove testes específicos e verificação de diff passaram localmente. A próxima
   execução continuará sendo apenas uma prévia até a aprovação de Carlos.
 
+## Central de Evolução — compatibilidade de URLs no schema (21/10/2026)
+
+- A nova execução confirmou que o Codex aceita o schema estrito, mas rejeita o
+  formato `uri` antes de começar a pesquisa. Isso ocorreu no serviço de saída
+  estruturada, não no importador e sem qualquer escrita em Production.
+- O schema agora usa um padrão compatível para URLs `http`/`https`; a
+  pré-validação do importador continua responsável pela validação completa de
+  cada URL antes da prévia. Dez testes específicos, parse do JSON e verificação
+  do diff passaram localmente. A correção será publicada antes da nova análise.
+
 ## Checkout principal observado
 
 - Worktree: `Projeto-RankFTV`.
