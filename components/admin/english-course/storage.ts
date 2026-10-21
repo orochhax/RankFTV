@@ -7,7 +7,7 @@ export type PracticeResponseMap = Record<LearnerId, Record<string, string>>;
 export type PracticeSubmissionMap = Record<LearnerId, Record<string, boolean>>;
 
 export type PersistedData = {
-  version: 3;
+  version: 4;
   progress: ProgressMap;
   answers: AssessmentAnswers;
   practiceResponses: PracticeResponseMap;
@@ -15,7 +15,12 @@ export type PersistedData = {
 };
 
 const STORAGE_KEY = "rankftv:personal-english-roadmap:v1";
-const EMPTY_PROGRESS: ProgressMap = { carlos: {}, julia: {} };
+export const JULIA_CALIBRATED_PROGRESS: Record<string, boolean> = {
+  "day-2-lesson": true,
+  "day-4-lesson": true,
+  "day-5-lesson": true,
+};
+const EMPTY_PROGRESS: ProgressMap = { carlos: {}, julia: JULIA_CALIBRATED_PROGRESS };
 const EMPTY_PRACTICE_RESPONSES: PracticeResponseMap = { carlos: {}, julia: {} };
 const EMPTY_PRACTICE_SUBMISSIONS: PracticeSubmissionMap = { carlos: {}, julia: {} };
 
@@ -24,22 +29,29 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function defaultAnswers(): AssessmentAnswers {
-  return { carlos: { ...EMPTY_ASSESSMENT_ANSWERS.carlos }, julia: {} };
+  return {
+    carlos: { ...EMPTY_ASSESSMENT_ANSWERS.carlos },
+    julia: { ...EMPTY_ASSESSMENT_ANSWERS.julia },
+  };
 }
 
 function normalizeProgress(value: unknown): ProgressMap {
   if (!isRecord(value)) return EMPTY_PROGRESS;
   return {
     carlos: isRecord(value.carlos) ? value.carlos as Record<string, boolean> : {},
-    julia: isRecord(value.julia) ? value.julia as Record<string, boolean> : {},
+    julia: {
+      ...JULIA_CALIBRATED_PROGRESS,
+      ...(isRecord(value.julia) ? value.julia as Record<string, boolean> : {}),
+    },
   };
 }
 
 function normalizeAnswers(value: unknown): AssessmentAnswers | null {
   if (!isRecord(value)) return null;
+  const initial = defaultAnswers();
   return {
-    carlos: isRecord(value.carlos) ? value.carlos as Record<string, AssessmentAnswer> : defaultAnswers().carlos,
-    julia: isRecord(value.julia) ? value.julia as Record<string, AssessmentAnswer> : {},
+    carlos: isRecord(value.carlos) ? { ...initial.carlos, ...value.carlos as Record<string, AssessmentAnswer> } : initial.carlos,
+    julia: isRecord(value.julia) ? { ...initial.julia, ...value.julia as Record<string, AssessmentAnswer> } : initial.julia,
   };
 }
 
@@ -69,7 +81,7 @@ function removeLegacyPracticeCompletions(progress: ProgressMap): ProgressMap {
 
 function fallbackData(): PersistedData {
   return {
-    version: 3,
+    version: 4,
     progress: EMPTY_PROGRESS,
     answers: defaultAnswers(),
     practiceResponses: EMPTY_PRACTICE_RESPONSES,
@@ -87,10 +99,10 @@ export function readEnglishCourseData(): PersistedData {
     const progress = normalizeProgress(value.progress);
     const answers = normalizeAnswers(value.answers);
     if (!answers) return { ...fallback, progress };
-    if (value.version !== 3) return { ...fallback, progress: removeLegacyPracticeCompletions(progress), answers };
+    const legacyProgress = value.version === 3 ? progress : removeLegacyPracticeCompletions(progress);
     return {
-      version: 3,
-      progress,
+      version: 4,
+      progress: legacyProgress,
       answers,
       practiceResponses: normalizeLearnerStringRecords(value.practiceResponses),
       practiceSubmissions: normalizeLearnerBooleanRecords(value.practiceSubmissions),

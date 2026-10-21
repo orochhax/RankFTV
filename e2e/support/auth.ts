@@ -99,9 +99,25 @@ export async function login(page: Page, email: string, password?: string) {
   }
 
   if (!password) throw new Error("Senha E2E ausente");
-  await page.goto("/login");
-  await page.getByLabel("E-mail", { exact: true }).fill(email);
-  await page.getByLabel("Senha", { exact: true }).fill(password);
-  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  await page.goto("/login", { waitUntil: "domcontentloaded" });
+  const emailInput = page.getByLabel("E-mail", { exact: true });
+  const passwordInput = page.getByLabel("Senha", { exact: true });
+  const submit = page.getByRole("button", { name: "Entrar", exact: true });
+
+  // WebKit may receive the first fill before React finishes hydrating and then
+  // restore the controlled input to its initial empty value. The enabled
+  // submit button is the stable signal that both values reached React state.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await emailInput.fill(email);
+    await passwordInput.fill(password);
+    try {
+      await expect(submit).toBeEnabled({ timeout: 5_000 });
+      break;
+    } catch (error) {
+      if (attempt === 1) throw error;
+    }
+  }
+
+  await submit.click();
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/, { timeout: 20_000 });
 }

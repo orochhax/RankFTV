@@ -19,8 +19,10 @@ import {
   Users,
 } from "lucide-react";
 import {
+  LEARNER_INTERESTS,
   LEARNERS,
   ROADMAP_DAYS,
+  ROADMAP_DAYS_BY_LEARNER,
   SOURCE_STRATEGY,
   TOTAL_YEAR_DAYS,
   YEAR_PHASES,
@@ -45,12 +47,14 @@ function dayIsComplete(day: RoadmapDay, completed: Record<string, boolean>) {
 function deriveTrackerView(data: PersistedData, activeLearner: LearnerId, selectedWeek: number) {
   const learner = LEARNERS.find((item) => item.id === activeLearner) ?? LEARNERS[0];
   const learnerProgress = data.progress[activeLearner];
-  const allActivities = ROADMAP_DAYS.flatMap((day) => day.activities);
+  const roadmapDays = ROADMAP_DAYS_BY_LEARNER[activeLearner];
+  const allActivities = roadmapDays.flatMap((day) => day.activities);
   const completedActivities = allActivities.filter((activity) => learnerProgress[activity.id]).length;
-  const completedDays = ROADMAP_DAYS.filter((day) => dayIsComplete(day, learnerProgress)).length;
-  const currentDay = ROADMAP_DAYS.find((day) => !dayIsComplete(day, learnerProgress)) ?? ROADMAP_DAYS[ROADMAP_DAYS.length - 1];
+  const completedDays = roadmapDays.filter((day) => dayIsComplete(day, learnerProgress)).length;
+  const currentDay = roadmapDays.find((day) => !dayIsComplete(day, learnerProgress)) ?? roadmapDays[roadmapDays.length - 1];
   return {
     learner,
+    interests: LEARNER_INTERESTS[activeLearner],
     learnerProgress,
     learnerPracticeResponses: data.practiceResponses[activeLearner],
     learnerPracticeSubmissions: data.practiceSubmissions[activeLearner],
@@ -58,7 +62,7 @@ function deriveTrackerView(data: PersistedData, activeLearner: LearnerId, select
     completedDays,
     currentDay,
     cyclePercentage: Math.round((completedActivities / allActivities.length) * 100),
-    weekDays: ROADMAP_DAYS.filter((day) => day.week === selectedWeek),
+    weekDays: roadmapDays.filter((day) => day.week === selectedWeek),
   };
 }
 
@@ -85,6 +89,7 @@ function HydratedEnglishRoadmapTracker() {
     learnerProgress,
     learnerPracticeResponses,
     learnerPracticeSubmissions,
+    interests,
     completedActivities,
     completedDays,
     currentDay,
@@ -148,7 +153,7 @@ function HydratedEnglishRoadmapTracker() {
         <section aria-label="Escolher aluno" className="grid gap-3 sm:grid-cols-2">
           {LEARNERS.map((item) => {
             const selected = item.id === activeLearner;
-            const itemCompleted = ROADMAP_DAYS.filter((day) => dayIsComplete(day, data.progress[item.id])).length;
+            const itemCompleted = ROADMAP_DAYS_BY_LEARNER[item.id].filter((day) => dayIsComplete(day, data.progress[item.id])).length;
             return <button key={item.id} type="button" onClick={() => setActiveLearner(item.id)} aria-pressed={selected} className={`flex min-h-20 items-center gap-4 rounded-2xl border p-3.5 text-left shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 ${selected ? "border-[#16387d] bg-[#102963] text-white shadow-[#102963]/15" : "border-slate-200 bg-white text-slate-800 hover:border-sky-200 hover:bg-sky-50/40"}`}>
               <span className={`grid size-12 shrink-0 place-items-center rounded-xl text-sm font-bold ${selected ? "bg-white/12 text-cyan-200" : "bg-sky-50 text-[#16387d]"}`}>{item.initials}</span>
               <span className="min-w-0 flex-1"><span className={`block text-xs font-semibold uppercase tracking-[.12em] ${selected ? "text-sky-200/75" : "text-slate-400"}`}>Progresso de</span><span className="mt-0.5 block text-lg font-semibold">{item.name}</span></span>
@@ -165,6 +170,7 @@ function HydratedEnglishRoadmapTracker() {
         {activeView === "roadmap" ? (
           <RoadmapView
             learnerName={learner.name}
+            interests={interests}
             progress={learnerProgress}
             completedDays={completedDays}
             completedActivities={completedActivities}
@@ -202,6 +208,7 @@ function Hero() {
 
 type RoadmapViewProps = PracticeInteractionProps & {
   learnerName: string;
+  interests: string[];
   progress: Record<string, boolean>;
   completedDays: number;
   completedActivities: number;
@@ -213,12 +220,12 @@ type RoadmapViewProps = PracticeInteractionProps & {
   onToggle: (id: string) => void;
 };
 
-function RoadmapView({ learnerName, progress, completedDays, completedActivities, percentage, currentDay, weekDays, selectedWeek, onSelectWeek, onToggle, practiceResponses, practiceSubmissions, onPracticeResponse, onPracticeSubmit }: RoadmapViewProps) {
+function RoadmapView({ learnerName, interests, progress, completedDays, completedActivities, percentage, currentDay, weekDays, selectedWeek, onSelectWeek, onToggle, practiceResponses, practiceSubmissions, onPracticeResponse, onPracticeSubmit }: RoadmapViewProps) {
   const practiceProps = { practiceResponses, practiceSubmissions, onPracticeResponse, onPracticeSubmit };
   return <div className="space-y-6">
     <section className="grid gap-4 xl:grid-cols-[1.45fr_.55fr]">
       <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6"><div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-sky-700">Visão de {learnerName}</p><h2 className="mt-1 text-2xl font-semibold tracking-tight">Ciclo 1 · Base A0–A1</h2><p className="mt-1 text-sm text-slate-500">Todos os dias: aprender, escutar, responder e falar.</p></div><div className="relative grid size-20 place-items-center rounded-full" style={{ background: `conic-gradient(#0ea5e9 ${percentage}%, #e2e8f0 0)` }}><div className="grid size-16 place-items-center rounded-full bg-white text-lg font-bold">{percentage}%</div></div></div><div className="mt-6 grid grid-cols-3 gap-3 border-t border-slate-100 pt-5"><Metric icon={CheckCircle2} label="Dias concluídos" value={`${completedDays}/35`} tone="text-emerald-700" bg="bg-emerald-50" /><Metric icon={Target} label="Atividades" value={`${completedActivities}/${CYCLE_ACTIVITY_COUNT}`} tone="text-sky-700" bg="bg-sky-50" /><Metric icon={Flame} label="Próximo dia" value={`${currentDay.day}`} tone="text-orange-700" bg="bg-orange-50" /></div></div>
-      <aside className="rounded-3xl border border-emerald-200 bg-[linear-gradient(145deg,#ecfdf5,#f8fafc)] p-5 shadow-sm sm:p-6"><div className="flex items-start gap-3"><div className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white"><Sparkles aria-hidden="true" className="size-5" /></div><div><p className="text-xs font-bold uppercase tracking-[.12em] text-emerald-700">Ritmo recomendado</p><h2 className="mt-1 text-lg font-semibold">1 roteiro por dia</h2></div></div><p className="mt-4 text-sm leading-6 text-slate-600">Avance na ordem do plano e conclua os 4 pilares do dia. O progresso de {learnerName} fica salvo separadamente neste navegador.</p></aside>
+      <aside className="rounded-3xl border border-emerald-200 bg-[linear-gradient(145deg,#ecfdf5,#f8fafc)] p-5 shadow-sm sm:p-6"><div className="flex items-start gap-3"><div className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white"><Sparkles aria-hidden="true" className="size-5" /></div><div><p className="text-xs font-bold uppercase tracking-[.12em] text-emerald-700">Imersão personalizada</p><h2 className="mt-1 text-lg font-semibold">Interesses de {learnerName}</h2></div></div><div className="mt-4 flex flex-wrap gap-2">{interests.map((interest) => <span key={interest} className="rounded-full border border-emerald-200 bg-white/80 px-2.5 py-1 text-xs font-medium text-emerald-900">{interest}</span>)}</div><p className="mt-4 text-sm leading-6 text-slate-600">As aulas de base são iguais para os dois; vídeos e exemplos mudam conforme o perfil. O progresso continua salvo separadamente.</p></aside>
     </section>
 
     <section className="space-y-4"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-sky-700">Roteiro diário</p><h2 className="mt-1 text-2xl font-semibold">Imersão guiada · primeiro ciclo</h2><p className="mt-1 text-sm text-slate-500">Aula, vlog incorporado, exercícios corrigidos e conversação pronta dentro de cada dia.</p><PillarLegend /></div><div className="flex gap-2 overflow-x-auto pb-1">{[1, 2, 3, 4, 5].map((week) => <button key={week} type="button" onClick={() => onSelectWeek(week)} className={`min-h-10 shrink-0 rounded-xl px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 ${selectedWeek === week ? "bg-[#102963] text-white" : "border border-slate-300 bg-white text-slate-700 hover:border-sky-300 hover:bg-sky-50"}`}>Semana {week}</button>)}</div><div className="grid gap-3">{weekDays.map((day) => <DayDetails key={day.id} day={day} progress={progress} current={day.id === currentDay.id} onToggle={onToggle} {...practiceProps} />)}</div></section>

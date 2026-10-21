@@ -1,9 +1,15 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const port = Number(process.env.PORT ?? 3000);
-const baseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${port}`;
+const externalBaseURL = process.env.E2E_BASE_URL;
+const baseURL = externalBaseURL ?? `http://127.0.0.1:${port}`;
 const vercelBypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
 const serialSandboxAuth = process.env.E2E_SERIAL_AUTH === "1";
+
+// The authentication safety guard reads E2E_BASE_URL directly. Keep it in
+// sync with Playwright's effective default so local Sandbox runs are checked
+// against the same destination that the browser actually opens.
+process.env.E2E_BASE_URL ??= baseURL;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -28,7 +34,7 @@ export default defineConfig({
     { name: "mobile-chromium", use: { ...devices["Pixel 7"] } },
     { name: "mobile-webkit", use: { ...devices["iPhone 14"] } },
   ],
-  webServer: process.env.E2E_BASE_URL
+  webServer: externalBaseURL
     ? undefined
     : {
         command: `npm run dev -- --hostname 127.0.0.1 --port ${port}`,

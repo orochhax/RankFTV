@@ -1,0 +1,94 @@
+name: Production P0 security migrations
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-database-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: Production
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate production target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
+          test "$NEXT_PUBLIC_SUPABASE_URL" = "https://tkyopolcxfsdbhvrgadj.supabase.co"
+          case "$SUPABASE_DB_URL" in
+            *tkyopolcxfsdbhvrgadj*supabase.com*) ;;
+            *) echo "SUPABASE_DB_URL não aponta para o projeto RankFTV de produção." >&2; exit 1 ;;
+          esac
+
+      - name: Install PostgreSQL 17 client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-common ca-certificates
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install --yes postgresql-client-17
+
+      - name: Apply P0 RPC hardening atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/lib/postgresql/17/bin/psql \
+            --dbname="$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set=ON_ERROR_STOP=1 \
+            --single-transaction \
+            --file=supabase/20261020000100_p0_sensitive_rpc_hardening.sql
+
+      - name: Ensure public funnel base table atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/lib/postgresql/17/bin/psql \
+            --dbname="$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set=ON_ERROR_STOP=1 \
+            --single-transaction \
+            --file=supabase/public-funnel-analytics.sql
+
+      - name: Apply public funnel deduplication atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/lib/postgresql/17/bin/psql \
+            --dbname="$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set=ON_ERROR_STOP=1 \
+            --single-transaction \
+            --file=supabase/20261020000200_public_funnel_deduplication.sql
+
+      - name: Verify P0 objects and grants
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$(/usr/lib/postgresql/17/bin/psql \
+            --dbname="$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set=ON_ERROR_STOP=1 \
+            --tuples-only --no-align \
+            --command="SELECT
+              to_regclass('public.public_funnel_events_dedupe_idx') IS NOT NULL
+              AND has_function_privilege('anon', 'public.atualizar_chave_pix_arena(uuid,text)', 'EXECUTE') = false
+              AND has_function_privilege('authenticated', 'public.atualizar_chave_pix_arena(uuid,text)', 'EXECUTE') = false
+              AND has_function_privilege('authenticated', 'public.organizer_profile_contacts(uuid,uuid[])', 'EXECUTE') = true
+              AND has_function_privilege('authenticated', 'public.ativar_championship_elite(uuid)', 'EXECUTE') = true
+              AND has_function_privilege('authenticated', 'public.cancelar_championship_elite(uuid)', 'EXECUTE') = true;")"
+          test "$result" = "t"

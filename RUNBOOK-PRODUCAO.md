@@ -1,6 +1,6 @@
 # Runbook de producao do RankFTV
 
-Atualizado em 30/09/2026. Este procedimento cobre apenas o produto Rank
+Atualizado em 20/10/2026. Este procedimento cobre apenas o produto Rank
 Futevolei. Nao inclui Performance nem os controles financeiros pessoais
 hospedados temporariamente no mesmo repositorio.
 
@@ -19,7 +19,8 @@ concluidos:
 ## 1. Preparacao
 
 1. Registrar o commit que sera implantado e interromper alteracoes no schema.
-2. Confirmar Node.js 20.9 ou superior e executar:
+2. Confirmar Node.js 24.x, conforme `package.json`, e executar em worktree
+   limpo:
 
 ```bash
 npm ci
@@ -72,8 +73,16 @@ Aplicar no SQL Editor ou pipeline de migrations, uma por vez e nesta ordem:
 27. `supabase/organizer-financial-notifications.sql`
 28. `supabase/production-operational-email-alerts.sql`
 29. `supabase/production-data-retention.sql`
+30. `supabase/20261020000100_p0_sensitive_rpc_hardening.sql`
+31. `supabase/20261020000200_public_funnel_deduplication.sql`
 
 Os scripts sao aditivos e idempotentes. Ainda assim, nao os execute em paralelo.
+As migrations 30 e 31 devem passar primeiro no Sandbox. Depois da 30,
+confirmar que as assinaturas Elite com argumento de preco nao existem, que as
+RPCs Pix nao sao executaveis por `authenticated` e que contatos externos nao
+sao retornados. O teste `lib/p0-security-rpcs.integration.test.ts` exige
+fixtures descartaveis e a trava explicita documentada em `PENDENCIAS-V1.md`.
+O rollback seguro esta em `docs/ROLLBACK-P0-SENSITIVE-RPCS.md`.
 Depois dos tres primeiros, executar os checks somente-leitura
 `supabase/manual-tests/security-advisor-function-hardening-check.sql`,
 `supabase/manual-tests/ranking-entries-security-check.sql` e
@@ -289,8 +298,9 @@ site e permanece intacta.
 ## 4. Deploy gradual
 
 1. Implantar em Preview com as mesmas integracoes de sandbox usadas no teste.
-2. Verificar `GET /api/health`: resposta sem segredos, banco acessivel e versao
-   esperada.
+2. Verificar `GET /api/health`: HTTP 200, `cache-control: no-store` e corpo
+   exatamente `{ "status": "ok" }`. Dependência de banco deve ser monitorada
+   por checks internos autenticados, não pelo endpoint público.
 3. Conferir CSP em pagina publica, login, pagina protegida e 404. `script-src`
    deve usar nonce e nao conter `unsafe-inline`.
 4. Executar Playwright. Os cenarios destrutivos exigem
