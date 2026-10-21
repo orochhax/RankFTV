@@ -219,6 +219,7 @@ O objeto youtube deve usar scope full, declarar todas as fontes ativas em resear
 youtube nunca pode ser null: se uma fonte estiver inacessível, registre a limitação no payload seguindo o schema em vez de omitir o objeto.
 Todo item.title exibido na interface precisa estar em português e conter uma construção portuguesa (por exemplo, “com”, “de”, “para” ou “como”); não reutilize um título em inglês como título exibido.
 O schema estruturado exige que todos os campos existam. Quando não houver valor aplicável, retorne null exatamente nestes campos: youtube.editorialProfile, item.entity e idea.youtubeReferences. O agente local removerá apenas esses nulls antes da pré-validação do importador.
+Em cada item, tendência e ideia, preencha obrigatoriamente aiRelevance como { score: inteiro entre 70 e 100, rationale: texto } e sourceOrigin com EXATAMENTE um destes valores: "primary", "market" ou "mixed". Não omita esses dois campos nem traduza seus valores. Antes de responder, confira o payload inteiro contra o schema em scripts/youtube-import-research.ts.
 
 Métricas atuais sanitizadas:
 ${JSON.stringify(metrics)}`;
