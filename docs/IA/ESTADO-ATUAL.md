@@ -97,6 +97,19 @@ pendências do lançamento e qualquer estado remoto mutável deve ser reconsulta
   uma nova solicitação no painel. A prévia ainda exigirá aprovação de Carlos
   antes de qualquer aplicação.
 
+## Central de Evolução — prévia completa em sandbox somente leitura (21/10/2026)
+
+- A primeira análise que chegou ao Codex retornou a revisão pessoal, mas deixou
+  `youtube` nulo. A resposta registrou que não executou a pesquisa porque o
+  prompt pedia um comando de fontes dentro do sandbox somente leitura.
+- O agente passou a consultar as fontes ativas diretamente, junto com as
+  métricas, e as entrega no prompt como `activeSources`. O Codex recebe
+  autorização explícita para leituras e pesquisa web, mas continua proibido de
+  escrever; o comando potencialmente mutável deixou de ser exigido nessa fase.
+- As consultas somente leitura para ideias e fontes, e os cinco testes do
+  agente, passaram. A alteração aguarda CI e publicação antes de uma nova
+  análise; o fluxo de aprovação antes de importar continua inalterado.
+
 ## Checkout principal observado
 
 - Worktree: `Projeto-RankFTV`.

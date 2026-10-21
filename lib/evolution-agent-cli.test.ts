@@ -29,3 +29,11 @@ test("agente consulta os nomes reais das colunas editoriais de ideias", async ()
   assert.match(source, /title_locked_by_user,notes/);
   assert.doesNotMatch(source, /locked_title,user_notes/);
 });
+
+test("agente fornece ao Codex a lista de fontes autorizadas sem exigir comando mutável", async () => {
+  const source = await readFile("scripts/evolution-local-agent.mjs", "utf8");
+  assert.match(source, /from\("yt_sources"\)\.select\("id,name,kind,url"\)/);
+  assert.match(source, /activeSources: activeSources\.data \?\? \[\]/);
+  assert.match(source, /Não execute npm run youtube:sources/);
+  assert.match(source, /youtube nunca pode ser null/);
+});
