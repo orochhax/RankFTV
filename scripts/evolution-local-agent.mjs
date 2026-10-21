@@ -199,7 +199,7 @@ function buildPrompt(metrics) {
   return `Você está executando uma atualização privada da Central de Evolução do Carlos.
 
 Regras obrigatórias:
-1. Você está em sandbox somente leitura. Pode e deve usar comandos somente de leitura para abrir AGENTS.md, docs/IA/README.md, docs/YOUTUBE-RADAR-CODEX.md, docs/CENTRAL-DE-EVOLUCAO.md, o schema em scripts/youtube-import-research.ts e os arquivos necessários em ${vaultPath}. Não modifique arquivos, banco, Git, deploy ou serviços.
+1. Você está em sandbox somente leitura. Não use comandos de shell para abrir arquivos: o agente já forneceu abaixo as métricas, fontes autorizadas e o contrato necessário. Faça apenas pesquisa web verificável quando necessário. Não modifique arquivos, banco, Git, deploy ou serviços.
 2. Não execute npm run youtube:sources: o agente local já consultou as fontes autorizadas. Use exclusivamente os IDs e URLs de activeSources nas métricas abaixo; não consulte fonte desativada ou ausente dessa lista.
 3. Use pesquisa web verificável, abra páginas individuais e reavalie todas as ideias ativas. Não invente datas, alcance ou fatos.
 4. A cobrança deve ser direta e baseada em evidências, sem humilhação e sem punições prejudiciais.
@@ -216,9 +216,9 @@ Regras obrigatórias:
   "youtube": { "payload completo aceito pelo schema de scripts/youtube-import-research.ts" }
 }
 O objeto youtube deve usar scope full, declarar todas as fontes ativas em researchSourceIds e incluir todas as ideias ativas, além das novas que forem justificadas. Para ideias novas, inclua de 3 a 5 referências verificadas do YouTube.
-youtube nunca pode ser null: se uma fonte estiver inacessível, registre a limitação no payload seguindo o schema em vez de omitir o objeto.
+youtube nunca pode ser null nem conter uma propriedade error. Mesmo com uma fonte inacessível, produza o payload completo e registre a limitação no campo summary. youtube precisa conter: scope, summary, researchSourceIds, items, trends e ideas; editorialProfile é opcional. Os arrays items, trends e ideas devem sempre existir; items precisa ter ao menos um item e ideas deve incluir cada ideia ativa recebida nas métricas.
+Contrato literal de cada array: item = title,url,summary,summaryPtBr,whyItMatters,subject,language,category,publishedAt,observation,sourceUrls,reliability,evidenceType,relevanceScore,noveltyScore,urgencyScore,opportunityScore,confidenceScore,factors,aiRelevance,sourceOrigin (entity opcional). trend = topicKey,topic,state,score,confidenceScore,rationale,evidence,sourceUrls,aiRelevance,sourceOrigin. idea = sourceFingerprint,title,alternateTitles,summary,rationale,angle,format,outline,hook,priority,state,score,confidenceScore,evidence,sourceUrls,aiRelevance,sourceOrigin (youtubeReferences opcional). evidence é uma lista de {label,url,note}; factors é uma lista de {label,score,reason}.
 Todo item.title exibido na interface precisa estar em português e conter uma construção portuguesa (por exemplo, “com”, “de”, “para” ou “como”); não reutilize um título em inglês como título exibido.
-O schema estruturado exige que todos os campos existam. Quando não houver valor aplicável, retorne null exatamente nestes campos: youtube.editorialProfile, item.entity e idea.youtubeReferences. O agente local removerá apenas esses nulls antes da pré-validação do importador.
 Em cada item, tendência e ideia, preencha obrigatoriamente aiRelevance como { score: inteiro entre 70 e 100, rationale: texto } e sourceOrigin com EXATAMENTE um destes valores: "primary", "market" ou "mixed". Não omita esses dois campos nem traduza seus valores. Antes de responder, confira o payload inteiro contra o schema em scripts/youtube-import-research.ts.
 
 Métricas atuais sanitizadas:

@@ -35,6 +35,7 @@ test("agente fornece ao Codex fontes autorizadas sem exigir comando mutável", a
   assert.match(source, /from\("yt_sources"\)\.select\("id,name,kind,url"\)/);
   assert.match(source, /activeSources: activeSources\.data \?\? \[\]/);
   assert.match(source, /Não execute npm run youtube:sources/);
+  assert.match(source, /Não use comandos de shell para abrir arquivos/);
   assert.match(source, /youtube nunca pode ser null/);
 });
 
@@ -47,9 +48,12 @@ test("agente usa pré-validação local sem schema remoto limitante", async () =
   assert.doesNotMatch(source, /function npmCommand/);
 });
 
-test("prompt exige título em português e normaliza nulos antes do importador", async () => {
+test("prompt exige payload editorial completo antes do importador", async () => {
   const source = await readFile("scripts/evolution-local-agent.mjs", "utf8");
   assert.match(source, /Todo item\.title exibido na interface precisa estar em português/);
+  assert.match(source, /youtube nunca pode ser null nem conter uma propriedade error/);
+  assert.match(source, /Os arrays items, trends e ideas devem sempre existir/);
+  assert.match(source, /Contrato literal de cada array: item =/);
   assert.match(source, /aiRelevance como \{ score: inteiro entre 70 e 100, rationale: texto \}/);
   assert.match(source, /sourceOrigin com EXATAMENTE um destes valores: "primary", "market" ou "mixed"/);
   assert.match(source, /editorialProfile === null\) delete/);

@@ -181,6 +181,18 @@ pendências do lançamento e qualquer estado remoto mutável deve ser reconsulta
   final antes de mostrar a prévia. Sintaxe, sete testes específicos e
   `git diff --check` passaram; a correção aguarda CI e publicação.
 
+## Central de Evolução — contrato fornecido pelo agente (21/10/2026)
+
+- A tentativa seguinte mostrou que o Codex não conseguiu abrir arquivos locais
+  dentro de seu sandbox e devolveu um objeto de erro, que a pré-validação
+  bloqueou por não conter os arrays editoriais obrigatórios. Nada foi importado.
+- O agente não pede mais leitura de arquivos ao Codex. Ele fornece no prompt o
+  contrato literal de notícias, tendências e ideias, exige os três arrays e
+  proíbe respostas de erro. A pesquisa web, o sandbox somente leitura, a
+  pré-validação local e a aprovação antes da aplicação foram mantidos.
+- Sintaxe, sete testes específicos e `git diff --check` passaram localmente.
+  A correção aguarda CI, merge e uma nova análise assistida.
+
 ## Checkout principal observado
 
 - Worktree: `Projeto-RankFTV`.
