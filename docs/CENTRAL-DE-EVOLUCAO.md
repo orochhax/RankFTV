@@ -25,6 +25,9 @@ validada por `isPerformanceOwner`.
 | `/admin/evolucao/insta-shape` | Treino confirmado no Hevy, peso, seguidores e equipamentos |
 | `/admin/evolucao/rankftv` | Leitura simplificada de `PENDENCIAS-V1.md`, sem peso no score |
 
+Rocha Tech mantém no menu interno a Visão do canal, Biblioteca de ideias,
+Radar de tendências, Oportunidades, Fontes e Configurações.
+
 ## Regras fixas do score
 
 - DataScience: 50 pontos.

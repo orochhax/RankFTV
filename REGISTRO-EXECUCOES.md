@@ -810,3 +810,15 @@ registrar apenas uma revalidação quando ela for necessária.
 - Validação local: typecheck aprovado, 818 testes aprovados, lint dirigido sem
   erros, `npm audit --omit=dev` sem vulnerabilidades e build Next.js 16.4.2
   aprovado. Nenhum serviço externo, Preview ou Production foi alterado.
+
+## 2026-10-21 — Central de Evolução: correção visual da navegação
+
+- O conteúdo de todas as páginas passou a ocupar a largura disponível logo
+  depois do menu lateral, removendo a margem vazia criada pelo `max-width`
+  centralizado.
+- Quando Rocha Tech está ativo, o menu exibe Visão do canal, Biblioteca de
+  ideias, Radar de tendências, Oportunidades, Fontes e Configurações. Os mesmos
+  destinos também aparecem no menu móvel.
+- Os círculos de score herdados do tema escuro do Pulso.AI agora usam centro
+  branco e trilha clara dentro da Central.
+- Alteração somente local; Supabase, Preview e Production não foram alterados.
