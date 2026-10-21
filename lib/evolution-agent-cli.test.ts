@@ -50,3 +50,29 @@ test("schema do agente exige título de notícia em português", async () => {
   const schema = JSON.parse(await readFile("scripts/evolution-agent-output.schema.json", "utf8"));
   assert.match(schema.$defs.item.properties.title.pattern, /como\|da\|das\|de\|do\|dos/);
 });
+
+test("schema estruturado exige campos opcionais como null e o agente os remove antes do importador", async () => {
+  const source = await readFile("scripts/evolution-local-agent.mjs", "utf8");
+  const schema = JSON.parse(await readFile("scripts/evolution-agent-output.schema.json", "utf8"));
+  assert.ok(schema.$defs.import.required.includes("editorialProfile"));
+  assert.ok(schema.$defs.item.required.includes("entity"));
+  assert.ok(schema.$defs.idea.required.includes("youtubeReferences"));
+  assert.match(source, /editorialProfile === null\) delete/);
+  assert.match(source, /youtubeReferences === null\) delete/);
+});
+
+test("schema estruturado não usa const e exige todas as propriedades declaradas", async () => {
+  const schema = JSON.parse(await readFile("scripts/evolution-agent-output.schema.json", "utf8"));
+  const checkObject = (value: unknown) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return;
+    const record = value as { properties?: Record<string, unknown>; required?: string[]; const?: unknown; items?: unknown };
+    assert.equal(record.const, undefined);
+    if (record.properties) {
+      assert.deepEqual([...record.required ?? []].sort(), Object.keys(record.properties).sort());
+      Object.values(record.properties).forEach(checkObject);
+    }
+    checkObject(record.items);
+  };
+  checkObject(schema);
+  Object.values(schema.$defs).forEach(checkObject);
+});

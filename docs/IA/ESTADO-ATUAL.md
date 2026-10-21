@@ -133,6 +133,20 @@ pendências do lançamento e qualquer estado remoto mutável deve ser reconsulta
   incluam construção em português, mesma regra já usada pelo importador. Sete
   testes específicos passaram localmente; a correção aguarda CI e publicação.
 
+## Central de Evolução — campos opcionais no schema estruturado (21/10/2026)
+
+- A execução posterior falhou antes de produzir a resposta porque o modo de
+  saída estruturada do Codex exige que toda propriedade declarada seja
+  obrigatória. O schema tinha três campos que o importador aceita omitir.
+- Esses campos agora são obrigatórios no schema e aceitam `null` quando não se
+  aplicam: perfil editorial, entidade da notícia e referências de YouTube. O
+  agente remove somente esses `null`s antes da pré-validação, preservando o
+  contrato original do importador.
+- A mensagem sanitizada do agente passou a guardar o começo e o fim de falhas
+  longas, sem registrar URLs ou valores sensíveis. Sintaxe, parse do schema,
+  nove testes específicos e verificação de diff passaram localmente. A próxima
+  execução continuará sendo apenas uma prévia até a aprovação de Carlos.
+
 ## Checkout principal observado
 
 - Worktree: `Projeto-RankFTV`.

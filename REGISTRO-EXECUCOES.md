@@ -916,6 +916,23 @@ registrar apenas uma revalidação quando ela for necessária.
 - Estado ao registrar: correção aguardando CI, merge em `master`, deploy e
   reinício da tarefa. Nenhum segredo foi exibido.
 
+## 2026-10-21 17:46 -03:00 — Central de Evolução: schema estruturado compatível
+
+- Diagnóstico: a execução posterior falhou antes de gerar resposta. A
+  documentação oficial de Structured Outputs confirma que toda propriedade
+  declarada no schema precisa constar em `required`; campos opcionais devem ser
+  representados como união com `null`.
+- Correção local: `editorialProfile`, `entity` e `youtubeReferences` passaram
+  a ser obrigatórios no schema e aceitam `null`. O agente remove apenas os
+  valores nulos antes de encaminhar o resultado ao pré-validador já existente.
+  As restrições de schema foram mantidas, usando `enum` em vez de `const`.
+  O prompt instrui explicitamente quando usar `null`.
+- Observabilidade: falhas longas preservam começo e fim no log sanitizado,
+  continuando a remover URLs e valores que pareçam sensíveis.
+- Evidência local: `node --check`, parse do schema JSON, nove testes específicos
+  e `git diff --check` passaram. Não houve importação, alteração de métricas ou
+  conteúdo. A correção aguarda CI, merge, deploy e reinício da tarefa local.
+
 ## 2026-10-21 17:39 -03:00 — Central de Evolução: títulos do radar em português
 
 - Diagnóstico: a pré-validação do payload completo bloqueou uma única notícia
