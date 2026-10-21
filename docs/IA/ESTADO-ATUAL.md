@@ -67,6 +67,19 @@ aprovação e não foi publicada, enviada ou impulsionada.
 Este é um atalho, não uma prova permanente. `PENDENCIAS-V1.md` define as
 pendências do lançamento e qualquer estado remoto mutável deve ser reconsultado.
 
+## Central de Evolução — reparo do agente local (21/10/2026)
+
+- A primeira solicitação de “Atualizar tudo com IA” falhou antes de iniciar a
+  pesquisa porque o script chamou uma opção não suportada pela versão local do
+  Codex. Não houve alteração de dados nem exposição de credenciais.
+- A PR #57 removeu a opção incompatível, passou pelos testes automatizados e
+  foi publicada em Production no commit `f3d4c03`. A tarefa agendada
+  `RankFTV Central Agent` foi reiniciada e voltou a informar status `online`,
+  sem erro, para a fila privada da Central.
+- O registro falho permanece apenas como histórico. Uma nova solicitação pela
+  interface cria uma execução independente; ela continua exigindo aprovação de
+  Carlos antes de aplicar qualquer alteração.
+
 ## Checkout principal observado
 
 - Worktree: `Projeto-RankFTV`.

@@ -17,6 +17,11 @@ validada por `isPerformanceOwner`.
   88%) foram importados em Production.
 - A tarefa local `RankFTV Central Agent` está instalada, em execução e com
   heartbeat online do agente Codex `1.0.0`.
+- Em 21/10/2026, o hotfix da PR #57 corrigiu a primeira falha de execução do
+  agente: a versão local do Codex não reconhecia uma opção de linha de comando
+  usada pelo script. A opção foi removida, o teste de fumaça em modo somente
+  leitura foi aprovado e a tarefa foi reiniciada; o worker voltou a registrar
+  `online` sem código de erro. Commit de Production: `f3d4c03`.
 - Smoke pós-deploy: `/api/health` retornou 200 com `{"status":"ok"}` e o
   acesso anônimo a `/admin/evolucao` retornou 307 para `/login`.
 - A interface usa superfícies claras, menu lateral grafite e azul RankFTV.
