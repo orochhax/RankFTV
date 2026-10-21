@@ -970,6 +970,19 @@ registrar apenas uma revalidação quando ela for necessária.
 - Evidência local: `node --check`, sete testes específicos e `git diff --check`
   passaram. A alteração aguarda CI, merge, reinício da tarefa e nova análise.
 
+## 2026-10-21 18:34 -03:00 — Central de Evolução: contrato editorial no prompt
+
+- Diagnóstico: a análise retornou um objeto de erro porque a política do
+  sandbox recusou a leitura de `scripts/youtube-import-research.ts`. A
+  pré-validação local bloqueou o objeto sem `items`, `trends` e `ideas`; nada
+  foi importado ou alterado.
+- Correção local: o prompt passa a conter o contrato literal das três coleções,
+  proíbe comandos de shell para ler arquivos e exige payload completo, sem
+  propriedade `error`. As regras de fontes autorizadas, pesquisa verificável,
+  sandbox somente leitura e aprovação antes da aplicação permanecem.
+- Evidência local: `node --check`, sete testes específicos e `git diff --check`
+  passaram. A alteração aguarda CI, merge, reinício da tarefa e nova análise.
+
 ## 2026-10-21 17:39 -03:00 — Central de Evolução: títulos do radar em português
 
 - Diagnóstico: a pré-validação do payload completo bloqueou uma única notícia
