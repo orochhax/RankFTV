@@ -76,3 +76,10 @@ test("schema estruturado não usa const e exige todas as propriedades declaradas
   checkObject(schema);
   Object.values(schema.$defs).forEach(checkObject);
 });
+
+test("schema estruturado usa padrão de URL compatível em vez de format uri", async () => {
+  const raw = await readFile("scripts/evolution-agent-output.schema.json", "utf8");
+  const schema = JSON.parse(raw);
+  assert.doesNotMatch(raw, /"format": "uri"/);
+  assert.equal(schema.$defs.url.pattern, "^https?://");
+});
