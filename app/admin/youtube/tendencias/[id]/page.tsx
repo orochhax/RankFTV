@@ -6,7 +6,7 @@ import { getYoutubeTrendDetail } from "@/lib/youtube/queries";
 
 export const dynamic = "force-dynamic";
 
-export default async function YoutubeTrendDetailPage(props: PageProps<"/admin/youtube/tendencias/[id]">) {
+export default async function YoutubeTrendDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const data = await getYoutubeTrendDetail(id);
   if (!data.trend) notFound();

@@ -14,7 +14,7 @@ const originLabel = {
   mixed: "Fontes combinadas",
 } as const;
 
-export default async function YoutubeIdeaDetailPage(props: PageProps<"/admin/youtube/ideias/[id]">) {
+export default async function YoutubeIdeaDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const data = await getYoutubeIdeaDetail(id);
   if (!data.idea) notFound();

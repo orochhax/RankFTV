@@ -40,6 +40,7 @@ imports, chamadores e testes.
 | Crons | `app/api/cron/` | conciliação, alertas, retenção, workflows e autenticação |
 | Segurança HTTP | `proxy.ts`, `next.config.ts`, `lib/security-headers.ts` | CSP, nonce, headers, rate limit e testes de fronteira |
 | Ferramentas pessoais | rotas em `/admin` e módulos `performance`/`estudos` | acesso do dono; não alterar o percentual da V1 |
+| Central de Evolução | `app/admin/evolucao/`, `components/evolution/` | `lib/evolution/`, snapshots em `data/evolution/`, SQL `supabase/evolution-center.sql`; não reutiliza Life OS |
 
 ## Carteira do organizador
 

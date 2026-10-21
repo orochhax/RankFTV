@@ -7,11 +7,11 @@ import { isPerformanceOwner } from "@/lib/performance-owner";
 
 const MENU = [
   {
-    href: "/admin/youtube",
+    href: "/admin/evolucao",
     personalOwnerOnly: true,
     icon: Clapperboard,
-    label: "Inteligência para YouTube",
-    desc: "Monitore tendências, oportunidades e ideias para o seu canal.",
+    label: "Central de Evolução",
+    desc: "Acompanhe DataScience, Rocha Tech, Insta/Shape e RankFTV em um único painel.",
   },
   {
     href: "/admin/curso-ingles",

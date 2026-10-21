@@ -136,6 +136,25 @@ pós-deploy.
 Atualize este arquivo quando branch, evidência, bloqueio ou próximo passo mudar.
 O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 
+## Central de Evolução — implementação local (21/10/2026)
+
+- Worktree isolado `Projeto-RankFTV-evolucao`, branch
+  `feat/central-evolucao`, criado para não tocar o checkout principal sujo.
+- A rota `/admin/evolucao` reúne DataScience, Rocha Tech/Pulso.AI,
+  Insta/Shape e a leitura simplificada do RankFTV. O módulo antigo
+  `/admin/youtube` redireciona para a nova área.
+- O score usa 50% DataScience, 30% Rocha Tech e 20% Insta/Shape. RankFTV é
+  informativo e não altera o score. O módulo não reutiliza Life OS.
+- A migration privada `supabase/evolution-center.sql` está escrita com RLS por
+  `user_id`, mas não foi aplicada. Não houve Preview, push ou deploy.
+- `npm run evolution:sync` transforma o roadmap do cofre e
+  `PENDENCIAS-V1.md` em snapshots; `npm run evolution:import` poderá importá-los
+  depois de autorização explícita e da migration homologada.
+- Typecheck, 818 testes, lint dirigido sem erros, auditoria de dependências de
+  produção sem vulnerabilidades e build Next.js com 70 páginas geradas
+  passaram no worktree.
+- Referência operacional completa: `docs/CENTRAL-DE-EVOLUCAO.md`.
+
 ## Pulso.AI — inteligência de conteúdo para YouTube (20/10/2026)
 
 - O módulo privado foi publicado em `https://www.rankftv.com/admin/youtube`.

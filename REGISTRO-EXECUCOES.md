@@ -790,3 +790,23 @@ registrar apenas uma revalidação quando ela for necessária.
   notícias, cartões e detalhe de ideias.
 - Validação: `npm run typecheck`, lint dirigido e `git diff --check` passaram.
   O provider de IA permaneceu `none`; não houve tentativa de cobrança por API.
+
+## 2026-10-21 — Central de Evolução: implementação local isolada
+
+- Foi criado o worktree `Projeto-RankFTV-evolucao`, branch
+  `feat/central-evolucao`, a partir do estado observado do projeto. O Pulso.AI
+  atual foi preservado em commit local antes das mudanças.
+- Foi implementada `/admin/evolucao` com menu único, home de métricas,
+  DataScience, Rocha Tech/Pulso.AI, Insta/Shape e RankFTV. A interface é clara,
+  responsiva, minimalista e usa o azul da RankFTV.
+- O cálculo registra 2h mínimas por dia útil, 10h semanais, dívida pagável por
+  horas extras/fim de semana e falha diária permanente. O score é 50/30/20;
+  RankFTV não entra no cálculo.
+- O roadmap de 81 dias e o estado 88% do RankFTV foram sincronizados dos
+  arquivos reais. Foram criados scripts separados para gerar snapshots locais
+  e, futuramente, importá-los manualmente no Supabase.
+- A migration `supabase/evolution-center.sql` cria tabelas `evo_*`, constraints,
+  índices, grants mínimos e RLS por proprietário. Ela permanece não aplicada.
+- Validação local: typecheck aprovado, 818 testes aprovados, lint dirigido sem
+  erros, `npm audit --omit=dev` sem vulnerabilidades e build Next.js 16.4.2
+  aprovado. Nenhum serviço externo, Preview ou Production foi alterado.

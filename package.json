@@ -23,6 +23,8 @@
     "video:rankftv:render": "node videos/rankftv-organizadores-vertical/render.mjs",
     "youtube:import": "tsx scripts/youtube-import-research.ts",
     "youtube:sources": "tsx scripts/youtube-list-sources.ts",
+    "evolution:sync": "node scripts/evolution-sync-sources.mjs",
+    "evolution:import": "tsx scripts/evolution-import-sources.ts",
     "test:load:sandbox": "k6 run scripts/k6-sandbox-smoke.js",
     "types:supabase:generate": "node scripts/supabase-types.mjs --write",
     "types:supabase:check": "node scripts/supabase-types.mjs",

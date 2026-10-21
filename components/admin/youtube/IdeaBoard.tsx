@@ -151,7 +151,7 @@ export function YoutubeIdeaBoard({ initialIdeas }: { initialIdeas: Idea[] }) {
                 >
                   <div className="yt-idea-score"><Clapperboard size={15} /><span>{idea.format}</span><b>{idea.score}</b></div>
                   <span className="yt-drag-handle" aria-hidden="true"><GripVertical size={15} /></span>
-                  <Link href={`/admin/youtube/ideias/${idea.id}`} className="yt-idea-title"><h3>{idea.title}</h3></Link>
+                  <Link href={`/admin/evolucao/rocha-tech/ideias/${idea.id}`} className="yt-idea-title"><h3>{idea.title}</h3></Link>
                   <p>{idea.summary}</p>
                   <div className="yt-tag-row"><span className={`yt-origin-tag is-${idea.source_origin}`}>{originLabel[idea.source_origin]}</span><span>{idea.angle}</span><span>{idea.priority.replace("_", " ")}</span><span>{idea.editorial_state.replaceAll("_", " ")}</span></div>
                   <div className="yt-rank-row"><span>#{idea.current_rank ?? "—"} agora</span><span>melhor #{idea.best_rank ?? "—"}</span><span>{idea.current_rank === idea.best_rank ? <Minus size={12} /> : idea.current_rank && idea.best_rank && idea.current_rank < idea.best_rank ? <ArrowUp size={12} /> : <ArrowDown size={12} />}</span></div>
