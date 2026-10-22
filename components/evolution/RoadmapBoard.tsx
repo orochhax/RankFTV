@@ -70,6 +70,13 @@ export function RoadmapBoard({ roadmap, initialCompleted, today, onToggle }: { r
                 <span className="evo-day-done">{done}/{tasks.length}</span>
               </summary>
               <div className="evo-day-content">
+                {day.courses?.length ? <div className="evo-day-courses">
+                  {day.courses.map((course) => <article key={course.id} className="evo-course-card">
+                    <div><span className="evo-course-kicker">{course.title.includes("Inglês") || course.title.includes("Ingles") ? "INGLÊS" : "CIÊNCIA DE DADOS"}</span><h3>{course.title}</h3></div>
+                    <a href={course.url} target="_blank" rel="noreferrer">Abrir curso ↗</a>
+                    <details><summary>{course.lessons.length} aulas planejadas neste dia</summary><ul>{course.lessons.map((lesson) => <li key={lesson.id}>{lesson.label}</li>)}</ul></details>
+                  </article>)}
+                </div> : null}
                 {day.sections.map((section) => (
                   <section key={section.title}>
                     <h3>{section.title}</h3>

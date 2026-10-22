@@ -1056,3 +1056,11 @@ registrar apenas uma revalidação quando ela for necessária.
   cartão "Hoje". O histórico do roadmap e as metas não foram alterados.
 - Evidência local: 853 testes aprovados, 1 ignorado, typecheck, build Next.js
   e `git diff --check` concluídos.
+## 2026-10-22 — Central: cursos por dia e foco com confirmação
+
+- A página DataScience passou a mostrar, para cada dia, os cursos de Ciência de
+  Dados e Inglês, seus links oficiais da Udemy e as aulas planejadas.
+- O cronômetro agora permite iniciar, pausar, retomar e abrir uma confirmação
+  editável antes de salvar; iniciar ou pausar nunca grava automaticamente.
+- Evidência local: sincronização do roadmap com 81 dias, lint, typecheck e
+  build concluídos. Nenhum segredo foi registrado.

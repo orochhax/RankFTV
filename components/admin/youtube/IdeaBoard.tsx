@@ -20,6 +20,9 @@ type Idea = {
   last_evaluated_at: string | null;
   updated_at: string;
   source_origin: "primary" | "market" | "mixed";
+  rank_delta: number | null;
+  change_kind: "nova" | "subiu" | "caiu" | "estavel" | "reavaliar" | null;
+  is_new: boolean;
 };
 
 const originLabel = {
@@ -153,8 +156,8 @@ export function YoutubeIdeaBoard({ initialIdeas }: { initialIdeas: Idea[] }) {
                   <span className="yt-drag-handle" aria-hidden="true"><GripVertical size={15} /></span>
                   <Link href={`/admin/evolucao/rocha-tech/ideias/${idea.id}`} className="yt-idea-title"><h3>{idea.title}</h3></Link>
                   <p>{idea.summary}</p>
-                  <div className="yt-tag-row"><span className={`yt-origin-tag is-${idea.source_origin}`}>{originLabel[idea.source_origin]}</span><span>{idea.angle}</span><span>{idea.priority.replace("_", " ")}</span><span>{idea.editorial_state.replaceAll("_", " ")}</span></div>
-                  <div className="yt-rank-row"><span>#{idea.current_rank ?? "—"} agora</span><span>melhor #{idea.best_rank ?? "—"}</span><span>{idea.current_rank === idea.best_rank ? <Minus size={12} /> : idea.current_rank && idea.best_rank && idea.current_rank < idea.best_rank ? <ArrowUp size={12} /> : <ArrowDown size={12} />}</span></div>
+                  <div className="yt-tag-row"><span className={`yt-origin-tag is-${idea.source_origin}`}>{originLabel[idea.source_origin]}</span>{idea.is_new ? <span className="yt-new-tag">NEW</span> : null}<span>{idea.angle}</span><span>{idea.priority.replace("_", " ")}</span><span>{idea.editorial_state.replaceAll("_", " ")}</span></div>
+                  <div className="yt-rank-row"><span>#{idea.current_rank ?? "—"} agora</span><span>melhor #{idea.best_rank ?? "—"}</span><span className={idea.change_kind === "subiu" ? "is-up" : idea.change_kind === "caiu" ? "is-down" : "is-same"} title={idea.change_kind === "subiu" ? `Subiu ${idea.rank_delta ?? 0} posições` : idea.change_kind === "caiu" ? `Caiu ${Math.abs(idea.rank_delta ?? 0)} posições` : "Mesma posição"}>{idea.change_kind === "subiu" ? <ArrowUp size={14} /> : idea.change_kind === "caiu" ? <ArrowDown size={14} /> : <Minus size={14} />}</span></div>
                   <label className="yt-move-label">
                     Mover para
                     <select value={idea.status} onChange={(event) => move(idea.id, event.target.value)}>

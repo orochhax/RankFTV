@@ -10,6 +10,7 @@ export type YoutubeNewsItem = {
   url: string;
   published_at: string | null;
   collected_at: string;
+  is_new: boolean;
   category: string;
   source_name: string;
   summary_pt_br: string | null;
@@ -55,6 +56,9 @@ export type YoutubeIdea = {
   last_evaluated_at: string | null;
   updated_at: string;
   source_origin: "primary" | "market" | "mixed";
+  rank_delta: number | null;
+  change_kind: "nova" | "subiu" | "caiu" | "estavel" | "reavaliar" | null;
+  is_new: boolean;
 };
 
 export type YoutubeIdeaYoutubeReference = {
@@ -76,7 +80,7 @@ function requireData<T>(data: T | null, error: { message: string } | null, fallb
   return data ?? fallback;
 }
 
-function mapNewsRow(row: Record<string, unknown>): YoutubeNewsItem {
+function mapNewsRow(row: Record<string, unknown>, isNew = false): YoutubeNewsItem {
   const source = firstRelation(row.source as Relation<{ name: string }>);
   const analysis = firstRelation(row.analysis as Relation<{
     summary_pt_br: string;
@@ -94,6 +98,7 @@ function mapNewsRow(row: Record<string, unknown>): YoutubeNewsItem {
     url: String(row.url),
     published_at: typeof row.published_at === "string" ? row.published_at : null,
     collected_at: String(row.collected_at),
+    is_new: isNew,
     category: String(row.category),
     source_name: source?.name ?? "Fonte desconhecida",
     summary_pt_br: analysis?.summary_pt_br ?? null,
@@ -139,8 +144,9 @@ export async function getYoutubeDashboardData() {
   if (error) throw new Error(error.message);
 
   const briefingSince = Date.now() - BRIEFING_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+  const latestRunStartedAt = latestRun.data?.started_at ? Date.parse(latestRun.data.started_at) : NaN;
   const news = ((feed.data ?? []) as unknown as Record<string, unknown>[])
-    .map(mapNewsRow)
+    .map((row) => mapNewsRow(row, Number.isFinite(latestRunStartedAt) && Date.parse(String(row.collected_at)) >= latestRunStartedAt))
     .filter((item) => {
       const date = Date.parse(item.published_at ?? item.collected_at);
       return (item.opportunity_score ?? 0) >= BRIEFING_MIN_OPPORTUNITY
@@ -183,7 +189,7 @@ export async function getYoutubeOpportunities() {
     .order("collected_at", { ascending: false })
     .limit(100);
   const rows = requireData(data as unknown as Record<string, unknown>[] | null, error, []);
-  return rows.map(mapNewsRow)
+  return rows.map((row) => mapNewsRow(row))
     .filter((item) => item.opportunity_score !== null)
     .sort((a, b) => (b.opportunity_score ?? 0) - (a.opportunity_score ?? 0))
     .slice(0, 50);
@@ -191,14 +197,32 @@ export async function getYoutubeOpportunities() {
 
 export async function getYoutubeIdeas() {
   await requireYoutubeOwner();
-  const { data, error } = await createAdminClient()
-    .from("yt_ideas")
+  const supabase = createAdminClient();
+  const [{ data, error }, { data: latestRun, error: runError }] = await Promise.all([
+    supabase.from("yt_ideas")
     .select("id, title, alternate_titles, summary, rationale, angle, format, outline, hook, priority, score, confidence_score, status, editorial_state, current_rank, best_rank, last_evaluated_at, updated_at, source_origin")
     .neq("status", "discarded")
     .order("current_rank", { ascending: true, nullsFirst: false })
     .order("score", { ascending: false })
-    .order("updated_at", { ascending: false });
-  return requireData(data, error, []);
+    .order("updated_at", { ascending: false }),
+    supabase.from("yt_research_runs").select("id, started_at").order("started_at", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+  if (error) throw new Error(error.message);
+  if (runError) throw new Error(runError.message);
+  const evaluations = latestRun?.id
+    ? await supabase.from("yt_idea_evaluations").select("idea_id, rank_delta, change_kind").eq("run_id", latestRun.id)
+    : { data: [], error: null };
+  if (evaluations.error) throw new Error(evaluations.error.message);
+  const changes = new Map((evaluations.data ?? []).map((entry) => [entry.idea_id, entry]));
+  return (data ?? []).map((idea) => {
+    const change = changes.get(idea.id);
+    return {
+      ...idea,
+      rank_delta: change?.rank_delta ?? null,
+      change_kind: (change?.change_kind as YoutubeIdea["change_kind"]) ?? null,
+      is_new: change?.change_kind === "nova",
+    };
+  });
 }
 
 export async function getYoutubeTrends() {

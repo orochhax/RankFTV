@@ -458,3 +458,14 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   além de achados oficiais recentes de Anthropic, Google, NVIDIA e Higgsfield.
   O provider automático continua em `none`; a atualização foi manual e sem
   cobrança de API.
+## Central de Evolução — roadmap diário e foco pausável (22/10/2026)
+
+- A página DataScience passa a exibir, em cada dia do roadmap, os cursos reais
+  de Ciência de Dados e Inglês, com links oficiais da Udemy e a lista de aulas
+  planejadas naquele dia. Os dados são regenerados por `evolution:sync` a partir
+  de `roadmapudemy_diario.md`.
+- O registro de foco não salva automaticamente: iniciar, pausar e retomar são
+  ações locais. Ao salvar, a interface abre uma confirmação com minutos
+  editáveis; somente a confirmação final grava a sessão.
+- Validação local concluída com `npm run lint -- --quiet`, `npm run typecheck` e
+  `npm run build`.

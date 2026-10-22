@@ -51,6 +51,13 @@ export type RoadmapTask = {
   durationMinutes: number | null;
 };
 
+export type RoadmapCourse = {
+  id: string;
+  title: string;
+  url: string;
+  lessons: RoadmapTask[];
+};
+
 export type RoadmapDay = {
   id: string;
   dayNumber: number;
@@ -58,6 +65,7 @@ export type RoadmapDay = {
   weekday: string;
   plannedMinutes: number;
   sections: Array<{ title: string; tasks: RoadmapTask[] }>;
+  courses: RoadmapCourse[];
 };
 
 export type RoadmapSnapshot = {
