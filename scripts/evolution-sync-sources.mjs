@@ -39,6 +39,9 @@ function parseRoadmap(markdown) {
   const days = blocks.map((match) => {
     const [, dayNumber, day, month, year, weekday, hours, minutes, body] = match;
     const sections = [];
+    const courses = [];
+    let currentCourse = null;
+    let currentTrack = null;
     let current = { title: "Geral", tasks: [] };
     sections.push(current);
 
@@ -47,6 +50,15 @@ function parseRoadmap(markdown) {
       if (sectionMatch) {
         current = { title: cleanMarkdown(sectionMatch[1]), tasks: [] };
         sections.push(current);
+        const sectionTitle = cleanMarkdown(sectionMatch[1]).toLowerCase();
+        currentTrack = sectionTitle.includes("data science") ? "datascience" : sectionTitle.includes("inglês") || sectionTitle.includes("ingles") ? "english" : null;
+        currentCourse = null;
+        continue;
+      }
+      const courseMatch = line.match(/^\*\*Curso:\*\*\s+\[([^\]]+)\]\(([^)]+)\)/);
+      if (courseMatch && currentTrack) {
+        currentCourse = { id: `${currentTrack}-${slug(courseMatch[1])}`, title: cleanMarkdown(courseMatch[1]), url: courseMatch[2], lessons: [] };
+        courses.push(currentCourse);
         continue;
       }
       const taskMatch = line.match(/^- \[[ xX]\]\s+(.+)/);
@@ -65,6 +77,7 @@ function parseRoadmap(markdown) {
         kind,
         durationMinutes: duration ? Number(duration[1] ?? 0) * 60 + Number(duration[2]) : null,
       });
+      if (currentCourse) currentCourse.lessons.push(current.tasks.at(-1));
     }
 
     return {
@@ -74,6 +87,7 @@ function parseRoadmap(markdown) {
       weekday,
       plannedMinutes: Number(hours) * 60 + Number(minutes),
       sections: sections.filter((section) => section.tasks.length > 0),
+      courses,
     };
   });
 
