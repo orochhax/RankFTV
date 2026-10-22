@@ -469,3 +469,65 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   editáveis; somente a confirmação final grava a sessão.
 - Validação local concluída com `npm run lint -- --quiet`, `npm run typecheck` e
   `npm run build`.
+-
+## Central de Evolução — inteligência editorial local (22/10/2026)
+
+- A rota `/admin/evolucao/rocha-tech?view=inteligencia` apresenta uma primeira
+  camada de inteligência editorial: tamanho da base, sinais por tema, amostra
+  mais vista e limites dos dados públicos.
+- Em desenvolvimento, a camada lê os JSONs de `Rocha Tech - YT/Concorrentes`
+  do cofre por caminho local. Não há envio automático para API nem escrita no
+  Supabase; sem o cofre, a interface mostra estado vazio.
+- A pesquisa profunda de 22/10/2026 foi registrada em
+  `Rocha Tech - YT/04 - Pesquisas/Inteligencia Editorial - 2026-10-22.md`.
+- Esta rodada não importou novas notícias, ideias ou pontuações.
+
+## Biblioteca de ideias — categorias editoriais (22/10/2026)
+
+- A Biblioteca exibe uma etiqueta de categoria em cada ideia, calculada de
+  forma determinística pelo título, resumo e ângulo.
+- As categorias são as cinco já usadas nos sinais da inteligência editorial:
+  Negócios e dinheiro, Ferramentas práticas, Modelos e lançamentos, Agentes e
+  automação e Notícias e opinião.
+- A alteração é apenas de apresentação e não grava classificação no Supabase.
+
+## Inteligência editorial — thumbnails e critério da amostra (22/10/2026)
+
+- O carregador passou a ler thumbnails e métricas tanto do formato direto dos
+  snapshots quanto do formato baseado em `observations[0]`.
+- Os cards de vídeos mais vistos exibem a thumbnail original e informam que a
+  posição é ordenada por views públicas observadas na coleta.
+- O ranking não é uma nota de qualidade ou previsão: não normaliza por idade do
+  vídeo, tamanho do canal, CTR, retenção ou inscritos.
+
+## Inteligência editorial — views e thumbnails (22/10/2026)
+
+- A interface mostra unidades explícitas (`mil`, `milhões`) em vez de `mi`.
+- As thumbnails dos concorrentes são lidas dos arquivos locais do cofre por
+  uma rota autenticada, evitando a falha dos links remotos do YouTube.
+
+## Inteligência editorial — correção de unidade nas views (22/10/2026)
+
+- Seis snapshots tinham valores redondos inflados por 1.000: um de Lucas
+  Montano (`11.000.000 → 11.000`) e cinco de Vagner Mazzeo (`7.000.000 →
+  7.000` ou `2.000.000 → 2.000`).
+- O parser foi corrigido para não interpretar `mi` como milhão na listagem
+  pt-BR; `m` permanece a abreviação de milhão.
+- A média corrigida ficou em aproximadamente 49,6 mil para Lucas Montano e
+  35,9 mil para Vagner Mazzeo. A coleta online foi tentada, mas a rede não
+  estava disponível; os snapshots já existentes foram preservados.
+
+## Inteligência editorial — títulos em pt-BR e amostra ampliada (22/10/2026)
+
+- A amostra visual passou de 12 para 15 vídeos.
+- Todos os títulos apresentados nesses cards estão em português do Brasil. O
+  título original coletado continua preservado na memória da aplicação e pode
+  ser consultado ao posicionar o cursor sobre um título traduzido.
+- Datas relativas coletadas em inglês também são normalizadas para pt-BR, como
+  `3 months ago` para `há 3 meses` e `1 year ago` para `há 1 ano`.
+- A ordem continua baseada exclusivamente nas visualizações públicas do
+  snapshot; a tradução não altera dados, pontuação ou posição.
+- Para Production, os indicadores agregados e os 15 cards possuem um snapshot
+  público versionado no servidor. A rota autenticada usa thumbnails locais no
+  desenvolvimento e recorre à imagem pública do YouTube quando o cofre não
+  estiver disponível na Vercel.

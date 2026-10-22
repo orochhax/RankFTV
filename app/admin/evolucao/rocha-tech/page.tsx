@@ -6,11 +6,14 @@ import { formatYoutubeDate } from "@/lib/youtube/format";
 import { getYoutubeDashboardData } from "@/lib/youtube/queries";
 import { getEvolutionData } from "@/lib/evolution/queries";
 import { markWeeklyVideoPublished, selectWeeklyVideo } from "../actions";
+import { EditorialIntelligence } from "@/components/evolution/EditorialIntelligence";
 
 export const dynamic = "force-dynamic";
 
 // eslint-disable-next-line complexity
-export default async function YoutubeDashboardPage() {
+export default async function YoutubeDashboardPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+  const params = await searchParams;
+  if (params.view === "inteligencia") return <EditorialIntelligence />;
   const [data, evolution] = await Promise.all([getYoutubeDashboardData(), getEvolutionData()]);
   const cards = [
     { label: "Notícias em 24h", value: data.stats.news24h, icon: Newspaper, tone: "is-blue", helper: "Coletadas de fontes reais" },

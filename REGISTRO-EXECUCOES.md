@@ -1064,3 +1064,78 @@ registrar apenas uma revalidação quando ela for necessária.
   editável antes de salvar; iniciar ou pausar nunca grava automaticamente.
 - Evidência local: sincronização do roadmap com 81 dias, lint, typecheck e
   build concluídos. Nenhum segredo foi registrado.
+## 2026-10-22 — Central: primeira camada de inteligência editorial
+
+- Carlos corrigiu o alvo: a cópia atual é `Projeto-RankFTV-evolucao`, que
+  corresponde à Central de Evolução publicada; `Projeto-RankFTV` é a cópia
+  antiga e não é o alvo desta entrega.
+- Foi criada a visão `rocha-tech?view=inteligencia`, com leitura local somente
+  dos dados públicos de `Rocha Tech - YT/Concorrentes`, sinais de temas,
+  métricas da amostra e limites de inferência. A navegação ganhou o item
+  "Inteligência do canal".
+- A pesquisa oficial foi registrada no cofre sem importação para Supabase e
+  sem novos registros no radar.
+- Evidência local: servidor Next.js iniciado no repositório correto e
+  `npx tsc --noEmit --incremental false` concluído com sucesso. Nenhum segredo
+  foi exibido ou registrado.
+
+## 2026-10-22 — Central: categorias editoriais na Biblioteca de ideias
+
+- Cada ideia da Biblioteca agora recebe uma etiqueta calculada a partir do
+  título, resumo e ângulo, usando as cinco categorias da inteligência editorial:
+  Negócios e dinheiro, Ferramentas práticas, Modelos e lançamentos, Agentes e
+  automação ou Notícias e opinião.
+- A classificação é determinística e somente visual; não altera o Supabase nem
+  cria novos registros.
+- Evidência local: `npx.cmd tsc --noEmit --incremental false` e
+  `git diff --check` concluídos com sucesso.
+
+## 2026-10-22 — Central: thumbnails e critério da amostra editorial
+
+- A leitura dos concorrentes agora aceita os dois formatos de snapshot usados
+  no cofre, inclusive thumbnails em `thumbnail.source_url` e observações em
+  `observations[0]`.
+- A seção de vídeos mais vistos exibe a thumbnail de cada vídeo e explica que
+  o ranking é ordenado por views públicas observadas na coleta, sem prometer
+  qualidade ou desempenho futuro.
+- Evidência local: typecheck e servidor Next.js concluídos sem erro.
+
+## 2026-10-22 — Central: visualização explícita de views e thumbnails locais
+
+- A apresentação deixou de usar a abreviação ambígua `mi`: agora mostra
+  `milhões`, `mil` ou o número inteiro em português.
+- As thumbnails passam a ser servidas pelo endpoint autenticado a partir dos
+  arquivos locais do cofre, evitando falhas dos links remotos do YouTube.
+
+## 2026-10-22 — Central: correção de unidade nas views dos concorrentes
+
+- A auditoria encontrou seis valores redondos que estavam 1.000 vezes maiores
+  que a listagem pública: Lucas Montano `11.000.000 → 11.000`; Vagner Mazzeo
+  quatro vídeos `7.000.000 → 7.000` e um vídeo `2.000.000 → 2.000`.
+- O parser da coleta foi ajustado para tratar a abreviação `mi` retornada pela
+  listagem pt-BR como `mil` neste contexto; `m` continua representando milhão.
+- Médias recalculadas na base corrigida: Lucas Montano ≈ 49,6 mil (73 vídeos)
+  e Vagner Mazzeo ≈ 35,9 mil (29 vídeos). A coleta online posterior falhou por
+  indisponibilidade de rede e não substituiu os snapshots existentes.
+
+## 2026-10-22 — Central: 15 títulos editoriais em pt-BR
+
+- A seção “Vídeos para estudar, não copiar” foi ampliada de 12 para 15 cards.
+- Os títulos em inglês dos vídeos exibidos receberam versões editoriais em
+  português do Brasil, sem sobrescrever os títulos originais dos snapshots.
+- As datas relativas em inglês passaram a ser apresentadas em pt-BR para
+  minutos, horas, dias, semanas, meses e anos.
+- Evidência local: os 15 títulos foram conferidos e o typecheck foi concluído
+  sem erros. Nenhum dado externo, Supabase ou Production foi alterado.
+
+## 2026-10-22 — Central: candidato de Production da inteligência editorial
+
+- O candidato passou a incluir um snapshot público e seguro dos agregados e
+  dos 15 vídeos apresentados, evitando dependência do caminho local do cofre
+  quando executado na Vercel.
+- A rota autenticada de thumbnails preserva os arquivos locais como primeira
+  opção e usa `i.ytimg.com` como fallback em Production.
+- Evidência local: lint sem erros, typecheck sem erros, auditoria com zero
+  vulnerabilidades e build completo com 72 páginas. A suíte de testes não
+  iniciou no computador por `uv_os_get_passwd ENOMEM`; o CI remoto permanece
+  como gate obrigatório antes do merge. Nenhum banco ou migration foi alterado.

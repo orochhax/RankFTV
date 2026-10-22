@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Activity, BarChart3, BrainCircuit, Clapperboard, Database, Dumbbell, House, LayoutGrid, Library, Menu, Radar, Settings, Sparkles, Trophy } from "lucide-react";
 
 const base = "/admin/evolucao";
@@ -14,6 +14,7 @@ const navigation = [
 ];
 
 const rochaTechNavigation = [
+  { href: `${base}/rocha-tech?view=inteligencia`, label: "Inteligência do canal", icon: BrainCircuit },
   { href: `${base}/rocha-tech`, label: "Visão do canal", icon: LayoutGrid },
   { href: `${base}/rocha-tech/ideias`, label: "Biblioteca de ideias", icon: Library },
   { href: `${base}/rocha-tech/tendencias`, label: "Radar de tendências", icon: Radar },
@@ -24,6 +25,7 @@ const rochaTechNavigation = [
 
 export function EvolutionShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   return (
     <div className="evo-shell">
@@ -42,7 +44,7 @@ export function EvolutionShell({ children }: { children: React.ReactNode }) {
                   <Icon size={18} /><span>{label}</span>
                 </Link>
                 {href.endsWith("/rocha-tech") && active ? <div className="evo-subnav">{rochaTechNavigation.map(({ href: childHref, label: childLabel, icon: ChildIcon }) => {
-                  const childActive = childHref === `${base}/rocha-tech` ? pathname === childHref : pathname.startsWith(childHref);
+                  const childActive = childHref.includes("?") ? pathname === `${base}/rocha-tech` && searchParams.get("view") === "inteligencia" : childHref === `${base}/rocha-tech` ? pathname === childHref && !searchParams.get("view") : pathname.startsWith(childHref);
                   return <Link key={childHref} href={childHref} className={childActive ? "is-active" : ""} aria-current={childActive ? "page" : undefined}><ChildIcon size={14} /><span>{childLabel}</span></Link>;
                 })}</div> : null}
               </div>
