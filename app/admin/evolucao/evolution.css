@@ -732,6 +732,13 @@
   border-color: #d9c5f5;
 }
 
+.evo-shell .yt-tag-row .yt-category-tag {
+  color: #0f5eae;
+  background: #eaf4ff;
+  border-color: #b7d7f6;
+  font-weight: 800;
+}
+
 .evo-shell :where(a, button, input, select, textarea, summary):focus-visible {
   outline: 2px solid var(--evo-blue);
   outline-offset: 2px;
@@ -801,3 +808,37 @@
   .evo-ai-actions form, .evo-ai-actions button { width: 100%; }
 }
 @media (max-width: 480px) { .evo-hero { flex-direction: column; gap: 22px; }.evo-score-grid { grid-template-columns: 1fr 1fr; }.evo-score-grid article { padding: 12px; align-items: flex-start; flex-direction: column; }.evo-day-content { padding-left: 15px; }.evo-two-fields { grid-template-columns: 1fr; }.evo-timer { align-items: flex-start; flex-wrap: wrap; }.evo-timer button { width: 100%; margin-left: 0; justify-content: center; } }
+
+.evo-intel-page { padding-top: 44px; }
+.evo-intel-page .evo-page-header { margin-bottom: 24px; }
+.evo-intel-page .evo-page-header > svg { color: var(--evo-blue); }
+.evo-intel-hero { margin-bottom: 14px; padding: 22px; display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; align-items: start; gap: 15px; border: 1px solid #b9d3f6; border-radius: 14px; background: linear-gradient(135deg, #f4f9ff, #fff); box-shadow: var(--evo-shadow); }
+.evo-intel-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 11px; color: var(--evo-blue); background: var(--evo-blue-soft); }
+.evo-intel-hero h2 { margin: 6px 0; color: var(--evo-ink); font-size: 20px; letter-spacing: -.035em; }
+.evo-intel-hero p:last-child { max-width: 760px; margin: 0; color: var(--evo-muted); font-size: 12px; line-height: 1.6; }
+.evo-intel-status { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid #bfe9d6; border-radius: 99px; color: #08794f; background: #eefbf5; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.evo-intel-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.evo-intel-metrics article { min-width: 0; padding: 17px; display: grid; grid-template-columns: 22px 1fr; gap: 2px 8px; border: 1px solid var(--evo-line); border-radius: 13px; background: #fff; box-shadow: var(--evo-shadow); }
+.evo-intel-metrics article > svg { grid-row: span 3; margin-top: 2px; color: var(--evo-blue); }
+.evo-intel-metrics span { color: var(--evo-muted); font-size: 10px; }
+.evo-intel-metrics strong { overflow: hidden; color: var(--evo-ink); font-size: 21px; text-overflow: ellipsis; white-space: nowrap; }
+.evo-intel-metrics small { color: var(--evo-subtle); font-size: 9px; }
+.evo-intel-grid { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.evo-intel-grid .evo-panel { min-width: 0; }
+.evo-intel-grid .evo-panel-heading > svg { color: var(--evo-blue); }
+.evo-signal-list { margin-top: 14px; display: grid; }
+.evo-signal-list > div { min-height: 52px; padding: 9px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #edf1f5; }
+.evo-signal-list > div:last-child { border-bottom: 0; }
+.evo-signal-list span { display: grid; gap: 4px; }.evo-signal-list strong { font-size: 12px; }.evo-signal-list small { color: var(--evo-muted); font-size: 10px; }.evo-signal-list b { color: var(--evo-blue); font-size: 15px; text-align: right; }.evo-signal-list b small { margin-left: 3px; font-weight: 500; }
+.evo-intel-grid .evo-panel > a { display: inline-flex; align-items: center; gap: 6px; color: var(--evo-blue); font-size: 11px; font-weight: 750; }
+.evo-intel-checklist { margin: 16px 0 19px; padding: 0; display: grid; gap: 13px; list-style: none; }.evo-intel-checklist li { display: flex; align-items: flex-start; gap: 8px; color: var(--evo-text); font-size: 11px; line-height: 1.5; }.evo-intel-checklist svg { flex: 0 0 auto; color: var(--evo-success); }
+.evo-intel-videos { margin-top: 35px; }.evo-intel-videos .evo-section-heading > p { font-size: 11px; }.evo-intel-video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }.evo-intel-video-grid article { overflow: hidden; border: 1px solid var(--evo-line); border-radius: 13px; background: #fff; box-shadow: var(--evo-shadow); }.evo-intel-thumb { aspect-ratio: 16 / 9; display: flex; align-items: flex-start; justify-content: flex-end; padding: 8px; background-position: center; background-size: cover; background-color: #eaf0f7; }.evo-intel-thumb span { padding: 4px 6px; border-radius: 5px; color: #fff; background: #172033cc; font-size: 10px; font-weight: 800; }.evo-intel-video-copy { padding: 13px; }.evo-intel-video-copy > small { color: var(--evo-blue); font-size: 9px; font-weight: 750; }.evo-intel-video-copy h3 { min-height: 44px; margin: 6px 0 8px; overflow: hidden; font-size: 12px; line-height: 1.45; }.evo-intel-video-copy > p { margin: 0; color: var(--evo-muted); font-size: 10px; }.evo-intel-video-copy footer { margin-top: 11px; padding-top: 9px; display: flex; align-items: center; justify-content: space-between; gap: 7px; border-top: 1px solid #edf1f5; color: var(--evo-subtle); font-size: 9px; }.evo-intel-video-copy footer a { display: inline-flex; align-items: center; gap: 4px; color: var(--evo-blue); font-weight: 750; white-space: nowrap; }
+.evo-intel-note { margin-top: 14px; padding: 13px 15px; display: flex; align-items: flex-start; gap: 10px; border: 1px solid #c7d9f2; border-radius: 11px; color: var(--evo-muted); background: #f5f9ff; }.evo-intel-note > svg { flex: 0 0 auto; color: var(--evo-blue); }.evo-intel-note strong { display: block; margin-bottom: 3px; color: var(--evo-ink); font-size: 11px; }.evo-intel-note p { margin: 0; font-size: 10px; line-height: 1.55; }
+.evo-intel-rank-guide { margin: 12px 0 14px; padding: 12px 14px; display: flex; align-items: baseline; gap: 8px; border: 1px solid #c7d9f2; border-radius: 10px; color: var(--evo-muted); background: #f5f9ff; font-size: 10px; line-height: 1.5; }
+.evo-intel-rank-guide strong { flex: 0 0 auto; color: var(--evo-ink); font-size: 11px; }
+.evo-intel-thumb { position: relative; overflow: hidden; }
+.evo-intel-thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.evo-intel-thumb-empty { align-self: center; margin: auto; padding: 6px 8px; border-radius: 6px; color: var(--evo-muted); background: #dfe8f3; font-size: 9px; }
+.evo-intel-thumb > span:last-child { position: absolute; top: 8px; right: 8px; }
+@media (max-width: 1000px) { .evo-intel-metrics, .evo-intel-video-grid { grid-template-columns: repeat(2, 1fr); }.evo-intel-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .evo-intel-hero { grid-template-columns: 38px 1fr; }.evo-intel-status { grid-column: 2; justify-self: start; }.evo-intel-metrics, .evo-intel-video-grid { grid-template-columns: 1fr; } }

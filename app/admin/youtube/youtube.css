@@ -194,6 +194,7 @@
 .yt-tag-row { display: flex; flex-wrap: wrap; gap: 5px; }
 .yt-tag-row span { padding: 3px 6px; border: 1px solid #26303d; border-radius: 99px; color: #748399; font-size: 8px; }
 .yt-tag-row .yt-origin-tag { font-weight: 700; }
+.yt-tag-row .yt-category-tag { color: #78b4ff; border-color: rgba(36, 120, 255, 0.36); background: rgba(36, 120, 255, 0.11); font-weight: 750; }
 .yt-detail-origin { margin: 5px 0 6px; font-size: 10px; }
 .yt-move-label { margin-top: 13px; padding-top: 9px; display: flex; align-items: center; gap: 4px; border-top: 1px solid #202733; color: #556276; font-size: 8px; }
 .yt-move-label select { flex: 1; min-width: 0; border: 0; outline: 0; color: #8191a8; background: transparent; font-size: 9px; }
