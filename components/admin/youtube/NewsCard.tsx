@@ -21,6 +21,7 @@ export function YoutubeNewsCard({ item, featured = false }: { item: YoutubeNewsI
     <article className={featured ? "yt-news-card is-featured" : "yt-news-card"}>
       <div className="yt-card-meta">
         <span className="yt-source-pill">{item.source_name}</span>
+        {item.is_new ? <span className="yt-new-tag">NEW</span> : null}
         <span className={`yt-origin-pill is-${item.source_origin}`}>{originLabel[item.source_origin]}</span>
         <span><Clock3 size={13} /> {relativeYoutubeDate(item.published_at ?? item.collected_at)}</span>
         {item.reliability ? <span><ShieldCheck size={13} /> {reliabilityLabel[item.reliability]}</span> : null}
