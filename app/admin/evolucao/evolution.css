@@ -295,6 +295,9 @@
   background: var(--evo-blue-soft);
   border-color: #b9d2f7;
 }
+.evo-shell .yt-news-card-body > .yt-score-ring,
+.evo-shell .yt-news-card-body > .yt-pending-badge { margin-left: auto; }
+.evo-shell .yt-new-tag { padding: 3px 7px; border: 1px solid #9ed8b2; border-radius: 99px; color: #187a3e; background: #edf9f1; font-size: 9px; font-weight: 850; letter-spacing: .05em; }
 
 .evo-shell .yt-metric-card p,
 .evo-shell .yt-status-strip > div,
@@ -567,6 +570,9 @@
 .evo-shell .yt-rank-row span:last-child {
   color: var(--evo-blue);
 }
+.evo-shell .yt-rank-row span.is-up { color: #1d9b52; }
+.evo-shell .yt-rank-row span.is-down { color: #d0444b; }
+.evo-shell .yt-rank-row span.is-same { color: #8a96a7; }
 
 /* Fontes e configurações */
 .evo-shell .yt-panel-heading > div,
