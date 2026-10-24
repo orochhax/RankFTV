@@ -531,3 +531,21 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   público versionado no servidor. A rota autenticada usa thumbnails locais no
   desenvolvimento e recorre à imagem pública do YouTube quando o cofre não
   estiver disponível na Vercel.
+
+## Pulso.AI — atualização completa de 23/10/2026
+
+- A rodada `64dfd16c-2e98-4ec6-8523-90b69c021c4c` cobriu as 16 fontes ativas
+  de Production, importou 8 notícias verificadas, reavaliou 12 tendências e
+  12 ideias e criou 3 ideias novas com 9 referências do YouTube.
+- O perfil editorial passa a usar o nome Carlos Rocha e a lente de IA aplicada,
+  produtividade, carreira, negócios e execução sem autoengano.
+- O snapshot público da inteligência editorial foi renovado de 680 vídeos em
+  13 canais para 997 vídeos em 18 canais, com 994 registros contendo views e
+  média corrigida de aproximadamente 113,2 mil.
+- A amostra de 15 vídeos agora filtra aderência editorial antes de ordenar por
+  views, evitando que assuntos alheios à linha do canal dominem o painel.
+- O carregador corrige de forma defensiva 16 contagens arredondadas de Pedro
+  Cooke que haviam sido interpretadas em milhões em vez de milhares.
+- Uma tendência antiga equivalente a agentes proativos foi arquivada após a
+  importação para evitar duplicidade; a listagem omite estados arquivados e
+  desatualizados, preservando o histórico no banco.
