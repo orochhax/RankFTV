@@ -3,11 +3,18 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
-import { Crown, DollarSign, Eye, EyeOff, ChevronRight, Info } from "lucide-react";
+import { Crown, ChevronRight } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { PRECO_ELITE } from "@/lib/elite";
 import { GraficoVendasDiarias } from "@/components/painel/GraficoVendasDiarias";
 import type { DiaVenda } from "@/app/painel/campeonatos/[id]/financeiro/page";
+import {
+  OrganizerWalletPanel,
+  type WalletReceivable,
+  type WalletSnapshot,
+} from "@/components/painel/OrganizerWalletPanel";
+
+export type { WalletReceivable, WalletSnapshot } from "@/components/painel/OrganizerWalletPanel";
 
 type StatusCardData = {
   slug: string;
@@ -30,7 +37,6 @@ type CatItem = {
 
 type Props = {
   champId: string;
-  repasseLiquido: number;
   statusCards: StatusCardData[];
   totalPix: number;
   totalCredito: number;
@@ -42,11 +48,13 @@ type Props = {
   vendasDiarias: DiaVenda[];
   chavePixSection: ReactNode;
   cobrancasPendentesSection: ReactNode;
+  wallet: WalletSnapshot;
+  withdrawableReceivables: WalletReceivable[];
+  anticipatableReceivables: WalletReceivable[];
 };
 
 export function FinanceiroConteudoClient({
   champId,
-  repasseLiquido,
   statusCards,
   totalPix,
   totalCredito,
@@ -58,6 +66,9 @@ export function FinanceiroConteudoClient({
   vendasDiarias,
   chavePixSection,
   cobrancasPendentesSection,
+  wallet,
+  withdrawableReceivables,
+  anticipatableReceivables,
 }: Props) {
   const [mostrar, setMostrar] = useState(true);
   const val = (v: number) => (mostrar ? formatBRL(v) : "R$ ••••••");
@@ -66,39 +77,14 @@ export function FinanceiroConteudoClient({
 
   return (
     <div className="space-y-8">
-      {/* Saldo líquido */}
-      <div className={`rounded-2xl p-4 ring-1 ${repasseLiquido < 0 ? "bg-red-50 ring-red-200" : "bg-blue-50 ring-blue-200"}`}>
-        <div className="flex items-center justify-between">
-          <div className={`flex items-center gap-1.5 ${repasseLiquido < 0 ? "text-red-600" : "text-blue-600"}`}>
-            <DollarSign className="size-4" />
-            <p className="text-xs font-medium">Seu saldo líquido</p>
-          </div>
-          <button
-            onClick={() => setMostrar((v) => !v)}
-            className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-gray-400 hover:text-gray-700 transition-colors"
-            aria-label={mostrar ? "Ocultar valores" : "Mostrar valores"}
-          >
-            {mostrar ? (
-              <>
-                <EyeOff className="size-3.5" /> Ocultar valores
-              </>
-            ) : (
-              <>
-                <Eye className="size-3.5" /> Mostrar valores
-              </>
-            )}
-          </button>
-        </div>
-        <p className={`mt-2 text-2xl font-bold ${repasseLiquido < 0 ? "text-red-600" : "text-blue-700"}`}>
-          {val(repasseLiquido)}
-        </p>
-        <div className="mt-3 flex items-start gap-1.5">
-          <Info className={`mt-0.5 size-3.5 shrink-0 ${repasseLiquido < 0 ? "text-red-400/60" : "text-blue-500/60"}`} />
-          <p className={`text-xs leading-relaxed ${repasseLiquido < 0 ? "text-red-700/60" : "text-blue-700/60"}`}>
-            Valores pendentes e estornados não são contabilizados no saldo líquido.
-          </p>
-        </div>
-      </div>
+      <OrganizerWalletPanel
+        champId={champId}
+        wallet={wallet}
+        withdrawableReceivables={withdrawableReceivables}
+        anticipatableReceivables={anticipatableReceivables}
+        showValues={mostrar}
+        onToggleShowValues={() => setMostrar((current) => !current)}
+      />
 
       {/* Status dos pagamentos */}
       <section>
@@ -110,7 +96,7 @@ export function FinanceiroConteudoClient({
             <Link
               key={c.slug}
               href={`/painel/campeonatos/${champId}/financeiro/${c.slug}`}
-              className={`group relative rounded-2xl p-4 ring-1 transition-all hover:shadow-md hover:scale-[1.02] ${c.bg} ${c.ring}`}
+              className={`group relative rounded-2xl p-4 ring-1 transition-[box-shadow,transform] hover:scale-[1.02] hover:shadow-md ${c.bg} ${c.ring}`}
             >
               <p className={`text-xs font-medium ${c.text}`}>{c.label}</p>
               <p className={`mt-2 text-2xl font-bold ${c.text}`}>{c.count}</p>
@@ -159,7 +145,7 @@ export function FinanceiroConteudoClient({
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-amber-200">
             <div
-              className="h-full rounded-full bg-amber-500 transition-all"
+              className="h-full rounded-full bg-amber-500 transition-[width]"
               style={{ width: `${Math.round(((PRECO_ELITE - feePendente) / PRECO_ELITE) * 100)}%` }}
             />
           </div>
@@ -196,7 +182,7 @@ export function FinanceiroConteudoClient({
                   <div className="flex items-center gap-3">
                     <div className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
                       <div
-                        className="absolute inset-y-0 left-0 rounded-full bg-blue-500 transition-all"
+                        className="absolute inset-y-0 left-0 rounded-full bg-blue-500 transition-[width]"
                         style={{ width: `${mostrar ? pct : 0}%` }}
                       />
                     </div>

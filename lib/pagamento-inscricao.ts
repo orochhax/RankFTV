@@ -1,6 +1,5 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { executarRepasse, executarRepasseAtletaTicket } from "@/lib/repasse";
 import { enviarConviteDupla } from "@/lib/email/send";
 import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
 
@@ -8,12 +7,12 @@ import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
 // extraído do webhook do Asaas (app/api/webhooks/asaas/route.ts) pra ser
 // reutilizado também pela reconciliação manual
 // (app/painel/campeonatos/[id]/financeiro/actions.ts#reconciliarInscricao):
-// os dois caminhos precisam ativar dupla/credencial/repasse exatamente da
+// os dois caminhos precisam ativar dupla/credencial/carteira exatamente da
 // mesma forma, senão reconciliar por um caminho e não pelo outro cria
 // inconsistência nova em vez de corrigir a antiga. Idempotente nos dois
 // sentidos — chamar de novo pra uma inscrição já paga/estornada não duplica
-// nada (credencial checa existência, repasse reivindica atomicamente por
-// repasse_status='pendente', mudança de status de time é guardada pelo
+// nada (credencial checa existência, carteira é protegida por recebível único,
+// mudança de status de time é guardada pelo
 // status atual).
 
 const DIAS_LIQUIDACAO: Record<string, number> = {
@@ -32,9 +31,8 @@ export type ConfirmarInscricaoResultado =
   | { ok: false; error: string };
 
 /**
- * Marca a inscrição como paga, ativa a dupla (envia convite se o parceiro
- * só podia ser convidado após o pagamento), gera credenciais e dispara o
- * repasse ao organizador. Espelha exatamente o passo 3 do webhook do Asaas.
+ * Marca a inscrição como paga, ativa a dupla e gera credenciais. O pagamento
+ * alimenta a carteira individual; o organizador solicita o saque no painel.
  */
 export async function confirmarInscricaoPaga(
   supabase: SupabaseClient,
@@ -130,59 +128,7 @@ export async function confirmarInscricaoPaga(
     }
   }
 
-  if (champ) {
-    const orgAccountRes = await supabase
-      .from("organizer_accounts")
-      .select("chave_pix, chave_pix_atualizada_em")
-      .eq("user_id", champ.organizador_id)
-      .single();
-
-    const chavePix = orgAccountRes.data?.chave_pix as string | undefined;
-    const isElite  = !!champ.is_elite;
-    const repasseBase = Number(reg.valor ?? 0);
-
-    if (chavePix && repasseBase > 0) {
-      const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
-
-      if (dias === 0) {
-        const { data: claimed } = await supabase
-          .from("registrations")
-          .update({ repasse_status: "processando" })
-          .eq("id", registrationId)
-          .eq("repasse_status", "pendente")
-          .select("id");
-
-        if (claimed && claimed.length > 0) {
-          await executarRepasse(
-            supabase,
-            {
-              registrationId,
-              championshipId: reg.championship_id,
-              champNome:      champ.nome,
-              isElite,
-              feePendente:    Number(champ.premium_fee_pendente ?? 0),
-              chavePix,
-              chavePixAtualizadaEm: orgAccountRes.data?.chave_pix_atualizada_em ?? null,
-              repasseBase,
-            },
-            "pendente",
-          );
-        }
-      } else {
-        const dataRepasse = new Date();
-        dataRepasse.setDate(dataRepasse.getDate() + dias);
-
-        await supabase
-          .from("registrations")
-          .update({
-            repasse_status:        "aguardando_liquidacao",
-            repasse_data_prevista: dataRepasse.toISOString(),
-          })
-          .eq("id", registrationId)
-          .eq("repasse_status", "pendente");
-      }
-    }
-  }
+  if (champ) await marcarDisponibilidadeNaCarteira(supabase, "registrations", registrationId, payment.billingType);
 
   return { ok: true };
 }
@@ -215,50 +161,28 @@ export async function confirmarAthleteTicketPago(
 
   if (!athTicket) return { ok: true };
 
-  const { data: champAth } = await supabase
-    .from("championships")
-    .select("nome, organizador_id")
-    .eq("id", athTicket.championship_id)
-    .single();
-
-  if (!champAth) return { ok: true };
-
-  const { data: orgAth } = await supabase
-    .from("organizer_accounts")
-    .select("chave_pix, chave_pix_atualizada_em")
-    .eq("user_id", champAth.organizador_id)
-    .single();
-  const chavePix = orgAth?.chave_pix as string | undefined;
-  const valor    = Number(athTicket.valor ?? 0);
-
-  if (chavePix && valor > 0) {
-    const dias = DIAS_LIQUIDACAO[payment.billingType] ?? 32;
-    if (dias === 0) {
-      const { data: claimed } = await supabase
-        .from("athlete_tickets")
-        .update({ repasse_status: "processando" })
-        .eq("id", ticketId)
-        .eq("repasse_status", "pendente")
-        .select("id");
-      if (claimed && claimed.length > 0) {
-        await executarRepasseAtletaTicket(
-          supabase,
-          { ticketId, champNome: champAth.nome, chavePix, chavePixAtualizadaEm: orgAth?.chave_pix_atualizada_em ?? null, valor },
-          "pendente",
-        );
-      }
-    } else {
-      const dataRepasse = new Date();
-      dataRepasse.setDate(dataRepasse.getDate() + dias);
-      await supabase
-        .from("athlete_tickets")
-        .update({ repasse_status: "aguardando_liquidacao", repasse_data_prevista: dataRepasse.toISOString() })
-        .eq("id", ticketId)
-        .eq("repasse_status", "pendente");
-    }
-  }
+  await marcarDisponibilidadeNaCarteira(supabase, "athlete_tickets", ticketId, payment.billingType);
 
   return { ok: true };
+}
+
+async function marcarDisponibilidadeNaCarteira(
+  supabase: SupabaseClient,
+  table: "registrations" | "athlete_tickets",
+  recordId: string,
+  billingType: string,
+) {
+  const dias = DIAS_LIQUIDACAO[billingType] ?? 32;
+  const dataRepasse = new Date();
+  dataRepasse.setDate(dataRepasse.getDate() + dias);
+  await supabase
+    .from(table)
+    .update({
+      repasse_status: dias === 0 ? "disponivel" : "aguardando_liquidacao",
+      repasse_data_prevista: dataRepasse.toISOString(),
+    })
+    .eq("id", recordId)
+    .eq("repasse_status", "pendente");
 }
 
 /** Estorna ingresso de atleta avulso — espelha o bloco "athl:" do webhook. */
