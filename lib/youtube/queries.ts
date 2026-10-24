@@ -230,6 +230,7 @@ export async function getYoutubeTrends() {
   const { data, error } = await createAdminClient()
     .from("yt_trends")
     .select("id, topic, state, current_score, confidence_score, first_identified_at, last_evaluated_at, current_position, best_position, latest_evidence, source_origin")
+    .not("state", "in", "(arquivado,desatualizado)")
     .order("current_score", { ascending: false })
     .order("last_evaluated_at", { ascending: false });
   return requireData(data as YoutubeTrend[] | null, error, []);

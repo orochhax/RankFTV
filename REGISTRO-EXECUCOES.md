@@ -1139,3 +1139,26 @@ registrar apenas uma revalidação quando ela for necessária.
   vulnerabilidades e build completo com 72 páginas. A suíte de testes não
   iniciou no computador por `uv_os_get_passwd ENOMEM`; o CI remoto permanece
   como gate obrigatório antes do merge. Nenhum banco ou migration foi alterado.
+
+## 2026-10-23 — Pulso.AI: atualização completa de notícias, ideias e concorrentes
+
+- `youtube:sources` confirmou 16 fontes ativas em Production. A pesquisa manual
+  verificou páginas individuais e descartou fontes sem item novo de IA central
+  ou inacessíveis sem inferir conteúdo.
+- O preflight passou com 8 notícias, 12 tendências, 12 ideias e cobertura das
+  16 fontes. A importação gerou a rodada
+  `64dfd16c-2e98-4ec6-8523-90b69c021c4c`, incluiu 8 conteúdos, criou 3
+  tendências e 3 ideias, ranqueou 12 ideias e vinculou 9 referências públicas
+  do YouTube.
+- O snapshot público foi renovado para 997 vídeos em 18 canais. Dezesseis
+  valores arredondados de Pedro Cooke foram corrigidos de milhões para
+  milhares; a média agregada corrigida ficou em aproximadamente 113,2 mil.
+- A tendência antiga `agentes-sempre-ativos-para-pessoas-comuns` foi arquivada
+  depois de confirmar o ID e a chave, eliminando a duplicidade com a nova
+  leitura de agentes proativos sem apagar seu histórico.
+- Nenhum segredo foi exibido ou registrado. `lint -- --quiet`, `typecheck` e o
+  build completo com 72 páginas passaram localmente; o CI remoto permanece
+  como gate obrigatório antes do merge e da publicação em Production.
+- O primeiro CI do PR #74 detectou advisories novos em `dompurify` e `zod`.
+  As versões foram elevadas para 3.4.17 e 4.6.7, respectivamente; `npm install`
+  passou a reportar zero vulnerabilidades antes da nova rodada do CI.
