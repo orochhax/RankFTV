@@ -1159,3 +1159,6 @@ registrar apenas uma revalidação quando ela for necessária.
 - Nenhum segredo foi exibido ou registrado. `lint -- --quiet`, `typecheck` e o
   build completo com 72 páginas passaram localmente; o CI remoto permanece
   como gate obrigatório antes do merge e da publicação em Production.
+- O primeiro CI do PR #74 detectou advisories novos em `dompurify` e `zod`.
+  As versões foram elevadas para 3.4.17 e 4.6.7, respectivamente; `npm install`
+  passou a reportar zero vulnerabilidades antes da nova rodada do CI.
