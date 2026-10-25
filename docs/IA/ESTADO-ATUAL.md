@@ -549,3 +549,29 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 - Uma tendência antiga equivalente a agentes proativos foi arquivada após a
   importação para evitar duplicidade; a listagem omite estados arquivados e
   desatualizados, preservando o histórico no banco.
+
+## Pulso.AI — ranking de oportunidade e atualização completa de 24/10/2026
+
+- A base de concorrentes foi consolidada em 849 vídeos de 16 canais, com 846
+  registros contendo visualizações públicas. Ernesto Reis e Pedro Cooke foram
+  retirados da base e não participam mais de métricas, referências ou ranking.
+- A Vizinhança passou de uma observação isolada para 13 vídeos do último ano,
+  todos com título, data exata, duração, views e thumbnail preservados no cofre.
+- O ranking principal deixou de ordenar por views absolutas. A nota de
+  oportunidade, de 0 a 100, combina desempenho contra a mediana do próprio
+  canal (35%), aderência editorial (20%), facilidade de adaptação (15%),
+  atualidade (15%), validação em outros canais (10%) e força de título e
+  thumbnail (5%). Podcasts, entrevistas e lives ficam fora do ranking
+  principal, com limite de três vídeos por canal.
+- O snapshot seguro usado na Vercel foi renovado com os 15 vídeos mais úteis
+  para estudo editorial, incluindo posição, nota, justificativa, múltiplo da
+  mediana e composição detalhada da pontuação.
+- A rodada de Production `6f8d13f1-8f60-45d1-bf2f-ef1d6f9c3ea5` verificou as
+  16 fontes ativas, analisou 10 notícias, inseriu 2 conteúdos novos, reavaliou
+  12 tendências e ranqueou 13 ideias. A pauta nova sobre o custo real de criar
+  vídeo com IA entrou em quinto lugar com nota editorial 90.
+- Quatro referências antigas ligadas aos dois canais removidos foram apagadas
+  do Supabase; nenhuma permaneceu depois da verificação.
+- Evidência local: 859 testes executados, 858 aprovados e 1 ignorado; lint,
+  typecheck, `git diff --check` e build completo com 72 páginas concluídos sem
+  erro. Nenhum segredo foi registrado.
