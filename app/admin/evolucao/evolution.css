@@ -839,7 +839,6 @@
 .evo-intel-thumb { position: relative; overflow: hidden; }
 .evo-intel-thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .evo-intel-thumb-empty { align-self: center; margin: auto; padding: 6px 8px; border-radius: 6px; color: var(--evo-muted); background: #dfe8f3; font-size: 9px; }
-.evo-intel-thumb > span:last-child { position: absolute; top: 8px; right: 8px; }
 @media (max-width: 1000px) { .evo-intel-metrics, .evo-intel-video-grid { grid-template-columns: repeat(2, 1fr); }.evo-intel-grid { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .evo-intel-hero { grid-template-columns: 38px 1fr; }.evo-intel-status { grid-column: 2; justify-self: start; }.evo-intel-metrics, .evo-intel-video-grid { grid-template-columns: 1fr; } }
 

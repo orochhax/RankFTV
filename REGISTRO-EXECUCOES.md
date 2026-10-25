@@ -1182,3 +1182,12 @@ registrar apenas uma revalidação quando ela for necessária.
   a consulta posterior confirmou zero remanescentes.
 - A suíte terminou com 858 testes aprovados e 1 ignorado, sem falhas. Lint,
   typecheck, `git diff --check` e o build de 72 páginas também passaram.
+
+## 2026-10-24 — Correção do overlay das thumbnails
+
+- Um seletor CSS legado tratava o último `span` da thumbnail como etiqueta de
+  posição. Depois da inclusão da nota, o último elemento passou a ser a nota e
+  recebeu simultaneamente `top`, `right`, `bottom` e `left`, cobrindo a foto.
+- O seletor genérico foi removido. As classes `evo-intel-position` e
+  `evo-intel-score` controlam separadamente as duas etiquetas.
+- Lint, typecheck, `git diff --check` e build completo com 72 páginas passaram.
