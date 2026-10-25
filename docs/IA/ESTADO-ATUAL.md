@@ -601,3 +601,14 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   suficiente para substituir artificialmente as pautas atuais. Perfis do X e
   fontes sem item individual acessível permaneceram como limitação, sem
   inferência de conteúdo. O provider automático continua desativado.
+## 2026-10-25 — Central: requisitos e custo por ideia
+
+- Cada página de detalhe de ideia passou a exibir “Requisitos para gravar”,
+  com ferramentas, acesso gratuito ou pago, assinatura existente, itens
+  opcionais e custo mensal estimado das novas assinaturas.
+- A análise deriva automaticamente dos campos já persistidos da ideia, sem
+  migration ou cadastro manual para ideias futuras.
+- O cálculo exclui computador e celular. CapCut e Canva gratuitos e a
+  assinatura atual do ChatGPT são considerados base; recursos pagos de Claude,
+  CapCut ou Canva só entram no total quando necessários.
+- Estado: alteração local pronta para validação, CI, merge e Production.

@@ -1210,3 +1210,12 @@ registrar apenas uma revalidação quando ela for necessária.
   por canal e exclui podcasts, entrevistas e lives.
 - Nenhum segredo foi exibido ou registrado. A publicação permanece condicionada
   aos gates locais, CI do pull request e deployment Vercel.
+## 2026-10-25 — Central: requisitos para gravar em cada ideia
+
+- A página `/admin/evolucao/rocha-tech/ideias/[id]` agora calcula e mostra
+  ferramentas, modalidade de acesso, itens obrigatórios/opcionais, custo
+  mensal estimado e total para gravar a pauta.
+- O cálculo é heurístico e determinístico, usando os campos persistidos da
+  ideia; não houve migration nem escrita no Supabase.
+- Evidência local pendente: lint, typecheck, testes isolados e build. A
+  publicação depende dos gates do pull request e do deployment Vercel.
