@@ -1191,3 +1191,22 @@ registrar apenas uma revalidação quando ela for necessária.
 - O seletor genérico foi removido. As classes `evo-intel-position` e
   `evo-intel-score` controlam separadamente as duas etiquetas.
 - Lint, typecheck, `git diff --check` e build completo com 72 páginas passaram.
+
+## 2026-10-25 18:20 -03:00 — Pulso.AI: rodada completa e base de 20 canais
+
+- `youtube:sources` confirmou 16 fontes ativas. A pesquisa manual conferiu
+  listagens e páginas individuais das fontes acessíveis; X/Twitter e páginas
+  sem item verificável foram tratados como limitação, sem inferência.
+- O payload completo passou no preflight com 11 itens, 13 tendências, 14
+  ideias e cobertura das 16 fontes. A importação de Production gerou a rodada
+  `13dd75eb-4059-429d-b742-98ba018bec2a`, inseriu 1 conteúdo, atualizou 10,
+  criou 1 tendência e 1 ideia, ranqueou 14 ideias e vinculou 5 referências do
+  YouTube. Nenhuma fonte falhou.
+- Agent Skills entrou como nova oportunidade editorial na posição 2, nota 95.
+  A pauta cruza a fonte primária da Anthropic com vídeos observados de Ben AI
+  e AI with Remy, preservando datas e views públicas da coleta.
+- O snapshot seguro foi regenerado com 1.021 vídeos em 20 canais, 1.018 com
+  views válidas e 15 oportunidades; o ranking continua limitado a três vídeos
+  por canal e exclui podcasts, entrevistas e lives.
+- Nenhum segredo foi exibido ou registrado. A publicação permanece condicionada
+  aos gates locais, CI do pull request e deployment Vercel.
