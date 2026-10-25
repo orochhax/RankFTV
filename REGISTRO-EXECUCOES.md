@@ -1162,3 +1162,23 @@ registrar apenas uma revalidação quando ela for necessária.
 - O primeiro CI do PR #74 detectou advisories novos em `dompurify` e `zod`.
   As versões foram elevadas para 3.4.17 e 4.6.7, respectivamente; `npm install`
   passou a reportar zero vulnerabilidades antes da nova rodada do CI.
+
+## 2026-10-24 — Pulso.AI: ranking relativo, A Vizinhança e rodada completa
+
+- A base local foi consolidada em 849 vídeos de 16 canais; Ernesto Reis e
+  Pedro Cooke permanecem fora do conjunto ativo.
+- A Vizinhança recebeu coleta completa de 13 vídeos publicados no último ano,
+  com JSON individual, nota, thumbnail e metadados públicos preservados.
+- O ranking de concorrentes passou a usar nota de oportunidade de 0 a 100:
+  35% desempenho relativo à mediana do canal, 20% aderência ao canal Carlos
+  Rocha, 15% facilidade de adaptação, 15% atualidade, 10% validação cruzada e
+  5% embalagem. O painel limita três vídeos por canal e exclui podcasts,
+  entrevistas e lives da lista principal.
+- O payload completo passou no preflight com 16 fontes, 10 notícias, 12
+  tendências e 13 ideias. A importação criou a rodada
+  `6f8d13f1-8f60-45d1-bf2f-ef1d6f9c3ea5`, inseriu 2 conteúdos novos,
+  atualizou 8, ranqueou 13 ideias e vinculou 12 referências do YouTube.
+- Quatro referências antigas dos canais excluídos foram removidas do banco e
+  a consulta posterior confirmou zero remanescentes.
+- A suíte terminou com 858 testes aprovados e 1 ignorado, sem falhas. Lint,
+  typecheck, `git diff --check` e o build de 72 páginas também passaram.

@@ -842,3 +842,44 @@
 .evo-intel-thumb > span:last-child { position: absolute; top: 8px; right: 8px; }
 @media (max-width: 1000px) { .evo-intel-metrics, .evo-intel-video-grid { grid-template-columns: repeat(2, 1fr); }.evo-intel-grid { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .evo-intel-hero { grid-template-columns: 38px 1fr; }.evo-intel-status { grid-column: 2; justify-self: start; }.evo-intel-metrics, .evo-intel-video-grid { grid-template-columns: 1fr; } }
+
+/* Ranking editorial por oportunidade */
+.evo-intel-thumb > .evo-intel-position {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.evo-intel-thumb > .evo-intel-score {
+  position: absolute;
+  left: 9px;
+  bottom: 9px;
+  padding: 7px 9px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  border: 1px solid #ffffff52;
+  border-radius: 9px;
+  color: #fff;
+  background: #075ff7e8;
+  box-shadow: 0 5px 18px #07152f4d;
+  backdrop-filter: blur(8px);
+}
+
+.evo-intel-thumb > .evo-intel-score strong { font-size: 19px; line-height: 1; }
+.evo-intel-thumb > .evo-intel-score small { font-size: 8px; font-weight: 750; }
+.evo-intel-video-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.evo-intel-video-meta > small { color: var(--evo-blue); font-size: 9px; font-weight: 800; }
+.evo-intel-video-meta > span { overflow: hidden; color: #5e6b7f; font-size: 8px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.evo-intel-signal-row { margin-bottom: 9px; display: flex; flex-wrap: wrap; gap: 5px; }
+.evo-intel-signal-row span { padding: 4px 6px; border: 1px solid #c9dcf7; border-radius: 99px; color: #155cb7; background: #f2f7ff; font-size: 8px; font-weight: 750; }
+.evo-intel-video-copy > .evo-intel-rationale { min-height: 44px; margin: 0 0 10px; color: #46546a; font-size: 9px; line-height: 1.55; }
+.evo-intel-breakdown { margin: 0 0 10px; border-top: 1px solid #edf1f5; border-bottom: 1px solid #edf1f5; }
+.evo-intel-breakdown summary { padding: 7px 0; color: #51627a; font-size: 9px; font-weight: 750; cursor: pointer; }
+.evo-intel-breakdown > div { padding: 0 0 8px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+.evo-intel-breakdown span { padding: 5px 6px; display: flex; justify-content: space-between; gap: 5px; border-radius: 5px; color: #6a778a; background: #f5f7fa; font-size: 8px; }
+.evo-intel-breakdown b { color: #172033; }
+
+@media (max-width: 760px) {
+  .evo-intel-rank-guide { align-items: flex-start; flex-direction: column; }
+}
