@@ -581,3 +581,23 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 - O seletor antigo `span:last-child` fazia a etiqueta de nota ocupar toda a
   thumbnail e esconder a imagem. Ele foi removido; posição e nota agora usam
   exclusivamente suas classes específicas, preservando a foto visível.
+
+## Pulso.AI — atualização completa de 25/10/2026
+
+- A rodada `13dd75eb-4059-429d-b742-98ba018bec2a` cobriu as 16 fontes ativas
+  de Production, analisou 11 fatos, inseriu 1 conteúdo novo, atualizou 10,
+  reavaliou 13 tendências e ranqueou 14 ideias sem fontes falhas.
+- A nova pauta **Ensine uma vez, use em qualquer IA: o que são Agent Skills?**
+  entrou na posição 2, com nota 95 e cinco referências verificadas do YouTube.
+  A evidência principal é a doação oficial do padrão Agent Skills para a
+  Agentic AI Foundation, com integração declarada em mais de 70 plataformas.
+- A nova tendência **Habilidades portáteis e reutilizáveis para agentes de IA**
+  recebeu nota 95 e confiança 98. Claude Duet permaneceu como melhor pauta,
+  com nota 97.
+- O snapshot público seguro foi regenerado a partir da base local completa:
+  **1.021 vídeos em 20 canais**, 1.018 com views válidas e 15 oportunidades
+  ordenadas pela nota editorial relativa, com limite de três por canal.
+- A pesquisa não encontrou lançamento posterior à rodada anterior com evidência
+  suficiente para substituir artificialmente as pautas atuais. Perfis do X e
+  fontes sem item individual acessível permaneceram como limitação, sem
+  inferência de conteúdo. O provider automático continua desativado.
