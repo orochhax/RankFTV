@@ -575,3 +575,9 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 - Evidência local: 859 testes executados, 858 aprovados e 1 ignorado; lint,
   typecheck, `git diff --check` e build completo com 72 páginas concluídos sem
   erro. Nenhum segredo foi registrado.
+
+### Correção visual das thumbnails
+
+- O seletor antigo `span:last-child` fazia a etiqueta de nota ocupar toda a
+  thumbnail e esconder a imagem. Ele foi removido; posição e nota agora usam
+  exclusivamente suas classes específicas, preservando a foto visível.
