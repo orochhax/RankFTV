@@ -612,3 +612,12 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   assinatura atual do ChatGPT são considerados base; recursos pagos de Claude,
   CapCut ou Canva só entram no total quando necessários.
 - Estado: alteração local pronta para validação, CI, merge e Production.
+## 2026-10-25 — Central: data da novidade nas ideias
+
+- Cada detalhe de ideia passa a mostrar a data observada da fonte relacionada
+  quando o título/resumo indica lançamento, modelo, versão, agente ou novidade.
+- Pautas sem lançamento específico exibem explicitamente essa condição. Quando
+  a fonte não informa uma data verificável, isso também é indicado sem inventar
+  uma data.
+- A informação é derivada em tempo de renderização, sem migration ou alteração
+  editorial no Supabase.

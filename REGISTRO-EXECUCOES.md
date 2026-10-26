@@ -1219,3 +1219,11 @@ registrar apenas uma revalidação quando ela for necessária.
   ideia; não houve migration nem escrita no Supabase.
 - Evidência local pendente: lint, typecheck, testes isolados e build. A
   publicação depende dos gates do pull request e do deployment Vercel.
+## 2026-10-25 — Central: data da novidade em cada ideia
+
+- A página de detalhe agora identifica se a pauta se refere a lançamento ou
+  atualização específica e exibe a data publicada mais recente das fontes
+  relacionadas. Pautas evergreen recebem mensagem explícita de que não há
+  lançamento específico.
+- Datas ausentes permanecem sinalizadas como não verificáveis; nenhuma data é
+  inferida ou inventada. Não houve migration nem escrita no Supabase.
