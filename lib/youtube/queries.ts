@@ -250,7 +250,10 @@ export async function getYoutubeIdeaDetail(id: string) {
   return {
     idea: idea.data,
     history: history.data ?? [],
-    sources: sources.data ?? [],
+    sources: (sources.data ?? []).map((row) => {
+      const item = firstRelation(row.item as Relation<{ title: string; canonical_url: string; published_at: string | null }>);
+      return item ? { item } : row;
+    }),
     youtubeReferences: (youtubeReferences.data ?? []) as YoutubeIdeaYoutubeReference[],
   };
 }
