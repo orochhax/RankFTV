@@ -195,6 +195,17 @@ export async function getYoutubeOpportunities() {
     .slice(0, 50);
 }
 
+export async function getYoutubeNewsDetail(id: string) {
+  await requireYoutubeOwner();
+  const { data, error } = await createAdminClient()
+    .from("yt_content_items")
+    .select(feedSelect)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return { item: data ? mapNewsRow(data as unknown as Record<string, unknown>) : null };
+}
+
 export async function getYoutubeIdeas() {
   await requireYoutubeOwner();
   const supabase = createAdminClient();
