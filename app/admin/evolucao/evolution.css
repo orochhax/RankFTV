@@ -181,6 +181,7 @@
 .evo-shell .yt-section-heading h2 { font-size: 22px; }
 .evo-shell .yt-section-heading p:last-child, .evo-shell .yt-text-link { font-size: 12px; }
 .evo-shell .yt-news-card { padding: 20px; }
+.evo-shell .yt-news-card.is-clickable:hover { border-color: #7aaef2; }
 .evo-shell .yt-news-card.is-featured { padding: 25px; }
 .evo-shell .yt-news-card h3 { font-size: 17px; }
 .evo-shell .yt-news-card.is-featured h3 { font-size: 23px; }
@@ -244,6 +245,10 @@
 .evo-shell .yt-card-footer a {
   color: var(--evo-blue);
 }
+.evo-shell .yt-card-footer-actions { display: flex; align-items: center; gap: 14px; }
+.evo-shell .yt-card-footer-actions a:first-child { color: var(--evo-blue-dark); font-weight: 750; }
+.evo-shell .yt-article-summary-copy { color: var(--evo-ink); }
+.evo-shell .yt-summary-notice { color: #8c5c08; background: #fff8e6; border-color: #eed99e; }
 
 .evo-shell .yt-page-heading > p:last-child,
 .evo-shell .yt-page-heading > div > p:last-child,

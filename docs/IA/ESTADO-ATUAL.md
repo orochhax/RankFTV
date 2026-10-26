@@ -621,3 +621,17 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   uma data.
 - A informação é derivada em tempo de renderização, sem migration ou alteração
   editorial no Supabase.
+## Pulso.AI — detalhe e resumo sob demanda de notícias (26/10/2026)
+
+- Os cartões do briefing na Central de Evolução agora são clicáveis e abrem
+  `/admin/evolucao/rocha-tech/noticias/[id]`, com procedência, nota, resumo
+  editorial e link para a fonte original.
+- A página tenta ler a fonte pública e, quando o provedor OpenAI estiver
+  configurado, gerar um resumo em português com fatos principais e detalhes
+  que não devem ser omitidos. URLs internas, credenciais na URL, hosts locais e
+  redes privadas são bloqueados; o HTML bruto não é persistido.
+- A migration `supabase/20261026000100_youtube_article_summaries.sql` prepara
+  o cache privado dos resumos para `service_role`. Ela ainda não foi aplicada
+  ao banco.
+- Validação local: build, typecheck, lint direcionado e dois testes de
+  segurança/extrator passaram. Nenhum deploy ou migration foi aplicado.

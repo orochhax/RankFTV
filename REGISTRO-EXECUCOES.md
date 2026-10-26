@@ -1227,3 +1227,16 @@ registrar apenas uma revalidação quando ela for necessária.
   lançamento específico.
 - Datas ausentes permanecem sinalizadas como não verificáveis; nenhuma data é
   inferida ou inventada. Não houve migration nem escrita no Supabase.
+## 2026-10-26 13:14 -03:00 — Pulso.AI: resumo clicável na Central de Evolução
+
+- Correção aplicada no repositório correto: os cartões do briefing agora abrem
+  o detalhe da notícia e exibem `Ver resumo completo`, sem remover a fonte
+  original.
+- O detalhe usa a autenticação existente, lê a fonte sob demanda, limita o
+  conteúdo recebido e bloqueia URLs internas. O resumo preserva fatos,
+  números, datas, condições, limitações e riscos.
+- Migration incremental preparada em
+  `supabase/20261026000100_youtube_article_summaries.sql`; ainda não aplicada.
+  Não houve ativação de pesquisa automática.
+- Validação observada: typecheck e build aprovados, lint direcionado sem erros
+  e 2 testes unitários aprovados. Ainda sem deploy.
