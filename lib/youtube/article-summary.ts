@@ -87,6 +87,28 @@ async function getCachedSummary(itemId: string) {
   return data ? mapRow(data as ArticleSummaryRow) : null;
 }
 
+async function getManualSummary(item: YoutubeNewsItem): Promise<YoutubeArticleSummary | null> {
+  const { data, error } = await createAdminClient().from("yt_analyses")
+    .select("summary_pt_br, why_it_matters, reliability, evidence_type, factors, model")
+    .eq("item_id", item.id).eq("provider", "codex").maybeSingle();
+  if (error) throw new Error(`YOUTUBE_MANUAL_SUMMARY_READ_FAILED: ${error.message}`);
+  if (!data) return null;
+  const factors = Array.isArray(data.factors) ? data.factors : [];
+  const keyFacts = factors
+    .map((factor) => factor && typeof factor === "object" && "reason" in factor ? String(factor.reason) : "")
+    .filter(Boolean);
+  const importantDetails = [
+    data.why_it_matters,
+    `Confiabilidade: ${data.reliability}.`,
+    `Tipo de evidência: ${data.evidence_type}.`,
+  ].filter(Boolean);
+  return {
+    itemId: item.id, sourceUrl: item.url, summaryPtBr: data.summary_pt_br,
+    keyFacts, importantDetails, fetchedAt: null, status: "completed",
+    message: "Resumo editorial produzido manualmente pelo Codex a partir da fonte cadastrada.",
+  };
+}
+
 export async function getYoutubeArticleSummary(itemId: string) {
   return getCachedSummary(itemId);
 }
@@ -94,6 +116,18 @@ export async function getYoutubeArticleSummary(itemId: string) {
 export async function generateYoutubeArticleSummary(item: YoutubeNewsItem): Promise<YoutubeArticleSummary> {
   const cached = await getCachedSummary(item.id);
   if (cached?.status === "completed" && cached.fetchedAt && Date.now() - Date.parse(cached.fetchedAt) < SUMMARY_TTL_MS) return cached;
+
+  const manual = await getManualSummary(item);
+  if (manual) {
+    const now = new Date().toISOString();
+    const { data, error } = await createAdminClient().from("yt_article_summaries").upsert({
+      item_id: item.id, source_url: item.url, summary_pt_br: manual.summaryPtBr,
+      key_facts: manual.keyFacts, important_details: manual.importantDetails,
+      fetched_at: now, status: "completed", model: "manual-web-research", updated_at: now,
+    }, { onConflict: "item_id" }).select("id, item_id, source_url, summary_pt_br, key_facts, important_details, fetched_at, status").single();
+    if (error) throw new Error(`YOUTUBE_ARTICLE_SUMMARY_WRITE_FAILED: ${error.message}`);
+    return mapRow(data as ArticleSummaryRow);
+  }
 
   let articleText: string;
   try {

@@ -631,7 +631,11 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   que não devem ser omitidos. URLs internas, credenciais na URL, hosts locais e
   redes privadas são bloqueados; o HTML bruto não é persistido.
 - A migration `supabase/20261026000100_youtube_article_summaries.sql` prepara
-  o cache privado dos resumos para `service_role`. Ela ainda não foi aplicada
-  ao banco.
-- Validação local: build, typecheck, lint direcionado e dois testes de
-  segurança/extrator passaram. Nenhum deploy ou migration foi aplicado.
+  o cache privado dos resumos para `service_role` e foi aplicada em produção
+  pelo workflow protegido de migração, com verificação de tabela, RLS e grants.
+- O hover dos cartões mantém fundo claro e contraste legível; a página de
+  detalhe trata a ausência temporária da tabela/cache sem falhar.
+- PR #81 foi mesclada em `master` e o deploy Vercel de produção do commit
+  `347eb102e5bdf104f21623f559217e8f52fcb234` concluiu com sucesso.
+- Validação: typecheck, testes direcionados, build e 30 testes de navegador
+  passaram; a migração de produção também passou na verificação final.

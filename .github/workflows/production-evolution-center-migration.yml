@@ -58,7 +58,8 @@ jobs:
           migration="$RUNNER_TEMP/evolution-center-production.sql"
           cat supabase/evolution-center.sql \
               supabase/20261021000100_evolution_ai_jobs.sql \
-              supabase/20261026000100_youtube_article_summaries.sql > "$migration"
+              supabase/20261026000100_youtube_article_summaries.sql \
+              supabase/20261026000200_seed_manual_article_summaries.sql > "$migration"
           "$pg17_bin/psql" \
             --dbname="$SUPABASE_DB_URL" \
             --no-psqlrc \
@@ -125,3 +126,6 @@ jobs:
 
           summary_client_grants="$(psql_bool "SELECT count(*) = 0 FROM information_schema.role_table_grants WHERE table_schema = 'public' AND table_name = 'yt_article_summaries' AND grantee IN ('anon', 'authenticated', 'PUBLIC');")"
           test "$summary_client_grants" = "t" || { echo "YT_VERIFY_ARTICLE_SUMMARIES_GRANTS" >&2; exit 1; }
+
+          summary_count="$(psql_bool "SELECT count(*) FROM public.yt_article_summaries WHERE model = 'manual-web-research';")"
+          test "$summary_count" -gt "0" || { echo "YT_VERIFY_MANUAL_SUMMARIES:$summary_count" >&2; exit 1; }
