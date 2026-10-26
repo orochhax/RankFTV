@@ -57,7 +57,8 @@ jobs:
           pg17_bin="/usr/lib/postgresql/17/bin"
           migration="$RUNNER_TEMP/evolution-center-production.sql"
           cat supabase/evolution-center.sql \
-              supabase/20261021000100_evolution_ai_jobs.sql > "$migration"
+              supabase/20261021000100_evolution_ai_jobs.sql \
+              supabase/20261026000100_youtube_article_summaries.sql > "$migration"
           "$pg17_bin/psql" \
             --dbname="$SUPABASE_DB_URL" \
             --no-psqlrc \
@@ -115,3 +116,12 @@ jobs:
             AND has_function_privilege('service_role', 'public.evo_claim_ai_job(uuid,text,text)', 'EXECUTE')
             AND NOT has_function_privilege('authenticated', 'public.evo_claim_ai_job(uuid,text,text)', 'EXECUTE');")"
           test "$worker_rpc" = "t" || { echo "EVO_VERIFY_WORKER_RPC" >&2; exit 1; }
+
+          summary_table="$(psql_bool "SELECT to_regclass('public.yt_article_summaries') IS NOT NULL;")"
+          test "$summary_table" = "t" || { echo "YT_VERIFY_ARTICLE_SUMMARIES_TABLE" >&2; exit 1; }
+
+          summary_rls="$(psql_bool "SELECT relrowsecurity FROM pg_class WHERE oid = 'public.yt_article_summaries'::regclass;")"
+          test "$summary_rls" = "t" || { echo "YT_VERIFY_ARTICLE_SUMMARIES_RLS" >&2; exit 1; }
+
+          summary_client_grants="$(psql_bool "SELECT count(*) = 0 FROM information_schema.role_table_grants WHERE table_schema = 'public' AND table_name = 'yt_article_summaries' AND grantee IN ('anon', 'authenticated', 'PUBLIC');")"
+          test "$summary_client_grants" = "t" || { echo "YT_VERIFY_ARTICLE_SUMMARIES_GRANTS" >&2; exit 1; }
