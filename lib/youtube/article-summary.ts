@@ -80,7 +80,8 @@ async function getCachedSummary(itemId: string) {
     .select("id, item_id, source_url, summary_pt_br, key_facts, important_details, fetched_at, status")
     .eq("item_id", itemId).maybeSingle();
   if (error) {
-    if (error.code === "42P01" || error.message.toLowerCase().includes("does not exist")) return null;
+    const message = error.message.toLowerCase();
+    if (error.code === "42P01" || error.code === "PGRST205" || message.includes("does not exist") || message.includes("could not find the table")) return null;
     throw new Error(`YOUTUBE_ARTICLE_SUMMARY_READ_FAILED: ${error.message}`);
   }
   return data ? mapRow(data as ArticleSummaryRow) : null;
