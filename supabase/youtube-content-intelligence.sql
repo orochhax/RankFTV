@@ -174,12 +174,16 @@ CREATE TABLE IF NOT EXISTS public.yt_app_settings (
 
 CREATE TABLE IF NOT EXISTS public.yt_channel_references (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
   url text NOT NULL,
   kind text NOT NULL,
   notes text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS yt_channel_references_url_uidx ON public.yt_channel_references(url);
+
+ALTER TABLE public.yt_channel_references
+  ADD COLUMN IF NOT EXISTS name text;
 
 INSERT INTO public.yt_app_settings(id) VALUES (1)
 ON CONFLICT (id) DO NOTHING;
@@ -202,10 +206,40 @@ ON CONFLICT (url) DO UPDATE SET
   enabled = EXCLUDED.enabled,
   updated_at = now();
 
-INSERT INTO public.yt_channel_references(url, kind, notes) VALUES
-  ('https://www.youtube.com/@maestrosdaia/videos', 'channel', 'Canal de referência fornecido pelo proprietário.'),
-  ('https://www.youtube.com/@ocostajoao/videos', 'channel', 'Canal de referência fornecido pelo proprietário.')
-ON CONFLICT (url) DO NOTHING;
+DELETE FROM public.yt_channel_references
+WHERE url NOT IN (
+  'https://www.youtube.com/@iamAImaster/videos',
+  'https://www.youtube.com/@BenAI92/videos',
+  'https://www.youtube.com/@BrockMesarich/videos',
+  'https://www.youtube.com/@obrunookamoto/videos',
+  'https://www.youtube.com/@deborahfolloni/videos',
+  'https://www.youtube.com/@harry.the.marketer/videos',
+  'https://www.youtube.com/@ImanGadzhi/videos',
+  'https://www.youtube.com/@Orafavoss/videos',
+  'https://www.youtube.com/@Sanji_Chien/videos',
+  'https://www.youtube.com/@VictorBaggio-AI/videos',
+  'https://www.youtube.com/@maestrosdaia/videos'
+);
+
+INSERT INTO public.yt_channel_references(name, url, kind, notes) VALUES
+  ('AI Master', 'https://www.youtube.com/@iamAImaster/videos', 'channel', 'Canal de referência definido pelo proprietário.'),
+  ('Ben AI', 'https://www.youtube.com/@BenAI92/videos', 'channel', 'Canal de referência definido pelo proprietário.'),
+  ('Brock Mesarich | AI for Non Techies', 'https://www.youtube.com/@BrockMesarich/videos', 'channel', 'Canal de referência definido pelo proprietário.'),
+  ('Bruno Okamoto', 'https://www.youtube.com/@obrunookamoto/videos', 'channel', 'Canal de referência definido pelo proprietário.'),
+  ('Deborah Folloni', 'https://www.youtube.com/@deborahfolloni/videos', 'channel', 'Canal de referência definido pelo proprietário.'),
+  ('Harry Long', 'https://www.youtube.com/@harry.the.marketer/videos', 'channel', 'Canal de referência definido pelo proprietário.'),
+  ('Iman Gadzhi', 'https://www.youtube.com/@ImanGadzhi/videos', 'channel', 'Canal de referência definido pelo proprietário.'),
+  ('Rafa Voss | IA na Prática', 'https://www.youtube.com/@Orafavoss/videos', 'channel', 'Canal de referência definido pelo proprietário.'),
+  ('Sanji Nai-Chien', 'https://www.youtube.com/@Sanji_Chien/videos', 'channel', 'Canal de referência definido pelo proprietário.'),
+  ('Victor Baggio | IA para Vendas', 'https://www.youtube.com/@VictorBaggio-AI/videos', 'channel', 'Canal de referência definido pelo proprietário.'),
+  ('Maestros da IA', 'https://www.youtube.com/@maestrosdaia/videos', 'channel', 'Canal de referência definido pelo proprietário.')
+ON CONFLICT (url) DO UPDATE SET
+  name = EXCLUDED.name,
+  kind = EXCLUDED.kind,
+  notes = EXCLUDED.notes;
+
+ALTER TABLE public.yt_channel_references
+  ALTER COLUMN name SET NOT NULL;
 
 DO $$
 DECLARE table_name text;

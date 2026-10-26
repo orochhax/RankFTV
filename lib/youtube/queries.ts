@@ -307,7 +307,7 @@ export async function getYoutubeSettings() {
   const supabase = createAdminClient();
   const [settings, references] = await Promise.all([
     supabase.from("yt_app_settings").select("ai_provider, ai_model, timezone, research_times, languages, keywords, max_items_per_source, max_ai_analyses_per_run, monthly_budget_usd_micros, editorial_profile").eq("id", 1).maybeSingle(),
-    supabase.from("yt_channel_references").select("id, url, kind, notes").order("created_at"),
+    supabase.from("yt_channel_references").select("id, name, url, kind, notes").order("name"),
   ]);
   return {
     settings: requireData(settings.data, settings.error, null),

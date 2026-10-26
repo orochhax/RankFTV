@@ -59,7 +59,8 @@ jobs:
           cat supabase/evolution-center.sql \
               supabase/20261021000100_evolution_ai_jobs.sql \
               supabase/20261026000100_youtube_article_summaries.sql \
-              supabase/20261026000200_seed_manual_article_summaries.sql > "$migration"
+              supabase/20261026000200_seed_manual_article_summaries.sql \
+              supabase/20261026000300_channel_references.sql > "$migration"
           "$pg17_bin/psql" \
             --dbname="$SUPABASE_DB_URL" \
             --no-psqlrc \
@@ -129,3 +130,9 @@ jobs:
 
           summary_count="$(psql_bool "SELECT count(*) FROM public.yt_article_summaries WHERE model = 'manual-web-research';")"
           test "$summary_count" -gt "0" || { echo "YT_VERIFY_MANUAL_SUMMARIES:$summary_count" >&2; exit 1; }
+
+          reference_count="$(psql_bool "SELECT count(*) FROM public.yt_channel_references;")"
+          test "$reference_count" = "11" || { echo "YT_VERIFY_CHANNEL_REFERENCES:$reference_count" >&2; exit 1; }
+
+          maestros_reference="$(psql_bool "SELECT count(*) = 1 FROM public.yt_channel_references WHERE name = 'Maestros da IA' AND url = 'https://www.youtube.com/@maestrosdaia/videos';")"
+          test "$maestros_reference" = "t" || { echo "YT_VERIFY_MAESTROS_REFERENCE" >&2; exit 1; }

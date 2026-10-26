@@ -639,3 +639,15 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   `347eb102e5bdf104f21623f559217e8f52fcb234` concluiu com sucesso.
 - Validação: typecheck, testes direcionados, build e 30 testes de navegador
   passaram; a migração de produção também passou na verificação final.
+
+## Pulso.AI — referências e Maestros da IA (26/10/2026)
+
+- A lista canônica de referências editoriais passa a ter 11 canais definidos
+  por Carlos, com nome persistido no banco e ordenação alfabética na tela de
+  Configurações.
+- Maestros da IA foi coletado também como concorrente: 113 vídeos públicos na
+  janela anual, elevando o snapshot para 1.134 vídeos em 21 canais, 1.131 com
+  visualizações válidas. Um vídeo do canal entrou nas 15 oportunidades.
+- A alteração local passou em typecheck, 866 testes (865 aprovados e 1
+  ignorado) e `git diff --check`. Migration e deploy ainda aguardam o fluxo de
+  PR e Production.

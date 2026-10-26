@@ -1240,3 +1240,18 @@ registrar apenas uma revalidação quando ela for necessária.
   Não houve ativação de pesquisa automática.
 - Validação observada: typecheck e build aprovados, lint direcionado sem erros
   e 2 testes unitários aprovados. Ainda sem deploy.
+
+## 26/10/2026 15:30 — Referências editoriais e Maestros da IA
+
+- Decisão de Carlos: substituir a lista de referências pelos 11 canais
+  informados e incluir Maestros da IA também na base de concorrentes.
+- Coleta pública local do Maestros da IA: 113 vídeos na janela anual, com
+  metadados, visualizações, duração, fichas, JSONs e thumbnails JPEG válidas.
+- Snapshot seguro regenerado: 1.134 vídeos, 21 canais, 1.131 registros com
+  views e 15 oportunidades; Maestros da IA aparece em uma delas.
+- Código preparado para persistir e exibir o nome das 11 referências; migration
+  incremental e verificação do workflow adicionadas.
+- Validação local: typecheck aprovado, 866 testes executados (865 aprovados e
+  1 ignorado), `git diff --check` sem erros.
+- Situação externa neste registro: nenhuma migration nem deploy desta mudança
+  havia sido executado ainda.
