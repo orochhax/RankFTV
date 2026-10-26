@@ -181,7 +181,7 @@
 .evo-shell .yt-section-heading h2 { font-size: 22px; }
 .evo-shell .yt-section-heading p:last-child, .evo-shell .yt-text-link { font-size: 12px; }
 .evo-shell .yt-news-card { padding: 20px; }
-.evo-shell .yt-news-card.is-clickable:hover { border-color: #7aaef2; }
+.evo-shell .yt-news-card.is-clickable:hover { border-color: #7aaef2; background: #f4f8ff; box-shadow: 0 10px 24px rgba(34, 86, 154, .12); }
 .evo-shell .yt-news-card.is-featured { padding: 25px; }
 .evo-shell .yt-news-card h3 { font-size: 17px; }
 .evo-shell .yt-news-card.is-featured h3 { font-size: 23px; }
