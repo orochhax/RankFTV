@@ -1240,3 +1240,19 @@ registrar apenas uma revalidação quando ela for necessária.
   Não houve ativação de pesquisa automática.
 - Validação observada: typecheck e build aprovados, lint direcionado sem erros
   e 2 testes unitários aprovados. Ainda sem deploy.
+## 2026-10-27 — Central: serviços desbloqueados no DataScience
+
+- Corrigida a interpretação anterior: a solicitação era adicionar à Central a
+  nova página do roadmap para prestação de serviços, não apenas confirmar a
+  página já existente de Fontes.
+- Criada a rota `/admin/evolucao/datascience/servicos` e adicionada a
+  navegação filha de DataScience no menu lateral e no menu móvel.
+- O snapshot passou a usar `roadmap-servicos-diario.md`: 30 dias úteis, 150
+  atividades e 240 minutos planejados por dia, com o curso de Power BI do
+  André Rosa nos recortes definidos.
+- A liberação dos quatro serviços depende das práticas de 105 e 30 minutos,
+  das três evidências do marco e dos pré-requisitos. A lógica recebeu testes
+  unitários próprios.
+- Evidência local: typecheck, lint, build de 72 páginas e dois testes da regra
+  de desbloqueio aprovados. O primeiro build foi bloqueado apenas pelo acesso à
+  fonte Inter; repetido com rede disponível, concluiu normalmente.

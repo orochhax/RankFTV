@@ -639,3 +639,17 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   `347eb102e5bdf104f21623f559217e8f52fcb234` concluiu com sucesso.
 - Validação: typecheck, testes direcionados, build e 30 testes de navegador
   passaram; a migração de produção também passou na verificação final.
+## Central de Evolução — rota de serviços de Data Science (27/10/2026)
+
+- O roadmap ativo de Data Science passa a ser o plano intensivo de 30 dias
+  voltado a prestação de serviços, com 4h planejadas por dia útil e 150
+  atividades entre formação, inglês e prática.
+- A navegação de DataScience ganhou duas páginas: `Plano de estudos` e
+  `Serviços desbloqueados`. A segunda acompanha quatro marcos (diagnóstico,
+  painel, automação e pacote integrado) sem confundir aula assistida com
+  capacidade demonstrada.
+- Cada serviço exige as práticas principais do intervalo, três confirmações de
+  evidência e os pré-requisitos definidos. As confirmações usam a tabela de
+  progresso já existente; não há migration nova.
+- O importador de snapshots aceita `--data-dir`, permitindo publicar dados de
+  uma worktree limpa sem copiar `.env.local` ou qualquer segredo.

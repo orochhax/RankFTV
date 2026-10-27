@@ -19,10 +19,13 @@ function parseEnv(text: string) {
 const snapshotSchema = z.record(z.string(), z.unknown());
 
 async function main() {
+  const args = process.argv.slice(2);
+  const dataDirIndex = args.indexOf("--data-dir");
+  const dataDir = dataDirIndex >= 0 ? path.resolve(args[dataDirIndex + 1]) : path.resolve("data/evolution");
   const [rawEnv, roadmapRaw, rankRaw] = await Promise.all([
     readFile(path.resolve(".env.local"), "utf8"),
-    readFile(path.resolve("data/evolution/roadmap.json"), "utf8"),
-    readFile(path.resolve("data/evolution/rankftv.json"), "utf8"),
+    readFile(path.join(dataDir, "roadmap.json"), "utf8"),
+    readFile(path.join(dataDir, "rankftv.json"), "utf8"),
   ]);
   const environment = { ...parseEnv(rawEnv), ...process.env };
   const url = environment.NEXT_PUBLIC_SUPABASE_URL;
