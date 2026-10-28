@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-28T12:01:28.911Z",
+  "generatedAt": "2026-10-28T16:08:54.756Z",
   "sourcePath": "DataScience/01 - Roadmap/roadmap-servicos-diario.md",
   "period": {
     "start": "2026-10-28",
@@ -22,29 +22,6 @@
               "label": "Aula: Aulas 10 a 15 — O que é BI; ETL; DW e DM; tabelas fato e dimensão; Star Schema e Snowflake; passos para modelagem dimensional — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-01-atividade-escrever-briefing-do-caso-ficticio-decisao-responsavel-periodo-fontes-",
-              "label": "Atividade: Escrever briefing do caso fictício: decisão, responsável, período, fontes e cinco perguntas; desenhar o que cada linha representa — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-01-atividade-comparar-tres-vagas-de-analista-de-dados-bi-junior-acessiveis-e-regist",
-              "label": "Atividade: Comparar três vagas de analista de dados/BI júnior acessíveis e registrar requisitos recorrentes; separar exigência de diferencial — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-01-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -82,29 +59,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-02-atividade-montar-amostra-de-pedidos-com-ids-datas-quantidades-e-valores-manter-u",
-              "label": "Atividade: Montar amostra de pedidos com IDs, datas, quantidades e valores; manter uma cópia original separada — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-02-atividade-conferir-dez-linhas-a-mao-documentar-o-dicionario-e-pedir-a-ia-exemplo",
-              "label": "Atividade: Conferir dez linhas à mão; documentar o dicionário e pedir à IA exemplos de erros que ainda não foram testados — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-02-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -138,29 +92,6 @@
               "label": "Aula: Aulas 34 a 43 e 52 a 56 — validação; proteção; funções de texto; datas e tratamento de campos — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-03-atividade-criar-colunas-de-tratamento-e-relatorio-de-erros-distinguir-duplicidad",
-              "label": "Atividade: Criar colunas de tratamento e relatório de erros; distinguir duplicidade de pedido e múltiplos itens legítimos — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-03-atividade-reconciliar-contagem-antes-depois-explicar-cada-exclusao-e-preservar-u",
-              "label": "Atividade: Reconciliar contagem antes/depois; explicar cada exclusão e preservar uma lista de registros rejeitados — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-03-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -198,29 +129,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-04-atividade-calcular-vendas-liquidas-e-pedidos-validos-por-periodo-separar-receita",
-              "label": "Atividade: Calcular vendas líquidas e pedidos válidos por período; separar receita, recebimento e resultado — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-04-atividade-validar-formulas-com-tres-casos-de-resultado-conhecido-incluindo-cance",
-              "label": "Atividade: Validar fórmulas com três casos de resultado conhecido, incluindo cancelamento e ausência de pagamento — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-04-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -254,29 +162,6 @@
               "label": "Aula: Aulas 65 a 76 e 117 a 124 — tabelas, referências estruturadas, PROCV, PROCH, PROC, DESLOC e CORRESP — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-05-atividade-ligar-clientes-aos-pedidos-e-agregar-itens-antes-de-comparar-pagamento",
-              "label": "Atividade: Ligar clientes aos pedidos e agregar itens antes de comparar pagamentos; testar chave sem correspondência — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-05-atividade-investigar-diferenca-entre-total-por-pedido-e-por-item-explicar-por-qu",
-              "label": "Atividade: Investigar diferença entre total por pedido e por item; explicar por que buscar a primeira ocorrência pode esconder erro — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-05-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -314,29 +199,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-06-atividade-produzir-um-resumo-por-mes-canal-e-categoria-com-filtros-e-indicadores",
-              "label": "Atividade: Produzir um resumo por mês, canal e categoria com filtros e indicadores definidos — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-06-atividade-refazer-um-indicador-com-formula-independente-e-escrever-qual-decisao-",
-              "label": "Atividade: Refazer um indicador com fórmula independente e escrever qual decisão o resumo ajuda a tomar — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-06-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -370,29 +232,6 @@
               "label": "Aula: Aulas 49 a 54 e 63 a 69 — média, mediana, moda, variância, desvio padrão e valores extremos — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-07-atividade-comparar-ticket-medio-e-mediano-por-grupo-mostrar-como-poucos-pedidos-",
-              "label": "Atividade: Comparar ticket médio e mediano por grupo; mostrar como poucos pedidos grandes alteram a média — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-07-atividade-nao-excluir-extremos-automaticamente-escrever-uma-limitacao-da-amostra",
-              "label": "Atividade: Não excluir extremos automaticamente; escrever uma limitação da amostra e uma pergunta ainda sem resposta — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-07-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -430,29 +269,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-08-atividade-construir-relatorio-com-tres-achados-evidencia-numerica-hipotese-e-aca",
-              "label": "Atividade: Construir relatório com três achados, evidência numérica, hipótese e ação possível; usar períodos comparáveis — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-08-atividade-revisar-com-ia-apenas-a-estrutura-e-questionar-suas-conclusoes-remover",
-              "label": "Atividade: Revisar com IA apenas a estrutura e questionar suas conclusões; remover qualquer afirmação causal sem evidência — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-08-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -486,29 +302,6 @@
               "label": "Aula: Revisão das aulas 34 a 76 e 89 a 116 — limpeza, fórmulas, tabelas, filtros e resumos — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-09-atividade-aplicar-o-diagnostico-a-um-segundo-arquivo-ficticio-com-colunas-difere",
-              "label": "Atividade: Aplicar o diagnóstico a um segundo arquivo fictício com colunas diferentes, vazios e duplicidades sem seguir o passo a passo anterior — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-09-atividade-cronometrar-reconciliar-totais-e-registrar-erros-encontrados-preparar-",
-              "label": "Atividade: Cronometrar, reconciliar totais e registrar erros encontrados; preparar uma amostra que possa ser mostrada sem dados privados — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-09-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -546,29 +339,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-10-atividade-demonstrar-base-original-tratada-regras-indicadores-e-resumo-executivo",
-              "label": "Atividade: Demonstrar base original/tratada, regras, indicadores e resumo executivo; corrigir as falhas restantes — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-10-atividade-preencher-mini-proposta-de-diagnostico-limitado-entrada-entrega-fora-d",
-              "label": "Atividade: Preencher mini-proposta de diagnóstico limitado: entrada, entrega, fora de escopo e aceite; confirmar M1 somente se demonstrado — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-10-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -602,29 +372,6 @@
               "label": "Aula: Aulas 5 e 6 e 16 a 18 — Power BI Desktop, Power Query, importação de CSV, qualidade e tipos — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-11-atividade-importar-copias-das-tabelas-do-caso-separar-consultas-de-origem-e-de-t",
-              "label": "Atividade: Importar cópias das tabelas do caso; separar consultas de origem e de transformação e documentar caminhos — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-11-atividade-conferir-tipos-linhas-periodo-e-totais-com-a-planilha-ja-validada-guar",
-              "label": "Atividade: Conferir tipos, linhas, período e totais com a planilha já validada; guardar captura e arquivo PBIX — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-11-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -662,29 +409,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-12-atividade-refazer-a-limpeza-em-power-query-mantendo-etapas-legiveis-e-tabela-de-",
-              "label": "Atividade: Refazer a limpeza em Power Query mantendo etapas legíveis e tabela de inconsistências — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-12-atividade-trocar-o-arquivo-por-um-lote-novo-e-identificar-quais-passos-quebram-d",
-              "label": "Atividade: Trocar o arquivo por um lote novo e identificar quais passos quebram; descrever correção sem esconder registros — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-12-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -718,29 +442,6 @@
               "label": "Aula: Aulas 24 a 28 — mesclar consultas, parâmetros, arquivos em pastas, múltiplas fontes e Append — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-13-atividade-combinar-dois-meses-de-arquivos-e-relacionar-dimensoes-sem-repetir-tot",
-              "label": "Atividade: Combinar dois meses de arquivos e relacionar dimensões sem repetir totais — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-13-atividade-testar-coluna-ausente-chave-repetida-e-mes-ja-importado-comparar-conta",
-              "label": "Atividade: Testar coluna ausente, chave repetida e mês já importado; comparar contagens e soma com a origem — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-13-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -778,29 +479,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-14-atividade-montar-modelo-com-fato-de-itens-e-dimensoes-necessarias-decidir-como-r",
-              "label": "Atividade: Montar modelo com fato de itens e dimensões necessárias; decidir como representar pagamentos sem junção multiplicadora — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-14-atividade-desenhar-relacionamentos-e-explicar-cardinalidade-direcao-dos-filtros-",
-              "label": "Atividade: Desenhar relacionamentos e explicar cardinalidade, direção dos filtros e o que cada fato mede — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-14-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -834,29 +512,6 @@
               "label": "Aula: Aulas 50 a 52 e 56 a 66 — introdução ao DAX, contexto, SUM, SUMX, COUNT e DISTINCTCOUNT — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-15-atividade-criar-medidas-de-vendas-pedidos-e-ticket-com-denominadores-explicitos-",
-              "label": "Atividade: Criar medidas de vendas, pedidos e ticket com denominadores explícitos; distinguir medida de coluna calculada — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-15-atividade-conferir-cada-medida-em-total-e-por-cliente-documentar-comportamento-c",
-              "label": "Atividade: Conferir cada medida em total e por cliente; documentar comportamento com valor vazio ou divisão por zero — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-15-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -894,29 +549,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-16-atividade-criar-participacao-por-categoria-e-comparacao-entre-segmentos-manter-r",
-              "label": "Atividade: Criar participação por categoria e comparação entre segmentos; manter regras de cancelamento consistentes — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-16-atividade-montar-pequenos-exemplos-que-expliquem-por-que-o-numero-muda-com-filtr",
-              "label": "Atividade: Montar pequenos exemplos que expliquem por que o número muda com filtros; corrigir uma medida sugerida incorretamente pela IA — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-16-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -950,29 +582,6 @@
               "label": "Aula: Aulas 67 a 73 — funções de data, calendário e campos temporais — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-17-atividade-construir-calendario-evolucao-mensal-e-variacao-indicar-periodo-incomp",
-              "label": "Atividade: Construir calendário, evolução mensal e variação; indicar período incompleto e datas faltantes — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-17-atividade-conferir-mudanca-de-ano-mes-sem-venda-e-selecao-parcial-nao-comparar-m",
-              "label": "Atividade: Conferir mudança de ano, mês sem venda e seleção parcial; não comparar mês parcial com mês fechado como equivalentes — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-17-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -1010,29 +619,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-18-atividade-montar-pagina-enxuta-de-visao-geral-e-detalhe-com-unidades-periodo-e-t",
-              "label": "Atividade: Montar página enxuta de visão geral e detalhe com unidades, período e três perguntas respondidas — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-18-atividade-apresentar-a-alguem-ou-simular-a-leitura-sem-explicacao-registrar-ambi",
-              "label": "Atividade: Apresentar a alguém ou simular a leitura sem explicação; registrar ambiguidades, contraste e informação desnecessária — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-18-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -1066,29 +652,6 @@
               "label": "Aula: Revisão das aulas 50 a 78 — DAX, contexto, agregações, calendário e filtros — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-19-atividade-criar-tabela-de-reconciliacao-das-medidas-com-excel-testando-selecoes-",
-              "label": "Atividade: Criar tabela de reconciliação das medidas com Excel, testando seleções e totais gerais — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-19-atividade-gravar-explicacao-curta-do-modelo-resolver-uma-pergunta-nova-de-negoci",
-              "label": "Atividade: Gravar explicação curta do modelo; resolver uma pergunta nova de negócio sem copiar uma aula — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-19-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -1126,29 +689,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-20-atividade-executar-atualizacao-com-outro-lote-e-escrever-manual-de-acesso-e-conf",
-              "label": "Atividade: Executar atualização com outro lote e escrever manual de acesso e conferência; testar PBIX e exportação local — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-20-atividade-verificar-documentacao-atual-de-licencas-antes-de-oferecer-acesso-onli",
-              "label": "Atividade: Verificar documentação atual de licenças antes de oferecer acesso online; registrar formato realmente testado e custos sem contratar nada — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-20-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -1182,29 +722,6 @@
               "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — Power Query, modelo, medidas e calendário em uma base nova — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-21-atividade-adaptar-uma-copia-do-painel-a-segunda-base-ou-a-uma-pergunta-diferente",
-              "label": "Atividade: Adaptar uma cópia do painel à segunda base ou a uma pergunta diferente; corrigir modelo e medidas — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-21-atividade-preparar-readme-do-case-com-problema-metodo-resultados-observados-e-li",
-              "label": "Atividade: Preparar README do case com problema, método, resultados observados e limites; relacionar duas habilidades a requisitos de vagas — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-21-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -1242,29 +759,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-22-atividade-executar-o-projeto-final-de-novembro-painel-de-vendas-com-filtros-nume",
-              "label": "Atividade: Executar o projeto final de novembro: painel de vendas com filtros, números reconciliados, atualização com segundo arquivo e recuperação de falha — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-22-atividade-simular-entrega-ao-destinatario-documentar-acesso-suporte-e-fora-de-es",
-              "label": "Atividade: Simular entrega ao destinatário; documentar acesso, suporte e fora de escopo; confirmar M2 se todos os testes passarem — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-22-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -1298,29 +792,6 @@
               "label": "Aula: Aulas 1 a 4, 9 a 13 e 15 a 20 — ambiente, teoria SQL, BigQuery e primeiros SELECTs — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-23-atividade-consultar-uma-copia-das-tabelas-do-caso-no-ambiente-de-estudo-ja-dispo",
-              "label": "Atividade: Consultar uma cópia das tabelas do caso no ambiente de estudo já disponível; produzir cinco seleções verificáveis — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-23-atividade-registrar-dialeto-unidade-das-linhas-e-caminhos-de-execucao-nao-ativar",
-              "label": "Atividade: Registrar dialeto, unidade das linhas e caminhos de execução; não ativar cobrança de nuvem para fazer exercícios — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-23-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -1358,29 +829,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-24-atividade-responder-perguntas-por-status-data-e-cliente-escrever-filtros-de-inte",
-              "label": "Atividade: Responder perguntas por status, data e cliente; escrever filtros de intervalo sem perder último dia — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-24-atividade-criar-casos-de-borda-com-nulo-texto-vazio-e-limites-de-data-conferir-s",
-              "label": "Atividade: Criar casos de borda com nulo, texto vazio e limites de data; conferir se SQL inclui as mesmas linhas do Excel — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-24-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -1414,29 +862,6 @@
               "label": "Aula: Aulas 30 a 39 — CASE WHEN, exercícios, COUNT, SUM, AVG, MIN, MAX e GROUP BY — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-25-atividade-calcular-indicadores-do-diagnostico-por-mes-e-categoria-distinguir-lin",
-              "label": "Atividade: Calcular indicadores do diagnóstico por mês e categoria; distinguir linhas, pedidos distintos e clientes — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-25-atividade-reconciliar-tres-metricas-com-a-planilha-explicar-count-versus-count-c",
-              "label": "Atividade: Reconciliar três métricas com a planilha; explicar COUNT() versus COUNT(coluna) e os efeitos dos nulos — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-25-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -1474,29 +899,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-26-atividade-relacionar-dimensoes-e-fatos-pre-agregar-pagamentos-e-itens-no-grao-co",
-              "label": "Atividade: Relacionar dimensões e fatos; pré-agregar pagamentos e itens no grão correto antes de cruzá-los — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-26-atividade-provocar-uma-juncao-errada-numa-copia-e-demonstrar-como-detectar-a-inf",
-              "label": "Atividade: Provocar uma junção errada numa cópia e demonstrar como detectar a inflação de valores por contagem e soma — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-26-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -1530,29 +932,6 @@
               "label": "Aula: Aulas 28 e 29 e 51 a 62 — datas, texto, regras condicionais e limpeza em consultas — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-27-atividade-criar-faixas-de-clientes-sinais-de-inconsistencia-e-indicadores-por-st",
-              "label": "Atividade: Criar faixas de clientes, sinais de inconsistência e indicadores por status com regras explícitas — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-27-atividade-documentar-criterios-e-testar-fronteiras-explicar-uma-consulta-gerada-",
-              "label": "Atividade: Documentar critérios e testar fronteiras; explicar uma consulta gerada pela IA linha por linha antes de aceitá-la — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-27-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -1590,29 +969,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-28-atividade-separar-extracao-limpeza-agregacao-e-calculo-final-em-consultas-legive",
-              "label": "Atividade: Separar extração, limpeza, agregação e cálculo final em consultas legíveis — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-28-atividade-reexecutar-e-conferir-resultados-intermediarios-resolver-uma-consulta-",
-              "label": "Atividade: Reexecutar e conferir resultados intermediários; resolver uma consulta equivalente sem consultar a resposta da IA — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-28-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -1646,29 +1002,6 @@
               "label": "Aula: Aulas 70 a 75 — funções de janela, OVER, PARTITION BY e ordenação analítica — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-29-atividade-criar-ranking-por-categoria-evolucao-mensal-e-comparacao-com-periodo-a",
-              "label": "Atividade: Criar ranking por categoria, evolução mensal e comparação com período anterior preservando o grão — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-29-atividade-conferir-empates-particoes-e-ordenacao-explicar-por-que-janela-e-group",
-              "label": "Atividade: Conferir empates, partições e ordenação; explicar por que janela e GROUP BY produzem quantidades de linhas diferentes — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-29-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -1706,29 +1039,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-30-atividade-calcular-frequencia-e-recencia-com-datas-de-referencia-fixas-separar-p",
-              "label": "Atividade: Calcular frequência e recência com datas de referência fixas; separar pedido cancelado de cliente perdido — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-30-atividade-apresentar-segmentacao-descritiva-sem-chama-la-de-previsao-de-churn-re",
-              "label": "Atividade: Apresentar segmentação descritiva sem chamá-la de previsão de churn; registrar dados que faltariam para prever — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-30-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -1762,29 +1072,6 @@
               "label": "Aula: Revisão das aulas 30 a 50 — agregações e junções com contagens de controle — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-31-atividade-criar-verificacoes-para-chave-repetida-orfaos-valores-invalidos-e-tota",
-              "label": "Atividade: Criar verificações para chave repetida, órfãos, valores inválidos e totais divergentes — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-31-atividade-usar-uma-amostra-com-erros-conhecidos-e-confirmar-que-cada-erro-e-dete",
-              "label": "Atividade: Usar uma amostra com erros conhecidos e confirmar que cada erro é detectado; guardar consultas e resultados esperados — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-31-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -1822,29 +1109,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-32-atividade-comparar-dois-grupos-com-medias-medianas-tamanhos-e-graficos-descrever",
-              "label": "Atividade: Comparar dois grupos com médias, medianas, tamanhos e gráficos; descrever diferenças observadas — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-32-atividade-apontar-selecao-sazonalidade-e-variaveis-ausentes-distinguir-correlaca",
-              "label": "Atividade: Apontar seleção, sazonalidade e variáveis ausentes; distinguir correlação, hipótese e efeito causal sem prometer prova — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-32-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -1878,29 +1142,6 @@
               "label": "Aula: Revisão das aulas 19 a 75 — transformar pergunta de negócio em consulta e evidência — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-33-atividade-responder-cinco-perguntas-ineditas-na-segunda-base-sem-roteiro-e-com-c",
-              "label": "Atividade: Responder cinco perguntas inéditas na segunda base, sem roteiro e com consulta reproduzível — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-33-atividade-escrever-resumo-executivo-de-uma-pagina-com-denominadores-limitacoes-e",
-              "label": "Atividade: Escrever resumo executivo de uma página com denominadores, limitações e decisões possíveis — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-33-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -1938,29 +1179,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-34-atividade-resolver-um-conjunto-proprio-de-questoes-sql-primeiro-sem-ia-e-depois-",
-              "label": "Atividade: Resolver um conjunto próprio de questões SQL primeiro sem IA e depois revisar erros com ela — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-34-atividade-registrar-tempo-acertos-e-lacunas-ajustar-matriz-de-requisitos-de-tres",
-              "label": "Atividade: Registrar tempo, acertos e lacunas; ajustar matriz de requisitos de três vagas reais sem declarar competências não demonstradas — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-34-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -1994,29 +1212,6 @@
               "label": "Aula: Revisão das aulas 30 a 75 — consolidação de agregações, junções, subqueries e funções de janela — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-35-atividade-reproduzir-indicadores-do-painel-em-sql-e-fechar-diferencas-de-grao-fi",
-              "label": "Atividade: Reproduzir indicadores do painel em SQL e fechar diferenças de grão, filtro e datas — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-35-atividade-explicar-tres-consultas-em-voz-alta-e-escrever-um-readme-com-instrucoe",
-              "label": "Atividade: Explicar três consultas em voz alta e escrever um README com instruções; repetir questões onde ainda depende de copiar soluções — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-35-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -2054,29 +1249,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-36-atividade-criar-script-pequeno-de-conferencia-de-valores-e-organizar-pastas-de-o",
-              "label": "Atividade: Criar script pequeno de conferência de valores e organizar pastas de origem, saída e código — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-36-atividade-explicar-tipos-e-conversoes-testar-texto-invalido-e-valor-ausente-ante",
-              "label": "Atividade: Explicar tipos e conversões; testar texto inválido e valor ausente antes de pedir otimizações à IA — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-36-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -2110,29 +1282,6 @@
               "label": "Aula: Aulas 8 a 13 — decisões, operadores, laços, listas e coleções — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-37-atividade-ler-uma-lista-de-registros-ficticios-e-separar-validos-de-invalidos-co",
-              "label": "Atividade: Ler uma lista de registros fictícios e separar válidos de inválidos com contadores — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-37-atividade-conferir-cinco-casos-manualmente-resolver-exercicio-curto-sem-ia-e-so-",
-              "label": "Atividade: Conferir cinco casos manualmente; resolver exercício curto sem IA e só depois comparar abordagens — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-37-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -2170,29 +1319,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-38-atividade-separar-validacao-transformacao-e-resumo-em-funcoes-pequenas-com-entra",
-              "label": "Atividade: Separar validação, transformação e resumo em funções pequenas com entradas explícitas — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-38-atividade-testar-arquivo-vazio-numero-invalido-e-coluna-ausente-evitar-capturar-",
-              "label": "Atividade: Testar arquivo vazio, número inválido e coluna ausente; evitar capturar toda exceção sem registrar o problema — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-38-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -2226,29 +1352,6 @@
               "label": "Atividade: Leitura orientada — Pro Git, capítulos 1 e 2: repositório, status, diff, commit e .gitignore — 60min",
               "kind": "outro",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-39-atividade-versionar-um-projeto-local-de-treino-com-dados-sinteticos-e-readme-ens",
-              "label": "Atividade: Versionar um projeto local de treino com dados sintéticos e README; ensaiar comparação e recuperação de uma versão — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-39-atividade-excluir-credenciais-e-dados-de-clientes-do-material-versionado-explica",
-              "label": "Atividade: Excluir credenciais e dados de clientes do material versionado; explicar o que mudou e por quê, sem publicar automaticamente — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-39-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -2286,29 +1389,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-40-atividade-carregar-o-caso-com-esquema-explicito-e-produzir-perfil-de-linhas-colu",
-              "label": "Atividade: Carregar o caso com esquema explícito e produzir perfil de linhas, colunas, nulos e tipos — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-40-atividade-comparar-totais-e-datas-com-excel-sql-explicar-separador-decimal-e-pro",
-              "label": "Atividade: Comparar totais e datas com Excel/SQL; explicar separador, decimal e problemas de codificação — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-40-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -2342,29 +1422,6 @@
               "label": "Aula: Aulas 42 a 46 e 58 a 61 — transformação, conversão, nulos, duplicidades e qualidade dos dados — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-41-atividade-reproduzir-as-regras-do-relatorio-de-qualidade-em-funcoes-mantendo-ori",
-              "label": "Atividade: Reproduzir as regras do relatório de qualidade em funções, mantendo original e rejeitados separados — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-41-atividade-testar-dados-problematicos-e-confrontar-resultados-esperados-nao-aceit",
-              "label": "Atividade: Testar dados problemáticos e confrontar resultados esperados; não aceitar limpeza automática que elimina diferenças sem explicação — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-41-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -2402,29 +1459,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-42-atividade-construir-tabela-analitica-e-indicadores-equivalentes-as-consultas-sql",
-              "label": "Atividade: Construir tabela analítica e indicadores equivalentes às consultas SQL — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-42-atividade-conferir-contagens-antes-depois-das-juncoes-e-totais-por-chave-detecta",
-              "label": "Atividade: Conferir contagens antes/depois das junções e totais por chave; detectar duplicação com assertivas — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-42-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -2458,29 +1492,6 @@
               "label": "Aula: Aulas 62 a 64 e 72 a 81 — distribuição, agrupamentos, gráficos e comunicação visual — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-43-atividade-gerar-graficos-e-resumo-de-indicadores-com-periodo-unidade-e-fonte-exp",
-              "label": "Atividade: Gerar gráficos e resumo de indicadores com período, unidade e fonte; exportar CSV/XLSX de resultados — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-43-atividade-revisar-legibilidade-e-conclusoes-distinguir-arquivo-de-analise-de-sis",
-              "label": "Atividade: Revisar legibilidade e conclusões; distinguir arquivo de análise de sistema de produção — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-43-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -2518,29 +1529,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-44-atividade-executar-o-projeto-final-de-dezembro-pipeline-de-analise-em-python-pan",
-              "label": "Atividade: Executar o projeto final de dezembro: pipeline de análise em Python/Pandas com casos conhecidos, saídas reproduzíveis e nova pasta de execução — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-44-atividade-pedir-a-ia-casos-adversos-e-executar-os-relevantes-mostrar-que-os-test",
-              "label": "Atividade: Pedir à IA casos adversos e executar os relevantes; mostrar que os testes falham quando introduz um erro deliberado — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-44-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -2574,29 +1562,6 @@
               "label": "Aula: Revisão das aulas 25 a 64 — processar uma entrada nova sem copiar o exercício anterior — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-45-atividade-processar-arquivo-inedito-seguindo-contrato-de-colunas-e-reconciliar-i",
-              "label": "Atividade: Processar arquivo inédito seguindo contrato de colunas e reconciliar indicadores com SQL ou Excel — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-45-atividade-explicar-o-fluxo-e-alterar-uma-regra-sem-copiar-tutorial-registrar-lac",
-              "label": "Atividade: Explicar o fluxo e alterar uma regra sem copiar tutorial; registrar lacunas antes de avançar para automação — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-45-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -2634,29 +1599,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-46-atividade-criar-comando-unico-que-recebe-arquivo-e-pasta-de-saida-separar-config",
-              "label": "Atividade: Criar comando único que recebe arquivo e pasta de saída; separar configuração das regras — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-46-atividade-executar-duas-vezes-sem-duplicar-entregas-e-registrar-parametros-usar-",
-              "label": "Atividade: Executar duas vezes sem duplicar entregas e registrar parâmetros; usar somente dados de treino — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-46-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -2690,29 +1632,6 @@
               "label": "Aula: Revisão das aulas 30 a 36 e 42 a 46 — múltiplos arquivos, esquema, transformação e exportação — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-47-atividade-processar-pasta-com-meses-diferentes-incluindo-um-arquivo-invalido-ger",
-              "label": "Atividade: Processar pasta com meses diferentes, incluindo um arquivo inválido; gerar resultado e relatório de rejeições — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-47-atividade-testar-lote-vazio-arquivo-repetido-e-ordem-diferente-conferir-invarian",
-              "label": "Atividade: Testar lote vazio, arquivo repetido e ordem diferente; conferir invariância do total — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-47-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -2750,29 +1669,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-48-atividade-ler-endpoint-publico-permitido-sem-credencial-paga-e-salvar-resposta-b",
-              "label": "Atividade: Ler endpoint público permitido sem credencial paga e salvar resposta bruta; se indisponível, usar JSON salvo e marcar simulação — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-48-atividade-documentar-campos-horario-origem-e-licenca-de-uso-diferenciar-teste-ao",
-              "label": "Atividade: Documentar campos, horário, origem e licença de uso; diferenciar teste ao vivo de fixture local — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-48-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -2806,29 +1702,6 @@
               "label": "Aula: Aulas 16 e 17 — integração com API; prática dirigida de timeout, paginação e respostas de erro — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-49-atividade-implementar-leitura-paginada-em-simulacao-e-tratamento-de-resposta-inv",
-              "label": "Atividade: Implementar leitura paginada em simulação e tratamento de resposta inválida; aplicar ao endpoint apenas se disponível — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-49-atividade-testar-429-500-timeout-e-dados-duplicados-com-respostas-ficticias-defi",
-              "label": "Atividade: Testar 429, 500, timeout e dados duplicados com respostas fictícias; definir tentativas limitadas — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-49-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -2866,29 +1739,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-50-atividade-registrar-inicio-fim-contagens-e-erros-sem-informacoes-sensiveis-isola",
-              "label": "Atividade: Registrar início, fim, contagens e erros sem informações sensíveis; isolar saídas incompletas — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-50-atividade-ensaiar-falha-no-meio-do-lote-e-recuperacao-sem-duplicidade-manter-cop",
-              "label": "Atividade: Ensaiar falha no meio do lote e recuperação sem duplicidade; manter cópia do último resultado validado — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-50-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -2922,29 +1772,6 @@
               "label": "Aula: Revisão das aulas 42 a 46 — gerar, revisar e testar transformações de dados com apoio de IA — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-51-atividade-pedir-a-ia-uma-transformacao-pequena-com-esquema-e-criterios-revisar-e",
-              "label": "Atividade: Pedir à IA uma transformação pequena com esquema e critérios; revisar, executar e comparar com solução conhecida — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-51-atividade-medir-tempo-gasto-em-implementacao-e-revisao-rejeitar-resposta-que-alt",
-              "label": "Atividade: Medir tempo gasto em implementação e revisão; rejeitar resposta que altera regra, inventa coluna ou não passa nos testes — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-51-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -2982,29 +1809,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-52-atividade-classificar-amostra-de-mensagens-ficticias-com-categorias-e-esquema-fi",
-              "label": "Atividade: Classificar amostra de mensagens fictícias com categorias e esquema fixos usando chat já disponível; guardar rótulos de referência — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-52-atividade-contar-erros-e-abstencoes-e-revisar-campos-criticos-nao-chamar-uso-man",
-              "label": "Atividade: Contar erros e abstenções e revisar campos críticos; não chamar uso manual de automação nem exigir API paga — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-52-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -3038,29 +1842,6 @@
               "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 6, 10 e 12: módulos, dependências, ambientes e execução — 60min",
               "kind": "outro",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-53-atividade-preparar-versao-executavel-do-relatorio-com-instrucoes-exemplos-e-veri",
-              "label": "Atividade: Preparar versão executável do relatório com instruções, exemplos e verificação de saída; ensaiar execução local programada se suportada — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-53-atividade-testar-caminho-alterado-dependencia-ausente-e-instrucao-de-recuperacao",
-              "label": "Atividade: Testar caminho alterado, dependência ausente e instrução de recuperação; registrar funções ainda não demonstradas — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-53-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -3098,29 +1879,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-54-atividade-executar-rotina-em-segundo-conjunto-de-dados-medir-tempo-conferir-todo",
-              "label": "Atividade: Executar rotina em segundo conjunto de dados; medir tempo, conferir todos os totais e testar falha/reexecução — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-54-atividade-calcular-esforco-de-revisao-e-suporte-por-lote-aumentar-volume-aos-pou",
-              "label": "Atividade: Calcular esforço de revisão e suporte por lote; aumentar volume aos poucos sem supor que IA permite demanda ilimitada — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-54-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -3154,29 +1912,6 @@
               "label": "Aula: Revisão das aulas 25 a 64 — critérios do relatório automatizado, entrada nova, logs e conferência — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-55-atividade-demonstrar-entrada-nova-saida-conferida-logs-falhas-tratadas-e-reproce",
-              "label": "Atividade: Demonstrar entrada nova, saída conferida, logs, falhas tratadas e reprocessamento sem duplicidade — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-55-atividade-entregar-manual-e-delimitar-arquivos-api-agendamento-realmente-testado",
-              "label": "Atividade: Entregar manual e delimitar arquivos/API/agendamento realmente testados; confirmar M3 somente após demonstração — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-55-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -3214,29 +1949,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-56-atividade-receber-briefing-simulado-diferente-do-caso-principal-avaliar-amostra-",
-              "label": "Atividade: Receber briefing simulado diferente do caso principal; avaliar amostra e selecionar entrega simples com critérios de aceite — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-56-atividade-decidir-o-que-pode-oferecer-agora-o-que-exige-estudo-e-o-que-fica-fora",
-              "label": "Atividade: Decidir o que pode oferecer agora, o que exige estudo e o que fica fora; estimar horas com base nos registros anteriores — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-56-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -3270,29 +1982,6 @@
               "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — escolher apenas o recorte de Power BI necessário ao capstone — 60min",
               "kind": "aula",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-57-atividade-construir-a-entrega-escolhida-na-base-nova-usando-ferramentas-dominada",
-              "label": "Atividade: Construir a entrega escolhida na base nova usando ferramentas dominadas e IA com conferência independente — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-57-atividade-registrar-resultados-esperados-executar-testes-e-corrigir-divergencias",
-              "label": "Atividade: Registrar resultados esperados, executar testes e corrigir divergências; escrever instrução de atualização — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-57-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }
@@ -3330,29 +2019,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-58-atividade-preencher-proposta-completa-e-simular-reuniao-de-entrega-com-mudanca-d",
-              "label": "Atividade: Preencher proposta completa e simular reunião de entrega com mudança de requisito e incidente — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-58-atividade-calcular-horas-custos-de-ferramentas-e-suporte-identificar-claramente-",
-              "label": "Atividade: Calcular horas, custos de ferramentas e suporte; identificar claramente simulação e não inventar cliente, faturamento ou aceite — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-58-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -3388,29 +2054,6 @@
               "durationMinutes": 60
             }
           ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-59-atividade-preparar-curriculo-e-case-com-sql-bi-python-conforme-o-que-demonstrou-",
-              "label": "Atividade: Preparar currículo e case com SQL/BI/Python conforme o que demonstrou; simular entrevista e questão sem IA — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-59-atividade-selecionar-vagas-compativeis-e-preparar-candidatura-personalizada-publ",
-              "label": "Atividade: Selecionar vagas compatíveis e preparar candidatura personalizada; publicar/enviar só quando Carlos decidir, sem alegar experiência fictícia — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-59-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
-            }
-          ]
         }
       ],
       "courses": [
@@ -3444,29 +2087,6 @@
               "label": "Atividade: Leitura orientada — validação final: evidências, lacunas, oferta inicial e próxima etapa — 60min",
               "kind": "outro",
               "durationMinutes": 60
-            }
-          ]
-        },
-        {
-          "title": "Prática e entrega",
-          "tasks": [
-            {
-              "id": "dia-60-atividade-executar-o-projeto-final-dos-60-dias-apresentar-diagnostico-painel-e-r",
-              "label": "Atividade: Executar o projeto final dos 60 dias: apresentar diagnóstico, painel e relatório integrados com fonte, método, limites e código; corrigir o problema mais importante — 120min",
-              "kind": "entrega",
-              "durationMinutes": 120
-            },
-            {
-              "id": "dia-60-atividade-validar-m1-m4-e-checklist-de-carreira-escolher-oferta-inicial-candidat",
-              "label": "Atividade: Validar M1–M4 e checklist de carreira; escolher oferta inicial, candidaturas compatíveis ou repetição do bloco antes de expandir — 45min",
-              "kind": "entrega",
-              "durationMinutes": 45
-            },
-            {
-              "id": "dia-60-atividade-relembrar-sem-consultar-registrar-evidencia-e-ajuda-da-ia-anotar-erro-",
-              "label": "Atividade: Relembrar sem consultar, registrar evidência e ajuda da IA; anotar erro pendente e próxima ação, repetindo o bloco se necessário — 15min",
-              "kind": "entrega",
-              "durationMinutes": 15
             }
           ]
         }

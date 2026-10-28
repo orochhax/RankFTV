@@ -14,21 +14,20 @@ function roadmap(): RoadmapSnapshot {
       dayNumber: index + 1,
       date: "2026-10-27",
       weekday: "terça-feira",
-      plannedMinutes: 240,
+      plannedMinutes: 60,
       courses: [],
       sections: [{
-        title: "Prática e entrega",
-        tasks: [120, 45, 15].map((duration) => ({ id: `d${index + 1}-${duration}`, label: "Entrega", kind: "entrega" as const, durationMinutes: duration })),
+        title: "Data Science",
+        tasks: [{ id: `d${index + 1}`, label: "Aula", kind: "aula" as const, durationMinutes: 60 }],
       }],
     })),
   };
 }
 
-test("desbloqueia M1 apenas com práticas principais e confirmações", () => {
+test("desbloqueia M1 apenas com aulas concluídas e confirmações", () => {
   const completed = new Set<string>();
   for (let day = 1; day <= 10; day += 1) {
-    completed.add(`d${day}-120`);
-    completed.add(`d${day}-45`);
+    completed.add(`d${day}`);
   }
   let result = assessServiceUnlocks(roadmap(), completed);
   assert.equal(result[0].status, "revisao");
@@ -41,8 +40,7 @@ test("desbloqueia M1 apenas com práticas principais e confirmações", () => {
 test("mantém estágio bloqueado quando o pré-requisito não foi desbloqueado", () => {
   const completed = new Set<string>();
   for (let day = 11; day <= 22; day += 1) {
-    completed.add(`d${day}-120`);
-    completed.add(`d${day}-45`);
+    completed.add(`d${day}`);
   }
   serviceUnlockStages[1].confirmations.forEach((_, index) => completed.add(serviceConfirmationId("m2", index)));
   const result = assessServiceUnlocks(roadmap(), completed);

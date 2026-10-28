@@ -95,9 +95,8 @@ function qualifyingTasks(roadmap: RoadmapSnapshot, stage: ServiceUnlockStage): R
   return roadmap.days
     .filter((day) => isInRanges(day.dayNumber, stage.dayRanges))
     .flatMap((day) => day.sections)
-    .filter((section) => section.title.toLowerCase().includes("prática e entrega"))
     .flatMap((section) => section.tasks)
-    .filter((task) => task.durationMinutes === 120 || task.durationMinutes === 45);
+    .filter((task) => task.kind === "aula");
 }
 
 export function assessServiceUnlocks(roadmap: RoadmapSnapshot, completed: ReadonlySet<string>): ServiceUnlockAssessment[] {

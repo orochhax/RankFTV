@@ -13,7 +13,7 @@ export default async function DataSciencePage() {
   const data = await getEvolutionData();
   const currentDay = data.roadmap.days.find((day) => day.sections.some((section) => section.tasks.some((task) => !data.roadmapProgress.has(task.id))));
   return <main className="evo-page">
-    <header className="evo-page-header"><div><p className="evo-eyebrow">PRIORIDADE Nº 1</p><h1>DataScience</h1><p>O plano intensivo organiza 4h por dia útil entre formação, prática e preparação para serviços e vagas.</p></div><BookOpen size={28} /></header>
+    <header className="evo-page-header"><div><p className="evo-eyebrow">PRIORIDADE Nº 1</p><h1>DataScience</h1><p>O plano organiza aulas por dia útil e projetos de portfólio para serviços e vagas.</p></div><BookOpen size={28} /></header>
     <section className="evo-stat-row">
       <article><Clock3 /><div><span>Esta semana</span><strong>{formatMinutes(data.study.totalMinutes)} <small>/ 10h</small></strong></div></article>
       <article><Target /><div><span>Dívida pendente</span><strong>{formatMinutes(data.study.outstandingDebtMinutes)}</strong></div></article>
@@ -21,6 +21,6 @@ export default async function DataSciencePage() {
     </section>
     <section className="evo-panel"><div className="evo-panel-heading"><div><p className="evo-eyebrow">REGISTRO DE FOCO</p><h2>Estudo de hoje</h2></div><span className="evo-pill">mínimo 120 min</span></div><StudyLogger today={data.today} onSave={addStudySession} /></section>
     <section className="evo-section"><div className="evo-section-heading"><div><p className="evo-eyebrow">PROJETOS PARA O LINKEDIN</p><h2>Fechamentos do ciclo</h2></div><p>Clique no projeto para baixar a base fictícia e ver toda a execução.</p></div><div className="evo-project-grid">{studyProjects.map((project) => <Link className="evo-project-card" href={`/admin/evolucao/datascience/projetos/${project.slug}`} key={project.slug}><small>{project.date}</small><h3>{project.title}</h3><p>{project.summary}</p><span>Abrir projeto <ArrowRight size={15} /></span></Link>)}</div></section>
-    <section className="evo-section"><div className="evo-section-heading"><div><p className="evo-eyebrow">FORMAÇÃO PRÁTICA</p><h2>Roadmap completo</h2></div><p>{data.roadmap.totalBusinessDays} dias úteis · {data.roadmap.period.start} a {data.roadmap.period.end}. Cada bloco liga estudo, prática e uma entrega demonstrável.</p></div><RoadmapBoard roadmap={data.roadmap} initialCompleted={[...data.roadmapProgress]} today={data.today} onToggle={setRoadmapTask} /></section>
+    <section className="evo-section"><div className="evo-section-heading"><div><p className="evo-eyebrow">FORMAÇÃO</p><h2>Roadmap completo</h2></div><p>{data.roadmap.totalBusinessDays} dias úteis · {data.roadmap.period.start} a {data.roadmap.period.end}. Cada dia mostra o curso, o link e as aulas exatas; os projetos concentram as entregas.</p></div><RoadmapBoard roadmap={data.roadmap} initialCompleted={[...data.roadmapProgress]} today={data.today} onToggle={setRoadmapTask} /></section>
   </main>;
 }
