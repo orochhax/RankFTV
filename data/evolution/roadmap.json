@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-28T02:29:12.020Z",
+  "generatedAt": "2026-10-28T12:01:28.911Z",
   "sourcePath": "DataScience/01 - Roadmap/roadmap-servicos-diario.md",
   "period": {
     "start": "2026-10-28",
@@ -18,9 +18,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-01-atividade-estudar-e-acompanhar-exemplos-de-introducao-a-bi-decisao-pergunta-e-in",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Introdução a BI; decisão, pergunta e indicador; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-01-aula-aulas-10-a-15-o-que-e-bi-etl-dw-e-dm-tabelas-fato-e-dimensao-star-schema-e-",
+              "label": "Aula: Aulas 10 a 15 — O que é BI; ETL; DW e DM; tabelas fato e dimensão; Star Schema e Snowflake; passos para modelagem dimensional — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -56,9 +56,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-01-atividade-estudar-e-acompanhar-exemplos-de-introducao-a-bi-decisao-pergunta-e-in",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Introdução a BI; decisão, pergunta e indicador; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-01-aula-aulas-10-a-15-o-que-e-bi-etl-dw-e-dm-tabelas-fato-e-dimensao-star-schema-e-",
+              "label": "Aula: Aulas 10 a 15 — O que é BI; ETL; DW e DM; tabelas fato e dimensão; Star Schema e Snowflake; passos para modelagem dimensional — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -76,9 +76,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-02-atividade-estudar-e-acompanhar-exemplos-de-tabelas-referencias-tipos-e-filtros-a",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Tabelas, referências, tipos e filtros; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-02-aula-aulas-7-a-12-e-65-a-73-calculos-basicos-referencias-tabelas-classificacao-f",
+              "label": "Aula: Aulas 7 a 12 e 65 a 73 — cálculos básicos; referências; tabelas; classificação; filtros e segmentação de dados — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -114,9 +114,9 @@
           "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-02-atividade-estudar-e-acompanhar-exemplos-de-tabelas-referencias-tipos-e-filtros-a",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Tabelas, referências, tipos e filtros; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-02-aula-aulas-7-a-12-e-65-a-73-calculos-basicos-referencias-tabelas-classificacao-f",
+              "label": "Aula: Aulas 7 a 12 e 65 a 73 — cálculos básicos; referências; tabelas; classificação; filtros e segmentação de dados — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -134,9 +134,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-03-atividade-estudar-e-acompanhar-exemplos-de-texto-datas-vazios-e-duplicidades-ao-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Texto, datas, vazios e duplicidades; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-03-aula-aulas-34-a-43-e-52-a-56-validacao-protecao-funcoes-de-texto-datas-e-tratame",
+              "label": "Aula: Aulas 34 a 43 e 52 a 56 — validação; proteção; funções de texto; datas e tratamento de campos — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -172,9 +172,9 @@
           "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-03-atividade-estudar-e-acompanhar-exemplos-de-texto-datas-vazios-e-duplicidades-ao-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Texto, datas, vazios e duplicidades; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-03-aula-aulas-34-a-43-e-52-a-56-validacao-protecao-funcoes-de-texto-datas-e-tratame",
+              "label": "Aula: Aulas 34 a 43 e 52 a 56 — validação; proteção; funções de texto; datas e tratamento de campos — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -192,9 +192,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-04-atividade-estudar-e-acompanhar-exemplos-de-somases-cont-ses-condicoes-e-tratamen",
-              "label": "Atividade: Estudar e acompanhar exemplos de: SOMASES, CONT.SES, condições e tratamento de erro; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-04-aula-aulas-57-a-60-e-89-a-94-funcoes-logicas-cont-se-cont-ses-somase-somases-e-t",
+              "label": "Aula: Aulas 57 a 60 e 89 a 94 — funções lógicas; CONT.SE/CONT.SES; SOMASE/SOMASES e tratamento de condições — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -230,9 +230,9 @@
           "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-04-atividade-estudar-e-acompanhar-exemplos-de-somases-cont-ses-condicoes-e-tratamen",
-              "label": "Atividade: Estudar e acompanhar exemplos de: SOMASES, CONT.SES, condições e tratamento de erro; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-04-aula-aulas-57-a-60-e-89-a-94-funcoes-logicas-cont-se-cont-ses-somase-somases-e-t",
+              "label": "Aula: Aulas 57 a 60 e 89 a 94 — funções lógicas; CONT.SE/CONT.SES; SOMASE/SOMASES e tratamento de condições — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -250,9 +250,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-05-atividade-estudar-e-acompanhar-exemplos-de-busca-por-chave-e-referencias-estrutu",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Busca por chave e referências estruturadas; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-05-aula-aulas-65-a-76-e-117-a-124-tabelas-referencias-estruturadas-procv-proch-proc",
+              "label": "Aula: Aulas 65 a 76 e 117 a 124 — tabelas, referências estruturadas, PROCV, PROCH, PROC, DESLOC e CORRESP — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -288,9 +288,9 @@
           "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-05-atividade-estudar-e-acompanhar-exemplos-de-busca-por-chave-e-referencias-estrutu",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Busca por chave e referências estruturadas; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-05-aula-aulas-65-a-76-e-117-a-124-tabelas-referencias-estruturadas-procv-proch-proc",
+              "label": "Aula: Aulas 65 a 76 e 117 a 124 — tabelas, referências estruturadas, PROCV, PROCH, PROC, DESLOC e CORRESP — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -308,9 +308,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-06-atividade-estudar-e-acompanhar-exemplos-de-tabela-dinamica-agrupamento-e-grafico",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Tabela dinâmica, agrupamento e gráficos simples; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-06-aula-aulas-108-a-116-tabelas-dinamicas-configuracao-filtros-segmentacao-e-grafic",
+              "label": "Aula: Aulas 108 a 116 — tabelas dinâmicas, configuração, filtros, segmentação e gráficos dinâmicos — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -346,9 +346,9 @@
           "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-06-atividade-estudar-e-acompanhar-exemplos-de-tabela-dinamica-agrupamento-e-grafico",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Tabela dinâmica, agrupamento e gráficos simples; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-06-aula-aulas-108-a-116-tabelas-dinamicas-configuracao-filtros-segmentacao-e-grafic",
+              "label": "Aula: Aulas 108 a 116 — tabelas dinâmicas, configuração, filtros, segmentação e gráficos dinâmicos — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -366,9 +366,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-07-atividade-estudar-e-acompanhar-exemplos-de-media-mediana-dispersao-e-valores-ext",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Média, mediana, dispersão e valores extremos; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-07-aula-aulas-49-a-54-e-63-a-69-media-mediana-moda-variancia-desvio-padrao-e-valore",
+              "label": "Aula: Aulas 49 a 54 e 63 a 69 — média, mediana, moda, variância, desvio padrão e valores extremos — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -404,9 +404,9 @@
           "url": "https://www.udemy.com/course/estatistica-para-ciencia-de-dados-machine-learning/",
           "lessons": [
             {
-              "id": "dia-07-atividade-estudar-e-acompanhar-exemplos-de-media-mediana-dispersao-e-valores-ext",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Média, mediana, dispersão e valores extremos; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-07-aula-aulas-49-a-54-e-63-a-69-media-mediana-moda-variancia-desvio-padrao-e-valore",
+              "label": "Aula: Aulas 49 a 54 e 63 a 69 — média, mediana, moda, variância, desvio padrão e valores extremos — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -424,9 +424,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-08-atividade-estudar-e-acompanhar-exemplos-de-percentuais-denominadores-e-comparaca",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Percentuais, denominadores e comparação de períodos; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-08-aula-aulas-15-a-19-57-a-60-e-91-a-96-percentuais-condicoes-somases-cont-ses-e-me",
+              "label": "Aula: Aulas 15 a 19, 57 a 60 e 91 a 96 — percentuais, condições, SOMASES, CONT.SES e médias condicionais — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -462,9 +462,9 @@
           "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-08-atividade-estudar-e-acompanhar-exemplos-de-percentuais-denominadores-e-comparaca",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Percentuais, denominadores e comparação de períodos; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-08-aula-aulas-15-a-19-57-a-60-e-91-a-96-percentuais-condicoes-somases-cont-ses-e-me",
+              "label": "Aula: Aulas 15 a 19, 57 a 60 e 91 a 96 — percentuais, condições, SOMASES, CONT.SES e médias condicionais — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -482,9 +482,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-09-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-de-limpeza-e-indicad",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida de limpeza e indicadores; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-09-aula-revisao-das-aulas-34-a-76-e-89-a-116-limpeza-formulas-tabelas-filtros-e-res",
+              "label": "Aula: Revisão das aulas 34 a 76 e 89 a 116 — limpeza, fórmulas, tabelas, filtros e resumos — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -520,9 +520,9 @@
           "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-09-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-de-limpeza-e-indicad",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida de limpeza e indicadores; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-09-aula-revisao-das-aulas-34-a-76-e-89-a-116-limpeza-formulas-tabelas-filtros-e-res",
+              "label": "Aula: Revisão das aulas 34 a 76 e 89 a 116 — limpeza, fórmulas, tabelas, filtros e resumos — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -540,8 +540,8 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-10-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-diagnostico-escopo-e-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: diagnóstico, escopo e mini-proposta; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-10-atividade-leitura-orientada-etapas-para-validar-uma-ideia-problema-publico-hipot",
+              "label": "Atividade: Leitura orientada — etapas para validar uma ideia, problema, público, hipótese e evidência — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -578,8 +578,8 @@
           "url": "https://blog.rn.sebrae.com.br/como-validar-ideia/",
           "lessons": [
             {
-              "id": "dia-10-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-diagnostico-escopo-e-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: diagnóstico, escopo e mini-proposta; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-10-atividade-leitura-orientada-etapas-para-validar-uma-ideia-problema-publico-hipot",
+              "label": "Atividade: Leitura orientada — etapas para validar uma ideia, problema, público, hipótese e evidência — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -598,9 +598,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-11-atividade-estudar-e-acompanhar-exemplos-de-power-bi-desktop-importacao-e-power-q",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Power BI Desktop, importação e Power Query; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-11-aula-aulas-5-e-6-e-16-a-18-power-bi-desktop-power-query-importacao-de-csv-qualid",
+              "label": "Aula: Aulas 5 e 6 e 16 a 18 — Power BI Desktop, Power Query, importação de CSV, qualidade e tipos — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -636,9 +636,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-11-atividade-estudar-e-acompanhar-exemplos-de-power-bi-desktop-importacao-e-power-q",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Power BI Desktop, importação e Power Query; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-11-aula-aulas-5-e-6-e-16-a-18-power-bi-desktop-power-query-importacao-de-csv-qualid",
+              "label": "Aula: Aulas 5 e 6 e 16 a 18 — Power BI Desktop, Power Query, importação de CSV, qualidade e tipos — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -656,9 +656,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-12-atividade-estudar-e-acompanhar-exemplos-de-power-query-tipos-nulos-erros-e-etapa",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Power Query: tipos, nulos, erros e etapas; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-12-aula-aulas-19-a-23-substituicao-extracao-divisao-de-colunas-datas-excel-e-preenc",
+              "label": "Aula: Aulas 19 a 23 — substituição, extração, divisão de colunas, datas, Excel e preenchimento de dados — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -694,9 +694,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-12-atividade-estudar-e-acompanhar-exemplos-de-power-query-tipos-nulos-erros-e-etapa",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Power Query: tipos, nulos, erros e etapas; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-12-aula-aulas-19-a-23-substituicao-extracao-divisao-de-colunas-datas-excel-e-preenc",
+              "label": "Aula: Aulas 19 a 23 — substituição, extração, divisão de colunas, datas, Excel e preenchimento de dados — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -714,9 +714,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-13-atividade-estudar-e-acompanhar-exemplos-de-power-query-acrescentar-mesclar-e-cha",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Power Query: acrescentar, mesclar e chaves; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-13-aula-aulas-24-a-28-mesclar-consultas-parametros-arquivos-em-pastas-multiplas-fon",
+              "label": "Aula: Aulas 24 a 28 — mesclar consultas, parâmetros, arquivos em pastas, múltiplas fontes e Append — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -752,9 +752,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-13-atividade-estudar-e-acompanhar-exemplos-de-power-query-acrescentar-mesclar-e-cha",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Power Query: acrescentar, mesclar e chaves; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-13-aula-aulas-24-a-28-mesclar-consultas-parametros-arquivos-em-pastas-multiplas-fon",
+              "label": "Aula: Aulas 24 a 28 — mesclar consultas, parâmetros, arquivos em pastas, múltiplas fontes e Append — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -772,9 +772,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-14-atividade-estudar-e-acompanhar-exemplos-de-esquema-estrela-fatos-dimensoes-e-gra",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Esquema estrela, fatos, dimensões e granularidade; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-14-aula-aulas-10-a-15-e-29-a-33-modelagem-dimensional-fato-dimensao-relacionamentos",
+              "label": "Aula: Aulas 10 a 15 e 29 a 33 — modelagem dimensional, fato, dimensão, relacionamentos e colunas calculadas — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -810,9 +810,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-14-atividade-estudar-e-acompanhar-exemplos-de-esquema-estrela-fatos-dimensoes-e-gra",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Esquema estrela, fatos, dimensões e granularidade; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-14-aula-aulas-10-a-15-e-29-a-33-modelagem-dimensional-fato-dimensao-relacionamentos",
+              "label": "Aula: Aulas 10 a 15 e 29 a 33 — modelagem dimensional, fato, dimensão, relacionamentos e colunas calculadas — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -830,9 +830,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-15-atividade-estudar-e-acompanhar-exemplos-de-medidas-agregacoes-distinctcount-e-di",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Medidas, agregações, DISTINCTCOUNT e DIVIDE; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-15-aula-aulas-50-a-52-e-56-a-66-introducao-ao-dax-contexto-sum-sumx-count-e-distinc",
+              "label": "Aula: Aulas 50 a 52 e 56 a 66 — introdução ao DAX, contexto, SUM, SUMX, COUNT e DISTINCTCOUNT — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -868,9 +868,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-15-atividade-estudar-e-acompanhar-exemplos-de-medidas-agregacoes-distinctcount-e-di",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Medidas, agregações, DISTINCTCOUNT e DIVIDE; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-15-aula-aulas-50-a-52-e-56-a-66-introducao-ao-dax-contexto-sum-sumx-count-e-distinc",
+              "label": "Aula: Aulas 50 a 52 e 56 a 66 — introdução ao DAX, contexto, SUM, SUMX, COUNT e DISTINCTCOUNT — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -888,9 +888,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-16-atividade-estudar-e-acompanhar-exemplos-de-calculate-filtros-e-relacoes-ao-final",
-              "label": "Atividade: Estudar e acompanhar exemplos de: CALCULATE, filtros e relações; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-16-aula-aulas-52-e-74-a-78-contexto-de-filtro-iferror-if-switch-and-e-or-pratica-di",
+              "label": "Aula: Aulas 52 e 74 a 78 — contexto de filtro, IFERROR, IF, SWITCH, AND e OR; prática dirigida de filtros em medidas — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -926,9 +926,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-16-atividade-estudar-e-acompanhar-exemplos-de-calculate-filtros-e-relacoes-ao-final",
-              "label": "Atividade: Estudar e acompanhar exemplos de: CALCULATE, filtros e relações; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-16-aula-aulas-52-e-74-a-78-contexto-de-filtro-iferror-if-switch-and-e-or-pratica-di",
+              "label": "Aula: Aulas 52 e 74 a 78 — contexto de filtro, IFERROR, IF, SWITCH, AND e OR; prática dirigida de filtros em medidas — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -946,9 +946,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-17-atividade-estudar-e-acompanhar-exemplos-de-tabela-de-datas-e-medidas-por-periodo",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Tabela de datas e medidas por período; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-17-aula-aulas-67-a-73-funcoes-de-data-calendario-e-campos-temporais-60min",
+              "label": "Aula: Aulas 67 a 73 — funções de data, calendário e campos temporais — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -984,9 +984,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-17-atividade-estudar-e-acompanhar-exemplos-de-tabela-de-datas-e-medidas-por-periodo",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Tabela de datas e medidas por período; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-17-aula-aulas-67-a-73-funcoes-de-data-calendario-e-campos-temporais-60min",
+              "label": "Aula: Aulas 67 a 73 — funções de data, calendário e campos temporais — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1004,9 +1004,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-18-atividade-estudar-e-acompanhar-exemplos-de-visuais-hierarquia-rotulos-filtros-e-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Visuais, hierarquia, rótulos, filtros e acessibilidade; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-18-aula-aulas-53-a-55-primeiro-dashboard-transformacao-de-dados-e-primeiras-medidas",
+              "label": "Aula: Aulas 53 a 55 — primeiro dashboard, transformação de dados e primeiras medidas; prática dirigida de visuais — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1042,9 +1042,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-18-atividade-estudar-e-acompanhar-exemplos-de-visuais-hierarquia-rotulos-filtros-e-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Visuais, hierarquia, rótulos, filtros e acessibilidade; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-18-aula-aulas-53-a-55-primeiro-dashboard-transformacao-de-dados-e-primeiras-medidas",
+              "label": "Aula: Aulas 53 a 55 — primeiro dashboard, transformação de dados e primeiras medidas; prática dirigida de visuais — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1062,9 +1062,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-19-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-de-dax-filtros-e-nav",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida de DAX, filtros e navegação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-19-aula-revisao-das-aulas-50-a-78-dax-contexto-agregacoes-calendario-e-filtros-60mi",
+              "label": "Aula: Revisão das aulas 50 a 78 — DAX, contexto, agregações, calendário e filtros — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1100,9 +1100,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-19-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-de-dax-filtros-e-nav",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida de DAX, filtros e navegação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-19-aula-revisao-das-aulas-50-a-78-dax-contexto-agregacoes-calendario-e-filtros-60mi",
+              "label": "Aula: Revisão das aulas 50 a 78 — DAX, contexto, agregações, calendário e filtros — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1120,9 +1120,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-20-atividade-estudar-e-acompanhar-exemplos-de-atualizacao-caminhos-exportacao-e-opc",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Atualização, caminhos, exportação e opções de distribuição; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-20-aula-aulas-7-a-9-e-25-a-27-instalacao-arquivos-parametros-de-caminho-pastas-e-at",
+              "label": "Aula: Aulas 7 a 9 e 25 a 27 — instalação/arquivos, parâmetros de caminho, pastas e atualização por novos lotes — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1158,9 +1158,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-20-atividade-estudar-e-acompanhar-exemplos-de-atualizacao-caminhos-exportacao-e-opc",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Atualização, caminhos, exportação e opções de distribuição; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-20-aula-aulas-7-a-9-e-25-a-27-instalacao-arquivos-parametros-de-caminho-pastas-e-at",
+              "label": "Aula: Aulas 7 a 9 e 25 a 27 — instalação/arquivos, parâmetros de caminho, pastas e atualização por novos lotes — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1178,9 +1178,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-21-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-base-nova-e-mudanca-d",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: base nova e mudança de requisito; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-21-aula-revisao-das-aulas-16-a-33-e-50-a-78-power-query-modelo-medidas-e-calendario",
+              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — Power Query, modelo, medidas e calendário em uma base nova — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1216,9 +1216,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-21-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-base-nova-e-mudanca-d",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: base nova e mudança de requisito; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-21-aula-revisao-das-aulas-16-a-33-e-50-a-78-power-query-modelo-medidas-e-calendario",
+              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — Power Query, modelo, medidas e calendário em uma base nova — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1236,9 +1236,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-22-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-pelos-criterios-de-e",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida pelos critérios de entrega; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-22-aula-revisao-das-aulas-16-a-33-e-50-a-78-criterios-de-entrega-do-painel-atualiza",
+              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — critérios de entrega do painel, atualização e reconciliação — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1274,9 +1274,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-22-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-pelos-criterios-de-e",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida pelos critérios de entrega; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-22-aula-revisao-das-aulas-16-a-33-e-50-a-78-criterios-de-entrega-do-painel-atualiza",
+              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — critérios de entrega do painel, atualização e reconciliação — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1294,9 +1294,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-23-atividade-estudar-e-acompanhar-exemplos-de-ambiente-do-curso-select-aliases-e-li",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Ambiente do curso, SELECT, aliases e LIMIT; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-23-aula-aulas-1-a-4-9-a-13-e-15-a-20-ambiente-teoria-sql-bigquery-e-primeiros-selec",
+              "label": "Aula: Aulas 1 a 4, 9 a 13 e 15 a 20 — ambiente, teoria SQL, BigQuery e primeiros SELECTs — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1332,9 +1332,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-23-atividade-estudar-e-acompanhar-exemplos-de-ambiente-do-curso-select-aliases-e-li",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Ambiente do curso, SELECT, aliases e LIMIT; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-23-aula-aulas-1-a-4-9-a-13-e-15-a-20-ambiente-teoria-sql-bigquery-e-primeiros-selec",
+              "label": "Aula: Aulas 1 a 4, 9 a 13 e 15 a 20 — ambiente, teoria SQL, BigQuery e primeiros SELECTs — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1352,9 +1352,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-24-atividade-estudar-e-acompanhar-exemplos-de-where-operadores-is-null-e-ordenacao-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: WHERE, operadores, IS NULL e ordenação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-24-aula-aulas-21-a-27-30-e-31-select-aliases-filtros-valores-nulos-in-between-e-cas",
+              "label": "Aula: Aulas 21 a 27, 30 e 31 — SELECT, aliases, filtros, valores nulos, IN, BETWEEN e CASE WHEN — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1390,9 +1390,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-24-atividade-estudar-e-acompanhar-exemplos-de-where-operadores-is-null-e-ordenacao-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: WHERE, operadores, IS NULL e ordenação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-24-aula-aulas-21-a-27-30-e-31-select-aliases-filtros-valores-nulos-in-between-e-cas",
+              "label": "Aula: Aulas 21 a 27, 30 e 31 — SELECT, aliases, filtros, valores nulos, IN, BETWEEN e CASE WHEN — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1410,9 +1410,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-25-atividade-estudar-e-acompanhar-exemplos-de-group-by-count-sum-avg-e-having-ao-fi",
-              "label": "Atividade: Estudar e acompanhar exemplos de: GROUP BY, COUNT, SUM, AVG e HAVING; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-25-aula-aulas-30-a-39-case-when-exercicios-count-sum-avg-min-max-e-group-by-60min",
+              "label": "Aula: Aulas 30 a 39 — CASE WHEN, exercícios, COUNT, SUM, AVG, MIN, MAX e GROUP BY — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1448,9 +1448,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-25-atividade-estudar-e-acompanhar-exemplos-de-group-by-count-sum-avg-e-having-ao-fi",
-              "label": "Atividade: Estudar e acompanhar exemplos de: GROUP BY, COUNT, SUM, AVG e HAVING; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-25-aula-aulas-30-a-39-case-when-exercicios-count-sum-avg-min-max-e-group-by-60min",
+              "label": "Aula: Aulas 30 a 39 — CASE WHEN, exercícios, COUNT, SUM, AVG, MIN, MAX e GROUP BY — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1468,9 +1468,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-26-atividade-estudar-e-acompanhar-exemplos-de-inner-join-left-join-chaves-e-cardina",
-              "label": "Atividade: Estudar e acompanhar exemplos de: INNER JOIN, LEFT JOIN, chaves e cardinalidade; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-26-aula-aulas-40-a-49-relacionamentos-chaves-inner-left-right-full-join-e-exercicio",
+              "label": "Aula: Aulas 40 a 49 — relacionamentos, chaves, INNER/LEFT/RIGHT/FULL JOIN e exercícios de junção — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1506,9 +1506,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-26-atividade-estudar-e-acompanhar-exemplos-de-inner-join-left-join-chaves-e-cardina",
-              "label": "Atividade: Estudar e acompanhar exemplos de: INNER JOIN, LEFT JOIN, chaves e cardinalidade; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-26-aula-aulas-40-a-49-relacionamentos-chaves-inner-left-right-full-join-e-exercicio",
+              "label": "Aula: Aulas 40 a 49 — relacionamentos, chaves, INNER/LEFT/RIGHT/FULL JOIN e exercícios de junção — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1526,9 +1526,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-27-atividade-estudar-e-acompanhar-exemplos-de-case-coalesce-texto-e-datas-ao-final-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: CASE, COALESCE, texto e datas; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-27-aula-aulas-28-e-29-e-51-a-62-datas-texto-regras-condicionais-e-limpeza-em-consul",
+              "label": "Aula: Aulas 28 e 29 e 51 a 62 — datas, texto, regras condicionais e limpeza em consultas — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1564,9 +1564,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-27-atividade-estudar-e-acompanhar-exemplos-de-case-coalesce-texto-e-datas-ao-final-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: CASE, COALESCE, texto e datas; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-27-aula-aulas-28-e-29-e-51-a-62-datas-texto-regras-condicionais-e-limpeza-em-consul",
+              "label": "Aula: Aulas 28 e 29 e 51 a 62 — datas, texto, regras condicionais e limpeza em consultas — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1584,9 +1584,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-28-atividade-estudar-e-acompanhar-exemplos-de-subconsultas-e-ctes-ao-final-explicar",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Subconsultas e CTEs; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-28-aula-aulas-63-a-69-e-77-subqueries-consultas-correlacionadas-e-with-cte-60min",
+              "label": "Aula: Aulas 63 a 69 e 77 — subqueries, consultas correlacionadas e WITH/CTE — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1622,9 +1622,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-28-atividade-estudar-e-acompanhar-exemplos-de-subconsultas-e-ctes-ao-final-explicar",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Subconsultas e CTEs; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-28-aula-aulas-63-a-69-e-77-subqueries-consultas-correlacionadas-e-with-cte-60min",
+              "label": "Aula: Aulas 63 a 69 e 77 — subqueries, consultas correlacionadas e WITH/CTE — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1642,9 +1642,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-29-atividade-estudar-e-acompanhar-exemplos-de-rownumber-rank-lag-e-agregacao-com-ov",
-              "label": "Atividade: Estudar e acompanhar exemplos de: ROWNUMBER, RANK, LAG e agregação com OVER; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-29-aula-aulas-70-a-75-funcoes-de-janela-over-partition-by-e-ordenacao-analitica-60m",
+              "label": "Aula: Aulas 70 a 75 — funções de janela, OVER, PARTITION BY e ordenação analítica — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1680,9 +1680,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-29-atividade-estudar-e-acompanhar-exemplos-de-rownumber-rank-lag-e-agregacao-com-ov",
-              "label": "Atividade: Estudar e acompanhar exemplos de: ROWNUMBER, RANK, LAG e agregação com OVER; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-29-aula-aulas-70-a-75-funcoes-de-janela-over-partition-by-e-ordenacao-analitica-60m",
+              "label": "Aula: Aulas 70 a 75 — funções de janela, OVER, PARTITION BY e ordenação analítica — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1700,9 +1700,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-30-atividade-estudar-e-acompanhar-exemplos-de-consultas-analiticas-por-cliente-e-pe",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Consultas analíticas por cliente e período; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-30-aula-revisao-das-aulas-19-a-75-consultas-de-clientes-recorrencia-cancelamentos-e",
+              "label": "Aula: Revisão das aulas 19 a 75 — consultas de clientes, recorrência, cancelamentos e validação — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1738,9 +1738,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-30-atividade-estudar-e-acompanhar-exemplos-de-consultas-analiticas-por-cliente-e-pe",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Consultas analíticas por cliente e período; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-30-aula-revisao-das-aulas-19-a-75-consultas-de-clientes-recorrencia-cancelamentos-e",
+              "label": "Aula: Revisão das aulas 19 a 75 — consultas de clientes, recorrência, cancelamentos e validação — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1758,9 +1758,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-31-atividade-estudar-e-acompanhar-exemplos-de-consultas-de-validacao-duplicidades-e",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Consultas de validação, duplicidades e integridade; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-31-aula-revisao-das-aulas-30-a-50-agregacoes-e-juncoes-com-contagens-de-controle-60",
+              "label": "Aula: Revisão das aulas 30 a 50 — agregações e junções com contagens de controle — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1796,9 +1796,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-31-atividade-estudar-e-acompanhar-exemplos-de-consultas-de-validacao-duplicidades-e",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Consultas de validação, duplicidades e integridade; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-31-aula-revisao-das-aulas-30-a-50-agregacoes-e-juncoes-com-contagens-de-controle-60",
+              "label": "Aula: Revisão das aulas 30 a 50 — agregações e junções com contagens de controle — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1816,9 +1816,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-32-atividade-estudar-e-acompanhar-exemplos-de-distribuicao-amostragem-vies-e-associ",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Distribuição, amostragem, viés e associação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-32-aula-aulas-4-a-9-e-38-a-45-populacao-amostra-vies-distribuicao-e-associacao-entr",
+              "label": "Aula: Aulas 4 a 9 e 38 a 45 — população, amostra, viés, distribuição e associação entre variáveis — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1854,9 +1854,9 @@
           "url": "https://www.udemy.com/course/estatistica-para-ciencia-de-dados-machine-learning/",
           "lessons": [
             {
-              "id": "dia-32-atividade-estudar-e-acompanhar-exemplos-de-distribuicao-amostragem-vies-e-associ",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Distribuição, amostragem, viés e associação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-32-aula-aulas-4-a-9-e-38-a-45-populacao-amostra-vies-distribuicao-e-associacao-entr",
+              "label": "Aula: Aulas 4 a 9 e 38 a 45 — população, amostra, viés, distribuição e associação entre variáveis — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1874,9 +1874,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-33-atividade-estudar-e-acompanhar-exemplos-de-revisao-aplicada-de-sql-e-analise-exp",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão aplicada de SQL e análise exploratória; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-33-aula-revisao-das-aulas-19-a-75-transformar-pergunta-de-negocio-em-consulta-e-evi",
+              "label": "Aula: Revisão das aulas 19 a 75 — transformar pergunta de negócio em consulta e evidência — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1912,9 +1912,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-33-atividade-estudar-e-acompanhar-exemplos-de-revisao-aplicada-de-sql-e-analise-exp",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão aplicada de SQL e análise exploratória; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-33-aula-revisao-das-aulas-19-a-75-transformar-pergunta-de-negocio-em-consulta-e-evi",
+              "label": "Aula: Revisão das aulas 19 a 75 — transformar pergunta de negócio em consulta e evidência — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1932,9 +1932,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-34-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-joins-agregacao-cte-e",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: joins, agregação, CTE e janela; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-34-aula-revisao-das-aulas-19-a-75-exercicio-cronometrado-de-select-filtros-agregaco",
+              "label": "Aula: Revisão das aulas 19 a 75 — exercício cronometrado de SELECT, filtros, agregações, JOIN e janela — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1970,9 +1970,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-34-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-joins-agregacao-cte-e",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: joins, agregação, CTE e janela; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-34-aula-revisao-das-aulas-19-a-75-exercicio-cronometrado-de-select-filtros-agregaco",
+              "label": "Aula: Revisão das aulas 19 a 75 — exercício cronometrado de SELECT, filtros, agregações, JOIN e janela — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -1990,9 +1990,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-35-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-pelas-falhas-do-bloc",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida pelas falhas do bloco; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-35-aula-revisao-das-aulas-30-a-75-consolidacao-de-agregacoes-juncoes-subqueries-e-f",
+              "label": "Aula: Revisão das aulas 30 a 75 — consolidação de agregações, junções, subqueries e funções de janela — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2028,9 +2028,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-35-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-pelas-falhas-do-bloc",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida pelas falhas do bloco; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-35-aula-revisao-das-aulas-30-a-75-consolidacao-de-agregacoes-juncoes-subqueries-e-f",
+              "label": "Aula: Revisão das aulas 30 a 75 — consolidação de agregações, junções, subqueries e funções de janela — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2048,9 +2048,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-36-atividade-estudar-e-acompanhar-exemplos-de-ambiente-variaveis-tipos-operadores-e",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Ambiente, variáveis, tipos, operadores e entrada/saída; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-36-aula-aulas-1-a-7-ambiente-primeiro-programa-variaveis-tipos-e-entrada-de-dados-6",
+              "label": "Aula: Aulas 1 a 7 — ambiente, primeiro programa, variáveis, tipos e entrada de dados — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2086,9 +2086,9 @@
           "url": "https://www.udemy.com/course/python-basico-para-iniciantes/",
           "lessons": [
             {
-              "id": "dia-36-atividade-estudar-e-acompanhar-exemplos-de-ambiente-variaveis-tipos-operadores-e",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Ambiente, variáveis, tipos, operadores e entrada/saída; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-36-aula-aulas-1-a-7-ambiente-primeiro-programa-variaveis-tipos-e-entrada-de-dados-6",
+              "label": "Aula: Aulas 1 a 7 — ambiente, primeiro programa, variáveis, tipos e entrada de dados — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2106,9 +2106,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-37-atividade-estudar-e-acompanhar-exemplos-de-if-for-listas-e-dicionarios-ao-final-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: if, for, listas e dicionários; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-37-aula-aulas-8-a-13-decisoes-operadores-lacos-listas-e-colecoes-60min",
+              "label": "Aula: Aulas 8 a 13 — decisões, operadores, laços, listas e coleções — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2144,9 +2144,9 @@
           "url": "https://www.udemy.com/course/python-basico-para-iniciantes/",
           "lessons": [
             {
-              "id": "dia-37-atividade-estudar-e-acompanhar-exemplos-de-if-for-listas-e-dicionarios-ao-final-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: if, for, listas e dicionários; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-37-aula-aulas-8-a-13-decisoes-operadores-lacos-listas-e-colecoes-60min",
+              "label": "Aula: Aulas 8 a 13 — decisões, operadores, laços, listas e coleções — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2164,9 +2164,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-38-atividade-estudar-e-acompanhar-exemplos-de-funcoes-parametros-modulos-e-excecoes",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Funções, parâmetros, módulos e exceções; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-38-aula-aulas-14-a-20-modulos-funcoes-parametros-e-funcoes-padrao-do-python-60min",
+              "label": "Aula: Aulas 14 a 20 — módulos, funções, parâmetros e funções padrão do Python — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2202,9 +2202,9 @@
           "url": "https://www.udemy.com/course/python-basico-para-iniciantes/",
           "lessons": [
             {
-              "id": "dia-38-atividade-estudar-e-acompanhar-exemplos-de-funcoes-parametros-modulos-e-excecoes",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Funções, parâmetros, módulos e exceções; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-38-aula-aulas-14-a-20-modulos-funcoes-parametros-e-funcoes-padrao-do-python-60min",
+              "label": "Aula: Aulas 14 a 20 — módulos, funções, parâmetros e funções padrão do Python — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2222,8 +2222,8 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-39-atividade-estudar-e-acompanhar-exemplos-de-repositorio-status-diff-commit-e-igno",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Repositório, status, diff, commit e ignore; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-39-atividade-leitura-orientada-pro-git-capitulos-1-e-2-repositorio-status-diff-comm",
+              "label": "Atividade: Leitura orientada — Pro Git, capítulos 1 e 2: repositório, status, diff, commit e .gitignore — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -2260,8 +2260,8 @@
           "url": "https://git-scm.com/book/pt-br/v2",
           "lessons": [
             {
-              "id": "dia-39-atividade-estudar-e-acompanhar-exemplos-de-repositorio-status-diff-commit-e-igno",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Repositório, status, diff, commit e ignore; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-39-atividade-leitura-orientada-pro-git-capitulos-1-e-2-repositorio-status-diff-comm",
+              "label": "Atividade: Leitura orientada — Pro Git, capítulos 1 e 2: repositório, status, diff, commit e .gitignore — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -2280,9 +2280,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-40-atividade-estudar-e-acompanhar-exemplos-de-dataframe-csv-xlsx-tipos-datas-e-insp",
-              "label": "Atividade: Estudar e acompanhar exemplos de: DataFrame, CSV/XLSX, tipos, datas e inspeção; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-40-aula-aulas-25-a-33-pandas-series-dataframe-csv-planilhas-inspecao-e-primeiros-in",
+              "label": "Aula: Aulas 25 a 33 — Pandas, Series, DataFrame, CSV, planilhas, inspeção e primeiros insights — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2318,9 +2318,9 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-40-atividade-estudar-e-acompanhar-exemplos-de-dataframe-csv-xlsx-tipos-datas-e-insp",
-              "label": "Atividade: Estudar e acompanhar exemplos de: DataFrame, CSV/XLSX, tipos, datas e inspeção; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-40-aula-aulas-25-a-33-pandas-series-dataframe-csv-planilhas-inspecao-e-primeiros-in",
+              "label": "Aula: Aulas 25 a 33 — Pandas, Series, DataFrame, CSV, planilhas, inspeção e primeiros insights — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2338,9 +2338,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-41-atividade-estudar-e-acompanhar-exemplos-de-nulos-duplicidades-conversoes-e-valid",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Nulos, duplicidades, conversões e validações; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-41-aula-aulas-42-a-46-e-58-a-61-transformacao-conversao-nulos-duplicidades-e-qualid",
+              "label": "Aula: Aulas 42 a 46 e 58 a 61 — transformação, conversão, nulos, duplicidades e qualidade dos dados — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2376,9 +2376,9 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-41-atividade-estudar-e-acompanhar-exemplos-de-nulos-duplicidades-conversoes-e-valid",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Nulos, duplicidades, conversões e validações; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-41-aula-aulas-42-a-46-e-58-a-61-transformacao-conversao-nulos-duplicidades-e-qualid",
+              "label": "Aula: Aulas 42 a 46 e 58 a 61 — transformação, conversão, nulos, duplicidades e qualidade dos dados — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2396,9 +2396,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-42-atividade-estudar-e-acompanhar-exemplos-de-merge-concat-groupby-e-validacao-de-c",
-              "label": "Atividade: Estudar e acompanhar exemplos de: merge, concat, groupby e validação de cardinalidade; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-42-aula-aulas-25-a-28-e-60-a-64-dataframe-agrupamentos-relacoes-estatisticas-e-vali",
+              "label": "Aula: Aulas 25 a 28 e 60 a 64 — DataFrame, agrupamentos, relações, estatísticas e validação de cardinalidade — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2434,9 +2434,9 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-42-atividade-estudar-e-acompanhar-exemplos-de-merge-concat-groupby-e-validacao-de-c",
-              "label": "Atividade: Estudar e acompanhar exemplos de: merge, concat, groupby e validação de cardinalidade; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-42-aula-aulas-25-a-28-e-60-a-64-dataframe-agrupamentos-relacoes-estatisticas-e-vali",
+              "label": "Aula: Aulas 25 a 28 e 60 a 64 — DataFrame, agrupamentos, relações, estatísticas e validação de cardinalidade — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2454,9 +2454,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-43-atividade-estudar-e-acompanhar-exemplos-de-graficos-distribuicao-agrupamentos-e-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Gráficos, distribuição, agrupamentos e exportação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-43-aula-aulas-62-a-64-e-72-a-81-distribuicao-agrupamentos-graficos-e-comunicacao-vi",
+              "label": "Aula: Aulas 62 a 64 e 72 a 81 — distribuição, agrupamentos, gráficos e comunicação visual — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2492,9 +2492,9 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-43-atividade-estudar-e-acompanhar-exemplos-de-graficos-distribuicao-agrupamentos-e-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Gráficos, distribuição, agrupamentos e exportação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-43-aula-aulas-62-a-64-e-72-a-81-distribuicao-agrupamentos-graficos-e-comunicacao-vi",
+              "label": "Aula: Aulas 62 a 64 e 72 a 81 — distribuição, agrupamentos, gráficos e comunicação visual — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2512,9 +2512,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-44-atividade-estudar-e-acompanhar-exemplos-de-revisao-aplicada-funcoes-qualidade-e-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão aplicada: funções, qualidade e resultados esperados; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-44-aula-revisao-das-aulas-25-a-81-funcoes-qualidade-resultados-esperados-e-exportac",
+              "label": "Aula: Revisão das aulas 25 a 81 — funções, qualidade, resultados esperados e exportação do pipeline — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2550,9 +2550,9 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-44-atividade-estudar-e-acompanhar-exemplos-de-revisao-aplicada-funcoes-qualidade-e-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão aplicada: funções, qualidade e resultados esperados; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-44-aula-revisao-das-aulas-25-a-81-funcoes-qualidade-resultados-esperados-e-exportac",
+              "label": "Aula: Revisão das aulas 25 a 81 — funções, qualidade, resultados esperados e exportação do pipeline — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2570,9 +2570,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-45-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-transformacao-de-uma-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: transformação de uma entrada nova; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-45-aula-revisao-das-aulas-25-a-64-processar-uma-entrada-nova-sem-copiar-o-exercicio",
+              "label": "Aula: Revisão das aulas 25 a 64 — processar uma entrada nova sem copiar o exercício anterior — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2608,9 +2608,9 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-45-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-transformacao-de-uma-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: transformação de uma entrada nova; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-45-aula-revisao-das-aulas-25-a-64-processar-uma-entrada-nova-sem-copiar-o-exercicio",
+              "label": "Aula: Revisão das aulas 25 a 64 — processar uma entrada nova sem copiar o exercício anterior — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2628,8 +2628,8 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-46-atividade-estudar-e-acompanhar-exemplos-de-arquivos-caminhos-funcoes-e-modulos-a",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Arquivos, caminhos, funções e módulos; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-46-atividade-leitura-orientada-tutorial-python-capitulos-7-8-e-10-arquivos-excecoes",
+              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 7, 8 e 10: arquivos, exceções, caminhos e módulos — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -2666,8 +2666,8 @@
           "url": "https://docs.python.org/pt-br/3/tutorial/",
           "lessons": [
             {
-              "id": "dia-46-atividade-estudar-e-acompanhar-exemplos-de-arquivos-caminhos-funcoes-e-modulos-a",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Arquivos, caminhos, funções e módulos; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-46-atividade-leitura-orientada-tutorial-python-capitulos-7-8-e-10-arquivos-excecoes",
+              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 7, 8 e 10: arquivos, exceções, caminhos e módulos — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -2686,9 +2686,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-47-atividade-estudar-e-acompanhar-exemplos-de-leitura-de-multiplos-arquivos-e-valid",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Leitura de múltiplos arquivos e validação de esquema; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-47-aula-revisao-das-aulas-30-a-36-e-42-a-46-multiplos-arquivos-esquema-transformaca",
+              "label": "Aula: Revisão das aulas 30 a 36 e 42 a 46 — múltiplos arquivos, esquema, transformação e exportação — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2724,9 +2724,9 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-47-atividade-estudar-e-acompanhar-exemplos-de-leitura-de-multiplos-arquivos-e-valid",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Leitura de múltiplos arquivos e validação de esquema; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-47-aula-revisao-das-aulas-30-a-36-e-42-a-46-multiplos-arquivos-esquema-transformaca",
+              "label": "Aula: Revisão das aulas 30 a 36 e 42 a 46 — múltiplos arquivos, esquema, transformação e exportação — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2744,9 +2744,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-48-atividade-estudar-e-acompanhar-exemplos-de-http-rest-json-status-e-requisicoes-a",
-              "label": "Atividade: Estudar e acompanhar exemplos de: HTTP, REST, JSON, status e requisições; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-48-aula-aulas-9-a-15-http-rest-json-metodos-status-e-requisicoes-em-python-60min",
+              "label": "Aula: Aulas 9 a 15 — HTTP, REST, JSON, métodos, status e requisições em Python — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2782,9 +2782,9 @@
           "url": "https://www.udemy.com/course/python-do-zero-a-automacao-com-n8n/",
           "lessons": [
             {
-              "id": "dia-48-atividade-estudar-e-acompanhar-exemplos-de-http-rest-json-status-e-requisicoes-a",
-              "label": "Atividade: Estudar e acompanhar exemplos de: HTTP, REST, JSON, status e requisições; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-48-aula-aulas-9-a-15-http-rest-json-metodos-status-e-requisicoes-em-python-60min",
+              "label": "Aula: Aulas 9 a 15 — HTTP, REST, JSON, métodos, status e requisições em Python — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2802,9 +2802,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-49-atividade-estudar-e-acompanhar-exemplos-de-timeout-paginacao-limites-e-erros-de-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Timeout, paginação, limites e erros de requisição; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-49-aula-aulas-16-e-17-integracao-com-api-pratica-dirigida-de-timeout-paginacao-e-re",
+              "label": "Aula: Aulas 16 e 17 — integração com API; prática dirigida de timeout, paginação e respostas de erro — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2840,9 +2840,9 @@
           "url": "https://www.udemy.com/course/python-do-zero-a-automacao-com-n8n/",
           "lessons": [
             {
-              "id": "dia-49-atividade-estudar-e-acompanhar-exemplos-de-timeout-paginacao-limites-e-erros-de-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Timeout, paginação, limites e erros de requisição; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-49-aula-aulas-16-e-17-integracao-com-api-pratica-dirigida-de-timeout-paginacao-e-re",
+              "label": "Aula: Aulas 16 e 17 — integração com API; prática dirigida de timeout, paginação e respostas de erro — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2860,8 +2860,8 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-50-atividade-estudar-e-acompanhar-exemplos-de-excecoes-logging-e-organizacao-do-pro",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Exceções, logging e organização do programa; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-50-atividade-leitura-orientada-tutorial-python-capitulos-8-e-10-excecoes-logging-e-",
+              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 8 e 10: exceções, logging e organização do programa — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -2898,8 +2898,8 @@
           "url": "https://docs.python.org/pt-br/3/tutorial/",
           "lessons": [
             {
-              "id": "dia-50-atividade-estudar-e-acompanhar-exemplos-de-excecoes-logging-e-organizacao-do-pro",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Exceções, logging e organização do programa; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-50-atividade-leitura-orientada-tutorial-python-capitulos-8-e-10-excecoes-logging-e-",
+              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 8 e 10: exceções, logging e organização do programa — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -2918,9 +2918,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-51-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-geracao-assistida-de-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: geração assistida de transformação e testes; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-51-aula-revisao-das-aulas-42-a-46-gerar-revisar-e-testar-transformacoes-de-dados-co",
+              "label": "Aula: Revisão das aulas 42 a 46 — gerar, revisar e testar transformações de dados com apoio de IA — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2956,9 +2956,9 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-51-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-geracao-assistida-de-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: geração assistida de transformação e testes; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-51-aula-revisao-das-aulas-42-a-46-gerar-revisar-e-testar-transformacoes-de-dados-co",
+              "label": "Aula: Revisão das aulas 42 a 46 — gerar, revisar e testar transformações de dados com apoio de IA — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -2976,9 +2976,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-52-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-classificacao-e-extra",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: classificação e extração de exemplos fictícios; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-52-aula-revisao-das-aulas-58-a-64-analise-exploratoria-para-conferir-classificacao-",
+              "label": "Aula: Revisão das aulas 58 a 64 — análise exploratória para conferir classificação e extração assistidas por IA — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -3014,9 +3014,9 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-52-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-classificacao-e-extra",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: classificação e extração de exemplos fictícios; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-52-aula-revisao-das-aulas-58-a-64-analise-exploratoria-para-conferir-classificacao-",
+              "label": "Aula: Revisão das aulas 58 a 64 — análise exploratória para conferir classificação e extração assistidas por IA — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -3034,8 +3034,8 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-53-atividade-estudar-e-acompanhar-exemplos-de-ambientes-dependencias-e-documentacao",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Ambientes, dependências e documentação de uso; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-53-atividade-leitura-orientada-tutorial-python-capitulos-6-10-e-12-modulos-dependen",
+              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 6, 10 e 12: módulos, dependências, ambientes e execução — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -3072,8 +3072,8 @@
           "url": "https://docs.python.org/pt-br/3/tutorial/",
           "lessons": [
             {
-              "id": "dia-53-atividade-estudar-e-acompanhar-exemplos-de-ambientes-dependencias-e-documentacao",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Ambientes, dependências e documentação de uso; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-53-atividade-leitura-orientada-tutorial-python-capitulos-6-10-e-12-modulos-dependen",
+              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 6, 10 e 12: módulos, dependências, ambientes e execução — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -3092,9 +3092,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-54-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-lote-novo-volume-e-te",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: lote novo, volume e teste de recuperação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-54-aula-revisao-das-aulas-30-a-46-e-58-a-64-lote-novo-volume-qualidade-e-recuperaca",
+              "label": "Aula: Revisão das aulas 30 a 46 e 58 a 64 — lote novo, volume, qualidade e recuperação — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -3130,9 +3130,9 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-54-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-lote-novo-volume-e-te",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: lote novo, volume e teste de recuperação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-54-aula-revisao-das-aulas-30-a-46-e-58-a-64-lote-novo-volume-qualidade-e-recuperaca",
+              "label": "Aula: Revisão das aulas 30 a 46 e 58 a 64 — lote novo, volume, qualidade e recuperação — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -3150,9 +3150,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-55-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-pelos-criterios-de-a",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida pelos critérios de automação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-55-aula-revisao-das-aulas-25-a-64-criterios-do-relatorio-automatizado-entrada-nova-",
+              "label": "Aula: Revisão das aulas 25 a 64 — critérios do relatório automatizado, entrada nova, logs e conferência — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -3188,9 +3188,9 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-55-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-pelos-criterios-de-a",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida pelos critérios de automação; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-55-aula-revisao-das-aulas-25-a-64-criterios-do-relatorio-automatizado-entrada-nova-",
+              "label": "Aula: Revisão das aulas 25 a 64 — critérios do relatório automatizado, entrada nova, logs e conferência — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -3208,8 +3208,8 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-56-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-entrevista-decisao-da",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: entrevista, decisão, dados e viabilidade; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-56-atividade-leitura-orientada-validacao-de-problema-entrevista-hipotese-evidencia-",
+              "label": "Atividade: Leitura orientada — validação de problema, entrevista, hipótese, evidência e viabilidade da oferta — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -3246,8 +3246,8 @@
           "url": "https://blog.rn.sebrae.com.br/como-validar-ideia/",
           "lessons": [
             {
-              "id": "dia-56-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-entrevista-decisao-da",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: entrevista, decisão, dados e viabilidade; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-56-atividade-leitura-orientada-validacao-de-problema-entrevista-hipotese-evidencia-",
+              "label": "Atividade: Leitura orientada — validação de problema, entrevista, hipótese, evidência e viabilidade da oferta — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -3266,9 +3266,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-57-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-de-bi-sql-e-python-c",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida de BI, SQL e Python conforme a entrega; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-57-aula-revisao-das-aulas-16-a-33-e-50-a-78-escolher-apenas-o-recorte-de-power-bi-n",
+              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — escolher apenas o recorte de Power BI necessário ao capstone — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -3304,9 +3304,9 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-57-atividade-estudar-e-acompanhar-exemplos-de-revisao-dirigida-de-bi-sql-e-python-c",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Revisão dirigida de BI, SQL e Python conforme a entrega; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-57-aula-revisao-das-aulas-16-a-33-e-50-a-78-escolher-apenas-o-recorte-de-power-bi-n",
+              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — escolher apenas o recorte de Power BI necessário ao capstone — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -3324,8 +3324,8 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-58-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-escopo-proposta-aceit",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: escopo, proposta, aceite e suporte; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-58-atividade-leitura-orientada-validacao-de-proposta-escopo-aceite-preco-suporte-e-",
+              "label": "Atividade: Leitura orientada — validação de proposta, escopo, aceite, preço, suporte e limites da entrega — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -3362,8 +3362,8 @@
           "url": "https://blog.rn.sebrae.com.br/como-validar-ideia/",
           "lessons": [
             {
-              "id": "dia-58-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-escopo-proposta-aceit",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: escopo, proposta, aceite e suporte; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-58-atividade-leitura-orientada-validacao-de-proposta-escopo-aceite-preco-suporte-e-",
+              "label": "Atividade: Leitura orientada — validação de proposta, escopo, aceite, preço, suporte e limites da entrega — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -3382,9 +3382,9 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-59-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-revisao-de-perguntas-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: revisão de perguntas técnicas e explicação de projetos; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-59-aula-revisao-das-aulas-19-a-75-perguntas-tecnicas-de-sql-e-explicacao-das-deciso",
+              "label": "Aula: Revisão das aulas 19 a 75 — perguntas técnicas de SQL e explicação das decisões do projeto — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -3420,9 +3420,9 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-59-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-revisao-de-perguntas-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: revisão de perguntas técnicas e explicação de projetos; ao final explicar o conceito com suas palavras — 60min",
-              "kind": "outro",
+              "id": "dia-59-aula-revisao-das-aulas-19-a-75-perguntas-tecnicas-de-sql-e-explicacao-das-deciso",
+              "label": "Aula: Revisão das aulas 19 a 75 — perguntas técnicas de SQL e explicação das decisões do projeto — 60min",
+              "kind": "aula",
               "durationMinutes": 60
             }
           ]
@@ -3440,8 +3440,8 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-60-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-demonstracao-lacunas-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: demonstração, lacunas e escolha da próxima etapa; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-60-atividade-leitura-orientada-validacao-final-evidencias-lacunas-oferta-inicial-e-",
+              "label": "Atividade: Leitura orientada — validação final: evidências, lacunas, oferta inicial e próxima etapa — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }
@@ -3478,8 +3478,8 @@
           "url": "https://blog.rn.sebrae.com.br/como-validar-ideia/",
           "lessons": [
             {
-              "id": "dia-60-atividade-estudar-e-acompanhar-exemplos-de-pratica-propria-demonstracao-lacunas-",
-              "label": "Atividade: Estudar e acompanhar exemplos de: Prática própria: demonstração, lacunas e escolha da próxima etapa; ao final explicar o conceito com suas palavras — 60min",
+              "id": "dia-60-atividade-leitura-orientada-validacao-final-evidencias-lacunas-oferta-inicial-e-",
+              "label": "Atividade: Leitura orientada — validação final: evidências, lacunas, oferta inicial e próxima etapa — 60min",
               "kind": "outro",
               "durationMinutes": 60
             }

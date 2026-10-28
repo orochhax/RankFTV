@@ -653,3 +653,14 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   progresso já existente; não há migration nova.
 - O importador de snapshots aceita `--data-dir`, permitindo publicar dados de
   uma worktree limpa sem copiar `.env.local` ou qualquer segredo.
+
+## Central de Evolução — aulas numeradas e projetos executáveis (28/10/2026)
+
+- O snapshot local contém 60 dias, 240 atividades, de 28/10/2026 a 25/01/2027,
+  sem atividades de inglês.
+- Cada curso do dia mostra link e número exato das aulas; revisões indicam os
+  intervalos já estudados e leituras externas indicam capítulos/assuntos.
+- Os três fechamentos do ciclo são clicáveis e abrem páginas próprias com base
+  fictícia XLSX, cenário, objetivo, execução, entregáveis, aceite e LinkedIn.
+- As bases foram produzidas com dados sintéticos e erros intencionais; nenhuma
+  informação real de cliente foi usada.

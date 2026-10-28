@@ -935,3 +935,30 @@
 .evo-shell .yt-requirements-total strong { color: #172b4d; }
 @media (max-width: 900px) { .evo-shell .yt-requirements-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .evo-shell .yt-requirements-grid { grid-template-columns: 1fr; } .evo-shell .yt-recording-requirements .yt-panel-heading { align-items: flex-start; gap: 8px; flex-direction: column; } }
+
+/* Projetos práticos de DataScience */
+.evo-project-card { display: flex; flex-direction: column; color: inherit; text-decoration: none; transition: border-color .18s ease, transform .18s ease; }
+.evo-project-card > span { margin-top: auto; padding-top: 14px; display: inline-flex; align-items: center; gap: 6px; color: var(--evo-blue); font-size: 11px; font-weight: 800; }
+.evo-project-card:hover { border-color: #9bbff2; transform: translateY(-2px); }
+.evo-back-link { margin-bottom: 18px; display: inline-flex; align-items: center; gap: 6px; color: var(--evo-blue); font-size: 12px; font-weight: 800; }
+.evo-project-hero { margin-bottom: 20px; padding: 26px; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; border: 1px solid #bfd6fa; border-radius: 16px; background: linear-gradient(135deg, #ffffff, #f1f6ff); }
+.evo-project-hero h1 { max-width: 900px; margin: 6px 0 10px; font-size: clamp(30px, 4vw, 52px); line-height: 1.02; letter-spacing: -.055em; }
+.evo-project-hero p:last-child { max-width: 800px; margin: 0; color: var(--evo-muted); line-height: 1.6; }
+.evo-project-hero > span { padding: 7px 10px; border-radius: 999px; color: #08794f; background: #eafaf3; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.evo-project-intro-grid, .evo-project-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.evo-project-intro-grid .evo-panel p { color: var(--evo-muted); line-height: 1.65; }
+.evo-project-downloads { margin-top: 14px; }
+.evo-project-downloads > a { margin-top: 14px; padding: 15px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid #bfd6fa; border-radius: 12px; color: var(--evo-text); background: #f5f9ff; }
+.evo-project-downloads > a:hover { border-color: var(--evo-blue); }
+.evo-project-downloads > a strong, .evo-project-downloads > a small { display: block; }
+.evo-project-downloads > a small { margin-top: 4px; color: var(--evo-muted); line-height: 1.5; }
+.evo-project-downloads > p { margin: 12px 0 0; color: var(--evo-muted); font-size: 11px; }
+.evo-project-step-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.evo-project-step-grid h3 { margin: 0 0 12px; }
+.evo-project-step-grid ul, .evo-project-detail-grid ul, .evo-project-detail-grid ol { margin: 0; padding-left: 18px; display: grid; gap: 9px; color: var(--evo-muted); font-size: 12px; line-height: 1.55; }
+.evo-project-detail-grid { margin-top: 22px; }
+.evo-project-detail-grid h2 { margin: 0 0 14px; }
+.evo-project-detail-grid ul { padding: 0; list-style: none; }
+.evo-project-detail-grid ul li { display: flex; align-items: flex-start; gap: 8px; }
+.evo-project-detail-grid ul svg { margin-top: 2px; flex: 0 0 auto; color: var(--evo-success); }
+@media (max-width: 760px) { .evo-project-hero { flex-direction: column; padding: 20px; }.evo-project-intro-grid, .evo-project-step-grid, .evo-project-detail-grid { grid-template-columns: 1fr; } }
