@@ -40,8 +40,8 @@ export const serviceUnlockStages: ServiceUnlockStage[] = [
     id: "m2",
     title: "M2 · Painel entregue",
     service: "Painéis de gestão",
-    unlockDay: 20,
-    dayRanges: [[11, 20]],
+    unlockDay: 22,
+    dayRanges: [[11, 22]],
     prerequisites: ["m1"],
     description: "Construir um painel conferido, atualizável e entregue no formato realmente testado.",
     deliverables: ["Modelo e medidas conferidos", "Painel com filtros úteis", "Manual de acesso e atualização"],
@@ -55,8 +55,8 @@ export const serviceUnlockStages: ServiceUnlockStage[] = [
     id: "m3",
     title: "M3 · Automação entregue",
     service: "Relatórios automatizados",
-    unlockDay: 25,
-    dayRanges: [[11, 15], [21, 25]],
+    unlockDay: 55,
+    dayRanges: [[23, 55]],
     prerequisites: ["m1"],
     description: "Executar uma rotina verificável, tratar falhas e permitir que outra pessoa reproduza a entrega.",
     deliverables: ["Rotina reexecutável", "Entradas fictícias e testes", "Manual e registro de falhas"],
@@ -70,8 +70,8 @@ export const serviceUnlockStages: ServiceUnlockStage[] = [
     id: "m4",
     title: "M4 · Atendimento demonstrado",
     service: "Pacote integrado de dados",
-    unlockDay: 30,
-    dayRanges: [[26, 30]],
+    unlockDay: 60,
+    dayRanges: [[56, 60]],
     prerequisites: ["m1", "m2", "m3"],
     description: "Transformar as entregas técnicas em uma oferta delimitada, demonstrável e comercialmente honesta.",
     deliverables: ["Proposta e escopo", "Caso ou piloto demonstrável", "Próxima decisão comercial"],
@@ -97,7 +97,7 @@ function qualifyingTasks(roadmap: RoadmapSnapshot, stage: ServiceUnlockStage): R
     .flatMap((day) => day.sections)
     .filter((section) => section.title.toLowerCase().includes("prática e entrega"))
     .flatMap((section) => section.tasks)
-    .filter((task) => task.durationMinutes === 105 || task.durationMinutes === 30);
+    .filter((task) => task.durationMinutes === 120 || task.durationMinutes === 45);
 }
 
 export function assessServiceUnlocks(roadmap: RoadmapSnapshot, completed: ReadonlySet<string>): ServiceUnlockAssessment[] {

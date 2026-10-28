@@ -7,9 +7,9 @@ function roadmap(): RoadmapSnapshot {
   return {
     generatedAt: "2026-10-27T00:00:00.000Z",
     sourcePath: "test.md",
-    period: { start: "2026-10-27", end: "2026-12-09" },
-    totalBusinessDays: 30,
-    days: Array.from({ length: 30 }, (_, index) => ({
+    period: { start: "2026-10-28", end: "2027-01-25" },
+    totalBusinessDays: 60,
+    days: Array.from({ length: 60 }, (_, index) => ({
       id: `dia-${index + 1}`,
       dayNumber: index + 1,
       date: "2026-10-27",
@@ -18,7 +18,7 @@ function roadmap(): RoadmapSnapshot {
       courses: [],
       sections: [{
         title: "Prática e entrega",
-        tasks: [105, 30, 15].map((duration) => ({ id: `d${index + 1}-${duration}`, label: "Entrega", kind: "entrega" as const, durationMinutes: duration })),
+        tasks: [120, 45, 15].map((duration) => ({ id: `d${index + 1}-${duration}`, label: "Entrega", kind: "entrega" as const, durationMinutes: duration })),
       }],
     })),
   };
@@ -27,8 +27,8 @@ function roadmap(): RoadmapSnapshot {
 test("desbloqueia M1 apenas com práticas principais e confirmações", () => {
   const completed = new Set<string>();
   for (let day = 1; day <= 10; day += 1) {
-    completed.add(`d${day}-105`);
-    completed.add(`d${day}-30`);
+    completed.add(`d${day}-120`);
+    completed.add(`d${day}-45`);
   }
   let result = assessServiceUnlocks(roadmap(), completed);
   assert.equal(result[0].status, "revisao");
@@ -40,9 +40,9 @@ test("desbloqueia M1 apenas com práticas principais e confirmações", () => {
 
 test("mantém estágio bloqueado quando o pré-requisito não foi desbloqueado", () => {
   const completed = new Set<string>();
-  for (let day = 11; day <= 20; day += 1) {
-    completed.add(`d${day}-105`);
-    completed.add(`d${day}-30`);
+  for (let day = 11; day <= 22; day += 1) {
+    completed.add(`d${day}-120`);
+    completed.add(`d${day}-45`);
   }
   serviceUnlockStages[1].confirmations.forEach((_, index) => completed.add(serviceConfirmationId("m2", index)));
   const result = assessServiceUnlocks(roadmap(), completed);
