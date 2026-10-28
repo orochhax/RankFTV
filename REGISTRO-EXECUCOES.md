@@ -1256,3 +1256,14 @@ registrar apenas uma revalidação quando ela for necessária.
 - Evidência local: typecheck, lint, build de 72 páginas e dois testes da regra
   de desbloqueio aprovados. O primeiro build foi bloqueado apenas pelo acesso à
   fonte Inter; repetido com rede disponível, concluiu normalmente.
+# 28/10/2026 — DataScience: aulas numeradas e projetos de portfólio
+
+- Atualizado o roadmap de 60 dias para exibir curso, link e aulas numeradas.
+- Confirmada ausência de atividades de inglês no plano ativo.
+- Criadas páginas para painel de vendas, pipeline SQL/Python e consultoria
+  fictícia, cada uma com base XLSX sintética e instruções completas.
+- Validação local: typecheck, lint, build de 75 páginas, snapshot com 60 dias,
+  240 atividades e zero atividade de inglês. A suíte completa local não iniciou
+  por falta de memória do Windows (`uv_os_get_passwd/ENOMEM`); o CI remoto fará
+  a execução em ambiente limpo.
+- Publicação será registrada ao concluir CI e deploy.
