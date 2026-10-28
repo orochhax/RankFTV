@@ -1,5 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+// Supplied by the Codex artifact environment; it is not part of the application bundle.
+// eslint-disable-next-line import-x/no-unresolved
 import { SpreadsheetFile, Workbook } from "@oai/artifact-tool";
 
 const outputRoot = path.resolve("public/evolution/datascience-projects");
