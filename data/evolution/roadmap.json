@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-28T01:56:32.684Z",
+  "generatedAt": "2026-10-28T02:29:12.020Z",
   "sourcePath": "DataScience/01 - Roadmap/roadmap-servicos-diario.md",
   "period": {
     "start": "2026-10-28",
@@ -1247,8 +1247,8 @@
           "title": "Prática e entrega",
           "tasks": [
             {
-              "id": "dia-22-atividade-demonstrar-filtros-numeros-reconciliados-atualizacao-com-segundo-arqui",
-              "label": "Atividade: Demonstrar filtros, números reconciliados, atualização com segundo arquivo e recuperação de falha — 120min",
+              "id": "dia-22-atividade-executar-o-projeto-final-de-novembro-painel-de-vendas-com-filtros-nume",
+              "label": "Atividade: Executar o projeto final de novembro: painel de vendas com filtros, números reconciliados, atualização com segundo arquivo e recuperação de falha — 120min",
               "kind": "entrega",
               "durationMinutes": 120
             },
@@ -2523,8 +2523,8 @@
           "title": "Prática e entrega",
           "tasks": [
             {
-              "id": "dia-44-atividade-criar-casos-pequenos-com-saidas-conhecidas-e-executar-a-analise-inteir",
-              "label": "Atividade: Criar casos pequenos com saídas conhecidas e executar a análise inteira a partir de nova pasta — 120min",
+              "id": "dia-44-atividade-executar-o-projeto-final-de-dezembro-pipeline-de-analise-em-python-pan",
+              "label": "Atividade: Executar o projeto final de dezembro: pipeline de análise em Python/Pandas com casos conhecidos, saídas reproduzíveis e nova pasta de execução — 120min",
               "kind": "entrega",
               "durationMinutes": 120
             },
@@ -3451,8 +3451,8 @@
           "title": "Prática e entrega",
           "tasks": [
             {
-              "id": "dia-60-atividade-apresentar-diagnostico-painel-e-relatorio-com-fonte-metodo-limites-e-c",
-              "label": "Atividade: Apresentar diagnóstico, painel e relatório com fonte, método, limites e código; corrigir o problema mais importante — 120min",
+              "id": "dia-60-atividade-executar-o-projeto-final-dos-60-dias-apresentar-diagnostico-painel-e-r",
+              "label": "Atividade: Executar o projeto final dos 60 dias: apresentar diagnóstico, painel e relatório integrados com fonte, método, limites e código; corrigir o problema mais importante — 120min",
               "kind": "entrega",
               "durationMinutes": 120
             },
