@@ -34,7 +34,7 @@ function cleanMarkdown(value) {
 function parseRoadmap(markdown) {
   const period = markdown.match(/\*\*Período planejado:\*\*\s*(\d{2})\/(\d{2})\/(\d{4})\s+a\s+(\d{2})\/(\d{2})\/(\d{4})/);
   const totalDays = Number(markdown.match(/\*\*Dias de estudo:\*\*\s*(\d+)/)?.[1] ?? 0);
-  const blocks = [...markdown.matchAll(/<details(?: open)?>[\s\S]*?<summary><strong>Dia\s+(\d+)\s+—\s+(\d{2})\/(\d{2})\/(\d{4})\s+\(([^)]+)\)\s+—\s+(\d+)h(?:\s+totais|(\d+)min)[^<]*<\/strong><\/summary>([\s\S]*?)<\/details>/g)];
+  const blocks = [...markdown.matchAll(/<details(?: open)?>[\s\S]*?<summary><strong>Dia\s+(\d+)\s+—\s+(\d{2})\/(\d{2})\/(\d{4})\s+\(([^)]+)\)\s+—\s+(\d+)h(?:\s+(?:total|totais)|(\d+)min)[^<]*<\/strong><\/summary>([\s\S]*?)<\/details>/g)];
 
   const days = blocks.map((match) => {
     const [, dayNumber, day, month, year, weekday, hours, minutes = "0", body] = match;

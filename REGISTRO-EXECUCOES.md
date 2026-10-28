@@ -5,6 +5,17 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-10-28 12:51 (America/Sao_Paulo) — Simplificação do plano de Data Science
+
+- Por decisão de Carlos, a seção diária `Prática e entrega` foi removida do
+  roadmap ativo. O plano passa a mostrar somente o curso, o link e as aulas
+  numeradas, mantendo até quatro horas reservadas por sessão.
+- Os três projetos de portfólio permanecem como as entregas práticas do ciclo.
+  Os desbloqueios de serviço agora usam aulas concluídas e confirmações, sem
+  depender de atividades ocultas.
+- Snapshot local regenerado: 60 dias, 60 aulas, zero seção de prática. Nenhuma
+  escrita no Supabase ou deploy havia ocorrido no momento deste registro.
+
 ## 2026-10-20 14:51 (America/Sao_Paulo) — Mix de efeitos sonoros no MP4
 
 - Status: concluído localmente. A versão do vídeo foi re-renderizada com

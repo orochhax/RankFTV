@@ -656,10 +656,13 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 
 ## Central de Evolução — aulas numeradas e projetos executáveis (28/10/2026)
 
-- O snapshot local contém 60 dias, 240 atividades, de 28/10/2026 a 25/01/2027,
+- O snapshot local contém 60 dias e 60 aulas numeradas, de 28/10/2026 a 25/01/2027,
   sem atividades de inglês.
 - Cada curso do dia mostra link e número exato das aulas; revisões indicam os
   intervalos já estudados e leituras externas indicam capítulos/assuntos.
+- A seção diária `Prática e entrega` foi removida por decisão de Carlos. Os
+  exemplos práticos ficam nos próprios cursos e as entregas nos três projetos
+  finais; o plano preserva até quatro horas reservadas por sessão.
 - Os três fechamentos do ciclo são clicáveis e abrem páginas próprias com base
   fictícia XLSX, cenário, objetivo, execução, entregáveis, aceite e LinkedIn.
 - As bases foram produzidas com dados sintéticos e erros intencionais; nenhuma

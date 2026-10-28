@@ -45,7 +45,7 @@ export function ServiceUnlocksBoard({ roadmap, initialCompleted, onToggle }: {
   return <div className={`evo-service-unlocks${pending ? " is-saving" : ""}`}>
     <section className="evo-unlock-summary">
       <div><span>Serviços liberados</span><strong>{unlockedCount} <small>/ {stages.length}</small></strong></div>
-      <p>Um serviço só é liberado depois da prática concluída e das três evidências confirmadas. Curso assistido, sozinho, não conta como capacidade demonstrada.</p>
+      <p>Um serviço só é liberado depois das aulas do marco e das três evidências confirmadas. Os projetos finais são a demonstração da capacidade aplicada.</p>
     </section>
     <div className="evo-unlock-grid">
       {stages.map((stage) => <article className={`evo-unlock-card is-${stage.status}`} key={stage.id}>
@@ -55,7 +55,7 @@ export function ServiceUnlocksBoard({ roadmap, initialCompleted, onToggle }: {
         </header>
         <p>{stage.description}</p>
         <div className="evo-unlock-progress"><span style={{ width: `${stage.progress}%` }} /></div>
-        <div className="evo-unlock-counts"><span>{stage.completedTasks}/{stage.requiredTaskIds.length} práticas</span><strong>{stage.progress}%</strong><span>{stage.completedConfirmations}/3 evidências</span></div>
+        <div className="evo-unlock-counts"><span>{stage.completedTasks}/{stage.requiredTaskIds.length} aulas</span><strong>{stage.progress}%</strong><span>{stage.completedConfirmations}/3 evidências</span></div>
         <div className="evo-unlock-columns">
           <div><h3>O que você poderá oferecer</h3><ul>{stage.deliverables.map((item) => <li key={item}><Check size={13} />{item}</li>)}</ul></div>
           <div><h3>Validação do marco</h3>{stage.confirmations.map((confirmation, index) => {
