@@ -1278,3 +1278,16 @@ registrar apenas uma revalidação quando ela for necessária.
   por falta de memória do Windows (`uv_os_get_passwd/ENOMEM`); o CI remoto fará
   a execução em ambiente limpo.
 - Publicação será registrada ao concluir CI e deploy.
+
+## 2026-10-28 — DataScience: carga intensiva e sequência pedagógica
+
+- Os Dias 1 e 2 foram mantidos sem alteração para preservar o progresso já
+  registrado por Carlos. O primeiro bloco do Dia 3 também conserva o mesmo ID.
+- O Dia 3 passou a reunir três blocos (210 minutos), e os dias seguintes foram
+  redistribuídos em faixas contínuas de aproximadamente 150 a 210 minutos.
+- A ordem deixou de saltar entre partes distantes do mesmo curso sem contexto.
+  A trilha agora avança por Excel aplicado, estatística, Power BI, SQL,
+  Python/Pandas, automação e projetos finais.
+- Validação local: snapshot com 60 dias e 62 tarefas; IDs concluídos preservados;
+  typecheck, lint sem erros e build de produção aprovados. A suíte completa não
+  iniciou por limitação de memória do Windows (`uv_os_get_passwd/ENOMEM`).

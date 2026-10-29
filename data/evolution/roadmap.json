@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-28T16:08:54.756Z",
+  "generatedAt": "2026-10-29T00:47:01.471Z",
   "sourcePath": "DataScience/01 - Roadmap/roadmap-servicos-diario.md",
   "period": {
     "start": "2026-10-28",
@@ -92,6 +92,18 @@
               "label": "Aula: Aulas 34 a 43 e 52 a 56 — validação; proteção; funções de texto; datas e tratamento de campos — 60min",
               "kind": "aula",
               "durationMinutes": 60
+            },
+            {
+              "id": "dia-03-aula-aulas-44-a-51-datas-funcoes-logicas-e-ou-se-exercicio-e-correcao-60min",
+              "label": "Aula: Aulas 44 a 51 — datas, funções lógicas E/OU/SE, exercício e correção — 60min",
+              "kind": "aula",
+              "durationMinutes": 60
+            },
+            {
+              "id": "dia-03-aula-aulas-57-a-64-e-74-a-76-formulas-matematicas-e-estatisticas-filtros-avancad",
+              "label": "Aula: Aulas 57 a 64 e 74 a 76 — fórmulas matemáticas e estatísticas; filtros avançados; tabelas e segmentação — 90min",
+              "kind": "aula",
+              "durationMinutes": 90
             }
           ]
         }
@@ -107,6 +119,18 @@
               "label": "Aula: Aulas 34 a 43 e 52 a 56 — validação; proteção; funções de texto; datas e tratamento de campos — 60min",
               "kind": "aula",
               "durationMinutes": 60
+            },
+            {
+              "id": "dia-03-aula-aulas-44-a-51-datas-funcoes-logicas-e-ou-se-exercicio-e-correcao-60min",
+              "label": "Aula: Aulas 44 a 51 — datas, funções lógicas E/OU/SE, exercício e correção — 60min",
+              "kind": "aula",
+              "durationMinutes": 60
+            },
+            {
+              "id": "dia-03-aula-aulas-57-a-64-e-74-a-76-formulas-matematicas-e-estatisticas-filtros-avancad",
+              "label": "Aula: Aulas 57 a 64 e 74 a 76 — fórmulas matemáticas e estatísticas; filtros avançados; tabelas e segmentação — 90min",
+              "kind": "aula",
+              "durationMinutes": 90
             }
           ]
         }
@@ -123,10 +147,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-04-aula-aulas-57-a-60-e-89-a-94-funcoes-logicas-cont-se-cont-ses-somase-somases-e-t",
-              "label": "Aula: Aulas 57 a 60 e 89 a 94 — funções lógicas; CONT.SE/CONT.SES; SOMASE/SOMASES e tratamento de condições — 60min",
+              "id": "dia-04-aula-aulas-77-a-107-graficos-e-minigraficos-cont-se-cont-ses-somase-somases-medi",
+              "label": "Aula: Aulas 77 a 107 — gráficos e minigráficos; CONT.SE/CONT.SES; SOMASE/SOMASES; MEDIASE/MEDIASES; projeto de controle de estoque — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -138,10 +162,10 @@
           "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-04-aula-aulas-57-a-60-e-89-a-94-funcoes-logicas-cont-se-cont-ses-somase-somases-e-t",
-              "label": "Aula: Aulas 57 a 60 e 89 a 94 — funções lógicas; CONT.SE/CONT.SES; SOMASE/SOMASES e tratamento de condições — 60min",
+              "id": "dia-04-aula-aulas-77-a-107-graficos-e-minigraficos-cont-se-cont-ses-somase-somases-medi",
+              "label": "Aula: Aulas 77 a 107 — gráficos e minigráficos; CONT.SE/CONT.SES; SOMASE/SOMASES; MEDIASE/MEDIASES; projeto de controle de estoque — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -158,10 +182,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-05-aula-aulas-65-a-76-e-117-a-124-tabelas-referencias-estruturadas-procv-proch-proc",
-              "label": "Aula: Aulas 65 a 76 e 117 a 124 — tabelas, referências estruturadas, PROCV, PROCH, PROC, DESLOC e CORRESP — 60min",
+              "id": "dia-05-aula-aulas-108-a-126-tabelas-e-graficos-dinamicos-procv-proch-proc-desloc-corres",
+              "label": "Aula: Aulas 108 a 126 — tabelas e gráficos dinâmicos; PROCV/PROCH/PROC; DESLOC/CORRESP; SOMARPRODUTO; cenários, Atingir Meta e Solver — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -173,10 +197,10 @@
           "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-05-aula-aulas-65-a-76-e-117-a-124-tabelas-referencias-estruturadas-procv-proch-proc",
-              "label": "Aula: Aulas 65 a 76 e 117 a 124 — tabelas, referências estruturadas, PROCV, PROCH, PROC, DESLOC e CORRESP — 60min",
+              "id": "dia-05-aula-aulas-108-a-126-tabelas-e-graficos-dinamicos-procv-proch-proc-desloc-corres",
+              "label": "Aula: Aulas 108 a 126 — tabelas e gráficos dinâmicos; PROCV/PROCH/PROC; DESLOC/CORRESP; SOMARPRODUTO; cenários, Atingir Meta e Solver — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -193,10 +217,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-06-aula-aulas-108-a-116-tabelas-dinamicas-configuracao-filtros-segmentacao-e-grafic",
-              "label": "Aula: Aulas 108 a 116 — tabelas dinâmicas, configuração, filtros, segmentação e gráficos dinâmicos — 60min",
+              "id": "dia-06-aula-aulas-127-a-162-projeto-completo-de-fluxo-de-caixa-cadastros-lancamentos-co",
+              "label": "Aula: Aulas 127 a 162 — projeto completo de fluxo de caixa: cadastros, lançamentos, consolidação, contas e dashboard — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -208,10 +232,10 @@
           "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-06-aula-aulas-108-a-116-tabelas-dinamicas-configuracao-filtros-segmentacao-e-grafic",
-              "label": "Aula: Aulas 108 a 116 — tabelas dinâmicas, configuração, filtros, segmentação e gráficos dinâmicos — 60min",
+              "id": "dia-06-aula-aulas-127-a-162-projeto-completo-de-fluxo-de-caixa-cadastros-lancamentos-co",
+              "label": "Aula: Aulas 127 a 162 — projeto completo de fluxo de caixa: cadastros, lançamentos, consolidação, contas e dashboard — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -228,25 +252,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-07-aula-aulas-49-a-54-e-63-a-69-media-mediana-moda-variancia-desvio-padrao-e-valore",
-              "label": "Aula: Aulas 49 a 54 e 63 a 69 — média, mediana, moda, variância, desvio padrão e valores extremos — 60min",
+              "id": "dia-07-aula-aulas-163-a-187-matrizes-modelagem-do-perfil-e-score-do-cliente-indicadores",
+              "label": "Aula: Aulas 163 a 187 — matrizes; modelagem do perfil e score do cliente; indicadores; dashboard e proteção — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-estatistica-para-ciencia-de-dados-e-machine-learning-ia-expert-academy",
-          "title": "Estatística para Ciência de Dados e Machine Learning — IA Expert Academy",
-          "url": "https://www.udemy.com/course/estatistica-para-ciencia-de-dados-machine-learning/",
+          "id": "datascience-excel-completo-nelio-alves-e-bruno-roberto",
+          "title": "Excel COMPLETO — Nelio Alves e Bruno Roberto",
+          "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-07-aula-aulas-49-a-54-e-63-a-69-media-mediana-moda-variancia-desvio-padrao-e-valore",
-              "label": "Aula: Aulas 49 a 54 e 63 a 69 — média, mediana, moda, variância, desvio padrão e valores extremos — 60min",
+              "id": "dia-07-aula-aulas-163-a-187-matrizes-modelagem-do-perfil-e-score-do-cliente-indicadores",
+              "label": "Aula: Aulas 163 a 187 — matrizes; modelagem do perfil e score do cliente; indicadores; dashboard e proteção — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -263,25 +287,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-08-aula-aulas-15-a-19-57-a-60-e-91-a-96-percentuais-condicoes-somases-cont-ses-e-me",
-              "label": "Aula: Aulas 15 a 19, 57 a 60 e 91 a 96 — percentuais, condições, SOMASES, CONT.SES e médias condicionais — 60min",
+              "id": "dia-08-aula-aulas-4-a-48-populacao-e-amostra-tecnicas-de-amostragem-percentuais-indices",
+              "label": "Aula: Aulas 4 a 48 — população e amostra; técnicas de amostragem; percentuais, índices e distribuição de frequência — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-excel-completo-nelio-alves-e-bruno-roberto",
-          "title": "Excel COMPLETO — Nelio Alves e Bruno Roberto",
-          "url": "https://www.udemy.com/course/excel-curso-completo/",
+          "id": "datascience-estatistica-para-ciencia-de-dados-e-machine-learning-ia-expert-academy",
+          "title": "Estatística para Ciência de Dados e Machine Learning — IA Expert Academy",
+          "url": "https://www.udemy.com/course/estatistica-para-ciencia-de-dados-machine-learning/",
           "lessons": [
             {
-              "id": "dia-08-aula-aulas-15-a-19-57-a-60-e-91-a-96-percentuais-condicoes-somases-cont-ses-e-me",
-              "label": "Aula: Aulas 15 a 19, 57 a 60 e 91 a 96 — percentuais, condições, SOMASES, CONT.SES e médias condicionais — 60min",
+              "id": "dia-08-aula-aulas-4-a-48-populacao-e-amostra-tecnicas-de-amostragem-percentuais-indices",
+              "label": "Aula: Aulas 4 a 48 — população e amostra; técnicas de amostragem; percentuais, índices e distribuição de frequência — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -298,25 +322,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-09-aula-revisao-das-aulas-34-a-76-e-89-a-116-limpeza-formulas-tabelas-filtros-e-res",
-              "label": "Aula: Revisão das aulas 34 a 76 e 89 a 116 — limpeza, fórmulas, tabelas, filtros e resumos — 60min",
+              "id": "dia-09-aula-aulas-49-a-80-media-mediana-moda-quartis-percentis-variancia-desvio-padrao-",
+              "label": "Aula: Aulas 49 a 80 — média, mediana, moda, quartis, percentis, variância, desvio padrão, outliers e valores faltantes — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-excel-completo-nelio-alves-e-bruno-roberto",
-          "title": "Excel COMPLETO — Nelio Alves e Bruno Roberto",
-          "url": "https://www.udemy.com/course/excel-curso-completo/",
+          "id": "datascience-estatistica-para-ciencia-de-dados-e-machine-learning-ia-expert-academy",
+          "title": "Estatística para Ciência de Dados e Machine Learning — IA Expert Academy",
+          "url": "https://www.udemy.com/course/estatistica-para-ciencia-de-dados-machine-learning/",
           "lessons": [
             {
-              "id": "dia-09-aula-revisao-das-aulas-34-a-76-e-89-a-116-limpeza-formulas-tabelas-filtros-e-res",
-              "label": "Aula: Revisão das aulas 34 a 76 e 89 a 116 — limpeza, fórmulas, tabelas, filtros e resumos — 60min",
+              "id": "dia-09-aula-aulas-49-a-80-media-mediana-moda-quartis-percentis-variancia-desvio-padrao-",
+              "label": "Aula: Aulas 49 a 80 — média, mediana, moda, quartis, percentis, variância, desvio padrão, outliers e valores faltantes — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -333,25 +357,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-10-atividade-leitura-orientada-etapas-para-validar-uma-ideia-problema-publico-hipot",
-              "label": "Atividade: Leitura orientada — etapas para validar uma ideia, problema, público, hipótese e evidência — 60min",
-              "kind": "outro",
-              "durationMinutes": 60
+              "id": "dia-10-aula-reexecucao-dirigida-das-aulas-86-a-187-estoque-tabela-dinamica-fluxo-de-cai",
+              "label": "Aula: Reexecução dirigida das aulas 86 a 187 — estoque, tabela dinâmica, fluxo de caixa e perfil do cliente em uma base nova — 180min",
+              "kind": "aula",
+              "durationMinutes": 180
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-leitura-de-apoio-validacao-de-negocio-sebrae",
-          "title": "Leitura de apoio: validação de negócio — Sebrae",
-          "url": "https://blog.rn.sebrae.com.br/como-validar-ideia/",
+          "id": "datascience-excel-completo-nelio-alves-e-bruno-roberto",
+          "title": "Excel COMPLETO — Nelio Alves e Bruno Roberto",
+          "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-10-atividade-leitura-orientada-etapas-para-validar-uma-ideia-problema-publico-hipot",
-              "label": "Atividade: Leitura orientada — etapas para validar uma ideia, problema, público, hipótese e evidência — 60min",
-              "kind": "outro",
-              "durationMinutes": 60
+              "id": "dia-10-aula-reexecucao-dirigida-das-aulas-86-a-187-estoque-tabela-dinamica-fluxo-de-cai",
+              "label": "Aula: Reexecução dirigida das aulas 86 a 187 — estoque, tabela dinâmica, fluxo de caixa e perfil do cliente em uma base nova — 180min",
+              "kind": "aula",
+              "durationMinutes": 180
             }
           ]
         }
@@ -368,10 +392,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-11-aula-aulas-5-e-6-e-16-a-18-power-bi-desktop-power-query-importacao-de-csv-qualid",
-              "label": "Aula: Aulas 5 e 6 e 16 a 18 — Power BI Desktop, Power Query, importação de CSV, qualidade e tipos — 60min",
+              "id": "dia-11-aula-aulas-16-a-33-power-query-completo-qualidade-tipos-substituicao-extracao-pi",
+              "label": "Aula: Aulas 16 a 33 — Power Query completo: qualidade, tipos, substituição, extração, Pivot, mesclagem, parâmetros, pastas e Append — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
@@ -383,10 +407,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-11-aula-aulas-5-e-6-e-16-a-18-power-bi-desktop-power-query-importacao-de-csv-qualid",
-              "label": "Aula: Aulas 5 e 6 e 16 a 18 — Power BI Desktop, Power Query, importação de CSV, qualidade e tipos — 60min",
+              "id": "dia-11-aula-aulas-16-a-33-power-query-completo-qualidade-tipos-substituicao-extracao-pi",
+              "label": "Aula: Aulas 16 a 33 — Power Query completo: qualidade, tipos, substituição, extração, Pivot, mesclagem, parâmetros, pastas e Append — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
@@ -403,10 +427,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-12-aula-aulas-19-a-23-substituicao-extracao-divisao-de-colunas-datas-excel-e-preenc",
-              "label": "Aula: Aulas 19 a 23 — substituição, extração, divisão de colunas, datas, Excel e preenchimento de dados — 60min",
+              "id": "dia-12-aula-aulas-34-a-49-modelo-fato-dimensao-relacionamentos-colunas-calculadas-inges",
+              "label": "Aula: Aulas 34 a 49 — modelo fato/dimensão; relacionamentos; colunas calculadas; ingestão Web, SharePoint, Google Drive e OneDrive — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
@@ -418,10 +442,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-12-aula-aulas-19-a-23-substituicao-extracao-divisao-de-colunas-datas-excel-e-preenc",
-              "label": "Aula: Aulas 19 a 23 — substituição, extração, divisão de colunas, datas, Excel e preenchimento de dados — 60min",
+              "id": "dia-12-aula-aulas-34-a-49-modelo-fato-dimensao-relacionamentos-colunas-calculadas-inges",
+              "label": "Aula: Aulas 34 a 49 — modelo fato/dimensão; relacionamentos; colunas calculadas; ingestão Web, SharePoint, Google Drive e OneDrive — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
@@ -438,10 +462,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-13-aula-aulas-24-a-28-mesclar-consultas-parametros-arquivos-em-pastas-multiplas-fon",
-              "label": "Aula: Aulas 24 a 28 — mesclar consultas, parâmetros, arquivos em pastas, múltiplas fontes e Append — 60min",
+              "id": "dia-13-aula-aulas-50-a-66-desnormalizacao-nulos-duplicados-chaves-substitutas-performan",
+              "label": "Aula: Aulas 50 a 66 — desnormalização, nulos, duplicados, chaves substitutas, performance e introdução prática ao DAX — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -453,10 +477,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-13-aula-aulas-24-a-28-mesclar-consultas-parametros-arquivos-em-pastas-multiplas-fon",
-              "label": "Aula: Aulas 24 a 28 — mesclar consultas, parâmetros, arquivos em pastas, múltiplas fontes e Append — 60min",
+              "id": "dia-13-aula-aulas-50-a-66-desnormalizacao-nulos-duplicados-chaves-substitutas-performan",
+              "label": "Aula: Aulas 50 a 66 — desnormalização, nulos, duplicados, chaves substitutas, performance e introdução prática ao DAX — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -473,10 +497,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-14-aula-aulas-10-a-15-e-29-a-33-modelagem-dimensional-fato-dimensao-relacionamentos",
-              "label": "Aula: Aulas 10 a 15 e 29 a 33 — modelagem dimensional, fato, dimensão, relacionamentos e colunas calculadas — 60min",
+              "id": "dia-14-aula-aulas-67-a-78-dashboard-de-acoes-sum-sumx-maxx-minx-averagex-countrows-e-di",
+              "label": "Aula: Aulas 67 a 78 — dashboard de ações; SUM/SUMX; MAXX/MINX; AVERAGEX; COUNTROWS e DISTINCTCOUNT — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
@@ -488,10 +512,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-14-aula-aulas-10-a-15-e-29-a-33-modelagem-dimensional-fato-dimensao-relacionamentos",
-              "label": "Aula: Aulas 10 a 15 e 29 a 33 — modelagem dimensional, fato, dimensão, relacionamentos e colunas calculadas — 60min",
+              "id": "dia-14-aula-aulas-67-a-78-dashboard-de-acoes-sum-sumx-maxx-minx-averagex-countrows-e-di",
+              "label": "Aula: Aulas 67 a 78 — dashboard de ações; SUM/SUMX; MAXX/MINX; AVERAGEX; COUNTROWS e DISTINCTCOUNT — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
@@ -508,10 +532,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-15-aula-aulas-50-a-52-e-56-a-66-introducao-ao-dax-contexto-sum-sumx-count-e-distinc",
-              "label": "Aula: Aulas 50 a 52 e 56 a 66 — introdução ao DAX, contexto, SUM, SUMX, COUNT e DISTINCTCOUNT — 60min",
+              "id": "dia-15-aula-aulas-79-a-96-calendario-funcoes-de-data-dax-logico-filtros-e-calculate-180",
+              "label": "Aula: Aulas 79 a 96 — calendário, funções de data, DAX lógico, filtros e CALCULATE — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -523,10 +547,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-15-aula-aulas-50-a-52-e-56-a-66-introducao-ao-dax-contexto-sum-sumx-count-e-distinc",
-              "label": "Aula: Aulas 50 a 52 e 56 a 66 — introdução ao DAX, contexto, SUM, SUMX, COUNT e DISTINCTCOUNT — 60min",
+              "id": "dia-15-aula-aulas-79-a-96-calendario-funcoes-de-data-dax-logico-filtros-e-calculate-180",
+              "label": "Aula: Aulas 79 a 96 — calendário, funções de data, DAX lógico, filtros e CALCULATE — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -543,10 +567,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-16-aula-aulas-52-e-74-a-78-contexto-de-filtro-iferror-if-switch-and-e-or-pratica-di",
-              "label": "Aula: Aulas 52 e 74 a 78 — contexto de filtro, IFERROR, IF, SWITCH, AND e OR; prática dirigida de filtros em medidas — 60min",
+              "id": "dia-16-aula-aulas-97-a-118-inteligencia-de-tempo-comparacao-de-periodos-filtros-e-naveg",
+              "label": "Aula: Aulas 97 a 118 — inteligência de tempo, comparação de períodos, filtros e navegação analítica — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -558,10 +582,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-16-aula-aulas-52-e-74-a-78-contexto-de-filtro-iferror-if-switch-and-e-or-pratica-di",
-              "label": "Aula: Aulas 52 e 74 a 78 — contexto de filtro, IFERROR, IF, SWITCH, AND e OR; prática dirigida de filtros em medidas — 60min",
+              "id": "dia-16-aula-aulas-97-a-118-inteligencia-de-tempo-comparacao-de-periodos-filtros-e-naveg",
+              "label": "Aula: Aulas 97 a 118 — inteligência de tempo, comparação de períodos, filtros e navegação analítica — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -578,10 +602,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-17-aula-aulas-67-a-73-funcoes-de-data-calendario-e-campos-temporais-60min",
-              "label": "Aula: Aulas 67 a 73 — funções de data, calendário e campos temporais — 60min",
+              "id": "dia-17-aula-aulas-119-a-140-visualizacao-de-dados-escolha-de-graficos-layout-interacao-",
+              "label": "Aula: Aulas 119 a 140 — visualização de dados, escolha de gráficos, layout, interação, drill-through e perguntas e respostas — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -593,10 +617,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-17-aula-aulas-67-a-73-funcoes-de-data-calendario-e-campos-temporais-60min",
-              "label": "Aula: Aulas 67 a 73 — funções de data, calendário e campos temporais — 60min",
+              "id": "dia-17-aula-aulas-119-a-140-visualizacao-de-dados-escolha-de-graficos-layout-interacao-",
+              "label": "Aula: Aulas 119 a 140 — visualização de dados, escolha de gráficos, layout, interação, drill-through e perguntas e respostas — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -613,10 +637,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-18-aula-aulas-53-a-55-primeiro-dashboard-transformacao-de-dados-e-primeiras-medidas",
-              "label": "Aula: Aulas 53 a 55 — primeiro dashboard, transformação de dados e primeiras medidas; prática dirigida de visuais — 60min",
+              "id": "dia-18-aula-aulas-141-a-160-primeiro-projeto-completo-medidas-visuais-publicacao-segura",
+              "label": "Aula: Aulas 141 a 160 — primeiro projeto completo: medidas, visuais, publicação, segurança, compartilhamento, gateway e mobile — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -628,10 +652,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-18-aula-aulas-53-a-55-primeiro-dashboard-transformacao-de-dados-e-primeiras-medidas",
-              "label": "Aula: Aulas 53 a 55 — primeiro dashboard, transformação de dados e primeiras medidas; prática dirigida de visuais — 60min",
+              "id": "dia-18-aula-aulas-141-a-160-primeiro-projeto-completo-medidas-visuais-publicacao-segura",
+              "label": "Aula: Aulas 141 a 160 — primeiro projeto completo: medidas, visuais, publicação, segurança, compartilhamento, gateway e mobile — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -648,10 +672,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-19-aula-revisao-das-aulas-50-a-78-dax-contexto-agregacoes-calendario-e-filtros-60mi",
-              "label": "Aula: Revisão das aulas 50 a 78 — DAX, contexto, agregações, calendário e filtros — 60min",
+              "id": "dia-19-aula-aulas-161-a-185-projeto-de-gestao-de-orcamentos-rls-gateway-painel-hibrido-",
+              "label": "Aula: Aulas 161 a 185 — projeto de gestão de orçamentos, RLS, gateway, painel híbrido, bookmarks, storytelling e Power BI Service — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -663,10 +687,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-19-aula-revisao-das-aulas-50-a-78-dax-contexto-agregacoes-calendario-e-filtros-60mi",
-              "label": "Aula: Revisão das aulas 50 a 78 — DAX, contexto, agregações, calendário e filtros — 60min",
+              "id": "dia-19-aula-aulas-161-a-185-projeto-de-gestao-de-orcamentos-rls-gateway-painel-hibrido-",
+              "label": "Aula: Aulas 161 a 185 — projeto de gestão de orçamentos, RLS, gateway, painel híbrido, bookmarks, storytelling e Power BI Service — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -683,10 +707,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-20-aula-aulas-7-a-9-e-25-a-27-instalacao-arquivos-parametros-de-caminho-pastas-e-at",
-              "label": "Aula: Aulas 7 a 9 e 25 a 27 — instalação/arquivos, parâmetros de caminho, pastas e atualização por novos lotes — 60min",
+              "id": "dia-20-aula-reexecucao-das-aulas-16-a-49-importar-tratar-combinar-e-modelar-uma-base-di",
+              "label": "Aula: Reexecução das aulas 16 a 49 — importar, tratar, combinar e modelar uma base diferente sem copiar o projeto anterior — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -698,10 +722,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-20-aula-aulas-7-a-9-e-25-a-27-instalacao-arquivos-parametros-de-caminho-pastas-e-at",
-              "label": "Aula: Aulas 7 a 9 e 25 a 27 — instalação/arquivos, parâmetros de caminho, pastas e atualização por novos lotes — 60min",
+              "id": "dia-20-aula-reexecucao-das-aulas-16-a-49-importar-tratar-combinar-e-modelar-uma-base-di",
+              "label": "Aula: Reexecução das aulas 16 a 49 — importar, tratar, combinar e modelar uma base diferente sem copiar o projeto anterior — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -718,10 +742,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-21-aula-revisao-das-aulas-16-a-33-e-50-a-78-power-query-modelo-medidas-e-calendario",
-              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — Power Query, modelo, medidas e calendário em uma base nova — 60min",
+              "id": "dia-21-aula-reexecucao-das-aulas-50-a-118-construir-medidas-dax-calendario-e-analises-t",
+              "label": "Aula: Reexecução das aulas 50 a 118 — construir medidas DAX, calendário e análises temporais em uma base nova — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -733,10 +757,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-21-aula-revisao-das-aulas-16-a-33-e-50-a-78-power-query-modelo-medidas-e-calendario",
-              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — Power Query, modelo, medidas e calendário em uma base nova — 60min",
+              "id": "dia-21-aula-reexecucao-das-aulas-50-a-118-construir-medidas-dax-calendario-e-analises-t",
+              "label": "Aula: Reexecução das aulas 50 a 118 — construir medidas DAX, calendário e análises temporais em uma base nova — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -753,10 +777,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-22-aula-revisao-das-aulas-16-a-33-e-50-a-78-criterios-de-entrega-do-painel-atualiza",
-              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — critérios de entrega do painel, atualização e reconciliação — 60min",
+              "id": "dia-22-aula-reexecucao-das-aulas-119-a-185-finalizar-o-painel-validar-totais-publicar-d",
+              "label": "Aula: Reexecução das aulas 119 a 185 — finalizar o painel, validar totais, publicar, documentar acesso e testar atualização — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -768,10 +792,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-22-aula-revisao-das-aulas-16-a-33-e-50-a-78-criterios-de-entrega-do-painel-atualiza",
-              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — critérios de entrega do painel, atualização e reconciliação — 60min",
+              "id": "dia-22-aula-reexecucao-das-aulas-119-a-185-finalizar-o-painel-validar-totais-publicar-d",
+              "label": "Aula: Reexecução das aulas 119 a 185 — finalizar o painel, validar totais, publicar, documentar acesso e testar atualização — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -788,10 +812,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-23-aula-aulas-1-a-4-9-a-13-e-15-a-20-ambiente-teoria-sql-bigquery-e-primeiros-selec",
-              "label": "Aula: Aulas 1 a 4, 9 a 13 e 15 a 20 — ambiente, teoria SQL, BigQuery e primeiros SELECTs — 60min",
+              "id": "dia-23-aula-aulas-1-a-20-ambiente-teoria-relacional-bigquery-sintaxe-e-primeiros-select",
+              "label": "Aula: Aulas 1 a 20 — ambiente, teoria relacional, BigQuery, sintaxe e primeiros SELECTs — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
@@ -803,10 +827,10 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-23-aula-aulas-1-a-4-9-a-13-e-15-a-20-ambiente-teoria-sql-bigquery-e-primeiros-selec",
-              "label": "Aula: Aulas 1 a 4, 9 a 13 e 15 a 20 — ambiente, teoria SQL, BigQuery e primeiros SELECTs — 60min",
+              "id": "dia-23-aula-aulas-1-a-20-ambiente-teoria-relacional-bigquery-sintaxe-e-primeiros-select",
+              "label": "Aula: Aulas 1 a 20 — ambiente, teoria relacional, BigQuery, sintaxe e primeiros SELECTs — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
@@ -823,10 +847,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-24-aula-aulas-21-a-27-30-e-31-select-aliases-filtros-valores-nulos-in-between-e-cas",
-              "label": "Aula: Aulas 21 a 27, 30 e 31 — SELECT, aliases, filtros, valores nulos, IN, BETWEEN e CASE WHEN — 60min",
+              "id": "dia-24-aula-aulas-21-a-39-aliases-filtros-nulos-in-between-case-when-exercicios-agregac",
+              "label": "Aula: Aulas 21 a 39 — aliases, filtros, nulos, IN, BETWEEN, CASE WHEN, exercícios, agregações e GROUP BY — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -838,10 +862,10 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-24-aula-aulas-21-a-27-30-e-31-select-aliases-filtros-valores-nulos-in-between-e-cas",
-              "label": "Aula: Aulas 21 a 27, 30 e 31 — SELECT, aliases, filtros, valores nulos, IN, BETWEEN e CASE WHEN — 60min",
+              "id": "dia-24-aula-aulas-21-a-39-aliases-filtros-nulos-in-between-case-when-exercicios-agregac",
+              "label": "Aula: Aulas 21 a 39 — aliases, filtros, nulos, IN, BETWEEN, CASE WHEN, exercícios, agregações e GROUP BY — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -858,10 +882,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-25-aula-aulas-30-a-39-case-when-exercicios-count-sum-avg-min-max-e-group-by-60min",
-              "label": "Aula: Aulas 30 a 39 — CASE WHEN, exercícios, COUNT, SUM, AVG, MIN, MAX e GROUP BY — 60min",
+              "id": "dia-25-aula-aulas-40-a-55-relacionamentos-chaves-inner-left-right-full-join-datas-e-tex",
+              "label": "Aula: Aulas 40 a 55 — relacionamentos, chaves, INNER/LEFT/RIGHT/FULL JOIN, datas e texto — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -873,10 +897,10 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-25-aula-aulas-30-a-39-case-when-exercicios-count-sum-avg-min-max-e-group-by-60min",
-              "label": "Aula: Aulas 30 a 39 — CASE WHEN, exercícios, COUNT, SUM, AVG, MIN, MAX e GROUP BY — 60min",
+              "id": "dia-25-aula-aulas-40-a-55-relacionamentos-chaves-inner-left-right-full-join-datas-e-tex",
+              "label": "Aula: Aulas 40 a 55 — relacionamentos, chaves, INNER/LEFT/RIGHT/FULL JOIN, datas e texto — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -893,10 +917,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-26-aula-aulas-40-a-49-relacionamentos-chaves-inner-left-right-full-join-e-exercicio",
-              "label": "Aula: Aulas 40 a 49 — relacionamentos, chaves, INNER/LEFT/RIGHT/FULL JOIN e exercícios de junção — 60min",
+              "id": "dia-26-aula-aulas-56-a-69-regras-condicionais-limpeza-subqueries-consultas-correlaciona",
+              "label": "Aula: Aulas 56 a 69 — regras condicionais, limpeza, subqueries, consultas correlacionadas e CTE — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -908,10 +932,10 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-26-aula-aulas-40-a-49-relacionamentos-chaves-inner-left-right-full-join-e-exercicio",
-              "label": "Aula: Aulas 40 a 49 — relacionamentos, chaves, INNER/LEFT/RIGHT/FULL JOIN e exercícios de junção — 60min",
+              "id": "dia-26-aula-aulas-56-a-69-regras-condicionais-limpeza-subqueries-consultas-correlaciona",
+              "label": "Aula: Aulas 56 a 69 — regras condicionais, limpeza, subqueries, consultas correlacionadas e CTE — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -928,10 +952,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-27-aula-aulas-28-e-29-e-51-a-62-datas-texto-regras-condicionais-e-limpeza-em-consul",
-              "label": "Aula: Aulas 28 e 29 e 51 a 62 — datas, texto, regras condicionais e limpeza em consultas — 60min",
+              "id": "dia-27-aula-aulas-70-a-80-funcoes-de-janela-union-with-criacao-de-tabelas-consultas-pro",
+              "label": "Aula: Aulas 70 a 80 — funções de janela, UNION, WITH, criação de tabelas, consultas programadas e integração com Sheets/Python — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -943,10 +967,10 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-27-aula-aulas-28-e-29-e-51-a-62-datas-texto-regras-condicionais-e-limpeza-em-consul",
-              "label": "Aula: Aulas 28 e 29 e 51 a 62 — datas, texto, regras condicionais e limpeza em consultas — 60min",
+              "id": "dia-27-aula-aulas-70-a-80-funcoes-de-janela-union-with-criacao-de-tabelas-consultas-pro",
+              "label": "Aula: Aulas 70 a 80 — funções de janela, UNION, WITH, criação de tabelas, consultas programadas e integração com Sheets/Python — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -963,25 +987,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-28-aula-aulas-63-a-69-e-77-subqueries-consultas-correlacionadas-e-with-cte-60min",
-              "label": "Aula: Aulas 63 a 69 e 77 — subqueries, consultas correlacionadas e WITH/CTE — 60min",
+              "id": "dia-28-aula-aulas-81-a-104-distribuicoes-normal-gama-exponencial-uniforme-bernoulli-bin",
+              "label": "Aula: Aulas 81 a 104 — distribuições normal, gama, exponencial, uniforme, Bernoulli, binomial e Poisson; padronização e normalidade — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-sql-para-analise-de-dados-data-driven-school",
-          "title": "SQL para Análise de Dados — Data Driven School",
-          "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
+          "id": "datascience-estatistica-para-ciencia-de-dados-e-machine-learning-ia-expert-academy",
+          "title": "Estatística para Ciência de Dados e Machine Learning — IA Expert Academy",
+          "url": "https://www.udemy.com/course/estatistica-para-ciencia-de-dados-machine-learning/",
           "lessons": [
             {
-              "id": "dia-28-aula-aulas-63-a-69-e-77-subqueries-consultas-correlacionadas-e-with-cte-60min",
-              "label": "Aula: Aulas 63 a 69 e 77 — subqueries, consultas correlacionadas e WITH/CTE — 60min",
+              "id": "dia-28-aula-aulas-81-a-104-distribuicoes-normal-gama-exponencial-uniforme-bernoulli-bin",
+              "label": "Aula: Aulas 81 a 104 — distribuições normal, gama, exponencial, uniforme, Bernoulli, binomial e Poisson; padronização e normalidade — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -998,25 +1022,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-29-aula-aulas-70-a-75-funcoes-de-janela-over-partition-by-e-ordenacao-analitica-60m",
-              "label": "Aula: Aulas 70 a 75 — funções de janela, OVER, PARTITION BY e ordenação analítica — 60min",
+              "id": "dia-29-aula-aulas-105-a-123-probabilidade-eventos-combinacao-probabilidade-condicional-",
+              "label": "Aula: Aulas 105 a 123 — probabilidade, eventos, combinação, probabilidade condicional, Bayes e previsões — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-sql-para-analise-de-dados-data-driven-school",
-          "title": "SQL para Análise de Dados — Data Driven School",
-          "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
+          "id": "datascience-estatistica-para-ciencia-de-dados-e-machine-learning-ia-expert-academy",
+          "title": "Estatística para Ciência de Dados e Machine Learning — IA Expert Academy",
+          "url": "https://www.udemy.com/course/estatistica-para-ciencia-de-dados-machine-learning/",
           "lessons": [
             {
-              "id": "dia-29-aula-aulas-70-a-75-funcoes-de-janela-over-partition-by-e-ordenacao-analitica-60m",
-              "label": "Aula: Aulas 70 a 75 — funções de janela, OVER, PARTITION BY e ordenação analítica — 60min",
+              "id": "dia-29-aula-aulas-105-a-123-probabilidade-eventos-combinacao-probabilidade-condicional-",
+              "label": "Aula: Aulas 105 a 123 — probabilidade, eventos, combinação, probabilidade condicional, Bayes e previsões — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
@@ -1033,25 +1057,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-30-aula-revisao-das-aulas-19-a-75-consultas-de-clientes-recorrencia-cancelamentos-e",
-              "label": "Aula: Revisão das aulas 19 a 75 — consultas de clientes, recorrência, cancelamentos e validação — 60min",
+              "id": "dia-30-aula-aulas-124-a-148-intervalos-de-confianca-testes-z-e-t-qui-quadrado-anova-wil",
+              "label": "Aula: Aulas 124 a 148 — intervalos de confiança, testes Z e T, qui-quadrado, ANOVA, Wilcoxon, Friedman e Nemenyi — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-sql-para-analise-de-dados-data-driven-school",
-          "title": "SQL para Análise de Dados — Data Driven School",
-          "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
+          "id": "datascience-estatistica-para-ciencia-de-dados-e-machine-learning-ia-expert-academy",
+          "title": "Estatística para Ciência de Dados e Machine Learning — IA Expert Academy",
+          "url": "https://www.udemy.com/course/estatistica-para-ciencia-de-dados-machine-learning/",
           "lessons": [
             {
-              "id": "dia-30-aula-revisao-das-aulas-19-a-75-consultas-de-clientes-recorrencia-cancelamentos-e",
-              "label": "Aula: Revisão das aulas 19 a 75 — consultas de clientes, recorrência, cancelamentos e validação — 60min",
+              "id": "dia-30-aula-aulas-124-a-148-intervalos-de-confianca-testes-z-e-t-qui-quadrado-anova-wil",
+              "label": "Aula: Aulas 124 a 148 — intervalos de confiança, testes Z e T, qui-quadrado, ANOVA, Wilcoxon, Friedman e Nemenyi — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -1068,25 +1092,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-31-aula-revisao-das-aulas-30-a-50-agregacoes-e-juncoes-com-contagens-de-controle-60",
-              "label": "Aula: Revisão das aulas 30 a 50 — agregações e junções com contagens de controle — 60min",
+              "id": "dia-31-aula-aulas-149-a-174-correlacao-determinacao-regressao-simples-e-multipla-metric",
+              "label": "Aula: Aulas 149 a 174 — correlação, determinação, regressão simples e múltipla, métricas de erro e visualização dos resultados — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-sql-para-analise-de-dados-data-driven-school",
-          "title": "SQL para Análise de Dados — Data Driven School",
-          "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
+          "id": "datascience-estatistica-para-ciencia-de-dados-e-machine-learning-ia-expert-academy",
+          "title": "Estatística para Ciência de Dados e Machine Learning — IA Expert Academy",
+          "url": "https://www.udemy.com/course/estatistica-para-ciencia-de-dados-machine-learning/",
           "lessons": [
             {
-              "id": "dia-31-aula-revisao-das-aulas-30-a-50-agregacoes-e-juncoes-com-contagens-de-controle-60",
-              "label": "Aula: Revisão das aulas 30 a 50 — agregações e junções com contagens de controle — 60min",
+              "id": "dia-31-aula-aulas-149-a-174-correlacao-determinacao-regressao-simples-e-multipla-metric",
+              "label": "Aula: Aulas 149 a 174 — correlação, determinação, regressão simples e múltipla, métricas de erro e visualização dos resultados — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1103,10 +1127,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-32-aula-aulas-4-a-9-e-38-a-45-populacao-amostra-vies-distribuicao-e-associacao-entr",
-              "label": "Aula: Aulas 4 a 9 e 38 a 45 — população, amostra, viés, distribuição e associação entre variáveis — 60min",
+              "id": "dia-32-aula-reexecucao-das-aulas-4-a-80-amostragem-frequencias-posicao-e-dispersao-apli",
+              "label": "Aula: Reexecução das aulas 4 a 80 — amostragem, frequências, posição e dispersão aplicadas a uma base nova — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1118,10 +1142,10 @@
           "url": "https://www.udemy.com/course/estatistica-para-ciencia-de-dados-machine-learning/",
           "lessons": [
             {
-              "id": "dia-32-aula-aulas-4-a-9-e-38-a-45-populacao-amostra-vies-distribuicao-e-associacao-entr",
-              "label": "Aula: Aulas 4 a 9 e 38 a 45 — população, amostra, viés, distribuição e associação entre variáveis — 60min",
+              "id": "dia-32-aula-reexecucao-das-aulas-4-a-80-amostragem-frequencias-posicao-e-dispersao-apli",
+              "label": "Aula: Reexecução das aulas 4 a 80 — amostragem, frequências, posição e dispersão aplicadas a uma base nova — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1138,10 +1162,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-33-aula-revisao-das-aulas-19-a-75-transformar-pergunta-de-negocio-em-consulta-e-evi",
-              "label": "Aula: Revisão das aulas 19 a 75 — transformar pergunta de negócio em consulta e evidência — 60min",
+              "id": "dia-33-aula-reexecucao-das-aulas-1-a-39-traduzir-perguntas-de-negocio-em-select-filtros",
+              "label": "Aula: Reexecução das aulas 1 a 39 — traduzir perguntas de negócio em SELECT, filtros, CASE, agregações e validações — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1153,10 +1177,10 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-33-aula-revisao-das-aulas-19-a-75-transformar-pergunta-de-negocio-em-consulta-e-evi",
-              "label": "Aula: Revisão das aulas 19 a 75 — transformar pergunta de negócio em consulta e evidência — 60min",
+              "id": "dia-33-aula-reexecucao-das-aulas-1-a-39-traduzir-perguntas-de-negocio-em-select-filtros",
+              "label": "Aula: Reexecução das aulas 1 a 39 — traduzir perguntas de negócio em SELECT, filtros, CASE, agregações e validações — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1173,10 +1197,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-34-aula-revisao-das-aulas-19-a-75-exercicio-cronometrado-de-select-filtros-agregaco",
-              "label": "Aula: Revisão das aulas 19 a 75 — exercício cronometrado de SELECT, filtros, agregações, JOIN e janela — 60min",
+              "id": "dia-34-aula-reexecucao-das-aulas-40-a-80-juncoes-limpeza-subqueries-cte-e-janelas-com-c",
+              "label": "Aula: Reexecução das aulas 40 a 80 — junções, limpeza, subqueries, CTE e janelas com conferência independente — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1188,10 +1212,10 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-34-aula-revisao-das-aulas-19-a-75-exercicio-cronometrado-de-select-filtros-agregaco",
-              "label": "Aula: Revisão das aulas 19 a 75 — exercício cronometrado de SELECT, filtros, agregações, JOIN e janela — 60min",
+              "id": "dia-34-aula-reexecucao-das-aulas-40-a-80-juncoes-limpeza-subqueries-cte-e-janelas-com-c",
+              "label": "Aula: Reexecução das aulas 40 a 80 — junções, limpeza, subqueries, CTE e janelas com conferência independente — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1208,10 +1232,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-35-aula-revisao-das-aulas-30-a-75-consolidacao-de-agregacoes-juncoes-subqueries-e-f",
-              "label": "Aula: Revisão das aulas 30 a 75 — consolidação de agregações, junções, subqueries e funções de janela — 60min",
+              "id": "dia-35-aula-revisao-integral-das-aulas-1-a-80-resolver-um-caso-de-analise-completo-e-ex",
+              "label": "Aula: Revisão integral das aulas 1 a 80 — resolver um caso de análise completo e explicar cada consulta sem depender da IA — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -1223,10 +1247,10 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-35-aula-revisao-das-aulas-30-a-75-consolidacao-de-agregacoes-juncoes-subqueries-e-f",
-              "label": "Aula: Revisão das aulas 30 a 75 — consolidação de agregações, junções, subqueries e funções de janela — 60min",
+              "id": "dia-35-aula-revisao-integral-das-aulas-1-a-80-resolver-um-caso-de-analise-completo-e-ex",
+              "label": "Aula: Revisão integral das aulas 1 a 80 — resolver um caso de análise completo e explicar cada consulta sem depender da IA — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -1243,10 +1267,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-36-aula-aulas-1-a-7-ambiente-primeiro-programa-variaveis-tipos-e-entrada-de-dados-6",
-              "label": "Aula: Aulas 1 a 7 — ambiente, primeiro programa, variáveis, tipos e entrada de dados — 60min",
+              "id": "dia-36-aula-aulas-1-a-20-ambiente-variaveis-tipos-entrada-decisoes-operadores-lacos-lis",
+              "label": "Aula: Aulas 1 a 20 — ambiente, variáveis, tipos, entrada, decisões, operadores, laços, listas, módulos e funções — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1258,10 +1282,10 @@
           "url": "https://www.udemy.com/course/python-basico-para-iniciantes/",
           "lessons": [
             {
-              "id": "dia-36-aula-aulas-1-a-7-ambiente-primeiro-programa-variaveis-tipos-e-entrada-de-dados-6",
-              "label": "Aula: Aulas 1 a 7 — ambiente, primeiro programa, variáveis, tipos e entrada de dados — 60min",
+              "id": "dia-36-aula-aulas-1-a-20-ambiente-variaveis-tipos-entrada-decisoes-operadores-lacos-lis",
+              "label": "Aula: Aulas 1 a 20 — ambiente, variáveis, tipos, entrada, decisões, operadores, laços, listas, módulos e funções — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1278,25 +1302,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-37-aula-aulas-8-a-13-decisoes-operadores-lacos-listas-e-colecoes-60min",
-              "label": "Aula: Aulas 8 a 13 — decisões, operadores, laços, listas e coleções — 60min",
+              "id": "dia-37-aula-aulas-1-a-23-configuracao-notebooks-git-github-arrays-indexacao-reshape-ope",
+              "label": "Aula: Aulas 1 a 23 — configuração, notebooks, Git/GitHub, arrays, indexação, reshape, operações, Join, Split e mini projeto NumPy — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-python-para-iniciantes-fernando-amaral",
-          "title": "Python para Iniciantes — Fernando Amaral",
-          "url": "https://www.udemy.com/course/python-basico-para-iniciantes/",
+          "id": "datascience-analise-de-dados-com-python-e-pandas-rodrigo-macedo",
+          "title": "Análise de Dados com Python e Pandas — Rodrigo Macedo",
+          "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-37-aula-aulas-8-a-13-decisoes-operadores-lacos-listas-e-colecoes-60min",
-              "label": "Aula: Aulas 8 a 13 — decisões, operadores, laços, listas e coleções — 60min",
+              "id": "dia-37-aula-aulas-1-a-23-configuracao-notebooks-git-github-arrays-indexacao-reshape-ope",
+              "label": "Aula: Aulas 1 a 23 — configuração, notebooks, Git/GitHub, arrays, indexação, reshape, operações, Join, Split e mini projeto NumPy — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -1313,25 +1337,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-38-aula-aulas-14-a-20-modulos-funcoes-parametros-e-funcoes-padrao-do-python-60min",
-              "label": "Aula: Aulas 14 a 20 — módulos, funções, parâmetros e funções padrão do Python — 60min",
+              "id": "dia-38-aula-aulas-24-a-44-series-dataframe-csv-excel-json-sql-insights-dashboard-em-str",
+              "label": "Aula: Aulas 24 a 44 — Series, DataFrame, CSV, Excel, JSON, SQL, insights, dashboard em Streamlit e transformação de dados — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-python-para-iniciantes-fernando-amaral",
-          "title": "Python para Iniciantes — Fernando Amaral",
-          "url": "https://www.udemy.com/course/python-basico-para-iniciantes/",
+          "id": "datascience-analise-de-dados-com-python-e-pandas-rodrigo-macedo",
+          "title": "Análise de Dados com Python e Pandas — Rodrigo Macedo",
+          "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-38-aula-aulas-14-a-20-modulos-funcoes-parametros-e-funcoes-padrao-do-python-60min",
-              "label": "Aula: Aulas 14 a 20 — módulos, funções, parâmetros e funções padrão do Python — 60min",
+              "id": "dia-38-aula-aulas-24-a-44-series-dataframe-csv-excel-json-sql-insights-dashboard-em-str",
+              "label": "Aula: Aulas 24 a 44 — Series, DataFrame, CSV, Excel, JSON, SQL, insights, dashboard em Streamlit e transformação de dados — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -1348,25 +1372,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-39-atividade-leitura-orientada-pro-git-capitulos-1-e-2-repositorio-status-diff-comm",
-              "label": "Atividade: Leitura orientada — Pro Git, capítulos 1 e 2: repositório, status, diff, commit e .gitignore — 60min",
-              "kind": "outro",
-              "durationMinutes": 60
+              "id": "dia-39-aula-aulas-45-a-69-medidas-estatisticas-correlacao-graficos-uniao-nulos-agrupame",
+              "label": "Aula: Aulas 45 a 69 — medidas estatísticas, correlação, gráficos, união, nulos, agrupamentos, contingência, qui-quadrado e outliers — 210min",
+              "kind": "aula",
+              "durationMinutes": 210
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-leitura-de-apoio-primeiros-passos-com-git-pro-git",
-          "title": "Leitura de apoio: Primeiros passos com Git — Pro Git",
-          "url": "https://git-scm.com/book/pt-br/v2",
+          "id": "datascience-analise-de-dados-com-python-e-pandas-rodrigo-macedo",
+          "title": "Análise de Dados com Python e Pandas — Rodrigo Macedo",
+          "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-39-atividade-leitura-orientada-pro-git-capitulos-1-e-2-repositorio-status-diff-comm",
-              "label": "Atividade: Leitura orientada — Pro Git, capítulos 1 e 2: repositório, status, diff, commit e .gitignore — 60min",
-              "kind": "outro",
-              "durationMinutes": 60
+              "id": "dia-39-aula-aulas-45-a-69-medidas-estatisticas-correlacao-graficos-uniao-nulos-agrupame",
+              "label": "Aula: Aulas 45 a 69 — medidas estatísticas, correlação, gráficos, união, nulos, agrupamentos, contingência, qui-quadrado e outliers — 210min",
+              "kind": "aula",
+              "durationMinutes": 210
             }
           ]
         }
@@ -1383,10 +1407,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-40-aula-aulas-25-a-33-pandas-series-dataframe-csv-planilhas-inspecao-e-primeiros-in",
-              "label": "Aula: Aulas 25 a 33 — Pandas, Series, DataFrame, CSV, planilhas, inspeção e primeiros insights — 60min",
+              "id": "dia-40-aula-aulas-70-a-89-matplotlib-seaborn-plotly-histogramas-subplots-mapas-e-escolh",
+              "label": "Aula: Aulas 70 a 89 — Matplotlib, Seaborn, Plotly, histogramas, subplots, mapas e escolha de visualizações — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1398,10 +1422,10 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-40-aula-aulas-25-a-33-pandas-series-dataframe-csv-planilhas-inspecao-e-primeiros-in",
-              "label": "Aula: Aulas 25 a 33 — Pandas, Series, DataFrame, CSV, planilhas, inspeção e primeiros insights — 60min",
+              "id": "dia-40-aula-aulas-70-a-89-matplotlib-seaborn-plotly-histogramas-subplots-mapas-e-escolh",
+              "label": "Aula: Aulas 70 a 89 — Matplotlib, Seaborn, Plotly, histogramas, subplots, mapas e escolha de visualizações — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1418,10 +1442,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-41-aula-aulas-42-a-46-e-58-a-61-transformacao-conversao-nulos-duplicidades-e-qualid",
-              "label": "Aula: Aulas 42 a 46 e 58 a 61 — transformação, conversão, nulos, duplicidades e qualidade dos dados — 60min",
+              "id": "dia-41-aula-aulas-90-a-110-projeto-streamlit-ambiente-metricas-tabelas-graficos-filtros",
+              "label": "Aula: Aulas 90 a 110 — projeto Streamlit: ambiente, métricas, tabelas, gráficos, filtros, download, versionamento e deploy — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1433,10 +1457,10 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-41-aula-aulas-42-a-46-e-58-a-61-transformacao-conversao-nulos-duplicidades-e-qualid",
-              "label": "Aula: Aulas 42 a 46 e 58 a 61 — transformação, conversão, nulos, duplicidades e qualidade dos dados — 60min",
+              "id": "dia-41-aula-aulas-90-a-110-projeto-streamlit-ambiente-metricas-tabelas-graficos-filtros",
+              "label": "Aula: Aulas 90 a 110 — projeto Streamlit: ambiente, métricas, tabelas, gráficos, filtros, download, versionamento e deploy — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1453,10 +1477,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-42-aula-aulas-25-a-28-e-60-a-64-dataframe-agrupamentos-relacoes-estatisticas-e-vali",
-              "label": "Aula: Aulas 25 a 28 e 60 a 64 — DataFrame, agrupamentos, relações, estatísticas e validação de cardinalidade — 60min",
+              "id": "dia-42-aula-aulas-111-a-121-sqlite-sqlalchemy-postgresql-e-mongodb-criar-ler-atualizar-",
+              "label": "Aula: Aulas 111 a 121 — SQLite, SQLAlchemy, PostgreSQL e MongoDB: criar, ler, atualizar, excluir e integrar aplicações — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
@@ -1468,10 +1492,10 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-42-aula-aulas-25-a-28-e-60-a-64-dataframe-agrupamentos-relacoes-estatisticas-e-vali",
-              "label": "Aula: Aulas 25 a 28 e 60 a 64 — DataFrame, agrupamentos, relações, estatísticas e validação de cardinalidade — 60min",
+              "id": "dia-42-aula-aulas-111-a-121-sqlite-sqlalchemy-postgresql-e-mongodb-criar-ler-atualizar-",
+              "label": "Aula: Aulas 111 a 121 — SQLite, SQLAlchemy, PostgreSQL e MongoDB: criar, ler, atualizar, excluir e integrar aplicações — 150min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 150
             }
           ]
         }
@@ -1488,10 +1512,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-43-aula-aulas-62-a-64-e-72-a-81-distribuicao-agrupamentos-graficos-e-comunicacao-vi",
-              "label": "Aula: Aulas 62 a 64 e 72 a 81 — distribuição, agrupamentos, gráficos e comunicação visual — 60min",
+              "id": "dia-43-aula-aulas-122-a-135-continuacao-do-curso-integracao-de-dados-e-automacoes-do-pr",
+              "label": "Aula: Aulas 122 a 135 — continuação do curso: integração de dados e automações do primeiro módulo avançado — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1503,10 +1527,10 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-43-aula-aulas-62-a-64-e-72-a-81-distribuicao-agrupamentos-graficos-e-comunicacao-vi",
-              "label": "Aula: Aulas 62 a 64 e 72 a 81 — distribuição, agrupamentos, gráficos e comunicação visual — 60min",
+              "id": "dia-43-aula-aulas-122-a-135-continuacao-do-curso-integracao-de-dados-e-automacoes-do-pr",
+              "label": "Aula: Aulas 122 a 135 — continuação do curso: integração de dados e automações do primeiro módulo avançado — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1523,10 +1547,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-44-aula-revisao-das-aulas-25-a-81-funcoes-qualidade-resultados-esperados-e-exportac",
-              "label": "Aula: Revisão das aulas 25 a 81 — funções, qualidade, resultados esperados e exportação do pipeline — 60min",
+              "id": "dia-44-aula-aulas-136-a-148-continuacao-do-curso-processamento-validacao-e-entrega-do-s",
+              "label": "Aula: Aulas 136 a 148 — continuação do curso: processamento, validação e entrega do segundo módulo avançado — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1538,10 +1562,10 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-44-aula-revisao-das-aulas-25-a-81-funcoes-qualidade-resultados-esperados-e-exportac",
-              "label": "Aula: Revisão das aulas 25 a 81 — funções, qualidade, resultados esperados e exportação do pipeline — 60min",
+              "id": "dia-44-aula-aulas-136-a-148-continuacao-do-curso-processamento-validacao-e-entrega-do-s",
+              "label": "Aula: Aulas 136 a 148 — continuação do curso: processamento, validação e entrega do segundo módulo avançado — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1558,10 +1582,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-45-aula-revisao-das-aulas-25-a-64-processar-uma-entrada-nova-sem-copiar-o-exercicio",
-              "label": "Aula: Revisão das aulas 25 a 64 — processar uma entrada nova sem copiar o exercício anterior — 60min",
+              "id": "dia-45-aula-aulas-149-a-161-projeto-final-do-curso-analise-dashboard-banco-de-dados-e-p",
+              "label": "Aula: Aulas 149 a 161 — projeto final do curso: análise, dashboard, banco de dados e publicação — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -1573,10 +1597,10 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-45-aula-revisao-das-aulas-25-a-64-processar-uma-entrada-nova-sem-copiar-o-exercicio",
-              "label": "Aula: Revisão das aulas 25 a 64 — processar uma entrada nova sem copiar o exercício anterior — 60min",
+              "id": "dia-45-aula-aulas-149-a-161-projeto-final-do-curso-analise-dashboard-banco-de-dados-e-p",
+              "label": "Aula: Aulas 149 a 161 — projeto final do curso: análise, dashboard, banco de dados e publicação — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -1593,25 +1617,25 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-46-atividade-leitura-orientada-tutorial-python-capitulos-7-8-e-10-arquivos-excecoes",
-              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 7, 8 e 10: arquivos, exceções, caminhos e módulos — 60min",
-              "kind": "outro",
-              "durationMinutes": 60
+              "id": "dia-46-aula-reexecucao-das-aulas-24-a-69-importar-limpar-transformar-analisar-e-exporta",
+              "label": "Aula: Reexecução das aulas 24 a 69 — importar, limpar, transformar, analisar e exportar uma base diferente — 180min",
+              "kind": "aula",
+              "durationMinutes": 180
             }
           ]
         }
       ],
       "courses": [
         {
-          "id": "datascience-documentacao-tutorial-python-em-portugues",
-          "title": "Documentação: tutorial Python em português",
-          "url": "https://docs.python.org/pt-br/3/tutorial/",
+          "id": "datascience-analise-de-dados-com-python-e-pandas-rodrigo-macedo",
+          "title": "Análise de Dados com Python e Pandas — Rodrigo Macedo",
+          "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-46-atividade-leitura-orientada-tutorial-python-capitulos-7-8-e-10-arquivos-excecoes",
-              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 7, 8 e 10: arquivos, exceções, caminhos e módulos — 60min",
-              "kind": "outro",
-              "durationMinutes": 60
+              "id": "dia-46-aula-reexecucao-das-aulas-24-a-69-importar-limpar-transformar-analisar-e-exporta",
+              "label": "Aula: Reexecução das aulas 24 a 69 — importar, limpar, transformar, analisar e exportar uma base diferente — 180min",
+              "kind": "aula",
+              "durationMinutes": 180
             }
           ]
         }
@@ -1628,10 +1652,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-47-aula-revisao-das-aulas-30-a-36-e-42-a-46-multiplos-arquivos-esquema-transformaca",
-              "label": "Aula: Revisão das aulas 30 a 36 e 42 a 46 — múltiplos arquivos, esquema, transformação e exportação — 60min",
+              "id": "dia-47-aula-reexecucao-das-aulas-70-a-121-visualizacoes-streamlit-e-bancos-em-um-segund",
+              "label": "Aula: Reexecução das aulas 70 a 121 — visualizações, Streamlit e bancos em um segundo conjunto de dados — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1643,10 +1667,10 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-47-aula-revisao-das-aulas-30-a-36-e-42-a-46-multiplos-arquivos-esquema-transformaca",
-              "label": "Aula: Revisão das aulas 30 a 36 e 42 a 46 — múltiplos arquivos, esquema, transformação e exportação — 60min",
+              "id": "dia-47-aula-reexecucao-das-aulas-70-a-121-visualizacoes-streamlit-e-bancos-em-um-segund",
+              "label": "Aula: Reexecução das aulas 70 a 121 — visualizações, Streamlit e bancos em um segundo conjunto de dados — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1663,10 +1687,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-48-aula-aulas-9-a-15-http-rest-json-metodos-status-e-requisicoes-em-python-60min",
-              "label": "Aula: Aulas 9 a 15 — HTTP, REST, JSON, métodos, status e requisições em Python — 60min",
+              "id": "dia-48-aula-aulas-1-a-17-fundamentos-python-do-curso-http-rest-json-metodos-status-requ",
+              "label": "Aula: Aulas 1 a 17 — fundamentos Python do curso, HTTP, REST, JSON, métodos, status, requests e integração com API — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1678,10 +1702,10 @@
           "url": "https://www.udemy.com/course/python-do-zero-a-automacao-com-n8n/",
           "lessons": [
             {
-              "id": "dia-48-aula-aulas-9-a-15-http-rest-json-metodos-status-e-requisicoes-em-python-60min",
-              "label": "Aula: Aulas 9 a 15 — HTTP, REST, JSON, métodos, status e requisições em Python — 60min",
+              "id": "dia-48-aula-aulas-1-a-17-fundamentos-python-do-curso-http-rest-json-metodos-status-requ",
+              "label": "Aula: Aulas 1 a 17 — fundamentos Python do curso, HTTP, REST, JSON, métodos, status, requests e integração com API — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1698,10 +1722,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-49-aula-aulas-16-e-17-integracao-com-api-pratica-dirigida-de-timeout-paginacao-e-re",
-              "label": "Aula: Aulas 16 e 17 — integração com API; prática dirigida de timeout, paginação e respostas de erro — 60min",
+              "id": "dia-49-aula-reexecucao-das-aulas-9-a-17-api-com-autenticacao-paginacao-timeout-erros-lo",
+              "label": "Aula: Reexecução das aulas 9 a 17 — API com autenticação, paginação, timeout, erros, logs e saída estruturada — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1713,10 +1737,10 @@
           "url": "https://www.udemy.com/course/python-do-zero-a-automacao-com-n8n/",
           "lessons": [
             {
-              "id": "dia-49-aula-aulas-16-e-17-integracao-com-api-pratica-dirigida-de-timeout-paginacao-e-re",
-              "label": "Aula: Aulas 16 e 17 — integração com API; prática dirigida de timeout, paginação e respostas de erro — 60min",
+              "id": "dia-49-aula-reexecucao-das-aulas-9-a-17-api-com-autenticacao-paginacao-timeout-erros-lo",
+              "label": "Aula: Reexecução das aulas 9 a 17 — API com autenticação, paginação, timeout, erros, logs e saída estruturada — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1733,10 +1757,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-50-atividade-leitura-orientada-tutorial-python-capitulos-8-e-10-excecoes-logging-e-",
-              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 8 e 10: exceções, logging e organização do programa — 60min",
+              "id": "dia-50-leitura-tutorial-python-modulos-arquivos-excecoes-classes-ambientes-virtuais-e-p",
+              "label": "Leitura: Tutorial Python — módulos, arquivos, exceções, classes, ambientes virtuais e pacotes; executar os exemplos relevantes — 180min",
               "kind": "outro",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1748,10 +1772,10 @@
           "url": "https://docs.python.org/pt-br/3/tutorial/",
           "lessons": [
             {
-              "id": "dia-50-atividade-leitura-orientada-tutorial-python-capitulos-8-e-10-excecoes-logging-e-",
-              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 8 e 10: exceções, logging e organização do programa — 60min",
+              "id": "dia-50-leitura-tutorial-python-modulos-arquivos-excecoes-classes-ambientes-virtuais-e-p",
+              "label": "Leitura: Tutorial Python — módulos, arquivos, exceções, classes, ambientes virtuais e pacotes; executar os exemplos relevantes — 180min",
               "kind": "outro",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1768,10 +1792,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-51-aula-revisao-das-aulas-42-a-46-gerar-revisar-e-testar-transformacoes-de-dados-co",
-              "label": "Aula: Revisão das aulas 42 a 46 — gerar, revisar e testar transformações de dados com apoio de IA — 60min",
+              "id": "dia-51-aula-reexecucao-das-aulas-24-a-55-gerar-transformacoes-com-apoio-de-ia-revisar-l",
+              "label": "Aula: Reexecução das aulas 24 a 55 — gerar transformações com apoio de IA, revisar linha a linha e testar resultados — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1783,10 +1807,10 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-51-aula-revisao-das-aulas-42-a-46-gerar-revisar-e-testar-transformacoes-de-dados-co",
-              "label": "Aula: Revisão das aulas 42 a 46 — gerar, revisar e testar transformações de dados com apoio de IA — 60min",
+              "id": "dia-51-aula-reexecucao-das-aulas-24-a-55-gerar-transformacoes-com-apoio-de-ia-revisar-l",
+              "label": "Aula: Reexecução das aulas 24 a 55 — gerar transformações com apoio de IA, revisar linha a linha e testar resultados — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1803,10 +1827,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-52-aula-revisao-das-aulas-58-a-64-analise-exploratoria-para-conferir-classificacao-",
-              "label": "Aula: Revisão das aulas 58 a 64 — análise exploratória para conferir classificação e extração assistidas por IA — 60min",
+              "id": "dia-52-aula-reexecucao-das-aulas-56-a-89-eda-e-visualizacao-para-validar-hipoteses-suge",
+              "label": "Aula: Reexecução das aulas 56 a 89 — EDA e visualização para validar hipóteses sugeridas pela IA — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1818,10 +1842,10 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-52-aula-revisao-das-aulas-58-a-64-analise-exploratoria-para-conferir-classificacao-",
-              "label": "Aula: Revisão das aulas 58 a 64 — análise exploratória para conferir classificação e extração assistidas por IA — 60min",
+              "id": "dia-52-aula-reexecucao-das-aulas-56-a-89-eda-e-visualizacao-para-validar-hipoteses-suge",
+              "label": "Aula: Reexecução das aulas 56 a 89 — EDA e visualização para validar hipóteses sugeridas pela IA — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1838,10 +1862,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-53-atividade-leitura-orientada-tutorial-python-capitulos-6-10-e-12-modulos-dependen",
-              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 6, 10 e 12: módulos, dependências, ambientes e execução — 60min",
+              "id": "dia-53-leitura-tutorial-python-erros-testes-bibliotecas-ambientes-e-organizacao-de-um-p",
+              "label": "Leitura: Tutorial Python — erros, testes, bibliotecas, ambientes e organização de um pacote reproduzível — 180min",
               "kind": "outro",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1853,10 +1877,10 @@
           "url": "https://docs.python.org/pt-br/3/tutorial/",
           "lessons": [
             {
-              "id": "dia-53-atividade-leitura-orientada-tutorial-python-capitulos-6-10-e-12-modulos-dependen",
-              "label": "Atividade: Leitura orientada — Tutorial Python, capítulos 6, 10 e 12: módulos, dependências, ambientes e execução — 60min",
+              "id": "dia-53-leitura-tutorial-python-erros-testes-bibliotecas-ambientes-e-organizacao-de-um-p",
+              "label": "Leitura: Tutorial Python — erros, testes, bibliotecas, ambientes e organização de um pacote reproduzível — 180min",
               "kind": "outro",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1873,10 +1897,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-54-aula-revisao-das-aulas-30-a-46-e-58-a-64-lote-novo-volume-qualidade-e-recuperaca",
-              "label": "Aula: Revisão das aulas 30 a 46 e 58 a 64 — lote novo, volume, qualidade e recuperação — 60min",
+              "id": "dia-54-aula-reexecucao-das-aulas-90-a-121-dashboard-streamlit-e-persistencia-em-banco-c",
+              "label": "Aula: Reexecução das aulas 90 a 121 — dashboard Streamlit e persistência em banco com novo lote de dados — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1888,10 +1912,10 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-54-aula-revisao-das-aulas-30-a-46-e-58-a-64-lote-novo-volume-qualidade-e-recuperaca",
-              "label": "Aula: Revisão das aulas 30 a 46 e 58 a 64 — lote novo, volume, qualidade e recuperação — 60min",
+              "id": "dia-54-aula-reexecucao-das-aulas-90-a-121-dashboard-streamlit-e-persistencia-em-banco-c",
+              "label": "Aula: Reexecução das aulas 90 a 121 — dashboard Streamlit e persistência em banco com novo lote de dados — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1908,10 +1932,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-55-aula-revisao-das-aulas-25-a-64-criterios-do-relatorio-automatizado-entrada-nova-",
-              "label": "Aula: Revisão das aulas 25 a 64 — critérios do relatório automatizado, entrada nova, logs e conferência — 60min",
+              "id": "dia-55-aula-reexecucao-das-aulas-122-a-161-automacao-validacao-recuperacao-de-falhas-e-",
+              "label": "Aula: Reexecução das aulas 122 a 161 — automação, validação, recuperação de falhas e entrega final do pipeline — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -1923,10 +1947,10 @@
           "url": "https://www.udemy.com/course/analise-de-dados-com-python-e-pandas/",
           "lessons": [
             {
-              "id": "dia-55-aula-revisao-das-aulas-25-a-64-criterios-do-relatorio-automatizado-entrada-nova-",
-              "label": "Aula: Revisão das aulas 25 a 64 — critérios do relatório automatizado, entrada nova, logs e conferência — 60min",
+              "id": "dia-55-aula-reexecucao-das-aulas-122-a-161-automacao-validacao-recuperacao-de-falhas-e-",
+              "label": "Aula: Reexecução das aulas 122 a 161 — automação, validação, recuperação de falhas e entrega final do pipeline — 210min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 210
             }
           ]
         }
@@ -1943,10 +1967,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-56-atividade-leitura-orientada-validacao-de-problema-entrevista-hipotese-evidencia-",
-              "label": "Atividade: Leitura orientada — validação de problema, entrevista, hipótese, evidência e viabilidade da oferta — 60min",
+              "id": "dia-56-leitura-validacao-de-negocio-problema-publico-hipotese-evidencia-proposta-escopo",
+              "label": "Leitura: Validação de negócio — problema, público, hipótese, evidência, proposta, escopo, preço e aceite; aplicar ao capstone — 180min",
               "kind": "outro",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1958,10 +1982,10 @@
           "url": "https://blog.rn.sebrae.com.br/como-validar-ideia/",
           "lessons": [
             {
-              "id": "dia-56-atividade-leitura-orientada-validacao-de-problema-entrevista-hipotese-evidencia-",
-              "label": "Atividade: Leitura orientada — validação de problema, entrevista, hipótese, evidência e viabilidade da oferta — 60min",
+              "id": "dia-56-leitura-validacao-de-negocio-problema-publico-hipotese-evidencia-proposta-escopo",
+              "label": "Leitura: Validação de negócio — problema, público, hipótese, evidência, proposta, escopo, preço e aceite; aplicar ao capstone — 180min",
               "kind": "outro",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1978,10 +2002,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-57-aula-revisao-das-aulas-16-a-33-e-50-a-78-escolher-apenas-o-recorte-de-power-bi-n",
-              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — escolher apenas o recorte de Power BI necessário ao capstone — 60min",
+              "id": "dia-57-aula-reexecucao-das-aulas-16-a-78-power-query-modelo-dax-e-calendario-somente-no",
+              "label": "Aula: Reexecução das aulas 16 a 78 — Power Query, modelo, DAX e calendário somente no recorte necessário ao capstone — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -1993,10 +2017,10 @@
           "url": "https://www.udemy.com/course/formacao-power-bi-pro/",
           "lessons": [
             {
-              "id": "dia-57-aula-revisao-das-aulas-16-a-33-e-50-a-78-escolher-apenas-o-recorte-de-power-bi-n",
-              "label": "Aula: Revisão das aulas 16 a 33 e 50 a 78 — escolher apenas o recorte de Power BI necessário ao capstone — 60min",
+              "id": "dia-57-aula-reexecucao-das-aulas-16-a-78-power-query-modelo-dax-e-calendario-somente-no",
+              "label": "Aula: Reexecução das aulas 16 a 78 — Power Query, modelo, DAX e calendário somente no recorte necessário ao capstone — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -2013,10 +2037,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-58-atividade-leitura-orientada-validacao-de-proposta-escopo-aceite-preco-suporte-e-",
-              "label": "Atividade: Leitura orientada — validação de proposta, escopo, aceite, preço, suporte e limites da entrega — 60min",
+              "id": "dia-58-leitura-validacao-de-negocio-confrontar-proposta-custo-risco-limite-evidencia-e-",
+              "label": "Leitura: Validação de negócio — confrontar proposta, custo, risco, limite, evidência e próxima decisão comercial — 180min",
               "kind": "outro",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -2028,10 +2052,10 @@
           "url": "https://blog.rn.sebrae.com.br/como-validar-ideia/",
           "lessons": [
             {
-              "id": "dia-58-atividade-leitura-orientada-validacao-de-proposta-escopo-aceite-preco-suporte-e-",
-              "label": "Atividade: Leitura orientada — validação de proposta, escopo, aceite, preço, suporte e limites da entrega — 60min",
+              "id": "dia-58-leitura-validacao-de-negocio-confrontar-proposta-custo-risco-limite-evidencia-e-",
+              "label": "Leitura: Validação de negócio — confrontar proposta, custo, risco, limite, evidência e próxima decisão comercial — 180min",
               "kind": "outro",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -2048,10 +2072,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-59-aula-revisao-das-aulas-19-a-75-perguntas-tecnicas-de-sql-e-explicacao-das-deciso",
-              "label": "Aula: Revisão das aulas 19 a 75 — perguntas técnicas de SQL e explicação das decisões do projeto — 60min",
+              "id": "dia-59-aula-revisao-das-aulas-1-a-80-sql-completo-do-capstone-perguntas-tecnicas-e-just",
+              "label": "Aula: Revisão das aulas 1 a 80 — SQL completo do capstone, perguntas técnicas e justificativa de cada decisão — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -2063,10 +2087,10 @@
           "url": "https://www.udemy.com/course/curso-completo-sql-para-analise-de-dados/",
           "lessons": [
             {
-              "id": "dia-59-aula-revisao-das-aulas-19-a-75-perguntas-tecnicas-de-sql-e-explicacao-das-deciso",
-              "label": "Aula: Revisão das aulas 19 a 75 — perguntas técnicas de SQL e explicação das decisões do projeto — 60min",
+              "id": "dia-59-aula-revisao-das-aulas-1-a-80-sql-completo-do-capstone-perguntas-tecnicas-e-just",
+              "label": "Aula: Revisão das aulas 1 a 80 — SQL completo do capstone, perguntas técnicas e justificativa de cada decisão — 180min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -2083,10 +2107,10 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-60-atividade-leitura-orientada-validacao-final-evidencias-lacunas-oferta-inicial-e-",
-              "label": "Atividade: Leitura orientada — validação final: evidências, lacunas, oferta inicial e próxima etapa — 60min",
+              "id": "dia-60-leitura-validacao-de-negocio-demonstracao-final-proposta-delimitada-criterios-de",
+              "label": "Leitura: Validação de negócio — demonstração final, proposta delimitada, critérios de aceite, portfólio e plano de candidatura/prospecção — 180min",
               "kind": "outro",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
@@ -2098,10 +2122,10 @@
           "url": "https://blog.rn.sebrae.com.br/como-validar-ideia/",
           "lessons": [
             {
-              "id": "dia-60-atividade-leitura-orientada-validacao-final-evidencias-lacunas-oferta-inicial-e-",
-              "label": "Atividade: Leitura orientada — validação final: evidências, lacunas, oferta inicial e próxima etapa — 60min",
+              "id": "dia-60-leitura-validacao-de-negocio-demonstracao-final-proposta-delimitada-criterios-de",
+              "label": "Leitura: Validação de negócio — demonstração final, proposta delimitada, critérios de aceite, portfólio e plano de candidatura/prospecção — 180min",
               "kind": "outro",
-              "durationMinutes": 60
+              "durationMinutes": 180
             }
           ]
         }
