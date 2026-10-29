@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-29T00:47:01.471Z",
+  "generatedAt": "2026-10-29T01:06:17.516Z",
   "sourcePath": "DataScience/01 - Roadmap/roadmap-servicos-diario.md",
   "period": {
     "start": "2026-10-28",
@@ -88,20 +88,14 @@
           "title": "Data Science",
           "tasks": [
             {
-              "id": "dia-03-aula-aulas-34-a-43-e-52-a-56-validacao-protecao-funcoes-de-texto-datas-e-tratame",
-              "label": "Aula: Aulas 34 a 43 e 52 a 56 — validação; proteção; funções de texto; datas e tratamento de campos — 60min",
+              "id": "dia-03-aula-aulas-34-a-51-validacao-protecao-funcoes-de-texto-e-data-funcoes-logicas-e-",
+              "label": "Aula: Aulas 34 a 51 — validação; proteção; funções de texto e data; funções lógicas E/OU/SE; exercício e correção — 120min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 120
             },
             {
-              "id": "dia-03-aula-aulas-44-a-51-datas-funcoes-logicas-e-ou-se-exercicio-e-correcao-60min",
-              "label": "Aula: Aulas 44 a 51 — datas, funções lógicas E/OU/SE, exercício e correção — 60min",
-              "kind": "aula",
-              "durationMinutes": 60
-            },
-            {
-              "id": "dia-03-aula-aulas-57-a-64-e-74-a-76-formulas-matematicas-e-estatisticas-filtros-avancad",
-              "label": "Aula: Aulas 57 a 64 e 74 a 76 — fórmulas matemáticas e estatísticas; filtros avançados; tabelas e segmentação — 90min",
+              "id": "dia-03-aula-aulas-52-a-64-e-74-a-76-tratamento-de-campos-formulas-matematicas-e-estatis",
+              "label": "Aula: Aulas 52 a 64 e 74 a 76 — tratamento de campos; fórmulas matemáticas e estatísticas; filtros avançados; tabelas e segmentação — 90min",
               "kind": "aula",
               "durationMinutes": 90
             }
@@ -115,20 +109,14 @@
           "url": "https://www.udemy.com/course/excel-curso-completo/",
           "lessons": [
             {
-              "id": "dia-03-aula-aulas-34-a-43-e-52-a-56-validacao-protecao-funcoes-de-texto-datas-e-tratame",
-              "label": "Aula: Aulas 34 a 43 e 52 a 56 — validação; proteção; funções de texto; datas e tratamento de campos — 60min",
+              "id": "dia-03-aula-aulas-34-a-51-validacao-protecao-funcoes-de-texto-e-data-funcoes-logicas-e-",
+              "label": "Aula: Aulas 34 a 51 — validação; proteção; funções de texto e data; funções lógicas E/OU/SE; exercício e correção — 120min",
               "kind": "aula",
-              "durationMinutes": 60
+              "durationMinutes": 120
             },
             {
-              "id": "dia-03-aula-aulas-44-a-51-datas-funcoes-logicas-e-ou-se-exercicio-e-correcao-60min",
-              "label": "Aula: Aulas 44 a 51 — datas, funções lógicas E/OU/SE, exercício e correção — 60min",
-              "kind": "aula",
-              "durationMinutes": 60
-            },
-            {
-              "id": "dia-03-aula-aulas-57-a-64-e-74-a-76-formulas-matematicas-e-estatisticas-filtros-avancad",
-              "label": "Aula: Aulas 57 a 64 e 74 a 76 — fórmulas matemáticas e estatísticas; filtros avançados; tabelas e segmentação — 90min",
+              "id": "dia-03-aula-aulas-52-a-64-e-74-a-76-tratamento-de-campos-formulas-matematicas-e-estatis",
+              "label": "Aula: Aulas 52 a 64 e 74 a 76 — tratamento de campos; fórmulas matemáticas e estatísticas; filtros avançados; tabelas e segmentação — 90min",
               "kind": "aula",
               "durationMinutes": 90
             }
