@@ -1,5 +1,33 @@
 # Estado atual resumido
 
+## DataScience — novo roadmap completo em prévia local (29/10/2026)
+
+- A branch local `feat/datascience-roadmap-v2` substitui o plano anterior de
+  60 dias por uma trilha de Ciência de Dados + IA dividida em três prioridades:
+  fundamentos indispensáveis, competências próximas do nível pleno e
+  especialização em IA.
+- O calendário recalculado pela grade real possui 84 dias úteis e cerca de
+  350,7 horas planejadas, de 03/11/2026 a 03/03/2027, sem sábados, domingos ou
+  feriados oficiais cadastrados. Cada tarefa agora usa literalmente o nome da
+  aula; quando o recorte é uma seção completa, exibe `Módulo inteiro` e o nome
+  oficial. Apenas durações não publicadas aparecem como estimativas.
+- A Prioridade 1 inclui também 23 aulas selecionadas de `Análise e Levantamento
+  de Requisitos de Software`, distribuídas nos dias 14 e 15, cobrindo
+  introdução, elicitação, documentação, comunicação e estudos de caso.
+- O roadmap possui 29 marcos de competências para o LinkedIn. Cada aviso só
+  aparece após o conjunto de aulas que sustenta a habilidade, tanto no próprio
+  dia quanto em um painel consolidado com confirmação e cópia do nome.
+- Foram selecionados e preparados seis projetos progressivos: diagnóstico de
+  atendimento, painel de estoque, risco de crédito, previsão de atendimento,
+  API de churn e inteligência de avaliações. As páginas locais referenciam 29
+  arquivos sintéticos validados, com 22.148 linhas CSV no total.
+- O registro de foco deixou de aparecer nessa nova página. Progresso e marcos
+  de carreira usam armazenamento local somente na prévia de desenvolvimento;
+  o acesso local é liberado exclusivamente quando
+  `EVOLUTION_LOCAL_PREVIEW=true`, sem alterar a autenticação de Production.
+- Estado: implementação e validação local concluídas; nenhuma publicação,
+  migration ou escrita em Production foi realizada.
+
 Última verificação: **20/10/2026 14:51, America/Sao_Paulo**.
 
 Em 20/10/2026, foi iniciada a memória própria de marca e comunicação em

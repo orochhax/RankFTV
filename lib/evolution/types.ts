@@ -56,6 +56,7 @@ export type RoadmapCourse = {
   title: string;
   url: string;
   lessons: RoadmapTask[];
+  durationSource?: "catalogo" | "estimativa";
 };
 
 export type RoadmapDay = {
@@ -66,6 +67,11 @@ export type RoadmapDay = {
   plannedMinutes: number;
   sections: Array<{ title: string; tasks: RoadmapTask[] }>;
   courses: RoadmapCourse[];
+  phaseId?: string;
+  phaseTitle?: string;
+  kind?: "study" | "project" | "linkedin" | "holiday";
+  projectSlug?: string;
+  note?: string;
 };
 
 export type RoadmapSnapshot = {
@@ -74,6 +80,11 @@ export type RoadmapSnapshot = {
   period: { start: string; end: string };
   totalBusinessDays: number;
   days: RoadmapDay[];
+  totalPlannedMinutes?: number;
+  phases?: Array<{ id: string; title: string; priority: string; description: string; start: string; end: string; days: number }>;
+  holidays?: Array<{ date: string; name: string; scope: "nacional" | "estadual" | "municipal" }>;
+  careerMilestones?: Array<{ id: string; afterDay: number; title: string; rationale: string; linkedinTitle: string }>;
+  linkedinSkillMilestones?: Array<{ id: string; afterDay: number; skill: string; evidence: string }>;
 };
 
 export type RankPendingItem = {

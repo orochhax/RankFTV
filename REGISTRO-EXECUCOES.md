@@ -1291,3 +1291,37 @@ registrar apenas uma revalidação quando ela for necessária.
 - Validação local: snapshot com 60 dias e 62 tarefas; IDs concluídos preservados;
   typecheck, lint sem erros e build de produção aprovados. A suíte completa não
   iniciou por limitação de memória do Windows (`uv_os_get_passwd/ENOMEM`).
+
+## 2026-10-29 09:52 -03:00 — DataScience: roadmap completo e seis projetos aprovados
+
+- Implementada em `feat/datascience-roadmap-v2` a prévia local do novo roadmap
+  de Ciência de Dados + IA: 83 dias úteis, cerca de 345,6 horas, três prioridades e seis
+  marcos de portfólio escolhidos por Carlos (1C, 2B, 3B, 4C, 5A e 6B).
+- O plano anterior de 60 dias foi retirado da página nova, assim como o registro
+  visual de foco. O calendário não contém finais de semana, dias abaixo de
+  quatro horas ou atividades de inglês.
+- Por decisão de Carlos, o Dia 01 foi deslocado para terça-feira, 03/11/2026;
+  todas as datas seguintes foram recalculadas.
+- Após Carlos confirmar acesso, foram adicionadas as 23 aulas exatas dos seis
+  módulos selecionados de `Análise e Levantamento de Requisitos de Software —
+  Wesley Ávila`. O curso ficou nos dias 14 e 15, antes do primeiro projeto de
+  atendimento; o plano passou a 84 dias, cerca de 350,7 horas e término em
+  03/03/2027.
+- Adicionados 29 marcos de competências para atualização progressiva do
+  LinkedIn. O aviso é exibido no dia em que a evidência curricular é concluída
+  e também em um painel consolidado; títulos profissionais e competências
+  permanecem fluxos separados.
+- A grade deixou de usar temas inventados e blocos genéricos: aulas individuais
+  exibem os títulos literais cadastrados e seções completas exibem `Módulo inteiro`
+  seguido do nome oficial do módulo da Udemy.
+- Foram geradas páginas completas para diagnóstico de atendimento, painel de
+  estoque, risco de crédito, previsão de atendimento, API de churn e
+  inteligência de avaliações. Os 29 arquivos sintéticos somam 22.148 linhas
+  CSV, passaram no validador e todos os downloads responderam HTTP 200.
+- Acesso sem Turnstile foi habilitado apenas no localhost e depende de
+  `EVOLUTION_LOCAL_PREVIEW=true`; Production continua usando o login normal.
+- Evidência observada: typecheck, lint, `git diff --check`, validação dos dados,
+  sete rotas locais HTTP 200 e build Next.js completo com 78 páginas passaram.
+  A suíte Node permanece impedida pelo erro ambiental
+  `uv_os_get_passwd/ENOMEM`, inclusive com concorrência 1, antes de carregar os
+  arquivos de teste. Nenhum deploy, migration ou escrita remota foi executado.

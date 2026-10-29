@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "request": {
+    "plano": "string",
+    "meses_cliente": "integer",
+    "logins_30d": "integer",
+    "dias_ativos_30d": "integer"
+  },
+  "response": {
+    "risco": "number 0..1",
+    "faixa": "baixa|media|alta",
+    "model_version": "string"
+  }
+}

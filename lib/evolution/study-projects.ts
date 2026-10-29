@@ -1,78 +1,118 @@
 export type StudyProject = {
-  slug: string;
-  date: string;
-  title: string;
-  summary: string;
-  scenario: string;
-  objective: string;
-  tools: string[];
+  slug: string; code: string; date: string; title: string; summary: string;
+  scenario: string; objective: string; tools: string[]; skills: string[];
   downloads: Array<{ label: string; description: string; href: string }>;
   steps: Array<{ title: string; items: string[] }>;
-  deliverables: string[];
-  acceptance: string[];
-  linkedin: string[];
+  deliverables: string[]; acceptance: string[]; linkedin: string[];
 };
+
+const download = (slug: string, label: string, description: string) => ({
+  label, description, href: `/evolution/datascience-projects/${slug}/${label}`,
+});
 
 export const studyProjects: StudyProject[] = [
   {
-    slug: "painel-vendas",
-    date: "30/11/2026",
-    title: "Painel de vendas para pequena empresa",
-    summary: "Limpar e reconciliar pedidos, clientes e pagamentos antes de construir um painel útil no Power BI.",
-    scenario: "Uma pequena empresa registra vendas em arquivos separados e não confia nos totais. A base contém datas em formatos diferentes, chaves sem correspondência, categorias inconsistentes, duplicidades e pagamentos incompletos.",
-    objective: "Entregar uma visão confiável de receita, pedidos, ticket, inadimplência, canais e categorias, mantendo a origem preservada e todas as regras documentadas.",
-    tools: ["Excel", "Power Query", "Power BI Desktop", "README em Markdown"],
-    downloads: [{ label: "Baixar base fictícia completa (.xlsx)", description: "Pedidos, clientes, pagamentos e dicionário de dados em abas separadas e propositalmente bagunçadas.", href: "/evolution/datascience-projects/painel-vendas/base-ficticia-completa.xlsx" }],
+    slug: "diagnostico-atendimento", code: "1C", date: "Marco 1 · Fundamentos", title: "Diagnóstico de atendimento ao cliente",
+    summary: "Transforme tickets bagunçados em um diagnóstico confiável de volume, tempo, satisfação e retrabalho.",
+    scenario: "Uma empresa recebe reclamações por vários canais e não sabe por que o tempo de resolução aumentou. As bases têm duplicidades, categorias inconsistentes, horários ausentes e avaliações sem vínculo.",
+    objective: "Preservar os dados brutos, documentar qualidade, criar indicadores auditáveis e recomendar uma próxima decisão sem inventar causalidade.",
+    tools: ["Python/Pandas", "SQL", "Excel ou Power BI", "Git e Markdown"], skills: ["Limpeza", "JOINs", "EDA", "Indicadores", "Comunicação"],
+    downloads: [download("diagnostico-atendimento", "tickets.csv", "Chamados com erros intencionais."), download("diagnostico-atendimento", "clientes.csv", "Clientes e segmentos."), download("diagnostico-atendimento", "agentes.csv", "Equipe, turno e experiência."), download("diagnostico-atendimento", "avaliacoes.csv", "Satisfação vinculada aos chamados."), download("diagnostico-atendimento", "dicionario.csv", "Campos, tipos e regras.")],
     steps: [
-      { title: "1. Diagnosticar", items: ["Preservar as abas raw e criar uma cópia de trabalho.", "Definir o que representa cada linha e cada chave.", "Listar problemas de qualidade sem corrigir silenciosamente."] },
-      { title: "2. Tratar e reconciliar", items: ["Padronizar texto, datas, categorias e valores.", "Separar rejeitados e justificar duplicidades.", "Conferir contagens e totais antes e depois de cada transformação."] },
-      { title: "3. Modelar e medir", items: ["Criar fato e dimensões sem multiplicar pagamentos.", "Criar medidas de vendas válidas, pedidos, ticket e valores recebidos.", "Testar medidas com casos calculados manualmente."] },
-      { title: "4. Construir e entregar", items: ["Montar uma página executiva e uma de detalhe.", "Atualizar o painel após alterar a base e registrar o procedimento.", "Escrever README com problema, método, achados e limites."] },
+      { title: "1. Entender e preservar", items: ["Guardar arquivos raw sem edição.", "Definir granularidade e chaves.", "Registrar perguntas e aceite."] },
+      { title: "2. Diagnosticar", items: ["Medir nulos, duplicidades e chaves órfãs.", "Criar rejeitados.", "Documentar cada regra."] },
+      { title: "3. Analisar", items: ["Calcular volume, primeira resposta, resolução e satisfação.", "Comparar canal e categoria.", "Separar fato de hipótese."] },
+      { title: "4. Entregar", items: ["Criar relatório curto.", "Mostrar limitações.", "Publicar números reconciliados."] },
     ],
-    deliverables: ["Arquivo PBIX", "Planilha de reconciliação", "Tabela de rejeitados", "README do projeto", "PDF ou imagens do painel"],
-    acceptance: ["Totais do painel batem com a reconciliação.", "Base original permanece intacta.", "Filtros não alteram indevidamente o denominador.", "Uma segunda carga é processada sem refazer tudo manualmente."],
-    linkedin: ["Problema da empresa fictícia", "Duas falhas encontradas na base", "Uma decisão apoiada pelo painel", "Captura do antes/depois", "Link do repositório e aviso de dados sintéticos"],
+    deliverables: ["Script reproduzível", "Base tratada e rejeitados", "Dicionário", "Painel ou relatório", "README"],
+    acceptance: ["Originais intactos.", "Indicadores definidos.", "JOINs não multiplicam chamados.", "Recomendações apontam para evidências."],
+    linkedin: ["Problema fictício", "Erros que mudavam a leitura", "Indicador e decisão", "Aviso de dados sintéticos"],
   },
   {
-    slug: "pipeline-sql-python",
-    date: "31/12/2026",
-    title: "Pipeline de análise de vendas com SQL e Python",
-    summary: "Unificar arquivos com schema diferente, validar os dados, consultar com SQL e gerar saídas reproduzíveis.",
-    scenario: "A empresa recebe um arquivo mensal de vendas. Em novembro, os nomes das colunas mudaram e alguns registros chegaram inválidos. O processo precisa falhar com clareza, preservar o bruto e continuar reproduzível.",
-    objective: "Criar um pipeline local que lê os arquivos, padroniza o schema, registra rejeições, carrega uma base SQL e exporta indicadores conferidos.",
-    tools: ["Python", "Pandas", "SQLite ou BigQuery gratuito", "SQL", "Git"],
-    downloads: [{ label: "Baixar base fictícia completa (.xlsx)", description: "Três meses de vendas, clientes, produtos, mudança de schema e critérios de aceite.", href: "/evolution/datascience-projects/pipeline-sql-python/base-ficticia-completa.xlsx" }],
+    slug: "painel-estoque", code: "2B", date: "Marco 2 · BI", title: "Painel de estoque e risco de ruptura",
+    summary: "Unifique vendas, movimentos e compras para encontrar risco de falta e capital parado.",
+    scenario: "Uma distribuidora controla estoque em arquivos separados. Saldos não batem e pedidos atrasam.",
+    objective: "Construir modelo dimensional e painel que reconciliem saldo, giro, cobertura, ruptura e compras em trânsito.",
+    tools: ["Power Query", "Power BI", "SQL", "Excel"], skills: ["ETL", "Modelagem dimensional", "DAX", "Reconciliação"],
+    downloads: [download("painel-estoque", "produtos.csv", "SKUs, custos e lead time."), download("painel-estoque", "movimentacoes.csv", "Entradas, saídas e ajustes."), download("painel-estoque", "vendas.csv", "Demanda diária."), download("painel-estoque", "pedidos_compra.csv", "Pedidos e previsão de chegada."), download("painel-estoque", "filiais.csv", "Filiais e regiões.")],
     steps: [
-      { title: "1. Definir contrato", items: ["Documentar colunas, tipos, chaves e regras de negócio.", "Criar pastas raw, staging, output e logs.", "Definir quais erros rejeitam a linha e quais apenas geram alerta."] },
-      { title: "2. Construir em Python", items: ["Ler todos os meses sem alterar os arquivos originais.", "Normalizar o schema de novembro.", "Validar datas, números, chaves e status; exportar rejeitados."] },
-      { title: "3. Consultar com SQL", items: ["Carregar tabelas tratadas em banco local ou ambiente gratuito.", "Criar consultas de receita, recorrência, cancelamento e desempenho mensal.", "Usar contagens de controle antes e depois dos JOINs."] },
-      { title: "4. Testar e documentar", items: ["Executar o pipeline em uma pasta nova.", "Criar casos conhecidos que passam e falham.", "Documentar um comando de execução e as saídas geradas."] },
+      { title: "1. Reconciliar", items: ["Calcular saldo por movimentos.", "Separar ajustes inválidos.", "Validar chaves."] },
+      { title: "2. Modelar", items: ["Criar fatos e dimensões.", "Definir calendário.", "Evitar relações ambíguas."] },
+      { title: "3. Medir", items: ["Calcular giro, cobertura e ruptura.", "Definir risco com demanda e lead time.", "Testar manualmente."] },
+      { title: "4. Entregar", items: ["Criar visão executiva e operacional.", "Documentar atualização.", "Apontar prioridades."] },
     ],
-    deliverables: ["Código Python organizado", "Scripts SQL", "Banco ou tabelas processadas", "Arquivo de rejeitados", "Resultados CSV/XLSX", "README de execução"],
-    acceptance: ["Uma execução limpa não depende de passos manuais ocultos.", "Arquivos brutos ficam intactos.", "Mudança de schema é identificada e tratada.", "Junções preservam a granularidade e os totais.", "Erro deliberado faz o teste falhar."],
-    linkedin: ["Arquitetura simples do pipeline", "Problema de schema resolvido", "Teste que evitou um resultado errado", "Indicador final", "Link do código e declaração de dados fictícios"],
+    deliverables: ["PBIX", "Modelo documentado", "Reconciliação", "Dicionário de medidas", "README"],
+    acceptance: ["Saldo fecha.", "Filtros preservam denominadores.", "Risco é reproduzível.", "Nova carga atualiza sem retrabalho."],
+    linkedin: ["Pergunta de negócio", "Saldo versus disponibilidade", "SKU fictício e ação", "Modelo e painel"],
   },
   {
-    slug: "consultoria-dados",
-    date: "25/01/2027",
-    title: "Consultoria completa de dados para empresa fictícia",
-    summary: "Executar o ciclo inteiro: diagnóstico, preparação, SQL, Python, Power BI, relatório executivo e proposta.",
-    scenario: "A Casa Aurora percebe crescimento da receita, mas caixa e estoque não acompanham. Os dados de pedidos, itens, pagamentos, estoque e marketing têm inconsistências e não sustentam uma decisão sem tratamento.",
-    objective: "Simular um atendimento profissional e honesto, escolhendo uma decisão prioritária, construindo a análise necessária e entregando uma recomendação com evidências e limites.",
-    tools: ["Excel", "SQL", "Python/Pandas", "Power BI", "Git", "Documento ou PDF executivo"],
-    downloads: [{ label: "Baixar caso fictício completo (.xlsx)", description: "Briefing, pedidos, itens, pagamentos, estoque e marketing com problemas intencionais.", href: "/evolution/datascience-projects/consultoria-dados/base-ficticia-completa.xlsx" }],
+    slug: "risco-credito", code: "3B", date: "Marco 3 · Machine Learning", title: "Previsão de inadimplência e risco de crédito",
+    summary: "Compare baselines e modelos sem esconder desbalanceamento, custo de erro ou risco de discriminação.",
+    scenario: "Uma fintech fictícia quer priorizar análise manual. O alvo é desbalanceado e alguns atributos podem criar decisões injustas.",
+    objective: "Criar modelo explicável, escolher limiar conforme custo e documentar limites, vieses e uso permitido.",
+    tools: ["Python", "Pandas", "scikit-learn", "SQL"], skills: ["Classificação", "Validação", "Feature engineering", "Explicabilidade"],
+    downloads: [download("risco-credito", "solicitantes.csv", "Perfil sintético."), download("risco-credito", "contratos.csv", "Valores, prazo e produto."), download("risco-credito", "historico_pagamentos.csv", "Pagamentos e atrasos."), download("risco-credito", "alvo_inadimplencia.csv", "Rótulo futuro separado."), download("risco-credito", "dicionario.csv", "Campos e alertas de leakage.")],
     steps: [
-      { title: "1. Descoberta e escopo", items: ["Ler o briefing e escolher uma decisão principal.", "Escrever perguntas, hipóteses, entregas, fora de escopo e critérios de aceite.", "Avaliar a amostra antes de prometer solução."] },
-      { title: "2. Diagnóstico e preparação", items: ["Criar dicionário e relatório de qualidade.", "Tratar os dados preservando original, rejeitados e trilha de regras.", "Reconciliar pedidos, itens, pagamentos e estoque."] },
-      { title: "3. Análise integrada", items: ["Usar SQL para consultas verificáveis.", "Usar Python para rotina reproduzível e testes.", "Construir painel apenas com métricas conferidas."] },
-      { title: "4. Recomendação e entrega", items: ["Separar fato observado, hipótese e recomendação.", "Produzir relatório executivo com próximos passos.", "Simular reunião, mudança de requisito, proposta e suporte."] },
+      { title: "1. Definir", items: ["Fixar janelas de observação e alvo.", "Definir custo de erros.", "Remover vazamento futuro."] },
+      { title: "2. Criar baseline", items: ["Separar treino, validação e teste por tempo.", "Construir regra simples.", "Medir desbalanceamento."] },
+      { title: "3. Modelar", items: ["Comparar logística e árvore.", "Escolher limiar por custo.", "Analisar erros por grupo."] },
+      { title: "4. Documentar", items: ["Criar model card.", "Explicar revisão humana.", "Registrar drift esperado."] },
     ],
-    deliverables: ["Briefing preenchido", "Diagnóstico de qualidade", "Base tratada e rejeitados", "SQL e código Python", "Painel PBIX", "Relatório executivo", "Proposta com escopo e aceite"],
-    acceptance: ["Toda recomendação aponta para uma evidência reproduzível.", "Custos, limitações e simulação estão explícitos.", "A solução pode receber nova entrada.", "Outra pessoa consegue executar pelo manual.", "O projeto não inventa cliente, faturamento ou resultado real."],
-    linkedin: ["Contexto da Casa Aurora como empresa fictícia", "Decisão escolhida", "Método e ferramentas", "Achado principal e limite", "Capturas das entregas", "O que você faria em uma próxima versão"],
+    deliverables: ["Pipeline", "Relatório de validação", "Matriz de custo", "Model card", "README"],
+    acceptance: ["Teste isolado.", "Sem leakage.", "Limiar justificado.", "Limites éticos explícitos."],
+    linkedin: ["Baseline versus modelo", "Por que acurácia engana", "Escolha do limiar", "Uso responsável"],
+  },
+  {
+    slug: "previsao-atendimento", code: "4C", date: "Marco 4 · Séries temporais", title: "Previsão de volume e dimensionamento de atendimento",
+    summary: "Preveja demanda diária e converta intervalos em uma recomendação operacional de equipe.",
+    scenario: "O atendimento oscila por dia, campanhas e feriados. A liderança escala pessoas pela média.",
+    objective: "Validar forecast temporal, quantificar incerteza e sugerir capacidade por cenário.",
+    tools: ["Python", "Pandas", "statsmodels ou Prophet", "Power BI opcional"], skills: ["Séries temporais", "Backtesting", "Forecast", "Capacidade"],
+    downloads: [download("previsao-atendimento", "volume_diario.csv", "Histórico diário."), download("previsao-atendimento", "calendario_eventos.csv", "Feriados e campanhas."), download("previsao-atendimento", "capacidade_equipe.csv", "Escala e produtividade.")],
+    steps: [
+      { title: "1. Explorar", items: ["Verificar lacunas e frequência.", "Analisar tendência e sazonalidade.", "Criar baseline sazonal."] },
+      { title: "2. Validar", items: ["Usar janelas temporais.", "Comparar erro por período.", "Guardar teste final."] },
+      { title: "3. Dimensionar", items: ["Converter volume em carga.", "Criar cenários.", "Explicitar produtividade."] },
+      { title: "4. Entregar", items: ["Mostrar previsão e intervalo.", "Definir reavaliação.", "Separar previsão de decisão."] },
+    ],
+    deliverables: ["Notebook", "Backtesting", "Previsão", "Cenários de capacidade", "README"],
+    acceptance: ["Validação temporal.", "Baseline comparado.", "Intervalos presentes.", "Premissas auditáveis."],
+    linkedin: ["Por que a média falha", "Baseline versus modelo", "Incerteza", "Decisão operacional"],
+  },
+  {
+    slug: "api-churn", code: "5A", date: "Marco 5 · API e produção", title: "API de decisão para risco de churn",
+    summary: "Transforme um modelo de churn em API testável, documentada e segura.",
+    scenario: "Uma empresa de assinatura quer priorizar contato sem executar notebooks nem receber uma caixa-preta instável.",
+    objective: "Treinar modelo simples, publicar inferência via FastAPI e criar contrato, testes, logs e limites.",
+    tools: ["Python", "scikit-learn", "FastAPI", "Pytest", "Docker"], skills: ["API", "Contrato", "Testes", "Empacotamento"],
+    downloads: [download("api-churn", "clientes.csv", "Clientes sintéticos."), download("api-churn", "assinaturas.csv", "Planos e status."), download("api-churn", "uso_mensal.csv", "Atividade mensal."), download("api-churn", "alvo_churn.csv", "Cancelamento futuro."), download("api-churn", "contrato_api.json", "Tipos e respostas."), download("api-churn", "casos_teste.json", "Entradas e erros esperados.")],
+    steps: [
+      { title: "1. Modelar", items: ["Definir alvo temporal.", "Criar pipeline e baseline.", "Versionar artefato."] },
+      { title: "2. Criar API", items: ["Implementar health e predict.", "Validar schemas.", "Retornar risco e versão."] },
+      { title: "3. Testar", items: ["Testar contrato e bordas.", "Testar modelo.", "Não expor dados sensíveis."] },
+      { title: "4. Operar", items: ["Criar Dockerfile.", "Registrar latência e erros.", "Definir drift e rollback."] },
+    ],
+    deliverables: ["API", "Modelo versionado", "Testes", "Dockerfile", "OpenAPI", "README"],
+    acceptance: ["Entradas inválidas são rejeitadas.", "Testes rodam limpos.", "Versão é registrada.", "Documentação permite consumo."],
+    linkedin: ["Notebook para serviço", "Contrato e testes", "O que a API não decide", "Chamada fictícia"],
+  },
+  {
+    slug: "inteligencia-avaliacoes", code: "6B", date: "Marco 6 · IA aplicada", title: "Inteligência de avaliações de clientes",
+    summary: "Classifique reclamações, descubra temas e produza relatório verificável sem entregar decisões a um LLM.",
+    scenario: "Uma empresa recebe milhares de avaliações. Resumos genéricos escondem frequência, exemplos e mudança no tempo.",
+    objective: "Criar pipeline híbrido de NLP/LLM que categorize temas, avalie qualidade e preserve rastreabilidade.",
+    tools: ["Python", "Pandas", "NLP/embeddings", "LLM opcional", "FastAPI opcional"], skills: ["NLP", "Taxonomia", "Avaliação", "RAG"],
+    downloads: [download("inteligencia-avaliacoes", "avaliacoes.csv", "Notas e textos sintéticos."), download("inteligencia-avaliacoes", "produtos.csv", "Catálogo."), download("inteligencia-avaliacoes", "taxonomia.csv", "Temas e critérios."), download("inteligencia-avaliacoes", "amostra_anotada.csv", "Referência para avaliação."), download("inteligencia-avaliacoes", "casos_avaliacao.json", "Casos difíceis.")],
+    steps: [
+      { title: "1. Taxonomia", items: ["Criar temas úteis.", "Permitir múltiplos temas e desconhecido.", "Escrever critérios."] },
+      { title: "2. Baseline", items: ["Criar regra ou classificador simples.", "Medir qualidade por tema.", "Mapear ambiguidades."] },
+      { title: "3. IA controlada", items: ["Usar embeddings ou LLM onde agregam.", "Versionar prompt e modelo.", "Medir custo e latência."] },
+      { title: "4. Relatar", items: ["Mostrar frequência e exemplos.", "Impedir evidência inventada.", "Documentar revisão humana."] },
+    ],
+    deliverables: ["Pipeline", "Taxonomia", "Avaliação", "Relatório rastreável", "README e model card"],
+    acceptance: ["Relatório aponta para textos.", "Existe desconhecido.", "Teste separado.", "Custos e versões registrados."],
+    linkedin: ["Problema de escala", "Baseline versus IA", "Falha encontrada", "Rastreabilidade"],
   },
 ];
 
-export function getStudyProject(slug: string) {
-  return studyProjects.find((project) => project.slug === slug);
-}
+export function getStudyProject(slug: string) { return studyProjects.find((project) => project.slug === slug); }

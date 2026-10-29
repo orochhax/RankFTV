@@ -1,0 +1,1201 @@
+avaliacao_id,data,produto_id,nota,texto
+R000001,2026-04-26,P21,5,Suporte resolveu no mesmo dia
+R000002,2026-01-30,P15,3,O recurso trava no celular
+R000003,2026-05-29,P03,3,O recurso trava no celular
+R000004,2025-07-04,P12,4,A entrega foi rápida
+R000005,2025-09-15,P17,1,Não consegui acessar minha conta
+R000006,2025-11-19,P05,5,Produto fácil de usar
+R000007,2026-06-20,P14,5,Suporte resolveu no mesmo dia
+R000008,2025-11-05,P10,3,Preço aumentou sem explicação
+R000009,2025-02-03,P19,4,A entrega foi rápida
+R000010,2025-07-21,P14,3,Cancelamento foi confuso
+R000011,2025-08-02,P17,5,Suporte resolveu no mesmo dia
+R000012,2026-06-07,P24,2,Cancelamento foi confuso
+R000013,2026-05-26,P25,2,Cancelamento foi confuso
+R000014,2025-09-03,P24,2,Cancelamento foi confuso
+R000015,2025-01-13,P02,4,Gostei da qualidade
+R000016,2025-03-15,P04,4,Gostei da qualidade
+R000017,2025-08-25,P03,1,Não consegui acessar minha conta
+R000018,2025-07-26,P25,5,Gostei da qualidade
+R000019,2026-08-08,P18,2,Cobrança veio duplicada
+R000020,2026-01-27,P20,1,Preço aumentou sem explicação
+R000021,2025-10-17,P03,1,Não consegui acessar minha conta
+R000022,2026-04-09,P13,5,Produto fácil de usar
+R000023,2025-09-10,P19,5,Produto fácil de usar
+R000024,2025-06-25,P25,5,Gostei da qualidade
+R000025,2026-07-15,P21,5,Suporte resolveu no mesmo dia
+R000026,2025-04-20,P22,4,Suporte resolveu no mesmo dia
+R000027,2025-10-28,P24,2,Cancelamento foi confuso
+R000028,2025-03-25,P21,1,Preço aumentou sem explicação
+R000029,2025-09-07,P16,2,Cobrança veio duplicada
+R000030,2026-03-15,P17,3,Não consegui acessar minha conta
+R000031,2025-03-05,P07,4,Gostei da qualidade
+R000032,2025-08-06,P20,3,Não consegui acessar minha conta
+R000033,2025-05-26,P19,1,Cancelamento foi confuso
+R000034,2025-02-02,P06,1,Cancelamento foi confuso
+R000035,2026-02-13,P13,5,Gostei da qualidade
+R000036,2025-01-14,P11,5,Gostei da qualidade
+R000037,2025-04-28,P03,2,O recurso trava no celular
+R000038,2025-02-21,P07,3,Cancelamento foi confuso
+R000039,2025-01-29,P17,4,Gostei da qualidade
+R000040,2026-06-10,P24,2,Cancelamento foi confuso
+R000041,2025-07-23,P15,2,Não consegui acessar minha conta
+R000042,2026-06-03,P08,1,Cancelamento foi confuso
+R000043,2025-05-06,P21,5,Produto fácil de usar
+R000044,2025-04-28,P18,1,Cancelamento foi confuso
+R000045,2026-05-08,P23,3,Preço aumentou sem explicação
+R000046,2025-07-27,P10,4,A entrega foi rápida
+R000047,2025-04-12,P10,4,Suporte resolveu no mesmo dia
+R000048,2025-12-14,P17,5,A entrega foi rápida
+R000049,2026-02-24,P23,3,Cancelamento foi confuso
+R000050,2025-05-14,P12,3,Não consegui acessar minha conta
+R000051,2026-03-19,P21,2,O recurso trava no celular
+R000052,2026-03-31,P08,2,Cancelamento foi confuso
+R000053,2026-03-22,P09,1,Cobrança veio duplicada
+R000054,2026-03-10,P04,3,Cobrança veio duplicada
+R000055,2025-07-29,P06,3,Preço aumentou sem explicação
+R000056,2025-09-09,P19,3,Não consegui acessar minha conta
+R000057,2025-05-30,P06,1,O atendimento demorou muito
+R000058,2025-09-21,P05,5,A entrega foi rápida
+R000059,2026-06-06,P21,1,Preço aumentou sem explicação
+R000060,2025-01-06,P16,3,Preço aumentou sem explicação
+R000061,2026-06-01,P16,2,Cancelamento foi confuso
+R000062,2025-03-19,P24,1,O atendimento demorou muito
+R000063,2025-09-06,P12,5,A entrega foi rápida
+R000064,2025-11-26,P13,4,A entrega foi rápida
+R000065,2025-08-11,P24,1,O recurso trava no celular
+R000066,2025-11-16,P03,3,Cancelamento foi confuso
+R000067,2025-04-06,P11,1,Cancelamento foi confuso
+R000068,2025-09-28,P15,3,Não consegui acessar minha conta
+R000069,2025-11-19,P20,2,Cancelamento foi confuso
+R000070,2025-04-20,P05,4,Produto fácil de usar
+R000071,2025-04-01,P18,4,Suporte resolveu no mesmo dia
+R000072,2025-07-14,P02,5,A entrega foi rápida
+R000073,2026-06-23,P08,1,Não consegui acessar minha conta
+R000074,2025-05-12,P25,5,Produto fácil de usar
+R000075,2025-03-12,P18,3,Cobrança veio duplicada
+R000076,2026-04-21,P22,5,Suporte resolveu no mesmo dia
+R000077,2025-12-14,P21,3,O recurso trava no celular
+R000078,2025-05-01,P11,4,Produto fácil de usar
+R000079,2025-06-24,P23,4,Produto fácil de usar
+R000080,2025-07-01,P04,2,O atendimento demorou muito
+R000081,2025-03-11,P13,5,Suporte resolveu no mesmo dia
+R000082,2026-07-07,P20,5,Gostei da qualidade
+R000083,2025-05-05,P04,4,Suporte resolveu no mesmo dia
+R000084,2026-07-19,P19,4,Suporte resolveu no mesmo dia
+R000085,2025-06-01,P16,1,Não consegui acessar minha conta
+R000086,2025-05-06,P12,3,O recurso trava no celular
+R000087,2025-11-12,P13,2,Cobrança veio duplicada
+R000088,2025-05-27,P25,2,O atendimento demorou muito
+R000089,2026-04-04,P14,1,Cancelamento foi confuso
+R000090,2026-04-02,P14,2,Não consegui acessar minha conta
+R000091,2026-05-21,P15,4,Suporte resolveu no mesmo dia
+R000092,2025-01-08,P02,4,A entrega foi rápida
+R000093,2025-06-12,P23,3,Não consegui acessar minha conta
+R000094,2026-07-15,P05,5,Produto fácil de usar
+R000095,2025-10-26,P07,4,A entrega foi rápida
+R000096,2025-03-11,P16,2,O atendimento demorou muito
+R000097,2025-01-23,P11,4,Produto fácil de usar
+R000098,2025-12-08,P11,2,O recurso trava no celular
+R000099,2025-08-25,P06,1,Preço aumentou sem explicação
+R000100,2025-07-11,P11,1,Cancelamento foi confuso
+R000101,2026-04-28,P08,4,Suporte resolveu no mesmo dia
+R000102,2026-04-28,P15,5,Produto fácil de usar
+R000103,2026-04-27,P10,4,Suporte resolveu no mesmo dia
+R000104,2025-02-20,P18,3,Cancelamento foi confuso
+R000105,2025-12-16,P24,3,O atendimento demorou muito
+R000106,2026-06-10,P21,2,O recurso trava no celular
+R000107,2025-04-19,P18,3,O atendimento demorou muito
+R000108,2025-08-19,P25,5,Produto fácil de usar
+R000109,2025-10-13,P10,1,O recurso trava no celular
+R000110,2026-07-25,P20,4,A entrega foi rápida
+R000111,2026-08-16,P12,3,Preço aumentou sem explicação
+R000112,2025-11-08,P11,3,O recurso trava no celular
+R000113,2025-10-25,P23,1,Cobrança veio duplicada
+R000114,2026-07-04,P04,5,A entrega foi rápida
+R000115,2025-10-17,P01,5,A entrega foi rápida
+R000116,2026-07-11,P14,2,Cobrança veio duplicada
+R000117,2025-08-06,P14,3,Cancelamento foi confuso
+R000118,2025-05-06,P04,4,A entrega foi rápida
+R000119,2025-11-29,P10,2,Cobrança veio duplicada
+R000120,2026-08-21,P18,2,O recurso trava no celular
+R000121,2025-07-18,P21,1,O atendimento demorou muito
+R000122,2026-01-10,P03,5,A entrega foi rápida
+R000123,2025-11-10,P15,3,Preço aumentou sem explicação
+R000124,2026-06-10,P16,1,O atendimento demorou muito
+R000125,2026-08-19,P03,4,Suporte resolveu no mesmo dia
+R000126,2025-03-14,P02,2,Cancelamento foi confuso
+R000127,2026-07-29,P13,4,A entrega foi rápida
+R000128,2025-06-24,P03,1,Preço aumentou sem explicação
+R000129,2025-02-26,P07,3,Não consegui acessar minha conta
+R000130,2026-01-21,P10,3,O recurso trava no celular
+R000131,2025-10-18,P06,3,Não consegui acessar minha conta
+R000132,2025-08-02,P09,4,Gostei da qualidade
+R000133,2025-07-28,P07,1,Cancelamento foi confuso
+R000134,2026-07-10,P04,1,Não consegui acessar minha conta
+R000135,2025-12-30,P16,5,A entrega foi rápida
+R000136,2025-08-18,P19,4,Produto fácil de usar
+R000137,2025-05-27,P16,2,Não consegui acessar minha conta
+R000138,2025-07-08,P24,2,O atendimento demorou muito
+R000139,2025-10-29,P02,5,A entrega foi rápida
+R000140,2026-02-25,P10,4,Suporte resolveu no mesmo dia
+R000141,2026-06-03,P03,2,Cobrança veio duplicada
+R000142,2025-12-08,P04,4,Suporte resolveu no mesmo dia
+R000143,2026-05-31,P21,2,O atendimento demorou muito
+R000144,2025-10-02,P13,1,Não consegui acessar minha conta
+R000145,2026-02-19,P05,1,Não consegui acessar minha conta
+R000146,2026-02-15,P19,4,Gostei da qualidade
+R000147,2026-02-03,P19,3,O atendimento demorou muito
+R000148,2025-09-24,P05,3,O recurso trava no celular
+R000149,2025-09-14,P17,2,Cobrança veio duplicada
+R000150,2026-02-24,P22,4,Produto fácil de usar
+R000151,2025-01-20,P17,1,O atendimento demorou muito
+R000152,2026-06-24,P21,5,A entrega foi rápida
+R000153,2026-04-26,P04,1,Cancelamento foi confuso
+R000154,2025-10-31,P02,4,A entrega foi rápida
+R000155,2025-01-07,P05,3,Cancelamento foi confuso
+R000156,2025-07-15,P19,2,Preço aumentou sem explicação
+R000157,2025-08-18,P19,4,Produto fácil de usar
+R000158,2026-02-04,P08,5,Gostei da qualidade
+R000159,2025-08-24,P01,1,Preço aumentou sem explicação
+R000160,2025-06-29,P20,5,Produto fácil de usar
+R000161,2025-08-24,P14,4,Produto fácil de usar
+R000162,2025-05-17,P05,5,Gostei da qualidade
+R000163,2025-11-17,P19,2,Preço aumentou sem explicação
+R000164,2025-06-20,P20,1,Cobrança veio duplicada
+R000165,2025-11-09,P05,3,O atendimento demorou muito
+R000166,2025-11-12,P17,5,Produto fácil de usar
+R000167,2025-04-07,P05,1,Não consegui acessar minha conta
+R000168,2025-09-26,P05,4,A entrega foi rápida
+R000169,2026-03-17,P10,1,Cancelamento foi confuso
+R000170,2025-01-05,P14,1,Não consegui acessar minha conta
+R000171,2025-04-20,P05,3,O recurso trava no celular
+R000172,2025-10-07,P15,1,Cobrança veio duplicada
+R000173,2025-02-25,P15,5,Suporte resolveu no mesmo dia
+R000174,2025-01-22,P05,2,O atendimento demorou muito
+R000175,2025-11-02,P23,5,Suporte resolveu no mesmo dia
+R000176,2025-07-25,P09,3,Cobrança veio duplicada
+R000177,2025-11-29,P13,4,Gostei da qualidade
+R000178,2026-02-27,P20,3,O atendimento demorou muito
+R000179,2026-05-29,P16,5,A entrega foi rápida
+R000180,2025-05-11,P02,2,Cancelamento foi confuso
+R000181,2026-04-23,P14,2,O recurso trava no celular
+R000182,2026-01-28,P08,3,O atendimento demorou muito
+R000183,2025-12-05,P05,4,A entrega foi rápida
+R000184,2025-04-19,P08,3,Não consegui acessar minha conta
+R000185,2025-01-16,P15,1,O recurso trava no celular
+R000186,2026-06-13,P17,3,Não consegui acessar minha conta
+R000187,2025-09-02,P16,3,Não consegui acessar minha conta
+R000188,2025-02-22,P23,3,O recurso trava no celular
+R000189,2026-04-18,P12,1,O atendimento demorou muito
+R000190,2025-11-25,P15,4,Produto fácil de usar
+R000191,2025-09-02,P15,2,O atendimento demorou muito
+R000192,2025-08-08,P19,4,Gostei da qualidade
+R000193,2026-04-15,P09,1,O atendimento demorou muito
+R000194,2026-04-26,P25,3,Não consegui acessar minha conta
+R000195,2026-01-22,P02,4,Gostei da qualidade
+R000196,2026-05-15,P06,4,Produto fácil de usar
+R000197,2026-02-09,P17,3,Não consegui acessar minha conta
+R000198,2025-12-15,P18,5,Gostei da qualidade
+R000199,2025-02-11,P23,1,Cancelamento foi confuso
+R000200,2025-10-30,P24,5,Suporte resolveu no mesmo dia
+R000201,2026-06-28,P08,3,O recurso trava no celular
+R000202,2025-09-17,P22,5,A entrega foi rápida
+R000203,2025-07-13,P08,1,Cobrança veio duplicada
+R000204,2025-09-02,P25,3,O atendimento demorou muito
+R000205,2025-11-05,P10,3,O atendimento demorou muito
+R000206,2025-07-14,P15,3,Cobrança veio duplicada
+R000207,2025-11-19,P11,4,Gostei da qualidade
+R000208,2025-08-29,P22,3,Preço aumentou sem explicação
+R000209,2026-07-15,P21,4,A entrega foi rápida
+R000210,2025-09-28,P12,5,Gostei da qualidade
+R000211,2025-04-06,P01,4,Suporte resolveu no mesmo dia
+R000212,2026-08-07,P18,2,O recurso trava no celular
+R000213,2026-05-09,P19,2,O atendimento demorou muito
+R000214,2025-02-01,P04,2,Preço aumentou sem explicação
+R000215,2026-03-27,P20,4,Suporte resolveu no mesmo dia
+R000216,2025-02-10,P02,2,O atendimento demorou muito
+R000217,2026-05-30,P06,4,Suporte resolveu no mesmo dia
+R000218,2025-05-16,P01,3,Cancelamento foi confuso
+R000219,2026-05-05,P07,1,Cancelamento foi confuso
+R000220,2026-06-19,P12,4,Suporte resolveu no mesmo dia
+R000221,2025-12-05,P19,2,O recurso trava no celular
+R000222,2026-03-20,P15,5,A entrega foi rápida
+R000223,2025-12-27,P02,5,Gostei da qualidade
+R000224,2026-03-09,P21,3,O recurso trava no celular
+R000225,2025-03-12,P19,3,O atendimento demorou muito
+R000226,2026-05-19,P02,2,Cancelamento foi confuso
+R000227,2026-07-03,P15,5,Gostei da qualidade
+R000228,2026-03-13,P03,5,Gostei da qualidade
+R000229,2025-04-06,P07,3,Cancelamento foi confuso
+R000230,2025-02-09,P02,1,O atendimento demorou muito
+R000231,2026-07-15,P16,1,Preço aumentou sem explicação
+R000232,2026-04-12,P24,4,A entrega foi rápida
+R000233,2026-01-02,P11,2,Cancelamento foi confuso
+R000234,2025-02-11,P03,1,Cobrança veio duplicada
+R000235,2025-01-16,P20,5,Suporte resolveu no mesmo dia
+R000236,2025-06-01,P03,1,Cobrança veio duplicada
+R000237,2025-10-16,P02,5,Gostei da qualidade
+R000238,2025-09-06,P03,4,A entrega foi rápida
+R000239,2025-11-25,P08,2,Não consegui acessar minha conta
+R000240,2026-05-31,P25,2,O recurso trava no celular
+R000241,2026-02-16,P07,1,Cancelamento foi confuso
+R000242,2025-08-28,P24,5,Produto fácil de usar
+R000243,2026-02-09,P06,5,Suporte resolveu no mesmo dia
+R000244,2025-09-21,P12,3,Não consegui acessar minha conta
+R000245,2026-05-28,P22,5,Produto fácil de usar
+R000246,2026-06-06,P05,5,A entrega foi rápida
+R000247,2025-04-27,P08,1,Não consegui acessar minha conta
+R000248,2026-04-18,P02,1,O atendimento demorou muito
+R000249,2025-03-29,P04,5,Gostei da qualidade
+R000250,2025-01-12,P11,2,Cobrança veio duplicada
+R000251,2025-07-22,P11,3,Preço aumentou sem explicação
+R000252,2025-10-04,P24,1,Cobrança veio duplicada
+R000253,2025-02-05,P06,4,Produto fácil de usar
+R000254,2025-05-12,P25,3,Cancelamento foi confuso
+R000255,2025-12-13,P06,5,Suporte resolveu no mesmo dia
+R000256,2025-12-21,P01,5,Gostei da qualidade
+R000257,2025-05-29,P20,2,Preço aumentou sem explicação
+R000258,2026-05-07,P13,5,A entrega foi rápida
+R000259,2025-09-27,P14,4,Suporte resolveu no mesmo dia
+R000260,2026-02-22,P22,3,Não consegui acessar minha conta
+R000261,2025-07-16,P14,5,Produto fácil de usar
+R000262,2026-07-30,P10,5,Gostei da qualidade
+R000263,2025-08-02,P03,2,Cobrança veio duplicada
+R000264,2025-10-26,P05,2,Cobrança veio duplicada
+R000265,2026-02-23,P22,3,Cancelamento foi confuso
+R000266,2025-08-22,P11,4,Suporte resolveu no mesmo dia
+R000267,2025-08-23,P25,3,Preço aumentou sem explicação
+R000268,2026-03-13,P08,2,Cancelamento foi confuso
+R000269,2025-07-26,P06,4,Produto fácil de usar
+R000270,2025-06-17,P10,4,Produto fácil de usar
+R000271,2025-03-26,P07,4,A entrega foi rápida
+R000272,2026-07-21,P18,2,Cobrança veio duplicada
+R000273,2026-01-31,P23,4,Produto fácil de usar
+R000274,2025-01-18,P11,1,Cancelamento foi confuso
+R000275,2025-10-29,P14,5,A entrega foi rápida
+R000276,2025-07-24,P21,3,O recurso trava no celular
+R000277,2025-05-29,P12,2,Cancelamento foi confuso
+R000278,2025-02-18,P25,3,O recurso trava no celular
+R000279,2025-10-25,P13,1,O atendimento demorou muito
+R000280,2025-12-05,P08,2,Cancelamento foi confuso
+R000281,2026-03-24,P09,2,O atendimento demorou muito
+R000282,2026-03-19,P25,3,Cancelamento foi confuso
+R000283,2025-02-13,P12,4,Suporte resolveu no mesmo dia
+R000284,2025-11-10,P19,2,Não consegui acessar minha conta
+R000285,2026-01-12,P11,4,Gostei da qualidade
+R000286,2026-08-03,P14,5,Produto fácil de usar
+R000287,2026-07-17,P24,4,Gostei da qualidade
+R000288,2025-04-30,P07,5,A entrega foi rápida
+R000289,2025-01-16,P13,3,O atendimento demorou muito
+R000290,2025-05-10,P16,5,Gostei da qualidade
+R000291,2025-07-28,P09,1,Cobrança veio duplicada
+R000292,2025-10-06,P24,1,Preço aumentou sem explicação
+R000293,2025-11-16,P03,3,Não consegui acessar minha conta
+R000294,2025-05-22,P10,2,Preço aumentou sem explicação
+R000295,2026-07-17,P06,1,Cancelamento foi confuso
+R000296,2026-06-18,P15,2,Cancelamento foi confuso
+R000297,2025-01-13,P16,3,Cobrança veio duplicada
+R000298,2026-06-08,P02,4,A entrega foi rápida
+R000299,2025-11-10,P04,3,O recurso trava no celular
+R000300,2025-12-02,P02,3,Não consegui acessar minha conta
+R000301,2025-10-01,P10,2,Cobrança veio duplicada
+R000302,2026-06-24,P03,4,Suporte resolveu no mesmo dia
+R000303,2026-07-05,P05,4,Gostei da qualidade
+R000304,2026-06-14,P24,3,O recurso trava no celular
+R000305,2026-02-27,P20,5,Suporte resolveu no mesmo dia
+R000306,2026-05-04,P04,3,Cancelamento foi confuso
+R000307,2026-03-25,P09,4,Produto fácil de usar
+R000308,2025-09-01,P06,2,Cobrança veio duplicada
+R000309,2025-07-30,P03,2,Preço aumentou sem explicação
+R000310,2026-02-04,P09,4,A entrega foi rápida
+R000311,2025-06-03,P06,2,Cobrança veio duplicada
+R000312,2026-01-11,P16,4,A entrega foi rápida
+R000313,2025-10-30,P25,2,Cancelamento foi confuso
+R000314,2026-05-29,P24,2,O atendimento demorou muito
+R000315,2025-03-16,P16,4,Gostei da qualidade
+R000316,2026-04-28,P08,4,Produto fácil de usar
+R000317,2026-01-08,P24,3,Cancelamento foi confuso
+R000318,2026-07-26,P23,2,Não consegui acessar minha conta
+R000319,2025-06-18,P01,1,Cancelamento foi confuso
+R000320,2026-04-09,P12,5,Gostei da qualidade
+R000321,2025-07-01,P02,1,O recurso trava no celular
+R000322,2025-11-02,P13,2,O atendimento demorou muito
+R000323,2026-03-04,P06,5,Suporte resolveu no mesmo dia
+R000324,2026-03-31,P21,3,Não consegui acessar minha conta
+R000325,2025-03-15,P12,5,Suporte resolveu no mesmo dia
+R000326,2026-06-08,P20,3,Cobrança veio duplicada
+R000327,2025-06-16,P19,5,A entrega foi rápida
+R000328,2025-04-18,P03,1,Cancelamento foi confuso
+R000329,2025-09-16,P22,5,Suporte resolveu no mesmo dia
+R000330,2026-08-20,P04,5,Suporte resolveu no mesmo dia
+R000331,2025-11-08,P17,3,O atendimento demorou muito
+R000332,2025-10-11,P21,2,Não consegui acessar minha conta
+R000333,2025-04-10,P04,1,O recurso trava no celular
+R000334,2025-05-29,P01,1,Não consegui acessar minha conta
+R000335,2025-10-15,P22,1,Cancelamento foi confuso
+R000336,2026-06-25,P17,3,Cancelamento foi confuso
+R000337,2026-02-10,P25,3,Não consegui acessar minha conta
+R000338,2025-05-21,P08,4,Produto fácil de usar
+R000339,2025-11-01,P23,3,O recurso trava no celular
+R000340,2025-08-04,P04,5,Suporte resolveu no mesmo dia
+R000341,2025-11-06,P09,3,Preço aumentou sem explicação
+R000342,2025-12-27,P23,4,A entrega foi rápida
+R000343,2025-02-16,P08,5,A entrega foi rápida
+R000344,2025-04-30,P01,5,Produto fácil de usar
+R000345,2025-06-16,P02,1,Não consegui acessar minha conta
+R000346,2026-05-26,P12,4,A entrega foi rápida
+R000347,2025-12-23,P07,5,Produto fácil de usar
+R000348,2025-01-19,P04,1,Preço aumentou sem explicação
+R000349,2025-08-21,P09,5,Gostei da qualidade
+R000350,2025-04-05,P20,1,Cancelamento foi confuso
+R000351,2025-05-08,P08,5,Suporte resolveu no mesmo dia
+R000352,2025-11-21,P17,1,Preço aumentou sem explicação
+R000353,2026-07-12,P12,3,O atendimento demorou muito
+R000354,2025-04-14,P11,2,Preço aumentou sem explicação
+R000355,2026-01-23,P14,4,Gostei da qualidade
+R000356,2025-07-02,P22,4,Produto fácil de usar
+R000357,2025-09-28,P06,3,Não consegui acessar minha conta
+R000358,2026-05-24,P05,2,O recurso trava no celular
+R000359,2026-08-11,P14,5,Produto fácil de usar
+R000360,2025-12-22,P17,1,O atendimento demorou muito
+R000361,2026-04-12,P15,3,Cancelamento foi confuso
+R000362,2025-05-20,P24,3,Cancelamento foi confuso
+R000363,2025-10-19,P20,2,Cobrança veio duplicada
+R000364,2025-04-28,P01,3,Não consegui acessar minha conta
+R000365,2026-05-13,P03,1,O atendimento demorou muito
+R000366,2025-07-01,P20,4,Suporte resolveu no mesmo dia
+R000367,2025-09-15,P04,3,Não consegui acessar minha conta
+R000368,2025-05-15,P20,3,Cobrança veio duplicada
+R000369,2025-09-11,P16,5,Gostei da qualidade
+R000370,2026-04-03,P01,5,A entrega foi rápida
+R000371,2026-06-17,P14,4,Gostei da qualidade
+R000372,2026-07-12,P25,2,Cancelamento foi confuso
+R000373,2025-02-27,P20,5,A entrega foi rápida
+R000374,2026-05-31,P10,4,Produto fácil de usar
+R000375,2025-12-03,P14,3,O atendimento demorou muito
+R000376,2025-11-03,P12,3,Preço aumentou sem explicação
+R000377,2026-07-03,P17,4,Gostei da qualidade
+R000378,2025-04-30,P20,1,Cancelamento foi confuso
+R000379,2025-12-16,P19,1,Preço aumentou sem explicação
+R000380,2026-07-13,P16,2,Não consegui acessar minha conta
+R000381,2025-06-19,P05,4,Suporte resolveu no mesmo dia
+R000382,2025-11-30,P22,1,Não consegui acessar minha conta
+R000383,2025-07-18,P14,1,Não consegui acessar minha conta
+R000384,2026-03-14,P18,5,Gostei da qualidade
+R000385,2026-04-01,P21,3,Não consegui acessar minha conta
+R000386,2026-02-15,P13,2,O atendimento demorou muito
+R000387,2025-05-29,P16,3,Cancelamento foi confuso
+R000388,2026-05-13,P15,1,Não consegui acessar minha conta
+R000389,2026-06-06,P25,4,Suporte resolveu no mesmo dia
+R000390,2025-03-22,P10,5,Produto fácil de usar
+R000391,2026-01-23,P12,4,Suporte resolveu no mesmo dia
+R000392,2025-08-03,P06,2,Preço aumentou sem explicação
+R000393,2026-07-04,P22,2,Preço aumentou sem explicação
+R000394,2025-02-07,P15,4,A entrega foi rápida
+R000395,2025-11-09,P23,3,Cobrança veio duplicada
+R000396,2025-09-30,P04,1,Não consegui acessar minha conta
+R000397,2026-04-21,P19,2,Cobrança veio duplicada
+R000398,2025-01-25,P04,2,O atendimento demorou muito
+R000399,2025-08-09,P21,5,A entrega foi rápida
+R000400,2025-02-19,P07,3,Cancelamento foi confuso
+R000401,2026-04-24,P18,4,Produto fácil de usar
+R000402,2026-06-10,P14,5,Suporte resolveu no mesmo dia
+R000403,2026-08-16,P16,1,Cancelamento foi confuso
+R000404,2026-05-21,P05,3,O atendimento demorou muito
+R000405,2025-09-22,P25,4,Gostei da qualidade
+R000406,2025-09-10,P12,2,Preço aumentou sem explicação
+R000407,2025-07-05,P20,2,Preço aumentou sem explicação
+R000408,2026-04-18,P22,4,Gostei da qualidade
+R000409,2025-06-09,P23,5,A entrega foi rápida
+R000410,2025-08-16,P02,1,O recurso trava no celular
+R000411,2025-04-25,P08,2,O recurso trava no celular
+R000412,2025-05-19,P06,5,Produto fácil de usar
+R000413,2026-01-29,P03,1,Preço aumentou sem explicação
+R000414,2025-03-17,P22,1,Cancelamento foi confuso
+R000415,2025-05-24,P16,5,A entrega foi rápida
+R000416,2025-12-04,P15,4,Suporte resolveu no mesmo dia
+R000417,2026-01-21,P04,4,Produto fácil de usar
+R000418,2025-11-09,P01,5,Suporte resolveu no mesmo dia
+R000419,2026-01-08,P20,4,Gostei da qualidade
+R000420,2025-02-06,P11,3,O atendimento demorou muito
+R000421,2026-03-14,P08,2,Cancelamento foi confuso
+R000422,2026-03-04,P01,4,A entrega foi rápida
+R000423,2026-06-10,P06,2,Não consegui acessar minha conta
+R000424,2026-02-25,P18,4,Gostei da qualidade
+R000425,2026-02-22,P21,2,Cancelamento foi confuso
+R000426,2026-07-30,P08,4,Gostei da qualidade
+R000427,2026-03-13,P08,4,Gostei da qualidade
+R000428,2026-08-09,P16,1,O recurso trava no celular
+R000429,2025-09-05,P19,1,Cobrança veio duplicada
+R000430,2025-09-20,P18,5,Suporte resolveu no mesmo dia
+R000431,2026-06-22,P19,2,Preço aumentou sem explicação
+R000432,2026-02-24,P02,4,Gostei da qualidade
+R000433,2026-01-26,P08,1,Preço aumentou sem explicação
+R000434,2025-02-02,P02,4,Suporte resolveu no mesmo dia
+R000435,2026-06-30,P12,3,Cancelamento foi confuso
+R000436,2026-05-10,P06,1,Não consegui acessar minha conta
+R000437,2026-06-27,P14,3,Cobrança veio duplicada
+R000438,2025-06-06,P21,3,Preço aumentou sem explicação
+R000439,2026-07-08,P20,5,Gostei da qualidade
+R000440,2025-06-02,P05,1,O atendimento demorou muito
+R000441,2025-04-22,P21,2,Preço aumentou sem explicação
+R000442,2026-06-03,P14,3,O atendimento demorou muito
+R000443,2025-11-09,P09,3,O recurso trava no celular
+R000444,2026-01-29,P10,1,O atendimento demorou muito
+R000445,2026-05-30,P15,3,Não consegui acessar minha conta
+R000446,2026-05-22,P12,1,O atendimento demorou muito
+R000447,2025-11-19,P09,4,Suporte resolveu no mesmo dia
+R000448,2025-06-11,P07,5,Gostei da qualidade
+R000449,2025-09-16,P14,1,Não consegui acessar minha conta
+R000450,2025-04-06,P03,2,O recurso trava no celular
+R000451,2026-06-05,P09,5,Suporte resolveu no mesmo dia
+R000452,2026-03-11,P20,2,Não consegui acessar minha conta
+R000453,2025-08-18,P18,1,Não consegui acessar minha conta
+R000454,2025-12-01,P21,4,Suporte resolveu no mesmo dia
+R000455,2025-06-14,P19,4,Gostei da qualidade
+R000456,2026-05-25,P02,5,Gostei da qualidade
+R000457,2026-08-05,P12,2,Cobrança veio duplicada
+R000458,2025-08-30,P08,4,Produto fácil de usar
+R000459,2025-05-05,P07,1,Cobrança veio duplicada
+R000460,2025-10-19,P22,1,O atendimento demorou muito
+R000461,2025-01-23,P16,5,A entrega foi rápida
+R000462,2025-10-10,P06,4,Produto fácil de usar
+R000463,2026-01-05,P18,5,Gostei da qualidade
+R000464,2025-06-30,P03,3,Não consegui acessar minha conta
+R000465,2026-05-18,P14,3,O recurso trava no celular
+R000466,2026-04-08,P20,2,Não consegui acessar minha conta
+R000467,2026-03-30,P09,1,Preço aumentou sem explicação
+R000468,2025-12-27,P14,1,Preço aumentou sem explicação
+R000469,2026-05-16,P24,1,Cancelamento foi confuso
+R000470,2025-08-01,P05,5,A entrega foi rápida
+R000471,2025-01-03,P12,1,O atendimento demorou muito
+R000472,2025-03-25,P10,3,Cancelamento foi confuso
+R000473,2025-11-11,P13,5,A entrega foi rápida
+R000474,2025-03-22,P10,2,Não consegui acessar minha conta
+R000475,2026-02-10,P04,2,Preço aumentou sem explicação
+R000476,2026-07-14,P14,1,Não consegui acessar minha conta
+R000477,2025-05-26,P06,4,Suporte resolveu no mesmo dia
+R000478,2026-02-17,P09,4,Produto fácil de usar
+R000479,2026-05-13,P13,2,Não consegui acessar minha conta
+R000480,2025-02-14,P17,4,Produto fácil de usar
+R000481,2026-08-09,P03,2,O recurso trava no celular
+R000482,2025-02-13,P25,3,O recurso trava no celular
+R000483,2025-02-22,P16,1,Não consegui acessar minha conta
+R000484,2025-11-24,P05,4,A entrega foi rápida
+R000485,2025-04-18,P20,2,Cobrança veio duplicada
+R000486,2026-01-23,P12,3,Não consegui acessar minha conta
+R000487,2025-09-21,P20,1,O recurso trava no celular
+R000488,2025-01-17,P08,2,Não consegui acessar minha conta
+R000489,2025-12-18,P24,4,A entrega foi rápida
+R000490,2026-06-05,P19,4,Produto fácil de usar
+R000491,2025-02-07,P05,3,Não consegui acessar minha conta
+R000492,2026-03-03,P09,1,Cancelamento foi confuso
+R000493,2025-01-12,P24,3,Cancelamento foi confuso
+R000494,2025-03-11,P10,5,Suporte resolveu no mesmo dia
+R000495,2025-03-19,P14,2,Cobrança veio duplicada
+R000496,2025-03-12,P08,2,Cobrança veio duplicada
+R000497,2025-05-03,P11,1,Não consegui acessar minha conta
+R000498,2025-10-29,P22,4,Suporte resolveu no mesmo dia
+R000499,2026-01-11,P15,4,A entrega foi rápida
+R000500,2026-06-25,P15,3,O recurso trava no celular
+R000501,2025-12-18,P22,1,Cobrança veio duplicada
+R000502,2026-02-13,P07,4,Produto fácil de usar
+R000503,2025-04-03,P15,3,Preço aumentou sem explicação
+R000504,2026-02-05,P09,2,Cobrança veio duplicada
+R000505,2025-03-22,P25,3,O recurso trava no celular
+R000506,2026-02-03,P19,3,Não consegui acessar minha conta
+R000507,2026-03-29,P25,3,Cobrança veio duplicada
+R000508,2026-04-19,P05,5,Produto fácil de usar
+R000509,2025-04-07,P15,3,Cancelamento foi confuso
+R000510,2026-01-14,P06,1,O recurso trava no celular
+R000511,2026-03-06,P24,1,O atendimento demorou muito
+R000512,2025-05-04,P18,3,O atendimento demorou muito
+R000513,2025-03-19,P22,3,O recurso trava no celular
+R000514,2026-03-22,P22,5,Suporte resolveu no mesmo dia
+R000515,2025-08-18,P24,5,Gostei da qualidade
+R000516,2025-06-02,P25,5,A entrega foi rápida
+R000517,2025-10-11,P03,2,Preço aumentou sem explicação
+R000518,2026-07-28,P16,4,Gostei da qualidade
+R000519,2026-08-08,P04,1,O atendimento demorou muito
+R000520,2025-10-06,P07,5,Produto fácil de usar
+R000521,2025-08-28,P06,2,Cobrança veio duplicada
+R000522,2026-05-14,P22,3,Preço aumentou sem explicação
+R000523,2025-08-24,P09,4,Produto fácil de usar
+R000524,2025-08-16,P12,2,Não consegui acessar minha conta
+R000525,2026-03-03,P07,2,O atendimento demorou muito
+R000526,2025-07-30,P23,2,Preço aumentou sem explicação
+R000527,2025-01-23,P02,4,A entrega foi rápida
+R000528,2025-08-12,P17,4,Produto fácil de usar
+R000529,2025-12-31,P02,4,Gostei da qualidade
+R000530,2026-03-13,P14,5,A entrega foi rápida
+R000531,2026-01-08,P14,3,O atendimento demorou muito
+R000532,2025-09-27,P20,2,Preço aumentou sem explicação
+R000533,2025-11-02,P20,5,A entrega foi rápida
+R000534,2025-05-10,P18,4,A entrega foi rápida
+R000535,2026-08-08,P25,4,A entrega foi rápida
+R000536,2025-02-10,P03,4,Suporte resolveu no mesmo dia
+R000537,2026-06-04,P10,1,O recurso trava no celular
+R000538,2026-07-12,P23,4,Gostei da qualidade
+R000539,2026-06-01,P07,2,Cancelamento foi confuso
+R000540,2026-07-24,P18,2,O recurso trava no celular
+R000541,2026-08-01,P08,5,A entrega foi rápida
+R000542,2026-01-26,P20,4,Suporte resolveu no mesmo dia
+R000543,2026-04-24,P13,3,Não consegui acessar minha conta
+R000544,2026-06-19,P09,3,Cobrança veio duplicada
+R000545,2026-03-22,P24,5,Produto fácil de usar
+R000546,2026-01-20,P23,3,O recurso trava no celular
+R000547,2026-05-29,P15,2,Cobrança veio duplicada
+R000548,2025-12-11,P18,5,A entrega foi rápida
+R000549,2026-01-04,P08,3,Cobrança veio duplicada
+R000550,2025-10-03,P01,5,A entrega foi rápida
+R000551,2025-10-15,P19,5,Gostei da qualidade
+R000552,2025-08-19,P25,2,Preço aumentou sem explicação
+R000553,2025-06-06,P12,5,A entrega foi rápida
+R000554,2026-04-07,P21,1,Cancelamento foi confuso
+R000555,2025-06-30,P02,4,Gostei da qualidade
+R000556,2025-05-10,P19,1,O recurso trava no celular
+R000557,2025-10-04,P05,4,Produto fácil de usar
+R000558,2025-04-01,P12,3,Preço aumentou sem explicação
+R000559,2026-07-21,P03,4,Gostei da qualidade
+R000560,2025-06-25,P03,4,Suporte resolveu no mesmo dia
+R000561,2026-06-21,P14,1,Preço aumentou sem explicação
+R000562,2026-07-07,P01,5,Suporte resolveu no mesmo dia
+R000563,2026-05-23,P13,3,O recurso trava no celular
+R000564,2026-08-07,P15,5,Suporte resolveu no mesmo dia
+R000565,2026-07-28,P09,4,Suporte resolveu no mesmo dia
+R000566,2026-07-15,P07,3,O recurso trava no celular
+R000567,2025-02-09,P12,3,Preço aumentou sem explicação
+R000568,2025-12-05,P13,4,Suporte resolveu no mesmo dia
+R000569,2025-12-08,P18,1,Não consegui acessar minha conta
+R000570,2025-09-03,P25,4,Gostei da qualidade
+R000571,2025-02-27,P07,3,Cancelamento foi confuso
+R000572,2025-03-27,P15,2,Preço aumentou sem explicação
+R000573,2025-01-01,P22,3,O recurso trava no celular
+R000574,2026-03-11,P19,5,Gostei da qualidade
+R000575,2026-02-10,P25,1,O recurso trava no celular
+R000576,2025-08-01,P15,5,A entrega foi rápida
+R000577,2026-02-05,P09,3,O atendimento demorou muito
+R000578,2025-05-30,P08,3,Não consegui acessar minha conta
+R000579,2025-12-31,P24,1,O recurso trava no celular
+R000580,2025-05-20,P18,4,Suporte resolveu no mesmo dia
+R000581,2026-07-27,P22,2,Cancelamento foi confuso
+R000582,2025-03-24,P09,4,Suporte resolveu no mesmo dia
+R000583,2025-12-01,P08,4,A entrega foi rápida
+R000584,2025-01-09,P10,2,Preço aumentou sem explicação
+R000585,2025-01-14,P17,2,Preço aumentou sem explicação
+R000586,2025-04-05,P21,5,A entrega foi rápida
+R000587,2026-06-17,P17,5,Produto fácil de usar
+R000588,2026-07-23,P15,2,O recurso trava no celular
+R000589,2026-01-11,P08,3,Não consegui acessar minha conta
+R000590,2025-10-24,P18,1,Cancelamento foi confuso
+R000591,2025-09-26,P12,4,Produto fácil de usar
+R000592,2025-03-04,P15,3,Não consegui acessar minha conta
+R000593,2026-07-06,P23,4,Gostei da qualidade
+R000594,2025-12-02,P12,2,Cancelamento foi confuso
+R000595,2025-08-28,P21,4,Gostei da qualidade
+R000596,2025-04-29,P12,2,Cobrança veio duplicada
+R000597,2025-06-16,P02,4,Produto fácil de usar
+R000598,2026-05-05,P14,1,Cancelamento foi confuso
+R000599,2025-01-19,P21,2,O atendimento demorou muito
+R000600,2025-08-20,P15,5,Gostei da qualidade
+R000601,2025-03-01,P03,5,Suporte resolveu no mesmo dia
+R000602,2025-12-13,P05,5,Produto fácil de usar
+R000603,2025-12-03,P08,3,Cobrança veio duplicada
+R000604,2025-02-26,P07,1,Preço aumentou sem explicação
+R000605,2026-01-12,P22,3,Não consegui acessar minha conta
+R000606,2026-05-13,P19,5,A entrega foi rápida
+R000607,2026-07-27,P05,5,A entrega foi rápida
+R000608,2026-05-09,P08,5,Produto fácil de usar
+R000609,2026-03-30,P05,3,O atendimento demorou muito
+R000610,2025-01-24,P08,3,Preço aumentou sem explicação
+R000611,2026-03-20,P08,4,Suporte resolveu no mesmo dia
+R000612,2026-07-28,P14,4,Produto fácil de usar
+R000613,2026-05-23,P10,4,Produto fácil de usar
+R000614,2026-08-03,P08,5,Gostei da qualidade
+R000615,2026-05-02,P18,3,Não consegui acessar minha conta
+R000616,2025-12-16,P10,3,Cancelamento foi confuso
+R000617,2025-11-17,P25,2,O atendimento demorou muito
+R000618,2025-10-13,P03,1,Cobrança veio duplicada
+R000619,2025-06-02,P12,1,Não consegui acessar minha conta
+R000620,2025-06-30,P11,5,A entrega foi rápida
+R000621,2025-11-28,P03,4,Gostei da qualidade
+R000622,2025-08-01,P11,5,Gostei da qualidade
+R000623,2025-03-31,P25,5,Suporte resolveu no mesmo dia
+R000624,2025-01-22,P02,2,Cancelamento foi confuso
+R000625,2025-11-17,P06,1,Cancelamento foi confuso
+R000626,2025-03-14,P01,5,A entrega foi rápida
+R000627,2025-08-20,P20,5,Produto fácil de usar
+R000628,2026-05-26,P21,4,Suporte resolveu no mesmo dia
+R000629,2026-05-11,P13,2,Cobrança veio duplicada
+R000630,2026-05-16,P09,2,Cancelamento foi confuso
+R000631,2025-10-11,P24,5,Gostei da qualidade
+R000632,2026-03-31,P06,2,O atendimento demorou muito
+R000633,2025-07-03,P15,1,Cobrança veio duplicada
+R000634,2026-07-02,P20,5,Suporte resolveu no mesmo dia
+R000635,2025-08-03,P18,1,Preço aumentou sem explicação
+R000636,2025-11-15,P05,5,Gostei da qualidade
+R000637,2025-04-27,P23,2,Cobrança veio duplicada
+R000638,2026-07-19,P14,2,Cancelamento foi confuso
+R000639,2025-05-20,P24,2,Não consegui acessar minha conta
+R000640,2025-11-11,P12,1,O atendimento demorou muito
+R000641,2026-05-31,P13,4,Gostei da qualidade
+R000642,2025-10-21,P02,3,Preço aumentou sem explicação
+R000643,2025-07-31,P24,2,Preço aumentou sem explicação
+R000644,2025-10-10,P14,5,Produto fácil de usar
+R000645,2026-01-18,P11,1,O atendimento demorou muito
+R000646,2026-07-06,P15,1,Não consegui acessar minha conta
+R000647,2026-05-19,P19,3,O atendimento demorou muito
+R000648,2025-07-08,P24,4,Gostei da qualidade
+R000649,2026-01-24,P10,2,Cancelamento foi confuso
+R000650,2025-04-29,P20,1,Cobrança veio duplicada
+R000651,2025-10-30,P20,3,Cobrança veio duplicada
+R000652,2025-01-02,P19,1,O recurso trava no celular
+R000653,2025-12-23,P06,5,Produto fácil de usar
+R000654,2026-03-03,P06,5,Gostei da qualidade
+R000655,2026-01-28,P12,1,O atendimento demorou muito
+R000656,2025-07-07,P11,5,Produto fácil de usar
+R000657,2025-12-19,P15,1,Preço aumentou sem explicação
+R000658,2025-02-18,P25,2,Cancelamento foi confuso
+R000659,2026-06-26,P19,1,Cobrança veio duplicada
+R000660,2026-01-31,P04,5,Produto fácil de usar
+R000661,2026-07-26,P08,2,Cobrança veio duplicada
+R000662,2026-08-04,P08,1,O atendimento demorou muito
+R000663,2026-08-17,P16,5,Gostei da qualidade
+R000664,2026-06-28,P11,5,Gostei da qualidade
+R000665,2025-01-25,P06,4,Gostei da qualidade
+R000666,2026-06-18,P23,1,Cobrança veio duplicada
+R000667,2025-12-18,P20,3,O recurso trava no celular
+R000668,2025-04-19,P19,4,Produto fácil de usar
+R000669,2025-01-31,P13,4,A entrega foi rápida
+R000670,2025-01-23,P20,2,Preço aumentou sem explicação
+R000671,2025-03-09,P03,2,Preço aumentou sem explicação
+R000672,2026-02-14,P01,4,Gostei da qualidade
+R000673,2026-05-12,P10,2,Não consegui acessar minha conta
+R000674,2025-02-16,P20,3,Cobrança veio duplicada
+R000675,2025-11-26,P07,2,Preço aumentou sem explicação
+R000676,2025-10-31,P07,4,Suporte resolveu no mesmo dia
+R000677,2026-02-16,P15,1,Cancelamento foi confuso
+R000678,2026-08-09,P23,4,A entrega foi rápida
+R000679,2025-05-28,P07,4,Produto fácil de usar
+R000680,2025-09-19,P25,2,O atendimento demorou muito
+R000681,2025-05-10,P01,1,Cobrança veio duplicada
+R000682,2026-04-25,P03,2,Cobrança veio duplicada
+R000683,2026-03-20,P24,1,Cancelamento foi confuso
+R000684,2026-04-13,P24,2,Preço aumentou sem explicação
+R000685,2025-03-04,P06,1,Cobrança veio duplicada
+R000686,2025-11-20,P22,2,Cobrança veio duplicada
+R000687,2025-12-03,P19,3,Preço aumentou sem explicação
+R000688,2025-04-08,P17,1,Não consegui acessar minha conta
+R000689,2026-07-15,P01,2,O atendimento demorou muito
+R000690,2026-07-04,P13,2,Cobrança veio duplicada
+R000691,2025-02-02,P25,1,Não consegui acessar minha conta
+R000692,2025-07-29,P21,1,Preço aumentou sem explicação
+R000693,2025-01-05,P25,2,Não consegui acessar minha conta
+R000694,2025-04-25,P03,5,A entrega foi rápida
+R000695,2025-04-21,P17,3,Cobrança veio duplicada
+R000696,2025-02-05,P03,3,Preço aumentou sem explicação
+R000697,2025-04-04,P03,3,Não consegui acessar minha conta
+R000698,2026-08-16,P19,4,Gostei da qualidade
+R000699,2025-07-30,P22,5,Suporte resolveu no mesmo dia
+R000700,2026-04-05,P12,5,Suporte resolveu no mesmo dia
+R000701,2025-11-26,P07,5,Produto fácil de usar
+R000702,2025-02-25,P06,4,Produto fácil de usar
+R000703,2025-04-29,P12,2,Cobrança veio duplicada
+R000704,2025-11-13,P24,2,O atendimento demorou muito
+R000705,2025-11-05,P23,4,Produto fácil de usar
+R000706,2025-06-17,P16,1,Cancelamento foi confuso
+R000707,2025-09-16,P14,5,Suporte resolveu no mesmo dia
+R000708,2026-04-16,P02,4,Gostei da qualidade
+R000709,2025-07-22,P11,2,O atendimento demorou muito
+R000710,2025-03-08,P23,3,Preço aumentou sem explicação
+R000711,2026-01-14,P01,1,Cancelamento foi confuso
+R000712,2025-04-16,P13,1,Não consegui acessar minha conta
+R000713,2025-02-24,P24,2,Preço aumentou sem explicação
+R000714,2026-04-02,P07,5,Produto fácil de usar
+R000715,2025-02-04,P08,4,A entrega foi rápida
+R000716,2025-08-03,P14,2,Não consegui acessar minha conta
+R000717,2025-09-16,P17,4,Suporte resolveu no mesmo dia
+R000718,2026-05-06,P25,4,A entrega foi rápida
+R000719,2025-10-11,P16,3,Cobrança veio duplicada
+R000720,2026-05-01,P18,5,A entrega foi rápida
+R000721,2025-09-12,P16,3,O recurso trava no celular
+R000722,2025-03-03,P20,5,A entrega foi rápida
+R000723,2026-07-20,P22,1,Não consegui acessar minha conta
+R000724,2026-01-24,P10,3,O recurso trava no celular
+R000725,2025-07-26,P04,3,Preço aumentou sem explicação
+R000726,2025-10-17,P12,4,Suporte resolveu no mesmo dia
+R000727,2026-01-31,P22,4,Gostei da qualidade
+R000728,2025-09-22,P05,5,A entrega foi rápida
+R000729,2025-10-29,P08,3,Não consegui acessar minha conta
+R000730,2026-02-12,P13,3,Não consegui acessar minha conta
+R000731,2026-03-27,P08,1,O atendimento demorou muito
+R000732,2025-01-11,P19,4,Suporte resolveu no mesmo dia
+R000733,2025-01-27,P20,4,Suporte resolveu no mesmo dia
+R000734,2025-02-20,P13,5,A entrega foi rápida
+R000735,2025-02-21,P21,5,A entrega foi rápida
+R000736,2025-06-20,P03,1,Não consegui acessar minha conta
+R000737,2026-04-07,P04,1,O atendimento demorou muito
+R000738,2025-12-09,P22,1,Cancelamento foi confuso
+R000739,2025-03-02,P03,4,A entrega foi rápida
+R000740,2025-01-21,P11,5,Gostei da qualidade
+R000741,2026-07-23,P13,4,Suporte resolveu no mesmo dia
+R000742,2025-07-01,P08,2,O recurso trava no celular
+R000743,2025-12-24,P23,5,Produto fácil de usar
+R000744,2026-03-31,P10,5,Produto fácil de usar
+R000745,2025-03-15,P06,4,Produto fácil de usar
+R000746,2025-11-29,P11,4,Gostei da qualidade
+R000747,2025-12-05,P03,2,Preço aumentou sem explicação
+R000748,2025-10-06,P22,5,A entrega foi rápida
+R000749,2026-07-12,P04,2,Não consegui acessar minha conta
+R000750,2025-11-08,P08,5,Gostei da qualidade
+R000751,2026-08-17,P24,2,O atendimento demorou muito
+R000752,2025-10-17,P13,2,Cancelamento foi confuso
+R000753,2026-06-29,P13,2,O atendimento demorou muito
+R000754,2025-03-12,P25,2,Cobrança veio duplicada
+R000755,2026-02-05,P17,1,Cobrança veio duplicada
+R000756,2025-06-18,P05,5,Gostei da qualidade
+R000757,2025-07-08,P08,5,Gostei da qualidade
+R000758,2026-05-07,P03,1,O atendimento demorou muito
+R000759,2025-01-10,P03,1,O atendimento demorou muito
+R000760,2025-06-18,P16,4,Suporte resolveu no mesmo dia
+R000761,2026-07-13,P23,5,Suporte resolveu no mesmo dia
+R000762,2025-09-25,P10,2,O recurso trava no celular
+R000763,2026-06-17,P09,3,Preço aumentou sem explicação
+R000764,2026-02-01,P01,5,Produto fácil de usar
+R000765,2026-06-14,P15,2,Cobrança veio duplicada
+R000766,2026-08-18,P08,2,Cobrança veio duplicada
+R000767,2025-08-18,P02,2,O recurso trava no celular
+R000768,2025-04-18,P14,4,A entrega foi rápida
+R000769,2025-09-25,P04,1,Cancelamento foi confuso
+R000770,2025-09-15,P16,3,O atendimento demorou muito
+R000771,2026-01-30,P06,4,Produto fácil de usar
+R000772,2026-08-12,P20,4,Gostei da qualidade
+R000773,2026-06-04,P11,1,O atendimento demorou muito
+R000774,2025-11-13,P21,4,Produto fácil de usar
+R000775,2026-03-23,P18,5,Produto fácil de usar
+R000776,2025-09-04,P16,1,Não consegui acessar minha conta
+R000777,2025-04-07,P22,1,Cobrança veio duplicada
+R000778,2026-02-01,P21,1,Cobrança veio duplicada
+R000779,2025-08-04,P19,4,Gostei da qualidade
+R000780,2026-05-10,P12,2,Cobrança veio duplicada
+R000781,2026-07-23,P05,5,Gostei da qualidade
+R000782,2026-01-09,P14,5,Gostei da qualidade
+R000783,2026-03-05,P13,3,Preço aumentou sem explicação
+R000784,2025-09-01,P01,5,A entrega foi rápida
+R000785,2025-05-24,P17,1,Não consegui acessar minha conta
+R000786,2025-09-20,P09,2,O recurso trava no celular
+R000787,2025-07-18,P19,1,O atendimento demorou muito
+R000788,2026-08-09,P18,5,Suporte resolveu no mesmo dia
+R000789,2025-06-11,P02,4,Gostei da qualidade
+R000790,2025-04-15,P17,3,Cancelamento foi confuso
+R000791,2026-05-29,P05,1,Cobrança veio duplicada
+R000792,2026-04-27,P10,2,Cancelamento foi confuso
+R000793,2025-06-26,P24,2,Cancelamento foi confuso
+R000794,2026-04-01,P15,2,Não consegui acessar minha conta
+R000795,2026-06-04,P10,5,Gostei da qualidade
+R000796,2025-09-10,P20,3,Não consegui acessar minha conta
+R000797,2025-09-09,P07,4,Produto fácil de usar
+R000798,2026-04-17,P10,2,Preço aumentou sem explicação
+R000799,2026-02-16,P24,3,Não consegui acessar minha conta
+R000800,2025-09-21,P03,5,Gostei da qualidade
+R000801,2025-08-26,P25,1,Não consegui acessar minha conta
+R000802,2025-07-17,P03,2,O atendimento demorou muito
+R000803,2025-05-03,P08,4,Gostei da qualidade
+R000804,2025-08-01,P16,2,Cancelamento foi confuso
+R000805,2025-09-24,P18,3,Não consegui acessar minha conta
+R000806,2026-04-01,P03,1,Cancelamento foi confuso
+R000807,2026-02-10,P07,4,A entrega foi rápida
+R000808,2025-08-04,P04,1,Não consegui acessar minha conta
+R000809,2025-02-07,P02,5,Gostei da qualidade
+R000810,2025-11-28,P17,2,Cobrança veio duplicada
+R000811,2025-11-23,P13,3,Preço aumentou sem explicação
+R000812,2025-04-10,P19,1,Preço aumentou sem explicação
+R000813,2026-05-19,P09,3,Cobrança veio duplicada
+R000814,2025-03-04,P10,2,Preço aumentou sem explicação
+R000815,2025-05-29,P04,1,Preço aumentou sem explicação
+R000816,2026-05-01,P05,4,Suporte resolveu no mesmo dia
+R000817,2025-06-11,P06,5,Produto fácil de usar
+R000818,2025-11-20,P02,1,Cobrança veio duplicada
+R000819,2025-01-22,P10,4,Gostei da qualidade
+R000820,2025-10-02,P11,2,O atendimento demorou muito
+R000821,2025-12-02,P01,2,Cancelamento foi confuso
+R000822,2025-11-14,P22,4,Gostei da qualidade
+R000823,2026-04-13,P23,5,Produto fácil de usar
+R000824,2025-05-21,P11,5,Gostei da qualidade
+R000825,2025-09-24,P13,4,Produto fácil de usar
+R000826,2025-03-01,P08,1,Preço aumentou sem explicação
+R000827,2026-04-15,P18,4,Produto fácil de usar
+R000828,2025-01-16,P12,5,A entrega foi rápida
+R000829,2025-01-03,P09,5,Suporte resolveu no mesmo dia
+R000830,2025-09-26,P10,4,A entrega foi rápida
+R000831,2025-12-26,P08,2,Cobrança veio duplicada
+R000832,2025-06-24,P21,3,Cobrança veio duplicada
+R000833,2025-10-08,P19,5,Produto fácil de usar
+R000834,2026-03-27,P14,2,Cancelamento foi confuso
+R000835,2026-05-20,P16,3,O recurso trava no celular
+R000836,2026-06-11,P09,3,Cobrança veio duplicada
+R000837,2025-01-20,P24,3,O atendimento demorou muito
+R000838,2026-08-11,P23,4,A entrega foi rápida
+R000839,2026-08-19,P10,2,Preço aumentou sem explicação
+R000840,2026-05-15,P23,2,Cancelamento foi confuso
+R000841,2026-02-09,P20,4,Suporte resolveu no mesmo dia
+R000842,2026-03-02,P02,5,Suporte resolveu no mesmo dia
+R000843,2025-05-13,P18,1,O recurso trava no celular
+R000844,2025-05-10,P05,2,O atendimento demorou muito
+R000845,2026-07-28,P07,5,Gostei da qualidade
+R000846,2026-07-19,P13,2,O atendimento demorou muito
+R000847,2025-04-26,P18,4,Suporte resolveu no mesmo dia
+R000848,2026-07-04,P23,4,Produto fácil de usar
+R000849,2026-05-25,P06,3,Cobrança veio duplicada
+R000850,2026-06-24,P07,1,Cobrança veio duplicada
+R000851,2026-06-14,P23,3,O recurso trava no celular
+R000852,2025-09-30,P19,3,Cobrança veio duplicada
+R000853,2025-11-18,P18,5,A entrega foi rápida
+R000854,2026-05-29,P11,2,Cancelamento foi confuso
+R000855,2025-08-22,P03,3,O atendimento demorou muito
+R000856,2026-04-28,P16,3,Cobrança veio duplicada
+R000857,2025-05-20,P17,1,Cancelamento foi confuso
+R000858,2026-07-20,P19,5,A entrega foi rápida
+R000859,2026-03-23,P16,4,Gostei da qualidade
+R000860,2025-05-02,P12,5,A entrega foi rápida
+R000861,2026-08-17,P12,3,Cancelamento foi confuso
+R000862,2026-07-26,P02,4,Suporte resolveu no mesmo dia
+R000863,2026-03-12,P24,2,Preço aumentou sem explicação
+R000864,2026-07-31,P15,1,Cobrança veio duplicada
+R000865,2025-11-07,P13,5,Produto fácil de usar
+R000866,2025-04-11,P03,2,O recurso trava no celular
+R000867,2026-02-08,P12,5,Produto fácil de usar
+R000868,2025-06-16,P10,1,Cancelamento foi confuso
+R000869,2026-08-15,P18,5,Produto fácil de usar
+R000870,2025-04-06,P23,2,Cancelamento foi confuso
+R000871,2025-06-27,P22,1,Cobrança veio duplicada
+R000872,2025-02-02,P22,5,Suporte resolveu no mesmo dia
+R000873,2026-05-25,P04,3,Não consegui acessar minha conta
+R000874,2025-12-30,P08,5,A entrega foi rápida
+R000875,2025-10-22,P17,4,Produto fácil de usar
+R000876,2026-02-25,P04,4,A entrega foi rápida
+R000877,2026-01-25,P13,3,Cancelamento foi confuso
+R000878,2025-03-06,P16,2,O atendimento demorou muito
+R000879,2025-03-31,P24,5,Gostei da qualidade
+R000880,2026-07-27,P05,4,Suporte resolveu no mesmo dia
+R000881,2026-05-13,P19,3,Não consegui acessar minha conta
+R000882,2026-08-19,P06,5,A entrega foi rápida
+R000883,2026-08-07,P18,1,Cobrança veio duplicada
+R000884,2026-02-19,P04,5,A entrega foi rápida
+R000885,2025-11-28,P18,3,O recurso trava no celular
+R000886,2025-03-22,P01,4,Gostei da qualidade
+R000887,2025-06-21,P16,5,Suporte resolveu no mesmo dia
+R000888,2026-03-18,P01,3,O recurso trava no celular
+R000889,2025-11-01,P12,1,O atendimento demorou muito
+R000890,2026-04-03,P02,4,A entrega foi rápida
+R000891,2026-05-24,P12,4,Gostei da qualidade
+R000892,2026-02-10,P08,3,O recurso trava no celular
+R000893,2026-03-13,P04,3,Não consegui acessar minha conta
+R000894,2025-06-16,P02,5,Gostei da qualidade
+R000895,2026-02-02,P19,1,Não consegui acessar minha conta
+R000896,2026-02-09,P09,1,O recurso trava no celular
+R000897,2025-08-24,P08,3,O atendimento demorou muito
+R000898,2025-02-04,P01,4,Gostei da qualidade
+R000899,2026-04-24,P06,4,Suporte resolveu no mesmo dia
+R000900,2025-06-19,P06,4,Produto fácil de usar
+R000901,2026-01-28,P15,5,Produto fácil de usar
+R000902,2025-06-17,P20,1,Preço aumentou sem explicação
+R000903,2025-04-23,P14,1,Preço aumentou sem explicação
+R000904,2025-06-01,P23,4,Produto fácil de usar
+R000905,2025-09-21,P05,5,Gostei da qualidade
+R000906,2026-03-09,P13,4,A entrega foi rápida
+R000907,2025-09-30,P19,3,O recurso trava no celular
+R000908,2025-07-26,P04,2,O atendimento demorou muito
+R000909,2025-06-11,P14,2,Preço aumentou sem explicação
+R000910,2025-12-16,P11,4,Produto fácil de usar
+R000911,2026-03-08,P18,3,O atendimento demorou muito
+R000912,2025-04-01,P24,5,Suporte resolveu no mesmo dia
+R000913,2025-02-07,P22,5,Produto fácil de usar
+R000914,2025-06-28,P03,1,Preço aumentou sem explicação
+R000915,2025-09-02,P01,1,Cancelamento foi confuso
+R000916,2026-06-22,P01,2,Preço aumentou sem explicação
+R000917,2026-07-30,P15,4,Suporte resolveu no mesmo dia
+R000918,2025-07-23,P09,4,Gostei da qualidade
+R000919,2025-02-13,P06,2,Não consegui acessar minha conta
+R000920,2025-06-04,P13,4,A entrega foi rápida
+R000921,2025-03-17,P01,1,Não consegui acessar minha conta
+R000922,2025-01-24,P12,5,Suporte resolveu no mesmo dia
+R000923,2025-04-29,P14,5,Produto fácil de usar
+R000924,2025-04-15,P09,4,Gostei da qualidade
+R000925,2025-12-07,P01,4,Produto fácil de usar
+R000926,2025-08-27,P02,3,Cobrança veio duplicada
+R000927,2025-01-10,P12,5,Suporte resolveu no mesmo dia
+R000928,2026-02-01,P03,2,Preço aumentou sem explicação
+R000929,2026-07-22,P07,5,Suporte resolveu no mesmo dia
+R000930,2026-06-23,P11,3,O recurso trava no celular
+R000931,2025-07-10,P05,5,Produto fácil de usar
+R000932,2026-01-07,P07,1,Cancelamento foi confuso
+R000933,2025-08-21,P03,4,Produto fácil de usar
+R000934,2025-07-07,P06,2,Não consegui acessar minha conta
+R000935,2025-06-11,P07,1,O recurso trava no celular
+R000936,2026-01-27,P01,4,Produto fácil de usar
+R000937,2025-06-28,P01,2,Preço aumentou sem explicação
+R000938,2025-11-13,P24,2,O recurso trava no celular
+R000939,2025-05-10,P05,5,Gostei da qualidade
+R000940,2026-06-11,P16,5,Gostei da qualidade
+R000941,2025-04-11,P02,2,O recurso trava no celular
+R000942,2025-07-25,P15,1,Preço aumentou sem explicação
+R000943,2025-10-30,P21,1,O recurso trava no celular
+R000944,2026-03-15,P04,3,Cancelamento foi confuso
+R000945,2025-08-29,P17,4,Suporte resolveu no mesmo dia
+R000946,2025-06-24,P03,1,Cancelamento foi confuso
+R000947,2025-06-24,P05,4,Suporte resolveu no mesmo dia
+R000948,2026-04-22,P22,5,Produto fácil de usar
+R000949,2025-03-07,P23,4,Gostei da qualidade
+R000950,2025-09-26,P03,2,Cobrança veio duplicada
+R000951,2025-07-29,P19,4,Suporte resolveu no mesmo dia
+R000952,2025-12-23,P25,1,O recurso trava no celular
+R000953,2026-07-16,P10,4,A entrega foi rápida
+R000954,2025-05-29,P05,5,Gostei da qualidade
+R000955,2026-06-22,P05,5,Gostei da qualidade
+R000956,2025-09-11,P03,5,A entrega foi rápida
+R000957,2026-06-03,P15,3,O recurso trava no celular
+R000958,2025-06-24,P21,2,Não consegui acessar minha conta
+R000959,2025-08-19,P24,3,O atendimento demorou muito
+R000960,2025-03-27,P19,5,A entrega foi rápida
+R000961,2025-01-19,P10,4,Suporte resolveu no mesmo dia
+R000962,2025-04-08,P15,2,Preço aumentou sem explicação
+R000963,2025-07-22,P17,4,Suporte resolveu no mesmo dia
+R000964,2025-01-08,P01,3,O recurso trava no celular
+R000965,2025-11-21,P23,4,A entrega foi rápida
+R000966,2025-05-24,P24,5,Produto fácil de usar
+R000967,2025-03-27,P21,1,Cobrança veio duplicada
+R000968,2025-10-18,P04,5,Produto fácil de usar
+R000969,2025-06-13,P17,1,Cancelamento foi confuso
+R000970,2025-10-31,P19,1,O recurso trava no celular
+R000971,2026-06-09,P10,3,Cancelamento foi confuso
+R000972,2025-01-14,P01,4,Produto fácil de usar
+R000973,2026-02-24,P15,5,Suporte resolveu no mesmo dia
+R000974,2025-08-07,P21,4,Produto fácil de usar
+R000975,2025-03-06,P04,4,Gostei da qualidade
+R000976,2026-07-09,P18,3,O atendimento demorou muito
+R000977,2026-02-21,P04,3,Não consegui acessar minha conta
+R000978,2025-09-26,P11,3,Cancelamento foi confuso
+R000979,2026-03-09,P14,1,Cobrança veio duplicada
+R000980,2025-03-10,P03,3,Cancelamento foi confuso
+R000981,2025-07-30,P07,1,O recurso trava no celular
+R000982,2025-09-19,P24,4,A entrega foi rápida
+R000983,2026-03-08,P01,5,Produto fácil de usar
+R000984,2026-08-08,P13,1,O recurso trava no celular
+R000985,2026-04-19,P16,4,Produto fácil de usar
+R000986,2026-06-02,P11,1,Cancelamento foi confuso
+R000987,2025-01-25,P19,2,Cancelamento foi confuso
+R000988,2025-03-30,P25,4,Suporte resolveu no mesmo dia
+R000989,2026-08-03,P11,1,Preço aumentou sem explicação
+R000990,2026-07-14,P25,2,O recurso trava no celular
+R000991,2025-08-11,P01,1,O atendimento demorou muito
+R000992,2025-07-30,P06,3,Não consegui acessar minha conta
+R000993,2025-10-26,P20,3,Preço aumentou sem explicação
+R000994,2025-07-18,P16,4,Produto fácil de usar
+R000995,2026-07-27,P25,5,Produto fácil de usar
+R000996,2025-04-24,P22,1,O atendimento demorou muito
+R000997,2025-10-05,P12,2,Cobrança veio duplicada
+R000998,2025-01-21,P16,5,A entrega foi rápida
+R000999,2025-09-02,P02,3,Não consegui acessar minha conta
+R001000,2026-08-05,P07,4,Gostei da qualidade
+R001001,2025-05-11,P07,5,Produto fácil de usar
+R001002,2025-03-19,P04,5,A entrega foi rápida
+R001003,2025-11-16,P16,1,Cancelamento foi confuso
+R001004,2025-11-02,P19,2,Cancelamento foi confuso
+R001005,2025-05-07,P17,4,Produto fácil de usar
+R001006,2026-01-08,P21,1,Cancelamento foi confuso
+R001007,2025-03-18,P12,5,Suporte resolveu no mesmo dia
+R001008,2026-07-26,P15,1,O recurso trava no celular
+R001009,2026-04-23,P12,5,Produto fácil de usar
+R001010,2025-05-28,P07,1,Preço aumentou sem explicação
+R001011,2026-04-26,P10,4,Gostei da qualidade
+R001012,2025-12-15,P06,4,Produto fácil de usar
+R001013,2025-01-24,P06,4,Gostei da qualidade
+R001014,2025-06-18,P17,2,Cancelamento foi confuso
+R001015,2026-04-15,P23,1,Cobrança veio duplicada
+R001016,2026-01-10,P23,4,Produto fácil de usar
+R001017,2025-11-19,P21,2,Cobrança veio duplicada
+R001018,2025-08-07,P08,1,Cancelamento foi confuso
+R001019,2026-03-19,P13,3,Não consegui acessar minha conta
+R001020,2025-02-16,P11,1,Não consegui acessar minha conta
+R001021,2025-05-17,P04,4,Produto fácil de usar
+R001022,2025-06-30,P07,5,Produto fácil de usar
+R001023,2025-12-13,P13,3,Cobrança veio duplicada
+R001024,2025-11-02,P12,2,O atendimento demorou muito
+R001025,2025-04-29,P14,4,Gostei da qualidade
+R001026,2026-06-11,P20,5,Suporte resolveu no mesmo dia
+R001027,2025-06-13,P12,5,Suporte resolveu no mesmo dia
+R001028,2026-06-11,P08,1,O recurso trava no celular
+R001029,2025-10-30,P11,3,Cancelamento foi confuso
+R001030,2026-02-09,P25,1,Preço aumentou sem explicação
+R001031,2026-02-06,P20,1,Não consegui acessar minha conta
+R001032,2025-07-23,P06,4,Gostei da qualidade
+R001033,2026-08-13,P21,3,O atendimento demorou muito
+R001034,2026-06-11,P09,4,Produto fácil de usar
+R001035,2025-06-25,P06,3,Preço aumentou sem explicação
+R001036,2025-02-08,P08,5,A entrega foi rápida
+R001037,2025-02-04,P23,5,A entrega foi rápida
+R001038,2025-02-26,P08,3,Não consegui acessar minha conta
+R001039,2025-04-12,P14,2,Não consegui acessar minha conta
+R001040,2025-01-29,P19,3,Cobrança veio duplicada
+R001041,2025-12-01,P17,2,Preço aumentou sem explicação
+R001042,2025-04-07,P20,1,O atendimento demorou muito
+R001043,2026-01-15,P03,5,A entrega foi rápida
+R001044,2026-07-07,P15,3,Cancelamento foi confuso
+R001045,2025-11-11,P08,5,Produto fácil de usar
+R001046,2026-07-30,P21,1,O atendimento demorou muito
+R001047,2025-03-26,P04,1,O recurso trava no celular
+R001048,2026-04-07,P06,5,Gostei da qualidade
+R001049,2025-01-21,P01,5,A entrega foi rápida
+R001050,2025-05-17,P02,1,O recurso trava no celular
+R001051,2025-02-20,P20,5,Produto fácil de usar
+R001052,2026-07-16,P23,2,Cancelamento foi confuso
+R001053,2026-08-22,P08,5,Gostei da qualidade
+R001054,2025-08-12,P09,4,Suporte resolveu no mesmo dia
+R001055,2025-12-28,P06,2,O atendimento demorou muito
+R001056,2026-05-22,P13,5,Produto fácil de usar
+R001057,2026-08-13,P18,5,Suporte resolveu no mesmo dia
+R001058,2025-06-18,P06,1,Cobrança veio duplicada
+R001059,2025-08-24,P11,4,Produto fácil de usar
+R001060,2026-04-27,P19,1,Cobrança veio duplicada
+R001061,2025-01-12,P09,5,Suporte resolveu no mesmo dia
+R001062,2025-03-22,P18,3,Cobrança veio duplicada
+R001063,2025-11-12,P20,2,Preço aumentou sem explicação
+R001064,2026-05-06,P02,4,Gostei da qualidade
+R001065,2025-09-11,P11,5,A entrega foi rápida
+R001066,2025-05-15,P13,4,A entrega foi rápida
+R001067,2025-06-02,P13,2,O recurso trava no celular
+R001068,2025-09-04,P03,3,Preço aumentou sem explicação
+R001069,2025-12-20,P22,1,Preço aumentou sem explicação
+R001070,2026-03-31,P24,5,Suporte resolveu no mesmo dia
+R001071,2026-05-14,P08,4,A entrega foi rápida
+R001072,2025-09-16,P03,5,Suporte resolveu no mesmo dia
+R001073,2026-05-12,P20,1,Cancelamento foi confuso
+R001074,2026-02-07,P06,4,Gostei da qualidade
+R001075,2025-07-10,P23,1,O atendimento demorou muito
+R001076,2026-06-01,P18,5,A entrega foi rápida
+R001077,2025-04-05,P05,4,Suporte resolveu no mesmo dia
+R001078,2025-09-26,P06,4,Produto fácil de usar
+R001079,2025-08-26,P16,4,A entrega foi rápida
+R001080,2026-01-17,P09,3,Cobrança veio duplicada
+R001081,2025-03-19,P08,2,O recurso trava no celular
+R001082,2026-07-12,P23,2,Preço aumentou sem explicação
+R001083,2025-04-22,P23,3,Não consegui acessar minha conta
+R001084,2025-09-29,P22,1,Não consegui acessar minha conta
+R001085,2026-01-13,P11,2,Cobrança veio duplicada
+R001086,2025-03-14,P24,2,Não consegui acessar minha conta
+R001087,2025-01-31,P24,1,O atendimento demorou muito
+R001088,2025-12-17,P05,1,Cobrança veio duplicada
+R001089,2026-02-26,P09,2,Cancelamento foi confuso
+R001090,2025-01-10,P05,3,Preço aumentou sem explicação
+R001091,2025-09-08,P05,4,Suporte resolveu no mesmo dia
+R001092,2026-02-19,P16,4,Produto fácil de usar
+R001093,2025-08-04,P19,1,Preço aumentou sem explicação
+R001094,2025-08-25,P12,4,A entrega foi rápida
+R001095,2025-12-14,P23,5,Produto fácil de usar
+R001096,2026-01-14,P18,5,A entrega foi rápida
+R001097,2025-08-20,P04,5,Produto fácil de usar
+R001098,2026-01-25,P21,1,Cobrança veio duplicada
+R001099,2025-11-08,P21,5,Produto fácil de usar
+R001100,2025-06-17,P15,3,O atendimento demorou muito
+R001101,2025-04-06,P03,3,Cobrança veio duplicada
+R001102,2025-12-19,P11,4,A entrega foi rápida
+R001103,2026-03-06,P13,5,A entrega foi rápida
+R001104,2025-07-19,P16,5,A entrega foi rápida
+R001105,2025-10-05,P24,4,A entrega foi rápida
+R001106,2025-05-30,P20,3,O atendimento demorou muito
+R001107,2026-07-28,P06,1,Preço aumentou sem explicação
+R001108,2025-03-19,P25,5,Gostei da qualidade
+R001109,2025-06-24,P08,4,Suporte resolveu no mesmo dia
+R001110,2026-03-10,P14,1,O recurso trava no celular
+R001111,2025-04-01,P04,1,O recurso trava no celular
+R001112,2025-09-29,P06,4,Produto fácil de usar
+R001113,2026-02-08,P19,1,Cobrança veio duplicada
+R001114,2026-07-21,P01,3,Não consegui acessar minha conta
+R001115,2025-03-27,P06,2,Cancelamento foi confuso
+R001116,2025-08-01,P19,2,Preço aumentou sem explicação
+R001117,2025-10-12,P04,1,O recurso trava no celular
+R001118,2025-11-12,P18,1,O recurso trava no celular
+R001119,2025-11-11,P15,1,Preço aumentou sem explicação
+R001120,2026-07-27,P13,4,Produto fácil de usar
+R001121,2025-05-08,P13,4,A entrega foi rápida
+R001122,2025-12-02,P22,2,O atendimento demorou muito
+R001123,2025-09-26,P03,4,Produto fácil de usar
+R001124,2025-06-11,P11,2,O recurso trava no celular
+R001125,2026-06-09,P07,1,Não consegui acessar minha conta
+R001126,2025-09-14,P25,1,Preço aumentou sem explicação
+R001127,2025-09-17,P01,5,Gostei da qualidade
+R001128,2025-01-04,P02,1,Cobrança veio duplicada
+R001129,2026-03-11,P02,3,Cancelamento foi confuso
+R001130,2026-01-11,P14,1,O recurso trava no celular
+R001131,2025-04-25,P11,5,Suporte resolveu no mesmo dia
+R001132,2025-08-24,P05,2,Não consegui acessar minha conta
+R001133,2025-03-12,P05,1,Não consegui acessar minha conta
+R001134,2025-12-03,P11,2,O atendimento demorou muito
+R001135,2025-09-13,P25,1,Cancelamento foi confuso
+R001136,2026-08-11,P06,1,Cobrança veio duplicada
+R001137,2025-07-05,P05,1,O atendimento demorou muito
+R001138,2025-08-15,P15,5,A entrega foi rápida
+R001139,2026-01-26,P07,1,Não consegui acessar minha conta
+R001140,2025-09-27,P23,2,Cobrança veio duplicada
+R001141,2025-06-15,P09,1,Cobrança veio duplicada
+R001142,2026-04-01,P12,5,Gostei da qualidade
+R001143,2025-01-03,P13,1,Não consegui acessar minha conta
+R001144,2025-09-24,P21,3,O atendimento demorou muito
+R001145,2025-11-08,P11,5,A entrega foi rápida
+R001146,2026-03-27,P16,2,Não consegui acessar minha conta
+R001147,2025-02-02,P01,4,Gostei da qualidade
+R001148,2025-08-07,P25,3,Não consegui acessar minha conta
+R001149,2026-06-14,P01,1,O atendimento demorou muito
+R001150,2025-12-04,P11,4,Gostei da qualidade
+R001151,2026-01-09,P22,1,O recurso trava no celular
+R001152,2025-04-20,P10,2,Cobrança veio duplicada
+R001153,2025-08-05,P08,4,Gostei da qualidade
+R001154,2025-08-21,P10,2,O atendimento demorou muito
+R001155,2025-12-16,P11,1,Preço aumentou sem explicação
+R001156,2025-06-08,P15,5,A entrega foi rápida
+R001157,2026-07-05,P12,4,Gostei da qualidade
+R001158,2025-05-08,P24,3,O recurso trava no celular
+R001159,2026-02-17,P22,3,O recurso trava no celular
+R001160,2025-04-13,P04,1,Cancelamento foi confuso
+R001161,2025-06-24,P07,5,A entrega foi rápida
+R001162,2026-01-14,P20,3,Cancelamento foi confuso
+R001163,2025-08-11,P18,4,Produto fácil de usar
+R001164,2025-10-16,P10,1,Cancelamento foi confuso
+R001165,2026-05-04,P18,2,Cobrança veio duplicada
+R001166,2026-01-28,P18,4,Gostei da qualidade
+R001167,2025-12-04,P15,3,Cobrança veio duplicada
+R001168,2025-12-23,P22,3,Preço aumentou sem explicação
+R001169,2025-05-14,P14,3,O recurso trava no celular
+R001170,2025-11-13,P23,3,O atendimento demorou muito
+R001171,2025-10-30,P12,3,O atendimento demorou muito
+R001172,2025-11-27,P22,5,Gostei da qualidade
+R001173,2025-10-06,P21,2,Cancelamento foi confuso
+R001174,2025-11-18,P16,5,Produto fácil de usar
+R001175,2025-12-02,P14,1,Não consegui acessar minha conta
+R001176,2026-05-19,P02,1,O recurso trava no celular
+R001177,2025-11-08,P10,3,Preço aumentou sem explicação
+R001178,2026-05-11,P22,3,O recurso trava no celular
+R001179,2025-01-16,P16,1,Cobrança veio duplicada
+R001180,2025-05-07,P01,5,Produto fácil de usar
+R001181,2025-05-05,P15,3,Cancelamento foi confuso
+R001182,2025-05-05,P18,5,A entrega foi rápida
+R001183,2026-07-23,P17,1,O atendimento demorou muito
+R001184,2025-10-24,P20,4,A entrega foi rápida
+R001185,2025-01-01,P20,3,O atendimento demorou muito
+R001186,2026-08-11,P01,5,Suporte resolveu no mesmo dia
+R001187,2026-07-11,P14,3,Não consegui acessar minha conta
+R001188,2025-08-30,P13,5,Produto fácil de usar
+R001189,2026-05-18,P22,5,A entrega foi rápida
+R001190,2026-03-12,P01,4,Produto fácil de usar
+R001191,2026-07-21,P08,2,Preço aumentou sem explicação
+R001192,2025-07-30,P21,1,O atendimento demorou muito
+R001193,2026-07-17,P20,4,A entrega foi rápida
+R001194,2025-03-28,P21,5,Suporte resolveu no mesmo dia
+R001195,2025-04-06,P25,4,A entrega foi rápida
+R001196,2025-06-11,P16,5,Gostei da qualidade
+R001197,2025-12-29,P06,4,Produto fácil de usar
+R001198,2026-05-23,P24,5,Produto fácil de usar
+R001199,2026-03-12,P02,5,Produto fácil de usar
+R001200,2025-09-02,P13,5,A entrega foi rápida

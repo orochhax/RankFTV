@@ -962,3 +962,63 @@
 .evo-project-detail-grid ul li { display: flex; align-items: flex-start; gap: 8px; }
 .evo-project-detail-grid ul svg { margin-top: 2px; flex: 0 0 auto; color: var(--evo-success); }
 @media (max-width: 760px) { .evo-project-hero { flex-direction: column; padding: 20px; }.evo-project-intro-grid, .evo-project-step-grid, .evo-project-detail-grid { grid-template-columns: 1fr; } }
+
+/* Data Science roadmap v2 */
+.evo-ds-v2 { --ds-navy: #10213f; --ds-blue: #1769e8; --ds-soft: #eef5ff; }
+.evo-ds-overview { margin: 22px 0 30px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.evo-ds-overview article { min-height: 120px; padding: 18px; display: flex; gap: 13px; border: 1px solid var(--evo-line); border-radius: 15px; background: linear-gradient(145deg, #fff, #f8fbff); box-shadow: 0 10px 28px #203b6810; }
+.evo-ds-overview svg { flex: 0 0 auto; color: var(--ds-blue); }
+.evo-ds-overview div { display: flex; flex-direction: column; }
+.evo-ds-overview span, .evo-ds-overview small { color: var(--evo-muted); font-size: 10px; }
+.evo-ds-overview strong { margin: 7px 0 5px; color: var(--ds-navy); font-size: 20px; line-height: 1.05; }
+.evo-phase-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.evo-phase-grid article { padding: 20px; border: 1px solid #d7e4f7; border-radius: 15px; background: #fff; }
+.evo-phase-grid article:nth-child(2) { background: #f8fbff; }
+.evo-phase-grid article:nth-child(3) { background: #f7f5ff; border-color: #dfd8fa; }
+.evo-phase-grid span { color: var(--ds-blue); font-size: 10px; font-weight: 850; text-transform: uppercase; letter-spacing: .08em; }
+.evo-phase-grid h3 { margin: 9px 0 8px; font-size: 18px; }
+.evo-phase-grid p { min-height: 50px; color: var(--evo-muted); font-size: 11px; line-height: 1.55; }
+.evo-phase-grid footer { margin-top: 16px; padding-top: 12px; display: flex; justify-content: space-between; border-top: 1px solid #e7edf5; }
+.evo-phase-grid footer strong, .evo-phase-grid footer small { font-size: 10px; }
+.evo-phase-grid footer small { color: var(--evo-muted); }
+.evo-skill-tags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 5px; }
+.evo-skill-tags em { padding: 4px 7px; border-radius: 999px; color: #315b91; background: #edf5ff; font-size: 9px; font-style: normal; }
+.evo-career-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.evo-career-grid article { padding: 18px; border: 1px solid var(--evo-line); border-radius: 14px; background: #fff; }
+.evo-career-grid article.is-confirmed { border-color: #9bd9be; background: #f6fcf9; }
+.evo-career-grid header, .evo-career-grid article > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.evo-career-grid header span { color: var(--ds-blue); font-size: 10px; font-weight: 800; }
+.evo-career-grid button { padding: 6px 9px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #d8e3f2; border-radius: 8px; color: #335474; background: #fff; font-size: 9px; font-weight: 750; cursor: pointer; }
+.evo-career-grid h3 { margin: 14px 0 7px; font-size: 16px; }
+.evo-career-grid p { color: var(--evo-muted); font-size: 11px; line-height: 1.5; }
+.evo-career-grid article > div { margin-top: 14px; padding: 12px; border-radius: 10px; background: #f3f7fc; }
+.evo-career-grid article > div strong { font-size: 11px; line-height: 1.45; }
+.evo-skill-milestones h3 { display: flex; align-items: center; gap: 7px; }
+.evo-collapsible-section { border: 1px solid var(--evo-line); border-radius: 14px; background: #fff; overflow: hidden; }
+.evo-collapsible-summary { padding: 18px; display: flex; align-items: center; justify-content: space-between; gap: 20px; cursor: pointer; list-style: none; }
+.evo-collapsible-summary::-webkit-details-marker { display: none; }
+.evo-collapsible-title { display: grid; gap: 6px; }
+.evo-collapsible-title .evo-eyebrow { margin: 0; }
+.evo-collapsible-title > strong { color: var(--evo-text); font-size: 18px; font-weight: 500; }
+.evo-collapsible-action { padding: 8px 11px; display: inline-flex; align-items: center; gap: 7px; border: 1px solid #d8e3f2; border-radius: 9px; color: #335474; font-size: 10px; font-weight: 750; white-space: nowrap; }
+.evo-collapsible-action svg { transition: transform 180ms ease; }
+.evo-collapsible-section[open] .evo-collapsible-action svg { transform: rotate(180deg); }
+.evo-collapsible-help { margin: 0 18px 16px; color: var(--evo-muted); font-size: 11px; line-height: 1.55; }
+.evo-collapsible-section .evo-career-grid { padding: 0 18px 18px; }
+.evo-linkedin-skill-alert { margin-bottom: 12px; padding: 14px 16px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border: 1px solid #9cc6f2; border-radius: 12px; background: #eef6ff; color: #0a66c2; }
+.evo-linkedin-skill-alert div { display: grid; gap: 3px; }
+.evo-linkedin-skill-alert small { font-size: 9px; font-weight: 850; letter-spacing: .08em; }
+.evo-linkedin-skill-alert strong { color: #10213d; font-size: 13px; }
+.evo-linkedin-skill-alert span { color: #5d7188; font-size: 10px; line-height: 1.45; }
+.evo-linkedin-skill-alert a { padding: 8px 10px; border: 1px solid #a9caed; border-radius: 8px; background: #fff; color: #0a66c2; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.evo-roadmap-days details.is-project { border-color: #d8c8f5; background: #fbf9ff; }
+.evo-roadmap-days details.is-project .evo-day-number { color: #6c43c0; background: #eee8fb; }
+.evo-roadmap-project-callout { margin: 12px 0 14px; padding: 13px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 11px; border: 1px solid #d8c8f5; border-radius: 11px; background: #f7f3ff; }
+.evo-roadmap-project-callout > svg { color: #7245c3; }
+.evo-roadmap-project-callout div { display: grid; }
+.evo-roadmap-project-callout strong { font-size: 11px; }
+.evo-roadmap-project-callout small { color: var(--evo-muted); font-size: 9px; }
+.evo-roadmap-project-callout a { color: #6639b4; font-size: 10px; font-weight: 800; }
+@media (max-width: 1050px) { .evo-ds-overview { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 760px) { .evo-phase-grid, .evo-career-grid { grid-template-columns: 1fr; }.evo-roadmap-project-callout, .evo-linkedin-skill-alert { grid-template-columns: auto 1fr; }.evo-roadmap-project-callout a, .evo-linkedin-skill-alert a { grid-column: 2; justify-self: start; } }
+@media (max-width: 520px) { .evo-ds-overview { grid-template-columns: 1fr; }.evo-ds-overview article { min-height: auto; } }
