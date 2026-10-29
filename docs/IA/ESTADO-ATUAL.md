@@ -667,3 +667,15 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   fictícia XLSX, cenário, objetivo, execução, entregáveis, aceite e LinkedIn.
 - As bases foram produzidas com dados sintéticos e erros intencionais; nenhuma
   informação real de cliente foi usada.
+
+## Central de Evolução — plano intensivo de 60 dias (28/10/2026)
+
+- Os Dias 1 e 2 permanecem idênticos ao snapshot anterior para preservar o
+  progresso já salvo; o primeiro bloco iniciado do Dia 3 também mantém seu ID.
+- Do Dia 3 em diante, a carga foi elevada para aproximadamente 2h30 a 3h30 de
+  conteúdo por sessão, priorizando blocos aplicados e reduzindo o peso de
+  tópicos introdutórios já dominados.
+- A sequência agora é explícita e majoritariamente crescente dentro de cada
+  curso. O salto temático do antigo Dia 2 para aulas 65–73 não se repete nos
+  próximos dias sem uma indicação clara de revisão ou recorte.
+- O snapshot ativo contém 60 dias, 62 tarefas e continua sem inglês.
