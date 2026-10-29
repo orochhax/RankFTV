@@ -1,0 +1,20 @@
+[
+  {
+    "name": "válido",
+    "input": {
+      "plano": "Pro",
+      "meses_cliente": 14,
+      "logins_30d": 18,
+      "dias_ativos_30d": 12
+    },
+    "expected_status": 200
+  },
+  {
+    "name": "campo inválido",
+    "input": {
+      "plano": "Pro",
+      "meses_cliente": -1
+    },
+    "expected_status": 422
+  }
+]

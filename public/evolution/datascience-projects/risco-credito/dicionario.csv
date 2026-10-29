@@ -1,0 +1,3 @@
+campo,uso,alerta
+inadimplente_90d,alvo,não usar no treino como feature
+dias_atraso,histórico,cortar antes da janela do alvo

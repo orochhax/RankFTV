@@ -1,0 +1,81 @@
+cliente_id,segmento,cidade,desde
+C01,Enterprise,Salvador,2025-11-18
+C02,PME,Itabuna,2024-05-08
+C03,PME,Porto Seguro,2025-02-09
+C04,PME,Porto Seguro,2025-11-08
+C05,Enterprise,Porto Seguro,2024-12-02
+C06,Enterprise,Itabuna,2024-07-04
+C07,Pessoa física,Itabuna,2025-11-02
+C08,Pessoa física,Porto Seguro,2025-07-31
+C09,Enterprise,Itabuna,2025-03-08
+C10,PME,Eunápolis,2024-12-11
+C11,PME,Itabuna,2024-06-27
+C12,Enterprise,Itabuna,2025-07-24
+C13,PME,Itabuna,2024-12-05
+C14,PME,Porto Seguro,2024-01-25
+C15,Enterprise,Porto Seguro,2025-09-25
+C16,Enterprise,Porto Seguro,2025-05-20
+C17,Enterprise,Salvador,2024-06-22
+C18,Pessoa física,Itabuna,2024-01-27
+C19,PME,Itabuna,2025-06-17
+C20,Pessoa física,Porto Seguro,2025-05-02
+C21,Pessoa física,Itabuna,2024-11-19
+C22,PME,Porto Seguro,2025-08-30
+C23,PME,Itabuna,2025-01-11
+C24,Enterprise,Salvador,2024-08-29
+C25,Enterprise,Eunápolis,2025-02-18
+C26,Enterprise,Porto Seguro,2024-04-26
+C27,PME,Salvador,2024-04-01
+C28,PME,Eunápolis,2024-07-06
+C29,PME,Porto Seguro,2024-09-21
+C30,Enterprise,Porto Seguro,2024-12-29
+C31,Pessoa física,Eunápolis,2025-01-19
+C32,Enterprise,Salvador,2024-11-01
+C33,Pessoa física,Itabuna,2025-09-14
+C34,Pessoa física,Porto Seguro,2025-07-09
+C35,Enterprise,Porto Seguro,2024-10-30
+C36,Pessoa física,Itabuna,2024-03-29
+C37,Pessoa física,Porto Seguro,2024-09-19
+C38,Pessoa física,Eunápolis,2024-11-05
+C39,Pessoa física,Porto Seguro,2024-10-06
+C40,PME,Itabuna,2024-07-19
+C41,Enterprise,Porto Seguro,2024-07-20
+C42,PME,Porto Seguro,2024-08-01
+C43,Enterprise,Porto Seguro,2025-04-27
+C44,Enterprise,Itabuna,2025-01-17
+C45,Enterprise,Salvador,2024-02-16
+C46,Enterprise,Itabuna,2025-05-24
+C47,Enterprise,Porto Seguro,2025-09-03
+C48,PME,Porto Seguro,2024-07-01
+C49,Pessoa física,Eunápolis,2025-01-20
+C50,PME,Eunápolis,2024-01-21
+C51,Enterprise,Salvador,2025-02-07
+C52,PME,Eunápolis,2024-07-17
+C53,Enterprise,Itabuna,2024-04-10
+C54,PME,Itabuna,2025-03-04
+C55,Pessoa física,Salvador,2024-11-18
+C56,Enterprise,Salvador,2024-09-21
+C57,PME,Itabuna,2024-02-11
+C58,PME,Eunápolis,2024-07-16
+C59,PME,Eunápolis,2025-11-09
+C60,Pessoa física,Itabuna,2024-11-03
+C61,Enterprise,Eunápolis,2024-07-23
+C62,Pessoa física,Porto Seguro,2025-01-16
+C63,Pessoa física,Eunápolis,2025-01-09
+C64,Pessoa física,Itabuna,2025-11-02
+C65,Enterprise,Itabuna,2024-04-12
+C66,Pessoa física,Salvador,2025-11-02
+C67,Pessoa física,Eunápolis,2024-07-08
+C68,Pessoa física,Eunápolis,2024-09-30
+C69,PME,Salvador,2024-10-31
+C70,Enterprise,Porto Seguro,2025-07-26
+C71,Enterprise,Eunápolis,2024-09-02
+C72,Pessoa física,Eunápolis,2024-08-26
+C73,Enterprise,Itabuna,2025-05-29
+C74,Enterprise,Salvador,2025-05-09
+C75,Enterprise,Eunápolis,2025-02-07
+C76,Pessoa física,Salvador,2025-06-26
+C77,Pessoa física,Porto Seguro,2024-07-04
+C78,PME,Porto Seguro,2025-06-16
+C79,Enterprise,Porto Seguro,2025-08-26
+C80,Enterprise,Itabuna,2025-03-20

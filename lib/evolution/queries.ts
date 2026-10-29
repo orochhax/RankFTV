@@ -6,10 +6,64 @@ import { requireEvolutionOwner } from "./access";
 import { todayInSaoPaulo } from "./date";
 import { computeEvolutionScore, computeStudyWeek, weekRange } from "./metrics";
 import type { RankSnapshot, RoadmapSnapshot, StudySession } from "./types";
+import { isEvolutionLocalPreview } from "./local-preview";
+
+function getLocalPreviewData() {
+  const fetchedAt = new Date().toISOString();
+  const today = todayInSaoPaulo();
+  const range = weekRange(today);
+  const settings = {
+    daily_study_target_minutes: 240,
+    weekly_study_target_minutes: 1_200,
+    follower_target: 500,
+    current_weight_kg: null,
+    goal_weight_kg: null,
+  };
+  const sessions: StudySession[] = [];
+  const roadmap = roadmapJson as RoadmapSnapshot;
+  const rank = rankJson as RankSnapshot;
+  const study = computeStudyWeek(
+    sessions,
+    today,
+    settings.daily_study_target_minutes,
+    settings.weekly_study_target_minutes,
+    roadmap.period.start,
+  );
+  const score = computeEvolutionScore({
+    study,
+    videoPublished: false,
+    trainingDays: 0,
+    expectedTrainingDays: 6,
+    weightLogged: false,
+  });
+
+  return {
+    fetchedAt,
+    databaseReady: false,
+    today,
+    range,
+    settings,
+    sessions,
+    study,
+    training: [],
+    weights: [],
+    followers: [],
+    equipment: [],
+    video: null,
+    roadmapProgress: new Set<string>(),
+    projectProgress: [],
+    latestReview: null,
+    ideas: [],
+    score,
+    roadmap,
+    rank,
+  };
+}
 
 // Agrega fontes opcionais e mantém defaults explícitos enquanto a migration não foi aplicada.
 // eslint-disable-next-line complexity
 export async function getEvolutionData() {
+  if (isEvolutionLocalPreview()) return getLocalPreviewData();
   const fetchedAt = new Date().toISOString();
   const { supabase, user } = await requireEvolutionOwner();
   const today = todayInSaoPaulo();

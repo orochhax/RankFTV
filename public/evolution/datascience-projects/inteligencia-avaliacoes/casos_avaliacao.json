@@ -1,0 +1,17 @@
+[
+  {
+    "id": "amb-1",
+    "texto": "O suporte resolveu, mas a cobrança continua errada",
+    "esperado": [
+      "atendimento",
+      "cobranca"
+    ]
+  },
+  {
+    "id": "fora-1",
+    "texto": "Vi o anúncio ontem",
+    "esperado": [
+      "outro"
+    ]
+  }
+]

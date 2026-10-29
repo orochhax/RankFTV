@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Check, Clock3 } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
+import { BadgePlus, BriefcaseBusiness, Check, Clock3 } from "lucide-react";
 import type { RoadmapSnapshot } from "@/lib/evolution/types";
 
 function findCurrentDay(roadmap: RoadmapSnapshot, completed: Set<string>) {
@@ -23,7 +24,7 @@ function countRoadmapTasks(roadmap: RoadmapSnapshot, completed: Set<string>) {
   return { total, done };
 }
 
-export function RoadmapBoard({ roadmap, initialCompleted, today, onToggle }: { roadmap: RoadmapSnapshot; initialCompleted: string[]; today: string; onToggle: (taskId: string, completed: boolean) => Promise<void> }) {
+export function RoadmapBoard({ roadmap, initialCompleted, today, onToggle, localStorageKey }: { roadmap: RoadmapSnapshot; initialCompleted: string[]; today: string; onToggle?: (taskId: string, completed: boolean) => Promise<void>; localStorageKey?: string }) {
   const [completed, setCompleted] = useState(() => new Set(initialCompleted));
   const [pending, startTransition] = useTransition();
   const taskCounts = countRoadmapTasks(roadmap, completed);
@@ -31,12 +32,30 @@ export function RoadmapBoard({ roadmap, initialCompleted, today, onToggle }: { r
   const doneCount = taskCounts.done;
   const currentDay = findCurrentDay(roadmap, completed);
 
+  useEffect(() => {
+    if (!localStorageKey) return;
+    let frame = 0;
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(localStorageKey) ?? "[]");
+      if (Array.isArray(stored)) {
+        frame = window.requestAnimationFrame(() => {
+          setCompleted(new Set(stored.filter((item): item is string => typeof item === "string")));
+        });
+      }
+    } catch {
+      // A prévia continua utilizável mesmo sem armazenamento local.
+    }
+    return () => window.cancelAnimationFrame(frame);
+  }, [localStorageKey]);
+
   const toggle = (taskId: string, checked: boolean) => {
     setCompleted((previous) => {
       const next = new Set(previous);
       if (checked) next.add(taskId); else next.delete(taskId);
+      if (localStorageKey) window.localStorage.setItem(localStorageKey, JSON.stringify([...next]));
       return next;
     });
+    if (!onToggle) return;
     startTransition(async () => {
       try {
         await onToggle(taskId, checked);
@@ -62,19 +81,26 @@ export function RoadmapBoard({ roadmap, initialCompleted, today, onToggle }: { r
           const tasks = day.sections.flatMap((section) => section.tasks);
           const done = tasks.filter((task) => completed.has(task.id)).length;
           const isCurrent = currentDay?.id === day.id;
+          const linkedinSkills = roadmap.linkedinSkillMilestones?.filter((milestone) => milestone.afterDay === day.dayNumber) ?? [];
           return (
-            <details key={day.id} open={isCurrent || day.date === today} className={isCurrent ? "is-current" : ""}>
+            <details key={day.id} open={isCurrent || day.date === today} className={`${isCurrent ? "is-current" : ""}${day.kind === "project" ? " is-project" : ""}`}>
               <summary>
                 <span className="evo-day-number">{String(day.dayNumber).padStart(2, "0")}</span>
-                <div><strong>{day.date} · {day.weekday}</strong><small><Clock3 size={13} /> {Math.floor(day.plannedMinutes / 60)}h{String(day.plannedMinutes % 60).padStart(2, "0")} planejadas</small></div>
+                <div><strong>{day.date} · {day.weekday}</strong><small><Clock3 size={13} /> {Math.floor(day.plannedMinutes / 60)}h{String(day.plannedMinutes % 60).padStart(2, "0")} planejadas · {day.phaseTitle}</small></div>
                 <span className="evo-day-done">{done}/{tasks.length}</span>
               </summary>
               <div className="evo-day-content">
+                {linkedinSkills.map((milestone) => <div className="evo-linkedin-skill-alert" key={milestone.id}>
+                  <BadgePlus size={18} />
+                  <div><small>NOVA COMPETÊNCIA PARA O LINKEDIN</small><strong>{milestone.skill}</strong><span>{milestone.evidence}</span></div>
+                  <a href="https://www.linkedin.com/in/carlos-rocha-b7b09524b/details/skills/" target="_blank" rel="noreferrer">Adicionar competência</a>
+                </div>)}
+                {day.kind === "project" && day.projectSlug ? <div className="evo-roadmap-project-callout"><BriefcaseBusiness size={18} /><div><strong>{day.note}</strong><small>Este marco usa o conhecimento acumulado até aqui.</small></div><Link href={`/admin/evolucao/datascience/projetos/${day.projectSlug}`}>Abrir projeto</Link></div> : null}
                 {day.courses?.length ? <div className="evo-day-courses">
                   {day.courses.map((course) => <article key={course.id} className="evo-course-card">
-                    <div><span className="evo-course-kicker">CIÊNCIA DE DADOS</span><h3>{course.title}</h3></div>
+                    <div><span className="evo-course-kicker">{day.phaseTitle}</span><h3>{course.title}</h3></div>
                     <a href={course.url} target="_blank" rel="noreferrer">Abrir curso ↗</a>
-                    <details open><summary>{course.lessons.length === 1 ? "Aula ou leitura planejada" : `${course.lessons.length} aulas planejadas neste dia`}</summary><ul>{course.lessons.map((lesson) => <li key={lesson.id}>{lesson.label}</li>)}</ul></details>
+                    <details open><summary>{course.durationSource === "estimativa" ? "Carga planejada estimada" : "Aulas planejadas"}</summary><ul>{course.lessons.map((lesson) => <li key={lesson.id}>{lesson.label}</li>)}</ul></details>
                   </article>)}
                 </div> : null}
                 {day.sections.map((section) => (
