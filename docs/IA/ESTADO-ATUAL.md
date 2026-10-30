@@ -707,3 +707,23 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   curso. O salto temático do antigo Dia 2 para aulas 65–73 não se repete nos
   próximos dias sem uma indicação clara de revisão ou recorte.
 - O snapshot ativo contém 60 dias, 62 tarefas e continua sem inglês.
+
+## Pulso.AI — quatro abordagens e novo mix editorial (29/10/2026)
+
+- Carlos aprovou o mix do canal: 65% tutoriais, métodos e transformações com
+  IA; 25% produtividade, carreira, aprendizado e sistemas pessoais; 10%
+  notícias puras somente quando relevantes.
+- Ciência de Dados e a agência deixam de ser pilares deste canal. A Central
+  também deve propor pautas evergreen, experimentos, histórias e formatos
+  demonstráveis sem depender de uma notícia recente.
+- Cada ideia passa a comparar quatro execuções: notícia/explicação,
+  tutorial/aplicação, transformação/benefício e experimento/história/vlog.
+  Cada opção possui título, promessa, demonstração, justificativa, momento,
+  longevidade, requisitos e nota própria.
+- O ranking editorial reduz o peso da recência e prioriza utilidade,
+  transformação, aderência ao canal, força de embalagem, evidência e
+  aplicabilidade. O formato preserva ideias, histórico, títulos bloqueados e
+  estados editoriais existentes.
+- Migration preparada em `supabase/20261029000100_youtube_idea_approaches.sql`;
+  publicação e primeira atualização geral ainda dependem dos gates de CI,
+  migration protegida e deploy de Production.
