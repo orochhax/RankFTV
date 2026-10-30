@@ -724,6 +724,12 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   transformação, aderência ao canal, força de embalagem, evidência e
   aplicabilidade. O formato preserva ideias, histórico, títulos bloqueados e
   estados editoriais existentes.
-- Migration preparada em `supabase/20261029000100_youtube_idea_approaches.sql`;
-  publicação e primeira atualização geral ainda dependem dos gates de CI,
-  migration protegida e deploy de Production.
+- Publicação concluída pela PR `#98`, merge
+  `5b096a7ac165d173bd3a018e40810f08eb0d8004`. O deploy de Production ficou
+  `Ready` e o CI de `master` passou, incluindo 30 testes de navegador.
+- A migration `supabase/20261029000100_youtube_idea_approaches.sql` foi aplicada
+  pelo workflow protegido `40983208779` e verificada com RLS, grants e RPC
+  restrita ao `service_role`.
+- Primeira atualização geral concluída no run
+  `19e2a863-386e-4871-8078-181f2b1590ba`: 19 ideias ranqueadas, 76 abordagens,
+  51 referências do YouTube e perfil editorial 65% / 25% / 10% persistidos.
