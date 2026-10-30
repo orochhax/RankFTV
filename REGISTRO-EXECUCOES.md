@@ -1339,5 +1339,14 @@ registrar apenas uma revalidação quando ela for necessária.
 - O importador passa a exigir os quatro enquadramentos e a ficha da pauta passa
   a comparar título, promessa, demonstração, justificativa, momento,
   longevidade, requisitos e nota de cada opção.
-- Estado neste registro: implementação local em validação; IDs de PR, migration,
-  deploy e rodada de radar serão acrescentados após evidência observada.
+- Validação concluída: nove testes específicos, typecheck, lint e build local
+  passaram. O CI de `master` também passou, incluindo 30 testes de navegador.
+- Publicação concluída pela PR `#98`, merge commit
+  `5b096a7ac165d173bd3a018e40810f08eb0d8004`, com deploy de Production da
+  Vercel em estado `Ready`.
+- A migration protegida foi aplicada pelo workflow `40983208779`, com validação
+  do alvo, aplicação atômica, endurecimento de segurança e verificação final.
+- A primeira rodada no novo contrato foi concluída no run
+  `19e2a863-386e-4871-8078-181f2b1590ba`: 19 ideias ranqueadas, 76 abordagens
+  persistidas, 51 referências do YouTube atualizadas e perfil editorial
+  confirmado em 65% / 25% / 10%.
