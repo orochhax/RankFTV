@@ -2,10 +2,10 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays, ExternalLink, Eye, Lightbulb, Video } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getYoutubeIdeaDetail } from "@/lib/youtube/queries";
-import { formatYoutubeDate } from "@/lib/youtube/format";
 import { getRecordingRequirements } from "@/lib/youtube/recording-requirements";
 import { getIdeaNovelty } from "@/lib/youtube/novelty-date";
 import { IDEA_APPROACH_LABELS, type YoutubeIdeaApproachKey } from "@/lib/youtube/idea-approaches";
+import { IdeaHistoryPanel } from "@/components/admin/youtube/IdeaHistoryPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +46,7 @@ export default async function YoutubeIdeaDetailPage(props: { params: Promise<{ i
     </section>
     <div className="yt-detail-grid">
       <section className="yt-panel"><div className="yt-panel-heading"><h2>Por que gravar</h2><span>{idea.editorial_state.replaceAll("_", " ")}</span></div><p className="yt-detail-copy">{idea.rationale}</p><h3>Gancho sugerido</h3><blockquote>{idea.hook}</blockquote><h3>Estrutura</h3><ol className="yt-outline">{(idea.outline as string[]).map((step) => <li key={step}>{step}</li>)}</ol></section>
-      <section className="yt-panel"><div className="yt-panel-heading"><h2>Histórico real</h2><span>melhor posição #{idea.best_rank ?? "—"}</span></div>{data.history.length ? <div className="yt-history-list">{data.history.map((entry) => <article key={`${entry.created_at}-${entry.rank_position}`}><strong>{formatYoutubeDate(entry.created_at)}</strong><span>{entry.score}/100 · #{entry.rank_position ?? "—"}</span><small>{entry.change_kind} {entry.rank_delta ? `(${entry.rank_delta > 0 ? "+" : ""}${entry.rank_delta})` : ""}</small><p>{entry.rationale}</p></article>)}</div> : <p className="yt-detail-copy">Ainda não há reavaliações registradas.</p>}</section>
+      <IdeaHistoryPanel entries={data.history} bestRank={idea.best_rank} />
     </div>
     <section className="yt-panel yt-novelty-date">
       <div className="yt-panel-heading"><h2>Data da novidade</h2><span>{novelty.isSpecificLaunch ? "lançamento ou atualização" : "pauta evergreen"}</span></div>

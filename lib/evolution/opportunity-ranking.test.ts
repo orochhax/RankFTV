@@ -65,4 +65,28 @@ describe("ranking editorial de oportunidade", () => {
     assert.equal(ranked.filter((item) => item.channel === "Mesmo canal").length, 3);
     assert.ok(ranked.every((item) => item.opportunityScore >= 0 && item.opportunityScore <= 100));
   });
+
+  test("compõe o top 15 com dez pautas de IA aplicada, quatro de evolução e uma notícia", () => {
+    const applied = Array.from({ length: 12 }, (_, index) =>
+      video(`IA ${index}`, `ia${index}`, `Como usar ChatGPT para criar resultados em ${index + 1} minutos`, 50_000 + index * 1_000),
+    );
+    const growth = Array.from({ length: 6 }, (_, index) =>
+      video(`Crescimento ${index}`, `g${index}`, `Sistema de produtividade e carreira ${index + 1}`, 40_000 + index * 1_000),
+    );
+    const news = Array.from({ length: 3 }, (_, index) =>
+      video(`Notícia ${index}`, `n${index}`, `Notícia: novo lançamento mudou o mercado ${index + 1}`, 30_000 + index * 1_000),
+    );
+
+    const ranked = rankOpportunityVideos([...applied, ...growth, ...news], {
+      limit: 15,
+      perChannel: 3,
+      now: new Date("2026-10-30"),
+    });
+
+    assert.equal(ranked.filter((item) => item.editorialPillar === "ai_applied").length, 10);
+    assert.equal(ranked.filter((item) => item.editorialPillar === "growth_systems").length, 4);
+    assert.equal(ranked.filter((item) => item.editorialPillar === "news").length, 1);
+    assert.ok(ranked.every((item) => item.breakdown.promiseBenefit >= 0));
+    assert.ok(ranked.every((item) => item.breakdown.longevity >= 0));
+  });
 });

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays, ExternalLink, Eye, Lightbulb, Video } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getYoutubeIdeaDetail } from "@/lib/youtube/queries";
-import { formatYoutubeDate } from "@/lib/youtube/format";
+import { IdeaHistoryPanel } from "@/components/admin/youtube/IdeaHistoryPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export default async function YoutubeIdeaDetailPage(props: { params: Promise<{ i
     <header className="yt-detail-heading"><span className="yt-detail-icon"><Lightbulb size={20} /></span><div><p className="yt-eyebrow">IDEIA RANQUEADA #{idea.current_rank ?? "—"}</p><div className="yt-detail-origin"><span className={`yt-origin-pill is-${sourceOrigin}`}>{originLabel[sourceOrigin]}</span></div><h1>{idea.title}</h1><p>{idea.summary}</p></div><strong className="yt-detail-score">{idea.score}<small>/100</small></strong></header>
     <div className="yt-detail-grid">
       <section className="yt-panel"><div className="yt-panel-heading"><h2>Por que gravar</h2><span>{idea.editorial_state.replaceAll("_", " ")}</span></div><p className="yt-detail-copy">{idea.rationale}</p><h3>Gancho sugerido</h3><blockquote>{idea.hook}</blockquote><h3>Estrutura</h3><ol className="yt-outline">{(idea.outline as string[]).map((step) => <li key={step}>{step}</li>)}</ol></section>
-      <section className="yt-panel"><div className="yt-panel-heading"><h2>Histórico real</h2><span>melhor posição #{idea.best_rank ?? "—"}</span></div>{data.history.length ? <div className="yt-history-list">{data.history.map((entry) => <article key={`${entry.created_at}-${entry.rank_position}`}><strong>{formatYoutubeDate(entry.created_at)}</strong><span>{entry.score}/100 · #{entry.rank_position ?? "—"}</span><small>{entry.change_kind} {entry.rank_delta ? `(${entry.rank_delta > 0 ? "+" : ""}${entry.rank_delta})` : ""}</small><p>{entry.rationale}</p></article>)}</div> : <p className="yt-detail-copy">Ainda não há reavaliações registradas.</p>}</section>
+      <IdeaHistoryPanel entries={data.history} bestRank={idea.best_rank} />
     </div>
     <section className="yt-panel yt-detail-sources"><div className="yt-panel-heading"><h2>Fontes relacionadas</h2></div>{data.sources.map((source, index) => { const item = Array.isArray(source.item) ? source.item[0] : source.item; return item ? <a key={index} href={item.canonical_url} target="_blank" rel="noreferrer"><span>{item.title}</span><ExternalLink size={14} /></a> : null; })}</section>
     <section className="yt-panel yt-youtube-references">

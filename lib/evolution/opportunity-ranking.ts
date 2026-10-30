@@ -15,12 +15,15 @@ export type OpportunityVideoInput = {
 
 export type OpportunityBreakdown = {
   relativePerformance: number;
-  editorialFit: number;
+  promiseBenefit: number;
   adaptability: number;
-  freshness: number;
-  crossChannelValidation: number;
   packaging: number;
+  crossChannelValidation: number;
+  freshness: number;
+  longevity: number;
 };
+
+export type EditorialPillar = "ai_applied" | "growth_systems" | "news";
 
 export type RankedOpportunityVideo = OpportunityVideoInput & {
   opportunityScore: number;
@@ -29,6 +32,8 @@ export type RankedOpportunityVideo = OpportunityVideoInput & {
   relativePerformanceMultiple: number;
   formatLabel: string;
   topicLabel: string;
+  editorialPillar: EditorialPillar;
+  editorialPillarLabel: string;
   rationale: string;
 };
 
@@ -106,6 +111,28 @@ const tutorialTerms = [
   "truques",
 ];
 
+const aiTerms = [
+  " inteligencia artificial", " ia ", " ia:", "com ia", "usando ia", "de ia", " ai ", "chatgpt", "claude", "gemini", "openai",
+  "agente", "agent", "automacao", "automation", "cursor", "lovable", "higgsfield",
+];
+
+const newsTerms = [
+  "noticia", "news", "lancamento", "release", "lancou", "anunciou", "novidade",
+  "novo ", "nova ", "mudou", "acabou", "chegou", "estreia", "atualizacao",
+];
+
+const benefitTerms = [
+  "resultado", "beneficio", "ganhar", "ganhei", "fatur", "dinheiro", "money", "venda",
+  "cliente", "econom", "rapido", "produt", "trabalhar melhor", "criar", "construir",
+  "aprender", "conhecimento", "horas", "minutos", "dias", "sem experiencia", "do zero",
+];
+
+const pillarLabels: Record<EditorialPillar, string> = {
+  ai_applied: "IA aplicada a resultados",
+  growth_systems: "Produtividade, carreira e sistemas",
+  news: "Notícia relevante",
+};
+
 const excludedFormatTerms = [
   "podcast",
   "entrevista",
@@ -146,7 +173,7 @@ export const isEligibleOpportunityVideo = (video: OpportunityVideoInput) => {
   if (video.views == null || video.views < 0) return false;
   const title = ` ${normalized(video.originalTitle || video.title)} `;
   if (titleHasAny(title, irrelevantTerms)) return false;
-  if (!editorialGroups.some((group) => titleHasAny(title, group.terms))) return false;
+  if (!editorialGroups.some((group) => titleHasAny(title, group.terms)) && !titleHasAny(title, newsTerms)) return false;
   if (titleHasAny(title, excludedFormatTerms)) return false;
   if ((video.durationSeconds ?? 0) > 45 * 60 && !isLongTutorial(title)) return false;
   return true;
@@ -155,13 +182,24 @@ export const isEligibleOpportunityVideo = (video: OpportunityVideoInput) => {
 const relativePerformanceScore = (multiple: number) =>
   clamp(50 + 15 * Math.log2(Math.max(multiple, 0.05)));
 
-const editorialFitScore = (video: OpportunityVideoInput) => {
+const editorialPillarFor = (video: OpportunityVideoInput): EditorialPillar => {
   const title = ` ${normalized(video.originalTitle || video.title)} `;
-  const matched = editorialGroups.filter((group) => titleHasAny(title, group.terms));
-  if (!matched.length) return 0;
-  const hasAppliedAngle = titleHasAny(title, tutorialTerms);
-  const groupBreadth = Math.min(3, matched.length);
-  return clamp(55 + (groupBreadth - 1) * 14 + (hasAppliedAngle ? 17 : 0));
+  const channelAndTitle = `${title} ${normalized(video.channel)} `;
+  const isApplied = titleHasAny(title, tutorialTerms) || titleHasAny(title, benefitTerms);
+  if (titleHasAny(title, newsTerms) && !isApplied) return "news";
+  if (titleHasAny(channelAndTitle, aiTerms)) return "ai_applied";
+  return "growth_systems";
+};
+
+const promiseBenefitScore = (video: OpportunityVideoInput) => {
+  const title = ` ${normalized(video.originalTitle || video.title)} `;
+  let score = 28;
+  if (titleHasAny(title, benefitTerms)) score += 25;
+  if (titleHasAny(title, tutorialTerms)) score += 18;
+  if (/\d|r\$|us\$|\$|%/.test(title)) score += 14;
+  if (titleHasAny(title, ["horas", "minutos", "dias", "sem experiencia", "do zero", "qualquer pessoa"])) score += 10;
+  if (titleHasAny(title, ["como ", "por que", "o que", "?", "how ", "why "])) score += 8;
+  return clamp(score);
 };
 
 const adaptabilityScore = (video: OpportunityVideoInput) => {
@@ -210,6 +248,15 @@ const freshnessScore = (ageDays: number | null) => {
   return 10;
 };
 
+const longevityScore = (video: OpportunityVideoInput, pillar: EditorialPillar) => {
+  const title = ` ${normalized(video.originalTitle || video.title)} `;
+  let score = pillar === "growth_systems" ? 88 : pillar === "ai_applied" ? 76 : 28;
+  if (titleHasAny(title, tutorialTerms)) score += 8;
+  if (titleHasAny(title, ["2025", "2026", "2027", "lancamento", "noticia", "news", "acabou", "chegou"])) score -= 18;
+  if (titleHasAny(title, ["metodo", "sistema", "framework", "principio", "regra", "guia"])) score += 8;
+  return clamp(score);
+};
+
 const packagingScore = (video: OpportunityVideoInput) => {
   const title = normalized(video.originalTitle || video.title);
   let score = 20;
@@ -235,10 +282,12 @@ const rationaleFor = (video: OpportunityVideoInput, multiple: number, topic: str
     ? `${multiple.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}× a mediana do próprio canal`
     : `${Math.round(multiple * 100)}% da mediana do próprio canal`;
   const strongest = [
-    [breakdown.editorialFit, "forte aderência à linha do Carlos"],
+    [breakdown.promiseBenefit, "promessa e benefício claros"],
     [breakdown.adaptability, "formato fácil de transformar em vídeo autoral"],
-    [breakdown.freshness, "assunto recente"],
+    [breakdown.packaging, "título e embalagem fortes"],
     [breakdown.crossChannelValidation, "tema validado em mais de um canal"],
+    [breakdown.freshness, "assunto recente"],
+    [breakdown.longevity, "utilidade que não depende apenas da novidade"],
   ] as Array<[number, string]>;
   strongest.sort((a, b) => b[0] - a[0]);
   return `${performance}; ${strongest[0][1]}. Sinal: ${topic}.`;
@@ -280,21 +329,24 @@ export function rankOpportunityVideos(
         1,
         ...topics.map((topic) => channelsByTopic.get(topic)?.size ?? 1),
       );
+      const editorialPillar = editorialPillarFor(video);
       const breakdown: OpportunityBreakdown = {
         relativePerformance: relativePerformanceScore(relativePerformanceMultiple),
-        editorialFit: editorialFitScore(video),
+        promiseBenefit: promiseBenefitScore(video),
         adaptability: adaptabilityScore(video),
-        freshness: freshnessScore(videoAgeDays(video, now)),
-        crossChannelValidation: clamp(((corroboratingChannels - 1) / 5) * 100),
         packaging: packagingScore(video),
+        crossChannelValidation: clamp(((corroboratingChannels - 1) / 5) * 100),
+        freshness: freshnessScore(videoAgeDays(video, now)),
+        longevity: longevityScore(video, editorialPillar),
       };
       const opportunityScore = Math.round(
-        breakdown.relativePerformance * 0.35
-        + breakdown.editorialFit * 0.2
+        breakdown.relativePerformance * 0.3
+        + breakdown.promiseBenefit * 0.25
         + breakdown.adaptability * 0.15
-        + breakdown.freshness * 0.15
+        + breakdown.packaging * 0.1
         + breakdown.crossChannelValidation * 0.1
-        + breakdown.packaging * 0.05,
+        + breakdown.freshness * 0.05
+        + breakdown.longevity * 0.05,
       );
       return {
         ...video,
@@ -304,6 +356,8 @@ export function rankOpportunityVideos(
         relativePerformanceMultiple,
         formatLabel: formatLabel(video),
         topicLabel,
+        editorialPillar,
+        editorialPillarLabel: pillarLabels[editorialPillar],
         rationale: rationaleFor(video, relativePerformanceMultiple, topicLabel, breakdown),
       };
     })
@@ -315,12 +369,36 @@ export function rankOpportunityVideos(
 
   const selected: RankedOpportunityVideo[] = [];
   const channelCounts = new Map<string, number>();
+  const pillarTargets: Record<EditorialPillar, number> = {
+    ai_applied: Math.round(limit * 0.65),
+    growth_systems: Math.round(limit * 0.25),
+    news: 0,
+  };
+  pillarTargets.news = Math.max(0, limit - pillarTargets.ai_applied - pillarTargets.growth_systems);
+  const pillarCounts: Record<EditorialPillar, number> = { ai_applied: 0, growth_systems: 0, news: 0 };
+
   for (const video of ranked) {
     const count = channelCounts.get(video.channel) ?? 0;
     if (count >= perChannel) continue;
+    if (pillarCounts[video.editorialPillar] >= pillarTargets[video.editorialPillar]) continue;
     selected.push(video);
     channelCounts.set(video.channel, count + 1);
+    pillarCounts[video.editorialPillar] += 1;
     if (selected.length === limit) break;
+  }
+
+  if (selected.length < limit) {
+    const selectedKeys = new Set(selected.map((video) => `${video.channel}:${video.id ?? video.url ?? video.title}`));
+    for (const video of ranked) {
+      const key = `${video.channel}:${video.id ?? video.url ?? video.title}`;
+      if (selectedKeys.has(key)) continue;
+      const count = channelCounts.get(video.channel) ?? 0;
+      if (count >= perChannel) continue;
+      selected.push(video);
+      selectedKeys.add(key);
+      channelCounts.set(video.channel, count + 1);
+      if (selected.length === limit) break;
+    }
   }
   return selected;
 }

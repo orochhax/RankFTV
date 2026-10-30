@@ -385,6 +385,40 @@
   border-color: var(--evo-line);
 }
 
+.evo-shell .yt-history-open {
+  border-color: #cfdcf0;
+  color: #075ff7;
+  background: #f5f8fd;
+}
+
+.evo-shell .yt-history-open:hover {
+  border-color: #8bb5f5;
+  background: #edf4ff;
+}
+
+.evo-shell .yt-history-open span { color: #71839d; }
+
+.evo-shell .yt-history-dialog {
+  border-color: #d7e0ec;
+  color: #10213d;
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgba(17, 40, 77, 0.24);
+}
+
+.evo-shell .yt-history-dialog-heading { border-bottom-color: #e0e7f0; }
+.evo-shell .yt-history-dialog-heading h2 { color: #10213d; }
+.evo-shell .yt-history-dialog-heading span { color: #71839d; }
+.evo-shell .yt-history-dialog-heading button {
+  border-color: #d7e0ec;
+  color: #5b6f8b;
+  background: #f7f9fc;
+}
+
+.evo-shell .yt-history-dialog-heading button:hover {
+  color: #075ff7;
+  border-color: #8bb5f5;
+}
+
 .evo-shell .yt-notice {
   color: var(--evo-blue);
   background: #f7faff;
