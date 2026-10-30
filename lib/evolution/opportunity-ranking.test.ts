@@ -40,7 +40,7 @@ describe("ranking editorial de oportunidade", () => {
     assert.equal(isEligibleOpportunityVideo(interview), false);
   });
 
-  test("favorece o desempenho relativo, não apenas o maior número bruto", () => {
+  test("usa desempenho relativo dentro dos pilares sem ordenar por views absolutas", () => {
     const videos = [
       video("Canal grande", "g1", "Como usar IA no trabalho", 1_000_000),
       video("Canal grande", "g2", "Tutorial de ChatGPT para produtividade", 900_000),
@@ -49,9 +49,12 @@ describe("ranking editorial de oportunidade", () => {
       video("Canal pequeno", "p2", "Rotina de produtividade com ChatGPT", 5_000),
       video("Canal pequeno", "p3", "Aprenda inteligência artificial no trabalho", 4_000),
     ];
-    const [first] = rankOpportunityVideos(videos, { limit: 6, perChannel: 3, now: new Date("2026-10-24") });
-    assert.equal(first.id, "p1");
-    assert.ok(first.relativePerformanceMultiple > 10);
+    const ranked = rankOpportunityVideos(videos, { limit: 6, perChannel: 3, now: new Date("2026-10-24") });
+    const smallOutlier = ranked.find((item) => item.id === "p1");
+    const millionViewVideo = ranked.find((item) => item.id === "g1");
+    assert.ok(smallOutlier && millionViewVideo);
+    assert.ok(smallOutlier.relativePerformanceMultiple > 10);
+    assert.ok(smallOutlier.opportunityScore > millionViewVideo.opportunityScore);
   });
 
   test("limita a seleção a três vídeos por canal e expõe nota de 0 a 100", () => {
@@ -66,27 +69,25 @@ describe("ranking editorial de oportunidade", () => {
     assert.ok(ranked.every((item) => item.opportunityScore >= 0 && item.opportunityScore <= 100));
   });
 
-  test("compõe o top 15 com dez pautas de IA aplicada, quatro de evolução e uma notícia", () => {
-    const applied = Array.from({ length: 12 }, (_, index) =>
+  test("pondera cada nota em 65% IA aplicada, 25% evolução e 10% notícia sem cotas", () => {
+    const applied = Array.from({ length: 15 }, (_, index) =>
       video(`IA ${index}`, `ia${index}`, `Como usar ChatGPT para criar resultados em ${index + 1} minutos`, 50_000 + index * 1_000),
     );
-    const growth = Array.from({ length: 6 }, (_, index) =>
-      video(`Crescimento ${index}`, `g${index}`, `Sistema de produtividade e carreira ${index + 1}`, 40_000 + index * 1_000),
-    );
-    const news = Array.from({ length: 3 }, (_, index) =>
-      video(`Notícia ${index}`, `n${index}`, `Notícia: novo lançamento mudou o mercado ${index + 1}`, 30_000 + index * 1_000),
-    );
+    const growth = video("Crescimento", "growth", "Sistema de produtividade e carreira", 10_000_000);
+    const news = video("Notícia", "news", "Notícia: novo lançamento mudou o mercado", 10_000_000, "hoje");
 
-    const ranked = rankOpportunityVideos([...applied, ...growth, ...news], {
+    const ranked = rankOpportunityVideos([...applied, growth, news], {
       limit: 15,
       perChannel: 3,
       now: new Date("2026-10-30"),
     });
 
-    assert.equal(ranked.filter((item) => item.editorialPillar === "ai_applied").length, 10);
-    assert.equal(ranked.filter((item) => item.editorialPillar === "growth_systems").length, 4);
-    assert.equal(ranked.filter((item) => item.editorialPillar === "news").length, 1);
-    assert.ok(ranked.every((item) => item.breakdown.promiseBenefit >= 0));
-    assert.ok(ranked.every((item) => item.breakdown.longevity >= 0));
+    assert.equal(ranked.filter((item) => item.editorialPillar === "ai_applied").length, 15);
+    assert.ok(ranked.every((item) => item.breakdown.aiAppliedTransformation > 0));
+    assert.ok(ranked.every((item) => item.opportunityScore === Math.round(
+      item.breakdown.aiAppliedTransformation * 0.65
+      + item.breakdown.productivityCareerSystems * 0.25
+      + item.breakdown.newsRelevance * 0.1,
+    )));
   });
 });
