@@ -24,12 +24,21 @@ type Idea = {
   rank_delta: number | null;
   change_kind: "nova" | "subiu" | "caiu" | "estavel" | "reavaliar" | null;
   is_new: boolean;
+  best_approach_key: "noticia_explicacao" | "tutorial_aplicacao" | "transformacao_beneficio" | "experimento_historia" | null;
+  best_approach_score: number;
 };
 
 const originLabel = {
   primary: "Fonte primária cadastrada",
   market: "Pesquisa de mercado",
   mixed: "Fontes combinadas",
+} as const;
+
+const approachLabel = {
+  noticia_explicacao: "Notícia e explicação",
+  tutorial_aplicacao: "Tutorial e aplicação",
+  transformacao_beneficio: "Transformação e benefício",
+  experimento_historia: "Experimento, história ou vlog",
 } as const;
 
 const columns = [
@@ -153,11 +162,11 @@ export function YoutubeIdeaBoard({ initialIdeas }: { initialIdeas: Idea[] }) {
                   onDragStart={(event) => dragStart(event, idea.id)}
                   onDragEnd={() => { setDraggedId(null); setDropStatus(null); }}
                 >
-                  <div className="yt-idea-score"><Clapperboard size={15} /><span>{idea.format}</span><b>{idea.score}</b></div>
+                  <div className="yt-idea-score"><Clapperboard size={15} /><span>{idea.format}</span><b>{idea.best_approach_score}</b></div>
                   <span className="yt-drag-handle" aria-hidden="true"><GripVertical size={15} /></span>
                   <Link href={`/admin/evolucao/rocha-tech/ideias/${idea.id}`} className="yt-idea-title"><h3>{idea.title}</h3></Link>
                   <p>{idea.summary}</p>
-                  <div className="yt-tag-row"><span className={`yt-origin-tag is-${idea.source_origin}`}>{originLabel[idea.source_origin]}</span>{idea.is_new ? <span className="yt-new-tag">NEW</span> : null}<span className="yt-category-tag">{classifyEditorialCategory(idea).label}</span><span>4 abordagens</span><span>{idea.angle}</span><span>{idea.priority.replace("_", " ")}</span><span>{idea.editorial_state.replaceAll("_", " ")}</span></div>
+                  <div className="yt-tag-row"><span className={`yt-origin-tag is-${idea.source_origin}`}>{originLabel[idea.source_origin]}</span>{idea.is_new ? <span className="yt-new-tag">NEW</span> : null}<span className="yt-category-tag">{classifyEditorialCategory(idea).label}</span>{idea.best_approach_key ? <span className="yt-approach-tag">{approachLabel[idea.best_approach_key]}</span> : null}</div>
                   <div className="yt-rank-row"><span>#{idea.current_rank ?? "—"} agora</span><span>melhor #{idea.best_rank ?? "—"}</span><span className={idea.change_kind === "subiu" ? "is-up" : idea.change_kind === "caiu" ? "is-down" : "is-same"} title={idea.change_kind === "subiu" ? `Subiu ${idea.rank_delta ?? 0} posições` : idea.change_kind === "caiu" ? `Caiu ${Math.abs(idea.rank_delta ?? 0)} posições` : "Mesma posição"}>{idea.change_kind === "subiu" ? <ArrowUp size={14} /> : idea.change_kind === "caiu" ? <ArrowDown size={14} /> : <Minus size={14} />}</span></div>
                   <label className="yt-move-label">
                     Mover para

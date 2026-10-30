@@ -1350,3 +1350,15 @@ registrar apenas uma revalidação quando ela for necessária.
   `19e2a863-386e-4871-8078-181f2b1590ba`: 19 ideias ranqueadas, 76 abordagens
   persistidas, 51 referências do YouTube atualizadas e perfil editorial
   confirmado em 65% / 25% / 10%.
+
+## 2026-10-29 — Biblioteca: nota da melhor abordagem no cartão
+
+- Carlos definiu que a nota exibida no cartão do quadro deve ser a maior nota
+  entre as quatro abordagens, e não a nota editorial geral da ideia.
+- O cartão passa a identificar a abordagem vencedora e deixa de mostrar as
+  etiquetas redundantes `4 abordagens`, ângulo, prioridade e estado editorial.
+  Fonte, categoria e `NEW` continuam visíveis quando aplicáveis.
+- Em empate de nota, vence a abordagem de menor posição na ficha, preservando
+  uma escolha estável e reproduzível.
+- Evidência local: três testes da seleção passaram, assim como typecheck, lint
+  sem erros e build Next.js completo com 78 páginas.
