@@ -212,6 +212,20 @@
 .yt-detail-heading p:last-child { max-width: 760px; margin: 0; color: var(--yt-muted); font-size: 12px; line-height: 1.65; }
 .yt-detail-score { min-width: 82px; padding: 14px 10px; display: flex; flex-direction: column; align-items: center; border: 1px solid #2b3a51; border-radius: 10px; color: #cfe0fa; background: #101824; font-size: 28px; }
 .yt-detail-score small { color: #71819a; font-size: 9px; font-weight: 500; }
+.yt-approaches-panel { margin-bottom: 13px; }
+.yt-approaches-panel .yt-panel-heading > div { align-items: flex-start; flex-direction: column; gap: 4px; }
+.yt-approaches-panel .yt-panel-heading p { margin: 0; color: #708096; font-size: 10px; font-weight: 500; }
+.yt-approaches-grid { padding-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.yt-approach-card { min-width: 0; padding: 15px; border: 1px solid #202b39; border-radius: 9px; background: #0d141e; }
+.yt-approach-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #75aafb; font-size: 10px; font-weight: 800; }
+.yt-approach-card-heading > strong { display: flex; align-items: baseline; gap: 2px; color: #cfe0fa; font-size: 19px; }
+.yt-approach-card-heading small { color: #71819a; font-size: 8px; }
+.yt-approach-card h3 { margin: 12px 0 7px; color: #dce4ef; font-size: 14px; line-height: 1.4; }
+.yt-approach-card > p { margin: 0; color: #8797aa; font-size: 11px; line-height: 1.6; }
+.yt-approach-card dl { margin: 14px 0 0; display: grid; gap: 9px; }
+.yt-approach-card dl > div { padding-top: 8px; border-top: 1px solid #1d2734; }
+.yt-approach-card dt { color: #6d9fe9; font-size: 8px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.yt-approach-card dd { margin: 3px 0 0; color: #8f9fb2; font-size: 10px; line-height: 1.5; }
 .yt-detail-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 13px; }
 .yt-detail-copy { color: #96a5b8; font-size: 11px; line-height: 1.7; }
 .yt-panel h3 { margin: 19px 0 8px; color: #cbd8e8; font-size: 11px; }
@@ -347,6 +361,7 @@
   .yt-metric-grid { grid-template-columns: 1fr 1fr; }
   .yt-two-column { grid-template-columns: 1fr; }
   .yt-detail-grid { grid-template-columns: 1fr; }
+  .yt-approaches-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 680px) {

@@ -116,7 +116,7 @@ export function YoutubeIdeaBoard({ initialIdeas }: { initialIdeas: Idea[] }) {
       <div className="yt-empty-state">
         <div><BookOpen size={25} /></div>
         <h3>Sua biblioteca está vazia</h3>
-        <p>Ideias fundamentadas surgem automaticamente depois da análise de notícias reais.</p>
+        <p>Ideias fundamentadas surgem da combinação de fontes reais, padrões dos concorrentes e oportunidades evergreen.</p>
       </div>
     );
   }
@@ -157,7 +157,7 @@ export function YoutubeIdeaBoard({ initialIdeas }: { initialIdeas: Idea[] }) {
                   <span className="yt-drag-handle" aria-hidden="true"><GripVertical size={15} /></span>
                   <Link href={`/admin/evolucao/rocha-tech/ideias/${idea.id}`} className="yt-idea-title"><h3>{idea.title}</h3></Link>
                   <p>{idea.summary}</p>
-                  <div className="yt-tag-row"><span className={`yt-origin-tag is-${idea.source_origin}`}>{originLabel[idea.source_origin]}</span>{idea.is_new ? <span className="yt-new-tag">NEW</span> : null}<span className="yt-category-tag">{classifyEditorialCategory(idea).label}</span><span>{idea.angle}</span><span>{idea.priority.replace("_", " ")}</span><span>{idea.editorial_state.replaceAll("_", " ")}</span></div>
+                  <div className="yt-tag-row"><span className={`yt-origin-tag is-${idea.source_origin}`}>{originLabel[idea.source_origin]}</span>{idea.is_new ? <span className="yt-new-tag">NEW</span> : null}<span className="yt-category-tag">{classifyEditorialCategory(idea).label}</span><span>4 abordagens</span><span>{idea.angle}</span><span>{idea.priority.replace("_", " ")}</span><span>{idea.editorial_state.replaceAll("_", " ")}</span></div>
                   <div className="yt-rank-row"><span>#{idea.current_rank ?? "—"} agora</span><span>melhor #{idea.best_rank ?? "—"}</span><span className={idea.change_kind === "subiu" ? "is-up" : idea.change_kind === "caiu" ? "is-down" : "is-same"} title={idea.change_kind === "subiu" ? `Subiu ${idea.rank_delta ?? 0} posições` : idea.change_kind === "caiu" ? `Caiu ${Math.abs(idea.rank_delta ?? 0)} posições` : "Mesma posição"}>{idea.change_kind === "subiu" ? <ArrowUp size={14} /> : idea.change_kind === "caiu" ? <ArrowDown size={14} /> : <Minus size={14} />}</span></div>
                   <label className="yt-move-label">
                     Mover para

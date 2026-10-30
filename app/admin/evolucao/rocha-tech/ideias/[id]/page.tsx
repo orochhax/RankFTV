@@ -5,6 +5,7 @@ import { getYoutubeIdeaDetail } from "@/lib/youtube/queries";
 import { formatYoutubeDate } from "@/lib/youtube/format";
 import { getRecordingRequirements } from "@/lib/youtube/recording-requirements";
 import { getIdeaNovelty } from "@/lib/youtube/novelty-date";
+import { IDEA_APPROACH_LABELS, type YoutubeIdeaApproachKey } from "@/lib/youtube/idea-approaches";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,21 @@ export default async function YoutubeIdeaDetailPage(props: { params: Promise<{ i
   return <main className="yt-page-content">
     <Link href="/admin/evolucao/rocha-tech/ideias" className="yt-back-link"><ArrowLeft size={15} /> Voltar para ideias</Link>
     <header className="yt-detail-heading"><span className="yt-detail-icon"><Lightbulb size={20} /></span><div><p className="yt-eyebrow">IDEIA RANQUEADA #{idea.current_rank ?? "—"}</p><div className="yt-detail-origin"><span className={`yt-origin-pill is-${sourceOrigin}`}>{originLabel[sourceOrigin]}</span></div><h1>{idea.title}</h1><p>{idea.summary}</p></div><strong className="yt-detail-score">{idea.score}<small>/100</small></strong></header>
+    <section className="yt-panel yt-approaches-panel">
+      <div className="yt-panel-heading"><div><h2>Quatro formas de transformar esta pauta em vídeo</h2><p>Compare a promessa, a demonstração e a vida útil de cada abordagem antes de escolher.</p></div><span>{data.approaches.length}/4 analisadas</span></div>
+      {data.approaches.length ? <div className="yt-approaches-grid">{data.approaches.map((approach) => <article className="yt-approach-card" key={approach.id}>
+        <div className="yt-approach-card-heading"><span>{approach.position}. {IDEA_APPROACH_LABELS[approach.approach_key as YoutubeIdeaApproachKey]}</span><strong>{approach.score}<small>/100</small></strong></div>
+        <h3>{approach.title}</h3>
+        <p>{approach.explanation}</p>
+        <dl>
+          <div><dt>Promessa</dt><dd>{approach.promise}</dd></div>
+          <div><dt>O que mostrar</dt><dd>{approach.demonstration}</dd></div>
+          <div><dt>Por que pode funcionar</dt><dd>{approach.why_it_works}</dd></div>
+          <div><dt>Momento e duração</dt><dd>{approach.timeliness} {approach.longevity}</dd></div>
+          <div><dt>Ferramentas</dt><dd>{approach.requirements_summary}</dd></div>
+        </dl>
+      </article>)}</div> : <p className="yt-detail-copy">Esta ideia é anterior ao modelo de quatro abordagens. Ela será completada na próxima atualização editorial geral.</p>}
+    </section>
     <div className="yt-detail-grid">
       <section className="yt-panel"><div className="yt-panel-heading"><h2>Por que gravar</h2><span>{idea.editorial_state.replaceAll("_", " ")}</span></div><p className="yt-detail-copy">{idea.rationale}</p><h3>Gancho sugerido</h3><blockquote>{idea.hook}</blockquote><h3>Estrutura</h3><ol className="yt-outline">{(idea.outline as string[]).map((step) => <li key={step}>{step}</li>)}</ol></section>
       <section className="yt-panel"><div className="yt-panel-heading"><h2>Histórico real</h2><span>melhor posição #{idea.best_rank ?? "—"}</span></div>{data.history.length ? <div className="yt-history-list">{data.history.map((entry) => <article key={`${entry.created_at}-${entry.rank_position}`}><strong>{formatYoutubeDate(entry.created_at)}</strong><span>{entry.score}/100 · #{entry.rank_position ?? "—"}</span><small>{entry.change_kind} {entry.rank_delta ? `(${entry.rank_delta > 0 ? "+" : ""}${entry.rank_delta})` : ""}</small><p>{entry.rationale}</p></article>)}</div> : <p className="yt-detail-copy">Ainda não há reavaliações registradas.</p>}</section>

@@ -226,6 +226,9 @@
 .evo-shell .yt-detail-score { font-size: 31px; }
 .evo-shell .yt-detail-score small { font-size: 10px; }
 .evo-shell .yt-detail-copy, .evo-shell .yt-outline, .evo-shell .yt-panel blockquote { font-size: 12px; }
+.evo-shell .yt-approaches-panel .yt-panel-heading p, .evo-shell .yt-approach-card > p { font-size: 12px; }
+.evo-shell .yt-approach-card h3 { font-size: 16px; }
+.evo-shell .yt-approach-card dd { font-size: 11px; }
 .evo-shell .yt-panel { padding: 19px; }
 .evo-shell .yt-panel-heading h2 { font-size: 14px; }
 .evo-shell .yt-panel-heading > span { font-size: 10px; }
@@ -304,6 +307,18 @@
   border-color: var(--evo-line);
   box-shadow: var(--evo-shadow);
 }
+
+.evo-shell .yt-approach-card {
+  color: var(--evo-ink);
+  background: #f8fbff;
+  border-color: var(--evo-line);
+}
+.evo-shell .yt-approach-card h3,
+.evo-shell .yt-approach-card-heading > strong { color: var(--evo-ink); }
+.evo-shell .yt-approach-card > p,
+.evo-shell .yt-approach-card dd,
+.evo-shell .yt-approaches-panel .yt-panel-heading p { color: var(--evo-muted); }
+.evo-shell .yt-approach-card dl > div { border-color: var(--evo-line); }
 
 .evo-shell .yt-metric-card::after {
   background: rgba(23, 105, 232, 0.07);

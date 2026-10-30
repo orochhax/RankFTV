@@ -1325,3 +1325,19 @@ registrar apenas uma revalidação quando ela for necessária.
   A suíte Node permanece impedida pelo erro ambiental
   `uv_os_get_passwd/ENOMEM`, inclusive com concorrência 1, antes de carregar os
   arquivos de teste. Nenhum deploy, migration ou escrita remota foi executado.
+
+## 2026-10-29 — Pulso.AI: contrato editorial de quatro abordagens
+
+- Escopo aprovado por Carlos: atualizar estratégia, Prompt Mestre, interface,
+  importador e persistência; publicar em Production e executar uma atualização
+  geral do radar no novo formato.
+- Definido o mix editorial de 65% IA aplicada, 25% produtividade/carreira/
+  aprendizado/sistemas pessoais e 10% notícias puras relevantes.
+- Preparada persistência privada para quatro abordagens por ideia, com RLS
+  forçada, grants exclusivos ao `service_role`, constraints, índice da chave
+  estrangeira e RPC de importação validada.
+- O importador passa a exigir os quatro enquadramentos e a ficha da pauta passa
+  a comparar título, promessa, demonstração, justificativa, momento,
+  longevidade, requisitos e nota de cada opção.
+- Estado neste registro: implementação local em validação; IDs de PR, migration,
+  deploy e rodada de radar serão acrescentados após evidência observada.
