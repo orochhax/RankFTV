@@ -14,13 +14,9 @@ export type OpportunityVideoInput = {
 };
 
 export type OpportunityBreakdown = {
-  relativePerformance: number;
-  promiseBenefit: number;
-  adaptability: number;
-  packaging: number;
-  crossChannelValidation: number;
-  freshness: number;
-  longevity: number;
+  aiAppliedTransformation: number;
+  productivityCareerSystems: number;
+  newsRelevance: number;
 };
 
 export type EditorialPillar = "ai_applied" | "growth_systems" | "news";
@@ -127,6 +123,12 @@ const benefitTerms = [
   "aprender", "conhecimento", "horas", "minutos", "dias", "sem experiencia", "do zero",
 ];
 
+const growthTerms = [
+  "produt", "carreira", "aprend", "estud", "sistema", "foco", "prioridad",
+  "disciplina", "procrast", "rotina", "habito", "tempo", "organiz", "execucao",
+  "trabalho", "profissional", "habilidade", "skill", "conhecimento", "performance",
+];
+
 const pillarLabels: Record<EditorialPillar, string> = {
   ai_applied: "IA aplicada a resultados",
   growth_systems: "Produtividade, carreira e sistemas",
@@ -189,17 +191,6 @@ const editorialPillarFor = (video: OpportunityVideoInput): EditorialPillar => {
   if (titleHasAny(title, newsTerms) && !isApplied) return "news";
   if (titleHasAny(channelAndTitle, aiTerms)) return "ai_applied";
   return "growth_systems";
-};
-
-const promiseBenefitScore = (video: OpportunityVideoInput) => {
-  const title = ` ${normalized(video.originalTitle || video.title)} `;
-  let score = 28;
-  if (titleHasAny(title, benefitTerms)) score += 25;
-  if (titleHasAny(title, tutorialTerms)) score += 18;
-  if (/\d|r\$|us\$|\$|%/.test(title)) score += 14;
-  if (titleHasAny(title, ["horas", "minutos", "dias", "sem experiencia", "do zero", "qualquer pessoa"])) score += 10;
-  if (titleHasAny(title, ["como ", "por que", "o que", "?", "how ", "why "])) score += 8;
-  return clamp(score);
 };
 
 const adaptabilityScore = (video: OpportunityVideoInput) => {
@@ -269,6 +260,63 @@ const packagingScore = (video: OpportunityVideoInput) => {
   return clamp(score);
 };
 
+const aiAppliedTransformationScore = (
+  video: OpportunityVideoInput,
+  relativePerformance: number,
+  crossChannelValidation: number,
+) => {
+  const title = ` ${normalized(video.originalTitle || video.title)} `;
+  if (!titleHasAny(`${title} ${normalized(video.channel)} `, aiTerms)) return 0;
+
+  return clamp(
+    30
+    + (titleHasAny(title, tutorialTerms) ? 18 : 0)
+    + (titleHasAny(title, benefitTerms) ? 17 : 0)
+    + relativePerformance * 0.12
+    + adaptabilityScore(video) * 0.08
+    + packagingScore(video) * 0.08
+    + crossChannelValidation * 0.04
+    + longevityScore(video, "ai_applied") * 0.03,
+  );
+};
+
+const productivityCareerSystemsScore = (
+  video: OpportunityVideoInput,
+  relativePerformance: number,
+  crossChannelValidation: number,
+) => {
+  const title = ` ${normalized(video.originalTitle || video.title)} `;
+  if (!titleHasAny(title, growthTerms)) return 0;
+
+  return clamp(
+    38
+    + (titleHasAny(title, ["sistema", "metodo", "framework", "regra", "rotina", "plano"]) ? 14 : 0)
+    + (titleHasAny(title, benefitTerms) ? 10 : 0)
+    + relativePerformance * 0.12
+    + adaptabilityScore(video) * 0.08
+    + packagingScore(video) * 0.07
+    + crossChannelValidation * 0.04
+    + longevityScore(video, "growth_systems") * 0.07,
+  );
+};
+
+const newsRelevanceScore = (
+  video: OpportunityVideoInput,
+  relativePerformance: number,
+  ageDays: number | null,
+) => {
+  const title = ` ${normalized(video.originalTitle || video.title)} `;
+  if (!titleHasAny(title, newsTerms)) return 0;
+
+  return clamp(
+    42
+    + freshnessScore(ageDays) * 0.35
+    + relativePerformance * 0.1
+    + packagingScore(video) * 0.08
+    + (titleHasAny(title, ["lancou", "anunciou", "release", "atualizacao"]) ? 8 : 0),
+  );
+};
+
 const formatLabel = (video: OpportunityVideoInput) => {
   const title = ` ${normalized(video.originalTitle || video.title)} `;
   if (titleHasAny(title, ["tutorial", "passo a passo", "curso", "guia", "aprenda", "como "])) return "Tutorial aplicável";
@@ -282,12 +330,9 @@ const rationaleFor = (video: OpportunityVideoInput, multiple: number, topic: str
     ? `${multiple.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}× a mediana do próprio canal`
     : `${Math.round(multiple * 100)}% da mediana do próprio canal`;
   const strongest = [
-    [breakdown.promiseBenefit, "promessa e benefício claros"],
-    [breakdown.adaptability, "formato fácil de transformar em vídeo autoral"],
-    [breakdown.packaging, "título e embalagem fortes"],
-    [breakdown.crossChannelValidation, "tema validado em mais de um canal"],
-    [breakdown.freshness, "assunto recente"],
-    [breakdown.longevity, "utilidade que não depende apenas da novidade"],
+    [breakdown.aiAppliedTransformation, "forte aderência a IA aplicada, transformação e benefício"],
+    [breakdown.productivityCareerSystems, "boa conexão com produtividade, carreira e sistemas"],
+    [breakdown.newsRelevance, "notícia atual com relevância editorial"],
   ] as Array<[number, string]>;
   strongest.sort((a, b) => b[0] - a[0]);
   return `${performance}; ${strongest[0][1]}. Sinal: ${topic}.`;
@@ -330,23 +375,18 @@ export function rankOpportunityVideos(
         ...topics.map((topic) => channelsByTopic.get(topic)?.size ?? 1),
       );
       const editorialPillar = editorialPillarFor(video);
+      const relativePerformance = relativePerformanceScore(relativePerformanceMultiple);
+      const crossChannelValidation = clamp(((corroboratingChannels - 1) / 5) * 100);
+      const ageDays = videoAgeDays(video, now);
       const breakdown: OpportunityBreakdown = {
-        relativePerformance: relativePerformanceScore(relativePerformanceMultiple),
-        promiseBenefit: promiseBenefitScore(video),
-        adaptability: adaptabilityScore(video),
-        packaging: packagingScore(video),
-        crossChannelValidation: clamp(((corroboratingChannels - 1) / 5) * 100),
-        freshness: freshnessScore(videoAgeDays(video, now)),
-        longevity: longevityScore(video, editorialPillar),
+        aiAppliedTransformation: aiAppliedTransformationScore(video, relativePerformance, crossChannelValidation),
+        productivityCareerSystems: productivityCareerSystemsScore(video, relativePerformance, crossChannelValidation),
+        newsRelevance: newsRelevanceScore(video, relativePerformance, ageDays),
       };
       const opportunityScore = Math.round(
-        breakdown.relativePerformance * 0.3
-        + breakdown.promiseBenefit * 0.25
-        + breakdown.adaptability * 0.15
-        + breakdown.packaging * 0.1
-        + breakdown.crossChannelValidation * 0.1
-        + breakdown.freshness * 0.05
-        + breakdown.longevity * 0.05,
+        breakdown.aiAppliedTransformation * 0.65
+        + breakdown.productivityCareerSystems * 0.25
+        + breakdown.newsRelevance * 0.1,
       );
       return {
         ...video,
@@ -369,36 +409,13 @@ export function rankOpportunityVideos(
 
   const selected: RankedOpportunityVideo[] = [];
   const channelCounts = new Map<string, number>();
-  const pillarTargets: Record<EditorialPillar, number> = {
-    ai_applied: Math.round(limit * 0.65),
-    growth_systems: Math.round(limit * 0.25),
-    news: 0,
-  };
-  pillarTargets.news = Math.max(0, limit - pillarTargets.ai_applied - pillarTargets.growth_systems);
-  const pillarCounts: Record<EditorialPillar, number> = { ai_applied: 0, growth_systems: 0, news: 0 };
 
   for (const video of ranked) {
     const count = channelCounts.get(video.channel) ?? 0;
     if (count >= perChannel) continue;
-    if (pillarCounts[video.editorialPillar] >= pillarTargets[video.editorialPillar]) continue;
     selected.push(video);
     channelCounts.set(video.channel, count + 1);
-    pillarCounts[video.editorialPillar] += 1;
     if (selected.length === limit) break;
-  }
-
-  if (selected.length < limit) {
-    const selectedKeys = new Set(selected.map((video) => `${video.channel}:${video.id ?? video.url ?? video.title}`));
-    for (const video of ranked) {
-      const key = `${video.channel}:${video.id ?? video.url ?? video.title}`;
-      if (selectedKeys.has(key)) continue;
-      const count = channelCounts.get(video.channel) ?? 0;
-      if (count >= perChannel) continue;
-      selected.push(video);
-      selectedKeys.add(key);
-      channelCounts.set(video.channel, count + 1);
-      if (selected.length === limit) break;
-    }
   }
   return selected;
 }

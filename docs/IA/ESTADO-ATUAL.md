@@ -746,14 +746,14 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 - O detalhe de cada ideia mostra somente as três atualizações mais recentes.
   O histórico completo abre em um diálogo rolável na própria página, sem criar
   outra rota.
-- O ranking de 15 vídeos passa a selecionar 10 referências de IA aplicada a
-  resultados, 4 de produtividade/carreira/aprendizado/sistemas e 1 notícia
-  pura, mantendo no máximo três vídeos por canal e excluindo podcasts,
-  entrevistas e lives.
-- A nota usa sete componentes explícitos: desempenho contra a mediana do canal
-  (30%), promessa e benefício (25%), adaptação ao canal (15%), título e
-  thumbnail (10%), validação em outros canais (10%), atualidade (5%) e
-  longevidade (5%).
+- O ranking de 15 vídeos não usa cotas por categoria. Cada referência recebe
+  três notas e a nota final pondera 65% de IA aplicada, transformação e
+  benefício, 25% de produtividade/carreira/aprendizado/sistemas e 10% de
+  notícia/atualidade. Os 15 maiores resultados entram no ranking, mantendo no
+  máximo três vídeos por canal e excluindo podcasts, entrevistas e lives.
+- Desempenho contra a mediana do próprio canal, facilidade de adaptação, força
+  de título/thumbnail, validação cruzada, atualidade e longevidade alimentam os
+  três pilares; views brutas não definem a ordem isoladamente.
 - O snapshot local foi regenerado depois da coleta completa de 21 concorrentes.
   A coleta de 30/10/2026 reuniu 1.021 vídeos dentro da janela de um ano e
   atualizou visualizações, datas, thumbnails e histórico de observação.

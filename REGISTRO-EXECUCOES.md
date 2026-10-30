@@ -1365,3 +1365,19 @@ registrar apenas uma revalidação quando ela for necessária.
 - Correção de coerência aprovada em seguida: título e resumo do cartão também
   vêm da abordagem vencedora. Nota, identificação, título e descrição não podem
   representar execuções diferentes da mesma pauta.
+
+## 2026-10-30 — Ranking editorial com ponderação real 65/25/10
+
+- Carlos identificou que o ranking de referências ainda tratava 65/25/10 como
+  cotas de 10 vídeos de IA, 4 de produtividade e 1 notícia. A regra correta é
+  uma ponderação aplicada à nota individual de todos os vídeos.
+- A nota agora combina 65% de IA aplicada/transformação/benefício, 25% de
+  produtividade/carreira/aprendizado/sistemas e 10% de notícia/atualidade.
+  Não há cotas por categoria: os 15 maiores resultados entram, respeitando o
+  limite de três vídeos por canal e a exclusão de podcasts, entrevistas e lives.
+- Desempenho relativo à mediana do canal, adaptação, embalagem, validação
+  cruzada, atualidade e longevidade alimentam os três pilares da nota.
+- O snapshot editorial foi regenerado e a interface passou a explicar e abrir
+  a composição real dos três pilares.
+- Validação local: 873 testes executados, 872 aprovados e 1 ignorado; typecheck,
+  lint sem erros, build de produção e `git diff --check` aprovados.
