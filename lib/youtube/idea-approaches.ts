@@ -41,6 +41,8 @@ export type StoredIdeaApproachSummary = {
   approach_key: YoutubeIdeaApproachKey;
   position: number;
   score: number;
+  title: string;
+  explanation: string;
 };
 
 export function selectBestIdeaApproach<T extends { score: number; position: number }>(approaches: readonly T[]): T | null {
@@ -62,6 +64,16 @@ export function selectBestIdeaApproachesByIdea(approaches: readonly StoredIdeaAp
     }
   }
   return bestByIdea;
+}
+
+export function bestIdeaApproachPresentation(approach: StoredIdeaApproachSummary | undefined, fallbackScore: number) {
+  if (!approach) return { best_approach_key: null, best_approach_score: fallbackScore, best_approach_title: null, best_approach_explanation: null };
+  return {
+    best_approach_key: approach.approach_key,
+    best_approach_score: approach.score,
+    best_approach_title: approach.title,
+    best_approach_explanation: approach.explanation,
+  };
 }
 
 export const IDEA_APPROACH_LABELS: Record<YoutubeIdeaApproachKey, string> = {
