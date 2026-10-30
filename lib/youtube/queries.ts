@@ -2,6 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireYoutubeOwner } from "@/lib/youtube/access";
+import { selectBestIdeaApproachesByIdea, type StoredIdeaApproachSummary, type YoutubeIdeaApproachKey } from "@/lib/youtube/idea-approaches";
 
 export type YoutubeNewsItem = {
   id: string;
@@ -59,6 +60,8 @@ export type YoutubeIdea = {
   rank_delta: number | null;
   change_kind: "nova" | "subiu" | "caiu" | "estavel" | "reavaliar" | null;
   is_new: boolean;
+  best_approach_key: YoutubeIdeaApproachKey | null;
+  best_approach_score: number;
 };
 
 export type YoutubeIdeaYoutubeReference = {
@@ -225,7 +228,7 @@ export async function getYoutubeNewsDetail(id: string) {
 export async function getYoutubeIdeas() {
   await requireYoutubeOwner();
   const supabase = createAdminClient();
-  const [{ data, error }, { data: latestRun, error: runError }] = await Promise.all([
+  const [{ data, error }, { data: latestRun, error: runError }, { data: approaches, error: approachesError }] = await Promise.all([
     supabase.from("yt_ideas")
     .select("id, title, alternate_titles, summary, rationale, angle, format, outline, hook, priority, score, confidence_score, status, editorial_state, current_rank, best_rank, last_evaluated_at, updated_at, source_origin")
     .neq("status", "discarded")
@@ -233,21 +236,27 @@ export async function getYoutubeIdeas() {
     .order("score", { ascending: false })
     .order("updated_at", { ascending: false }),
     supabase.from("yt_research_runs").select("id, started_at").order("started_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("yt_idea_approaches").select("idea_id, approach_key, position, score").order("score", { ascending: false }).order("position"),
   ]);
   if (error) throw new Error(error.message);
   if (runError) throw new Error(runError.message);
+  if (approachesError) throw new Error(approachesError.message);
   const evaluations = latestRun?.id
     ? await supabase.from("yt_idea_evaluations").select("idea_id, rank_delta, change_kind").eq("run_id", latestRun.id)
     : { data: [], error: null };
   if (evaluations.error) throw new Error(evaluations.error.message);
   const changes = new Map((evaluations.data ?? []).map((entry) => [entry.idea_id, entry]));
+  const bestApproaches = selectBestIdeaApproachesByIdea((approaches ?? []) as StoredIdeaApproachSummary[]);
   return (data ?? []).map((idea) => {
     const change = changes.get(idea.id);
+    const bestApproach = bestApproaches.get(idea.id);
     return {
       ...idea,
       rank_delta: change?.rank_delta ?? null,
       change_kind: (change?.change_kind as YoutubeIdea["change_kind"]) ?? null,
       is_new: change?.change_kind === "nova",
+      best_approach_key: bestApproach?.approach_key ?? null,
+      best_approach_score: bestApproach?.score ?? idea.score,
     };
   });
 }

@@ -733,3 +733,7 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 - Primeira atualização geral concluída no run
   `19e2a863-386e-4871-8078-181f2b1590ba`: 19 ideias ranqueadas, 76 abordagens,
   51 referências do YouTube e perfil editorial 65% / 25% / 10% persistidos.
+- No quadro da Biblioteca, cada cartão usa a maior nota entre as quatro
+  abordagens e identifica qual execução recebeu essa nota. As etiquetas
+  operacionais redundantes foram retiradas do cartão; fonte, categoria e `NEW`
+  permanecem disponíveis.

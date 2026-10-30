@@ -36,6 +36,33 @@ export const ideaApproachesSchema = z.array(ideaApproachSchema).length(4).superR
 
 export type YoutubeIdeaApproachKey = z.infer<typeof ideaApproachKeySchema>;
 export type YoutubeIdeaApproachInput = z.infer<typeof ideaApproachSchema>;
+export type StoredIdeaApproachSummary = {
+  idea_id: string;
+  approach_key: YoutubeIdeaApproachKey;
+  position: number;
+  score: number;
+};
+
+export function selectBestIdeaApproach<T extends { score: number; position: number }>(approaches: readonly T[]): T | null {
+  let best: T | null = null;
+  for (const approach of approaches) {
+    if (!best || approach.score > best.score || (approach.score === best.score && approach.position < best.position)) {
+      best = approach;
+    }
+  }
+  return best;
+}
+
+export function selectBestIdeaApproachesByIdea(approaches: readonly StoredIdeaApproachSummary[]) {
+  const bestByIdea = new Map<string, StoredIdeaApproachSummary>();
+  for (const approach of approaches) {
+    const current = bestByIdea.get(approach.idea_id);
+    if (!current || approach.score > current.score || (approach.score === current.score && approach.position < current.position)) {
+      bestByIdea.set(approach.idea_id, approach);
+    }
+  }
+  return bestByIdea;
+}
 
 export const IDEA_APPROACH_LABELS: Record<YoutubeIdeaApproachKey, string> = {
   noticia_explicacao: "Notícia e explicação",
