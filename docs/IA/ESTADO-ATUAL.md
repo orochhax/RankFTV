@@ -737,3 +737,6 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   abordagens e identifica qual execução recebeu essa nota. As etiquetas
   operacionais redundantes foram retiradas do cartão; fonte, categoria e `NEW`
   permanecem disponíveis.
+- Título e resumo do cartão também pertencem à abordagem vencedora; a ideia
+  geral continua sendo apenas o agrupador das quatro execuções na página de
+  detalhe.

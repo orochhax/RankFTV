@@ -2,7 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireYoutubeOwner } from "@/lib/youtube/access";
-import { selectBestIdeaApproachesByIdea, type StoredIdeaApproachSummary, type YoutubeIdeaApproachKey } from "@/lib/youtube/idea-approaches";
+import { bestIdeaApproachPresentation, selectBestIdeaApproachesByIdea, type StoredIdeaApproachSummary, type YoutubeIdeaApproachKey } from "@/lib/youtube/idea-approaches";
 
 export type YoutubeNewsItem = {
   id: string;
@@ -62,6 +62,8 @@ export type YoutubeIdea = {
   is_new: boolean;
   best_approach_key: YoutubeIdeaApproachKey | null;
   best_approach_score: number;
+  best_approach_title: string | null;
+  best_approach_explanation: string | null;
 };
 
 export type YoutubeIdeaYoutubeReference = {
@@ -236,7 +238,7 @@ export async function getYoutubeIdeas() {
     .order("score", { ascending: false })
     .order("updated_at", { ascending: false }),
     supabase.from("yt_research_runs").select("id, started_at").order("started_at", { ascending: false }).limit(1).maybeSingle(),
-    supabase.from("yt_idea_approaches").select("idea_id, approach_key, position, score").order("score", { ascending: false }).order("position"),
+    supabase.from("yt_idea_approaches").select("idea_id, approach_key, position, score, title, explanation").order("score", { ascending: false }).order("position"),
   ]);
   if (error) throw new Error(error.message);
   if (runError) throw new Error(runError.message);
@@ -255,8 +257,7 @@ export async function getYoutubeIdeas() {
       rank_delta: change?.rank_delta ?? null,
       change_kind: (change?.change_kind as YoutubeIdea["change_kind"]) ?? null,
       is_new: change?.change_kind === "nova",
-      best_approach_key: bestApproach?.approach_key ?? null,
-      best_approach_score: bestApproach?.score ?? idea.score,
+      ...bestIdeaApproachPresentation(bestApproach, idea.score),
     };
   });
 }

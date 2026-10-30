@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { IDEA_APPROACH_KEYS, ideaApproachesSchema, selectBestIdeaApproach, selectBestIdeaApproachesByIdea } from "./idea-approaches";
+import { bestIdeaApproachPresentation, IDEA_APPROACH_KEYS, ideaApproachesSchema, selectBestIdeaApproach, selectBestIdeaApproachesByIdea } from "./idea-approaches";
 
 const validApproaches = IDEA_APPROACH_KEYS.map((approachKey, index) => ({
   approachKey,
@@ -34,11 +34,18 @@ test("selects the highest-scoring approach and uses position as the tie-breaker"
 
 test("selects the best approach independently for each idea", () => {
   const bestByIdea = selectBestIdeaApproachesByIdea([
-    { idea_id: "a", approach_key: "tutorial_aplicacao", score: 98, position: 2 },
-    { idea_id: "a", approach_key: "transformacao_beneficio", score: 100, position: 3 },
-    { idea_id: "b", approach_key: "experimento_historia", score: 91, position: 4 },
+    { idea_id: "a", approach_key: "tutorial_aplicacao", score: 98, position: 2, title: "Tutorial", explanation: "Aplicação" },
+    { idea_id: "a", approach_key: "transformacao_beneficio", score: 100, position: 3, title: "Transformação", explanation: "Benefício" },
+    { idea_id: "b", approach_key: "experimento_historia", score: 91, position: 4, title: "Experimento", explanation: "História" },
   ]);
 
   assert.equal(bestByIdea.get("a")?.approach_key, "transformacao_beneficio");
   assert.equal(bestByIdea.get("b")?.score, 91);
+  assert.equal(bestByIdea.get("a")?.title, "Transformação");
+  assert.deepEqual(bestIdeaApproachPresentation(bestByIdea.get("a"), 80), {
+    best_approach_key: "transformacao_beneficio",
+    best_approach_score: 100,
+    best_approach_title: "Transformação",
+    best_approach_explanation: "Benefício",
+  });
 });

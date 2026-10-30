@@ -1362,3 +1362,6 @@ registrar apenas uma revalidação quando ela for necessária.
   uma escolha estável e reproduzível.
 - Evidência local: três testes da seleção passaram, assim como typecheck, lint
   sem erros e build Next.js completo com 78 páginas.
+- Correção de coerência aprovada em seguida: título e resumo do cartão também
+  vêm da abordagem vencedora. Nota, identificação, título e descrição não podem
+  representar execuções diferentes da mesma pauta.
