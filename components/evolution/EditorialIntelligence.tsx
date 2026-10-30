@@ -108,7 +108,7 @@ export async function EditorialIntelligence() {
         <div className="evo-intel-rank-guide">
           <strong>Como a nota funciona</strong>
           <span>
-            35% desempenho contra a mediana do próprio canal · 20% aderência editorial · 15% facilidade de adaptação · 15% atualidade · 10% validação em outros canais · 5% força de título e thumbnail. Podcasts e entrevistas não entram no ranking principal.
+            30% desempenho contra a mediana do próprio canal · 25% promessa e benefício · 15% facilidade de adaptação · 10% título e thumbnail · 10% validação em outros canais · 5% atualidade · 5% longevidade. A seleção busca 10 vídeos de IA aplicada a resultados, 4 de produtividade, carreira e sistemas e 1 notícia relevante. Podcasts e entrevistas não entram no ranking principal.
           </span>
         </div>
 
@@ -131,7 +131,7 @@ export async function EditorialIntelligence() {
                 </span>
               </div>
               <div className="evo-intel-video-copy">
-                <div className="evo-intel-video-meta"><small>{video.channel}</small><span>{video.topicLabel}</span></div>
+                <div className="evo-intel-video-meta"><small>{video.channel}</small><span>{video.editorialPillarLabel}</span></div>
                 <h3 title={video.originalTitle !== video.title ? `Título original: ${video.originalTitle}` : undefined}>{video.title}</h3>
                 <div className="evo-intel-signal-row">
                   <span>{video.formatLabel}</span>
@@ -142,11 +142,12 @@ export async function EditorialIntelligence() {
                   <summary>Ver composição da nota</summary>
                   <div>
                     <span>Desempenho <b>{Math.round(video.breakdown.relativePerformance)}</b></span>
-                    <span>Aderência <b>{Math.round(video.breakdown.editorialFit)}</b></span>
+                    <span>Promessa e benefício <b>{Math.round(video.breakdown.promiseBenefit)}</b></span>
                     <span>Adaptação <b>{Math.round(video.breakdown.adaptability)}</b></span>
-                    <span>Atualidade <b>{Math.round(video.breakdown.freshness)}</b></span>
-                    <span>Validação <b>{Math.round(video.breakdown.crossChannelValidation)}</b></span>
                     <span>Embalagem <b>{Math.round(video.breakdown.packaging)}</b></span>
+                    <span>Validação <b>{Math.round(video.breakdown.crossChannelValidation)}</b></span>
+                    <span>Atualidade <b>{Math.round(video.breakdown.freshness)}</b></span>
+                    <span>Longevidade <b>{Math.round(video.breakdown.longevity)}</b></span>
                   </div>
                 </details>
                 <p>{formatEditorialViews(video.views)} de visualizações · {formatEditorialDuration(video.durationSeconds)}</p>

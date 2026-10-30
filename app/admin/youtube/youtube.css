@@ -239,6 +239,19 @@
 .yt-history-list span { color: #76aafa; }
 .yt-history-list small { color: #738197; text-transform: capitalize; }
 .yt-history-list p { grid-column: 1 / -1; margin: 2px 0 0; color: #8493a6; line-height: 1.5; }
+.yt-history-open { width: 100%; margin-top: 9px; padding: 10px 12px; border: 1px solid #26364a; border-radius: 7px; color: #80b4ff; background: #111a27; font-size: 10px; font-weight: 700; cursor: pointer; }
+.yt-history-open:hover { border-color: #3d75bd; background: #142238; }
+.yt-history-open span { color: #708096; }
+.yt-history-dialog { width: min(720px, calc(100% - 28px)); max-height: min(82vh, 760px); padding: 0; border: 1px solid #28384d; border-radius: 14px; color: var(--yt-text); background: #0d1119; box-shadow: 0 24px 80px #000a; }
+.yt-history-dialog::backdrop { background: rgba(3, 7, 13, 0.72); backdrop-filter: blur(4px); }
+.yt-history-dialog-card { display: grid; grid-template-rows: auto minmax(0, 1fr); max-height: min(82vh, 760px); }
+.yt-history-dialog-heading { padding: 18px 20px; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; border-bottom: 1px solid #1d2938; }
+.yt-history-dialog-heading p { margin: 0 0 5px; color: #4e91f3; font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+.yt-history-dialog-heading h2 { margin: 0; color: #eef4fb; font-size: 19px; }
+.yt-history-dialog-heading span { display: block; margin-top: 5px; color: #738197; font-size: 10px; }
+.yt-history-dialog-heading button { width: 34px; height: 34px; display: grid; flex: 0 0 auto; place-items: center; border: 1px solid #2a3748; border-radius: 50%; color: #a9bad0; background: #121a25; cursor: pointer; }
+.yt-history-dialog-heading button:hover { color: #fff; border-color: #4e91f3; }
+.yt-history-dialog-scroll { min-height: 0; padding: 4px 20px 18px; overflow-y: auto; overscroll-behavior: contain; }
 .yt-detail-sources { margin-top: 13px; }
 .yt-detail-sources > a, .yt-evidence-list > a { padding: 11px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #1b222d; color: #81b0f6; font-size: 11px; }
 .yt-detail-sources > a:last-child, .yt-evidence-list > a:last-child { border-bottom: 0; }

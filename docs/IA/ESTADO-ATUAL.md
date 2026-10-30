@@ -740,3 +740,24 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 - Título e resumo do cartão também pertencem à abordagem vencedora; a ideia
   geral continua sendo apenas o agrupador das quatro execuções na página de
   detalhe.
+
+## Pulso.AI — histórico compacto e ranking por oportunidade (30/10/2026)
+
+- O detalhe de cada ideia mostra somente as três atualizações mais recentes.
+  O histórico completo abre em um diálogo rolável na própria página, sem criar
+  outra rota.
+- O ranking de 15 vídeos passa a selecionar 10 referências de IA aplicada a
+  resultados, 4 de produtividade/carreira/aprendizado/sistemas e 1 notícia
+  pura, mantendo no máximo três vídeos por canal e excluindo podcasts,
+  entrevistas e lives.
+- A nota usa sete componentes explícitos: desempenho contra a mediana do canal
+  (30%), promessa e benefício (25%), adaptação ao canal (15%), título e
+  thumbnail (10%), validação em outros canais (10%), atualidade (5%) e
+  longevidade (5%).
+- O snapshot local foi regenerado depois da coleta completa de 21 concorrentes.
+  A coleta de 30/10/2026 reuniu 1.021 vídeos dentro da janela de um ano e
+  atualizou visualizações, datas, thumbnails e histórico de observação.
+- A rodada editorial preparada para produção cobre as 17 fontes ativas, 14
+  conteúdos confirmados, 19 tendências e 20 ideias com quatro abordagens. A
+  nova pauta da rodada ensina a escolher ferramentas de vídeo com IA pelo
+  gargalo real, e não pelo volume de ferramentas disponíveis.
