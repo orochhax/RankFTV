@@ -761,3 +761,18 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   conteúdos confirmados, 19 tendências e 20 ideias com quatro abordagens. A
   nova pauta da rodada ensina a escolher ferramentas de vídeo com IA pelo
   gargalo real, e não pelo volume de ferramentas disponíveis.
+
+## Pulso.AI — atualização completa de 31/10/2026
+
+- Os 21 canais ativos foram recolhidos novamente na janela anual: 1.022 vídeos,
+  9 vídeos novos, 952 contagens públicas alteradas e zero canais com erro.
+- A execução Production `55f3252c-a05d-405c-b9d3-56207f5d546f` cobriu as 17
+  fontes ativas, importou 3 conteúdos novos, reavaliou 14, ranqueou 21 ideias,
+  persistiu 84 abordagens e atualizou 62 referências do YouTube.
+- A rodada reforçou criação de vídeo com IA e Agent Skills com referências
+  publicadas em 30 e 31/10. A nova pauta evergreen diferencia velocidade de
+  execução e direção: `A IA te deixa produzir 10x mais — o problema é produzir
+  a coisa errada`.
+- O snapshot editorial foi regenerado com 1.191 registros observados nos 21
+  canais e 15 oportunidades calculadas pela ponderação individual 65/25/10,
+  sem cotas por categoria e com máximo de três vídeos por canal.

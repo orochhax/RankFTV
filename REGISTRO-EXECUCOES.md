@@ -1381,3 +1381,22 @@ registrar apenas uma revalidação quando ela for necessária.
   a composição real dos três pilares.
 - Validação local: 873 testes executados, 872 aprovados e 1 ignorado; typecheck,
   lint sem erros, build de produção e `git diff --check` aprovados.
+
+## 2026-10-31 — Atualização completa do radar e concorrentes
+
+- Escopo aprovado por Carlos: revisar todos os concorrentes, consultar todas as
+  fontes ativas, reavaliar o radar completo, importar em Production, regenerar
+  o snapshot e publicar a atualização.
+- Coleta concluída em 21 canais: 1.022 vídeos na janela anual, 9 novos, 952
+  alterações de visualizações públicas e zero falhas de canal.
+- Pesquisa manual cobriu as 17 fontes ativas. Perfis dinâmicos do X e fontes
+  sem novo item individual verificável foram registrados como limitação; fatos
+  não foram inferidos apenas a partir de títulos ou páginas iniciais.
+- Preflight Production validou 17 conteúdos, 19 tendências, 21 ideias e 84
+  abordagens. A importação gerou o run
+  `55f3252c-a05d-405c-b9d3-56207f5d546f`: 3 conteúdos novos, 14 atualizados,
+  21 ideias ranqueadas, 84 abordagens e 62 referências do YouTube.
+- O snapshot passou a conter 1.191 registros observados em 21 canais e 15
+  oportunidades. A diferença para os 1.022 vídeos da coleta anual decorre do
+  histórico preservado no conjunto analítico; o ranking continua limitado à
+  janela e aos critérios editoriais vigentes.
