@@ -21,14 +21,16 @@ const snapshotSchema = z.record(z.string(), z.unknown());
 async function main() {
   const args = process.argv.slice(2);
   const dataDirIndex = args.indexOf("--data-dir");
+  const envFileIndex = args.indexOf("--env-file");
   const onlyIndex = args.indexOf("--only");
   const dataDir = dataDirIndex >= 0 ? path.resolve(args[dataDirIndex + 1]) : path.resolve("data/evolution");
+  const envFile = envFileIndex >= 0 ? path.resolve(args[envFileIndex + 1]) : path.resolve(".env.local");
   const only = onlyIndex >= 0 ? args[onlyIndex + 1] : null;
   if (only && only !== "roadmap" && only !== "rankftv") {
     throw new Error("--only deve ser roadmap ou rankftv.");
   }
   const [rawEnv, roadmapRaw, rankRaw] = await Promise.all([
-    readFile(path.resolve(".env.local"), "utf8"),
+    readFile(envFile, "utf8"),
     readFile(path.join(dataDir, "roadmap.json"), "utf8"),
     readFile(path.join(dataDir, "rankftv.json"), "utf8"),
   ]);

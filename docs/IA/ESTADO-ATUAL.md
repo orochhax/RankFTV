@@ -1,5 +1,38 @@
 # Estado atual resumido
 
+## Rota ativa orientada pelas vagas (03/11/2026)
+
+- A grade Udemy autenticada de 2.645 itens continua canônica e integral.
+- O roadmap exibido foi curado para um perfil júnior forte: 1.885 itens ativos,
+  88 dias úteis, 356,8 horas e período de 03/11/2026 a 09/03/2027.
+- A curadoria usa as vagas reais de Carlos e suas evidências de prática. Os
+  fundamentos básicos de Python comprovados foram removidos da agenda; NumPy,
+  Pandas, CSV, erros, Git, SQL, BI e demais tópicos sem evidência permanecem.
+- Os seis projetos aprovados geram seis marcos de título e publicações no
+  LinkedIn. A interface também possui 29 alertas de competências.
+- Nenhuma alteração foi publicada em Production nesta etapa.
+
+## Central de Evolução — grade completa da Udemy (03/11/2026)
+
+- As 21 grades cadastradas no roadmap foram reconciliadas com a API oficial de
+  currículo da Udemy: 318 seções, 2.500 aulas e 145 atividades adicionais.
+- O roadmap passa a registrar números, nomes e durações exatas, sem os quatro
+  cursos resumidos por módulos estimados. O plano resultante tem 112 dias úteis
+  e 471,6 horas, entre 03/11/2026 e 12/04/2027.
+- Os IDs das aulas agora derivam dos IDs oficiais da Udemy. A prévia contra
+  Production encontrou 21 registros legados conversíveis em 26 conclusões
+  canônicas; um registro de Excel removido do plano permanece preservado como
+  histórico e não será apagado.
+- Validação local observada: 2.645 itens conferidos sem ausências, extras ou
+  duplicidades; lint e typecheck aprovados; 872 testes aprovados e 1 ignorado;
+  build webpack concluído com 78 páginas; auditoria de produção sem
+  vulnerabilidades. O Turbopack local apresentou uma falha interna ao criar o
+  processo de PostCSS, sem erro de CSS ou TypeScript.
+- Production foi atualizada diretamente pelo importador verificado: 112 dias,
+  2.645 itens e 26 conclusões oficiais. Os 21 IDs legados convertidos não
+  permaneceram; o único registro fora do plano é a conclusão histórica de
+  Excel, mantida sem exclusão.
+
 ## DataScience — novo roadmap completo em prévia local (29/10/2026)
 
 - A branch local `feat/datascience-roadmap-v2` substitui o plano anterior de

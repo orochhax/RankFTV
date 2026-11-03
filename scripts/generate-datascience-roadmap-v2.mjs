@@ -3,7 +3,7 @@ import path from "node:path";
 
 const root = process.cwd();
 const curriculumPath = process.env.DATASCIENCE_CURRICULUM_SOURCE
-  ?? path.resolve(root, "../../DataScience/01 - Roadmap/roadmapudemy_diario.md");
+  ?? path.resolve(root, "data/evolution/udemy-curricula.json");
 const startDate = new Date(2026, 10, 3, 12);
 const minimumDailyMinutes = 240;
 
@@ -32,179 +32,52 @@ const nextStudyDate = (date) => {
   while (next.getDay() === 0 || next.getDay() === 6 || holidayMap.has(dateKey(next))) next.setDate(next.getDate() + 1);
   return next;
 };
-const parseDuration = (text = "") => {
-  const hours = Number(text.match(/(\d+)h/)?.[1] ?? 0);
-  const minutes = Number(text.match(/(\d+)min/)?.[1] ?? 0);
-  const seconds = Number(text.match(/(\d+)s/)?.[1] ?? 0);
-  return hours * 60 + minutes + Math.ceil(seconds / 60);
+const formatDuration = (seconds) => {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "duração não informada";
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+  return `${hours ? `${hours}h` : ""}${minutes}min${String(remainingSeconds).padStart(2, "0")}s`;
 };
 
-function parseCatalog(markdown) {
+const itemType = (item) => item.type === "lecture" ? "Aula"
+  : item.type === "quiz" ? "Quiz"
+    : item.type === "role-play" ? "Simulação"
+      : "Atividade";
+
+function buildCatalog(snapshot) {
   const courses = new Map();
-  let inDataScience = false;
-  let currentCourse = null;
-  let currentSection = null;
-
-  for (const line of markdown.split(/\r?\n/)) {
-    if (line === "### Data Science") { inDataScience = true; currentCourse = null; currentSection = null; continue; }
-    if (line.startsWith("### ") && line !== "### Data Science") { inDataScience = false; continue; }
-    if (!inDataScience) continue;
-
-    const courseMatch = line.match(/^\*\*Curso:\*\* \[([^\]]+)\]\(([^)]+)\)/);
-    if (courseMatch) {
-      const [, title, url] = courseMatch;
-      if (!courses.has(title)) courses.set(title, { title, url, units: [], seen: new Set() });
-      currentCourse = courses.get(title);
-      currentSection = null;
-      continue;
-    }
-    const sectionMatch = line.match(/^\*\*Seção:\*\* `(.+)`/);
-    if (sectionMatch) { currentSection = sectionMatch[1]; continue; }
-    const itemMatch = line.match(/^- \[ \] (Aula|Quiz|Simulação): `([^`]+)`(?: — (.+))?$/);
-    if (!itemMatch || !currentCourse || !currentSection) continue;
-
-    const [, type, title, durationText = ""] = itemMatch;
-    const key = `${currentSection}|${type}|${title}`;
-    if (currentCourse.seen.has(key)) continue;
-    currentCourse.seen.add(key);
-    const exactMinutes = parseDuration(durationText);
-    currentCourse.units.push({
-      courseTitle: currentCourse.title,
-      courseUrl: currentCourse.url,
-      section: currentSection,
-      type,
-      title,
-      durationText: durationText || "duração não informada",
-      durationMinutes: exactMinutes || 10,
-      estimated: exactMinutes === 0,
-      wholeModule: false,
+  for (const course of snapshot.courses) {
+    courses.set(course.title, {
+      title: course.title,
+      url: course.url,
+      units: course.sections.flatMap((section) => section.items.map((item) => ({
+        courseId: course.id,
+        courseSlug: course.slug,
+        courseTitle: course.title,
+        courseUrl: course.url,
+        sectionId: section.id,
+        sectionNumber: section.number,
+        section: section.title,
+        itemId: item.id,
+        itemClass: item.type,
+        itemSubtype: item.subtype,
+        type: itemType(item),
+        title: item.title,
+        durationSeconds: item.durationSeconds,
+        durationText: formatDuration(item.durationSeconds),
+        durationMinutes: item.durationSeconds ? Math.ceil(item.durationSeconds / 60) : 10,
+        estimated: !item.durationSeconds,
+        wholeModule: false,
+        sequence: item.number,
+      }))),
     });
-  }
-
-  for (const course of courses.values()) {
-    course.units.forEach((unit, index) => { unit.sequence = index + 1; });
-    delete course.seen;
   }
   return courses;
 }
 
-const catalog = parseCatalog(fs.readFileSync(curriculumPath, "utf8"));
-const wholeModuleCourse = (title, url, modules) => ({
-  title,
-  url,
-  units: modules.map(([moduleTitle, minutes, estimated = false], index) => ({
-    courseTitle: title,
-    courseUrl: url,
-    section: moduleTitle,
-    type: "Módulo",
-    title: moduleTitle,
-    durationText: `${minutes}min`,
-    durationMinutes: minutes,
-    estimated,
-    wholeModule: true,
-    sequence: index + 1,
-  })),
-});
-
-const exactLectureCourse = (title, url, sections) => {
-  let sequence = 0;
-  return {
-    title,
-    url,
-    units: sections.flatMap(([section, lessons]) => lessons.map(([lessonTitle, durationText]) => ({
-      courseTitle: title,
-      courseUrl: url,
-      section,
-      type: "Aula",
-      title: lessonTitle,
-      durationText,
-      durationMinutes: parseDuration(durationText),
-      estimated: false,
-      wholeModule: false,
-      sequence: ++sequence,
-    }))),
-  };
-};
-
-catalog.set("Análise e Levantamento de Requisitos de Software — Wesley Ávila", exactLectureCourse(
-  "Análise e Levantamento de Requisitos de Software — Wesley Ávila",
-  "https://www.udemy.com/course/analise-de-requisitos-de-software/",
-  [
-    ["Introdução Geral ao Curso de Requisitos de Software", [
-      ["Introdução Geral ao Curso de Requisitos de Software", "13min22s"],
-    ]],
-    ["Introdução à Análise de Requisitos de Software", [
-      ["O que são Requisitos de Software?", "7min38s"],
-      ["O que é Análise de Requisitos de Software?", "5min31s"],
-      ["Porque Análise de Requisitos é Importante?", "4min41s"],
-      ["Processos de Análise de Requisitos", "5min19s"],
-      ["Desafios na Área de Análise de Requisitos de Software", "4min45s"],
-      ["Tipos de Requisitos de Software", "17min35s"],
-    ]],
-    ["Elicitação de Requisitos", [
-      ["Técnicas de Elicitação de Requisitos: Entrevistas, Workshops, Brainstorming, etc", "18min00s"],
-      ["Compreendendo as Necessidades dos Stakeholders e Capturando Requisitos", "16min10s"],
-      ["Requisitos Funcionais, de Domínio, Interface, Usabilidade, Desempenho e ETC", "17min08s"],
-    ]],
-    ["Análise e Documentação de Requisitos", [
-      ["Identificação de Requisitos Essenciais (Funcionais) e Opcionais (Não Funcionais)", "13min14s"],
-      ["Documentação de Requisitos utilizando Linguagem Natural, Diagramas UML e Outras", "16min31s"],
-      ["Especificação de Requisitos de Forma Clara, Consistente e Sem Ambiguidades", "10min54s"],
-    ]],
-    ["Comunicação e Colaboração", [
-      ["Técnicas de Comunicação Eficaz com os Stakeholders", "19min52s"],
-      ["Trabalho em Equipe e Colaboração Durante o Processo de Análise de Requisitos", "14min42s"],
-      ["Desafios Comuns e Melhores Práticas para Lidar com Requisitos de Software", "14min01s"],
-    ]],
-    ["Estudos de Caso e Exemplos Práticos", [
-      ["Exemplo de Análise de Requisitos de Sistema de Gerenciamento de Bibliotecas", "10min59s"],
-      ["Exemplo de Análise de Requisitos de Aplicativo de Entrega de Alimentos", "15min21s"],
-      ["Exemplo de Análise de Requisitos de Sistema de Gestão Empresarial", "16min33s"],
-      ["Documento de Requisitos Sistema de Gerenciamento de Bibliotecas", "13min29s"],
-      ["Documento de Requisitos Aplicativo de Entrega de Alimentos", "10min05s"],
-      ["Documento de Requisitos Sistema de Gestão Empresarial", "12min33s"],
-      ["Dificuldades, Desafios e Soluções no Levantamento de Requisitos", "12min49s"],
-    ]],
-  ],
-));
-
-catalog.set("Formação Microsoft Power BI Profissional — André Rosa", wholeModuleCourse(
-  "Formação Microsoft Power BI Profissional — André Rosa",
-  "https://www.udemy.com/course/formacao-power-bi-pro/",
-  [
-    ["Introdução", 48],
-    ["Introdução a BI (Bussiness Intelligence)", 47],
-    ["Modelagem - Power Query - Ingestão e transformação de dados", 107],
-    ["Trabalhando com Modelo Fato e Dimensão (Star Schema/Snow Flake)", 39],
-    ["Ingestão de Dados da WEB", 41],
-    ["Modelagem Desnormalizando seus dados (Modelo de Dados)", 57],
-    ["INTRODUÇÃO DAX", 64],
-    ["Funções DAX Agregações e Iterativas", 61],
-    ["Funções DAX Agregações Datas", 34],
-    ["Funções DAX Lógicas", 36],
-    ["Funções DAX Filters/Filtros/Calculate", 71, true],
-    ["Funções DAX Inteligência de Tempo", 71, true],
-    ["Filtros Power BI", 71, true],
-    ["Data Viz Visualização de dados", 71, true],
-    ["P&R Perguntas e Resposta / Q&A Questions and Answers", 71, true],
-    ["Finalizando e Publicando 1º Projeto Completo", 71, true],
-    ["2º Projeto Gestão de Orçamentos", 71, true],
-    ["Bookmarks - Criando o Storytelling", 71, true],
-    ["Power BI Service - Recursos e Gestão", 67, true],
-  ],
-));
-
-catalog.set("Álgebra Linear para Data Science e Machine Learning — Jones Granatyr", wholeModuleCourse(
-  "Álgebra Linear para Data Science e Machine Learning — Jones Granatyr",
-  "https://www.udemy.com/course/algebra-linear-para-data-science-e-machine-learning/",
-  [["Introdução", 8], ["Conceitos iniciais", 110], ["Vetores", 60], ["Matrizes", 52], ["Operações", 43], ["Transformações", 106], ["Aplicações", 115], ["Considerações finais", 3]],
-));
-
-catalog.set("FastAPI - APIs Modernas e Assíncronas com Python — Geek University", wholeModuleCourse(
-  "FastAPI - APIs Modernas e Assíncronas com Python — Geek University",
-  "https://www.udemy.com/course/fastapi-apis-modernas-e-assincronas-com-python/",
-  [["Apresentação", 6], ["Introdução ao FastAPI", 98], ["Entendendo os conceitos do FastAPI", 174], ["CRUD FastAPI e SQL Alchemy", 90], ["CRUD FastAPI e SQL Model", 62], ["Segurança: Autenticação e Autorização com FastAPI", 224], ["Deploy: FastAPI em Cloud Linux com NGINX e PostgreSQL", 91], ["Encerramento", 2]],
-));
+const curriculumSnapshot = JSON.parse(fs.readFileSync(curriculumPath, "utf8"));
+const catalog = buildCatalog(curriculumSnapshot);
 
 const phaseInfo = {
   p1: { priority: "Prioridade 1", title: "Fundamentos indispensáveis", description: "Python para dados, SQL, estatística, BI, qualidade e comunicação." },
@@ -212,16 +85,52 @@ const phaseInfo = {
   p3: { priority: "Prioridade 3", title: "Especialização em Inteligência Artificial", description: "Deep Learning, NLP, LLMs, RAG, agentes, MLOps e cloud." },
 };
 
+// A grade autenticada permanece integral em udemy-curricula.json. Esta selecao
+// controla somente a trilha ativa: prioriza o que apareceu nas vagas reais e
+// retira introducoes, repeticoes, anexos basicos ja demonstrados e desvios de
+// especializacao. Os IDs oficiais permanecem inalterados para preservar o
+// progresso do usuario quando o roadmap for regenerado.
+const activeSections = new Map(Object.entries({
+  "Análise de Dados com Pandas: do Zero ao Dashboard": [4, 5, 6, 8, 9, 11, 12],
+  "Git e contribuições para projetos Open Source": [1, 2, 3, 4, 5, 6],
+  "SQL para Análise de Dados: do Básico ao Avançado!": [4, 5, 6, 7, 8, 9],
+  "Análise e Levantamento de Requisitos de Software": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "Formação Microsoft Power BI Profissional": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+  "Estatística para Ciência de Dados e Machine Learning": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "Álgebra Linear para Data Science e Machine Learning": [2, 3, 4, 5, 6, 7],
+  "Data Storytelling e Visualização de Dados": [2, 3, 4, 5, 6, 7, 8],
+  "Machine Learning e Data Science com Python de A a Z": [3, 4, 5, 7, 8, 9, 11, 12, 14, 15, 20, 21, 26, 27, 28, 29, 30],
+  "Feature Engineering for Machine Learning": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+  "Domine Pytest: Testes de Software com Python": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  "Bayesian Machine Learning in Python: A/B Testing": [2, 3, 4, 5, 6, 7],
+  "Econometrics and Statistics for Business in R & Python": [3, 5, 6, 8, 9, 11, 12, 14, 15, 17],
+  "Séries Temporais e Analises Preditivas com Python": [2, 3, 4, 5, 6, 7, 8],
+  "FastAPI - APIs Modernas e Assíncronas com Python": [2, 3, 4, 5, 6, 7],
+  "Databricks Developer Spark,SQL,Python Para Análise de Dados": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 18, 19, 20, 21, 22, 23],
+  "MLOps: Da Ciência de Dados à Operação": [2, 3, 4, 5, 6],
+  "Machine Learning com Amazon AWS e SageMaker": [2, 3, 4, 5, 6, 7, 10],
+  "Deep Learning com Python de A a Z - O Curso Completo": [3, 4, 9, 10, 13, 14, 24, 25, 27, 28],
+  "Formação Processamento de Linguagem Natural, LLMs e GenAI": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "LangChain e LangGraph: Crie Agentes de IA com LLMs e RAGs": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+}));
+
+const selectedUnits = (course) => {
+  const sections = activeSections.get(course.title);
+  if (!sections) throw new Error(`Curso sem regra de curadoria: ${course.title}`);
+  const allowed = new Set(sections);
+  return course.units.filter((unit) => allowed.has(unit.sectionNumber) && unit.durationMinutes <= minimumDailyMinutes);
+};
+
 const plan = [
-  ["p1", "course", "Análise de Dados com Python e Pandas"],
+  ["p1", "course", "Análise de Dados com Pandas: do Zero ao Dashboard"],
   ["p1", "course", "Git e contribuições para projetos Open Source"],
   ["p1", "course", "SQL para Análise de Dados: do Básico ao Avançado!"],
-  ["p1", "course", "Análise e Levantamento de Requisitos de Software — Wesley Ávila"],
-  ["p1", "project", "diagnostico-atendimento", 2, "Projeto 1C · Diagnóstico de atendimento ao cliente"],
-  ["p1", "course", "Formação Microsoft Power BI Profissional — André Rosa"],
-  ["p1", "project", "painel-estoque", 3, "Projeto 2B · Painel de estoque e risco de ruptura"],
+  ["p1", "course", "Análise e Levantamento de Requisitos de Software"],
+  ["p1", "project", "diagnostico-atendimento", 3, "Projeto 1C · Diagnóstico de atendimento ao cliente"],
+  ["p1", "course", "Formação Microsoft Power BI Profissional"],
+  ["p1", "project", "painel-estoque", 4, "Projeto 2B · Painel de estoque e risco de ruptura"],
   ["p1", "course", "Estatística para Ciência de Dados e Machine Learning"],
-  ["p1", "course", "Álgebra Linear para Data Science e Machine Learning — Jones Granatyr"],
+  ["p1", "course", "Álgebra Linear para Data Science e Machine Learning"],
   ["p1", "course", "Data Storytelling e Visualização de Dados"],
   ["p1", "course", "Machine Learning e Data Science com Python de A a Z"],
   ["p2", "course", "Feature Engineering for Machine Learning"],
@@ -231,7 +140,7 @@ const plan = [
   ["p2", "course", "Econometrics and Statistics for Business in R & Python"],
   ["p2", "course", "Séries Temporais e Analises Preditivas com Python"],
   ["p2", "project", "previsao-atendimento", 4, "Projeto 4C · Previsão de volume e dimensionamento de atendimento"],
-  ["p2", "course", "FastAPI - APIs Modernas e Assíncronas com Python — Geek University"],
+  ["p2", "course", "FastAPI - APIs Modernas e Assíncronas com Python"],
   ["p2", "project", "api-churn", 4, "Projeto 5A · API de decisão para risco de churn"],
   ["p2", "course", "Databricks Developer Spark,SQL,Python Para Análise de Dados"],
   ["p2", "course", "MLOps: Da Ciência de Dados à Operação"],
@@ -242,10 +151,9 @@ const plan = [
   ["p3", "project", "inteligencia-avaliacoes", 5, "Projeto 6B · Inteligência de avaliações de clientes"],
 ];
 
-const projectSteps = ["Diagnóstico e escopo", "Construção", "Validação", "Documentação e entrega", "Publicação no LinkedIn"];
+const projectSteps = ["Diagnóstico e escopo", "Construção", "Validação e documentação", "Publicação no LinkedIn", "Aprimoramento e estudo de caso"];
 let cursor = nextStudyDate(startDate);
 let dayNumber = 1;
-let taskCounter = 1;
 const days = [];
 let studyBuffer = [];
 const pendingProjects = [];
@@ -258,13 +166,17 @@ function consumeDate() {
 }
 
 function taskForUnit(unit) {
-  const prefix = unit.wholeModule ? "Módulo inteiro" : `${unit.type} ${String(unit.sequence).padStart(2, "0")}`;
-  const estimate = unit.estimated ? " (duração estimada)" : "";
+  const prefix = `${unit.type} ${unit.sequence ?? "sem número"}`;
   return {
-    id: `tarefa-${String(taskCounter++).padStart(5, "0")}`,
-    label: `${prefix}: ${unit.title} — ${unit.durationText}${estimate}`,
+    id: `udemy-${unit.courseId}-${unit.itemClass}-${unit.itemId}`,
+    label: `${prefix}: ${unit.title} — ${unit.durationText}`,
     kind: unit.type === "Quiz" ? "quiz" : unit.type === "Simulação" ? "simulacao" : "aula",
     durationMinutes: unit.durationMinutes,
+    durationSeconds: unit.durationSeconds,
+    udemyCourseId: unit.courseId,
+    udemyItemId: unit.itemId,
+    sectionNumber: unit.sectionNumber,
+    itemNumber: unit.sequence,
   };
 }
 
@@ -276,7 +188,7 @@ function addStudyDay(units) {
   const sectionMap = new Map();
   const courseMap = new Map();
   for (const row of taskRows) {
-    const sectionKey = `${row.unit.courseTitle} · ${row.unit.section}`;
+    const sectionKey = `${row.unit.courseTitle} · Seção ${row.unit.sectionNumber}: ${row.unit.section}`;
     if (!sectionMap.has(sectionKey)) sectionMap.set(sectionKey, []);
     sectionMap.get(sectionKey).push(row.task);
     if (!courseMap.has(row.unit.courseTitle)) courseMap.set(row.unit.courseTitle, { unit: row.unit, tasks: [] });
@@ -309,8 +221,9 @@ function addProject(entry) {
   const [phaseId, , projectSlug, projectDays, title] = entry;
   for (let index = 0; index < projectDays; index += 1) {
     const date = consumeDate();
-    const step = projectSteps[index] ?? `Execução ${index + 1}`;
-    const task = { id: `tarefa-${String(taskCounter++).padStart(5, "0")}`, label: `${step} — 4h`, kind: "entrega", durationMinutes: 240 };
+    const isLastDay = index === projectDays - 1;
+    const step = isLastDay ? "Documentação final e publicação no LinkedIn" : projectSteps[index] ?? `Execução ${index + 1}`;
+    const task = { id: `projeto-${projectSlug}-${String(index + 1).padStart(2, "0")}`, label: `${step} — 4h`, kind: "entrega", durationMinutes: 240 };
     days.push({ id: `dia-${String(dayNumber).padStart(3, "0")}`, dayNumber, date: dateKey(date), weekday: weekdays[date.getDay()], plannedMinutes: 240, phaseId, phaseTitle: phaseInfo[phaseId].title, kind: "project", projectSlug, note: title, sections: [{ title: "Projeto de portfólio", tasks: [task] }], courses: [] });
     dayNumber += 1;
   }
@@ -328,7 +241,7 @@ for (const entry of plan) {
   }
   const course = catalog.get(key);
   if (!course) throw new Error(`Curso sem grade exata cadastrada: ${key}`);
-  for (const unit of course.units) {
+  for (const unit of selectedUnits(course)) {
     studyBuffer.push({ ...unit, phaseId });
     const minutes = studyBuffer.reduce((sum, item) => sum + item.durationMinutes, 0);
     if (minutes >= minimumDailyMinutes) {
@@ -342,7 +255,12 @@ for (const entry of plan) {
 if (studyBuffer.length) {
   const remainingMinutes = studyBuffer.reduce((sum, unit) => sum + unit.durationMinutes, 0);
   const previousDay = days.at(-1);
-  if (remainingMinutes < minimumDailyMinutes && previousDay?.kind === "study" && previousDay.phaseId === studyBuffer[0].phaseId) {
+  if (
+    remainingMinutes < minimumDailyMinutes
+    && previousDay?.kind === "study"
+    && previousDay.phaseId === studyBuffer[0].phaseId
+    && previousDay.plannedMinutes + remainingMinutes <= 300
+  ) {
     days.pop();
     dayNumber -= 1;
     cursor = new Date(`${previousDay.date}T12:00:00`);
@@ -363,21 +281,21 @@ const projectEndDay = (projectSlug) => days.filter((day) => day.projectSlug === 
 const lastDayForCourse = (courseTitle, sectionTitle) => days.filter((day) => {
   const hasCourse = day.courses.some((course) => course.title === courseTitle);
   if (!hasCourse || !sectionTitle) return hasCourse;
-  return day.sections.some((section) => section.title === `${courseTitle} · ${sectionTitle}`);
+  return day.sections.some((section) => section.title.startsWith(`${courseTitle} · Seção `) && slug(section.title).endsWith(slug(sectionTitle)));
 }).at(-1)?.dayNumber;
 const skillDefinitions = [
-  ["NumPy", "Análise de Dados com Python e Pandas", "Numpy Hands On", "Arrays, indexação, reshape, join e operações com NumPy concluídos."],
-  ["Pandas", "Análise de Dados com Python e Pandas", "Pandas - Transformação de Dados", "Manipulação e transformação de dados com Series e DataFrames concluídas."],
+  ["NumPy", "Análise de Dados com Pandas: do Zero ao Dashboard", "Numpy Hands On", "Arrays, indexação, reshape, join e operações com NumPy concluídos."],
+  ["Pandas", "Análise de Dados com Pandas: do Zero ao Dashboard", "Pandas - Transformação de Dados", "Manipulação e transformação de dados com Series e DataFrames concluídas."],
   ["Git", "Git e contribuições para projetos Open Source", null, "Controle de versão, branches, conflitos e colaboração estudados."],
   ["SQL", "SQL para Análise de Dados: do Básico ao Avançado!", null, "Consultas, subqueries e funções de janela concluídas."],
-  ["Levantamento de requisitos", "Análise e Levantamento de Requisitos de Software — Wesley Ávila", "Elicitação de Requisitos", "Entrevistas, workshops, brainstorming e captura de necessidades estudados."],
-  ["Comunicação com stakeholders", "Análise e Levantamento de Requisitos de Software — Wesley Ávila", "Comunicação e Colaboração", "Comunicação, colaboração e tratamento de requisitos com stakeholders concluídos."],
-  ["Microsoft Power Query", "Formação Microsoft Power BI Profissional — André Rosa", "Modelagem - Power Query - Ingestão e transformação de dados", "Ingestão e transformação de dados no Power Query concluídas."],
-  ["Modelagem de dados", "Formação Microsoft Power BI Profissional — André Rosa", "Modelagem Desnormalizando seus dados (Modelo de Dados)", "Modelagem dimensional, fato, dimensão e desnormalização estudadas."],
-  ["DAX", "Formação Microsoft Power BI Profissional — André Rosa", "Funções DAX Inteligência de Tempo", "Agregações, filtros, lógica e inteligência de tempo em DAX concluídas."],
-  ["Microsoft Power BI", "Formação Microsoft Power BI Profissional — André Rosa", null, "Modelagem, visualização, publicação e recursos do Power BI concluídos."],
+  ["Levantamento de requisitos", "Análise e Levantamento de Requisitos de Software", "Elicitação de Requisitos", "Entrevistas, workshops, brainstorming e captura de necessidades estudados."],
+  ["Comunicação com stakeholders", "Análise e Levantamento de Requisitos de Software", "Comunicação e Colaboração", "Comunicação, colaboração e tratamento de requisitos com stakeholders concluídos."],
+  ["Microsoft Power Query", "Formação Microsoft Power BI Profissional", "Modelagem - Power Query - Ingestão e transformação de dados", "Ingestão e transformação de dados no Power Query concluídas."],
+  ["Modelagem de dados", "Formação Microsoft Power BI Profissional", "Modelagem Desnormalizando seus dados (Modelo de Dados)", "Modelagem dimensional, fato, dimensão e desnormalização estudadas."],
+  ["DAX", "Formação Microsoft Power BI Profissional", "Funções DAX Inteligência de Tempo", "Agregações, filtros, lógica e inteligência de tempo em DAX concluídas."],
+  ["Microsoft Power BI", "Formação Microsoft Power BI Profissional", null, "Modelagem, visualização, publicação e recursos do Power BI concluídos."],
   ["Estatística", "Estatística para Ciência de Dados e Machine Learning", null, "Probabilidade, inferência, testes, correlação e regressão concluídos."],
-  ["Álgebra linear", "Álgebra Linear para Data Science e Machine Learning — Jones Granatyr", null, "Vetores, matrizes, operações e transformações lineares concluídos."],
+  ["Álgebra linear", "Álgebra Linear para Data Science e Machine Learning", null, "Vetores, matrizes, operações e transformações lineares concluídos."],
   ["Storytelling com dados", "Data Storytelling e Visualização de Dados", null, "Narrativa, comunicação visual e escolha de gráficos concluídas."],
   ["Machine Learning", "Machine Learning e Data Science com Python de A a Z", null, "Modelos de classificação, regressão, agrupamento e avaliação concluídos."],
   ["Feature engineering", "Feature Engineering for Machine Learning", null, "Imputação, encoding, transformação, scaling e pipelines concluídos."],
@@ -385,7 +303,7 @@ const skillDefinitions = [
   ["Teste A/B", "Bayesian Machine Learning in Python: A/B Testing", null, "Testes A/B tradicionais e bayesianos concluídos."],
   ["Econometria", "Econometrics and Statistics for Business in R & Python", null, "Métodos de inferência causal e econometria aplicada concluídos."],
   ["Séries temporais", "Séries Temporais e Analises Preditivas com Python", null, "Preprocessamento, previsão e detecção de anomalias em séries concluídos."],
-  ["FastAPI", "FastAPI - APIs Modernas e Assíncronas com Python — Geek University", null, "Construção, segurança, persistência e deploy de APIs com FastAPI concluídos."],
+  ["FastAPI", "FastAPI - APIs Modernas e Assíncronas com Python", null, "Construção, segurança, persistência e deploy de APIs com FastAPI concluídos."],
   ["Apache Spark", "Databricks Developer Spark,SQL,Python Para Análise de Dados", "Funções de agregações", "Manipulação e agregação distribuída de dados com PySpark concluídas."],
   ["Databricks", "Databricks Developer Spark,SQL,Python Para Análise de Dados", null, "Processamento de dados, Delta Lake e recursos do Databricks concluídos."],
   ["MLOps", "MLOps: Da Ciência de Dados à Operação", null, "DVC, MLflow, Airflow e operação de modelos concluídos."],
@@ -404,7 +322,7 @@ const linkedinSkillMilestones = skillDefinitions.map(([skill, course, section, e
 })).filter((milestone) => milestone.afterDay);
 const roadmap = {
   generatedAt: new Date().toISOString(),
-  sourcePath: "Grade literal dos cursos em DataScience/01 - Roadmap/roadmapudemy_diario.md e módulos oficiais confirmados",
+  sourcePath: "Grades oficiais completas da Udemy registradas em data/evolution/udemy-curricula.json",
   period: { start: days[0].date, end: days.at(-1).date },
   totalBusinessDays: days.length,
   totalPlannedMinutes: days.reduce((total, day) => total + day.plannedMinutes, 0),
@@ -412,11 +330,19 @@ const roadmap = {
   holidays,
   careerMilestones: [
     { id: "m1", afterDay: projectEndDay("diagnostico-atendimento"), title: "Portfólio inicial de análise", rationale: "Primeiro diagnóstico reproduzível concluído.", linkedinTitle: "Estudante de Ciência de Dados | Python, Pandas e análise de dados" },
-    { id: "m2", afterDay: projectEndDay("painel-estoque"), title: "Base de BI demonstrada", rationale: "SQL, Power BI e um painel auditável já foram entregues.", linkedinTitle: "Analista de Dados em formação | SQL, Power BI e Python" },
-    { id: "m3", afterDay: projectEndDay("risco-credito"), title: "Machine Learning aplicado", rationale: "Modelo preditivo validado e comunicado com limites claros.", linkedinTitle: "Cientista de Dados em formação | Machine Learning, SQL e Python" },
-    { id: "m4", afterDay: projectEndDay("api-churn"), title: "Entrega técnica em API", rationale: "Modelo transformado em serviço testável e documentado.", linkedinTitle: "Cientista de Dados em formação | ML, APIs e MLOps" },
-    { id: "m5", afterDay: days.length, title: "Trilha completa concluída", rationale: "Projetos de dados, previsão e IA entregues com documentação.", linkedinTitle: "Cientista de Dados Júnior | Python, SQL, ML e IA aplicada" },
+    { id: "m2", afterDay: projectEndDay("painel-estoque"), title: "Base de BI demonstrada", rationale: "SQL, Power BI e um painel auditável já foram entregues.", linkedinTitle: "Analista de Dados em formação | SQL, Power BI, Python e Data Storytelling" },
+    { id: "m3", afterDay: projectEndDay("risco-credito"), title: "Machine Learning aplicado", rationale: "Modelo preditivo validado e comunicado com limites claros.", linkedinTitle: "Cientista de Dados em formação | Python, SQL, Estatística e Machine Learning" },
+    { id: "m4", afterDay: projectEndDay("previsao-atendimento"), title: "Previsão operacional demonstrada", rationale: "Forecast com backtesting e recomendação operacional publicados.", linkedinTitle: "Cientista de Dados em formação | ML, Séries Temporais e Forecasting" },
+    { id: "m5", afterDay: projectEndDay("api-churn"), title: "Entrega técnica em API", rationale: "Modelo transformado em serviço testável e documentado.", linkedinTitle: "Cientista de Dados em formação | ML, FastAPI, Docker e MLOps" },
+    { id: "m6", afterDay: projectEndDay("inteligencia-avaliacoes"), title: "IA aplicada demonstrada", rationale: "Solução de NLP e IA generativa avaliada, documentada e publicada.", linkedinTitle: "Cientista de Dados em formação | Python, SQL, Machine Learning e IA aplicada" },
   ],
+  curation: {
+    basis: "Vagas reais registradas em DataScience/vagas.md e evidências das práticas do usuário",
+    level: "Júnior forte, preparado para exigências recorrentes de pleno",
+    canonicalItems: curriculumSnapshot.courses.reduce((sum, course) => sum + course.sections.reduce((sectionSum, section) => sectionSum + section.items.length, 0), 0),
+    activeUdemyItems: days.flatMap((day) => day.sections.flatMap((section) => section.tasks)).filter((task) => task.id.startsWith("udemy-")).length,
+    excludedItemsRemainInCanonicalSource: true,
+  },
   linkedinSkillMilestones,
   days,
 };
