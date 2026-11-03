@@ -776,3 +776,28 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 - O snapshot editorial foi regenerado com 1.191 registros observados nos 21
   canais e 15 oportunidades calculadas pela ponderação individual 65/25/10,
   sem cotas por categoria e com máximo de três vídeos por canal.
+
+## Pulso.AI — atualização completa de 02/11/2026
+
+- A interrupção relatada pela execução anterior foi auditada: ela consultou
+  uma cópia desatualizada do RankFTV. O importador vigente em `master` já
+  suporta as quatro abordagens por ideia e os modos `--validate-only` e
+  `--preflight`; portanto, não foi necessária migration nem alteração de
+  contrato do banco.
+- Os 21 canais concorrentes foram recolhidos integralmente. A janela anual
+  contém 1.024 vídeos, os oito vídeos novos encontrados pela execução anterior
+  foram preservados e a coleta terminou sem falha de canal. O snapshot mantém
+  1.199 registros históricos observados.
+- As 17 fontes ativas foram revisadas. Perfis dinâmicos do X, a página da
+  SpaceX sem conteúdo individual legível e fontes sem publicação nova
+  verificável foram registrados como limitações, sem transformar título ou
+  ausência de evidência em fato.
+- A rodada editorial validou 19 conteúdos, 19 tendências, 22 ideias e 88
+  abordagens. A nova pauta de maior utilidade ensina a avaliar se uma IA paga
+  vale o custo antes da assinatura, com quatro execuções editoriais completas.
+- O preflight de Production passou e a importação foi concluída no run
+  `483393cd-eb2a-47d1-af7d-ef66cd772698`: 2 conteúdos novos, 17 atualizados,
+  22 ideias ranqueadas, 88 abordagens e 66 referências do YouTube atualizadas.
+- O perfil editorial permanece em 65% IA aplicada e transformação, 25%
+  produtividade/carreira/sistemas e 10% notícia relevante. O snapshot local
+  foi regenerado com 21 canais e 15 oportunidades.

@@ -1400,3 +1400,25 @@ registrar apenas uma revalidação quando ela for necessária.
   oportunidades. A diferença para os 1.022 vídeos da coleta anual decorre do
   histórico preservado no conjunto analítico; o ranking continua limitado à
   janela e aos critérios editoriais vigentes.
+
+## 2026-11-02 — Atualização completa do radar e concorrentes
+
+- Execução iniciada a partir de uma auditoria da tentativa anterior. O aviso
+  de incompatibilidade era consequência de uma cópia antiga do projeto: o
+  importador atual já aceita `approaches`, `--validate-only` e `--preflight`.
+- A parte válida da tentativa anterior foi preservada: oito vídeos novos com
+  metadados e thumbnails. Em seguida, a coleta oficial refez os 21 canais,
+  atualizou todas as observações disponíveis e fechou com 1.024 vídeos na
+  janela anual e zero falhas.
+- Pesquisa manual realizada nas 17 fontes ativas, com leitura das páginas
+  individuais quando disponíveis. Limitações de páginas dinâmicas ou sem
+  conteúdo verificável foram explicitadas em vez de inferidas.
+- Validação local e preflight de Production aprovados para 19 conteúdos, 19
+  tendências, 22 ideias e 88 abordagens.
+- Importação de Production concluída às 22h no run
+  `483393cd-eb2a-47d1-af7d-ef66cd772698`: 2 conteúdos novos, 17 atualizados,
+  1 ideia nova, 22 ideias ranqueadas, 88 abordagens e 66 referências do
+  YouTube persistidas; perfil editorial 65/25/10 confirmado.
+- Snapshot editorial regenerado com 1.199 registros históricos, 21 canais e
+  15 oportunidades. A publicação do snapshot segue pelo fluxo protegido de
+  PR, CI e deploy da Vercel.

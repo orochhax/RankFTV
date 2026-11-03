@@ -1,5 +1,5 @@
 {
-  "observedAt": "2026-11-01T01:57:14.093Z",
+  "observedAt": "2026-11-03T00:58:19.429Z",
   "channels": [],
   "videos": [],
   "topVideos": [
@@ -11,24 +11,24 @@
       "url": "https://www.youtube.com/watch?v=lr7m3qGivto",
       "thumbnail": "https://i.ytimg.com/vi/lr7m3qGivto/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Rafa%20Voss%20IA%20na%20Pr%C3%A1tica&video=lr7m3qGivto",
-      "views": 246505,
+      "views": 258515,
       "durationSeconds": 592,
       "publishedAt": "2026-10-13T06:04:17-07:00",
       "publishedText": "13 de out. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 82,
       "breakdown": {
         "aiAppliedTransformation": 95.03999999999999,
         "productivityCareerSystems": 81.63,
         "newsRelevance": 0
       },
-      "channelMedianViews": 22921,
-      "relativePerformanceMultiple": 10.75454823087998,
+      "channelMedianViews": 23123,
+      "relativePerformanceMultiple": 11.179993945422307,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Aprendizado e carreira",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "10,8× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Aprendizado e carreira."
+      "rationale": "11,2× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Aprendizado e carreira."
     },
     {
       "id": "3Ke_E4jXCRM",
@@ -45,12 +45,12 @@
       "observedAt": "2026-10-22T15:40:08.726Z",
       "opportunityScore": 82,
       "breakdown": {
-        "aiAppliedTransformation": 95.3393653677893,
-        "productivityCareerSystems": 80.82936536778931,
+        "aiAppliedTransformation": 95.31657988945189,
+        "productivityCareerSystems": 80.80657988945191,
         "newsRelevance": 0
       },
-      "channelMedianViews": 22921,
-      "relativePerformanceMultiple": 4.3191832817067315,
+      "channelMedianViews": 23123,
+      "relativePerformanceMultiple": 4.281451368767028,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Aprendizado e carreira",
       "editorialPillar": "ai_applied",
@@ -65,19 +65,19 @@
       "url": "https://www.youtube.com/watch?v=SfZyhxE8Nf8",
       "thumbnail": "https://i.ytimg.com/vi/SfZyhxE8Nf8/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Maestros%20da%20IA&video=SfZyhxE8Nf8",
-      "views": 72576,
+      "views": 72810,
       "durationSeconds": 1184,
       "publishedAt": "2026-09-30T12:12:14-07:00",
       "publishedText": "30 de set. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 82,
       "breakdown": {
-        "aiAppliedTransformation": 90.83194789407663,
-        "productivityCareerSystems": 91.64194789407664,
+        "aiAppliedTransformation": 90.86579909341387,
+        "productivityCareerSystems": 91.67579909341387,
         "newsRelevance": 0
       },
-      "channelMedianViews": 22931,
-      "relativePerformanceMultiple": 3.1649731804107977,
+      "channelMedianViews": 22707,
+      "relativePerformanceMultiple": 3.206500198176774,
       "formatLabel": "Tese explicativa",
       "topicLabel": "Sistemas e produtividade",
       "editorialPillar": "ai_applied",
@@ -92,19 +92,19 @@
       "url": "https://www.youtube.com/watch?v=lXG3xzlHy6E",
       "thumbnail": "https://i.ytimg.com/vi/lXG3xzlHy6E/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Maestros%20da%20IA&video=lXG3xzlHy6E",
-      "views": 19388,
+      "views": 19404,
       "durationSeconds": 1009,
       "publishedAt": "2026-09-12T13:16:30-07:00",
       "publishedText": "12 de set. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 82,
       "breakdown": {
-        "aiAppliedTransformation": 90.52415649008014,
-        "productivityCareerSystems": 90.94415649008013,
+        "aiAppliedTransformation": 90.55179054919718,
+        "productivityCareerSystems": 90.97179054919717,
         "newsRelevance": 0
       },
-      "channelMedianViews": 22931,
-      "relativePerformanceMultiple": 0.8454930007413545,
+      "channelMedianViews": 22707,
+      "relativePerformanceMultiple": 0.8545382481173206,
       "formatLabel": "Tese explicativa",
       "topicLabel": "Agentes e automação",
       "editorialPillar": "ai_applied",
@@ -119,24 +119,24 @@
       "url": "https://www.youtube.com/watch?v=oDKKrBzMe2g",
       "thumbnail": "https://i.ytimg.com/vi/oDKKrBzMe2g/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Maestros%20da%20IA&video=oDKKrBzMe2g",
-      "views": 53771,
+      "views": 54242,
       "durationSeconds": 1456,
       "publishedAt": "2026-10-06T19:33:25-07:00",
       "publishedText": "6 de out. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 80,
       "breakdown": {
-        "aiAppliedTransformation": 92.85315225636255,
-        "productivityCareerSystems": 79.24315225636255,
+        "aiAppliedTransformation": 92.90129187041947,
+        "productivityCareerSystems": 79.29129187041947,
         "newsRelevance": 0
       },
-      "channelMedianViews": 22931,
-      "relativePerformanceMultiple": 2.344904278051546,
+      "channelMedianViews": 22707,
+      "relativePerformanceMultiple": 2.388778790681288,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "2,3× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
+      "rationale": "2,4× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
     },
     {
       "id": "SVXG1b-Oteg",
@@ -150,20 +150,20 @@
       "durationSeconds": 958,
       "publishedAt": "2026-07-05T15:00:34-07:00",
       "publishedText": "5 de jul. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 79,
       "breakdown": {
-        "aiAppliedTransformation": 88.09571073069812,
-        "productivityCareerSystems": 88.52571073069811,
+        "aiAppliedTransformation": 88.20623171109358,
+        "productivityCareerSystems": 88.63623171109357,
         "newsRelevance": 0
       },
-      "channelMedianViews": 336,
-      "relativePerformanceMultiple": 0.34226190476190477,
+      "channelMedianViews": 322,
+      "relativePerformanceMultiple": 0.35714285714285715,
       "formatLabel": "Tese explicativa",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "34% da mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
+      "rationale": "36% da mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
     },
     {
       "id": "Wk39-LS652I",
@@ -173,24 +173,24 @@
       "url": "https://www.youtube.com/watch?v=Wk39-LS652I",
       "thumbnail": "https://i.ytimg.com/vi/Wk39-LS652I/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Vagner%20Mazzeo&video=Wk39-LS652I",
-      "views": 7172,
+      "views": 7596,
       "durationSeconds": 1328,
       "publishedAt": "2026-10-28T08:00:13-07:00",
       "publishedText": "28 de out. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 79,
       "breakdown": {
-        "aiAppliedTransformation": 87.18690718423767,
-        "productivityCareerSystems": 87.81690718423766,
+        "aiAppliedTransformation": 87.31796847888997,
+        "productivityCareerSystems": 87.94796847888996,
         "newsRelevance": 0
       },
-      "channelMedianViews": 23240,
-      "relativePerformanceMultiple": 0.308605851979346,
+      "channelMedianViews": 23402.5,
+      "relativePerformanceMultiple": 0.32458070718940285,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "31% da mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
+      "rationale": "32% da mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
     },
     {
       "id": "Inw33B7JaKc",
@@ -200,24 +200,24 @@
       "url": "https://www.youtube.com/watch?v=Inw33B7JaKc",
       "thumbnail": "https://i.ytimg.com/vi/Inw33B7JaKc/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Ovinifontes&video=Inw33B7JaKc",
-      "views": 644,
+      "views": 645,
       "durationSeconds": 1526,
       "publishedAt": "2026-03-05T16:02:01-08:00",
       "publishedText": "5 de mar. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 78,
       "breakdown": {
-        "aiAppliedTransformation": 90.72947901960454,
-        "productivityCareerSystems": 77.31947901960454,
+        "aiAppliedTransformation": 90.8440292499528,
+        "productivityCareerSystems": 77.4340292499528,
         "newsRelevance": 0
       },
-      "channelMedianViews": 336,
-      "relativePerformanceMultiple": 1.9166666666666667,
+      "channelMedianViews": 322,
+      "relativePerformanceMultiple": 2.0031055900621118,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "1,9× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
+      "rationale": "2× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
     },
     {
       "id": "7bGTwFyRXOM",
@@ -227,19 +227,19 @@
       "url": "https://www.youtube.com/watch?v=7bGTwFyRXOM",
       "thumbnail": "https://i.ytimg.com/vi/7bGTwFyRXOM/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Rafa%20Voss%20IA%20na%20Pr%C3%A1tica&video=7bGTwFyRXOM",
-      "views": 42919,
+      "views": 43238,
       "durationSeconds": 870,
       "publishedAt": "2026-03-12T06:04:00-07:00",
       "publishedText": "12 de mar. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 78,
       "breakdown": {
-        "aiAppliedTransformation": 90.66890365425651,
-        "productivityCareerSystems": 77.25890365425651,
+        "aiAppliedTransformation": 90.66534816948787,
+        "productivityCareerSystems": 77.25534816948789,
         "newsRelevance": 0
       },
-      "channelMedianViews": 22921,
-      "relativePerformanceMultiple": 1.8724750229047598,
+      "channelMedianViews": 23123,
+      "relativePerformanceMultiple": 1.8699130735631189,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
@@ -254,19 +254,19 @@
       "url": "https://www.youtube.com/watch?v=NXo3f3tMzEs",
       "thumbnail": "https://i.ytimg.com/vi/NXo3f3tMzEs/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Well%20Pires&video=NXo3f3tMzEs",
-      "views": 2511,
+      "views": 2514,
       "durationSeconds": 2403,
       "publishedAt": "2026-05-20T14:27:44-07:00",
       "publishedText": "20 de mai. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 77,
       "breakdown": {
-        "aiAppliedTransformation": 85.22232410713606,
-        "productivityCareerSystems": 85.83232410713605,
+        "aiAppliedTransformation": 85.2251474875553,
+        "productivityCareerSystems": 85.83514748755529,
         "newsRelevance": 0
       },
-      "channelMedianViews": 9363,
-      "relativePerformanceMultiple": 0.2681832745914771,
+      "channelMedianViews": 9364,
+      "relativePerformanceMultiple": 0.26847501067919693,
       "formatLabel": "Tese explicativa",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
@@ -281,24 +281,24 @@
       "url": "https://www.youtube.com/watch?v=QWpNXBMeG00",
       "thumbnail": "https://i.ytimg.com/vi/QWpNXBMeG00/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Victor%20Baggio%20IA%20para%20Vendas&video=QWpNXBMeG00",
-      "views": 19614,
+      "views": 19701,
       "durationSeconds": 1730,
       "publishedAt": "2026-06-23T08:00:02-07:00",
       "publishedText": "23 de jun. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 74,
       "breakdown": {
-        "aiAppliedTransformation": 73.0104680877642,
-        "productivityCareerSystems": 76.55046808776422,
-        "newsRelevance": 76.1520567398035
+        "aiAppliedTransformation": 73.01956302807613,
+        "productivityCareerSystems": 76.55956302807616,
+        "newsRelevance": 76.1596358567301
       },
-      "channelMedianViews": 3247,
-      "relativePerformanceMultiple": 6.040652910378811,
+      "channelMedianViews": 3250,
+      "relativePerformanceMultiple": 6.061846153846154,
       "formatLabel": "Notícia explicada",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "6× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
+      "rationale": "6,1× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
     },
     {
       "id": "Q-0OjiENI0E",
@@ -308,24 +308,24 @@
       "url": "https://www.youtube.com/watch?v=Q-0OjiENI0E",
       "thumbnail": "https://i.ytimg.com/vi/Q-0OjiENI0E/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Victor%20Baggio%20IA%20para%20Vendas&video=Q-0OjiENI0E",
-      "views": 35008,
+      "views": 35264,
       "durationSeconds": 1389,
       "publishedAt": "2026-07-27T08:00:26-07:00",
       "publishedText": "27 de jul. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 70,
       "breakdown": {
         "aiAppliedTransformation": 79.64,
         "productivityCareerSystems": 73.03,
         "newsRelevance": 0
       },
-      "channelMedianViews": 3247,
-      "relativePerformanceMultiple": 10.781644595010778,
+      "channelMedianViews": 3250,
+      "relativePerformanceMultiple": 10.850461538461538,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "10,8× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
+      "rationale": "10,9× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
     },
     {
       "id": "OEJ6sd-6YV8",
@@ -335,24 +335,51 @@
       "url": "https://www.youtube.com/watch?v=OEJ6sd-6YV8",
       "thumbnail": "https://i.ytimg.com/vi/OEJ6sd-6YV8/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Ovinifontes&video=OEJ6sd-6YV8",
-      "views": 830,
+      "views": 848,
       "durationSeconds": 563,
       "publishedAt": "2026-10-18T16:07:15-07:00",
       "publishedText": "18 de out. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 68,
       "breakdown": {
-        "aiAppliedTransformation": 73.18837018621996,
-        "productivityCareerSystems": 80.99837018621996,
+        "aiAppliedTransformation": 73.35460643760746,
+        "productivityCareerSystems": 81.16460643760745,
         "newsRelevance": 0
       },
-      "channelMedianViews": 336,
-      "relativePerformanceMultiple": 2.4702380952380953,
+      "channelMedianViews": 322,
+      "relativePerformanceMultiple": 2.6335403726708075,
       "formatLabel": "Tese explicativa",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "2,5× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
+      "rationale": "2,6× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
+    },
+    {
+      "id": "Jrm32R_2yZ8",
+      "channel": "Victor Baggio IA para Vendas",
+      "title": "Roube meu sistema de geração de propostas comerciais com Claude",
+      "originalTitle": "Roube meu sistema de geração de propostas comerciais com Claude",
+      "url": "https://www.youtube.com/watch?v=Jrm32R_2yZ8",
+      "thumbnail": "https://i.ytimg.com/vi/Jrm32R_2yZ8/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Victor%20Baggio%20IA%20para%20Vendas&video=Jrm32R_2yZ8",
+      "views": 5612,
+      "durationSeconds": 750,
+      "publishedAt": "2026-10-29T08:00:01-07:00",
+      "publishedText": "29 de out. de 2026",
+      "observedAt": "2026-11-03T00:58:19.429Z",
+      "opportunityScore": 67,
+      "breakdown": {
+        "aiAppliedTransformation": 72.2585355234701,
+        "productivityCareerSystems": 80.0685355234701,
+        "newsRelevance": 0
+      },
+      "channelMedianViews": 3250,
+      "relativePerformanceMultiple": 1.7267692307692308,
+      "formatLabel": "Tese explicativa",
+      "topicLabel": "Ferramentas de IA",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "1,7× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
     },
     {
       "id": "TGhl33SDWzI",
@@ -362,84 +389,57 @@
       "url": "https://www.youtube.com/watch?v=TGhl33SDWzI",
       "thumbnail": "https://i.ytimg.com/vi/TGhl33SDWzI/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Well%20Pires&video=TGhl33SDWzI",
-      "views": 7458,
+      "views": 7463,
       "durationSeconds": 1118,
       "publishedAt": "2026-01-21T13:51:20-08:00",
       "publishedText": "21 de jan. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
+      "observedAt": "2026-11-03T00:58:19.429Z",
       "opportunityScore": 67,
       "breakdown": {
-        "aiAppliedTransformation": 71.8492722904399,
-        "productivityCareerSystems": 79.45927229043988,
+        "aiAppliedTransformation": 71.85073535301264,
+        "productivityCareerSystems": 79.46073535301264,
         "newsRelevance": 0
       },
-      "channelMedianViews": 9363,
-      "relativePerformanceMultiple": 0.7965395706504326,
+      "channelMedianViews": 9364,
+      "relativePerformanceMultiple": 0.7969884664673217,
       "formatLabel": "Tese explicativa",
       "topicLabel": "Agentes e automação",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
       "rationale": "80% da mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Agentes e automação."
-    },
-    {
-      "id": "5HjN2NytHVE",
-      "channel": "Deborah Folloni",
-      "title": "Como as pessoas estão gerando vídeos no Claude Code (Remotion Skills)",
-      "originalTitle": "Como as pessoas estão gerando vídeos no Claude Code (Remotion Skills)",
-      "url": "https://www.youtube.com/watch?v=5HjN2NytHVE",
-      "thumbnail": "https://i.ytimg.com/vi/5HjN2NytHVE/maxresdefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Deborah%20Folloni&video=5HjN2NytHVE",
-      "views": 72814,
-      "durationSeconds": 1107,
-      "publishedAt": "2026-01-28T07:00:08-08:00",
-      "publishedText": "28 de jan. de 2026",
-      "observedAt": "2026-11-01T01:57:14.093Z",
-      "opportunityScore": 66,
-      "breakdown": {
-        "aiAppliedTransformation": 75.2417018012918,
-        "productivityCareerSystems": 68.8317018012918,
-        "newsRelevance": 0
-      },
-      "channelMedianViews": 21221,
-      "relativePerformanceMultiple": 3.43122378775741,
-      "formatLabel": "Tutorial aplicável",
-      "topicLabel": "Ferramentas de IA",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "3,4× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
     }
   ],
   "topics": [
     {
-      "label": "Notícias e opinião",
-      "count": 54,
-      "averageViews": 158509.24528301886
-    },
-    {
       "label": "Negócios e dinheiro",
       "count": 125,
-      "averageViews": 158468.09677419355
+      "averageViews": 159584.79032258064
+    },
+    {
+      "label": "Notícias e opinião",
+      "count": 56,
+      "averageViews": 153260.78181818183
     },
     {
       "label": "Ferramentas práticas",
-      "count": 275,
-      "averageViews": 126180.31386861314
+      "count": 278,
+      "averageViews": 125541.01444043321
     },
     {
       "label": "Modelos e lançamentos",
-      "count": 423,
-      "averageViews": 80242.95023696682
+      "count": 425,
+      "averageViews": 80966.19339622642
     },
     {
       "label": "Agentes e automação",
       "count": 139,
-      "averageViews": 46840.02898550725
+      "averageViews": 47987.166666666664
     }
   ],
   "stats": {
     "channels": 21,
-    "videos": 1191,
-    "withViews": 1180,
-    "averageViews": 128903.06355932204
+    "videos": 1199,
+    "withViews": 1188,
+    "averageViews": 129165.17508417509
   }
 }
