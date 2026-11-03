@@ -10,7 +10,10 @@
   Pandas, CSV, erros, Git, SQL, BI e demais tópicos sem evidência permanecem.
 - Os seis projetos aprovados geram seis marcos de título e publicações no
   LinkedIn. A interface também possui 29 alertas de competências.
-- Nenhuma alteração foi publicada em Production nesta etapa.
+- A PR `#107` foi mesclada e a Vercel publicou o commit
+  `bd9af6dfb469bfcfcfeed8209e923d80ab7ebb5c`. O snapshot `roadmap` do
+  Supabase foi atualizado isoladamente e verificado com 88 dias úteis, de
+  03/11/2026 a 09/03/2027. O progresso existente foi preservado.
 
 ## Central de Evolução — grade completa da Udemy (03/11/2026)
 

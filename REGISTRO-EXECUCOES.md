@@ -5,6 +5,18 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-03 20:00 -03:00 — Roadmap orientado pelas vagas em Production
+
+- A PR `#107` foi mesclada no `master` pelo commit
+  `bd9af6dfb469bfcfcfeed8209e923d80ab7ebb5c`. Os checks da PR passaram,
+  incluindo lint, TypeScript, testes, build e testes de navegador.
+- A Vercel concluiu o deployment de Production associado ao commit de merge.
+- O importador atualizou exclusivamente o snapshot `roadmap` no Supabase. O
+  snapshot `rankftv`, outras tabelas e o progresso existente não foram
+  alterados.
+- A leitura após o upsert confirmou 88 dias úteis, de 03/11/2026 a 09/03/2027,
+  preservando a grade canônica com 2.645 itens e a rota ativa com 1.885 itens.
+
 ## 2026-11-03 -03:00 — Curadoria do roadmap de Data Science pelas vagas reais
 
 - A grade autenticada integral de 21 cursos e 2.645 itens foi preservada como
