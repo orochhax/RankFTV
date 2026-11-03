@@ -5,6 +5,43 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-03 16:01 -03:00 — Roadmap Udemy aplicado em Production
+
+- O importador atualizou somente o snapshot `roadmap` da Central de Evolução;
+  o snapshot das pendências RankFTV não foi alterado. A verificação remota
+  confirmou 112 dias úteis, de 03/11/2026 a 12/04/2027, e 2.645 itens oficiais.
+- A migração de progresso inseriu e verificou 26 conclusões canônicas antes de
+  remover 21 IDs legados convertidos. O registro de Excel sem destino no plano
+  atual permaneceu intacto como histórico.
+- A consulta final de Production confirmou 26 conclusões ligadas ao novo
+  roadmap, zero IDs convertidos remanescentes e exatamente um registro
+  histórico fora do plano.
+- O commit local `291873a` não foi enviado ao GitHub: a política de saída
+  bloqueou o upload da grade e do roadmap enquanto a privacidade do remoto não
+  estiver explicitamente confirmada. O dado de Production já está corrigido;
+  publicar o código reprodutível continua pendente dessa autorização.
+
+## 2026-11-03 15:59 -03:00 — Grade oficial completa e progresso do roadmap Udemy
+
+- Foram consultados os 21 links cadastrados no roadmap pela API oficial de
+  currículo da Udemy. O snapshot versionado contém 318 seções, 2.500 aulas e
+  145 quizzes, simulações ou outras atividades, com IDs, números, nomes e
+  durações oficiais disponíveis.
+- O gerador deixou de depender da grade histórica do cofre e de quatro cursos
+  resumidos por módulos estimados. O roadmap passou a ter 112 dias úteis,
+  2.645 itens oficiais, 22 dias de projeto e 471,6 horas planejadas, de
+  03/11/2026 a 12/04/2027.
+- Os itens agora usam IDs estáveis derivados da Udemy. A consulta somente
+  leitura de Production encontrou 22 conclusões legadas: 21 podem ser
+  convertidas em 26 itens canônicos; a conclusão de Excel, curso ausente do
+  plano atual, fica preservada sem exclusão. Nenhuma escrita em Production foi
+  feita neste ponto do registro.
+- Validação: conferência integral de 2.645 itens sem falta, extra, divergência
+  ou duplicidade; lint e typecheck aprovados; 872 testes aprovados e 1
+  ignorado; build webpack concluído com 78 páginas; `npm audit --omit=dev`
+  reportou zero vulnerabilidades. O build Turbopack local falhou internamente
+  ao iniciar o processo de PostCSS e foi revalidado com webpack.
+
 ## 2026-10-28 12:51 (America/Sao_Paulo) — Simplificação do plano de Data Science
 
 - Por decisão de Carlos, a seção diária `Prática e entrega` foi removida do

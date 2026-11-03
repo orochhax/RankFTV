@@ -112,3 +112,24 @@ navegador com 25 cenários aprovados (60 ignorados por dependerem de credenciais
 ou flags mutáveis). A migration foi aplicada de forma atômica, seguida pelo
 hardening do schema público, importação inicial, heartbeat local e smoke do
 domínio.
+
+## Grade oficial da Udemy (03/11/2026)
+
+- A fonte canônica do roadmap de Data Science passou a ser
+  `data/evolution/udemy-curricula.json`, coletada pela API oficial de currículo
+  da Udemy. O snapshot registra ID, número e nome de cada seção; ID, número,
+  tipo, nome e duração em segundos de cada item.
+- São 21 cursos, 318 seções, 2.500 aulas e 145 quizzes, simulações ou outras
+  atividades. O validador exige correspondência integral e sem duplicidade
+  entre a grade e `data/evolution/roadmap.json`.
+- O plano corrigido possui 112 dias úteis, 2.645 itens oficiais, 22 dias de
+  projeto e 471,6 horas planejadas, de 03/11/2026 a 12/04/2027.
+- Itens da Udemy usam IDs estáveis derivados dos IDs oficiais do curso e da
+  atividade. O script `evolution:roadmap-progress:migrate` converte conclusões
+  legadas antes de remover os IDs antigos; um dry-run é obrigatório.
+- `evolution:sync` não volta mais ao Markdown histórico do cofre: ele regenera
+  o roadmap a partir do snapshot oficial e sincroniza as pendências RankFTV.
+- O snapshot foi importado e verificado em Production em 03/11/2026. A
+  migração converteu 21 linhas legadas em 26 conclusões oficiais; a consulta
+  final confirmou 2.645 itens, 26 conclusões canônicas, nenhum ID convertido
+  remanescente e um registro histórico de Excel preservado.

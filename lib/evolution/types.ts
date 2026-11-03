@@ -49,6 +49,11 @@ export type RoadmapTask = {
   label: string;
   kind: "aula" | "quiz" | "simulacao" | "entrega" | "outro";
   durationMinutes: number | null;
+  durationSeconds?: number | null;
+  udemyCourseId?: number;
+  udemyItemId?: number;
+  sectionNumber?: number;
+  itemNumber?: number | null;
 };
 
 export type RoadmapCourse = {
