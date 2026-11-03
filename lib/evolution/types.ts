@@ -90,6 +90,13 @@ export type RoadmapSnapshot = {
   holidays?: Array<{ date: string; name: string; scope: "nacional" | "estadual" | "municipal" }>;
   careerMilestones?: Array<{ id: string; afterDay: number; title: string; rationale: string; linkedinTitle: string }>;
   linkedinSkillMilestones?: Array<{ id: string; afterDay: number; skill: string; evidence: string }>;
+  curation?: {
+    basis: string;
+    level: string;
+    canonicalItems: number;
+    activeUdemyItems: number;
+    excludedItemsRemainInCanonicalSource: boolean;
+  };
 };
 
 export type RankPendingItem = {

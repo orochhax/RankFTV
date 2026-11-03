@@ -27,7 +27,6 @@ for (const day of roadmap.days) {
   }
 }
 
-const missing = [...expected.keys()].filter((id) => !actual.has(id));
 const extra = [...actual.keys()].filter((id) => !expected.has(id));
 const mismatches = [];
 for (const [id, value] of expected) {
@@ -45,9 +44,19 @@ for (const [id, value] of expected) {
   ) mismatches.push(id);
 }
 
-if (duplicates.length || missing.length || extra.length || mismatches.length) {
-  process.stderr.write(`${JSON.stringify({ duplicates, missing, extra, mismatches }, null, 2)}\n`);
+const inactive = [...expected.keys()].filter((id) => !actual.has(id));
+const declaredActiveItems = roadmap.curation?.activeUdemyItems;
+const canonicalItems = roadmap.curation?.canonicalItems;
+if (
+  duplicates.length
+  || extra.length
+  || mismatches.length
+  || declaredActiveItems !== actual.size
+  || canonicalItems !== expected.size
+  || roadmap.curation?.excludedItemsRemainInCanonicalSource !== true
+) {
+  process.stderr.write(`${JSON.stringify({ duplicates, extra, mismatches, declaredActiveItems, actualItems: actual.size, canonicalItems, expectedItems: expected.size }, null, 2)}\n`);
   process.exit(1);
 }
 
-process.stdout.write(`${JSON.stringify({ courses: curricula.courseCount, sections: curricula.courses.reduce((sum, course) => sum + course.sectionCount, 0), items: expected.size, lectures: curricula.courses.reduce((sum, course) => sum + course.lectureCount, 0), roadmapDays: roadmap.totalBusinessDays, plannedHours: Math.round((roadmap.totalPlannedMinutes / 60) * 10) / 10 }, null, 2)}\n`);
+process.stdout.write(`${JSON.stringify({ courses: curricula.courseCount, canonicalSections: curricula.courses.reduce((sum, course) => sum + course.sectionCount, 0), canonicalItems: expected.size, activeItems: actual.size, inactiveItemsPreserved: inactive.length, roadmapDays: roadmap.totalBusinessDays, plannedHours: Math.round((roadmap.totalPlannedMinutes / 60) * 10) / 10 }, null, 2)}\n`);

@@ -5,6 +5,30 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-03 -03:00 — Curadoria do roadmap de Data Science pelas vagas reais
+
+- A grade autenticada integral de 21 cursos e 2.645 itens foi preservada como
+  fonte canônica. O gerador passou a selecionar a rota ativa sem apagar ou
+  renumerar itens oficiais.
+- Com base nas vagas fornecidas por Carlos e nas práticas comprovadas, a rota
+  ativa ficou com 1.885 itens oficiais, 88 dias úteis e 356,8 horas, de
+  03/11/2026 a 09/03/2027. Outros 760 itens permanecem no snapshot canônico.
+- A dificuldade foi calibrada como júnior forte, exposto a exigências
+  recorrentes de pleno. Foram removidas repetições básicas demonstradas, mas
+  mantidos os assuntos que ainda não possuem evidência de domínio.
+- Os seis projetos aprovados passaram a encerrar com documentação e publicação
+  no LinkedIn. Foram configurados seis marcos de título e 29 alertas de
+  competências ligados à conclusão do conteúdo correspondente.
+- O validador passou a conferir que todos os itens ativos existem na grade
+  canônica, mantêm IDs e metadados oficiais, não se repetem e declaram a
+  quantidade excluída sem exigir que toda a grade apareça na agenda ativa.
+- Validações locais: gerador e validador aprovados; ESLint sem erros e build
+  webpack concluído com TypeScript, 78 páginas e geração estática aprovados.
+  A suíte Node não chegou a executar as asserções: o carregador `tsx` falhou
+  antes dos testes com `uv_os_get_passwd ENOMEM`, inclusive com concorrência 1
+  e com um único arquivo. O bloqueio é do ambiente e permanece registrado.
+- Nenhum deploy, migration ou escrita em Production foi realizado.
+
 ## 2026-11-03 16:01 -03:00 — Roadmap Udemy aplicado em Production
 
 - O importador atualizou somente o snapshot `roadmap` da Central de Evolução;

@@ -1,5 +1,17 @@
 # Estado atual resumido
 
+## Rota ativa orientada pelas vagas (03/11/2026)
+
+- A grade Udemy autenticada de 2.645 itens continua canônica e integral.
+- O roadmap exibido foi curado para um perfil júnior forte: 1.885 itens ativos,
+  88 dias úteis, 356,8 horas e período de 03/11/2026 a 09/03/2027.
+- A curadoria usa as vagas reais de Carlos e suas evidências de prática. Os
+  fundamentos básicos de Python comprovados foram removidos da agenda; NumPy,
+  Pandas, CSV, erros, Git, SQL, BI e demais tópicos sem evidência permanecem.
+- Os seis projetos aprovados geram seis marcos de título e publicações no
+  LinkedIn. A interface também possui 29 alertas de competências.
+- Nenhuma alteração foi publicada em Production nesta etapa.
+
 ## Central de Evolução — grade completa da Udemy (03/11/2026)
 
 - As 21 grades cadastradas no roadmap foram reconciliadas com a API oficial de

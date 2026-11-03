@@ -85,14 +85,50 @@ const phaseInfo = {
   p3: { priority: "Prioridade 3", title: "Especialização em Inteligência Artificial", description: "Deep Learning, NLP, LLMs, RAG, agentes, MLOps e cloud." },
 };
 
+// A grade autenticada permanece integral em udemy-curricula.json. Esta selecao
+// controla somente a trilha ativa: prioriza o que apareceu nas vagas reais e
+// retira introducoes, repeticoes, anexos basicos ja demonstrados e desvios de
+// especializacao. Os IDs oficiais permanecem inalterados para preservar o
+// progresso do usuario quando o roadmap for regenerado.
+const activeSections = new Map(Object.entries({
+  "Análise de Dados com Pandas: do Zero ao Dashboard": [4, 5, 6, 8, 9, 11, 12],
+  "Git e contribuições para projetos Open Source": [1, 2, 3, 4, 5, 6],
+  "SQL para Análise de Dados: do Básico ao Avançado!": [4, 5, 6, 7, 8, 9],
+  "Análise e Levantamento de Requisitos de Software": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "Formação Microsoft Power BI Profissional": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+  "Estatística para Ciência de Dados e Machine Learning": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "Álgebra Linear para Data Science e Machine Learning": [2, 3, 4, 5, 6, 7],
+  "Data Storytelling e Visualização de Dados": [2, 3, 4, 5, 6, 7, 8],
+  "Machine Learning e Data Science com Python de A a Z": [3, 4, 5, 7, 8, 9, 11, 12, 14, 15, 20, 21, 26, 27, 28, 29, 30],
+  "Feature Engineering for Machine Learning": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+  "Domine Pytest: Testes de Software com Python": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  "Bayesian Machine Learning in Python: A/B Testing": [2, 3, 4, 5, 6, 7],
+  "Econometrics and Statistics for Business in R & Python": [3, 5, 6, 8, 9, 11, 12, 14, 15, 17],
+  "Séries Temporais e Analises Preditivas com Python": [2, 3, 4, 5, 6, 7, 8],
+  "FastAPI - APIs Modernas e Assíncronas com Python": [2, 3, 4, 5, 6, 7],
+  "Databricks Developer Spark,SQL,Python Para Análise de Dados": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 18, 19, 20, 21, 22, 23],
+  "MLOps: Da Ciência de Dados à Operação": [2, 3, 4, 5, 6],
+  "Machine Learning com Amazon AWS e SageMaker": [2, 3, 4, 5, 6, 7, 10],
+  "Deep Learning com Python de A a Z - O Curso Completo": [3, 4, 9, 10, 13, 14, 24, 25, 27, 28],
+  "Formação Processamento de Linguagem Natural, LLMs e GenAI": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "LangChain e LangGraph: Crie Agentes de IA com LLMs e RAGs": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+}));
+
+const selectedUnits = (course) => {
+  const sections = activeSections.get(course.title);
+  if (!sections) throw new Error(`Curso sem regra de curadoria: ${course.title}`);
+  const allowed = new Set(sections);
+  return course.units.filter((unit) => allowed.has(unit.sectionNumber) && unit.durationMinutes <= minimumDailyMinutes);
+};
+
 const plan = [
   ["p1", "course", "Análise de Dados com Pandas: do Zero ao Dashboard"],
   ["p1", "course", "Git e contribuições para projetos Open Source"],
   ["p1", "course", "SQL para Análise de Dados: do Básico ao Avançado!"],
   ["p1", "course", "Análise e Levantamento de Requisitos de Software"],
-  ["p1", "project", "diagnostico-atendimento", 2, "Projeto 1C · Diagnóstico de atendimento ao cliente"],
+  ["p1", "project", "diagnostico-atendimento", 3, "Projeto 1C · Diagnóstico de atendimento ao cliente"],
   ["p1", "course", "Formação Microsoft Power BI Profissional"],
-  ["p1", "project", "painel-estoque", 3, "Projeto 2B · Painel de estoque e risco de ruptura"],
+  ["p1", "project", "painel-estoque", 4, "Projeto 2B · Painel de estoque e risco de ruptura"],
   ["p1", "course", "Estatística para Ciência de Dados e Machine Learning"],
   ["p1", "course", "Álgebra Linear para Data Science e Machine Learning"],
   ["p1", "course", "Data Storytelling e Visualização de Dados"],
@@ -115,7 +151,7 @@ const plan = [
   ["p3", "project", "inteligencia-avaliacoes", 5, "Projeto 6B · Inteligência de avaliações de clientes"],
 ];
 
-const projectSteps = ["Diagnóstico e escopo", "Construção", "Validação", "Documentação e entrega", "Publicação no LinkedIn"];
+const projectSteps = ["Diagnóstico e escopo", "Construção", "Validação e documentação", "Publicação no LinkedIn", "Aprimoramento e estudo de caso"];
 let cursor = nextStudyDate(startDate);
 let dayNumber = 1;
 const days = [];
@@ -185,7 +221,8 @@ function addProject(entry) {
   const [phaseId, , projectSlug, projectDays, title] = entry;
   for (let index = 0; index < projectDays; index += 1) {
     const date = consumeDate();
-    const step = projectSteps[index] ?? `Execução ${index + 1}`;
+    const isLastDay = index === projectDays - 1;
+    const step = isLastDay ? "Documentação final e publicação no LinkedIn" : projectSteps[index] ?? `Execução ${index + 1}`;
     const task = { id: `projeto-${projectSlug}-${String(index + 1).padStart(2, "0")}`, label: `${step} — 4h`, kind: "entrega", durationMinutes: 240 };
     days.push({ id: `dia-${String(dayNumber).padStart(3, "0")}`, dayNumber, date: dateKey(date), weekday: weekdays[date.getDay()], plannedMinutes: 240, phaseId, phaseTitle: phaseInfo[phaseId].title, kind: "project", projectSlug, note: title, sections: [{ title: "Projeto de portfólio", tasks: [task] }], courses: [] });
     dayNumber += 1;
@@ -204,7 +241,7 @@ for (const entry of plan) {
   }
   const course = catalog.get(key);
   if (!course) throw new Error(`Curso sem grade exata cadastrada: ${key}`);
-  for (const unit of course.units) {
+  for (const unit of selectedUnits(course)) {
     studyBuffer.push({ ...unit, phaseId });
     const minutes = studyBuffer.reduce((sum, item) => sum + item.durationMinutes, 0);
     if (minutes >= minimumDailyMinutes) {
@@ -218,7 +255,12 @@ for (const entry of plan) {
 if (studyBuffer.length) {
   const remainingMinutes = studyBuffer.reduce((sum, unit) => sum + unit.durationMinutes, 0);
   const previousDay = days.at(-1);
-  if (remainingMinutes < minimumDailyMinutes && previousDay?.kind === "study" && previousDay.phaseId === studyBuffer[0].phaseId) {
+  if (
+    remainingMinutes < minimumDailyMinutes
+    && previousDay?.kind === "study"
+    && previousDay.phaseId === studyBuffer[0].phaseId
+    && previousDay.plannedMinutes + remainingMinutes <= 300
+  ) {
     days.pop();
     dayNumber -= 1;
     cursor = new Date(`${previousDay.date}T12:00:00`);
@@ -239,7 +281,7 @@ const projectEndDay = (projectSlug) => days.filter((day) => day.projectSlug === 
 const lastDayForCourse = (courseTitle, sectionTitle) => days.filter((day) => {
   const hasCourse = day.courses.some((course) => course.title === courseTitle);
   if (!hasCourse || !sectionTitle) return hasCourse;
-  return day.sections.some((section) => section.title === `${courseTitle} · ${sectionTitle}`);
+  return day.sections.some((section) => section.title.startsWith(`${courseTitle} · Seção `) && slug(section.title).endsWith(slug(sectionTitle)));
 }).at(-1)?.dayNumber;
 const skillDefinitions = [
   ["NumPy", "Análise de Dados com Pandas: do Zero ao Dashboard", "Numpy Hands On", "Arrays, indexação, reshape, join e operações com NumPy concluídos."],
@@ -288,11 +330,19 @@ const roadmap = {
   holidays,
   careerMilestones: [
     { id: "m1", afterDay: projectEndDay("diagnostico-atendimento"), title: "Portfólio inicial de análise", rationale: "Primeiro diagnóstico reproduzível concluído.", linkedinTitle: "Estudante de Ciência de Dados | Python, Pandas e análise de dados" },
-    { id: "m2", afterDay: projectEndDay("painel-estoque"), title: "Base de BI demonstrada", rationale: "SQL, Power BI e um painel auditável já foram entregues.", linkedinTitle: "Analista de Dados em formação | SQL, Power BI e Python" },
-    { id: "m3", afterDay: projectEndDay("risco-credito"), title: "Machine Learning aplicado", rationale: "Modelo preditivo validado e comunicado com limites claros.", linkedinTitle: "Cientista de Dados em formação | Machine Learning, SQL e Python" },
-    { id: "m4", afterDay: projectEndDay("api-churn"), title: "Entrega técnica em API", rationale: "Modelo transformado em serviço testável e documentado.", linkedinTitle: "Cientista de Dados em formação | ML, APIs e MLOps" },
-    { id: "m5", afterDay: days.length, title: "Trilha completa concluída", rationale: "Projetos de dados, previsão e IA entregues com documentação.", linkedinTitle: "Cientista de Dados Júnior | Python, SQL, ML e IA aplicada" },
+    { id: "m2", afterDay: projectEndDay("painel-estoque"), title: "Base de BI demonstrada", rationale: "SQL, Power BI e um painel auditável já foram entregues.", linkedinTitle: "Analista de Dados em formação | SQL, Power BI, Python e Data Storytelling" },
+    { id: "m3", afterDay: projectEndDay("risco-credito"), title: "Machine Learning aplicado", rationale: "Modelo preditivo validado e comunicado com limites claros.", linkedinTitle: "Cientista de Dados em formação | Python, SQL, Estatística e Machine Learning" },
+    { id: "m4", afterDay: projectEndDay("previsao-atendimento"), title: "Previsão operacional demonstrada", rationale: "Forecast com backtesting e recomendação operacional publicados.", linkedinTitle: "Cientista de Dados em formação | ML, Séries Temporais e Forecasting" },
+    { id: "m5", afterDay: projectEndDay("api-churn"), title: "Entrega técnica em API", rationale: "Modelo transformado em serviço testável e documentado.", linkedinTitle: "Cientista de Dados em formação | ML, FastAPI, Docker e MLOps" },
+    { id: "m6", afterDay: projectEndDay("inteligencia-avaliacoes"), title: "IA aplicada demonstrada", rationale: "Solução de NLP e IA generativa avaliada, documentada e publicada.", linkedinTitle: "Cientista de Dados em formação | Python, SQL, Machine Learning e IA aplicada" },
   ],
+  curation: {
+    basis: "Vagas reais registradas em DataScience/vagas.md e evidências das práticas do usuário",
+    level: "Júnior forte, preparado para exigências recorrentes de pleno",
+    canonicalItems: curriculumSnapshot.courses.reduce((sum, course) => sum + course.sections.reduce((sectionSum, section) => sectionSum + section.items.length, 0), 0),
+    activeUdemyItems: days.flatMap((day) => day.sections.flatMap((section) => section.tasks)).filter((task) => task.id.startsWith("udemy-")).length,
+    excludedItemsRemainInCanonicalSource: true,
+  },
   linkedinSkillMilestones,
   days,
 };

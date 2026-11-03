@@ -4,6 +4,22 @@ Painel pessoal de Carlos dentro do admin do RankFTV. Não é um produto da
 plataforma, não entra na V1 comercial e só pode ser acessado pela conta CEO
 validada por `isPerformanceOwner`.
 
+## Roadmap de Data Science orientado pelas vagas (03/11/2026)
+
+- A grade autenticada completa permanece preservada em
+  `data/evolution/udemy-curricula.json`: 21 cursos, 318 seções e 2.645 itens
+  oficiais. Ela continua sendo a fonte canônica e auditável.
+- A rota ativa foi curada com base nas vagas fornecidas por Carlos e nas
+  práticas realmente concluídas: 1.885 itens oficiais, 88 dias úteis e 356,8
+  horas, de 03/11/2026 a 09/03/2027.
+- Os 760 itens fora da rota ativa não foram apagados. Foram retirados da agenda
+  apenas introduções, repetições, anexos básicos já demonstrados e recortes
+  pouco prioritários para entrada na área.
+- Os seis projetos aprovados possuem 24 dias de execução. Cada projeto termina
+  com documentação e publicação no LinkedIn; os seis marcos de título dependem
+  dessas entregas, e não apenas de aulas assistidas.
+- O detalhamento da decisão está em `docs/DATASCIENCE-ROADMAP-VAGAS-2026.md`.
+
 ## Estado em 21/10/2026
 
 - Publicada em Production na rota `/admin/evolucao` pelos merges das PRs #54 e
