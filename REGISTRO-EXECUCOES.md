@@ -1422,3 +1422,26 @@ registrar apenas uma revalidação quando ela for necessária.
 - Snapshot editorial regenerado com 1.199 registros históricos, 21 canais e
   15 oportunidades. A publicação do snapshot segue pelo fluxo protegido de
   PR, CI e deploy da Vercel.
+
+## 2026-11-03 — Atualização completa do radar e concorrentes
+
+- Os 21 concorrentes foram recolhidos sem falha. A janela anual passou a 1.027
+  vídeos; quatro publicações novas de Harry Long, Lucas Montano, Sanji
+  Nai-Chien e Vagner Mazzeo foram registradas com data, duração, visualizações
+  públicas e thumbnail.
+- As 17 fontes ativas foram verificadas. A novidade editorial confirmada do dia
+  foi a expansão do aprendizado guiado do Google para Classroom e Busca, com
+  exemplos de avaliações interativas, atividades baseadas em jogos e feedback.
+  Páginas dinâmicas sem conteúdo individual verificável não foram usadas para
+  inferir fatos.
+- Validação local e preflight de Production aprovaram 20 conteúdos, 20
+  tendências, 24 ideias e 96 abordagens. A importação Production gerou o run
+  `7ea6cc64-4371-4061-ba9f-c1666cd51f52`: 1 conteúdo novo, 19 atualizados, 1
+  tendência nova, 2 ideias novas, 24 ideias ranqueadas, 96 abordagens e 73
+  referências do YouTube.
+- As novas pautas ensinam a usar IA como tutora ativa e a organizar uma equipe
+  de IAs especialistas. Ambas possuem quatro abordagens e mantêm a regra de
+  coerência entre nota, título, descrição e abordagem vencedora.
+- O snapshot editorial foi regenerado com 1.203 registros observados, 21 canais
+  e 15 oportunidades. A ponderação individual 65/25/10, o limite de três
+  vídeos por canal e a exclusão de podcasts, entrevistas e lives permanecem.
