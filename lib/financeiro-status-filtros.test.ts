@@ -10,6 +10,10 @@ const clientComponent = readFileSync(
   "components/painel/FinanceiroStatusClient.tsx",
   "utf8",
 );
+const filtrosBar = readFileSync(
+  "components/painel/FinanceiroFiltrosBar.tsx",
+  "utf8",
+);
 const expandableRow = readFileSync(
   "components/painel/InscricaoExpandivel.tsx",
   "utf8",
@@ -31,10 +35,10 @@ test("expandable row displays payment method badge and preserves athlete checks"
 });
 
 test("financeiro status client implements filters for pix, credito, debito, date and sorting", () => {
-  // Method filters
-  assert.match(clientComponent, /metodo === "PIX"/);
-  assert.match(clientComponent, /metodo === "CREDIT_CARD"/);
-  assert.match(clientComponent, /metodo === "DEBIT_CARD"/);
+  // Method filters in bar
+  assert.match(filtrosBar, /metodo === "PIX"/);
+  assert.match(filtrosBar, /metodo === "CREDIT_CARD"/);
+  assert.match(filtrosBar, /metodo === "DEBIT_CARD"/);
 
   // Date range filter
   assert.match(clientComponent, /dataInicio/);

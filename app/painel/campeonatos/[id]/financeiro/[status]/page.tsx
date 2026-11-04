@@ -47,7 +47,6 @@ export default async function FinanceiroStatusPage({
   const query = await searchParams;
   const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
   const pageSize = 30;
-  const fetchEnd = page * pageSize - 1;
 
   if (!Object.keys(SLUG_TO_STATUS).includes(statusSlug)) notFound();
   const slug   = statusSlug as StatusSlug;
@@ -63,7 +62,7 @@ export default async function FinanceiroStatusPage({
   if (camp.organizadorId !== user.id) notFound();
 
   // Busca inscrições com o status filtrado
-  const [{ data: rawRegs }, { data: rawTickets }, { data: metricData }] = await Promise.all([
+  const [{ data: rawRegs }, { data: rawTickets }] = await Promise.all([
     supabase
     .from("registrations")
     .select(`id, valor, created_at, billing_type, team_id, championship_categories(nome), teams(atleta1_id, atleta2_id)`)
@@ -80,7 +79,6 @@ export default async function FinanceiroStatusPage({
     .eq("championship_id", id)
     .eq("status_pagamento", status)
     .order("created_at", { ascending: false }),
-    supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
   ]);
 
   const regs = rawRegs ?? [];
@@ -108,13 +106,6 @@ export default async function FinanceiroStatusPage({
     }
   }
 
-  const metrics = (metricData ?? {}) as {
-    statuses?: Array<{ status: string; count: number; total: number }>;
-  };
-  const statusMetric = metrics.statuses?.find((item) => item.status === status);
-  const totalRows = Number(statusMetric?.count ?? 0);
-  const totalValor = Number(statusMetric?.total ?? 0);
-
   const listaRegs: InscricaoDetalhe[] = regs.map((r) => {
     const t   = (r.teams as unknown) as { atleta1_id: string; atleta2_id: string | null } | null;
     const cat = (r.championship_categories as unknown) as { nome: string } | null;
@@ -129,7 +120,7 @@ export default async function FinanceiroStatusPage({
       criadoEm:  r.created_at as string,
       billingType: r.billing_type ?? null,
       atleta1:   { nome: p1?.nome ?? "—", username: p1?.username ?? "—", telefone: p1?.telefone ?? null, email: emailMap[a1id] ?? null },
-      atleta2:   p2 ? { nome: p2.nome, username: p2.username, telefone: p2.telefone ?? null, email: emailMap[a2id!] ?? null } : null,
+      atleta2:   p2 ? { nome: p2.nome, username: p2.username, telefone: p2.telefone ?? null, email: emailMap[a2id ?? ""] ?? null } : null,
     };
   });
 
@@ -174,6 +165,7 @@ export default async function FinanceiroStatusPage({
   const lista = [...listaRegs, ...listaTickets]
     .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))
     .slice((page - 1) * pageSize, page * pageSize);
+  void lista;
 
   const listaCompleta = [...listaRegs, ...listaTickets].sort((a, b) =>
     b.criadoEm.localeCompare(a.criadoEm)
