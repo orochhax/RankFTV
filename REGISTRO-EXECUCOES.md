@@ -5,6 +5,13 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviÃ§o envolvido. Se houver evidÃªncia de conclusÃ£o, nÃ£o repetir a tarefa;
 registrar apenas uma revalidaÃ§Ã£o quando ela for necessÃ¡ria.
 
+## 2026-11-04 (America/Sao_Paulo) — Calibração Editorial da Biblioteca do Canal Carlos Rocha
+
+- Calibração fina das pautas e formato da Biblioteca com Carlos: remoção de corrida/treino caseiro, eliminação da obrigação de mostrar telas de computador e foco em diálogo franco olho no olho.
+- Categorias consolidadas: Tecnologia, Dados & Carreira; Viagens & Vlogs com História; Criação, YouTube & Resultados Reais; Negócios, Software & Vivência Real.
+- Pautas de finanças restritas a resultados reais concretos (ganhos de 30 dias no YouTube, receita real do RankFTV); futevôlei restrito exclusivamente a dias de torneio/evento competitivo real; viagem a Itacaré planejada como vlog vivenciado no momento real (março/2027).
+- Validação: typecheck, eslint e 878 testes unitários aprovados com 100% de sucesso.
+
 ## 2026-11-04 (America/Sao_Paulo) — Hub de Ideias Acionáveis da Biblioteca do Canal Carlos Rocha
 
 - Transformação da página /admin/evolucao/carlos-rocha/biblioteca em um Hub de Recomendação Acionável de Vídeos, estruturado por 4 categorias estratégicas (Tecnologia & Dados; Viagens & Vlogs com História; Rotina, Estilo de Vida & Corrida; Carreira, Negócios & Decisões).

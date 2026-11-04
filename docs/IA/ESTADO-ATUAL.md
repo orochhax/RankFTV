@@ -1,5 +1,10 @@
 # Estado atual resumido
 
+## Central de Evolucao - Calibracao da Biblioteca do Canal Carlos Rocha (04/11/2026)
+
+- A Biblioteca de Ideias foi calibrada com as preferencias reais de Carlos: foco no dialogo direto, eliminacao de encenacao/telas forcadas, remocao total de corrida e foco em 4 categorias acionaveis.
+- As pautas de dados abordam a mudanca de regua do mercado de junior vs comparacao com o passado; financas aborda metricas reais de 30 dias de YouTube e receita do RankFTV; vlogs com historia (Arraial d'Ajuda e Itacare vivenciado no local); e futevolei apenas em dia de competicao.
+
 ## Central de Evolucao - Hub de Ideias da Biblioteca do Canal Carlos Rocha (04/11/2026)
 
 - A pagina /admin/evolucao/carlos-rocha/biblioteca foi estruturada como hub de recomendacao de videos acionaveis organizado por 4 categorias: Tecnologia & Dados; Viagens & Vlogs com Historia; Rotina, Estilo de Vida & Corrida; e Carreira, Negocios & Decisoes.
