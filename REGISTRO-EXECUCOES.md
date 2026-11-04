@@ -5,6 +5,21 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-04 (America/Sao_Paulo) — Biblioteca e ranking do Canal Carlos Rocha
+
+- Após aprovação de Carlos, a coleta oficial da YouTube Data API revisou os
+  14 concorrentes. O resultado local contém 1.516 vídeos públicos e 1.514
+  thumbnails válidas na janela anual; houve um vídeo novo desde a fotografia
+  anterior de 1.515 vídeos.
+- A Biblioteca foi atualizada para a direção editorial aprovada. O ranking
+  independente de Concorrentes seleciona 15 outliers por visualizações em
+  relação à mediana de cada canal, com teto de três por criador.
+- Não houve migration, escrita no Supabase, segredo no código ou mudança nas
+  rotas/subpáginas do Rocha Tech. O snapshot publicado contém apenas dados
+  públicos necessários ao ranking.
+- Validação local: typecheck, lint e build Next.js concluídos. Situação
+  externa: aguardando PR, CI e deploy.
+
 ## 2026-11-04 (America/Sao_Paulo) — Central privada do Canal Carlos Rocha
 
 - Escopo aprovado por Carlos: criar e publicar uma área independente em
