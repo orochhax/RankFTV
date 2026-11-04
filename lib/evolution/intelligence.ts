@@ -94,6 +94,13 @@ const topicRules = [
 const normalizeCollectedViews = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 
+const isInsideCompetitorWindow = (publishedAt: string | null, now = new Date()) => {
+  if (!publishedAt) return true;
+  const published = new Date(publishedAt);
+  if (Number.isNaN(published.getTime())) return true;
+  return published.getTime() >= now.getTime() - 365 * 24 * 60 * 60 * 1_000;
+};
+
 async function readCompetitorFiles(): Promise<Snapshot> {
   const vaultRoot = process.env.ROCHA_VAULT_ROOT ?? "C:\\Users\\SnyX\\Desktop\\Carlos Rocha";
   const root = path.join(vaultRoot, "Rocha Tech - YT", "Concorrentes");
@@ -133,6 +140,7 @@ async function readCompetitorFiles(): Promise<Snapshot> {
             ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "America/Sao_Paulo" }).format(new Date(publishedAt))
             : null),
         );
+        if (!isInsideCompetitorWindow(publishedAt)) continue;
         const id = video.id ?? null;
         const originalTitle = video.title ?? observation.title ?? "Sem título";
         videos.push({
@@ -162,11 +170,27 @@ async function readCompetitorFiles(): Promise<Snapshot> {
       }
       channels.push({ name: channelName, id: channelId, url: channelUrl, folder: entry.name });
     }
-    videos.sort((a, b) => (b.views ?? -1) - (a.views ?? -1));
+    const deduplicatedVideos = new Map<string, CompetitorVideo>();
+    for (const video of videos) {
+      const key = video.id ?? `${video.channel}\n${video.url ?? video.originalTitle}`;
+      const current = deduplicatedVideos.get(key);
+      if (!current || (video.observedAt ?? "") > (current.observedAt ?? "")) {
+        deduplicatedVideos.set(key, video);
+      }
+    }
+    const latestObservation = [...deduplicatedVideos.values()]
+      .map((video) => video.observedAt)
+      .filter((value): value is string => Boolean(value))
+      .sort()
+      .at(-1) ?? null;
+    const uniqueVideos = [...deduplicatedVideos.values()].filter((video) =>
+      !latestObservation || video.observedAt === latestObservation,
+    );
+    uniqueVideos.sort((a, b) => (b.views ?? -1) - (a.views ?? -1));
     return {
       channels: channels.sort((a, b) => a.name.localeCompare(b.name)),
-      videos,
-      observedAt: videos.map((video) => video.observedAt).filter(Boolean).sort().at(-1) ?? null,
+      videos: uniqueVideos,
+      observedAt: latestObservation,
     };
   } catch {
     return empty;
