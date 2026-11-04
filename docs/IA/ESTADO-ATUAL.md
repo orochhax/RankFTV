@@ -1,6 +1,20 @@
 # Estado atual resumido
 
-Última verificação: **20/10/2026 14:51, America/Sao_Paulo**.
+Última verificação: **04/11/2026, America/Sao_Paulo**.
+
+## Central de Evolução — Canal Carlos Rocha (04/11/2026)
+
+- Foi criada, em branch isolada, a área privada `/admin/evolucao/carlos-rocha`,
+  sem alteração de rotas, dados ou subpáginas do Rocha Tech.
+- A área tem Visão, Concorrentes, Biblioteca de ideias e Oportunidades. As
+  oportunidades continuam sendo aprovadas pelo Carlos no chat; sem formulário,
+  migration ou armazenamento de dados pessoais nesta primeira versão.
+- A base editorial local do canal pessoal foi atualizada por API oficial do
+  YouTube: 14 canais, 1.515 vídeos públicos na janela de 03/11/2025 a
+  04/11/2026 e 1.514 thumbnails válidas. Os arquivos e a chave de API não
+  pertencem ao repositório ou ao deploy.
+- A publicação depende de CI/Preview e da promoção da branch; esta nota não é
+  evidência de deploy em Production.
 
 Em 20/10/2026, foi iniciada a memória própria de marca e comunicação em
 `docs/IA/MARCA-E-COMUNICACAO.md`, ainda com entrevista em andamento. Tarefas de

@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Activity, BarChart3, BrainCircuit, Clapperboard, Database, Dumbbell, House, LayoutGrid, Library, Menu, Radar, Settings, Sparkles, Trophy } from "lucide-react";
+import { Activity, BarChart3, BrainCircuit, Clapperboard, Database, Dumbbell, House, LayoutGrid, Library, Menu, Radar, Settings, Sparkles, Trophy, UserRound, UsersRound } from "lucide-react";
 
 const base = "/admin/evolucao";
 const navigation = [
   { href: base, label: "Visão geral", icon: House },
   { href: `${base}/datascience`, label: "DataScience", icon: BrainCircuit },
   { href: `${base}/rocha-tech`, label: "Canal Rocha Tech", icon: Clapperboard },
+  { href: `${base}/carlos-rocha`, label: "Canal Carlos Rocha", icon: UserRound },
   { href: `${base}/insta-shape`, label: "Insta / Shape", icon: Dumbbell },
   { href: `${base}/rankftv`, label: "RankFTV", icon: Trophy },
 ];
@@ -21,6 +22,13 @@ const rochaTechNavigation = [
   { href: `${base}/rocha-tech/oportunidades`, label: "Oportunidades", icon: Sparkles },
   { href: `${base}/rocha-tech/fontes`, label: "Fontes", icon: Database },
   { href: `${base}/rocha-tech/configuracoes`, label: "Configurações", icon: Settings },
+];
+
+const carlosRochaNavigation = [
+  { href: `${base}/carlos-rocha`, label: "Visão do canal", icon: LayoutGrid },
+  { href: `${base}/carlos-rocha/concorrentes`, label: "Concorrentes", icon: UsersRound },
+  { href: `${base}/carlos-rocha/biblioteca`, label: "Biblioteca de ideias", icon: Library },
+  { href: `${base}/carlos-rocha/oportunidades`, label: "Oportunidades", icon: Sparkles },
 ];
 
 export function EvolutionShell({ children }: { children: React.ReactNode }) {
@@ -47,6 +55,10 @@ export function EvolutionShell({ children }: { children: React.ReactNode }) {
                   const childActive = childHref.includes("?") ? pathname === `${base}/rocha-tech` && searchParams.get("view") === "inteligencia" : childHref === `${base}/rocha-tech` ? pathname === childHref && !searchParams.get("view") : pathname.startsWith(childHref);
                   return <Link key={childHref} href={childHref} className={childActive ? "is-active" : ""} aria-current={childActive ? "page" : undefined}><ChildIcon size={14} /><span>{childLabel}</span></Link>;
                 })}</div> : null}
+                {href.endsWith("/carlos-rocha") && active ? <div className="evo-subnav">{carlosRochaNavigation.map(({ href: childHref, label: childLabel, icon: ChildIcon }) => {
+                  const childActive = childHref === `${base}/carlos-rocha` ? pathname === childHref : pathname.startsWith(childHref);
+                  return <Link key={childHref} href={childHref} className={childActive ? "is-active" : ""} aria-current={childActive ? "page" : undefined}><ChildIcon size={14} /><span>{childLabel}</span></Link>;
+                })}</div> : null}
               </div>
             );
           })}
@@ -60,7 +72,7 @@ export function EvolutionShell({ children }: { children: React.ReactNode }) {
         <Link className="evo-brand" href={base}><span><Activity size={18} /></span><div>Central de <strong>Evolução</strong></div></Link>
         <details>
           <summary aria-label="Abrir menu"><Menu size={21} /></summary>
-          <nav>{navigation.map(({ href, label }) => <Link key={href} href={href}>{label}</Link>)}{rochaTechNavigation.map(({ href, label }) => <Link className="is-child" key={href} href={href}>↳ {label}</Link>)}</nav>
+          <nav>{navigation.map(({ href, label }) => <Link key={href} href={href}>{label}</Link>)}{rochaTechNavigation.map(({ href, label }) => <Link className="is-child" key={href} href={href}>↳ {label}</Link>)}{carlosRochaNavigation.map(({ href, label }) => <Link className="is-child" key={href} href={href}>↳ {label}</Link>)}</nav>
         </details>
       </header>
       <div className="evo-main">{children}</div>
