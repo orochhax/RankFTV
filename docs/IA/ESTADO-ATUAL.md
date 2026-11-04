@@ -1,5 +1,11 @@
 # Estado atual resumido
 
+## Central de Evolucao - Hub de Ideias da Biblioteca do Canal Carlos Rocha (04/11/2026)
+
+- A pagina /admin/evolucao/carlos-rocha/biblioteca foi estruturada como hub de recomendacao de videos acionaveis organizado por 4 categorias: Tecnologia & Dados; Viagens & Vlogs com Historia; Rotina, Estilo de Vida & Corrida; e Carreira, Negocios & Decisoes.
+- Implementada a Regra de Ouro: Versionamento Cumulativo (preservacao do historico, evolucao de pontuacao de 0 a 100 e remocao exclusiva para notas abaixo de 50).
+- Cada uma das 20 recomendacoes inclui cenario logistico na Bahia (Eunapolis, Arraial d'Ajuda, Ecoparque, Porto Seguro, Itacare), premissa, tensao central, visual em tela e sinal do concorrente.
+
 ## Central de Evolucao - Atualizacao de Concorrentes e Oportunidades do Canal Carlos Rocha (04/11/2026)
 
 - Nova coleta oficial de dados dos 14 canais concorrentes via YouTube Data API v3 (1.518 videos publicos e 1.518 thumbnails validas).

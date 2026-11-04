@@ -5,6 +5,13 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviÃ§o envolvido. Se houver evidÃªncia de conclusÃ£o, nÃ£o repetir a tarefa;
 registrar apenas uma revalidaÃ§Ã£o quando ela for necessÃ¡ria.
 
+## 2026-11-04 (America/Sao_Paulo) — Hub de Ideias Acionáveis da Biblioteca do Canal Carlos Rocha
+
+- Transformação da página /admin/evolucao/carlos-rocha/biblioteca em um Hub de Recomendação Acionável de Vídeos, estruturado por 4 categorias estratégicas (Tecnologia & Dados; Viagens & Vlogs com História; Rotina, Estilo de Vida & Corrida; Carreira, Negócios & Decisões).
+- Aplicação da Regra de Ouro: Versionamento Cumulativo (atualização e evolução dinâmica de notas de 0 a 100, sem substituição do zero, com critério único de descarte para scores < 50).
+- 20 ideias de alta conversão estruturadas com cenário e logística na Bahia (Eunápolis, Porto Seguro, Arraial d'Ajuda, Ecoparque e Itacaré), premissa, tensão, visual em tela e engenharia reversa dos concorrentes.
+- Validação: typecheck, 878 testes unitários aprovados e build Next.js com sucesso.
+
 ## 2026-11-04 (America/Sao_Paulo) — Atualização de Concorrentes e Oportunidades do Canal Carlos Rocha
 
 - Coleta oficial da YouTube Data API executada para os 14 canais concorrentes do canal Carlos Rocha: 1.518 vídeos públicos e 1.518 thumbnails JPEG válidas na janela anual.
