@@ -1,5 +1,116 @@
 # Estado atual resumido
 
+## Central de Evolucao - Calibracao da Biblioteca do Canal Carlos Rocha (04/11/2026)
+
+- A Biblioteca de Ideias foi calibrada com as preferencias reais de Carlos: foco no dialogo direto, eliminacao de encenacao/telas forcadas, remocao total de corrida e foco em 4 categorias acionaveis.
+- As pautas de dados abordam a mudanca de regua do mercado de junior vs comparacao com o passado; financas aborda metricas reais de 30 dias de YouTube e receita do RankFTV; vlogs com historia (Arraial d'Ajuda e Itacare vivenciado no local); e futevolei apenas em dia de competicao.
+
+## Central de Evolucao - Hub de Ideias da Biblioteca do Canal Carlos Rocha (04/11/2026)
+
+- A pagina /admin/evolucao/carlos-rocha/biblioteca foi estruturada como hub de recomendacao de videos acionaveis organizado por 4 categorias: Tecnologia & Dados; Viagens & Vlogs com Historia; Rotina, Estilo de Vida & Corrida; e Carreira, Negocios & Decisoes.
+- Implementada a Regra de Ouro: Versionamento Cumulativo (preservacao do historico, evolucao de pontuacao de 0 a 100 e remocao exclusiva para notas abaixo de 50).
+- Cada uma das 20 recomendacoes inclui cenario logistico na Bahia (Eunapolis, Arraial d'Ajuda, Ecoparque, Porto Seguro, Itacare), premissa, tensao central, visual em tela e sinal do concorrente.
+
+## Central de Evolucao - Atualizacao de Concorrentes e Oportunidades do Canal Carlos Rocha (04/11/2026)
+
+- Nova coleta oficial de dados dos 14 canais concorrentes via YouTube Data API v3 (1.518 videos publicos e 1.518 thumbnails validas).
+- Snapshot seguro (lib/evolution/carlos-rocha-rank-snapshot.json) atualizado com os 15 maiores outliers estatisticos ordenados pelo multiplicador da mediana de cada canal (teto de 3 videos por canal).
+- Publicacao das 3 primeiras oportunidades de pauta na rota privada /admin/evolucao/carlos-rocha/oportunidades.
+
+## Central de Evolução — Canal Carlos Rocha (04/11/2026)
+
+- Foi criada, em branch isolada, a área privada `/admin/evolucao/carlos-rocha`,
+  sem alteração de rotas, dados ou subpáginas do Rocha Tech.
+- A área tem Visão, Concorrentes, Biblioteca de ideias e Oportunidades. As
+  oportunidades continuam sendo aprovadas pelo Carlos no chat; sem formulário,
+  migration ou armazenamento de dados pessoais nesta primeira versão.
+- A base editorial local do canal pessoal foi atualizada por API oficial do
+  YouTube: 14 canais, 1.515 vídeos públicos na janela de 03/11/2025 a
+  04/11/2026 e 1.514 thumbnails válidas. Os arquivos e a chave de API não
+  pertencem ao repositório ou ao deploy.
+- A publicação depende de CI/Preview e da promoção da branch; esta nota não é
+  evidência de deploy em Production.
+
+## Central de Evolução — Biblioteca e ranking do Canal Carlos Rocha (04/11/2026)
+
+- A Biblioteca privada passou a refletir o norte aprovado: vivência e opinião
+  baseada em experiência, com objetivo concreto, tensão real, evidência visual
+  e conclusão honesta. Tutoriais técnicos, rotina idealizada e desafios
+  inventados não são a pauta-base.
+- A área de Concorrentes ganhou ranking próprio de 15 vídeos fora da curva,
+  calculado por visualizações divididas pela mediana pública de cada canal,
+  com no máximo três referências por canal. A regra não reutiliza o score de
+  IA do Rocha Tech.
+- A atualização oficial prévia revisou os 14 concorrentes do Carlos Rocha:
+  1.516 vídeos públicos na janela anual e 1.514 thumbnails válidas. O snapshot
+  de produção contém somente metadados públicos do ranking; não contém chave,
+  arquivos locais ou dados privados.
+- Estado: alteração local validada; publicação depende de CI, PR e deploy.
+
+## Rota ativa orientada pelas vagas (03/11/2026)
+
+- A grade Udemy autenticada de 2.645 itens continua canônica e integral.
+- O roadmap exibido foi curado para um perfil júnior forte: 1.885 itens ativos,
+  88 dias úteis, 356,8 horas e período de 03/11/2026 a 09/03/2027.
+- A curadoria usa as vagas reais de Carlos e suas evidências de prática. Os
+  fundamentos básicos de Python comprovados foram removidos da agenda; NumPy,
+  Pandas, CSV, erros, Git, SQL, BI e demais tópicos sem evidência permanecem.
+- Os seis projetos aprovados geram seis marcos de título e publicações no
+  LinkedIn. A interface também possui 29 alertas de competências.
+- A PR `#107` foi mesclada e a Vercel publicou o commit
+  `bd9af6dfb469bfcfcfeed8209e923d80ab7ebb5c`. O snapshot `roadmap` do
+  Supabase foi atualizado isoladamente e verificado com 88 dias úteis, de
+  03/11/2026 a 09/03/2027. O progresso existente foi preservado.
+
+## Central de Evolução — grade completa da Udemy (03/11/2026)
+
+- As 21 grades cadastradas no roadmap foram reconciliadas com a API oficial de
+  currículo da Udemy: 318 seções, 2.500 aulas e 145 atividades adicionais.
+- O roadmap passa a registrar números, nomes e durações exatas, sem os quatro
+  cursos resumidos por módulos estimados. O plano resultante tem 112 dias úteis
+  e 471,6 horas, entre 03/11/2026 e 12/04/2027.
+- Os IDs das aulas agora derivam dos IDs oficiais da Udemy. A prévia contra
+  Production encontrou 21 registros legados conversíveis em 26 conclusões
+  canônicas; um registro de Excel removido do plano permanece preservado como
+  histórico e não será apagado.
+- Validação local observada: 2.645 itens conferidos sem ausências, extras ou
+  duplicidades; lint e typecheck aprovados; 872 testes aprovados e 1 ignorado;
+  build webpack concluído com 78 páginas; auditoria de produção sem
+  vulnerabilidades. O Turbopack local apresentou uma falha interna ao criar o
+  processo de PostCSS, sem erro de CSS ou TypeScript.
+- Production foi atualizada diretamente pelo importador verificado: 112 dias,
+  2.645 itens e 26 conclusões oficiais. Os 21 IDs legados convertidos não
+  permaneceram; o único registro fora do plano é a conclusão histórica de
+  Excel, mantida sem exclusão.
+
+## DataScience — novo roadmap completo em prévia local (29/10/2026)
+
+- A branch local `feat/datascience-roadmap-v2` substitui o plano anterior de
+  60 dias por uma trilha de Ciência de Dados + IA dividida em três prioridades:
+  fundamentos indispensáveis, competências próximas do nível pleno e
+  especialização em IA.
+- O calendário recalculado pela grade real possui 84 dias úteis e cerca de
+  350,7 horas planejadas, de 03/11/2026 a 03/03/2027, sem sábados, domingos ou
+  feriados oficiais cadastrados. Cada tarefa agora usa literalmente o nome da
+  aula; quando o recorte é uma seção completa, exibe `Módulo inteiro` e o nome
+  oficial. Apenas durações não publicadas aparecem como estimativas.
+- A Prioridade 1 inclui também 23 aulas selecionadas de `Análise e Levantamento
+  de Requisitos de Software`, distribuídas nos dias 14 e 15, cobrindo
+  introdução, elicitação, documentação, comunicação e estudos de caso.
+- O roadmap possui 29 marcos de competências para o LinkedIn. Cada aviso só
+  aparece após o conjunto de aulas que sustenta a habilidade, tanto no próprio
+  dia quanto em um painel consolidado com confirmação e cópia do nome.
+- Foram selecionados e preparados seis projetos progressivos: diagnóstico de
+  atendimento, painel de estoque, risco de crédito, previsão de atendimento,
+  API de churn e inteligência de avaliações. As páginas locais referenciam 29
+  arquivos sintéticos validados, com 22.148 linhas CSV no total.
+- O registro de foco deixou de aparecer nessa nova página. Progresso e marcos
+  de carreira usam armazenamento local somente na prévia de desenvolvimento;
+  o acesso local é liberado exclusivamente quando
+  `EVOLUTION_LOCAL_PREVIEW=true`, sem alterar a autenticação de Production.
+- Estado: implementação e validação local concluídas; nenhuma publicação,
+  migration ou escrita em Production foi realizada.
+
 Última verificação: **20/10/2026 14:51, America/Sao_Paulo**.
 
 Em 20/10/2026, foi iniciada a memória própria de marca e comunicação em
@@ -469,3 +580,328 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
   editáveis; somente a confirmação final grava a sessão.
 - Validação local concluída com `npm run lint -- --quiet`, `npm run typecheck` e
   `npm run build`.
+-
+## Central de Evolução — inteligência editorial local (22/10/2026)
+
+- A rota `/admin/evolucao/rocha-tech?view=inteligencia` apresenta uma primeira
+  camada de inteligência editorial: tamanho da base, sinais por tema, amostra
+  mais vista e limites dos dados públicos.
+- Em desenvolvimento, a camada lê os JSONs de `Rocha Tech - YT/Concorrentes`
+  do cofre por caminho local. Não há envio automático para API nem escrita no
+  Supabase; sem o cofre, a interface mostra estado vazio.
+- A pesquisa profunda de 22/10/2026 foi registrada em
+  `Rocha Tech - YT/04 - Pesquisas/Inteligencia Editorial - 2026-10-22.md`.
+- Esta rodada não importou novas notícias, ideias ou pontuações.
+
+## Biblioteca de ideias — categorias editoriais (22/10/2026)
+
+- A Biblioteca exibe uma etiqueta de categoria em cada ideia, calculada de
+  forma determinística pelo título, resumo e ângulo.
+- As categorias são as cinco já usadas nos sinais da inteligência editorial:
+  Negócios e dinheiro, Ferramentas práticas, Modelos e lançamentos, Agentes e
+  automação e Notícias e opinião.
+- A alteração é apenas de apresentação e não grava classificação no Supabase.
+
+## Inteligência editorial — thumbnails e critério da amostra (22/10/2026)
+
+- O carregador passou a ler thumbnails e métricas tanto do formato direto dos
+  snapshots quanto do formato baseado em `observations[0]`.
+- Os cards de vídeos mais vistos exibem a thumbnail original e informam que a
+  posição é ordenada por views públicas observadas na coleta.
+- O ranking não é uma nota de qualidade ou previsão: não normaliza por idade do
+  vídeo, tamanho do canal, CTR, retenção ou inscritos.
+
+## Inteligência editorial — views e thumbnails (22/10/2026)
+
+- A interface mostra unidades explícitas (`mil`, `milhões`) em vez de `mi`.
+- As thumbnails dos concorrentes são lidas dos arquivos locais do cofre por
+  uma rota autenticada, evitando a falha dos links remotos do YouTube.
+
+## Inteligência editorial — correção de unidade nas views (22/10/2026)
+
+- Seis snapshots tinham valores redondos inflados por 1.000: um de Lucas
+  Montano (`11.000.000 → 11.000`) e cinco de Vagner Mazzeo (`7.000.000 →
+  7.000` ou `2.000.000 → 2.000`).
+- O parser foi corrigido para não interpretar `mi` como milhão na listagem
+  pt-BR; `m` permanece a abreviação de milhão.
+- A média corrigida ficou em aproximadamente 49,6 mil para Lucas Montano e
+  35,9 mil para Vagner Mazzeo. A coleta online foi tentada, mas a rede não
+  estava disponível; os snapshots já existentes foram preservados.
+
+## Inteligência editorial — títulos em pt-BR e amostra ampliada (22/10/2026)
+
+- A amostra visual passou de 12 para 15 vídeos.
+- Todos os títulos apresentados nesses cards estão em português do Brasil. O
+  título original coletado continua preservado na memória da aplicação e pode
+  ser consultado ao posicionar o cursor sobre um título traduzido.
+- Datas relativas coletadas em inglês também são normalizadas para pt-BR, como
+  `3 months ago` para `há 3 meses` e `1 year ago` para `há 1 ano`.
+- A ordem continua baseada exclusivamente nas visualizações públicas do
+  snapshot; a tradução não altera dados, pontuação ou posição.
+- Para Production, os indicadores agregados e os 15 cards possuem um snapshot
+  público versionado no servidor. A rota autenticada usa thumbnails locais no
+  desenvolvimento e recorre à imagem pública do YouTube quando o cofre não
+  estiver disponível na Vercel.
+
+## Pulso.AI — atualização completa de 23/10/2026
+
+- A rodada `64dfd16c-2e98-4ec6-8523-90b69c021c4c` cobriu as 16 fontes ativas
+  de Production, importou 8 notícias verificadas, reavaliou 12 tendências e
+  12 ideias e criou 3 ideias novas com 9 referências do YouTube.
+- O perfil editorial passa a usar o nome Carlos Rocha e a lente de IA aplicada,
+  produtividade, carreira, negócios e execução sem autoengano.
+- O snapshot público da inteligência editorial foi renovado de 680 vídeos em
+  13 canais para 997 vídeos em 18 canais, com 994 registros contendo views e
+  média corrigida de aproximadamente 113,2 mil.
+- A amostra de 15 vídeos agora filtra aderência editorial antes de ordenar por
+  views, evitando que assuntos alheios à linha do canal dominem o painel.
+- O carregador corrige de forma defensiva 16 contagens arredondadas de Pedro
+  Cooke que haviam sido interpretadas em milhões em vez de milhares.
+- Uma tendência antiga equivalente a agentes proativos foi arquivada após a
+  importação para evitar duplicidade; a listagem omite estados arquivados e
+  desatualizados, preservando o histórico no banco.
+
+## Pulso.AI — ranking de oportunidade e atualização completa de 24/10/2026
+
+- A base de concorrentes foi consolidada em 849 vídeos de 16 canais, com 846
+  registros contendo visualizações públicas. Ernesto Reis e Pedro Cooke foram
+  retirados da base e não participam mais de métricas, referências ou ranking.
+- A Vizinhança passou de uma observação isolada para 13 vídeos do último ano,
+  todos com título, data exata, duração, views e thumbnail preservados no cofre.
+- O ranking principal deixou de ordenar por views absolutas. A nota de
+  oportunidade, de 0 a 100, combina desempenho contra a mediana do próprio
+  canal (35%), aderência editorial (20%), facilidade de adaptação (15%),
+  atualidade (15%), validação em outros canais (10%) e força de título e
+  thumbnail (5%). Podcasts, entrevistas e lives ficam fora do ranking
+  principal, com limite de três vídeos por canal.
+- O snapshot seguro usado na Vercel foi renovado com os 15 vídeos mais úteis
+  para estudo editorial, incluindo posição, nota, justificativa, múltiplo da
+  mediana e composição detalhada da pontuação.
+- A rodada de Production `6f8d13f1-8f60-45d1-bf2f-ef1d6f9c3ea5` verificou as
+  16 fontes ativas, analisou 10 notícias, inseriu 2 conteúdos novos, reavaliou
+  12 tendências e ranqueou 13 ideias. A pauta nova sobre o custo real de criar
+  vídeo com IA entrou em quinto lugar com nota editorial 90.
+- Quatro referências antigas ligadas aos dois canais removidos foram apagadas
+  do Supabase; nenhuma permaneceu depois da verificação.
+- Evidência local: 859 testes executados, 858 aprovados e 1 ignorado; lint,
+  typecheck, `git diff --check` e build completo com 72 páginas concluídos sem
+  erro. Nenhum segredo foi registrado.
+
+### Correção visual das thumbnails
+
+- O seletor antigo `span:last-child` fazia a etiqueta de nota ocupar toda a
+  thumbnail e esconder a imagem. Ele foi removido; posição e nota agora usam
+  exclusivamente suas classes específicas, preservando a foto visível.
+
+## Pulso.AI — atualização completa de 25/10/2026
+
+- A rodada `13dd75eb-4059-429d-b742-98ba018bec2a` cobriu as 16 fontes ativas
+  de Production, analisou 11 fatos, inseriu 1 conteúdo novo, atualizou 10,
+  reavaliou 13 tendências e ranqueou 14 ideias sem fontes falhas.
+- A nova pauta **Ensine uma vez, use em qualquer IA: o que são Agent Skills?**
+  entrou na posição 2, com nota 95 e cinco referências verificadas do YouTube.
+  A evidência principal é a doação oficial do padrão Agent Skills para a
+  Agentic AI Foundation, com integração declarada em mais de 70 plataformas.
+- A nova tendência **Habilidades portáteis e reutilizáveis para agentes de IA**
+  recebeu nota 95 e confiança 98. Claude Duet permaneceu como melhor pauta,
+  com nota 97.
+- O snapshot público seguro foi regenerado a partir da base local completa:
+  **1.021 vídeos em 20 canais**, 1.018 com views válidas e 15 oportunidades
+  ordenadas pela nota editorial relativa, com limite de três por canal.
+- A pesquisa não encontrou lançamento posterior à rodada anterior com evidência
+  suficiente para substituir artificialmente as pautas atuais. Perfis do X e
+  fontes sem item individual acessível permaneceram como limitação, sem
+  inferência de conteúdo. O provider automático continua desativado.
+## 2026-10-25 — Central: requisitos e custo por ideia
+
+- Cada página de detalhe de ideia passou a exibir “Requisitos para gravar”,
+  com ferramentas, acesso gratuito ou pago, assinatura existente, itens
+  opcionais e custo mensal estimado das novas assinaturas.
+- A análise deriva automaticamente dos campos já persistidos da ideia, sem
+  migration ou cadastro manual para ideias futuras.
+- O cálculo exclui computador e celular. CapCut e Canva gratuitos e a
+  assinatura atual do ChatGPT são considerados base; recursos pagos de Claude,
+  CapCut ou Canva só entram no total quando necessários.
+- Estado: alteração local pronta para validação, CI, merge e Production.
+## 2026-10-25 — Central: data da novidade nas ideias
+
+- Cada detalhe de ideia passa a mostrar a data observada da fonte relacionada
+  quando o título/resumo indica lançamento, modelo, versão, agente ou novidade.
+- Pautas sem lançamento específico exibem explicitamente essa condição. Quando
+  a fonte não informa uma data verificável, isso também é indicado sem inventar
+  uma data.
+- A informação é derivada em tempo de renderização, sem migration ou alteração
+  editorial no Supabase.
+## Pulso.AI — detalhe e resumo sob demanda de notícias (26/10/2026)
+
+- Os cartões do briefing na Central de Evolução agora são clicáveis e abrem
+  `/admin/evolucao/rocha-tech/noticias/[id]`, com procedência, nota, resumo
+  editorial e link para a fonte original.
+- A página tenta ler a fonte pública e, quando o provedor OpenAI estiver
+  configurado, gerar um resumo em português com fatos principais e detalhes
+  que não devem ser omitidos. URLs internas, credenciais na URL, hosts locais e
+  redes privadas são bloqueados; o HTML bruto não é persistido.
+- A migration `supabase/20261026000100_youtube_article_summaries.sql` prepara
+  o cache privado dos resumos para `service_role` e foi aplicada em produção
+  pelo workflow protegido de migração, com verificação de tabela, RLS e grants.
+- O hover dos cartões mantém fundo claro e contraste legível; a página de
+  detalhe trata a ausência temporária da tabela/cache sem falhar.
+- PR #81 foi mesclada em `master` e o deploy Vercel de produção do commit
+  `347eb102e5bdf104f21623f559217e8f52fcb234` concluiu com sucesso.
+- Validação: typecheck, testes direcionados, build e 30 testes de navegador
+  passaram; a migração de produção também passou na verificação final.
+## Central de Evolução — rota de serviços de Data Science (27/10/2026)
+
+- O roadmap ativo de Data Science passa a ser o plano intensivo de 30 dias
+  voltado a prestação de serviços, com 4h planejadas por dia útil e 150
+  atividades entre formação, inglês e prática.
+- A navegação de DataScience ganhou duas páginas: `Plano de estudos` e
+  `Serviços desbloqueados`. A segunda acompanha quatro marcos (diagnóstico,
+  painel, automação e pacote integrado) sem confundir aula assistida com
+  capacidade demonstrada.
+- Cada serviço exige as práticas principais do intervalo, três confirmações de
+  evidência e os pré-requisitos definidos. As confirmações usam a tabela de
+  progresso já existente; não há migration nova.
+- O importador de snapshots aceita `--data-dir`, permitindo publicar dados de
+  uma worktree limpa sem copiar `.env.local` ou qualquer segredo.
+
+## Central de Evolução — aulas numeradas e projetos executáveis (28/10/2026)
+
+- O snapshot local contém 60 dias e 60 aulas numeradas, de 28/10/2026 a 25/01/2027,
+  sem atividades de inglês.
+- Cada curso do dia mostra link e número exato das aulas; revisões indicam os
+  intervalos já estudados e leituras externas indicam capítulos/assuntos.
+- A seção diária `Prática e entrega` foi removida por decisão de Carlos. Os
+  exemplos práticos ficam nos próprios cursos e as entregas nos três projetos
+  finais; o plano preserva até quatro horas reservadas por sessão.
+- Os três fechamentos do ciclo são clicáveis e abrem páginas próprias com base
+  fictícia XLSX, cenário, objetivo, execução, entregáveis, aceite e LinkedIn.
+- As bases foram produzidas com dados sintéticos e erros intencionais; nenhuma
+  informação real de cliente foi usada.
+
+## Central de Evolução — plano intensivo de 60 dias (28/10/2026)
+
+- Os Dias 1 e 2 permanecem idênticos ao snapshot anterior para preservar o
+  progresso já salvo; o primeiro bloco iniciado do Dia 3 também mantém seu ID.
+- Do Dia 3 em diante, a carga foi elevada para aproximadamente 2h30 a 3h30 de
+  conteúdo por sessão, priorizando blocos aplicados e reduzindo o peso de
+  tópicos introdutórios já dominados.
+- A sequência agora é explícita e majoritariamente crescente dentro de cada
+  curso. O salto temático do antigo Dia 2 para aulas 65–73 não se repete nos
+  próximos dias sem uma indicação clara de revisão ou recorte.
+- O snapshot ativo contém 60 dias, 62 tarefas e continua sem inglês.
+
+## Pulso.AI — quatro abordagens e novo mix editorial (29/10/2026)
+
+- Carlos aprovou o mix do canal: 65% tutoriais, métodos e transformações com
+  IA; 25% produtividade, carreira, aprendizado e sistemas pessoais; 10%
+  notícias puras somente quando relevantes.
+- Ciência de Dados e a agência deixam de ser pilares deste canal. A Central
+  também deve propor pautas evergreen, experimentos, histórias e formatos
+  demonstráveis sem depender de uma notícia recente.
+- Cada ideia passa a comparar quatro execuções: notícia/explicação,
+  tutorial/aplicação, transformação/benefício e experimento/história/vlog.
+  Cada opção possui título, promessa, demonstração, justificativa, momento,
+  longevidade, requisitos e nota própria.
+- O ranking editorial reduz o peso da recência e prioriza utilidade,
+  transformação, aderência ao canal, força de embalagem, evidência e
+  aplicabilidade. O formato preserva ideias, histórico, títulos bloqueados e
+  estados editoriais existentes.
+- Publicação concluída pela PR `#98`, merge
+  `5b096a7ac165d173bd3a018e40810f08eb0d8004`. O deploy de Production ficou
+  `Ready` e o CI de `master` passou, incluindo 30 testes de navegador.
+- A migration `supabase/20261029000100_youtube_idea_approaches.sql` foi aplicada
+  pelo workflow protegido `40983208779` e verificada com RLS, grants e RPC
+  restrita ao `service_role`.
+- Primeira atualização geral concluída no run
+  `19e2a863-386e-4871-8078-181f2b1590ba`: 19 ideias ranqueadas, 76 abordagens,
+  51 referências do YouTube e perfil editorial 65% / 25% / 10% persistidos.
+- No quadro da Biblioteca, cada cartão usa a maior nota entre as quatro
+  abordagens e identifica qual execução recebeu essa nota. As etiquetas
+  operacionais redundantes foram retiradas do cartão; fonte, categoria e `NEW`
+  permanecem disponíveis.
+- Título e resumo do cartão também pertencem à abordagem vencedora; a ideia
+  geral continua sendo apenas o agrupador das quatro execuções na página de
+  detalhe.
+
+## Pulso.AI — histórico compacto e ranking por oportunidade (30/10/2026)
+
+- O detalhe de cada ideia mostra somente as três atualizações mais recentes.
+  O histórico completo abre em um diálogo rolável na própria página, sem criar
+  outra rota.
+- O ranking de 15 vídeos não usa cotas por categoria. Cada referência recebe
+  três notas e a nota final pondera 65% de IA aplicada, transformação e
+  benefício, 25% de produtividade/carreira/aprendizado/sistemas e 10% de
+  notícia/atualidade. Os 15 maiores resultados entram no ranking, mantendo no
+  máximo três vídeos por canal e excluindo podcasts, entrevistas e lives.
+- Desempenho contra a mediana do próprio canal, facilidade de adaptação, força
+  de título/thumbnail, validação cruzada, atualidade e longevidade alimentam os
+  três pilares; views brutas não definem a ordem isoladamente.
+- O snapshot local foi regenerado depois da coleta completa de 21 concorrentes.
+  A coleta de 30/10/2026 reuniu 1.021 vídeos dentro da janela de um ano e
+  atualizou visualizações, datas, thumbnails e histórico de observação.
+- A rodada editorial preparada para produção cobre as 17 fontes ativas, 14
+  conteúdos confirmados, 19 tendências e 20 ideias com quatro abordagens. A
+  nova pauta da rodada ensina a escolher ferramentas de vídeo com IA pelo
+  gargalo real, e não pelo volume de ferramentas disponíveis.
+
+## Pulso.AI — atualização completa de 31/10/2026
+
+- Os 21 canais ativos foram recolhidos novamente na janela anual: 1.022 vídeos,
+  9 vídeos novos, 952 contagens públicas alteradas e zero canais com erro.
+- A execução Production `55f3252c-a05d-405c-b9d3-56207f5d546f` cobriu as 17
+  fontes ativas, importou 3 conteúdos novos, reavaliou 14, ranqueou 21 ideias,
+  persistiu 84 abordagens e atualizou 62 referências do YouTube.
+- A rodada reforçou criação de vídeo com IA e Agent Skills com referências
+  publicadas em 30 e 31/10. A nova pauta evergreen diferencia velocidade de
+  execução e direção: `A IA te deixa produzir 10x mais — o problema é produzir
+  a coisa errada`.
+- O snapshot editorial foi regenerado com 1.191 registros observados nos 21
+  canais e 15 oportunidades calculadas pela ponderação individual 65/25/10,
+  sem cotas por categoria e com máximo de três vídeos por canal.
+
+## Pulso.AI — atualização completa de 02/11/2026
+
+- A interrupção relatada pela execução anterior foi auditada: ela consultou
+  uma cópia desatualizada do RankFTV. O importador vigente em `master` já
+  suporta as quatro abordagens por ideia e os modos `--validate-only` e
+  `--preflight`; portanto, não foi necessária migration nem alteração de
+  contrato do banco.
+- Os 21 canais concorrentes foram recolhidos integralmente. A janela anual
+  contém 1.024 vídeos, os oito vídeos novos encontrados pela execução anterior
+  foram preservados e a coleta terminou sem falha de canal. O snapshot mantém
+  1.199 registros históricos observados.
+- As 17 fontes ativas foram revisadas. Perfis dinâmicos do X, a página da
+  SpaceX sem conteúdo individual legível e fontes sem publicação nova
+  verificável foram registrados como limitações, sem transformar título ou
+  ausência de evidência em fato.
+- A rodada editorial validou 19 conteúdos, 19 tendências, 22 ideias e 88
+  abordagens. A nova pauta de maior utilidade ensina a avaliar se uma IA paga
+  vale o custo antes da assinatura, com quatro execuções editoriais completas.
+- O preflight de Production passou e a importação foi concluída no run
+  `483393cd-eb2a-47d1-af7d-ef66cd772698`: 2 conteúdos novos, 17 atualizados,
+  22 ideias ranqueadas, 88 abordagens e 66 referências do YouTube atualizadas.
+- O perfil editorial permanece em 65% IA aplicada e transformação, 25%
+  produtividade/carreira/sistemas e 10% notícia relevante. O snapshot local
+  foi regenerado com 21 canais e 15 oportunidades.
+
+## Coleta de concorrentes pela YouTube Data API v3 (04/11/2026)
+
+- Foi preparado um coletor local e manual, separado do canal pessoal, que lê
+  a lista existente em `Rocha Tech - YT/Concorrentes` e preserva `Canal.md`,
+  `Videos/`, `Dados/`, `Thumbnails/` e o histórico de observações.
+- O modo padrão prefere a API oficial quando a chave exclusiva do Rocha Tech
+  estiver configurada localmente. Sem chave, falha de API ou indisponibilidade
+  de quota, o processo preserva a base e gera uma fila sanitizada para o
+  procedimento público/manual atual.
+- Nenhuma gravação ocorre por padrão. `--apply` só começa a escrever depois de
+  todos os canais passarem sem falhas e sem fallback, evitando importação
+  parcial decorrente de erro de coleta.
+- A API cobre canal, playlist de uploads, título, publicação exata, duração,
+  visualizações públicas, categoria, estado de live e thumbnails. Impressões,
+  CTR, retenção e outras métricas privadas continuam indisponíveis.
+- Validação sem segredo reconheceu 22 canais e 1.259 registros existentes sem
+  alterar a base. A chave pessoal não foi lida, copiada nem reutilizada.
+- Ainda falta criar e configurar localmente a segunda chave restrita antes do
+  primeiro dry-run real da API. Não houve mudança em Supabase nem importação
+  editorial nesta entrega.

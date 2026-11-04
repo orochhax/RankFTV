@@ -19,10 +19,20 @@ function parseEnv(text: string) {
 const snapshotSchema = z.record(z.string(), z.unknown());
 
 async function main() {
+  const args = process.argv.slice(2);
+  const dataDirIndex = args.indexOf("--data-dir");
+  const envFileIndex = args.indexOf("--env-file");
+  const onlyIndex = args.indexOf("--only");
+  const dataDir = dataDirIndex >= 0 ? path.resolve(args[dataDirIndex + 1]) : path.resolve("data/evolution");
+  const envFile = envFileIndex >= 0 ? path.resolve(args[envFileIndex + 1]) : path.resolve(".env.local");
+  const only = onlyIndex >= 0 ? args[onlyIndex + 1] : null;
+  if (only && only !== "roadmap" && only !== "rankftv") {
+    throw new Error("--only deve ser roadmap ou rankftv.");
+  }
   const [rawEnv, roadmapRaw, rankRaw] = await Promise.all([
-    readFile(path.resolve(".env.local"), "utf8"),
-    readFile(path.resolve("data/evolution/roadmap.json"), "utf8"),
-    readFile(path.resolve("data/evolution/rankftv.json"), "utf8"),
+    readFile(envFile, "utf8"),
+    readFile(path.join(dataDir, "roadmap.json"), "utf8"),
+    readFile(path.join(dataDir, "rankftv.json"), "utf8"),
   ]);
   const environment = { ...parseEnv(rawEnv), ...process.env };
   const url = environment.NEXT_PUBLIC_SUPABASE_URL;
@@ -39,7 +49,7 @@ async function main() {
   const snapshots = [
     { source_kind: "roadmap", raw: roadmapRaw },
     { source_kind: "rankftv", raw: rankRaw },
-  ].map((entry) => ({
+  ].filter((entry) => !only || entry.source_kind === only).map((entry) => ({
     user_id: owners[0].id,
     source_kind: entry.source_kind,
     payload: snapshotSchema.parse(JSON.parse(entry.raw)),
@@ -49,7 +59,21 @@ async function main() {
 
   const { error } = await supabase.from("evo_source_snapshots").upsert(snapshots, { onConflict: "user_id,source_kind" });
   if (error) throw error;
-  process.stdout.write("Snapshots do roadmap e RankFTV importados para a Central de Evolução.\n");
+  const { data: storedSnapshots, error: verifyError } = await supabase
+    .from("evo_source_snapshots")
+    .select("source_kind,source_hash,payload")
+    .eq("user_id", owners[0].id)
+    .in("source_kind", snapshots.map((item) => item.source_kind));
+  if (verifyError) throw verifyError;
+  for (const expected of snapshots) {
+    const stored = storedSnapshots?.find((item) => item.source_kind === expected.source_kind);
+    if (!stored || stored.source_hash !== expected.source_hash) {
+      throw new Error(`Verificação falhou para o snapshot ${expected.source_kind}.`);
+    }
+  }
+  process.stdout.write(`Snapshots importados para a Central de Evolução: ${snapshots.map((item) => item.source_kind).join(", ")}.\n`);
+  const roadmap = storedSnapshots?.find((item) => item.source_kind === "roadmap")?.payload as { totalBusinessDays?: number; period?: { start?: string; end?: string } } | undefined;
+  if (roadmap) process.stdout.write(`Roadmap verificado: ${roadmap.totalBusinessDays ?? "?"} dias úteis, ${roadmap.period?.start ?? "?"} a ${roadmap.period?.end ?? "?"}.\n`);
 }
 
 main().catch((error) => {

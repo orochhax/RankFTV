@@ -6,6 +6,35 @@ pesquisa, chamada à API paga da OpenAI, botão ou agente agendado. O banco de
 Production recebe a importação transacional pelo script local; a interface lê
 exatamente esses mesmos registros.
 
+## Contrato editorial vigente
+
+O canal **Carlos Rocha** desta Central é exclusivamente editorial. Ele não usa
+Ciência de Dados nem a futura agência como pilares. O portfólio de pautas deve
+se aproximar desta distribuição:
+
+- **65%** tutoriais, métodos e transformações usando IA;
+- **25%** produtividade, carreira, aprendizado e sistemas pessoais;
+- **10%** notícias puras, somente quando a novidade for realmente importante.
+
+Notícia é uma fonte de oportunidade, não o único formato. A pesquisa também
+deve gerar pautas evergreen a partir de problemas do público, padrões dos
+concorrentes, formatos comprovados, experimentos e transformações práticas.
+Iman Gadzhi é referência de embalagem e variedade de formato, nunca fonte para
+cópia literal de título, thumbnail ou promessa.
+
+Toda ideia ativa precisa comparar quatro execuções diferentes:
+
+1. notícia e explicação;
+2. tutorial e aplicação;
+3. transformação e benefício;
+4. experimento, desafio, história ou vlog.
+
+Cada execução registra título, explicação do enquadramento, promessa, o que
+Carlos demonstrará, por que pode funcionar, momento, longevidade, ferramentas
+e custo resumido e nota de 0 a 100. O título principal da ideia continua sendo
+o vencedor recomendado para o ranking, mas as quatro opções permanecem
+visíveis na ficha para decisão de Carlos.
+
 ## Pedido que Carlos pode usar
 
 > Atualize o radar de IA: pesquise as últimas notícias e tendências, compare
@@ -43,9 +72,16 @@ Para um recorte, por exemplo:
 4. Compare achados com as ideias e tendências persistidas. Itens repetidos
    reforçam ou reavaliam o registro existente; uma atualização de produto pode
    ser diferente do anúncio original, desde que tenha URL/título próprio.
+   Complete a pesquisa com oportunidades não ligadas a notícia quando houver
+   problema recorrente, transformação demonstrável ou estrutura comprovada na
+   base de concorrentes.
 5. Monte um JSON conforme os schemas em
    `scripts/youtube-import-research.ts`, em `.codex-artifacts/`. Cada item e
-   cada ideia precisa ter link de fonte original. Para **cada ideia nova**,
+   cada ideia precisa ter evidência verificável. Ideias baseadas em notícia
+   usam a fonte original; ideias evergreen podem usar referências de mercado,
+   concorrentes e pesquisas relacionadas sem fingir que existe lançamento.
+   Cada ideia deve conter exatamente quatro `approaches`, uma para cada chave
+   aceita pelo schema. Para **cada ideia nova**,
    pesquise no YouTube e inclua de três a cinco `youtubeReferences` relacionadas:
    URL do vídeo, ID, título, canal, data de publicação, visualizações observadas
    e o motivo da seleção. Equilibre alcance e atualidade; não invente esses
@@ -60,6 +96,10 @@ Para um recorte, por exemplo:
 6. Para uma ideia já conhecida, mantenha o mesmo `sourceFingerprint`. Para
    uma nova, crie um fingerprint estável e descritivo. Não altere `status` de
    produção, notas do usuário ou título bloqueado por usuário.
+   A nota geral e as notas das abordagens devem reduzir o peso da recência e
+   usar: utilidade/aplicabilidade (25%), transformação/benefício (20%),
+   aderência editorial (20%), força de título e thumbnail (15%), evidência e
+   validação nos concorrentes (10%) e atualidade (10%).
 7. Valide o conteúdo e a cobertura das fontes sem escrever:
 
 ```powershell
@@ -92,6 +132,8 @@ npm run youtube:import -- .codex-artifacts/nome-da-pesquisa.json
 - As referências comparáveis do YouTube são atualizadas por vídeo/ideia, com
   data e visualizações observadas. A ficha da ideia mostra no máximo cinco,
   priorizando publicações recentes e, em seguida, alcance.
+- As quatro abordagens são atualizadas por fingerprint e chave; repetir uma
+  rodada substitui a análise daquela abordagem sem apagar o histórico da ideia.
 - Estados editoriais possíveis: `em_alta`, `emergente`, `estavel`,
   `perdendo_forca`, `atemporal`, `desatualizado` e `arquivado`. Arquivar não
   apaga dados.

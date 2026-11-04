@@ -2,6 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireYoutubeOwner } from "@/lib/youtube/access";
+import { bestIdeaApproachPresentation, selectBestIdeaApproachesByIdea, type StoredIdeaApproachSummary, type YoutubeIdeaApproachKey } from "@/lib/youtube/idea-approaches";
 
 export type YoutubeNewsItem = {
   id: string;
@@ -59,6 +60,10 @@ export type YoutubeIdea = {
   rank_delta: number | null;
   change_kind: "nova" | "subiu" | "caiu" | "estavel" | "reavaliar" | null;
   is_new: boolean;
+  best_approach_key: YoutubeIdeaApproachKey | null;
+  best_approach_score: number;
+  best_approach_title: string | null;
+  best_approach_explanation: string | null;
 };
 
 export type YoutubeIdeaYoutubeReference = {
@@ -70,6 +75,22 @@ export type YoutubeIdeaYoutubeReference = {
   view_count: number;
   selection_reason: string;
   observed_at: string;
+};
+
+export type YoutubeIdeaApproach = {
+  id: number;
+  approach_key: "noticia_explicacao" | "tutorial_aplicacao" | "transformacao_beneficio" | "experimento_historia";
+  position: number;
+  title: string;
+  explanation: string;
+  promise: string;
+  demonstration: string;
+  why_it_works: string;
+  timeliness: string;
+  longevity: string;
+  requirements_summary: string;
+  score: number;
+  updated_at: string;
 };
 
 type Relation<T> = T | T[] | null;
@@ -195,10 +216,21 @@ export async function getYoutubeOpportunities() {
     .slice(0, 50);
 }
 
+export async function getYoutubeNewsDetail(id: string) {
+  await requireYoutubeOwner();
+  const { data, error } = await createAdminClient()
+    .from("yt_content_items")
+    .select(feedSelect)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return { item: data ? mapNewsRow(data as unknown as Record<string, unknown>) : null };
+}
+
 export async function getYoutubeIdeas() {
   await requireYoutubeOwner();
   const supabase = createAdminClient();
-  const [{ data, error }, { data: latestRun, error: runError }] = await Promise.all([
+  const [{ data, error }, { data: latestRun, error: runError }, { data: approaches, error: approachesError }] = await Promise.all([
     supabase.from("yt_ideas")
     .select("id, title, alternate_titles, summary, rationale, angle, format, outline, hook, priority, score, confidence_score, status, editorial_state, current_rank, best_rank, last_evaluated_at, updated_at, source_origin")
     .neq("status", "discarded")
@@ -206,21 +238,26 @@ export async function getYoutubeIdeas() {
     .order("score", { ascending: false })
     .order("updated_at", { ascending: false }),
     supabase.from("yt_research_runs").select("id, started_at").order("started_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("yt_idea_approaches").select("idea_id, approach_key, position, score, title, explanation").order("score", { ascending: false }).order("position"),
   ]);
   if (error) throw new Error(error.message);
   if (runError) throw new Error(runError.message);
+  if (approachesError) throw new Error(approachesError.message);
   const evaluations = latestRun?.id
     ? await supabase.from("yt_idea_evaluations").select("idea_id, rank_delta, change_kind").eq("run_id", latestRun.id)
     : { data: [], error: null };
   if (evaluations.error) throw new Error(evaluations.error.message);
   const changes = new Map((evaluations.data ?? []).map((entry) => [entry.idea_id, entry]));
+  const bestApproaches = selectBestIdeaApproachesByIdea((approaches ?? []) as StoredIdeaApproachSummary[]);
   return (data ?? []).map((idea) => {
     const change = changes.get(idea.id);
+    const bestApproach = bestApproaches.get(idea.id);
     return {
       ...idea,
       rank_delta: change?.rank_delta ?? null,
       change_kind: (change?.change_kind as YoutubeIdea["change_kind"]) ?? null,
       is_new: change?.change_kind === "nova",
+      ...bestIdeaApproachPresentation(bestApproach, idea.score),
     };
   });
 }
@@ -230,6 +267,7 @@ export async function getYoutubeTrends() {
   const { data, error } = await createAdminClient()
     .from("yt_trends")
     .select("id, topic, state, current_score, confidence_score, first_identified_at, last_evaluated_at, current_position, best_position, latest_evidence, source_origin")
+    .not("state", "in", "(arquivado,desatualizado)")
     .order("current_score", { ascending: false })
     .order("last_evaluated_at", { ascending: false });
   return requireData(data as YoutubeTrend[] | null, error, []);
@@ -238,19 +276,24 @@ export async function getYoutubeTrends() {
 export async function getYoutubeIdeaDetail(id: string) {
   await requireYoutubeOwner();
   const supabase = createAdminClient();
-  const [idea, history, sources, youtubeReferences] = await Promise.all([
+  const [idea, history, sources, youtubeReferences, approaches] = await Promise.all([
     supabase.from("yt_ideas").select("id, title, alternate_titles, summary, rationale, angle, format, outline, hook, priority, score, confidence_score, status, editorial_state, current_rank, best_rank, last_evaluated_at, updated_at, created_at, source_origin").eq("id", id).maybeSingle(),
     supabase.from("yt_idea_evaluations").select("score, confidence_score, rank_position, rank_delta, change_kind, rationale, evidence, created_at").eq("idea_id", id).order("created_at"),
     supabase.from("yt_idea_sources").select("item:yt_content_items!inner(title, canonical_url, published_at)").eq("idea_id", id),
     supabase.from("yt_idea_youtube_references").select("id, title, channel_name, video_url, published_on, view_count, selection_reason, observed_at").eq("idea_id", id).order("published_on", { ascending: false }).order("view_count", { ascending: false }).limit(5),
+    supabase.from("yt_idea_approaches").select("id, approach_key, position, title, explanation, promise, demonstration, why_it_works, timeliness, longevity, requirements_summary, score, updated_at").eq("idea_id", id).order("position"),
   ]);
-  const error = [idea, history, sources, youtubeReferences].map((result) => result.error).find(Boolean);
+  const error = [idea, history, sources, youtubeReferences, approaches].map((result) => result.error).find(Boolean);
   if (error) throw new Error(error.message);
   return {
     idea: idea.data,
     history: history.data ?? [],
-    sources: sources.data ?? [],
+    sources: (sources.data ?? []).map((row) => {
+      const item = firstRelation(row.item as Relation<{ title: string; canonical_url: string; published_at: string | null }>);
+      return item ? { item } : row;
+    }),
     youtubeReferences: (youtubeReferences.data ?? []) as YoutubeIdeaYoutubeReference[],
+    approaches: (approaches.data ?? []) as YoutubeIdeaApproach[],
   };
 }
 
@@ -292,7 +335,7 @@ export async function getYoutubeSettings() {
   const supabase = createAdminClient();
   const [settings, references] = await Promise.all([
     supabase.from("yt_app_settings").select("ai_provider, ai_model, timezone, research_times, languages, keywords, max_items_per_source, max_ai_analyses_per_run, monthly_budget_usd_micros, editorial_profile").eq("id", 1).maybeSingle(),
-    supabase.from("yt_channel_references").select("id, url, kind, notes").order("created_at"),
+    supabase.from("yt_channel_references").select("id, name, url, kind, notes").order("name"),
   ]);
   return {
     settings: requireData(settings.data, settings.error, null),

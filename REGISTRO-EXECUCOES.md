@@ -5,6 +5,140 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-04 (America/Sao_Paulo) � Calibra��o Editorial da Biblioteca do Canal Carlos Rocha
+
+- Calibra��o fina das pautas e formato da Biblioteca com Carlos: remo��o de corrida/treino caseiro, elimina��o da obriga��o de mostrar telas de computador e foco em di�logo franco olho no olho.
+- Categorias consolidadas: Tecnologia, Dados & Carreira; Viagens & Vlogs com Hist�ria; Cria��o, YouTube & Resultados Reais; Neg�cios, Software & Viv�ncia Real.
+- Pautas de finan�as restritas a resultados reais concretos (ganhos de 30 dias no YouTube, receita real do RankFTV); futev�lei restrito exclusivamente a dias de torneio/evento competitivo real; viagem a Itacar� planejada como vlog vivenciado no momento real (mar�o/2027).
+- Valida��o: typecheck, eslint e 878 testes unit�rios aprovados com 100% de sucesso.
+
+## 2026-11-04 (America/Sao_Paulo) � Hub de Ideias Acion�veis da Biblioteca do Canal Carlos Rocha
+
+- Transforma��o da p�gina /admin/evolucao/carlos-rocha/biblioteca em um Hub de Recomenda��o Acion�vel de V�deos, estruturado por 4 categorias estrat�gicas (Tecnologia & Dados; Viagens & Vlogs com Hist�ria; Rotina, Estilo de Vida & Corrida; Carreira, Neg�cios & Decis�es).
+- Aplica��o da Regra de Ouro: Versionamento Cumulativo (atualiza��o e evolu��o din�mica de notas de 0 a 100, sem substitui��o do zero, com crit�rio �nico de descarte para scores < 50).
+- 20 ideias de alta convers�o estruturadas com cen�rio e log�stica na Bahia (Eun�polis, Porto Seguro, Arraial d'Ajuda, Ecoparque e Itacar�), premissa, tens�o, visual em tela e engenharia reversa dos concorrentes.
+- Valida��o: typecheck, 878 testes unit�rios aprovados e build Next.js com sucesso.
+
+## 2026-11-04 (America/Sao_Paulo) � Atualiza��o de Concorrentes e Oportunidades do Canal Carlos Rocha
+
+- Coleta oficial da YouTube Data API executada para os 14 canais concorrentes do canal Carlos Rocha: 1.518 v�deos p�blicos e 1.518 thumbnails JPEG v�lidas na janela anual.
+- Ranking de outliers atualizado no snapshot (lib/evolution/carlos-rocha-rank-snapshot.json) com os 15 maiores v�deos fora da curva contra a mediana de seus respectivos canais (m�ximo 3 por canal).
+- Publica��o das 3 primeiras oportunidades de pauta formuladas no painel da Central (/admin/evolucao/carlos-rocha/oportunidades).
+- Valida��o: typecheck, 878 testes unit�rios aprovados e build Next.js com sucesso.
+
+## 2026-11-04 (America/Sao_Paulo) — Biblioteca e ranking do Canal Carlos Rocha
+
+- Após aprovação de Carlos, a coleta oficial da YouTube Data API revisou os
+  14 concorrentes. O resultado local contém 1.516 vídeos públicos e 1.514
+  thumbnails válidas na janela anual; houve um vídeo novo desde a fotografia
+  anterior de 1.515 vídeos.
+- A Biblioteca foi atualizada para a direção editorial aprovada. O ranking
+  independente de Concorrentes seleciona 15 outliers por visualizações em
+  relação à mediana de cada canal, com teto de três por criador.
+- Não houve migration, escrita no Supabase, segredo no código ou mudança nas
+  rotas/subpáginas do Rocha Tech. O snapshot publicado contém apenas dados
+  públicos necessários ao ranking.
+- Validação local: typecheck, lint e build Next.js concluídos. Situação
+  externa: aguardando PR, CI e deploy.
+
+## 2026-11-04 (America/Sao_Paulo) — Central privada do Canal Carlos Rocha
+
+- Escopo aprovado por Carlos: criar e publicar uma área independente em
+  `/admin/evolucao/carlos-rocha`; preservar integralmente as subpáginas do
+  Rocha Tech e não criar vínculo editorial ou de dados entre os canais.
+- Implementação local: páginas de Visão, Concorrentes, Biblioteca e
+  Oportunidades, protegidas pelo mesmo layout administrativo já autenticado.
+  Não houve migration, escrita no Supabase ou dados pessoais no site.
+- Coleta local: YouTube Data API v3, 14 canais, 1.515 vídeos e 1.514 thumbnails
+  válidas, de 03/11/2025 a 04/11/2026. O cofre guarda os dados brutos; o código
+  publicado não recebe chave, `.env.local`, thumbnail baixada ou arquivo local.
+- Situação externa: Preview da PR #109 aprovado; merge e Production dependem da
+  reconciliação com o `master`.
+
+## 2026-11-03 20:00 -03:00 — Roadmap orientado pelas vagas em Production
+
+- A PR `#107` foi mesclada no `master` pelo commit
+  `bd9af6dfb469bfcfcfeed8209e923d80ab7ebb5c`. Os checks da PR passaram,
+  incluindo lint, TypeScript, testes, build e testes de navegador.
+- A Vercel concluiu o deployment de Production associado ao commit de merge.
+- O importador atualizou exclusivamente o snapshot `roadmap` no Supabase. O
+  snapshot `rankftv`, outras tabelas e o progresso existente não foram
+  alterados.
+- A leitura após o upsert confirmou 88 dias úteis, de 03/11/2026 a 09/03/2027,
+  preservando a grade canônica com 2.645 itens e a rota ativa com 1.885 itens.
+
+## 2026-11-03 -03:00 — Curadoria do roadmap de Data Science pelas vagas reais
+
+- A grade autenticada integral de 21 cursos e 2.645 itens foi preservada como
+  fonte canônica. O gerador passou a selecionar a rota ativa sem apagar ou
+  renumerar itens oficiais.
+- Com base nas vagas fornecidas por Carlos e nas práticas comprovadas, a rota
+  ativa ficou com 1.885 itens oficiais, 88 dias úteis e 356,8 horas, de
+  03/11/2026 a 09/03/2027. Outros 760 itens permanecem no snapshot canônico.
+- A dificuldade foi calibrada como júnior forte, exposto a exigências
+  recorrentes de pleno. Foram removidas repetições básicas demonstradas, mas
+  mantidos os assuntos que ainda não possuem evidência de domínio.
+- Os seis projetos aprovados passaram a encerrar com documentação e publicação
+  no LinkedIn. Foram configurados seis marcos de título e 29 alertas de
+  competências ligados à conclusão do conteúdo correspondente.
+- O validador passou a conferir que todos os itens ativos existem na grade
+  canônica, mantêm IDs e metadados oficiais, não se repetem e declaram a
+  quantidade excluída sem exigir que toda a grade apareça na agenda ativa.
+- Validações locais: gerador e validador aprovados; ESLint sem erros e build
+  webpack concluído com TypeScript, 78 páginas e geração estática aprovados.
+  A suíte Node não chegou a executar as asserções: o carregador `tsx` falhou
+  antes dos testes com `uv_os_get_passwd ENOMEM`, inclusive com concorrência 1
+  e com um único arquivo. O bloqueio é do ambiente e permanece registrado.
+- Nenhum deploy, migration ou escrita em Production foi realizado.
+
+## 2026-11-03 16:01 -03:00 — Roadmap Udemy aplicado em Production
+
+- O importador atualizou somente o snapshot `roadmap` da Central de Evolução;
+  o snapshot das pendências RankFTV não foi alterado. A verificação remota
+  confirmou 112 dias úteis, de 03/11/2026 a 12/04/2027, e 2.645 itens oficiais.
+- A migração de progresso inseriu e verificou 26 conclusões canônicas antes de
+  remover 21 IDs legados convertidos. O registro de Excel sem destino no plano
+  atual permaneceu intacto como histórico.
+- A consulta final de Production confirmou 26 conclusões ligadas ao novo
+  roadmap, zero IDs convertidos remanescentes e exatamente um registro
+  histórico fora do plano.
+- O commit local `291873a` não foi enviado ao GitHub: a política de saída
+  bloqueou o upload da grade e do roadmap enquanto a privacidade do remoto não
+  estiver explicitamente confirmada. O dado de Production já está corrigido;
+  publicar o código reprodutível continua pendente dessa autorização.
+
+## 2026-11-03 15:59 -03:00 — Grade oficial completa e progresso do roadmap Udemy
+
+- Foram consultados os 21 links cadastrados no roadmap pela API oficial de
+  currículo da Udemy. O snapshot versionado contém 318 seções, 2.500 aulas e
+  145 quizzes, simulações ou outras atividades, com IDs, números, nomes e
+  durações oficiais disponíveis.
+- O gerador deixou de depender da grade histórica do cofre e de quatro cursos
+  resumidos por módulos estimados. O roadmap passou a ter 112 dias úteis,
+  2.645 itens oficiais, 22 dias de projeto e 471,6 horas planejadas, de
+  03/11/2026 a 12/04/2027.
+- Os itens agora usam IDs estáveis derivados da Udemy. A consulta somente
+  leitura de Production encontrou 22 conclusões legadas: 21 podem ser
+  convertidas em 26 itens canônicos; a conclusão de Excel, curso ausente do
+  plano atual, fica preservada sem exclusão. Nenhuma escrita em Production foi
+  feita neste ponto do registro.
+- Validação: conferência integral de 2.645 itens sem falta, extra, divergência
+  ou duplicidade; lint e typecheck aprovados; 872 testes aprovados e 1
+  ignorado; build webpack concluído com 78 páginas; `npm audit --omit=dev`
+  reportou zero vulnerabilidades. O build Turbopack local falhou internamente
+  ao iniciar o processo de PostCSS e foi revalidado com webpack.
+
+## 2026-10-28 12:51 (America/Sao_Paulo) — Simplificação do plano de Data Science
+
+- Por decisão de Carlos, a seção diária `Prática e entrega` foi removida do
+  roadmap ativo. O plano passa a mostrar somente o curso, o link e as aulas
+  numeradas, mantendo até quatro horas reservadas por sessão.
+- Os três projetos de portfólio permanecem como as entregas práticas do ciclo.
+  Os desbloqueios de serviço agora usam aulas concluídas e confirmações, sem
+  depender de atividades ocultas.
+- Snapshot local regenerado: 60 dias, 60 aulas, zero seção de prática. Nenhuma
+  escrita no Supabase ou deploy havia ocorrido no momento deste registro.
+
 ## 2026-10-20 14:51 (America/Sao_Paulo) — Mix de efeitos sonoros no MP4
 
 - Status: concluído localmente. A versão do vídeo foi re-renderizada com
@@ -1064,3 +1198,394 @@ registrar apenas uma revalidação quando ela for necessária.
   editável antes de salvar; iniciar ou pausar nunca grava automaticamente.
 - Evidência local: sincronização do roadmap com 81 dias, lint, typecheck e
   build concluídos. Nenhum segredo foi registrado.
+## 2026-10-22 — Central: primeira camada de inteligência editorial
+
+- Carlos corrigiu o alvo: a cópia atual é `Projeto-RankFTV-evolucao`, que
+  corresponde à Central de Evolução publicada; `Projeto-RankFTV` é a cópia
+  antiga e não é o alvo desta entrega.
+- Foi criada a visão `rocha-tech?view=inteligencia`, com leitura local somente
+  dos dados públicos de `Rocha Tech - YT/Concorrentes`, sinais de temas,
+  métricas da amostra e limites de inferência. A navegação ganhou o item
+  "Inteligência do canal".
+- A pesquisa oficial foi registrada no cofre sem importação para Supabase e
+  sem novos registros no radar.
+- Evidência local: servidor Next.js iniciado no repositório correto e
+  `npx tsc --noEmit --incremental false` concluído com sucesso. Nenhum segredo
+  foi exibido ou registrado.
+
+## 2026-10-22 — Central: categorias editoriais na Biblioteca de ideias
+
+- Cada ideia da Biblioteca agora recebe uma etiqueta calculada a partir do
+  título, resumo e ângulo, usando as cinco categorias da inteligência editorial:
+  Negócios e dinheiro, Ferramentas práticas, Modelos e lançamentos, Agentes e
+  automação ou Notícias e opinião.
+- A classificação é determinística e somente visual; não altera o Supabase nem
+  cria novos registros.
+- Evidência local: `npx.cmd tsc --noEmit --incremental false` e
+  `git diff --check` concluídos com sucesso.
+
+## 2026-10-22 — Central: thumbnails e critério da amostra editorial
+
+- A leitura dos concorrentes agora aceita os dois formatos de snapshot usados
+  no cofre, inclusive thumbnails em `thumbnail.source_url` e observações em
+  `observations[0]`.
+- A seção de vídeos mais vistos exibe a thumbnail de cada vídeo e explica que
+  o ranking é ordenado por views públicas observadas na coleta, sem prometer
+  qualidade ou desempenho futuro.
+- Evidência local: typecheck e servidor Next.js concluídos sem erro.
+
+## 2026-10-22 — Central: visualização explícita de views e thumbnails locais
+
+- A apresentação deixou de usar a abreviação ambígua `mi`: agora mostra
+  `milhões`, `mil` ou o número inteiro em português.
+- As thumbnails passam a ser servidas pelo endpoint autenticado a partir dos
+  arquivos locais do cofre, evitando falhas dos links remotos do YouTube.
+
+## 2026-10-22 — Central: correção de unidade nas views dos concorrentes
+
+- A auditoria encontrou seis valores redondos que estavam 1.000 vezes maiores
+  que a listagem pública: Lucas Montano `11.000.000 → 11.000`; Vagner Mazzeo
+  quatro vídeos `7.000.000 → 7.000` e um vídeo `2.000.000 → 2.000`.
+- O parser da coleta foi ajustado para tratar a abreviação `mi` retornada pela
+  listagem pt-BR como `mil` neste contexto; `m` continua representando milhão.
+- Médias recalculadas na base corrigida: Lucas Montano ≈ 49,6 mil (73 vídeos)
+  e Vagner Mazzeo ≈ 35,9 mil (29 vídeos). A coleta online posterior falhou por
+  indisponibilidade de rede e não substituiu os snapshots existentes.
+
+## 2026-10-22 — Central: 15 títulos editoriais em pt-BR
+
+- A seção “Vídeos para estudar, não copiar” foi ampliada de 12 para 15 cards.
+- Os títulos em inglês dos vídeos exibidos receberam versões editoriais em
+  português do Brasil, sem sobrescrever os títulos originais dos snapshots.
+- As datas relativas em inglês passaram a ser apresentadas em pt-BR para
+  minutos, horas, dias, semanas, meses e anos.
+- Evidência local: os 15 títulos foram conferidos e o typecheck foi concluído
+  sem erros. Nenhum dado externo, Supabase ou Production foi alterado.
+
+## 2026-10-22 — Central: candidato de Production da inteligência editorial
+
+- O candidato passou a incluir um snapshot público e seguro dos agregados e
+  dos 15 vídeos apresentados, evitando dependência do caminho local do cofre
+  quando executado na Vercel.
+- A rota autenticada de thumbnails preserva os arquivos locais como primeira
+  opção e usa `i.ytimg.com` como fallback em Production.
+- Evidência local: lint sem erros, typecheck sem erros, auditoria com zero
+  vulnerabilidades e build completo com 72 páginas. A suíte de testes não
+  iniciou no computador por `uv_os_get_passwd ENOMEM`; o CI remoto permanece
+  como gate obrigatório antes do merge. Nenhum banco ou migration foi alterado.
+
+## 2026-10-23 — Pulso.AI: atualização completa de notícias, ideias e concorrentes
+
+- `youtube:sources` confirmou 16 fontes ativas em Production. A pesquisa manual
+  verificou páginas individuais e descartou fontes sem item novo de IA central
+  ou inacessíveis sem inferir conteúdo.
+- O preflight passou com 8 notícias, 12 tendências, 12 ideias e cobertura das
+  16 fontes. A importação gerou a rodada
+  `64dfd16c-2e98-4ec6-8523-90b69c021c4c`, incluiu 8 conteúdos, criou 3
+  tendências e 3 ideias, ranqueou 12 ideias e vinculou 9 referências públicas
+  do YouTube.
+- O snapshot público foi renovado para 997 vídeos em 18 canais. Dezesseis
+  valores arredondados de Pedro Cooke foram corrigidos de milhões para
+  milhares; a média agregada corrigida ficou em aproximadamente 113,2 mil.
+- A tendência antiga `agentes-sempre-ativos-para-pessoas-comuns` foi arquivada
+  depois de confirmar o ID e a chave, eliminando a duplicidade com a nova
+  leitura de agentes proativos sem apagar seu histórico.
+- Nenhum segredo foi exibido ou registrado. `lint -- --quiet`, `typecheck` e o
+  build completo com 72 páginas passaram localmente; o CI remoto permanece
+  como gate obrigatório antes do merge e da publicação em Production.
+- O primeiro CI do PR #74 detectou advisories novos em `dompurify` e `zod`.
+  As versões foram elevadas para 3.4.17 e 4.6.7, respectivamente; `npm install`
+  passou a reportar zero vulnerabilidades antes da nova rodada do CI.
+
+## 2026-10-24 — Pulso.AI: ranking relativo, A Vizinhança e rodada completa
+
+- A base local foi consolidada em 849 vídeos de 16 canais; Ernesto Reis e
+  Pedro Cooke permanecem fora do conjunto ativo.
+- A Vizinhança recebeu coleta completa de 13 vídeos publicados no último ano,
+  com JSON individual, nota, thumbnail e metadados públicos preservados.
+- O ranking de concorrentes passou a usar nota de oportunidade de 0 a 100:
+  35% desempenho relativo à mediana do canal, 20% aderência ao canal Carlos
+  Rocha, 15% facilidade de adaptação, 15% atualidade, 10% validação cruzada e
+  5% embalagem. O painel limita três vídeos por canal e exclui podcasts,
+  entrevistas e lives da lista principal.
+- O payload completo passou no preflight com 16 fontes, 10 notícias, 12
+  tendências e 13 ideias. A importação criou a rodada
+  `6f8d13f1-8f60-45d1-bf2f-ef1d6f9c3ea5`, inseriu 2 conteúdos novos,
+  atualizou 8, ranqueou 13 ideias e vinculou 12 referências do YouTube.
+- Quatro referências antigas dos canais excluídos foram removidas do banco e
+  a consulta posterior confirmou zero remanescentes.
+- A suíte terminou com 858 testes aprovados e 1 ignorado, sem falhas. Lint,
+  typecheck, `git diff --check` e o build de 72 páginas também passaram.
+
+## 2026-10-24 — Correção do overlay das thumbnails
+
+- Um seletor CSS legado tratava o último `span` da thumbnail como etiqueta de
+  posição. Depois da inclusão da nota, o último elemento passou a ser a nota e
+  recebeu simultaneamente `top`, `right`, `bottom` e `left`, cobrindo a foto.
+- O seletor genérico foi removido. As classes `evo-intel-position` e
+  `evo-intel-score` controlam separadamente as duas etiquetas.
+- Lint, typecheck, `git diff --check` e build completo com 72 páginas passaram.
+
+## 2026-10-25 18:20 -03:00 — Pulso.AI: rodada completa e base de 20 canais
+
+- `youtube:sources` confirmou 16 fontes ativas. A pesquisa manual conferiu
+  listagens e páginas individuais das fontes acessíveis; X/Twitter e páginas
+  sem item verificável foram tratados como limitação, sem inferência.
+- O payload completo passou no preflight com 11 itens, 13 tendências, 14
+  ideias e cobertura das 16 fontes. A importação de Production gerou a rodada
+  `13dd75eb-4059-429d-b742-98ba018bec2a`, inseriu 1 conteúdo, atualizou 10,
+  criou 1 tendência e 1 ideia, ranqueou 14 ideias e vinculou 5 referências do
+  YouTube. Nenhuma fonte falhou.
+- Agent Skills entrou como nova oportunidade editorial na posição 2, nota 95.
+  A pauta cruza a fonte primária da Anthropic com vídeos observados de Ben AI
+  e AI with Remy, preservando datas e views públicas da coleta.
+- O snapshot seguro foi regenerado com 1.021 vídeos em 20 canais, 1.018 com
+  views válidas e 15 oportunidades; o ranking continua limitado a três vídeos
+  por canal e exclui podcasts, entrevistas e lives.
+- Nenhum segredo foi exibido ou registrado. A publicação permanece condicionada
+  aos gates locais, CI do pull request e deployment Vercel.
+## 2026-10-25 — Central: requisitos para gravar em cada ideia
+
+- A página `/admin/evolucao/rocha-tech/ideias/[id]` agora calcula e mostra
+  ferramentas, modalidade de acesso, itens obrigatórios/opcionais, custo
+  mensal estimado e total para gravar a pauta.
+- O cálculo é heurístico e determinístico, usando os campos persistidos da
+  ideia; não houve migration nem escrita no Supabase.
+- Evidência local pendente: lint, typecheck, testes isolados e build. A
+  publicação depende dos gates do pull request e do deployment Vercel.
+## 2026-10-25 — Central: data da novidade em cada ideia
+
+- A página de detalhe agora identifica se a pauta se refere a lançamento ou
+  atualização específica e exibe a data publicada mais recente das fontes
+  relacionadas. Pautas evergreen recebem mensagem explícita de que não há
+  lançamento específico.
+- Datas ausentes permanecem sinalizadas como não verificáveis; nenhuma data é
+  inferida ou inventada. Não houve migration nem escrita no Supabase.
+## 2026-10-26 13:14 -03:00 — Pulso.AI: resumo clicável na Central de Evolução
+
+- Correção aplicada no repositório correto: os cartões do briefing agora abrem
+  o detalhe da notícia e exibem `Ver resumo completo`, sem remover a fonte
+  original.
+- O detalhe usa a autenticação existente, lê a fonte sob demanda, limita o
+  conteúdo recebido e bloqueia URLs internas. O resumo preserva fatos,
+  números, datas, condições, limitações e riscos.
+- Migration incremental preparada em
+  `supabase/20261026000100_youtube_article_summaries.sql`; ainda não aplicada.
+  Não houve ativação de pesquisa automática.
+- Validação observada: typecheck e build aprovados, lint direcionado sem erros
+  e 2 testes unitários aprovados. Ainda sem deploy.
+## 2026-10-27 — Central: serviços desbloqueados no DataScience
+
+- Corrigida a interpretação anterior: a solicitação era adicionar à Central a
+  nova página do roadmap para prestação de serviços, não apenas confirmar a
+  página já existente de Fontes.
+- Criada a rota `/admin/evolucao/datascience/servicos` e adicionada a
+  navegação filha de DataScience no menu lateral e no menu móvel.
+- O snapshot passou a usar `roadmap-servicos-diario.md`: 30 dias úteis, 150
+  atividades e 240 minutos planejados por dia, com o curso de Power BI do
+  André Rosa nos recortes definidos.
+- A liberação dos quatro serviços depende das práticas de 105 e 30 minutos,
+  das três evidências do marco e dos pré-requisitos. A lógica recebeu testes
+  unitários próprios.
+- Evidência local: typecheck, lint, build de 72 páginas e dois testes da regra
+  de desbloqueio aprovados. O primeiro build foi bloqueado apenas pelo acesso à
+  fonte Inter; repetido com rede disponível, concluiu normalmente.
+# 28/10/2026 — DataScience: aulas numeradas e projetos de portfólio
+
+- Atualizado o roadmap de 60 dias para exibir curso, link e aulas numeradas.
+- Confirmada ausência de atividades de inglês no plano ativo.
+- Criadas páginas para painel de vendas, pipeline SQL/Python e consultoria
+  fictícia, cada uma com base XLSX sintética e instruções completas.
+- Validação local: typecheck, lint, build de 75 páginas, snapshot com 60 dias,
+  240 atividades e zero atividade de inglês. A suíte completa local não iniciou
+  por falta de memória do Windows (`uv_os_get_passwd/ENOMEM`); o CI remoto fará
+  a execução em ambiente limpo.
+- Publicação será registrada ao concluir CI e deploy.
+
+## 2026-10-28 — DataScience: carga intensiva e sequência pedagógica
+
+- Os Dias 1 e 2 foram mantidos sem alteração para preservar o progresso já
+  registrado por Carlos. O primeiro bloco do Dia 3 também conserva o mesmo ID.
+- O Dia 3 passou a reunir três blocos (210 minutos), e os dias seguintes foram
+  redistribuídos em faixas contínuas de aproximadamente 150 a 210 minutos.
+- A ordem deixou de saltar entre partes distantes do mesmo curso sem contexto.
+  A trilha agora avança por Excel aplicado, estatística, Power BI, SQL,
+  Python/Pandas, automação e projetos finais.
+- Validação local: snapshot com 60 dias e 62 tarefas; IDs concluídos preservados;
+  typecheck, lint sem erros e build de produção aprovados. A suíte completa não
+  iniciou por limitação de memória do Windows (`uv_os_get_passwd/ENOMEM`).
+
+## 2026-10-29 09:52 -03:00 — DataScience: roadmap completo e seis projetos aprovados
+
+- Implementada em `feat/datascience-roadmap-v2` a prévia local do novo roadmap
+  de Ciência de Dados + IA: 83 dias úteis, cerca de 345,6 horas, três prioridades e seis
+  marcos de portfólio escolhidos por Carlos (1C, 2B, 3B, 4C, 5A e 6B).
+- O plano anterior de 60 dias foi retirado da página nova, assim como o registro
+  visual de foco. O calendário não contém finais de semana, dias abaixo de
+  quatro horas ou atividades de inglês.
+- Por decisão de Carlos, o Dia 01 foi deslocado para terça-feira, 03/11/2026;
+  todas as datas seguintes foram recalculadas.
+- Após Carlos confirmar acesso, foram adicionadas as 23 aulas exatas dos seis
+  módulos selecionados de `Análise e Levantamento de Requisitos de Software —
+  Wesley Ávila`. O curso ficou nos dias 14 e 15, antes do primeiro projeto de
+  atendimento; o plano passou a 84 dias, cerca de 350,7 horas e término em
+  03/03/2027.
+- Adicionados 29 marcos de competências para atualização progressiva do
+  LinkedIn. O aviso é exibido no dia em que a evidência curricular é concluída
+  e também em um painel consolidado; títulos profissionais e competências
+  permanecem fluxos separados.
+- A grade deixou de usar temas inventados e blocos genéricos: aulas individuais
+  exibem os títulos literais cadastrados e seções completas exibem `Módulo inteiro`
+  seguido do nome oficial do módulo da Udemy.
+- Foram geradas páginas completas para diagnóstico de atendimento, painel de
+  estoque, risco de crédito, previsão de atendimento, API de churn e
+  inteligência de avaliações. Os 29 arquivos sintéticos somam 22.148 linhas
+  CSV, passaram no validador e todos os downloads responderam HTTP 200.
+- Acesso sem Turnstile foi habilitado apenas no localhost e depende de
+  `EVOLUTION_LOCAL_PREVIEW=true`; Production continua usando o login normal.
+- Evidência observada: typecheck, lint, `git diff --check`, validação dos dados,
+  sete rotas locais HTTP 200 e build Next.js completo com 78 páginas passaram.
+  A suíte Node permanece impedida pelo erro ambiental
+  `uv_os_get_passwd/ENOMEM`, inclusive com concorrência 1, antes de carregar os
+  arquivos de teste. Nenhum deploy, migration ou escrita remota foi executado.
+
+## 2026-10-29 — Pulso.AI: contrato editorial de quatro abordagens
+
+- Escopo aprovado por Carlos: atualizar estratégia, Prompt Mestre, interface,
+  importador e persistência; publicar em Production e executar uma atualização
+  geral do radar no novo formato.
+- Definido o mix editorial de 65% IA aplicada, 25% produtividade/carreira/
+  aprendizado/sistemas pessoais e 10% notícias puras relevantes.
+- Preparada persistência privada para quatro abordagens por ideia, com RLS
+  forçada, grants exclusivos ao `service_role`, constraints, índice da chave
+  estrangeira e RPC de importação validada.
+- O importador passa a exigir os quatro enquadramentos e a ficha da pauta passa
+  a comparar título, promessa, demonstração, justificativa, momento,
+  longevidade, requisitos e nota de cada opção.
+- Validação concluída: nove testes específicos, typecheck, lint e build local
+  passaram. O CI de `master` também passou, incluindo 30 testes de navegador.
+- Publicação concluída pela PR `#98`, merge commit
+  `5b096a7ac165d173bd3a018e40810f08eb0d8004`, com deploy de Production da
+  Vercel em estado `Ready`.
+- A migration protegida foi aplicada pelo workflow `40983208779`, com validação
+  do alvo, aplicação atômica, endurecimento de segurança e verificação final.
+- A primeira rodada no novo contrato foi concluída no run
+  `19e2a863-386e-4871-8078-181f2b1590ba`: 19 ideias ranqueadas, 76 abordagens
+  persistidas, 51 referências do YouTube atualizadas e perfil editorial
+  confirmado em 65% / 25% / 10%.
+
+## 2026-10-29 — Biblioteca: nota da melhor abordagem no cartão
+
+- Carlos definiu que a nota exibida no cartão do quadro deve ser a maior nota
+  entre as quatro abordagens, e não a nota editorial geral da ideia.
+- O cartão passa a identificar a abordagem vencedora e deixa de mostrar as
+  etiquetas redundantes `4 abordagens`, ângulo, prioridade e estado editorial.
+  Fonte, categoria e `NEW` continuam visíveis quando aplicáveis.
+- Em empate de nota, vence a abordagem de menor posição na ficha, preservando
+  uma escolha estável e reproduzível.
+- Evidência local: três testes da seleção passaram, assim como typecheck, lint
+  sem erros e build Next.js completo com 78 páginas.
+- Correção de coerência aprovada em seguida: título e resumo do cartão também
+  vêm da abordagem vencedora. Nota, identificação, título e descrição não podem
+  representar execuções diferentes da mesma pauta.
+
+## 2026-10-30 — Ranking editorial com ponderação real 65/25/10
+
+- Carlos identificou que o ranking de referências ainda tratava 65/25/10 como
+  cotas de 10 vídeos de IA, 4 de produtividade e 1 notícia. A regra correta é
+  uma ponderação aplicada à nota individual de todos os vídeos.
+- A nota agora combina 65% de IA aplicada/transformação/benefício, 25% de
+  produtividade/carreira/aprendizado/sistemas e 10% de notícia/atualidade.
+  Não há cotas por categoria: os 15 maiores resultados entram, respeitando o
+  limite de três vídeos por canal e a exclusão de podcasts, entrevistas e lives.
+- Desempenho relativo à mediana do canal, adaptação, embalagem, validação
+  cruzada, atualidade e longevidade alimentam os três pilares da nota.
+- O snapshot editorial foi regenerado e a interface passou a explicar e abrir
+  a composição real dos três pilares.
+- Validação local: 873 testes executados, 872 aprovados e 1 ignorado; typecheck,
+  lint sem erros, build de produção e `git diff --check` aprovados.
+
+## 2026-10-31 — Atualização completa do radar e concorrentes
+
+- Escopo aprovado por Carlos: revisar todos os concorrentes, consultar todas as
+  fontes ativas, reavaliar o radar completo, importar em Production, regenerar
+  o snapshot e publicar a atualização.
+- Coleta concluída em 21 canais: 1.022 vídeos na janela anual, 9 novos, 952
+  alterações de visualizações públicas e zero falhas de canal.
+- Pesquisa manual cobriu as 17 fontes ativas. Perfis dinâmicos do X e fontes
+  sem novo item individual verificável foram registrados como limitação; fatos
+  não foram inferidos apenas a partir de títulos ou páginas iniciais.
+- Preflight Production validou 17 conteúdos, 19 tendências, 21 ideias e 84
+  abordagens. A importação gerou o run
+  `55f3252c-a05d-405c-b9d3-56207f5d546f`: 3 conteúdos novos, 14 atualizados,
+  21 ideias ranqueadas, 84 abordagens e 62 referências do YouTube.
+- O snapshot passou a conter 1.191 registros observados em 21 canais e 15
+  oportunidades. A diferença para os 1.022 vídeos da coleta anual decorre do
+  histórico preservado no conjunto analítico; o ranking continua limitado à
+  janela e aos critérios editoriais vigentes.
+
+## 2026-11-02 — Atualização completa do radar e concorrentes
+
+- Execução iniciada a partir de uma auditoria da tentativa anterior. O aviso
+  de incompatibilidade era consequência de uma cópia antiga do projeto: o
+  importador atual já aceita `approaches`, `--validate-only` e `--preflight`.
+- A parte válida da tentativa anterior foi preservada: oito vídeos novos com
+  metadados e thumbnails. Em seguida, a coleta oficial refez os 21 canais,
+  atualizou todas as observações disponíveis e fechou com 1.024 vídeos na
+  janela anual e zero falhas.
+- Pesquisa manual realizada nas 17 fontes ativas, com leitura das páginas
+  individuais quando disponíveis. Limitações de páginas dinâmicas ou sem
+  conteúdo verificável foram explicitadas em vez de inferidas.
+- Validação local e preflight de Production aprovados para 19 conteúdos, 19
+  tendências, 22 ideias e 88 abordagens.
+- Importação de Production concluída às 22h no run
+  `483393cd-eb2a-47d1-af7d-ef66cd772698`: 2 conteúdos novos, 17 atualizados,
+  1 ideia nova, 22 ideias ranqueadas, 88 abordagens e 66 referências do
+  YouTube persistidas; perfil editorial 65/25/10 confirmado.
+- Snapshot editorial regenerado com 1.199 registros históricos, 21 canais e
+  15 oportunidades. A publicação do snapshot segue pelo fluxo protegido de
+  PR, CI e deploy da Vercel.
+
+## 2026-11-03 — Atualização completa do radar e concorrentes
+
+- Os 21 concorrentes foram recolhidos sem falha. A janela anual passou a 1.027
+  vídeos; quatro publicações novas de Harry Long, Lucas Montano, Sanji
+  Nai-Chien e Vagner Mazzeo foram registradas com data, duração, visualizações
+  públicas e thumbnail.
+- As 17 fontes ativas foram verificadas. A novidade editorial confirmada do dia
+  foi a expansão do aprendizado guiado do Google para Classroom e Busca, com
+  exemplos de avaliações interativas, atividades baseadas em jogos e feedback.
+  Páginas dinâmicas sem conteúdo individual verificável não foram usadas para
+  inferir fatos.
+- Validação local e preflight de Production aprovaram 20 conteúdos, 20
+  tendências, 24 ideias e 96 abordagens. A importação Production gerou o run
+  `7ea6cc64-4371-4061-ba9f-c1666cd51f52`: 1 conteúdo novo, 19 atualizados, 1
+  tendência nova, 2 ideias novas, 24 ideias ranqueadas, 96 abordagens e 73
+  referências do YouTube.
+- As novas pautas ensinam a usar IA como tutora ativa e a organizar uma equipe
+  de IAs especialistas. Ambas possuem quatro abordagens e mantêm a regra de
+  coerência entre nota, título, descrição e abordagem vencedora.
+- O snapshot editorial foi regenerado com 1.203 registros observados, 21 canais
+  e 15 oportunidades. A ponderação individual 65/25/10, o limite de três
+  vídeos por canal e a exclusão de podcasts, entrevistas e lives permanecem.
+
+## 2026-11-04 — Preparação do coletor oficial de concorrentes
+
+- Escopo aprovado por Carlos: preparar a migração segura da coleta de
+  concorrentes do Rocha Tech para a YouTube Data API v3 e publicar o suporte
+  de código, mantendo o canal pessoal e sua credencial completamente separados.
+- Implementados os modos `api-preferred`, `api-only` e `fallback-only`, com
+  dry-run padrão, `--apply` explícito, janela configurável e filtro por canal.
+- O coletor preserva a estrutura e o histórico atuais, baixa thumbnails apenas
+  durante aplicação aprovada e nunca envia a chave em URL ou relatório.
+- Proteção adicional: a escrita só começa após todos os canais serem coletados
+  sem erro e sem fallback. Falha ou ausência da chave mantém a base intacta.
+- Evidência sem credencial: 22 canais descobertos, 1.259 vídeos existentes,
+  zero falhas de leitura e 22 encaminhamentos ao fallback manual; nenhum dado
+  da base foi modificado.
+- Verificações aprovadas: typecheck, 878 testes aprovados e 1 ignorado, lint
+  sem erros (avisos legados), auditoria de dependências de produção sem
+  vulnerabilidades e build completo do Next.js.
+- Não foram alterados Supabase, dados editoriais, Prompt Mestre, Vercel env ou
+  `.env.local`. O dry-run real da API depende da nova chave exclusiva do Rocha
+  Tech ser criada e configurada localmente por Carlos.

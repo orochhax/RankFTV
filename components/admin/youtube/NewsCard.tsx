@@ -1,3 +1,7 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import type { KeyboardEvent, MouseEvent } from "react";
 import { ArrowUpRight, Clock3, ShieldCheck, Sparkles } from "lucide-react";
 import type { YoutubeNewsItem } from "@/lib/youtube/queries";
 import { relativeYoutubeDate } from "@/lib/youtube/format";
@@ -16,9 +20,35 @@ const originLabel = {
 } as const;
 
 export function YoutubeNewsCard({ item, featured = false }: { item: YoutubeNewsItem; featured?: boolean }) {
+  const router = useRouter();
   const analysed = item.opportunity_score !== null;
+  const detailHref = `/admin/evolucao/rocha-tech/noticias/${item.id}`;
+
+  function openDetail() {
+    router.push(detailHref);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openDetail();
+    }
+  }
+
+  function handleClick(event: MouseEvent<HTMLElement>) {
+    if ((event.target as HTMLElement).closest("a,button")) return;
+    openDetail();
+  }
+
   return (
-    <article className={featured ? "yt-news-card is-featured" : "yt-news-card"}>
+    <article
+      className={featured ? "yt-news-card is-featured is-clickable" : "yt-news-card is-clickable"}
+      role="link"
+      tabIndex={0}
+      aria-label={`Abrir resumo completo: ${item.title}`}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+    >
       <div className="yt-card-meta">
         <span className="yt-source-pill">{item.source_name}</span>
         {item.is_new ? <span className="yt-new-tag">NEW</span> : null}
@@ -49,7 +79,10 @@ export function YoutubeNewsCard({ item, featured = false }: { item: YoutubeNewsI
               ? "Dados quantitativos"
               : item.evidence_type === "mixed" ? "Evidência mista" : "Sem classificação"}
         </span>
-        <a href={item.url} target="_blank" rel="noreferrer">Fonte original <ArrowUpRight size={14} /></a>
+        <div className="yt-card-footer-actions">
+          <a href={detailHref}>Ver resumo completo</a>
+          <a href={item.url} target="_blank" rel="noreferrer">Fonte original <ArrowUpRight size={14} /></a>
+        </div>
       </div>
     </article>
   );

@@ -23,7 +23,12 @@
     "video:rankftv:render": "node videos/rankftv-organizadores-vertical/render.mjs",
     "youtube:import": "tsx scripts/youtube-import-research.ts",
     "youtube:sources": "tsx scripts/youtube-list-sources.ts",
-    "evolution:sync": "node scripts/evolution-sync-sources.mjs",
+    "youtube:competitors": "tsx scripts/youtube-collect-competitors.ts",
+    "youtube:competitors:validate": "tsx scripts/youtube-collect-competitors.ts --validate-only",
+    "evolution:sync": "node scripts/generate-datascience-roadmap-v2.mjs && node scripts/evolution-sync-sources.mjs",
+    "evolution:udemy:fetch": "node scripts/fetch-udemy-curricula.mjs",
+    "evolution:udemy:validate": "node scripts/validate-udemy-roadmap.mjs",
+    "evolution:roadmap-progress:migrate": "tsx scripts/evolution-migrate-roadmap-progress.ts",
     "evolution:import": "tsx scripts/evolution-import-sources.ts",
     "evolution:agent": "node scripts/evolution-local-agent.mjs --watch",
     "evolution:agent:once": "node scripts/evolution-local-agent.mjs --once",
@@ -50,7 +55,7 @@
     "recharts": "^3.9.1",
     "resend": "^6.14.0",
     "server-only": "^0.0.1",
-    "zod": "^4.4.3"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
@@ -72,7 +77,7 @@
     "typescript-eslint": "^8.69.0"
   },
   "overrides": {
-    "dompurify": "3.4.16",
+    "dompurify": "3.4.17",
     "nanoid": "3.3.18",
     "postcss": "8.5.26",
     "sharp": "0.35.5",

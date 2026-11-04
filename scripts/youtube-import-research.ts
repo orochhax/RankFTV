@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { ideaApproachesSchema } from "../lib/youtube/idea-approaches";
 
 const score = z.number().int().min(0).max(100);
 const sourceOrigin = z.enum(["primary", "market", "mixed"]);
@@ -86,6 +87,7 @@ const ideaSchema = z.object({
   sourceUrls: z.array(z.url()).min(1),
   aiRelevance,
   sourceOrigin,
+  approaches: ideaApproachesSchema,
   youtubeReferences: z.array(youtubeReferenceSchema).min(3).max(5).optional(),
 });
 
@@ -187,28 +189,37 @@ async function main() {
   const imported = z.object({ runId: z.string().uuid() }).passthrough().parse(data);
   const { data: rankingData, error: rankingError } = await supabase.rpc("yt_recalculate_codex_idea_ranks", { p_run_id: imported.runId });
   if (rankingError) throw new Error(`YOUTUBE_CODEX_IMPORT_RANKING_FAILED: ${rankingError.message}`);
+  const approaches = payload.ideas.flatMap((idea) => idea.approaches.map((approach) => ({
+    sourceFingerprint: idea.sourceFingerprint,
+    ...approach,
+  })));
+  let approachData: unknown = { upserted: 0 };
+  if (approaches.length) {
+    const { data: appliedApproaches, error: approachError } = await supabase.rpc("yt_apply_codex_idea_approaches", {
+      p_approaches: approaches,
+      p_run_id: imported.runId,
+    });
+    if (approachError) throw new Error(`YOUTUBE_CODEX_IMPORT_APPROACHES_FAILED: ${approachError.message}`);
+    approachData = appliedApproaches;
+  }
   const youtubeReferences = payload.ideas.flatMap((idea) => (idea.youtubeReferences ?? []).map((reference) => ({
     sourceFingerprint: idea.sourceFingerprint,
     ...reference,
   })));
+  let referenceData: unknown = { upserted: 0 };
   if (youtubeReferences.length) {
-    const { data: referenceData, error: referenceError } = await supabase.rpc("yt_apply_codex_youtube_references", {
+    const { data: appliedReferences, error: referenceError } = await supabase.rpc("yt_apply_codex_youtube_references", {
       p_references: youtubeReferences,
       p_run_id: imported.runId,
     });
     if (referenceError) throw new Error(`YOUTUBE_CODEX_IMPORT_YOUTUBE_REFERENCES_FAILED: ${referenceError.message}`);
-    if (payload.editorialProfile) {
-      const { error: settingsError } = await supabase.from("yt_app_settings").update({ editorial_profile: payload.editorialProfile }).eq("id", 1);
-      if (settingsError) throw new Error(`YOUTUBE_CODEX_IMPORT_EDITORIAL_PROFILE_FAILED: ${settingsError.message}`);
-    }
-    process.stdout.write(`${JSON.stringify({ environment: "production", imported: data, ranking: rankingData, youtubeReferences: referenceData, editorialProfileUpdated: Boolean(payload.editorialProfile) })}\n`);
-    return;
+    referenceData = appliedReferences;
   }
   if (payload.editorialProfile) {
     const { error: settingsError } = await supabase.from("yt_app_settings").update({ editorial_profile: payload.editorialProfile }).eq("id", 1);
     if (settingsError) throw new Error(`YOUTUBE_CODEX_IMPORT_EDITORIAL_PROFILE_FAILED: ${settingsError.message}`);
   }
-  process.stdout.write(`${JSON.stringify({ environment: "production", imported: data, ranking: rankingData, youtubeReferences: { upserted: 0 }, editorialProfileUpdated: Boolean(payload.editorialProfile) })}\n`);
+  process.stdout.write(`${JSON.stringify({ environment: "production", imported: data, ranking: rankingData, approaches: approachData, youtubeReferences: referenceData, editorialProfileUpdated: Boolean(payload.editorialProfile) })}\n`);
 }
 
 main().catch((error) => {

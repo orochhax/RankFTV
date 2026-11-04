@@ -7,6 +7,7 @@ import {
   createRequestNonce,
 } from "@/lib/security-headers";
 import { getSupabasePublicConfig } from "@/lib/supabase/config";
+import { isEvolutionLocalPreview } from "@/lib/evolution/local-preview";
 
 // Rotas que exigem role admin ou ceo
 const ADMIN_ROUTES = ["/admin"];
@@ -100,7 +101,10 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Rotas que só admins/CEO acessam
-  const needsAdmin = ADMIN_ROUTES.some((r) => pathname.startsWith(r));
+  const localEvolutionPreview =
+    isEvolutionLocalPreview() && pathname.startsWith("/admin/evolucao");
+  const needsAdmin =
+    !localEvolutionPreview && ADMIN_ROUTES.some((r) => pathname.startsWith(r));
   if (needsAdmin) {
     if (!user) {
       return secureRedirect(new URL("/login", request.url));

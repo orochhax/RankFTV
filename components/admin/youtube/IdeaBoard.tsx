@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, BookOpen, ChevronRight, Clapperboard, GripVertical, Minus } from "lucide-react";
+import { classifyEditorialCategory } from "@/lib/youtube/editorial-categories";
 
 type Idea = {
   id: string;
@@ -23,12 +24,23 @@ type Idea = {
   rank_delta: number | null;
   change_kind: "nova" | "subiu" | "caiu" | "estavel" | "reavaliar" | null;
   is_new: boolean;
+  best_approach_key: "noticia_explicacao" | "tutorial_aplicacao" | "transformacao_beneficio" | "experimento_historia" | null;
+  best_approach_score: number;
+  best_approach_title: string | null;
+  best_approach_explanation: string | null;
 };
 
 const originLabel = {
   primary: "Fonte primária cadastrada",
   market: "Pesquisa de mercado",
   mixed: "Fontes combinadas",
+} as const;
+
+const approachLabel = {
+  noticia_explicacao: "Notícia e explicação",
+  tutorial_aplicacao: "Tutorial e aplicação",
+  transformacao_beneficio: "Transformação e benefício",
+  experimento_historia: "Experimento, história ou vlog",
 } as const;
 
 const columns = [
@@ -115,7 +127,7 @@ export function YoutubeIdeaBoard({ initialIdeas }: { initialIdeas: Idea[] }) {
       <div className="yt-empty-state">
         <div><BookOpen size={25} /></div>
         <h3>Sua biblioteca está vazia</h3>
-        <p>Ideias fundamentadas surgem automaticamente depois da análise de notícias reais.</p>
+        <p>Ideias fundamentadas surgem da combinação de fontes reais, padrões dos concorrentes e oportunidades evergreen.</p>
       </div>
     );
   }
@@ -152,11 +164,11 @@ export function YoutubeIdeaBoard({ initialIdeas }: { initialIdeas: Idea[] }) {
                   onDragStart={(event) => dragStart(event, idea.id)}
                   onDragEnd={() => { setDraggedId(null); setDropStatus(null); }}
                 >
-                  <div className="yt-idea-score"><Clapperboard size={15} /><span>{idea.format}</span><b>{idea.score}</b></div>
+                  <div className="yt-idea-score"><Clapperboard size={15} /><span>{idea.format}</span><b>{idea.best_approach_score}</b></div>
                   <span className="yt-drag-handle" aria-hidden="true"><GripVertical size={15} /></span>
-                  <Link href={`/admin/evolucao/rocha-tech/ideias/${idea.id}`} className="yt-idea-title"><h3>{idea.title}</h3></Link>
-                  <p>{idea.summary}</p>
-                  <div className="yt-tag-row"><span className={`yt-origin-tag is-${idea.source_origin}`}>{originLabel[idea.source_origin]}</span>{idea.is_new ? <span className="yt-new-tag">NEW</span> : null}<span>{idea.angle}</span><span>{idea.priority.replace("_", " ")}</span><span>{idea.editorial_state.replaceAll("_", " ")}</span></div>
+                  <Link href={`/admin/evolucao/rocha-tech/ideias/${idea.id}`} className="yt-idea-title"><h3>{idea.best_approach_title ?? idea.title}</h3></Link>
+                  <p>{idea.best_approach_explanation ?? idea.summary}</p>
+                  <div className="yt-tag-row"><span className={`yt-origin-tag is-${idea.source_origin}`}>{originLabel[idea.source_origin]}</span>{idea.is_new ? <span className="yt-new-tag">NEW</span> : null}<span className="yt-category-tag">{classifyEditorialCategory(idea).label}</span>{idea.best_approach_key ? <span className="yt-approach-tag">{approachLabel[idea.best_approach_key]}</span> : null}</div>
                   <div className="yt-rank-row"><span>#{idea.current_rank ?? "—"} agora</span><span>melhor #{idea.best_rank ?? "—"}</span><span className={idea.change_kind === "subiu" ? "is-up" : idea.change_kind === "caiu" ? "is-down" : "is-same"} title={idea.change_kind === "subiu" ? `Subiu ${idea.rank_delta ?? 0} posições` : idea.change_kind === "caiu" ? `Caiu ${Math.abs(idea.rank_delta ?? 0)} posições` : "Mesma posição"}>{idea.change_kind === "subiu" ? <ArrowUp size={14} /> : idea.change_kind === "caiu" ? <ArrowDown size={14} /> : <Minus size={14} />}</span></div>
                   <label className="yt-move-label">
                     Mover para

@@ -1,0 +1,199 @@
+{
+  "updatedAt": "2026-11-04T17:25:00-03:00",
+  "minActiveScore": 50,
+  "categories": [
+    {
+      "id": "dados_carreira",
+      "name": "Tecnologia, Dados & Carreira",
+      "description": "Foco em maturidade profissional, pragmatismo e estudos aplicados em Ciência de Dados. Sem aulas técnicas, sem promessas de vaga e com diálogo sincero cara a cara.",
+      "ideas": [
+        {
+          "id": "tec-01",
+          "title": "Não ficou mais difícil entrar em Dados: você só está olhando para o passado",
+          "score": 97,
+          "scenario": "Quarto/estúdio em Eunápolis. Diálogo direto e firme com a câmera, olho no olho.",
+          "premise": "Tese madura e contra-intuitiva: o mercado não fechou as portas para juniores, a régua é que mudou. Quem fica comparando com a bolha de 2021 trava; quem entende o presente e foca em resolver problemas com dados limpos e regras de negócio se destaca.",
+          "tension": "O choro coletivo da internet de que 'está impossível' vs a maturidade de entender o mercado como ele é hoje e se preparar direito.",
+          "visual": "Diálogo frontal autêntico com iluminação limpa. Se quiser ilustrar pontualmente, cortes rápidos para exigências de vagas reais na tela, sem obrigação de ficar caçando tela.",
+          "competitorReference": "Padrão de tese pragmática e contra-intuitiva de Vinicius Figueiredo ('Abra o negócio mais chato' - 80x da mediana).",
+          "executionTip": "Gravar com energia firme e postura madura, sem vitimismo e sem tom de professor."
+        },
+        {
+          "id": "tec-02",
+          "title": "Reduza a teoria e aumente a prática",
+          "score": 93,
+          "scenario": "Estúdio caseiro em Eunápolis. Formato diálogo reflexivo e dinâmico.",
+          "premise": "A armadilha de colecionar videoaulas e cursos passivos com a falsa sensação de que está evoluindo; o desconforto necessário de fechar a aula e quebrar a cabeça sozinho com problemas reais.",
+          "tension": "O conforto de ver o professor fazer na tela vs a dor e a frustração do atrito de programar e raciocinar do zero.",
+          "visual": "Diálogo direto com o espectador, compartilhando a mudança prática de postura no dia a dia de estudos.",
+          "competitorReference": "Padrão de desenvolvimento e atrito prático real de Erik Codes e Matheus Porto.",
+          "executionTip": "Gravar logo após um bloco de estudos em que você destravou um código sozinho."
+        },
+        {
+          "id": "tec-03",
+          "title": "Analisei vagas de Dados para descobrir o que realmente preciso estudar",
+          "score": 89,
+          "scenario": "Estúdio caseiro em Eunápolis com vagas abertas e anotações.",
+          "premise": "Um único vídeo consolidado: analisar dezenas de vagas abertas no mercado brasileiro e confrontar com o próprio roadmap, podando o excesso e focando nas competências que mais se repetem.",
+          "tension": "O receio de estar dedicando meses estudando ferramentas sofisticadas que ninguém cobra no dia a dia das empresas.",
+          "visual": "Você conversando com a câmera e cortando para a tela para mostrar requisitos reais de vagas e o roadmap ajustado.",
+          "competitorReference": "Padrão de validação com dados reais de Vinicius Figueiredo (80x da mediana).",
+          "executionTip": "Deixar as abas das vagas já selecionadas e conduzir o vídeo de forma objetiva."
+        },
+        {
+          "id": "tec-04",
+          "title": "O plano de 60 dias úteis em Dados: o que realmente dá para aprender e o que é ilusão",
+          "score": 84,
+          "scenario": "Mesa de estudos em Eunápolis. Diálogo transparente e prestação de contas.",
+          "premise": "A verdade sobre metas de curto e médio prazo: o que é viável dominar em 60 dias de estudos sérios (4h/dia) e o que é pura promessa inflada de vendedor de curso.",
+          "tension": "A expectativa de sair especialista em semanas vs a densidade real dos fundamentos de estatística e lógica.",
+          "visual": "Diálogo direto comentando o cronograma e os aprendizados consolidados sem encenações.",
+          "competitorReference": "Recorte de transformação temporal de Kamily Rebelatto (65x da mediana).",
+          "executionTip": "Gravar na metade ou conclusão do ciclo para ter conclusões consolidadas."
+        }
+      ]
+    },
+    {
+      "id": "vlogs_viagens",
+      "name": "Viagens & Vlogs com História",
+      "description": "Cenários da Costa do Descobrimento e Bahia. Viagens onde o ambiente serve como estética para reflexões e vlogs vivenciados no momento real (Arraial d'Ajuda, Porto Seguro e Itacaré).",
+      "ideas": [
+        {
+          "id": "vlog-01",
+          "title": "Fugir da rotina às vezes é a única forma de tomar uma decisão difícil",
+          "score": 96,
+          "scenario": "Arraial d'Ajuda, travessia da balsa Porto Seguro-Arraial e praia do Mucugê (fim de semana).",
+          "premise": "O ambiente onde vivemos todos os dias vicia a mente a ter os mesmos pensamentos; mudar de cenário em uma saída curta de fim de semana é a ferramenta para enxergar a vida de fora e destravar decisões difíceis de carreira e futuro.",
+          "tension": "A sensação de estar estagnado ou sem saída vs a clareza que surge ao dar um passo atrás e respirar longe do dia a dia.",
+          "visual": "O visual litorâneo como atmosfera cinematográfica de fundo: balsa ao entardecer, caminhada na praia com áudio limpo de lapela e reflexões olho no olho.",
+          "competitorReference": "Estética cinematográfica e reflexão de vida de Bennett Luke (337x da mediana) e Jonas Castro.",
+          "executionTip": "Aproveitar uma viagem curta de sábado/domingo. Gravar nos horários calmos da praia."
+        },
+        {
+          "id": "vlog-02",
+          "title": "4 dias em Itacaré: vivendo os lugares que fizeram essa viagem valer a pena",
+          "score": 91,
+          "scenario": "Praias de Itacaré (Prainha, Itacarezinho, Jeribucaçu) e vila à noite durante a viagem (07 a 10 de março de 2027).",
+          "premise": "Vlog dinâmico vivenciado no calor do momento: mostrando a chegada, o caminho pelas trilhas, as praias reais e o que realmente valeu a pena, sem foco no carro e sem expor intimidade do casal.",
+          "tension": "O que a internet romantiza sobre destinos turísticos vs a experiência real de quem foi e aproveitou de verdade.",
+          "visual": "Cenas reais da viagem acontecendo, belezas naturais da Bahia, caminhadas e relatos espontâneos no local.",
+          "competitorReference": "Vlog de viagem autêntico e focado em experiência de Gui AC e Luke Bennett.",
+          "executionTip": "Gravar trechos curtos durante a viagem de março/2027 com celular ou câmera compacta e editar depois."
+        },
+        {
+          "id": "vlog-03",
+          "title": "Um dia no Ecoparque de Arraial d'Ajuda: a culpa de tirar uma folga quando você tem projetos para construir",
+          "score": 85,
+          "scenario": "Arraial d'Ajuda Ecoparque e área de restinga/praia.",
+          "premise": "Usar um dia de descanso no parque aquático como gancho para falar sobre a culpa que profissionais comprometidos sentem quando não estão na frente do computador produzindo.",
+          "tension": "A neurose de achar que parar é perder tempo vs a constatação biológica de que sem descanso a mente não cria nada novo.",
+          "visual": "Momentos de lazer no parque intercalados com uma conversa calma e sincera sobre equilíbrio e sanidade.",
+          "competitorReference": "Quebra de padrão de autoimagem e produtividade de Kamily Rebelatto (171x da mediana).",
+          "executionTip": "Gravar a fala principal em um ponto arborizado e tranquilo do parque."
+        }
+      ]
+    },
+    {
+      "id": "criacao_autenticidade",
+      "name": "Criação, YouTube & Resultados Reais",
+      "description": "Autenticidade radical e transparência sobre a jornada de criação de conteúdo. Falar a partir da própria vivência e abrir dados reais de métricas e retorno financeiro.",
+      "ideas": [
+        {
+          "id": "cria-01",
+          "title": "A armadilha de tentar parecer o que você ainda não é",
+          "score": 98,
+          "scenario": "Quarto/estúdio em Eunápolis. Diálogo direto e íntimo com a câmera.",
+          "premise": "A pressão da internet para você já chegar parecendo um especialista premiado ou alguém com a vida resolvida; a decisão libertadora de ser autêntico: uma vida em construção com algo real para mostrar.",
+          "tension": "O medo de ser julgado como 'iniciante' vs a conexão magnética e duradoura de quem tem coragem de ser genuíno.",
+          "visual": "100% focado no diálogo cara a cara. Você expondo sua visão de forma natural, sem pose e sem precisar provar nada na tela.",
+          "competitorReference": "Força de autoimagem e autenticidade de Kamily Rebelatto (171x da mediana).",
+          "executionTip": "Gravação direta, tom descontraído e sincero, iluminação aconchegante."
+        },
+        {
+          "id": "cria-02",
+          "title": "Faça mesmo sem saber",
+          "score": 95,
+          "scenario": "Estúdio caseiro em Eunápolis. Conversa franca e motivadora.",
+          "premise": "O perfeccionismo como fuga disfarçada; por que a segurança não vem antes de agir e a única forma de aprender a fazer algo difícil é dando a cara a tapa e ajustando no caminho.",
+          "tension": "A paralisia por esperar o momento ou o conhecimento ideal vs o poder de destravar a vida entrando no campo de batalha.",
+          "visual": "Conversa olho no olho com o espectador, sem firulas de edição ou encenações de gaveta.",
+          "competitorReference": "Vulnerabilidade e chamado à ação de Bennett Luke (337x da mediana).",
+          "executionTip": "Vídeo ágil, direto ao ponto, em torno de 7 a 9 minutos."
+        },
+        {
+          "id": "cria-03",
+          "title": "Publiquei por um mês no YouTube: métricas reais e quanto o canal me rendeu (se é que rendeu algo)",
+          "score": 90,
+          "scenario": "Estúdio em Eunápolis com painel do YouTube Studio.",
+          "premise": "Transparência total sobre números reais de um canal pequeno após 30 dias: visualizações, retenção, inscritos e dinheiro real (mesmo que seja zero), quebrando a ilusão de sucesso instantâneo.",
+          "tension": "A expectativa que todo mundo cria ao abrir um canal vs o choque de realidade dos números do primeiro mês.",
+          "visual": "Tela do YouTube Studio com os dados abertos, sem esconder gráficos ou estatísticas.",
+          "competitorReference": "Padrão de transparência financeira e de bastidores de Vinicius Figueiredo (30x da mediana).",
+          "executionTip": "Gravar exatamente no marco de 30 dias de canal no ar."
+        },
+        {
+          "id": "cria-04",
+          "title": "Mudei algo no meu canal — e foi isso que aconteceu com os números depois",
+          "score": 86,
+          "scenario": "Estúdio caseiro após constatar uma mudança efetiva nas métricas.",
+          "premise": "Condição essencial respeitada: primeiro a mudança é feita e testada. Só depois que os dados provarem que funcionou, o vídeo é gravado mostrando o teste e o aprendizado.",
+          "tension": "A incerteza se uma alteração de formato/título vai derrubar ou salvar a entrega do canal.",
+          "visual": "Comparação clara de gráficos do YouTube Studio antes vs depois da mudança comprovada.",
+          "competitorReference": "Padrão de análise de testes reais de Bruno Nardon (58x da mediana).",
+          "executionTip": "Só pautar quando houver uma métrica comprovada em mãos."
+        }
+      ]
+    },
+    {
+      "id": "negocios_software",
+      "name": "Negócios, Software & Vivência Real",
+      "description": "Os bastidores de manter um produto real em produção (RankFTV), receita de software, vida no interior e eventos competitivos de futevôlei.",
+      "ideas": [
+        {
+          "id": "neg-01",
+          "title": "O que aprendi colocando um software no ar com clientes reais (e o que deu errado)",
+          "score": 96,
+          "scenario": "Quarto/estúdio em Eunápolis. Diálogo direto com a câmera.",
+          "premise": "A diferença brutal entre criar projetos de brinquedo no curso e colocar um software no mundo real com o RankFTV. Lidar com donos de arena que não entendem de tecnologia, erros operacionais e suporte de verdade.",
+          "tension": "O medo de um bug quebrar um campeonato em andamento vs a maturidade de aprender a resolver na hora.",
+          "visual": "Diálogo direto com o público, podendo cortar pontualmente para a tela do sistema em produção para contextualizar o produto.",
+          "competitorReference": "Negócios com pele em jogo de Alfredo Soares (140x da mediana) e Bruno Nardon.",
+          "executionTip": "Gravar compartilhando as histórias reais de suporte que aconteceram nos campeonatos."
+        },
+        {
+          "id": "neg-02",
+          "title": "Quanto fatura um SaaS de futevôlei no interior da Bahia: a realidade financeira do RankFTV",
+          "score": 92,
+          "scenario": "Estúdio em Eunápolis com painel financeiro do sistema.",
+          "premise": "Transparência sobre faturamento de produto: quanto entra de taxas por campeonato, os custos reais de servidor/banco e o que sobra na ponta do lápis, sem ostentação de influencer.",
+          "tension": "A fantasia de que todo criador de SaaS fica milionário da noite para o dia vs a construção sóbria de um negócio sustentável.",
+          "visual": "Painel de transações e relatórios consolidados do RankFTV.",
+          "competitorReference": "Transparência financeira e de receita de Vinicius Figueiredo (30x da mediana).",
+          "executionTip": "Gravar com dados de um mês de grande movimentação de campeonatos."
+        },
+        {
+          "id": "neg-03",
+          "title": "A verdade sobre morar e trabalhar com tecnologia no interior da Bahia",
+          "score": 87,
+          "scenario": "Eunápolis (dia a dia e quarto de trabalho). Diálogo franco.",
+          "premise": "Balanço sincero de quem escolheu construir carreira e negócios no interior: a tranquilidade, custo de vida e segurança vs a ausência de eventos presenciais e os preconceitos do mercado.",
+          "tension": "A pressão de achar que é obrigatório morar em São Paulo para vencer vs a possibilidade real de crescer de onde você está.",
+          "visual": "Conversa autêntica compartilhando os prós e contras reais da sua localização.",
+          "competitorReference": "Análise madura de carreira de Vinicius Figueiredo e Gui AC.",
+          "executionTip": "Tom maduro, positivo e consciente da sua realidade."
+        },
+        {
+          "id": "neg-04",
+          "title": "Joguei um torneio de futevôlei: a tensão de competir quando você não é profissional",
+          "score": 81,
+          "scenario": "Arena de futevôlei na região durante um campeonato ou evento competitivo real em que você jogar.",
+          "premise": "Gravado exclusivamente em dia de torneio em que você for jogar: a atmosfera da competição, o nervosismo antes de entrar em quadra, a sintonia com a dupla e a experiência de competir por amor ao esporte.",
+          "tension": "A pressão dos pontos decisivos e o medo de errar na frente da torcida e dos atletas.",
+          "visual": "Cenas reais do evento, lances da partida e impressões sinceras no calor da competição.",
+          "competitorReference": "Narrativa de superação e desafio de Lucas BKS e Bennett Luke.",
+          "executionTip": "Pedir para alguém gravar alguns lances da partida e gravar relatos curtos antes e depois do jogo."
+        }
+      ]
+    }
+  ]
+}
