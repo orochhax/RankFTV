@@ -1,0 +1,254 @@
+{
+  "updatedAt": "2026-11-04T16:30:00-03:00",
+  "minActiveScore": 50,
+  "categories": [
+    {
+      "id": "tecnologia_dados",
+      "name": "Tecnologia & Dados",
+      "description": "Gravados no quarto/estúdio caseiro em Eunápolis. Ensinamento direto, análises de mercado, projetos aplicados e reflexões de carreira técnica.",
+      "ideas": [
+        {
+          "id": "tec-01",
+          "title": "Como eu organizo minha rotina para estudar Ciência de Dados trabalhando CLT (sem pirar)",
+          "score": 94,
+          "scenario": "Quarto/estúdio caseiro em Eunápolis. Setup de mesa com iluminação natural, monitor duplo e câmera principal.",
+          "premise": "Desmistificar o mito da produtividade perfeita; mostrar como encaixar 4 horas de estudo sólido após 8h de expediente CLT sem fórmulas mágicas.",
+          "tension": "O cansaço físico e mental do trabalho formal vs. a urgência de construir uma nova carreira em Dados.",
+          "visual": "Ambiente real do quarto, tela do VS Code/Jupyter com código ativo, calendário diário com blocos reais de estudo, cortes de distrações.",
+          "competitorReference": "Inspirado no gancho de vulnerabilidade e gestão do tempo de Bennett Luke (337x da mediana) e Erik Cupsa (27.8x).",
+          "executionTip": "Gravar no início da manhã de sábado ou em uma noite descansada durante a semana."
+        },
+        {
+          "id": "tec-02",
+          "title": "Analisei 60 vagas de Dados no Brasil: as 3 únicas habilidades que realmente pedem (e parei de estudar o resto)",
+          "score": 91,
+          "scenario": "Estúdio caseiro em Eunápolis. Gravação em formato de apresentação direta com captura de tela detalhada.",
+          "premise": "Engenharia reversa das exigências reais do mercado: o choque de realidade de que 80% das empresas querem SQL, higienização de dados e regra de negócio, não modelos complexos de IA generativa.",
+          "tension": "O medo de estar dedicando meses estudando ferramentas sofisticadas que ninguém cobra no mercado de trabalho.",
+          "visual": "Dezenas de descrições reais de vagas abertas no LinkedIn/Gupy, planilha de frequência de requisitos, roadmap antes vs. roadmap podado.",
+          "competitorReference": "Padrão de pragmatismo 'foco no que é chato e funciona' de Vinicius Figueiredo (80x da mediana).",
+          "executionTip": "Montar a planilha previamente durante a semana e gravar a aula de análise em 1 hora no fim de semana."
+        },
+        {
+          "id": "tec-03",
+          "title": "Construí um projeto de Dados para resolver um problema real do meu SaaS (RankFTV)",
+          "score": 87,
+          "scenario": "Estúdio caseiro em Eunápolis com dual screen mostrando produção do RankFTV.",
+          "premise": "Portfólio com pele em jogo: criar pipelines e análises sobre a base real de atletas e campeonatos do RankFTV em vez dos datasets batidos da internet.",
+          "tension": "Trabalhar com dados sujos e reais de produção onde um erro afeta clientes verdadeiros.",
+          "visual": "Consultas SQL complexas no Supabase/PostgreSQL, gráficos de retenção e churn de atletas, arquitetura do projeto no Next.js.",
+          "competitorReference": "Padrão de bastidores de tecnologia e negócios de Bruno Nardon (46.7x da mediana) e Alfredo Soares (140.9x).",
+          "executionTip": "Usar dados anonimizados na tela respeitando a privacidade dos atletas e clientes."
+        },
+        {
+          "id": "tec-04",
+          "title": "O plano de 60 dias úteis em Ciência de Dados: o que eu consegui aprender e o que foi pura ilusão",
+          "score": 83,
+          "scenario": "Mesa de estudos em Eunápolis com anotações e timeline de progresso.",
+          "premise": "Prestação de contas honesta sobre a meta de 60 dias de estudos intensivos (sem finais de semana e feriados de Eunápolis). O que dá para dominar e onde a curva trava.",
+          "tension": "A promessa dos influenciadores de que é possível virar pleno em semanas vs a densidade real dos fundamentos.",
+          "visual": "O cronograma físico e digital do ciclo de 60 dias, exercícios resolvidos, projeto final em andamento.",
+          "competitorReference": "Recorte de transformação temporal de Kamily Rebelatto (65.1x da mediana).",
+          "executionTip": "Gravar no meio do ciclo (dia 30) ou na conclusão para ter dados e entregas concretas."
+        },
+        {
+          "id": "tec-05",
+          "title": "Por que parei de comprar cursos e montei meu próprio roteiro de estudos de IA",
+          "score": 78,
+          "scenario": "Estúdio caseiro em Eunápolis, luz natural, enquadramento focado.",
+          "premise": "Crítica autoral ao consumo passivo de videoaulas que geram a falsa sensação de competência sem capacidade de entrega.",
+          "tension": "O vício de colecionar certificados sem saber resolver um problema do zero sem olhar a resposta do professor.",
+          "visual": "Comparação entre cursos acumulados não finalizados e a lista prática de 3 projetos reais que destravam o aprendizado.",
+          "competitorReference": "Padrão confessional e contra-intuitivo de Matheus Porto e Bennett Luke.",
+          "executionTip": "Vídeo direto, ritmo dinâmico, tempo em torno de 8 a 10 minutos."
+        }
+      ]
+    },
+    {
+      "id": "viagens_vlogs",
+      "name": "Viagens & Vlogs com História",
+      "description": "Cenários da Costa do Descobrimento e Bahia (Arraial d'Ajuda, Porto Seguro, Ecoparque e Itacaré). O ambiente serve como pano de fundo estético para narrativas e reflexões centrais.",
+      "ideas": [
+        {
+          "id": "vlog-01",
+          "title": "Fugindo da rotina CLT: 48h em Arraial d'Ajuda e a decisão mais difícil sobre a minha carreira",
+          "score": 95,
+          "scenario": "Centro histórico de Arraial d'Ajuda, travessia da balsa Porto Seguro-Arraial e praia do Mucugê.",
+          "premise": "O visual litorâneo da Costa do Descobrimento como estética de fundo para refletir sobre a transição de um emprego seguro para construir o próprio caminho.",
+          "tension": "A estabilidade e o conforto do salário CLT garantido vs a ambição e o risco de crescer no digital.",
+          "visual": "Imagens cinematográficas da travessia da balsa ao entardecer, caminhada na praia com microfone de lapela, ruas históricas de Arraial, café local.",
+          "competitorReference": "Estética cinematográfica e reflexão de vida de Bennett Luke e Jonas Castro.",
+          "executionTip": "Viagem de fim de semana (sábado e domingo). Gravar os blocos de reflexão no início da manhã quando a praia está vazia."
+        },
+        {
+          "id": "vlog-02",
+          "title": "Um dia no Ecoparque de Arraial d'Ajuda: por que produtividade tóxica quase me fez desistir dos meus projetos",
+          "score": 90,
+          "scenario": "Arraial d'Ajuda Ecoparque (atrações aquáticas, área verde de restinga e praia adjacente).",
+          "premise": "Usar um dia de lazer no parque aquático mais famoso da região como contraponto à culpa constante que todo profissional CLT sente quando tira um dia para descansar.",
+          "tension": "A neurose de achar que descansar é desperdício de tempo vs a constatação de que sem pausa a criatividade esgota.",
+          "visual": "Cenas dinâmicas na tirolesa/piscinas, caminhada pelas áreas de sombra do parque, momentos de fala íntima com a câmera.",
+          "competitorReference": "Quebra de padrão de autoimagem e produtividade de Kamily Rebelatto (171.9x) e Bennett Luke (80.2x).",
+          "executionTip": "Proteger o equipamento de água; capturar áudio em locais calmos do parque arborizado."
+        },
+        {
+          "id": "vlog-03",
+          "title": "Planejando nossa Lua de Mel em Itacaré: quanto custa, o que escolhemos e os erros que evitamos",
+          "score": 88,
+          "scenario": "Mesa de planejamento em Eunápolis com mapas de Itacaré, reservas de Airbnb e cotação de carro alugado.",
+          "premise": "Planejamento logístico e financeiro transparente para uma viagem de 4 dias em Itacaré (março/2027), mostrando escolhas reais de um jovem casal CLT sem afetação.",
+          "tension": "A pressão de gastar fortunas para fazer uma viagem inesquecível vs a inteligência de priorizar lugares e experiências de verdade.",
+          "visual": "Imagens das praias de Itacaré (Resende, Tiririca, Itacarezinho), planilhas de custo reais na tela, contratos de reserva sem segredos pessoais.",
+          "competitorReference": "Transparência de decisões financeiras e operacionais de Vinicius Figueiredo (30.1x) e Bruno Nardon.",
+          "executionTip": "Gravar durante a etapa de fechamento de hospedagem e carro em Eunápolis."
+        },
+        {
+          "id": "vlog-04",
+          "title": "De Eunápolis a Porto Seguro: o trajeto de 60km que uso para pensar nas decisões da semana",
+          "score": 84,
+          "scenario": "Trajeto da BR-367 entre Eunápolis e Porto Seguro, terminando na orla norte de Porto Seguro.",
+          "premise": "Vlog de deslocamento onde o percurso rodoviário e a chegada ao mar compõem a atmosfera para discutir planejamento semanal e foco.",
+          "tension": "Como não deixar as urgências do dia a dia engolirem os projetos de longo prazo.",
+          "visual": "Câmera fixa no painel do carro (foco na estrada da Bahia), transição para caminhada na orla de Porto Seguro ao pôr do sol.",
+          "competitorReference": "Formato de diálogo reflexivo de Jonas Castro e Luke Bennett.",
+          "executionTip": "Não gravar enquanto dirige de forma insegura; usar suporte fixo no painel e gravar monólogos na parada."
+        },
+        {
+          "id": "vlog-05",
+          "title": "Itacaré em 4 dias: os lugares que fizeram essa viagem valer a pena (Guia Pós-Viagem)",
+          "score": 79,
+          "scenario": "Praias de Itacaré (Prainha, Jeribucaçu, Itacarezinho), pôr do sol na ponta do Xaréu e centrinho à noite.",
+          "premise": "Vídeo documental focado 100% na experiência vivida e nos lugares, editado e gravado após a viagem de março de 2027.",
+          "tension": "O que a internet vende sobre destinos turísticos vs a realidade de acesso, trilhas e custo na ponta do lápis.",
+          "visual": "Belezas naturais de Itacaré, caminhadas nas trilhas da mata atlântica, refeições locais sem foco no carro.",
+          "competitorReference": "Roteiro autêntico de experiência de Gui AC e Luke Bennett.",
+          "executionTip": "Gravação de b-roll durante a viagem em março/2027; gravação da narração em estúdio após o retorno."
+        }
+      ]
+    },
+    {
+      "id": "rotina_estilo_vida",
+      "name": "Rotina, Estilo de Vida & Corrida",
+      "description": "Vida real no interior da Bahia. Treinos de corrida nas ruas de Eunápolis, disciplina física, antítese de rotinas artificiais e foco de quem trabalha CLT.",
+      "ideas": [
+        {
+          "id": "rot-01",
+          "title": "Comecei a correr aos 20 e poucos anos: o que a corrida me ensinou sobre disciplina que nenhum livro ensinou",
+          "score": 93,
+          "scenario": "Ruas e avenidas de Eunápolis no amanhecer, asfalto, tênis de corrida e relógio/Strava.",
+          "premise": "A corrida como campo de treinamento mental: como o esforço físico deliberado ensina a suportar a frustração e a monotonia de projetos longos de carreira.",
+          "tension": "O impulso imediato do corpo de desistir no quilômetro 3 vs a construção da musculatura de terminar o que começou.",
+          "visual": "Amarração do tênis no amanhecer baiano, respiração ritmada, dados reais do Strava (pace, batimentos), ruas de Eunápolis acordando.",
+          "competitorReference": "Padrão de disciplina corporal e consistência de Bennett Luke (80.2x e 50.9x da mediana).",
+          "executionTip": "Gravar antes do horário comercial em dias de semana ou no sábado pela manhã."
+        },
+        {
+          "id": "rot-02",
+          "title": "Minha rotina real de sábado: como equilibro CLT, estudo de Dados, corrida e vida a dois",
+          "score": 89,
+          "scenario": "Casa em Eunápolis, feira/mercado local, pista de treino e mesa de estudos à tarde.",
+          "premise": "A rotina desglamourizada de quem mora no interior da Bahia: sem assistentes, sem restaurantes caros, mostrando como otimizar o fim de semana com responsabilidade e presença.",
+          "tension": "O malabarismo entre dar atenção de qualidade ao relacionamento, descansar do estresse da semana e sentar para estudar.",
+          "visual": "Café passado na cozinha real, bloco de corrida matinal, tela de estudos com timer de 2 horas focado, almoço caseiro.",
+          "competitorReference": "Autenticidade desarmada de Luke Bennett e Gui AC.",
+          "executionTip": "Gravação casual em estilo cinemático durante um sábado real sem alterar a rotina habitual."
+        },
+        {
+          "id": "rot-03",
+          "title": "O que acontece quando você troca dopamina rápida por esforço físico deliberado",
+          "score": 85,
+          "scenario": "Quarto de estudos em Eunápolis com transições para corridas ao ar livre.",
+          "premise": "Como o corte de notificações do celular e o hábito de correr restauram a capacidade de atenção necessária para aprender programação e estatística.",
+          "tension": "A ansiedade e tédio inicial ao largar o feed vs o ganho de clareza mental e energia no dia a dia.",
+          "visual": "Tela de bloqueio de apps no smartphone, caderno de planejamento, corrida no asfalto com sol da manhã.",
+          "competitorReference": "Engenharia de autoimagem e eliminação de distrações de Kamily Rebelatto (171.9x).",
+          "executionTip": "Narrativa em primeira pessoa com bom áudio de microfone de mesa e b-rolls externos."
+        },
+        {
+          "id": "rot-04",
+          "title": "Comprei um tênis e decidi correr meus primeiros 5km: o processo real sem filtro",
+          "score": 81,
+          "scenario": "Trajeto de 5km demarcado em Eunápolis.",
+          "premise": "A jornada de bater uma meta física tangível saindo do sedentarismo, sem equipamento caríssimo ou assessoria esportiva.",
+          "tension": "O cansaço muscular, a dúvida se o fôlego vai aguentar e a superação da barreira dos 5km.",
+          "visual": "Câmera na mão em trechos curtos, tela do relógio mostrando os quilômetros subindo, sensação real ao cruzar a linha final.",
+          "competitorReference": "Formato de desafio pessoal autêntico de Lucas BKS e Bennett Luke.",
+          "executionTip": "Gravar pequenos relatos de 15 segundos a cada 1km percorrido."
+        },
+        {
+          "id": "rot-05",
+          "title": "A verdade sobre morar e trabalhar com tecnologia no interior da Bahia",
+          "score": 76,
+          "scenario": "Vários pontos de Eunápolis (centro, praças, vista panorâmica) e quarto de trabalho.",
+          "premise": "Balanço honesto: a qualidade de vida, custo menor e praias próximas vs o isolamento profissional e o preconceito de quem só enxerga São Paulo.",
+          "tension": "Vale a pena permanecer na sua terra natal ou o mercado força você a migrar para os grandes centros?",
+          "visual": "Contraste entre a tranquilidade da Bahia e a tela conectada em nuvens globais e comunidades remotas.",
+          "competitorReference": "Análise regional e de carreira de Vinicius Figueiredo e Gui AC.",
+          "executionTip": "Tom maduro, positivo e consciente da realidade local."
+        }
+      ]
+    },
+    {
+      "id": "carreira_negocios",
+      "name": "Carreira, Negócios & Decisões",
+      "description": "Bastidores reais de software, produto e prestação de serviços. O SaaS RankFTV em produção, clientes pagantes, suporte e gestão de risco como CLT.",
+      "ideas": [
+        {
+          "id": "car-01",
+          "title": "Construindo um SaaS real enquanto trabalho CLT: os bastidores do RankFTV que ninguém mostra",
+          "score": 96,
+          "scenario": "Estúdio caseiro em Eunápolis com painéis reais de gestão, faturamento e código do RankFTV.",
+          "premise": "A vida real de manter um software em produção com dezenas de torneios e milhares de atletas enquanto mantém um emprego CLT na Bahia.",
+          "tension": "O frio na barriga de resolver bugs e suporte de organizadores de arena nas noites e finais de semana sem prejudicar o trabalho formal.",
+          "visual": "Transações reais caindo no gateway de pagamento, painel de administração dos campeonatos, commits do Next.js.",
+          "competitorReference": "Padrão de negócios sem maquiagem de Alfredo Soares (140.9x) e Vinicius Figueiredo (30.1x).",
+          "executionTip": "Gravar após o encerramento de um campeonato bem-sucedido no RankFTV com dados frescos."
+        },
+        {
+          "id": "car-02",
+          "title": "Por que decidi aprender Dados e IA mesmo já tendo um SaaS em produção",
+          "score": 92,
+          "scenario": "Estúdio em Eunápolis com diagramas de arquitetura e estratégia de serviços.",
+          "premise": "Visão de futuro: como a união entre produto de software e inteligência de dados cria uma barreira competitiva e permite prestar serviços corporativos de alto valor.",
+          "tension": "O dilema de focar tudo em uma coisa só vs abrir uma nova frente técnica e estratégica complementar.",
+          "visual": "Diagrama de blocos no papel/quadro branco conectando RankFTV, inteligência analítica e futura agência de dados.",
+          "competitorReference": "Visão estratégica de ecossistema de Bruno Nardon (58.4x) e Vinicius Figueiredo.",
+          "executionTip": "Vídeo estruturado em formato de ensaio com argumentos claros e acionáveis."
+        },
+        {
+          "id": "car-03",
+          "title": "Como eu tomo decisões de carreira quando tudo parece arriscado e incerto",
+          "score": 86,
+          "scenario": "Ambiente intimista no quarto/estúdio caseiro em Eunápolis.",
+          "premise": "O método de cálculo de risco de quem não tem herança e precisa preservar a segurança financeira enquanto constrói liberdade de longo prazo.",
+          "tension": "A paralisia por análise diante de tantas oportunidades na internet vs dar passos sólidos e calculados.",
+          "visual": "Planilha de reserva de emergência e cálculo de runway, anotações de critérios de decisão no bloco de notas.",
+          "competitorReference": "Gancho de futuro e ansiedade profissional de Bennett Luke (337x) e Kamily Rebelatto.",
+          "executionTip": "Gravação intimista e reflexiva, valorizando a sinceridade dos dilemas."
+        },
+        {
+          "id": "car-04",
+          "title": "O que aprendi administrando meu primeiro negócio de software antes dos 30 anos",
+          "score": 82,
+          "scenario": "Mesa de trabalho em Eunápolis com histórico de evolução do RankFTV na tela.",
+          "premise": "Lições práticas sobre o que clientes reais valorizam: estabilidade e suporte rápido ganham de qualquer recurso futurista que ninguém pediu.",
+          "tension": "A dor de passar semanas codificando features que ninguém usou vs o sucesso de resolver um gargalo simples no Pix.",
+          "visual": "Histórico de versões do RankFTV, mensagens reais de organizadores elogiando a agilidade do sistema.",
+          "competitorReference": "Padrão de ensinamentos de negócios de Alfredo Soares (147.2x) e Bruno Nardon.",
+          "executionTip": "Excelente para gerar autoridade com pés no chão perante futuros clientes e parceiros."
+        },
+        {
+          "id": "car-05",
+          "title": "Como estruturar sua primeira oferta de serviços de dados sem ter 10 anos de experiência",
+          "score": 77,
+          "scenario": "Estúdio caseiro com modelo de proposta comercial na tela.",
+          "premise": "Como empacotar automações e diagnósticos de dados simples que geram economia imediata para pequenas e médias empresas.",
+          "tension": "A síndrome do impostor técnica vs a realidade de que a maioria dos negócios ainda toma decisões no papel de pão.",
+          "visual": "Estrutura do documento de proposta, modelo de diagnóstico em 3 etapas, planilha de ROI para o cliente.",
+          "competitorReference": "Padrão de vendas e treinamento comercial de Alfredo Soares (176x).",
+          "executionTip": "Usar os modelos e kits de diagnóstico desenvolvidos no cofre."
+        }
+      ]
+    }
+  ]
+}
