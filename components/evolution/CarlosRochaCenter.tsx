@@ -3,7 +3,6 @@ import {
   Activity,
   ArrowRight,
   BriefcaseBusiness,
-  CheckCircle2,
   Clapperboard,
   Compass,
   Laptop,
