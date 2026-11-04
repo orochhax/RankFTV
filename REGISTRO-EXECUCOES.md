@@ -5,6 +5,20 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-04 (America/Sao_Paulo) — Central privada do Canal Carlos Rocha
+
+- Escopo aprovado por Carlos: criar e publicar uma área independente em
+  `/admin/evolucao/carlos-rocha`; preservar integralmente as subpáginas do
+  Rocha Tech e não criar vínculo editorial ou de dados entre os canais.
+- Implementação local: páginas de Visão, Concorrentes, Biblioteca e
+  Oportunidades, protegidas pelo mesmo layout administrativo já autenticado.
+  Não houve migration, escrita no Supabase ou dados pessoais no site.
+- Coleta local: YouTube Data API v3, 14 canais, 1.515 vídeos e 1.514 thumbnails
+  válidas, de 03/11/2025 a 04/11/2026. O cofre guarda os dados brutos; o código
+  publicado não recebe chave, `.env.local`, thumbnail baixada ou arquivo local.
+- Situação externa: Preview da PR #109 aprovado; merge e Production dependem da
+  reconciliação com o `master`.
+
 ## 2026-11-03 20:00 -03:00 — Roadmap orientado pelas vagas em Production
 
 - A PR `#107` foi mesclada no `master` pelo commit
