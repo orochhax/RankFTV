@@ -56,6 +56,21 @@
 .evo-sidebar-foot { margin-top: auto; padding: 18px 8px 0; display: flex; gap: 10px; align-items: center; border-top: 1px solid #26344c; color: #7e90aa; }
 .evo-sidebar-foot div { display: grid; }.evo-sidebar-foot strong { color: #c9d5e7; font-size: 11px; }.evo-sidebar-foot small { font-size: 9px; }
 .evo-mobile-nav { display: none; }
+.evo-service-unlocks { display: grid; gap: 18px; transition: opacity .18s ease; }
+.evo-service-unlocks.is-saving { opacity: .72; }
+.evo-unlock-summary { padding: 20px 22px; display: grid; grid-template-columns: minmax(180px, .35fr) 1fr; gap: 28px; align-items: center; border: 1px solid #bcd4f8; border-radius: 14px; background: linear-gradient(135deg, #fff, #f1f7ff); box-shadow: var(--evo-shadow); }
+.evo-unlock-summary > div { display: grid; }.evo-unlock-summary span { color: var(--evo-muted); font-size: 11px; font-weight: 700; }.evo-unlock-summary strong { font-size: 32px; letter-spacing: -.05em; }.evo-unlock-summary strong small { color: var(--evo-subtle); font-size: 14px; }.evo-unlock-summary p { margin: 0; color: var(--evo-text); font-size: 12px; line-height: 1.65; }
+.evo-unlock-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.evo-unlock-card { padding: 21px; display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--evo-line); border-radius: 14px; background: var(--evo-panel); box-shadow: var(--evo-shadow); }
+.evo-unlock-card.is-desbloqueado { border-color: #9ddbc5; background: linear-gradient(145deg, #fff, #f2fbf7); }
+.evo-unlock-card.is-revisao { border-color: #efd39f; }
+.evo-unlock-card > header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }.evo-unlock-code { color: var(--evo-blue); font-size: 9px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }.evo-unlock-card h2 { margin: 4px 0 0; font-size: 20px; letter-spacing: -.035em; }.evo-unlock-card > p { min-height: 40px; margin: 0; color: var(--evo-muted); font-size: 11px; line-height: 1.6; }
+.evo-unlock-status { flex: 0 0 auto; padding: 6px 8px; display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; color: #59677b; background: #edf1f6; font-size: 9px; font-weight: 750; }.is-desbloqueado .evo-unlock-status { color: #147451; background: #e6f7ef; }.is-revisao .evo-unlock-status { color: #8a5a14; background: #fff5df; }
+.evo-unlock-progress { height: 7px; overflow: hidden; border-radius: 999px; background: #e8edf4; }.evo-unlock-progress span { height: 100%; display: block; border-radius: inherit; background: linear-gradient(90deg, #1769e8, #4d9cff); }
+.evo-unlock-counts { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; color: var(--evo-muted); font-size: 9px; }.evo-unlock-counts span:last-child { text-align: right; }.evo-unlock-counts strong { color: var(--evo-ink); font-size: 12px; }
+.evo-unlock-columns { display: grid; grid-template-columns: .8fr 1.2fr; gap: 18px; padding-top: 2px; }.evo-unlock-columns h3 { margin: 0 0 9px; font-size: 11px; }.evo-unlock-columns ul { margin: 0; padding: 0; display: grid; gap: 7px; list-style: none; }.evo-unlock-columns li { display: flex; gap: 6px; color: var(--evo-text); font-size: 10px; line-height: 1.45; }.evo-unlock-columns li svg { flex: 0 0 auto; margin-top: 1px; color: var(--evo-success); }
+.evo-unlock-columns label { margin-bottom: 7px; display: grid; grid-template-columns: 16px 1fr; gap: 7px; align-items: flex-start; color: var(--evo-text); font-size: 10px; line-height: 1.45; cursor: pointer; }.evo-unlock-columns label input { position: absolute; opacity: 0; pointer-events: none; }.evo-unlock-columns .evo-check { width: 16px; height: 16px; display: grid; place-items: center; border: 1px solid var(--evo-line-strong); border-radius: 4px; color: transparent; background: #fff; }.evo-unlock-columns label.is-done { color: var(--evo-subtle); text-decoration: line-through; }.evo-unlock-columns label.is-done .evo-check { color: #fff; border-color: var(--evo-success); background: var(--evo-success); }
+.evo-unlock-prerequisite { color: var(--evo-warning); font-size: 9px; font-weight: 700; }.evo-unlock-card > a { margin-top: auto; display: inline-flex; align-items: center; gap: 6px; color: var(--evo-blue); font-size: 10px; font-weight: 750; }
 .evo-main { grid-column: 2; min-width: 0; }
 .evo-page { width: 100%; margin: 0; padding: 48px 32px 80px; }
 .evo-eyebrow { margin: 0; color: var(--evo-blue); font-size: 10px; font-style: normal; font-weight: 850; letter-spacing: .14em; }
@@ -96,6 +111,12 @@
 .evo-study-logger { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }.evo-timer { padding: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid #dfe6f0; border-radius: 11px; background: #f8fafc; }.evo-timer > svg { color: var(--evo-blue); }.evo-timer strong { font-variant-numeric: tabular-nums; font-size: 19px; }.evo-timer button, .evo-inline-form button, .evo-stack-form button, .evo-equipment-form button { margin-left: auto; min-height: 38px; padding: 0 13px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; color: #fff; background: var(--evo-blue); font-size: 10px; font-weight: 750; cursor: pointer; }.evo-inline-form { display: flex; align-items: end; gap: 8px; }.evo-inline-form label, .evo-stack-form label { flex: 1; display: grid; gap: 5px; color: var(--evo-muted); font-size: 10px; font-weight: 650; }.evo-inline-form input, .evo-stack-form input, .evo-equipment-form input, .evo-equipment-form select { min-height: 38px; padding: 0 10px; border: 1px solid #d6deea; border-radius: 8px; color: var(--evo-ink); background: #fff; outline: none; }.evo-inline-form input:focus, .evo-stack-form input:focus { border-color: var(--evo-blue); box-shadow: 0 0 0 3px #1769e812; }.evo-form-message { grid-column: 1 / -1; margin: 0; color: var(--evo-muted); font-size: 10px; }
 .evo-timer button + button { margin-left: 0; background: #17335c; }.evo-save-card { grid-column: 1 / -1; padding: 16px; display: grid; grid-template-columns: 1fr 150px auto; align-items: end; gap: 14px; border: 1px solid #b9d2f8; border-radius: 12px; background: #f5f9ff; }.evo-save-card h3 { margin: 0; font-size: 15px; }.evo-save-card p { margin: 4px 0 0; color: var(--evo-muted); font-size: 10px; }.evo-save-card label { display: grid; gap: 5px; color: var(--evo-muted); font-size: 10px; font-weight: 650; }.evo-save-card input { min-height: 38px; padding: 0 10px; border: 1px solid #d6deea; border-radius: 8px; color: var(--evo-ink); background: #fff; }.evo-save-actions { display: flex; gap: 7px; }.evo-save-actions button, .evo-secondary-button { min-height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; color: #fff; background: var(--evo-blue); font-size: 10px; font-weight: 750; cursor: pointer; }.evo-secondary-button { color: #526177; background: #e7edf6; }
 .evo-roadmap-summary { position: sticky; top: 0; z-index: 4; padding: 16px 18px; border: 1px solid var(--evo-line); border-radius: 13px; background: #fff; box-shadow: 0 8px 26px #23395610; }.evo-roadmap-summary > div:first-child { display: flex; justify-content: space-between; font-size: 11px; }.evo-roadmap-summary .evo-progress { margin: 10px 0; }.evo-roadmap-summary small { color: var(--evo-muted); font-size: 9px; }.evo-roadmap-days { margin-top: 12px; display: grid; gap: 8px; }.evo-roadmap-days details { border: 1px solid var(--evo-line); border-radius: 12px; background: #fff; }.evo-roadmap-days details.is-current { border-color: #88b7fb; box-shadow: 0 0 0 3px #1769e80d; }.evo-roadmap-days summary { padding: 13px 15px; display: grid; grid-template-columns: 38px 1fr auto; gap: 11px; align-items: center; cursor: pointer; list-style: none; }.evo-day-number { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 9px; color: var(--evo-blue); background: #eaf2ff; font-weight: 850; }.evo-roadmap-days summary div { display: grid; }.evo-roadmap-days summary strong { font-size: 12px; }.evo-roadmap-days summary small { margin-top: 3px; display: flex; align-items: center; gap: 4px; color: var(--evo-muted); font-size: 9px; }.evo-day-done { color: var(--evo-muted); font-size: 10px; font-weight: 750; }.evo-day-content { padding: 0 15px 15px 64px; }.evo-day-content section { padding-top: 12px; border-top: 1px solid #edf1f5; }.evo-day-content h3 { margin: 0 0 8px; color: #657289; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }.evo-day-content label { padding: 6px 0; display: flex; gap: 8px; align-items: flex-start; color: #3e495c; font-size: 10px; line-height: 1.45; cursor: pointer; }.evo-day-content label input { position: absolute; opacity: 0; }.evo-check { width: 17px; height: 17px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid #cbd5e2; border-radius: 5px; color: transparent; }.evo-day-content label.is-done { color: #8b96a6; text-decoration: line-through; }.evo-day-content label.is-done .evo-check { color: #fff; background: var(--evo-blue); border-color: var(--evo-blue); }.evo-roadmap.is-saving { opacity: .8; }
+.evo-project-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.evo-project-card { padding: 15px; border: 1px solid var(--evo-line); border-radius: 12px; background: #fff; box-shadow: 0 8px 26px #23395608; }
+.evo-project-card small { color: var(--evo-blue); font-size: 10px; font-weight: 800; }
+.evo-project-card h3 { margin: 7px 0 5px; font-size: 14px; color: #152033; }
+.evo-project-card p { margin: 0; color: var(--evo-muted); font-size: 11px; line-height: 1.5; }
+@media (max-width: 860px) { .evo-project-grid { grid-template-columns: 1fr; } }
 .evo-day-courses { display: grid; gap: 10px; margin: 12px 0 14px; }.evo-course-card { padding: 12px; border: 1px solid #dbe7f7; border-radius: 10px; background: #f8fbff; }.evo-course-card h3 { margin: 3px 0 7px; color: var(--evo-ink); font-size: 13px; letter-spacing: 0; text-transform: none; }.evo-course-kicker { color: var(--evo-blue); font-size: 9px; font-weight: 800; letter-spacing: .08em; }.evo-course-card > a { display: inline-block; color: var(--evo-blue); font-size: 10px; font-weight: 750; }.evo-course-card details { margin-top: 8px; border-top: 1px solid #e2ebf6; padding-top: 8px; }.evo-course-card summary { padding: 0; display: block; color: #526177; font-size: 10px; cursor: pointer; }.evo-course-card ul { margin: 8px 0 0; padding-left: 16px; color: #526177; font-size: 10px; line-height: 1.5; }
 .evo-stack-form { margin-top: 17px; display: grid; gap: 12px; }.evo-stack-form button { margin-left: 0; justify-self: start; }.evo-stack-form fieldset { padding: 0; border: 0; }.evo-stack-form legend { margin-bottom: 8px; color: var(--evo-muted); font-size: 10px; font-weight: 650; }.evo-chip-options { display: flex; flex-wrap: wrap; gap: 7px; }.evo-chip-options label { display: block; }.evo-chip-options input { position: absolute; opacity: 0; }.evo-chip-options span { padding: 8px 10px; display: block; border: 1px solid #dce3ed; border-radius: 8px; color: #59667a; background: #f8fafc; font-size: 10px; cursor: pointer; }.evo-chip-options input:checked + span { color: var(--evo-blue); border-color: #85b5f8; background: #eaf2ff; }.evo-two-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }.evo-social-detail > strong { margin-top: 14px; display: block; font-size: 40px; letter-spacing: -.05em; }.evo-social-detail > p { color: var(--evo-muted); font-size: 10px; }
 .evo-equipment-form { display: grid; grid-template-columns: 1fr 190px auto; gap: 9px; }.evo-equipment-form button { margin-left: 0; }.evo-equipment-list { margin-top: 14px; display: grid; gap: 7px; }.evo-equipment-list form { padding: 10px; display: grid; grid-template-columns: 32px 1fr auto; gap: 9px; align-items: center; border: 1px solid #e4e9f0; border-radius: 9px; }.evo-equipment-list form > button { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 7px; color: var(--evo-blue); background: #eaf2ff; cursor: pointer; }.evo-equipment-list strong { font-size: 11px; }.evo-equipment-list form.is-bought strong { color: #8894a5; text-decoration: line-through; }.evo-priority { padding: 4px 7px; border-radius: 99px; color: #7d5a1b; background: #fff5d9; font-size: 8px; font-weight: 800; }.evo-priority.is-high { color: #a43339; background: #ffeaeb; }.evo-priority.is-low { color: #39705d; background: #e9f7f1; }.evo-empty-copy { color: var(--evo-muted); font-size: 11px; }
@@ -205,6 +226,9 @@
 .evo-shell .yt-detail-score { font-size: 31px; }
 .evo-shell .yt-detail-score small { font-size: 10px; }
 .evo-shell .yt-detail-copy, .evo-shell .yt-outline, .evo-shell .yt-panel blockquote { font-size: 12px; }
+.evo-shell .yt-approaches-panel .yt-panel-heading p, .evo-shell .yt-approach-card > p { font-size: 12px; }
+.evo-shell .yt-approach-card h3 { font-size: 16px; }
+.evo-shell .yt-approach-card dd { font-size: 11px; }
 .evo-shell .yt-panel { padding: 19px; }
 .evo-shell .yt-panel-heading h2 { font-size: 14px; }
 .evo-shell .yt-panel-heading > span { font-size: 10px; }
@@ -284,6 +308,18 @@
   box-shadow: var(--evo-shadow);
 }
 
+.evo-shell .yt-approach-card {
+  color: var(--evo-ink);
+  background: #f8fbff;
+  border-color: var(--evo-line);
+}
+.evo-shell .yt-approach-card h3,
+.evo-shell .yt-approach-card-heading > strong { color: var(--evo-ink); }
+.evo-shell .yt-approach-card > p,
+.evo-shell .yt-approach-card dd,
+.evo-shell .yt-approaches-panel .yt-panel-heading p { color: var(--evo-muted); }
+.evo-shell .yt-approach-card dl > div { border-color: var(--evo-line); }
+
 .evo-shell .yt-metric-card::after {
   background: rgba(23, 105, 232, 0.07);
 }
@@ -347,6 +383,40 @@
 .evo-shell .yt-card-footer,
 .evo-shell .yt-failure-panel > p {
   border-color: var(--evo-line);
+}
+
+.evo-shell .yt-history-open {
+  border-color: #cfdcf0;
+  color: #075ff7;
+  background: #f5f8fd;
+}
+
+.evo-shell .yt-history-open:hover {
+  border-color: #8bb5f5;
+  background: #edf4ff;
+}
+
+.evo-shell .yt-history-open span { color: #71839d; }
+
+.evo-shell .yt-history-dialog {
+  border-color: #d7e0ec;
+  color: #10213d;
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgba(17, 40, 77, 0.24);
+}
+
+.evo-shell .yt-history-dialog-heading { border-bottom-color: #e0e7f0; }
+.evo-shell .yt-history-dialog-heading h2 { color: #10213d; }
+.evo-shell .yt-history-dialog-heading span { color: #71839d; }
+.evo-shell .yt-history-dialog-heading button {
+  border-color: #d7e0ec;
+  color: #5b6f8b;
+  background: #f7f9fc;
+}
+
+.evo-shell .yt-history-dialog-heading button:hover {
+  color: #075ff7;
+  border-color: #8bb5f5;
 }
 
 .evo-shell .yt-notice {
@@ -744,15 +814,23 @@
   font-weight: 800;
 }
 
+.evo-shell .yt-tag-row .yt-approach-tag {
+  color: #6941a5;
+  background: #f4edff;
+  border-color: #d9c5f5;
+  font-weight: 800;
+}
+
 .evo-shell :where(a, button, input, select, textarea, summary):focus-visible {
   outline: 2px solid var(--evo-blue);
   outline-offset: 2px;
 }
 
-@media (max-width: 1000px) { .evo-score-grid, .evo-project-grid { grid-template-columns: repeat(2, 1fr); }.evo-dashboard-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1000px) { .evo-score-grid, .evo-project-grid { grid-template-columns: repeat(2, 1fr); }.evo-dashboard-grid, .evo-unlock-grid { grid-template-columns: 1fr; } }
 @media (max-width: 760px) {
   .evo-shell { display: block; }.evo-sidebar { display: none; }.evo-main { padding-top: 64px; }.evo-mobile-nav { position: fixed; inset: 0 0 auto; z-index: 70; height: 64px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; color: #fff; background: #111a2b; }.evo-mobile-nav .evo-brand { padding: 0; }.evo-mobile-nav .evo-brand > span { width: 32px; height: 32px; }.evo-mobile-nav .evo-brand div { font-size: 10px; }.evo-mobile-nav .evo-brand strong { font-size: 13px; }.evo-mobile-nav details { position: relative; }.evo-mobile-nav summary { list-style: none; cursor: pointer; }.evo-mobile-nav nav { position: absolute; top: 42px; right: 0; width: 220px; padding: 8px; display: grid; border: 1px solid #34435c; border-radius: 10px; background: #111a2b; box-shadow: 0 20px 45px #0005; }.evo-mobile-nav nav a { padding: 10px; color: #ccd8e9; font-size: 12px; }
   .evo-mobile-nav nav a.is-child { padding-left: 20px; color: #8193ac; font-size: 10px; }.evo-page, .evo-shell .yt-page-content { width: 100%; padding: 28px 15px 60px; }.evo-hero { align-items: flex-start; }.evo-score-ring { width: 96px; height: 96px; }.evo-score-ring strong { font-size: 27px; }.evo-score-grid, .evo-project-grid, .evo-stat-row { grid-template-columns: 1fr; }.evo-study-logger { grid-template-columns: 1fr; }.evo-section-heading { align-items: flex-start; flex-direction: column; }.evo-section-heading > p { text-align: left; }.evo-equipment-form { grid-template-columns: 1fr; }.evo-rank-hero { grid-template-columns: 1fr; }.evo-rank-percent { border: 0; border-bottom: 1px solid #ffffff26; }.evo-page-header { align-items: flex-start; }.evo-page-header > svg { display: none; }
+  .evo-unlock-summary { grid-template-columns: 1fr; gap: 10px; }.evo-unlock-card > header { flex-direction: column; }.evo-unlock-columns { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) { .evo-save-card { grid-template-columns: 1fr; }.evo-save-actions { justify-content: flex-end; } }
 
@@ -913,3 +991,90 @@
 .evo-shell .yt-requirements-total strong { color: #172b4d; }
 @media (max-width: 900px) { .evo-shell .yt-requirements-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .evo-shell .yt-requirements-grid { grid-template-columns: 1fr; } .evo-shell .yt-recording-requirements .yt-panel-heading { align-items: flex-start; gap: 8px; flex-direction: column; } }
+
+/* Projetos práticos de DataScience */
+.evo-project-card { display: flex; flex-direction: column; color: inherit; text-decoration: none; transition: border-color .18s ease, transform .18s ease; }
+.evo-project-card > span { margin-top: auto; padding-top: 14px; display: inline-flex; align-items: center; gap: 6px; color: var(--evo-blue); font-size: 11px; font-weight: 800; }
+.evo-project-card:hover { border-color: #9bbff2; transform: translateY(-2px); }
+.evo-back-link { margin-bottom: 18px; display: inline-flex; align-items: center; gap: 6px; color: var(--evo-blue); font-size: 12px; font-weight: 800; }
+.evo-project-hero { margin-bottom: 20px; padding: 26px; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; border: 1px solid #bfd6fa; border-radius: 16px; background: linear-gradient(135deg, #ffffff, #f1f6ff); }
+.evo-project-hero h1 { max-width: 900px; margin: 6px 0 10px; font-size: clamp(30px, 4vw, 52px); line-height: 1.02; letter-spacing: -.055em; }
+.evo-project-hero p:last-child { max-width: 800px; margin: 0; color: var(--evo-muted); line-height: 1.6; }
+.evo-project-hero > span { padding: 7px 10px; border-radius: 999px; color: #08794f; background: #eafaf3; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.evo-project-intro-grid, .evo-project-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.evo-project-intro-grid .evo-panel p { color: var(--evo-muted); line-height: 1.65; }
+.evo-project-downloads { margin-top: 14px; }
+.evo-project-downloads > a { margin-top: 14px; padding: 15px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid #bfd6fa; border-radius: 12px; color: var(--evo-text); background: #f5f9ff; }
+.evo-project-downloads > a:hover { border-color: var(--evo-blue); }
+.evo-project-downloads > a strong, .evo-project-downloads > a small { display: block; }
+.evo-project-downloads > a small { margin-top: 4px; color: var(--evo-muted); line-height: 1.5; }
+.evo-project-downloads > p { margin: 12px 0 0; color: var(--evo-muted); font-size: 11px; }
+.evo-project-step-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.evo-project-step-grid h3 { margin: 0 0 12px; }
+.evo-project-step-grid ul, .evo-project-detail-grid ul, .evo-project-detail-grid ol { margin: 0; padding-left: 18px; display: grid; gap: 9px; color: var(--evo-muted); font-size: 12px; line-height: 1.55; }
+.evo-project-detail-grid { margin-top: 22px; }
+.evo-project-detail-grid h2 { margin: 0 0 14px; }
+.evo-project-detail-grid ul { padding: 0; list-style: none; }
+.evo-project-detail-grid ul li { display: flex; align-items: flex-start; gap: 8px; }
+.evo-project-detail-grid ul svg { margin-top: 2px; flex: 0 0 auto; color: var(--evo-success); }
+@media (max-width: 760px) { .evo-project-hero { flex-direction: column; padding: 20px; }.evo-project-intro-grid, .evo-project-step-grid, .evo-project-detail-grid { grid-template-columns: 1fr; } }
+
+/* Data Science roadmap v2 */
+.evo-ds-v2 { --ds-navy: #10213f; --ds-blue: #1769e8; --ds-soft: #eef5ff; }
+.evo-ds-overview { margin: 22px 0 30px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.evo-ds-overview article { min-height: 120px; padding: 18px; display: flex; gap: 13px; border: 1px solid var(--evo-line); border-radius: 15px; background: linear-gradient(145deg, #fff, #f8fbff); box-shadow: 0 10px 28px #203b6810; }
+.evo-ds-overview svg { flex: 0 0 auto; color: var(--ds-blue); }
+.evo-ds-overview div { display: flex; flex-direction: column; }
+.evo-ds-overview span, .evo-ds-overview small { color: var(--evo-muted); font-size: 10px; }
+.evo-ds-overview strong { margin: 7px 0 5px; color: var(--ds-navy); font-size: 20px; line-height: 1.05; }
+.evo-phase-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.evo-phase-grid article { padding: 20px; border: 1px solid #d7e4f7; border-radius: 15px; background: #fff; }
+.evo-phase-grid article:nth-child(2) { background: #f8fbff; }
+.evo-phase-grid article:nth-child(3) { background: #f7f5ff; border-color: #dfd8fa; }
+.evo-phase-grid span { color: var(--ds-blue); font-size: 10px; font-weight: 850; text-transform: uppercase; letter-spacing: .08em; }
+.evo-phase-grid h3 { margin: 9px 0 8px; font-size: 18px; }
+.evo-phase-grid p { min-height: 50px; color: var(--evo-muted); font-size: 11px; line-height: 1.55; }
+.evo-phase-grid footer { margin-top: 16px; padding-top: 12px; display: flex; justify-content: space-between; border-top: 1px solid #e7edf5; }
+.evo-phase-grid footer strong, .evo-phase-grid footer small { font-size: 10px; }
+.evo-phase-grid footer small { color: var(--evo-muted); }
+.evo-skill-tags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 5px; }
+.evo-skill-tags em { padding: 4px 7px; border-radius: 999px; color: #315b91; background: #edf5ff; font-size: 9px; font-style: normal; }
+.evo-career-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.evo-career-grid article { padding: 18px; border: 1px solid var(--evo-line); border-radius: 14px; background: #fff; }
+.evo-career-grid article.is-confirmed { border-color: #9bd9be; background: #f6fcf9; }
+.evo-career-grid header, .evo-career-grid article > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.evo-career-grid header span { color: var(--ds-blue); font-size: 10px; font-weight: 800; }
+.evo-career-grid button { padding: 6px 9px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #d8e3f2; border-radius: 8px; color: #335474; background: #fff; font-size: 9px; font-weight: 750; cursor: pointer; }
+.evo-career-grid h3 { margin: 14px 0 7px; font-size: 16px; }
+.evo-career-grid p { color: var(--evo-muted); font-size: 11px; line-height: 1.5; }
+.evo-career-grid article > div { margin-top: 14px; padding: 12px; border-radius: 10px; background: #f3f7fc; }
+.evo-career-grid article > div strong { font-size: 11px; line-height: 1.45; }
+.evo-skill-milestones h3 { display: flex; align-items: center; gap: 7px; }
+.evo-collapsible-section { border: 1px solid var(--evo-line); border-radius: 14px; background: #fff; overflow: hidden; }
+.evo-collapsible-summary { padding: 18px; display: flex; align-items: center; justify-content: space-between; gap: 20px; cursor: pointer; list-style: none; }
+.evo-collapsible-summary::-webkit-details-marker { display: none; }
+.evo-collapsible-title { display: grid; gap: 6px; }
+.evo-collapsible-title .evo-eyebrow { margin: 0; }
+.evo-collapsible-title > strong { color: var(--evo-text); font-size: 18px; font-weight: 500; }
+.evo-collapsible-action { padding: 8px 11px; display: inline-flex; align-items: center; gap: 7px; border: 1px solid #d8e3f2; border-radius: 9px; color: #335474; font-size: 10px; font-weight: 750; white-space: nowrap; }
+.evo-collapsible-action svg { transition: transform 180ms ease; }
+.evo-collapsible-section[open] .evo-collapsible-action svg { transform: rotate(180deg); }
+.evo-collapsible-help { margin: 0 18px 16px; color: var(--evo-muted); font-size: 11px; line-height: 1.55; }
+.evo-collapsible-section .evo-career-grid { padding: 0 18px 18px; }
+.evo-linkedin-skill-alert { margin-bottom: 12px; padding: 14px 16px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border: 1px solid #9cc6f2; border-radius: 12px; background: #eef6ff; color: #0a66c2; }
+.evo-linkedin-skill-alert div { display: grid; gap: 3px; }
+.evo-linkedin-skill-alert small { font-size: 9px; font-weight: 850; letter-spacing: .08em; }
+.evo-linkedin-skill-alert strong { color: #10213d; font-size: 13px; }
+.evo-linkedin-skill-alert span { color: #5d7188; font-size: 10px; line-height: 1.45; }
+.evo-linkedin-skill-alert a { padding: 8px 10px; border: 1px solid #a9caed; border-radius: 8px; background: #fff; color: #0a66c2; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.evo-roadmap-days details.is-project { border-color: #d8c8f5; background: #fbf9ff; }
+.evo-roadmap-days details.is-project .evo-day-number { color: #6c43c0; background: #eee8fb; }
+.evo-roadmap-project-callout { margin: 12px 0 14px; padding: 13px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 11px; border: 1px solid #d8c8f5; border-radius: 11px; background: #f7f3ff; }
+.evo-roadmap-project-callout > svg { color: #7245c3; }
+.evo-roadmap-project-callout div { display: grid; }
+.evo-roadmap-project-callout strong { font-size: 11px; }
+.evo-roadmap-project-callout small { color: var(--evo-muted); font-size: 9px; }
+.evo-roadmap-project-callout a { color: #6639b4; font-size: 10px; font-weight: 800; }
+@media (max-width: 1050px) { .evo-ds-overview { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 760px) { .evo-phase-grid, .evo-career-grid { grid-template-columns: 1fr; }.evo-roadmap-project-callout, .evo-linkedin-skill-alert { grid-template-columns: auto 1fr; }.evo-roadmap-project-callout a, .evo-linkedin-skill-alert a { grid-column: 2; justify-self: start; } }
+@media (max-width: 520px) { .evo-ds-overview { grid-template-columns: 1fr; }.evo-ds-overview article { min-height: auto; } }

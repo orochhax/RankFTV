@@ -37,6 +37,8 @@ const ptBrTitlesByVideoId: Record<string, string> = {
   SjlKBdgWrZ4: "Como editar vídeos com Claude Code (cortes e motion)",
   iJiBJAJRRkk: "O método de Shorts sem rosto com IA de US$ 30 mil/mês que ninguém comenta (fluxo completo)",
   Y9sYXgGxohw: "Claude Cowork: tutorial completo para iniciantes (o fim do SaaS?)",
+  f53vJbPomCs: "Como criar um agente de IA com RAG no N8N: tutorial passo a passo",
+  SNo_recKZyY: "Como usar o Claude Cowork: guia completo de automação de fluxos em 2026",
 };
 
 const editorialTitle = (id: string | null, title: string) =>

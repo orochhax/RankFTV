@@ -108,7 +108,7 @@ export async function EditorialIntelligence() {
         <div className="evo-intel-rank-guide">
           <strong>Como a nota funciona</strong>
           <span>
-            35% desempenho contra a mediana do próprio canal · 20% aderência editorial · 15% facilidade de adaptação · 15% atualidade · 10% validação em outros canais · 5% força de título e thumbnail. Podcasts e entrevistas não entram no ranking principal.
+            65% IA aplicada, transformação e benefício · 25% produtividade, carreira, aprendizado e sistemas · 10% notícia e atualidade. Todos os vídeos recebem essa mesma ponderação e os 15 maiores resultados formam o ranking, sem cotas por categoria. O desempenho contra a mediana do canal ajuda a calcular cada pilar. Podcasts e entrevistas não entram no ranking principal.
           </span>
         </div>
 
@@ -131,7 +131,7 @@ export async function EditorialIntelligence() {
                 </span>
               </div>
               <div className="evo-intel-video-copy">
-                <div className="evo-intel-video-meta"><small>{video.channel}</small><span>{video.topicLabel}</span></div>
+                <div className="evo-intel-video-meta"><small>{video.channel}</small><span>{video.editorialPillarLabel}</span></div>
                 <h3 title={video.originalTitle !== video.title ? `Título original: ${video.originalTitle}` : undefined}>{video.title}</h3>
                 <div className="evo-intel-signal-row">
                   <span>{video.formatLabel}</span>
@@ -141,12 +141,9 @@ export async function EditorialIntelligence() {
                 <details className="evo-intel-breakdown">
                   <summary>Ver composição da nota</summary>
                   <div>
-                    <span>Desempenho <b>{Math.round(video.breakdown.relativePerformance)}</b></span>
-                    <span>Aderência <b>{Math.round(video.breakdown.editorialFit)}</b></span>
-                    <span>Adaptação <b>{Math.round(video.breakdown.adaptability)}</b></span>
-                    <span>Atualidade <b>{Math.round(video.breakdown.freshness)}</b></span>
-                    <span>Validação <b>{Math.round(video.breakdown.crossChannelValidation)}</b></span>
-                    <span>Embalagem <b>{Math.round(video.breakdown.packaging)}</b></span>
+                    <span>IA aplicada (65%) <b>{Math.round(video.breakdown.aiAppliedTransformation)}</b></span>
+                    <span>Produtividade e sistemas (25%) <b>{Math.round(video.breakdown.productivityCareerSystems)}</b></span>
+                    <span>Notícia e atualidade (10%) <b>{Math.round(video.breakdown.newsRelevance)}</b></span>
                   </div>
                 </details>
                 <p>{formatEditorialViews(video.views)} de visualizações · {formatEditorialDuration(video.durationSeconds)}</p>

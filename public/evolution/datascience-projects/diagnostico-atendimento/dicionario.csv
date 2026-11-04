@@ -1,0 +1,4 @@
+tabela,campo,tipo,regra
+tickets,ticket_id,texto,chave única
+tickets,resolucao_min,inteiro,>= primeira_resposta_min
+avaliacoes,nota,inteiro,1 a 5

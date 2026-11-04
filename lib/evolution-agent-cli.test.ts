@@ -57,5 +57,8 @@ test("prompt exige payload editorial completo antes do importador", async () => 
   assert.match(source, /aiRelevance como \{ score: inteiro entre 70 e 100, rationale: texto \}/);
   assert.match(source, /sourceOrigin com EXATAMENTE um destes valores: "primary", "market" ou "mixed"/);
   assert.match(source, /editorialProfile === null\) delete/);
+  assert.match(source, /65% tutoriais, métodos e transformações usando IA/);
+  assert.match(source, /exatamente quatro approaches/);
+  assert.match(source, /Atualidade sozinha não torna uma pauta boa/);
   assert.match(source, /youtubeReferences === null\) delete/);
 });

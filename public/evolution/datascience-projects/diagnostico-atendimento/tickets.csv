@@ -1,0 +1,421 @@
+ticket_id,cliente_id,agente_id,aberto_em,canal,categoria,prioridade,status,primeira_resposta_min,resolucao_min
+T00001,C08,A06,,WhatsApp,Erro técnico,alta,aberto,235,3852
+T00002,C59,A09,2026-05-20,email,Cobrança,baixa,aberto,95,1732
+T00003,C10,A09,2026-06-07,telefone,Erro técnico,media,resolvido,168,1413
+T00004,C23,A11,2026-06-17,telefone,Acesso,alta,resolvido,152,1889
+T00005,C36,A08,2026-01-02,email,Acesso,media,fechado,535,2674
+T00006,C65,A08,2026-02-18,whatsapp,Outros,media,aberto,105,1321
+T00007,C62,A01,2026-05-07,chat,Acesso,media,fechado,316,2306
+T00008,C65,A07,2026-03-14,chat,Cobrança,baixa,resolvido,730,4186
+T00009,C06,A99,2026-04-27,email,Cobrança,alta,fechado,931,3395
+T00010,C05,A03,2026-02-15,telefone,Erro técnico,baixa,resolvido,775,2807
+T00011,C20,A11,2026-07-29,whatsapp,Acesso,alta,resolvido,300,1186
+T00012,C32,A12,2026-04-19,email,cobranca,baixa,fechado,800,3275
+T00013,C35,A08,2026-01-20,whatsapp,Erro técnico,baixa,resolvido,252,850
+T00014,C47,A99,2026-06-01,chat,Acesso,baixa,aberto,811,3291
+T00015,C61,A11,2026-06-14,telefone,Outros,baixa,fechado,178,598
+T00016,C36,A09,2026-01-25,telefone,cobranca,media,resolvido,230,2823
+T00017,C24,A08,2026-04-20,email,Outros,media,fechado,88,787
+T00018,C52,A06,2026-05-24,WhatsApp,Acesso,media,aberto,1196,4006
+T00019,C33,A08,2026-07-19,whatsapp,Outros,alta,aberto,151,2559
+T00020,C62,A05,2026-05-02,telefone,cobranca,alta,resolvido,304,1502
+T00021,C51,A05,2026-07-19,WhatsApp,cobranca,alta,aberto,59,258
+T00022,C20,A03,2026-07-23,WhatsApp,Acesso,baixa,aberto,258,1794
+T00023,C61,A10,2026-01-26,whatsapp,Acesso,media,aberto,166,1745
+T00024,C23,A12,2026-01-25,chat,Acesso,media,aberto,109,1961
+T00025,C70,A04,2026-04-18,chat,Outros,baixa,fechado,369,2771
+T00026,C37,A03,2026-07-21,chat,cobranca,media,resolvido,468,2392
+T00027,C11,A12,2026-03-11,whatsapp,cobranca,media,fechado,229,4006
+T00028,C79,A02,2026-05-28,email,cobranca,baixa,fechado,352,2097
+T00029,C67,A05,2026-07-06,email,Cobrança,media,resolvido,362,1235
+T00030,C28,A04,2026-05-26,telefone,Outros,baixa,aberto,269,2116
+T00031,C08,A01,2026-03-03,telefone,Acesso,alta,fechado,121,2067
+T00032,C06,A02,2026-03-12,whatsapp,Cobrança,media,aberto,182,1615
+T00033,C45,A06,2026-05-26,whatsapp,cobranca,alta,aberto,240,1768
+T00034,C56,A09,2026-06-18,chat,Acesso,baixa,aberto,494,1703
+T00035,C49,A01,2026-01-06,telefone,Cobrança,alta,fechado,836,3064
+T00036,C75,A05,2026-06-28,email,Acesso,media,aberto,661,3638
+T00037,C17,A99,2026-05-01,whatsapp,Cobrança,baixa,fechado,347,2018
+T00038,C34,A99,2026-05-03,chat,cobranca,alta,resolvido,494,4021
+T00039,C69,A03,2026-01-01,chat,cobranca,alta,aberto,776,3728
+T00040,C43,A06,2026-04-11,telefone,Cobrança,baixa,aberto,973,3997
+T00041,C46,A10,2026-05-06,email,Cobrança,alta,fechado,454,2584
+T00042,C10,A09,2026-03-03,chat,cobranca,baixa,fechado,342,4091
+T00043,C55,A99,2026-05-15,chat,Cobrança,baixa,resolvido,81,643
+T00044,C57,A11,2026-01-20,email,cobranca,media,fechado,315,1532
+T00045,C62,A07,2026-04-25,chat,Cobrança,alta,fechado,836,3765
+T00046,C58,A08,2026-02-21,email,Outros,baixa,resolvido,483,2685
+T00047,C74,A07,2026-03-31,telefone,Cobrança,baixa,aberto,848,3107
+T00048,C33,A05,2026-01-12,email,Acesso,baixa,fechado,155,2675
+T00049,C51,A09,2026-05-26,chat,Erro técnico,alta,fechado,348,1942
+T00050,C65,A01,2026-05-27,chat,Cobrança,alta,fechado,414,3285
+T00051,C27,A02,2026-07-27,email,cobranca,media,resolvido,221,1976
+T00052,C46,A12,2026-02-27,email,Outros,alta,resolvido,679,2379
+T00053,C08,A05,2026-01-05,whatsapp,Acesso,media,resolvido,24,141
+T00054,C71,A11,2026-04-12,email,cobranca,baixa,fechado,218,1220
+T00055,C04,A04,2026-05-02,WhatsApp,Acesso,alta,aberto,240,1949
+T00056,C63,A11,2026-02-28,chat,Cobrança,baixa,aberto,438,1707
+T00057,C70,A08,2026-06-14,telefone,Cobrança,baixa,resolvido,522,3666
+T00058,C16,A06,2026-05-31,chat,cobranca,alta,fechado,683,3036
+T00059,C16,A06,2026-05-22,chat,Outros,baixa,aberto,979,3749
+T00060,C29,A05,2026-05-29,email,Erro técnico,alta,resolvido,514,4158
+T00061,C44,A11,2026-02-15,telefone,Acesso,media,resolvido,1,19
+T00062,C55,A06,2026-03-21,whatsapp,cobranca,media,resolvido,290,2654
+T00063,C05,A02,2026-02-28,chat,Acesso,media,aberto,104,1529
+T00064,C15,A12,2026-02-17,email,Erro técnico,media,fechado,173,2678
+T00065,C17,A03,2026-02-06,telefone,Outros,media,fechado,167,1108
+T00066,C80,A10,2026-03-02,chat,Erro técnico,media,fechado,849,3699
+T00067,C17,A01,2026-06-28,telefone,cobranca,media,resolvido,635,2626
+T00068,C47,A03,2026-01-03,whatsapp,Outros,alta,resolvido,169,1594
+T00069,C55,A07,2026-06-18,chat,Acesso,alta,fechado,52,665
+T00070,C56,A99,2026-05-03,chat,Erro técnico,media,resolvido,327,1125
+T00071,C07,A12,2026-05-13,whatsapp,Outros,media,aberto,216,1091
+T00072,C39,A06,2026-03-28,WhatsApp,cobranca,baixa,fechado,300,3359
+T00073,C44,A07,2026-07-06,whatsapp,Cobrança,media,resolvido,95,1209
+T00074,C38,A11,2026-04-22,WhatsApp,Cobrança,baixa,fechado,275,3480
+T00075,C10,A06,2026-03-18,telefone,Cobrança,media,resolvido,542,3370
+T00076,C26,A03,2026-01-18,whatsapp,Outros,media,fechado,441,1930
+T00077,C08,A10,2026-01-06,whatsapp,Outros,alta,aberto,422,2769
+T00078,C23,A07,2026-03-30,WhatsApp,Erro técnico,baixa,fechado,314,2545
+T00079,C23,A07,2026-04-21,whatsapp,cobranca,media,fechado,228,1274
+T00080,C39,A11,2026-02-02,email,Outros,alta,aberto,228,821
+T00081,C52,A09,2026-06-07,whatsapp,cobranca,media,aberto,503,2789
+T00082,C17,A08,2026-07-01,telefone,Outros,baixa,resolvido,616,3159
+T00083,C12,A02,2026-04-29,whatsapp,cobranca,baixa,fechado,264,1082
+T00084,C24,A05,2026-06-21,telefone,Erro técnico,alta,fechado,200,1071
+T00085,C20,A01,2026-06-17,whatsapp,cobranca,media,resolvido,873,2915
+T00086,C25,A06,2026-07-19,telefone,Erro técnico,baixa,resolvido,121,407
+T00087,C16,A07,2026-05-29,telefone,Erro técnico,alta,aberto,29,194
+T00088,C47,A10,2026-03-24,email,cobranca,alta,aberto,193,946
+T00089,C10,A10,2026-03-31,WhatsApp,cobranca,media,resolvido,587,3281
+T00090,C33,A04,,chat,cobranca,media,aberto,263,3322
+T00091,C26,A07,2026-02-16,whatsapp,Outros,media,fechado,240,880
+T00092,C62,A06,2026-04-18,chat,Cobrança,alta,fechado,603,3718
+T00093,C33,A08,2026-04-19,chat,Outros,media,resolvido,650,2746
+T00094,C47,A02,2026-02-01,telefone,Cobrança,media,fechado,103,798
+T00095,C19,A05,2026-07-23,whatsapp,Acesso,media,resolvido,304,3310
+T00096,C21,A03,2026-01-05,email,Outros,alta,fechado,433,2615
+T00097,C54,A08,2026-01-21,chat,Outros,media,aberto,443,3599
+T00097,C80,A05,2026-07-08,email,Cobrança,baixa,fechado,218,1267
+T00099,C56,A11,2026-03-02,telefone,Erro técnico,alta,resolvido,783,3025
+T00100,C17,A99,2026-06-16,chat,Acesso,baixa,aberto,498,1730
+T00101,C75,A08,2026-04-04,chat,Cobrança,alta,aberto,54,397
+T00102,C64,A99,2026-05-22,chat,Cobrança,baixa,resolvido,553,2435
+T00103,C15,A06,2026-03-15,whatsapp,Cobrança,media,aberto,375,1557
+T00104,C23,A07,2026-05-15,whatsapp,Erro técnico,alta,fechado,257,1888
+T00105,C34,A09,2026-03-19,chat,cobranca,baixa,aberto,351,1743
+T00106,C68,A08,2026-07-09,chat,Erro técnico,baixa,aberto,96,1645
+T00107,C66,A04,2026-05-05,WhatsApp,Acesso,alta,resolvido,390,1817
+T00108,C76,A03,2026-02-15,email,Erro técnico,media,resolvido,391,3468
+T00109,C34,A03,2026-03-07,whatsapp,Outros,media,aberto,9,40
+T00110,C35,A03,2026-06-30,WhatsApp,cobranca,baixa,aberto,26,154
+T00111,C29,A04,2026-02-09,WhatsApp,cobranca,media,resolvido,404,1432
+T00112,C31,A01,2026-01-20,chat,Outros,alta,aberto,536,1992
+T00113,C46,A12,2026-04-27,WhatsApp,cobranca,media,aberto,501,2113
+T00114,C47,A08,2026-06-06,telefone,Outros,alta,resolvido,382,2048
+T00115,C04,A09,2026-05-03,whatsapp,cobranca,baixa,fechado,604,3993
+T00116,C35,A06,2026-07-18,telefone,Outros,media,fechado,22,189
+T00117,C39,A06,2026-05-11,chat,Acesso,baixa,resolvido,217,1357
+T00118,C13,A08,2026-04-13,telefone,Cobrança,baixa,aberto,32,599
+T00119,C56,A12,2026-04-02,whatsapp,Erro técnico,alta,fechado,359,3704
+T00120,C78,A01,2026-04-24,WhatsApp,cobranca,baixa,resolvido,679,3592
+T00121,C25,A01,2026-02-04,WhatsApp,Acesso,baixa,aberto,69,675
+T00122,C52,A05,2026-06-27,telefone,Cobrança,alta,resolvido,56,966
+T00123,C34,A09,2026-02-06,whatsapp,Outros,alta,aberto,200,2754
+T00124,C42,A12,2026-04-19,telefone,Cobrança,alta,resolvido,249,2014
+T00125,C28,A12,2026-02-09,WhatsApp,Erro técnico,baixa,fechado,207,2666
+T00126,C78,A07,2026-01-22,email,Acesso,baixa,resolvido,92,740
+T00127,C55,A12,2026-03-15,email,Acesso,baixa,resolvido,350,1641
+T00128,C62,A10,2026-04-23,telefone,Acesso,media,fechado,497,1675
+T00129,C05,A10,2026-01-13,email,cobranca,baixa,fechado,331,2192
+T00130,C07,A11,2026-01-25,whatsapp,Erro técnico,media,aberto,21,162
+T00131,C55,A07,2026-06-20,whatsapp,Erro técnico,media,fechado,60,264
+T00132,C64,A11,2026-05-29,telefone,Acesso,media,aberto,588,2997
+T00133,C25,A11,2026-03-10,chat,Acesso,media,resolvido,479,2299
+T00134,C35,A03,2026-05-20,WhatsApp,Outros,alta,aberto,1013,4195
+T00135,C08,A11,2026-05-27,telefone,Cobrança,baixa,fechado,253,1379
+T00136,C11,A12,2026-03-15,WhatsApp,Outros,alta,aberto,261,3863
+T00137,C78,A04,2026-03-21,telefone,Acesso,baixa,aberto,392,3097
+T00138,C10,A03,2026-01-21,telefone,cobranca,baixa,resolvido,858,3863
+T00139,C78,A12,2026-02-16,whatsapp,cobranca,alta,fechado,685,3810
+T00140,C58,A10,2026-01-12,whatsapp,Acesso,media,resolvido,248,3134
+T00141,C69,A02,2026-07-06,telefone,Outros,baixa,resolvido,112,1416
+T00142,C03,A10,2026-03-04,telefone,Cobrança,alta,resolvido,324,4053
+T00143,C11,A11,2026-03-06,email,Erro técnico,alta,aberto,363,2233
+T00144,C45,A05,2026-01-12,chat,cobranca,alta,fechado,57,230
+T00145,C75,A11,2026-01-19,WhatsApp,Outros,baixa,fechado,284,1205
+T00146,C51,A05,2026-07-29,WhatsApp,Outros,media,resolvido,200,1176
+T00147,C62,A05,2026-07-26,email,cobranca,alta,aberto,251,1913
+T00148,C21,A08,2026-07-14,WhatsApp,Erro técnico,media,resolvido,479,3376
+T00149,C68,A10,2026-06-26,chat,Erro técnico,baixa,resolvido,109,1115
+T00150,C57,A06,2026-03-11,email,Outros,media,fechado,276,3091
+T00151,C34,A12,2026-05-16,email,Erro técnico,baixa,resolvido,517,2209
+T00152,C26,A11,2026-05-02,email,Acesso,alta,resolvido,22,309
+T00153,C59,A04,2026-04-26,chat,cobranca,alta,aberto,281,1225
+T00154,C64,A09,2026-06-14,chat,Cobrança,alta,fechado,241,3095
+T00155,C10,A06,2026-01-18,email,cobranca,alta,aberto,876,3442
+T00156,C28,A12,2026-05-02,chat,Outros,media,fechado,54,644
+T00157,C37,A02,2026-06-25,whatsapp,Outros,media,aberto,479,3745
+T00158,C38,A08,2026-03-20,whatsapp,Erro técnico,media,aberto,72,376
+T00159,C09,A01,2026-03-17,email,Cobrança,media,aberto,844,3518
+T00160,C76,A11,2026-06-11,chat,Outros,alta,aberto,566,2909
+T00161,C01,A09,2026-01-18,chat,Outros,baixa,aberto,800,3474
+T00162,C44,A04,2026-02-17,telefone,Erro técnico,alta,resolvido,960,3920
+T00163,C46,A01,2026-04-11,whatsapp,Erro técnico,baixa,aberto,302,1127
+T00164,C43,A07,2026-02-15,email,Erro técnico,media,fechado,542,3838
+T00165,C27,A07,2026-06-09,email,cobranca,baixa,aberto,111,1619
+T00166,C73,A09,2026-03-22,email,Cobrança,baixa,aberto,755,3090
+T00167,C74,A03,2026-07-01,email,Erro técnico,baixa,fechado,139,1287
+T00168,C71,A05,2026-04-06,chat,Erro técnico,alta,fechado,606,3726
+T00169,C32,A07,2026-04-24,WhatsApp,Cobrança,alta,resolvido,58,987
+T00170,C21,A10,2026-07-25,email,Erro técnico,media,fechado,183,1463
+T00171,C21,A03,2026-05-21,telefone,Erro técnico,alta,aberto,608,2270
+T00172,C42,A01,2026-01-12,WhatsApp,Erro técnico,alta,aberto,1028,3652
+T00173,C50,A99,2026-03-03,chat,Outros,media,resolvido,442,3526
+T00174,C10,A03,2026-04-23,email,cobranca,alta,resolvido,770,2981
+T00175,C32,A04,2026-05-27,whatsapp,Acesso,baixa,fechado,752,3726
+T00176,C57,A07,2026-04-22,whatsapp,Erro técnico,baixa,fechado,334,2138
+T00177,C35,A04,2026-02-19,whatsapp,Acesso,alta,fechado,588,3514
+T00178,C09,A12,2026-01-13,telefone,Acesso,baixa,resolvido,585,2583
+T00179,C13,A99,,telefone,cobranca,baixa,resolvido,277,1080
+T00180,C32,A09,2026-05-07,WhatsApp,Erro técnico,media,aberto,6,25
+T00181,C40,A12,2026-07-03,telefone,Acesso,media,fechado,113,1950
+T00182,C14,A06,2026-06-27,email,Cobrança,media,aberto,583,2155
+T00183,C02,A01,2026-02-12,WhatsApp,Outros,media,resolvido,697,2563
+T00184,C73,A01,2026-01-08,whatsapp,Cobrança,baixa,aberto,442,4182
+T00185,C44,A03,2026-05-08,whatsapp,Outros,media,fechado,306,2695
+T00186,C57,A03,2026-01-09,whatsapp,Erro técnico,baixa,aberto,507,2579
+T00187,C39,A06,2026-02-16,WhatsApp,cobranca,baixa,fechado,144,629
+T00188,C52,A09,2026-05-05,whatsapp,cobranca,media,resolvido,670,2464
+T00189,C28,A09,2026-07-04,telefone,Acesso,alta,aberto,83,771
+T00190,C10,A11,2026-06-13,email,Outros,media,fechado,766,3776
+T00191,C27,A03,2026-03-24,email,Acesso,media,aberto,456,3873
+T00192,C63,A06,2026-03-24,email,Erro técnico,alta,resolvido,229,1011
+T00193,C35,A04,2026-07-22,WhatsApp,Erro técnico,media,fechado,260,1391
+T00194,C73,A02,2026-04-08,email,Acesso,media,aberto,203,1036
+T00195,C68,A10,2026-02-14,WhatsApp,Cobrança,baixa,fechado,338,2146
+T00196,C37,A01,2026-05-25,email,Erro técnico,baixa,resolvido,82,1568
+T00197,C25,A12,2026-05-14,whatsapp,cobranca,baixa,resolvido,521,2863
+T00198,C41,A06,2026-04-29,chat,Acesso,media,aberto,1240,4142
+T00199,C70,A99,2026-03-30,email,Outros,media,aberto,4,74
+T00200,C39,A06,2026-02-03,chat,Cobrança,media,fechado,314,1878
+T00201,C62,A04,2026-01-07,telefone,Erro técnico,baixa,aberto,509,4205
+T00202,C45,A07,2026-05-17,email,Cobrança,media,aberto,437,3556
+T00203,C35,A07,2026-02-06,email,Outros,media,resolvido,467,3091
+T00204,C70,A02,2026-05-20,chat,Erro técnico,baixa,fechado,402,2901
+T00205,C60,A11,2026-07-13,WhatsApp,Erro técnico,baixa,resolvido,438,2570
+T00206,C62,A09,2026-01-02,WhatsApp,Acesso,media,fechado,430,1507
+T00207,C04,A09,2026-06-22,WhatsApp,cobranca,media,aberto,645,3674
+T00208,C69,A02,2026-05-15,whatsapp,Cobrança,alta,aberto,529,2870
+T00209,C04,A05,2026-03-05,WhatsApp,Outros,media,fechado,729,3849
+T00210,C42,A06,2026-06-22,chat,Outros,alta,resolvido,62,1211
+T00211,C80,A05,2026-01-27,WhatsApp,Acesso,media,fechado,1130,3852
+T00212,C53,A12,2026-05-04,WhatsApp,cobranca,media,fechado,341,3823
+T00213,C15,A09,2026-04-02,WhatsApp,cobranca,baixa,aberto,3,19
+T00214,C21,A06,2026-01-11,email,Outros,baixa,aberto,194,2477
+T00215,C61,A09,2026-03-29,whatsapp,Acesso,baixa,resolvido,1055,3996
+T00216,C57,A02,2026-02-06,telefone,Outros,media,aberto,245,3688
+T00217,C50,A06,2026-07-05,email,Cobrança,baixa,aberto,205,2832
+T00218,C62,A06,2026-01-04,chat,Cobrança,alta,fechado,259,1865
+T00219,C65,A10,2026-03-26,chat,Acesso,baixa,fechado,40,203
+T00220,C54,A02,2026-05-17,email,Erro técnico,baixa,fechado,161,3054
+T00221,C49,A12,2026-06-14,WhatsApp,Acesso,alta,resolvido,384,3394
+T00222,C63,A11,2026-01-30,email,Erro técnico,alta,aberto,168,2205
+T00223,C24,A09,2026-07-22,WhatsApp,Outros,baixa,resolvido,352,2283
+T00224,C72,A12,2026-03-22,WhatsApp,Cobrança,media,fechado,563,2749
+T00225,C17,A08,2026-05-25,email,Outros,baixa,fechado,72,265
+T00226,C74,A99,2026-05-27,chat,Outros,alta,aberto,25,339
+T00227,C51,A07,2026-05-19,email,Erro técnico,alta,aberto,463,2100
+T00228,C12,A05,2026-07-16,telefone,Erro técnico,alta,aberto,469,1599
+T00229,C70,A04,2026-02-11,telefone,Cobrança,alta,resolvido,777,3846
+T00230,C66,A04,2026-04-05,whatsapp,Outros,baixa,aberto,321,2843
+T00231,C23,A12,2026-05-28,email,Erro técnico,media,fechado,589,3509
+T00232,C04,A06,2026-02-05,whatsapp,Cobrança,baixa,aberto,731,3822
+T00233,C61,A06,2026-03-13,email,Erro técnico,media,aberto,424,2186
+T00234,C52,A09,2026-03-05,chat,Outros,media,resolvido,242,2743
+T00235,C37,A12,2026-04-29,email,cobranca,baixa,aberto,717,3039
+T00236,C31,A10,2026-06-19,chat,Erro técnico,baixa,aberto,117,848
+T00237,C77,A05,2026-03-15,whatsapp,Acesso,media,resolvido,906,3360
+T00238,C09,A12,2026-04-26,whatsapp,Cobrança,alta,fechado,446,3272
+T00239,C50,A12,2026-03-06,email,Cobrança,media,aberto,528,3649
+T00240,C05,A09,2026-06-20,WhatsApp,Erro técnico,alta,resolvido,105,745
+T00241,C31,A05,2026-04-13,chat,Acesso,baixa,resolvido,156,1522
+T00242,C65,A02,2026-07-22,telefone,Cobrança,baixa,fechado,871,3334
+T00243,C52,A08,2026-05-09,chat,Acesso,baixa,fechado,518,2248
+T00244,C30,A03,2026-03-06,email,cobranca,alta,aberto,102,1089
+T00245,C67,A02,2026-01-02,WhatsApp,cobranca,baixa,aberto,587,3207
+T00246,C41,A08,2026-03-07,WhatsApp,cobranca,alta,aberto,30,484
+T00247,C71,A02,2026-04-14,whatsapp,Cobrança,baixa,fechado,200,2995
+T00248,C20,A06,2026-06-22,chat,Outros,alta,fechado,202,1014
+T00249,C47,A12,2026-01-05,chat,Erro técnico,media,fechado,571,2954
+T00250,C06,A12,2026-07-25,telefone,cobranca,alta,aberto,954,4154
+T00251,C57,A99,2026-06-19,WhatsApp,Acesso,media,fechado,289,3554
+T00252,C18,A08,2026-05-26,email,Outros,baixa,resolvido,307,3446
+T00253,C63,A11,2026-03-28,whatsapp,Outros,alta,aberto,144,797
+T00254,C56,A02,2026-07-10,whatsapp,Acesso,baixa,fechado,297,3881
+T00255,C10,A11,2026-07-21,WhatsApp,cobranca,alta,aberto,596,2453
+T00256,C47,A10,2026-04-09,email,Outros,baixa,resolvido,642,2208
+T00257,C68,A06,2026-02-10,telefone,Acesso,baixa,aberto,54,699
+T00258,C69,A12,2026-05-04,chat,Cobrança,baixa,aberto,1012,3834
+T00259,C27,A01,2026-03-16,WhatsApp,Erro técnico,baixa,fechado,203,708
+T00260,C07,A12,2026-01-06,whatsapp,cobranca,alta,aberto,64,450
+T00261,C66,A03,2026-02-03,WhatsApp,Outros,alta,aberto,1147,3965
+T00262,C58,A05,2026-03-14,WhatsApp,Outros,baixa,aberto,46,405
+T00263,C23,A06,2026-01-20,chat,Erro técnico,baixa,resolvido,95,781
+T00264,C75,A05,2026-04-10,WhatsApp,cobranca,alta,fechado,73,568
+T00265,C17,A08,2026-01-23,WhatsApp,Acesso,media,resolvido,1132,3946
+T00266,C49,A04,2026-03-13,whatsapp,cobranca,media,aberto,945,3695
+T00267,C61,A99,2026-02-08,chat,Outros,baixa,fechado,95,1250
+T00268,C30,A99,,chat,Erro técnico,baixa,aberto,673,2964
+T00269,C35,A02,2026-04-22,chat,Outros,media,fechado,659,3863
+T00270,C40,A05,2026-06-08,email,Cobrança,baixa,resolvido,745,2713
+T00271,C59,A02,2026-05-17,chat,Erro técnico,alta,resolvido,781,3306
+T00272,C19,A01,2026-07-02,whatsapp,cobranca,baixa,resolvido,753,3504
+T00273,C11,A08,2026-04-08,email,cobranca,alta,fechado,514,2631
+T00274,C30,A10,2026-06-21,whatsapp,Acesso,baixa,fechado,711,2436
+T00275,C25,A04,2026-01-23,telefone,Erro técnico,media,aberto,419,2765
+T00276,C51,A02,2026-01-07,whatsapp,Outros,baixa,resolvido,244,1465
+T00277,C80,A06,2026-05-11,telefone,cobranca,baixa,fechado,783,2974
+T00278,C51,A07,2026-03-19,telefone,Erro técnico,baixa,resolvido,229,1572
+T00279,C21,A07,2026-04-23,email,Cobrança,alta,resolvido,145,508
+T00280,C39,A08,2026-06-23,telefone,Erro técnico,alta,fechado,300,1620
+T00281,C57,A10,2026-01-19,telefone,Erro técnico,alta,resolvido,25,103
+T00282,C03,A03,2026-03-03,WhatsApp,Erro técnico,baixa,aberto,206,2772
+T00283,C23,A09,2026-04-06,whatsapp,Outros,alta,aberto,164,870
+T00284,C76,A03,2026-03-19,telefone,Cobrança,baixa,resolvido,929,3322
+T00285,C14,A07,2026-05-09,chat,Erro técnico,baixa,aberto,112,524
+T00286,C79,A10,2026-03-18,email,cobranca,alta,fechado,763,3421
+T00287,C72,A11,2026-04-26,telefone,cobranca,alta,resolvido,696,3376
+T00288,C68,A12,2026-07-27,whatsapp,cobranca,baixa,fechado,257,2436
+T00289,C60,A05,2026-01-06,WhatsApp,Acesso,baixa,resolvido,761,2753
+T00290,C59,A08,2026-03-28,chat,Erro técnico,baixa,fechado,372,2145
+T00291,C80,A12,2026-01-27,telefone,Cobrança,media,aberto,393,1958
+T00292,C28,A12,2026-05-15,chat,Acesso,baixa,aberto,94,596
+T00293,C52,A06,2026-02-14,telefone,Erro técnico,baixa,fechado,102,342
+T00294,C01,A99,2026-04-08,whatsapp,Acesso,media,resolvido,87,327
+T00295,C44,A03,2026-04-14,WhatsApp,Cobrança,media,aberto,89,520
+T00296,C21,A03,2026-02-13,telefone,Erro técnico,media,resolvido,101,1488
+T00297,C58,A02,2026-04-06,WhatsApp,Outros,alta,aberto,720,2738
+T00298,C54,A11,2026-04-12,chat,Acesso,baixa,fechado,33,145
+T00299,C50,A07,2026-01-18,whatsapp,Outros,baixa,aberto,394,2866
+T00300,C75,A10,2026-07-09,whatsapp,cobranca,baixa,fechado,446,3190
+T00301,C07,A07,2026-04-21,chat,Erro técnico,alta,fechado,163,2196
+T00302,C23,A12,2026-04-03,chat,Acesso,baixa,resolvido,227,1564
+T00303,C23,A07,2026-05-08,email,Outros,alta,resolvido,339,1192
+T00304,C03,A09,2026-06-07,email,Acesso,alta,aberto,565,2898
+T00305,C43,A06,2026-03-27,email,cobranca,alta,fechado,400,1571
+T00306,C39,A03,2026-01-30,chat,Acesso,alta,resolvido,856,3717
+T00307,C12,A05,2026-06-03,WhatsApp,Outros,alta,fechado,500,1861
+T00308,C60,A06,2026-04-14,chat,Cobrança,media,aberto,699,3445
+T00309,C23,A09,2026-03-29,WhatsApp,cobranca,baixa,aberto,192,1459
+T00310,C09,A12,2026-01-30,chat,Cobrança,media,aberto,313,2276
+T00311,C21,A01,2026-05-05,telefone,cobranca,baixa,aberto,730,4074
+T00312,C68,A12,2026-01-05,whatsapp,Acesso,alta,resolvido,369,1603
+T00313,C49,A05,2026-02-21,chat,Cobrança,alta,resolvido,870,4076
+T00314,C49,A01,2026-05-01,whatsapp,Erro técnico,media,aberto,443,1571
+T00315,C65,A04,2026-06-20,whatsapp,Cobrança,baixa,aberto,243,3328
+T00316,C62,A12,2026-01-27,telefone,Outros,media,resolvido,342,3941
+T00317,C44,A02,2026-05-08,whatsapp,Erro técnico,alta,aberto,234,2143
+T00318,C29,A02,2026-06-30,email,Cobrança,baixa,fechado,24,134
+T00319,C06,A12,2026-03-01,WhatsApp,Outros,alta,aberto,211,1424
+T00320,C43,A02,2026-04-26,telefone,Erro técnico,alta,aberto,226,945
+T00321,C56,A03,2026-05-25,chat,cobranca,baixa,aberto,316,3734
+T00322,C53,A04,2026-05-14,telefone,Acesso,baixa,resolvido,128,1693
+T00323,C62,A11,2026-06-12,email,cobranca,alta,resolvido,124,2054
+T00324,C32,A02,2026-03-18,email,Acesso,baixa,resolvido,47,198
+T00325,C43,A04,2026-03-30,telefone,cobranca,baixa,aberto,176,684
+T00326,C46,A06,2026-01-12,email,Cobrança,media,aberto,339,1241
+T00327,C57,A10,2026-03-18,chat,cobranca,media,fechado,42,336
+T00328,C33,A01,2026-05-23,chat,Acesso,baixa,resolvido,172,1023
+T00329,C70,A99,2026-04-28,telefone,Acesso,alta,aberto,152,2365
+T00330,C15,A12,2026-05-01,email,Acesso,alta,fechado,82,1644
+T00331,C79,A05,2026-01-18,email,cobranca,alta,aberto,467,2866
+T00332,C57,A04,2026-04-12,whatsapp,Acesso,alta,resolvido,518,2621
+T00333,C08,A10,2026-02-04,telefone,cobranca,media,resolvido,535,2448
+T00334,C80,A07,2026-03-02,whatsapp,Outros,alta,fechado,962,3883
+T00335,C58,A10,2026-03-17,whatsapp,Cobrança,media,fechado,1075,3934
+T00336,C40,A07,2026-06-30,telefone,Cobrança,alta,resolvido,705,2767
+T00337,C58,A12,2026-07-21,whatsapp,Erro técnico,alta,fechado,141,1570
+T00338,C03,A08,2026-01-18,chat,cobranca,media,resolvido,205,774
+T00339,C57,A04,2026-05-09,WhatsApp,Outros,baixa,fechado,883,3356
+T00340,C76,A09,2026-02-13,chat,Erro técnico,baixa,resolvido,152,944
+T00341,C05,A07,2026-06-16,email,Acesso,alta,aberto,229,3227
+T00342,C66,A11,2026-02-24,email,Erro técnico,alta,fechado,214,1976
+T00343,C78,A99,2026-05-23,telefone,cobranca,baixa,resolvido,18,274
+T00344,C53,A07,2026-06-01,chat,cobranca,alta,fechado,890,3614
+T00345,C70,A08,2026-07-15,telefone,Outros,alta,fechado,466,1893
+T00346,C56,A08,2026-07-06,whatsapp,Acesso,baixa,fechado,774,3962
+T00347,C12,A05,2026-03-18,WhatsApp,Outros,baixa,resolvido,40,627
+T00348,C39,A99,2026-01-28,whatsapp,Acesso,alta,resolvido,165,1461
+T00349,C51,A01,2026-04-07,WhatsApp,Cobrança,media,fechado,444,4174
+T00350,C17,A04,2026-06-17,whatsapp,Acesso,alta,resolvido,733,2494
+T00351,C18,A12,2026-04-11,WhatsApp,Acesso,alta,aberto,351,1474
+T00352,C48,A01,2026-07-28,chat,Erro técnico,media,resolvido,280,3538
+T00353,C10,A10,2026-02-27,WhatsApp,Erro técnico,media,aberto,256,892
+T00354,C70,A99,2026-03-02,chat,Cobrança,baixa,fechado,373,1294
+T00355,C38,A01,2026-04-17,email,Cobrança,alta,resolvido,369,3815
+T00356,C30,A10,2026-01-13,WhatsApp,Outros,baixa,fechado,691,2423
+T00357,C79,A02,,chat,Acesso,alta,resolvido,250,2238
+T00358,C46,A01,2026-01-22,chat,Erro técnico,alta,aberto,365,1713
+T00359,C02,A07,2026-07-03,chat,Cobrança,baixa,fechado,371,2485
+T00360,C43,A08,2026-02-23,whatsapp,Cobrança,baixa,fechado,504,2274
+T00361,C63,A06,2026-06-15,email,Outros,alta,fechado,200,1080
+T00362,C40,A09,2026-01-28,whatsapp,Erro técnico,alta,resolvido,14,98
+T00363,C39,A09,2026-06-01,email,Cobrança,baixa,aberto,115,1089
+T00364,C55,A99,2026-04-17,email,Outros,alta,fechado,360,2192
+T00365,C33,A05,2026-07-02,email,Acesso,media,resolvido,201,2041
+T00366,C69,A09,2026-06-15,chat,Acesso,alta,resolvido,72,1169
+T00367,C30,A99,2026-06-15,WhatsApp,Outros,baixa,resolvido,725,3950
+T00368,C47,A11,2026-07-29,telefone,cobranca,baixa,aberto,461,2632
+T00369,C51,A05,2026-06-25,WhatsApp,cobranca,alta,fechado,487,2336
+T00370,C40,A02,2026-01-28,telefone,Outros,baixa,fechado,854,3175
+T00371,C01,A03,2026-02-18,whatsapp,Outros,media,resolvido,511,3800
+T00372,C53,A10,2026-07-20,WhatsApp,cobranca,alta,fechado,255,1791
+T00373,C73,A12,2026-06-21,WhatsApp,Acesso,baixa,aberto,80,500
+T00374,C57,A07,2026-04-02,whatsapp,Acesso,media,aberto,275,1938
+T00375,C11,A02,2026-03-31,whatsapp,Cobrança,alta,resolvido,196,1060
+T00376,C41,A05,2026-03-30,WhatsApp,Acesso,alta,fechado,211,2075
+T00377,C21,A02,2026-01-30,WhatsApp,Acesso,media,aberto,115,515
+T00378,C31,A01,2026-04-19,chat,Cobrança,media,resolvido,189,1651
+T00379,C15,A10,2026-01-05,telefone,Cobrança,baixa,fechado,3,27
+T00380,C78,A07,2026-05-02,WhatsApp,cobranca,alta,aberto,364,1946
+T00381,C73,A05,2026-04-24,telefone,Outros,media,fechado,130,1017
+T00382,C31,A01,2026-07-02,WhatsApp,cobranca,baixa,resolvido,127,1053
+T00383,C40,A01,2026-01-06,telefone,Acesso,alta,fechado,91,801
+T00384,C58,A05,2026-03-12,whatsapp,Cobrança,media,fechado,27,106
+T00385,C32,A03,2026-05-04,chat,cobranca,baixa,resolvido,282,1103
+T00386,C17,A08,2026-05-03,whatsapp,Outros,media,fechado,335,1151
+T00387,C35,A03,2026-03-11,telefone,Erro técnico,baixa,resolvido,1090,4027
+T00388,C32,A07,2026-04-15,email,Cobrança,baixa,fechado,613,3285
+T00389,C17,A12,2026-06-28,WhatsApp,Cobrança,baixa,aberto,58,565
+T00390,C34,A03,2026-05-11,telefone,cobranca,alta,aberto,134,531
+T00391,C60,A10,2026-02-26,chat,Outros,baixa,resolvido,549,3914
+T00392,C77,A11,2026-05-26,WhatsApp,Acesso,baixa,resolvido,147,2788
+T00393,C34,A02,2026-03-16,telefone,Outros,alta,resolvido,104,390
+T00394,C42,A99,2026-07-18,telefone,Cobrança,baixa,fechado,122,1436
+T00395,C48,A07,2026-01-20,telefone,cobranca,alta,aberto,329,2036
+T00396,C73,A04,2026-04-03,chat,Erro técnico,alta,aberto,149,647
+T00397,C67,A06,2026-05-09,chat,Acesso,baixa,resolvido,416,1659
+T00398,C27,A02,2026-04-30,email,cobranca,alta,fechado,466,1802
+T00399,C62,A02,2026-01-27,WhatsApp,Cobrança,alta,aberto,139,572
+T00400,C47,A06,2026-06-12,telefone,cobranca,alta,fechado,67,1249
+T00401,C63,A10,2026-05-24,WhatsApp,Outros,baixa,resolvido,589,2465
+T00402,C78,A07,2026-04-20,WhatsApp,Acesso,alta,resolvido,327,2494
+T00403,C12,A99,2026-02-13,whatsapp,Erro técnico,alta,aberto,470,1656
+T00404,C10,A02,2026-06-03,email,Erro técnico,baixa,aberto,283,1184
+T00405,C26,A06,2026-07-07,email,Acesso,baixa,fechado,1072,3859
+T00406,C14,A11,2026-05-20,email,Acesso,media,aberto,291,2198
+T00407,C20,A03,2026-06-11,whatsapp,Erro técnico,alta,fechado,19,90
+T00408,C31,A99,2026-02-20,email,Cobrança,alta,resolvido,426,2124
+T00409,C28,A05,2026-04-27,WhatsApp,Outros,media,aberto,559,4178
+T00410,C08,A04,2026-03-12,telefone,Cobrança,alta,aberto,454,3857
+T00411,C53,A01,2026-06-27,chat,Acesso,alta,fechado,1105,3834
+T00412,C10,A12,2026-07-03,whatsapp,Acesso,alta,aberto,224,2689
+T00413,C69,A06,2026-04-27,WhatsApp,Outros,alta,fechado,93,1268
+T00414,C63,A01,2026-07-07,email,Erro técnico,media,fechado,439,2711
+T00415,C18,A09,2026-04-24,whatsapp,Acesso,media,aberto,906,3303
+T00416,C34,A07,2026-07-27,telefone,cobranca,alta,resolvido,61,777
+T00417,C30,A08,2026-04-03,email,Acesso,media,resolvido,358,2217
+T00418,C33,A07,2026-04-24,email,cobranca,alta,resolvido,88,620
+T00419,C72,A08,2026-02-24,telefone,Outros,alta,resolvido,116,1245
+T00420,C77,A01,2026-03-13,whatsapp,cobranca,alta,fechado,413,3628

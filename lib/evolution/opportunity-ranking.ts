@@ -14,13 +14,12 @@ export type OpportunityVideoInput = {
 };
 
 export type OpportunityBreakdown = {
-  relativePerformance: number;
-  editorialFit: number;
-  adaptability: number;
-  freshness: number;
-  crossChannelValidation: number;
-  packaging: number;
+  aiAppliedTransformation: number;
+  productivityCareerSystems: number;
+  newsRelevance: number;
 };
+
+export type EditorialPillar = "ai_applied" | "growth_systems" | "news";
 
 export type RankedOpportunityVideo = OpportunityVideoInput & {
   opportunityScore: number;
@@ -29,6 +28,8 @@ export type RankedOpportunityVideo = OpportunityVideoInput & {
   relativePerformanceMultiple: number;
   formatLabel: string;
   topicLabel: string;
+  editorialPillar: EditorialPillar;
+  editorialPillarLabel: string;
   rationale: string;
 };
 
@@ -106,6 +107,34 @@ const tutorialTerms = [
   "truques",
 ];
 
+const aiTerms = [
+  " inteligencia artificial", " ia ", " ia:", "com ia", "usando ia", "de ia", " ai ", "chatgpt", "claude", "gemini", "openai",
+  "agente", "agent", "automacao", "automation", "cursor", "lovable", "higgsfield",
+];
+
+const newsTerms = [
+  "noticia", "news", "lancamento", "release", "lancou", "anunciou", "novidade",
+  "novo ", "nova ", "mudou", "acabou", "chegou", "estreia", "atualizacao",
+];
+
+const benefitTerms = [
+  "resultado", "beneficio", "ganhar", "ganhei", "fatur", "dinheiro", "money", "venda",
+  "cliente", "econom", "rapido", "produt", "trabalhar melhor", "criar", "construir",
+  "aprender", "conhecimento", "horas", "minutos", "dias", "sem experiencia", "do zero",
+];
+
+const growthTerms = [
+  "produt", "carreira", "aprend", "estud", "sistema", "foco", "prioridad",
+  "disciplina", "procrast", "rotina", "habito", "tempo", "organiz", "execucao",
+  "trabalho", "profissional", "habilidade", "skill", "conhecimento", "performance",
+];
+
+const pillarLabels: Record<EditorialPillar, string> = {
+  ai_applied: "IA aplicada a resultados",
+  growth_systems: "Produtividade, carreira e sistemas",
+  news: "Notícia relevante",
+};
+
 const excludedFormatTerms = [
   "podcast",
   "entrevista",
@@ -146,7 +175,7 @@ export const isEligibleOpportunityVideo = (video: OpportunityVideoInput) => {
   if (video.views == null || video.views < 0) return false;
   const title = ` ${normalized(video.originalTitle || video.title)} `;
   if (titleHasAny(title, irrelevantTerms)) return false;
-  if (!editorialGroups.some((group) => titleHasAny(title, group.terms))) return false;
+  if (!editorialGroups.some((group) => titleHasAny(title, group.terms)) && !titleHasAny(title, newsTerms)) return false;
   if (titleHasAny(title, excludedFormatTerms)) return false;
   if ((video.durationSeconds ?? 0) > 45 * 60 && !isLongTutorial(title)) return false;
   return true;
@@ -155,13 +184,13 @@ export const isEligibleOpportunityVideo = (video: OpportunityVideoInput) => {
 const relativePerformanceScore = (multiple: number) =>
   clamp(50 + 15 * Math.log2(Math.max(multiple, 0.05)));
 
-const editorialFitScore = (video: OpportunityVideoInput) => {
+const editorialPillarFor = (video: OpportunityVideoInput): EditorialPillar => {
   const title = ` ${normalized(video.originalTitle || video.title)} `;
-  const matched = editorialGroups.filter((group) => titleHasAny(title, group.terms));
-  if (!matched.length) return 0;
-  const hasAppliedAngle = titleHasAny(title, tutorialTerms);
-  const groupBreadth = Math.min(3, matched.length);
-  return clamp(55 + (groupBreadth - 1) * 14 + (hasAppliedAngle ? 17 : 0));
+  const channelAndTitle = `${title} ${normalized(video.channel)} `;
+  const isApplied = titleHasAny(title, tutorialTerms) || titleHasAny(title, benefitTerms);
+  if (titleHasAny(title, newsTerms) && !isApplied) return "news";
+  if (titleHasAny(channelAndTitle, aiTerms)) return "ai_applied";
+  return "growth_systems";
 };
 
 const adaptabilityScore = (video: OpportunityVideoInput) => {
@@ -210,6 +239,15 @@ const freshnessScore = (ageDays: number | null) => {
   return 10;
 };
 
+const longevityScore = (video: OpportunityVideoInput, pillar: EditorialPillar) => {
+  const title = ` ${normalized(video.originalTitle || video.title)} `;
+  let score = pillar === "growth_systems" ? 88 : pillar === "ai_applied" ? 76 : 28;
+  if (titleHasAny(title, tutorialTerms)) score += 8;
+  if (titleHasAny(title, ["2025", "2026", "2027", "lancamento", "noticia", "news", "acabou", "chegou"])) score -= 18;
+  if (titleHasAny(title, ["metodo", "sistema", "framework", "principio", "regra", "guia"])) score += 8;
+  return clamp(score);
+};
+
 const packagingScore = (video: OpportunityVideoInput) => {
   const title = normalized(video.originalTitle || video.title);
   let score = 20;
@@ -220,6 +258,63 @@ const packagingScore = (video: OpportunityVideoInput) => {
   if (title.length >= 32 && title.length <= 95) score += 15;
   if (video.thumbnail || video.thumbnailUrl) score += 8;
   return clamp(score);
+};
+
+const aiAppliedTransformationScore = (
+  video: OpportunityVideoInput,
+  relativePerformance: number,
+  crossChannelValidation: number,
+) => {
+  const title = ` ${normalized(video.originalTitle || video.title)} `;
+  if (!titleHasAny(`${title} ${normalized(video.channel)} `, aiTerms)) return 0;
+
+  return clamp(
+    30
+    + (titleHasAny(title, tutorialTerms) ? 18 : 0)
+    + (titleHasAny(title, benefitTerms) ? 17 : 0)
+    + relativePerformance * 0.12
+    + adaptabilityScore(video) * 0.08
+    + packagingScore(video) * 0.08
+    + crossChannelValidation * 0.04
+    + longevityScore(video, "ai_applied") * 0.03,
+  );
+};
+
+const productivityCareerSystemsScore = (
+  video: OpportunityVideoInput,
+  relativePerformance: number,
+  crossChannelValidation: number,
+) => {
+  const title = ` ${normalized(video.originalTitle || video.title)} `;
+  if (!titleHasAny(title, growthTerms)) return 0;
+
+  return clamp(
+    38
+    + (titleHasAny(title, ["sistema", "metodo", "framework", "regra", "rotina", "plano"]) ? 14 : 0)
+    + (titleHasAny(title, benefitTerms) ? 10 : 0)
+    + relativePerformance * 0.12
+    + adaptabilityScore(video) * 0.08
+    + packagingScore(video) * 0.07
+    + crossChannelValidation * 0.04
+    + longevityScore(video, "growth_systems") * 0.07,
+  );
+};
+
+const newsRelevanceScore = (
+  video: OpportunityVideoInput,
+  relativePerformance: number,
+  ageDays: number | null,
+) => {
+  const title = ` ${normalized(video.originalTitle || video.title)} `;
+  if (!titleHasAny(title, newsTerms)) return 0;
+
+  return clamp(
+    42
+    + freshnessScore(ageDays) * 0.35
+    + relativePerformance * 0.1
+    + packagingScore(video) * 0.08
+    + (titleHasAny(title, ["lancou", "anunciou", "release", "atualizacao"]) ? 8 : 0),
+  );
 };
 
 const formatLabel = (video: OpportunityVideoInput) => {
@@ -235,10 +330,9 @@ const rationaleFor = (video: OpportunityVideoInput, multiple: number, topic: str
     ? `${multiple.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}× a mediana do próprio canal`
     : `${Math.round(multiple * 100)}% da mediana do próprio canal`;
   const strongest = [
-    [breakdown.editorialFit, "forte aderência à linha do Carlos"],
-    [breakdown.adaptability, "formato fácil de transformar em vídeo autoral"],
-    [breakdown.freshness, "assunto recente"],
-    [breakdown.crossChannelValidation, "tema validado em mais de um canal"],
+    [breakdown.aiAppliedTransformation, "forte aderência a IA aplicada, transformação e benefício"],
+    [breakdown.productivityCareerSystems, "boa conexão com produtividade, carreira e sistemas"],
+    [breakdown.newsRelevance, "notícia atual com relevância editorial"],
   ] as Array<[number, string]>;
   strongest.sort((a, b) => b[0] - a[0]);
   return `${performance}; ${strongest[0][1]}. Sinal: ${topic}.`;
@@ -280,21 +374,19 @@ export function rankOpportunityVideos(
         1,
         ...topics.map((topic) => channelsByTopic.get(topic)?.size ?? 1),
       );
+      const editorialPillar = editorialPillarFor(video);
+      const relativePerformance = relativePerformanceScore(relativePerformanceMultiple);
+      const crossChannelValidation = clamp(((corroboratingChannels - 1) / 5) * 100);
+      const ageDays = videoAgeDays(video, now);
       const breakdown: OpportunityBreakdown = {
-        relativePerformance: relativePerformanceScore(relativePerformanceMultiple),
-        editorialFit: editorialFitScore(video),
-        adaptability: adaptabilityScore(video),
-        freshness: freshnessScore(videoAgeDays(video, now)),
-        crossChannelValidation: clamp(((corroboratingChannels - 1) / 5) * 100),
-        packaging: packagingScore(video),
+        aiAppliedTransformation: aiAppliedTransformationScore(video, relativePerformance, crossChannelValidation),
+        productivityCareerSystems: productivityCareerSystemsScore(video, relativePerformance, crossChannelValidation),
+        newsRelevance: newsRelevanceScore(video, relativePerformance, ageDays),
       };
       const opportunityScore = Math.round(
-        breakdown.relativePerformance * 0.35
-        + breakdown.editorialFit * 0.2
-        + breakdown.adaptability * 0.15
-        + breakdown.freshness * 0.15
-        + breakdown.crossChannelValidation * 0.1
-        + breakdown.packaging * 0.05,
+        breakdown.aiAppliedTransformation * 0.65
+        + breakdown.productivityCareerSystems * 0.25
+        + breakdown.newsRelevance * 0.1,
       );
       return {
         ...video,
@@ -304,6 +396,8 @@ export function rankOpportunityVideos(
         relativePerformanceMultiple,
         formatLabel: formatLabel(video),
         topicLabel,
+        editorialPillar,
+        editorialPillarLabel: pillarLabels[editorialPillar],
         rationale: rationaleFor(video, relativePerformanceMultiple, topicLabel, breakdown),
       };
     })
@@ -315,6 +409,7 @@ export function rankOpportunityVideos(
 
   const selected: RankedOpportunityVideo[] = [];
   const channelCounts = new Map<string, number>();
+
   for (const video of ranked) {
     const count = channelCounts.get(video.channel) ?? 0;
     if (count >= perChannel) continue;
