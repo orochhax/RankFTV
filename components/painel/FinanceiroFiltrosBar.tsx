@@ -2,11 +2,11 @@
 
 import { Search, X, Calendar, ArrowUpDown } from "lucide-react";
 
-export type MetodoPagamento = "todos" | "PIX" | "CREDIT_CARD" | "DEBIT_CARD";
+export type MetodoTipo = "PIX" | "CREDIT_CARD" | "DEBIT_CARD";
 export type OrdemOpcao = "data_desc" | "data_asc" | "valor_desc" | "valor_asc";
 
 type Props = {
-  metodo: MetodoPagamento;
+  metodos: MetodoTipo[];
   counts: { todos: number; PIX: number; CREDIT_CARD: number; DEBIT_CARD: number };
   busca: string;
   dataInicio: string;
@@ -14,7 +14,8 @@ type Props = {
   ordem: OrdemOpcao;
   temFiltroAtivo: boolean;
   totalFiltrado: number;
-  onMetodoChange: (metodo: MetodoPagamento) => void;
+  onToggleMetodo: (metodo: MetodoTipo) => void;
+  onSelectTodos: () => void;
   onBuscaChange: (busca: string) => void;
   onDataInicioChange: (data: string) => void;
   onDataFimChange: (data: string) => void;
@@ -23,7 +24,7 @@ type Props = {
 };
 
 export function FinanceiroFiltrosBar({
-  metodo,
+  metodos,
   counts,
   busca,
   dataInicio,
@@ -31,26 +32,37 @@ export function FinanceiroFiltrosBar({
   ordem,
   temFiltroAtivo,
   totalFiltrado,
-  onMetodoChange,
+  onToggleMetodo,
+  onSelectTodos,
   onBuscaChange,
   onDataInicioChange,
   onDataFimChange,
   onOrdemChange,
   onReset,
 }: Props) {
+  const isTodos = metodos.length === 0;
+  const isPix = metodos.includes("PIX");
+  const isCredito = metodos.includes("CREDIT_CARD");
+  const isDebito = metodos.includes("DEBIT_CARD");
+
   return (
     <div className="space-y-3 rounded-2xl bg-white p-4 shadow-xs ring-1 ring-black/5">
-      {/* Linha 1: Filtro rápido por Método de Pagamento */}
+      {/* Linha 1: Filtro rápido por Método de Pagamento (Multi-seleção) */}
       <div>
-        <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-500">
-          Forma de pagamento
-        </span>
+        <div className="mb-2 flex items-center justify-between">
+          <span className="block text-xs font-semibold uppercase tracking-wider text-gray-500">
+            Forma de pagamento
+          </span>
+          <span className="text-[11px] text-gray-400">
+            Clique para combinar mais de uma forma
+          </span>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => onMetodoChange("todos")}
+            onClick={onSelectTodos}
             className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-              metodo === "todos"
+              isTodos
                 ? "bg-blue-600 text-white shadow-xs"
                 : "bg-gray-50 text-gray-700 hover:bg-gray-100 ring-1 ring-inset ring-gray-200"
             }`}
@@ -58,7 +70,7 @@ export function FinanceiroFiltrosBar({
             <span>Todos</span>
             <span
               className={`rounded-full px-1.5 py-0.2 text-[10px] ${
-                metodo === "todos" ? "bg-blue-700 text-white" : "bg-gray-200 text-gray-700"
+                isTodos ? "bg-blue-700 text-white" : "bg-gray-200 text-gray-700"
               }`}
             >
               {counts.todos}
@@ -67,9 +79,9 @@ export function FinanceiroFiltrosBar({
 
           <button
             type="button"
-            onClick={() => onMetodoChange("PIX")}
+            onClick={() => onToggleMetodo("PIX")}
             className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-              metodo === "PIX"
+              isPix
                 ? "bg-emerald-600 text-white shadow-xs"
                 : "bg-gray-50 text-gray-700 hover:bg-gray-100 ring-1 ring-inset ring-gray-200"
             }`}
@@ -77,7 +89,7 @@ export function FinanceiroFiltrosBar({
             <span>⚡ Pix</span>
             <span
               className={`rounded-full px-1.5 py-0.2 text-[10px] ${
-                metodo === "PIX" ? "bg-emerald-700 text-white" : "bg-gray-200 text-gray-700"
+                isPix ? "bg-emerald-700 text-white" : "bg-gray-200 text-gray-700"
               }`}
             >
               {counts.PIX}
@@ -86,9 +98,9 @@ export function FinanceiroFiltrosBar({
 
           <button
             type="button"
-            onClick={() => onMetodoChange("CREDIT_CARD")}
+            onClick={() => onToggleMetodo("CREDIT_CARD")}
             className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-              metodo === "CREDIT_CARD"
+              isCredito
                 ? "bg-sky-600 text-white shadow-xs"
                 : "bg-gray-50 text-gray-700 hover:bg-gray-100 ring-1 ring-inset ring-gray-200"
             }`}
@@ -96,7 +108,7 @@ export function FinanceiroFiltrosBar({
             <span>💳 Cartão de Crédito</span>
             <span
               className={`rounded-full px-1.5 py-0.2 text-[10px] ${
-                metodo === "CREDIT_CARD" ? "bg-sky-700 text-white" : "bg-gray-200 text-gray-700"
+                isCredito ? "bg-sky-700 text-white" : "bg-gray-200 text-gray-700"
               }`}
             >
               {counts.CREDIT_CARD}
@@ -105,9 +117,9 @@ export function FinanceiroFiltrosBar({
 
           <button
             type="button"
-            onClick={() => onMetodoChange("DEBIT_CARD")}
+            onClick={() => onToggleMetodo("DEBIT_CARD")}
             className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-              metodo === "DEBIT_CARD"
+              isDebito
                 ? "bg-purple-600 text-white shadow-xs"
                 : "bg-gray-50 text-gray-700 hover:bg-gray-100 ring-1 ring-inset ring-gray-200"
             }`}
@@ -115,7 +127,7 @@ export function FinanceiroFiltrosBar({
             <span>🏦 Cartão de Débito</span>
             <span
               className={`rounded-full px-1.5 py-0.2 text-[10px] ${
-                metodo === "DEBIT_CARD" ? "bg-purple-700 text-white" : "bg-gray-200 text-gray-700"
+                isDebito ? "bg-purple-700 text-white" : "bg-gray-200 text-gray-700"
               }`}
             >
               {counts.DEBIT_CARD}

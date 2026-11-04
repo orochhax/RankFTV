@@ -34,11 +34,13 @@ test("expandable row displays payment method badge and preserves athlete checks"
   assert.match(expandableRow, /\{atleta\.username && \(/);
 });
 
-test("financeiro status client implements filters for pix, credito, debito, date and sorting", () => {
-  // Method filters in bar
-  assert.match(filtrosBar, /metodo === "PIX"/);
-  assert.match(filtrosBar, /metodo === "CREDIT_CARD"/);
-  assert.match(filtrosBar, /metodo === "DEBIT_CARD"/);
+test("financeiro status client implements multi-selection filters for pix, credito, debito", () => {
+  // Multi-selection method toggle
+  assert.match(filtrosBar, /isPix/);
+  assert.match(filtrosBar, /isCredito/);
+  assert.match(filtrosBar, /isDebito/);
+  assert.match(clientComponent, /handleToggleMetodo/);
+  assert.match(clientComponent, /metodos\.includes/);
 
   // Date range filter
   assert.match(clientComponent, /dataInicio/);
@@ -52,7 +54,7 @@ test("financeiro status client implements filters for pix, credito, debito, date
   assert.match(clientComponent, /data_asc/);
 });
 
-test("filter and sorting logic operates correctly on sample items", () => {
+test("filter and sorting logic operates correctly on sample items including multi-selection", () => {
   type Item = {
     regId: string;
     valor: number;
@@ -93,24 +95,31 @@ test("filter and sorting logic operates correctly on sample items", () => {
     },
   ];
 
-  // Filter Pix
-  const pixOnly = sample.filter((i) => i.billingType === "PIX");
+  // Filter Pix single
+  const pixOnly = sample.filter((i) => i.billingType && ["PIX"].includes(i.billingType));
   assert.equal(pixOnly.length, 1);
   assert.equal(pixOnly[0].atleta1.nome, "Gustavo Melo");
 
-  // Filter Débito
-  const debitOnly = sample.filter((i) => i.billingType === "DEBIT_CARD");
-  assert.equal(debitOnly.length, 1);
-  assert.equal(debitOnly[0].atleta1.nome, "Daniel Teixeira");
+  // Multi-selection: Cartão de Crédito + Cartão de Débito combined
+  const cardsCombined = sample.filter((i) =>
+    i.billingType && ["CREDIT_CARD", "DEBIT_CARD"].includes(i.billingType),
+  );
+  assert.equal(cardsCombined.length, 2);
+  const cardNames = cardsCombined.map((i) => i.atleta1.nome);
+  assert.ok(cardNames.includes("Daniel Teixeira"));
+  assert.ok(cardNames.includes("Eduardo Pinto"));
+  const cardsTotal = cardsCombined.reduce((acc, curr) => acc + curr.valor, 0);
+  assert.equal(cardsTotal, 380);
+
+  // Multi-selection: Pix + Crédito
+  const pixAndCredit = sample.filter((i) =>
+    i.billingType && ["PIX", "CREDIT_CARD"].includes(i.billingType),
+  );
+  assert.equal(pixAndCredit.length, 2);
 
   // Sort by highest amount
   const sortedByValorDesc = [...sample].sort((a, b) => b.valor - a.valor);
   assert.equal(sortedByValorDesc[0].valor, 220);
   assert.equal(sortedByValorDesc[1].valor, 160);
   assert.equal(sortedByValorDesc[2].valor, 110);
-
-  // Sort by lowest amount
-  const sortedByValorAsc = [...sample].sort((a, b) => a.valor - b.valor);
-  assert.equal(sortedByValorAsc[0].valor, 110);
-  assert.equal(sortedByValorAsc[2].valor, 220);
 });

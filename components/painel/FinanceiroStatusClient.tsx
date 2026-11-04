@@ -8,7 +8,7 @@ import { formatBRL } from "@/lib/format";
 import { InscricaoExpandivel, type InscricaoDetalhe } from "@/components/painel/InscricaoExpandivel";
 import {
   FinanceiroFiltrosBar,
-  type MetodoPagamento,
+  type MetodoTipo,
   type OrdemOpcao,
 } from "@/components/painel/FinanceiroFiltrosBar";
 import { PageContainer } from "@/components/shell/PageContainer";
@@ -52,11 +52,11 @@ export function FinanceiroStatusClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const paramMetodo = (searchParams.get("metodo") || "todos").toUpperCase();
-  const initialMetodo: MetodoPagamento =
-    paramMetodo === "PIX" || paramMetodo === "CREDIT_CARD" || paramMetodo === "DEBIT_CARD"
-      ? (paramMetodo as MetodoPagamento)
-      : "todos";
+  const rawMetodo = searchParams.get("metodo") || "";
+  const parsedMetodos = rawMetodo
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter((m): m is MetodoTipo => m === "PIX" || m === "CREDIT_CARD" || m === "DEBIT_CARD");
 
   const initialInicio = searchParams.get("de") || searchParams.get("inicio") || "";
   const initialFim = searchParams.get("ate") || searchParams.get("fim") || "";
@@ -69,7 +69,7 @@ export function FinanceiroStatusClient({
   const initialPagina = Math.max(1, Number.parseInt(searchParams.get("page") || "1", 10) || 1);
   const initialBusca = searchParams.get("q") || "";
 
-  const [metodo, setMetodo] = useState<MetodoPagamento>(initialMetodo);
+  const [metodos, setMetodos] = useState<MetodoTipo[]>(parsedMetodos);
   const [dataInicio, setDataInicio] = useState<string>(initialInicio);
   const [dataFim, setDataFim] = useState<string>(initialFim);
   const [ordem, setOrdem] = useState<OrdemOpcao>(initialOrdem);
@@ -80,7 +80,7 @@ export function FinanceiroStatusClient({
 
   const syncUrl = useCallback(
     (novos: {
-      metodo?: MetodoPagamento;
+      metodos?: MetodoTipo[];
       inicio?: string;
       fim?: string;
       ordem?: OrdemOpcao;
@@ -88,14 +88,14 @@ export function FinanceiroStatusClient({
       q?: string;
     }) => {
       const sp = new URLSearchParams();
-      const m = novos.metodo ?? metodo;
+      const m = novos.metodos !== undefined ? novos.metodos : metodos;
       const ini = novos.inicio !== undefined ? novos.inicio : dataInicio;
       const f = novos.fim !== undefined ? novos.fim : dataFim;
       const ord = novos.ordem ?? ordem;
       const p = novos.page ?? pagina;
       const q = novos.q !== undefined ? novos.q : busca;
 
-      if (m !== "todos") sp.set("metodo", m.toLowerCase());
+      if (m.length > 0) sp.set("metodo", m.map((x) => x.toLowerCase()).join(","));
       if (ini) sp.set("de", ini);
       if (f) sp.set("ate", f);
       if (ord !== "data_desc") sp.set("ordem", ord);
@@ -105,7 +105,7 @@ export function FinanceiroStatusClient({
       const qs = sp.toString();
       window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
     },
-    [pathname, metodo, dataInicio, dataFim, ordem, pagina, busca],
+    [pathname, metodos, dataInicio, dataFim, ordem, pagina, busca],
   );
 
   const counts = useMemo(() => {
@@ -121,22 +121,37 @@ export function FinanceiroStatusClient({
   }, [itens]);
 
   const temFiltroAtivo =
-    metodo !== "todos" || Boolean(dataInicio) || Boolean(dataFim) || ordem !== "data_desc" || Boolean(busca.trim());
+    metodos.length > 0 || Boolean(dataInicio) || Boolean(dataFim) || ordem !== "data_desc" || Boolean(busca.trim());
 
   const resetFiltros = () => {
-    setMetodo("todos");
+    setMetodos([]);
     setDataInicio("");
     setDataFim("");
     setOrdem("data_desc");
     setPagina(1);
     setBusca("");
-    syncUrl({ metodo: "todos", inicio: "", fim: "", ordem: "data_desc", page: 1, q: "" });
+    syncUrl({ metodos: [], inicio: "", fim: "", ordem: "data_desc", page: 1, q: "" });
+  };
+
+  const handleToggleMetodo = (m: MetodoTipo) => {
+    const next = metodos.includes(m) ? metodos.filter((x) => x !== m) : [...metodos, m];
+    setMetodos(next);
+    setPagina(1);
+    syncUrl({ metodos: next, page: 1 });
+  };
+
+  const handleSelectTodos = () => {
+    setMetodos([]);
+    setPagina(1);
+    syncUrl({ metodos: [], page: 1 });
   };
 
   const itensFiltrados = useMemo(() => {
     return itens
       .filter((item) => {
-        if (metodo !== "todos" && item.billingType !== metodo) return false;
+        if (metodos.length > 0) {
+          if (!item.billingType || !metodos.includes(item.billingType as MetodoTipo)) return false;
+        }
         if (dataInicio || dataFim) {
           const itemData = formatIsoToSaoPauloDate(item.criadoEm);
           if (dataInicio && itemData < dataInicio) return false;
@@ -168,7 +183,7 @@ export function FinanceiroStatusClient({
         }
         return b.criadoEm.localeCompare(a.criadoEm);
       });
-  }, [itens, metodo, dataInicio, dataFim, busca, ordem]);
+  }, [itens, metodos, dataInicio, dataFim, busca, ordem]);
 
   const totalFiltradoRows = itensFiltrados.length;
   const totalFiltradoValor = useMemo(
@@ -223,7 +238,7 @@ export function FinanceiroStatusClient({
       </div>
 
       <FinanceiroFiltrosBar
-        metodo={metodo}
+        metodos={metodos}
         counts={counts}
         busca={busca}
         dataInicio={dataInicio}
@@ -231,7 +246,8 @@ export function FinanceiroStatusClient({
         ordem={ordem}
         temFiltroAtivo={temFiltroAtivo}
         totalFiltrado={totalFiltradoRows}
-        onMetodoChange={(m) => { setMetodo(m); setPagina(1); syncUrl({ metodo: m, page: 1 }); }}
+        onToggleMetodo={handleToggleMetodo}
+        onSelectTodos={handleSelectTodos}
         onBuscaChange={(q) => { setBusca(q); setPagina(1); syncUrl({ q, page: 1 }); }}
         onDataInicioChange={(ini) => { setDataInicio(ini); setPagina(1); syncUrl({ inicio: ini, page: 1 }); }}
         onDataFimChange={(f) => { setDataFim(f); setPagina(1); syncUrl({ fim: f, page: 1 }); }}
