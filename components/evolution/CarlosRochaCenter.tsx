@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  Activity,
   ArrowRight,
   BriefcaseBusiness,
   Clapperboard,
@@ -49,10 +48,10 @@ const opportunities = [
 ];
 
 const categoryIcons = {
-  tecnologia_dados: Laptop,
-  viagens_vlogs: Palmtree,
-  rotina_estilo_vida: Activity,
-  carreira_negocios: BriefcaseBusiness,
+  dados_carreira: Laptop,
+  vlogs_viagens: Palmtree,
+  criacao_autenticidade: Sparkles,
+  negocios_software: BriefcaseBusiness,
 } as const;
 
 export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" | "library" | "opportunities" }) {
