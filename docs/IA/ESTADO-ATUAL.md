@@ -837,3 +837,24 @@ O histórico completo pertence a `REGISTRO-EXECUCOES.md`.
 - O perfil editorial permanece em 65% IA aplicada e transformação, 25%
   produtividade/carreira/sistemas e 10% notícia relevante. O snapshot local
   foi regenerado com 21 canais e 15 oportunidades.
+
+## Coleta de concorrentes pela YouTube Data API v3 (04/11/2026)
+
+- Foi preparado um coletor local e manual, separado do canal pessoal, que lê
+  a lista existente em `Rocha Tech - YT/Concorrentes` e preserva `Canal.md`,
+  `Videos/`, `Dados/`, `Thumbnails/` e o histórico de observações.
+- O modo padrão prefere a API oficial quando a chave exclusiva do Rocha Tech
+  estiver configurada localmente. Sem chave, falha de API ou indisponibilidade
+  de quota, o processo preserva a base e gera uma fila sanitizada para o
+  procedimento público/manual atual.
+- Nenhuma gravação ocorre por padrão. `--apply` só começa a escrever depois de
+  todos os canais passarem sem falhas e sem fallback, evitando importação
+  parcial decorrente de erro de coleta.
+- A API cobre canal, playlist de uploads, título, publicação exata, duração,
+  visualizações públicas, categoria, estado de live e thumbnails. Impressões,
+  CTR, retenção e outras métricas privadas continuam indisponíveis.
+- Validação sem segredo reconheceu 22 canais e 1.259 registros existentes sem
+  alterar a base. A chave pessoal não foi lida, copiada nem reutilizada.
+- Ainda falta criar e configurar localmente a segunda chave restrita antes do
+  primeiro dry-run real da API. Não houve mudança em Supabase nem importação
+  editorial nesta entrega.

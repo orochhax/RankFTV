@@ -23,6 +23,8 @@
     "video:rankftv:render": "node videos/rankftv-organizadores-vertical/render.mjs",
     "youtube:import": "tsx scripts/youtube-import-research.ts",
     "youtube:sources": "tsx scripts/youtube-list-sources.ts",
+    "youtube:competitors": "tsx scripts/youtube-collect-competitors.ts",
+    "youtube:competitors:validate": "tsx scripts/youtube-collect-competitors.ts --validate-only",
     "evolution:sync": "node scripts/generate-datascience-roadmap-v2.mjs && node scripts/evolution-sync-sources.mjs",
     "evolution:udemy:fetch": "node scripts/fetch-udemy-curricula.mjs",
     "evolution:udemy:validate": "node scripts/validate-udemy-roadmap.mjs",
