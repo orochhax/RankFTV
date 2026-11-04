@@ -1532,3 +1532,24 @@ registrar apenas uma revalidação quando ela for necessária.
 - O snapshot editorial foi regenerado com 1.203 registros observados, 21 canais
   e 15 oportunidades. A ponderação individual 65/25/10, o limite de três
   vídeos por canal e a exclusão de podcasts, entrevistas e lives permanecem.
+
+## 2026-11-04 — Preparação do coletor oficial de concorrentes
+
+- Escopo aprovado por Carlos: preparar a migração segura da coleta de
+  concorrentes do Rocha Tech para a YouTube Data API v3 e publicar o suporte
+  de código, mantendo o canal pessoal e sua credencial completamente separados.
+- Implementados os modos `api-preferred`, `api-only` e `fallback-only`, com
+  dry-run padrão, `--apply` explícito, janela configurável e filtro por canal.
+- O coletor preserva a estrutura e o histórico atuais, baixa thumbnails apenas
+  durante aplicação aprovada e nunca envia a chave em URL ou relatório.
+- Proteção adicional: a escrita só começa após todos os canais serem coletados
+  sem erro e sem fallback. Falha ou ausência da chave mantém a base intacta.
+- Evidência sem credencial: 22 canais descobertos, 1.259 vídeos existentes,
+  zero falhas de leitura e 22 encaminhamentos ao fallback manual; nenhum dado
+  da base foi modificado.
+- Verificações aprovadas: typecheck, 878 testes aprovados e 1 ignorado, lint
+  sem erros (avisos legados), auditoria de dependências de produção sem
+  vulnerabilidades e build completo do Next.js.
+- Não foram alterados Supabase, dados editoriais, Prompt Mestre, Vercel env ou
+  `.env.local`. O dry-run real da API depende da nova chave exclusiva do Rocha
+  Tech ser criada e configurada localmente por Carlos.
