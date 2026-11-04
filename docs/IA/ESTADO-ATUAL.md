@@ -14,6 +14,22 @@
 - A publicação depende de CI/Preview e da promoção da branch; esta nota não é
   evidência de deploy em Production.
 
+## Central de Evolução — Biblioteca e ranking do Canal Carlos Rocha (04/11/2026)
+
+- A Biblioteca privada passou a refletir o norte aprovado: vivência e opinião
+  baseada em experiência, com objetivo concreto, tensão real, evidência visual
+  e conclusão honesta. Tutoriais técnicos, rotina idealizada e desafios
+  inventados não são a pauta-base.
+- A área de Concorrentes ganhou ranking próprio de 15 vídeos fora da curva,
+  calculado por visualizações divididas pela mediana pública de cada canal,
+  com no máximo três referências por canal. A regra não reutiliza o score de
+  IA do Rocha Tech.
+- A atualização oficial prévia revisou os 14 concorrentes do Carlos Rocha:
+  1.516 vídeos públicos na janela anual e 1.514 thumbnails válidas. O snapshot
+  de produção contém somente metadados públicos do ranking; não contém chave,
+  arquivos locais ou dados privados.
+- Estado: alteração local validada; publicação depende de CI, PR e deploy.
+
 ## Rota ativa orientada pelas vagas (03/11/2026)
 
 - A grade Udemy autenticada de 2.645 itens continua canônica e integral.
