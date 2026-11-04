@@ -1,5 +1,11 @@
 # Estado atual resumido
 
+## Central de Evolucao - Atualizacao de Concorrentes e Oportunidades do Canal Carlos Rocha (04/11/2026)
+
+- Nova coleta oficial de dados dos 14 canais concorrentes via YouTube Data API v3 (1.518 videos publicos e 1.518 thumbnails validas).
+- Snapshot seguro (lib/evolution/carlos-rocha-rank-snapshot.json) atualizado com os 15 maiores outliers estatisticos ordenados pelo multiplicador da mediana de cada canal (teto de 3 videos por canal).
+- Publicacao das 3 primeiras oportunidades de pauta na rota privada /admin/evolucao/carlos-rocha/oportunidades.
+
 ## Central de Evolução — Canal Carlos Rocha (04/11/2026)
 
 - Foi criada, em branch isolada, a área privada `/admin/evolucao/carlos-rocha`,

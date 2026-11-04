@@ -5,6 +5,13 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviÃ§o envolvido. Se houver evidÃªncia de conclusÃ£o, nÃ£o repetir a tarefa;
 registrar apenas uma revalidaÃ§Ã£o quando ela for necessÃ¡ria.
 
+## 2026-11-04 (America/Sao_Paulo) — Atualização de Concorrentes e Oportunidades do Canal Carlos Rocha
+
+- Coleta oficial da YouTube Data API executada para os 14 canais concorrentes do canal Carlos Rocha: 1.518 vídeos públicos e 1.518 thumbnails JPEG válidas na janela anual.
+- Ranking de outliers atualizado no snapshot (lib/evolution/carlos-rocha-rank-snapshot.json) com os 15 maiores vídeos fora da curva contra a mediana de seus respectivos canais (máximo 3 por canal).
+- Publicação das 3 primeiras oportunidades de pauta formuladas no painel da Central (/admin/evolucao/carlos-rocha/oportunidades).
+- Validação: typecheck, 878 testes unitários aprovados e build Next.js com sucesso.
+
 ## 2026-11-04 (America/Sao_Paulo) â€” Biblioteca e ranking do Canal Carlos Rocha
 
 - ApÃ³s aprovaÃ§Ã£o de Carlos, a coleta oficial da YouTube Data API revisou os
