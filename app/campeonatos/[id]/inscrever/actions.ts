@@ -64,7 +64,7 @@ export async function inscreverDupla(
   const [{ data: profile }, { data: priv }, { data: champ }, { data: cat }] = await Promise.all([
     supabase.from("profiles").select("nome, username, rating, genero").eq("id", user.id).single(),
     supabase.from("profiles_private").select("cpf").eq("user_id", user.id).maybeSingle(),
-    supabase.from("championships").select("id, nome, taxa_plataforma, organizador_id, status, inscricoes_fim, is_elite, usa_motor_categoria").eq("id", championshipId).single(),
+    supabase.from("championships").select("id, nome, taxa_plataforma, organizador_id, status, inscricoes_fim, is_elite, usa_motor_categoria, max_parcelas_inscricao").eq("id", championshipId).single(),
     supabase.from("championship_categories")
       .select("id, nome, valor_inscricao, genero, corte_rating_min, corte_rating_max")
       .eq("id", categoryId)
@@ -334,6 +334,7 @@ export async function inscreverDupla(
     // O comprador paga valor + taxa (a taxa fica com a plataforma).
     const totalComprador = calcularTotalComprador(valorInscricao, metodo, !!champ.is_elite);
 
+    const maxParcelas = Number((champ as Record<string, unknown>).max_parcelas_inscricao ?? 1);
     const operacao = await createIdempotentCharge({
       flow:              "registration",
       recordId:          reg.id,
@@ -342,6 +343,7 @@ export async function inscreverDupla(
       method:            metodo,
       description:       `Inscrição ${champ.nome} — ${cat.nome}`,
       externalReference: reg.id,
+      maxInstallmentCount: metodo === "credito" && maxParcelas > 1 ? maxParcelas : undefined,
       actorId:            user.id,
       metadata:           { championshipId, categoryId },
     });

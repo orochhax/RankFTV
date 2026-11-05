@@ -5,6 +5,32 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-05 11:00 (America/Sao_Paulo) — Auditoria geral completa de código, testes, segurança e pendências da V1
+
+- Auditoria técnica profunda e revalidação de integridade global de todo o RankFTV solicitada por Carlos Rocha para alinhamento e orquestração de sub-agentes no Maestri:
+  - Testes unitários (`npm test`): 903 testes totais em 107 suítes (902 aprovados, 1 ignorado, 0 falhas).
+  - Verificação de tipos (`npm run typecheck`): `tsc --noEmit` concluído com zero erros.
+  - Análise estática (`npm run lint`): `eslint .` concluído com zero erros (1.338 avisos de qualidade, imports diretos e complexidade arquitetural, catalogados sob P2 para refatoração pós-lançamento).
+  - Auditoria de segurança de dependências (`npm audit --omit=dev`): zero vulnerabilidades em produção (`dompurify` 3.4.17 e `zod` 4.6.7).
+  - Reconciliação dos marcos P0: confirmados 138 de 144 marcos concluídos (96% de conclusão).
+    - PRs consolidadas na `master` (`11727d9`): PR #71 (carteira e saques com reserva atômica), PR #88 e PR #116 (dependências limpas), PR #117 (jurídico, termos, CDC e LGPD) e PR #118 (matriz de notificações N01–N15).
+    - PR #119 (`feat/v1-installment-checkout`): parcelamento no checkout hospedado do Asaas pronto no Preview com CI verde, aguardando apenas conferência visual e merge.
+  - Auditoria de segurança e integridade transacional de participantes:
+    - O teste em Sandbox no formulário `/comprar` confirmou a atuação correta do trigger SQL `enforce_ticket_participant_category_uniqueness`, barrando atômica e confiavelmente tentativas de inscrição duplicada de atleta com CPF já registrado na categoria.
+    - Mapeada melhoria de UX para P1: tornar a mensagem de erro mais específica indicando o atleta exato causador do conflito para reduzir atrito na ponta.
+  - Documentação atualizada: `PENDENCIAS-V1.md` alinhado em 96%, `docs/IA/ESTADO-ATUAL.md` consolidado e cofre `Carlos Rocha` atualizado para orquestração fluida no Maestri.
+
+## 2026-11-05 01:00 (America/Sao_Paulo) — Implementação do parcelamento hospedado no Checkout Asaas (PR #32)
+
+- Implementação técnica dos 90% automatizados do parcelamento de inscrições:
+  - Integração Asaas (`lib/asaas.ts`): suporte a `maxInstallmentCount` na criação de cobranças no checkout hospedado, com validação e clamp de 1 a 21 parcelas para pagamentos com cartão de crédito.
+  - Orquestração de pagamentos (`lib/payment-flows.ts`): propagação de `maxInstallmentCount` pela action idempotente `createIdempotentCharge`.
+  - Inscrições de atletas (`app/campeonatos/[id]/inscrever/actions.ts`): leitura de `max_parcelas_inscricao` da tabela `championships` e envio automático ao checkout do Asaas.
+  - Compra de ingressos (`app/campeonatos/[id]/comprar/actions.ts`): leitura de `max_parcelas_ingresso` da tabela `championships` e envio automático ao checkout do Asaas.
+  - Isolamento de segurança PCI: formulário de cartão continua hospedado externamente na URL da fatura do Asaas (`invoiceUrl`), sem trafegar nem armazenar PAN/CVV no banco do RankFTV.
+  - Testes unitários dedicados em `lib/installment-checkout.test.ts` (3 novos testes aprovados; suíte global expandida para 903 testes totais, com 902 aprovados e 1 ignorado). Typecheck concluído com zero erros.
+- A PR #32 legada com conflitos foi substituída pelo branch `feat/v1-installment-checkout` pronto para revisão visual final por Carlos Rocha.
+
 ## 2026-11-05 00:40 (America/Sao_Paulo) — Homologação da Matriz de Notificações de Campeonato N01–N15 (P0)
 
 - Homologação da matriz N01–N15 de avisos de alteração de campeonatos:

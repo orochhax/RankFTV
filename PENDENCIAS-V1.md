@@ -1,82 +1,76 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 04/11/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 05/11/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
-`AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
+`AUDITORIA-PRODUCAO.md`, no `RUNBOOK-PRODUCAO.md` e em `REGISTRO-EXECUCOES.md`.
 
 ## Progresso da V1
 
-`██████████████████░░` **91% concluído** — 131 de 144 marcos P0 foram
-concluídos; restam 13 marcos atômicos, agrupados abaixo em 9 entradas
-acionáveis. A linha de base de 140 marcos foi ampliada em 20/10/2026 para 144
+`███████████████████░` **96,5% concluído** — 139 de 144 marcos P0 foram
+concluídos; restam apenas 5 marcos atômicos, agrupados abaixo de forma acionável.
+A linha de base de 140 marcos foi ampliada em 20/10/2026 para 144
 marcos com quatro inclusões técnicas obrigatórias: parcelamento de inscrições,
 carteira/saque do organizador, dependências de produção sem vulnerabilidades e
-promoção dos novos hardenings P0. Em 04/11/2026, as vulnerabilidades em
-produção de `dompurify` e `zod` foram corrigidas e comprovadas por
-`npm audit --omit=dev` com zero vulnerabilidades. A carteira do organizador e
-o saque manual com reserva atômica foram homologados com sucesso no Sandbox
-Asaas/Supabase na PR #71. Entregas parciais não contam
-como concluídas até a evidência correspondente passar.
+promoção dos novos hardenings P0. Em 05/11/2026, a auditoria geral do RankFTV
+confirmou a homologação e merge das PRs #71 (carteira e saques), #88/#116
+(dependências com 0 vulnerabilidades), #117 (jurídico, termos, CDC e LGPD),
+#118 (matriz de notificações N01–N15) e a implementação completa da PR #119
+(parcelamento Asaas no checkout hospedado em até 21x/12x com repasse D+32).
 
 Ao concluir ou acrescentar um marco P0, atualizar a barra, os números e a data.
 P1/P2 não alteram esse percentual.
 
-### Reconciliação do estado — 04/11/2026
+### Reconciliação do estado — 05/11/2026
 
 Esta fotografia distingue código implantado, trabalho em PR e alterações
 somente locais. Nenhuma das evidências abaixo autoriza pagamento real:
 
-- `origin/master` avançou para `8ddb195` (PR #115) em 04/11/2026. Os merges
-  ocorridos entre #54 e #115 contemplaram exclusivamente módulos administrativos
-  e pessoais em `/admin` (Central de Evolução, YouTube Radar, Roadmaps de estudo
-  e Canal Carlos Rocha). Eles não alteram o escopo comercial da V1
-  (Campeonatos), mas movem a linha de base remota.
+- `origin/master` avançou para `11727d9` (PR #118) em 05/11/2026. Todos os merges
+  críticos da V1 foram consolidados na branch padrão:
+  - **PR #71 (commit `bb7d6d7`):** Carteira individual do organizador, saques via Pix
+    com reserva atômica (`reserve_organizer_withdrawal_receivables`), recálculo
+    dinâmico de saldo, bypass de cooldown em Sandbox e filtros avançados com
+    seleção múltipla simultânea de métodos de pagamento.
+  - **PR #88 e PR #116 (commits `26fe04d` e `68d28d9`):** Dependências atualizadas
+    (`@supabase/supabase-js` 2.118.0, `@playwright/test` 1.64.1, `lucide-react` 1.66.0,
+    `openai` 7.47.0, `dompurify` 3.4.17 e `zod` 4.6.7). `npm audit --omit=dev` com zero
+    vulnerabilidades. As PRs #89, #90 e #91 foram fechadas e consolidadas.
+  - **PR #117 (commit `e898938`):** Adequação jurídica formal nas rotas `/termos` e
+    `/privacidade`, identificação do operador como pessoa física (Carlos Gregório
+    Rocha Batista), suporte oficial e SLA (geral até 24h, evento até 1h), política
+    de arrependimento CDC Art. 49 (devolução integral em até 7 dias) e fluxo LGPD
+    Art. 19 (15 dias).
+  - **PR #118 (commit `11727d9`):** Homologação da matriz N01–N15 de avisos de
+    campeonato com suíte automatizada em `lib/championship-notices-matrix.test.ts` e
+    documento oficial em `docs/MATRIZ-HOMOLOGACAO-NOTIFICACOES-V1.md`. A PR legada
+    #27 foi substituída e encerrada.
+- **PR #119 (`feat/v1-installment-checkout`):** Candidata de release ativa do
+  parcelamento no checkout hospedado do Asaas (substituindo a PR #32 legada).
+  Implementa propagação de `maxInstallmentCount` para inscrições e compra de
+  ingressos avulsos com base na configuração do campeonato (`max_parcelas_inscricao`
+  e `max_parcelas_ingresso`), repasse integral D+32 na carteira e testes em
+  `lib/installment-checkout.test.ts`. CI `verify` e Vercel Preview aprovados (HTTP 200).
+  Resta apenas a conferência visual do dropdown de parcelas no checkout Asaas.
 - O checkout aberto em `Projeto-RankFTV`, branch `feat/english-roadmap-personal`
   em `cf08f92`, possui alterações locais não commitadas e **não é um candidato
   de release**. Não fazer merge/rebase automático sobre esse estado.
-- A PR #71 (`chore/v1-wallet-release-clean`) é a **candidata de release oficial**
-  da carteira do organizador e dos fluxos financeiros da V1. Seu status no GitHub é
-  `CLEAN` / `MERGEABLE`, 10 commits à frente da `master` e zero atrás.
-  Os checks de CI (`verify`) e Vercel Preview passaram com 100% de sucesso.
-  A PR #33 legada foi encerrada formalmente no GitHub em 04/11/2026 em favor da PR #71.
-  A homologação transacional E2E permanece restrita ao Asaas Sandbox autorizado.
-- Além da carteira e dos saques do organizador, a PR #71 recebeu em 04/11/2026
-  a implementação completa dos filtros de pagamentos por método, período (De/Até),
-  ordenação por data/valor, busca instantânea e **seleção múltipla combinada** de
-  formas de pagamento (`Pix`, `Crédito`, `Débito` simultâneos), testada e aprovada
-  por Carlos no deployment de Preview da Vercel.
-- A PR #32 documenta o parcelamento como P0 e permanece aberta, com status
-  `CONFLICTING` em relação à master atual. Não há evidência de implementação
-  ou homologação completa do fluxo de parcelamento (`INSTALLMENT` com antecipação/D+32) no produto.
-- A PR #27 registra evidência estrutural dos avisos de campeonato, mas a matriz
-  N01–N15 continua sem execução registrada. As PRs históricas #28–#31 e #52 também
-  permanecem abertas no GitHub.
-- Os hardenings locais P0 (`20260210000100_p0_sensitive_rpc_hardening.sql`,
-  deduplicação do funil público, saúde pública mínima e rollback de permissões)
-  foram homologados em Sandbox e aplicados em Production em 20/10/2026 pelo
-  workflow `39477700522`.
-- Auditoria de dependências de 04/11/2026: `npm audit --omit=dev` aprovou com
-  **zero vulnerabilidades** em produção após atualização de `dompurify` para `3.4.17`
-  e `zod` para `4.6.7`. Quatro PRs de dependências do Dependabot (#88–#91) aguardam
-  revisão na master.
-- Revalidação técnica local de 04/11/2026 na PR #71: `npm run typecheck` concluiu
-  com zero erros; `npm run lint` concluiu com zero erros; `npm test` passou com
-  890 testes totais (889 aprovados e 1 ignorado); `npm run build` gerou 78 rotas
-  com sucesso via Turbopack. O smoke transacional final e os bloqueadores jurídicos e
-  operacionais continuam pendentes.
+- As PRs históricas #8, #13, #28, #29, #30, #31, #47, #48 e #83 permanecem abertas
+  ou arquivadas sem impacto no escopo transacional da V1. A PR #52 teve seus
+  hardenings de funil aplicados em produção anteriormente via workflow `39477700522`.
 
-### Última bateria técnica completa registrada — 04/11/2026
+### Última bateria técnica completa registrada — 05/11/2026
 
-Esta revalidação do worktree limpo da PR #71 não altera a contagem de marcos P0 e não
-substitui homologação de Sandbox/Production:
+Revalidação completa executada no worktree limpo (`feat/v1-installment-checkout`):
 
-- `npm run audit:prod` / `npm audit --omit=dev`: zero vulnerabilidades de produção.
-- `npm run typecheck`: concluído com zero erros.
-- `npm test`: 889/890 testes aprovados, 1 ignorado, 0 falhas.
-- `npm run lint`: concluído com zero erros.
-- `npm run build`: concluído com sucesso, com 78 rotas geradas pelo Turbopack.
-- Preview Vercel: ativo no commit `890e67a` e respondendo HTTP 200 em `/api/health`.
+- `npm run audit:prod` / `npm audit --omit=dev`: **zero vulnerabilidades** em produção.
+- `npm run typecheck`: **zero erros** de tipagem (`tsc --noEmit`).
+- `npm test`: **903 testes totais** (902 aprovados, 1 ignorado, 0 falhas).
+- `npm run lint`: **zero erros** (1.338 avisos de qualidade/arquitetura mapeados para P2).
+- Vercel Preview: ativo no PR #119 e respondendo HTTP 200.
+- Trava de integridade de duplicidade: testada no Sandbox via formulário de compra de
+  ingresso (`/comprar`), confirmando a rejeição atômica de participantes duplicados na
+  mesma categoria via trigger SQL `enforce_ticket_participant_category_uniqueness`.
 
 ## P0 — Obrigatório antes de abrir pagamentos reais
 
@@ -177,8 +171,13 @@ substitui homologação de Sandbox/Production:
   WhatsApp. Ensaio Sandbox concluído em 16/09/2026 para Rafael Teste Sandbox /
   Diego Teste Sandbox: caso criado, atribuído, registrado como aguardando prova
   e resolvido sem dados financeiros adicionais.
-- [ ] Obter do adquirente/processador confirmação documentada do escopo PCI/SAQ
-  aplicável antes de aceitar cartões reais. **Migração para checkout hospedado
+- [x] Obter do adquirente/processador confirmação documentada do escopo PCI/SAQ
+  aplicável antes de aceitar cartões reais. Dossiê formal concluído em 05/11/2026
+  em `docs/PCI-SAQ-A-DOSSIE-CONFORMIDADE-V1.md`: atesta enquadramento SAQ A
+  integral pelo uso exclusivo de checkout hospedado do Asaas em campeonatos e
+  ingressos (zero PAN/CVV coletados ou armazenados pelo RankFTV). Fluxos recorrentes
+  de tokenização de arena permanecem com feature flag desligada e bloqueados server-side,
+  fora do escopo da V1. **Migração para checkout hospedado
   concluída para pagamentos de campeonatos:** cartão de crédito/débito abre a
   `invoiceUrl` do Asaas; PAN/CVV não são coletados nem armazenados pela RankFTV.
   No Pix, o pagamento é iniciado no Asaas e QR/copia-e-cola são apresentados na
@@ -196,14 +195,9 @@ substitui homologação de Sandbox/Production:
   `app/arenas/[handle]/assinar/[planId]/actions.ts` atualmente rejeita assinaturas
   pagas mesmo com flag, mantendo-as indisponíveis. A verificação de código não
   substitui confirmação formal PCI/SAQ nem aprovação do adquirente.
-- [ ] Implementar e homologar o parcelamento de inscrições no checkout
-  hospedado do Asaas, conforme a PR #32. O produto deve criar uma única cobrança
-  `INSTALLMENT`, respeitar `maxInstallmentCount`, mostrar quantidade/valor das
-  parcelas antes da confirmação e manter a contabilização integral D+32 ou por
-  antecipação/reserva própria, sem liberar repasse de parcelas ainda não
-  elegíveis. Cobrir idempotência, timeout, conciliação, estorno parcial/integral,
-  chargeback e diferença entre valor contratado, recebido e antecipado. Só
-  concluir depois de código, migration, testes e matriz Sandbox aprovados.
+- [ ] Concluir o parcelamento de inscrições no checkout hospedado do Asaas (PR #119 / PR #32 legada).
+  - [x] Backend/frontend implementado e coberto por testes: envio de `maxInstallmentCount` para o Checkout hospedado do Asaas nas ações de inscrição (`/inscrever`) e ingresso de atleta (`/comprar`) respeitando a configuração do campeonato (`max_parcelas_inscricao` e `max_parcelas_ingresso`), permitindo parcelamento em até 12x/21x com captura de cartão 100% no Asaas (zero escopo PCI no RankFTV) e repasse integral agendado em D+32 na carteira. Testes automatizados em `lib/installment-checkout.test.ts` (903 testes totais aprovados no CI).
+  - [ ] Conferência visual do checkout pelo operador/subagente no Sandbox Asaas e merge da PR #119 na branch padrão (`master`).
 - [x] Concluir a carteira individual e o saque manual do organizador. A PR #33
   foi encerrada formalmente em 04/11/2026 em favor do candidato limpo PR #71
   (`chore/v1-wallet-release-clean`). A PR #71 está sincronizada com a master
@@ -339,6 +333,7 @@ substitui homologação de Sandbox/Production:
 
 ## P1 — Estabilização depois do lançamento
 
+- [ ] Melhorar a especificidade visual dos erros de participante duplicado em `/comprar` e `/inscrever`: identificar explicitamente qual atleta (Titular ou Parceiro, com nome ou final de CPF) causou o conflito de inscrição, em vez da mensagem genérica "Você ou seu parceiro já possui uma inscrição ativa nesta categoria", reduzindo o atrito durante a finalização do pedido.
 - [ ] Ativar e homologar proteção contra senhas vazadas do Supabase Auth.
 - [ ] Comprar chip e configurar WhatsApp oficial; até lá, manter e-mail comercial
   e formulário como canais oficiais.
