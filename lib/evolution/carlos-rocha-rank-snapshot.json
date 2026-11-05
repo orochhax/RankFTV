@@ -1,172 +1,172 @@
 {
-  "observedAt": "2026-11-04T00:00:00-03:00",
-  "channels": 14,
-  "videos": 1519,
+  "observedAt": "2026-11-05T00:00:00-03:00",
+  "channels": 15,
+  "videos": 1595,
   "topVideos": [
     {
       "id": "9W88uwMGuwo",
       "channel": "Bennett Luke",
       "title": "If You're Stressed About Your Future, Watch This",
       "url": "https://www.youtube.com/watch?v=9W88uwMGuwo",
-      "views": 603552,
+      "views": 629462,
       "publishedAt": "2026-10-14",
       "durationSeconds": 636,
-      "channelMedianViews": 1790,
-      "relativePerformanceMultiple": 337.17988826815645
+      "channelMedianViews": 1803,
+      "relativePerformanceMultiple": 349.1192457016084
     },
     {
       "id": "mmzNsw6M_88",
       "channel": "Bruno Nardon",
       "title": "Por Dentro da MAIOR empresa de COTAS de JATOS do Brasil",
       "url": "https://www.youtube.com/watch?v=mmzNsw6M_88",
-      "views": 279694,
+      "views": 279730,
       "publishedAt": "2026-05-01",
       "durationSeconds": 2016,
-      "channelMedianViews": 1281,
-      "relativePerformanceMultiple": 218.34035909445745
+      "channelMedianViews": 1282.5,
+      "relativePerformanceMultiple": 218.1130604288499
     },
     {
       "id": "TnognJG05BU",
       "channel": "Alfredo Soares",
       "title": "Como Eu Treino Vendedores para Vender Mais",
       "url": "https://www.youtube.com/watch?v=TnognJG05BU",
-      "views": 696944,
+      "views": 702359,
       "publishedAt": "2026-09-11",
       "durationSeconds": 2180,
-      "channelMedianViews": 3960,
-      "relativePerformanceMultiple": 175.9959595959596
+      "channelMedianViews": 3961,
+      "relativePerformanceMultiple": 177.3186064125221
     },
     {
       "id": "axKzRYaueyQ",
       "channel": "Kamily Rebelatto",
       "title": "Como Criar uma Autoimagem Tão Forte Que a Realidade Tem Que Te Obedecer",
       "url": "https://www.youtube.com/watch?v=axKzRYaueyQ",
-      "views": 497515,
+      "views": 501305,
       "publishedAt": "2026-05-02",
       "durationSeconds": 2146,
-      "channelMedianViews": 2895,
-      "relativePerformanceMultiple": 171.853195164076
+      "channelMedianViews": 2918,
+      "relativePerformanceMultiple": 171.79746401644962
     },
     {
       "id": "l-7UW7SZY_M",
       "channel": "Alfredo Soares",
       "title": "O que Aprendi sobre Marketing com o Toguro",
       "url": "https://www.youtube.com/watch?v=l-7UW7SZY_M",
-      "views": 583024,
+      "views": 612193,
       "publishedAt": "2026-10-27",
       "durationSeconds": 5047,
-      "channelMedianViews": 3960,
-      "relativePerformanceMultiple": 147.22828282828283
+      "channelMedianViews": 3961,
+      "relativePerformanceMultiple": 154.55516283766727
     },
     {
       "id": "wc3V6vb9Yoc",
       "channel": "Alfredo Soares",
       "title": "Construindo Uma Empresa do Zero Para o Poderosíssimo Ninja",
       "url": "https://www.youtube.com/watch?v=wc3V6vb9Yoc",
-      "views": 558110,
+      "views": 561233,
       "publishedAt": "2026-08-16",
       "durationSeconds": 3171,
-      "channelMedianViews": 3960,
-      "relativePerformanceMultiple": 140.93686868686868
-    },
-    {
-      "id": "nd1Tb63BEDg",
-      "channel": "Bennett Luke",
-      "title": "The Difference Between People Who Get In Shape And Those Who Don’t",
-      "url": "https://www.youtube.com/watch?v=nd1Tb63BEDg",
-      "views": 143550,
-      "publishedAt": "2026-08-13",
-      "durationSeconds": 395,
-      "channelMedianViews": 1790,
-      "relativePerformanceMultiple": 80.19553072625699
+      "channelMedianViews": 3961,
+      "relativePerformanceMultiple": 141.68972481696542
     },
     {
       "id": "v5J_O4nPM0U",
       "channel": "Vinicius Figueiredo",
       "title": "Abra o negócio mais chato que puder (a concorrência é quase zero)",
       "url": "https://www.youtube.com/watch?v=v5J_O4nPM0U",
-      "views": 195718,
+      "views": 199612,
       "publishedAt": "2026-10-16",
       "durationSeconds": 572,
-      "channelMedianViews": 2447,
-      "relativePerformanceMultiple": 79.98283612586842
+      "channelMedianViews": 2448,
+      "relativePerformanceMultiple": 81.54084967320262
+    },
+    {
+      "id": "nd1Tb63BEDg",
+      "channel": "Bennett Luke",
+      "title": "The Difference Between People Who Get In Shape And Those Who Don’t",
+      "url": "https://www.youtube.com/watch?v=nd1Tb63BEDg",
+      "views": 143610,
+      "publishedAt": "2026-08-13",
+      "durationSeconds": 395,
+      "channelMedianViews": 1803,
+      "relativePerformanceMultiple": 79.65058236272878
     },
     {
       "id": "p0IuVUZYra8",
       "channel": "Kamily Rebelatto",
       "title": "Se eu tivesse 6 meses pra mudar de vida, faria ISSO",
       "url": "https://www.youtube.com/watch?v=p0IuVUZYra8",
-      "views": 188428,
+      "views": 190215,
       "publishedAt": "2026-07-20",
       "durationSeconds": 2208,
-      "channelMedianViews": 2895,
-      "relativePerformanceMultiple": 65.0873920552677
+      "channelMedianViews": 2918,
+      "relativePerformanceMultiple": 65.18677176148047
     },
     {
       "id": "qNJXt_L79y4",
       "channel": "Kamily Rebelatto",
       "title": "Ser Realista É o Motivo da Sua Mediocridade",
       "url": "https://www.youtube.com/watch?v=qNJXt_L79y4",
-      "views": 178343,
+      "views": 179388,
       "publishedAt": "2026-05-18",
       "durationSeconds": 1208,
-      "channelMedianViews": 2895,
-      "relativePerformanceMultiple": 61.603799654576854
+      "channelMedianViews": 2918,
+      "relativePerformanceMultiple": 61.476353666895136
     },
     {
       "id": "HCvt5LbzDfs",
       "channel": "Bruno Nardon",
       "title": "O Sistema de Incentivos que Faz o G4 Inteiro Buscar a Mesma Meta",
       "url": "https://www.youtube.com/watch?v=HCvt5LbzDfs",
-      "views": 74869,
+      "views": 74956,
       "publishedAt": "2026-08-14",
       "durationSeconds": 1883,
-      "channelMedianViews": 1281,
-      "relativePerformanceMultiple": 58.44574551131928
+      "channelMedianViews": 1282.5,
+      "relativePerformanceMultiple": 58.44522417153996
     },
     {
       "id": "MVC89lMhEhw",
       "channel": "Bennett Luke",
       "title": "The 3 Changes That Finally Got Me Shredded",
       "url": "https://www.youtube.com/watch?v=MVC89lMhEhw",
-      "views": 91151,
+      "views": 91191,
       "publishedAt": "2026-08-05",
       "durationSeconds": 902,
-      "channelMedianViews": 1790,
-      "relativePerformanceMultiple": 50.92234636871508
+      "channelMedianViews": 1803,
+      "relativePerformanceMultiple": 50.577371048252914
     },
     {
       "id": "iVJAjGWEzP8",
       "channel": "Bruno Nardon",
       "title": "Como Criamos 420 Vídeos Com IA Em 6 Horas",
       "url": "https://www.youtube.com/watch?v=iVJAjGWEzP8",
-      "views": 59815,
+      "views": 59819,
       "publishedAt": "2026-04-10",
       "durationSeconds": 1670,
-      "channelMedianViews": 1281,
-      "relativePerformanceMultiple": 46.69398907103825
+      "channelMedianViews": 1282.5,
+      "relativePerformanceMultiple": 46.642495126705654
     },
     {
       "id": "O1NLW0QnC9U",
       "channel": "Vinicius Figueiredo",
       "title": "Minhas fontes de renda para ganhar R$ 49.374,08 por mês aos 27 anos",
       "url": "https://www.youtube.com/watch?v=O1NLW0QnC9U",
-      "views": 73663,
+      "views": 76680,
       "publishedAt": "2026-10-27",
       "durationSeconds": 1520,
-      "channelMedianViews": 2447,
-      "relativePerformanceMultiple": 30.103391908459336
+      "channelMedianViews": 2448,
+      "relativePerformanceMultiple": 31.323529411764707
     },
     {
       "id": "oS3Fgp8RMw4",
       "channel": "Erik Cupsa",
       "title": "How I Get Back Into Old Coding Projects Faster with @AdobeAcrobat",
       "url": "https://www.youtube.com/watch?v=oS3Fgp8RMw4",
-      "views": 819485,
+      "views": 819674,
       "publishedAt": "2026-10-14",
       "durationSeconds": 68,
-      "channelMedianViews": 29440,
-      "relativePerformanceMultiple": 27.835767663043477
+      "channelMedianViews": 29075,
+      "relativePerformanceMultiple": 28.19171109200344
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-04T17:25:00-03:00",
+  "updatedAt": "2026-11-05T16:00:00-03:00",
   "minActiveScore": 50,
   "categories": [
     {
@@ -157,8 +157,19 @@
           "premise": "A diferença brutal entre criar projetos de brinquedo no curso e colocar um software no mundo real com o RankFTV. Lidar com donos de arena que não entendem de tecnologia, erros operacionais e suporte de verdade.",
           "tension": "O medo de um bug quebrar um campeonato em andamento vs a maturidade de aprender a resolver na hora.",
           "visual": "Diálogo direto com o público, podendo cortar pontualmente para a tela do sistema em produção para contextualizar o produto.",
-          "competitorReference": "Negócios com pele em jogo de Alfredo Soares (140x da mediana) e Bruno Nardon.",
+          "competitorReference": "Negócios com pele em jogo de Alfredo Soares (140x da mediana) e Daniel Lima ('O desafio de CRIAR um MARKETPLACE' e 'Criei uma plataforma em 48h').",
           "executionTip": "Gravar compartilhando as histórias reais de suporte que aconteceram nos campeonatos."
+        },
+        {
+          "id": "neg-05",
+          "title": "Por que decidi criar meu próprio sistema em vez de esperar a vaga perfeita",
+          "score": 94,
+          "scenario": "Quarto/estúdio em Eunápolis. Diálogo direto e firme com a câmera.",
+          "premise": "Em vez de enviar centenas de currículos para vagas infinitas e paralisar na espera, usar as horas fora do CLT para construir um produto real (o RankFTV). Resolver um problema de negócio verdadeiro ensina mais sobre tecnologia, dados e produto do que qualquer projeto fictício de curso.",
+          "tension": "O receio de dedicar noites e fins de semana a um sistema próprio sem garantia de retorno vs o ganho de autonomia e autoridade prática que um software rodando gera.",
+          "visual": "Diálogo direto olho no olho com a câmera. Cortes opcionais para o painel de produção do sistema para comprovar a existência do produto.",
+          "competitorReference": "Padrão de construção de produto próprio e validação empírica de Daniel Lima ('Você tem que ser nerd do SEU produto' e 'Criei uma plataforma em 48h') e Vinicius Figueiredo ('Abra o negócio mais chato que puder' - 81x).",
+          "executionTip": "Gravar com energia firme e postura madura, valorizando a proatividade de criar a própria oportunidade."
         },
         {
           "id": "neg-02",

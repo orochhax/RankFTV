@@ -183,6 +183,13 @@ registrar apenas uma revalidação quando ela for necessária.
 - Validação local: typecheck, lint e build Next.js concluídos. Situação
   externa: aguardando PR, CI e deploy.
 
+## 2026-11-05 (America/Sao_Paulo) — Atualização de Concorrentes e Biblioteca do Canal Carlos Rocha
+
+- Adicionado o canal `@daniellimae` (Daniel Lima) à lista oficial de concorrentes, totalizando 15 canais e 1.595 vídeos monitorados na janela de 365 dias.
+- Recalculado o snapshot estatístico de outliers em `lib/evolution/carlos-rocha-rank-snapshot.json` mantendo o teto de 3 vídeos por canal.
+- Atualizada a Biblioteca de Ideias em `lib/evolution/carlos-rocha-library.json` com base no versionamento cumulativo contínuo (score >= 50 mantido e evoluído) e validações práticas de SaaS/negócios.
+- Verificação automatizada completa (typecheck, lint e 878 unit tests).
+
 ## 2026-11-04 (America/Sao_Paulo) — Central privada do Canal Carlos Rocha
 
 - Escopo aprovado por Carlos: criar e publicar uma área independente em
