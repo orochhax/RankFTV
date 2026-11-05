@@ -21,6 +21,12 @@
   1. Teste de pagamento Pix real simbólico (R$ 5,00) em produção com estorno supervisionado imediato (a ser executado por Carlos posteriormente).
   2. Definição da data de abertura oficial dos pagamentos reais da V1 por Carlos.
 
+## Central de Evolução - Adição de Daniel Lima e Atualização de Concorrentes (05/11/2026)
+
+- O canal `@daniellimae` (Daniel Lima) foi integrado à lista oficial de concorrentes monitorados (agora 15 canais no total, 1.595 vídeos coletados e 1.595 thumbnails válidas na janela de 365 dias).
+- Recalculado o ranking de outliers do canal Carlos Rocha (`lib/evolution/carlos-rocha-rank-snapshot.json`), preservando o teto de 3 vídeos por canal.
+- Biblioteca de Ideias atualizada com versionamento cumulativo contínuo (`lib/evolution/carlos-rocha-library.json`), incorporando validações práticas de SaaS e construção de produto próprio com 16 pautas ranqueadas.
+
 ## Central de Evolucao - Calibracao da Biblioteca do Canal Carlos Rocha (04/11/2026)
 
 - A Biblioteca de Ideias foi calibrada com as preferencias reais de Carlos: foco no dialogo direto, eliminacao de encenacao/telas forcadas, remocao total de corrida e foco em 4 categorias acionaveis.
