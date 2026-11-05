@@ -9,7 +9,7 @@ test("CobrancaInput supports maxInstallmentCount via /paymentLinks INSTALLMENT",
   assert.match(asaasSource, /chargeType:\s+"INSTALLMENT"/);
   assert.match(asaasSource, /billingType:\s+"CREDIT_CARD"/);
   assert.match(asaasSource, /name:\s+input\.descricao\.slice\(0, 100\)/);
-  assert.match(asaasSource, /maxInstallmentCount:\s+Math\.min\(21, Math\.max\(2, Math\.floor\(input\.maxInstallmentCount\)\)\)/);
+  assert.match(asaasSource, /maxInstallmentCount:\s+maxParcelas/);
   assert.match(asaasSource, /notificationEnabled:\s+true/);
   assert.match(asaasSource, /return \{ id: link\.id, invoiceUrl: link\.url, status: "ACTIVE", billingType: "CREDIT_CARD" \};/);
   assert.doesNotMatch(asaasSource, /body\.maxInstallmentCount/);

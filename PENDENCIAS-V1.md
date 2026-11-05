@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`███████████████████░` **97% concluído** — 140 de 144 marcos P0 foram
-concluídos; restam apenas 4 marcos atômicos, agrupados abaixo de forma acionável.
+`███████████████████▉` **98% concluído** — 141 de 144 marcos P0 foram
+concluídos; restam apenas 3 marcos atômicos, agrupados abaixo de forma acionável.
 A linha de base de 140 marcos foi ampliada em 20/10/2026 para 144
 marcos com quatro inclusões técnicas obrigatórias: parcelamento de inscrições,
 carteira/saque do organizador, dependências de produção sem vulnerabilidades e
@@ -251,8 +251,11 @@ Revalidação completa executada no worktree limpo (`feat/v1-installment-checkou
 
 ### Operação, suporte e conformidade
 
-- [ ] Comprar e configurar e-mail comercial no domínio RankFTV como canal
-  oficial de suporte.
+- [x] Comprar e configurar e-mail comercial no domínio RankFTV como canal
+  oficial de suporte. Concluído em 05/11/2026: configurado e ativado Cloudflare
+  Email Routing para o domínio `rankftv.com` com regras ativas para
+  `suporte@rankftv.com` e `contato@rankftv.com` redirecionando para a caixa
+  verificada `carlosrocha0923@gmail.com`, com registros MX/SPF protegidos.
 - [x] Publicar nos Termos e na Privacidade a operação como pessoa física,
   identificando o responsável como Carlos Gregório Rocha Batista. Concluído em
   05/11/2026 nas rotas `/termos` e `/privacidade` com identificação como pessoa

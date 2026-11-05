@@ -5,6 +5,17 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-05 13:00 (America/Sao_Paulo) — Ativação dos e-mails oficiais de suporte e contato (P0)
+
+- Concluída a ativação e homologação do canal oficial de e-mail no domínio `rankftv.com`:
+  - Provedor: Cloudflare Email Routing para a zona `rankftv.com`.
+  - Destino verificado: `carlosrocha0923@gmail.com` (status `Verified`).
+  - Regras ativas:
+    - `suporte@rankftv.com` -> `carlosrocha0923@gmail.com` (status `Active`).
+    - `contato@rankftv.com` -> `carlosrocha0923@gmail.com` (status `Active`).
+  - Segurança e integridade de DNS: registros MX da Cloudflare e SPF travados sem afetar o subdomínio transacional `send.rankftv.com` do Resend.
+  - Marco P0 formalmente concluído. Progresso global da V1 elevado para **98% concluído** (141 de 144 marcos P0 concluídos; restam apenas 3 marcos).
+
 ## 2026-11-05 12:25 (America/Sao_Paulo) — Merge da PR #119 e Refinamento do Parcelamento via /v3/paymentLinks
 
 - PR #119 mesclada com sucesso na `master` (commit `bb45952`), consolidando D+32, antecipação, repasses e Dossiê PCI SAQ A (`docs/PCI-SAQ-A-DOSSIE-CONFORMIDADE-V1.md`).
