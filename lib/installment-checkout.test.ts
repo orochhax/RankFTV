@@ -9,7 +9,7 @@ test("CobrancaInput supports maxInstallmentCount via /paymentLinks INSTALLMENT",
   assert.match(asaasSource, /chargeType:\s+"INSTALLMENT"/);
   assert.match(asaasSource, /billingType:\s+"CREDIT_CARD"/);
   assert.match(asaasSource, /name:\s+input\.descricao\.slice\(0, 100\)/);
-  assert.match(asaasSource, /maxInstallmentCount:\s+Math\.min\(21, Math\.max\(2, Math\.floor\(input\.maxInstallmentCount\)\)\)/);
+  assert.match(asaasSource, /maxInstallmentCount:\s+maxParcelas/);
   assert.match(asaasSource, /notificationEnabled:\s+true/);
   assert.match(asaasSource, /return \{ id: link\.id, invoiceUrl: link\.url, status: "ACTIVE", billingType: "CREDIT_CARD" \};/);
   assert.doesNotMatch(asaasSource, /body\.maxInstallmentCount/);
@@ -21,6 +21,8 @@ test("webhook reconciles payment link ids and relinks to payment id", () => {
   const route = readFileSync(new URL("../app/api/webhooks/asaas/route.ts", import.meta.url), "utf8");
   assert.match(route, /data\?\.asaas_payment_id === payment\.paymentLink/);
   assert.match(route, /\.update\(\{ asaas_payment_id: payment\.id \}\)/);
+  assert.match(route, /operation\.provider_id === body\.payment\.paymentLink/);
+  assert.match(route, /\.from\("financial_operations"\)\s*\.update\(\{ provider_id: body\.payment\.id \}\)/);
 });
 
 test("createIdempotentCharge forwards maxInstallmentCount to provider", () => {

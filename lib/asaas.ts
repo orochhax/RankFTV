@@ -170,21 +170,27 @@ export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriad
   // Crédito parcelado: o Asaas só oferece parcelamento escolhido pelo pagador
   // via link de pagamento (chargeType INSTALLMENT). O id retornado é o do link;
   // o webhook reconcilia pelo payment.paymentLink e passa a gravar o payment.id.
+  // O Asaas exige parcela mínima de R$ 5,00; fazemos o clamp automático para
+  // evitar recusa 400 da adquirente quando o valor total for baixo.
   if (input.metodo === "credito" && input.maxInstallmentCount && input.maxInstallmentCount > 1) {
-    const link = await request<{ id: string; url: string }>("/paymentLinks", {
-      method: "POST",
-      body: JSON.stringify({
-        name:                input.descricao.slice(0, 100),
-        description:         input.descricao,
-        chargeType:          "INSTALLMENT",
-        billingType:         "CREDIT_CARD",
-        value:               valorTotal,
-        maxInstallmentCount: Math.min(21, Math.max(2, Math.floor(input.maxInstallmentCount))),
-        externalReference:   input.externalReference,
-        notificationEnabled: true,
-      }),
-    });
-    return { id: link.id, invoiceUrl: link.url, status: "ACTIVE", billingType: "CREDIT_CARD" };
+    const maxPorValor = Math.floor(valorTotal / 5);
+    const maxParcelas = Math.min(21, Math.max(1, Math.floor(input.maxInstallmentCount)), maxPorValor);
+    if (maxParcelas > 1) {
+      const link = await request<{ id: string; url: string }>("/paymentLinks", {
+        method: "POST",
+        body: JSON.stringify({
+          name:                input.descricao.slice(0, 100),
+          description:         input.descricao,
+          chargeType:          "INSTALLMENT",
+          billingType:         "CREDIT_CARD",
+          value:               valorTotal,
+          maxInstallmentCount: maxParcelas,
+          externalReference:   input.externalReference,
+          notificationEnabled: true,
+        }),
+      });
+      return { id: link.id, invoiceUrl: link.url, status: "ACTIVE", billingType: "CREDIT_CARD" };
+    }
   }
 
   const dueDate = new Date();
