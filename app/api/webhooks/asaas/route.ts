@@ -82,6 +82,23 @@ async function syncFinancialPaymentOperation(body: AsaasWebhookPayload): Promise
 
   if (error) throw new Error(`financial_operation_lookup_failed:${error.message}`);
   if (!operation) return;
+
+  if (
+    Boolean(body.payment.paymentLink) &&
+    operation.provider_id === body.payment.paymentLink &&
+    operation.provider_id !== body.payment.id
+  ) {
+    const { error: relinkError } = await admin
+      .from("financial_operations")
+      .update({ provider_id: body.payment.id })
+      .eq("id", operation.id)
+      .eq("provider_id", body.payment.paymentLink);
+    if (relinkError) {
+      throw new Error(`financial_operation_relink_failed:${relinkError.message}`);
+    }
+    operation.provider_id = body.payment.id;
+  }
+
   if (operation.provider_id && operation.provider_id !== body.payment.id) {
     throw new Error("financial_provider_id_conflict");
   }

@@ -7,16 +7,16 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`███████████████████▉` **98% concluído** — 141 de 144 marcos P0 foram
-concluídos; restam apenas 3 marcos atômicos, agrupados abaixo de forma acionável.
+`███████████████████▉` **99% concluído** — 142 de 144 marcos P0 foram
+concluídos; restam apenas 2 marcos atômicos (smoke final supervisionado em produção e definição da data de abertura oficial).
 A linha de base de 140 marcos foi ampliada em 20/10/2026 para 144
 marcos com quatro inclusões técnicas obrigatórias: parcelamento de inscrições,
 carteira/saque do organizador, dependências de produção sem vulnerabilidades e
 promoção dos novos hardenings P0. Em 05/11/2026, a auditoria geral do RankFTV
 confirmou a homologação e merge das PRs #71 (carteira e saques), #88/#116
 (dependências com 0 vulnerabilidades), #117 (jurídico, termos, CDC e LGPD),
-#118 (matriz de notificações N01–N15) e a implementação completa da PR #119
-(parcelamento Asaas no checkout hospedado em até 21x/12x com repasse D+32).
+#118 (matriz de notificações N01–N15), PR #119 / #120 / #122 (parcelamento
+Asaas no checkout hospedado em até 21x/12x com repasse D+32, piso de R$ 5,00 por parcela e conciliação completa de paymentLink no webhook) e ativação oficial do canal de suporte via Cloudflare Email Routing.
 
 Ao concluir ou acrescentar um marco P0, atualizar a barra, os números e a data.
 P1/P2 não alteram esse percentual.

@@ -5,6 +5,20 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-05 13:50 (America/Sao_Paulo) — Homologação ponta a ponta do checkout parcelado Asaas Sandbox e reconciliação financeira (P0)
+
+- Concluída a homologação transacional supervisionada do fluxo completo de compra parcelada com cartão de crédito no Asaas Sandbox:
+  - Link de pagamento gerado: `sandbox.asaas.com/000/c/frqbly7pk4bo2nsj` para o `Campeonato Sandbox Financeiro 2026`.
+  - Compra parcelada executada e aprovada pelo titular com sucesso em 3x de R$ 8,00 (total R$ 23,99): fatura gerada `20373087`, cobrança Asaas `pay_tozvaqe4kk7im0t1`.
+  - Reconciliação no webhook do Asaas (`app/api/webhooks/asaas/route.ts`):
+    - Revinculação automática e atômica de `athlete_tickets.asaas_payment_id` do link (`frqbly7pk4bo2nsj`) para o pagamento definitivo (`pay_tozvaqe4kk7im0t1`).
+    - Revinculação de `financial_operations.provider_id` do link de pagamento para o ID da cobrança definitiva, prevenindo `FINANCIAL_PROVIDER_ID_CONFLICT`.
+    - Ingresso confirmado com status `pago` e repasse retido em `aguardando_liquidacao` com data prevista de liquidação D+32 (`2026-12-07`).
+    - Recebível do organizador (`organizer_receivables`) gerado com valor líquido de R$ 20,00 e liberação em D+32 (`2026-12-07`).
+    - Operação contábil (`financial_operations`) concluída com status `confirmed` e amount R$ 23,99.
+  - Testes automatizados: 904 testes aprovados (903 passaram, 1 ignorado, 0 falhas). TypeScript e audit prod com zero erros.
+  - Marco P0 de parcelamento homologado em 100% com evidência real e visual.
+
 ## 2026-11-05 13:00 (America/Sao_Paulo) — Ativação dos e-mails oficiais de suporte e contato (P0)
 
 - Concluída a ativação e homologação do canal oficial de e-mail no domínio `rankftv.com`:

@@ -21,6 +21,8 @@ test("webhook reconciles payment link ids and relinks to payment id", () => {
   const route = readFileSync(new URL("../app/api/webhooks/asaas/route.ts", import.meta.url), "utf8");
   assert.match(route, /data\?\.asaas_payment_id === payment\.paymentLink/);
   assert.match(route, /\.update\(\{ asaas_payment_id: payment\.id \}\)/);
+  assert.match(route, /operation\.provider_id === body\.payment\.paymentLink/);
+  assert.match(route, /\.from\("financial_operations"\)\s*\.update\(\{ provider_id: body\.payment\.id \}\)/);
 });
 
 test("createIdempotentCharge forwards maxInstallmentCount to provider", () => {
