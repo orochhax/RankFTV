@@ -2,10 +2,25 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 
-test("CobrancaInput supports maxInstallmentCount", () => {
+test("CobrancaInput supports maxInstallmentCount via /paymentLinks INSTALLMENT", () => {
   const asaasSource = readFileSync(new URL("./asaas.ts", import.meta.url), "utf8");
   assert.match(asaasSource, /maxInstallmentCount\?: number;/);
-  assert.match(asaasSource, /body\.maxInstallmentCount = Math\.min\(21, Math\.max\(1, Math\.floor\(input\.maxInstallmentCount\)\)\);/);
+  assert.match(asaasSource, /request<\{ id: string; url: string \}>\("\/paymentLinks"/);
+  assert.match(asaasSource, /chargeType:\s+"INSTALLMENT"/);
+  assert.match(asaasSource, /billingType:\s+"CREDIT_CARD"/);
+  assert.match(asaasSource, /name:\s+input\.descricao\.slice\(0, 100\)/);
+  assert.match(asaasSource, /maxInstallmentCount:\s+Math\.min\(21, Math\.max\(2, Math\.floor\(input\.maxInstallmentCount\)\)\)/);
+  assert.match(asaasSource, /notificationEnabled:\s+true/);
+  assert.match(asaasSource, /return \{ id: link\.id, invoiceUrl: link\.url, status: "ACTIVE", billingType: "CREDIT_CARD" \};/);
+  assert.doesNotMatch(asaasSource, /body\.maxInstallmentCount/);
+});
+
+test("webhook reconciles payment link ids and relinks to payment id", () => {
+  const core = readFileSync(new URL("./asaas-webhook-core.ts", import.meta.url), "utf8");
+  assert.match(core, /paymentLink\?: string;/);
+  const route = readFileSync(new URL("../app/api/webhooks/asaas/route.ts", import.meta.url), "utf8");
+  assert.match(route, /data\?\.asaas_payment_id === payment\.paymentLink/);
+  assert.match(route, /\.update\(\{ asaas_payment_id: payment\.id \}\)/);
 });
 
 test("createIdempotentCharge forwards maxInstallmentCount to provider", () => {

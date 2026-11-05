@@ -34,6 +34,8 @@ export type AsaasPaymentPayload = {
   value: number;
   billingType: string;
   subscription?: string;
+  /** Payment link id when the charge was generated from an Asaas payment link. */
+  paymentLink?: string;
   dueDate?: string;
 };
 
