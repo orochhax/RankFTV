@@ -5,6 +5,19 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-04 23:20 (America/Sao_Paulo) — Mensagem amigável de recusa de saque Pix e clareza na antecipação de cartão
+
+- Ajuste solicitado por Carlos: melhoria na experiência do usuário ao solicitar saque e antecipação de cartão.
+- Mensagens de erro de saque:
+  - O fluxo de saque (transferência Pix / `payout`) não devolve mais a mensagem genérica de cartão ("O pagamento foi recusado").
+  - Identificação de recusa do provedor bancário (Asaas) tratando especificamente: saldo insuficiente na conta do processador, recusa de chave Pix ou falha temporária.
+  - Mensagem pública ajustada: "Saldo insuficiente na conta de pagamentos para concluir a transferência Pix." ou "Não foi possível concluir o saque via Pix. Revise seus dados ou tente novamente em instantes."
+- Antecipação de vendas no cartão:
+  - O botão "Antecipar cartão" deixa de ficar cinza/morto sem explicação quando o saldo pendente for zero.
+  - Ao ser clicado com saldo pendente zerado, o modal abre e exibe mensagem transparente: "Nenhuma venda pendente no cartão de crédito para antecipar. Todo o saldo arrecadado já está liberado no Saldo Disponível para saque imediato via Pix."
+  - Indicador numérico visual incorporado ao botão quando houver recebíveis antecipáveis.
+- Validação: suíte de 890 testes passou (889 pass, 1 skipped), typecheck e lint com zero erros.
+
 ## 2026-11-04 20:20 (America/Sao_Paulo) — Seleção múltipla combinada de formas de pagamento
 
 - Ajuste solicitado por Carlos: suporte a multi-seleção simultânea nos botões de pagamento (ex.: selecionar Cartão de Crédito e Cartão de Débito juntos).

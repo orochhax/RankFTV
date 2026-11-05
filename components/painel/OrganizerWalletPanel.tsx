@@ -216,12 +216,16 @@ export function OrganizerWalletPanel({
           </button>
           <button
             type="button"
-            disabled={anticipatableReceivables.length === 0}
             onClick={() => setDialogMode("anticipation")}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 transition-colors hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 transition-colors hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           >
             <CreditCard aria-hidden="true" className="size-4" />
             Antecipar cartão
+            {anticipatableReceivables.length > 0 ? (
+              <span className="rounded-full bg-amber-200 px-2 py-0.5 text-xs font-bold text-amber-900">
+                {anticipatableReceivables.length}
+              </span>
+            ) : null}
           </button>
         </div>
       </div>
@@ -299,7 +303,7 @@ export function OrganizerWalletPanel({
             setAnticipationQuote(null);
             setSelectedAnticipations(checked ? anticipatableReceivables.map((item) => item.id) : []);
           }}
-          emptyText="Nenhuma venda disponível para antecipação."
+          emptyText="Nenhuma venda pendente no cartão de crédito para antecipar. Todo o saldo arrecadado já está liberado no Saldo Disponível para saque imediato via Pix."
           val={val}
         />
         {anticipationQuote ? (

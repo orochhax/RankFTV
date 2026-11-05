@@ -59,6 +59,7 @@ export function sanitizeFinancialMetadata(input: Record<string, unknown> | undef
 function publicFinancialError(
   error: unknown,
   billingType?: string | null,
+  operationType?: string | null,
 ): { message: string; code: string; ambiguous: boolean } {
   if (error instanceof AsaasApiError) {
     return publicAsaasError({
@@ -66,10 +67,14 @@ function publicFinancialError(
       code: error.code,
       ambiguous: error.ambiguous,
       billingType,
+      operationType,
+      rawMessage: error.message,
     });
   }
   return {
-    message: "Nao foi possivel concluir a operacao financeira.",
+    message: operationType === "transfer"
+      ? "Não foi possível concluir o saque via Pix."
+      : "Nao foi possivel concluir a operacao financeira.",
     code: "unexpected_error",
     ambiguous: true,
   };
@@ -185,7 +190,7 @@ export async function executeFinancialOperation<T extends ProviderRecord>(input:
 
     return finish(await input.create(), false);
   } catch (err) {
-    const safe = publicFinancialError(err, input.billingType);
+    const safe = publicFinancialError(err, input.billingType, input.operationType);
     const operationWasAlreadyProtected = !operation.shouldExecute
       && ["provider_created", "confirmed", "refunded", "cancelled"].includes(operation.status);
     if (operationWasAlreadyProtected) {
