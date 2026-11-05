@@ -8,6 +8,7 @@ import type { ChampionshipStatus } from "@/lib/types";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { Surface } from "@/components/shell/Surface";
 import { EmptyState } from "@/components/shell/EmptyState";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 
 const WEEKDAYS_MIN = ["D", "S", "T", "Q", "Q", "S", "S"];
 const MONTHS = [
@@ -159,6 +160,7 @@ export function AgendaView({
       </div>
 
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
+        <DesktopSheetContourLight />
         <PageContainer width="wide" className="space-y-6">
           {finishedCount > 0 && (
             <button

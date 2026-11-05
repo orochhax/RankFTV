@@ -2,6 +2,7 @@ import { DestaquesArenasCarousel, type ArenaDestaque } from "@/components/arenas
 import { ArenaSection } from "@/components/arenas/ArenaSection";
 import type { ArenaCardData, ProximaData } from "@/components/arenas/ArenaCard";
 import { PageContainer } from "@/components/shell/PageContainer";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -132,6 +133,7 @@ export default async function ArenasPage({
       </div>
 
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
+        <DesktopSheetContourLight />
         <span aria-hidden="true" className="mobile-sheet-accent md:hidden" />
         <PageContainer width="wide" className="space-y-8">
           {destaques.length > 0 && <DestaquesArenasCarousel arenas={destaques} />}

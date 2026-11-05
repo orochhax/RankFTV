@@ -11,6 +11,7 @@ import { Surface } from "@/components/shell/Surface";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { SectionHeader } from "@/components/shell/SectionHeader";
 import { HomeBannerCarousel } from "@/components/home/HomeBannerCarousel";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import { normalizeHomeBanners } from "@/lib/home-banners";
 import { parseDiscoveryFilters } from "@/lib/championship-discovery";
 
@@ -150,6 +151,7 @@ export default async function Home({
 
       {/* ── Corpo: sheet arredondada (bg-app-bg) no mobile e desktop ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
+        <DesktopSheetContourLight />
         <svg aria-hidden="true" className="home-mobile-sheet-accent md:hidden" viewBox="0 0 430 28" preserveAspectRatio="none">
           <path d="M0 28 A28 28 0 0 1 28 0 H402 A28 28 0 0 1 430 28" pathLength="100" />
         </svg>

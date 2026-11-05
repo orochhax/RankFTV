@@ -17,6 +17,7 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { StatCard } from "@/components/shell/StatCard";
 import { EmptyState } from "@/components/shell/EmptyState";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import { MeusCampeonatosGrid, type OrganizerChampSummary } from "@/components/painel/MeusCampeonatosGrid";
 
 export default async function MeusCampeonatosPage({
@@ -92,6 +93,7 @@ export default async function MeusCampeonatosPage({
       </div>
 
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
+        <DesktopSheetContourLight />
         <PageContainer width="wide" className="space-y-6">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Total de campeonatos" value={result.counts.all} icon={Trophy} />

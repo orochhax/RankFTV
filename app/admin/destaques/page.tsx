@@ -9,6 +9,7 @@ import type { ArenaDestaque } from "@/components/arenas/DestaquesArenasCarousel"
 import { isAdminUser } from "@/lib/supabase/roles";
 import { HomeBannersEditor } from "@/components/admin/HomeBannersEditor";
 import { normalizeHomeBanners } from "@/lib/home-banners";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 
 export default async function AdminDestaquesPage() {
   const supabase = await createClient();
@@ -79,6 +80,7 @@ export default async function AdminDestaquesPage() {
       </div>
 
       <div className="relative -mt-6 rounded-t-3xl bg-app-bg px-6 pb-16 pt-8 shadow-sm">
+        <DesktopSheetContourLight />
         <div className="w-full space-y-12">
 
           <section>

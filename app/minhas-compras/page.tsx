@@ -8,6 +8,7 @@ import { MinhasComprasClient } from "@/components/perfil/MinhasComprasClient";
 import { MinhasComprasTabs } from "@/components/perfil/MinhasComprasTabs";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { PageContainer } from "@/components/shell/PageContainer";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import { resolveComprasTab, type CompraInscricaoRow } from "@/lib/minhas-compras";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -277,6 +278,7 @@ export default async function MinhasComprasPage({
       </div>
 
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
+        <DesktopSheetContourLight />
         <PageContainer width="wide" className="space-y-8">
           {cancelamento === "cancelado" && (
             <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">

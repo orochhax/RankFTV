@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, ReceiptText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ExtratoClient } from "@/components/admin/gasto-mensal/ExtratoClient";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import {
   dbDateToMonthKey, mapHistoryEventRow, sortHistoryByOccurredAtDesc,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type HistoryEventRow,
@@ -135,6 +136,7 @@ export default async function ExtratoGastoMensalPage() {
 
       {/* ── Conteúdo branco ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
+        <DesktopSheetContourLight />
         <div className="w-full">
           <ExtratoClient events={events} expenses={expenses} incomes={incomes} categories={categories} />
         </div>

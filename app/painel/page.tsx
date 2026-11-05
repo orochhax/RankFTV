@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/shell/EmptyState";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { ReceitaConsolidadaCard } from "@/components/painel/ReceitaConsolidadaCard";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 
 function fmt(v: number) {
   return `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -198,8 +199,8 @@ export default async function PainelOrganizadorPage() {
 
         {/* ── Corpo: folha arredondada com alto contraste ── */}
         <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
+          <DesktopSheetContourLight />
           <PageContainer width="wide" className="space-y-8">
-
             {/* Receita total consolidada com olhinho para ocultar/exibir */}
             <ReceitaConsolidadaCard valorFormatado={fmt(receitaTotal)} />
 

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, CalendarRange } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { GastoMensalClient } from "@/components/admin/gasto-mensal/GastoMensalClient";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import {
   dbDateToMonthKey, defaultMonthKey, hojeISOBahia,
   type MonthlyBudgetExpense, type MonthlyBudgetIncome, type MonthlyBudgetCategory,
@@ -174,6 +175,7 @@ export default async function GastoMensalPage() {
 
       {/* ── Conteúdo branco ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
+        <DesktopSheetContourLight />
         <div className="w-full">
           <GastoMensalClient
             expenses={expenses}
