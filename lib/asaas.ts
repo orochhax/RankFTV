@@ -148,6 +148,7 @@ export type CobrancaInput = {
   metodo:            MetodoPagamento;
   descricao:         string;
   externalReference: string;
+  maxInstallmentCount?: number;
 };
 
 export type CobrancaCriada = {
@@ -177,6 +178,10 @@ export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriad
     description:       input.descricao,
     externalReference: input.externalReference,
   };
+
+  if (input.metodo === "credito" && input.maxInstallmentCount && input.maxInstallmentCount > 1) {
+    body.maxInstallmentCount = Math.min(21, Math.max(1, Math.floor(input.maxInstallmentCount)));
+  }
 
   const pagamento = await request<{ id: string; invoiceUrl: string; status?: string; billingType?: string }>("/payments", {
     method: "POST",

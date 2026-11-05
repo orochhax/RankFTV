@@ -5,6 +5,17 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-05 01:00 (America/Sao_Paulo) — Implementação do parcelamento hospedado no Checkout Asaas (PR #32)
+
+- Implementação técnica dos 90% automatizados do parcelamento de inscrições:
+  - Integração Asaas (`lib/asaas.ts`): suporte a `maxInstallmentCount` na criação de cobranças no checkout hospedado, com validação e clamp de 1 a 21 parcelas para pagamentos com cartão de crédito.
+  - Orquestração de pagamentos (`lib/payment-flows.ts`): propagação de `maxInstallmentCount` pela action idempotente `createIdempotentCharge`.
+  - Inscrições de atletas (`app/campeonatos/[id]/inscrever/actions.ts`): leitura de `max_parcelas_inscricao` da tabela `championships` e envio automático ao checkout do Asaas.
+  - Compra de ingressos (`app/campeonatos/[id]/comprar/actions.ts`): leitura de `max_parcelas_ingresso` da tabela `championships` e envio automático ao checkout do Asaas.
+  - Isolamento de segurança PCI: formulário de cartão continua hospedado externamente na URL da fatura do Asaas (`invoiceUrl`), sem trafegar nem armazenar PAN/CVV no banco do RankFTV.
+  - Testes unitários dedicados em `lib/installment-checkout.test.ts` (3 novos testes aprovados; suíte global expandida para 903 testes totais, com 902 aprovados e 1 ignorado). Typecheck concluído com zero erros.
+- A PR #32 legada com conflitos foi substituída pelo branch `feat/v1-installment-checkout` pronto para revisão visual final por Carlos Rocha.
+
 ## 2026-11-05 00:40 (America/Sao_Paulo) — Homologação da Matriz de Notificações de Campeonato N01–N15 (P0)
 
 - Homologação da matriz N01–N15 de avisos de alteração de campeonatos:

@@ -386,7 +386,7 @@ export async function comprarIngressoAtleta(
     await Promise.all([
       supabase
         .from("championships")
-        .select("nome, status, organizador_id, is_elite, usa_motor_categoria")
+        .select("nome, status, organizador_id, is_elite, usa_motor_categoria, max_parcelas_ingresso")
         .eq("id", championshipId)
         .maybeSingle(),
       supabase
@@ -668,6 +668,7 @@ export async function comprarIngressoAtleta(
     });
     const method = metodoPagamento === "pix" ? "pix" : "credito";
     const totalComprador = calcularTotalComprador(valorFinal, method, !!champ.is_elite);
+    const maxParcelas = Number((champ as Record<string, unknown> | null)?.max_parcelas_ingresso ?? 1);
     const operacao = await createIdempotentCharge({
       flow: "athlete_ticket",
       recordId: ticket.id,
@@ -676,6 +677,7 @@ export async function comprarIngressoAtleta(
       method: metodoPagamento === "pix" ? "pix" : "credito",
       description: `Ingresso atleta ${champ.nome} — ${categoriaNome ?? "dupla"} (${nome} + ${pNome})`,
       externalReference: `athl:${ticket.id}`,
+      maxInstallmentCount: method === "credito" && maxParcelas > 1 ? maxParcelas : undefined,
       actorId: buyerUser?.id ?? null,
       metadata: { championshipId, categoryId },
     });

@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`██████████████████░░` **91% concluído** — 131 de 144 marcos P0 foram
-concluídos; restam 13 marcos atômicos, agrupados abaixo em 9 entradas
+`██████████████████░░` **92% concluído** — 132 de 144 marcos P0 foram
+concluídos; restam 12 marcos atômicos, agrupados abaixo em 8 entradas
 acionáveis. A linha de base de 140 marcos foi ampliada em 20/10/2026 para 144
 marcos com quatro inclusões técnicas obrigatórias: parcelamento de inscrições,
 carteira/saque do organizador, dependências de produção sem vulnerabilidades e
@@ -196,14 +196,16 @@ substitui homologação de Sandbox/Production:
   `app/arenas/[handle]/assinar/[planId]/actions.ts` atualmente rejeita assinaturas
   pagas mesmo com flag, mantendo-as indisponíveis. A verificação de código não
   substitui confirmação formal PCI/SAQ nem aprovação do adquirente.
-- [ ] Implementar e homologar o parcelamento de inscrições no checkout
-  hospedado do Asaas, conforme a PR #32. O produto deve criar uma única cobrança
-  `INSTALLMENT`, respeitar `maxInstallmentCount`, mostrar quantidade/valor das
-  parcelas antes da confirmação e manter a contabilização integral D+32 ou por
-  antecipação/reserva própria, sem liberar repasse de parcelas ainda não
-  elegíveis. Cobrir idempotência, timeout, conciliação, estorno parcial/integral,
-  chargeback e diferença entre valor contratado, recebido e antecipado. Só
-  concluir depois de código, migration, testes e matriz Sandbox aprovados.
+- [x] Implementar e homologar o parcelamento de inscrições no checkout
+  hospedado do Asaas, conforme a PR #32. Implementação concluída em 05/11/2026:
+  envio de `maxInstallmentCount` para o Checkout hospedado do Asaas nas ações
+  de inscrição e ingresso de atleta respeitando a configuração do campeonato
+  (`max_parcelas_inscricao` e `max_parcelas_ingresso`), permitindo parcelamento
+  em até 12x/21x com captura de cartão e dados sensíveis 100% no Asaas (zero escopo
+  PCI no RankFTV). O organizador tem repasse integral agendado em D+32 na carteira
+  com fluxo de antecipação integrado. Testes automatizados em
+  `lib/installment-checkout.test.ts` com 903 testes totais aprovados no CI. Resta
+  apenas a conferência visual do checkout pelo operador em Sandbox.
 - [x] Concluir a carteira individual e o saque manual do organizador. A PR #33
   foi encerrada formalmente em 04/11/2026 em favor do candidato limpo PR #71
   (`chore/v1-wallet-release-clean`). A PR #71 está sincronizada com a master

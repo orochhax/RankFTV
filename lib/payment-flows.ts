@@ -43,6 +43,7 @@ export async function createIdempotentCharge(input: CommonInput & {
   customerId: string;
   method: MetodoPagamento;
   description: string;
+  maxInstallmentCount?: number;
 }): Promise<FinancialExecutionResult<PaymentProviderResult>> {
   return executeFinancialOperation<PaymentProviderResult>({
     flow: input.flow,
@@ -66,6 +67,7 @@ export async function createIdempotentCharge(input: CommonInput & {
       metodo: input.method,
       descricao: input.description,
       externalReference: input.externalReference,
+      maxInstallmentCount: input.maxInstallmentCount,
     }),
   });
 }
