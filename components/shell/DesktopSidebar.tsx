@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -290,30 +291,46 @@ export function DesktopSidebar({
   const isDarkHeader = isDarkHeaderRoute(pathname);
 
   return (
-    <aside
-      className={`rankftv-desktop-sidebar ${
-        isDarkHeader ? "rankftv-desktop-sidebar--dark-header" : ""
-      } sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r border-zinc-800 bg-brand-dark px-3 py-4 transition-[width] duration-200 md:flex ${
-        collapsed ? "w-20 items-center" : "w-64 items-stretch"
-      }`}
-    >
-      <Link
-        href="/"
-        aria-label="RankFTV"
-        title="RankFTV"
-        className={`flex shrink-0 items-center rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
-          collapsed ? "justify-center" : "gap-2.5 px-1"
+    <>
+      {/* Reserva de espaço no fluxo flex para a sidebar fixa não sobrepor o conteúdo */}
+      <div
+        aria-hidden="true"
+        className={`hidden shrink-0 transition-[width] duration-200 md:block ${
+          collapsed ? "w-20" : "w-64"
+        }`}
+      />
+
+      <aside
+        className={`rankftv-desktop-sidebar ${
+          isDarkHeader ? "rankftv-desktop-sidebar--dark-header" : ""
+        } fixed top-0 left-0 bottom-0 z-40 hidden h-screen shrink-0 flex-col border-r border-zinc-800 bg-brand-dark px-3 py-4 transition-[width] duration-200 md:flex ${
+          collapsed ? "w-20 items-center" : "w-64 items-stretch"
         }`}
       >
-        <span className="rankftv-desktop-sidebar__logo flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-black tracking-tight shadow-soft shadow-black/30">
-          FTV
-        </span>
-        {!collapsed && (
-          <span className="text-lg font-black tracking-tight text-white">
-            Rank<span className="text-blue-500">FTV</span>
+        <Link
+          href="/"
+          aria-label="RankFTV"
+          title="RankFTV"
+          className={`flex shrink-0 items-center rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
+            collapsed ? "justify-center" : "gap-2.5 px-1"
+          }`}
+        >
+          <span className="rankftv-desktop-sidebar__logo flex size-11 shrink-0 items-center justify-center rounded-full bg-white shadow-soft shadow-black/30">
+            <Image
+              src="/brand-icon.png"
+              alt="RankFTV"
+              width={26}
+              height={26}
+              className="size-[26px] object-contain"
+              priority
+            />
           </span>
-        )}
-      </Link>
+          {!collapsed && (
+            <span className="text-lg font-black tracking-tight text-white">
+              Rank<span className="text-blue-500">FTV</span>
+            </span>
+          )}
+        </Link>
 
       <div className={`relative mt-6 flex shrink-0 ${collapsed ? "justify-center" : "w-full"}`}>
         <button
@@ -423,7 +440,17 @@ export function DesktopSidebar({
                             : "text-zinc-200 hover:bg-zinc-900 hover:!text-white",
                         )} z-10`}
                       >
-                        <Icon className="size-5 shrink-0 transition-colors duration-200" strokeWidth={2} />
+                        {item.emoji ? (
+                          <span
+                            aria-hidden="true"
+                            className="flex size-5 shrink-0 items-center justify-center text-[19px] leading-none select-none transition-transform duration-150 group-hover:scale-110"
+                            style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.35))" }}
+                          >
+                            {item.emoji}
+                          </span>
+                        ) : (
+                          <Icon className="size-5 shrink-0 transition-colors duration-200" strokeWidth={2} />
+                        )}
                         {!collapsed && <span className="truncate text-sm font-medium">{item.label}</span>}
                       </Link>
                     </li>
@@ -636,6 +663,7 @@ export function DesktopSidebar({
         </button>
       </div>
     </aside>
+    </>
   );
 }
 
