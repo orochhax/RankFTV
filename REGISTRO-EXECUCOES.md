@@ -5,26 +5,59 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviÃ§o envolvido. Se houver evidÃªncia de conclusÃ£o, nÃ£o repetir a tarefa;
 registrar apenas uma revalidaÃ§Ã£o quando ela for necessÃ¡ria.
 
-## 2026-11-04 (America/Sao_Paulo) — Calibração Editorial da Biblioteca do Canal Carlos Rocha
+## 2026-11-04 20:20 (America/Sao_Paulo) â€” SeleÃ§Ã£o mÃºltipla combinada de formas de pagamento
 
-- Calibração fina das pautas e formato da Biblioteca com Carlos: remoção de corrida/treino caseiro, eliminação da obrigação de mostrar telas de computador e foco em diálogo franco olho no olho.
-- Categorias consolidadas: Tecnologia, Dados & Carreira; Viagens & Vlogs com História; Criação, YouTube & Resultados Reais; Negócios, Software & Vivência Real.
-- Pautas de finanças restritas a resultados reais concretos (ganhos de 30 dias no YouTube, receita real do RankFTV); futevôlei restrito exclusivamente a dias de torneio/evento competitivo real; viagem a Itacaré planejada como vlog vivenciado no momento real (março/2027).
-- Validação: typecheck, eslint e 878 testes unitários aprovados com 100% de sucesso.
+- Ajuste solicitado por Carlos: suporte a multi-seleÃ§Ã£o simultÃ¢nea nos botÃµes de pagamento (ex.: selecionar CartÃ£o de CrÃ©dito e CartÃ£o de DÃ©bito juntos).
+- Funcionamento:
+  - Os botÃµes de forma de pagamento agora funcionam no modo toggle combinÃ¡vel (multi-select).
+  - Clicar em "CartÃ£o de CrÃ©dito" e depois em "CartÃ£o de DÃ©bito" mantÃ©m ambos selecionados com seus respectivos destaques visuais (Azul para CrÃ©dito e Roxo para DÃ©bito).
+  - A listagem exibe a uniÃ£o dos segmentos selecionados e o card de resumo calcula a soma consolidada das duplas e dos valores.
+  - Clicar em "Todos" desmarca os filtros individuais e retorna Ã  visÃ£o global.
+  - A URL sincroniza as formas selecionadas separadas por vÃ­rgula (ex.: ?metodo=credit_card,debit_card).
+- ValidaÃ§Ã£o: teste unitÃ¡rio em lib/financeiro-status-filtros.test.ts atualizado para testar combinaÃ§Ãµes mÃºltiplas; suÃ­te completa de 890 testes passou (889 pass, 1 skipped), typecheck e lint passaram com 0 erros, build Turbopack de 78 rotas aprovado.
+- Deploy: commit 890e67a enviado para chore/v1-wallet-release-clean (PR #71); CI (verify) e Vercel Preview aprovados e ativos.
 
-## 2026-11-04 (America/Sao_Paulo) — Hub de Ideias Acionáveis da Biblioteca do Canal Carlos Rocha
+## 2026-11-04 20:00 (America/Sao_Paulo) â€” Filtros avanÃ§ados na listagem de pagamentos do campeonato
 
-- Transformação da página /admin/evolucao/carlos-rocha/biblioteca em um Hub de Recomendação Acionável de Vídeos, estruturado por 4 categorias estratégicas (Tecnologia & Dados; Viagens & Vlogs com História; Rotina, Estilo de Vida & Corrida; Carreira, Negócios & Decisões).
-- Aplicação da Regra de Ouro: Versionamento Cumulativo (atualização e evolução dinâmica de notas de 0 a 100, sem substituição do zero, com critério único de descarte para scores < 50).
-- 20 ideias de alta conversão estruturadas com cenário e logística na Bahia (Eunápolis, Porto Seguro, Arraial d'Ajuda, Ecoparque e Itacaré), premissa, tensão, visual em tela e engenharia reversa dos concorrentes.
-- Validação: typecheck, 878 testes unitários aprovados e build Next.js com sucesso.
+- ImplementaÃ§Ã£o solicitada por Carlos: filtros e controles interativos na listagem de pagamentos (/painel/campeonatos/[id]/financeiro/[status]).
+- MÃ©todos de pagamento: suporte a filtro com botÃµes e contadores em tempo real para Todos, Pix (âš¡), CartÃ£o de CrÃ©dito (ðŸ’³) e CartÃ£o de DÃ©bito (ðŸ¦).
+- ExibiÃ§Ã£o visual: cada dupla na listagem agora exibe a identificaÃ§Ã£o estilizada da forma de pagamento utilizada (Pix, CrÃ©dito, DÃ©bito).
+- PerÃ­odo de pagamento: filtro por intervalo de datas (De e AtÃ©) calculado de forma precisa no fuso horÃ¡rio America/Sao_Paulo.
+- OrdenaÃ§Ã£o: opÃ§Ãµes para organizar por Data (Mais recentes / Mais antigas) ou por Valor (Maior valor / Menor valor).
+- Busca rÃ¡pida: campo integrado para busca instantÃ¢nea por nome do atleta, dupla ou categoria.
+- SincronizaÃ§Ã£o: a URL Ã© atualizada automaticamente (window.history.replaceState), preservando filtros em caso de recarregamento ou compartilhamento.
+- ValidaÃ§Ã£o: adicionado teste unitÃ¡rio lib/financeiro-status-filtros.test.ts. A suÃ­te completa passou com 890 testes (889 passados, 1 ignorado), typecheck aprovou com 0 erros, lint aprovou e o build Turbopack concluiu 78 rotas.
+- Deploy: commits 992c29f e bc16e77 enviados Ã  branch chore/v1-wallet-release-clean (PR #71); GitHub Actions CI (verify) e deploy Vercel Preview concluÃ­dos com sucesso.
 
-## 2026-11-04 (America/Sao_Paulo) — Atualização de Concorrentes e Oportunidades do Canal Carlos Rocha
+## 2026-11-04 18:55 (America/Sao_Paulo) â€” ResoluÃ§Ã£o de dependÃªncias P0, sincronizaÃ§Ã£o da Carteira e PR #71
 
-- Coleta oficial da YouTube Data API executada para os 14 canais concorrentes do canal Carlos Rocha: 1.518 vídeos públicos e 1.518 thumbnails JPEG válidas na janela anual.
-- Ranking de outliers atualizado no snapshot (lib/evolution/carlos-rocha-rank-snapshot.json) com os 15 maiores vídeos fora da curva contra a mediana de seus respectivos canais (máximo 3 por canal).
-- Publicação das 3 primeiras oportunidades de pauta formuladas no painel da Central (/admin/evolucao/carlos-rocha/oportunidades).
-- Validação: typecheck, 878 testes unitários aprovados e build Next.js com sucesso.
+- CorreÃ§Ã£o de vulnerabilidades de produÃ§Ã£o: `dompurify` atualizado para `3.4.17` e `zod` para `4.6.7`. `npm audit --omit=dev` retornou zero vulnerabilidades; typecheck e 819 testes unitÃ¡rios passaram com 100% de sucesso.
+- SincronizaÃ§Ã£o da Carteira do Organizador: a branch `chore/v1-wallet-release-clean` (worktree isolado) foi mesclada com a master atual (`8ddb195`), resolvendo o atraso (`BEHIND`) de 39 commits. Passou em 885 testes unitÃ¡rios (1 ignorado), typecheck e build de 78 rotas.
+- PRs no GitHub: PR #71 atualizada e enviada ao origin; CI (`verify`) e Vercel Preview concluÃ­dos com sucesso. A PR #33 legada foi encerrada.
+- O endpoint de saÃºde do Preview (`/api/health`) respondeu HTTP 200 com `{"status":"ok"}`.
+- Bloqueio observado para testes E2E/Sandbox: o projeto Supabase Sandbox (`obfqzifcvsqnygwmtpnx`) encontrava-se pausado por inatividade no painel do Supabase. A instÃ¢ncia foi reativada por Carlos para a fase de homologaÃ§Ã£o transacional.
+- DocumentaÃ§Ã£o: `PENDENCIAS-V1.md` foi atualizado para 88% de conclusÃ£o (126/144 marcos P0).
+
+## 2026-11-04 (America/Sao_Paulo) ï¿½ Calibraï¿½ï¿½o Editorial da Biblioteca do Canal Carlos Rocha
+
+- Calibraï¿½ï¿½o fina das pautas e formato da Biblioteca com Carlos: remoï¿½ï¿½o de corrida/treino caseiro, eliminaï¿½ï¿½o da obrigaï¿½ï¿½o de mostrar telas de computador e foco em diï¿½logo franco olho no olho.
+- Categorias consolidadas: Tecnologia, Dados & Carreira; Viagens & Vlogs com Histï¿½ria; Criaï¿½ï¿½o, YouTube & Resultados Reais; Negï¿½cios, Software & Vivï¿½ncia Real.
+- Pautas de finanï¿½as restritas a resultados reais concretos (ganhos de 30 dias no YouTube, receita real do RankFTV); futevï¿½lei restrito exclusivamente a dias de torneio/evento competitivo real; viagem a Itacarï¿½ planejada como vlog vivenciado no momento real (marï¿½o/2027).
+- Validaï¿½ï¿½o: typecheck, eslint e 878 testes unitï¿½rios aprovados com 100% de sucesso.
+
+## 2026-11-04 (America/Sao_Paulo) ï¿½ Hub de Ideias Acionï¿½veis da Biblioteca do Canal Carlos Rocha
+
+- Transformaï¿½ï¿½o da pï¿½gina /admin/evolucao/carlos-rocha/biblioteca em um Hub de Recomendaï¿½ï¿½o Acionï¿½vel de Vï¿½deos, estruturado por 4 categorias estratï¿½gicas (Tecnologia & Dados; Viagens & Vlogs com Histï¿½ria; Rotina, Estilo de Vida & Corrida; Carreira, Negï¿½cios & Decisï¿½es).
+- Aplicaï¿½ï¿½o da Regra de Ouro: Versionamento Cumulativo (atualizaï¿½ï¿½o e evoluï¿½ï¿½o dinï¿½mica de notas de 0 a 100, sem substituiï¿½ï¿½o do zero, com critï¿½rio ï¿½nico de descarte para scores < 50).
+- 20 ideias de alta conversï¿½o estruturadas com cenï¿½rio e logï¿½stica na Bahia (Eunï¿½polis, Porto Seguro, Arraial d'Ajuda, Ecoparque e Itacarï¿½), premissa, tensï¿½o, visual em tela e engenharia reversa dos concorrentes.
+- Validaï¿½ï¿½o: typecheck, 878 testes unitï¿½rios aprovados e build Next.js com sucesso.
+
+## 2026-11-04 (America/Sao_Paulo) ï¿½ Atualizaï¿½ï¿½o de Concorrentes e Oportunidades do Canal Carlos Rocha
+
+- Coleta oficial da YouTube Data API executada para os 14 canais concorrentes do canal Carlos Rocha: 1.518 vï¿½deos pï¿½blicos e 1.518 thumbnails JPEG vï¿½lidas na janela anual.
+- Ranking de outliers atualizado no snapshot (lib/evolution/carlos-rocha-rank-snapshot.json) com os 15 maiores vï¿½deos fora da curva contra a mediana de seus respectivos canais (mï¿½ximo 3 por canal).
+- Publicaï¿½ï¿½o das 3 primeiras oportunidades de pauta formuladas no painel da Central (/admin/evolucao/carlos-rocha/oportunidades).
+- Validaï¿½ï¿½o: typecheck, 878 testes unitï¿½rios aprovados e build Next.js com sucesso.
 
 ## 2026-11-04 (America/Sao_Paulo) â€” Biblioteca e ranking do Canal Carlos Rocha
 
