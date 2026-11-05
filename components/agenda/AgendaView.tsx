@@ -126,55 +126,65 @@ export function AgendaView({
   }, [visibleEvents]);
 
   return (
-    <PageContainer width="wide" className="space-y-6 py-8">
-      <PageHeader
-        title="Agenda"
-        actions={
-          <div className="flex rounded-full bg-surface-2 p-1 ring-1 ring-border">
-            <button
-              type="button"
-              onClick={() => setView("lista")}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                view === "lista" ? "bg-blue-600 text-white" : "text-ink-muted hover:text-ink"
-              }`}
-            >
-              <List className="size-4" /> Lista
-            </button>
-            <button
-              type="button"
-              onClick={() => setView("calendario")}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                view === "calendario" ? "bg-blue-600 text-white" : "text-ink-muted hover:text-ink"
-              }`}
-            >
-              <CalendarDays className="size-4" /> Calendário
-            </button>
+    <div className="min-h-screen">
+      <div className="bg-brand-dark px-6 pb-14 pt-8">
+        <PageContainer width="wide">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-300">Calendário</p>
+              <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">Agenda</h1>
+              <p className="mt-1 text-sm text-white/50">Datas, etapas e circuitos de futevôlei em todo o Brasil.</p>
+            </div>
+            <div className="flex rounded-full bg-white/10 p-1 ring-1 ring-white/10">
+              <button
+                type="button"
+                onClick={() => setView("lista")}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                  view === "lista" ? "bg-blue-600 text-white" : "text-white/70 hover:text-white"
+                }`}
+              >
+                <List className="size-4" /> Lista
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("calendario")}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                  view === "calendario" ? "bg-blue-600 text-white" : "text-white/70 hover:text-white"
+                }`}
+              >
+                <CalendarDays className="size-4" /> Calendário
+              </button>
+            </div>
           </div>
-        }
-      />
+        </PageContainer>
+      </div>
 
-      {finishedCount > 0 && (
-        <button
-          type="button"
-          onClick={() => setShowFinished((v) => !v)}
-          aria-pressed={showFinished}
-          className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-            showFinished
-              ? "bg-blue-600 text-white"
-              : "bg-surface-2 text-ink-muted ring-1 ring-border hover:bg-border/40"
-          }`}
-        >
-          {showFinished ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-          {showFinished ? "Ocultar finalizados" : `Mostrar finalizados (${finishedCount})`}
-        </button>
-      )}
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
+        <PageContainer width="wide" className="space-y-6">
+          {finishedCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowFinished((v) => !v)}
+              aria-pressed={showFinished}
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                showFinished
+                  ? "bg-blue-600 text-white"
+                  : "bg-surface-2 text-ink-muted ring-1 ring-border hover:bg-border/40"
+              }`}
+            >
+              {showFinished ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+              {showFinished ? "Ocultar finalizados" : `Mostrar finalizados (${finishedCount})`}
+            </button>
+          )}
 
-      {view === "lista" ? (
-        <ListView events={visibleRangeEvents} />
-      ) : (
-        <CalendarView eventsByDate={eventsByDate} />
-      )}
-    </PageContainer>
+          {view === "lista" ? (
+            <ListView events={visibleRangeEvents} />
+          ) : (
+            <CalendarView eventsByDate={eventsByDate} />
+          )}
+        </PageContainer>
+      </div>
+    </div>
   );
 }
 
