@@ -9,6 +9,7 @@ export type AppNavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
+  emoji?: string;
   matchExact?: boolean;
   /** Se ausente, o item é público. */
   requires?: "guest" | "auth" | "organizer" | "arenaOwner" | "staff" | "admin";
@@ -17,15 +18,15 @@ export type AppNavItem = {
 // Itens sempre visíveis (públicos) + condicionais por permissão. Nada aqui é
 // link morto: cada href corresponde a uma rota real e existente.
 export const APP_NAV_ITEMS: AppNavItem[] = [
-  { key: "campeonatos", label: "Campeonatos", href: "/", icon: Trophy, matchExact: true },
-  { key: "arenas", label: "Arenas", href: "/arenas", icon: Building2 },
-  { key: "agenda", label: "Agenda", href: "/agenda", icon: CalendarDays },
-  { key: "consultar-ingresso", label: "Consultar ingresso", href: "/meus-ingressos", icon: Ticket, requires: "guest" },
-  { key: "compras", label: "Minhas compras", href: "/minhas-compras", icon: ShoppingBag, requires: "auth" },
-  { key: "perfil", label: "Perfil", href: "/perfil", icon: User, requires: "auth" },
-  { key: "painel", label: "Organizador", href: "/painel", icon: LayoutDashboard, requires: "organizer" },
-  { key: "staff", label: "Staff", href: "/staff", icon: ShieldCheck, requires: "staff" },
-  { key: "admin", label: "Administração", href: "/admin", icon: Wrench, requires: "admin" },
+  { key: "campeonatos", label: "Campeonatos", href: "/", icon: Trophy, emoji: "🏆", matchExact: true },
+  { key: "arenas", label: "Arenas", href: "/arenas", icon: Building2, emoji: "🏟️" },
+  { key: "agenda", label: "Agenda", href: "/agenda", icon: CalendarDays, emoji: "📅" },
+  { key: "consultar-ingresso", label: "Consultar ingresso", href: "/meus-ingressos", icon: Ticket, emoji: "🎟️", requires: "guest" },
+  { key: "compras", label: "Minhas compras", href: "/minhas-compras", icon: ShoppingBag, emoji: "🛍️", requires: "auth" },
+  { key: "perfil", label: "Perfil", href: "/perfil", icon: User, emoji: "👤", requires: "auth" },
+  { key: "painel", label: "Organizador", href: "/painel", icon: LayoutDashboard, emoji: "📊", requires: "organizer" },
+  { key: "staff", label: "Staff", href: "/staff", icon: ShieldCheck, emoji: "🛡️", requires: "staff" },
+  { key: "admin", label: "Administração", href: "/admin", icon: Wrench, emoji: "⚙️", requires: "admin" },
 ];
 
 export const APP_NAV_GROUPS: { label: string; keys: string[] }[] = [
