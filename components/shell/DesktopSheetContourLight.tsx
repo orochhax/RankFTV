@@ -68,11 +68,6 @@ export function DesktopSheetContourLight() {
           pathLength="100"
           className="desktop-sheet-contour-aura"
         />
-        <path
-          d={pathD}
-          pathLength="100"
-          className="desktop-sheet-contour-core"
-        />
       </svg>
     </div>
   );
