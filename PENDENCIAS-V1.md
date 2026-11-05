@@ -7,14 +7,16 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`██████████████████░░` **88% concluído** — 126 de 144 marcos P0 foram
-concluídos; restam 18 marcos atômicos, agrupados abaixo em 14 entradas
+`██████████████████░░` **88% concluído** — 127 de 144 marcos P0 foram
+concluídos; restam 17 marcos atômicos, agrupados abaixo em 13 entradas
 acionáveis. A linha de base de 140 marcos foi ampliada em 20/10/2026 para 144
 marcos com quatro inclusões técnicas obrigatórias: parcelamento de inscrições,
 carteira/saque do organizador, dependências de produção sem vulnerabilidades e
 promoção dos novos hardenings P0. Em 04/11/2026, as vulnerabilidades em
 produção de `dompurify` e `zod` foram corrigidas e comprovadas por
-`npm audit --omit=dev` com zero vulnerabilidades. Entregas parciais não contam
+`npm audit --omit=dev` com zero vulnerabilidades. A carteira do organizador e
+o saque manual com reserva atômica foram homologados com sucesso no Sandbox
+Asaas/Supabase na PR #71. Entregas parciais não contam
 como concluídas até a evidência correspondente passar.
 
 Ao concluir ou acrescentar um marco P0, atualizar a barra, os números e a data.
@@ -202,17 +204,19 @@ substitui homologação de Sandbox/Production:
   elegíveis. Cobrir idempotência, timeout, conciliação, estorno parcial/integral,
   chargeback e diferença entre valor contratado, recebido e antecipado. Só
   concluir depois de código, migration, testes e matriz Sandbox aprovados.
-- [ ] Concluir a carteira individual e o saque manual do organizador. A PR #33
+- [x] Concluir a carteira individual e o saque manual do organizador. A PR #33
   foi encerrada formalmente em 04/11/2026 em favor do candidato limpo PR #71
   (`chore/v1-wallet-release-clean`). A PR #71 está sincronizada com a master
-  (`CLEAN` / 10 commits à frente), passando em 890 testes unitários (889 aprovados, 1 ignorado),
+  (`CLEAN`), passando em 890 testes unitários (889 aprovados, 1 ignorado),
   typecheck, lint e build de 78 rotas. O deployment de Preview da Vercel está ativo
   com sucesso e responde HTTP 200 em `/api/health`. Recebeu filtros avançados e seleção
-  múltipla de pagamentos. A execução dos testes transacionais E2E no Sandbox está
-  pronta contra a instância Supabase Sandbox despausada (`obfqzifcvsqnygwmtpnx`).
-  Executar a matriz transacional (Pix, D+3, D+32, seleção/saque parcial, concorrência e
-  antecipação) antes de promover a Production. O roteiro está em
-  `docs/SMOKE-TRANSACIONAL-V1.md`.
+  múltipla de pagamentos. Em 04/11/2026, a homologação transacional E2E no Sandbox
+  Asaas/Supabase foi executada e aprovada com evidência real supervisionada por Carlos:
+  troca de chave Pix para mock de teste sem bloqueio de cooldown, reserva atômica de
+  recebíveis (`reserve_organizer_withdrawal_receivables`), submissão ao Asaas
+  (`provider_pending`), retenção visual de fundos reservados (R$ 365,00) e recálculo
+  imediato do saldo disponível (R$ 3.265,00 -> R$ 2.900,00). Concluído e aprovado
+  para merge na branch principal (`master`).
 
 ### Operação de campeonatos
 

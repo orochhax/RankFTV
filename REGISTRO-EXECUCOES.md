@@ -5,6 +5,18 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-04 23:55 (America/Sao_Paulo) — Homologação transacional ponta a ponta do saque do organizador em Sandbox (PR #71)
+
+- Homologação E2E supervisionada por Carlos Rocha no deployment de Preview da Vercel da PR #71:
+  - Troca da chave Pix: a chave foi alterada no painel financeiro para a chave oficial de testes do Asaas Sandbox (`cliente-a00001@pix.bcb.gov.br`, mascarada como `cl***@pix.bcb.gov.br`). A validação do bypass de 48h de cooldown em Sandbox (commit `49bf6f7`) permitiu a substituição imediata sem retenção temporal indevida em ambiente de teste.
+  - Solicitação de saque parcial: selecionado um lote de recebíveis totalizando R$ 365,00.
+  - Reserva atômica: os recebíveis selecionados foram bloqueados no banco de dados via RPC idempotente (`reserve_organizer_withdrawal_receivables`), impedindo concorrência ou saque duplicado.
+  - Integração com Asaas Sandbox: ordem de transferência Pix enviada com sucesso à API `/transfers` do Asaas e registrada no estado `provider_pending`.
+  - Recálculo dinâmico de saldo: o Saldo Disponível foi reduzido de imediato de R$ 3.265,00 para R$ 2.900,00.
+  - Feedback de usuário: o card financeiro atualizou em tempo real exibindo "R$ 365,00 reservado em solicitações em processamento" e o modal de saque apresentou o banner de confirmação: "Solicitação recebida. O valor permanece reservado até a confirmação do processador."
+- Evidências registradas em captura de tela (`media_1793847285484_b90bc07e.jpg` e `media_1793847287831_da06e9af.jpg`).
+- Marco P0 de Carteira e Saque do Organizador formalmente concluído. PR #71 apta e aprovada para merge em `master`.
+
 ## 2026-11-04 23:20 (America/Sao_Paulo) — Mensagem amigável de recusa de saque Pix e clareza na antecipação de cartão
 
 - Ajuste solicitado por Carlos: melhoria na experiência do usuário ao solicitar saque e antecipação de cartão.
