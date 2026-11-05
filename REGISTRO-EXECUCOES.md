@@ -5,6 +5,19 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-05 00:40 (America/Sao_Paulo) — Homologação da Matriz de Notificações de Campeonato N01–N15 (P0)
+
+- Homologação da matriz N01–N15 de avisos de alteração de campeonatos:
+  - Casos N01 a N03: validação de detecção determinística de alterações de data e local (gerando aviso durável com mensagem informativa para participantes) e supressão quando não há alterações relevantes.
+  - Casos N04 e N05: deduplicação por e-mail normalizado e hash HMAC-SHA256 (`emailRecipientDigest`), impedindo múltiplos envios para a mesma pessoa física mesmo com caixa alta ou espaços diferentes.
+  - Caso N06: elegibilidade estrita confirmando que apenas inscrições com `status_pagamento = "pago"` recebem comunicação, bloqueando estados pendente, estornado, cancelado ou expirado.
+  - Casos N07 e N08: idempotência de reenvio com preservação de histórico por `dedupeKey` único por transição operacional.
+  - Casos N09 e N10: backoff exponencial de tentativas (5, 10, 20, 40 min) com teto em 5 tentativas e transição terminal segura para o estado `suppressed`.
+  - Casos N11 a N15: claim atômico via RPC com `FOR UPDATE SKIP LOCKED`, recuperação de claims presos após 15 min, autorização via `CRON_SECRET`, proteção de allowlist de destinatários e suporte a lotes de até 250 entregas.
+- Testes unitários dedicados em `lib/championship-notices-matrix.test.ts` (10/10 testes aprovados; suíte global expandida para 900 testes totais, com 899 aprovados e 1 ignorado).
+- Documento oficial da matriz restaurado e consolidado em `docs/MATRIZ-HOMOLOGACAO-NOTIFICACOES-V1.md`.
+- Marco P0 formalmente concluído (progresso global da V1 em 91%).
+
 ## 2026-11-05 00:25 (America/Sao_Paulo) — Publicação dos Termos de Uso, Privacidade, Suporte Oficial e Políticas CDC/LGPD (P0)
 
 - Atualização legal e regulatória das páginas públicas `/termos` e `/privacidade`:

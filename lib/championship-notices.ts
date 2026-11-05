@@ -6,7 +6,7 @@ import { getResend, FROM } from "@/lib/email/resend";
 import { comunicadoHtml } from "@/lib/email/templates";
 import { reportOperationalEvent } from "@/lib/observability";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { buildChampionshipChangeNotice } from "@/lib/championship-notices-core";
+import { buildChampionshipChangeNotice, championshipNoticeRetryAt } from "@/lib/championship-notices-core";
 import { emailRecipientDigest } from "@/lib/email/recipient-digest";
 import { isEmailRecipientAllowed } from "@/lib/email/recipient-allowlist";
 
@@ -40,10 +40,7 @@ function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
 }
 
-export function championshipNoticeRetryAt(attemptCount: number, now = Date.now()): string {
-  const delayMinutes = Math.min(24 * 60, 5 * 2 ** Math.max(0, attemptCount - 1));
-  return new Date(now + delayMinutes * 60_000).toISOString();
-}
+export { championshipNoticeRetryAt };
 
 async function resolveDeliveryRecipient(row: DeliveryRow): Promise<{ email: string; name: string } | null> {
   const admin = createAdminClient();

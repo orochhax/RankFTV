@@ -35,3 +35,8 @@ export function buildChampionshipChangeNotice(
     dedupeKey,
   };
 }
+
+export function championshipNoticeRetryAt(attemptCount: number, now = Date.now()): string {
+  const delayMinutes = Math.min(24 * 60, 5 * 2 ** Math.max(0, attemptCount - 1));
+  return new Date(now + delayMinutes * 60_000).toISOString();
+}
