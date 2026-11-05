@@ -24,7 +24,6 @@ export const APP_NAV_ITEMS: AppNavItem[] = [
   { key: "compras", label: "Minhas compras", href: "/minhas-compras", icon: ShoppingBag, requires: "auth" },
   { key: "perfil", label: "Perfil", href: "/perfil", icon: User, requires: "auth" },
   { key: "painel", label: "Organizador", href: "/painel", icon: LayoutDashboard, requires: "organizer" },
-  { key: "arena", label: "Minhas arenas", href: "/arena", icon: Building2, requires: "arenaOwner" },
   { key: "staff", label: "Staff", href: "/staff", icon: ShieldCheck, requires: "staff" },
   { key: "admin", label: "Administração", href: "/admin", icon: Wrench, requires: "admin" },
 ];
@@ -32,7 +31,7 @@ export const APP_NAV_ITEMS: AppNavItem[] = [
 export const APP_NAV_GROUPS: { label: string; keys: string[] }[] = [
   { label: "Principal", keys: ["campeonatos", "arenas", "agenda", "consultar-ingresso"] },
   { label: "Minha conta", keys: ["compras"] },
-  { label: "Gestao", keys: ["painel", "arena", "staff", "admin"] },
+  { label: "Gestao", keys: ["painel", "staff", "admin"] },
 ];
 
 export type AppNavPermissions = {
