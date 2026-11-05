@@ -5,26 +5,84 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
-## 2026-11-04 (America/Sao_Paulo) � Calibra��o Editorial da Biblioteca do Canal Carlos Rocha
+## 2026-11-04 23:55 (America/Sao_Paulo) — Homologação transacional ponta a ponta do saque do organizador em Sandbox (PR #71)
 
-- Calibra��o fina das pautas e formato da Biblioteca com Carlos: remo��o de corrida/treino caseiro, elimina��o da obriga��o de mostrar telas de computador e foco em di�logo franco olho no olho.
-- Categorias consolidadas: Tecnologia, Dados & Carreira; Viagens & Vlogs com Hist�ria; Cria��o, YouTube & Resultados Reais; Neg�cios, Software & Viv�ncia Real.
-- Pautas de finan�as restritas a resultados reais concretos (ganhos de 30 dias no YouTube, receita real do RankFTV); futev�lei restrito exclusivamente a dias de torneio/evento competitivo real; viagem a Itacar� planejada como vlog vivenciado no momento real (mar�o/2027).
-- Valida��o: typecheck, eslint e 878 testes unit�rios aprovados com 100% de sucesso.
+- Homologação E2E supervisionada por Carlos Rocha no deployment de Preview da Vercel da PR #71:
+  - Troca da chave Pix: a chave foi alterada no painel financeiro para a chave oficial de testes do Asaas Sandbox (`cliente-a00001@pix.bcb.gov.br`, mascarada como `cl***@pix.bcb.gov.br`). A validação do bypass de 48h de cooldown em Sandbox (commit `49bf6f7`) permitiu a substituição imediata sem retenção temporal indevida em ambiente de teste.
+  - Solicitação de saque parcial: selecionado um lote de recebíveis totalizando R$ 365,00.
+  - Reserva atômica: os recebíveis selecionados foram bloqueados no banco de dados via RPC idempotente (`reserve_organizer_withdrawal_receivables`), impedindo concorrência ou saque duplicado.
+  - Integração com Asaas Sandbox: ordem de transferência Pix enviada com sucesso à API `/transfers` do Asaas e registrada no estado `provider_pending`.
+  - Recálculo dinâmico de saldo: o Saldo Disponível foi reduzido de imediato de R$ 3.265,00 para R$ 2.900,00.
+  - Feedback de usuário: o card financeiro atualizou em tempo real exibindo "R$ 365,00 reservado em solicitações em processamento" e o modal de saque apresentou o banner de confirmação: "Solicitação recebida. O valor permanece reservado até a confirmação do processador."
+- Evidências registradas em captura de tela (`media_1793847285484_b90bc07e.jpg` e `media_1793847287831_da06e9af.jpg`).
+- Marco P0 de Carteira e Saque do Organizador formalmente concluído. PR #71 apta e aprovada para merge em `master`.
 
-## 2026-11-04 (America/Sao_Paulo) � Hub de Ideias Acion�veis da Biblioteca do Canal Carlos Rocha
+## 2026-11-04 23:20 (America/Sao_Paulo) — Mensagem amigável de recusa de saque Pix e clareza na antecipação de cartão
 
-- Transforma��o da p�gina /admin/evolucao/carlos-rocha/biblioteca em um Hub de Recomenda��o Acion�vel de V�deos, estruturado por 4 categorias estrat�gicas (Tecnologia & Dados; Viagens & Vlogs com Hist�ria; Rotina, Estilo de Vida & Corrida; Carreira, Neg�cios & Decis�es).
-- Aplica��o da Regra de Ouro: Versionamento Cumulativo (atualiza��o e evolu��o din�mica de notas de 0 a 100, sem substitui��o do zero, com crit�rio �nico de descarte para scores < 50).
-- 20 ideias de alta convers�o estruturadas com cen�rio e log�stica na Bahia (Eun�polis, Porto Seguro, Arraial d'Ajuda, Ecoparque e Itacar�), premissa, tens�o, visual em tela e engenharia reversa dos concorrentes.
-- Valida��o: typecheck, 878 testes unit�rios aprovados e build Next.js com sucesso.
+- Ajuste solicitado por Carlos: melhoria na experiência do usuário ao solicitar saque e antecipação de cartão.
+- Mensagens de erro de saque:
+  - O fluxo de saque (transferência Pix / `payout`) não devolve mais a mensagem genérica de cartão ("O pagamento foi recusado").
+  - Identificação de recusa do provedor bancário (Asaas) tratando especificamente: saldo insuficiente na conta do processador, recusa de chave Pix ou falha temporária.
+  - Mensagem pública ajustada: "Saldo insuficiente na conta de pagamentos para concluir a transferência Pix." ou "Não foi possível concluir o saque via Pix. Revise seus dados ou tente novamente em instantes."
+- Antecipação de vendas no cartão:
+  - O botão "Antecipar cartão" deixa de ficar cinza/morto sem explicação quando o saldo pendente for zero.
+  - Ao ser clicado com saldo pendente zerado, o modal abre e exibe mensagem transparente: "Nenhuma venda pendente no cartão de crédito para antecipar. Todo o saldo arrecadado já está liberado no Saldo Disponível para saque imediato via Pix."
+  - Indicador numérico visual incorporado ao botão quando houver recebíveis antecipáveis.
+- Validação: suíte de 890 testes passou (889 pass, 1 skipped), typecheck e lint com zero erros.
 
-## 2026-11-04 (America/Sao_Paulo) � Atualiza��o de Concorrentes e Oportunidades do Canal Carlos Rocha
+## 2026-11-04 20:20 (America/Sao_Paulo) — Seleção múltipla combinada de formas de pagamento
 
-- Coleta oficial da YouTube Data API executada para os 14 canais concorrentes do canal Carlos Rocha: 1.518 v�deos p�blicos e 1.518 thumbnails JPEG v�lidas na janela anual.
-- Ranking de outliers atualizado no snapshot (lib/evolution/carlos-rocha-rank-snapshot.json) com os 15 maiores v�deos fora da curva contra a mediana de seus respectivos canais (m�ximo 3 por canal).
-- Publica��o das 3 primeiras oportunidades de pauta formuladas no painel da Central (/admin/evolucao/carlos-rocha/oportunidades).
-- Valida��o: typecheck, 878 testes unit�rios aprovados e build Next.js com sucesso.
+- Ajuste solicitado por Carlos: suporte a multi-seleção simultânea nos botões de pagamento (ex.: selecionar Cartão de Crédito e Cartão de Débito juntos).
+- Funcionamento:
+  - Os botões de forma de pagamento agora funcionam no modo toggle combinável (multi-select).
+  - Clicar em "Cartão de Crédito" e depois em "Cartão de Débito" mantém ambos selecionados com seus respectivos destaques visuais (Azul para Crédito e Roxo para Débito).
+  - A listagem exibe a união dos segmentos selecionados e o card de resumo calcula a soma consolidada das duplas e dos valores.
+  - Clicar em "Todos" desmarca os filtros individuais e retorna à visão global.
+  - A URL sincroniza as formas selecionadas separadas por vírgula (ex.: ?metodo=credit_card,debit_card).
+- Validação: teste unitário em lib/financeiro-status-filtros.test.ts atualizado para testar combinações múltiplas; suíte completa de 890 testes passou (889 pass, 1 skipped), typecheck e lint passaram com 0 erros, build Turbopack de 78 rotas aprovado.
+- Deploy: commit 890e67a enviado para chore/v1-wallet-release-clean (PR #71); CI (verify) e Vercel Preview aprovados e ativos.
+
+## 2026-11-04 20:00 (America/Sao_Paulo) — Filtros avançados na listagem de pagamentos do campeonato
+
+- Implementação solicitada por Carlos: filtros e controles interativos na listagem de pagamentos (/painel/campeonatos/[id]/financeiro/[status]).
+- Métodos de pagamento: suporte a filtro com botões e contadores em tempo real para Todos, Pix (⚡), Cartão de Crédito (💳) e Cartão de Débito (🏦).
+- Exibição visual: cada dupla na listagem agora exibe a identificação estilizada da forma de pagamento utilizada (Pix, Crédito, Débito).
+- Período de pagamento: filtro por intervalo de datas (De e Até) calculado de forma precisa no fuso horário America/Sao_Paulo.
+- Ordenação: opções para organizar por Data (Mais recentes / Mais antigas) ou por Valor (Maior valor / Menor valor).
+- Busca rápida: campo integrado para busca instantânea por nome do atleta, dupla ou categoria.
+- Sincronização: a URL é atualizada automaticamente (window.history.replaceState), preservando filtros em caso de recarregamento ou compartilhamento.
+- Validação: adicionado teste unitário lib/financeiro-status-filtros.test.ts. A suíte completa passou com 890 testes (889 passados, 1 ignorado), typecheck aprovou com 0 erros, lint aprovou e o build Turbopack concluiu 78 rotas.
+- Deploy: commits 992c29f e bc16e77 enviados à branch chore/v1-wallet-release-clean (PR #71); GitHub Actions CI (verify) e deploy Vercel Preview concluídos com sucesso.
+
+## 2026-11-04 18:55 (America/Sao_Paulo) — Resolução de dependências P0, sincronização da Carteira e PR #71
+
+- Correção de vulnerabilidades de produção: `dompurify` atualizado para `3.4.17` e `zod` para `4.6.7`. `npm audit --omit=dev` retornou zero vulnerabilidades; typecheck e 819 testes unitários passaram com 100% de sucesso.
+- Sincronização da Carteira do Organizador: a branch `chore/v1-wallet-release-clean` (worktree isolado) foi mesclada com a master atual (`8ddb195`), resolvendo o atraso (`BEHIND`) de 39 commits. Passou em 885 testes unitários (1 ignorado), typecheck e build de 78 rotas.
+- PRs no GitHub: PR #71 atualizada e enviada ao origin; CI (`verify`) e Vercel Preview concluídos com sucesso. A PR #33 legada foi encerrada.
+- O endpoint de saúde do Preview (`/api/health`) respondeu HTTP 200 com `{"status":"ok"}`.
+- Bloqueio observado para testes E2E/Sandbox: o projeto Supabase Sandbox (`obfqzifcvsqnygwmtpnx`) encontrava-se pausado por inatividade no painel do Supabase. A instância foi reativada por Carlos para a fase de homologação transacional.
+- Documentação: `PENDENCIAS-V1.md` foi atualizado para 88% de conclusão (126/144 marcos P0).
+
+## 2026-11-04 (America/Sao_Paulo) � Calibra��o Editorial da Biblioteca do Canal Carlos Rocha
+
+- Calibra��o fina das pautas e formato da Biblioteca com Carlos: remo��o de corrida/treino caseiro, elimina��o da obriga��o de mostrar telas de computador e foco em di�logo franco olho no olho.
+- Categorias consolidadas: Tecnologia, Dados & Carreira; Viagens & Vlogs com Hist�ria; Cria��o, YouTube & Resultados Reais; Neg�cios, Software & Viv�ncia Real.
+- Pautas de finan�as restritas a resultados reais concretos (ganhos de 30 dias no YouTube, receita real do RankFTV); futev�lei restrito exclusivamente a dias de torneio/evento competitivo real; viagem a Itacar� planejada como vlog vivenciado no momento real (mar�o/2027).
+- Valida��o: typecheck, eslint e 878 testes unit�rios aprovados com 100% de sucesso.
+
+## 2026-11-04 (America/Sao_Paulo) � Hub de Ideias Acion�veis da Biblioteca do Canal Carlos Rocha
+
+- Transforma��o da p�gina /admin/evolucao/carlos-rocha/biblioteca em um Hub de Recomenda��o Acion�vel de V�deos, estruturado por 4 categorias estrat�gicas (Tecnologia & Dados; Viagens & Vlogs com Hist�ria; Rotina, Estilo de Vida & Corrida; Carreira, Neg�cios & Decis�es).
+- Aplica��o da Regra de Ouro: Versionamento Cumulativo (atualiza��o e evolu��o din�mica de notas de 0 a 100, sem substitui��o do zero, com crit�rio �nico de descarte para scores < 50).
+- 20 ideias de alta convers�o estruturadas com cen�rio e log�stica na Bahia (Eun�polis, Porto Seguro, Arraial d'Ajuda, Ecoparque e Itacar�), premissa, tens�o, visual em tela e engenharia reversa dos concorrentes.
+- Valida��o: typecheck, 878 testes unit�rios aprovados e build Next.js com sucesso.
+
+## 2026-11-04 (America/Sao_Paulo) � Atualiza��o de Concorrentes e Oportunidades do Canal Carlos Rocha
+
+- Coleta oficial da YouTube Data API executada para os 14 canais concorrentes do canal Carlos Rocha: 1.518 v�deos p�blicos e 1.518 thumbnails JPEG v�lidas na janela anual.
+- Ranking de outliers atualizado no snapshot (lib/evolution/carlos-rocha-rank-snapshot.json) com os 15 maiores v�deos fora da curva contra a mediana de seus respectivos canais (m�ximo 3 por canal).
+- Publica��o das 3 primeiras oportunidades de pauta formuladas no painel da Central (/admin/evolucao/carlos-rocha/oportunidades).
+- Valida��o: typecheck, 878 testes unit�rios aprovados e build Next.js com sucesso.
 
 ## 2026-11-04 (America/Sao_Paulo) — Biblioteca e ranking do Canal Carlos Rocha
 

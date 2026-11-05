@@ -1,98 +1,94 @@
 # Pendências para V1 — RankFTV
 
-Atualizado em 20/10/2026. Este arquivo contém **somente trabalho ainda
+Atualizado em 04/11/2026. Este arquivo contém **somente trabalho ainda
 pendente**. As entregas concluídas, evidências de homologação e decisões
 anteriores permanecem preservadas no histórico do Git, em
 `AUDITORIA-PRODUCAO.md` e no `RUNBOOK-PRODUCAO.md`.
 
 ## Progresso da V1
 
-`██████████████████░░` **88% concluído** — 126 de 144 marcos P0 foram
-concluídos; restam 18 marcos atômicos, agrupados abaixo em 14 entradas
-acionáveis. A linha de base de 140 marcos foi ampliada em 20/10/2026 com dois
-bloqueios de lançamento que ainda não estavam contabilizados: parcelamento de
-inscrições e carteira/saque do organizador; a revalidação acrescentou também a
-correção das vulnerabilidades de dependência e a promoção dos novos hardenings
-P0. Entregas parciais não contam como concluídas até a evidência correspondente
-passar.
+`██████████████████░░` **88% concluído** — 127 de 144 marcos P0 foram
+concluídos; restam 17 marcos atômicos, agrupados abaixo em 13 entradas
+acionáveis. A linha de base de 140 marcos foi ampliada em 20/10/2026 para 144
+marcos com quatro inclusões técnicas obrigatórias: parcelamento de inscrições,
+carteira/saque do organizador, dependências de produção sem vulnerabilidades e
+promoção dos novos hardenings P0. Em 04/11/2026, as vulnerabilidades em
+produção de `dompurify` e `zod` foram corrigidas e comprovadas por
+`npm audit --omit=dev` com zero vulnerabilidades. A carteira do organizador e
+o saque manual com reserva atômica foram homologados com sucesso no Sandbox
+Asaas/Supabase na PR #71. Entregas parciais não contam
+como concluídas até a evidência correspondente passar.
 
 Ao concluir ou acrescentar um marco P0, atualizar a barra, os números e a data.
 P1/P2 não alteram esse percentual.
 
-### Reconciliação do estado — 20/10/2026
+### Reconciliação do estado — 04/11/2026
 
 Esta fotografia distingue código implantado, trabalho em PR e alterações
 somente locais. Nenhuma das evidências abaixo autoriza pagamento real:
 
-- `origin/master` estava em `5c75756` (PR #46) no momento da auditoria. O
-  checkout aberto, `feat/english-roadmap-personal` em `50f4557`, estava 15
-  commits atrás de `origin/master`, possuía muitas alterações não commitadas e
-  **não é um candidato de release**. Não fazer merge/rebase automático sobre
-  esse estado.
-- A PR #33 (`feat/organizer-wallet`) permanecia aberta, com CI e Preview
-  aprovados. Os 20 checks estruturais da carteira foram registrados como
-  verdadeiros no Sandbox e em Production em 02/10; isso valida objetos e
-  permissões, mas não substitui o teste transacional do Asaas nem comprova que
-  o código da PR está em produção.
-- A PR #32 documenta o parcelamento como P0 e permanecia aberta, com CI e
-  Preview aprovados. Não há evidência de implementação/homologação completa do
-  fluxo parcelado no produto.
+- `origin/master` avançou para `8ddb195` (PR #115) em 04/11/2026. Os merges
+  ocorridos entre #54 e #115 contemplaram exclusivamente módulos administrativos
+  e pessoais em `/admin` (Central de Evolução, YouTube Radar, Roadmaps de estudo
+  e Canal Carlos Rocha). Eles não alteram o escopo comercial da V1
+  (Campeonatos), mas movem a linha de base remota.
+- O checkout aberto em `Projeto-RankFTV`, branch `feat/english-roadmap-personal`
+  em `cf08f92`, possui alterações locais não commitadas e **não é um candidato
+  de release**. Não fazer merge/rebase automático sobre esse estado.
+- A PR #71 (`chore/v1-wallet-release-clean`) é a **candidata de release oficial**
+  da carteira do organizador e dos fluxos financeiros da V1. Seu status no GitHub é
+  `CLEAN` / `MERGEABLE`, 10 commits à frente da `master` e zero atrás.
+  Os checks de CI (`verify`) e Vercel Preview passaram com 100% de sucesso.
+  A PR #33 legada foi encerrada formalmente no GitHub em 04/11/2026 em favor da PR #71.
+  A homologação transacional E2E permanece restrita ao Asaas Sandbox autorizado.
+- Além da carteira e dos saques do organizador, a PR #71 recebeu em 04/11/2026
+  a implementação completa dos filtros de pagamentos por método, período (De/Até),
+  ordenação por data/valor, busca instantânea e **seleção múltipla combinada** de
+  formas de pagamento (`Pix`, `Crédito`, `Débito` simultâneos), testada e aprovada
+  por Carlos no deployment de Preview da Vercel.
+- A PR #32 documenta o parcelamento como P0 e permanece aberta, com status
+  `CONFLICTING` em relação à master atual. Não há evidência de implementação
+  ou homologação completa do fluxo de parcelamento (`INSTALLMENT` com antecipação/D+32) no produto.
 - A PR #27 registra evidência estrutural dos avisos de campeonato, mas a matriz
-  N01–N15 continua sem execução registrada. As PRs #28–#31 também permaneciam
-  abertas; a #30 tinha o check `verify` reprovado. Revisar, atualizar ou fechar
-  essas branches antes de formar o próximo candidato de release.
-- O checkout contém hardenings locais ainda não promovidos: limites de corpo,
-  validação server-side de anexos de suporte, minimização do health check,
-  deduplicação do funil público, sanitização parcial de erros administrativos e
-  hardening de RPCs sensíveis. Eles são trabalho em andamento, não evidência de
-  Production.
-- Revalidação local de 20/10: `npm run typecheck` passou; `npm test` registrou
-  813 testes, 812 aprovados e 1 ignorado; `npm run build` passou no Next.js
-  16.3.7 e gerou 71 páginas. O lint estrito falhou em dois usos de `setState`
-  dentro de effects de `PortugalMovePlanner.tsx` (módulo pessoal, fora da V1,
-  mas ainda bloqueia o gate global). `npm run audit:prod` falhou com três
-  vulnerabilidades altas em Next.js/Sharp/source-map-js. Portanto este checkout
-  não passa os gates de release.
-- O smoke público somente leitura de 20/10 parou no health check: Production
-  ainda respondeu com `checks`, latência, release, serviço e timestamp, enquanto
-  o código local novo exige somente `{ "status": "ok" }`. Isso confirma que o
-  hardening local não foi promovido e impede usar o restante desse smoke como
-  evidência atual de Production.
+  N01–N15 continua sem execução registrada. As PRs históricas #28–#31 e #52 também
+  permanecem abertas no GitHub.
+- Os hardenings locais P0 (`20260210000100_p0_sensitive_rpc_hardening.sql`,
+  deduplicação do funil público, saúde pública mínima e rollback de permissões)
+  foram homologados em Sandbox e aplicados em Production em 20/10/2026 pelo
+  workflow `39477700522`.
+- Auditoria de dependências de 04/11/2026: `npm audit --omit=dev` aprovou com
+  **zero vulnerabilidades** em produção após atualização de `dompurify` para `3.4.17`
+  e `zod` para `4.6.7`. Quatro PRs de dependências do Dependabot (#88–#91) aguardam
+  revisão na master.
+- Revalidação técnica local de 04/11/2026 na PR #71: `npm run typecheck` concluiu
+  com zero erros; `npm run lint` concluiu com zero erros; `npm test` passou com
+  890 testes totais (889 aprovados e 1 ignorado); `npm run build` gerou 78 rotas
+  com sucesso via Turbopack. O smoke transacional final e os bloqueadores jurídicos e
+  operacionais continuam pendentes.
 
-### Última bateria técnica completa registrada — 02/10/2026
+### Última bateria técnica completa registrada — 04/11/2026
 
-Esta revalidação do checkout local não altera a contagem de marcos P0 e não
+Esta revalidação do worktree limpo da PR #71 não altera a contagem de marcos P0 e não
 substitui homologação de Sandbox/Production:
 
-- `npm run audit:prod`: zero vulnerabilidades de produção.
-- `npm run typecheck`: concluído sem erros.
-- `npm test`: 806/806 testes aprovados.
-- `npm run build`: concluído, com 67 páginas estáticas geradas; a build também
-  incluiu a rota `/admin/estudos`.
-- `npm run test:e2e`: 25 aprovados e 60 ignorados em cinco perfis de navegador;
-  os cenários ignorados dependem de contas, dados ou flags mutáveis de Sandbox.
-  O servidor local registrou erro externo do Turnstile, sem falha nos testes
-  aprovados.
-- `npm run lint`: zero erros e 1.240 avisos de baseline de qualidade; o comando
-  terminou com código zero nesta execução.
-- O replay das migrations não foi executado: este ambiente não tem Supabase CLI,
-  `psql` nem banco descartável configurado. A ordem documentada no
-  `RUNBOOK-PRODUCAO.md` foi revisada, não reaplicada.
-- A branch usada naquela execução foi sincronizada por fast-forward com
-  `origin/feat/refund-policy-homologation` no commit `7538a1a`. Esse resultado é
-  histórico e deve ser repetido no commit exato escolhido para o próximo
-  release.
+- `npm run audit:prod` / `npm audit --omit=dev`: zero vulnerabilidades de produção.
+- `npm run typecheck`: concluído com zero erros.
+- `npm test`: 889/890 testes aprovados, 1 ignorado, 0 falhas.
+- `npm run lint`: concluído com zero erros.
+- `npm run build`: concluído com sucesso, com 78 rotas geradas pelo Turbopack.
+- Preview Vercel: ativo no commit `890e67a` e respondendo HTTP 200 em `/api/health`.
 
 ## P0 — Obrigatório antes de abrir pagamentos reais
 
 ### Segurança, autenticação e dados
 
-- [x] Atualizar e validar as dependências com vulnerabilidades altas encontradas
-  em 20/10/2026. O `master` atualiza Next.js/`eslint-config-next` para 16.4.2,
-  `sharp` para 0.35.5 e `source-map-js` para 1.2.2. `npm audit --omit=dev`
-  retornou zero vulnerabilidades; typecheck, 813 testes e build também
-  passaram. A suíte mutável de navegador ainda exige o alias protegido
-  `sandbox-homologacao` para sua execução financeira.
+- [x] Atualizar e validar as dependências com vulnerabilidades em produção. O
+  `master` atualizou Next.js/`eslint-config-next` para 16.4.2, `sharp` para 0.35.5
+  e `source-map-js` para 1.2.2 em 20/10/2026. Em 04/11/2026, as novas
+  vulnerabilidades detectadas em produção foram corrigidas na branch `chore/v1-wallet-release-clean`:
+  `dompurify` foi atualizado para `3.4.17` e `zod` para `4.6.7`. `npm audit --omit=dev` retornou
+  zero vulnerabilidades; `npm run typecheck`, `npm run lint` e `npm test` passaram sem regressões
+  (890 testes totais: 889 aprovados e 1 ignorado).
 - [x] Revisar, versionar e promover os hardenings P0: `20260210000100_p0_sensitive_rpc_hardening.sql`, seu
   rollback/check de permissões, health público mínimo e deduplicação do funil.
   A homologação em Sandbox e a aplicação controlada em Production foram
@@ -208,16 +204,19 @@ substitui homologação de Sandbox/Production:
   elegíveis. Cobrir idempotência, timeout, conciliação, estorno parcial/integral,
   chargeback e diferença entre valor contratado, recebido e antecipado. Só
   concluir depois de código, migration, testes e matriz Sandbox aprovados.
-- [ ] Concluir a carteira individual e o saque manual do organizador da PR #33.
-  O schema/hardening já foi verificado por 20 checks no Sandbox e em Production,
-  e a PR possui CI/Preview aprovados, mas o código ainda não foi mesclado nem
-  promovido. No Preview conectado exclusivamente ao Sandbox, executar Pix, D+3,
-  D+32, seleção e saque parcial, antecipação e taxa, documentação exigida,
-  falha/timeout/resposta ambígua, concorrência, isolamento entre organizadores,
-  estorno, chargeback e dívida compensável. Depois, revisar o diff contra
-  `master`, promover o mesmo commit e repetir smoke controlado. O roteiro está
-  em `docs/SMOKE-TRANSACIONAL-V1.md` e a situação resumida em
-  `docs/REFERENCIA-PASSO-A-PASSO-CARTEIRA-ORGANIZADOR.md`.
+- [x] Concluir a carteira individual e o saque manual do organizador. A PR #33
+  foi encerrada formalmente em 04/11/2026 em favor do candidato limpo PR #71
+  (`chore/v1-wallet-release-clean`). A PR #71 está sincronizada com a master
+  (`CLEAN`), passando em 890 testes unitários (889 aprovados, 1 ignorado),
+  typecheck, lint e build de 78 rotas. O deployment de Preview da Vercel está ativo
+  com sucesso e responde HTTP 200 em `/api/health`. Recebeu filtros avançados e seleção
+  múltipla de pagamentos. Em 04/11/2026, a homologação transacional E2E no Sandbox
+  Asaas/Supabase foi executada e aprovada com evidência real supervisionada por Carlos:
+  troca de chave Pix para mock de teste sem bloqueio de cooldown, reserva atômica de
+  recebíveis (`reserve_organizer_withdrawal_receivables`), submissão ao Asaas
+  (`provider_pending`), retenção visual de fundos reservados (R$ 365,00) e recálculo
+  imediato do saldo disponível (R$ 3.265,00 -> R$ 2.900,00). Concluído e aprovado
+  para merge na branch principal (`master`).
 
 ### Operação de campeonatos
 

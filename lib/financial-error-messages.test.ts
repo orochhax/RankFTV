@@ -23,4 +23,36 @@ test("não devolve mensagens internas do provedor ao navegador", () => {
     code: "http_400",
     ambiguous: false,
   });
+  assert.deepEqual(publicAsaasError({
+    status: 400,
+    code: "http_400",
+    ambiguous: false,
+    operationType: "transfer",
+    rawMessage: "Saldo insuficiente para realizar a transferência",
+  }), {
+    message: "Saldo insuficiente na conta de pagamentos para concluir a transferência Pix.",
+    code: "http_400",
+    ambiguous: false,
+  });
+  assert.deepEqual(publicAsaasError({
+    status: 400,
+    code: "http_400",
+    ambiguous: false,
+    operationType: "transfer",
+    rawMessage: "Chave Pix não encontrada",
+  }), {
+    message: "A chave Pix foi recusada pelo processador de pagamentos. Verifique sua chave cadastrada.",
+    code: "http_400",
+    ambiguous: false,
+  });
+  assert.deepEqual(publicAsaasError({
+    status: 400,
+    code: "http_400",
+    ambiguous: false,
+    operationType: "transfer",
+  }), {
+    message: "Não foi possível concluir o saque via Pix. Revise seus dados ou tente novamente em instantes.",
+    code: "http_400",
+    ambiguous: false,
+  });
 });

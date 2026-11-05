@@ -14,12 +14,10 @@ test("payout retry references are resolved before any provider transfer", () => 
   assert.match(paymentFlows, /buscarTransferenciaPorReferencia\(externalReference\)/);
 });
 
-test("the payout cron retries pending Pix without bypassing card settlement", () => {
+test("championship payouts are promoted to the organizer wallet without automatic transfer", () => {
   const cron = source("app/api/cron/repasse-liquidacao/route.ts");
-  const pendingPixQueries = cron.match(
-    /\.eq\("repasse_status", "pendente"\)\s*\.eq\("billing_type", "PIX"\)/g,
-  ) ?? [];
-  assert.equal(pendingPixQueries.length, 2);
+  assert.match(cron, /const championshipSources = \["registrations", "athlete_tickets", "spectator_tickets"\]/);
+  assert.match(cron, /update\(\{ repasse_status: "disponivel", repasse_erro: null \}\)/);
   assert.match(cron, /\.lte\("repasse_data_prevista", agora\)/);
-  assert.match(cron, /\.eq\("repasse_status", originalStatus\)/);
+  assert.doesNotMatch(cron, /executarRepasse(?:AtletaTicket|Espectador)?/);
 });

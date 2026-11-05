@@ -341,13 +341,12 @@ test("payment UX is provider-neutral while privacy disclosure stays transparent"
 
 test("championship finances keep the operational blocks ordered and mobile-safe", () => {
   const content = source("components/painel/FinanceiroConteudoClient.tsx");
+  const wallet = source("components/painel/OrganizerWalletPanel.tsx");
   const page = source("app/painel/campeonatos/[id]/financeiro/page.tsx");
   const chart = source("components/painel/GraficoVendasDiarias.tsx");
 
-  assert.match(
-    content,
-    /Saldo líquido[\s\S]*Status dos pagamentos[\s\S]*chavePixSection[\s\S]*Vendas por dia[\s\S]*cobrancasPendentesSection/,
-  );
+  assert.match(wallet, /Saldo líquido[\s\S]*Saldo pendente[\s\S]*Solicitar saque[\s\S]*Antecipar cartão/);
+  assert.match(content, /OrganizerWalletPanel[\s\S]*Status dos pagamentos[\s\S]*chavePixSection[\s\S]*Vendas por dia[\s\S]*cobrancasPendentesSection/);
   assert.match(page, /max-h-96[\s\S]*overflow-y-auto/);
   assert.match(chart, /interval="preserveStartEnd"/);
   assert.match(chart, /minTickGap=\{18\}/);

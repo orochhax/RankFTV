@@ -27,6 +27,8 @@ const ASAAS_EVENT_RANK: Record<string, number> = {
 
 export type AsaasPaymentPayload = {
   id: string;
+  /** Stable provider event/payment identifier when supplied by Asaas. */
+  refundId?: string;
   externalReference?: string;
   status: string;
   value: number;

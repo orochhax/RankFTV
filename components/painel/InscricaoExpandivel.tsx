@@ -4,20 +4,28 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Phone, Mail, User } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 
-type Atleta = {
+export type Atleta = {
   nome:     string;
   username: string;
   telefone: string | null;
   email:    string | null;
 };
 
-type InscricaoDetalhe = {
+export type InscricaoDetalhe = {
   regId:     string;
   valor:     number;
   categoria: string;
   criadoEm:  string;
+  billingType?: string | null;
   atleta1:   Atleta;
   atleta2:   Atleta | null;
+};
+
+const METODOS_LABEL: Record<string, { label: string; icon: string; cls: string }> = {
+  PIX: { label: "Pix", icon: "⚡", cls: "bg-emerald-50 text-emerald-700 ring-emerald-600/20" },
+  CREDIT_CARD: { label: "Crédito", icon: "💳", cls: "bg-sky-50 text-sky-700 ring-sky-600/20" },
+  DEBIT_CARD: { label: "Débito", icon: "🏦", cls: "bg-purple-50 text-purple-700 ring-purple-600/20" },
+  BOLETO: { label: "Boleto", icon: "📄", cls: "bg-amber-50 text-amber-700 ring-amber-600/20" },
 };
 
 export function InscricaoExpandivel({ inscricao }: { inscricao: InscricaoDetalhe }) {
@@ -26,6 +34,8 @@ export function InscricaoExpandivel({ inscricao }: { inscricao: InscricaoDetalhe
   const dataInscricao = new Date(inscricao.criadoEm).toLocaleDateString("pt-BR", {
     day: "2-digit", month: "short", year: "numeric",
   });
+
+  const metodoInfo = inscricao.billingType ? METODOS_LABEL[inscricao.billingType] : null;
 
   return (
     <div className="bg-white">
@@ -39,9 +49,22 @@ export function InscricaoExpandivel({ inscricao }: { inscricao: InscricaoDetalhe
             {inscricao.atleta1.nome}
             {inscricao.atleta2 && <span className="text-gray-400"> + {inscricao.atleta2.nome}</span>}
           </p>
-          <p className="mt-0.5 text-xs text-gray-400">
-            {inscricao.categoria} · {dataInscricao} · {formatBRL(inscricao.valor)}
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+            <span className="font-medium text-gray-700">{inscricao.categoria}</span>
+            <span className="text-gray-300">·</span>
+            <span>{dataInscricao}</span>
+            {metodoInfo && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium ring-1 ring-inset ${metodoInfo.cls}`}>
+                  <span>{metodoInfo.icon}</span>
+                  <span>{metodoInfo.label}</span>
+                </span>
+              </>
+            )}
+            <span className="text-gray-300">·</span>
+            <span className="font-semibold text-gray-900">{formatBRL(inscricao.valor)}</span>
+          </div>
         </div>
         <span className="ml-3 shrink-0 text-gray-400">
           {aberto ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
@@ -51,6 +74,15 @@ export function InscricaoExpandivel({ inscricao }: { inscricao: InscricaoDetalhe
       {/* Detalhes expandidos */}
       {aberto && (
         <div className="border-t border-gray-100 bg-gray-50 px-4 py-4 space-y-4">
+          {metodoInfo && (
+            <div className="flex items-center justify-between rounded-xl bg-white px-3.5 py-2.5 ring-1 ring-black/5 text-xs">
+              <span className="text-gray-500 font-medium">Forma de pagamento:</span>
+              <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 font-medium ring-1 ring-inset ${metodoInfo.cls}`}>
+                <span>{metodoInfo.icon}</span>
+                <span>{metodoInfo.label}</span>
+              </span>
+            </div>
+          )}
           <AtletaCard label="Atleta 1" atleta={inscricao.atleta1} />
           {inscricao.atleta2 && <AtletaCard label="Atleta 2" atleta={inscricao.atleta2} />}
         </div>

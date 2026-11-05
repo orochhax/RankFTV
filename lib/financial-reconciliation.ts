@@ -184,6 +184,17 @@ async function reconcileSubscription(operation: ReconcileOperation) {
 
 async function finalizeTransfer(operation: ReconcileOperation, transfer: { id: string; status: string }) {
   const sourceTable = String(operation.metadata?.sourceTable ?? "");
+  if (sourceTable === "organizer_withdrawals") {
+    const { error } = await createAdminClient().rpc("update_organizer_withdrawal", {
+      p_withdrawal_id: operation.record_id,
+      p_status: "paid",
+      p_provider_transfer_id: transfer.id,
+      p_provider_status: transfer.status,
+    });
+    if (error) throw new Error("organizer_withdrawal_finalize_failed");
+    await recordProvider(operation, transfer, "confirmed");
+    return;
+  }
   if (!PAYOUT_TABLES.has(sourceTable)) throw new Error("payout_source_invalid");
   const finalStatus = ["registrations", "athlete_tickets", "spectator_tickets"].includes(sourceTable)
     ? "repassado"
@@ -217,6 +228,18 @@ async function reconcileTransfer(operation: ReconcileOperation) {
   }
   if (["FAILED", "CANCELLED", "REJECTED"].includes(transfer.status)) {
     const sourceTable = String(operation.metadata?.sourceTable ?? "");
+    if (sourceTable === "organizer_withdrawals") {
+      const { error } = await createAdminClient().rpc("update_organizer_withdrawal", {
+        p_withdrawal_id: operation.record_id,
+        p_status: "failed",
+        p_provider_transfer_id: transfer.id,
+        p_provider_status: transfer.status,
+        p_error_code: `provider_${transfer.status.toLowerCase()}`,
+      });
+      if (error) throw new Error("organizer_withdrawal_release_failed");
+      await recordProvider(operation, transfer, "cancelled");
+      return "terminal_failed" as const;
+    }
     if (!PAYOUT_TABLES.has(sourceTable)) throw new Error("payout_source_invalid");
     const retryStatus = await payoutRetryStatus(sourceTable, operation.record_id);
     const admin = createAdminClient();
