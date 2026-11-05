@@ -6,7 +6,6 @@ import { CalendarDays, ChevronLeft, ChevronRight, Eye, EyeOff, List, MapPin } fr
 import type { AgendaEvent, AgendaRangeEvent } from "@/lib/agenda";
 import type { ChampionshipStatus } from "@/lib/types";
 import { PageContainer } from "@/components/shell/PageContainer";
-import { PageHeader } from "@/components/shell/PageHeader";
 import { Surface } from "@/components/shell/Surface";
 import { EmptyState } from "@/components/shell/EmptyState";
 

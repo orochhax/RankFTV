@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Bell, ChevronRight, Radio, MapPin, CalendarDays, Building2, Ticket, ShoppingBag } from "lucide-react";
-import { PersonaSwitcher } from "@/components/home/PersonaSwitcher";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
 import { CampeonatosSection } from "@/components/home/CampeonatosSection";
@@ -8,7 +7,6 @@ import { HamburgerMenu } from "@/components/home/HamburgerMenu";
 import { getLivChampionships, getPublishedChampionships } from "@/lib/supabase/championships";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateRangeBR } from "@/lib/format";
-import { PageHeader } from "@/components/shell/PageHeader";
 import { Surface } from "@/components/shell/Surface";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { SectionHeader } from "@/components/shell/SectionHeader";

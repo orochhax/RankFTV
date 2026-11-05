@@ -8,7 +8,6 @@ import { MinhasComprasClient } from "@/components/perfil/MinhasComprasClient";
 import { MinhasComprasTabs } from "@/components/perfil/MinhasComprasTabs";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { PageContainer } from "@/components/shell/PageContainer";
-import { PageHeader } from "@/components/shell/PageHeader";
 import { resolveComprasTab, type CompraInscricaoRow } from "@/lib/minhas-compras";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";

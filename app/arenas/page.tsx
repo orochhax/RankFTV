@@ -2,7 +2,6 @@ import { DestaquesArenasCarousel, type ArenaDestaque } from "@/components/arenas
 import { ArenaSection } from "@/components/arenas/ArenaSection";
 import type { ArenaCardData, ProximaData } from "@/components/arenas/ArenaCard";
 import { PageContainer } from "@/components/shell/PageContainer";
-import { PageHeader } from "@/components/shell/PageHeader";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
