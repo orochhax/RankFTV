@@ -117,10 +117,18 @@ const newsTerms = [
   "novo ", "nova ", "mudou", "acabou", "chegou", "estreia", "atualizacao",
 ];
 
+const businessMonetizationTerms = [
+  "dinheiro", "money", "business", "negocio", "negócios", "vendas", "venda", "renda", "preco", "preço",
+  "cliente", "clientes", "fatur", "faturei", "lucro", "lucrar", "monetiz", "agencia", "agência",
+  "saas", "r$", "$", "vender", "riqueza", "milionario", "milionário", "milhao", "milhão", "milhoes",
+  "milhões", "renda passiva", "freelancer", "servico", "serviço"
+];
+
 const benefitTerms = [
   "resultado", "beneficio", "ganhar", "ganhei", "fatur", "dinheiro", "money", "venda",
   "cliente", "econom", "rapido", "produt", "trabalhar melhor", "criar", "construir",
   "aprender", "conhecimento", "horas", "minutos", "dias", "sem experiencia", "do zero",
+  ...businessMonetizationTerms,
 ];
 
 const growthTerms = [
@@ -148,11 +156,11 @@ const excludedFormatTerms = [
 ];
 
 const topicRules = [
+  { label: "Negócios e monetização", terms: ["dinheiro", "money", "business", "negocio", "negócios", "vendas", "venda", "renda", "cliente", "clientes", "fatur", "faturei", "lucro", "lucrar", "monetiz", "agencia", "agência", "saas", "r$", "vender", "riqueza", "milionario", "milionário"] },
   { label: "Agentes e automação", terms: ["agent", "agente", "automacao", "workflow", "mcp", "n8n"] },
   { label: "Ferramentas de IA", terms: ["chatgpt", "claude", "gemini", "openai", "cursor", "lovable", "ia ", "ai "] },
   { label: "Sistemas e produtividade", terms: ["sistema", "produt", "foco", "prioridad", "rotina", "tempo", "organiz", "procrast"] },
   { label: "Aprendizado e carreira", terms: ["aprend", "estud", "carreira", "trabalho", "profissional", "conhecimento"] },
-  { label: "Negócios e dinheiro", terms: ["negocio", "business", "dinheiro", "money", "venda", "renda", "cliente"] },
   { label: "Conteúdo e marca", terms: ["conteudo", "youtube", "canal", "marca pessoal", "video"] },
   { label: "Desenvolvimento pessoal", terms: ["disciplina", "habito", "meta", "objetivo", "sucesso", "vida", "ansiedade", "cerebro"] },
   { label: "Notícias e opinião", terms: ["noticia", "news", "lancamento", "release", "mudou", "acabou", "novo "] },
@@ -270,9 +278,10 @@ const aiAppliedTransformationScore = (
 
   return clamp(
     30
-    + (titleHasAny(title, tutorialTerms) ? 18 : 0)
-    + (titleHasAny(title, benefitTerms) ? 17 : 0)
-    + relativePerformance * 0.12
+    + (titleHasAny(title, tutorialTerms) ? 14 : 0)
+    + (titleHasAny(title, benefitTerms) ? 16 : 0)
+    + (titleHasAny(title, businessMonetizationTerms) ? 12 : 0)
+    + relativePerformance * 0.14
     + adaptabilityScore(video) * 0.08
     + packagingScore(video) * 0.08
     + crossChannelValidation * 0.04

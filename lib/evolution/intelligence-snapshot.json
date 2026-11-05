@@ -4,60 +4,6 @@
   "videos": [],
   "topVideos": [
     {
-      "id": "Wk39-LS652I",
-      "channel": "Vagner Mazzeo",
-      "title": "Como criar skills no Claude Code (novas regras da Anthropic)",
-      "originalTitle": "Como criar skills no Claude Code (novas regras da Anthropic)",
-      "url": "https://www.youtube.com/watch?v=Wk39-LS652I",
-      "thumbnail": "https://i.ytimg.com/vi/Wk39-LS652I/maxresdefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Vagner%20Mazzeo&video=Wk39-LS652I",
-      "views": 8068,
-      "durationSeconds": 1329,
-      "publishedAt": "2026-10-28T15:00:13Z",
-      "publishedText": "2026-10-28T15:00:13Z",
-      "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 87,
-      "breakdown": {
-        "aiAppliedTransformation": 96.24,
-        "productivityCareerSystems": 96.86999999999999,
-        "newsRelevance": 0
-      },
-      "channelMedianViews": 327.5,
-      "relativePerformanceMultiple": 24.635114503816794,
-      "formatLabel": "Tutorial aplicável",
-      "topicLabel": "Ferramentas de IA",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "24,6× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
-    },
-    {
-      "id": "lXG3xzlHy6E",
-      "channel": "Maestros da IA",
-      "title": "Nosso MELHOR FRAMEWORK Para Criar Skills e Agentes que Trabalham 24/7 por Você",
-      "originalTitle": "Nosso MELHOR FRAMEWORK Para Criar Skills e Agentes que Trabalham 24/7 por Você",
-      "url": "https://www.youtube.com/watch?v=lXG3xzlHy6E",
-      "thumbnail": "https://i.ytimg.com/vi/lXG3xzlHy6E/fhddefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Maestros%20da%20IA&video=lXG3xzlHy6E",
-      "views": 19445,
-      "durationSeconds": 1009,
-      "publishedAt": "2026-09-12T20:16:30Z",
-      "publishedText": "2026-09-12T20:16:30Z",
-      "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 87,
-      "breakdown": {
-        "aiAppliedTransformation": 96.96000000000001,
-        "productivityCareerSystems": 97.38,
-        "newsRelevance": 0
-      },
-      "channelMedianViews": 1501,
-      "relativePerformanceMultiple": 12.954696868754164,
-      "formatLabel": "Tese explicativa",
-      "topicLabel": "Agentes e automação",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "13× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Agentes e automação."
-    },
-    {
       "id": "SfZyhxE8Nf8",
       "channel": "Maestros da IA",
       "title": "O Sistema para Ganhar SEGUIDORES e Milhões de VIEWS no Piloto Automático",
@@ -70,46 +16,100 @@
       "publishedAt": "2026-09-30T19:12:14Z",
       "publishedText": "2026-09-30T19:12:14Z",
       "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 85,
+      "opportunityScore": 89,
       "breakdown": {
-        "aiAppliedTransformation": 93.84,
+        "aiAppliedTransformation": 100,
         "productivityCareerSystems": 94.65,
         "newsRelevance": 0
       },
-      "channelMedianViews": 1501,
-      "relativePerformanceMultiple": 48.83677548301132,
+      "channelMedianViews": 1507,
+      "relativePerformanceMultiple": 48.64233576642336,
       "formatLabel": "Tese explicativa",
       "topicLabel": "Sistemas e produtividade",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "48,8× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Sistemas e produtividade."
+      "rationale": "48,6× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Sistemas e produtividade."
     },
     {
-      "id": "oDKKrBzMe2g",
-      "channel": "Maestros da IA",
-      "title": "Como Aprender Qualquer Coisa 10x Mais Rápido Usando IA",
-      "originalTitle": "Como Aprender Qualquer Coisa 10x Mais Rápido Usando IA",
-      "url": "https://www.youtube.com/watch?v=oDKKrBzMe2g",
-      "thumbnail": "https://i.ytimg.com/vi/oDKKrBzMe2g/qhddefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Maestros%20da%20IA&video=oDKKrBzMe2g",
-      "views": 55047,
-      "durationSeconds": 1456,
-      "publishedAt": "2026-10-07T02:33:25Z",
-      "publishedText": "2026-10-07T02:33:25Z",
+      "id": "Q-0OjiENI0E",
+      "channel": "Victor Baggio | IA para Vendas",
+      "title": "Como configurar o Claude para Pequenos Negócios (31 skills)",
+      "originalTitle": "Como configurar o Claude para Pequenos Negócios (31 skills)",
+      "url": "https://www.youtube.com/watch?v=Q-0OjiENI0E",
+      "thumbnail": "https://i.ytimg.com/vi/Q-0OjiENI0E/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Victor%20Baggio%20IA%20para%20Vendas&video=Q-0OjiENI0E",
+      "views": 35599,
+      "durationSeconds": 1389,
+      "publishedAt": "2026-07-27T15:00:26Z",
+      "publishedText": "2026-07-27T15:00:26Z",
       "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 84,
+      "opportunityScore": 86,
       "breakdown": {
-        "aiAppliedTransformation": 96.64,
+        "aiAppliedTransformation": 100,
         "productivityCareerSystems": 83.03,
         "newsRelevance": 0
       },
-      "channelMedianViews": 1501,
-      "relativePerformanceMultiple": 36.67355096602265,
+      "channelMedianViews": 3342.5,
+      "relativePerformanceMultiple": 10.650411368735977,
+      "formatLabel": "Tutorial aplicável",
+      "topicLabel": "Negócios e monetização",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "10,7× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Negócios e monetização."
+    },
+    {
+      "id": "4QIUhUvu104",
+      "channel": "Well Pires ",
+      "title": "Meu sistema de propostas de R$70k/mês com Claude Code",
+      "originalTitle": "Meu sistema de propostas de R$70k/mês com Claude Code",
+      "url": "https://www.youtube.com/watch?v=4QIUhUvu104",
+      "thumbnail": "https://i.ytimg.com/vi/4QIUhUvu104/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Well%20Pires&video=4QIUhUvu104",
+      "views": 7125,
+      "durationSeconds": 1245,
+      "publishedAt": "2026-07-23T22:05:32Z",
+      "publishedText": "2026-07-23T22:05:32Z",
+      "observedAt": "2026-11-05T19:04:00.280Z",
+      "opportunityScore": 86,
+      "breakdown": {
+        "aiAppliedTransformation": 98.16777974693125,
+        "productivityCareerSystems": 90.67381121165533,
+        "newsRelevance": 0
+      },
+      "channelMedianViews": 5603.5,
+      "relativePerformanceMultiple": 1.271526724368698,
+      "formatLabel": "Tese explicativa",
+      "topicLabel": "Negócios e monetização",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "1,3× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Negócios e monetização."
+    },
+    {
+      "id": "Wk39-LS652I",
+      "channel": "Vagner Mazzeo",
+      "title": "Como criar skills no Claude Code (novas regras da Anthropic)",
+      "originalTitle": "Como criar skills no Claude Code (novas regras da Anthropic)",
+      "url": "https://www.youtube.com/watch?v=Wk39-LS652I",
+      "thumbnail": "https://i.ytimg.com/vi/Wk39-LS652I/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Vagner%20Mazzeo&video=Wk39-LS652I",
+      "views": 8068,
+      "durationSeconds": 1329,
+      "publishedAt": "2026-10-28T15:00:13Z",
+      "publishedText": "2026-10-28T15:00:13Z",
+      "observedAt": "2026-11-05T19:04:00.280Z",
+      "opportunityScore": 85,
+      "breakdown": {
+        "aiAppliedTransformation": 93.24,
+        "productivityCareerSystems": 96.86999999999999,
+        "newsRelevance": 0
+      },
+      "channelMedianViews": 327.5,
+      "relativePerformanceMultiple": 24.635114503816794,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "36,7× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
+      "rationale": "24,6× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
     },
     {
       "id": "lr7m3qGivto",
@@ -124,19 +124,46 @@
       "publishedAt": "2026-10-13T13:04:17Z",
       "publishedText": "2026-10-13T13:04:17Z",
       "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 82,
+      "opportunityScore": 85,
       "breakdown": {
-        "aiAppliedTransformation": 95.03999999999999,
+        "aiAppliedTransformation": 100,
         "productivityCareerSystems": 81.63,
         "newsRelevance": 0
       },
       "channelMedianViews": 15759,
       "relativePerformanceMultiple": 17.187194618947903,
       "formatLabel": "Tutorial aplicável",
-      "topicLabel": "Aprendizado e carreira",
+      "topicLabel": "Negócios e monetização",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "17,2× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Aprendizado e carreira."
+      "rationale": "17,2× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Negócios e monetização."
+    },
+    {
+      "id": "lXG3xzlHy6E",
+      "channel": "Maestros da IA",
+      "title": "Nosso MELHOR FRAMEWORK Para Criar Skills e Agentes que Trabalham 24/7 por Você",
+      "originalTitle": "Nosso MELHOR FRAMEWORK Para Criar Skills e Agentes que Trabalham 24/7 por Você",
+      "url": "https://www.youtube.com/watch?v=lXG3xzlHy6E",
+      "thumbnail": "https://i.ytimg.com/vi/lXG3xzlHy6E/fhddefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Maestros%20da%20IA&video=lXG3xzlHy6E",
+      "views": 19445,
+      "durationSeconds": 1009,
+      "publishedAt": "2026-09-12T20:16:30Z",
+      "publishedText": "2026-09-12T20:16:30Z",
+      "observedAt": "2026-11-05T19:04:00.280Z",
+      "opportunityScore": 85,
+      "breakdown": {
+        "aiAppliedTransformation": 93.96000000000001,
+        "productivityCareerSystems": 97.38,
+        "newsRelevance": 0
+      },
+      "channelMedianViews": 1507,
+      "relativePerformanceMultiple": 12.903118779031187,
+      "formatLabel": "Tese explicativa",
+      "topicLabel": "Agentes e automação",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "12,9× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Agentes e automação."
     },
     {
       "id": "_uDFbG1xkjs",
@@ -151,19 +178,19 @@
       "publishedAt": "2025-11-10T17:04:00Z",
       "publishedText": "2025-11-10T17:04:00Z",
       "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 81,
+      "opportunityScore": 85,
       "breakdown": {
-        "aiAppliedTransformation": 94.14498010778269,
+        "aiAppliedTransformation": 100,
         "productivityCareerSystems": 80.34498010778269,
         "newsRelevance": 0
       },
       "channelMedianViews": 15759,
       "relativePerformanceMultiple": 2.147661653658227,
       "formatLabel": "Tutorial aplicável",
-      "topicLabel": "Ferramentas de IA",
+      "topicLabel": "Negócios e monetização",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "2,1× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
+      "rationale": "2,1× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Negócios e monetização."
     },
     {
       "id": "QYCX4Z55Z0A",
@@ -178,19 +205,154 @@
       "publishedAt": "2025-11-06T13:04:00Z",
       "publishedText": "2025-11-06T13:04:00Z",
       "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 80,
+      "opportunityScore": 85,
       "breakdown": {
-        "aiAppliedTransformation": 92.60199025618266,
+        "aiAppliedTransformation": 100,
         "productivityCareerSystems": 78.80199025618266,
         "newsRelevance": 0
       },
       "channelMedianViews": 15759,
       "relativePerformanceMultiple": 1.1855447680690399,
       "formatLabel": "Tutorial aplicável",
+      "topicLabel": "Negócios e monetização",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "1,2× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Negócios e monetização."
+    },
+    {
+      "id": "_Gx7R4Jn1Jk",
+      "channel": "Well Pires ",
+      "title": "Crie Sistemas de R$10.000 com IA (AI Design Masterclass)",
+      "originalTitle": "Crie Sistemas de R$10.000 com IA (AI Design Masterclass)",
+      "url": "https://www.youtube.com/watch?v=_Gx7R4Jn1Jk",
+      "thumbnail": "https://i.ytimg.com/vi/_Gx7R4Jn1Jk/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Well%20Pires&video=_Gx7R4Jn1Jk",
+      "views": 3547,
+      "durationSeconds": 1862,
+      "publishedAt": "2025-12-23T18:32:30Z",
+      "publishedText": "2025-12-23T18:32:30Z",
+      "observedAt": "2026-11-05T19:04:00.280Z",
+      "opportunityScore": 84,
+      "breakdown": {
+        "aiAppliedTransformation": 95.2545693107588,
+        "productivityCareerSystems": 88.06248798065039,
+        "newsRelevance": 0
+      },
+      "channelMedianViews": 5603.5,
+      "relativePerformanceMultiple": 0.6329972338716874,
+      "formatLabel": "Tese explicativa",
+      "topicLabel": "Negócios e monetização",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "63% da mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Negócios e monetização."
+    },
+    {
+      "id": "NXo3f3tMzEs",
+      "channel": "Well Pires ",
+      "title": "Criando um sistema de R$8000 com Claude Code do zero!",
+      "originalTitle": "Criando um sistema de R$8000 com Claude Code do zero!",
+      "url": "https://www.youtube.com/watch?v=NXo3f3tMzEs",
+      "thumbnail": "https://i.ytimg.com/vi/NXo3f3tMzEs/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Well%20Pires&video=NXo3f3tMzEs",
+      "views": 2517,
+      "durationSeconds": 2403,
+      "publishedAt": "2026-05-20T21:27:44Z",
+      "publishedText": "2026-05-20T21:27:44Z",
+      "observedAt": "2026-11-05T19:04:00.280Z",
+      "opportunityScore": 83,
+      "breakdown": {
+        "aiAppliedTransformation": 94.21529167183296,
+        "productivityCareerSystems": 87.17167857585682,
+        "newsRelevance": 0
+      },
+      "channelMedianViews": 5603.5,
+      "relativePerformanceMultiple": 0.44918354599803695,
+      "formatLabel": "Tese explicativa",
+      "topicLabel": "Negócios e monetização",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "45% da mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Negócios e monetização."
+    },
+    {
+      "id": "oDKKrBzMe2g",
+      "channel": "Maestros da IA",
+      "title": "Como Aprender Qualquer Coisa 10x Mais Rápido Usando IA",
+      "originalTitle": "Como Aprender Qualquer Coisa 10x Mais Rápido Usando IA",
+      "url": "https://www.youtube.com/watch?v=oDKKrBzMe2g",
+      "thumbnail": "https://i.ytimg.com/vi/oDKKrBzMe2g/qhddefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Maestros%20da%20IA&video=oDKKrBzMe2g",
+      "views": 55047,
+      "durationSeconds": 1456,
+      "publishedAt": "2026-10-07T02:33:25Z",
+      "publishedText": "2026-10-07T02:33:25Z",
+      "observedAt": "2026-11-05T19:04:00.280Z",
+      "opportunityScore": 82,
+      "breakdown": {
+        "aiAppliedTransformation": 93.64,
+        "productivityCareerSystems": 83.03,
+        "newsRelevance": 0
+      },
+      "channelMedianViews": 1507,
+      "relativePerformanceMultiple": 36.52753815527538,
+      "formatLabel": "Tutorial aplicável",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "1,2× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
+      "rationale": "36,5× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
+    },
+    {
+      "id": "QWpNXBMeG00",
+      "channel": "Victor Baggio | IA para Vendas",
+      "title": "Claude Cowork ACABOU com o trabalho manual em vendas",
+      "originalTitle": "Claude Cowork ACABOU com o trabalho manual em vendas",
+      "url": "https://www.youtube.com/watch?v=QWpNXBMeG00",
+      "thumbnail": "https://i.ytimg.com/vi/QWpNXBMeG00/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Victor%20Baggio%20IA%20para%20Vendas&video=QWpNXBMeG00",
+      "views": 19844,
+      "durationSeconds": 1731,
+      "publishedAt": "2026-06-23T15:00:02Z",
+      "publishedText": "2026-06-23T15:00:02Z",
+      "observedAt": "2026-11-05T19:04:00.280Z",
+      "opportunityScore": 82,
+      "breakdown": {
+        "aiAppliedTransformation": 85.73637713351512,
+        "productivityCareerSystems": 76.50546611444155,
+        "newsRelevance": 76.11455509536793
+      },
+      "channelMedianViews": 3342.5,
+      "relativePerformanceMultiple": 5.936873597606582,
+      "formatLabel": "Notícia explicada",
+      "topicLabel": "Negócios e monetização",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "5,9× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Negócios e monetização."
+    },
+    {
+      "id": "zzo33HUOfxI",
+      "channel": "Brock Mesarich | AI for Non Techies",
+      "title": "Anthropic Just Dropped Claude for Small Businesses (31 Skills)",
+      "originalTitle": "Anthropic Just Dropped Claude for Small Businesses (31 Skills)",
+      "url": "https://www.youtube.com/watch?v=zzo33HUOfxI",
+      "thumbnail": "https://i.ytimg.com/vi/zzo33HUOfxI/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Brock%20Mesarich%20AI%20for%20Non%20Techies&video=zzo33HUOfxI",
+      "views": 213364,
+      "durationSeconds": 1073,
+      "publishedAt": "2026-05-21T16:03:56Z",
+      "publishedText": "2026-05-21T16:03:56Z",
+      "observedAt": "2026-11-05T19:04:00.280Z",
+      "opportunityScore": 77,
+      "breakdown": {
+        "aiAppliedTransformation": 87.96000000000001,
+        "productivityCareerSystems": 79.21,
+        "newsRelevance": 0
+      },
+      "channelMedianViews": 12885.5,
+      "relativePerformanceMultiple": 16.558457180551784,
+      "formatLabel": "Tese explicativa",
+      "topicLabel": "Negócios e monetização",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "16,6× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Negócios e monetização."
     },
     {
       "id": "SVXG1b-Oteg",
@@ -205,9 +367,9 @@
       "publishedAt": "2026-07-05T22:00:34Z",
       "publishedText": "2026-07-05T22:00:34Z",
       "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 80,
+      "opportunityScore": 77,
       "breakdown": {
-        "aiAppliedTransformation": 88.38760506957642,
+        "aiAppliedTransformation": 83.97220591450582,
         "productivityCareerSystems": 88.81760506957642,
         "newsRelevance": 0
       },
@@ -232,9 +394,9 @@
       "publishedAt": "2026-03-06T00:02:01Z",
       "publishedText": "2026-03-06T00:02:01Z",
       "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 79,
+      "opportunityScore": 76,
       "breakdown": {
-        "aiAppliedTransformation": 90.9926785795186,
+        "aiAppliedTransformation": 87.31812500943838,
         "productivityCareerSystems": 77.58267857951861,
         "newsRelevance": 0
       },
@@ -245,216 +407,50 @@
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
       "rationale": "2,1× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
-    },
-    {
-      "id": "NXo3f3tMzEs",
-      "channel": "Well Pires ",
-      "title": "Criando um sistema de R$8000 com Claude Code do zero!",
-      "originalTitle": "Criando um sistema de R$8000 com Claude Code do zero!",
-      "url": "https://www.youtube.com/watch?v=NXo3f3tMzEs",
-      "thumbnail": "https://i.ytimg.com/vi/NXo3f3tMzEs/maxresdefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Well%20Pires&video=NXo3f3tMzEs",
-      "views": 2517,
-      "durationSeconds": 2403,
-      "publishedAt": "2026-05-20T21:27:44Z",
-      "publishedText": "2026-05-20T21:27:44Z",
-      "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 78,
-      "breakdown": {
-        "aiAppliedTransformation": 86.56167857585683,
-        "productivityCareerSystems": 87.17167857585682,
-        "newsRelevance": 0
-      },
-      "channelMedianViews": 5603.5,
-      "relativePerformanceMultiple": 0.44918354599803695,
-      "formatLabel": "Tese explicativa",
-      "topicLabel": "Ferramentas de IA",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "45% da mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
-    },
-    {
-      "id": "QWpNXBMeG00",
-      "channel": "Victor Baggio | IA para Vendas",
-      "title": "Claude Cowork ACABOU com o trabalho manual em vendas",
-      "originalTitle": "Claude Cowork ACABOU com o trabalho manual em vendas",
-      "url": "https://www.youtube.com/watch?v=QWpNXBMeG00",
-      "thumbnail": "https://i.ytimg.com/vi/QWpNXBMeG00/maxresdefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Victor%20Baggio%20IA%20para%20Vendas&video=QWpNXBMeG00",
-      "views": 19844,
-      "durationSeconds": 1731,
-      "publishedAt": "2026-06-23T15:00:02Z",
-      "publishedText": "2026-06-23T15:00:02Z",
-      "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 74,
-      "breakdown": {
-        "aiAppliedTransformation": 72.96546611444153,
-        "productivityCareerSystems": 76.50546611444155,
-        "newsRelevance": 76.11455509536793
-      },
-      "channelMedianViews": 3342.5,
-      "relativePerformanceMultiple": 5.936873597606582,
-      "formatLabel": "Notícia explicada",
-      "topicLabel": "Ferramentas de IA",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "5,9× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
-    },
-    {
-      "id": "Q-0OjiENI0E",
-      "channel": "Victor Baggio | IA para Vendas",
-      "title": "Como configurar o Claude para Pequenos Negócios (31 skills)",
-      "originalTitle": "Como configurar o Claude para Pequenos Negócios (31 skills)",
-      "url": "https://www.youtube.com/watch?v=Q-0OjiENI0E",
-      "thumbnail": "https://i.ytimg.com/vi/Q-0OjiENI0E/maxresdefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Victor%20Baggio%20IA%20para%20Vendas&video=Q-0OjiENI0E",
-      "views": 35599,
-      "durationSeconds": 1389,
-      "publishedAt": "2026-07-27T15:00:26Z",
-      "publishedText": "2026-07-27T15:00:26Z",
-      "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 70,
-      "breakdown": {
-        "aiAppliedTransformation": 79.64,
-        "productivityCareerSystems": 73.03,
-        "newsRelevance": 0
-      },
-      "channelMedianViews": 3342.5,
-      "relativePerformanceMultiple": 10.650411368735977,
-      "formatLabel": "Tutorial aplicável",
-      "topicLabel": "Ferramentas de IA",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "10,7× a mediana do próprio canal; forte aderência a IA aplicada, transformação e benefício. Sinal: Ferramentas de IA."
-    },
-    {
-      "id": "-nKLoZjGKSo",
-      "channel": "Vagner Mazzeo",
-      "title": "Criei um sistema de estoque + site com Claude Code",
-      "originalTitle": "Criei um sistema de estoque + site com Claude Code",
-      "url": "https://www.youtube.com/watch?v=-nKLoZjGKSo",
-      "thumbnail": "https://i.ytimg.com/vi/-nKLoZjGKSo/sardefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Vagner%20Mazzeo&video=-nKLoZjGKSo",
-      "views": 1239,
-      "durationSeconds": 41,
-      "publishedAt": "2026-11-02T01:56:14Z",
-      "publishedText": "2026-11-02T01:56:14Z",
-      "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 69,
-      "breakdown": {
-        "aiAppliedTransformation": 74.29529687628842,
-        "productivityCareerSystems": 82.10529687628842,
-        "newsRelevance": 0
-      },
-      "channelMedianViews": 327.5,
-      "relativePerformanceMultiple": 3.783206106870229,
-      "formatLabel": "Experimento demonstrável",
-      "topicLabel": "Ferramentas de IA",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "3,8× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
-    },
-    {
-      "id": "OEJ6sd-6YV8",
-      "channel": "Ovinifontes",
-      "title": "Esse Sistema Edita Seus Vídeos Sozinho e Não Gasta Crédito (Claude)",
-      "originalTitle": "Esse Sistema Edita Seus Vídeos Sozinho e Não Gasta Crédito (Claude)",
-      "url": "https://www.youtube.com/watch?v=OEJ6sd-6YV8",
-      "thumbnail": "https://i.ytimg.com/vi/OEJ6sd-6YV8/maxresdefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Ovinifontes&video=OEJ6sd-6YV8",
-      "views": 863,
-      "durationSeconds": 563,
-      "publishedAt": "2026-10-18T23:07:15Z",
-      "publishedText": "2026-10-18T23:07:15Z",
-      "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 68,
-      "breakdown": {
-        "aiAppliedTransformation": 73.53673872284841,
-        "productivityCareerSystems": 81.34673872284841,
-        "newsRelevance": 0
-      },
-      "channelMedianViews": 305.5,
-      "relativePerformanceMultiple": 2.8248772504091653,
-      "formatLabel": "Tese explicativa",
-      "topicLabel": "Ferramentas de IA",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "2,8× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Ferramentas de IA."
-    },
-    {
-      "id": "TGhl33SDWzI",
-      "channel": "Well Pires ",
-      "title": "Crie Sistemas de IA 10x mais escaláveis com Claude Code Sub-Agents",
-      "originalTitle": "Crie Sistemas de IA 10x mais escaláveis com Claude Code Sub-Agents",
-      "url": "https://www.youtube.com/watch?v=TGhl33SDWzI",
-      "thumbnail": "https://i.ytimg.com/vi/TGhl33SDWzI/maxresdefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Well%20Pires&video=TGhl33SDWzI",
-      "views": 7465,
-      "durationSeconds": 1119,
-      "publishedAt": "2026-01-21T21:51:20Z",
-      "publishedText": "2026-01-21T21:51:20Z",
-      "observedAt": "2026-11-05T19:04:00.280Z",
-      "opportunityScore": 68,
-      "breakdown": {
-        "aiAppliedTransformation": 73.18486525480648,
-        "productivityCareerSystems": 80.79486525480647,
-        "newsRelevance": 0
-      },
-      "channelMedianViews": 5603.5,
-      "relativePerformanceMultiple": 1.3322030873561168,
-      "formatLabel": "Tese explicativa",
-      "topicLabel": "Agentes e automação",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "1,3× a mediana do próprio canal; boa conexão com produtividade, carreira e sistemas. Sinal: Agentes e automação."
     }
   ],
   "topics": [
     {
-      "label": "Tutoriais práticos",
-      "count": 487,
-      "averageViews": 47620.32648870636
-    },
-    {
       "label": "Modelos e lançamentos",
-      "count": 1015,
-      "averageViews": 41404.02660098522
+      "count": 1010,
+      "averageViews": 41313.7594059406,
+      "medianViews": 14102.5
     },
     {
-      "label": "Carreira e mercado",
-      "count": 58,
-      "averageViews": 28070.379310344826
-    },
-    {
-      "label": "Negócios e monetização",
-      "count": 286,
-      "averageViews": 27142.594405594406
-    },
-    {
-      "label": "Ferramentas de IA",
-      "count": 2123,
-      "averageViews": 26212.043805934998
-    },
-    {
-      "label": "Notícias e opinião",
-      "count": 116,
-      "averageViews": 23545.724137931036
-    },
-    {
-      "label": "Produtividade e sistemas",
-      "count": 50,
-      "averageViews": 20479.9
+      "label": "Tutoriais práticos",
+      "count": 206,
+      "averageViews": 41729.18446601942,
+      "medianViews": 10189
     },
     {
       "label": "Agentes e automação",
-      "count": 223,
-      "averageViews": 18496.125560538116
+      "count": 309,
+      "averageViews": 21594.462783171522,
+      "medianViews": 5169
+    },
+    {
+      "label": "Notícias e opinião",
+      "count": 161,
+      "averageViews": 60127.67080745342,
+      "medianViews": 3971
+    },
+    {
+      "label": "Carreira e produtividade",
+      "count": 54,
+      "averageViews": 26122.814814814814,
+      "medianViews": 3094.5
+    },
+    {
+      "label": "Negócios e monetização",
+      "count": 477,
+      "averageViews": 29836.35220125786,
+      "medianViews": 2326
     }
   ],
   "stats": {
     "channels": 22,
-    "videos": 3628,
-    "withViews": 3628,
-    "averageViews": 30977.849503858877
+    "videos": 3627,
+    "withViews": 3627,
+    "averageViews": 30986.20512820513
   }
 }

@@ -9,7 +9,7 @@ import {
 
 export type CompetitorVideo = OpportunityVideoInput;
 type Channel = { name: string; id: string | null; url: string | null; folder: string };
-type Topic = { label: string; count: number; averageViews: number };
+type Topic = { label: string; count: number; averageViews: number; medianViews: number };
 type Stats = { channels: number; videos: number; withViews: number; averageViews: number };
 type Snapshot = { observedAt: string | null; channels: Channel[]; videos: CompetitorVideo[] };
 type EditorialIntelligence = Snapshot & {
@@ -84,11 +84,38 @@ const normalizeForMatch = (value: string) =>
   value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
 
 const topicRules = [
-  { label: "Negócios e dinheiro", terms: ["money", "dinheiro", "business", "negocio", "vendas", "renda", "price", "preco", "cliente"] },
-  { label: "Ferramentas práticas", terms: ["como", "tutorial", "usei", "testei", "ferramenta", "tool", "app", "passo a passo"] },
-  { label: "Modelos e lançamentos", terms: ["openai", "claude", "gemini", "gpt", "modelo", "model", "lancamento", "release"] },
-  { label: "Agentes e automação", terms: ["agent", "agente", "automacao", "automation", "workflow", "mcp", "n8n"] },
-  { label: "Notícias e opinião", terms: ["news", "noticia", "why", "por que", "opiniao", "mercado", "mudou", "acabou"] },
+  {
+    label: "Negócios e monetização",
+    terms: [
+      "dinheiro", "money", "business", "negocio", "negócios", "vendas", "renda", "preco", "preço",
+      "cliente", "clientes", "fatur", "faturei", "lucro", "lucrar", "monetiz", "agencia", "agência",
+      "saas", "r$", "vender", "riqueza", "milionario", "milionário", "milhao", "milhões", "milhoes",
+      "renda passiva", "freelancer", "prestacao de servico", "servico", "serviço"
+    ],
+  },
+  {
+    label: "Tutoriais práticos",
+    terms: [
+      "passo a passo", "tutorial", "guia pratico", "guia prático", "como criar", "como fazer",
+      "como usar", "aprenda a", "aprenda em", "clone", "clonar", "do zero", "instal", "configur"
+    ],
+  },
+  {
+    label: "Modelos e lançamentos",
+    terms: ["openai", "claude", "gemini", "gpt", "modelo", "model", "llama", "deepseek", "lancamento", "lançamento", "release", "atualizacao", "atualização"],
+  },
+  {
+    label: "Agentes e automação",
+    terms: ["agent", "agente", "agentes", "automacao", "automação", "automation", "workflow", "mcp", "n8n", "sub-agent", "sub-agents"],
+  },
+  {
+    label: "Carreira e produtividade",
+    terms: ["carreira", "emprego", "salario", "salário", "vaga", "rotina", "habito", "hábito", "produtividade", "foco", "disciplina", "sistema pessoal"],
+  },
+  {
+    label: "Notícias e opinião",
+    terms: ["news", "noticia", "notícia", "why", "por que", "opiniao", "opinião", "polemica", "polêmica", "alerta", "o fim", "acabou", "verdade", "cuidado"],
+  },
 ];
 
 const normalizeCollectedViews = (value: unknown) =>
@@ -197,6 +224,13 @@ async function readCompetitorFiles(): Promise<Snapshot> {
   }
 }
 
+const calculateMedian = (values: number[]): number => {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
+
 const buildTopics = (videos: CompetitorVideo[]) =>
   topicRules
     .map((rule) => {
@@ -205,16 +239,18 @@ const buildTopics = (videos: CompetitorVideo[]) =>
         return rule.terms.some((term) => title.includes(term));
       });
       const scored = matches.filter((video) => video.views != null);
+      const viewsList = scored.map((video) => video.views as number);
       return {
         label: rule.label,
         count: matches.length,
         averageViews: scored.length
           ? scored.reduce((sum, video) => sum + (video.views ?? 0), 0) / scored.length
           : 0,
+        medianViews: calculateMedian(viewsList),
       };
     })
     .filter((topic) => topic.count)
-    .sort((a, b) => b.averageViews - a.averageViews);
+    .sort((a, b) => b.medianViews - a.medianViews || b.averageViews - a.averageViews);
 
 const packaged = packagedSnapshot as EditorialIntelligence;
 

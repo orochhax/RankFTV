@@ -72,7 +72,10 @@ export async function EditorialIntelligence() {
             {data.topics.map((topic) => (
               <div key={topic.label}>
                 <span><strong>{topic.label}</strong><small>{topic.count} vídeos encontrados</small></span>
-                <b>{formatEditorialViews(Math.round(topic.averageViews))}<small> média</small></b>
+                <b>
+                  {formatEditorialViews(Math.round(topic.medianViews ?? topic.averageViews))}
+                  <small> mediana (méd. {formatEditorialViews(Math.round(topic.averageViews))})</small>
+                </b>
               </div>
             ))}
           </div>
