@@ -107,8 +107,8 @@ export async function writeVideoRecord(input: {
 
 export async function writeChannelIndex(channel: ChannelIdentity, observedAt: string, cutoff: Date): Promise<void> {
   const records = [...(await readExistingRecords(channel)).values()]
-    .filter((record) => new Date(record.video.publishedAt) >= cutoff)
-    .sort((a, b) => b.video.publishedAt.localeCompare(a.video.publishedAt));
+    .filter((record) => record.video?.publishedAt && new Date(record.video.publishedAt) >= cutoff)
+    .sort((a, b) => (b.video?.publishedAt ?? "").localeCompare(a.video?.publishedAt ?? ""));
   const lines = await Promise.all(records.map(async (record) => {
     const fileName = await findVideoMarkdownById(path.join(channel.folderPath, "Videos"), record.video.id)
       ?? `${sanitizeFileName(record.video.title)} (${record.video.id}).md`;
