@@ -21,7 +21,7 @@ export function PageHeader({
     <div className={`flex flex-wrap items-start justify-between gap-4 ${className}`}>
       <div className="min-w-0">
         {eyebrow && (
-          <p className={`text-xs font-bold uppercase tracking-widest ${isDark ? "text-amber-300" : "text-blue-600"}`}>{eyebrow}</p>
+          <p className={`text-xs font-bold uppercase tracking-widest ${isDark ? "text-blue-400" : "text-blue-600"}`}>{eyebrow}</p>
         )}
         <h1 className={`mt-1 text-2xl font-bold tracking-tight lg:text-3xl ${isDark ? "text-white" : "text-ink"}`}>{title}</h1>
         {description && <p className={`mt-1.5 max-w-2xl text-sm ${isDark ? "text-white/60" : "text-ink-muted"}`}>{description}</p>}
