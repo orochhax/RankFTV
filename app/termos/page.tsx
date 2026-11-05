@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Termos de uso — RankFTV",
 };
 
-const ULTIMA_ATUALIZACAO = "1 de julho de 2026";
+const ULTIMA_ATUALIZACAO = "5 de novembro de 2026";
 
 type Bloco =
   | { p: string }
@@ -57,7 +57,7 @@ const SECOES: Secao[] = [
   {
     titulo: "Informações gerais",
     blocos: [
-      { p: "Estes Termos de Uso (“Termos”) regulam o acesso e a utilização da Plataforma RankFTV [PENDENTE: substituir por identificação empresarial — razão social e CNPJ, ou nome completo do responsável sem CPF/endereço residencial público — e endereço de contato que não seja residencial] (“RankFTV”, “nós”)." },
+      { p: "Estes Termos de Uso (“Termos”) regulam o acesso e a utilização da Plataforma RankFTV, operada por Carlos Gregório Rocha Batista (pessoa física, desenvolvedor e responsável pela plataforma), com suporte e canal de comunicação oficial pelo e-mail suporte@rankftv.com e contato@rankftv.com (com canal de contingência em carlosrocha0923@gmail.com) (“RankFTV”, “nós”)." },
       { p: "A Plataforma RankFTV oferece: (i) ferramentas para o Organizador criar, divulgar e gerenciar campeonatos de futevôlei; (ii) inscrição online de atletas e duplas em categorias; (iii) venda de ingressos de plateia ao público; (iv) credenciamento e check-in por QR Code; e (v) processamento de pagamentos com repasse ao Organizador, por meio de processador de pagamentos parceiro." },
       { p: "A RankFTV é uma intermediadora de tecnologia e de pagamentos. Os campeonatos e seus dados (datas, local, regras, valores, premiação) são de responsabilidade exclusiva do Organizador, único responsável por realizar o evento conforme anunciado." },
       { p: "A Plataforma é apresentada da maneira como está disponível e pode passar por melhorias e atualizações contínuas. A RankFTV empenha-se em manter as funcionalidades acessíveis, com layout claro e usável." },
@@ -287,7 +287,7 @@ const SECOES: Secao[] = [
       { p: "A RankFTV poderá modificar estes Termos a qualquer tempo, para aprimoramento ou adequação legal, cabendo ao Usuário consultá-los periodicamente. O uso continuado da Plataforma após alterações implica concordância com a versão vigente." },
       { p: "A eventual tolerância a qualquer violação destes Termos é mera liberalidade e não implica novação, renúncia de direitos ou alteração contratual." },
       { p: "Se qualquer disposição destes Termos for considerada inválida, as demais permanecem em vigor. Estes Termos são regidos pela legislação brasileira." },
-      { p: "A comunicação com a RankFTV deve ser feita pelos canais oficiais indicados na Plataforma (carlosrocha0923@gmail.com). As divergências serão, sempre que possível, resolvidas amigavelmente; não havendo acordo, fica eleito o foro da Comarca de Eunápolis/BA, com renúncia a qualquer outro, por mais privilegiado que seja." },
+      { p: "A comunicação e o suporte oficial com a RankFTV são realizados pelo canal de suporte atendido (suporte@rankftv.com, contato@rankftv.com ou carlosrocha0923@gmail.com), de segunda a sexta-feira, das 09h00 às 18h00 (horário de Brasília), com tempo de resposta inicial em até 24 horas úteis para solicitações gerais e em até 1 hora para suporte operacional de ingressos no dia do evento. As divergências serão, sempre que possível, resolvidas amigavelmente; não havendo acordo, fica eleito o foro da Comarca de Eunápolis/BA, com renúncia a qualquer outro, por mais privilegiado que seja." },
     ],
   },
 ];

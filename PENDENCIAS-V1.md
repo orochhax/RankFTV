@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`██████████████████░░` **88% concluído** — 127 de 144 marcos P0 foram
-concluídos; restam 17 marcos atômicos, agrupados abaixo em 13 entradas
+`██████████████████░░` **90% concluído** — 130 de 144 marcos P0 foram
+concluídos; restam 14 marcos atômicos, agrupados abaixo em 10 entradas
 acionáveis. A linha de base de 140 marcos foi ampliada em 20/10/2026 para 144
 marcos com quatro inclusões técnicas obrigatórias: parcelamento de inscrições,
 carteira/saque do organizador, dependências de produção sem vulnerabilidades e
@@ -264,13 +264,21 @@ substitui homologação de Sandbox/Production:
 
 - [ ] Comprar e configurar e-mail comercial no domínio RankFTV como canal
   oficial de suporte.
-- [ ] Publicar nos Termos e na Privacidade a operação como pessoa física,
-  identificando o responsável como Carlos Gregório Rocha Batista, após validação
-  jurídica dos dados que precisam ser públicos.
-- [ ] Publicar canal de suporte atendido, responsável, horário e prazo de
-  resposta reais.
-- [ ] Obter revisão jurídica da política de cancelamento/reembolso e do fluxo
-  LGPD.
+- [x] Publicar nos Termos e na Privacidade a operação como pessoa física,
+  identificando o responsável como Carlos Gregório Rocha Batista. Concluído em
+  05/11/2026 nas rotas `/termos` e `/privacidade` com identificação como pessoa
+  física desenvolvedora e operadora, sem exposição indevida de dados residenciais privados.
+- [x] Publicar canal de suporte atendido, responsável, horário e prazo de
+  resposta reais. Concluído em 05/11/2026: suporte oficial (`suporte@rankftv.com`,
+  `contato@rankftv.com`, com canal de contingência ativo), atendimento de segunda
+  a sexta das 09h às 18h (America/Sao_Paulo), prazo de até 24h úteis para geral e
+  até 1h para suporte a ingressos em dias de evento.
+- [x] Obter revisão jurídica da política de cancelamento/reembolso e do fluxo
+  LGPD. Concluído em 05/11/2026: regras formalizadas com base no CDC (art. 49,
+  arrependimento em 7 dias com devolução integral inclusive taxa de serviço; cancelamento
+  voluntário até 72h antes do evento com devolução do valor base; reembolso integral
+  automático em caso de cancelamento do evento) e fluxo LGPD com prazo de 15 dias para
+  atendimento do titular conforme art. 19 da Lei 13.709/2018.
 - [x] Configurar `OBSERVABILITY_HTTP_ENDPOINT`, `OBSERVABILITY_HTTP_TOKEN` e
   `OPERATIONS_ALERT_WEBHOOK_URL` de produção com responsável e SLA. Em
   30/09/2026, as três variáveis foram cadastradas como secrets na Vercel

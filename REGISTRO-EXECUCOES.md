@@ -5,6 +5,15 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-05 00:25 (America/Sao_Paulo) — Publicação dos Termos de Uso, Privacidade, Suporte Oficial e Políticas CDC/LGPD (P0)
+
+- Atualização legal e regulatória das páginas públicas `/termos` e `/privacidade`:
+  - Identificação: formalizada a operação pela pessoa física Carlos Gregório Rocha Batista como desenvolvedor e responsável pela plataforma RankFTV e controlador de dados pessoais.
+  - Suporte oficial e SLA: publicados os canais de suporte (`suporte@rankftv.com`, `contato@rankftv.com` e canal de contingência), com atendimento de segunda a sexta das 09h00 às 18h00 (horário de Brasília), prazo de resposta de até 24 horas úteis para solicitações gerais e até 1 hora para suporte a ingressos no dia do evento.
+  - Política de Cancelamento e Reembolso (CDC): direito de arrependimento de 7 dias com devolução integral de valores (incluindo taxa de serviço); cancelamento voluntário até 72h do evento; garantia de 100% de reembolso aos participantes em cancelamento do campeonato pelo organizador.
+  - Privacidade e Encarregado LGPD: canal dedicado para exercício dos direitos de titular com prazo de atendimento de até 15 dias corridos (art. 19 da Lei 13.709/2018).
+- Conclusão de 3 marcos P0 na linha de base da V1 (atingindo 90% de conclusão global).
+
 ## 2026-11-04 23:55 (America/Sao_Paulo) — Homologação transacional ponta a ponta do saque do organizador em Sandbox (PR #71)
 
 - Homologação E2E supervisionada por Carlos Rocha no deployment de Preview da Vercel da PR #71:
