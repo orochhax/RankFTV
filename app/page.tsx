@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Bell, ChevronRight, Radio, MapPin, CalendarDays, Building2, Ticket, ShoppingBag } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
@@ -99,8 +100,24 @@ export default async function Home({
           <div className="home-header-menu">
             <HamburgerMenu unreadCount={0} organizerHabilitado={organizerHabilitado} />
           </div>
-          <Link href="/" className="text-2xl font-extrabold tracking-[-0.04em] text-white" aria-label="RankFTV — início">
-            Rank<span className="text-blue-500">FTV</span>
+          <Link
+            href="/"
+            className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            aria-label="RankFTV — início"
+          >
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white shadow-soft shadow-black/40">
+              <Image
+                src="/brand-icon.png"
+                alt="RankFTV"
+                width={20}
+                height={20}
+                className="size-5 object-contain"
+                priority
+              />
+            </span>
+            <span className="text-xl font-black tracking-[-0.03em] text-white">
+              Rank<span className="text-blue-500">FTV</span>
+            </span>
           </Link>
           <Link
             href="/notificacoes"
