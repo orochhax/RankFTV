@@ -326,7 +326,9 @@ export async function solicitarSaqueRecebiveisOrganizador(
   ]);
   if (!champ || champ.organizador_id !== user.id) return { ok: false, message: "Sem permissão." };
   if (!account?.chave_pix) return { ok: false, message: "Cadastre sua chave Pix antes de solicitar o saque." };
-  if (pixKeyEmCooldown(account.chave_pix_atualizada_em ?? null)) {
+  const isSandbox = process.env.ASAAS_BASE_URL?.includes("sandbox")
+    || process.env.NEXT_PUBLIC_SUPABASE_URL?.includes("obfqzifcvsqnygwmtpnx");
+  if (!isSandbox && pixKeyEmCooldown(account.chave_pix_atualizada_em ?? null)) {
     return { ok: false, message: "A chave Pix foi alterada recentemente. Por segurança, aguarde 48 horas." };
   }
 
