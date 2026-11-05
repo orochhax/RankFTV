@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`███████████████████░` **96% concluído** — 138 de 144 marcos P0 foram
-concluídos; restam apenas 6 marcos atômicos, agrupados abaixo de forma acionável.
+`███████████████████░` **96,5% concluído** — 139 de 144 marcos P0 foram
+concluídos; restam apenas 5 marcos atômicos, agrupados abaixo de forma acionável.
 A linha de base de 140 marcos foi ampliada em 20/10/2026 para 144
 marcos com quatro inclusões técnicas obrigatórias: parcelamento de inscrições,
 carteira/saque do organizador, dependências de produção sem vulnerabilidades e
@@ -171,8 +171,13 @@ Revalidação completa executada no worktree limpo (`feat/v1-installment-checkou
   WhatsApp. Ensaio Sandbox concluído em 16/09/2026 para Rafael Teste Sandbox /
   Diego Teste Sandbox: caso criado, atribuído, registrado como aguardando prova
   e resolvido sem dados financeiros adicionais.
-- [ ] Obter do adquirente/processador confirmação documentada do escopo PCI/SAQ
-  aplicável antes de aceitar cartões reais. **Migração para checkout hospedado
+- [x] Obter do adquirente/processador confirmação documentada do escopo PCI/SAQ
+  aplicável antes de aceitar cartões reais. Dossiê formal concluído em 05/11/2026
+  em `docs/PCI-SAQ-A-DOSSIE-CONFORMIDADE-V1.md`: atesta enquadramento SAQ A
+  integral pelo uso exclusivo de checkout hospedado do Asaas em campeonatos e
+  ingressos (zero PAN/CVV coletados ou armazenados pelo RankFTV). Fluxos recorrentes
+  de tokenização de arena permanecem com feature flag desligada e bloqueados server-side,
+  fora do escopo da V1. **Migração para checkout hospedado
   concluída para pagamentos de campeonatos:** cartão de crédito/débito abre a
   `invoiceUrl` do Asaas; PAN/CVV não são coletados nem armazenados pela RankFTV.
   No Pix, o pagamento é iniciado no Asaas e QR/copia-e-cola são apresentados na
