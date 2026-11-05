@@ -167,6 +167,26 @@ export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriad
   // input.valorBase já é o TOTAL que o comprador paga (valor + taxa).
   const valorTotal = parseFloat(Number(input.valorBase).toFixed(2));
 
+  // Crédito parcelado: o Asaas só oferece parcelamento escolhido pelo pagador
+  // via link de pagamento (chargeType INSTALLMENT). O id retornado é o do link;
+  // o webhook reconcilia pelo payment.paymentLink e passa a gravar o payment.id.
+  if (input.metodo === "credito" && input.maxInstallmentCount && input.maxInstallmentCount > 1) {
+    const link = await request<{ id: string; url: string }>("/paymentLinks", {
+      method: "POST",
+      body: JSON.stringify({
+        name:                input.descricao.slice(0, 100),
+        description:         input.descricao,
+        chargeType:          "INSTALLMENT",
+        billingType:         "CREDIT_CARD",
+        value:               valorTotal,
+        maxInstallmentCount: Math.min(21, Math.max(2, Math.floor(input.maxInstallmentCount))),
+        externalReference:   input.externalReference,
+        notificationEnabled: true,
+      }),
+    });
+    return { id: link.id, invoiceUrl: link.url, status: "ACTIVE", billingType: "CREDIT_CARD" };
+  }
+
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 1);
 
@@ -178,10 +198,6 @@ export async function criarCobranca(input: CobrancaInput): Promise<CobrancaCriad
     description:       input.descricao,
     externalReference: input.externalReference,
   };
-
-  if (input.metodo === "credito" && input.maxInstallmentCount && input.maxInstallmentCount > 1) {
-    body.maxInstallmentCount = Math.min(21, Math.max(1, Math.floor(input.maxInstallmentCount)));
-  }
 
   const pagamento = await request<{ id: string; invoiceUrl: string; status?: string; billingType?: string }>("/payments", {
     method: "POST",

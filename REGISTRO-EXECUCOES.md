@@ -5,6 +5,17 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-05 12:25 (America/Sao_Paulo) — Merge da PR #119 e Refinamento do Parcelamento via /v3/paymentLinks
+
+- PR #119 mesclada com sucesso na `master` (commit `bb45952`), consolidando D+32, antecipação, repasses e Dossiê PCI SAQ A (`docs/PCI-SAQ-A-DOSSIE-CONFORMIDADE-V1.md`).
+- Refinamento arquitetural para exibição nativa do seletor de parcelas no checkout hospedado do Asaas:
+  - `lib/asaas.ts`: quando `metodo === 'credito'` e `maxInstallmentCount > 1`, a cobrança é criada via `POST /paymentLinks` com `chargeType: "INSTALLMENT"`, exibindo o dropdown completo de 1x a 21x/12x no checkout Asaas.
+  - `lib/asaas-webhook-core.ts`: adicionado campo opcional `paymentLink?: string` no payload tipado `AsaasPaymentPayload`.
+  - `app/api/webhooks/asaas/route.ts`: na validação de titularidade do pagamento (`paymentBelongsToRecord`), permitida correspondência pelo `payment.paymentLink`. Quando identificado vínculo por link, o webhook revincula atômica e seguramente o registro para o `payment.id` definitivo da transação.
+  - `lib/installment-checkout.test.ts`: testes dedicados cobrindo a geração de link de pagamento parcelado e o tratamento de revinculação no webhook.
+  - Suíte de testes: 904 testes totais (903 aprovados, 1 ignorado, 0 falhas). Typecheck e audit prod com zero erros/vulnerabilidades.
+  - Progresso global P0 da V1 elevado para 97% (140 de 144 marcos concluídos; restam 4 marcos).
+
 ## 2026-11-05 11:00 (America/Sao_Paulo) — Auditoria geral completa de código, testes, segurança e pendências da V1
 
 - Auditoria técnica profunda e revalidação de integridade global de todo o RankFTV solicitada por Carlos Rocha para alinhamento e orquestração de sub-agentes no Maestri:

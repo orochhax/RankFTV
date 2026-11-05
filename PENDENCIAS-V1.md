@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`███████████████████░` **96,5% concluído** — 139 de 144 marcos P0 foram
-concluídos; restam apenas 5 marcos atômicos, agrupados abaixo de forma acionável.
+`███████████████████░` **97% concluído** — 140 de 144 marcos P0 foram
+concluídos; restam apenas 4 marcos atômicos, agrupados abaixo de forma acionável.
 A linha de base de 140 marcos foi ampliada em 20/10/2026 para 144
 marcos com quatro inclusões técnicas obrigatórias: parcelamento de inscrições,
 carteira/saque do organizador, dependências de produção sem vulnerabilidades e
@@ -195,9 +195,9 @@ Revalidação completa executada no worktree limpo (`feat/v1-installment-checkou
   `app/arenas/[handle]/assinar/[planId]/actions.ts` atualmente rejeita assinaturas
   pagas mesmo com flag, mantendo-as indisponíveis. A verificação de código não
   substitui confirmação formal PCI/SAQ nem aprovação do adquirente.
-- [ ] Concluir o parcelamento de inscrições no checkout hospedado do Asaas (PR #119 / PR #32 legada).
-  - [x] Backend/frontend implementado e coberto por testes: envio de `maxInstallmentCount` para o Checkout hospedado do Asaas nas ações de inscrição (`/inscrever`) e ingresso de atleta (`/comprar`) respeitando a configuração do campeonato (`max_parcelas_inscricao` e `max_parcelas_ingresso`), permitindo parcelamento em até 12x/21x com captura de cartão 100% no Asaas (zero escopo PCI no RankFTV) e repasse integral agendado em D+32 na carteira. Testes automatizados em `lib/installment-checkout.test.ts` (903 testes totais aprovados no CI).
-  - [ ] Conferência visual do checkout pelo operador/subagente no Sandbox Asaas e merge da PR #119 na branch padrão (`master`).
+- [x] Concluir o parcelamento de inscrições no checkout hospedado do Asaas (PR #119 mesclada / PR de refinamento).
+  - [x] Backend/frontend implementado e coberto por testes: envio de `maxInstallmentCount` para o Checkout hospedado do Asaas nas ações de inscrição (`/inscrever`) e ingresso de atleta (`/comprar`) respeitando a configuração do campeonato (`max_parcelas_inscricao` e `max_parcelas_ingresso`), permitindo parcelamento em até 12x/21x com captura de cartão 100% no Asaas (zero escopo PCI no RankFTV) e repasse integral agendado em D+32 na carteira. Testes automatizados em `lib/installment-checkout.test.ts` (904 testes totais aprovados no CI).
+  - [x] Conferência visual no Sandbox Asaas concluída em 05/11/2026 e PR #119 mesclada na master. Refinamento cirúrgico para `/v3/paymentLinks` (chargeType INSTALLMENT) implementado com suporte à conciliação e revinculação segura de `paymentLink` no webhook.
 - [x] Concluir a carteira individual e o saque manual do organizador. A PR #33
   foi encerrada formalmente em 04/11/2026 em favor do candidato limpo PR #71
   (`chore/v1-wallet-release-clean`). A PR #71 está sincronizada com a master

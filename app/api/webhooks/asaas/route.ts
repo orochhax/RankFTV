@@ -162,7 +162,28 @@ async function handleAsaasWebhook(req: NextRequest) {
       .select("asaas_payment_id")
       .eq("id", id)
       .maybeSingle();
-    if (error || !data || data.asaas_payment_id !== payment.id) {
+    const linkedByPaymentLink =
+      Boolean(payment.paymentLink) && data?.asaas_payment_id === payment.paymentLink;
+    const linkedByPaymentId = data?.asaas_payment_id === payment.id;
+    if (!error && data && linkedByPaymentLink && !linkedByPaymentId) {
+      // Cobrança gerada por link de pagamento: passa a apontar para o pagamento real.
+      const { error: updateError } = await supabase
+        .from(table)
+        .update({ asaas_payment_id: payment.id })
+        .eq("id", id)
+        .eq("asaas_payment_id", payment.paymentLink as string);
+      if (updateError) {
+        await reportOperationalEvent({
+          level: "error",
+          event: "webhook.payment_link_relink_failed",
+          message: "Failed to relink payment link to provider payment id",
+          context: { paymentId: payment.id, sourceTable: table, recordId: id },
+          alert: true,
+        });
+        return false;
+      }
+    }
+    if (error || !data || !(linkedByPaymentId || linkedByPaymentLink)) {
       await reportOperationalEvent({
         level: "error",
         event: "webhook.payment_ownership_mismatch",
