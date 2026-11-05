@@ -2,32 +2,24 @@
 
 ## V1 Comercial do RankFTV — Auditoria Geral e Estado de Release (05/11/2026)
 
-- Progresso consolidado da V1: **96% concluído** (138 de 144 marcos P0 concluídos).
-- Estado da branch padrão (`master` em `11727d9`):
+- Progresso consolidado da V1: **99% concluído** (142 de 144 marcos P0 concluídos).
+- Estado da branch padrão (`master` em `03d69bb`):
   - PR #71 (commit `bb7d6d7`): Carteira do organizador, saques com reserva atômica via RPC (`reserve_organizer_withdrawal_receivables`), filtros de pagamentos com multi-seleção simultânea de métodos (Pix, Crédito, Débito) e bypass de cooldown em Sandbox.
   - PR #88 e #116 (commits `26fe04d` e `68d28d9`): Bump de dependências sem vulnerabilidade (`@supabase/supabase-js` 2.118.0, `@playwright/test` 1.64.1, `lucide-react` 1.66.0, `openai` 7.47.0, `dompurify` 3.4.17 e `zod` 4.6.7).
   - PR #117 (commit `e898938`): Regularização jurídica nas rotas `/termos` e `/privacidade`, identificação de pessoa física Carlos Gregório Rocha Batista, canais de suporte oficiais e SLA (geral até 24h, eventos até 1h), política de reembolso CDC Art. 49 (7 dias integral) e fluxo LGPD Art. 19.
   - PR #118 (commit `11727d9`): Matriz de avisos de campeonato N01–N15 homologada com suíte automatizada (`lib/championship-notices-matrix.test.ts`) e documentada em `docs/MATRIZ-HOMOLOGACAO-NOTIFICACOES-V1.md`.
-- Estado da PR #119 (`feat/v1-installment-checkout`):
-  - Implementação completa do parcelamento no checkout hospedado do Asaas (`invoiceUrl`) propagando `maxInstallmentCount` a partir das configurações do campeonato (`max_parcelas_inscricao` e `max_parcelas_ingresso`), repasse integral D+32 e testes dedicados em `lib/installment-checkout.test.ts`. CI verde e Preview Vercel ativo.
+  - PR #119 / #120 / #122 (commits `bb45952`, `a6b3a95`, `03d69bb`): Parcelamento no checkout hospedado do Asaas em até 21x/12x (`chargeType: "INSTALLMENT"`), repasse integral D+32, piso mínimo de R$ 5,00 por parcela e conciliação atômica de `paymentLink` no webhook para ingressos e operações financeiras. Homologado no Sandbox com fatura 20373087 e comprovante emitido.
+  - E-mails comerciais no domínio: Cloudflare Email Routing ativo para `suporte@rankftv.com` e `contato@rankftv.com` redirecionando para `carlosrocha0923@gmail.com`.
+  - Estorno de cartão no Sandbox: Estorno total do parcelamento homologado com status `DONE` na adquirente, com webhook processando status `estornado` no ingresso e revertendo recebíveis do organizador.
 - Bateria técnica oficial de validação em 05/11/2026:
-  - 903 testes unitários (902 aprovados, 1 ignorado, 0 falhas).
+  - 904 testes unitários (903 aprovados, 1 ignorado, 0 falhas).
   - Typecheck com zero erros (`tsc --noEmit`).
   - ESLint com zero erros e 1.338 avisos de qualidade catalogados sob P2.
   - `npm audit --omit=dev` com zero vulnerabilidades.
-  - Teste Sandbox em `/comprar`: trigger SQL `enforce_ticket_participant_category_uniqueness` ativo impedindo duplicidade de inscrições atômica e confiavelmente.
-- O que falta para a abertura de pagamentos reais (Restam 6 marcos P0):
-  1. Conferência visual do parcelamento no Asaas Sandbox e merge da PR #119.
-  2. Configuração da caixa postal comercial `suporte@rankftv.com`.
-  3. Homologação de estorno parcial de cartão no Sandbox após janela de carência.
-  4. Confirmação formal do escopo PCI/SAQ A (checkout 100% hospedado no Asaas).
-  5. Execução do roteiro de Smoke final supervisionado em Produção (`docs/SMOKE-TRANSACIONAL-V1.md`).
-  6. Definição da data de abertura oficial de pagamentos reais por Carlos.
-- Guia para sub-agentes no Maestri:
-  - O arquivo canônico e detalhado de pendências e tarefas é `PENDENCIAS-V1.md`.
-  - A branch base limpa para novas tarefas é a `origin/master` (ou após o merge da PR #119).
-  - Nunca tocar em arquivos ou worktrees sujos (ex.: `feat/english-roadmap-personal`).
-  - Sempre rodar `npm test` e `npm run typecheck` antes de finalizar qualquer entrega.
+  - Smoke de produção (`scripts/production-readonly-smoke.mjs`): 12 requisições em `https://www.rankftv.com` aprovadas com média de 441 ms.
+- Pendências ativas antes da abertura oficial de pagamentos (arquivo canônico: `PENDENCIAS-V1.md`):
+  1. Teste de pagamento Pix real simbólico (R$ 5,00) em produção com estorno supervisionado imediato (a ser executado por Carlos posteriormente).
+  2. Definição da data de abertura oficial dos pagamentos reais da V1 por Carlos.
 
 ## Central de Evolucao - Calibracao da Biblioteca do Canal Carlos Rocha (04/11/2026)
 
