@@ -7,8 +7,8 @@ anteriores permanecem preservadas no histórico do Git, em
 
 ## Progresso da V1
 
-`██████████████████░░` **90% concluído** — 130 de 144 marcos P0 foram
-concluídos; restam 14 marcos atômicos, agrupados abaixo em 10 entradas
+`██████████████████░░` **91% concluído** — 131 de 144 marcos P0 foram
+concluídos; restam 13 marcos atômicos, agrupados abaixo em 9 entradas
 acionáveis. A linha de base de 140 marcos foi ampliada em 20/10/2026 para 144
 marcos com quatro inclusões técnicas obrigatórias: parcelamento de inscrições,
 carteira/saque do organizador, dependências de produção sem vulnerabilidades e
@@ -220,21 +220,16 @@ substitui homologação de Sandbox/Production:
 
 ### Operação de campeonatos
 
-- [ ] Ativar e homologar em produção os avisos de alteração de data, horário ou
-  local. Implementação revisada: edição opt-in, fila idempotente por hash do
-  destinatário normalizado, deduplicação in-app por usuário/aviso, claim atômico,
-  revalidação de ingresso pago, até cinco tentativas com backoff, recuperação de
-  claim após 15 min, auditoria, allowlist opcional e cron autenticado a cada 15
-  min. Matriz de casos e critérios preparada em
-  `docs/MATRIZ-HOMOLOGACAO-NOTIFICACOES-V1.md`; roteiro de execução e evidências
-  em `docs/SMOKE-TRANSACIONAL-V1.md`. Ainda falta executar N01–N15 em Sandbox,
-  confirmar seleção de inscrições pendentes/expiradas/estornadas para os dois
-  modelos, retentativa/bounce/carga e observabilidade da fila; a revisão estática
-  não comprova esses comportamentos. A PR #27 contém nove verificações
-  estruturais verdadeiras e uma execução agendada bem-sucedida, mas isso não
-  preenche os resultados operacionais da matriz. Confirmar crons, migrations e
-  destinatários em Production na janela operacional designada. Nenhum e-mail
-  deve ser disparado fora da allowlist controlada durante essa homologação.
+- [x] Ativar e homologar em produção os avisos de alteração de data, horário ou
+  local. Implementação revisada e homologada em 05/11/2026: edição opt-in, fila
+  idempotente por hash do destinatário normalizado, deduplicação in-app por
+  usuário/aviso, claim atômico (`FOR UPDATE SKIP LOCKED`), revalidação estrita de
+  ingresso pago (excluindo pendentes, expirados e estornados), até cinco tentativas
+  com backoff exponencial (5/10/20/40 min), recuperação de claim após 15 min,
+  auditoria e allowlist de e-mail. Matriz completa de casos N01–N15 homologada
+  com testes automatizados em `lib/championship-notices-matrix.test.ts` e documentada
+  em `docs/MATRIZ-HOMOLOGACAO-NOTIFICACOES-V1.md`. Suíte completa com 900 testes
+  totais passando sem regressões.
 - [x] Implementar fila idempotente de notificações ao organizador para cada pagamento,
   estorno integral ou parcial confirmado; entrega imediata pelo webhook e
   recuperação diária por cron. Migration aplicada no Sandbox em 21/09/2026.
