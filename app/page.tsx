@@ -126,7 +126,7 @@ export default async function Home({
                 fotoUrl={profile.foto_url}
               />
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-semibold tracking-widest text-amber-300 uppercase">
+                <p className="text-[11px] font-semibold tracking-widest text-blue-400 uppercase">
                   Bem-vindo de volta
                 </p>
                 <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">

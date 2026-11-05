@@ -49,7 +49,7 @@ export function DesktopSheetContourLight() {
     );
   }
 
-  const pathD = `M ${dims.width} 0 L 24 0 A 24 24 0 0 0 0 24 L 0 ${dims.height}`;
+  const pathD = `M ${dims.width} 24 A 24 24 0 0 0 ${dims.width - 24} 0 L 24 0 A 24 24 0 0 0 0 24 L 0 ${dims.height}`;
 
   return (
     <div

@@ -131,7 +131,7 @@ export function AgendaView({
         <PageContainer width="wide">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-300">Calendário</p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-400">Calendário</p>
               <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">Agenda</h1>
               <p className="mt-1 text-sm text-white/50">Datas, etapas e circuitos de futevôlei em todo o Brasil.</p>
             </div>
