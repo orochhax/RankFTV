@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, WalletCards } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { GastosDashboardClient } from "@/components/admin/gastos/GastosDashboardClient";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import { fetchCdiAnual } from "@/lib/bcb-cdi";
 import type { InvestmentSettings } from "@/lib/personal-finance-investments";
 import {
@@ -199,6 +200,7 @@ export default async function GastosPessoaisPage() {
 
       {/* ── Conteúdo branco ── */}
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
+        <DesktopSheetContourLight />
         <div className="w-full">
           <GastosDashboardClient
             entries={entries}

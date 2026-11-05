@@ -8,7 +8,7 @@ import { MinhasComprasClient } from "@/components/perfil/MinhasComprasClient";
 import { MinhasComprasTabs } from "@/components/perfil/MinhasComprasTabs";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { PageContainer } from "@/components/shell/PageContainer";
-import { PageHeader } from "@/components/shell/PageHeader";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import { resolveComprasTab, type CompraInscricaoRow } from "@/lib/minhas-compras";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -253,41 +253,32 @@ export default async function MinhasComprasPage({
 
   return (
     <div className="min-h-screen">
-      <div className="bg-brand-dark px-6 pb-16 pt-6 md:hidden">
-        <div className="w-full space-y-3">
+      <div className="bg-brand-dark px-6 pb-14 pt-8">
+        <PageContainer width="wide" className="space-y-3">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-sm text-white/50 transition-colors hover:text-white/80"
           >
             <ArrowLeft className="size-4" /> Início
           </Link>
-          <div className="flex items-center gap-2">
-            <ShoppingBag className="size-6 text-blue-400" />
-            <h1 className="text-2xl font-bold tracking-tight text-white">Minhas compras</h1>
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-blue-500/20">
+              <ShoppingBag className="size-5 text-blue-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Minhas compras</h1>
+              <p className="mt-0.5 text-sm text-white/50">
+                {total === 0
+                  ? "Ingressos e inscrições em um só lugar."
+                  : `${total} ${total === 1 ? "item" : "itens"} entre atleta e plateia.`}
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-white/50">
-            {total === 0
-              ? "Ingressos e inscrições em um só lugar."
-              : `${total} ${total === 1 ? "item" : "itens"} entre atleta e plateia.`}
-          </p>
-        </div>
-      </div>
-
-      <div className="hidden border-b border-border bg-surface md:block">
-        <PageContainer width="wide" className="py-8">
-          <PageHeader
-            eyebrow="Campeonatos"
-            title="Minhas compras"
-            description={
-              total === 0
-                ? "Ingressos e inscrições em um só lugar."
-                : `${total} ${total === 1 ? "item" : "itens"} entre atleta e plateia.`
-            }
-          />
         </PageContainer>
       </div>
 
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:pb-16 md:shadow-none">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
+        <DesktopSheetContourLight />
         <PageContainer width="wide" className="space-y-8">
           {cancelamento === "cancelado" && (
             <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">

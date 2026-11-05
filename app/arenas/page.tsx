@@ -2,7 +2,7 @@ import { DestaquesArenasCarousel, type ArenaDestaque } from "@/components/arenas
 import { ArenaSection } from "@/components/arenas/ArenaSection";
 import type { ArenaCardData, ProximaData } from "@/components/arenas/ArenaCard";
 import { PageContainer } from "@/components/shell/PageContainer";
-import { PageHeader } from "@/components/shell/PageHeader";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -122,18 +122,18 @@ export default async function ArenasPage({
 
   return (
     <div className="min-h-screen">
-      <div className="bg-brand-dark px-6 pb-10 pt-8 md:hidden">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-300">Beta</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-white">Arenas</h1>
-        <p className="mt-3 text-sm text-white/50">Encontre arenas e consulte aulas, planos e horários disponíveis.</p>
-      </div>
-      <div className="hidden border-b border-border bg-surface md:block">
-        <PageContainer width="wide" className="py-6">
-          <PageHeader title="Arenas · Beta" description="Encontre arenas e consulte aulas, planos e horários disponíveis." />
+      <div className="bg-brand-dark px-6 pb-14 pt-8">
+        <PageContainer width="wide">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-300">Beta</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">Arenas</h1>
+          <p className="mt-1.5 max-w-2xl text-sm text-white/50">
+            Encontre arenas e consulte aulas, planos e horários disponíveis.
+          </p>
         </PageContainer>
       </div>
 
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:pb-16 md:shadow-none">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
+        <DesktopSheetContourLight />
         <span aria-hidden="true" className="mobile-sheet-accent md:hidden" />
         <PageContainer width="wide" className="space-y-8">
           {destaques.length > 0 && <DestaquesArenasCarousel arenas={destaques} />}

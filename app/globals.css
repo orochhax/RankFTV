@@ -156,6 +156,16 @@ input[type="week"] {
   }
 }
 
+/* Quando a página possui cabeçalho escuro no topo, o feixe reto vertical da
+   barra lateral é suprimido para não cortar a divisa preta; a luz percorre
+   o contorno da folha branca via DesktopSheetContourLight. */
+.rankftv-desktop-sidebar--dark-header::after,
+body.has-dark-header .rankftv-desktop-sidebar::after {
+  display: none !important;
+  animation: none !important;
+  opacity: 0 !important;
+}
+
 .rankftv-desktop-sidebar__logo {
   width: 2.75rem;
   height: 2.75rem;
@@ -265,6 +275,43 @@ input[type="week"] {
 @keyframes home-mobile-sheet-accent-sweep {
   from { stroke-dashoffset: 10; }
   to { stroke-dashoffset: -90; }
+}
+
+/* Feixe de luz azul adaptativo que contorna o topo e a lateral da folha de conteúdo
+   nas páginas com cabeçalho escuro no desktop. */
+.desktop-sheet-contour {
+  pointer-events: none;
+}
+
+.desktop-sheet-contour-aura {
+  fill: none;
+  stroke: #2563eb;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 14 86;
+  filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.95)) drop-shadow(0 0 12px rgba(59, 130, 246, 0.7));
+  animation: desktop-sheet-contour-sweep 3.4s linear infinite;
+  will-change: stroke-dashoffset;
+}
+
+.desktop-sheet-contour-core {
+  fill: none;
+  stroke: #bfdbfe;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 14 86;
+  filter: drop-shadow(0 0 2px #ffffff);
+  animation: desktop-sheet-contour-sweep 3.4s linear infinite;
+  will-change: stroke-dashoffset;
+}
+
+@keyframes desktop-sheet-contour-sweep {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 100;
+  }
 }
 
 /* O hambúrguer fica à esquerda, então o card abre para dentro da tela. */

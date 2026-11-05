@@ -29,6 +29,7 @@ import {
 } from "@/components/shell/app-nav-items";
 import { criarCampeonatoHref, cadastrarArenaHref } from "@/lib/organizer-entry-links";
 import { FloatingMenu } from "@/components/shell/FloatingMenu";
+import { isDarkHeaderRoute } from "@/lib/dark-header";
 
 export type SidebarUser = { nome: string; username: string; fotoUrl: string | null } | null;
 
@@ -286,9 +287,13 @@ export function DesktopSidebar({
       collapsed ? "justify-center" : "!w-full justify-start gap-3 px-3"
     } ${extra}`;
 
+  const isDarkHeader = isDarkHeaderRoute(pathname);
+
   return (
     <aside
-      className={`rankftv-desktop-sidebar sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r border-zinc-800 bg-brand-dark px-3 py-4 transition-[width] duration-200 md:flex ${
+      className={`rankftv-desktop-sidebar ${
+        isDarkHeader ? "rankftv-desktop-sidebar--dark-header" : ""
+      } sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r border-zinc-800 bg-brand-dark px-3 py-4 transition-[width] duration-200 md:flex ${
         collapsed ? "w-20 items-center" : "w-64 items-stretch"
       }`}
     >

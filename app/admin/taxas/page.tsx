@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { TAXAS_EXIBICAO } from "@/lib/taxas";
 import { isAdminUser } from "@/lib/supabase/roles";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 
 export default async function AdminTaxasPage() {
   const supabase = await createClient();
@@ -28,6 +29,7 @@ export default async function AdminTaxasPage() {
       </div>
 
       <div className="relative -mt-6 rounded-t-3xl bg-gray-50 px-6 pb-24 pt-8">
+        <DesktopSheetContourLight />
         <div className="w-full space-y-4">
           <PlanoCard titulo="Padrão" pix={padrao.pix} cartao={padrao.cartao} minimo={minimo} />
           <PlanoCard titulo="Elite" pix={elite.pix} cartao={elite.cartao} minimo={minimo} destaque />

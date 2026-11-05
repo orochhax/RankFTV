@@ -1,12 +1,23 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, FileText, ChevronLeft, ChevronRight, Trophy, CalendarCheck, FilePenLine, Archive } from "lucide-react";
+import {
+  Plus,
+  ArrowLeft,
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+  Trophy,
+  CalendarCheck,
+  FilePenLine,
+  Archive,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyChampionshipsPage, type OrganizerChampionshipFilter } from "@/lib/supabase/championships";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { StatCard } from "@/components/shell/StatCard";
 import { EmptyState } from "@/components/shell/EmptyState";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import { MeusCampeonatosGrid, type OrganizerChampSummary } from "@/components/painel/MeusCampeonatosGrid";
 
 export default async function MeusCampeonatosPage({
@@ -56,21 +67,35 @@ export default async function MeusCampeonatosPage({
   ];
 
   return (
-    <PageContainer width="wide" className="space-y-6 py-8">
-      <PageHeader
-        title="Meus campeonatos"
-        description="Crie, publique e acompanhe todos os seus campeonatos em um só lugar."
-        actions={
+    <div className="min-h-screen">
+      <div className="bg-brand-dark px-6 pb-14 pt-8">
+        <PageContainer width="wide" className="space-y-4">
           <Link
-            href="/painel/novo-campeonato"
-            className="inline-flex items-center gap-1.5 rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            href="/painel"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-white/60 transition-colors hover:text-white"
           >
-            <Plus className="size-4" /> Criar campeonato
+            <ArrowLeft className="size-4" /> Painel do organizador
           </Link>
-        }
-      />
+          <PageHeader
+            theme="dark"
+            title="Meus campeonatos"
+            description="Crie, publique e acompanhe todos os seus campeonatos em um só lugar."
+            actions={
+              <Link
+                href="/painel/novo-campeonato"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+              >
+                <Plus className="size-4" /> Criar campeonato
+              </Link>
+            }
+          />
+        </PageContainer>
+      </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
+        <DesktopSheetContourLight />
+        <PageContainer width="wide" className="space-y-6">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Total de campeonatos" value={result.counts.all} icon={Trophy} />
         <StatCard label="Inscrições abertas / em andamento" value={result.counts.open} icon={CalendarCheck} tone="success" />
         <StatCard label="Rascunhos" value={result.counts.draft} icon={FilePenLine} tone="warning" />
@@ -133,6 +158,8 @@ export default async function MeusCampeonatosPage({
       >
         <FileText className="size-3.5" /> Termos de uso <ChevronRight className="size-3" />
       </Link>
-    </PageContainer>
+        </PageContainer>
+      </div>
+    </div>
   );
 }

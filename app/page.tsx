@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Bell, ChevronRight, Radio, MapPin, CalendarDays, Building2, Ticket, ShoppingBag } from "lucide-react";
-import { PersonaSwitcher } from "@/components/home/PersonaSwitcher";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
 import { CampeonatosSection } from "@/components/home/CampeonatosSection";
@@ -8,11 +7,11 @@ import { HamburgerMenu } from "@/components/home/HamburgerMenu";
 import { getLivChampionships, getPublishedChampionships } from "@/lib/supabase/championships";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateRangeBR } from "@/lib/format";
-import { PageHeader } from "@/components/shell/PageHeader";
 import { Surface } from "@/components/shell/Surface";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { SectionHeader } from "@/components/shell/SectionHeader";
 import { HomeBannerCarousel } from "@/components/home/HomeBannerCarousel";
+import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import { normalizeHomeBanners } from "@/lib/home-banners";
 import { parseDiscoveryFilters } from "@/lib/championship-discovery";
 
@@ -94,14 +93,14 @@ export default async function Home({
 
   return (
     <div className="min-h-screen">
-      {/* ── Cabeçalho: faixa escura no mobile, PageHeader claro no desktop ── */}
-      <div className="bg-black px-6 pb-12 pt-5 md:hidden">
-        <div className="mb-3 flex h-11 items-center gap-2">
+      {/* ── Cabeçalho escuro unificado (bg-brand-dark) no mobile e desktop ── */}
+      <div className="bg-brand-dark px-6 pb-14 pt-6">
+        <div className="mb-4 flex h-11 items-center gap-2 md:hidden">
           <div className="home-header-menu">
             <HamburgerMenu unreadCount={0} organizerHabilitado={organizerHabilitado} />
           </div>
           <Link href="/" className="text-2xl font-extrabold tracking-[-0.04em] text-white" aria-label="RankFTV — início">
-            Rank<span className="text-blue-600">FTV</span>
+            Rank<span className="text-blue-500">FTV</span>
           </Link>
           <Link
             href="/notificacoes"
@@ -116,41 +115,43 @@ export default async function Home({
             ) : null}
           </Link>
         </div>
-        {profile ? (
-          <div className="flex items-center gap-4">
-            <Avatar
-              nome={profile.nome}
-              color="bg-blue-500"
-              size="lg"
-              fotoUrl={profile.foto_url}
-            />
-            <div className="flex-1">
-              <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
-                Bem-vindo
-              </p>
-              <h1 className="text-2xl font-bold tracking-tight text-white">
-                {profile.nome.split(" ")[0]}
-              </h1>
-              <p className="text-sm text-gray-400">@{profile.username}</p>
-            </div>
-          </div>
-        ) : (
-          <PersonaSwitcher />
-        )}
-      </div>
 
-      <div className="hidden border-b border-border bg-surface md:block">
-        <PageContainer width="wide" className="py-6">
-          <PageHeader
-            eyebrow={profile ? "Bem-vindo de volta" : undefined}
-            title={profile ? profile.nome.split(" ")[0] : "Campeonatos de futevôlei"}
-            description={profile ? `@${profile.username}` : "Encontre e participe dos melhores campeonatos do Brasil."}
-          />
+        <PageContainer width="wide">
+          {profile ? (
+            <div className="flex items-center gap-4">
+              <Avatar
+                nome={profile.nome}
+                color="bg-blue-500"
+                size="lg"
+                fotoUrl={profile.foto_url}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-semibold tracking-widest text-amber-300 uppercase">
+                  Bem-vindo de volta
+                </p>
+                <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                  {profile.nome.split(" ")[0]}
+                </h1>
+                <p className="text-sm text-white/50">@{profile.username}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <p className="text-xs font-bold uppercase tracking-widest text-blue-400">RankFTV</p>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                Campeonatos de futevôlei
+              </h1>
+              <p className="text-sm text-white/50">
+                Encontre e participe dos melhores campeonatos do Brasil.
+              </p>
+            </div>
+          )}
         </PageContainer>
       </div>
 
-      {/* ── Corpo: sheet arredondada no mobile, grid larga no desktop ── */}
-      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:mt-0 md:rounded-none md:pb-16 md:shadow-none">
+      {/* ── Corpo: sheet arredondada (bg-app-bg) no mobile e desktop ── */}
+      <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
+        <DesktopSheetContourLight />
         <svg aria-hidden="true" className="home-mobile-sheet-accent md:hidden" viewBox="0 0 430 28" preserveAspectRatio="none">
           <path d="M0 28 A28 28 0 0 1 28 0 H402 A28 28 0 0 1 430 28" pathLength="100" />
         </svg>
