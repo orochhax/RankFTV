@@ -38,8 +38,8 @@ export function appendPreviousObservation(existing: CompetitorRecord | null, obs
     });
   }
   return previous
-    .filter((item) => item.observedAt !== observedAt)
-    .sort((a, b) => a.observedAt.localeCompare(b.observedAt));
+    .filter((item) => item && item.observedAt && item.observedAt !== observedAt)
+    .sort((a, b) => (a.observedAt ?? "").localeCompare(b.observedAt ?? ""));
 }
 
 export function hasVideoChanged(existing: CompetitorRecord | null, incoming: CompetitorVideo): boolean {
