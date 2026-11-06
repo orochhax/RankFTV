@@ -7,7 +7,6 @@ const DARK_HEADER_ROUTES = [
   "/painel",
   "/painel/campeonatos",
   "/admin/destaques",
-  "/admin/gastos",
   "/admin/gasto-mensal",
   "/admin/gasto-mensal/extrato",
   "/admin/taxas",
@@ -16,7 +15,7 @@ const DARK_HEADER_ROUTES = [
 export function isDarkHeaderRoute(pathname: string | null | undefined): boolean {
   if (!pathname) return false;
   if (DARK_HEADER_ROUTES.includes(pathname)) return true;
-  if (pathname.startsWith("/admin/gastos") || pathname.startsWith("/admin/gasto-mensal")) return true;
+  if (pathname.startsWith("/admin/gasto-mensal")) return true;
   return false;
 }
 

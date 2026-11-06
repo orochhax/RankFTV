@@ -55,8 +55,6 @@ test("commercial admin authorization has profiles.role as its only source of tru
     "app/admin/campeonatos/novo/page.tsx",
     "app/admin/campeonatos/[id]/editar/page.tsx",
     "app/admin/destaques/page.tsx",
-    "app/admin/noticias/page.tsx",
-    "app/admin/noticias/[id]/editar/page.tsx",
     "app/admin/taxas/page.tsx",
   ]) {
     const contents = source(file);
@@ -314,7 +312,6 @@ test("application errors never use native browser alerts", () => {
     "components/painel/EditarCampeonatoForm.tsx",
     "components/painel/LotesManager.tsx",
     "components/admin/AdminStatusSelect.tsx",
-    "components/admin/AdminDeleteNoticia.tsx",
     "components/admin/AdminDeleteCampeonato.tsx",
   ]) {
     const contents = source(file);
