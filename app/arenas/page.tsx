@@ -199,24 +199,18 @@ export default function ArenasPage() {
 
         <PageContainer width="wide" className="space-y-10">
           <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/80 via-white to-amber-50/60 p-5 sm:p-6 shadow-sm">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-soft">
-                  <Building2 className="size-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-gray-900">
-                    O futuro do dia a dia das arenas no RankFTV
-                  </h2>
-                  <p className="text-sm text-gray-600">
-                    Estamos desenvolvendo um módulo exclusivo para profissionalizar a rotina de quem ensina e dar comodidade para quem treina.
-                  </p>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-soft">
+                <Building2 className="size-5" />
               </div>
-              <span className="self-start sm:self-auto shrink-0 inline-flex items-center gap-1.5 rounded-full bg-blue-600/10 px-3 py-1 text-xs font-semibold text-blue-700">
-                <Sparkles className="size-3.5" />
-                Lançamento pós-V1
-              </span>
+              <div>
+                <h2 className="text-base font-bold text-gray-900">
+                  O futuro do dia a dia das arenas no RankFTV
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Estamos desenvolvendo um módulo exclusivo para profissionalizar a rotina de quem ensina e dar comodidade para quem treina.
+                </p>
+              </div>
             </div>
           </div>
 
