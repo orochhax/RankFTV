@@ -21,6 +21,15 @@
   1. Teste de pagamento Pix real simbólico (R$ 5,00) em produção com estorno supervisionado imediato (a ser executado por Carlos posteriormente).
   2. Definição da data de abertura oficial dos pagamentos reais da V1 por Carlos.
 
+## Central de Evolução - Atualização do Rocha Tech e Base de 24 Concorrentes (06/11/2026)
+
+- A base de concorrentes do Rocha Tech foi ampliada para 24 canais com a adição de **Felipe Borges - Fala IA!** e **Bianca Vilaplana**.
+- Coleta completa executada via YouTube Data API v3 com chave exclusiva: 3.853 vídeos analisados na janela móvel de 365 dias (33 novos vídeos catalogados, 2.199 visualizações atualizadas, zero falhas).
+- Implementado fallback ordenado por resolução no download de thumbnails em `lib/youtube/competitors/storage.ts` (100% de integridade local).
+- Sincronização em produção no Supabase (Run ID: `7ebdcb9c-3217-4734-94a8-6be1285ded41`): 39 conteúdos verificados em 17 fontes ativas, 20 tendências e 24 ideias reavaliadas com 96 abordagens e regra de ouro editorial.
+- Snapshot seguro (`lib/evolution/intelligence-snapshot.json`) atualizado com 15 oportunidades rankeadas pela ponderação editorial (65/25/10).
+- Publicação da PR RankFTV `#138` (commit `f66a6f1`), com 893 testes unitários passando, typecheck sem erros e deploy em produção na Vercel ativo com HTTP 200 em `/api/health`.
+
 ## Central de Evolução - Adição de Daniel Lima e Atualização de Concorrentes (05/11/2026)
 
 - O canal `@daniellimae` (Daniel Lima) foi integrado à lista oficial de concorrentes monitorados (agora 15 canais no total, 1.595 vídeos coletados e 1.595 thumbnails válidas na janela de 365 dias).
