@@ -39,6 +39,11 @@ const ptBrTitlesByVideoId: Record<string, string> = {
   Y9sYXgGxohw: "Claude Cowork: tutorial completo para iniciantes (o fim do SaaS?)",
   f53vJbPomCs: "Como criar um agente de IA com RAG no N8N: tutorial passo a passo",
   SNo_recKZyY: "Como usar o Claude Cowork: guia completo de automação de fluxos em 2026",
+  wtDDjBOfTZo: "Me dê 26 minutos e te darei 10.000 horas de conhecimento em Claude",
+  DZoeGR_tatA: "5 formas comprovadas de ganhar dinheiro com IA (sem experiência)",
+  vOBKA8n15vg: "Como ganhar US$ 10.000/mês com Higgsfield (sem experiência)",
+  J5EbL1UaqG8: "Claude 2.0 é insano (todas as atualizações explicadas)",
+  HDmBwU5uvEE: "A Anthropic revelou 7 novas regras para criar prompts nos modelos Claude 5",
 };
 
 const editorialTitle = (id: string | null, title: string) =>
@@ -185,14 +190,18 @@ async function readCompetitorFiles(): Promise<Snapshot> {
             ? `/api/admin/youtube/research?asset=thumbnail&channel=${encodeURIComponent(entry.name)}&video=${encodeURIComponent(id)}`
             : null,
           views: normalizeCollectedViews(typeof video.views === "number" ? video.views : observation.views),
+          likes: normalizeCollectedViews(video.likes),
+          comments: normalizeCollectedViews(video.comments),
           durationSeconds: typeof video.durationSeconds === "number"
             ? video.durationSeconds
             : typeof video.duration_seconds === "number"
               ? video.duration_seconds
               : null,
+          isLive: Boolean(video.isLive),
           publishedAt,
           publishedText,
           observedAt: item.observedAt ?? observation.observed_at ?? null,
+          previousObservations: Array.isArray(item.previousObservations) ? item.previousObservations : [],
         });
       }
       channels.push({ name: channelName, id: channelId, url: channelUrl, folder: entry.name });

@@ -27,6 +27,16 @@
 - Recálculo das medianas e atualização do ranking estatístico de 15 outliers em `lib/evolution/carlos-rocha-rank-snapshot.json` (teto de 3 vídeos por canal).
 - Biblioteca de Ideias atualizada com versionamento cumulativo contínuo (`lib/evolution/carlos-rocha-library.json`), com 16 pautas ranqueadas e sem remoções (score >= 50).
 
+## Central de Evolução - Ranking de Oportunidades em 5 Camadas e Stack até R$ 200 (06/11/2026)
+
+- O Ranking de Oportunidades de Inteligência Editorial (`/admin/evolucao/rocha-tech`) foi evoluído para um motor em **5 camadas** (0 a 100 pontos):
+  - **Explosão no Canal (`0–32 pts`)**: múltiplo sobre a mediana de vídeos longos (> 180s), com bônus de maturação para vídeos jovens e bônus de escala para canais gigantes (>= 200k mediana).
+  - **Escala de Audiência (`0–26 pts`)**: curva logarítmica de views totais para valorizar mega-hits (1M–2,6M views).
+  - **Tração Viva Hoje (`0–22 pts`)**: combinação de views/dia recentes entre observações (`previousObservations`, peso 60%) e views/dia desde a publicação (peso 40%).
+  - **Engajamento Relativo (`0–10 pts`)**: razão de comentários/views (65%) e likes/views (35%) contra a mediana do próprio canal.
+  - **Replicabilidade na Stack & Validade (`0–10 pts`)**: prioriza vídeos replicáveis na stack de Carlos (**Google IA Pro** com Gemini/Flow/NotebookLM, **ChatGPT**, **Claude** e ferramentas até **R$ 200/mês**), aplicando desconto para ferramentas caras de créditos (> R$ 200/mês como Higgsfield/Runway pagos) e decaimento para notícias puras antigas (> 25 dias).
+- Filtro temático atualizado para incluir **Dinheiro, Negócios e Vendas** além de IA, Tecnologia, Automação, Sistemas e Carreira, excluindo Shorts, Lives, Podcasts/Entrevistas e vlogs pessoais sem método transferível.
+
 ## Central de Evolução - Atualização do Rocha Tech e Base de 24 Concorrentes (06/11/2026)
 
 - A base de concorrentes do Rocha Tech foi ampliada para 24 canais com a adição de **Felipe Borges - Fala IA!** e **Bianca Vilaplana**.

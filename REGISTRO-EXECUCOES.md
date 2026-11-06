@@ -1754,3 +1754,31 @@ registrar apenas uma revalidação quando ela for necessária.
 - Não foram alterados Supabase, dados editoriais, Prompt Mestre, Vercel env ou
   `.env.local`. O dry-run real da API depende da nova chave exclusiva do Rocha
   Tech ser criada e configurada localmente por Carlos.
+
+## 2026-11-06 — Rocha Tech: adição de 2 canais, atualização completa e Ranking em 5 Camadas
+
+- Escopo aprovado por Carlos: adicionar os canais `Felipe Borges - Fala IA!` e
+  `Bianca Vilaplana` (totalizando 24 canais), executar a atualização completa
+  de concorrentes e radar em Production, e evoluir o Ranking de Oportunidades
+  para um modelo de 5 camadas calibrado para a stack de Carlos (até R$ 200/mês).
+- Coleta oficial via YouTube Data API v3 concluída nos 24 canais: 3.853 vídeos
+  na janela anual, 33 novos vídeos catalogados, 2.199 visualizações atualizadas
+  e zero falhas. Importação em Production concluída no run
+  `7ebdcb9c-3217-4734-94a8-6be1285ded41` (PR `#138`, commit `f66a6f1`).
+- Implementado o novo motor de **Ranking de Oportunidades em 5 Camadas**
+  (`lib/evolution/opportunity-ranking.ts`, `lib/evolution/intelligence.ts`,
+  `components/evolution/EditorialIntelligence.tsx`):
+  1. Explosão no Canal (`0–32 pts`, mediana apenas de vídeos longos > 180s,
+     bônus de maturação e escala);
+  2. Escala de Audiência (`0–26 pts`, log10 das views totais);
+  3. Tração Viva Hoje (`0–22 pts`, velocidade diária recente via
+     `previousObservations` + velocidade vitalícia);
+  4. Engajamento Relativo (`0–10 pts`, comentários/views e likes/views vs.
+     mediana do próprio canal);
+  5. Replicabilidade na Stack & Validade (`0–10 pts`, premiando Claude,
+     ChatGPT, Google IA Pro/Gemini/Flow e ferramentas até R$ 200/mês, e
+     penalizando ferramentas caras de crédito > R$ 200/mês).
+- Filtro temático expandido para incluir Negócios, Dinheiro e Vendas junto com
+  IA, Tecnologia, Automação, Sistemas e Carreira, barrando vlogs pessoais sem
+  método replicável, podcasts, entrevistas, lives e Shorts.
+
