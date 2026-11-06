@@ -54,14 +54,15 @@ export default async function TesteHomeMobilePage({
     organizerEnabled = !!organizerResult.data?.habilitado;
   }
 
-  const [published, configResult, live] = await Promise.all([
+  const [published, configResult, bannersResult, live] = await Promise.all([
     getPublishedChampionships(),
-    supabase.from("platform_config").select("destaques_ids, home_banners").eq("id", 1).single(),
+    supabase.from("platform_config").select("destaques_ids").eq("id", 1).maybeSingle(),
+    supabase.from("platform_config").select("home_banners").eq("id", 1).maybeSingle(),
     getLivChampionships(),
   ]);
 
   const featuredIds = (configResult.data?.destaques_ids as string[] | null) ?? [];
-  const homeBanners = normalizeHomeBanners(configResult.data?.home_banners);
+  const homeBanners = normalizeHomeBanners(bannersResult.data?.home_banners);
   const featured = (featuredIds.length > 0
     ? featuredIds.map((id) => published.find((championship) => championship.id === id)).filter(Boolean) as typeof published
     : published.filter((championship) => championship.status === "inscricoes_abertas" || championship.status === "em_andamento").slice(0, 3)
