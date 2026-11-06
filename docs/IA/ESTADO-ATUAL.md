@@ -27,6 +27,13 @@
 - Recálculo das medianas e atualização do ranking estatístico de 15 outliers em `lib/evolution/carlos-rocha-rank-snapshot.json` (teto de 3 vídeos por canal).
 - Biblioteca de Ideias atualizada com versionamento cumulativo contínuo (`lib/evolution/carlos-rocha-library.json`), com 16 pautas ranqueadas e sem remoções (score >= 50).
 
+## Central de Evolução - Calibração de Ideias em 5 Pilares e Filtro "Vira Vídeo?" em Notícias (06/11/2026)
+
+- **Biblioteca de Ideias (`/admin/evolucao/rocha-tech/ideias`)**: eliminada a inflação de notas (6 ideias empatadas em 100) com a nova **Fórmula de 5 Pilares** (teto real de 98 pontos): `30 pts` Prova nos Concorrentes · `25 pts` Transformação/Negócios/Sistemas · `20 pts` Execução na Stack até R$ 200 · `15 pts` Timing e Durabilidade · `10 pts` Ponte Gringa → Brasil.
+- **Validador de Ferramentas (`lib/youtube/recording-requirements.ts`)**: atualizado para reconhecer a stack real de Carlos (**Google IA Pro** com Gemini/Flow/NotebookLM/Antigravity, **ChatGPT** e **Claude** com teto de **R$ 200/mês**) e sinalizar ferramentas de créditos pesados acima do teto.
+- **Radar de Notícias (`lib/youtube/domain.ts` e `lib/youtube/queries.ts`)**: implementada a função `computeLiveNewsOpportunityScore` com teto de `64` pontos para comunicados corporativos/industriais sem vídeo prático (ex.: simulação de chips, políticas internas) e decaimento automático por idade.
+- **Sincronização em Produção no Supabase (Run ID: `328b3e52-9fee-4e07-8e1f-0e6f71a8d8a2`)**: 27 ideias ranqueadas (3 novas pautas de alta tração baseadas nos líderes dos 24 canais + 24 ideias recalibradas sem empates em 100), 108 abordagens e 39 notícias recalibradas.
+
 ## Central de Evolução - Ranking de Oportunidades em 5 Camadas e Stack até R$ 200 (06/11/2026)
 
 - O Ranking de Oportunidades de Inteligência Editorial (`/admin/evolucao/rocha-tech`) foi evoluído para um motor em **5 camadas** (0 a 100 pontos):

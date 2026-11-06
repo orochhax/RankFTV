@@ -1780,5 +1780,18 @@ registrar apenas uma revalidação quando ela for necessária.
      penalizando ferramentas caras de crédito > R$ 200/mês).
 - Filtro temático expandido para incluir Negócios, Dinheiro e Vendas junto com
   IA, Tecnologia, Automação, Sistemas e Carreira, barrando vlogs pessoais sem
-  método replicável, podcasts, entrevistas, lives e Shorts.
+  método replicável, podcasts, entrevistas, lives e Shorts (PR `#140`, commit
+  `b232de2`).
+- Em seguida, sob aprovação de Carlos, foram evoluídas as camadas de
+  **Recomendações de Ideias e Notícias**:
+  - Implementado `computeLiveNewsOpportunityScore` (`lib/youtube/domain.ts` e
+    `lib/youtube/queries.ts`) com filtro "Vira Vídeo?" (teto 64 para notícias
+    corporativas/industriais sem demonstração prática) e decaimento por idade;
+  - Atualizado `getRecordingRequirements` (`lib/youtube/recording-requirements.ts`)
+    com a stack real de Carlos (Google IA Pro + ChatGPT + Claude até R$ 200/mês);
+  - Importada em Production a rodada `328b3e52-9fee-4e07-8e1f-0e6f71a8d8a2` com
+    27 ideias ranqueadas pela Fórmula de 5 Pilares (teto 98, sem empates em 100,
+    incluindo 3 novas pautas Ponte Gringa → Brasil), 108 abordagens e 39
+    notícias recalibradas.
+
 

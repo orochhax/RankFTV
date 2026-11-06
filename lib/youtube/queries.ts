@@ -2,6 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireYoutubeOwner } from "@/lib/youtube/access";
+import { computeLiveNewsOpportunityScore } from "@/lib/youtube/domain";
 import { bestIdeaApproachPresentation, selectBestIdeaApproachesByIdea, type StoredIdeaApproachSummary, type YoutubeIdeaApproachKey } from "@/lib/youtube/idea-approaches";
 
 export type YoutubeNewsItem = {
@@ -125,7 +126,10 @@ function mapNewsRow(row: Record<string, unknown>, isNew = false): YoutubeNewsIte
     summary_pt_br: analysis?.summary_pt_br ?? null,
     why_it_matters: analysis?.why_it_matters ?? null,
     reliability: analysis?.reliability ?? null,
-    opportunity_score: analysis?.opportunity_score ?? null,
+    opportunity_score: computeLiveNewsOpportunityScore({
+      title: String(row.title), summary_pt_br: analysis?.summary_pt_br ?? null, why_it_matters: analysis?.why_it_matters ?? null,
+      opportunity_score: analysis?.opportunity_score ?? null, published_at: typeof row.published_at === "string" ? row.published_at : null, collected_at: String(row.collected_at),
+    }),
     confidence_score: analysis?.confidence_score ?? null,
     evidence_type: analysis?.evidence_type ?? null,
     source_origin: sourceOrigin,
