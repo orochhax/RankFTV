@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, Newspaper, Activity, WalletCards, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing, BellRing, BadgeCheck, GraduationCap, Plane, Languages, Clapperboard } from "lucide-react";
+import { Percent, Users, Star, Trophy, Activity, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing, BellRing, BadgeCheck, Languages, Clapperboard } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRole, isAdminRole } from "@/lib/supabase/roles";
 import { isPerformanceOwner } from "@/lib/performance-owner";
@@ -19,13 +19,6 @@ const MENU = [
     icon: Languages,
     label: "Roadmap de inglês",
     desc: "Plano pessoal de um ano com progresso separado para Carlos e Júlia.",
-  },
-  {
-    href: "/admin/estudos",
-    ownerOnly: true,
-    icon: GraduationCap,
-    label: "Central de estudos",
-    desc: "Planejamento, matérias, cronômetro e evolução em uma única página.",
   },
   {
     href: "/admin/carteiras",
@@ -63,13 +56,6 @@ const MENU = [
     desc: "Seu painel pessoal: metas do dia, constância e evolução.",
   },
   {
-    href: "/admin/gastos",
-    ownerOnly: true,
-    icon: WalletCards,
-    label: "Gastos pessoais",
-    desc: "Controle financeiro pessoal de Carlos e Julia — isolado do RankFTV.",
-  },
-  {
     href: "/admin/gasto-mensal",
     ownerOnly: true,
     icon: CalendarRange,
@@ -77,23 +63,10 @@ const MENU = [
     desc: "Planejamento financeiro mensal de Carlos e Julia — receitas, despesas e resultado previsto.",
   },
   {
-    href: "/admin/mudanca-portugal",
-    personalOwnerOnly: true,
-    icon: Plane,
-    label: "Mudança para Portugal",
-    desc: "Lista de tarefas e controle de gastos pessoais para sua mudança.",
-  },
-  {
     href: "/admin/campeonatos",
     icon: Trophy,
     label: "Campeonatos",
     desc: "Veja todos os campeonatos, mude o status, exclua e contate o organizador.",
-  },
-  {
-    href: "/admin/noticias",
-    icon: Newspaper,
-    label: "Notícias",
-    desc: "Crie e exclua as notícias que aparecem na home e em /noticias.",
   },
   {
     href: "/admin/destaques",

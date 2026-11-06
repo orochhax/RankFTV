@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "lint:types": "eslint --config eslint.typed.config.mjs .",
-    "lint:types:critical": "eslint --config eslint.typed.config.mjs app/admin/gastos/actions.ts app/admin/gasto-mensal/actions.ts app/painel/campeonatos/[id]/financeiro/actions.ts lib/pagamento-inscricao.ts lib/auth-input-schemas.ts lib/auth-error-messages.ts app/auth app/login/page.tsx app/cadastro/page.tsx app/recuperar-senha/page.tsx app/recuperar-senha/atualizar/page.tsx",
+    "lint:types:critical": "eslint --config eslint.typed.config.mjs app/admin/gasto-mensal/actions.ts app/painel/campeonatos/[id]/financeiro/actions.ts lib/pagamento-inscricao.ts lib/auth-input-schemas.ts lib/auth-error-messages.ts app/auth app/login/page.tsx app/cadastro/page.tsx app/recuperar-senha/page.tsx app/recuperar-senha/atualizar/page.tsx",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test lib/**/*.test.ts",
     "test:e2e": "playwright test",
