@@ -5,6 +5,15 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-06 16:20 (America/Sao_Paulo) — Atualização completa do radar editorial e concorrentes via YouTube API v3
+
+- Base de concorrentes ampliada para 24 canais (adição de Felipe Borges - Fala IA! e Bianca Vilaplana).
+- Coleta oficial pela YouTube Data API v3 com chave exclusiva do Rocha Tech: 3.853 vídeos analisados na janela de 365 dias (33 novos vídeos catalogados e 2.199 visualizações atualizadas), com zero falhas e zero fallbacks.
+- Implementado fallback ordenado por resolução em `lib/youtube/competitors/storage.ts` para garantir integridade do download de thumbnails mesmo quando links QHD forem inexistentes no CDN.
+- Sincronização em produção no Supabase via `scripts/youtube-import-research.ts`: Run ID `7ebdcb9c-3217-4734-94a8-6be1285ded41`, com 39 conteúdos verificados em 17 fontes ativas, 20 tendências e 24 ideias reavaliadas com 96 abordagens e cumprimento estrito da regra de ouro editorial.
+- Snapshot seguro (`lib/evolution/intelligence-snapshot.json`) atualizado com 15 oportunidades rankeadas pela ponderação editorial (65% IA aplicada / 25% sistemas e produtividade / 10% atualidades).
+- Pull Request #138 aberta e mesclada em `master` (`f66a6f1`). Suíte de 893 testes unitários aprovada, typecheck sem erros e deploy em produção Vercel ativo com HTTP 200 em `https://www.rankftv.com/api/health`.
+
 ## 2026-11-05 13:50 (America/Sao_Paulo) — Homologação ponta a ponta do checkout parcelado Asaas Sandbox e reconciliação financeira (P0)
 
 - Concluída a homologação transacional supervisionada do fluxo completo de compra parcelada com cartão de crédito no Asaas Sandbox:
