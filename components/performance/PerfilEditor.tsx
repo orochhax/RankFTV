@@ -76,7 +76,15 @@ export function PerfilEditor({ userId, nome, email, telefone, dataNascimento, fo
           {photoUrl ? <Image src={photoUrl} alt={nome} width={80} height={80} className="h-full w-full object-cover" /> : names.firstName.slice(0, 1).toUpperCase()}
           {uploading && <span className="absolute inset-0 flex items-center justify-center bg-black/60"><Loader2 className="size-5 animate-spin" /></span>}
         </div>
-        <div><button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-semibold text-white/75 hover:bg-white/[0.08] disabled:opacity-50"><Camera className="size-4" />Alterar foto</button><p className="mt-2 text-xs text-white/30">JPG, PNG ou WebP, ate 2 MB.</p><input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadPhoto} className="hidden" /></div>
+        <div>
+          <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-semibold text-white/75 hover:bg-white/[0.08] disabled:opacity-50">
+            <Camera className="size-4" />Alterar foto
+          </button>
+          <p className="mt-2 text-xs text-white/50">
+            Tamanho ideal: <span className="font-semibold text-white/80">400×400 px</span> (1:1) · Máx. <span className="font-semibold text-white/80">2 MB</span> (JPG, PNG ou WebP)
+          </p>
+          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadPhoto} className="hidden" />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

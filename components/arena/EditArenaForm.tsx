@@ -179,7 +179,9 @@ export function EditArenaForm({
           </div>
           <div>
             <p className="text-sm font-medium text-gray-700">Logo ou foto da arena</p>
-            <p className="text-xs text-gray-400 mt-0.5">Foto quadrada (1:1). Clique para alterar.</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Tamanho ideal: <strong className="font-semibold text-gray-700">400×400 px</strong> (quadrada 1:1) · Máx. <strong className="font-semibold text-gray-700">2 MB</strong> (JPG, PNG ou WebP)
+            </p>
           </div>
         </div>
         <input
@@ -196,9 +198,14 @@ export function EditArenaForm({
 
       {/* ── Fotos do espaço ── */}
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Fotos do espaço
-        </p>
+        <div className="mb-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Fotos do espaço
+          </p>
+          <p className="mt-0.5 text-xs text-gray-500">
+            Tamanho ideal: <strong className="font-semibold text-gray-700">1200×800 px</strong> (3:2 ou 16:9) · Máx. <strong className="font-semibold text-gray-700">5 MB</strong> cada (JPG, PNG ou WebP)
+          </p>
+        </div>
         <div className="flex flex-wrap gap-3">
           {photos.map((p, i) => (
             <div key={p.id} className="relative size-24 overflow-hidden rounded-xl bg-gray-100 group">

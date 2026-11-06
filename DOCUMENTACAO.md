@@ -505,9 +505,10 @@ Consequências no fluxo atual:
 - faixas e funções já implementadas foram preservadas apenas para uma futura
   reconstrução, sem serem tratadas como funcionalidade disponível.
 
-O questionário **Nível do evento** exibido ao criar um campeonato é independente:
-ele classifica o evento como Local, Open ou Elite e continua ativo. Ele não mede o
-nível do atleta nem escolhe sua categoria.
+O antigo questionário **Nível do evento** foi removido do cadastro para agilizar
+a criação de campeonatos. O tier assume "local" por padrão no banco de dados e pode
+ser promovido automaticamente de acordo com as inscrições confirmadas (10+ duplas Open,
+20+ duplas Elite). Ele não mede o nível do atleta nem escolhe sua categoria.
 
 Uma reativação futura não deve consistir apenas em mudar o guard. O fluxo correto
 precisa coletar os dados e as respostas dos dois atletas antes da escolha, calcular

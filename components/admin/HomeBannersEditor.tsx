@@ -146,7 +146,9 @@ export function HomeBannersEditor({ initialBanners }: { initialBanners: HomeBann
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
               className={`${fieldClass} mt-1 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-blue-700`}
             />
-            <p className="mt-1 text-xs text-gray-400">JPEG, PNG ou WebP, até 5 MB.</p>
+            <p className="mt-1 text-xs text-gray-500">
+              Tamanho ideal: <strong className="font-semibold text-gray-700">1920×600 px</strong> (panorâmico 16:5) · Máx. <strong className="font-semibold text-gray-700">5 MB</strong> (JPG, PNG ou WebP)
+            </p>
           </div>
           <div>
             <label htmlFor="home-banner-alt" className="text-xs font-medium text-gray-600">Texto alternativo *</label>
