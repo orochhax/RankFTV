@@ -15,7 +15,7 @@ export default async function AdminDestaquesPage() {
   const supabase = await createClient();
   if (!(await isAdminUser(supabase))) redirect("/");
 
-  const [campeonatos, arenaRows, configRow] = await Promise.all([
+  const [campeonatos, arenaRows, configRow, bannersRow] = await Promise.all([
     getPublishedChampionships(),
     supabase
       .from("arenas")
@@ -23,14 +23,19 @@ export default async function AdminDestaquesPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("platform_config")
-      .select("destaques_ids, arenas_destaques_ids, home_banners")
+      .select("destaques_ids, arenas_destaques_ids")
       .eq("id", 1)
-      .single(),
+      .maybeSingle(),
+    supabase
+      .from("platform_config")
+      .select("home_banners")
+      .eq("id", 1)
+      .maybeSingle(),
   ]);
 
   const destaquesIds: string[]       = (configRow.data?.destaques_ids as string[]        | null) ?? [];
   const arenasDestaquesIds: string[] = (configRow.data?.arenas_destaques_ids as string[] | null) ?? [];
-  const homeBanners = normalizeHomeBanners(configRow.data?.home_banners);
+  const homeBanners = normalizeHomeBanners(bannersRow.data?.home_banners);
 
   // Busca contagem de alunos para cada arena
   const arenaList = arenaRows.data ?? [];

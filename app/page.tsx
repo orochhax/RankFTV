@@ -58,18 +58,23 @@ export default async function Home({
     organizerHabilitado = !!orgRes.data?.habilitado;
   }
 
-  const [publicados, configRow, aoVivo] = await Promise.all([
+  const [publicados, configRow, bannersRow, aoVivo] = await Promise.all([
     getPublishedChampionships(),
     supabase
       .from("platform_config")
-      .select("destaques_ids, home_banners")
+      .select("destaques_ids")
       .eq("id", 1)
-      .single(),
+      .maybeSingle(),
+    supabase
+      .from("platform_config")
+      .select("home_banners")
+      .eq("id", 1)
+      .maybeSingle(),
     getLivChampionships(),
   ]);
 
   const destaquesIds: string[] = (configRow.data?.destaques_ids as string[] | null) ?? [];
-  const homeBanners = normalizeHomeBanners(configRow.data?.home_banners);
+  const homeBanners = normalizeHomeBanners(bannersRow.data?.home_banners);
   const destaques = (destaquesIds.length > 0
     ? destaquesIds.map((id) => publicados.find((c) => c.id === id)).filter(Boolean) as typeof publicados
     : publicados.filter((c) => c.status === "inscricoes_abertas" || c.status === "em_andamento").slice(0, 3)
