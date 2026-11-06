@@ -1,133 +1,194 @@
-import { DestaquesArenasCarousel, type ArenaDestaque } from "@/components/arenas/DestaquesArenasCarousel";
-import { ArenaSection } from "@/components/arenas/ArenaSection";
-import type { ArenaCardData, ProximaData } from "@/components/arenas/ArenaCard";
+import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
+import {
+  GraduationCap,
+  Users,
+  CalendarCheck,
+  CreditCard,
+  TrendingUp,
+  Smartphone,
+  Zap,
+  Award,
+  Sparkles,
+  ArrowRight,
+  CheckCircle2,
+  Building2,
+  Clock,
+} from "lucide-react";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 
-const PAGE_SIZE = 12;
-const DIAS_LABEL = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
-const ESTADOS = [
-  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS",
-  "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC",
-  "SP", "SE", "TO",
-];
-
-type ArenaRpcRow = {
-  id: string;
-  nome: string;
-  handle: string;
-  cidade: string;
-  estado: string;
-  descricao: string | null;
-  avatar_url: string | null;
-  banner_url: string | null;
-  alunos: number | string;
-  dias_semana: number[] | null;
-  total_count: number | string;
+export const metadata = {
+  title: "Arenas & CTs (Em breve) — RankFTV",
+  description: "Conheça a futura Central de Arenas e Centros de Treinamento de Futevôlei do RankFTV para professores e alunos.",
 };
 
-function computeNextDates(daysOfWeek: number[], count = 7): ProximaData[] {
-  if (!daysOfWeek.length) return [];
-  const result: ProximaData[] = [];
-  const date = new Date();
-  date.setHours(12, 0, 0, 0);
-  for (let attempts = 0; result.length < count && attempts < 60; attempts++) {
-    if (daysOfWeek.includes(date.getDay())) {
-      result.push({ dia: date.getDate(), label: DIAS_LABEL[date.getDay()] });
-    }
-    date.setDate(date.getDate() + 1);
-  }
-  return result;
-}
+type BenefitItem = {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+};
 
-function toCard(row: ArenaRpcRow): ArenaCardData {
-  return {
-    id: row.id,
-    nome: row.nome,
-    handle: row.handle,
-    cidade: row.cidade,
-    estado: row.estado,
-    descricao: row.descricao,
-    avatar_url: row.avatar_url,
-    banner_url: row.banner_url,
-    alunos: Number(row.alunos ?? 0),
-    proximasDatas: computeNextDates(row.dias_semana ?? []),
-  };
-}
+const PROFESSOR_BENEFITS: BenefitItem[] = [
+  {
+    icon: Users,
+    title: "Controle de Alunos & Turmas",
+    desc: "Chega de anotações soltas no WhatsApp. Saiba quem está matriculado, alunos faltosos, reposições e histórico de aulas experimentais por turma.",
+  },
+  {
+    icon: CalendarCheck,
+    title: "Grade de Horários & Quadras",
+    desc: "Visualização clara da ocupação das quadras em tempo real. Evite conflitos de horário, gerencie locações e diárias sem dor de cabeça.",
+  },
+  {
+    icon: CreditCard,
+    title: "Cobranças Automáticas via Pix & Cartão",
+    desc: "Notificações automáticas de vencimento para seus mensalistas. Reduza a inadimplência com repasses pontuais e histórico financeiro na palma da mão.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Vitrine Pública para Novos Alunos",
+    desc: "Sua arena visível para milhares de praticantes de futevôlei da sua região que já usam o RankFTV, atraindo novos atletas organicamente.",
+  },
+];
 
-export default async function ArenasPage({
-  searchParams,
+const ALUNO_BENEFITS: BenefitItem[] = [
+  {
+    icon: Smartphone,
+    title: "Agendamento em Poucos Cliques",
+    desc: "Encontre horários livres de aulas avulsas ou aluguel de quadra na sua arena favorita e reserve direto pelo celular em segundos.",
+  },
+  {
+    icon: Zap,
+    title: "Pagamento Instantâneo sem Comprovante",
+    desc: "Pague com Pix dinâmico ou cartão. Sua vaga é confirmada na mesma hora no sistema, sem precisar mandar print de comprovante no WhatsApp.",
+  },
+  {
+    icon: Clock,
+    title: "Histórico de Treinos & Frequência",
+    desc: "Acompanhe seus dias de treino, créditos de aulas restantes, reposições com regras claras e sua evolução no esporte.",
+  },
+  {
+    icon: Award,
+    title: "Comunidade & Torneios Internos",
+    desc: "Fique por dentro dos campeonatos internos da sua arena, acompanhe seus resultados e encontre parceiros de jogo no seu nível.",
+  },
+];
+
+function BenefitColumn({
+  tag,
+  tagIcon: TagIcon,
+  tagCls,
+  title,
+  subtitle,
+  benefits,
+  iconBgCls,
+  iconTextCls,
+  footerText,
+  footerIconCls,
+  cardBorderCls,
+  cardBgCls,
 }: {
-  searchParams: Promise<{ q?: string; estado?: string; page?: string }>;
+  tag: string;
+  tagIcon: LucideIcon;
+  tagCls: string;
+  title: string;
+  subtitle: string;
+  benefits: BenefitItem[];
+  iconBgCls: string;
+  iconTextCls: string;
+  footerText: string;
+  footerIconCls: string;
+  cardBorderCls: string;
+  cardBgCls: string;
 }) {
-  const params = await searchParams;
-  const query = String(params.q ?? "").trim().slice(0, 80);
-  const estado = ESTADOS.includes(String(params.estado ?? "").toUpperCase())
-    ? String(params.estado).toUpperCase()
-    : "";
-  const parsedPage = Number.parseInt(String(params.page ?? "1"), 10);
-  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.min(parsedPage, 10_000) : 1;
-  const supabase = await createClient();
+  return (
+    <div className={`flex flex-col rounded-3xl border ${cardBorderCls} ${cardBgCls} p-6 sm:p-8 shadow-sm`}>
+      <div className="flex items-center gap-2">
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${tagCls}`}>
+          <TagIcon className="size-3.5" />
+          {tag}
+        </span>
+      </div>
 
-  const [{ data: pageData }, { data: config }] = await Promise.all([
-    supabase.rpc("list_public_arena_cards", {
-      p_query: query || null,
-      p_estado: estado || null,
-      p_ids: null,
-      p_limit: PAGE_SIZE,
-      p_offset: (page - 1) * PAGE_SIZE,
-    }),
-    supabase.from("platform_config").select("arenas_destaques_ids").eq("id", 1).maybeSingle(),
-  ]);
+      <h3 className="mt-4 text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">{title}</h3>
+      <p className="mt-2 text-sm text-gray-600">{subtitle}</p>
 
-  const rows = (pageData ?? []) as unknown as ArenaRpcRow[];
-  const arenas = rows.map(toCard);
-  const total = Number(rows[0]?.total_count ?? 0);
-  if (rows.length === 0 && page > 1) {
-    const { data: firstRow } = await supabase.rpc("list_public_arena_cards", {
-      p_query: query || null,
-      p_estado: estado || null,
-      p_ids: null,
-      p_limit: 1,
-      p_offset: 0,
-    });
-    const actualTotal = Number(((firstRow ?? [])[0] as ArenaRpcRow | undefined)?.total_count ?? 0);
-    const lastPage = Math.max(1, Math.ceil(actualTotal / PAGE_SIZE));
-    const corrected = new URLSearchParams();
-    if (query) corrected.set("q", query);
-    if (estado) corrected.set("estado", estado);
-    if (lastPage > 1) corrected.set("page", String(lastPage));
-    redirect(`/arenas${corrected.size > 0 ? `?${corrected}` : ""}`);
-  }
-  const featuredIds = ((config?.arenas_destaques_ids as string[] | null) ?? []).slice(0, 3);
-  let destaques: ArenaDestaque[] = [];
+      <div className="mt-6 space-y-5">
+        {benefits.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div key={item.title} className="flex gap-4 items-start">
+              <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${iconBgCls} ${iconTextCls}`}>
+                <Icon className="size-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-sm font-semibold text-gray-900">{item.title}</h4>
+                <p className="mt-1 text-xs leading-relaxed text-gray-600">{item.desc}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-  if (!query && !estado && page === 1) {
-    if (featuredIds.length > 0) {
-      const { data } = await supabase.rpc("list_public_arena_cards", {
-        p_query: null,
-        p_estado: null,
-        p_ids: featuredIds,
-        p_limit: 3,
-        p_offset: 0,
-      });
-      const cards = ((data ?? []) as unknown as ArenaRpcRow[]).map(toCard);
-      destaques = featuredIds.map((id) => cards.find((card) => card.id === id)).filter(Boolean) as ArenaDestaque[];
-    } else {
-      destaques = arenas.slice(0, 3);
-    }
-  }
+      <div className="mt-8 pt-6 border-t border-gray-100 text-xs text-gray-700 flex items-center gap-2 font-medium">
+        <CheckCircle2 className={`size-4 shrink-0 ${footerIconCls}`} />
+        {footerText}
+      </div>
+    </div>
+  );
+}
 
+function EarlyAccessBanner() {
+  return (
+    <div className="relative overflow-hidden rounded-3xl bg-zinc-900 p-6 sm:p-8 text-white shadow-md">
+      <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-300">
+            <Sparkles className="size-3.5" />
+            Programa de Arenas Pioneiras
+          </div>
+          <h3 className="mt-3 text-xl font-bold tracking-tight sm:text-2xl">
+            Tem uma arena ou dá aulas de futevôlei?
+          </h3>
+          <p className="mt-2 text-sm text-zinc-300 leading-relaxed">
+            Estamos selecionando os primeiros centros de treinamento para testar o RankFTV Arenas com suporte prioritário e condições exclusivas de lançamento.
+          </p>
+        </div>
+
+        <div className="shrink-0">
+          <Link
+            href="/suporte"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white shadow-soft shadow-blue-600/30 transition-all hover:bg-blue-500 active:scale-[0.98]"
+          >
+            <span>Quero ser uma arena parceira</span>
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      </div>
+
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-blue-600/20 blur-3xl"
+      />
+    </div>
+  );
+}
+
+export default function ArenasPage() {
   return (
     <div className="min-h-screen">
-      <div className="bg-brand-dark px-6 pb-14 pt-8">
+      <div className="bg-brand-dark px-6 pb-16 pt-8">
         <PageContainer width="wide">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-400">Beta</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">Arenas</h1>
-          <p className="mt-1.5 max-w-2xl text-sm text-white/50">
-            Encontre arenas e consulte aulas, planos e horários disponíveis.
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-300">
+            <span className="size-1.5 rounded-full bg-amber-400 animate-pulse" />
+            Em breve • Em construção
+          </div>
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+            Central de Arenas & CTs
+          </h1>
+          <p className="mt-2 max-w-2xl text-base text-zinc-300">
+            A plataforma completa que vai conectar donos de arena, professores e alunos de futevôlei em uma só experiência moderna.
           </p>
         </PageContainer>
       </div>
@@ -135,17 +196,63 @@ export default async function ArenasPage({
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
         <DesktopSheetContourLight />
         <span aria-hidden="true" className="mobile-sheet-accent md:hidden" />
-        <PageContainer width="wide" className="space-y-8">
-          {destaques.length > 0 && <DestaquesArenasCarousel arenas={destaques} />}
-          <ArenaSection
-            arenas={arenas}
-            estados={ESTADOS}
-            query={query}
-            estado={estado}
-            page={page}
-            pageSize={PAGE_SIZE}
-            total={total}
-          />
+
+        <PageContainer width="wide" className="space-y-10">
+          <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/80 via-white to-amber-50/60 p-5 sm:p-6 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-soft">
+                  <Building2 className="size-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">
+                    O futuro do dia a dia das arenas no RankFTV
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    Estamos desenvolvendo um módulo exclusivo para profissionalizar a rotina de quem ensina e dar comodidade para quem treina.
+                  </p>
+                </div>
+              </div>
+              <span className="self-start sm:self-auto shrink-0 inline-flex items-center gap-1.5 rounded-full bg-blue-600/10 px-3 py-1 text-xs font-semibold text-blue-700">
+                <Sparkles className="size-3.5" />
+                Lançamento pós-V1
+              </span>
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <BenefitColumn
+              tag="Para Professores & Arenas"
+              tagIcon={GraduationCap}
+              tagCls="border border-amber-300 bg-amber-100/80 text-amber-800"
+              title="Organize seu CT sem planilhas e sem estresse"
+              subtitle="Tudo o que você precisa para gerenciar seus treinos, alunos e faturamento com menos esforço manual:"
+              benefits={PROFESSOR_BENEFITS}
+              iconBgCls="bg-amber-100"
+              iconTextCls="text-amber-700"
+              footerText="Painel exclusivo de gestão financeira e de turmas."
+              footerIconCls="text-amber-600"
+              cardBorderCls="border-amber-200/70"
+              cardBgCls="bg-gradient-to-b from-amber-50/40 via-white to-white"
+            />
+
+            <BenefitColumn
+              tag="Para Alunos & Atletas"
+              tagIcon={Users}
+              tagCls="border border-blue-300 bg-blue-100/80 text-blue-800"
+              title="Tudo para treinar, jogar e evoluir no esporte"
+              subtitle="A facilidade que faltava para marcar suas aulas e focar exclusivamente no que importa: evoluir em quadra."
+              benefits={ALUNO_BENEFITS}
+              iconBgCls="bg-blue-100"
+              iconTextCls="text-blue-700"
+              footerText="Reserva rápida e pagamento direto no celular."
+              footerIconCls="text-blue-600"
+              cardBorderCls="border-blue-200/70"
+              cardBgCls="bg-gradient-to-b from-blue-50/40 via-white to-white"
+            />
+          </div>
+
+          <EarlyAccessBanner />
         </PageContainer>
       </div>
     </div>
