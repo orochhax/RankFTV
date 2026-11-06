@@ -1,4 +1,4 @@
-/* eslint-disable complexity -- adaptação defensiva do schema legado do cofre */
+/* eslint-disable complexity, max-statements -- adaptação defensiva do schema legado do cofre */
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { ChannelIdentity, CompetitorRecord, CompetitorVideo } from "./types";
@@ -67,7 +67,7 @@ export async function writeVideoRecord(input: {
     mkdir(thumbnailsDir, { recursive: true }),
   ]);
 
-  const bestThumbnail = selectBestThumbnail(video.thumbnails);
+  const candidateThumbnails = [...video.thumbnails].sort((a, b) => (b.width * b.height) - (a.width * a.height));
   const preservedThumbnail = existing?.thumbnail?.path ?? null;
   const thumbnailFile = preservedThumbnail
     ? path.basename(preservedThumbnail)
@@ -75,8 +75,17 @@ export async function writeVideoRecord(input: {
   const thumbnailRelativePath = `Thumbnails/${thumbnailFile}`;
   const thumbnailAbsolutePath = path.join(channel.folderPath, thumbnailRelativePath);
   let thumbnailExists = await fileExists(thumbnailAbsolutePath);
-  if (!thumbnailExists && bestThumbnail) {
-    thumbnailExists = await downloadThumbnail(bestThumbnail.url, thumbnailAbsolutePath);
+  let usedThumbnailUrl = existing?.thumbnail?.sourceUrl ?? null;
+  if (!thumbnailExists) {
+    for (const thumb of candidateThumbnails) {
+      if (await downloadThumbnail(thumb.url, thumbnailAbsolutePath)) {
+        thumbnailExists = true;
+        usedThumbnailUrl = thumb.url;
+        break;
+      }
+    }
+  } else if (!usedThumbnailUrl) {
+    usedThumbnailUrl = selectBestThumbnail(video.thumbnails)?.url ?? null;
   }
 
   const record: CompetitorRecord = {
@@ -86,7 +95,7 @@ export async function writeVideoRecord(input: {
     channel: { name: video.channel, id: video.channelId, url: channel.url },
     video,
     thumbnail: {
-      sourceUrl: bestThumbnail?.url ?? existing?.thumbnail?.sourceUrl ?? null,
+      sourceUrl: usedThumbnailUrl ?? selectBestThumbnail(video.thumbnails)?.url ?? null,
       path: thumbnailRelativePath,
       exists: thumbnailExists,
     },
