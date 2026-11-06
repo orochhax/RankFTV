@@ -10,6 +10,7 @@ export type AppNavItem = {
   href: string;
   icon: LucideIcon;
   emoji?: string;
+  badge?: string;
   matchExact?: boolean;
   /** Se ausente, o item é público. */
   requires?: "guest" | "auth" | "organizer" | "arenaOwner" | "staff" | "admin";
@@ -19,7 +20,7 @@ export type AppNavItem = {
 // link morto: cada href corresponde a uma rota real e existente.
 export const APP_NAV_ITEMS: AppNavItem[] = [
   { key: "campeonatos", label: "Campeonatos", href: "/", icon: Trophy, emoji: "🏆", matchExact: true },
-  { key: "arenas", label: "Arenas", href: "/arenas", icon: Building2, emoji: "🏟️" },
+  { key: "arenas", label: "Arenas", href: "/arenas", icon: Building2, emoji: "🏟️", badge: "Em breve" },
   { key: "agenda", label: "Agenda", href: "/agenda", icon: CalendarDays, emoji: "📅" },
   { key: "consultar-ingresso", label: "Consultar ingresso", href: "/meus-ingressos", icon: Ticket, emoji: "🎟️", requires: "guest" },
   { key: "compras", label: "Minhas compras", href: "/minhas-compras", icon: ShoppingBag, emoji: "🛍️", requires: "auth" },

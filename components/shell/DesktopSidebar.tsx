@@ -421,18 +421,19 @@ export function DesktopSidebar({
                 {groupItems.map((item) => {
                   const active = isAppNavItemActive(pathname, item);
                   const Icon = item.icon;
+                  const tooltipText = item.badge ? `${item.label} (${item.badge})` : item.label;
 
                   return (
                     <li key={item.key} className={`flex w-full ${collapsed ? "justify-center" : ""}`}>
                       <Link
                         ref={setItemRef(item.key)}
                         href={item.href}
-                        title={collapsed ? item.label : undefined}
-                        aria-label={item.label}
+                        title={collapsed ? tooltipText : undefined}
+                        aria-label={tooltipText}
                         aria-current={active ? "page" : undefined}
-                        onMouseEnter={(event) => showNavTooltip(item.label, event.currentTarget)}
+                        onMouseEnter={(event) => showNavTooltip(tooltipText, event.currentTarget)}
                         onMouseLeave={() => setNavTooltip(null)}
-                        onFocus={(event) => showNavTooltip(item.label, event.currentTarget)}
+                        onFocus={(event) => showNavTooltip(tooltipText, event.currentTarget)}
                         onBlur={() => setNavTooltip(null)}
                         className={`${rowClass(
                           active
@@ -451,7 +452,22 @@ export function DesktopSidebar({
                         ) : (
                           <Icon className="size-5 shrink-0 transition-colors duration-200" strokeWidth={2} />
                         )}
-                        {!collapsed && <span className="truncate text-sm font-medium">{item.label}</span>}
+                        {!collapsed && (
+                          <>
+                            <span className="truncate text-sm font-medium">{item.label}</span>
+                            {item.badge && (
+                              <span
+                                className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+                                  active
+                                    ? "bg-white/20 text-white border border-white/30"
+                                    : "bg-amber-400/15 text-amber-300 border border-amber-400/30"
+                                }`}
+                              >
+                                {item.badge}
+                              </span>
+                            )}
+                          </>
+                        )}
                       </Link>
                     </li>
                   );
