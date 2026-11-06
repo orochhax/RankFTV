@@ -265,9 +265,14 @@ export function CampeonatoVitrineForm({ campeonato }: { campeonato?: CampeonatoV
             </div>
           </div>
         ) : (
-          <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600">
-            <ImagePlus className="size-4" />
-            Clique para selecionar o banner do evento
+          <label className="mt-1 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors">
+            <div className="flex items-center gap-2">
+              <ImagePlus className="size-4" />
+              <span>Clique para selecionar o banner do evento</span>
+            </div>
+            <span className="text-xs text-gray-400">
+              Tamanho ideal: 1200×675 px (16:9) · Máx. 5 MB (JPG, PNG ou WebP)
+            </span>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => selecionarBanner(e.target.files?.[0] ?? null)} />
           </label>
         )}

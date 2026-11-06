@@ -11,13 +11,6 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { validatePdfUpload } from "@/lib/upload-preflight";
 import type { GeneroCategoria } from "@/lib/types";
-import {
-  QUIZ_QUESTIONS,
-  calcularTierDoQuiz,
-  TIER_LABEL,
-  TIER_STYLES,
-  type QuizAnswers,
-} from "@/lib/tier";
 import { PlanoCards } from "./PlanoCards";
 
 type CatForm = { nome: string; genero: GeneroCategoria; valorInscricao: string; maxDuplas: string };
@@ -69,14 +62,10 @@ export function NovoCampeonatoForm() {
 
   const [categorias, setCategorias] = useState<CatForm[]>([]);
   const [ingressos, setIngressos] = useState<IngForm[]>([{ nome: "", valor: "", quantidade: "" }]);
-  const [quiz, setQuiz] = useState<Partial<QuizAnswers>>({});
   const [elite, setElite] = useState(false);
 
   const [vender, setVender] = useState<{ atleta: boolean; plateia: boolean }>({ atleta: true, plateia: false });
   const [stepIdx, setStepIdx] = useState(0);
-
-  const quizCompleto = QUIZ_QUESTIONS.every((q) => quiz[q.key] !== undefined);
-  const tierPreview = quizCompleto ? calcularTierDoQuiz(quiz as QuizAnswers) : null;
 
   // Etapas: selects → dados (sempre) → ingressos (se plateia) → plano (sempre).
   // Nível + categorias só aparecem DENTRO de "dados" quando vende pra atleta.
@@ -132,7 +121,6 @@ export function NovoCampeonatoForm() {
         return fail("A data de fim da pré-venda não pode ser antes do início.");
       if (!cidade.trim() || !estado.trim()) return fail("Informe a cidade e o estado.");
       if (vender.atleta) {
-        if (!quizCompleto) return fail("Responda as 5 perguntas do nível.");
         if (!categorias.some((c) => c.nome.trim())) return fail("Adicione pelo menos uma categoria.");
       }
     }
@@ -161,7 +149,6 @@ export function NovoCampeonatoForm() {
     if (prevendaInicio && prevendaFim && prevendaFim < prevendaInicio)
       return fail("A data de fim da pré-venda não pode ser antes do início.");
     if (vender.atleta && !categorias.some((c) => c.nome.trim())) return fail("Adicione pelo menos uma categoria.");
-    if (vender.atleta && !quizCompleto) return fail("Responda as 5 perguntas do nível.");
     if (vender.plateia && !ingressos.some((i) => i.nome.trim())) return fail("Adicione pelo menos um ingresso de plateia.");
 
     startTransition(async () => {
@@ -196,8 +183,6 @@ export function NovoCampeonatoForm() {
         local,
         liveUrl: liveUrl.trim() || undefined,
         status: "rascunho" as const,
-        // Plateia-only não tem nível — manda quiz vazio (tier vira "local").
-        tierQuiz: (vender.atleta ? (quiz as QuizAnswers) : ({} as QuizAnswers)),
         elite,
         // A recomendação de categoria fica desativada na V1. O questionário
         // acima classifica o evento (Local/Open/Elite), não o atleta.
@@ -388,41 +373,9 @@ export function NovoCampeonatoForm() {
             </div>
           </div>
 
-          {/* Nível + Categorias — só quando vende pra atleta */}
+          {/* Categorias — só quando vende pra atleta */}
           {vender.atleta && (
             <>
-              <div className="space-y-5 rounded-2xl bg-white p-5 ring-1 ring-black/5">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-sm font-semibold text-gray-800">Nível do evento</h2>
-                    <p className="mt-0.5 text-xs text-gray-400">Responda as 5 perguntas. A plataforma calcula o nível automaticamente.</p>
-                  </div>
-                  {tierPreview ? (
-                    <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${TIER_STYLES[tierPreview]}`}>{TIER_LABEL[tierPreview]}</span>
-                  ) : (
-                    <span className="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-400">{Object.keys(quiz).length}/5</span>
-                  )}
-                </div>
-                <div className="space-y-5">
-                  {QUIZ_QUESTIONS.map((q, qi) => (
-                    <div key={q.key}>
-                      <p className="mb-2 text-xs font-medium text-gray-700">{qi + 1}. {q.pergunta}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {q.opcoes.map((op) => {
-                          const selecionado = quiz[q.key] === op.valor;
-                          return (
-                            <button key={op.valor} type="button" onClick={() => setQuiz((prev) => ({ ...prev, [q.key]: op.valor as 0 | 1 | 2 | 3 }))}
-                              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${selecionado ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:text-blue-600"}`}>
-                              {op.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <div className="space-y-3 rounded-2xl bg-white p-5 ring-1 ring-black/5">
                 <div>
                   <h2 className="text-sm font-semibold text-gray-800">Categorias dos atletas *</h2>

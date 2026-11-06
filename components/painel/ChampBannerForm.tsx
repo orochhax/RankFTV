@@ -83,8 +83,10 @@ export function ChampBannerForm({
       {/* Controles */}
       <div className="px-4 py-3 flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-800">Banner</p>
-          <p className="text-xs text-gray-400">{preview ? "Banner personalizado" : "Usando gradiente padrão"}</p>
+          <p className="text-sm font-medium text-gray-800">Banner do campeonato</p>
+          <p className="text-xs text-gray-500">
+            {preview ? "Banner personalizado" : "Usando gradiente padrão"} · Ideal: <strong className="font-semibold text-gray-700">1200×675 px</strong> (máx. 5 MB)
+          </p>
         </div>
         <button
           type="button"
@@ -96,31 +98,36 @@ export function ChampBannerForm({
       </div>
 
       {menuOpen && (
-        <div className="border-t border-gray-100 px-4 py-3 flex gap-2">
-          <button
-            type="button"
-            onClick={() => { inputRef.current?.click(); setMenuOpen(false); }}
-            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-          >
-            <ImagePlus className="size-4" />
-            {preview ? "Alterar banner" : "Adicionar banner"}
-          </button>
-          {preview && (
+        <div className="border-t border-gray-100 px-4 py-3 space-y-2">
+          <div className="flex gap-2">
             <button
               type="button"
-              onClick={handleRemove}
-              className="flex items-center justify-center gap-2 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 ring-1 ring-red-200 hover:bg-red-100 transition-colors"
+              onClick={() => { inputRef.current?.click(); setMenuOpen(false); }}
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
             >
-              <Trash2 className="size-4" /> Remover
+              <ImagePlus className="size-4" />
+              {preview ? "Alterar banner" : "Adicionar banner"}
             </button>
-          )}
-          <button
-            type="button"
-            onClick={() => setMenuOpen(false)}
-            className="flex items-center justify-center rounded-xl bg-gray-100 px-3 py-2.5 text-gray-500 hover:bg-gray-200"
-          >
-            <X className="size-4" />
-          </button>
+            {preview && (
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="flex items-center justify-center gap-2 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 ring-1 ring-red-200 hover:bg-red-100 transition-colors"
+              >
+                <Trash2 className="size-4" /> Remover
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center justify-center rounded-xl bg-gray-100 px-3 py-2.5 text-gray-500 hover:bg-gray-200"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+          <p className="text-xs text-gray-500">
+            Tamanho ideal: <strong className="font-semibold text-gray-700">1200×675 px</strong> (16:9) · Máx. <strong className="font-semibold text-gray-700">5 MB</strong> (JPG, PNG ou WebP)
+          </p>
         </div>
       )}
 

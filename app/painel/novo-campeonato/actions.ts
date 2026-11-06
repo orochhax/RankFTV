@@ -48,7 +48,7 @@ export type CreateChampionshipInput = {
   status: "rascunho" | "inscricoes_abertas";
   categorias: CategoriaInput[];
   ingressosPlateia?: IngressoPlateiaInput[];
-  tierQuiz: QuizAnswers;
+  tierQuiz?: Partial<QuizAnswers>;
   elite?: boolean;
   usaMotorCategoria?: boolean;
 };
@@ -114,15 +114,12 @@ export async function createChampionship(
     return { ok: false, error: "Adicione pelo menos uma categoria de atleta ou um ingresso de plateia." };
   }
 
-  // O nível (quiz) só é obrigatório quando há competição de atletas.
-  if (categorias.length > 0 && (!input.tierQuiz || Object.keys(input.tierQuiz).length < 5)) {
-    return { ok: false, error: "Responda todas as 5 perguntas sobre o nível do evento." };
-  }
-
   const [bannerFrom, bannerTo] =
     GRADIENTS[Math.floor(Math.random() * GRADIENTS.length)];
 
-  const tier = calcularTierDoQuiz(input.tierQuiz);
+  const tier = input.tierQuiz && Object.keys(input.tierQuiz).length >= 5
+    ? calcularTierDoQuiz(input.tierQuiz)
+    : "local";
 
   const { data: champ, error } = await supabase
     .from("championships")
@@ -147,7 +144,7 @@ export async function createChampionship(
       banner_from: bannerFrom,
       banner_to: bannerTo,
       tier,
-      tier_quiz: input.tierQuiz,
+      tier_quiz: input.tierQuiz ?? null,
       is_elite: input.elite ?? false,
       premium_fee_pendente: input.elite ? PRECO_ELITE : 0,
       usa_motor_categoria: categoryLevelRecommendationEnabled(input.usaMotorCategoria),

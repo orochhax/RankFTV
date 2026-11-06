@@ -127,9 +127,14 @@ export function NoticiaForm() {
             <button type="button" onClick={limparImagem} className="text-gray-400 hover:text-red-500"><X className="size-4" /></button>
           </div>
         ) : (
-          <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600">
-            <ImagePlus className="size-4" />
-            Clique para selecionar uma imagem
+          <label className="mt-1 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors">
+            <div className="flex items-center gap-2">
+              <ImagePlus className="size-4" />
+              <span>Clique para selecionar uma imagem</span>
+            </div>
+            <span className="text-xs text-gray-400">
+              Tamanho ideal: 1200×675 px (16:9) · Máx. 5 MB (JPG, PNG ou WebP)
+            </span>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => setImagem(e.target.files?.[0] ?? null)} />
           </label>
         )}

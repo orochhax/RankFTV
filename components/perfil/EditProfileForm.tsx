@@ -124,7 +124,9 @@ export function EditProfileForm({
               <Camera className="size-4" />
               {uploadingPhoto ? "Enviando…" : "Alterar foto"}
             </button>
-            <p className="mt-1 text-xs text-gray-400">JPG ou PNG, até 2 MB</p>
+            <p className="mt-1 text-xs text-gray-500">
+              Tamanho ideal: <strong className="font-semibold text-gray-700">400×400 px</strong> (1:1) · Máx. <strong className="font-semibold text-gray-700">2 MB</strong> (JPG, PNG ou WebP)
+            </p>
             <input
               ref={fileRef}
               type="file"
