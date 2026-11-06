@@ -24,8 +24,54 @@ export const DEFAULT_YOUTUBE_WEIGHTS: YoutubeScoreWeights = {
   urgency: 10,
 };
 
+export const IDEA_SCORE_PILLARS = [
+  { key: "competitorProof", label: "Prova nos concorrentes", weight: 30 },
+  { key: "transformationAndMoney", label: "Transformação, sistemas e negócios", weight: 25 },
+  { key: "stackReplicability", label: "Execução na stack (≤ R$ 200)", weight: 20 },
+  { key: "timingAndDurability", label: "Timing e durabilidade", weight: 15 },
+  { key: "brazilGap", label: "Ponte Gringa → Brasil", weight: 10 },
+] as const;
+
+const DAY_MS = 24 * 60 * 60 * 1_000;
+
+const normalizeText = (value: string) =>
+  value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+
+const corporateOnlyNewsRegex =
+  /\b(fabricacao de chips|semicondutores|uso justo no treinamento|cinco valores|orchestra bio|modelos de mundo|direitos autorais|processo judicial|regulacao europeia)\b/i;
+
+const actionableToolNewsRegex =
+  /\b(claude|chatgpt|gemini|flow|notebooklm|antigravity|skills?|agentes?|cursor|lovable|n8n|grokbot|slides|motion|video com ia|design|codigo)\b/i;
+
 export function clampYoutubeScore(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+const computeAgeDecay = (ageDays: number) => {
+  if (ageDays > 14) return 15 + (ageDays - 14) * 1.2;
+  if (ageDays > 7) return 5 + (ageDays - 7) * 1.4;
+  return ageDays > 2 ? (ageDays - 2) * 1.0 : 0;
+};
+
+export function computeLiveNewsOpportunityScore(
+  item: {
+    title: string;
+    summary_pt_br?: string | null;
+    why_it_matters?: string | null;
+    opportunity_score: number | null;
+    published_at: string | null;
+    collected_at: string;
+  },
+  now = new Date(),
+): number | null {
+  if (item.opportunity_score == null) return null;
+  const text = normalizeText([item.title, item.summary_pt_br, item.why_it_matters].filter(Boolean).join(" "));
+  const isCorporateOnly = corporateOnlyNewsRegex.test(text) && !/\b(tutorial|passo a passo|como usar|teste pratico)\b/i.test(text);
+  const baseScore = isCorporateOnly ? Math.min(item.opportunity_score, 64) : item.opportunity_score;
+  const refDateMs = Date.parse(item.published_at ?? item.collected_at);
+  const ageDays = Number.isFinite(refDateMs) ? Math.max(0, (now.getTime() - refDateMs) / DAY_MS) : 0;
+  const toolBonus = !isCorporateOnly && actionableToolNewsRegex.test(text) && ageDays <= 4 ? 2 : 0;
+  return clampYoutubeScore(Math.max(35, Math.min(98, baseScore + toolBonus - computeAgeDecay(ageDays))));
 }
 
 export function scoreYoutubeOpportunity(
