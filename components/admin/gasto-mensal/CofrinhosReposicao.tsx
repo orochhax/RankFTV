@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import {
   adicionarAporteCofrinho, adicionarReposicaoCofrinho, apagarReposicaoCofrinho,
@@ -13,7 +13,7 @@ import {
   type SavingsMovement, type SavingsWithdrawal,
 } from "@/lib/monthly-budget";
 import {
-  ArrowDownToLine, ArrowUpToLine, CheckCircle2, ChevronDown, Landmark,
+  ArrowDownToLine, ArrowUpToLine, CheckCircle2, ChevronDown, ChevronUp, Landmark,
   Loader2, Plus, RotateCcw, Trash2, WalletCards, X,
 } from "lucide-react";
 
@@ -111,25 +111,162 @@ function Repay({ withdrawal, today, close, saved }: { withdrawal: SavingsWithdra
   </form></Modal>;
 }
 
+const COLLAPSED_STORAGE_KEY = "rankftv:gasto-mensal:cofrinhos-collapsed";
+
+function useCofrinhosCollapsed() {
+  const isStoredCollapsed = useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener("storage", onStoreChange);
+      return () => window.removeEventListener("storage", onStoreChange);
+    },
+    () => {
+      try {
+        return localStorage.getItem(COLLAPSED_STORAGE_KEY) === "true";
+      } catch {
+        return false;
+      }
+    },
+    () => false
+  );
+
+  const [override, setOverride] = useState<boolean | null>(null);
+  const isCollapsed = override ?? isStoredCollapsed;
+
+  const toggle = () => {
+    const next = !isCollapsed;
+    setOverride(next);
+    try {
+      localStorage.setItem(COLLAPSED_STORAGE_KEY, String(next));
+    } catch {
+      // localStorage indisponível
+    }
+  };
+
+  return [isCollapsed, toggle] as const;
+}
+
+function CofrinhosHeader({
+  isCollapsed,
+  totalBalance,
+  remainingRepay,
+  onToggle,
+  onNewJar,
+}: {
+  isCollapsed: boolean;
+  totalBalance: number;
+  remainingRepay: number;
+  onToggle: () => void;
+  onNewJar: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-violet-800 text-violet-200 transition hover:bg-violet-700"
+          title={isCollapsed ? "Expandir cofrinhos" : "Minimizar cofrinhos"}
+          aria-label={isCollapsed ? "Expandir cofrinhos" : "Minimizar cofrinhos"}
+        >
+          <Landmark className="size-5" />
+        </button>
+        <div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={onToggle}
+              className="text-base font-bold text-left text-white transition hover:text-violet-200"
+            >
+              Cofrinhos
+            </button>
+            {isCollapsed && (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="inline-flex items-center rounded-lg bg-emerald-500/20 px-2.5 py-0.5 font-bold text-emerald-300">
+                  Total: {formatBRL(totalBalance)}
+                </span>
+                {remainingRepay > 0 && (
+                  <span className="inline-flex items-center rounded-lg bg-amber-500/20 px-2.5 py-0.5 font-medium text-amber-300">
+                    A repor: {formatBRL(remainingRepay)}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          {!isCollapsed && (
+            <p className="mt-0.5 text-xs text-violet-200/70">
+              Saldos, aportes, retiradas e valores que ainda precisam ser repostos.
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onNewJar}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-violet-800 transition hover:bg-violet-50"
+        >
+          <Plus className="size-4" /> Novo cofrinho
+        </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-violet-700 bg-violet-900/60 px-3 py-2 text-sm font-semibold text-violet-200 transition hover:bg-violet-800 hover:text-white"
+          title={isCollapsed ? "Expandir cofrinhos" : "Minimizar cofrinhos"}
+          aria-label={isCollapsed ? "Expandir cofrinhos" : "Minimizar cofrinhos"}
+        >
+          {isCollapsed ? (
+            <>
+              <ChevronDown className="size-4" />
+              <span>Expandir</span>
+            </>
+          ) : (
+            <>
+              <ChevronUp className="size-4" />
+              <span>Minimizar</span>
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function CofrinhosReposicao({ jars, withdrawals, todayDateKey, onMessage }: { jars: SavingsJar[]; withdrawals: SavingsWithdrawal[]; todayDateKey: string; onMessage: (message: string) => void }) {
   const router = useRouter();
+  const [isCollapsed, toggleCollapsed] = useCofrinhosCollapsed();
   const [newOpen, setNewOpen] = useState(false), [addTarget, setAddTarget] = useState<SavingsJar | null>(null), [withdrawTarget, setWithdrawTarget] = useState<SavingsJar | null>(null), [repayTarget, setRepayTarget] = useState<SavingsWithdrawal | null>(null);
   const [openJars, setOpenJars] = useState<Set<string>>(new Set()), [openWithdrawals, setOpenWithdrawals] = useState<Set<string>>(new Set());
-  const [pendingId, setPendingId] = useState<string | null>(null), [error, setError] = useState<string | null>(null), [, start] = useTransition();
+  const [pendingId, setPendingId] = useState<string | null>(null), [error, setError] = useState<string | null>(null);
+  const [_isPending, start] = useTransition();
   const totals = useMemo(() => savingsTotals(withdrawals), [withdrawals]);
+  const totalBalance = useMemo(() => savingsTotalBalance(jars), [jars]);
   const ordered = useMemo(() => [...withdrawals].sort((a, b) => Number(savingsWithdrawalProgress(a).isComplete) - Number(savingsWithdrawalProgress(b).isComplete) || b.withdrawnOn.localeCompare(a.withdrawnOn)), [withdrawals]);
-  const toggle = (setter: React.Dispatch<React.SetStateAction<Set<string>>>, id: string) => setter((old) => { const next = new Set(old); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  const toggle = (setter: React.Dispatch<React.SetStateAction<Set<string>>>, id: string) =>
+    setter((old) => {
+      const next = new Set(old);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   const removeWithdrawal = (item: SavingsWithdrawal) => { if (!confirm(`Excluir a retirada de ${formatBRL(item.amount)} de “${item.jarName}”? O saldo será recalculado.`)) return; setPendingId(item.id); start(async () => { const result = await apagarRetiradaCofrinho(item.id); setPendingId(null); if (!result.ok) return setError(result.error ?? "Não foi possível excluir."); onMessage("Retirada excluída e saldo recalculado."); router.refresh(); }); };
   const removeRepayment = (id: string, amount: number) => { if (!confirm(`Excluir a reposição de ${formatBRL(amount)}? Ela sairá do saldo e voltará a ficar pendente.`)) return; setPendingId(id); start(async () => { const result = await apagarReposicaoCofrinho(id); setPendingId(null); if (!result.ok) return setError(result.error ?? "Não foi possível excluir."); onMessage("Reposição excluída e saldo recalculado."); router.refresh(); }); };
 
   return <section className="rounded-3xl bg-violet-950 p-4 text-white shadow-sm sm:p-5">
-    <div className="flex flex-wrap items-start justify-between gap-3"><div className="flex gap-3"><span className="flex size-10 items-center justify-center rounded-2xl bg-violet-800"><Landmark className="size-5 text-violet-200" /></span><div><h2 className="font-bold">Cofrinhos</h2><p className="mt-0.5 text-xs text-violet-200/70">Saldos, aportes, retiradas e valores que ainda precisam ser repostos.</p></div></div><button type="button" onClick={() => setNewOpen(true)} className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-violet-800"><Plus className="size-4" /> Novo cofrinho</button></div>
-    <div className="mt-5 grid gap-2 sm:grid-cols-3"><Summary label="Total guardado" value={savingsTotalBalance(jars)} green /><Summary label="Retirado a repor" value={totals.withdrawn} /><Summary label="Ainda falta repor" value={totals.remaining} amber /></div>
-    {error && <p className="mt-3 rounded-xl bg-red-500/15 px-3 py-2 text-sm text-red-200">{error}</p>}
-    {jars.length === 0 ? <div className="mt-4 rounded-2xl border border-dashed border-violet-700 p-7 text-center text-sm text-violet-200">Crie seu primeiro cofrinho e informe quanto já existe nele.</div> : <div className="mt-4 grid gap-3 lg:grid-cols-2">{jars.map((jar) => <JarCard key={jar.id} jar={jar} open={openJars.has(jar.id)} toggle={() => toggle(setOpenJars, jar.id)} add={() => setAddTarget(jar)} withdraw={() => setWithdrawTarget(jar)} />)}</div>}
-    <div className="mt-6 border-t border-violet-800 pt-5"><h3 className="text-sm font-semibold">Retiradas e reposições</h3><p className="mt-0.5 text-xs text-violet-300/60">Aporte aumenta o saldo; somente “Repor valor” abate uma retirada.</p>
-      {ordered.length === 0 ? <div className="mt-3 rounded-2xl border border-dashed border-violet-700 p-5 text-center text-xs text-violet-300/70">Nenhuma retirada registrada.</div> : <div className="mt-3 space-y-2">{ordered.map((item) => <WithdrawalCard key={item.id} item={item} open={openWithdrawals.has(item.id)} pendingId={pendingId} toggle={() => toggle(setOpenWithdrawals, item.id)} repay={() => setRepayTarget(item)} remove={() => removeWithdrawal(item)} removeRepayment={removeRepayment} />)}</div>}
-    </div>
+    <CofrinhosHeader
+      isCollapsed={isCollapsed}
+      totalBalance={totalBalance}
+      remainingRepay={totals.remaining}
+      onToggle={toggleCollapsed}
+      onNewJar={() => setNewOpen(true)}
+    />
+    {!isCollapsed && <>
+      <div className="mt-5 grid gap-2 sm:grid-cols-3"><Summary label="Total guardado" value={totalBalance} green /><Summary label="Retirado a repor" value={totals.withdrawn} /><Summary label="Ainda falta repor" value={totals.remaining} amber /></div>
+      {error && <p className="mt-3 rounded-xl bg-red-500/15 px-3 py-2 text-sm text-red-200">{error}</p>}
+      {jars.length === 0 ? <div className="mt-4 rounded-2xl border border-dashed border-violet-700 p-7 text-center text-sm text-violet-200">Crie seu primeiro cofrinho e informe quanto já existe nele.</div> : <div className="mt-4 grid gap-3 lg:grid-cols-2">{jars.map((jar) => <JarCard key={jar.id} jar={jar} open={openJars.has(jar.id)} toggle={() => toggle(setOpenJars, jar.id)} add={() => setAddTarget(jar)} withdraw={() => setWithdrawTarget(jar)} />)}</div>}
+      <div className="mt-6 border-t border-violet-800 pt-5"><h3 className="text-sm font-semibold">Retiradas e reposições</h3><p className="mt-0.5 text-xs text-violet-300/60">Aporte aumenta o saldo; somente “Repor valor” abate uma retirada.</p>
+        {ordered.length === 0 ? <div className="mt-3 rounded-2xl border border-dashed border-violet-700 p-5 text-center text-xs text-violet-300/70">Nenhuma retirada registrada.</div> : <div className="mt-3 space-y-2">{ordered.map((item) => <WithdrawalCard key={item.id} item={item} open={openWithdrawals.has(item.id)} pendingId={pendingId} toggle={() => toggle(setOpenWithdrawals, item.id)} repay={() => setRepayTarget(item)} remove={() => removeWithdrawal(item)} removeRepayment={removeRepayment} />)}</div>}
+      </div>
+    </>}
     {newOpen && <NewJar today={todayDateKey} close={() => setNewOpen(false)} saved={() => onMessage("Cofrinho criado.")} />}
     {addTarget && <AddMoney jar={addTarget} today={todayDateKey} close={() => setAddTarget(null)} saved={() => onMessage("Dinheiro adicionado ao cofrinho.")} />}
     {withdrawTarget && <Withdraw jar={withdrawTarget} today={todayDateKey} close={() => setWithdrawTarget(null)} saved={() => onMessage("Retirada registrada.")} />}
