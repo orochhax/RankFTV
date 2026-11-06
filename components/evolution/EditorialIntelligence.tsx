@@ -111,7 +111,7 @@ export async function EditorialIntelligence() {
         <div className="evo-intel-rank-guide">
           <strong>Como a nota funciona</strong>
           <span>
-            65% IA aplicada, transformação e benefício · 25% produtividade, carreira, aprendizado e sistemas · 10% notícia e atualidade. Todos os vídeos recebem essa mesma ponderação e os 15 maiores resultados formam o ranking, sem cotas por categoria. O desempenho contra a mediana do canal ajuda a calcular cada pilar. Podcasts e entrevistas não entram no ranking principal.
+            32 pts Explosão no Canal (múltiplo sobre a mediana de vídeos longos) · 26 pts Escala de Audiência (peso logarítmico para hits de canais grandes) · 22 pts Tração Viva Hoje (views/dia recentes e vitalícias) · 10 pts Engajamento Relativo (comentários e likes vs. mediana do canal) · 10 pts Replicabilidade na Stack (prioriza Claude, ChatGPT, Google IA Pro e ferramentas até R$ 200/mês). Filtro temático de IA, Tecnologia, Automação, Sistemas, Carreira e Negócios/Dinheiro.
           </span>
         </div>
 
@@ -144,9 +144,11 @@ export async function EditorialIntelligence() {
                 <details className="evo-intel-breakdown">
                   <summary>Ver composição da nota</summary>
                   <div>
-                    <span>IA aplicada (65%) <b>{Math.round(video.breakdown.aiAppliedTransformation)}</b></span>
-                    <span>Produtividade e sistemas (25%) <b>{Math.round(video.breakdown.productivityCareerSystems)}</b></span>
-                    <span>Notícia e atualidade (10%) <b>{Math.round(video.breakdown.newsRelevance)}</b></span>
+                    <span>Explosão no canal (32) <b>{Math.round(video.breakdown.outlierExplosion)}</b></span>
+                    <span>Escala de audiência (26) <b>{Math.round(video.breakdown.audienceScale)}</b></span>
+                    <span>Tração viva hoje (22) <b>{Math.round(video.breakdown.activeTraction)}</b></span>
+                    <span>Engajamento relativo (10) <b>{Math.round(video.breakdown.relativeEngagement)}</b></span>
+                    <span>Replicabilidade stack (10) <b>{Math.round(video.breakdown.replicabilityAndValidity)}</b></span>
                   </div>
                 </details>
                 <p>{formatEditorialViews(video.views)} de visualizações · {formatEditorialDuration(video.durationSeconds)}</p>

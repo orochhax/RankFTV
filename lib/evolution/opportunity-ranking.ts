@@ -1,3 +1,5 @@
+export type PreviousVideoObservation = { observedAt?: string | null; views?: number | null };
+
 export type OpportunityVideoInput = {
   id: string | null;
   channel: string;
@@ -7,16 +9,22 @@ export type OpportunityVideoInput = {
   thumbnail: string | null;
   thumbnailUrl: string | null;
   views: number | null;
+  likes?: number | null;
+  comments?: number | null;
+  isLive?: boolean | null;
   durationSeconds: number | null;
   publishedAt: string | null;
   publishedText: string | null;
   observedAt: string | null;
+  previousObservations?: PreviousVideoObservation[] | null;
 };
 
 export type OpportunityBreakdown = {
-  aiAppliedTransformation: number;
-  productivityCareerSystems: number;
-  newsRelevance: number;
+  outlierExplosion: number;
+  audienceScale: number;
+  activeTraction: number;
+  relativeEngagement: number;
+  replicabilityAndValidity: number;
 };
 
 export type EditorialPillar = "ai_applied" | "growth_systems" | "news";
@@ -26,6 +34,8 @@ export type RankedOpportunityVideo = OpportunityVideoInput & {
   breakdown: OpportunityBreakdown;
   channelMedianViews: number;
   relativePerformanceMultiple: number;
+  recentViewsPerDay: number;
+  engagementMultiple: number | null;
   formatLabel: string;
   topicLabel: string;
   editorialPillar: EditorialPillar;
@@ -33,108 +43,50 @@ export type RankedOpportunityVideo = OpportunityVideoInput & {
   rationale: string;
 };
 
+type ChannelEngagementStats = { medianViews: number; medianLikeRate: number; medianCommentRate: number };
+
 const DAY_MS = 24 * 60 * 60 * 1_000;
-
-const clamp = (value: number, min = 0, max = 100) =>
-  Math.min(max, Math.max(min, value));
-
+const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
 const normalized = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLocaleLowerCase("pt-BR");
+  value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
 
 export const median = (values: number[]) => {
   if (!values.length) return 0;
   const sorted = [...values].sort((a, b) => a - b);
   const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2
-    ? sorted[middle]
-    : (sorted[middle - 1] + sorted[middle]) / 2;
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 };
 
-const editorialGroups = [
-  {
-    label: "IA aplicada",
-    terms: [" inteligencia artificial", " ia ", " ai ", "chatgpt", "claude", "gemini", "openai", "agente", "agent", "automacao", "automation"],
-  },
-  {
-    label: "Sistemas e execução",
-    terms: ["sistema", "foco", "prioridad", "disciplina", "produt", "procrast", "rotina", "habito", "tempo", "organiz", "execucao"],
-  },
-  {
-    label: "Aprendizado e carreira",
-    terms: ["aprend", "estud", "carreira", "trabalho", "profissional", "habilidade", "skill", "conhecimento"],
-  },
-  {
-    label: "Negócios e criação",
-    terms: ["negocio", "business", "dinheiro", "money", "venda", "renda", "conteudo", "canal", "marca pessoal", "cliente"],
-  },
-  {
-    label: "Desenvolvimento pessoal",
-    terms: ["meta", "objetivo", "performance", "sucesso", "atencao", "cerebro", "dopamina", "autossabot", "ansiedade", "vida"],
-  },
+const excludedTerms = [
+  "signo", "zodiaco", "nicolas maduro", "jiu-jitsu", "futebol", "apartamento", "tatame", "fofoca",
+  "i bought a", "comprei um", "comprei uma", "my mansion", "minha mansao", "porque eu sumi",
+  "por que eu sumi", "day in the life", "meu apartamento", "my new car", "meu carro novo",
+  "billion bet", "multi-billion", "brutally honest money debate",
+  "podcast", "entrevista", "interview", "cortes do", "corte do", "mesa cast", "mesacast", "ao vivo", "live stream",
 ];
 
-const irrelevantTerms = [
-  "signo",
-  "zodiaco",
-  "nicolas maduro",
-  "jiu-jitsu",
-  "futebol",
-  "apartamento",
-  "tatame",
-  "fofoca",
-];
+const eligibleThemeRegex =
+  /\b(ia|ai|inteligencia artificial|claude|chatgpt|gpt|gemini|openai|anthropic|agente|agentes|agent|agents|automacao|automation|cursor|lovable|saas|software|apps?|codigo|code|notebooklm|n8n|higgsfield|grok|llm|mcp|skills?|sistema|sistemas|system|produtiv|productivity|foco|disciplina|rotina|carreira|career|trabalho|profissional|aprender|aprendizado|estud|learn|knowledge|dinheiro|money|negocio|negocios|business|vendas?|sales|renda|income|fatur|lucro|profit|rich|wealth|millionaire|milionario|online|lancamento|release|noticia|news)\b|\$|r\$/i;
 
-const tutorialTerms = [
-  "como ",
-  "tutorial",
-  "passo a passo",
-  "guia",
-  "curso",
-  "aprenda",
-  "usei",
-  "testei",
-  "criei",
-  "construi",
-  "metodo",
-  "sistema",
-  "estrategia",
-  "framework",
-  "workflow",
-  "hacks",
-  "truques",
-];
+const transferableMethodRegex =
+  /\b(como |how to|give me|ways to|laziest|simplest|copy|strategy|tutorial|passo a passo|step-by-step|step by step|criei|construi|sistema|framework|metodo|method|clonar|clone|aprenda|course|curso|full workflow|guia|guide|rules|regras|tricks|hacks|truques|best online business)\b/i;
+
+const carlosCoreStackRegex =
+  /\b(claude|chatgpt|gpt|gemini|google|flow|notebooklm|antigravity|lovable|n8n|cursor|sistema|system|segundo cerebro|second brain|negocio|business|money|dinheiro|vendas|sales|foco|produtiv)\b/i;
+
+const expensiveToolRegex = /\b(higgsfield|runway|sora pro|heygen|elevenlabs|kling|midjourney)\b/i;
+
+const pureNewsRegex =
+  /\b(just dropped|just released|all updates explained|lancou|acabou de lancar|new update|novidades do|chegou o|noticia|news|release)\b/i;
 
 const aiTerms = [
   " inteligencia artificial", " ia ", " ia:", "com ia", "usando ia", "de ia", " ai ", "chatgpt", "claude", "gemini", "openai",
-  "agente", "agent", "automacao", "automation", "cursor", "lovable", "higgsfield",
+  "agente", "agent", "automacao", "automation", "cursor", "lovable", "higgsfield", "notebooklm", "n8n", "mcp", "skill",
 ];
 
 const newsTerms = [
   "noticia", "news", "lancamento", "release", "lancou", "anunciou", "novidade",
-  "novo ", "nova ", "mudou", "acabou", "chegou", "estreia", "atualizacao",
-];
-
-const businessMonetizationTerms = [
-  "dinheiro", "money", "business", "negocio", "negócios", "vendas", "venda", "renda", "preco", "preço",
-  "cliente", "clientes", "fatur", "faturei", "lucro", "lucrar", "monetiz", "agencia", "agência",
-  "saas", "r$", "$", "vender", "riqueza", "milionario", "milionário", "milhao", "milhão", "milhoes",
-  "milhões", "renda passiva", "freelancer", "servico", "serviço"
-];
-
-const benefitTerms = [
-  "resultado", "beneficio", "ganhar", "ganhei", "fatur", "dinheiro", "money", "venda",
-  "cliente", "econom", "rapido", "produt", "trabalhar melhor", "criar", "construir",
-  "aprender", "conhecimento", "horas", "minutos", "dias", "sem experiencia", "do zero",
-  ...businessMonetizationTerms,
-];
-
-const growthTerms = [
-  "produt", "carreira", "aprend", "estud", "sistema", "foco", "prioridad",
-  "disciplina", "procrast", "rotina", "habito", "tempo", "organiz", "execucao",
-  "trabalho", "profissional", "habilidade", "skill", "conhecimento", "performance",
+  "novo ", "nova ", "mudou", "acabou", "chegou", "estreia", "atualizacao", "explained", "dropped",
 ];
 
 const pillarLabels: Record<EditorialPillar, string> = {
@@ -143,208 +95,223 @@ const pillarLabels: Record<EditorialPillar, string> = {
   news: "Notícia relevante",
 };
 
-const excludedFormatTerms = [
-  "podcast",
-  "entrevista",
-  "interview",
-  "cortes do",
-  "corte do",
-  "mesa cast",
-  "mesacast",
-  "ao vivo",
-  "live stream",
-];
-
 const topicRules = [
-  { label: "Negócios e monetização", terms: ["dinheiro", "money", "business", "negocio", "negócios", "vendas", "venda", "renda", "cliente", "clientes", "fatur", "faturei", "lucro", "lucrar", "monetiz", "agencia", "agência", "saas", "r$", "vender", "riqueza", "milionario", "milionário"] },
-  { label: "Agentes e automação", terms: ["agent", "agente", "automacao", "workflow", "mcp", "n8n"] },
-  { label: "Ferramentas de IA", terms: ["chatgpt", "claude", "gemini", "openai", "cursor", "lovable", "ia ", "ai "] },
-  { label: "Sistemas e produtividade", terms: ["sistema", "produt", "foco", "prioridad", "rotina", "tempo", "organiz", "procrast"] },
-  { label: "Aprendizado e carreira", terms: ["aprend", "estud", "carreira", "trabalho", "profissional", "conhecimento"] },
-  { label: "Conteúdo e marca", terms: ["conteudo", "youtube", "canal", "marca pessoal", "video"] },
-  { label: "Desenvolvimento pessoal", terms: ["disciplina", "habito", "meta", "objetivo", "sucesso", "vida", "ansiedade", "cerebro"] },
+  { label: "Negócios e monetização", terms: ["dinheiro", "money", "business", "negocio", "vendas", "venda", "renda", "cliente", "clientes", "fatur", "faturei", "lucro", "lucrar", "monetiz", "agencia", "saas", "r$", "$", "vender", "riqueza", "milionario", "online"] },
+  { label: "Agentes e automação", terms: ["agent", "agente", "automacao", "automation", "workflow", "mcp", "n8n"] },
+  { label: "Ferramentas de IA", terms: ["chatgpt", "claude", "gemini", "openai", "cursor", "lovable", "higgsfield", "ia ", "ai "] },
+  { label: "Sistemas e produtividade", terms: ["sistema", "system", "produt", "foco", "prioridad", "rotina", "tempo", "organiz", "procrast"] },
+  { label: "Aprendizado e carreira", terms: ["aprend", "learn", "knowledge", "estud", "carreira", "trabalho", "profissional", "conhecimento", "skill"] },
   { label: "Notícias e opinião", terms: ["noticia", "news", "lancamento", "release", "mudou", "acabou", "novo "] },
 ];
 
-const titleHasAny = (title: string, terms: string[]) =>
-  terms.some((term) => title.includes(term));
+const titleHasAny = (title: string, terms: string[]) => terms.some((term) => title.includes(term));
 
 const videoTopics = (video: OpportunityVideoInput) => {
   const title = ` ${normalized(video.originalTitle || video.title)} `;
-  return topicRules
-    .filter((rule) => titleHasAny(title, rule.terms))
-    .map((rule) => rule.label);
+  return topicRules.filter((rule) => titleHasAny(title, rule.terms)).map((rule) => rule.label);
 };
 
 const isLongTutorial = (title: string) =>
-  titleHasAny(title, ["curso", "tutorial", "aula", "passo a passo", "guia completo", "full course"]);
+  titleHasAny(title, ["curso", "course", "tutorial", "aula", "passo a passo", "guia completo", "full course", "knowledge"]);
+
+const isShortOrInvalidDuration = (durationSeconds: number | null, title: string) => {
+  if (durationSeconds != null && durationSeconds > 0 && durationSeconds <= 180) return true;
+  return (durationSeconds ?? 0) > 45 * 60 && !isLongTutorial(title);
+};
 
 export const isEligibleOpportunityVideo = (video: OpportunityVideoInput) => {
-  if (video.views == null || video.views < 0) return false;
-  const title = ` ${normalized(video.originalTitle || video.title)} `;
-  if (titleHasAny(title, irrelevantTerms)) return false;
-  if (!editorialGroups.some((group) => titleHasAny(title, group.terms)) && !titleHasAny(title, newsTerms)) return false;
-  if (titleHasAny(title, excludedFormatTerms)) return false;
-  if ((video.durationSeconds ?? 0) > 45 * 60 && !isLongTutorial(title)) return false;
-  return true;
+  if (video.views == null || video.views < 0 || Boolean(video.isLive)) return false;
+  const rawTitle = normalized(video.originalTitle || video.title);
+  const paddedTitle = ` ${rawTitle} `;
+  if (isShortOrInvalidDuration(video.durationSeconds, paddedTitle)) return false;
+  return !titleHasAny(paddedTitle, excludedTerms) && eligibleThemeRegex.test(rawTitle);
 };
 
-const relativePerformanceScore = (multiple: number) =>
-  clamp(50 + 15 * Math.log2(Math.max(multiple, 0.05)));
-
-const editorialPillarFor = (video: OpportunityVideoInput): EditorialPillar => {
-  const title = ` ${normalized(video.originalTitle || video.title)} `;
-  const channelAndTitle = `${title} ${normalized(video.channel)} `;
-  const isApplied = titleHasAny(title, tutorialTerms) || titleHasAny(title, benefitTerms);
-  if (titleHasAny(title, newsTerms) && !isApplied) return "news";
-  if (titleHasAny(channelAndTitle, aiTerms)) return "ai_applied";
-  return "growth_systems";
-};
-
-const adaptabilityScore = (video: OpportunityVideoInput) => {
-  const title = ` ${normalized(video.originalTitle || video.title)} `;
-  let score = 58;
-  if (titleHasAny(title, tutorialTerms)) score += 25;
-  if (titleHasAny(title, ["explic", "por que", "o que", "verdade", "erro", "regra", "licao"])) score += 12;
-  if (titleHasAny(title, ["celebridade", "reagindo", "react", "vlog", "minha casa", "meu carro"])) score -= 22;
-  if ((video.durationSeconds ?? 0) > 30 * 60) score -= 10;
-  return clamp(score);
-};
+const unitDayMultipliers: Array<[string, number]> = [
+  ["min", 0], ["h", 0], ["d", 1], ["sem", 7], ["week", 7], ["mes", 30], ["month", 30], ["ano", 365], ["year", 365],
+];
 
 const parseRelativeAgeDays = (text: string | null) => {
   if (!text) return null;
   const value = normalized(text).trim();
-  if (value === "hoje" || value === "today") return 0;
-  if (value === "ontem" || value === "yesterday") return 1;
-  const match = value.match(/(\d+)\s*(min(?:uto)?s?|h(?:ora)?s?|dia?s?|sem(?:ana)?s?|mes(?:es)?|ano?s?|minute?s?|hour?s?|day?s?|week?s?|month?s?|year?s?)/);
+  if (["hoje", "today", "ontem", "yesterday"].includes(value)) return 1;
+  const match = value.match(/(\d+)\s*([a-z]+)/);
   if (!match) return null;
-  const amount = Number(match[1]);
-  const unit = match[2];
-  if (unit.startsWith("min") || unit.startsWith("h") || unit.startsWith("hour")) return 0;
-  if (unit.startsWith("d") || unit.startsWith("day")) return amount;
-  if (unit.startsWith("sem") || unit.startsWith("week")) return amount * 7;
-  if (unit.startsWith("mes") || unit.startsWith("month")) return amount * 30;
-  if (unit.startsWith("ano") || unit.startsWith("year")) return amount * 365;
-  return null;
+  const found = unitDayMultipliers.find(([prefix]) => match[2].startsWith(prefix));
+  if (!found) return null;
+  return Math.max(1, Number(match[1]) * (found[1] || 1));
 };
 
 const videoAgeDays = (video: OpportunityVideoInput, now: Date) => {
   if (video.publishedAt) {
     const published = new Date(video.publishedAt);
-    if (!Number.isNaN(published.getTime())) return Math.max(0, (now.getTime() - published.getTime()) / DAY_MS);
+    if (!Number.isNaN(published.getTime())) {
+      return Math.max(1, (now.getTime() - published.getTime()) / DAY_MS);
+    }
   }
-  return parseRelativeAgeDays(video.publishedText);
+  return parseRelativeAgeDays(video.publishedText) ?? 90;
 };
 
-const freshnessScore = (ageDays: number | null) => {
-  if (ageDays == null) return 35;
-  if (ageDays <= 7) return 100;
-  if (ageDays <= 30) return 90;
-  if (ageDays <= 90) return 75;
-  if (ageDays <= 180) return 58;
-  if (ageDays <= 270) return 44;
-  if (ageDays <= 370) return 30;
-  return 10;
-};
-
-const longevityScore = (video: OpportunityVideoInput, pillar: EditorialPillar) => {
+const editorialPillarFor = (video: OpportunityVideoInput): EditorialPillar => {
   const title = ` ${normalized(video.originalTitle || video.title)} `;
-  let score = pillar === "growth_systems" ? 88 : pillar === "ai_applied" ? 76 : 28;
-  if (titleHasAny(title, tutorialTerms)) score += 8;
-  if (titleHasAny(title, ["2025", "2026", "2027", "lancamento", "noticia", "news", "acabou", "chegou"])) score -= 18;
-  if (titleHasAny(title, ["metodo", "sistema", "framework", "principio", "regra", "guia"])) score += 8;
-  return clamp(score);
-};
-
-const packagingScore = (video: OpportunityVideoInput) => {
-  const title = normalized(video.originalTitle || video.title);
-  let score = 20;
-  if (/\d|r\$|us\$|\$|%/.test(title)) score += 20;
-  if (titleHasAny(title, ["como ", "por que", "o que", "qual ", "?", "how ", "why "])) score += 18;
-  if (titleHasAny(title, ["segredo", "verdade", "erro", "ninguem", "parei", "acabou", "melhor", "pior", "unica", "nunca", "sem "])) score += 19;
-  if (titleHasAny(title, ["passo a passo", "resultado", "faturei", "ganhei", "em 7 dias", "em 30 dias", "horas", "minutos"])) score += 18;
-  if (title.length >= 32 && title.length <= 95) score += 15;
-  if (video.thumbnail || video.thumbnailUrl) score += 8;
-  return clamp(score);
-};
-
-const aiAppliedTransformationScore = (
-  video: OpportunityVideoInput,
-  relativePerformance: number,
-  crossChannelValidation: number,
-) => {
-  const title = ` ${normalized(video.originalTitle || video.title)} `;
-  if (!titleHasAny(`${title} ${normalized(video.channel)} `, aiTerms)) return 0;
-
-  return clamp(
-    30
-    + (titleHasAny(title, tutorialTerms) ? 14 : 0)
-    + (titleHasAny(title, benefitTerms) ? 16 : 0)
-    + (titleHasAny(title, businessMonetizationTerms) ? 12 : 0)
-    + relativePerformance * 0.14
-    + adaptabilityScore(video) * 0.08
-    + packagingScore(video) * 0.08
-    + crossChannelValidation * 0.04
-    + longevityScore(video, "ai_applied") * 0.03,
-  );
-};
-
-const productivityCareerSystemsScore = (
-  video: OpportunityVideoInput,
-  relativePerformance: number,
-  crossChannelValidation: number,
-) => {
-  const title = ` ${normalized(video.originalTitle || video.title)} `;
-  if (!titleHasAny(title, growthTerms)) return 0;
-
-  return clamp(
-    38
-    + (titleHasAny(title, ["sistema", "metodo", "framework", "regra", "rotina", "plano"]) ? 14 : 0)
-    + (titleHasAny(title, benefitTerms) ? 10 : 0)
-    + relativePerformance * 0.12
-    + adaptabilityScore(video) * 0.08
-    + packagingScore(video) * 0.07
-    + crossChannelValidation * 0.04
-    + longevityScore(video, "growth_systems") * 0.07,
-  );
-};
-
-const newsRelevanceScore = (
-  video: OpportunityVideoInput,
-  relativePerformance: number,
-  ageDays: number | null,
-) => {
-  const title = ` ${normalized(video.originalTitle || video.title)} `;
-  if (!titleHasAny(title, newsTerms)) return 0;
-
-  return clamp(
-    42
-    + freshnessScore(ageDays) * 0.35
-    + relativePerformance * 0.1
-    + packagingScore(video) * 0.08
-    + (titleHasAny(title, ["lancou", "anunciou", "release", "atualizacao"]) ? 8 : 0),
-  );
+  const channelAndTitle = `${title} ${normalized(video.channel)} `;
+  if (titleHasAny(title, newsTerms) && !transferableMethodRegex.test(title)) return "news";
+  if (titleHasAny(channelAndTitle, aiTerms) || /\$|r\$|money|dinheiro/.test(title)) return "ai_applied";
+  return "growth_systems";
 };
 
 const formatLabel = (video: OpportunityVideoInput) => {
   const title = ` ${normalized(video.originalTitle || video.title)} `;
-  if (titleHasAny(title, ["tutorial", "passo a passo", "curso", "guia", "aprenda", "como "])) return "Tutorial aplicável";
+  if (transferableMethodRegex.test(title)) return "Tutorial aplicável";
   if (titleHasAny(title, ["testei", "usei", "criei", "construi", "dias", "semana", "meses"])) return "Experimento demonstrável";
-  if (titleHasAny(title, ["lancamento", "novo ", "mudou", "acabou", "noticia"])) return "Notícia explicada";
+  if (titleHasAny(title, newsTerms)) return "Notícia explicada";
   return "Tese explicativa";
 };
 
-const rationaleFor = (video: OpportunityVideoInput, multiple: number, topic: string, breakdown: OpportunityBreakdown) => {
-  const performance = multiple >= 1
-    ? `${multiple.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}× a mediana do próprio canal`
-    : `${Math.round(multiple * 100)}% da mediana do próprio canal`;
-  const strongest = [
-    [breakdown.aiAppliedTransformation, "forte aderência a IA aplicada, transformação e benefício"],
-    [breakdown.productivityCareerSystems, "boa conexão com produtividade, carreira e sistemas"],
-    [breakdown.newsRelevance, "notícia atual com relevância editorial"],
-  ] as Array<[number, string]>;
-  strongest.sort((a, b) => b[0] - a[0]);
-  return `${performance}; ${strongest[0][1]}. Sinal: ${topic}.`;
+const isLongFormForStats = (video: OpportunityVideoInput): video is OpportunityVideoInput & { views: number } =>
+  video.views != null && !video.isLive && (video.durationSeconds == null || video.durationSeconds > 180);
+
+const buildChannelStats = (videos: OpportunityVideoInput[]) => {
+  const grouped = new Map<string, { views: number[]; likeRates: number[]; commentRates: number[] }>();
+  for (const video of videos) {
+    if (!isLongFormForStats(video)) continue;
+    const entry = grouped.get(video.channel) ?? { views: [], likeRates: [], commentRates: [] };
+    entry.views.push(video.views);
+    if (video.views > 100 && video.likes != null) entry.likeRates.push(video.likes / video.views);
+    if (video.views > 100 && video.comments != null) entry.commentRates.push(video.comments / video.views);
+    grouped.set(video.channel, entry);
+  }
+  const stats = new Map<string, ChannelEngagementStats>();
+  for (const [channel, data] of grouped.entries()) {
+    stats.set(channel, {
+      medianViews: Math.max(1, median(data.views)),
+      medianLikeRate: median(data.likeRates) || 0.04,
+      medianCommentRate: median(data.commentRates) || 0.002,
+    });
+  }
+  return stats;
+};
+
+const computeRecentVelocity = (video: OpportunityVideoInput, lifetimeViewsPerDay: number) => {
+  const firstObs = video.previousObservations?.[0];
+  if (!firstObs?.observedAt || !video.observedAt || firstObs.views == null || video.views == null) {
+    return lifetimeViewsPerDay;
+  }
+  const dtDays = (new Date(video.observedAt).getTime() - new Date(firstObs.observedAt).getTime()) / DAY_MS;
+  const dViews = video.views - firstObs.views;
+  return dtDays >= 0.5 && dViews >= 0 ? dViews / dtDays : lifetimeViewsPerDay;
+};
+
+const scoreOutlierLayer = (mult: number, medianViews: number, ageDays: number) => {
+  const scaleBoost = medianViews >= 200_000 ? 2.5 : medianViews >= 50_000 ? 1.45 : 1.0;
+  const ageBoost = ageDays <= 7 ? 1.5 : ageDays <= 14 ? 1.35 : ageDays <= 30 ? 1.15 : 1.0;
+  return clamp(Math.round(Math.min(32, Math.log2(Math.max(1, mult * scaleBoost * ageBoost)) * 6.8)), 0, 32);
+};
+
+const scoreEngagementLayer = (video: OpportunityVideoInput, stats: ChannelEngagementStats) => {
+  const views = video.views ?? 0;
+  if (views <= 0 || (video.likes == null && video.comments == null)) return { relativeEngagement: 5, engagementMultiple: null };
+  const likeRatio = video.likes != null ? (video.likes / views) / Math.min(stats.medianLikeRate, 0.032) : 1.0;
+  const commentRatio = video.comments != null ? (video.comments / views) / Math.min(stats.medianCommentRate, 0.0012) : 1.0;
+  const rawChannelCommentRatio = video.comments != null ? (video.comments / views) / stats.medianCommentRate : null;
+  const engagementMultiple = rawChannelCommentRatio != null ? Number(Math.max(rawChannelCommentRatio, commentRatio).toFixed(2)) : null;
+  const engIndex = commentRatio * 0.65 + likeRatio * 0.35;
+  const relativeEngagement = clamp(Math.round(Math.min(10, Math.max(2, 5.5 + Math.log2(Math.max(0.25, engIndex)) * 2.8))), 1, 10);
+  return { relativeEngagement, engagementMultiple };
+};
+
+const scoreReplicabilityLayer = (video: OpportunityVideoInput, ageDays: number) => {
+  const rawTitle = normalized(video.originalTitle || video.title);
+  const isTransferable = transferableMethodRegex.test(rawTitle);
+  const inCoreStack = carlosCoreStackRegex.test(rawTitle);
+  let rep = (isTransferable ? 8.5 : 6.0) + (inCoreStack ? 1.5 : 0);
+  if (expensiveToolRegex.test(rawTitle) && !inCoreStack) rep -= 3.5;
+  if (pureNewsRegex.test(rawTitle) && !isTransferable && ageDays > 25) {
+    rep -= Math.min(6, (ageDays - 25) * 0.15);
+  }
+  return clamp(Math.round(rep), 1, 10);
+};
+
+const computeBreakdown = (
+  video: OpportunityVideoInput,
+  stats: ChannelEngagementStats,
+  ageDays: number,
+  recentViewsPerDay: number,
+): { breakdown: OpportunityBreakdown; engagementMultiple: number | null } => {
+  const views = video.views ?? 0;
+  const outlierExplosion = scoreOutlierLayer(views / stats.medianViews, stats.medianViews, ageDays);
+  const audienceScale = clamp(Math.round(Math.min(26, Math.max(0, (Math.log10(Math.max(1, views)) - 3.7) * 10.2))), 0, 26);
+  const activeVelocity = recentViewsPerDay * 0.6 + (views / ageDays) * 0.4;
+  const activeTraction = clamp(Math.round(Math.min(22, Math.max(0, (Math.log10(Math.max(1, activeVelocity)) - 1.8) * 6.8))), 0, 22);
+  const { relativeEngagement, engagementMultiple } = scoreEngagementLayer(video, stats);
+  const replicabilityAndValidity = scoreReplicabilityLayer(video, ageDays);
+  return {
+    breakdown: { outlierExplosion, audienceScale, activeTraction, relativeEngagement, replicabilityAndValidity },
+    engagementMultiple,
+  };
+};
+
+const rationaleFor = (params: {
+  multiple: number;
+  recentViewsPerDay: number;
+  engagementMultiple: number | null;
+  breakdown: OpportunityBreakdown;
+  topic: string;
+}) => {
+  const perf = `${params.multiple.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}× a mediana do canal`;
+  const velocity = `${Math.round(params.recentViewsPerDay).toLocaleString("pt-BR")} views/dia de tração ativa`;
+  const eng = params.engagementMultiple && params.engagementMultiple >= 1.3
+    ? `; ${params.engagementMultiple.toLocaleString("pt-BR")}× mais comentários que o normal`
+    : "";
+  const rep = params.breakdown.replicabilityAndValidity;
+  const stackNote = rep >= 9
+    ? "alta replicabilidade na sua stack (≤ R$ 200)"
+    : rep <= 5
+      ? "exige ferramenta/créditos acima da stack básica"
+      : "formato adaptável";
+  return `${perf} · ${velocity}${eng}; ${stackNote}. Sinal: ${params.topic}.`;
+};
+
+const scoreSingleVideo = (
+  video: OpportunityVideoInput,
+  channelStats: Map<string, ChannelEngagementStats>,
+  now: Date,
+  enforceProductionFloor: boolean,
+): RankedOpportunityVideo | null => {
+  const stats = channelStats.get(video.channel) ?? {
+    medianViews: Math.max(1, video.views ?? 1),
+    medianLikeRate: 0.04,
+    medianCommentRate: 0.002,
+  };
+  const relativePerformanceMultiple = (video.views ?? 0) / stats.medianViews;
+  if (enforceProductionFloor && (relativePerformanceMultiple < 2.2 || (video.views ?? 0) < 10_000)) {
+    return null;
+  }
+  const ageDays = videoAgeDays(video, now);
+  const recentViewsPerDay = computeRecentVelocity(video, (video.views ?? 0) / ageDays);
+  const { breakdown, engagementMultiple } = computeBreakdown(video, stats, ageDays, recentViewsPerDay);
+  const opportunityScore = clamp(
+    breakdown.outlierExplosion + breakdown.audienceScale + breakdown.activeTraction
+    + breakdown.relativeEngagement + breakdown.replicabilityAndValidity,
+    0,
+    99,
+  );
+  const topicLabel = videoTopics(video)[0] ?? "Sinal editorial";
+  const editorialPillar = editorialPillarFor(video);
+  return {
+    ...video,
+    opportunityScore,
+    breakdown,
+    channelMedianViews: stats.medianViews,
+    relativePerformanceMultiple,
+    recentViewsPerDay: Math.round(recentViewsPerDay),
+    engagementMultiple,
+    formatLabel: formatLabel(video),
+    topicLabel,
+    editorialPillar,
+    editorialPillarLabel: pillarLabels[editorialPillar],
+    rationale: rationaleFor({ multiple: relativePerformanceMultiple, recentViewsPerDay, engagementMultiple, breakdown, topic: topicLabel }),
+  };
 };
 
 export function rankOpportunityVideos(
@@ -354,71 +321,21 @@ export function rankOpportunityVideos(
   const limit = options.limit ?? 15;
   const perChannel = options.perChannel ?? 3;
   const now = options.now ?? new Date();
-  const medians = new Map<string, number>();
-
-  for (const channel of new Set(videos.map((video) => video.channel))) {
-    const views = videos
-      .filter((video) => video.channel === channel && video.views != null)
-      .map((video) => video.views as number);
-    medians.set(channel, median(views));
-  }
-
-  const channelsByTopic = new Map<string, Set<string>>();
-  for (const video of videos) {
-    for (const topic of videoTopics(video)) {
-      const channels = channelsByTopic.get(topic) ?? new Set<string>();
-      channels.add(video.channel);
-      channelsByTopic.set(topic, channels);
-    }
-  }
+  const channelStats = buildChannelStats(videos);
+  const enforceProductionFloor = videos.length > 50;
 
   const ranked = videos
     .filter(isEligibleOpportunityVideo)
-    .map((video): RankedOpportunityVideo => {
-      const channelMedianViews = Math.max(1, medians.get(video.channel) ?? 1);
-      const relativePerformanceMultiple = (video.views ?? 0) / channelMedianViews;
-      const topics = videoTopics(video);
-      const topicLabel = topics[0] ?? "Sinal editorial";
-      const corroboratingChannels = Math.max(
-        1,
-        ...topics.map((topic) => channelsByTopic.get(topic)?.size ?? 1),
-      );
-      const editorialPillar = editorialPillarFor(video);
-      const relativePerformance = relativePerformanceScore(relativePerformanceMultiple);
-      const crossChannelValidation = clamp(((corroboratingChannels - 1) / 5) * 100);
-      const ageDays = videoAgeDays(video, now);
-      const breakdown: OpportunityBreakdown = {
-        aiAppliedTransformation: aiAppliedTransformationScore(video, relativePerformance, crossChannelValidation),
-        productivityCareerSystems: productivityCareerSystemsScore(video, relativePerformance, crossChannelValidation),
-        newsRelevance: newsRelevanceScore(video, relativePerformance, ageDays),
-      };
-      const opportunityScore = Math.round(
-        breakdown.aiAppliedTransformation * 0.65
-        + breakdown.productivityCareerSystems * 0.25
-        + breakdown.newsRelevance * 0.1,
-      );
-      return {
-        ...video,
-        opportunityScore,
-        breakdown,
-        channelMedianViews,
-        relativePerformanceMultiple,
-        formatLabel: formatLabel(video),
-        topicLabel,
-        editorialPillar,
-        editorialPillarLabel: pillarLabels[editorialPillar],
-        rationale: rationaleFor(video, relativePerformanceMultiple, topicLabel, breakdown),
-      };
-    })
+    .map((video) => scoreSingleVideo(video, channelStats, now, enforceProductionFloor))
+    .filter((item): item is RankedOpportunityVideo => item !== null)
     .sort((a, b) =>
       b.opportunityScore - a.opportunityScore
-      || b.relativePerformanceMultiple - a.relativePerformanceMultiple
-      || (b.views ?? 0) - (a.views ?? 0),
+      || (b.views ?? 0) - (a.views ?? 0)
+      || b.relativePerformanceMultiple - a.relativePerformanceMultiple,
     );
 
   const selected: RankedOpportunityVideo[] = [];
   const channelCounts = new Map<string, number>();
-
   for (const video of ranked) {
     const count = channelCounts.get(video.channel) ?? 0;
     if (count >= perChannel) continue;
