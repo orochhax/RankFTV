@@ -9,6 +9,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { Avatar } from "@/components/ui/Avatar";
 import { ARENA_NAV_GROUPS, isArenaNavItemActive, arenaPageTitle } from "@/components/arena/arena-nav-items";
+import { ArenaPlanLimitBanner } from "@/components/arena/ArenaPlanLimitBanner";
 
 export type ArenaSummary = { id: string; nome: string; handle: string; avatarUrl: string | null };
 export type ArenaOwnerUser = { nome: string; username: string } | null;
@@ -17,11 +18,13 @@ export function ArenaShell({
   arena,
   arenas,
   user,
+  totalAlunosAtivos = 0,
   children,
 }: {
   arena: ArenaSummary;
   arenas: ArenaSummary[];
   user: ArenaOwnerUser;
+  totalAlunosAtivos?: number;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -74,6 +77,11 @@ export function ArenaShell({
         </header>
 
         <ArenaDesktopSubnav arena={arena} pathname={pathname} onNavigate={closeOverlays} />
+
+        <ArenaPlanLimitBanner
+          totalAlunosAtivos={totalAlunosAtivos}
+          arenaHandle={arena.handle}
+        />
 
         <div className="pb-[max(env(safe-area-inset-bottom),16px)] md:pb-8">{children}</div>
       </div>

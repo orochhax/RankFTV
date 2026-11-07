@@ -362,7 +362,7 @@ function BottomSheet({ title, onClose, children }: { title: string; onClose: () 
 // ── Chip de evento (usado nas listas mobile e no grid mensal/anual) ────────
 
 function OccurrenceCard({ occ, handle }: { occ: AgendaOccurrence; handle: string }) {
-  const nivelLabel = occ.nivel ? NIVEL_LABEL[occ.nivel] ?? occ.nivel : "Todos os níveis";
+  const nivelLabel = occ.nivel ? NIVEL_LABEL[occ.nivel] ?? occ.nivel : "Aberto / Geral";
   const temLimite = occ.maxAlunos != null;
   const confirmados = occ.confirmados ?? 0;
   const lotada = temLimite && occ.confirmados != null && confirmados >= (occ.maxAlunos as number);

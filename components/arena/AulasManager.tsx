@@ -148,7 +148,7 @@ function CamposAula({ aula, staff }: { aula?: Aula; staff: StaffOpcao[] }) {
         <div>
           <label className="block text-sm font-medium text-gray-700">Nível</label>
           <select name="nivel" defaultValue={aula?.nivel ?? ""} className={`mt-1 ${selectCls}`}>
-            <option value="">Todos os níveis</option>
+            <option value="">Aberto / Geral (Todos os níveis)</option>
             <option value="iniciante">Iniciante</option>
             <option value="intermediario">Intermediário</option>
             <option value="avancado">Avançado</option>
@@ -288,9 +288,13 @@ export function AulasManager({ aulas, arenaId, staff = [] }: { aulas: Aula[]; ar
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <p className="text-sm font-medium text-gray-900">{a.titulo}</p>
-                    {a.nivel && (
+                    {a.nivel ? (
                       <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
                         {NIVEL_LABEL[a.nivel] ?? a.nivel}
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+                        Aberto / Geral
                       </span>
                     )}
                     {a.publico !== "misto" && (

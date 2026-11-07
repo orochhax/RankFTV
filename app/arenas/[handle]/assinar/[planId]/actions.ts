@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { arenaRecurringPaymentsEnabled } from "@/lib/release-flags";
 import { createClient } from "@/lib/supabase/server";
+import { avaliarCapacidadeArena } from "@/lib/arena-platform-plans";
 
 export type AssinarResult =
   | { ok: true }
@@ -50,6 +51,21 @@ export async function assinarGratuito(planId: string): Promise<AssinarResult> {
     .maybeSingle();
 
   if (existing?.status === "ativo") return { ok: true };
+
+  // Verifica o teto de 30 alunos do Plano Start antes de ativar uma nova matrícula
+  const { count: totalAlunosAtivos } = await admin
+    .from("arena_students")
+    .select("id", { count: "exact", head: true })
+    .eq("arena_id", plan.arena_id)
+    .eq("status", "ativo");
+
+  const capacidade = avaliarCapacidadeArena(totalAlunosAtivos ?? 0, "start");
+  if (capacidade.isBloqueado) {
+    return {
+      ok: false,
+      error: "Esta arena atingiu a capacidade máxima de novas matrículas no momento. Entre em contato diretamente com a arena.",
+    };
+  }
 
   if (existing) {
     await admin

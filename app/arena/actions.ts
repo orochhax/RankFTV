@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notificarArena, notificarResponsaveisArena } from "@/lib/arena-notify";
 import { valorAvulsaComTaxa, interpretarErroRpc } from "@/lib/arena-attendance";
+import { avaliarCapacidadeArena } from "@/lib/arena-platform-plans";
 import { createIdempotentStoredCardCharge } from "@/lib/payment-flows";
 import { beginStoredCardPaymentAttempt, finishCardPaymentAttempt } from "@/lib/payment-security";
 
@@ -27,6 +28,20 @@ export async function aceitarAluno(alunoId: string, arenaId: string) {
     .maybeSingle();
 
   if (!arena) return { error: "Arena não encontrada." };
+
+  // Verifica o teto de 30 alunos do Plano Start antes de aceitar novo aluno
+  const { count: totalAlunosAtivos } = await supabase
+    .from("arena_students")
+    .select("id", { count: "exact", head: true })
+    .eq("arena_id", arenaId)
+    .eq("status", "ativo");
+
+  const capacidade = avaliarCapacidadeArena(totalAlunosAtivos ?? 0, "start");
+  if (capacidade.isBloqueado) {
+    return {
+      error: "Limite de 30 alunos atingido no Plano Start. Faça o upgrade para o Plano Pro para aceitar novos alunos.",
+    };
+  }
 
   const { data: vinculo, error } = await createAdminClient()
     .from("arena_students")
@@ -254,6 +269,21 @@ export async function entrarComCodigo(arenaId: string, codigo: string) {
     .maybeSingle();
 
   if (existente?.status === "ativo") return { error: "Você já é aluno desta arena." };
+
+  // Bloqueio de limite de capacidade para Plano Start
+  const { count: totalAlunosAtivos } = await admin
+    .from("arena_students")
+    .select("id", { count: "exact", head: true })
+    .eq("arena_id", arenaId)
+    .eq("status", "ativo");
+
+  const capacidade = avaliarCapacidadeArena(totalAlunosAtivos ?? 0, "start");
+  if (capacidade.isBloqueado) {
+    return {
+      error:
+        "Esta arena atingiu a capacidade máxima de 30 alunos do Plano Start. Novas inscrições estão temporariamente bloqueadas.",
+    };
+  }
 
   if (existente) {
     await admin.from("arena_students").update({ status: "ativo", data_entrada: new Date().toISOString().split("T")[0] }).eq("id", existente.id);

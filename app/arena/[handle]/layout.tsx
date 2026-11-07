@@ -32,6 +32,14 @@ export default async function ArenaOrganizerLayout({
   const arena = (arenas ?? []).find((a) => a.handle === handle);
   if (!arena) redirect("/arena");
 
+  const [{ count: totalAlunosAtivos }] = await Promise.all([
+    supabase
+      .from("arena_students")
+      .select("id", { count: "exact", head: true })
+      .eq("arena_id", arena.id)
+      .eq("status", "ativo"),
+  ]);
+
   const arenaSummaries = (arenas ?? []).map((a) => ({
     id: a.id,
     nome: a.nome,
@@ -44,6 +52,7 @@ export default async function ArenaOrganizerLayout({
       arena={{ id: arena.id, nome: arena.nome, handle: arena.handle, avatarUrl: arena.avatar_url }}
       arenas={arenaSummaries}
       user={profile ? { nome: profile.nome, username: profile.username } : null}
+      totalAlunosAtivos={totalAlunosAtivos ?? 0}
     >
       {children}
     </ArenaShell>
