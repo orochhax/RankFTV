@@ -1800,6 +1800,26 @@ registrar apenas uma revalidação quando ela for necessária.
   - Importada em Production a rodada `328b3e52-9fee-4e07-8e1f-0e6f71a8d8a2` com
     27 ideias ranqueadas pela Fórmula de 5 Pilares (teto 98, sem empates em 100,
     incluindo 3 novas pautas Ponte Gringa → Brasil), 108 abordagens e 39
-    notícias recalibradas.
+    notícias recalibradas (PR `#141`, commit `ba0d91b`).
+
+## 2026-11-07 — Rocha Tech: atualização completa de concorrentes e radar
+
+- Execução da atualização completa aprovada por Carlos: checagem dos 24 canais
+  concorrentes via YouTube Data API v3 (`npm run youtube:competitors -- --apply`)
+  e renovação do radar de inteligência editorial.
+- Base consolidada em 3.855 vídeos monitorados na janela de 365 dias (15 vídeos
+  novos catalogados, 2.240 contadores de visualizações atualizados e zero falhas).
+  Resumo salvo em `Rocha Tech - YT/Concorrentes/ultima-coleta-2026-11-07.json`.
+- Pesquisa de mercado e fontes ativas de Production (17 fontes): integradas 3
+  novidades confirmadas de OpenAI (ChatGPT Images 2.6 com motion e GIFs), Google
+  (Gemini Skills com comandos barra `/` e rotinas em segundo plano) e Anthropic
+  (Claude + Plaid para inteligência financeira e pequenos negócios).
+- Importação oficial em Production no Supabase (Run ID:
+  `58737d51-72ad-4f32-9c6b-25b73986786f`): 42 conteúdos, 20 tendências e 27
+  ideias reavaliadas em 108 abordagens obrigatórias, preservando a regra de ouro
+  (título, nota e tag vinculados à melhor abordagem).
+- Snapshot seguro regenerado (`lib/evolution/intelligence-snapshot.json` com
+  3.855 vídeos, 24 canais e Top 15 oportunidades).
+
 
 
