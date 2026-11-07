@@ -28,7 +28,7 @@ function AulaCard({
   handle: string;
   discreta: boolean;
 }) {
-  const nivelLabel = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : "Todos os níveis";
+  const nivelLabel = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : "Aberto / Geral";
   const temLimite = aula.maxAlunos != null;
   const lotada = temLimite && confirmados >= (aula.maxAlunos as number);
   return (

@@ -164,7 +164,7 @@ export function AgendaPresenca({
                 {dia.aulas.map((aula) => {
                   const chave = `${aula.id}|${dia.date}`;
                   const lotada = aula.maxAlunos != null && aula.confirmados >= aula.maxAlunos && !aula.minha;
-                  const nivelLabel = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : "Todos os níveis";
+                  const nivelLabel = aula.nivel ? NIVEL_LABEL[aula.nivel] ?? aula.nivel : "Aberto / Geral";
                   const expandida = aberta === chave;
                   const restritaGenero = aula.publico !== "misto" && !aula.minha;
                   const semAcessoGenero = restritaGenero && !elegivelGenero(aula.publico);
