@@ -4,12 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Menu, X, ChevronDown, ExternalLink, LayoutDashboard, LogOut, Plus, Building2,
+  Menu, X, ChevronDown, ExternalLink, LayoutDashboard, LogOut, Plus, Building2, Lock, Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar } from "@/components/ui/Avatar";
 import { ARENA_NAV_GROUPS, isArenaNavItemActive, arenaPageTitle } from "@/components/arena/arena-nav-items";
 import { ArenaPlanLimitBanner } from "@/components/arena/ArenaPlanLimitBanner";
+import type { ArenaPlatformTierId } from "@/lib/arena-platform-plans";
 
 export type ArenaSummary = { id: string; nome: string; handle: string; avatarUrl: string | null };
 export type ArenaOwnerUser = { nome: string; username: string } | null;
@@ -19,12 +20,14 @@ export function ArenaShell({
   arenas,
   user,
   totalAlunosAtivos = 0,
+  tierId = "start",
   children,
 }: {
   arena: ArenaSummary;
   arenas: ArenaSummary[];
   user: ArenaOwnerUser;
   totalAlunosAtivos?: number;
+  tierId?: ArenaPlatformTierId;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -76,7 +79,13 @@ export function ArenaShell({
           </Link>
         </header>
 
-        <ArenaDesktopSubnav arena={arena} pathname={pathname} onNavigate={closeOverlays} />
+        <ArenaDesktopSubnav
+          arena={arena}
+          pathname={pathname}
+          totalAlunosAtivos={totalAlunosAtivos}
+          tierId={tierId}
+          onNavigate={closeOverlays}
+        />
 
         <ArenaPlanLimitBanner
           totalAlunosAtivos={totalAlunosAtivos}
@@ -113,6 +122,7 @@ export function ArenaShell({
                 arenas={arenas}
                 user={user}
                 pathname={pathname}
+                tierId={tierId}
                 collapsed={false}
                 switcherOpen={switcherOpen}
                 onToggleSwitcher={() => setSwitcherOpen((s) => !s)}
@@ -130,26 +140,88 @@ export function ArenaShell({
 function ArenaDesktopSubnav({
   arena,
   pathname,
+  totalAlunosAtivos = 0,
+  tierId = "start",
   onNavigate,
 }: {
   arena: ArenaSummary;
   pathname: string;
+  totalAlunosAtivos?: number;
+  tierId?: ArenaPlatformTierId;
   onNavigate: () => void;
 }) {
   const navItems = ARENA_NAV_GROUPS.flatMap((group) => group.items);
 
   return (
-    <div className="sticky top-0 z-20 hidden border-b border-border bg-surface/90 px-6 py-3 backdrop-blur md:block">
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="min-w-0 shrink-0 pr-2">
-          <p className="truncate text-xs font-medium text-ink-muted">{arena.nome}</p>
-          <p className="truncate text-sm font-bold text-ink">{arenaPageTitle(pathname, arena.handle)}</p>
+    <div className="sticky top-0 z-20 hidden border-b border-black/10 bg-white/95 px-6 py-2.5 backdrop-blur-md shadow-xs md:block">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-gray-500">{arena.nome}</span>
+            <span className="text-gray-300">/</span>
+            <h2 className="text-sm font-bold text-gray-900">{arenaPageTitle(pathname, arena.handle)}</h2>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            {tierId === "pro" ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
+                <Sparkles className="size-3 text-blue-600" />
+                ⭐ Pro Ativo · Ilimitado
+              </span>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href={`/arena/${arena.handle}/assinatura`}
+                  title="Consultar limites de capacidade"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-900 transition hover:bg-amber-100"
+                >
+                  <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
+                  Plano Start · {totalAlunosAtivos}/30 alunos
+                </Link>
+                <Link
+                  href={`/arena/${arena.handle}/assinatura`}
+                  className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1 text-xs font-bold text-white shadow-xs transition hover:opacity-95 active:scale-95"
+                >
+                  <Sparkles className="size-3" /> Upgrade Pro
+                </Link>
+              </div>
+            )}
+
+            <a
+              href={`/arenas/${arena.handle}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-black/10 bg-white px-3 text-xs font-bold text-gray-700 shadow-xs transition hover:border-black hover:text-black"
+            >
+              <ExternalLink className="size-3.5" /> Página pública
+            </a>
+          </div>
         </div>
-        <nav aria-label="Navegacao do painel da arena" className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+
+        <nav aria-label="Navegacao do painel da arena" className="flex items-center gap-1 overflow-x-auto py-1">
           {navItems.map((item) => {
             const href = item.href(arena.handle);
             const active = isArenaNavItemActive(pathname, href, item.matchExact);
+            const isProLocked = item.requiresPro && tierId === "start";
             const Icon = item.icon;
+
+            if (isProLocked) {
+              return (
+                <Link
+                  key={item.key}
+                  href={href}
+                  onClick={onNavigate}
+                  title={`${item.label} (Exclusivo do Plano Pro)`}
+                  className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-dashed border-gray-300 bg-gray-50/80 px-2.5 text-xs font-medium text-gray-400 transition hover:border-amber-300 hover:bg-amber-50/50 hover:text-amber-800"
+                >
+                  <Icon className="size-3.5" />
+                  <span>{item.label}</span>
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.2 text-[10px] font-black text-amber-800">
+                    <Lock className="size-2.5" /> PRO
+                  </span>
+                </Link>
+              );
+            }
 
             return (
               <Link
@@ -157,26 +229,18 @@ function ArenaDesktopSubnav({
                 href={href}
                 onClick={onNavigate}
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium transition-colors ${
+                className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-all ${
                   active
-                    ? "bg-blue-600 text-white shadow-soft shadow-blue-600/15"
-                    : "text-ink-muted hover:bg-surface-2 hover:text-ink"
+                    ? "bg-gray-900 text-white shadow-xs"
+                    : "bg-gray-100/80 text-gray-700 hover:bg-gray-200/90 hover:text-black"
                 }`}
               >
-                <Icon className="size-4" />
+                <Icon className="size-3.5" />
                 <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
-        <a
-          href={`/arenas/${arena.handle}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-sm font-medium text-ink-muted transition-colors hover:border-blue-300 hover:text-blue-600"
-        >
-          <ExternalLink className="size-4" /> Pagina publica
-        </a>
       </div>
     </div>
   );
@@ -187,6 +251,7 @@ function ArenaNavContent({
   arenas,
   user,
   pathname,
+  tierId = "start",
   collapsed,
   switcherOpen,
   onToggleSwitcher,
@@ -197,6 +262,7 @@ function ArenaNavContent({
   arenas: ArenaSummary[];
   user: ArenaOwnerUser;
   pathname: string;
+  tierId?: ArenaPlatformTierId;
   collapsed: boolean;
   switcherOpen: boolean;
   onToggleSwitcher: () => void;
@@ -302,6 +368,7 @@ function ArenaNavContent({
               {group.items.map((item) => {
                 const href = item.href(arena.handle);
                 const active = isArenaNavItemActive(pathname, href, item.matchExact);
+                const isProLocked = item.requiresPro && tierId === "start";
                 const Icon = item.icon;
                 return (
                   <li key={item.key}>
@@ -315,12 +382,23 @@ function ArenaNavContent({
                         collapsed ? "justify-center" : ""
                       } ${
                         active
-                          ? "bg-blue-600 text-white"
+                          ? "bg-gray-900 text-white font-bold"
+                          : isProLocked
+                          ? "text-gray-400 hover:bg-amber-50/50 hover:text-amber-800"
                           : "text-ink-muted hover:bg-surface-2 hover:text-ink"
                       }`}
                     >
                       <Icon className="size-[18px] shrink-0" strokeWidth={2} />
-                      {!collapsed && item.label}
+                      {!collapsed && (
+                        <div className="flex flex-1 items-center justify-between">
+                          <span>{item.label}</span>
+                          {isProLocked && (
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.2 text-[10px] font-black text-amber-800">
+                              <Lock className="size-2.5" /> PRO
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </Link>
                   </li>
                 );
