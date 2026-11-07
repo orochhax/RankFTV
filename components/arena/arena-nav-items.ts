@@ -9,7 +9,6 @@ import {
   Settings2,
   Sparkles,
   LayoutGrid,
-  DollarSign,
   Target,
   Trophy,
 } from "lucide-react";

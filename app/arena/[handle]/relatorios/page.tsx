@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { BarChart3, Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { FinanceiroDashboard } from "@/components/arena/FinanceiroDashboard";
 import { getArenaFinanceiroData } from "@/lib/arena-financeiro";
