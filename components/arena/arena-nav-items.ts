@@ -1,5 +1,18 @@
 import type { LucideIcon } from "lucide-react";
-import { Home, CalendarDays, Users, Tag, Clock, BarChart3, Settings2, Sparkles } from "lucide-react";
+import {
+  Home,
+  CalendarDays,
+  Users,
+  Tag,
+  Clock,
+  BarChart3,
+  Settings2,
+  Sparkles,
+  LayoutGrid,
+  DollarSign,
+  Target,
+  Trophy,
+} from "lucide-react";
 
 export type ArenaNavItem = {
   key: string;
@@ -7,33 +20,60 @@ export type ArenaNavItem = {
   icon: LucideIcon;
   href: (handle: string) => string;
   matchExact?: boolean;
+  requiresPro?: boolean;
+  badge?: string;
 };
 
 export type ArenaNavGroup = { label: string; items: ArenaNavItem[] };
 
-// Só itens que abrem conteúdo real do RankFTV — nada de CRM/Estoque/links
-// sem função, mesmo que apareçam em referências visuais de outros produtos.
 export const ARENA_NAV_GROUPS: ArenaNavGroup[] = [
   {
-    label: "Principal",
+    label: "Operação",
     items: [
       { key: "inicio", label: "Início", icon: Home, href: (h) => `/arena/${h}`, matchExact: true },
-      { key: "agenda", label: "Agenda", icon: CalendarDays, href: (h) => `/arena/${h}/agenda` },
+      { key: "agenda", label: "Agenda & Chamada", icon: CalendarDays, href: (h) => `/arena/${h}/agenda` },
+      { key: "aulas", label: "Aulas e Horários", icon: Clock, href: (h) => `/arena/${h}/aulas` },
+      { key: "quadras", label: "Quadras", icon: LayoutGrid, href: (h) => `/arena/${h}/quadras` },
     ],
   },
   {
-    label: "Gestão",
+    label: "Alunos",
     items: [
       { key: "alunos", label: "Alunos", icon: Users, href: (h) => `/arena/${h}/alunos` },
-      { key: "planos", label: "Planos para alunos", icon: Tag, href: (h) => `/arena/${h}/planos` },
-      { key: "aulas", label: "Aulas e horários", icon: Clock, href: (h) => `/arena/${h}/aulas` },
+      { key: "planos", label: "Planos de Mensalidade", icon: Tag, href: (h) => `/arena/${h}/planos` },
+      {
+        key: "radar-evasao",
+        label: "Radar Anti-Evasão",
+        icon: Target,
+        href: (h) => `/arena/${h}/radar-evasao`,
+        requiresPro: true,
+        badge: "PRO",
+      },
     ],
   },
   {
-    label: "Administrativo",
+    label: "Financeiro & Negócio",
     items: [
-      { key: "relatorios", label: "Relatórios", icon: BarChart3, href: (h) => `/arena/${h}/relatorios` },
-      { key: "assinatura", label: "Plano e Limites", icon: Sparkles, href: (h) => `/arena/${h}/assinatura` },
+      {
+        key: "relatorios",
+        label: "Financeiro & DRE",
+        icon: BarChart3,
+        href: (h) => `/arena/${h}/relatorios`,
+      },
+      {
+        key: "torneios",
+        label: "Torneios Internos",
+        icon: Trophy,
+        href: (h) => `/arena/${h}/torneios`,
+        requiresPro: true,
+        badge: "PRO",
+      },
+    ],
+  },
+  {
+    label: "Plataforma",
+    items: [
+      { key: "assinatura", label: "Meu Plano & Limites", icon: Sparkles, href: (h) => `/arena/${h}/assinatura` },
       { key: "configuracoes", label: "Configurações", icon: Settings2, href: (h) => `/arena/${h}/configuracoes` },
     ],
   },

@@ -53,6 +53,7 @@ export default async function ArenaOrganizerLayout({
       arenas={arenaSummaries}
       user={profile ? { nome: profile.nome, username: profile.username } : null}
       totalAlunosAtivos={totalAlunosAtivos ?? 0}
+      tierId={((arena as { plano?: "start" | "pro" }).plano as "start" | "pro") ?? "start"}
     >
       {children}
     </ArenaShell>

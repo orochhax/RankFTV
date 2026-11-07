@@ -20,7 +20,7 @@ export type AppNavItem = {
 // link morto: cada href corresponde a uma rota real e existente.
 export const APP_NAV_ITEMS: AppNavItem[] = [
   { key: "campeonatos", label: "Campeonatos", href: "/", icon: Trophy, emoji: "🏆", matchExact: true },
-  { key: "arenas", label: "Arenas", href: "/arenas", icon: Building2, emoji: "🏟️", badge: "Em breve" },
+  { key: "arenas", label: "Arenas", href: "/arenas", icon: Building2, emoji: "🏟️" },
   { key: "agenda", label: "Agenda", href: "/agenda", icon: CalendarDays, emoji: "📅" },
   { key: "consultar-ingresso", label: "Consultar ingresso", href: "/meus-ingressos", icon: Ticket, emoji: "🎟️", requires: "guest" },
   { key: "compras", label: "Minhas compras", href: "/minhas-compras", icon: ShoppingBag, emoji: "🛍️", requires: "auth" },
