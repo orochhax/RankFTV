@@ -21,6 +21,14 @@
   1. Teste de pagamento Pix real simbólico (R$ 5,00) em produção com estorno supervisionado imediato (a ser executado por Carlos posteriormente).
   2. Definição da data de abertura oficial dos pagamentos reais da V1 por Carlos.
 
+## Central de Evolução - Atualização Completa do Rocha Tech e Concorrentes (07/11/2026)
+
+- Coleta oficial via YouTube Data API v3 nos **24 canais concorrentes** concluída: **3.855 vídeos** monitorados na janela de 365 dias (15 vídeos novos catalogados, 2.240 visualizações atualizadas, zero falhas e zero fallbacks manuais).
+- Resumo oficial de coleta salvo em `Rocha Tech - YT/Concorrentes/ultima-coleta-2026-11-07.json`.
+- Radar de notícias ampliado com 3 novidades verificadas de fontes primárias: **ChatGPT Images 2.6** (motion, GIFs e memória de estilo), **Google Gemini Skills** (migração de Gems para comandos barra `/` e rotinas de segundo plano) e **Claude + Plaid** (análise e auditoria financeira para pequenas empresas).
+- Sincronização em produção no Supabase (Run ID: `58737d51-72ad-4f32-9c6b-25b73986786f`): 42 conteúdos (3 novos e 39 atualizados), 20 tendências e 27 ideias reavaliadas pela Fórmula de 5 Pilares com 108 abordagens e regra de ouro editorial.
+- Snapshot seguro (`lib/evolution/intelligence-snapshot.json`) atualizado com 3.855 vídeos, 24 canais e Top 15 oportunidades lideradas por Money Talk With Leon (#1, 1,01 mi views) e Iman Gadzhi (#2, 1,86 mi views).
+
 ## Central de Evolução - Atualização Diária do Canal Carlos Rocha (07/11/2026)
 
 - Atualização completa dos 15 canais concorrentes via YouTube Data API v3 (1.604 vídeos monitorados e 1.604 thumbnails válidas na janela de 365 dias).
