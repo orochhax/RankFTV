@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Clock, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
+import { ChevronLeft, Clock, AlertCircle, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AtivarOrganizadorForm } from "@/components/perfil/AtivarOrganizadorForm";
 

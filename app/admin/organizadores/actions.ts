@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserRole, isCeo } from "@/lib/supabase/roles";
 import { registrarAuditoria } from "@/lib/audit";
-import { MOTIVOS_REJEICAO_PREDEFINIDOS, type StatusVerificacaoOrganizador } from "@/lib/organizer-kyc";
+import { type StatusVerificacaoOrganizador } from "@/lib/organizer-kyc";
 
 export type OrganizadorKycItem = {
   id: string;
