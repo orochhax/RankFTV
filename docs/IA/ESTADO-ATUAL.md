@@ -21,6 +21,14 @@
   1. Teste de pagamento Pix real simbólico (R$ 5,00) em produção com estorno supervisionado imediato (a ser executado por Carlos posteriormente).
   2. Definição da data de abertura oficial dos pagamentos reais da V1 por Carlos.
 
+## Central de Evolução - Atualização Completa do Rocha Tech e Concorrentes (09/11/2026)
+
+- Coleta oficial via YouTube Data API v3 nos **24 canais concorrentes** concluída: **3.881 vídeos** monitorados na janela de 365 dias (33 vídeos novos catalogados, 2.400 visualizações atualizadas, zero falhas e zero fallbacks manuais).
+- Resumo oficial de coleta salvo em `Rocha Tech - YT/Concorrentes/ultima-coleta-2026-11-09.json`.
+- Radar de notícias ampliado com 3 novidades verificadas de fontes primárias: **Google Gemini 4 Carbon** e cronograma de descontinuação do Gemini 2.5 (01/12/2026) na Gemini API (`https://blog.google`), **Avaliação da METR** comprovando que Claude acelera em mais de 2x a engenharia interna de software da Anthropic (`https://www.anthropic.com/news`), e **Acordo unificado de opt-out via robots.txt** entre OpenAI, Anthropic, Google e Microsoft (`https://openai.com/pt-BR/news`).
+- Sincronização em produção no Supabase (Run ID: `23da486f-0599-4787-bf2f-9d84276402ce`): 45 conteúdos (3 novos e 42 atualizados), 20 tendências e 27 ideias reavaliadas pela Fórmula de 5 Pilares com 108 abordagens e regra de ouro editorial (título, nota e tag vinculados rigorosamente à abordagem vencedora).
+- Snapshot seguro (`lib/evolution/intelligence-snapshot.json`) atualizado com 3.881 vídeos, 24 canais e Top 15 oportunidades lideradas por Money Talk With Leon (#1, 1,028 mi views) e Iman Gadzhi (#2, 1,876 mi views; #3, 1,276 mi views; #5, 1,670 mi views).
+
 ## Central de Evolução - Atualização Diária do Canal Carlos Rocha (09/11/2026)
 
 - Atualização completa dos 15 canais concorrentes via YouTube Data API v3 (1.615 vídeos monitorados e 1.615 thumbnails válidas na janela de 365 dias).

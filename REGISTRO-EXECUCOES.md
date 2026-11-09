@@ -5,6 +5,15 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-09 12:26 (America/Sao_Paulo) — Atualização completa do radar editorial e concorrentes do Rocha Tech
+
+- Coleta oficial via YouTube Data API v3 nos 24 canais concorrentes do Rocha Tech: 3.881 vídeos monitorados na janela de 365 dias (33 vídeos novos catalogados, 2.400 contadores de visualizações atualizados, zero falhas e zero fallbacks manuais).
+- Resumo oficial de coleta salvo em `Rocha Tech - YT/Concorrentes/ultima-coleta-2026-11-09.json`.
+- Radar ampliado com 3 novidades verificadas de fontes primárias: Google Gemini 4 Carbon e transição das APIs Gemini 2.5 (82 pts), Avaliação da METR sobre desenvolvimento de software com Claude acelerando a engenharia interna em mais de 2x (86 pts) e protocolo unificado de opt-out via robots.txt entre OpenAI, Anthropic, Google e Microsoft (64 pts).
+- Sincronização em produção no Supabase (Run ID: `23da486f-0599-4787-bf2f-9d84276402ce`): 45 conteúdos (3 novos e 42 atualizados), 20 tendências e 27 ideias reavaliadas pela Fórmula de 5 Pilares com 108 abordagens e regra de ouro editorial (título, nota e tag alinhados à abordagem vencedora).
+- Reconstrução do snapshot seguro (`lib/evolution/intelligence-snapshot.json`): 3.881 vídeos, 24 canais e Top 15 oportunidades lideradas por Money Talk With Leon (#1, 1,028M views, 90 pts) e Iman Gadzhi (#2, 1,876M views, 87 pts; #3, 1,276M views, 86 pts; #5, 1,670M views, 85 pts).
+- Bateria de testes unitários e typecheck aprovados com 100% de sucesso.
+
 ## 2026-11-09 12:18 (America/Sao_Paulo) — Atualização completa do canal Carlos Rocha e ranking de 15 concorrentes
 
 - Coleta oficial concluída para os 15 canais concorrentes do canal Carlos Rocha via YouTube Data API v3 (`scripts/collect-competitors.mjs`).
