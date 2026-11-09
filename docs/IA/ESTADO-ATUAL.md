@@ -21,6 +21,12 @@
   1. Teste de pagamento Pix real simbólico (R$ 5,00) em produção com estorno supervisionado imediato (a ser executado por Carlos posteriormente).
   2. Definição da data de abertura oficial dos pagamentos reais da V1 por Carlos.
 
+## Central de Evolução - Atualização Diária do Canal Carlos Rocha (09/11/2026)
+
+- Atualização completa dos 15 canais concorrentes via YouTube Data API v3 (1.615 vídeos monitorados e 1.615 thumbnails válidas na janela de 365 dias).
+- Recálculo das medianas e atualização do ranking estatístico de 15 outliers em `lib/evolution/carlos-rocha-rank-snapshot.json` (teto de 3 vídeos por canal).
+- Biblioteca de Ideias atualizada com versionamento cumulativo contínuo (`lib/evolution/carlos-rocha-library.json`), com 16 pautas ranqueadas e sem remoções (score >= 50).
+
 ## Central de Evolução - Atualização Completa do Rocha Tech e Concorrentes (07/11/2026)
 
 - Coleta oficial via YouTube Data API v3 nos **24 canais concorrentes** concluída: **3.855 vídeos** monitorados na janela de 365 dias (15 vídeos novos catalogados, 2.240 visualizações atualizadas, zero falhas e zero fallbacks manuais).
