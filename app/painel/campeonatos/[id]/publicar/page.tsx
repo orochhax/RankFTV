@@ -43,7 +43,7 @@ export default async function PublicarPage({
       .eq("championship_id", id),
     supabase
       .from("organizer_accounts")
-      .select("chave_pix")
+      .select("chave_pix, status_verificacao, motivo_rejeicao")
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase
@@ -121,6 +121,14 @@ export default async function PublicarPage({
         temIngresso={temIngressoPago}
         maxParcelasInscricao={maxParcelasInscricao}
         maxParcelasIngresso={maxParcelasIngresso}
+        bloqueadoKyc={
+          temProdutoPago && orgAccount?.status_verificacao !== "aprovado"
+            ? {
+                status: orgAccount?.status_verificacao || "pendente_documentos",
+                motivo: orgAccount?.motivo_rejeicao,
+              }
+            : null
+        }
       />
     </PageContainer>
   );

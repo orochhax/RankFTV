@@ -57,12 +57,32 @@ export async function publicarCampeonato(
   const temIngressoPago = (ingressos ?? []).some((i) => Number(i.valor) > 0);
   const temProdutoPago = temCategoriaPaga || temIngressoPago;
 
-  // Chave Pix já cadastrada?
+  // Chave Pix e verificação KYC da conta de organizador
   const { data: orgAccount } = await supabase
     .from("organizer_accounts")
-    .select("chave_pix")
+    .select("chave_pix, status_verificacao, motivo_rejeicao")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  // Produtos pagos exigem que a conta de organizador tenha sido aprovada pelo CEO
+  if (temProdutoPago) {
+    if (orgAccount?.status_verificacao === "em_analise") {
+      return {
+        error: "Sua conta de organizador está em análise de segurança pela equipe. Assim que for aprovada, você poderá publicar e receber inscrições.",
+      };
+    }
+    if (orgAccount?.status_verificacao === "rejeitado") {
+      return {
+        error: `Seus documentos de identificação foram recusados (${orgAccount.motivo_rejeicao || "verifique as pendências"}). Corrija seus documentos antes de publicar.`,
+      };
+    }
+    if (orgAccount?.status_verificacao !== "aprovado") {
+      return {
+        error: "Para publicar campeonatos com cobrança, é necessário enviar seus documentos de identificação para validação de segurança.",
+      };
+    }
+  }
+
   const temChavePix = !!orgAccount?.chave_pix;
 
   // Se tem categoria paga e ainda não tem Pix, coleta e salva agora.

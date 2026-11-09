@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Loader2, Rocket } from "lucide-react";
+import { AlertTriangle, Clock, Loader2, Rocket, ShieldAlert, ArrowRight } from "lucide-react";
 import {
   publicarCampeonato,
   type PublicarState,
@@ -31,6 +31,7 @@ export function PublicarCampeonatoForm({
   temIngresso,
   maxParcelasInscricao,
   maxParcelasIngresso,
+  bloqueadoKyc,
 }: {
   championshipId: string;
   precisaPix: boolean;
@@ -38,16 +39,65 @@ export function PublicarCampeonatoForm({
   temIngresso: boolean;
   maxParcelasInscricao: number;
   maxParcelasIngresso: number;
+  bloqueadoKyc?: { status: string; motivo?: string | null } | null;
 }) {
   const [state, action, pending] = useActionState(publicarCampeonato, initial);
   const [aceito, setAceito] = useState(false);
+
+  const temBloqueioKyc = !!bloqueadoKyc && bloqueadoKyc.status !== "aprovado";
 
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="championship_id" value={championshipId} />
 
-      {/* Chave Pix (só quando ainda não tem uma configurada) */}
-      {precisaPix && (
+      {/* Alerta de Verificação KYC */}
+      {temBloqueioKyc && (
+        <div className="rounded-2xl p-5 ring-1 space-y-3 bg-amber-50 ring-amber-200 text-amber-900">
+          <div className="flex items-center gap-2 font-semibold text-sm">
+            {bloqueadoKyc.status === "em_analise" ? (
+              <>
+                <Clock className="size-4 text-amber-600" />
+                Documentos em análise de segurança
+              </>
+            ) : bloqueadoKyc.status === "rejeitado" ? (
+              <>
+                <ShieldAlert className="size-4 text-rose-600" />
+                Pendência na documentação do organizador
+              </>
+            ) : (
+              <>
+                <ShieldAlert className="size-4 text-amber-600" />
+                Verificação de identidade necessária
+              </>
+            )}
+          </div>
+
+          <p className="text-xs leading-relaxed text-gray-700">
+            {bloqueadoKyc.status === "em_analise"
+              ? "Sua conta de organizador está sendo verificada pela equipe da RankFTV (prazo de até 24h úteis). A publicação com pagamentos será liberada assim que os dados forem aprovados."
+              : bloqueadoKyc.status === "rejeitado"
+              ? `Houve uma pendência na validação dos documentos: "${bloqueadoKyc.motivo || "Verifique as pendências"}". Corrija para poder publicar.`
+              : "Para proteger os atletas e receber o valor das inscrições e ingressos, é obrigatório enviar seus documentos de identificação antes de publicar produtos pagos."}
+          </p>
+
+          <div>
+            <Link
+              href={`/perfil/ativar-organizador?champId=${championshipId}`}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+            >
+              {bloqueadoKyc.status === "em_analise"
+                ? "Acompanhar análise"
+                : bloqueadoKyc.status === "rejeitado"
+                ? "Reenviar documentos corrigidos"
+                : "Enviar documentos agora"}{" "}
+              <ArrowRight className="size-3" />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Chave Pix (só quando ainda não tem uma configurada e não tem bloqueio KYC) */}
+      {precisaPix && !temBloqueioKyc && (
         <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
           <div>
             <p className="text-sm font-semibold text-gray-900">Chave Pix para receber os repasses</p>
@@ -156,13 +206,21 @@ export function PublicarCampeonatoForm({
 
       <button
         type="submit"
-        disabled={pending || !aceito}
+        disabled={pending || !aceito || temBloqueioKyc}
         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? <Loader2 className="size-4 animate-spin" /> : <Rocket className="size-4" />}
-        {pending ? "Publicando…" : "Publicar campeonato"}
+        {pending ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <Rocket className="size-4" />
+        )}
+        {pending
+          ? "Publicando…"
+          : temBloqueioKyc
+          ? "Aguardando verificação para publicar"
+          : "Publicar campeonato"}
       </button>
-      {!aceito && (
+      {!aceito && !temBloqueioKyc && (
         <p className="text-center text-xs text-gray-400">
           Aceite os Termos de uso para liberar a publicação.
         </p>

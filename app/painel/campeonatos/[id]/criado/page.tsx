@@ -11,6 +11,8 @@ import {
   LayoutDashboard,
   Rocket,
   Eye,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -60,7 +62,7 @@ export default async function CampeonatoCriadoPage({
       .order("nome"),
     supabase
       .from("organizer_accounts")
-      .select("chave_pix")
+      .select("chave_pix, status_verificacao, motivo_rejeicao")
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
@@ -143,14 +145,57 @@ export default async function CampeonatoCriadoPage({
         )}
       </Surface>
 
-      {/* Rascunho: aviso de que ainda não está visível */}
+      {/* Rascunho: aviso de status */}
       {!publicado && (
-        <div className="rounded-card-lg bg-warning-bg p-4 ring-1 ring-warning/30">
-          <p className="font-semibold text-ink">Ainda é um rascunho</p>
-          <p className="mt-0.5 text-sm text-ink-muted">
-            Só você consegue ver. Publique pra abrir as inscrições — no
-            próximo passo a gente explica a taxa e configura seu recebimento.
-          </p>
+        <div className="space-y-3">
+          <div className="rounded-card-lg bg-warning-bg p-4 ring-1 ring-warning/30">
+            <p className="font-semibold text-ink">Ainda é um rascunho</p>
+            <p className="mt-0.5 text-sm text-ink-muted">
+              Só você consegue ver. Publique pra abrir as inscrições públicas.
+            </p>
+          </div>
+
+          {temCategoriaPaga && (
+            orgAccount?.status_verificacao === "em_analise" ? (
+              <div className="rounded-card-lg bg-blue-50 p-4 ring-1 ring-blue-200 flex items-start gap-3">
+                <Clock className="size-5 shrink-0 text-blue-600 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-semibold text-blue-900">Documentos em análise de segurança</p>
+                  <p className="text-blue-800 text-xs mt-0.5">
+                    Sua conta de organizador está sendo verificada pela equipe (até 24h úteis). A publicação de inscrições pagas será liberada assim que concluída.
+                  </p>
+                </div>
+              </div>
+            ) : orgAccount?.status_verificacao === "rejeitado" ? (
+              <Link
+                href={`/perfil/ativar-organizador?champId=${id}`}
+                className="rounded-card-lg bg-rose-50 p-4 ring-1 ring-rose-200 flex items-start gap-3 transition-colors hover:brightness-95"
+              >
+                <AlertTriangle className="size-5 shrink-0 text-rose-600 mt-0.5" />
+                <div className="text-sm flex-1">
+                  <p className="font-semibold text-rose-900">Pendência nos documentos do organizador</p>
+                  <p className="text-rose-800 text-xs mt-0.5">
+                    {orgAccount.motivo_rejeicao || "Por favor, reenvie seus documentos para liberar as vendas."}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-rose-700">Reenviar documentos agora →</p>
+                </div>
+              </Link>
+            ) : (!temChavePix || orgAccount?.status_verificacao !== "aprovado") ? (
+              <Link
+                href={`/perfil/ativar-organizador?champId=${id}`}
+                className="rounded-card-lg bg-warning-bg p-4 ring-1 ring-warning/30 flex items-start gap-3 transition-colors hover:brightness-95"
+              >
+                <DollarSign className="size-5 shrink-0 text-warning mt-0.5" />
+                <div className="text-sm flex-1">
+                  <p className="font-semibold text-ink">Configure seu recebimento e envie seus documentos</p>
+                  <p className="text-ink-muted text-xs mt-0.5">
+                    Este evento tem categorias pagas. Para receber os valores e liberar as vendas, cadastre sua chave Pix e envie seus documentos.
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-warning">Configurar recebimento agora →</p>
+                </div>
+              </Link>
+            ) : null
+          )}
         </div>
       )}
 

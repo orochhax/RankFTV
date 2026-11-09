@@ -77,11 +77,20 @@ export async function createChampionship(
 
   const { data: conta } = await supabase
     .from("organizer_accounts")
-    .select("habilitado")
+    .select("id, habilitado, status_verificacao")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (!conta?.habilitado) {
-    return { ok: false, error: "Ative sua conta de organizador antes de criar um campeonato." };
+
+  if (!conta) {
+    // Permite criar o rascunho sem atrito. A validação de KYC e Pix será
+    // solicitada antes de publicar produtos pagos ou no painel do torneio.
+    await supabase.from("organizer_accounts").insert({
+      user_id: user.id,
+      cpf_cnpj: "",
+      telefone: "",
+      status_verificacao: "pendente_documentos",
+      habilitado: false,
+    });
   }
 
   const nome = input.nome?.trim();
