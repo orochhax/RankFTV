@@ -169,3 +169,84 @@ test("wallet migration keeps browser writes revoked and reservations serialized"
   assert.match(sql, /reserve_organizer_withdrawal_receivables/i);
   assert.match(sql, /ORDER BY r\.id[\s\S]*FOR UPDATE OF r/i);
 });
+
+test("elite fee deduction applies to athlete_tickets and spectator_tickets, abating debt and netting balance", async () => {
+  const db = await database();
+  try {
+    const ELITE_CHAMP = "aaaaaaaa-1111-4aaa-8aaa-aaaaaaaaaaaa";
+    const ATHLETE_TICKET = "bbbbbbbb-2222-4bbb-8bbb-bbbbbbbbbbbb";
+    await db.exec(`
+      INSERT INTO championships(id, organizador_id, premium_fee_pendente)
+      VALUES ('${ELITE_CHAMP}', '${OWNER}', 178);
+
+      -- Venda de R$ 300 paga via PIX em athlete_tickets
+      INSERT INTO athlete_tickets(id, championship_id, status_pagamento, valor, asaas_payment_id, billing_type)
+      VALUES ('${ATHLETE_TICKET}', '${ELITE_CHAMP}', 'pago', 300, 'pay_ath_300', 'PIX');
+    `);
+
+    // Verifica que o trigger abateu a divida Elite de 178 para 0
+    const champRes = await db.query<{ premium_fee_pendente: string }>(
+      `SELECT premium_fee_pendente FROM championships WHERE id='${ELITE_CHAMP}'`
+    );
+    assert.equal(Number(champRes.rows[0].premium_fee_pendente), 0);
+
+    // Verifica que athlete_tickets registrou elite_fee_coletada
+    const ticketRes = await db.query<{ elite_fee_coletada: string }>(
+      `SELECT elite_fee_coletada FROM athlete_tickets WHERE id='${ATHLETE_TICKET}'`
+    );
+    assert.equal(Number(ticketRes.rows[0].elite_fee_coletada), 178);
+
+    // Verifica que organizer_receivables tem gross=300, platform_discount=178, net_amount=122
+    const recRes = await db.query<{ gross_amount: string; platform_discount: string; net_amount: string }>(
+      `SELECT gross_amount, platform_discount, net_amount FROM organizer_receivables WHERE source_id='${ATHLETE_TICKET}'`
+    );
+    assert.equal(Number(recRes.rows[0].gross_amount), 300);
+    assert.equal(Number(recRes.rows[0].platform_discount), 178);
+    assert.equal(Number(recRes.rows[0].net_amount), 122);
+
+    // Snapshot da carteira deve retornar totalNet=122 e available=122
+    const snapRes = await db.query<{ result: { totalNet: number; available: number } }>(
+      `SELECT organizer_wallet_snapshot('${ELITE_CHAMP}') AS result`
+    );
+    assert.equal(Number(snapRes.rows[0].result.totalNet), 122);
+    assert.equal(Number(snapRes.rows[0].result.available), 122);
+  } finally {
+    await db.close();
+  }
+});
+
+test("fix script reconciles existing tickets that had 0 discount or missing receivable", async () => {
+  const db = await database();
+  try {
+    const COPA_BAHIA = "cccccccc-3333-4ccc-8ccc-cccccccccccc";
+    const OLD_TICKET = "dddddddd-4444-4ddd-8ddd-dddddddddddd";
+    await db.exec(`
+      INSERT INTO championships(id, organizador_id, premium_fee_pendente)
+      VALUES ('${COPA_BAHIA}', '${OWNER}', 178);
+
+      -- Simula o estado da Copa Bahia: athlete_ticket pago ja marcado como disponivel
+      -- mas sem registro em organizer_receivables
+      INSERT INTO athlete_tickets(id, championship_id, status_pagamento, valor, asaas_payment_id, billing_type, repasse_status)
+      VALUES ('${OLD_TICKET}', '${COPA_BAHIA}', 'pago', 300, 'pay_copa_300', 'PIX', 'disponivel');
+    `);
+
+    // Roda o script de reconciliacao
+    const fixSql = readFileSync(path.join(process.cwd(), "supabase/fix-wallet-receivables-and-elite-deduction.sql"), "utf8");
+    await db.exec(fixSql);
+
+    // Verifica divida quitada
+    const champRes = await db.query<{ premium_fee_pendente: string }>(
+      `SELECT premium_fee_pendente FROM championships WHERE id='${COPA_BAHIA}'`
+    );
+    assert.equal(Number(champRes.rows[0].premium_fee_pendente), 0);
+
+    // Snapshot retorna 122 liquido
+    const snapRes = await db.query<{ result: { totalNet: number; available: number } }>(
+      `SELECT organizer_wallet_snapshot('${COPA_BAHIA}') AS result`
+    );
+    assert.equal(Number(snapRes.rows[0].result.totalNet), 122);
+    assert.equal(Number(snapRes.rows[0].result.available), 122);
+  } finally {
+    await db.close();
+  }
+});

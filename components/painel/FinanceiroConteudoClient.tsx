@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
-import { Crown, ChevronRight } from "lucide-react";
+import { Crown, ChevronRight, CheckCircle2 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { PRECO_ELITE } from "@/lib/elite";
 import { GraficoVendasDiarias } from "@/components/painel/GraficoVendasDiarias";
@@ -131,7 +131,7 @@ export function FinanceiroConteudoClient({
       {/* Cobranças pendentes */}
       {cobrancasPendentesSection}
 
-      {/* Transação Plano Elite — some quando 100% quitado */}
+      {/* Transação Plano Elite */}
       {isElite && feePendente > 0 && (
         <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 space-y-3">
           <div className="flex items-center gap-2">
@@ -156,6 +156,24 @@ export function FinanceiroConteudoClient({
           <p className="rounded-xl bg-amber-100 p-3 text-xs leading-relaxed text-amber-800">
             Você não paga nada agora. O valor de {formatBRL(PRECO_ELITE)} é descontado
             automaticamente dos repasses das suas próximas inscrições pagas — sem nenhum custo no bolso.
+          </p>
+        </div>
+      )}
+
+      {isElite && feePendente <= 0 && (
+        <div className="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-200 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Crown className="size-4 text-emerald-600" />
+              <span className="text-sm font-semibold text-emerald-900">Plano Elite — Ativação 100% quitada</span>
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
+              <CheckCircle2 className="size-3.5 text-emerald-600" /> Quitado
+            </span>
+          </div>
+          <p className="text-xs text-emerald-700 leading-relaxed">
+            A taxa de ativação de {formatBRL(PRECO_ELITE)} foi quitada automaticamente com os repasses das suas inscrições.
+            Todas as próximas vendas entram 100% líquidas para você (apenas com as taxas reduzidas do Plano Elite de 7% no Pix e 9% no Cartão).
           </p>
         </div>
       )}
