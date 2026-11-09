@@ -5,6 +5,14 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-09 19:10 (America/Sao_Paulo) — Adição do concorrente João Curry ao canal Carlos Rocha
+
+- Canal João Curry (`@curryjoao`, 1,05M inscritos) adicionado oficialmente à base de concorrentes do canal Carlos Rocha, totalizando 16 canais monitorados.
+- Coleta oficial via YouTube Data API v3 (`scripts/collect-competitors.mjs`): 41 novos vídeos catalogados de João Curry com 100% de thumbnails válidas salvas em `Carlos Rocha - YT/Concorrentes/Joao Curry`. Base total consolidada em 1.657 vídeos indexados.
+- Snapshot do ranking (`lib/evolution/carlos-rocha-rank-snapshot.json`) reconstruído para 16 canais e 1.657 vídeos, recalculando medianas e o Top 15 outliers (Bennett Luke #1 com 355.8x e Bruno Nardon #2 com 218.5x).
+- Interface `components/evolution/CarlosRochaCenter.tsx` atualizada para renderizar contadores de canais e vídeos de forma dinâmica via snapshot.
+- Biblioteca de Ideias atualizada com versionamento cumulativo contínuo (`lib/evolution/carlos-rocha-library.json`), integrando referências regionais de bastidores aos tópicos de negócios.
+
 ## 2026-11-09 12:26 (America/Sao_Paulo) — Atualização completa do radar editorial e concorrentes do Rocha Tech
 
 - Coleta oficial via YouTube Data API v3 nos 24 canais concorrentes do Rocha Tech: 3.881 vídeos monitorados na janela de 365 dias (33 vídeos novos catalogados, 2.400 contadores de visualizações atualizados, zero falhas e zero fallbacks manuais).

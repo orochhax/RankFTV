@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { CarlosRochaOutlierRank } from "./CarlosRochaOutlierRank";
 import { getCarlosRochaLibrary } from "@/lib/evolution/carlos-rocha-library";
+import snapshotJson from "@/lib/evolution/carlos-rocha-rank-snapshot.json";
 
 const principles = [
   ["Jornada com missão", "Documentar a busca pela primeira vaga em Dados, projetos e decisões reais — sem fingir que o resultado já chegou."],
@@ -105,7 +106,7 @@ export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" |
           <div><p className="evo-eyebrow">ESTADO DA CENTRAL</p><h2>Recursos ativos em produção</h2></div>
         </div>
         <div className="evo-intel-checklist">
-          <li><UsersRound size={16} />14 concorrentes e 1.518 vídeos públicos analisados na janela de 365 dias.</li>
+          <li><UsersRound size={16} />{snapshotJson.channels} concorrentes e {snapshotJson.videos} vídeos públicos analisados na janela de 365 dias.</li>
           <li><Sparkles size={16} />Ranking dos 15 vídeos fora da curva ativo via snapshot local seguro.</li>
           <li><Library size={16} />{totalIdeas} ideias de vídeos estruturadas na Biblioteca por categorias estratégicas.</li>
           <li><Compass size={16} />{opportunities.length} oportunidades imediatas mapeadas e prontas para gravação.</li>
@@ -118,7 +119,7 @@ export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" |
         <div className="evo-section-heading">
           <div>
             <p className="evo-eyebrow">BASE COLETADA</p>
-            <h2>14 canais acompanhados</h2>
+            <h2>{snapshotJson.channels} canais acompanhados</h2>
             <p>Vídeos públicos dos últimos 12 meses, títulos, datas, visualizações e thumbnails foram coletados localmente via YouTube Data API. A base completa não é enviada ao site.</p>
           </div>
         </div>
