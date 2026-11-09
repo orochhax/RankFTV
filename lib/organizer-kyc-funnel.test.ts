@@ -28,7 +28,7 @@ test("organizer kyc funnel - regras de publicação de campeonato", () => {
 test("organizer kyc funnel - opções predefinidas de rejeição solicitadas pelo CEO", () => {
   assert.equal(MOTIVOS_REJEICAO_PREDEFINIDOS.length, 6);
   assert.ok(MOTIVOS_REJEICAO_PREDEFINIDOS.includes("Foto do documento ilegível, cortada ou escura"));
-  assert.ok(MOTIVOS_REJEICAO_PREDEFINIDOS.includes("Selfie não confere com o rosto no documento ou sem nitidez"));
+  assert.ok(MOTIVOS_REJEICAO_PREDEFINIDOS.includes("Foto do verso do documento ausente, cortada ou ilegível"));
   assert.ok(MOTIVOS_REJEICAO_PREDEFINIDOS.includes("Documento vencido, não aceito ou rasurado (aceito apenas RG ou CNH)"));
   assert.ok(MOTIVOS_REJEICAO_PREDEFINIDOS.includes("CPF ou Nome informado diverge do documento apresentado"));
   assert.ok(MOTIVOS_REJEICAO_PREDEFINIDOS.includes("Chave Pix informada pertence a outra pessoa (deve ser no mesmo CPF/CNPJ)"));

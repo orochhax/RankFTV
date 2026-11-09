@@ -25,20 +25,27 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF current_setting('role') <> 'service_role' THEN
-    IF NEW.is_elite IS DISTINCT FROM OLD.is_elite THEN
-      RAISE EXCEPTION 'is_elite só pode ser alterado pelo fluxo de ativação Elite.';
-    END IF;
-    IF NEW.premium_fee_pendente IS DISTINCT FROM OLD.premium_fee_pendente THEN
-      RAISE EXCEPTION 'premium_fee_pendente não pode ser alterado pelo client.';
-    END IF;
-    IF NEW.taxa_plataforma IS DISTINCT FROM OLD.taxa_plataforma THEN
-      RAISE EXCEPTION 'taxa_plataforma não pode ser alterado pelo client.';
-    END IF;
-    IF NEW.is_vitrine IS DISTINCT FROM OLD.is_vitrine THEN
-      RAISE EXCEPTION 'is_vitrine é decisão administrativa, não do organizador.';
-    END IF;
+  -- Permite se for service_role, postgres/superuser, ou se chamado por trigger interno do banco
+  IF COALESCE(current_setting('role', true), '') IN ('service_role', 'postgres')
+     OR CURRENT_USER = 'postgres'
+     OR SESSION_USER = 'postgres'
+     OR pg_trigger_depth() > 1 THEN
+    RETURN NEW;
   END IF;
+
+  IF NEW.is_elite IS DISTINCT FROM OLD.is_elite THEN
+    RAISE EXCEPTION 'is_elite só pode ser alterado pelo fluxo de ativação Elite.';
+  END IF;
+  IF NEW.premium_fee_pendente IS DISTINCT FROM OLD.premium_fee_pendente THEN
+    RAISE EXCEPTION 'premium_fee_pendente não pode ser alterado pelo client.';
+  END IF;
+  IF NEW.taxa_plataforma IS DISTINCT FROM OLD.taxa_plataforma THEN
+    RAISE EXCEPTION 'taxa_plataforma não pode ser alterado pelo client.';
+  END IF;
+  IF NEW.is_vitrine IS DISTINCT FROM OLD.is_vitrine THEN
+    RAISE EXCEPTION 'is_vitrine é decisão administrativa, não do organizador.';
+  END IF;
+
   RETURN NEW;
 END;
 $$;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Loader2, Upload, Camera, FileCheck, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Loader2, Upload, FileCheck, ShieldCheck } from "lucide-react";
 import { ativarOrganizador } from "@/app/perfil/ativar-organizador/actions";
 
 type FormState = { error?: string; ok?: boolean };
@@ -29,7 +29,6 @@ export function AtivarOrganizadorForm({
 }) {
   const [frenteFileName, setFrenteFileName] = useState<string | null>(null);
   const [versoFileName, setVersoFileName] = useState<string | null>(null);
-  const [selfieFileName, setSelfieFileName] = useState<string | null>(null);
 
   const [state, action, pending] = useActionState(
     async (_prev: FormState, formData: FormData): Promise<FormState> => {
@@ -184,8 +183,8 @@ export function AtivarOrganizadorForm({
           </div>
         </div>
 
-        {/* 3 Uploads de Imagem */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {/* 2 Uploads de Imagem: Frente e Verso */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Frente */}
           <div className="rounded-2xl border-2 border-dashed border-gray-200 p-4 text-center hover:border-blue-400 transition-colors">
             <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
@@ -236,32 +235,6 @@ export function AtivarOrganizadorForm({
               />
             </label>
             {versoFileName && <p className="mt-1 text-[11px] text-emerald-600 truncate">{versoFileName}</p>}
-          </div>
-
-          {/* Selfie com Documento */}
-          <div className="rounded-2xl border-2 border-dashed border-gray-200 p-4 text-center hover:border-blue-400 transition-colors">
-            <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-              {selfieFileName || initialData?.selfie_url ? (
-                <CheckCircle2 className="size-5 text-emerald-600" />
-              ) : (
-                <Camera className="size-5" />
-              )}
-            </div>
-            <p className="mt-2 text-xs font-semibold text-gray-900">3. Selfie com Documento</p>
-            <p className="text-[11px] text-gray-400 mt-0.5">Segure ao lado do seu rosto</p>
-
-            <label className="mt-3 inline-block cursor-pointer rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200">
-              {selfieFileName ? "Selfie selecionada ✓" : initialData?.selfie_url ? "Substituir selfie" : "Tirar ou escolher"}
-              <input
-                type="file"
-                name="foto_selfie"
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                required={!initialData?.selfie_url}
-                onChange={(e) => setSelfieFileName(e.target.files?.[0]?.name ?? null)}
-                className="hidden"
-              />
-            </label>
-            {selfieFileName && <p className="mt-1 text-[11px] text-emerald-600 truncate">{selfieFileName}</p>}
           </div>
         </div>
 
