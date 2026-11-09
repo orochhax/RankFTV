@@ -5,6 +5,14 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-09 12:18 (America/Sao_Paulo) — Atualização completa do canal Carlos Rocha e ranking de 15 concorrentes
+
+- Coleta oficial concluída para os 15 canais concorrentes do canal Carlos Rocha via YouTube Data API v3 (`scripts/collect-competitors.mjs`).
+- Base total consolidada em 1.615 vídeos indexados e 100% de thumbnails válidas na janela de 365 dias (resumo salvo em `Carlos Rocha - YT/Concorrentes/ultima-coleta-2026-11-09.json`).
+- Recálculo das medianas por canal e dos 15 vídeos fora da curva no RankFTV (`lib/evolution/carlos-rocha-rank-snapshot.json`).
+- Atualização e versionamento cumulativo contínuo da Biblioteca de Ideias (`lib/evolution/carlos-rocha-library.json`), com recalibração das pontuações (0 a 100) baseada nos sinais dos concorrentes e retenção de todas as 16 ideias aprovadas com score >= 50.
+- Validação técnica completa: typecheck, lint, testes unitários e build de produção aprovados.
+
 ## 2026-11-07 18:10 (America/Sao_Paulo) — Atualização completa do canal Carlos Rocha e ranking de 15 concorrentes
 
 - Coleta oficial concluída para os 15 canais concorrentes do canal Carlos Rocha via YouTube Data API v3 (`scripts/collect-competitors.mjs`).
