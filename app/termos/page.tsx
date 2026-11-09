@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Termos de uso — RankFTV",
 };
 
-const ULTIMA_ATUALIZACAO = "5 de novembro de 2026";
+const ULTIMA_ATUALIZACAO = "9 de novembro de 2026";
 
 type Bloco =
   | { p: string }
@@ -57,7 +57,7 @@ const SECOES: Secao[] = [
   {
     titulo: "Informações gerais",
     blocos: [
-      { p: "Estes Termos de Uso (“Termos”) regulam o acesso e a utilização da Plataforma RankFTV, operada por Carlos Gregório Rocha Batista (pessoa física, desenvolvedor e responsável pela plataforma), com suporte e canal de comunicação oficial pelo e-mail suporte@rankftv.com e contato@rankftv.com (com canal de contingência em carlosrocha0923@gmail.com) (“RankFTV”, “nós”)." },
+      { p: "Estes Termos de Uso (“Termos”) regulam o acesso e a utilização da Plataforma RankFTV, operada por Carlos Gregório Rocha Batista (pessoa física, desenvolvedor e responsável pela plataforma, com domicílio e comarca em Eunápolis/BA), em conformidade com o Decreto nº 7.962/2013 (Decreto do Comércio Eletrônico), a Lei nº 12.965/2014 (Marco Civil da Internet), a Lei nº 8.078/1990 (Código de Defesa do Consumidor — CDC) e a Lei nº 13.709/2018 (LGPD), com suporte e canal de comunicação oficial pelo e-mail suporte@rankftv.com e contato@rankftv.com (com canal de contingência em carlosrocha0923@gmail.com) (“RankFTV”, “nós”)." },
       { p: "A Plataforma RankFTV oferece: (i) ferramentas para o Organizador criar, divulgar e gerenciar campeonatos de futevôlei; (ii) inscrição online de atletas e duplas em categorias; (iii) venda de ingressos de plateia ao público; (iv) credenciamento e check-in por QR Code; e (v) processamento de pagamentos com repasse ao Organizador, por meio de processador de pagamentos parceiro." },
       { p: "A RankFTV é uma intermediadora de tecnologia e de pagamentos. Os campeonatos e seus dados (datas, local, regras, valores, premiação) são de responsabilidade exclusiva do Organizador, único responsável por realizar o evento conforme anunciado." },
       { p: "A Plataforma é apresentada da maneira como está disponível e pode passar por melhorias e atualizações contínuas. A RankFTV empenha-se em manter as funcionalidades acessíveis, com layout claro e usável." },
@@ -72,7 +72,7 @@ const SECOES: Secao[] = [
       { p: "O cadastro inicial exige nome, e-mail, senha e um nome de usuário (@usuário) único. Os demais dados (telefone, cidade/estado, dados de recebimento, CPF/CNPJ) são solicitados sob demanda, conforme o Usuário utiliza funcionalidades que os exijam." },
       { p: "O Usuário deve fornecer informações verdadeiras, exatas e atualizadas, responsabilizando-se civil e criminalmente por elas. A RankFTV não se responsabiliza pela veracidade das informações inseridas pelos Usuários." },
       { p: "Para publicar eventos pagos e receber repasses, o Organizador deverá completar o cadastro com CPF ou CNPJ e dados de recebimento, podendo ter documentos solicitados pelo processador de pagamentos para verificação de identidade (KYC), nos termos da legislação de prevenção à lavagem de dinheiro (Lei nº 9.613/1998)." },
-      { p: "Os serviços são direcionados a maiores de 18 anos. Menores só podem utilizar a Plataforma quando autorizados e assistidos por seus responsáveis legais, que respondem pelos atos do menor." },
+      { p: "Os serviços são prioritariamente direcionados a maiores de 18 anos. Menores de 18 anos só podem se cadastrar e se inscrever na Plataforma quando expressamente autorizados e assistidos por seus pais ou responsáveis legais, que respondem solidária, civil e penalmente por todos os atos do menor (conforme a Lei nº 8.069/1990 — Estatuto da Criança e do Adolescente — e o art. 14 da LGPD). O Organizador é o único responsável por exigir e conferir o termo físico de autorização assinado pelos responsáveis legais para ingresso e participação de atletas menores nas arenas no dia do campeonato, bem como observar alvarás judiciais locais quando aplicáveis." },
       { p: "Sem prejuízo de outras medidas, a RankFTV poderá advertir, suspender ou cancelar o cadastro do Usuário que:" },
       { ul: [
         "Descumprir estes Termos ou outras políticas da RankFTV;",
@@ -100,6 +100,8 @@ const SECOES: Secao[] = [
         "Prestar atendimento aos atletas, duplas e espectadores do seu evento, respondendo dúvidas e solicitações em tempo hábil;",
         "Executar os cancelamentos e reembolsos devidos dentro dos prazos legais;",
         "Recolher os tributos incidentes sobre a venda de inscrições e ingressos e emitir os documentos fiscais devidos aos compradores;",
+        "Observar as normas da Lei nº 14.597/2023 (Lei Geral do Esporte), garantindo aos atletas e espectadores condições adequadas de segurança física, higiene, hidratação, instalações apropriadas e socorro médico de urgência durante todo o período do evento;",
+        "Respeitar a legislação de meia-entrada (Lei Federal nº 12.933/2013 e Lei nº 10.741/2003 — Estatuto da Pessoa Idosa) caso disponibilize ingressos pagos para plateia/espectadores, disponibilizando a cota legal e realizando a devida checagem documental na portaria do evento;",
         "Cumprir a legislação de direitos autorais, inclusive eventual recolhimento ao ECAD quando houver execução de obras musicais no evento;",
         "Não utilizar a Plataforma para comercializar produtos ou serviços estranhos ao evento;",
         "Configurar filtros anti-spam de modo a não bloquear os comunicados da RankFTV;",
@@ -135,6 +137,7 @@ const SECOES: Secao[] = [
       { p: "Atletas e espectadores adquirem inscrições e ingressos por meio dos pagamentos oferecidos na Plataforma (Pix e cartão de crédito/débito), processados pelo processador de pagamentos parceiro." },
       { p: "Na inscrição de dupla, um dos atletas paga o valor cheio da dupla e o outro confirma a participação. Não há pagamento dividido entre os dois atletas." },
       { p: "Todas as transações passam por análise de risco automatizada e podem ser recusadas em caso de suspeita de fraude. Compras com cartão podem ficar pendentes de análise por até 48 horas; o comprador será notificado por e-mail caso o pedido seja suspenso ou cancelado." },
+      { p: "Natureza jurídica dos valores: A inscrição de duplas ou atletas em categorias do campeonato possui natureza de taxa desportiva de participação e arbitragem, destinada à viabilização técnica e premiação da competição, não se confundindo com ingresso para espetáculo cultural ou artístico. Nos eventos em que o Organizador optar por cobrar ingressos de plateia para espectadores na arquibancada, aplicam-se a estes últimos as regras federais de meia-entrada (Lei nº 12.933/2013 e Lei nº 10.741/2003), sob gestão e validação exclusiva do Organizador." },
     ],
   },
   {
@@ -260,11 +263,13 @@ const SECOES: Secao[] = [
     ],
   },
   {
-    titulo: "Limitação de responsabilidade",
+    titulo: "Limitação de responsabilidade e direito de regresso",
     blocos: [
-      { p: "A RankFTV é uma intermediadora de tecnologia e pagamentos e não controla os atos dos Usuários, não respondendo por atos ilícitos, imorais ou antiéticos por eles praticados, nem pela realização, qualidade ou cumprimento dos eventos, que são de responsabilidade exclusiva do Organizador." },
+      { p: "A RankFTV é uma intermediadora de tecnologia e processamento de pagamentos. O Organizador é o produtor exclusivo do evento e o responsável direto perante atletas, espectadores e autoridades pela concepção, segurança, alvarás, realização, qualidade, integridade física e cumprimento das condições anunciadas." },
+      { p: "Em caso de cancelamento, não realização, alteração unilateral substancial ou falha na entrega do campeonato pelo Organizador, a RankFTV auxiliará na mediação e processará os reembolsos devidos aos compradores a partir dos saldos retidos, da Reserva Técnica ou de valores recuperados junto ao Organizador." },
+      { p: "Direito de Regresso (art. 934 do Código Civil): Caso a RankFTV venha a ser compelida a restituir compradores, suportar estornos, chargebacks bancários ou pagar indenizações judiciais ou administrativas decorrentes de culpa, dolo, sumiço, fraude ou descumprimento contratual do Organizador, a RankFTV exercerá direito de regresso integral e imediato contra o Organizador, que responderá pelo ressarcimento de todos os valores despendidos, acrescidos de juros legais, correção monetária, custas processuais e honorários advocatícios." },
       { p: "A RankFTV não se responsabiliza por danos decorrentes de eventos de terceiros, como ataques de hackers, falhas de sistema, servidor ou conexão, vírus e programas maliciosos, salvo dolo ou culpa comprovados da RankFTV." },
-      { p: "A RankFTV não responde por danos decorrentes de acesso não autorizado à conta do Usuário, uso indevido da Plataforma ou descumprimento destes Termos pelo Usuário." },
+      { p: "A RankFTV não responde por danos decorrentes de acesso não autorizado à conta do Usuário causado por desídia na guarda de credenciais pessoais, uso indevido da Plataforma ou descumprimento destes Termos pelo Usuário." },
     ],
   },
   {
