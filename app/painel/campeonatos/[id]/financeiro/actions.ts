@@ -8,6 +8,7 @@ import { reportOperationalEvent } from "@/lib/observability";
 import { compararTitularidadePix, pixKeyEmCooldown } from "@/lib/pix";
 import { AsaasApiError, buscarAntecipacaoPorPagamento, consultarAntecipacao, consultarCpfCnpjTitularPix, consultarCobranca, simularAntecipacaoPagamento, solicitarAntecipacaoPagamento } from "@/lib/asaas";
 import { transferIdempotently } from "@/lib/payment-flows";
+import { validateWithdrawalRequestAmount } from "@/lib/organizer-payout-rules";
 import {
   confirmarInscricaoPaga, estornarInscricao,
   confirmarAthleteTicketPago, estornarAthleteTicket,
@@ -320,9 +321,10 @@ export async function solicitarSaqueRecebiveisOrganizador(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, message: "Não autenticado." };
 
-  const [{ data: champ }, { data: account }] = await Promise.all([
-    supabase.from("championships").select("organizador_id,nome").eq("id", champId).maybeSingle(),
+  const [{ data: champ }, { data: account }, { data: walletData }] = await Promise.all([
+    supabase.from("championships").select("organizador_id,nome,data_fim").eq("id", champId).maybeSingle(),
     supabase.from("organizer_accounts").select("chave_pix,chave_pix_atualizada_em").eq("user_id", user.id).maybeSingle(),
+    supabase.rpc("organizer_wallet_snapshot", { p_championship_id: champId }),
   ]);
   if (!champ || champ.organizador_id !== user.id) return { ok: false, message: "Sem permissão." };
   if (!account?.chave_pix) return { ok: false, message: "Cadastre sua chave Pix antes de solicitar o saque." };
@@ -364,6 +366,23 @@ export async function solicitarSaqueRecebiveisOrganizador(
   }
 
   const admin = createAdminClient();
+  const wallet = (walletData ?? {}) as { totalNet?: number; withdrawn?: number };
+  const validation = validateWithdrawalRequestAmount({
+    requestedAmount: amount,
+    totalNet: Number(wallet.totalNet ?? 0),
+    alreadyWithdrawn: Number(wallet.withdrawn ?? 0),
+    dataFim: champ.data_fim,
+  });
+
+  if (!validation.allowed) {
+    await admin.rpc("update_organizer_withdrawal", {
+      p_withdrawal_id: withdrawalId,
+      p_status: "cancelled",
+      p_error_code: "reserve_limit_exceeded",
+    });
+    return { ok: false, message: validation.message ?? "Limite de adiantamento excedido." };
+  }
+
   const { error: beginError } = await admin.rpc("begin_organizer_withdrawal_submission", {
     p_withdrawal_id: withdrawalId,
   });

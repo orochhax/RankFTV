@@ -12,7 +12,10 @@ Todas as 142 entregas anteriores da V1 (99% dos marcos concluídos), histórico,
 ## P0 — Pendências para Abertura dos Pagamentos Reais (V1)
 
 - [ ] **Teste de Pagamento Pix Real Simbólico (R$ 5,00):** Realizar uma transação Pix real de valor mínimo (ex: R$ 5,00) em produção para validação ponta a ponta na conta Asaas real e estorno supervisionado imediato (conforme roteiro `docs/SMOKE-TRANSACIONAL-V1.md`).
-- [ ] **Abertura Oficial dos Pagamentos:** Definir e registrar a data/hora oficial da abertura dos pagamentos reais ao público da V1 após a validação do Pix simbólico.
+- [ ] **Teste de Compra no Cartão de Crédito e Cancelamento na Hora (Atleta):** Realizar compra teste no cartão de crédito e validar cancelamento voluntário imediato pelo atleta dentro da janela de 7 dias do CDC Art. 49 (estorno integral na fatura, devolução de vaga e invalidação atômica de QR Code).
+- [ ] **Teste de Cancelamento pelo Atleta após 10 dias:** Simular transação após o prazo de 7 dias e validar o motor de política de reembolso (`lib/refund-policy.ts`): estorno parcial com retenção operacional se antes de 72h do evento ou bloqueio com mensagem informativa (`blocked_late`) se a menos de 72h.
+- [ ] **Teste de Recebimento e Estorno pelo Organizador:** Confirmar geração de recebível D+32 com status `aguardando_liquidacao` no painel financeiro; validar estorno imediato com cancelamento de recebível sem gerar dívida; comprovar registro de débito compensatório (`record_organizer_receivable_adjustment`) caso haja saldo sacado ou antecipado.
+- [ ] **Abertura Oficial dos Pagamentos:** Definir e registrar a data/hora oficial da abertura dos pagamentos reais ao público da V1 após a validação da bateria de testes supervisionados.
 
 ---
 
