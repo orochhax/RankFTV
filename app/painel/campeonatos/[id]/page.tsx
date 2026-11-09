@@ -8,6 +8,8 @@ import {
   Users,
   Trophy,
   Ticket,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
@@ -53,7 +55,7 @@ export default async function PainelCampeonatoPage({
     supabase.from("championships").select("tier_quiz, is_elite").eq("id", id).maybeSingle(),
     supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
     supabase.from("organizer_accounts")
-      .select("chave_pix")
+      .select("chave_pix, status_verificacao, motivo_rejeicao")
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
@@ -122,23 +124,53 @@ export default async function PainelCampeonatoPage({
         </Surface>
       )}
 
-      {/* Aviso: chave Pix não configurada */}
-      {temCategoriaPaga && !temChavePix && (
-        <Link
-          href={`/painel/campeonatos/${id}/financeiro`}
-          className="flex items-start gap-3 rounded-card-lg bg-warning-bg p-4 ring-1 ring-warning/30 transition-colors hover:brightness-95"
-        >
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface">
-            <DollarSign className="size-5 text-warning" />
+      {/* Aviso: chave Pix ou verificação KYC pendente */}
+      {temCategoriaPaga && (
+        orgAccountRes.data?.status_verificacao === "em_analise" ? (
+          <div className="flex items-start gap-3 rounded-card-lg bg-blue-50 p-4 ring-1 ring-blue-200">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface">
+              <Clock className="size-5 text-blue-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-blue-900">Documentos em análise de segurança</p>
+              <p className="mt-0.5 text-sm text-blue-800">
+                Seus dados e documentos estão sendo conferidos pela equipe da RankFTV. Assim que aprovados, você poderá publicar e receber os pagamentos normalmente.
+              </p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-ink">Configure sua chave Pix</p>
-            <p className="mt-0.5 text-sm text-ink-muted">
-              Este campeonato tem categorias pagas, mas você ainda não configurou onde receber o dinheiro. Os atletas não conseguirão se inscrever até você configurar.
-            </p>
-            <p className="mt-1 text-xs font-medium text-warning">Ir para Financeiro →</p>
-          </div>
-        </Link>
+        ) : orgAccountRes.data?.status_verificacao === "rejeitado" ? (
+          <Link
+            href={`/perfil/ativar-organizador?champId=${id}`}
+            className="flex items-start gap-3 rounded-card-lg bg-rose-50 p-4 ring-1 ring-rose-200 transition-colors hover:brightness-95"
+          >
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface">
+              <AlertTriangle className="size-5 text-rose-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-rose-900">Pendência nos documentos do organizador</p>
+              <p className="mt-0.5 text-sm text-rose-800">
+                {orgAccountRes.data?.motivo_rejeicao || "Por favor, reenvie seus documentos para liberar as vendas."}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-rose-700">Reenviar documentos agora →</p>
+            </div>
+          </Link>
+        ) : (!temChavePix || orgAccountRes.data?.status_verificacao !== "aprovado") ? (
+          <Link
+            href={`/perfil/ativar-organizador?champId=${id}`}
+            className="flex items-start gap-3 rounded-card-lg bg-warning-bg p-4 ring-1 ring-warning/30 transition-colors hover:brightness-95"
+          >
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface">
+              <DollarSign className="size-5 text-warning" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-ink">Configure seu recebimento e envie seus documentos</p>
+              <p className="mt-0.5 text-sm text-ink-muted">
+                Este campeonato tem categorias pagas. Para receber o dinheiro e liberar as vendas, cadastre sua chave Pix e envie seus documentos de identificação.
+              </p>
+              <p className="mt-1 text-xs font-medium text-warning">Configurar recebimento agora →</p>
+            </div>
+          </Link>
+        ) : null
       )}
 
       {/* Categorias */}

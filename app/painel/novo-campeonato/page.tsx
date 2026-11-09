@@ -9,12 +9,9 @@ export default async function NovoCampeonatoPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=%2Fpainel%2Fnovo-campeonato");
 
-  const { data: conta } = await supabase
-    .from("organizer_accounts")
-    .select("habilitado")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (!conta?.habilitado) redirect("/perfil/ativar-organizador");
+  // Qualquer usuário logado pode criar um campeonato como rascunho sem atrito prévio.
+  // A verificação de identidade (KYC) e chave Pix só são exigidas no painel do evento
+  // ou antes de publicar categorias/ingressos pagos.
 
   return (
     <PageContainer width="form" className="space-y-6 py-8">

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Percent, Users, Star, Trophy, Activity, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing, BellRing, BadgeCheck, Languages, Clapperboard } from "lucide-react";
+import { Percent, Users, Star, Trophy, Activity, CalendarRange, ChevronRight, LifeBuoy, ChartNoAxesColumnIncreasing, BellRing, BadgeCheck, Languages, Clapperboard, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRole, isAdminRole } from "@/lib/supabase/roles";
 import { isPerformanceOwner } from "@/lib/performance-owner";
@@ -85,6 +85,13 @@ const MENU = [
     icon: Users,
     label: "Usuários",
     desc: "Visualize e gerencie as contas cadastradas na plataforma.",
+  },
+  {
+    href: "/admin/organizadores",
+    ownerOnly: true,
+    icon: ShieldCheck,
+    label: "Aprovação de organizadores",
+    desc: "Valide documentos, fotos e libere contas de organizadores para vender.",
   },
 ];
 

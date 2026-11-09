@@ -2665,6 +2665,8 @@ export type Database = {
       }
       organizer_accounts: {
         Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
           asaas_account_id: string | null
           asaas_wallet_id: string | null
           chave_pix: string | null
@@ -2672,13 +2674,24 @@ export type Database = {
           cpf_cnpj: string | null
           created_at: string | null
           data_nascimento: string | null
+          documento_frente_url: string | null
+          documento_numero: string | null
+          documento_tipo: string | null
+          documento_verso_url: string | null
           habilitado: boolean
           id: string
+          motivo_rejeicao: string | null
+          nome_completo: string | null
+          selfie_url: string | null
+          status_verificacao: string
+          submetido_em: string | null
           telefone: string
           tipo_chave_pix: string | null
           user_id: string
         }
         Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
           asaas_account_id?: string | null
           asaas_wallet_id?: string | null
           chave_pix?: string | null
@@ -2686,13 +2699,24 @@ export type Database = {
           cpf_cnpj?: string | null
           created_at?: string | null
           data_nascimento?: string | null
+          documento_frente_url?: string | null
+          documento_numero?: string | null
+          documento_tipo?: string | null
+          documento_verso_url?: string | null
           habilitado?: boolean
           id?: string
+          motivo_rejeicao?: string | null
+          nome_completo?: string | null
+          selfie_url?: string | null
+          status_verificacao?: string
+          submetido_em?: string | null
           telefone: string
           tipo_chave_pix?: string | null
           user_id: string
         }
         Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
           asaas_account_id?: string | null
           asaas_wallet_id?: string | null
           chave_pix?: string | null
@@ -2700,8 +2724,17 @@ export type Database = {
           cpf_cnpj?: string | null
           created_at?: string | null
           data_nascimento?: string | null
+          documento_frente_url?: string | null
+          documento_numero?: string | null
+          documento_tipo?: string | null
+          documento_verso_url?: string | null
           habilitado?: boolean
           id?: string
+          motivo_rejeicao?: string | null
+          nome_completo?: string | null
+          selfie_url?: string | null
+          status_verificacao?: string
+          submetido_em?: string | null
           telefone?: string
           tipo_chave_pix?: string | null
           user_id?: string
