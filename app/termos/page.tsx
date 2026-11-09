@@ -161,7 +161,8 @@ const SECOES: Secao[] = [
     titulo: "Contestações, chargebacks e estornos",
     blocos: [
       { p: "Os estornos, chargebacks e contestações decorrentes da venda de inscrições e ingressos são de responsabilidade do Organizador, independentemente do motivo." },
-      { p: "Se os valores ainda não tiverem sido repassados, o repasse correspondente é cancelado. Se já tiverem sido repassados, o valor é cobrado do Organizador ou descontado de repasses futuros, até a integral compensação." },
+      { p: "Os reembolsos devidos aos compradores em virtude de cancelamento voluntário tempestivo (até 72 horas antes do evento ou no prazo de 7 dias do art. 49 do CDC) serão preferencialmente compensados e absorvidos pela Reserva Técnica de Segurança de 30% mantida na Plataforma." },
+      { p: "Se os valores ainda não tiverem sido repassados ou adiantados, o repasse correspondente é cancelado ou compensado. Caso o volume de cancelamentos ou chargebacks exceda o saldo retido ou o evento seja cancelado após a realização de adiantamentos pré-evento, o valor é cobrado do Organizador ou descontado de repasses futuros, obrigando-se o Organizador a ressarcir integralmente a RankFTV no prazo de até 48 (quarenta e oito) horas da notificação." },
       { p: "A RankFTV conduzirá as disputas abertas por compradores e poderá iniciar cancelamentos sem aprovação prévia do Organizador nos casos de descumprimento da política de reembolso, indícios de fraude, alteração prejudicial do evento, erro técnico ou volume elevado de reclamações." },
     ],
   },
@@ -209,14 +210,19 @@ const SECOES: Secao[] = [
     ],
   },
   {
-    titulo: "Prazos de repasse",
+    titulo: "Prazos de repasse, adiantamento e reserva de segurança",
     blocos: [
-      { p: "Os prazos de repasse variam conforme o meio de pagamento:" },
+      { p: "Os repasses das vendas de campeonatos (inscrições e ingressos) obedecem a uma política transparente que concilia o fôlego financeiro do Organizador para produzir o torneio com a segurança jurídica e financeira dos participantes e da Plataforma:" },
       { ul: [
-        "Pix: repasse no mesmo dia ou no dia útil seguinte à confirmação do pagamento;",
-        "Cartão de crédito: repasse no prazo da operadora, em até 32 dias a contar da confirmação da compra.",
+        "Liberação integral pós-evento: A quitação e liberação total de 100% do saldo remanescente das vendas de campeonatos ocorre em até 2 (dois) dias úteis após o término e encerramento oficial do evento (data de fim cadastrada), respeitados os prazos de liquidação de cada meio de pagamento;",
+        "Adiantamento pré-evento para custeio: Visando permitir o custeio preparatório da infraestrutura do campeonato (aluguel de quadras, confecção de troféus e medalhas, arbitragem, camisetas e logística), o Organizador poderá solicitar o adiantamento de até 70% (setenta por cento) do saldo líquido arrecadado antes da realização do evento;",
+        "Reserva Técnica de Segurança (30%): Durante o período de vendas e até 2 (dois) dias úteis após a conclusão do evento, a Plataforma manterá retido o percentual de 30% (trinta por cento) do saldo total arrecadado como Reserva Técnica de Segurança, destinada exclusivamente a absorver eventuais cancelamentos legais de atletas (art. 49 do CDC em até 7 dias corridos, ou cancelamentos parciais até 72 horas antes do torneio), disputas, chargebacks e ajustes operacionais;",
+        "Liberação da Reserva Técnica: O valor retido a título de Reserva Técnica de Segurança é integralmente liberado para saque pelo Organizador em até 2 (dois) dias úteis após o encerramento do evento, deduzidos eventuais reembolsos e taxas devidas;",
+        "Liquidação por meio de pagamento: Vendas realizadas via Pix possuem liquidação imediata no processador de pagamentos, ficando elegíveis ao limite de adiantamento pré-evento de 70% ou repasse final. Vendas realizadas em cartão de crédito ou débito seguem o prazo de liquidação da adquirente (em até 32 dias corridos para crédito e 3 dias úteis para débito), ficando disponíveis para adiantamento ou saque após a efetiva liquidação;",
+        "Repasses de Arenas: A receita de mensalidades, diárias e aluguéis de quadras em Arenas cadastradas (serviços recorrentes e de fruição contínua no local) segue o prazo de repasse da liquidação bancária ordinária (Pix no mesmo dia ou dia útil seguinte; cartão em até 32 dias), sem aplicação da trava de evento esportivo.",
       ] },
-      { p: "Prazos que recaiam em fim de semana ou feriado são prorrogados para o próximo dia útil." },
+      { p: "Prazos que recaiam em fim de semana ou feriado bancário são prorrogados para o próximo dia útil subsequente." },
+      { p: "A RankFTV poderá suspender solicitações de adiantamento pré-evento em caso de dados cadastrais inconsistentes, indícios de cancelamento do torneio, volume atípico de reclamações ou disputas judiciais/extrajudiciais abertas por participantes." },
     ],
   },
   {

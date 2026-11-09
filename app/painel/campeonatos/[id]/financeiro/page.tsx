@@ -9,6 +9,7 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Surface } from "@/components/shell/Surface";
 import { formatBRL } from "@/lib/format";
+import { calculateOrganizerWithdrawalLimits } from "@/lib/organizer-payout-rules";
 
 export type DiaVenda = {
   data: string;   // "2026-06-01"
@@ -41,7 +42,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
     supabase
       .from("championships")
-      .select("prevenda_inicio, inscricoes_inicio, data_inicio")
+      .select("prevenda_inicio, inscricoes_inicio, data_inicio, data_fim")
       .eq("id", id)
       .single(),
     // Pendentes com cobrança já criada no Asaas — candidatas a reconciliação
@@ -67,6 +68,13 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   ]);
 
   const walletRaw = (walletData ?? {}) as Partial<WalletSnapshot>;
+  const champDateRow = champDates as { data_fim?: string | null } | null;
+  const payoutLimits = calculateOrganizerWithdrawalLimits({
+    totalNet: Number(walletRaw.totalNet ?? 0),
+    alreadyWithdrawn: Number(walletRaw.withdrawn ?? 0) + Number(walletRaw.reserved ?? 0),
+    dataFim: champDateRow?.data_fim,
+  });
+
   const wallet: WalletSnapshot = {
     totalNet: Number(walletRaw.totalNet ?? 0),
     available: Number(walletRaw.available ?? 0),
@@ -76,6 +84,13 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     schedule: Array.isArray(walletRaw.schedule)
       ? walletRaw.schedule.map((item) => ({ date: String(item.date), amount: Number(item.amount) }))
       : [],
+    payoutLimits: {
+      isPostEvent: payoutLimits.isPostEvent,
+      releaseDateFormatted: payoutLimits.releaseDateFormatted,
+      securityReserveAmount: payoutLimits.securityReserveAmount,
+      advanceCap: payoutLimits.advanceCap,
+      maxWithdrawableNow: payoutLimits.maxWithdrawableNow,
+    },
   };
   type WithdrawableRow = {
     id: string;

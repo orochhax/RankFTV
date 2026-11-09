@@ -30,6 +30,13 @@ export type WalletSnapshot = {
   reserved: number;
   withdrawn: number;
   schedule: Array<{ date: string; amount: number }>;
+  payoutLimits?: {
+    isPostEvent: boolean;
+    releaseDateFormatted: string;
+    securityReserveAmount: number;
+    advanceCap: number;
+    maxWithdrawableNow: number;
+  };
 };
 
 export type WalletReceivable = {
@@ -191,6 +198,27 @@ export function OrganizerWalletPanel({
               <span><strong>{val(wallet.reserved)}</strong> reservado em solicitações em processamento.</span>
             </div>
           ) : null}
+
+          {wallet.payoutLimits ? (
+            !wallet.payoutLimits.isPostEvent ? (
+              <div className="relative mt-4 flex items-start gap-2.5 rounded-xl bg-amber-400/10 p-3 text-xs text-amber-100 ring-1 ring-amber-300/20">
+                <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-amber-300" />
+                <div className="leading-relaxed">
+                  <strong className="block font-semibold text-amber-200">
+                    Adiantamento Pré-Evento Liberado (até 70%)
+                  </strong>
+                  <span className="text-slate-300">
+                    Você pode adiantar até 70% das vendas para custear troféus, quadras e despesas. A <strong>Reserva Técnica de 30% ({val(wallet.payoutLimits.securityReserveAmount)})</strong> permanece em custódia para garantir cancelamentos legais de atletas até 72h do evento, e será liberada em <strong>{wallet.payoutLimits.releaseDateFormatted}</strong> (2 dias úteis após o término).
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="relative mt-4 flex items-center gap-2 rounded-xl bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100 ring-1 ring-emerald-300/20">
+                <CheckCircle2 aria-hidden="true" className="size-4 shrink-0 text-emerald-300" />
+                <span>Evento concluído! 100% do saldo restante está liberado para o acerto final.</span>
+              </div>
+            )
+          ) : null}
         </div>
       </div>
 
@@ -259,7 +287,16 @@ export function OrganizerWalletPanel({
         title="Selecionar vendas para saque"
         description="Marque os ingressos que deseja receber agora. O total selecionado será reservado antes do envio para sua chave Pix."
       >
-        <DialogBalance label="Saldo disponível" value={val(wallet.available)} tone="emerald" />
+        <DialogBalance
+          label={wallet.payoutLimits && !wallet.payoutLimits.isPostEvent ? "Adiantamento disponível (até 70%)" : "Saldo disponível"}
+          value={val(wallet.payoutLimits && !wallet.payoutLimits.isPostEvent ? Math.min(wallet.available, wallet.payoutLimits.maxWithdrawableNow) : wallet.available)}
+          tone="emerald"
+        />
+        {wallet.payoutLimits && !wallet.payoutLimits.isPostEvent ? (
+          <p className="mt-2 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-800">
+            Reserva Técnica de 30% ({val(wallet.payoutLimits.securityReserveAmount)}) retida em garantia de cancelamentos até {wallet.payoutLimits.releaseDateFormatted}.
+          </p>
+        ) : null}
         <ReceivableSelector
           items={withdrawableReceivables}
           selected={selectedWithdrawals}
