@@ -21,6 +21,12 @@
   1. Teste de pagamento Pix real simbólico (R$ 5,00) em produção com estorno supervisionado imediato (a ser executado por Carlos posteriormente).
   2. Definição da data de abertura oficial dos pagamentos reais da V1 por Carlos.
 
+## Central de Evolução - Adição do Concorrente João Curry ao Canal Carlos Rocha (09/11/2026)
+
+- Adição do canal João Curry (`@curryjoao`, 1,05M inscritos, 41 vídeos na janela) à base oficial do canal Carlos Rocha, elevando o monitoramento para 16 canais e 1.657 vídeos indexados.
+- Snapshot estatístico (`lib/evolution/carlos-rocha-rank-snapshot.json`) e interface `CarlosRochaCenter.tsx` atualizados para refletir a nova base de 16 canais de forma dinâmica.
+- Biblioteca de Ideias (`lib/evolution/carlos-rocha-library.json`) atualizada de forma cumulativa, mantendo as 16 ideias aprovadas (score >= 50).
+
 ## Central de Evolução - Atualização Completa do Rocha Tech e Concorrentes (09/11/2026)
 
 - Coleta oficial via YouTube Data API v3 nos **24 canais concorrentes** concluída: **3.881 vídeos** monitorados na janela de 365 dias (33 vídeos novos catalogados, 2.400 visualizações atualizadas, zero falhas e zero fallbacks manuais).
