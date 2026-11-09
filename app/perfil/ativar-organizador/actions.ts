@@ -116,16 +116,13 @@ export async function ativarOrganizador(formData: FormData): Promise<{ error?: s
 
   const fileFrente = formData.get("foto_frente") as File | null;
   const fileVerso  = formData.get("foto_verso") as File | null;
-  const fileSelfie = formData.get("foto_selfie") as File | null;
 
   let frentePath: string | null = null;
   let versoPath: string | null = null;
-  let selfiePath: string | null = null;
 
   try {
     frentePath = await processKycUpload(admin, user.id, "frente", fileFrente, contaAtual?.documento_frente_url ?? null);
     versoPath  = await processKycUpload(admin, user.id, "verso", fileVerso, contaAtual?.documento_verso_url ?? null);
-    selfiePath = await processKycUpload(admin, user.id, "selfie", fileSelfie, contaAtual?.selfie_url ?? null);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Erro no envio dos arquivos.";
     return { error: msg };
@@ -136,9 +133,6 @@ export async function ativarOrganizador(formData: FormData): Promise<{ error?: s
   }
   if (!versoPath) {
     return { error: "Envie a foto do verso do seu documento (RG ou CNH)." };
-  }
-  if (!selfiePath) {
-    return { error: "Envie uma selfie segurando seu documento ao lado do rosto." };
   }
 
   const agora = new Date().toISOString();
@@ -158,7 +152,7 @@ export async function ativarOrganizador(formData: FormData): Promise<{ error?: s
         documento_numero: documentoNumero,
         documento_frente_url: frentePath,
         documento_verso_url: versoPath,
-        selfie_url: selfiePath,
+        selfie_url: contaAtual?.selfie_url ?? null,
         status_verificacao: "em_analise",
         motivo_rejeicao: null,
         submetido_em: agora,

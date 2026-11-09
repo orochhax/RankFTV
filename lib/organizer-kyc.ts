@@ -13,7 +13,7 @@ export type TipoDocumentoOrganizador = "cnh" | "rg";
 
 export const MOTIVOS_REJEICAO_PREDEFINIDOS = [
   "Foto do documento ilegível, cortada ou escura",
-  "Selfie não confere com o rosto no documento ou sem nitidez",
+  "Foto do verso do documento ausente, cortada ou ilegível",
   "Documento vencido, não aceito ou rasurado (aceito apenas RG ou CNH)",
   "CPF ou Nome informado diverge do documento apresentado",
   "Chave Pix informada pertence a outra pessoa (deve ser no mesmo CPF/CNPJ)",

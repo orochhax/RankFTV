@@ -398,7 +398,7 @@ export function AdminOrganizadoresManager({
                   Carregando imagens seguras...
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className={`grid grid-cols-1 gap-4 ${docUrls.selfieSignedUrl ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
                   {/* Foto Frente */}
                   <div className="space-y-1.5 rounded-2xl border border-gray-200 p-3">
                     <p className="text-xs font-semibold text-gray-700">1. Frente do Documento</p>
@@ -455,15 +455,15 @@ export function AdminOrganizadoresManager({
                     )}
                   </div>
 
-                  {/* Selfie com Documento */}
-                  <div className="space-y-1.5 rounded-2xl border border-gray-200 p-3">
-                    <p className="text-xs font-semibold text-gray-700">3. Selfie com Documento</p>
-                    {docUrls.selfieSignedUrl ? (
+                  {/* Selfie (opcional / histórico) */}
+                  {docUrls.selfieSignedUrl ? (
+                    <div className="space-y-1.5 rounded-2xl border border-gray-200 p-3">
+                      <p className="text-xs font-semibold text-gray-700">3. Selfie (Opcional)</p>
                       <div className="relative aspect-video overflow-hidden rounded-xl bg-gray-100">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={docUrls.selfieSignedUrl}
-                          alt="Selfie com documento"
+                          alt="Selfie do organizador"
                           className="h-full w-full object-cover"
                         />
                         <a
@@ -476,12 +476,8 @@ export function AdminOrganizadoresManager({
                           <ExternalLink className="size-3.5" />
                         </a>
                       </div>
-                    ) : (
-                      <div className="flex aspect-video items-center justify-center rounded-xl bg-gray-100 text-xs text-gray-400">
-                        Não enviada
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
                 </div>
               )}
             </div>

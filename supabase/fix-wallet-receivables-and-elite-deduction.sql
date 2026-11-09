@@ -10,7 +10,41 @@ ALTER TABLE public.athlete_tickets
 ALTER TABLE public.spectator_tickets
   ADD COLUMN IF NOT EXISTS elite_fee_coletada numeric(12,2) NOT NULL DEFAULT 0;
 
--- 2. Atualiza a função do gatilho register_organizer_receivable para abater
+-- 2. Atualiza a função de proteção para permitir que o usuário postgres (Supabase SQL Editor),
+-- o service_role e triggers internos do banco (pg_trigger_depth > 1) abatam a taxa Elite
+-- sem disparar o erro P0001 de bloqueio do client.
+CREATE OR REPLACE FUNCTION public.protect_championship_financial_fields()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF COALESCE(current_setting('role', true), '') IN ('service_role', 'postgres')
+     OR CURRENT_USER = 'postgres'
+     OR SESSION_USER = 'postgres'
+     OR pg_trigger_depth() > 1 THEN
+    RETURN NEW;
+  END IF;
+
+  IF NEW.is_elite IS DISTINCT FROM OLD.is_elite THEN
+    RAISE EXCEPTION 'is_elite só pode ser alterado pelo fluxo de ativação Elite.';
+  END IF;
+  IF NEW.premium_fee_pendente IS DISTINCT FROM OLD.premium_fee_pendente THEN
+    RAISE EXCEPTION 'premium_fee_pendente não pode ser alterado pelo client.';
+  END IF;
+  IF NEW.taxa_plataforma IS DISTINCT FROM OLD.taxa_plataforma THEN
+    RAISE EXCEPTION 'taxa_plataforma não pode ser alterado pelo client.';
+  END IF;
+  IF NEW.is_vitrine IS DISTINCT FROM OLD.is_vitrine THEN
+    RAISE EXCEPTION 'is_vitrine é decisão administrativa, não do organizador.';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+-- 3. Atualiza a função do gatilho register_organizer_receivable para abater
 -- a taxa de adesão do Plano Elite (championships.premium_fee_pendente) de QUALQUER
 -- tipo de venda paga (inscrição de dupla, ingresso de atleta avulso ou plateia).
 CREATE OR REPLACE FUNCTION public.register_organizer_receivable()
@@ -114,9 +148,17 @@ BEGIN
 END;
 $$;
 
--- 3. RECONCILIAÇÃO E BACKFILL:
--- Sincroniza todas as vendas pagas que ainda não estavam na carteira
--- ou cujo saldo devedor do Plano Elite ainda não havia sido abatido.
+-- 4. RECONCILIAÇÃO E BACKFILL:
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_trigger
+     WHERE tgname = 'protect_championship_financial_fields_trigger'
+  ) THEN
+    ALTER TABLE public.championships DISABLE TRIGGER protect_championship_financial_fields_trigger;
+  END IF;
+END $$;
+
 DO $$
 DECLARE
   v record;
@@ -124,7 +166,7 @@ DECLARE
   v_pending numeric(12,2);
   v_discount numeric(12,2);
 BEGIN
-  -- 3.1) Insere vendas pagas faltantes em organizer_receivables
+  -- 4.1) Insere vendas pagas faltantes em organizer_receivables
   FOR v IN
     SELECT 'registration'::text AS source_type,
            r.id AS source_id,
@@ -211,7 +253,7 @@ BEGIN
     END IF;
   END LOOP;
 
-  -- 3.2) Para recebíveis já existentes que foram inseridos com platform_discount = 0
+  -- 4.2) Para recebíveis já existentes que foram inseridos com platform_discount = 0
   -- mas o campeonato ainda possuía premium_fee_pendente > 0:
   FOR v IN
     SELECT r.id, r.championship_id, r.gross_amount, r.source_type, r.source_id
@@ -250,4 +292,15 @@ BEGIN
       END IF;
     END IF;
   END LOOP;
+END $$;
+
+-- Reativa o gatilho de proteção
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_trigger
+     WHERE tgname = 'protect_championship_financial_fields_trigger'
+  ) THEN
+    ALTER TABLE public.championships ENABLE TRIGGER protect_championship_financial_fields_trigger;
+  END IF;
 END $$;
