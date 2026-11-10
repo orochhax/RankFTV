@@ -51,4 +51,5 @@ Todas as 142 entregas anteriores da V1 (99% dos marcos concluídos), histórico,
 - [ ] Remover `style-src 'unsafe-inline'` da CSP após migrar estilos dinâmicos.
 - [ ] Ensaiar restauração completa de banco e Storage em ambiente descartável.
 - [ ] Reduzir a dívida técnica do lint: repositories/services, imports entre camadas, complexidade, arquivos longos, non-null assertions e TypeScript estrito; encerrar apenas quando lint, typecheck, testes e build passarem.
+- [ ] **Página do Atleta & Gamificação de Performance na Arena:** Criar uma página dedicada para o aluno/atleta visualizar sua evolução de performance, histórico de treinos concluídos e taxa de presença. Isso incentiva o próprio atleta a bater o check-in por QR Code na entrada da quadra sem o professor precisar cobrar. Incluir também ranking de frequência mensal da arena.
 - [ ] Revisar mensalmente métricas, falhas e suporte; priorizar melhorias reais e planejar Arena comercial, PWA, carteiras digitais e analytics avançado.

@@ -21,7 +21,7 @@ const SECOES: Secao[] = [
   {
     titulo: "Quem trata seus dados",
     blocos: [
-      { p: "Esta Política de Privacidade é mantida pela Plataforma RankFTV, operada por Carlos Gregório Rocha Batista como controlador de dados, com canal de atendimento pelo e-mail suporte@rankftv.com e contato@rankftv.com (canal de contingência: carlosrocha0923@gmail.com), aplicando-se a todo o uso da plataforma RankFTV por Atletas, Organizadores, Donos de Arena e Espectadores." },
+      { p: "Esta Política de Privacidade é mantida pela Plataforma RankFTV, operada por Carlos Gregório Rocha Batista como controlador de dados, com canal de atendimento pelo e-mail suporte@rankftv.com e contato@rankftv.com, aplicando-se a todo o uso da plataforma RankFTV por Atletas, Organizadores, Donos de Arena e Espectadores." },
     ],
   },
   {
@@ -96,7 +96,7 @@ const SECOES: Secao[] = [
   {
     titulo: "Contato",
     blocos: [
-      { p: "Dúvidas sobre esta política, solicitações de direitos de titular ou contato com o Encarregado pelo Tratamento de Dados Pessoais (LGPD): envie e-mail para suporte@rankftv.com ou carlosrocha0923@gmail.com com o assunto \"Privacidade / LGPD\". Nosso prazo de atendimento e resposta fundamentada é de até 15 (quinze) dias corridos, conforme previsto no art. 19, II, da LGPD, com confirmação de recebimento em até 24 horas úteis." },
+      { p: "Dúvidas sobre esta política, solicitações de direitos de titular ou contato com o Encarregado pelo Tratamento de Dados Pessoais (LGPD): envie e-mail para suporte@rankftv.com ou contato@rankftv.com com o assunto \"Privacidade / LGPD\". Nosso prazo de atendimento e resposta fundamentada é de até 15 (quinze) dias corridos, conforme previsto no art. 19, II, da LGPD, com confirmação de recebimento em até 24 horas úteis." },
     ],
   },
 ];

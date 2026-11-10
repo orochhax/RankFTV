@@ -9,6 +9,7 @@ import {
 } from "@/app/painel/campeonatos/[id]/financeiro/actions";
 import { PRECO_ELITE, PRECO_ELITE_ORIGINAL } from "@/lib/elite";
 import { TAXAS_EXIBICAO } from "@/lib/taxas";
+import { CampeonatoRoiSimulator } from "./CampeonatoRoiSimulator";
 
 function brl(n: number) {
   return `R$ ${n.toFixed(2).replace(".", ",")}`;
@@ -216,6 +217,10 @@ export function PlanoTaxas({
         A taxa é paga pelo comprador (somada ao valor) — você recebe o valor cheio de cada
         inscrição. No plano Elite a taxa do comprador fica menor.
       </p>
+
+      <div className="mt-6">
+        <CampeonatoRoiSimulator />
+      </div>
     </section>
   );
 }

@@ -27,25 +27,53 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
         </div>
       </div>
 
-      <div className="w-full max-w-full touch-pan-y overflow-hidden rounded-2xl" aria-roledescription="carrossel" onMouseEnter={carousel.pauseOnHover} onMouseLeave={carousel.resume} onKeyDown={(event) => { if (event.key === "ArrowLeft") carousel.previous(); if (event.key === "ArrowRight") carousel.next(); }} {...carousel.pointerHandlers} {...carousel.focusHandlers}>
+      <div className="w-full max-w-full touch-pan-y overflow-hidden rounded-3xl" aria-roledescription="carrossel" onMouseEnter={carousel.pauseOnHover} onMouseLeave={carousel.resume} onKeyDown={(event) => { if (event.key === "ArrowLeft") carousel.previous(); if (event.key === "ArrowRight") carousel.next(); }} {...carousel.pointerHandlers} {...carousel.focusHandlers}>
         <div className={`flex w-full ${carousel.reducedMotion ? "" : "transition-transform duration-500 ease-out"}`} style={{ transform: `translateX(-${carousel.current * 100}%)` }}>
           {camps.map((camp) => (
             <div key={camp.id} className="w-full min-w-0 shrink-0 p-px">
-              <Link href={`/campeonatos/${camp.id}`} className="group block overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md md:flex">
-                <div className={`relative flex h-40 items-center justify-center bg-gradient-to-br md:h-48 md:w-1/2 md:shrink-0 ${camp.bannerFrom} ${camp.bannerTo}`}>
+              <Link href={`/campeonatos/${camp.id}`} className="group block overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5 transition-all hover:shadow-lg md:flex md:h-64 lg:h-72">
+                <div className={`relative flex h-52 items-center justify-center bg-gradient-to-br md:h-full md:w-7/12 lg:w-3/5 md:shrink-0 ${camp.bannerFrom} ${camp.bannerTo}`}>
                   {camp.bannerUrl ? (
-                    <Image src={camp.bannerUrl} alt={camp.nome} fill className="object-cover" style={{ objectPosition: `${camp.bannerPositionX ?? 50}% ${camp.bannerPositionY ?? 50}%` }} sizes="(max-width: 767px) 100vw, 40vw" />
+                    <Image
+                      src={camp.bannerUrl}
+                      alt={camp.nome}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      style={{ objectPosition: `${camp.bannerPositionX ?? 50}% ${camp.bannerPositionY ?? 50}%` }}
+                      sizes="(max-width: 767px) 100vw, 65vw"
+                      priority
+                    />
                   ) : (
-                    <Trophy className="size-12 text-white/90" strokeWidth={1.5} />
+                    <Trophy className="size-16 text-white/90" strokeWidth={1.5} />
                   )}
                 </div>
-                <div className="flex flex-1 flex-col justify-center gap-2 p-5 md:p-6">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="min-w-0 text-lg font-bold leading-tight text-gray-900 group-hover:text-blue-700 md:text-xl">{camp.nome}</h3>
-                    <div className="shrink-0"><StatusBadge status={camp.status} /></div>
+                <div className="flex flex-1 flex-col justify-between p-6 md:p-8">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                          Destaque
+                        </span>
+                        <h3 className="min-w-0 text-xl font-black leading-tight text-gray-900 transition-colors group-hover:text-blue-600 md:text-2xl lg:text-3xl">
+                          {camp.nome}
+                        </h3>
+                      </div>
+                      <div className="shrink-0"><StatusBadge status={camp.status} /></div>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-700 md:text-base">
+                      {formatDateRangeBR(camp.dataInicio, camp.dataFim)}
+                    </p>
+                    <p className="flex items-center gap-1.5 text-sm text-gray-500">
+                      <MapPin className="size-4 shrink-0 text-gray-400" />
+                      {camp.local ? `${camp.local} · ` : ""}{camp.cidade} - {camp.estado}
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-500">{formatDateRangeBR(camp.dataInicio, camp.dataFim)}</p>
-                  <p className="flex items-center gap-1 text-sm text-gray-500"><MapPin className="size-4" />{camp.local ? `${camp.local} · ` : ""}{camp.cidade} - {camp.estado}</p>
+                  <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
+                    <span className="text-xs font-medium text-gray-400">Inscrições e ingressos online</span>
+                    <span className="inline-flex items-center gap-1 text-sm font-bold text-blue-600 transition-transform group-hover:translate-x-1">
+                      Ver detalhes →
+                    </span>
+                  </div>
                 </div>
               </Link>
             </div>
