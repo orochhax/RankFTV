@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useValoresOcultos } from "@/hooks/useValoresOcultos";
 
 interface ReceitaConsolidadaCardProps {
   valorFormatado: string;
 }
 
 export function ReceitaConsolidadaCard({ valorFormatado }: ReceitaConsolidadaCardProps) {
-  // O olhinho já vem ativo com o valor oculto por padrão
-  const [oculto, setOculto] = useState(true);
+  const { oculto, toggle } = useValoresOcultos(true);
 
   return (
     <section className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 text-white shadow-sm ring-1 ring-blue-500/20">
@@ -19,7 +18,7 @@ export function ReceitaConsolidadaCard({ valorFormatado }: ReceitaConsolidadaCar
         </p>
         <button
           type="button"
-          onClick={() => setOculto((v) => !v)}
+          onClick={toggle}
           aria-label={oculto ? "Mostrar valor da receita" : "Ocultar valor da receita"}
           title={oculto ? "Mostrar valor" : "Ocultar valor"}
           className="inline-flex size-8 items-center justify-center rounded-lg bg-white/15 text-white transition-colors hover:bg-white/25"
