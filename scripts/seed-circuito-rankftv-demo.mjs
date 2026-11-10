@@ -43,6 +43,259 @@ const supabase = createClient(
   { auth: { persistSession: false, autoRefreshToken: false } },
 );
 
+function generateBracketMatchesForCategory(championshipId, categoryId, participants, courtNames) {
+  const p = participants;
+  return [
+    // Oitavas de Final (8 partidas)
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 0,
+      match_index: 0,
+      bracket_section: "winners",
+      section_round_index: 0,
+      court_label: courtNames[0],
+      participant_a_id: p[0].id,
+      participant_b_id: p[15].id,
+      sets_a: 2,
+      sets_b: 0,
+      set_details: [{ a: 18, b: 12 }, { a: 18, b: 14 }],
+      winner_participant_id: p[0].id,
+      operational_status: "finished",
+    },
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 0,
+      match_index: 1,
+      bracket_section: "winners",
+      section_round_index: 0,
+      court_label: courtNames[1],
+      participant_a_id: p[1].id,
+      participant_b_id: p[14].id,
+      sets_a: 2,
+      sets_b: 1,
+      set_details: [{ a: 18, b: 16 }, { a: 15, b: 18 }, { a: 18, b: 13 }],
+      winner_participant_id: p[1].id,
+      operational_status: "finished",
+    },
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 0,
+      match_index: 2,
+      bracket_section: "winners",
+      section_round_index: 0,
+      court_label: courtNames[2],
+      participant_a_id: p[2].id,
+      participant_b_id: p[13].id,
+      sets_a: 2,
+      sets_b: 0,
+      set_details: [{ a: 18, b: 11 }, { a: 18, b: 13 }],
+      winner_participant_id: p[2].id,
+      operational_status: "finished",
+    },
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 0,
+      match_index: 3,
+      bracket_section: "winners",
+      section_round_index: 0,
+      court_label: courtNames[3],
+      participant_a_id: p[3].id,
+      participant_b_id: p[12].id,
+      sets_a: 2,
+      sets_b: 1,
+      set_details: [{ a: 18, b: 15 }, { a: 16, b: 18 }, { a: 18, b: 14 }],
+      winner_participant_id: p[3].id,
+      operational_status: "finished",
+    },
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 0,
+      match_index: 4,
+      bracket_section: "winners",
+      section_round_index: 0,
+      court_label: courtNames[0],
+      participant_a_id: p[4].id,
+      participant_b_id: p[11].id,
+      sets_a: 2,
+      sets_b: 0,
+      set_details: [{ a: 18, b: 14 }, { a: 18, b: 15 }],
+      winner_participant_id: p[4].id,
+      operational_status: "finished",
+    },
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 0,
+      match_index: 5,
+      bracket_section: "winners",
+      section_round_index: 0,
+      court_label: courtNames[1],
+      participant_a_id: p[5].id,
+      participant_b_id: p[10].id,
+      sets_a: 2,
+      sets_b: 0,
+      set_details: [{ a: 18, b: 13 }, { a: 18, b: 16 }],
+      winner_participant_id: p[5].id,
+      operational_status: "finished",
+    },
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 0,
+      match_index: 6,
+      bracket_section: "winners",
+      section_round_index: 0,
+      court_label: courtNames[2],
+      participant_a_id: p[6].id,
+      participant_b_id: p[9].id,
+      sets_a: 2,
+      sets_b: 1,
+      set_details: [{ a: 18, b: 17 }, { a: 14, b: 18 }, { a: 18, b: 15 }],
+      winner_participant_id: p[6].id,
+      operational_status: "finished",
+    },
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 0,
+      match_index: 7,
+      bracket_section: "winners",
+      section_round_index: 0,
+      court_label: courtNames[3],
+      participant_a_id: p[7].id,
+      participant_b_id: p[8].id,
+      sets_a: 2,
+      sets_b: 0,
+      set_details: [{ a: 18, b: 12 }, { a: 18, b: 15 }],
+      winner_participant_id: p[7].id,
+      operational_status: "finished",
+    },
+
+    // Quartas de Final (4 partidas)
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 1,
+      match_index: 0,
+      bracket_section: "winners",
+      section_round_index: 1,
+      court_label: courtNames[0],
+      participant_a_id: p[0].id,
+      participant_b_id: p[7].id,
+      sets_a: 2,
+      sets_b: 1,
+      set_details: [{ a: 18, b: 16 }, { a: 17, b: 19 }, { a: 18, b: 15 }],
+      winner_participant_id: p[0].id,
+      operational_status: "finished",
+    },
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 1,
+      match_index: 1,
+      bracket_section: "winners",
+      section_round_index: 1,
+      court_label: courtNames[1],
+      participant_a_id: p[1].id,
+      participant_b_id: p[6].id,
+      sets_a: 2,
+      sets_b: 0,
+      set_details: [{ a: 18, b: 14 }, { a: 18, b: 12 }],
+      winner_participant_id: p[1].id,
+      operational_status: "finished",
+    },
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 1,
+      match_index: 2,
+      bracket_section: "winners",
+      section_round_index: 1,
+      court_label: courtNames[0],
+      participant_a_id: p[2].id,
+      participant_b_id: p[5].id,
+      sets_a: 2,
+      sets_b: 1,
+      set_details: [{ a: 18, b: 15 }, { a: 14, b: 18 }, { a: 18, b: 16 }],
+      winner_participant_id: p[2].id,
+      operational_status: "finished",
+    },
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 1,
+      match_index: 3,
+      bracket_section: "winners",
+      section_round_index: 1,
+      court_label: courtNames[1],
+      participant_a_id: p[3].id,
+      participant_b_id: p[4].id,
+      sets_a: 2,
+      sets_b: 0,
+      set_details: [{ a: 18, b: 13 }, { a: 18, b: 15 }],
+      winner_participant_id: p[3].id,
+      operational_status: "finished",
+    },
+
+    // Semifinais (2 partidas)
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 2,
+      match_index: 0,
+      bracket_section: "winners",
+      section_round_index: 2,
+      court_label: "Quadra Central",
+      participant_a_id: p[0].id,
+      participant_b_id: p[1].id,
+      sets_a: 1,
+      sets_b: 1,
+      set_details: [{ a: 18, b: 16 }, { a: 16, b: 18 }],
+      winner_participant_id: null,
+      operational_status: "in_progress",
+    },
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 2,
+      match_index: 1,
+      bracket_section: "winners",
+      section_round_index: 2,
+      court_label: "Quadra Central",
+      participant_a_id: p[2].id,
+      participant_b_id: p[3].id,
+      sets_a: null,
+      sets_b: null,
+      set_details: null,
+      winner_participant_id: null,
+      operational_status: "scheduled",
+    },
+
+    // Grande Final (1 partida)
+    {
+      championship_id: championshipId,
+      category_id: categoryId,
+      round_index: 3,
+      match_index: 0,
+      bracket_section: "winners",
+      section_round_index: 3,
+      court_label: "Quadra Central",
+      participant_a_id: null,
+      participant_b_id: null,
+      sets_a: null,
+      sets_b: null,
+      set_details: null,
+      winner_participant_id: null,
+      operational_status: "scheduled",
+    },
+  ];
+}
+
 async function seed() {
   console.log("Iniciando seed do Circuito RankFTV Open Pro 2026...");
 
@@ -73,7 +326,7 @@ async function seed() {
 
   const hoje = new Date();
   const dataInicio = new Date(hoje.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]; // Ontem
-  const dataFim = new Date(hoje.getTime() + 2 * 24 * 60 * 1000).toISOString().split("T")[0];    // Daqui a 2 dias
+  const dataFim = new Date(hoje.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]; // Daqui a 2 dias
   const prevendaInicio = new Date(hoje.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
   const prevendaFim = new Date(hoje.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
   const inscricoesInicio = new Date(hoje.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
@@ -161,7 +414,7 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       status: "em_andamento",
       taxa_plataforma: 7.0,
       is_elite: true,
-      is_vitrine: false, // Inscrições e ingressos nativos na plataforma!
+      is_vitrine: false,
       live_url: "https://www.youtube.com",
       banner_url: "/banners/circuito-rankftv-open.png?v=2",
       banner_position_x: 50,
@@ -170,7 +423,7 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       primary_court_number: 1,
       max_parcelas_inscricao: 6,
       max_parcelas_ingresso: 6,
-      premium_fee_pendente: 0, // Plano PRO já quitado!
+      premium_fee_pendente: 0,
     }, { onConflict: "id" });
 
   if (champErr) throw champErr;
@@ -270,15 +523,15 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
   }
   console.log("Tipos de ingressos de plateia cadastrados!");
 
-  // 5. Inserir Inscrições de Atletas (Duplas) com Faturamento Financeiro
-  // Limpar dados antigos desse camp demo em ordem correta de FKs
+  // 5. Limpeza de dados antigos do torneio demo (sem deixar órfãos em receivables)
+  await supabase.from("organizer_receivables").delete().eq("championship_id", CHAMPIONSHIP_ID);
   await supabase.from("bracket_matches").delete().eq("championship_id", CHAMPIONSHIP_ID);
   await supabase.from("bracket_participants").delete().eq("championship_id", CHAMPIONSHIP_ID);
   await supabase.from("athlete_tickets").delete().eq("championship_id", CHAMPIONSHIP_ID);
   await supabase.from("spectator_tickets").delete().eq("championship_id", CHAMPIONSHIP_ID);
 
-  const athleteTickets = [];
-  const duplasNomes = [
+  // 6. Inserir Inscrições de Atletas (Duplas) para as 4 CATEGORIAS
+  const duplasOpenPro = [
     ["Tavinho", "Franklin"],
     ["Bruninho", "Sandrey"],
     ["Hiltinho", "Franklin Jr"],
@@ -297,13 +550,70 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
     ["Alex", "Biel"],
   ];
 
-  const tamanhosCamiseta = ["P", "M", "G", "GG"];
+  const duplasCatA = [
+    ["Biel", "Matheus"],
+    ["Vitinho", "Leo"],
+    ["Guto", "Rodrigo"],
+    ["Pezão", "Marcos"],
+    ["Caio", "Felipe"],
+    ["Renan", "Danilo"],
+    ["Dudu", "Vini"],
+    ["Juninho", "Lucas"],
+    ["Paulinho", "Natan"],
+    ["Tiago", "Bruno"],
+    ["Arthur", "Gabriel"],
+    ["Marcelo", "Yuri"],
+    ["Daniel", "Henrique"],
+    ["Igor", "Samuel"],
+    ["Gustavo", "Eduardo"],
+    ["Bernardo", "Felipe Jr"],
+  ];
 
-  // 16 duplas Open Pro (R$ 240 cada = R$ 3.840)
-  for (let i = 0; i < duplasNomes.length; i++) {
-    const [atleta1, atleta2] = duplasNomes[i];
+  const duplasCatB = [
+    ["Lucas", "Davi"],
+    ["Gui", "Enzo"],
+    ["Pedro", "Thiago"],
+    ["Rafa", "Gabriel"],
+    ["Felipe", "Bruno"],
+    ["Murilo", "João"],
+    ["Cauã", "Caio"],
+    ["Leo", "Renan"],
+    ["Otávio", "Yan"],
+    ["Heitor", "Vitor"],
+    ["Nicolas", "Breno"],
+    ["Diego", "Theo"],
+    ["Lorenzo", "Arthur"],
+    ["Bernardo", "Caio Jr"],
+    ["Miguel", "Davi Lucca"],
+    ["Samuel", "Henrique"],
+  ];
+
+  const duplasMisto = [
+    ["Caio", "Bia"],
+    ["Lucas", "Carol"],
+    ["Rodrigo", "Fernanda"],
+    ["Leo", "Mariana"],
+    ["Felipe", "Larissa"],
+    ["Bruno", "Camila"],
+    ["Gabriel", "Letícia"],
+    ["Rafael", "Juliana"],
+    ["Thiago", "Amanda"],
+    ["Vinícius", "Bruna"],
+    ["Matheus", "Isabella"],
+    ["Pedro", "Sofia"],
+    ["Arthur", "Gabriela"],
+    ["Eduardo", "Rafaela"],
+    ["Gustavo", "Giovanna"],
+    ["Daniel", "Luiza"],
+  ];
+
+  const tamanhosCamiseta = ["P", "M", "G", "GG"];
+  const athleteTickets = [];
+
+  // Open Pro (16 duplas @ R$ 240 = R$ 3.840)
+  for (let i = 0; i < duplasOpenPro.length; i++) {
+    const [atleta1, atleta2] = duplasOpenPro[i];
     const ticketId = `c1000000-0000-4000-8000-0000000010${i < 10 ? "0" + i : i}`;
-    const valor = 240.00;
     const isCredit = i % 2 === 0;
 
     athleteTickets.push({
@@ -313,20 +623,22 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       categoria_nome: "Open Pro Masculino",
       comprador_nome: atleta1,
       comprador_cpf: `111222333${i < 10 ? "0" + i : i}`,
-      comprador_email: `${atleta1.toLowerCase().replace(/\s+/g, "")}@demo.rankftv.com`,
+      comprador_email: `${atleta1.toLowerCase().replace(/[\sáàâãéèêíóòôõúüç]+/g, "")}@demo.rankftv.com`,
       comprador_zap: "71999887766",
       comprador_genero: "masculino",
       parceiro_nome: atleta2,
       parceiro_cpf: `444555666${i < 10 ? "0" + i : i}`,
-      parceiro_email: `${atleta2.toLowerCase().replace(/\s+/g, "")}@demo.rankftv.com`,
+      parceiro_email: `${atleta2.toLowerCase().replace(/[\sáàâãéèêíóòôõúüç]+/g, "")}@demo.rankftv.com`,
       parceiro_zap: "71988776655",
       parceiro_genero: "masculino",
-      valor: valor,
+      valor: 240.00,
       status_pagamento: "pago",
       billing_type: isCredit ? "CREDIT_CARD" : "PIX",
-      asaas_payment_id: `pay_demo_${i}`,
+      asaas_payment_id: `pay_demo_pro_${i}`,
       repasse_status: isCredit ? "aguardando_liquidacao" : "disponivel",
-      repasse_data_prevista: new Date(hoje.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+      repasse_data_prevista: isCredit
+        ? new Date(hoje.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString()
+        : hoje.toISOString(),
       code: `PRO-${100 + i}`,
       access_token: crypto.randomUUID(),
       comprador_camisa: tamanhosCamiseta[i % 4],
@@ -335,30 +647,35 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
     });
   }
 
-  // 16 duplas Categoria A (R$ 180 cada = R$ 2.880)
-  for (let i = 0; i < 16; i++) {
+  // Categoria A (16 duplas @ R$ 180 = R$ 2.880)
+  for (let i = 0; i < duplasCatA.length; i++) {
+    const [atleta1, atleta2] = duplasCatA[i];
     const ticketId = `c1000000-0000-4000-8000-0000000020${i < 10 ? "0" + i : i}`;
+    const isCredit = i % 3 === 0;
+
     athleteTickets.push({
       id: ticketId,
       championship_id: CHAMPIONSHIP_ID,
       category_id: CAT_A_ID,
       categoria_nome: "Categoria A",
-      comprador_nome: `Atleta A${i + 1} Titular`,
+      comprador_nome: atleta1,
       comprador_cpf: `222333444${i < 10 ? "0" + i : i}`,
-      comprador_email: `atletaa${i + 1}@demo.rankftv.com`,
+      comprador_email: `${atleta1.toLowerCase().replace(/[\sáàâãéèêíóòôõúüç]+/g, "")}a@demo.rankftv.com`,
       comprador_zap: "71991112233",
       comprador_genero: "masculino",
-      parceiro_nome: `Atleta A${i + 1} Parceiro`,
+      parceiro_nome: atleta2,
       parceiro_cpf: `555666777${i < 10 ? "0" + i : i}`,
-      parceiro_email: `parceiroa${i + 1}@demo.rankftv.com`,
+      parceiro_email: `${atleta2.toLowerCase().replace(/[\sáàâãéèêíóòôõúüç]+/g, "")}a@demo.rankftv.com`,
       parceiro_zap: "71992223344",
       parceiro_genero: "masculino",
       valor: 180.00,
       status_pagamento: "pago",
-      billing_type: "PIX",
+      billing_type: isCredit ? "CREDIT_CARD" : "PIX",
       asaas_payment_id: `pay_demo_a_${i}`,
-      repasse_status: "disponivel",
-      repasse_data_prevista: hoje.toISOString(),
+      repasse_status: isCredit ? "aguardando_liquidacao" : "disponivel",
+      repasse_data_prevista: isCredit
+        ? new Date(hoje.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString()
+        : hoje.toISOString(),
       code: `CTA-${100 + i}`,
       access_token: crypto.randomUUID(),
       comprador_camisa: "M",
@@ -367,30 +684,35 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
     });
   }
 
-  // 16 duplas Categoria B (R$ 160 cada = R$ 2.560)
-  for (let i = 0; i < 16; i++) {
+  // Categoria B (16 duplas @ R$ 160 = R$ 2.560)
+  for (let i = 0; i < duplasCatB.length; i++) {
+    const [atleta1, atleta2] = duplasCatB[i];
     const ticketId = `c1000000-0000-4000-8000-0000000030${i < 10 ? "0" + i : i}`;
+    const isCredit = i % 4 === 0;
+
     athleteTickets.push({
       id: ticketId,
       championship_id: CHAMPIONSHIP_ID,
       category_id: CAT_B_ID,
       categoria_nome: "Categoria B",
-      comprador_nome: `Atleta B${i + 1} Titular`,
+      comprador_nome: atleta1,
       comprador_cpf: `333444555${i < 10 ? "0" + i : i}`,
-      comprador_email: `atletab${i + 1}@demo.rankftv.com`,
+      comprador_email: `${atleta1.toLowerCase().replace(/[\sáàâãéèêíóòôõúüç]+/g, "")}b@demo.rankftv.com`,
       comprador_zap: "71993334455",
       comprador_genero: "masculino",
-      parceiro_nome: `Atleta B${i + 1} Parceiro`,
+      parceiro_nome: atleta2,
       parceiro_cpf: `666777888${i < 10 ? "0" + i : i}`,
-      parceiro_email: `parceirob${i + 1}@demo.rankftv.com`,
+      parceiro_email: `${atleta2.toLowerCase().replace(/[\sáàâãéèêíóòôõúüç]+/g, "")}b@demo.rankftv.com`,
       parceiro_zap: "71994445566",
       parceiro_genero: "masculino",
       valor: 160.00,
       status_pagamento: "pago",
-      billing_type: "PIX",
+      billing_type: isCredit ? "CREDIT_CARD" : "PIX",
       asaas_payment_id: `pay_demo_b_${i}`,
-      repasse_status: "disponivel",
-      repasse_data_prevista: hoje.toISOString(),
+      repasse_status: isCredit ? "aguardando_liquidacao" : "disponivel",
+      repasse_data_prevista: isCredit
+        ? new Date(hoje.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString()
+        : hoje.toISOString(),
       code: `CTB-${100 + i}`,
       access_token: crypto.randomUUID(),
       comprador_camisa: "G",
@@ -399,22 +721,24 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
     });
   }
 
-  // 16 duplas Misto Iniciante (R$ 140 cada = R$ 2.240)
-  for (let i = 0; i < 16; i++) {
+  // Misto Iniciante (16 duplas @ R$ 140 = R$ 2.240)
+  for (let i = 0; i < duplasMisto.length; i++) {
+    const [atleta1, atleta2] = duplasMisto[i];
     const ticketId = `c1000000-0000-4000-8000-0000000040${i < 10 ? "0" + i : i}`;
+
     athleteTickets.push({
       id: ticketId,
       championship_id: CHAMPIONSHIP_ID,
       category_id: CAT_MISTO_ID,
       categoria_nome: "Misto Iniciante",
-      comprador_nome: `Atleta Misto ${i + 1} Masc`,
+      comprador_nome: atleta1,
       comprador_cpf: `444555666${i < 10 ? "0" + i : i}`,
-      comprador_email: `misto${i + 1}@demo.rankftv.com`,
+      comprador_email: `${atleta1.toLowerCase().replace(/[\sáàâãéèêíóòôõúüç]+/g, "")}m@demo.rankftv.com`,
       comprador_zap: "71995556677",
       comprador_genero: "masculino",
-      parceiro_nome: `Atleta Misto ${i + 1} Fem`,
+      parceiro_nome: atleta2,
       parceiro_cpf: `777888999${i < 10 ? "0" + i : i}`,
-      parceiro_email: `parceiromisto${i + 1}@demo.rankftv.com`,
+      parceiro_email: `${atleta2.toLowerCase().replace(/[\sáàâãéèêíóòôõúüç]+/g, "")}m@demo.rankftv.com`,
       parceiro_zap: "71996667788",
       parceiro_genero: "feminino",
       valor: 140.00,
@@ -439,13 +763,10 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
   }
   console.log(`Inseridas ${athleteTickets.length} duplas pagas com camisetas e repasses!`);
 
-  // 6. Ingressos de Plateia e Camarote VIP
-  // 380 ingressos Arquibancada a R$ 25 = R$ 9.500
-  // 95 ingressos Camarote VIP a R$ 90 = R$ 8.550
-  // Ingressos agrupados para compor o faturamento de +R$ 50.000:
+  // 7. Ingressos de Plateia e Camarote VIP (685 ingressos = R$ 41.550,00)
   const spectatorTickets = [];
   
-  // 380 ingressos arquibancada
+  // 380 ingressos arquibancada a R$ 25 = R$ 9.500
   for (let i = 0; i < 380; i++) {
     spectatorTickets.push({
       id: crypto.randomUUID(),
@@ -462,15 +783,17 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       code: `ARQ-${1000 + i}`,
       access_token: crypto.randomUUID(),
       qr_token: crypto.randomUUID(),
-      checked_in: i < 280, // 280 já fizeram check-in na portaria!
+      checked_in: i < 280,
       checkin_at: i < 280 ? new Date().toISOString() : null,
       repasse_status: i % 3 === 0 ? "aguardando_liquidacao" : "disponivel",
-      repasse_data_prevista: hoje.toISOString(),
+      repasse_data_prevista: i % 3 === 0
+        ? new Date(hoje.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
+        : hoje.toISOString(),
       created_at: new Date(hoje.getTime() - (5 - (i % 5)) * 24 * 60 * 60 * 1000).toISOString(),
     });
   }
 
-  // 95 ingressos camarote VIP
+  // 95 ingressos camarote VIP a R$ 90 = R$ 8.550
   for (let i = 0; i < 95; i++) {
     spectatorTickets.push({
       id: crypto.randomUUID(),
@@ -487,7 +810,7 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       code: `VIP-${500 + i}`,
       access_token: crypto.randomUUID(),
       qr_token: crypto.randomUUID(),
-      checked_in: i < 75, // 75 já no camarote
+      checked_in: i < 75,
       checkin_at: i < 75 ? new Date().toISOString() : null,
       repasse_status: "aguardando_liquidacao",
       repasse_data_prevista: new Date(hoje.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
@@ -495,7 +818,7 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
     });
   }
 
-  // 110 ingressos Camarote VIP + Camisa Oficial (R$ 150 = R$ 16.500)
+  // 110 ingressos Camarote VIP + Camisa Oficial a R$ 150 = R$ 16.500
   for (let i = 0; i < 110; i++) {
     spectatorTickets.push({
       id: crypto.randomUUID(),
@@ -515,12 +838,14 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       checked_in: i < 90,
       checkin_at: i < 90 ? new Date().toISOString() : null,
       repasse_status: i % 2 === 0 ? "aguardando_liquidacao" : "disponivel",
-      repasse_data_prevista: hoje.toISOString(),
+      repasse_data_prevista: i % 2 === 0
+        ? new Date(hoje.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
+        : hoje.toISOString(),
       created_at: new Date(hoje.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     });
   }
 
-  // 100 ingressos Passaporte Final de Semana Completo (R$ 70 = R$ 7.000)
+  // 100 ingressos Passaporte Final de Semana a R$ 70 = R$ 7.000
   for (let i = 0; i < 100; i++) {
     spectatorTickets.push({
       id: crypto.randomUUID(),
@@ -553,302 +878,71 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
   }
   console.log(`Inseridos ${spectatorTickets.length} ingressos de plateia e camarote VIP!`);
 
-  // 7. Chaveamento Oficial Ativo nas SEMIFINAIS (Open Pro)
-  await supabase.from("bracket_matches").delete().eq("championship_id", CHAMPIONSHIP_ID);
-  await supabase.from("bracket_participants").delete().eq("championship_id", CHAMPIONSHIP_ID);
-
-  const participantsData = [];
-  for (let i = 0; i < duplasNomes.length; i++) {
-    const [a1, a2] = duplasNomes[i];
-    const ticketId = `c1000000-0000-4000-8000-0000000010${i < 10 ? "0" + i : i}`;
-    participantsData.push({
-      id: `c1000000-0000-4000-8000-0000000090${i < 10 ? "0" + i : i}`,
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      athlete_ticket_id: ticketId,
-      display_name_snapshot: `${a1} & ${a2}`,
-      source_type: "athlete_ticket",
-      active: true,
-    });
-  }
-
-  for (const p of participantsData) {
-    const { error: partErr } = await supabase.from("bracket_participants").upsert(p, { onConflict: "id" });
-    if (partErr) throw partErr;
-  }
-  console.log("16 duplas registradas em bracket_participants!");
-
-  // Marcar categoria com bracket_confirmed_at
-  await supabase
-    .from("championship_categories")
-    .update({ bracket_confirmed_at: new Date().toISOString() })
-    .eq("id", CAT_OPEN_PRO_ID);
-
-  // Bracket Matches:
-  // Round 0: Oitavas (8 partidas, índices 0 a 7) - Todas finalizadas com vencedor!
-  // Round 1: Quartas (4 partidas, índices 0 a 3) - Todas finalizadas com vencedor!
-  // Round 2: Semifinais (2 partidas, índices 0 e 1):
-  //          - Match 0: Tavinho/Franklin (p[0]) vs Bruninho/Sandrey (p[1]) -> 1x1 em sets (AO VIVO NO TELÃO!)
-  //          - Match 1: Hiltinho/Franklin Jr (p[2]) vs Paraná/Felipinho (p[3]) -> Aguardando início!
-  // Round 3: Grande Final (1 partida, índice 0) -> Aguardando vencedores das semifinais!
-
-  const bracketMatches = [
-    // Oitavas
+  // 8. Chaveamento Oficial Ativo para as 4 CATEGORIAS
+  const categoryConfigs = [
     {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 0,
-      match_index: 0,
-      bracket_section: "winners",
-      section_round_index: 0,
-      court_label: "1",
-      participant_a_id: participantsData[0].id,
-      participant_b_id: participantsData[15].id,
-      sets_a: 2,
-      sets_b: 0,
-      set_details: [{ a: 18, b: 12 }, { a: 18, b: 14 }],
-      winner_participant_id: participantsData[0].id,
-      operational_status: "finished",
+      categoryId: CAT_OPEN_PRO_ID,
+      nome: "Open Pro Masculino",
+      courts: ["Quadra 1", "Quadra 2", "Quadra 3", "Quadra 4"],
     },
     {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 0,
-      match_index: 1,
-      bracket_section: "winners",
-      section_round_index: 0,
-      court_label: "2",
-      participant_a_id: participantsData[1].id,
-      participant_b_id: participantsData[14].id,
-      sets_a: 2,
-      sets_b: 1,
-      set_details: [{ a: 18, b: 16 }, { a: 15, b: 18 }, { a: 18, b: 13 }],
-      winner_participant_id: participantsData[1].id,
-      operational_status: "finished",
+      categoryId: CAT_A_ID,
+      nome: "Categoria A",
+      courts: ["Quadra 2", "Quadra 3", "Quadra 4", "Quadra 1"],
     },
     {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 0,
-      match_index: 2,
-      bracket_section: "winners",
-      section_round_index: 0,
-      court_label: "3",
-      participant_a_id: participantsData[2].id,
-      participant_b_id: participantsData[13].id,
-      sets_a: 2,
-      sets_b: 0,
-      set_details: [{ a: 18, b: 11 }, { a: 18, b: 13 }],
-      winner_participant_id: participantsData[2].id,
-      operational_status: "finished",
+      categoryId: CAT_B_ID,
+      nome: "Categoria B",
+      courts: ["Quadra 3", "Quadra 4", "Quadra 1", "Quadra 2"],
     },
     {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 0,
-      match_index: 3,
-      bracket_section: "winners",
-      section_round_index: 0,
-      court_label: "4",
-      participant_a_id: participantsData[3].id,
-      participant_b_id: participantsData[12].id,
-      sets_a: 2,
-      sets_b: 1,
-      set_details: [{ a: 18, b: 15 }, { a: 16, b: 18 }, { a: 18, b: 14 }],
-      winner_participant_id: participantsData[3].id,
-      operational_status: "finished",
-    },
-    {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 0,
-      match_index: 4,
-      bracket_section: "winners",
-      section_round_index: 0,
-      court_label: "1",
-      participant_a_id: participantsData[4].id,
-      participant_b_id: participantsData[11].id,
-      sets_a: 2,
-      sets_b: 0,
-      set_details: [{ a: 18, b: 14 }, { a: 18, b: 15 }],
-      winner_participant_id: participantsData[4].id,
-      operational_status: "finished",
-    },
-    {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 0,
-      match_index: 5,
-      bracket_section: "winners",
-      section_round_index: 0,
-      court_label: "2",
-      participant_a_id: participantsData[5].id,
-      participant_b_id: participantsData[10].id,
-      sets_a: 2,
-      sets_b: 0,
-      set_details: [{ a: 18, b: 13 }, { a: 18, b: 16 }],
-      winner_participant_id: participantsData[5].id,
-      operational_status: "finished",
-    },
-    {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 0,
-      match_index: 6,
-      bracket_section: "winners",
-      section_round_index: 0,
-      court_label: "3",
-      participant_a_id: participantsData[6].id,
-      participant_b_id: participantsData[9].id,
-      sets_a: 2,
-      sets_b: 1,
-      set_details: [{ a: 18, b: 17 }, { a: 14, b: 18 }, { a: 18, b: 15 }],
-      winner_participant_id: participantsData[6].id,
-      operational_status: "finished",
-    },
-    {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 0,
-      match_index: 7,
-      bracket_section: "winners",
-      section_round_index: 0,
-      court_label: "4",
-      participant_a_id: participantsData[7].id,
-      participant_b_id: participantsData[8].id,
-      sets_a: 2,
-      sets_b: 0,
-      set_details: [{ a: 18, b: 12 }, { a: 18, b: 15 }],
-      winner_participant_id: participantsData[7].id,
-      operational_status: "finished",
-    },
-
-    // Quartas de Final
-    {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 1,
-      match_index: 0,
-      bracket_section: "winners",
-      section_round_index: 1,
-      court_label: "1",
-      participant_a_id: participantsData[0].id,
-      participant_b_id: participantsData[7].id,
-      sets_a: 2,
-      sets_b: 1,
-      set_details: [{ a: 18, b: 16 }, { a: 17, b: 19 }, { a: 18, b: 15 }],
-      winner_participant_id: participantsData[0].id,
-      operational_status: "finished",
-    },
-    {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 1,
-      match_index: 1,
-      bracket_section: "winners",
-      section_round_index: 1,
-      court_label: "2",
-      participant_a_id: participantsData[1].id,
-      participant_b_id: participantsData[6].id,
-      sets_a: 2,
-      sets_b: 0,
-      set_details: [{ a: 18, b: 14 }, { a: 18, b: 12 }],
-      winner_participant_id: participantsData[1].id,
-      operational_status: "finished",
-    },
-    {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 1,
-      match_index: 2,
-      bracket_section: "winners",
-      section_round_index: 1,
-      court_label: "1",
-      participant_a_id: participantsData[2].id,
-      participant_b_id: participantsData[5].id,
-      sets_a: 2,
-      sets_b: 1,
-      set_details: [{ a: 18, b: 15 }, { a: 14, b: 18 }, { a: 18, b: 16 }],
-      winner_participant_id: participantsData[2].id,
-      operational_status: "finished",
-    },
-    {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 1,
-      match_index: 3,
-      bracket_section: "winners",
-      section_round_index: 1,
-      court_label: "2",
-      participant_a_id: participantsData[3].id,
-      participant_b_id: participantsData[4].id,
-      sets_a: 2,
-      sets_b: 0,
-      set_details: [{ a: 18, b: 13 }, { a: 18, b: 15 }],
-      winner_participant_id: participantsData[3].id,
-      operational_status: "finished",
-    },
-
-    // SEMIFINAIS (AO VIVO NO TELÃO!)
-    // Semifinal 1: Tavinho/Franklin vs Bruninho/Sandrey (Empatado em 1x1 em sets!)
-    {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 2,
-      match_index: 0,
-      bracket_section: "winners",
-      section_round_index: 2,
-      court_label: "Quadra Central",
-      participant_a_id: participantsData[0].id,
-      participant_b_id: participantsData[1].id,
-      sets_a: 1,
-      sets_b: 1,
-      set_details: [{ a: 18, b: 16 }, { a: 16, b: 18 }],
-      winner_participant_id: null, // AO VIVO!
-      operational_status: "in_progress",
-    },
-    // Semifinal 2: Hiltinho/Franklin Jr vs Paraná/Felipinho (Aguardando término da Semi 1)
-    {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 2,
-      match_index: 1,
-      bracket_section: "winners",
-      section_round_index: 2,
-      court_label: "Quadra Central",
-      participant_a_id: participantsData[2].id,
-      participant_b_id: participantsData[3].id,
-      sets_a: null,
-      sets_b: null,
-      set_details: null,
-      winner_participant_id: null,
-      operational_status: "scheduled",
-    },
-
-    // GRANDE FINAL
-    {
-      championship_id: CHAMPIONSHIP_ID,
-      category_id: CAT_OPEN_PRO_ID,
-      round_index: 3,
-      match_index: 0,
-      bracket_section: "winners",
-      section_round_index: 3,
-      court_label: "Quadra Central",
-      participant_a_id: null,
-      participant_b_id: null,
-      sets_a: null,
-      sets_b: null,
-      set_details: null,
-      winner_participant_id: null,
-      operational_status: "scheduled",
+      categoryId: CAT_MISTO_ID,
+      nome: "Misto Iniciante",
+      courts: ["Quadra 4", "Quadra 1", "Quadra 2", "Quadra 3"],
     },
   ];
 
-  const { error: bracketErr } = await supabase.from("bracket_matches").insert(bracketMatches);
-  if (bracketErr) throw bracketErr;
-  console.log("Chaveamento oficial de Semifinais inserido com sucesso!");
+  const allBracketMatches = [];
 
-  // Garantir que o Circuito RankFTV esteja nos destaques da Home
+  for (const cfg of categoryConfigs) {
+    // Obter os 16 participantes criados automaticamente pelo trigger ao inserir athlete_tickets
+    const { data: participantsData, error: partErr } = await supabase
+      .from("bracket_participants")
+      .select("id, athlete_ticket_id, display_name_snapshot")
+      .eq("championship_id", CHAMPIONSHIP_ID)
+      .eq("category_id", cfg.categoryId)
+      .order("athlete_ticket_id", { ascending: true });
+
+    if (partErr || !participantsData || participantsData.length !== 16) {
+      throw new Error(`Esperava 16 participantes para ${cfg.nome}, obteve ${participantsData?.length}: ${partErr?.message}`);
+    }
+
+    console.log(`16 duplas vinculadas para ${cfg.nome}: ${participantsData[0].display_name_snapshot} até ${participantsData[15].display_name_snapshot}`);
+
+    // Marcar categoria com bracket_confirmed_at
+    await supabase
+      .from("championship_categories")
+      .update({ bracket_confirmed_at: new Date().toISOString() })
+      .eq("id", cfg.categoryId);
+
+    const matches = generateBracketMatchesForCategory(
+      CHAMPIONSHIP_ID,
+      cfg.categoryId,
+      participantsData,
+      cfg.courts,
+    );
+    allBracketMatches.push(...matches);
+  }
+
+  // Inserir todas as 60 partidas de chaveamento
+  for (let i = 0; i < allBracketMatches.length; i += 20) {
+    const batch = allBracketMatches.slice(i, i + 20);
+    const { error: bracketErr } = await supabase.from("bracket_matches").insert(batch);
+    if (bracketErr) throw bracketErr;
+  }
+  console.log(`Chaveamento oficial das 4 categorias inserido com sucesso (${allBracketMatches.length} partidas)!`);
+
+  // 9. Garantir que o Circuito RankFTV esteja nos destaques da Home
   const { data: configData } = await supabase
     .from("platform_config")
     .select("destaques_ids")
@@ -872,12 +966,13 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
 
   console.log("==========================================");
   console.log("🏆 CIRCUITO RANKFTV OPEN PRO 2026 ATIVO!");
-  console.log(`Faturamento de Atletas: R$ ${totalAtletas.toFixed(2)}`);
-  console.log(`Faturamento de Plateia / Camarote: R$ ${totalPlateia.toFixed(2)}`);
+  console.log(`Faturamento de Atletas: R$ ${totalAtletas.toFixed(2)} (64 duplas nas 4 categorias)`);
+  console.log(`Faturamento de Plateia / Camarote: R$ ${totalPlateia.toFixed(2)} (685 ingressos)`);
   console.log(`FATURAMENTO TOTAL DO CAMPEONATO: R$ ${totalGeral.toFixed(2)} (+R$ 50k!)`);
-  console.log("Status: EM ANDAMENTO (SEMIFINAIS AO VIVO!)");
-  console.log(`Link: /campeonatos/${CHAMPIONSHIP_ID}`);
-  console.log(`Painel: /painel/campeonatos/${CHAMPIONSHIP_ID}`);
+  console.log("Chaveamento: 4 CATEGORIAS ATIVAS (Open Pro, A, B e Misto - todas nas Semifinais!)");
+  console.log(`Link Chaveamento: /campeonatos/${CHAMPIONSHIP_ID}/chaveamento`);
+  console.log(`Painel Geral: /painel/campeonatos/${CHAMPIONSHIP_ID}`);
+  console.log(`Painel Financeiro: /painel/campeonatos/${CHAMPIONSHIP_ID}/financeiro`);
   console.log("==========================================");
 }
 
