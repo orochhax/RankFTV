@@ -42,9 +42,9 @@ export function ChampionshipCard({ championship: c }: { championship: Championsh
     >
       {/* Banner */}
       <div className={`relative h-44 bg-gradient-to-br ${c.bannerFrom} ${c.bannerTo}`}>
-        {c.bannerUrl ? (
+        {c.cardUrl || c.bannerUrl ? (
           <Image
-            src={c.bannerUrl}
+            src={c.cardUrl || c.bannerUrl || ""}
             alt={c.nome}
             fill
             className="object-cover"
