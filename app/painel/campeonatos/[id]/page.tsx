@@ -51,24 +51,35 @@ export default async function PainelCampeonatoPage({
   // botão "Sou atleta" -> /campeonatos/[id]/comprar). Esta segunda é hoje
   // o fluxo realmente usado pelo botão público — sem somar aqui o painel
   // mostrava R$0/zero inscrições mesmo com Pix confirmado.
-  const [tierRes, financialMetricsRes, orgAccountRes] = await Promise.all([
+  const [tierRes, financialMetricsRes, orgAccountRes, spectatorRes] = await Promise.all([
     supabase.from("championships").select("tier_quiz, is_elite").eq("id", id).maybeSingle(),
     supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
     supabase.from("organizer_accounts")
       .select("chave_pix, status_verificacao, motivo_rejeicao")
       .eq("user_id", user.id)
       .maybeSingle(),
+    supabase.from("spectator_tickets")
+      .select("valor")
+      .eq("championship_id", id)
+      .eq("status_pagamento", "pago"),
   ]);
   const tierQuiz    = (tierRes.data?.tier_quiz ?? null) as Partial<QuizAnswers> | null;
   const isElite     = !!tierRes.data?.is_elite;
   const financialMetrics = (financialMetricsRes.data ?? {}) as {
     statuses?: Array<{ status: string; count: number; total: number }>;
+    categories?: Array<{ category_id: string; name: string; gender: string | null; count: number; total: number }>;
   };
   const paidMetric = financialMetrics.statuses?.find((item) => item.status === "pago");
   const duplasPagas = Number(paidMetric?.count ?? 0);
   const totalArrecadado = Number(paidMetric?.total ?? 0);
+  const totalPlateia = (spectatorRes.data ?? []).reduce((acc, t) => acc + Number(t.valor || 0), 0);
+  const totalGeralConfirmado = totalArrecadado + totalPlateia;
   const temChavePix = !!orgAccountRes.data?.chave_pix;
   const temCategoriaPaga = camp.categorias.some((c) => (c.valorInscricao ?? 0) > 0);
+
+  const categoryCounts = Object.fromEntries(
+    (financialMetrics.categories ?? []).map((c) => [c.category_id, Number(c.count)]),
+  );
 
   const vagasTotais = camp.categorias.reduce(
     (acc, c) => acc + (c.maxDuplas ?? 0),
@@ -107,7 +118,13 @@ export default async function PainelCampeonatoPage({
         <StatCard label="Duplas inscritas" value={duplasPagas} icon={Users} />
         <StatCard label="Categorias" value={camp.categorias.length} icon={Trophy} />
         <StatCard label="Vagas totais" value={vagasTotais > 0 ? vagasTotais : "—"} icon={Ticket} />
-        <StatCard label="Receita confirmada" value={formatBRL(totalArrecadado)} tone="success" icon={DollarSign} />
+        <StatCard
+          label="Receita confirmada"
+          value={formatBRL(totalGeralConfirmado)}
+          hint={totalPlateia > 0 ? `${formatBRL(totalArrecadado)} atletas · ${formatBRL(totalPlateia)} plateia` : undefined}
+          tone="success"
+          icon={DollarSign}
+        />
       </div>
 
       {/* Ações de gestão — imediatamente abaixo dos cards, fonte única dos hrefs é CHAMPIONSHIP_NAV_GROUPS */}
@@ -178,24 +195,27 @@ export default async function PainelCampeonatoPage({
         <SectionHeader title="Categorias" />
         <Surface padding="none" className="mt-3 overflow-hidden">
           <ol className="divide-y divide-border">
-            {camp.categorias.map((cat) => (
-              <li key={cat.id} className="flex items-center justify-between px-4 py-3">
-                <div>
-                  <p className="font-medium text-ink">{cat.nome}</p>
-                  <p className="text-xs capitalize text-ink-muted">{cat.genero}</p>
-                </div>
-                <div className="flex items-center gap-4 text-sm">
-                  {cat.maxDuplas != null && cat.maxDuplas > 0 && (
-                    <span className="text-ink-muted">
-                      {duplasPagas} / {cat.maxDuplas} duplas
+            {camp.categorias.map((cat) => {
+              const catDuplas = categoryCounts[cat.id] ?? 0;
+              return (
+                <li key={cat.id} className="flex items-center justify-between px-4 py-3">
+                  <div>
+                    <p className="font-medium text-ink">{cat.nome}</p>
+                    <p className="text-xs capitalize text-ink-muted">{cat.genero}</p>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    {cat.maxDuplas != null && cat.maxDuplas > 0 && (
+                      <span className="text-ink-muted">
+                        {catDuplas} / {cat.maxDuplas} duplas
+                      </span>
+                    )}
+                    <span className="font-semibold text-ink">
+                      {formatBRL(cat.valorInscricao)}
                     </span>
-                  )}
-                  <span className="font-semibold text-ink">
-                    {formatBRL(cat.valorInscricao)}
-                  </span>
-                </div>
-              </li>
-            ))}
+                  </div>
+                </li>
+              );
+            })}
           </ol>
         </Surface>
       </section>
