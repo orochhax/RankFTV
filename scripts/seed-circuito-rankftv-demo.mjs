@@ -74,6 +74,71 @@ async function seed() {
   const hoje = new Date();
   const dataInicio = new Date(hoje.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]; // Ontem
   const dataFim = new Date(hoje.getTime() + 2 * 24 * 60 * 1000).toISOString().split("T")[0];    // Daqui a 2 dias
+  const prevendaInicio = new Date(hoje.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  const prevendaFim = new Date(hoje.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  const inscricoesInicio = new Date(hoje.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  const inscricoesFim = new Date(hoje.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+  const descricaoCompleta = `A maior e mais esperada etapa do ano do Circuito Nacional de Futevôlei! O Circuito RankFTV Open Pro 2026 reúne os maiores nomes do futevôlei brasileiro em uma estrutura de padrão internacional na Arena Central, com 4 quadras oficiais de areia tratada, iluminação em LED para jogos noturnos, arquibancada coberta para mais de 500 espectadores, camarote VIP Open Bar e cobertura multimídia completa com telão de pontuação ao vivo e transmissão oficial.
+
+🏆 PREMIAÇÃO TOTAL: R$ 30.000,00 EM DINHEIRO + TROFÉUS E MEDALHAS
+Distribuída em todas as categorias oficiais:
+
+🥇 CATEGORIA OPEN PRO MASCULINO (Premiação Total: R$ 20.000,00)
+• 1º Lugar: R$ 10.000,00 + Troféu Ouro Circuito RankFTV + Kit Especial de Patrocinadores
+• 2º Lugar: R$ 5.000,00 + Troféu Prata Circuito RankFTV + Kit de Patrocinadores
+• 3º Lugar: R$ 3.000,00 + Troféu Bronze Circuito RankFTV
+• 4º Lugar: R$ 2.000,00 + Medalha de Honra ao Mérito
+
+🥇 CATEGORIA A MASCULINO (Premiação Total: R$ 5.000,00)
+• 1º Lugar: R$ 3.000,00 + Troféu Ouro
+• 2º Lugar: R$ 1.500,00 + Troféu Prata
+• 3º Lugar: R$ 500,00 + Troféu Bronze
+
+🥇 CATEGORIA B MASCULINO (Premiação Total: R$ 3.000,00)
+• 1º Lugar: R$ 1.800,00 + Troféu Ouro
+• 2º Lugar: R$ 800,00 + Troféu Prata
+• 3º Lugar: R$ 400,00 + Troféu Bronze
+
+🥇 CATEGORIA MISTO INICIANTE (Premiação Total: R$ 2.000,00)
+• 1º Lugar: R$ 1.200,00 + Troféu Ouro
+• 2º Lugar: R$ 500,00 + Troféu Prata
+• 3º Lugar: R$ 300,00 + Troféu Bronze
+
+👕 KITS E UNIFORMES
+Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV nos tamanhos escolhidos na confirmação (P, M, G, GG), além de hidratação ilimitada com isotônicos e frutas durante os 2 dias de torneio.`;
+
+  const regulamentoCompleto = `REGULAMENTO OFICIAL — CIRCUITO RANKFTV OPEN PRO 2026
+
+1. DISPOSIÇÕES GERAIS E ARBITRAGEM
+1.1 O torneio será regido pelas Regras Oficiais da Confederação Brasileira de Futevôlei (CBFv), salvo disposições específicas deste regulamento.
+1.2 A arbitragem será composta por árbitros oficiais credenciados. As decisões da arbitragem de quadra são soberanas e incontestáveis no momento do lance.
+1.3 Cada dupla tem direito a solicitar até 1 pedido de tempo técnico (time-out) de 1 minuto por set.
+
+2. FORMATO DE DISPUTA E SISTEMA DE SETS
+2.1 Oitavas de Final e Quartas de Final: Disputadas em set único de 21 pontos (diferença mínima de 2 pontos para fechamento, com teto máximo de 25 pontos).
+2.2 Semifinais, Disputa de 3º Lugar e Grande Final: Disputadas no sistema melhor de 3 sets (melhor de 3), sendo os dois primeiros sets até 18 pontos (diferença de 2 pontos) e o terceiro set decisivo (tie-break) até 15 pontos.
+2.3 Troca de lado de quadra a cada 7 pontos no set de 21 pontos, e a cada 6 pontos nos sets até 18 pontos.
+
+3. TOLERÂNCIA E W.O.
+3.1 A chamada das duplas será anunciada pelo sistema de som e no telão eletrônico oficial da quadra principal com antecedência mínima de 10 minutos.
+3.2 A tolerância máxima para entrada em quadra é de 15 (quinze) minutos a partir do horário oficial convocado.
+3.3 Esgotado o prazo de tolerância, será decretado W.O. com pontuação oficial de 18x0 e 18x0 em favor da dupla presente.
+
+4. UNIFORME OFICIAL
+4.1 É obrigatório o uso das camisetas/regatas oficiais fornecidas pela organização em todas as partidas da competição.
+4.2 É vedada a alteração substancial (corte de logos de patrocinadores oficiais) do uniforme oficial.
+
+5. CONDUTA ESPORTIVA, FAIR PLAY E DISCIPLINA
+5.1 Exige-se conduta ética e esportiva irrepreensível de atletas, comissão e convidados.
+5.2 Atitudes antidesportivas, ofensas verbais ao árbitro, adversários ou público estarão sujeitas a:
+   - 1ª Ocorrência: Advertência verbal e Cartão Amarelo.
+   - 2ª Ocorrência: Ponto de penalidade imediato para o adversário (Cartão Vermelho disciplinar).
+   - Reincidência grave: Desclassificação imediata da dupla no campeonato e perda da premiação.
+
+6. POLÍTICA DE INGRESSOS E REEMBOLSOS
+6.1 Ingressos de plateia e camarote VIP são nominais e validados eletronicamente na portaria via QR Code no app ou e-mail.
+6.2 Trocas de parceiro de dupla podem ser realizadas pelo titular pagante diretamente pelo painel até 24h antes do início do primeiro jogo da categoria.`;
 
   // 2. Criar ou atualizar o Campeonato
   const { error: champErr } = await supabase
@@ -82,18 +147,23 @@ async function seed() {
       id: CHAMPIONSHIP_ID,
       organizador_id: organizadorId,
       nome: "Circuito RankFTV Open Pro 2026",
-      descricao: "A maior etapa oficial do ano! 16 duplas de elite disputando R$ 30.000,00 em premiação na Arena Central com telão ao vivo e cobertura completa.",
-      regulamento: "Regras oficiais de futevôlei nacional. Partidas de quartas, semifinais e finais em melhor de 3 sets até 18 pontos.",
+      descricao: descricaoCompleta,
+      regulamento: regulamentoCompleto,
       data_inicio: dataInicio,
       data_fim: dataFim,
+      prevenda_inicio: prevendaInicio,
+      prevenda_fim: prevendaFim,
+      inscricoes_inicio: inscricoesInicio,
+      inscricoes_fim: inscricoesFim,
       cidade: "Salvador",
       estado: "BA",
       local: "Arena Central RankFTV",
       status: "em_andamento",
       taxa_plataforma: 7.0,
       is_elite: true,
-      is_vitrine: true,
-      banner_url: "/banners/circuito-rankftv-open.png",
+      is_vitrine: false, // Inscrições e ingressos nativos na plataforma!
+      live_url: "https://www.youtube.com",
+      banner_url: "/banners/circuito-rankftv-open.png?v=2",
       banner_position_x: 50,
       banner_position_y: 50,
       total_courts: 4,
