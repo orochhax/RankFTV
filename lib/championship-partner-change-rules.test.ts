@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   checkPartnerChangeEligibility,
-  formatDateTimeBR,
 } from "./championship-partner-change-rules";
 
 test("elegibilidade de troca de dupla - regulamento proíbe troca", () => {
