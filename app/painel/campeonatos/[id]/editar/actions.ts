@@ -100,6 +100,8 @@ export type UpdateChampionshipInput = {
   liveUrl?: string | null;
   status: "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado";
   usaMotorCategoria: boolean;
+  permiteTrocaDupla?: boolean;
+  prazoLimiteTrocaDupla?: string | null;
   categorias: CategoriaEditInput[];
 };
 
@@ -261,6 +263,16 @@ export async function updateChampionship(
     }
     return { ok: false, error: "Não foi possível salvar o campeonato. Nenhuma alteração foi aplicada." };
   }
+
+  await supabase
+    .from("championships")
+    .update({
+      permite_troca_dupla: input.permiteTrocaDupla ?? true,
+      prazo_limite_troca_dupla: input.prazoLimiteTrocaDupla?.trim()
+        ? new Date(input.prazoLimiteTrocaDupla).toISOString()
+        : null,
+    })
+    .eq("id", champId);
 
   if (noticeId) {
     await processPendingChampionshipNoticeDeliveries({ noticeId, limit: 50 });

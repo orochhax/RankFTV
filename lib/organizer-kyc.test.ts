@@ -18,7 +18,7 @@ test("organizer kyc - autorização de publicação de campeonatos pagos", () =>
 test("organizer kyc - motivos de rejeição predefinidos", () => {
   assert.ok(MOTIVOS_REJEICAO_PREDEFINIDOS.length >= 5);
   assert.ok(MOTIVOS_REJEICAO_PREDEFINIDOS.some((m) => m.includes("Foto do documento")));
-  assert.ok(MOTIVOS_REJEICAO_PREDEFINIDOS.some((m) => m.includes("Selfie")));
+  assert.ok(MOTIVOS_REJEICAO_PREDEFINIDOS.some((m) => m.includes("Foto do verso")));
   assert.ok(MOTIVOS_REJEICAO_PREDEFINIDOS.some((m) => m.includes("Chave Pix")));
 });
 

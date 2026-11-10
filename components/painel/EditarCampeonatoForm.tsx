@@ -39,6 +39,8 @@ type Props = {
     liveUrl?: string;
     status: "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado";
     usaMotorCategoria: boolean;
+    permiteTrocaDupla?: boolean;
+    prazoLimiteTrocaDupla?: string;
     categorias: {
       id: string;
       nome: string;
@@ -100,6 +102,8 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
   const [local, setLocal]                     = useState(initial.local);
   const [liveUrl, setLiveUrl]                 = useState(initial.liveUrl ?? "");
   const [status, setStatus]                   = useState(initial.status);
+  const [permiteTrocaDupla, setPermiteTrocaDupla] = useState(initial.permiteTrocaDupla ?? true);
+  const [prazoLimiteTrocaDupla, setPrazoLimiteTrocaDupla] = useState(initial.prazoLimiteTrocaDupla ?? "");
   const [categorias, setCategorias]           = useState<CatForm[]>(
     initial.categorias.map((c) => ({
       id:             c.id,
@@ -281,6 +285,8 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
         cidade, estado, local, liveUrl,
         status,
         usaMotorCategoria: false,
+        permiteTrocaDupla,
+        prazoLimiteTrocaDupla: prazoLimiteTrocaDupla.trim() || undefined,
         categorias: payload,
       });
 
@@ -594,6 +600,45 @@ export function EditarCampeonatoForm({ champId, initial }: Props) {
             Será disponibilizado como download na página do campeonato.
           </p>
         </div>
+      </div>
+
+      {/* Regras de Troca de Dupla */}
+      <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-800">Alteração de Duplas / Parceiro</h2>
+          <p className="mt-0.5 text-xs text-gray-500">
+            Defina se o atleta titular (quem pagou) poderá substituir seu parceiro e até quando isso é permitido.
+          </p>
+        </div>
+
+        <label className="flex items-center gap-2.5 text-sm font-medium text-gray-800 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={permiteTrocaDupla}
+            onChange={(e) => setPermiteTrocaDupla(e.target.checked)}
+            className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          Permitir que o titular substitua o parceiro de dupla
+        </label>
+
+        {!permiteTrocaDupla ? (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
+            A troca de duplas estará bloqueada. O atleta verá um aviso no checkout informando que este evento não permite alteração de dupla após o pagamento.
+          </p>
+        ) : (
+          <div>
+            <label className={labelClass}>Prazo limite para troca de dupla (opcional)</label>
+            <input
+              type="datetime-local"
+              className={inputClass}
+              value={prazoLimiteTrocaDupla}
+              onChange={(e) => setPrazoLimiteTrocaDupla(e.target.value)}
+            />
+            <p className="mt-1 text-xs text-gray-400">
+              Se deixar em branco, a troca será permitida até o início do campeonato ou até a confirmação do chaveamento.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Categorias */}

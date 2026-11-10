@@ -76,6 +76,8 @@ export type ChampionshipReviewSummary = {
   name: string;
   dateLabel: string;
   locationLabel: string;
+  permiteTrocaDupla?: boolean | null;
+  prazoLimiteTrocaDupla?: string | null;
 };
 
 const CAMISAS = ["PP", "P", "M", "G", "GG", "XG", "XGG"];
@@ -1781,6 +1783,18 @@ export function IngressoAtletaForm({
                   ) : null}
                 </div>
               </div>
+
+              {championshipSummary.permiteTrocaDupla === false && (
+                <div className="flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
+                  <AlertCircle className="size-4 shrink-0 text-amber-600 mt-0.5" />
+                  <div>
+                    <p className="font-semibold">Troca de parceiro não permitida</p>
+                    <p className="mt-0.5 leading-relaxed text-amber-800">
+                      O organizador configurou este evento para <strong>não permitir alteração de dupla</strong> após a confirmação do pagamento. Certifique-se de que os dados do seu parceiro estão corretos antes de finalizar a compra.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4">
                 <input

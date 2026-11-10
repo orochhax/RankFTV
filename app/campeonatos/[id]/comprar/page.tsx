@@ -48,7 +48,7 @@ export default async function ComprarAtletaPage({
   const [{ data: champ }, { data: cats }, { data: profile }, { data: privateProfile }] = await Promise.all([
     supabase
       .from("championships")
-      .select("nome, cidade, estado, local, data_inicio, data_fim, status, is_elite, usa_motor_categoria")
+      .select("nome, cidade, estado, local, data_inicio, data_fim, status, is_elite, usa_motor_categoria, permite_troca_dupla, prazo_limite_troca_dupla")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -80,6 +80,8 @@ export default async function ComprarAtletaPage({
       champ.local?.trim(),
       [champ.cidade?.trim(), champ.estado?.trim()].filter(Boolean).join("/"),
     ].filter(Boolean).join(" · ") || "Local a confirmar",
+    permiteTrocaDupla: champ.permite_troca_dupla ?? true,
+    prazoLimiteTrocaDupla: champ.prazo_limite_troca_dupla ?? null,
   };
 
   const authenticatedAthlete: AuthenticatedAthleteProfile | null = user
