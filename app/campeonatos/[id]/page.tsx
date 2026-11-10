@@ -143,7 +143,7 @@ export default async function CampeonatoDetalhePage({
       </Link>
 
       <div>
-        <div className="relative h-32 overflow-hidden rounded-2xl md:aspect-[6/1] md:h-auto">
+        <div className="relative h-36 overflow-hidden rounded-2xl md:aspect-[16/5] md:max-h-80 md:h-auto">
           {championship.bannerUrl ? (
             <Image
               src={championship.bannerUrl}
@@ -158,9 +158,9 @@ export default async function CampeonatoDetalhePage({
           )}
         </div>
         <div className="mt-4 flex flex-wrap items-start justify-between gap-2">
-          <div>
+          <div className="max-w-3xl">
             <h1 className="text-2xl font-semibold text-gray-900">{championship.nome}</h1>
-            <p className="text-gray-500">{championship.descricao}</p>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">{championship.descricao}</p>
           </div>
           <StatusBadge status={championship.status} />
         </div>
