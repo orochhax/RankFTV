@@ -12,6 +12,7 @@ import { enviarAvisoAlteracaoIngresso, enviarCodigoAlteracaoIngresso } from "@/l
 import { deliverAthleteTicketCredentials } from "@/lib/athlete-ticket-delivery";
 import { registrarAuditoria } from "@/lib/audit";
 import { isParticipantCategoryConflict, participantCategoryConflictMessage } from "@/lib/participant-registration";
+import { checkPartnerChangeEligibility } from "@/lib/championship-partner-change-rules";
 
 export type AthleteTicketChangeInput = {
   ticketId: string;
@@ -50,7 +51,13 @@ type TicketSnapshot = {
 type Context = {
   admin: SupabaseClient;
   ticket: TicketSnapshot;
-  campeonato: { nome: string; data_inicio: string | null; usa_motor_categoria: boolean | null } | null;
+  campeonato: {
+    nome: string;
+    data_inicio: string | null;
+    usa_motor_categoria: boolean | null;
+    permite_troca_dupla?: boolean | null;
+    prazo_limite_troca_dupla?: string | null;
+  } | null;
   categoria: { genero: string; bracket_confirmed_at: string | null } | null;
 };
 
@@ -122,18 +129,29 @@ async function loadContext(ticketId: string, accessToken: string): Promise<
   if (ticket.checked_in) return { ok: false, error: "Não é possível alterar os atletas depois do primeiro check-in." };
 
   const [{ data: championshipData }, categoryResult] = await Promise.all([
-    admin.from("championships").select("nome, data_inicio, usa_motor_categoria").eq("id", ticket.championship_id).maybeSingle(),
+    admin
+      .from("championships")
+      .select("nome, data_inicio, usa_motor_categoria, permite_troca_dupla, prazo_limite_troca_dupla")
+      .eq("id", ticket.championship_id)
+      .maybeSingle(),
     ticket.category_id
       ? admin.from("championship_categories").select("genero, bracket_confirmed_at").eq("id", ticket.category_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
   const campeonato = championshipData as Context["campeonato"];
   const categoria = categoryResult.data as Context["categoria"];
-  const todayBahia = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bahia" }).format(new Date());
-  if (campeonato?.data_inicio && campeonato.data_inicio <= todayBahia)
-    return { ok: false, error: "O evento já começou. Procure o suporte para analisar o caso." };
-  if (categoria?.bracket_confirmed_at)
-    return { ok: false, error: "O chaveamento desta categoria já foi confirmado. Procure o suporte." };
+
+  const eligibility = checkPartnerChangeEligibility({
+    permiteTrocaDupla: campeonato?.permite_troca_dupla,
+    prazoLimiteTrocaDupla: campeonato?.prazo_limite_troca_dupla,
+    dataInicio: campeonato?.data_inicio,
+    bracketConfirmedAt: categoria?.bracket_confirmed_at,
+    checkedIn: ticket.checked_in,
+    statusPagamento: ticket.status_pagamento,
+  });
+  if (!eligibility.allowed) {
+    return { ok: false, error: eligibility.reason ?? "Não é possível alterar os dados deste ingresso." };
+  }
   return { ok: true, context: { admin, ticket, campeonato, categoria } };
 }
 
@@ -150,7 +168,7 @@ function validateCompetition(context: Context, input: AthleteTicketChangeInput, 
 async function applyChange(context: Context, input: AthleteTicketChangeInput, fields: string[], source: string) {
   const ticket = context.ticket;
   const buyerIdentityChanged = fields.some((field) => ["comprador_cpf", "comprador_email"].includes(field));
-  const partnerIdentityChanged = fields.some((field) => ["parceiro_cpf", "parceiro_email"].includes(field));
+  const partnerIdentityChanged = fields.some((field) => ["parceiro_cpf", "parceiro_email", "parceiro_nome"].includes(field));
   const nextAccessToken = buyerIdentityChanged ? gerarTicketAccessToken() : input.accessToken;
   const { data, error } = await context.admin
     .from("athlete_tickets")
@@ -176,6 +194,22 @@ async function applyChange(context: Context, input: AthleteTicketChangeInput, fi
     .maybeSingle();
   if (isParticipantCategoryConflict(error)) return { ok: false as const, error: participantCategoryConflictMessage };
   if (error || !data) return { ok: false as const, error: "O ingresso foi atualizado e a alteração não pôde ser concluída." };
+
+  if (partnerIdentityChanged) {
+    const newQrToken = `atc_${crypto.randomUUID()}`;
+    const newSlotToken = gerarTicketAccessToken();
+    await context.admin
+      .from("athlete_ticket_credentials")
+      .update({
+        display_name_snapshot: input.parceiroNome,
+        qr_token: newQrToken,
+        access_token: newSlotToken,
+        access_email_sent_at: null,
+        access_email_claimed_at: null,
+      })
+      .eq("athlete_ticket_id", ticket.id)
+      .eq("athlete_slot", 2);
+  }
 
   await registrarAuditoria({
     actorId: null,
@@ -220,6 +254,14 @@ export async function requestAthleteTicketChange(inputRaw: AthleteTicketChangeIn
   if (competitionError) return { ok: false, error: competitionError };
   if (fields.every((field) => field.endsWith("_zap"))) {
     const result = await applyChange(loaded.context, input, fields, "link_whatsapp");
+    return result.ok ? { ...result, completed: true } : result;
+  }
+
+  // O Titular da inscrição (comprador) tem autoridade para substituir o parceiro
+  // (Atleta 2) imediatamente, sem exigir aprovação/código OTP do parceiro substituído.
+  const isOnlyPartnerChange = fields.every((field) => field.startsWith("parceiro_"));
+  if (isOnlyPartnerChange) {
+    const result = await applyChange(loaded.context, input, fields, "titular_partner_swap");
     return result.ok ? { ...result, completed: true } : result;
   }
 

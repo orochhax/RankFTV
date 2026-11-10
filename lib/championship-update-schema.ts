@@ -32,6 +32,8 @@ export const championshipUpdateSchema = z.object({
     liveUrl: optionalUrl,
     status: z.enum(["rascunho", "inscricoes_abertas", "em_andamento", "encerrado"]),
     usaMotorCategoria: z.boolean(),
+    permiteTrocaDupla: z.boolean().optional(),
+    prazoLimiteTrocaDupla: z.string().max(60).nullish(),
     categorias: z.array(championshipCategoryUpdateSchema).min(1).max(256),
   }).strict(),
 }).strict();

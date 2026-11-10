@@ -16,6 +16,7 @@ import {
 } from "@/app/campeonatos/[id]/plateia/ingresso/[ticketId]/actions";
 import type { RefundPolicyDecision } from "@/lib/refund-policy";
 import { RefundPolicySummary } from "@/components/ingressos/RefundPolicySummary";
+import { checkPartnerChangeEligibility } from "@/lib/championship-partner-change-rules";
 
 type DadosAtleta = {
   compradorNome:   string;
@@ -29,6 +30,8 @@ type DadosAtleta = {
   parceiroZap:     string | null;
   parceiroGenero:  string | null;
   categoriaGenero: "masculino" | "feminino" | "mista" | null;
+  permiteTrocaDupla?: boolean | null;
+  prazoLimiteTrocaDupla?: string | null;
 };
 
 type DadosPlateia = {
@@ -164,6 +167,14 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
 
   const atleta = props.tipo === "atleta";
   const d = props.dadosAtuais;
+
+  const partnerChangeEligibility = atleta
+    ? checkPartnerChangeEligibility({
+        permiteTrocaDupla: (d as DadosAtleta).permiteTrocaDupla,
+        prazoLimiteTrocaDupla: (d as DadosAtleta).prazoLimiteTrocaDupla,
+        dataInicio: props.eventStartDate,
+      })
+    : { allowed: true };
 
   const categoriaGenero = atleta ? (d as DadosAtleta).categoriaGenero : null;
 
@@ -302,10 +313,33 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
 
   return (
     <ModalShell onClose={props.onClose}>
-      <p className="mb-1 text-lg font-semibold text-gray-900">Alterar titularidade</p>
-      <p className="mb-5 text-xs text-gray-500">
-        A troca é imediata e gratuita. Links e QRs dos atletas alterados serão substituídos e enviados aos novos e-mails.
+      <p className="mb-1 text-lg font-semibold text-gray-900">
+        {atleta ? "Alterar dupla / parceiro" : "Alterar titularidade"}
       </p>
+      <p className="mb-4 text-xs text-gray-500">
+        {atleta
+          ? "Como titular da inscrição, você tem autoridade para substituir seu parceiro. O ingresso anterior é revogado e o novo é enviado imediatamente."
+          : "A troca é imediata e gratuita. Links e QRs do ingresso serão atualizados para o novo e-mail."}
+      </p>
+
+      {atleta && !partnerChangeEligibility.allowed && (
+        <div className="mb-4 flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
+          <AlertTriangle className="size-4 shrink-0 text-amber-600 mt-0.5" />
+          <div>
+            <p className="font-semibold">Alteração de parceiro indisponível</p>
+            <p className="mt-0.5">{partnerChangeEligibility.reason}</p>
+          </div>
+        </div>
+      )}
+
+      {atleta && partnerChangeEligibility.allowed && partnerChangeEligibility.deadlineFormatted && (
+        <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50/70 p-3 text-xs text-blue-900">
+          <p className="font-semibold">Prazo de alteração</p>
+          <p className="mt-0.5">
+            A troca de dupla pode ser realizada até <strong>{partnerChangeEligibility.deadlineFormatted}</strong>.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-4">
         <div>
@@ -424,7 +458,7 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
       <div className="mt-5 flex flex-col gap-2">
         <button
           onClick={salvar}
-          disabled={pending || !!generoConflita}
+          disabled={pending || !!generoConflita || (atleta && !partnerChangeEligibility.allowed)}
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
         >
           {pending && <Loader2 className="size-4 animate-spin" />}
