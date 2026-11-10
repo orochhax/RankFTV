@@ -416,7 +416,7 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       is_elite: true,
       is_vitrine: false,
       live_url: "https://www.youtube.com",
-      banner_url: "/banners/circuito-rankftv-pitinga.png",
+      banner_url: "/banners/circuito-rankftv-arraial.png",
       banner_position_x: 50,
       banner_position_y: 50,
       total_courts: 4,
