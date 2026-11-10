@@ -332,7 +332,7 @@ async function seed() {
   const inscricoesInicio = new Date(hoje.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
   const inscricoesFim = new Date(hoje.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-  const descricaoCompleta = `A maior e mais esperada etapa do ano do Circuito Nacional de Futevôlei! O Circuito RankFTV Open Pro 2026 reúne os maiores nomes do futevôlei brasileiro em uma estrutura de padrão internacional na Arena Central, com 4 quadras oficiais de areia tratada, iluminação em LED para jogos noturnos, arquibancada coberta para mais de 500 espectadores, camarote VIP Open Bar e cobertura multimídia completa com telão de pontuação ao vivo e transmissão oficial.
+  const descricaoCompleta = `A maior e mais esperada etapa do ano do Circuito Nacional de Futevôlei! O Circuito RankFTV Open Pro 2026 chega às areias paradisíacas da Praia da Pitinga em Arraial d'Ajuda, com 4 quadras oficiais de padrão internacional, arquibancada coberta para mais de 500 espectadores, camarote VIP Open Bar e cobertura multimídia completa com telão de pontuação ao vivo e transmissão oficial.
 
 🏆 PREMIAÇÃO TOTAL: R$ 30.000,00 EM DINHEIRO + TROFÉUS E MEDALHAS
 Distribuída em todas as categorias oficiais:
@@ -408,15 +408,15 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       prevenda_fim: prevendaFim,
       inscricoes_inicio: inscricoesInicio,
       inscricoes_fim: inscricoesFim,
-      cidade: "Salvador",
+      cidade: "Porto Seguro",
       estado: "BA",
-      local: "Arena Central RankFTV",
+      local: "Praia da Pitinga, Arraial d'Ajuda - BA",
       status: "em_andamento",
       taxa_plataforma: 7.0,
       is_elite: true,
       is_vitrine: false,
       live_url: "https://www.youtube.com",
-      banner_url: "/banners/circuito-rankftv-open.png?v=2",
+      banner_url: "/banners/circuito-rankftv-pitinga.png",
       banner_position_x: 50,
       banner_position_y: 50,
       total_courts: 4,

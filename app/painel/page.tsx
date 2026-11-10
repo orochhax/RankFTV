@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/shell/EmptyState";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { ReceitaConsolidadaCard } from "@/components/painel/ReceitaConsolidadaCard";
+import { PainelSaldoCard } from "@/components/painel/PainelSaldoCard";
 import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 
 function fmt(v: number) {
@@ -149,16 +150,16 @@ export default async function PainelOrganizadorPage() {
                   {arenaCount === 0 ? "nenhuma ainda" : arenaCount === 1 ? "ativa" : "ativas"}
                 </p>
               </div>
-              <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
-                <p className="text-xs font-medium text-white/70">Saldo de Campeonatos</p>
-                <p className="mt-1 text-xl font-bold text-white">{fmt(saldoCampeonatos)}</p>
-                <p className="mt-1 text-xs text-white/60">atletas + plateia</p>
-              </div>
-              <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
-                <p className="text-xs font-medium text-white/70">Saldo da Arena</p>
-                <p className="mt-1 text-xl font-bold text-white">{fmt(saldoArena)}</p>
-                <p className="mt-1 text-xs text-white/60">MRR + aluguéis + diárias</p>
-              </div>
+              <PainelSaldoCard
+                titulo="Saldo de Campeonatos"
+                valorFormatado={fmt(saldoCampeonatos)}
+                subtitulo="atletas + plateia"
+              />
+              <PainelSaldoCard
+                titulo="Saldo da Arena"
+                valorFormatado={fmt(saldoArena)}
+                subtitulo="MRR + aluguéis + diárias"
+              />
             </div>
 
             {/* Atalhos para Arenas e Campeonatos */}

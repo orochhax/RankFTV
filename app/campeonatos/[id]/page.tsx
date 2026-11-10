@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { MapPin, Users, Trophy, ChevronLeft, ChevronRight, Radio, CalendarDays, Ticket, Info } from "lucide-react";
+import { MapPin, Users, Trophy, ChevronLeft, Radio, CalendarDays, Ticket, Info } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
@@ -54,15 +54,32 @@ export default async function CampeonatoDetalhePage({
 
   const supabase = await createClient();
 
-  /* ── Duplas inscritas (pagas) ── */
+  /* ── Duplas inscritas (pagas: registrations autenticadas + athlete_tickets de visitante) ── */
   let duplas: DuplaDisplay[] = [];
-  const { data: regs } = await supabase
-    .from("registrations")
-    .select("team_id")
-    .eq("championship_id", id)
-    .eq("status_pagamento", "pago");
+  const [regsRes, ticketsRes] = await Promise.all([
+    supabase
+      .from("registrations")
+      .select("team_id")
+      .eq("championship_id", id)
+      .eq("status_pagamento", "pago"),
+    supabase
+      .from("athlete_tickets")
+      .select("id, category_id, categoria_nome, comprador_nome, parceiro_nome")
+      .eq("championship_id", id)
+      .eq("status_pagamento", "pago")
+      .limit(1000),
+  ]);
 
-  if (regs && regs.length > 0) {
+  const regs = regsRes.data ?? [];
+  const tickets = ticketsRes.data ?? [];
+
+  const categoryIdSet = new Set<string>();
+  for (const t of tickets) {
+    if (t.category_id) categoryIdSet.add(t.category_id);
+  }
+
+  let duplasRegs: DuplaDisplay[] = [];
+  if (regs.length > 0) {
     const teamIds = [...new Set(regs.map((r) => r.team_id as string))];
     const { data: teams } = await supabase
       .from("teams")
@@ -73,23 +90,25 @@ export default async function CampeonatoDetalhePage({
     for (const t of teams ?? []) {
       athleteIdSet.add(t.atleta1_id);
       if (t.atleta2_id) athleteIdSet.add(t.atleta2_id);
+      if (t.category_id) categoryIdSet.add(t.category_id);
     }
 
-    const [profilesRes, catsRes] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id, nome, username, foto_url")
-        .in("id", Array.from(athleteIdSet)),
-      supabase
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, nome, username, foto_url")
+      .in("id", Array.from(athleteIdSet));
+    const profMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+
+    let catMap: Record<string, { id: string; nome: string; genero: string }> = {};
+    if (categoryIdSet.size > 0) {
+      const { data: cats } = await supabase
         .from("championship_categories")
         .select("id, nome, genero")
-        .in("id", [...new Set((teams ?? []).map((t) => t.category_id))]),
-    ]);
+        .in("id", Array.from(categoryIdSet));
+      catMap = Object.fromEntries((cats ?? []).map((c) => [c.id, c]));
+    }
 
-    const profMap = Object.fromEntries((profilesRes.data ?? []).map((p) => [p.id, p]));
-    const catMap  = Object.fromEntries((catsRes.data ?? []).map((c) => [c.id, c]));
-
-    duplas = (teams ?? []).map((t) => {
+    duplasRegs = (teams ?? []).map((t) => {
       const cat = catMap[t.category_id] ?? { nome: "—", genero: "masculino" };
       const p1  = profMap[t.atleta1_id];
       const p2  = t.atleta2_id ? profMap[t.atleta2_id] : null;
@@ -102,6 +121,47 @@ export default async function CampeonatoDetalhePage({
       };
     });
   }
+
+  let ticketCatMap: Record<string, { id: string; nome: string; genero: string }> = {};
+  if (categoryIdSet.size > 0) {
+    const { data: cats } = await supabase
+      .from("championship_categories")
+      .select("id, nome, genero")
+      .in("id", Array.from(categoryIdSet));
+    ticketCatMap = Object.fromEntries((cats ?? []).map((c) => [c.id, c]));
+  }
+
+  const duplasTickets: DuplaDisplay[] = tickets.map((t) => {
+    const cat = (t.category_id && ticketCatMap[t.category_id])
+      ? ticketCatMap[t.category_id]
+      : { nome: t.categoria_nome ?? "Geral", genero: "masculino" };
+    return {
+      id: t.id,
+      categoriaNome: cat.nome,
+      categoriaGenero: cat.genero,
+      atleta1: {
+        id: `${t.id}-1`,
+        nome: t.comprador_nome,
+        username: "",
+        avatarColor: avatarColor(t.comprador_nome),
+        fotoUrl: null,
+      },
+      atleta2: t.parceiro_nome
+        ? {
+            id: `${t.id}-2`,
+            nome: t.parceiro_nome,
+            username: "",
+            avatarColor: avatarColor(t.parceiro_nome),
+            fotoUrl: null,
+          }
+        : null,
+    };
+  });
+
+  duplas = [...duplasRegs, ...duplasTickets].sort((a, b) =>
+    a.categoriaNome.localeCompare(b.categoriaNome, "pt-BR") ||
+    (a.atleta1?.nome ?? "").localeCompare(b.atleta1?.nome ?? "", "pt-BR")
+  );
 
   /* ── Bracket ── */
   const { count: bracketCount } = await supabase
@@ -149,6 +209,8 @@ export default async function CampeonatoDetalhePage({
               src={championship.bannerUrl}
               alt={championship.nome}
               fill
+              unoptimized
+              priority
               className="object-cover"
               style={{ objectPosition: `${championship.bannerPositionX ?? 50}% ${championship.bannerPositionY ?? 50}%` }}
               sizes="(max-width: 767px) calc(100vw - 3rem), calc(100vw - 8rem)"
@@ -238,26 +300,6 @@ export default async function CampeonatoDetalhePage({
         </div>
       </div>
 
-      {championship.status === "em_andamento" && hasDbBracket && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <Trophy className="size-5 text-blue-500" />
-              Chaveamento ao vivo
-            </h2>
-            <Link
-              href={`/campeonatos/${championship.id}/chaveamento`}
-              className="flex items-center gap-0.5 text-sm font-medium text-blue-600 hover:text-blue-700"
-            >
-              Ver completo <ChevronRight className="size-4" />
-            </Link>
-          </div>
-          <p className="text-sm text-gray-500">
-            Acesse o chaveamento completo pelo link acima.
-          </p>
-        </section>
-      )}
-
       {/* Aviso de evento informativo (vitrine) */}
       {isVitrine && (
         <div className="flex items-start gap-3 rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5">
@@ -338,14 +380,21 @@ export default async function CampeonatoDetalhePage({
                   {[t.atleta1, t.atleta2].map(
                     (atleta) =>
                       atleta && (
-                        <Link
-                          key={atleta.id}
-                          href={`/atletas/${atleta.username}`}
-                          className="flex items-center gap-2 hover:underline"
-                        >
-                          <Avatar nome={atleta.nome} color={atleta.avatarColor} fotoUrl={atleta.fotoUrl} size="sm" />
-                          <span className="text-sm text-gray-800">{atleta.nome}</span>
-                        </Link>
+                        atleta.username ? (
+                          <Link
+                            key={atleta.id}
+                            href={`/atletas/${atleta.username}`}
+                            className="flex items-center gap-2 hover:underline"
+                          >
+                            <Avatar nome={atleta.nome} color={atleta.avatarColor} fotoUrl={atleta.fotoUrl} size="sm" />
+                            <span className="text-sm text-gray-800">{atleta.nome}</span>
+                          </Link>
+                        ) : (
+                          <div key={atleta.id} className="flex items-center gap-2">
+                            <Avatar nome={atleta.nome} color={atleta.avatarColor} fotoUrl={atleta.fotoUrl} size="sm" />
+                            <span className="text-sm text-gray-800">{atleta.nome}</span>
+                          </div>
+                        )
                       ),
                   )}
                 </div>
