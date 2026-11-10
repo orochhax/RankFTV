@@ -5,6 +5,15 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-10 10:28 (America/Sao_Paulo) — Atualização completa do radar editorial e concorrentes do Rocha Tech
+
+- Coleta oficial via YouTube Data API v3 nos 24 canais concorrentes do Rocha Tech: 3.892 vídeos monitorados na janela de 365 dias (14 vídeos novos catalogados, 2.194 contadores de visualizações atualizados, zero falhas e zero fallbacks manuais).
+- Resumo oficial de coleta salvo em `Rocha Tech - YT/Concorrentes/ultima-coleta-2026-11-10.json`.
+- Radar ampliado com 3 novidades verificadas de fontes primárias: Claude Fable 5.2 e Mythos 5.2 lançados pela Anthropic (88 pts), OpenAI Control Room para auditoria e pausa de agentes autônomos em tempo real (80 pts) e novos processadores TPU 8tx / TPU 8i Max do Google para longos contextos e inferência confidencial (62 pts).
+- Sincronização em produção no Supabase (Run ID: `d532dd8d-3a1a-4ef9-89f6-a3c02a485d25`): 48 conteúdos (3 novos e 45 atualizados), 20 tendências e 27 ideias reavaliadas pela Fórmula de 5 Pilares com 108 abordagens e regra de ouro editorial (título, nota e tag alinhados à abordagem vencedora).
+- Reconstrução do snapshot seguro (`lib/evolution/intelligence-snapshot.json`): 3.892 vídeos, 24 canais e Top 15 oportunidades lideradas por Money Talk With Leon (#1, 1,033M views, 90 pts) e Sanji Nai-Chien (#2, 1,260M views, 88 pts).
+- Bateria de testes unitários e typecheck aprovados com 100% de sucesso.
+
 ## 2026-11-10 10:25 (America/Sao_Paulo) — Atualização completa do canal Carlos Rocha e ranking de 16 concorrentes
 
 - Coleta oficial concluída para os 16 canais concorrentes do canal Carlos Rocha via YouTube Data API v3 (`scripts/collect-competitors.mjs`).

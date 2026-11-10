@@ -21,6 +21,14 @@
   1. Teste de pagamento Pix real simbólico (R$ 5,00) em produção com estorno supervisionado imediato (a ser executado por Carlos posteriormente).
   2. Definição da data de abertura oficial dos pagamentos reais da V1 por Carlos.
 
+## Central de Evolução - Atualização Completa do Rocha Tech e Concorrentes (10/11/2026)
+
+- Coleta oficial via YouTube Data API v3 nos **24 canais concorrentes** concluída: **3.892 vídeos** monitorados na janela de 365 dias (14 vídeos novos catalogados, 2.194 visualizações atualizadas, zero falhas e zero fallbacks manuais).
+- Resumo oficial de coleta salvo em `Rocha Tech - YT/Concorrentes/ultima-coleta-2026-11-10.json`.
+- Radar de notícias ampliado com 3 novidades verificadas de fontes primárias: **Claude Fable 5.2 e Mythos 5.2** lançados pela Anthropic com foco em código/raciocínio avançado 30% mais rápido e 20% mais barato (`https://www.anthropic.com/news`), **OpenAI Control Room** para monitoramento, supervisão e pausa de agentes autônomos em tempo real (`https://openai.com/pt-BR/news`), e **Google TPU 8tx / TPU 8i Max** de 8ª geração para inferência confidencial e contexto massivo (`https://blog.google`).
+- Sincronização em produção no Supabase (Run ID: `d532dd8d-3a1a-4ef9-89f6-a3c02a485d25`): 48 conteúdos (3 novos e 45 atualizados), 20 tendências e 27 ideias reavaliadas pela Fórmula de 5 Pilares com 108 abordagens e regra de ouro editorial (título, nota e tag vinculados rigorosamente à abordagem vencedora).
+- Snapshot seguro (`lib/evolution/intelligence-snapshot.json`) atualizado com 3.892 vídeos, 24 canais e Top 15 oportunidades lideradas por Money Talk With Leon (#1, 1,033M views, 90 pts) e Sanji Nai-Chien (#2, 1,260M views, 88 pts).
+
 ## Central de Evolução - Atualização Completa do Canal Carlos Rocha (10/11/2026)
 
 - Coleta oficial via YouTube Data API v3 nos **16 canais concorrentes** concluída: **1.636 vídeos** e 1.636 thumbnails válidas registradas na janela de 365 dias (resumo salvo em `Carlos Rocha - YT/Concorrentes/ultima-coleta-2026-11-10.json`).
