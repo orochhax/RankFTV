@@ -9,6 +9,7 @@ import {
   type ArenaBenefitDetail,
   type ArenaPlatformTierId,
 } from "@/lib/arena-platform-plans";
+import { ArenaRoiSimulator } from "./ArenaRoiSimulator";
 
 function PlanCardStart({
   currentTier,
@@ -279,6 +280,10 @@ export function ArenaPlansComparison({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <PlanCardStart currentTier={currentTier} onSelectTier={onSelectTier} />
         <PlanCardPro currentTier={currentTier} arenaHandle={arenaHandle} onSelectTier={onSelectTier} />
+      </div>
+
+      <div className="mt-8">
+        <ArenaRoiSimulator />
       </div>
 
       <div className="mt-10 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">

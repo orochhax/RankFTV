@@ -155,7 +155,9 @@ export default async function ReembolsoPage({
             <Info className="size-4 shrink-0 text-blue-500 mt-0.5" />
             <p className="text-sm text-blue-700">
               Dúvidas ou problemas com o evento? Entre em contato pelo e-mail{" "}
-              <span className="font-medium">carlosrocha0923@gmail.com</span>.
+              <a href="mailto:suporte@rankftv.com" className="font-medium underline hover:text-blue-900">
+                suporte@rankftv.com
+              </a>.
             </p>
           </div>
 

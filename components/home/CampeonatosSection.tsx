@@ -78,37 +78,76 @@ export function CampeonatosSection({
         </section>
       </div>
 
-      {banner && <div className="grid gap-8 md:grid-cols-3"><div className="md:col-span-2">{banner}</div></div>}
-
-      <div className="grid min-w-0 items-start gap-8 md:grid-cols-3">
-        <div className="min-w-0 max-w-full md:col-span-2">{featured}</div>
-        {sidebar && <aside className="hidden pt-12 md:block">{sidebar}</aside>}
-      </div>
-
-      {live && <div className="grid gap-8 md:grid-cols-3"><div className="md:col-span-2">{live}</div></div>}
-
-      <div className="grid gap-8 md:grid-cols-3">
-      <section id="campeonatos" className="scroll-mt-4 md:col-span-2">
-        <div className="mb-3 flex items-end justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold text-ink">Campeonatos</h2>
-            <p className="text-xs text-gray-500">{filtrados.length} {filtrados.length === 1 ? "resultado" : "resultados"}</p>
-          </div>
-          {temFiltro && <a href="#campeonatos" className="text-xs font-medium text-blue-600">Ver resultados</a>}
-        </div>
-
-        {intervaloInvalido || filtrados.length === 0 ? (
-          <EmptyState icon={Trophy} title="Nenhum campeonato encontrado" description="Tente outro período, local, preço ou remova alguns filtros." />
+      {banner && (
+        sidebar ? (
+          <div className="grid gap-8 md:grid-cols-3"><div className="md:col-span-2">{banner}</div></div>
         ) : (
-          <>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
-              {exibidos.map((championship) => <ChampionshipCard key={championship.id} championship={championship} />)}
+          <div>{banner}</div>
+        )
+      )}
+
+      {sidebar ? (
+        <div className="grid min-w-0 items-start gap-8 md:grid-cols-3">
+          <div className="min-w-0 max-w-full md:col-span-2">{featured}</div>
+          <aside className="hidden pt-12 md:block">{sidebar}</aside>
+        </div>
+      ) : (
+        <div className="min-w-0 w-full">{featured}</div>
+      )}
+
+      {live && (
+        sidebar ? (
+          <div className="grid gap-8 md:grid-cols-3"><div className="md:col-span-2">{live}</div></div>
+        ) : (
+          <div>{live}</div>
+        )
+      )}
+
+      {sidebar ? (
+        <div className="grid gap-8 md:grid-cols-3">
+          <section id="campeonatos" className="scroll-mt-4 md:col-span-2">
+            <div className="mb-3 flex items-end justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold text-ink">Campeonatos</h2>
+                <p className="text-xs text-gray-500">{filtrados.length} {filtrados.length === 1 ? "resultado" : "resultados"}</p>
+              </div>
+              {temFiltro && <a href="#campeonatos" className="text-xs font-medium text-blue-600">Ver resultados</a>}
             </div>
-            {temMais && <div className="mt-4 text-center"><button type="button" onClick={() => setVisible((value) => value + PAGE_SIZE)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"><ChevronDown className="size-4" />Ver mais ({filtrados.length - visible} restantes)</button></div>}
-          </>
-        )}
-      </section>
-      </div>
+
+            {intervaloInvalido || filtrados.length === 0 ? (
+              <EmptyState icon={Trophy} title="Nenhum campeonato encontrado" description="Tente outro período, local, preço ou remova alguns filtros." />
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
+                  {exibidos.map((championship) => <ChampionshipCard key={championship.id} championship={championship} />)}
+                </div>
+                {temMais && <div className="mt-4 text-center"><button type="button" onClick={() => setVisible((value) => value + PAGE_SIZE)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"><ChevronDown className="size-4" />Ver mais ({filtrados.length - visible} restantes)</button></div>}
+              </>
+            )}
+          </section>
+        </div>
+      ) : (
+        <section id="campeonatos" className="scroll-mt-4 w-full">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-ink">Campeonatos</h2>
+              <p className="text-xs text-gray-500">{filtrados.length} {filtrados.length === 1 ? "resultado" : "resultados"}</p>
+            </div>
+            {temFiltro && <a href="#campeonatos" className="text-xs font-medium text-blue-600">Ver resultados</a>}
+          </div>
+
+          {intervaloInvalido || filtrados.length === 0 ? (
+            <EmptyState icon={Trophy} title="Nenhum campeonato encontrado" description="Tente outro período, local, preço ou remova alguns filtros." />
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {exibidos.map((championship) => <ChampionshipCard key={championship.id} championship={championship} />)}
+              </div>
+              {temMais && <div className="mt-4 text-center"><button type="button" onClick={() => setVisible((value) => value + PAGE_SIZE)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"><ChevronDown className="size-4" />Ver mais ({filtrados.length - visible} restantes)</button></div>}
+            </>
+          )}
+        </section>
+      )}
     </div>
   );
 }

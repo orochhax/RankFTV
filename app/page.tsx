@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Bell, ChevronRight, Radio, MapPin, CalendarDays, Building2, Ticket, ShoppingBag } from "lucide-react";
+import { Bell, ChevronRight, Radio, MapPin } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { DestaquesCarousel } from "@/components/home/DestaquesCarousel";
 import { CampeonatosSection } from "@/components/home/CampeonatosSection";
@@ -8,7 +8,6 @@ import { HamburgerMenu } from "@/components/home/HamburgerMenu";
 import { getLivChampionships, getPublishedChampionships } from "@/lib/supabase/championships";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateRangeBR } from "@/lib/format";
-import { Surface } from "@/components/shell/Surface";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { SectionHeader } from "@/components/shell/SectionHeader";
 import { HomeBannerCarousel } from "@/components/home/HomeBannerCarousel";
@@ -89,13 +88,6 @@ export default async function Home({
     });
 
   const estados = Array.from(new Set(todosOrdenados.map((c) => c.estado))).sort();
-  const quickLinks = [
-    { href: "/agenda", label: "Agenda de eventos", icon: CalendarDays },
-    { href: "/arenas", label: "Arenas", icon: Building2 },
-    ...(profile
-      ? [{ href: "/minhas-compras", label: "Minhas compras", icon: ShoppingBag }]
-      : [{ href: "/meus-ingressos", label: "Consultar ingresso", icon: Ticket }]),
-  ];
 
   return (
     <div className="min-h-screen">
@@ -202,33 +194,6 @@ export default async function Home({
                   </div>
                 </section>
               ) : null}
-            sidebar={(
-            <Surface padding="md" className="home-quick-access relative sticky top-6 overflow-hidden text-white shadow-soft shadow-black/20">
-              <span
-                aria-hidden="true"
-                className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 via-blue-400 to-transparent"
-              />
-              <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-                <span aria-hidden="true" className="size-2 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(77,77,255,0.9)]" />
-                Acesso rápido
-              </p>
-              <ul className="space-y-1">
-                {quickLinks.map(({ href, label, icon: Icon }) => (
-                  <li key={href}>
-                    <Link
-                      href={href}
-                      className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-blue-950/70 hover:text-white"
-                    >
-                      <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400 ring-1 ring-blue-500/20 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-                        <Icon className="size-4" />
-                      </span>
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </Surface>
-            )}
           />
         </PageContainer>
       </div>
