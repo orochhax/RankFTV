@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useId } from "react";
-import { TrendingUp, ShieldCheck, DollarSign, Sparkles, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Sparkles } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 
 export function ArenaRoiSimulator() {

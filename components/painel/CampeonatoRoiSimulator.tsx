@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useId } from "react";
-import { Crown, Sparkles, TrendingUp, ShieldCheck, Tv, FileText, Users } from "lucide-react";
+import { Crown, ShieldCheck, Tv, FileText, Users } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { PRECO_ELITE } from "@/lib/elite";
 import { TAXAS_EXIBICAO } from "@/lib/taxas";
