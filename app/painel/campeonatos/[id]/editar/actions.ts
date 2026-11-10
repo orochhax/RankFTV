@@ -268,7 +268,7 @@ export async function updateChampionship(
     .from("championships")
     .update({
       permite_troca_dupla: input.permiteTrocaDupla ?? true,
-      prazo_limite_troca_dupla: input.prazoLimiteTrocaDupla?.trim()
+      troca_dupla_data_limite: input.prazoLimiteTrocaDupla?.trim()
         ? new Date(input.prazoLimiteTrocaDupla).toISOString()
         : null,
     })

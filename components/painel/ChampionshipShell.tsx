@@ -11,6 +11,7 @@ import {
   isChampionshipNavItemActive,
   championshipPageTitle,
 } from "@/components/painel/championship-nav-items";
+import { getChampionshipSlug } from "@/lib/championship-slug";
 import type { ChampionshipStatus } from "@/lib/types";
 
 export type ChampionshipNavSummary = {
@@ -91,7 +92,7 @@ export function ChampionshipShell({
             </div>
             <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:shrink-0">
               <a
-                href={`/campeonatos/${champ.id}`}
+                href={`/campeonatos/${getChampionshipSlug(champ)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-ink-muted shadow-sm transition-all hover:border-blue-300 hover:text-blue-600 hover:shadow"

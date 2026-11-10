@@ -8,6 +8,30 @@ import type {
 } from "@/lib/types";
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 import { resolverPrecos } from "@/lib/lotes";
+import {
+  CEO_USER_ID,
+  DEMO_CHAMPIONSHIP_ID,
+  DEMO_CHAMPIONSHIP_SLUG,
+  getChampionshipSlug,
+  isUuid,
+} from "@/lib/championship-slug";
+
+export async function canAccessDemoChampionship(
+  existingClient?: Awaited<ReturnType<typeof createClient>>,
+): Promise<boolean> {
+  const supabase = existingClient ?? (await createClient());
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+  if (user.id === CEO_USER_ID) return true;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  return profile?.role === "ceo";
+}
 
 // Campeonatos criados na plataforma (Supabase), mapeados para o tipo de domínio
 // usado pelos cards, listas e páginas de detalhe.
@@ -65,6 +89,7 @@ function mapChampionship(row: ChampRow): Championship {
   const [bannerFrom, bannerTo] = GRADIENTS[gradientIndex];
   return {
     id: row.id,
+    slug: getChampionshipSlug({ id: row.id, nome: row.nome }),
     nome: row.nome,
     descricao: row.descricao,
     regulamento: row.regulamento,
@@ -111,14 +136,20 @@ function mapChampionship(row: ChampRow): Championship {
 // Para a lista pública de Campeonatos — só os publicados (não rascunho).
 export async function getPublishedChampionships(): Promise<Championship[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("championships")
-    .select(SELECT)
-    .neq("status", "rascunho")
-    .order("data_inicio", { ascending: true })
-    .limit(200);
+  const [canSeeDemo, { data, error }] = await Promise.all([
+    canAccessDemoChampionship(supabase),
+    supabase
+      .from("championships")
+      .select(SELECT)
+      .neq("status", "rascunho")
+      .order("data_inicio", { ascending: true })
+      .limit(200),
+  ]);
   if (error || !data) return [];
-  const championships = (data as ChampRow[]).map(mapChampionship);
+  const rows = (data as ChampRow[]).filter(
+    (row) => canSeeDemo || row.id !== DEMO_CHAMPIONSHIP_ID,
+  );
+  const championships = rows.map(mapChampionship);
   const categories = championships.flatMap((championship) => championship.categorias);
   const prices = await resolverPrecos(
     "category",
@@ -138,14 +169,19 @@ export async function getPublishedChampionships(): Promise<Championship[]> {
 // Campeonatos em andamento agora (para o card "Ao vivo" na Home).
 export async function getLivChampionships(): Promise<Championship[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("championships")
-    .select(SELECT)
-    .eq("status", "em_andamento")
-    .order("data_inicio", { ascending: false })
-    .limit(20);
+  const [canSeeDemo, { data, error }] = await Promise.all([
+    canAccessDemoChampionship(supabase),
+    supabase
+      .from("championships")
+      .select(SELECT)
+      .eq("status", "em_andamento")
+      .order("data_inicio", { ascending: false })
+      .limit(20),
+  ]);
   if (error || !data) return [];
-  return (data as ChampRow[]).map(mapChampionship);
+  return (data as ChampRow[])
+    .filter((row) => canSeeDemo || row.id !== DEMO_CHAMPIONSHIP_ID)
+    .map(mapChampionship);
 }
 
 // Para o Painel — todos os campeonatos do organizador logado (inclui rascunhos).
@@ -213,17 +249,51 @@ export async function getMyChampionshipsPage(
 // layout do painel do campeonato e a página dentro dele podem chamar essa
 // função sem disparar duas consultas ao Postgres.
 export const getDbChampionshipById = cache(async (
-  id: string,
+  idOrSlug: string,
 ): Promise<Championship | null> => {
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-    return null;
-  }
+  const normalized = decodeURIComponent(idOrSlug).trim();
+  if (!normalized) return null;
+
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const targetId =
+    normalized.toLowerCase() === DEMO_CHAMPIONSHIP_SLUG
+      ? DEMO_CHAMPIONSHIP_ID
+      : normalized;
+
+  if (isUuid(targetId)) {
+    if (
+      targetId.toLowerCase() === DEMO_CHAMPIONSHIP_ID &&
+      !(await canAccessDemoChampionship(supabase))
+    ) {
+      return null;
+    }
+    const { data, error } = await supabase
+      .from("championships")
+      .select(SELECT)
+      .eq("id", targetId)
+      .maybeSingle();
+    if (error || !data) return null;
+    return mapChampionship(data as ChampRow);
+  }
+
+  // Resolução por slug legível (ex.: /campeonatos/circuito-rankftv-open-pro-2026)
+  const slugLower = targetId.toLowerCase();
+  const { data: rows, error } = await supabase
     .from("championships")
     .select(SELECT)
-    .eq("id", id)
-    .maybeSingle();
-  if (error || !data) return null;
-  return mapChampionship(data as ChampRow);
+    .neq("status", "rascunho")
+    .limit(200);
+  if (error || !rows) return null;
+
+  const matched = (rows as ChampRow[]).find(
+    (row) => getChampionshipSlug({ id: row.id, nome: row.nome }) === slugLower,
+  );
+  if (!matched) return null;
+  if (
+    matched.id === DEMO_CHAMPIONSHIP_ID &&
+    !(await canAccessDemoChampionship(supabase))
+  ) {
+    return null;
+  }
+  return mapChampionship(matched);
 });

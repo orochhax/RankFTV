@@ -18,5 +18,5 @@ test("featured championship cards remain clickable while the carousel supports d
   assert.doesNotMatch(pointerDown, /setPointerCapture/);
   assert.match(controls, /function onPointerMove[\s\S]*setPointerCapture/);
   assert.match(controls, /function onClickCapture[\s\S]*event\.preventDefault\(\)/);
-  assert.match(featured, /<Link href=\{`\/campeonatos\/\$\{camp\.id\}`\}/);
+  assert.match(featured, /<Link href=\{`\/campeonatos\/\$\{(?:camp\.slug \?\? )?camp\.id\}`\}/);
 });

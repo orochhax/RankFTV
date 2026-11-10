@@ -8,6 +8,8 @@ import { createIdempotentCharge } from "@/lib/payment-flows";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { canAccessDemoChampionship } from "@/lib/supabase/championships";
+import { isDemoChampionship } from "@/lib/championship-slug";
 import { calcularDesconto, calcularTotalComprador } from "@/lib/taxas";
 import { gerarTicketAccessToken } from "@/lib/ticket-access";
 import { resolverPrecos } from "@/lib/lotes";
@@ -90,6 +92,12 @@ export async function comprarIngresso(
 
   const sessionClient = await createClient();
   const { data: { user: buyerUser } } = await sessionClient.auth.getUser();
+  if (
+    isDemoChampionship(championshipId) &&
+    !(await canAccessDemoChampionship(sessionClient))
+  ) {
+    return { error: "Campeonato nao encontrado." };
+  }
   const admin = createAdminClient();
 
   const [{ data: champ }, { data: types }] = await Promise.all([

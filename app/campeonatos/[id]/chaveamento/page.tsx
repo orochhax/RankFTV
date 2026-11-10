@@ -177,14 +177,16 @@ export default async function ChaveamentoPublicPage({
 
   const dbChamp = await getDbChampionshipById(id);
   if (!dbChamp) notFound();
+  const champId = dbChamp.id;
+  const publicSlug = dbChamp.slug ?? champId;
 
   const supabase = createAdminClient();
   const [bracketCategories, { data: championshipCategories }] = await Promise.all([
-    getDbBracketCategories(id),
+    getDbBracketCategories(champId),
     supabase
       .from("championship_categories")
       .select("id, nome")
-      .eq("championship_id", id),
+      .eq("championship_id", champId),
   ]);
   if (!championshipCategories || championshipCategories.length === 0) notFound();
 
@@ -202,7 +204,7 @@ export default async function ChaveamentoPublicPage({
     <div className="w-full space-y-8 px-6 py-8 pb-24">
       <div>
         <Link
-          href={`/campeonatos/${id}`}
+          href={`/campeonatos/${publicSlug}`}
           className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft className="size-4" />
@@ -223,7 +225,7 @@ export default async function ChaveamentoPublicPage({
             return (
             <Link
               key={category.id}
-              href={`/campeonatos/${id}/chaveamento?cat=${category.id}`}
+              href={`/campeonatos/${publicSlug}/chaveamento?cat=${category.id}`}
               className={[
                 "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
                 isActive && hasBracket

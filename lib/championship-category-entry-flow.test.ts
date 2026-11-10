@@ -16,7 +16,7 @@ test("championship details defer categories to the athlete checkout flow", () =>
   assert.match(championshipPage, />Sou atleta</);
   assert.match(
     championshipPage,
-    /href=\{`\/campeonatos\/\$\{championship\.id\}\/comprar`\}/,
+    /href=\{`\/campeonatos\/\$\{(?:championship\.id|publicSlug)\}\/comprar`\}/,
   );
 
   assert.match(athleteCheckoutPage, /\.from\("championship_categories"\)/);

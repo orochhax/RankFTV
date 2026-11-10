@@ -31,7 +31,7 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
         <div className={`flex w-full ${carousel.reducedMotion ? "" : "transition-transform duration-500 ease-out"}`} style={{ transform: `translateX(-${carousel.current * 100}%)` }}>
           {camps.map((camp) => (
             <div key={camp.id} className="w-full min-w-0 shrink-0 p-px">
-              <Link href={`/campeonatos/${camp.id}`} className="group block overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5 transition-all hover:shadow-lg md:flex md:h-64 lg:h-72">
+              <Link href={`/campeonatos/${camp.slug ?? camp.id}`} className="group block overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5 transition-all hover:shadow-lg md:flex md:h-64 lg:h-72">
                 <div className={`relative flex h-52 items-center justify-center bg-gradient-to-br md:h-full md:w-1/2 lg:w-[56%] md:shrink-0 ${camp.bannerFrom} ${camp.bannerTo}`}>
                   {camp.cardUrl || camp.bannerUrl ? (
                     <Image

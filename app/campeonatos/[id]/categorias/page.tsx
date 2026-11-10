@@ -21,6 +21,8 @@ export default async function CategoriasPage({
 
   const championship = await getDbChampionshipById(id);
   if (!championship) notFound();
+  const champId = championship.id;
+  const publicSlug = championship.slug ?? champId;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -29,7 +31,7 @@ export default async function CategoriasPage({
   const { data: champExtra } = await supabase
     .from("championships")
     .select("is_elite")
-    .eq("id", id)
+    .eq("id", champId)
     .maybeSingle();
   const isElite = !!champExtra?.is_elite;
 
@@ -79,7 +81,7 @@ export default async function CategoriasPage({
       <div className="bg-brand-dark px-6 pb-16 pt-6">
         <div className="w-full space-y-4">
           <Link
-            href={`/campeonatos/${id}`}
+            href={`/campeonatos/${publicSlug}`}
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
           >
             <ArrowLeft className="size-4" /> {championship.nome}

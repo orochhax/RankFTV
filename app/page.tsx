@@ -182,7 +182,7 @@ export default async function Home({
                   <SectionHeader icon={Radio} iconClassName="size-4 animate-pulse text-red-500" title="Ao vivo agora" className="mb-3" />
                   <div className="grid gap-3 md:grid-cols-2">
                     {aoVivo.map((c) => (
-                      <Link key={c.id} href={`/campeonatos/${c.id}`} className="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 ring-1 ring-red-100 transition-colors hover:bg-red-50">
+                      <Link key={c.id} href={`/campeonatos/${c.slug ?? c.id}`} className="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 ring-1 ring-red-100 transition-colors hover:bg-red-50">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2"><span className="size-2 shrink-0 animate-pulse rounded-full bg-red-500" /><p className="truncate font-semibold text-gray-900">{c.nome}</p></div>
                           <p className="mt-0.5 text-xs text-gray-400">{formatDateRangeBR(c.dataInicio, c.dataFim)}</p>
