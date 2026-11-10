@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Ticket } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { IngressoPlateiaForm } from "@/components/plateia/IngressoPlateiaForm";
 import { resolverPrecos } from "@/lib/lotes";
 
@@ -13,19 +14,24 @@ export default async function PlateiaPage({
 }) {
   const { id } = await params;
 
+  const dbChamp = await getDbChampionshipById(id);
+  if (!dbChamp) notFound();
+  const champId = dbChamp.id;
+  const publicSlug = dbChamp.slug ?? champId;
+
   const supabase = await createClient();
 
   const { data: champ } = await supabase
     .from("championships")
     .select("nome, cidade, estado, status, is_elite")
-    .eq("id", id)
+    .eq("id", champId)
     .maybeSingle();
   if (!champ) notFound();
 
   const { data: tipos } = await supabase
     .from("spectator_ticket_types")
     .select("id, nome, valor")
-    .eq("championship_id", id)
+    .eq("championship_id", champId)
     .eq("ativo", true)
     .order("ordem", { ascending: true })
     .order("valor", { ascending: true });
@@ -53,7 +59,7 @@ export default async function PlateiaPage({
       <div className="bg-brand-dark px-6 pb-16 pt-6">
         <div className="mx-auto max-w-xl space-y-4">
           <Link
-            href={`/campeonatos/${id}`}
+            href={`/campeonatos/${publicSlug}`}
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
           >
             <ArrowLeft className="size-4" /> {champ.nome}
@@ -80,7 +86,7 @@ export default async function PlateiaPage({
               Ainda não há ingressos de plateia disponíveis pra este evento.
             </p>
           ) : (
-            <IngressoPlateiaForm championshipId={id} tipos={lista} isElite={!!champ.is_elite} />
+            <IngressoPlateiaForm championshipId={champId} tipos={lista} isElite={!!champ.is_elite} />
           )}
         </div>
       </div>

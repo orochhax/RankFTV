@@ -16,6 +16,7 @@ import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { TierTag } from "@/components/ui/TierTag";
 import { formatBRL, formatDateRangeBR } from "@/lib/format";
 import { VagasProgressBar } from "@/components/painel/VagasProgressBar";
+import { ReceitaConfirmadaCard } from "@/components/painel/ReceitaConfirmadaCard";
 import { ChampionshipActions } from "@/components/painel/ChampionshipActions";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { SectionHeader } from "@/components/shell/SectionHeader";
@@ -38,12 +39,13 @@ export default async function PainelCampeonatoPage({
 
   const camp = await getDbChampionshipById(id);
   if (!camp) notFound();
+  const champId = camp.id;
 
   // Só o organizador dono pode acessar o painel desse camp.
   if (camp.organizadorId !== user.id) notFound();
 
   // Rascunho ainda não tem painel de gestão — manda pro fluxo de publicação.
-  if (camp.status === "rascunho") redirect(`/painel/campeonatos/${id}/criado`);
+  if (camp.status === "rascunho") redirect(`/painel/campeonatos/${champId}/criado`);
 
   // Tier: quiz do banco + duplas pagas (override automático).
   // Duplas pagas somam DUAS fontes: registrations (dupla autenticada,
@@ -52,22 +54,22 @@ export default async function PainelCampeonatoPage({
   // o fluxo realmente usado pelo botão público — sem somar aqui o painel
   // mostrava R$0/zero inscrições mesmo com Pix confirmado.
   const [tierRes, financialMetricsRes, orgAccountRes, spectatorRes] = await Promise.all([
-    supabase.from("championships").select("tier_quiz, is_elite").eq("id", id).maybeSingle(),
-    supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
+    supabase.from("championships").select("tier_quiz, is_elite").eq("id", champId).maybeSingle(),
+    supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: champId }),
     supabase.from("organizer_accounts")
       .select("chave_pix, status_verificacao, motivo_rejeicao")
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase.from("spectator_tickets")
       .select("valor")
-      .eq("championship_id", id)
+      .eq("championship_id", champId)
       .eq("status_pagamento", "pago"),
   ]);
   const tierQuiz    = (tierRes.data?.tier_quiz ?? null) as Partial<QuizAnswers> | null;
   const isElite     = !!tierRes.data?.is_elite;
   const financialMetrics = (financialMetricsRes.data ?? {}) as {
     statuses?: Array<{ status: string; count: number; total: number }>;
-    categories?: Array<{ category_id: string; name: string; gender: string | null; count: number; total: number }>;
+    categories?: Array<{ id?: string; category_id?: string; name: string; gender: string | null; count: number; total: number }>;
   };
   const paidMetric = financialMetrics.statuses?.find((item) => item.status === "pago");
   const duplasPagas = Number(paidMetric?.count ?? 0);
@@ -78,7 +80,7 @@ export default async function PainelCampeonatoPage({
   const temCategoriaPaga = camp.categorias.some((c) => (c.valorInscricao ?? 0) > 0);
 
   const categoryCounts = Object.fromEntries(
-    (financialMetrics.categories ?? []).map((c) => [c.category_id, Number(c.count)]),
+    (financialMetrics.categories ?? []).map((c) => [c.id ?? c.category_id ?? "", Number(c.count)]),
   );
 
   const vagasTotais = camp.categorias.reduce(
@@ -118,17 +120,15 @@ export default async function PainelCampeonatoPage({
         <StatCard label="Duplas inscritas" value={duplasPagas} icon={Users} />
         <StatCard label="Categorias" value={camp.categorias.length} icon={Trophy} />
         <StatCard label="Vagas totais" value={vagasTotais > 0 ? vagasTotais : "—"} icon={Ticket} />
-        <StatCard
-          label="Receita confirmada"
-          value={formatBRL(totalGeralConfirmado)}
-          hint={totalPlateia > 0 ? `${formatBRL(totalArrecadado)} atletas · ${formatBRL(totalPlateia)} plateia` : undefined}
-          tone="success"
-          icon={DollarSign}
+        <ReceitaConfirmadaCard
+          totalGeralConfirmado={totalGeralConfirmado}
+          totalArrecadado={totalArrecadado}
+          totalPlateia={totalPlateia}
         />
       </div>
 
       {/* Ações de gestão — imediatamente abaixo dos cards, fonte única dos hrefs é CHAMPIONSHIP_NAV_GROUPS */}
-      <ChampionshipActions champId={id} />
+      <ChampionshipActions champId={champId} />
 
       {(duplasPagas > 0 || vagasTotais > 0) && (
         <Surface padding="md">

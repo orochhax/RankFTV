@@ -37,7 +37,7 @@ export function ChampionshipCard({ championship: c }: { championship: Championsh
 
   return (
     <Link
-      href={`/campeonatos/${c.id}`}
+      href={`/campeonatos/${c.slug ?? c.id}`}
       className="group block overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 transition-shadow hover:shadow-md"
     >
       {/* Banner */}

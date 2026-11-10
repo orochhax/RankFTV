@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { formatBRL } from "@/lib/format";
+import { useValoresOcultos } from "@/hooks/useValoresOcultos";
 
 type Props = {
   duplasPagas: number;
@@ -12,7 +12,8 @@ type Props = {
 };
 
 export function VagasProgressBar({ duplasPagas, vagasTotais, totalArrecadado, totalPotencial }: Props) {
-  const [mostrar, setMostrar] = useState(true);
+  const { oculto, toggle } = useValoresOcultos(false);
+  const mostrar = !oculto;
 
   const labelEsquerda = vagasTotais > 0
     ? `${duplasPagas} / ${vagasTotais} vagas · ${Math.round((duplasPagas / vagasTotais) * 100)}%`
@@ -36,7 +37,8 @@ export function VagasProgressBar({ duplasPagas, vagasTotais, totalArrecadado, to
           <div className="flex items-center gap-1.5">
             <span>{labelDireita}</span>
             <button
-              onClick={() => setMostrar((v) => !v)}
+              type="button"
+              onClick={toggle}
               className="text-ink-muted/60 hover:text-ink transition-colors"
               aria-label={mostrar ? "Ocultar valor" : "Mostrar valor"}
             >

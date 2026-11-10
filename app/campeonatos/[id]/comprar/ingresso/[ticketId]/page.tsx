@@ -90,7 +90,7 @@ export default async function IngressoAtletaPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select("nome, is_elite, data_inicio, data_fim, cidade, estado, local, regulamento, organizador_id, permite_troca_dupla, prazo_limite_troca_dupla")
+    .select("nome, is_elite, data_inicio, data_fim, cidade, estado, local, regulamento, organizador_id, permite_troca_dupla, troca_dupla_data_limite")
     .eq("id", champId)
     .maybeSingle();
   let categoriaGenero: "masculino" | "feminino" | "mista" | null = null;
@@ -203,7 +203,7 @@ export default async function IngressoAtletaPage({
                   parceiroGenero:  t.parceiro_genero,
                   categoriaGenero,
                   permiteTrocaDupla: champ?.permite_troca_dupla,
-                  prazoLimiteTrocaDupla: champ?.prazo_limite_troca_dupla,
+                  prazoLimiteTrocaDupla: champ?.troca_dupla_data_limite,
                 }}
               />
             )}

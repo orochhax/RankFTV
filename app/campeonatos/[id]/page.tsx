@@ -1,13 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { MapPin, Users, Trophy, ChevronLeft, Radio, CalendarDays, Ticket, Info } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
+import { isUuid } from "@/lib/championship-slug";
 import { formatDateRangeBR, generoLabel } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { PublicFunnelEvent } from "@/components/analytics/PublicFunnelEvent";
+import { ExpandableTextBlock } from "@/components/campeonatos/ExpandableTextBlock";
 
 type AtletaDisplay = {
   id: string;
@@ -44,12 +46,18 @@ export default async function CampeonatoDetalhePage({
   const championship = await getDbChampionshipById(id);
   if (!championship) notFound();
 
+  const champId = championship.id;
+  const publicSlug = championship.slug ?? championship.id;
+  if (isUuid(id) && publicSlug !== id) {
+    redirect(`/campeonatos/${publicSlug}${voltar ? `?voltar=${encodeURIComponent(voltar)}` : ""}`);
+  }
+
   // Campeonato vitrine: evento externo só informativo. Esconde tudo que é
   // inscrição/plateia/chaveamento — a página vira uma vitrine do evento.
   const isVitrine = championship.isVitrine ?? false;
 
   const voltarCriado = voltar === "criado";
-  const backHref  = voltarCriado ? `/painel/campeonatos/${id}/criado` : "/campeonatos";
+  const backHref  = voltarCriado ? `/painel/campeonatos/${champId}/criado` : "/campeonatos";
   const backLabel = voltarCriado ? "Voltar" : "Campeonatos";
 
   const supabase = await createClient();
@@ -60,12 +68,12 @@ export default async function CampeonatoDetalhePage({
     supabase
       .from("registrations")
       .select("team_id")
-      .eq("championship_id", id)
+      .eq("championship_id", champId)
       .eq("status_pagamento", "pago"),
     supabase
       .from("athlete_tickets")
       .select("id, category_id, categoria_nome, comprador_nome, parceiro_nome")
-      .eq("championship_id", id)
+      .eq("championship_id", champId)
       .eq("status_pagamento", "pago")
       .limit(1000),
   ]);
@@ -167,14 +175,14 @@ export default async function CampeonatoDetalhePage({
   const { count: bracketCount } = await supabase
     .from("bracket_matches")
     .select("id", { count: "exact", head: true })
-    .eq("championship_id", id);
+    .eq("championship_id", champId);
   const hasDbBracket = (bracketCount ?? 0) > 0;
 
   /* ── Cronograma ── */
   const { data: scheduleRow } = await supabase
     .from("championships")
     .select("prevenda_inicio, prevenda_fim, inscricoes_inicio, inscricoes_fim, data_inicio, data_fim")
-    .eq("id", id)
+    .eq("id", champId)
     .single();
 
   type ScheduleItem = { label: string; inicio: string | null; fim: string | null };
@@ -188,7 +196,7 @@ export default async function CampeonatoDetalhePage({
   const { count: ingressoPlateiaCount } = await supabase
     .from("spectator_ticket_types")
     .select("id", { count: "exact", head: true })
-    .eq("championship_id", id)
+    .eq("championship_id", champId)
     .eq("ativo", true);
   const temIngressoPlateia = (ingressoPlateiaCount ?? 0) > 0;
 
@@ -222,7 +230,13 @@ export default async function CampeonatoDetalhePage({
         <div className="mt-4 flex flex-wrap items-start justify-between gap-2">
           <div className="max-w-3xl">
             <h1 className="text-2xl font-semibold text-gray-900">{championship.nome}</h1>
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">{championship.descricao}</p>
+            <ExpandableTextBlock
+              text={championship.descricao}
+              expandLabel="Ver descrição completa"
+              collapseLabel="Recolher descrição"
+              collapsedMaxHeightClass="max-h-14"
+              className="mt-2"
+            />
           </div>
           <StatusBadge status={championship.status} />
         </div>
@@ -237,7 +251,7 @@ export default async function CampeonatoDetalhePage({
           <div className="mt-4 flex flex-wrap gap-2">
             {hasDbBracket ? (
               <Link
-                href={`/campeonatos/${championship.id}/chaveamento`}
+                href={`/campeonatos/${publicSlug}/chaveamento`}
                 className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
               >
                 <Trophy className="size-4" />
@@ -318,7 +332,7 @@ export default async function CampeonatoDetalhePage({
       {!isVitrine && (
       <div className="grid gap-3 sm:grid-cols-2">
         <Link
-          href={`/campeonatos/${championship.id}/comprar`}
+          href={`/campeonatos/${publicSlug}/comprar`}
           className="flex items-center gap-3 rounded-2xl bg-blue-600 p-5 text-white transition-colors hover:bg-blue-700"
         >
           <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
@@ -332,7 +346,7 @@ export default async function CampeonatoDetalhePage({
 
         {temIngressoPlateia ? (
           <Link
-            href={`/campeonatos/${championship.id}/plateia`}
+            href={`/campeonatos/${publicSlug}/plateia`}
             className="flex items-center gap-3 rounded-2xl bg-gray-900 p-5 text-white transition-colors hover:bg-gray-800"
           >
             <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/10">
@@ -357,9 +371,14 @@ export default async function CampeonatoDetalhePage({
       </div>
       )}
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold text-gray-900">Regulamento</h2>
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">{championship.regulamento}</p>
+      <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
+        <h2 className="mb-2 text-lg font-semibold text-gray-900">Regulamento</h2>
+        <ExpandableTextBlock
+          text={championship.regulamento}
+          expandLabel="Ver regulamento completo"
+          collapseLabel="Ocultar regulamento"
+          collapsedMaxHeightClass="max-h-20"
+        />
       </section>
 
       {!isVitrine && (

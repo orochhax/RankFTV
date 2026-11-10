@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { ArrowLeft, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
+import { isDemoChampionship } from "@/lib/championship-slug";
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 import { availableCategorySpots } from "@/lib/category-availability";
 import { formatDateRangeBR } from "@/lib/format";
@@ -39,22 +41,27 @@ export default async function ComprarAtletaPage({
 }) {
   const { id } = await params;
   const { categoria: initialCategoryId, convite: waitlistInviteToken } = await searchParams;
+  const dbChamp = await getDbChampionshipById(id);
+  if (!dbChamp) notFound();
+  const champId = dbChamp.id;
+  const publicSlug = dbChamp.slug ?? champId;
+
   const supabase = await createClient();
   const admin = createAdminClient();
   const { data: { user } } = await supabase.auth.getUser();
   const cookieStore = await cookies();
-  const reservationToken = cookieStore.get(athleteCheckoutCookieName(id))?.value;
+  const reservationToken = cookieStore.get(athleteCheckoutCookieName(champId))?.value;
 
   const [{ data: champ }, { data: cats }, { data: profile }, { data: privateProfile }] = await Promise.all([
     supabase
       .from("championships")
-      .select("nome, cidade, estado, local, data_inicio, data_fim, status, is_elite, usa_motor_categoria, permite_troca_dupla, prazo_limite_troca_dupla")
-      .eq("id", id)
+      .select("nome, cidade, estado, local, data_inicio, data_fim, status, is_elite, usa_motor_categoria, permite_troca_dupla, troca_dupla_data_limite")
+      .eq("id", champId)
       .maybeSingle(),
     supabase
       .from("championship_categories")
       .select("id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max, max_duplas")
-      .eq("championship_id", id)
+      .eq("championship_id", champId)
       .order("valor_inscricao", { ascending: true }),
     user
       ? supabase
@@ -81,7 +88,7 @@ export default async function ComprarAtletaPage({
       [champ.cidade?.trim(), champ.estado?.trim()].filter(Boolean).join("/"),
     ].filter(Boolean).join(" · ") || "Local a confirmar",
     permiteTrocaDupla: champ.permite_troca_dupla ?? true,
-    prazoLimiteTrocaDupla: champ.prazo_limite_troca_dupla ?? null,
+    prazoLimiteTrocaDupla: champ.troca_dupla_data_limite ?? null,
   };
 
   const authenticatedAthlete: AuthenticatedAthleteProfile | null = user
@@ -105,7 +112,7 @@ export default async function ComprarAtletaPage({
         .from("checkout_reservations")
         .select("id, category_id, expires_at, price_snapshot, pricing_tier_id")
         .eq("token_hash", hashCheckoutReservationToken(reservationToken))
-        .eq("championship_id", id)
+        .eq("championship_id", champId)
         .eq("status", "active")
         .gt("expires_at", new Date().toISOString())
         .maybeSingle()
@@ -161,11 +168,14 @@ export default async function ComprarAtletaPage({
       }
     : null;
 
+  const isDemo = isDemoChampionship(champId);
   const categorias: CategoriaOpcao[] = (cats ?? []).map((c) => {
     const lotes = lotesPorCategoria[c.id] ?? [];
-    const occupiedPairs = (ticketCountByCategory.get(c.id) ?? 0)
-      + (registrationCountByCategory.get(c.id) ?? 0)
-      + (reservationCountByCategory.get(c.id) ?? 0);
+    const occupiedPairs = isDemo
+      ? 0
+      : (ticketCountByCategory.get(c.id) ?? 0)
+        + (registrationCountByCategory.get(c.id) ?? 0)
+        + (reservationCountByCategory.get(c.id) ?? 0);
     const vagasDisponiveis = availableCategorySpots(
       c.max_duplas,
       occupiedPairs,
@@ -197,7 +207,7 @@ export default async function ComprarAtletaPage({
       <div className="bg-brand-dark px-6 pb-16 pt-6">
         <div className="mx-auto max-w-xl space-y-4">
           <Link
-            href={`/campeonatos/${id}`}
+            href={`/campeonatos/${publicSlug}`}
             className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
           >
             <ArrowLeft className="size-4" /> {champ.nome}
@@ -228,7 +238,7 @@ export default async function ComprarAtletaPage({
                 Não é necessário ter conta. Selecione a categoria e preencha os dados dos dois atletas.
               </p>
               <IngressoAtletaForm
-                championshipId={id}
+                championshipId={champId}
                 championshipSummary={championshipReviewSummary}
                 categorias={categorias}
                 isElite={!!champ.is_elite}

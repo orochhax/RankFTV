@@ -56,7 +56,7 @@ type Context = {
     data_inicio: string | null;
     usa_motor_categoria: boolean | null;
     permite_troca_dupla?: boolean | null;
-    prazo_limite_troca_dupla?: string | null;
+    troca_dupla_data_limite?: string | null;
   } | null;
   categoria: { genero: string; bracket_confirmed_at: string | null } | null;
 };
@@ -131,7 +131,7 @@ async function loadContext(ticketId: string, accessToken: string): Promise<
   const [{ data: championshipData }, categoryResult] = await Promise.all([
     admin
       .from("championships")
-      .select("nome, data_inicio, usa_motor_categoria, permite_troca_dupla, prazo_limite_troca_dupla")
+      .select("nome, data_inicio, usa_motor_categoria, permite_troca_dupla, troca_dupla_data_limite")
       .eq("id", ticket.championship_id)
       .maybeSingle(),
     ticket.category_id
@@ -143,7 +143,7 @@ async function loadContext(ticketId: string, accessToken: string): Promise<
 
   const eligibility = checkPartnerChangeEligibility({
     permiteTrocaDupla: campeonato?.permite_troca_dupla,
-    prazoLimiteTrocaDupla: campeonato?.prazo_limite_troca_dupla,
+    prazoLimiteTrocaDupla: campeonato?.troca_dupla_data_limite,
     dataInicio: campeonato?.data_inicio,
     bracketConfirmedAt: categoria?.bracket_confirmed_at,
     checkedIn: ticket.checked_in,

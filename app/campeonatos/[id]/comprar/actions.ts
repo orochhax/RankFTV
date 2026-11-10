@@ -5,6 +5,8 @@ import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { canAccessDemoChampionship } from "@/lib/supabase/championships";
+import { isDemoChampionship } from "@/lib/championship-slug";
 import { criarOuBuscarCliente } from "@/lib/asaas";
 import { createIdempotentCharge } from "@/lib/payment-flows";
 import { calcularTotalComprador, calcularDesconto } from "@/lib/taxas";
@@ -85,6 +87,12 @@ export async function reservarCategoriaAtleta(
   const {
     data: { user },
   } = await sessionClient.auth.getUser();
+  if (
+    isDemoChampionship(reservationInput.championshipId) &&
+    !(await canAccessDemoChampionship(sessionClient))
+  ) {
+    return { ok: false, error: "Campeonato ou categoria inválidos." };
+  }
   const cookieStore = await cookies();
   const cookieName = athleteCheckoutCookieName(championshipId);
   const savedToken = cookieStore.get(cookieName)?.value;
@@ -121,8 +129,34 @@ export async function reservarCategoriaAtleta(
     result = await reserve(token);
   }
 
-  const reservation = parseAthleteCheckoutReservation(result.data);
-  if (result.error || !reservation) {
+  let reservation = parseAthleteCheckoutReservation(result.data);
+  if (
+    (!reservation || result.error) &&
+    isDemoChampionship(reservationInput.championshipId) &&
+    result.error?.message.includes("checkout_category_sold_out")
+  ) {
+    const { data: demoCat } = await admin
+      .from("championship_categories")
+      .select("id, valor_inscricao")
+      .eq("id", reservationInput.categoryId)
+      .eq("championship_id", reservationInput.championshipId)
+      .maybeSingle();
+    if (demoCat) {
+      const now = new Date();
+      reservation = {
+        id: reservationInput.categoryId,
+        categoryId: reservationInput.categoryId,
+        expiresAt: new Date(
+          now.getTime() + ATHLETE_CHECKOUT_RESERVATION_MINUTES * 60_000,
+        ).toISOString(),
+        serverNow: now.toISOString(),
+        price: Number(demoCat.valor_inscricao),
+        pricingTierId: null,
+        reused: false,
+      };
+    }
+  }
+  if (!reservation) {
     await reportOperationalEvent({
       level: "warn",
       event: "athlete_checkout.reservation_failed",
@@ -142,7 +176,7 @@ export async function reservarCategoriaAtleta(
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    path: `/campeonatos/${championshipId}/comprar`,
+    path: "/campeonatos",
     maxAge: (ATHLETE_CHECKOUT_RESERVATION_MINUTES + 5) * 60,
   });
 

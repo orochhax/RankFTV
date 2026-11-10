@@ -23,6 +23,7 @@ export type Category = {
 
 export type Championship = {
   id: string;
+  slug?: string;
   nome: string;
   descricao: string;
   regulamento: string;
