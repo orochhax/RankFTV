@@ -5,6 +5,17 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-10 11:35 (America/Sao_Paulo) — Expansão ativa da Biblioteca de Ideias com sinais da concorrência no canal Carlos Rocha
+
+- Incorporação de 4 novas pautas aprovadas por Carlos, formuladas a partir dos maiores outliers da concorrência (Bennett Luke 360,5x, Kamily Rebelatto 192x/73x/69x, Vinicius Figueiredo 88x, Daniel Lima 14,5x e João Curry):
+  - `tec-05`: "A angústia de estudar todos os dias sem nenhuma garantia de que vai dar certo" (Score: 95)
+  - `neg-06`: "Por que escolhi resolver um problema 'chato' no interior em vez de tentar inventar o próximo unicórnio" (Score: 94)
+  - `cria-05`: "Trabalhar CLT e construir um negócio à noite: o cansaço real que ninguém posta" (Score: 93)
+  - `vlog-04`: "Por que decidi que não preciso me mudar para São Paulo para fazer a vida acontecer" (Score: 92)
+- Biblioteca de Ideias (`lib/evolution/carlos-rocha-library.json`) atualizada para 20 pautas cumulativas com versão `2026-11-10T11:30:00-03:00`.
+- Interface `components/evolution/CarlosRochaCenter.tsx` atualizada com o bloco expandido de oportunidades prontas para gravação.
+- Validação técnica completa: typecheck, lint, suíte de testes unitários e build de produção Next.js.
+
 ## 2026-11-10 10:28 (America/Sao_Paulo) — Atualização completa do radar editorial e concorrentes do Rocha Tech
 
 - Coleta oficial via YouTube Data API v3 nos 24 canais concorrentes do Rocha Tech: 3.892 vídeos monitorados na janela de 365 dias (14 vídeos novos catalogados, 2.194 contadores de visualizações atualizados, zero falhas e zero fallbacks manuais).

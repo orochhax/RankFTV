@@ -26,6 +26,34 @@ const principles = [
 
 const opportunities = [
   {
+    title: "A angústia de estudar todos os dias sem nenhuma garantia de que vai dar certo",
+    pillar: "JORNADA PROFISSIONAL / DATA SCIENCE",
+    tension: "A solidão de estudar SQL, estatística e Python após o expediente CLT sem saber quando ou se a vaga júnior virá.",
+    visual: "Diálogo direto cara a cara no quarto em Eunápolis, mesa de estudos, sem obrigação de exibir telas complexas.",
+    conclusion: "Consistência diária é a única variável no seu controle. A dúvida faz parte do processo, mas parar é a única certeza de derrota.",
+  },
+  {
+    title: "Por que escolhi resolver um problema 'chato' no interior em vez de tentar inventar o próximo unicórnio",
+    pillar: "NEGÓCIOS / SOFTWARE REAL",
+    tension: "O apelo de querer criar a próxima startup de inteligência artificial bilionária vs o faturamento real de resolver a dor de arenas de futevôlei.",
+    visual: "Painel de produção do RankFTV com torneios reais, inscrições e prestação de contas dos números.",
+    conclusion: "Mercados 'chatos' têm menos concorrência, clientes reais e sustentam negócios sólidos com menos barulho.",
+  },
+  {
+    title: "Trabalhar CLT e construir um negócio à noite: o cansaço real que ninguém posta",
+    pillar: "CRIAÇÃO E AUTENTICIDADE",
+    tension: "A exaustão de sustentar duas rotinas diárias paralelas vs a convicção de que esse esforço temporário constrói a independência.",
+    visual: "Quarto caseiro à noite em Eunápolis, conversa franca desmistificando rotinas perfeitas da internet.",
+    conclusion: "Não é necessário acordar às 5h nem ter uma rotina perfeita; consistência com energia baixa ainda é consistência.",
+  },
+  {
+    title: "Por que decidi que não preciso me mudar para São Paulo para fazer a vida acontecer",
+    pillar: "ESTILO DE VIDA E GEOGRAFIA",
+    tension: "A pressão coletiva de achar que o crescimento só existe na Faria Lima vs o foco e a paz de construir a base no interior da Bahia.",
+    visual: "Cenas do cotidiano no interior e deslocamento regional intercalados com reflexão autêntica com o público.",
+    conclusion: "Com internet, custo de vida equilibrado e foco, você constrói produtos globais e uma carreira sólida de onde você estiver.",
+  },
+  {
     title: "Tenho 60 dias úteis para aprender Ciência de Dados: o que realmente dá pra aprender e o que é ilusão",
     pillar: "JORNADA PROFISSIONAL / DATA SCIENCE",
     tension: "É possível construir uma base profissional de dados em 60 dias ou estou me iludindo?",

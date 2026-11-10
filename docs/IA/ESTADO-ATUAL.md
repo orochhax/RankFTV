@@ -21,6 +21,16 @@
   1. Teste de pagamento Pix real simbólico (R$ 5,00) em produção com estorno supervisionado imediato (a ser executado por Carlos posteriormente).
   2. Definição da data de abertura oficial dos pagamentos reais da V1 por Carlos.
 
+## Central de Evolução - Expansão Ativa da Biblioteca com Novas Pautas dos Concorrentes (10/11/2026)
+
+- Incorporação de 4 novas pautas de alto impacto formuladas a partir dos maiores picos de tração dos 16 concorrentes coletados hoje (Bennett Luke a 360,5x, Kamily Rebelatto a 192x/73x/69x, Vinicius Figueiredo a 88x, Daniel Lima a 14,5x e recortes regionais de João Curry):
+  1. *A angústia de estudar todos os dias sem nenhuma garantia de que vai dar certo* (Score: 95 | Dados & Carreira)
+  2. *Por que escolhi resolver um problema 'chato' no interior em vez de tentar inventar o próximo unicórnio* (Score: 94 | Negócios & Software)
+  3. *Trabalhar CLT e construir um negócio à noite: o cansaço real que ninguém posta* (Score: 93 | Criação & Autenticidade)
+  4. *Por que decidi que não preciso me mudar para São Paulo para fazer a vida acontecer* (Score: 92 | Estilo de Vida & Geografia)
+- Biblioteca de Ideias (`lib/evolution/carlos-rocha-library.json`) expandida cumulativamente para **20 pautas ativas** estruturadas nos 4 pilares reais, todas com score >= 50.
+- Hub de Oportunidades (`CarlosRochaCenter.tsx`) atualizado com as novas pautas prontas para gravação.
+
 ## Central de Evolução - Atualização Completa do Rocha Tech e Concorrentes (10/11/2026)
 
 - Coleta oficial via YouTube Data API v3 nos **24 canais concorrentes** concluída: **3.892 vídeos** monitorados na janela de 365 dias (14 vídeos novos catalogados, 2.194 visualizações atualizadas, zero falhas e zero fallbacks manuais).

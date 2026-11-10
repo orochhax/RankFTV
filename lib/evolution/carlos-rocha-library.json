@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-10T10:00:00-03:00",
+  "updatedAt": "2026-11-10T11:30:00-03:00",
   "minActiveScore": 50,
   "categories": [
     {
@@ -17,6 +17,17 @@
           "visual": "Diálogo frontal autêntico com iluminação limpa. Se quiser ilustrar pontualmente, cortes rápidos para exigências de vagas reais na tela, sem obrigação de ficar caçando tela.",
           "competitorReference": "Padrão de tese pragmática e contra-intuitiva de Vinicius Figueiredo ('Abra o negócio mais chato' - 88x da mediana).",
           "executionTip": "Gravar com energia firme e postura madura, sem vitimismo e sem tom de professor."
+        },
+        {
+          "id": "tec-05",
+          "title": "A angústia de estudar todos os dias sem nenhuma garantia de que vai dar certo",
+          "score": 95,
+          "scenario": "Quarto/estúdio em Eunápolis. Diálogo direto e firme com a câmera, olho no olho.",
+          "premise": "A solidão e a dúvida real de passar horas estudando SQL, estatística e Python à noite depois do trabalho, sem saber quando ou se uma vaga júnior vai chegar; a decisão consciente de bancar o processo mesmo na incerteza.",
+          "tension": "A vontade de desistir ou a sensação de estar perdendo tempo vs a maturidade de entender que consistência sem atalhos é o único caminho seguro.",
+          "visual": "Diálogo frontal autêntico e focado. Sem obrigação de ficar caçando tela ou códigos complexos, foco na franqueza da conversa.",
+          "competitorReference": "Padrão de vulnerabilidade e futuro de Bennett Luke ('If You're Stressed About Your Future, Watch This' - 360x da mediana) e Kamily Rebelatto ('Se eu tivesse 6 meses pra mudar de vida' - 73x).",
+          "executionTip": "Gravar à noite logo após fechar um bloco denso de estudos em que bateu o cansaço."
         },
         {
           "id": "tec-02",
@@ -70,6 +81,17 @@
           "executionTip": "Aproveitar uma viagem curta de sábado/domingo. Gravar nos horários calmos da praia."
         },
         {
+          "id": "vlog-04",
+          "title": "Por que decidi que não preciso me mudar para São Paulo para fazer a vida acontecer",
+          "score": 92,
+          "scenario": "Eunápolis e Costa do Descobrimento (cenários da cidade e da região). Diálogo aberto com a câmera.",
+          "premise": "A crença coletiva de que só é possível crescer com tecnologia, negócios e criação estando no centro da Faria Lima; a defesa convicta do foco, tranquilidade, custo de vida e segurança proporcionados por construir sua vida e seus produtos no interior da Bahia.",
+          "tension": "O medo de estar fora do 'epicentro' vs a paz mental, margem financeira e qualidade de vida de quem constrói a própria realidade onde está.",
+          "visual": "Imagens do cotidiano no interior e saída para a praia intercaladas com reflexão madura olhando nos olhos do espectador.",
+          "competitorReference": "Quebra de paradigma de mediocridade realista de Kamily Rebelatto ('Ser Realista É o Motivo da Sua Mediocridade' - 69x da mediana) e recortes regionais da Bahia de João Curry.",
+          "executionTip": "Gravar a reflexão em um fim de semana ao ar livre ou na orla/praia da região."
+        },
+        {
           "id": "vlog-02",
           "title": "4 dias em Itacaré: vivendo os lugares que fizeram essa viagem valer a pena",
           "score": 91,
@@ -121,6 +143,17 @@
           "executionTip": "Vídeo ágil, direto ao ponto, em torno de 7 a 9 minutos."
         },
         {
+          "id": "cria-05",
+          "title": "Trabalhar CLT e construir um negócio à noite: o cansaço real que ninguém posta",
+          "score": 93,
+          "scenario": "Estúdio caseiro em Eunápolis no fim do dia.",
+          "premise": "Desmistificar a romantização da rotina perfeita e da alta performance. Mostrar a realidade de acordar cedo para o expediente CLT, chegar em casa com a bateria baixa e ainda assim sentar para programar e cuidar do RankFTV.",
+          "tension": "A exaustão física e mental de sustentar duas rotinas paralelas vs a convicção de que esse esforço temporário é a única ponte sólida para a independência.",
+          "visual": "Ambiente autêntico do quarto à noite, iluminação limpa e diálogo olho no olho, sem filtros de coach.",
+          "competitorReference": "Padrão de transparência radical sobre trabalho e rotina de Daniel Lima ('Como ganhava R$ 40 mil com 21 anos' - 11.5x) e Vinicius Figueiredo ('Minhas fontes de renda' - 36x).",
+          "executionTip": "Gravar em um dia real de semana, logo após cumprir o expediente, capturando a energia verdadeira do momento."
+        },
+        {
           "id": "cria-03",
           "title": "Publiquei por um mês no YouTube: métricas reais e quanto o canal me rendeu (se é que rendeu algo)",
           "score": 90,
@@ -170,6 +203,17 @@
           "visual": "Diálogo direto olho no olho com a câmera. Cortes opcionais para o painel de produção do sistema para comprovar a existência do produto.",
           "competitorReference": "Padrão de construção de produto próprio e validação empírica de Daniel Lima ('Você tem que ser nerd do SEU produto' e 'Criei uma plataforma em 48h') e Vinicius Figueiredo ('Abra o negócio mais chato que puder' - 88x).",
           "executionTip": "Gravar com energia firme e postura madura, valorizando a proatividade de criar a própria oportunidade."
+        },
+        {
+          "id": "neg-06",
+          "title": "Por que escolhi resolver um problema 'chato' no interior em vez de tentar inventar o próximo unicórnio",
+          "score": 94,
+          "scenario": "Quarto/estúdio em Eunápolis com painel do RankFTV.",
+          "premise": "Em vez de tentar criar uma inteligência artificial revolucionária sem cliente, construir o RankFTV para resolver uma dor operacional real e 'chata' de arenas de futevôlei na Bahia (organização de chaveamento, inscrições e taxas financeiras).",
+          "tension": "O glamour ilusório de querer criar startups bilionárias vs a sobriedade de faturar e validar software resolvendo problemas simples do mundo real.",
+          "visual": "Diálogo sincero, podendo cortar pontualmente para o painel de produção com torneios e inscrições reais rodando.",
+          "competitorReference": "Padrão de negócio contra-intuitivo de Vinicius Figueiredo ('Abra o negócio mais chato que puder' - 88x da mediana) e Daniel Lima ('Você tem que ser nerd do SEU produto').",
+          "executionTip": "Gravar após dar suporte a um torneio real ou fechar um fechamento financeiro de campeonato."
         },
         {
           "id": "neg-02",
