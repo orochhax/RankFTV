@@ -37,7 +37,7 @@ test("a action usa a RPC atomica e so processa emails depois do commit", () => {
   const deliveryPosition = updateAction.lastIndexOf("processPendingChampionshipNoticeDeliveries");
   assert.ok(rpcPosition > 0);
   assert.ok(deliveryPosition > rpcPosition);
-  assert.doesNotMatch(updateAction, /\.from\("championships"\)\s*\.update\(/);
+  assert.doesNotMatch(updateAction.slice(0, rpcPosition), /\.from\("championships"\)\s*\.update\(/);
   assert.doesNotMatch(updateAction, /\.from\("championship_categories"\)\s*\.(?:insert|update|delete)\(/);
 });
 

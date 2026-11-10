@@ -21,6 +21,12 @@
   1. Teste de pagamento Pix real simbólico (R$ 5,00) em produção com estorno supervisionado imediato (a ser executado por Carlos posteriormente).
   2. Definição da data de abertura oficial dos pagamentos reais da V1 por Carlos.
 
+## Central de Evolução - Atualização Completa do Canal Carlos Rocha (10/11/2026)
+
+- Coleta oficial via YouTube Data API v3 nos **16 canais concorrentes** concluída: **1.636 vídeos** e 1.636 thumbnails válidas registradas na janela de 365 dias (resumo salvo em `Carlos Rocha - YT/Concorrentes/ultima-coleta-2026-11-10.json`).
+- Recálculo das medianas por canal e geração do ranking de outliers em `lib/evolution/carlos-rocha-rank-snapshot.json` (1.657 vídeos indexados, 16 canais monitorados, 15 maiores outliers com teto de 3 por canal, liderados por Bennett Luke a 360,5x e Bruno Nardon a 218,1x).
+- Biblioteca de Ideias atualizada cumulativamente (`lib/evolution/carlos-rocha-library.json`), com 16 pautas ranqueadas e validadas editorialmente pelo critério "Uma vida em construção, com algo real para mostrar" (todos os scores >= 50).
+
 ## Central de Evolução - Adição do Concorrente João Curry ao Canal Carlos Rocha (09/11/2026)
 
 - Adição do canal João Curry (`@curryjoao`, 1,05M inscritos, 41 vídeos na janela) à base oficial do canal Carlos Rocha, elevando o monitoramento para 16 canais e 1.657 vídeos indexados.
