@@ -37,6 +37,8 @@ export type Championship = {
   bannerFrom: string;
   bannerTo: string;
   bannerUrl?: string | null;
+  /** Imagem específica para cards de listagem e carrossel (proporção 16:9 / 1200x675). */
+  cardUrl?: string | null;
   /** Foco do enquadramento do banner (0–100%); null = centro. */
   bannerPositionX?: number | null;
   bannerPositionY?: number | null;

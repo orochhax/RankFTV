@@ -32,10 +32,10 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
           {camps.map((camp) => (
             <div key={camp.id} className="w-full min-w-0 shrink-0 p-px">
               <Link href={`/campeonatos/${camp.id}`} className="group block overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5 transition-all hover:shadow-lg md:flex md:h-64 lg:h-72">
-                <div className={`relative flex h-52 items-center justify-center bg-gradient-to-br md:h-full md:w-7/12 lg:w-3/5 md:shrink-0 ${camp.bannerFrom} ${camp.bannerTo}`}>
-                  {camp.bannerUrl ? (
+                <div className={`relative flex h-52 items-center justify-center bg-gradient-to-br md:h-full md:w-1/2 lg:w-[56%] md:shrink-0 ${camp.bannerFrom} ${camp.bannerTo}`}>
+                  {camp.cardUrl || camp.bannerUrl ? (
                     <Image
-                      src={camp.bannerUrl}
+                      src={camp.cardUrl || camp.bannerUrl || ""}
                       alt={camp.nome}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
@@ -47,20 +47,20 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
                     <Trophy className="size-16 text-white/90" strokeWidth={1.5} />
                   )}
                 </div>
-                <div className="flex flex-1 flex-col justify-between p-6 md:p-8">
-                  <div className="space-y-3">
+                <div className="flex flex-1 flex-col justify-center p-6 md:p-7 lg:p-8">
+                  <div className="space-y-2">
                     <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
+                      <div className="space-y-0.5">
                         <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
                           Destaque
                         </span>
-                        <h3 className="min-w-0 text-xl font-black leading-tight text-gray-900 transition-colors group-hover:text-blue-600 md:text-2xl lg:text-3xl">
+                        <h3 className="min-w-0 text-xl font-black leading-tight text-gray-900 transition-colors group-hover:text-blue-600 md:text-2xl">
                           {camp.nome}
                         </h3>
                       </div>
                       <div className="shrink-0"><StatusBadge status={camp.status} /></div>
                     </div>
-                    <p className="text-sm font-semibold text-gray-700 md:text-base">
+                    <p className="text-sm font-semibold text-gray-700">
                       {formatDateRangeBR(camp.dataInicio, camp.dataFim)}
                     </p>
                     <p className="flex items-center gap-1.5 text-sm text-gray-500">

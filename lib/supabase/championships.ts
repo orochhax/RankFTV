@@ -79,6 +79,9 @@ function mapChampionship(row: ChampRow): Championship {
     bannerFrom,
     bannerTo,
     bannerUrl: row.banner_url ?? null,
+    cardUrl: row.banner_url?.includes("circuito-rankftv-open")
+      ? "/banners/circuito-rankftv-card.png"
+      : (row.banner_url ?? null),
     bannerPositionX: row.banner_position_x ?? null,
     bannerPositionY: row.banner_position_y ?? null,
     liveUrl: row.live_url,
