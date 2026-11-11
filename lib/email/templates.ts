@@ -288,3 +288,39 @@ export function avisoAlteracaoIngressoHtml(opts: {
   `;
   return base("Dados do ingresso alterados", corpo);
 }
+
+export function lembreteDespesaHtml(opts: {
+  nomeOrganizador: string;
+  nomeCampeonato: string;
+  nomeDespesa: string;
+  categoria: string;
+  valorFormatado: string;
+  dataVencimentoFormatada: string;
+  diasRestantes: number;
+  painelUrl: string;
+}): string {
+  const prazoTexto = opts.diasRestantes === 0
+    ? "Vence hoje!"
+    : opts.diasRestantes === 1
+      ? "Vence amanhã!"
+      : `Vence em ${opts.diasRestantes} dias`;
+
+  const corpo = `
+    ${p(`Olá, <strong>${escapeHtml(opts.nomeOrganizador)}</strong>!`)}
+    ${p(`Este é um lembrete do RankFTV sobre uma despesa operacional do seu campeonato <strong>${escapeHtml(opts.nomeCampeonato)}</strong>:`)}
+    <div style="margin:20px 0;padding:20px;background:#fef3c7;border-radius:12px;border:1px solid #fde68a;">
+      <p style="margin:0;font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:0.5px;">${prazoTexto}</p>
+      <p style="margin:6px 0 2px;font-size:18px;font-weight:800;color:#111827;">${escapeHtml(opts.nomeDespesa)}</p>
+      <p style="margin:0 0 10px;font-size:13px;color:#6b7280;">Categoria: ${escapeHtml(opts.categoria)} · Vencimento: ${escapeHtml(opts.dataVencimentoFormatada)}</p>
+      <p style="margin:0;font-size:22px;font-weight:900;color:#b45309;">${escapeHtml(opts.valorFormatado)}</p>
+    </div>
+    ${p("Acesse o painel para acompanhar o saldo disponível na carteira e dar baixa nesta despesa após realizar o pagamento.")}
+    <div style="margin:24px 0;">
+      <a href="${opts.painelUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:700;font-size:14px;">
+        Abrir Painel de Despesas
+      </a>
+    </div>
+  `;
+  return base("Lembrete de despesa a vencer", corpo);
+}
+

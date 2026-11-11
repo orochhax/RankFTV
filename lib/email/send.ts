@@ -11,6 +11,7 @@ import {
   credencialAtletaHtml,
   alteracaoIngressoOtpHtml,
   avisoAlteracaoIngressoHtml,
+  lembreteDespesaHtml,
 } from "./templates";
 import { reportOperationalEvent } from "@/lib/observability";
 import { resolveBaseUrl } from "@/lib/site-url";
@@ -222,5 +223,30 @@ export async function enviarCredencialAtleta(opts: {
     `Sua credencial — ${opts.nomeCampeonato}`,
     credencialAtletaHtml(opts),
     { idempotencyKey: opts.idempotencyKey, templateKey: "athlete_credential" },
+  );
+}
+
+export async function enviarLembreteDespesa(opts: {
+  email: string;
+  nomeOrganizador: string;
+  nomeCampeonato: string;
+  nomeDespesa: string;
+  categoria: string;
+  valorFormatado: string;
+  dataVencimentoFormatada: string;
+  diasRestantes: number;
+  painelUrl: string;
+  idempotencyKey?: string;
+}): Promise<boolean> {
+  const prazo = opts.diasRestantes === 0
+    ? "vence hoje"
+    : opts.diasRestantes === 1
+      ? "vence amanhã"
+      : `vence em ${opts.diasRestantes} dias`;
+  return send(
+    opts.email,
+    `Lembrete: Despesa "${opts.nomeDespesa}" ${prazo} — ${opts.nomeCampeonato}`,
+    lembreteDespesaHtml(opts),
+    opts.idempotencyKey ? { idempotencyKey: opts.idempotencyKey, templateKey: "expense_reminder" } : undefined,
   );
 }

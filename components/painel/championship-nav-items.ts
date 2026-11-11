@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard, Pencil, QrCode, Trophy, Shirt,
-  Wallet, TicketPercent, Layers, Users, MessageSquare, ListPlus, Grid2X2, FileDown,
+  Wallet, ReceiptText, TicketPercent, Layers, Users, MessageSquare, ListPlus, Grid2X2, FileDown,
   Armchair, ListChecks, BadgeDollarSign,
 } from "lucide-react";
 
@@ -44,6 +44,7 @@ export const CHAMPIONSHIP_NAV_GROUPS: ChampionshipNavGroup[] = [
     label: "Financeiro",
     items: [
       { key: "financeiro", label: "Financeiro", icon: Wallet, href: (id) => `/painel/campeonatos/${id}/financeiro` },
+      { key: "despesas", label: "Despesas", icon: ReceiptText, href: (id) => `/painel/campeonatos/${id}/despesas` },
       { key: "cupons", label: "Cupons", icon: TicketPercent, href: (id) => `/painel/campeonatos/${id}/cupons` },
       { key: "lotes", label: "Lotes", icon: Layers, href: (id) => `/painel/campeonatos/${id}/lotes` },
       { key: "relatorios", label: "Relatórios", icon: FileDown, href: (id) => `/painel/campeonatos/${id}/relatorios` },
