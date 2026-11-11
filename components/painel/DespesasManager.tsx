@@ -371,14 +371,14 @@ export function DespesasManager({
               <Surface
                 key={item.id}
                 padding="md"
-                className={`relative flex flex-col justify-between transition-all ${
+                className={`relative flex flex-col justify-between transition-all bg-surface ${
                   isPago
-                    ? "border-emerald-500/30 bg-surface"
+                    ? "ring-emerald-200"
                     : overdue
-                      ? "border-rose-500/40 bg-rose-50/20 dark:bg-rose-950/10"
+                      ? "ring-rose-300"
                       : dueSoon
-                        ? "border-amber-500/40 bg-amber-50/20 dark:bg-amber-950/10"
-                        : "border-border/80 bg-surface"
+                        ? "ring-amber-300"
+                        : ""
                 }`}
               >
                 <div>
@@ -390,22 +390,22 @@ export function DespesasManager({
 
                     {/* Badge de Vencimento / Pagamento */}
                     {isPago ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
                         <CheckCircle2 className="size-3" />
                         Pago
                       </span>
                     ) : overdue ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-800">
                         <AlertTriangle className="size-3" />
                         Atrasada ({Math.abs(daysDiff)}d)
                       </span>
                     ) : daysDiff === 0 ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
                         <Clock className="size-3" />
                         Vence hoje
                       </span>
                     ) : dueSoon ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
                         <Clock className="size-3" />
                         Em {daysDiff}d
                       </span>
@@ -515,7 +515,7 @@ export function DespesasManager({
 
             <form onSubmit={handleSaveExpense} className="mt-4 space-y-4">
               {errorMsg && (
-                <div className="rounded-xl border border-rose-500/30 bg-rose-50 p-3 text-xs text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
                   {errorMsg}
                 </div>
               )}
