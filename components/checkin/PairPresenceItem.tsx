@@ -18,7 +18,13 @@ function formatTime(value: string | null) {
   });
 }
 
-export function PairPresenceItem({ members }: { members: PairPresenceMember[] }) {
+export function PairPresenceItem({
+  members,
+  categoryName,
+}: {
+  members: PairPresenceMember[];
+  categoryName?: string | null;
+}) {
   const [expanded, setExpanded] = useState(false);
   const detailsId = useId();
   const confirmed = members.filter((member) => member.checkedIn).length;
@@ -44,9 +50,15 @@ export function PairPresenceItem({ members }: { members: PairPresenceMember[] })
               </span>
             ))}
           </p>
-          <p className="mt-0.5 flex items-center gap-1 text-[11px] text-ink-muted">
+          <p className="mt-0.5 flex flex-wrap items-center gap-1 text-[11px] text-ink-muted">
             {complete ? <CheckCircle2 className="size-3 text-blue-600" /> : <Clock3 className="size-3" />}
-            {complete ? "Dupla confirmada" : confirmed > 0 ? "Chegada parcial" : "Aguardando chegada"}
+            <span>{complete ? "Dupla confirmada" : confirmed > 0 ? "Chegada parcial" : "Aguardando chegada"}</span>
+            {categoryName && (
+              <>
+                <span aria-hidden="true" className="text-gray-300">·</span>
+                <span className="font-semibold text-blue-600">{categoryName}</span>
+              </>
+            )}
           </p>
         </div>
         <span

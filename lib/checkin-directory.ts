@@ -14,6 +14,8 @@ export type CheckinDirectoryItem = {
   id: string;
   kind: "athlete" | "pair";
   members: CheckinDirectoryMember[];
+  categoryId?: string | null;
+  categoryName?: string | null;
 };
 
 type CredentialRow = {
@@ -26,6 +28,8 @@ type CredentialRow = {
 
 type TicketRow = {
   id: string;
+  category_id: string | null;
+  categoria_nome: string | null;
   comprador_nome: string;
   parceiro_nome: string | null;
   checked_in: boolean;
@@ -50,6 +54,8 @@ type ProfileRow = {
 
 type PaidTeamRow = {
   team_id: string;
+  category_id: string | null;
+  championship_categories: { id: string; nome: string } | null;
   teams: {
     id: string;
     atleta1_id: string;
@@ -90,7 +96,7 @@ export async function getCheckinDirectory(
       .limit(DIRECTORY_LIMIT),
     admin
       .from("athlete_tickets")
-      .select("id, comprador_nome, parceiro_nome, checked_in, checkin_at")
+      .select("id, category_id, categoria_nome, comprador_nome, parceiro_nome, checked_in, checkin_at")
       .eq("championship_id", championshipId)
       .eq("status_pagamento", "pago")
       .limit(DIRECTORY_LIMIT),
@@ -102,7 +108,7 @@ export async function getCheckinDirectory(
       .limit(DIRECTORY_LIMIT * 2),
     admin
       .from("registrations")
-      .select("team_id, teams!inner(id, atleta1_id, atleta2_id)")
+      .select("team_id, category_id, championship_categories(id, nome), teams!inner(id, atleta1_id, atleta2_id)")
       .eq("championship_id", championshipId)
       .eq("status_pagamento", "pago")
       .limit(DIRECTORY_LIMIT),
@@ -166,6 +172,8 @@ export async function getCheckinDirectory(
       id: `team:${team.id}`,
       kind: "pair",
       members: [directoryMember(athlete1), directoryMember(athlete2)],
+      categoryId: row.category_id,
+      categoryName: row.championship_categories?.nome ?? null,
     });
   }
 
@@ -212,6 +220,8 @@ export async function getCheckinDirectory(
       id: `ticket:${ticket.id}`,
       kind: "pair",
       members,
+      categoryId: ticket.category_id,
+      categoryName: ticket.categoria_nome ?? null,
     };
   });
 

@@ -72,7 +72,8 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
       try {
         const result = await markCheckin(token, championshipId);
         if ("ok" in result) {
-          showToast("success", `Check-in confirmado: ${result.nome}.`);
+          const prefix = result.tipo === "plateia" ? "Plateia confirmada" : "Check-in confirmado";
+          showToast("success", `${prefix}: ${result.nome}.`);
         } else if ("alreadyDone" in result) {
           showToast("already", `Check-in já realizado: ${result.nome}.`);
         } else {
