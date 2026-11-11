@@ -52,7 +52,7 @@ type TeamRow = {
 };
 
 const PAG_BADGE: Record<string, { label: string; className: string; icon: "check" | "clock" }> = {
-  pago:      { label: "Pagamento confirmado",   className: "bg-blue-100 text-blue-700", icon: "check" },
+  pago:      { label: "Pagamento confirmado",   className: "bg-success-bg text-success", icon: "check" },
   pendente:  { label: "Aguardando pagamento",   className: "bg-amber-100  text-amber-700",   icon: "clock" },
   estornado: { label: "Pagamento estornado",    className: "bg-red-100    text-red-700",     icon: "clock" },
 };
@@ -182,7 +182,7 @@ export default async function IngressoPage({
           <div className="flex items-center gap-2">
             <StatusBadge status={champ.status as ChampionshipStatus} />
             {isCheckedIn && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-400">
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-3 py-1 text-xs font-medium text-accent">
                 <CheckCircle2 className="size-3.5" /> Check-in realizado
               </span>
             )}
@@ -227,7 +227,7 @@ export default async function IngressoPage({
                     className={`rounded-2xl ${isCheckedIn ? "opacity-40 grayscale" : ""}`}
                   />
                   {isCheckedIn ? (
-                    <div className="flex items-center gap-1.5 text-sm font-medium text-blue-600">
+                    <div className="flex items-center gap-1.5 text-sm font-medium text-brand-ink">
                       <CheckCircle2 className="size-4" />
                       Check-in já realizado
                       {credential?.checkin_at && (
@@ -327,9 +327,9 @@ export default async function IngressoPage({
 
               <InfoRow icon={<Users className="size-4 text-gray-400" />} label="Status da dupla">
                 <span className={`text-sm font-medium ${
-                  team.status === "confirmado" ? "text-blue-600" :
-                  team.status === "cancelado"  ? "text-red-600" :
-                  "text-amber-600"
+                  team.status === "confirmado" ? "text-success" :
+                  team.status === "cancelado"  ? "text-danger" :
+                  "text-warning"
                 }`}>
                   {team.status === "confirmado"       ? "Dupla confirmada" :
                    team.status === "convite_pendente" ? "Aguardando parceiro" :
@@ -375,7 +375,7 @@ export default async function IngressoPage({
               </h2>
               <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5 space-y-3">
                 <div className="flex items-start gap-3">
-                  <Link2 className="mt-0.5 size-4 shrink-0 text-blue-500" />
+                  <Link2 className="mt-0.5 size-4 shrink-0 text-brand" />
                   <div className="space-y-1.5">
                     <p className="text-sm font-medium text-gray-800">
                       Compartilhe o link de convite
@@ -422,7 +422,7 @@ export default async function IngressoPage({
           {/* Link para ver a página pública */}
           <Link
             href={`/campeonatos/${champ.id}`}
-            className="flex items-center justify-center gap-1.5 text-sm text-blue-600 hover:text-blue-700"
+            className="flex items-center justify-center gap-1.5 text-sm text-brand-ink hover:text-brand"
           >
             Ver página pública do campeonato
           </Link>

@@ -168,15 +168,15 @@ function SorteioPanel({
           <div className="rounded-xl border border-gray-200 bg-white p-4">
             <p className="text-sm font-semibold text-gray-900">Formato do chaveamento</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <label className={`cursor-pointer rounded-xl border p-3 ${selectedFormat === "single_elimination" ? "border-blue-500 bg-blue-50" : "border-gray-200"}`}>
-                <input type="radio" className="mr-2 accent-blue-600" checked={selectedFormat === "single_elimination"} disabled={hasResults} onChange={() => setSelectedFormat("single_elimination")} />
-                <span className="text-sm font-semibold text-gray-900">Eliminatória simples</span>
-                <span className="mt-1 block pl-5 text-xs text-gray-500">Uma derrota elimina; semifinalistas disputam o 3º lugar.</span>
+              <label className={`cursor-pointer rounded-xl border p-3 ${selectedFormat === "single_elimination" ? "border-brand bg-brand-soft" : "border-border"}`}>
+                <input type="radio" className="mr-2 accent-brand" checked={selectedFormat === "single_elimination"} disabled={hasResults} onChange={() => setSelectedFormat("single_elimination")} />
+                <span className="text-sm font-semibold text-ink">Eliminatória simples</span>
+                <span className="mt-1 block pl-5 text-xs text-ink-muted">Uma derrota elimina; semifinalistas disputam o 3º lugar.</span>
               </label>
-              <label className={`cursor-pointer rounded-xl border p-3 ${selectedFormat === "double_elimination" ? "border-blue-500 bg-blue-50" : "border-gray-200"}`}>
-                <input type="radio" className="mr-2 accent-blue-600" checked={selectedFormat === "double_elimination"} disabled={hasResults} onChange={() => setSelectedFormat("double_elimination")} />
-                <span className="text-sm font-semibold text-gray-900">Repescagem</span>
-                <span className="mt-1 block pl-5 text-xs text-gray-500">A primeira derrota leva à repescagem; duas duplas retornam às semifinais.</span>
+              <label className={`cursor-pointer rounded-xl border p-3 ${selectedFormat === "double_elimination" ? "border-brand bg-brand-soft" : "border-border"}`}>
+                <input type="radio" className="mr-2 accent-brand" checked={selectedFormat === "double_elimination"} disabled={hasResults} onChange={() => setSelectedFormat("double_elimination")} />
+                <span className="text-sm font-semibold text-ink">Repescagem</span>
+                <span className="mt-1 block pl-5 text-xs text-ink-muted">A primeira derrota leva à repescagem; duas duplas retornam às semifinais.</span>
               </label>
             </div>
             {hasResults && <p className="mt-2 text-xs font-medium text-amber-600">O formato está bloqueado porque já existem resultados. Limpe o chaveamento para trocar.</p>}
@@ -196,14 +196,14 @@ function SorteioPanel({
                     setTotalCourts(next);
                     setPrimaryCourtNumber((current) => Math.min(current, next));
                     setCourtSaved(false);
-                  }} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  }} className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-brand" />
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs font-medium text-gray-700">Quadra principal</span>
+                  <span className="text-xs font-medium text-ink-muted">Quadra principal</span>
                   <select value={primaryCourtNumber} onChange={(event) => {
                     setPrimaryCourtNumber(Number(event.target.value));
                     setCourtSaved(false);
-                  }} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500">
+                  }} className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-brand">
                     {Array.from({ length: totalCourts }, (_, index) => index + 1).map((court) => (
                       <option key={court} value={court}>Quadra {court}</option>
                     ))}
@@ -211,7 +211,7 @@ function SorteioPanel({
                 </label>
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-3">
-                <button type="button" onClick={handleSaveCourts} disabled={isPending} className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40">
+                <button type="button" onClick={handleSaveCourts} disabled={isPending} className="rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand-hover disabled:opacity-40">
                   {isPending ? "Salvando…" : "Salvar configuração"}
                 </button>
                 {courtSaved && <span className="text-xs font-medium text-emerald-600">Configuração salva e jogos redistribuídos.</span>}
@@ -220,12 +220,12 @@ function SorteioPanel({
             </div>
           )}
 
-          <div className="rounded-xl bg-blue-50 p-3 ring-1 ring-blue-100">
-            <p className="text-xs font-semibold text-blue-900">Adicionar dupla ao sorteio</p>
+          <div className="rounded-xl bg-brand-soft p-3 ring-1 ring-brand-border">
+            <p className="text-xs font-semibold text-brand-ink">Adicionar dupla ao sorteio</p>
             <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-              <input value={athleteA} onChange={(event) => setAthleteA(event.target.value)} placeholder="Nome do atleta 1" className="min-w-0 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500" />
-              <input value={athleteB} onChange={(event) => setAthleteB(event.target.value)} placeholder="Nome do atleta 2" className="min-w-0 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500" />
-              <button type="button" onClick={handleAddPair} disabled={isPending || !athleteA.trim() || !athleteB.trim()} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">Adicionar</button>
+              <input value={athleteA} onChange={(event) => setAthleteA(event.target.value)} placeholder="Nome do atleta 1" className="min-w-0 rounded-lg border border-brand-border bg-white px-3 py-2 text-sm outline-none focus:border-brand" />
+              <input value={athleteB} onChange={(event) => setAthleteB(event.target.value)} placeholder="Nome do atleta 2" className="min-w-0 rounded-lg border border-brand-border bg-white px-3 py-2 text-sm outline-none focus:border-brand" />
+              <button type="button" onClick={handleAddPair} disabled={isPending || !athleteA.trim() || !athleteB.trim()} className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-40">Adicionar</button>
             </div>
             {pairError && <p className="mt-2 text-xs font-medium text-red-600">{pairError}</p>}
           </div>
@@ -237,7 +237,7 @@ function SorteioPanel({
             </span>
             <button
               onClick={toggleAll}
-              className="text-xs font-medium text-blue-600 hover:text-blue-700"
+              className="text-xs font-medium text-brand-ink hover:text-brand"
             >
               {allSelected ? "Limpar seleção" : "Selecionar todas"}
             </button>
@@ -252,7 +252,7 @@ function SorteioPanel({
                     type="checkbox"
                     checked={selected.has(t.id)}
                     onChange={() => toggle(t.id)}
-                    className="size-4 rounded accent-blue-600"
+                    className="size-4 rounded accent-brand"
                   />
                   <span className="text-sm text-gray-800">{t.nome}</span>
                 </label>
@@ -280,7 +280,7 @@ function SorteioPanel({
             className={`w-full rounded-2xl py-3 text-sm font-semibold text-white transition-colors disabled:opacity-30 ${
               confirm
                 ? "bg-red-500 hover:bg-red-600"
-                : "bg-gray-900 hover:bg-gray-800"
+                : "bg-brand-dark hover:bg-brand-dark-2"
             }`}
           >
             {isPending
@@ -451,7 +451,7 @@ function MatchModal({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Pesquisar dupla..."
-            className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-border py-2.5 pl-9 pr-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
           />
         </div>
 
@@ -468,7 +468,7 @@ function MatchModal({
                   disabled={isPending}
                   className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 disabled:opacity-50"
                 >
-                  <div className="size-1.5 rounded-full bg-blue-400" />
+                  <div className="size-1.5 rounded-full bg-brand" />
                   <span className="text-sm font-medium text-gray-800">{t.nome}</span>
                 </button>
               </li>
@@ -498,8 +498,8 @@ function MatchModal({
       </div>
 
       {totalCourts && (
-        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-3">
-          <label className="block text-xs font-semibold text-blue-900" htmlFor={`court-${match.dbId}`}>
+        <div className="mt-4 rounded-xl border border-brand-border bg-brand-soft p-3">
+          <label className="block text-xs font-semibold text-brand-ink" htmlFor={`court-${match.dbId}`}>
             Quadra deste jogo
           </label>
           <div className="mt-2 flex gap-2">
@@ -507,7 +507,7 @@ function MatchModal({
               id={`court-${match.dbId}`}
               value={selectedCourt}
               onChange={(event) => { setSelectedCourt(Number(event.target.value)); setCourtError(null); }}
-              className="min-w-0 flex-1 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500"
+              className="min-w-0 flex-1 rounded-lg border border-brand-border bg-white px-3 py-2 text-sm outline-none focus:border-brand"
             >
               {Array.from({ length: totalCourts }, (_, index) => index + 1).map((court) => (
                 <option key={court} value={court}>Quadra {court}</option>
@@ -517,7 +517,7 @@ function MatchModal({
               type="button"
               onClick={handleSaveCourt}
               disabled={isPending}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
+              className="rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand-hover disabled:opacity-40"
             >
               {isPending ? "Salvando…" : "Salvar quadra"}
             </button>
@@ -530,13 +530,13 @@ function MatchModal({
       <div className="mt-4 overflow-hidden rounded-2xl ring-1 ring-black/8">
         {/* Dupla A */}
         <div className="flex items-center gap-3 bg-white px-4 py-3">
-          <div className={`size-2 shrink-0 rounded-full ${match.teamA ? "bg-blue-400" : "bg-gray-200"}`} />
-          <span className={`flex-1 text-sm font-medium ${match.teamA ? "text-gray-900" : "text-gray-300"}`}>
+          <div className={`size-2 shrink-0 rounded-full ${match.teamA ? "bg-brand" : "bg-border"}`} />
+          <span className={`flex-1 text-sm font-medium ${match.teamA ? "text-ink" : "text-ink-muted/50"}`}>
             {match.teamA?.nome ?? "A definir"}
           </span>
           <button
             onClick={() => setActiveSlot("a")}
-            className="shrink-0 text-xs font-medium text-blue-600 hover:text-blue-700"
+            className="shrink-0 text-xs font-medium text-brand-ink hover:text-brand"
           >
             {match.teamA ? "Alterar" : "Definir"}
           </button>
@@ -551,7 +551,7 @@ function MatchModal({
             max={9}
             value={setsA}
             onChange={(e) => { setSetsA(e.target.value); setScoreError(null); }}
-            className="w-12 rounded-lg border border-gray-200 bg-white px-2 py-1 text-center text-sm font-semibold outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            className="w-12 rounded-lg border border-border bg-white px-2 py-1 text-center text-sm font-semibold outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
             placeholder="—"
           />
           <span className="text-sm font-semibold text-gray-400">×</span>
@@ -561,7 +561,7 @@ function MatchModal({
             max={9}
             value={setsB}
             onChange={(e) => { setSetsB(e.target.value); setScoreError(null); }}
-            className="w-12 rounded-lg border border-gray-200 bg-white px-2 py-1 text-center text-sm font-semibold outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            className="w-12 rounded-lg border border-border bg-white px-2 py-1 text-center text-sm font-semibold outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
             placeholder="—"
           />
           {match.setsA !== null && match.setsB !== null && (
@@ -590,7 +590,7 @@ function MatchModal({
                     min={0}
                     value={setDetails[i]?.a ?? ""}
                     onChange={(e) => updateSetDetail(i, "a", e.target.value)}
-                    className="w-14 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-center text-sm font-semibold outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    className="w-14 rounded-lg border border-border bg-surface-2 px-2 py-1 text-center text-sm font-semibold outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
                     placeholder="0"
                   />
                   <span className="text-xs font-semibold text-gray-400">×</span>
@@ -599,7 +599,7 @@ function MatchModal({
                     min={0}
                     value={setDetails[i]?.b ?? ""}
                     onChange={(e) => updateSetDetail(i, "b", e.target.value)}
-                    className="w-14 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-center text-sm font-semibold outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    className="w-14 rounded-lg border border-border bg-surface-2 px-2 py-1 text-center text-sm font-semibold outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
                     placeholder="0"
                   />
                 </div>
@@ -610,13 +610,13 @@ function MatchModal({
 
         {/* Dupla B */}
         <div className="flex items-center gap-3 bg-white px-4 py-3">
-          <div className={`size-2 shrink-0 rounded-full ${match.teamB ? "bg-blue-400" : "bg-gray-200"}`} />
-          <span className={`flex-1 text-sm font-medium ${match.teamB ? "text-gray-900" : "text-gray-300"}`}>
+          <div className={`size-2 shrink-0 rounded-full ${match.teamB ? "bg-brand" : "bg-border"}`} />
+          <span className={`flex-1 text-sm font-medium ${match.teamB ? "text-ink" : "text-ink-muted/50"}`}>
             {match.teamB?.nome ?? "A definir"}
           </span>
           <button
             onClick={() => setActiveSlot("b")}
-            className="shrink-0 text-xs font-medium text-blue-600 hover:text-blue-700"
+            className="shrink-0 text-xs font-medium text-brand-ink hover:text-brand"
           >
             {match.teamB ? "Alterar" : "Definir"}
           </button>
@@ -632,7 +632,7 @@ function MatchModal({
       <button
         onClick={handleSaveScore}
         disabled={!canSaveScore || isPending}
-        className="mt-4 w-full rounded-2xl bg-gray-900 py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-30 hover:bg-gray-800"
+        className="mt-4 w-full rounded-2xl bg-brand-dark py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-30 hover:bg-brand-dark-2"
       >
         {isPending ? "Salvando…" : "Salvar placar"}
       </button>
@@ -719,7 +719,7 @@ function FinalResultsPanel({ podium }: { podium: Podium | null }) {
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center gap-2">
-        <Trophy className="size-5 text-blue-600" />
+        <Trophy className="size-5 text-brand" />
         <div>
           <h2 className="text-sm font-bold text-gray-900">Resultado final</h2>
           <p className="text-[11px] text-gray-400">O pódio é atualizado automaticamente</p>
@@ -930,7 +930,7 @@ export function BracketClient({
 
       // "RankFTV" canto inferior direito
       ctx.font         = "bold 36px system-ui, -apple-system, sans-serif";
-      ctx.fillStyle    = "#0000ff";
+      ctx.fillStyle    = "#FF5D00";
       ctx.textAlign    = "right";
       ctx.textBaseline = "bottom";
       ctx.fillText("RankFTV", 1080 - PAD, 1920 - 24);
@@ -1033,7 +1033,7 @@ export function BracketClient({
               <button
                 onClick={handleConfirm}
                 disabled={isPending}
-                className="w-full rounded-2xl bg-gray-900 py-3 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                className="w-full rounded-2xl bg-brand-dark py-3 text-sm font-semibold text-white hover:bg-brand-dark-2 disabled:opacity-50 transition-colors"
               >
                 {isPending ? "Confirmando…" : "Sim, confirmar resultado"}
               </button>
@@ -1051,11 +1051,11 @@ export function BracketClient({
 
       {/* Banner de resultado confirmado */}
       {isConfirmed && (
-        <div className="flex items-center gap-2.5 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3">
-          <CheckCircle2 className="size-4 shrink-0 text-blue-600" />
+        <div className="flex items-center gap-2.5 rounded-2xl border border-success/30 bg-success-bg px-4 py-3">
+          <CheckCircle2 className="size-4 shrink-0 text-success" />
           <div>
-            <p className="text-sm font-semibold text-blue-800">Resultado confirmado</p>
-            <p className="text-xs text-blue-600">Confirmado em {formatDateTimeBR(confirmedAt!)} · Somente visualização</p>
+            <p className="text-sm font-semibold text-ink">Resultado confirmado</p>
+            <p className="text-xs text-ink-muted">Confirmado em {formatDateTimeBR(confirmedAt!)} · Somente visualização</p>
           </div>
         </div>
       )}
@@ -1079,7 +1079,7 @@ export function BracketClient({
       {hasExistingBracket && (
         <div className="overflow-hidden rounded-xl bg-gray-50 p-4 ring-1 ring-black/5">
           {bracketFormat === "double_elimination" && (
-            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-blue-700">Chave principal</p>
+            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-brand-ink">Chave principal</p>
           )}
           <BracketGrid rounds={sharedRounds} onMatchClick={openSharedMatch} disabled={isConfirmed} />
         </div>
@@ -1141,7 +1141,7 @@ export function BracketClient({
             <button
               onClick={exportAsInstagram}
               disabled={!!exporting}
-              className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-100 disabled:opacity-40"
+              className="flex items-center gap-1.5 rounded-lg bg-brand-soft px-2.5 py-1.5 text-xs font-medium text-brand-ink transition-colors hover:bg-brand/15 disabled:opacity-40"
             >
               <Share2 className="size-3.5" />
               {exporting === "instagram" ? "Gerando…" : "Instagram"}
@@ -1176,7 +1176,7 @@ export function BracketClient({
               disabled={!podium?.first || !podium.second || isPending}
               className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold transition-colors ${
                 podium?.first && podium.second
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  ? "bg-brand text-white hover:bg-brand-hover"
                   : "cursor-not-allowed bg-gray-100 text-gray-400"
               }`}
             >

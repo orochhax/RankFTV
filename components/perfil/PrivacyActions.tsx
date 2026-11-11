@@ -48,7 +48,7 @@ export function PrivacyActions() {
       </button>
 
       {pedidoEnviado ? (
-        <p className="rounded-2xl bg-blue-50 p-4 text-sm text-blue-700 ring-1 ring-blue-100">
+        <p className="rounded-2xl bg-brand-soft p-4 text-sm text-brand-ink ring-1 ring-brand-border">
           Pedido de exclusão registrado. Nossa equipe vai analisar e retornar pelo seu e-mail —
           registros financeiros que a lei exige manter continuam guardados de forma restrita.
         </p>

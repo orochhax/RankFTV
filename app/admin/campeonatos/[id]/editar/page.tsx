@@ -62,8 +62,8 @@ export default async function EditarCampeonatoVitrinePage({
         <p className="mt-1 text-sm text-gray-500">{campeonato.nome}</p>
       </div>
 
-      <div className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 text-sm text-blue-800 ring-1 ring-blue-100">
-        <Info className="mt-0.5 size-4 shrink-0" />
+      <div className="flex items-start gap-3 rounded-2xl bg-brand-soft p-4 text-sm text-ink ring-1 ring-brand-border">
+        <Info className="mt-0.5 size-4 shrink-0 text-brand-ink" />
         <p>
           Sem categoria, sem questionário de nível e sem chave PIX. A página pública mostra
           só as informações do evento (data, local, regulamento).

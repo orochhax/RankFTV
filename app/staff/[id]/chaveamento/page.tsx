@@ -225,8 +225,8 @@ export default async function StaffChaveamentoPage({
                       href={`/staff/${id}/chaveamento?cat=${c.id}`}
                       className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                         activeCatId === c.id
-                          ? "bg-gray-900 text-white"
-                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                          ? "bg-brand-dark text-white"
+                          : "bg-surface-2 text-ink-muted hover:bg-border/50"
                       }`}
                     >
                       {c.nome}

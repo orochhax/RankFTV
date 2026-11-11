@@ -78,22 +78,22 @@ export function ElitePlanCard({
   // Explicação + termos
   if (showTerms) {
     return (
-      <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-[#1a1a24] to-[#0f0f18] p-6">
+      <div className="rounded-2xl border-2 border-accent/60 bg-gradient-to-br from-brand-dark to-[#092B20] p-6">
         <div className="flex items-center gap-2 mb-6">
-          <Crown className="size-5 text-amber-400" />
+          <Crown className="size-5 text-accent" />
           <h3 className="font-bold text-white">Como funciona o Evento de Elite</h3>
         </div>
 
         {/* Destaque principal: não paga agora */}
-        <div className="rounded-2xl bg-blue-500/10 ring-1 ring-blue-500/30 p-5 mb-4">
+        <div className="rounded-2xl bg-accent/15 ring-1 ring-accent/35 p-5 mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <ShieldCheck className="size-5 text-blue-400" />
-            <p className="font-bold text-blue-300 text-base">Você não paga nada agora</p>
+            <ShieldCheck className="size-5 text-accent" />
+            <p className="font-bold text-accent text-base">Você não paga nada agora</p>
           </div>
-          <p className="text-sm text-blue-200/80 leading-relaxed">
+          <p className="text-sm text-white/85 leading-relaxed">
             O valor de{" "}
             <span className="line-through opacity-50 mr-0.5">R$399,00</span>
-            <strong className="text-blue-300">R$178,00</strong> é descontado automaticamente
+            <strong className="text-accent">R$178,00</strong> é descontado automaticamente
             das primeiras inscrições que entram. Sem cartão, sem boleto, sem tirar dinheiro do bolso.
             Enquanto ninguém se inscrever, você não deve nada.
           </p>

@@ -84,7 +84,7 @@ export default async function MeusCampeonatosPage({
             actions={
               <Link
                 href="/painel/novo-campeonato"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
               >
                 <Plus className="size-4" /> Criar campeonato
               </Link>
@@ -110,7 +110,7 @@ export default async function MeusCampeonatosPage({
             href={key === "aberto" ? "/painel/campeonatos" : `/painel/campeonatos?filtro=${key}`}
             className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               filtroAtivo === key
-                ? "bg-blue-600 text-white"
+                ? "bg-brand text-white"
                 : "bg-surface-2 text-ink-muted hover:bg-border/60"
             }`}
           >
@@ -155,7 +155,7 @@ export default async function MeusCampeonatosPage({
 
       <Link
         href="/termos"
-        className="inline-flex items-center gap-1.5 text-xs text-ink-muted transition-colors hover:text-blue-600"
+        className="inline-flex items-center gap-1.5 text-xs text-ink-muted transition-colors hover:text-brand-ink"
       >
         <FileText className="size-3.5" /> Termos de uso <ChevronRight className="size-3" />
       </Link>

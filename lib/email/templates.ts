@@ -20,29 +20,29 @@ function base(titulo: string, corpo: string): string {
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px;">
+<body style="margin:0;padding:0;background:#FBE9D1;font-family:sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FBE9D1;padding:32px 16px;">
     <tr><td align="center">
-      <table width="100%" style="max-width:520px;background:#ffffff;border-radius:16px;overflow:hidden;">
+      <table width="100%" style="max-width:520px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #E5CFAF;">
         <!-- Header -->
         <tr>
-          <td style="background:#1d4ed8;padding:24px 32px;">
+          <td style="background:#0E4937;padding:24px 32px;">
             <span style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:-0.5px;">
-              Rank<span style="font-weight:400;">FTV</span>
+              Rank<span style="font-weight:700;color:#72BF00;">FTV</span>
             </span>
           </td>
         </tr>
         <!-- Corpo -->
         <tr>
           <td style="padding:32px;">
-            <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#111827;">${titulo}</h1>
+            <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#0E4937;">${titulo}</h1>
             ${corpo}
           </td>
         </tr>
         <!-- Footer -->
         <tr>
-          <td style="padding:16px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;">
-            <p style="margin:0;font-size:11px;color:#9ca3af;">
+          <td style="padding:16px 32px;background:#FFF8EE;border-top:1px solid #E5CFAF;">
+            <p style="margin:0;font-size:11px;color:#3E685A;">
               Este e-mail foi enviado automaticamente pela plataforma RankFTV.
               Não responda a esta mensagem.
             </p>
@@ -56,11 +56,11 @@ function base(titulo: string, corpo: string): string {
 }
 
 function btn(label: string, url: string): string {
-  return `<a href="${escapeHtml(url)}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:#1d4ed8;color:#ffffff;font-size:14px;font-weight:600;border-radius:10px;text-decoration:none;">${escapeHtml(label)}</a>`;
+  return `<a href="${escapeHtml(url)}" style="display:inline-block;margin-top:20px;padding:12px 24px;background:#FF5D00;color:#ffffff;font-size:14px;font-weight:600;border-radius:10px;text-decoration:none;">${escapeHtml(label)}</a>`;
 }
 
 function p(text: string): string {
-  return `<p style="margin:8px 0;font-size:15px;color:#374151;line-height:1.6;">${text}</p>`;
+  return `<p style="margin:8px 0;font-size:15px;color:#0E4937;line-height:1.6;">${text}</p>`;
 }
 
 export function conviteListaEsperaHtml(opts: { championshipName: string; categoryName: string; url: string; hours: number }): string {
@@ -84,9 +84,9 @@ export function conviteDuplaHtml(opts: {
   const corpo = `
     ${p(`Oi, <strong>${escapeHtml(opts.nomeConvidado)}</strong>!`)}
     ${p(`<strong>@${escapeHtml(opts.usernameAtleta1)}</strong> te convidou para jogar como dupla no campeonato:`)}
-    <div style="margin:16px 0;padding:16px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;">
-      <p style="margin:0;font-size:16px;font-weight:700;color:#1e3a8a;">${escapeHtml(opts.nomeCampeonato)}</p>
-      <p style="margin:4px 0 0;font-size:13px;color:#3b82f6;">Categoria: ${escapeHtml(opts.nomeCategoria)}</p>
+    <div style="margin:16px 0;padding:16px;background:#FFF0E6;border-radius:10px;border-left:4px solid #FF5D00;">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#0E4937;">${escapeHtml(opts.nomeCampeonato)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#B84300;">Categoria: ${escapeHtml(opts.nomeCategoria)}</p>
     </div>
     ${p("Acesse seu perfil para aceitar ou recusar o convite.")}
     ${btn("Ver convite no perfil", opts.perfilUrl)}
@@ -143,9 +143,9 @@ export function conviteStaffHtml(opts: {
   const corpo = `
     ${p(`Oi, <strong>${escapeHtml(opts.nomeConvidado)}</strong>!`)}
     ${p(`<strong>${escapeHtml(opts.nomeOrganizador)}</strong> te convidou para fazer parte da equipe de staff do campeonato:`)}
-    <div style="margin:16px 0;padding:16px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;">
-      <p style="margin:0;font-size:16px;font-weight:700;color:#1e3a8a;">${escapeHtml(opts.nomeCampeonato)}</p>
-      <p style="margin:4px 0 0;font-size:13px;color:#3b82f6;">Acesso: ${escapeHtml(opts.permissoes)}</p>
+    <div style="margin:16px 0;padding:16px;background:#FFF0E6;border-radius:10px;border-left:4px solid #FF5D00;">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#0E4937;">${escapeHtml(opts.nomeCampeonato)}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#B84300;">Acesso: ${escapeHtml(opts.permissoes)}</p>
     </div>
     ${p("Acesse suas notificações para aceitar ou recusar o convite.")}
     ${btn("Ver convite", opts.notificacoesUrl)}
@@ -187,12 +187,12 @@ export function organizerFinancialNotificationHtml(opts: {
   return base(escapeHtml(opts.heading), `
     ${p(`Olá, <strong>${escapeHtml(opts.nomeOrganizador)}</strong>.`)}
     ${p(escapeHtml(opts.detail))}
-    <div style="margin:16px 0;padding:16px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;">
-      <p style="margin:0;font-size:16px;font-weight:700;color:#1e3a8a;">${escapeHtml(opts.nomeCampeonato)}</p>
-      ${opts.nomeCategoria ? `<p style="margin:4px 0 0;font-size:13px;color:#1d4ed8;">Categoria: ${escapeHtml(opts.nomeCategoria)}</p>` : ""}
-      ${opts.formaPagamento ? `<p style="margin:4px 0 0;font-size:13px;color:#1d4ed8;">Forma de pagamento: ${escapeHtml(opts.formaPagamento)}</p>` : ""}
-      ${opts.valorFormatado ? `<p style="margin:4px 0 0;font-size:13px;color:#1d4ed8;">Valor: ${escapeHtml(opts.valorFormatado)}</p>` : ""}
-      ${participantes.length ? `<p style="margin:4px 0 0;font-size:13px;color:#1d4ed8;">${participantes.length === 1 ? "Participante" : "Atletas"}: ${participantes.map(escapeHtml).join(" + ")}</p>` : ""}
+    <div style="margin:16px 0;padding:16px;background:#FFF0E6;border-radius:10px;border-left:4px solid #FF5D00;">
+      <p style="margin:0;font-size:16px;font-weight:700;color:#0E4937;">${escapeHtml(opts.nomeCampeonato)}</p>
+      ${opts.nomeCategoria ? `<p style="margin:4px 0 0;font-size:13px;color:#B84300;">Categoria: ${escapeHtml(opts.nomeCategoria)}</p>` : ""}
+      ${opts.formaPagamento ? `<p style="margin:4px 0 0;font-size:13px;color:#B84300;">Forma de pagamento: ${escapeHtml(opts.formaPagamento)}</p>` : ""}
+      ${opts.valorFormatado ? `<p style="margin:4px 0 0;font-size:13px;color:#B84300;">Valor: ${escapeHtml(opts.valorFormatado)}</p>` : ""}
+      ${participantes.length ? `<p style="margin:4px 0 0;font-size:13px;color:#B84300;">${participantes.length === 1 ? "Participante" : "Atletas"}: ${participantes.map(escapeHtml).join(" + ")}</p>` : ""}
     </div>
   `);
 }
@@ -233,9 +233,9 @@ export function comunicadoHtml(opts: {
   const corpo = `
     ${p(`Oi, <strong>${escapeHtml(opts.nomeAtleta)}</strong>!`)}
     ${p(`O organizador do <strong>${escapeHtml(opts.nomeCampeonato)}</strong> enviou um comunicado:`)}
-    <div style="margin:16px 0;padding:20px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;">
-      <p style="margin:0 0 10px;font-size:16px;font-weight:700;color:#1e3a8a;">${tituloSeguro}</p>
-      <p style="margin:0;font-size:14px;color:#374151;line-height:1.7;white-space:pre-line;">${escapeHtml(opts.mensagem)}</p>
+    <div style="margin:16px 0;padding:20px;background:#FFF0E6;border-radius:10px;border-left:4px solid #FF5D00;">
+      <p style="margin:0 0 10px;font-size:16px;font-weight:700;color:#0E4937;">${tituloSeguro}</p>
+      <p style="margin:0;font-size:14px;color:#3E685A;line-height:1.7;white-space:pre-line;">${escapeHtml(opts.mensagem)}</p>
     </div>
   `;
   return base(tituloSeguro, corpo);
@@ -247,8 +247,8 @@ export function recuperacaoIngressoHtml(opts: {
 }): string {
   const corpo = `
     ${p("Alguém pediu pra ver os ingressos ligados a este e-mail no RankFTV.")}
-    <div style="margin:20px 0;padding:24px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;text-align:center;">
-      <p style="margin:0;font-size:32px;font-weight:800;letter-spacing:6px;color:#1e3a8a;">${escapeHtml(opts.codigo)}</p>
+    <div style="margin:20px 0;padding:24px;background:#FFF0E6;border-radius:10px;border-left:4px solid #FF5D00;text-align:center;">
+      <p style="margin:0;font-size:32px;font-weight:800;letter-spacing:6px;color:#0E4937;">${escapeHtml(opts.codigo)}</p>
     </div>
     ${p(`Esse código vale por ${opts.validadeMinutos} minutos e só pode ser usado uma vez.`)}
     ${p("Se você não pediu isso, pode ignorar este e-mail — ninguém consegue ver seus ingressos sem esse código.")}
@@ -266,8 +266,8 @@ export function alteracaoIngressoOtpHtml(opts: {
     : "Use este código para autorizar a alteração dos dados da sua dupla.";
   const corpo = `
     ${p(explicacao)}
-    <div style="margin:20px 0;padding:24px;background:#eff6ff;border-radius:10px;border-left:4px solid #1d4ed8;text-align:center;">
-      <p style="margin:0;font-size:32px;font-weight:800;letter-spacing:6px;color:#1e3a8a;">${escapeHtml(opts.codigo)}</p>
+    <div style="margin:20px 0;padding:24px;background:#FFF0E6;border-radius:10px;border-left:4px solid #FF5D00;text-align:center;">
+      <p style="margin:0;font-size:32px;font-weight:800;letter-spacing:6px;color:#0E4937;">${escapeHtml(opts.codigo)}</p>
     </div>
     ${p(`O código vale por ${opts.validadeMinutos} minutos e só pode ser usado uma vez.`)}
     ${p("Se você não pediu essa alteração, não compartilhe o código e ignore este e-mail.")}
@@ -316,7 +316,7 @@ export function lembreteDespesaHtml(opts: {
     </div>
     ${p("Acesse o painel para acompanhar o saldo disponível na carteira e dar baixa nesta despesa após realizar o pagamento.")}
     <div style="margin:24px 0;">
-      <a href="${escapeHtml(opts.painelUrl)}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:700;font-size:14px;">
+      <a href="${escapeHtml(opts.painelUrl)}" style="display:inline-block;background:#FF5D00;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:700;font-size:14px;">
         Abrir Painel de Despesas
       </a>
     </div>

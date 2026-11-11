@@ -14,7 +14,7 @@ import {
 } from "@/lib/home-banners";
 
 const fieldClass =
-  "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+  "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20";
 
 function safeLink(value: string) {
   const link = value.trim();
@@ -144,7 +144,7 @@ export function HomeBannersEditor({ initialBanners }: { initialBanners: HomeBann
               type="file"
               accept={HOME_BANNER_MIME_TYPES.join(",")}
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-              className={`${fieldClass} mt-1 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-blue-700`}
+              className={`${fieldClass} mt-1 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-soft file:px-3 file:py-1 file:text-xs file:font-semibold file:text-brand-ink`}
             />
             <p className="mt-1 text-xs text-gray-500">
               Tamanho ideal: <strong className="font-semibold text-gray-700">1920×600 px</strong> (panorâmico 16:5) · Máx. <strong className="font-semibold text-gray-700">5 MB</strong> (JPG, PNG ou WebP)
@@ -158,7 +158,7 @@ export function HomeBannersEditor({ initialBanners }: { initialBanners: HomeBann
             <label htmlFor="home-banner-link" className="text-xs font-medium text-gray-600">Link ao clicar</label>
             <input id="home-banner-link" value={linkUrl} onChange={(event) => setLinkUrl(event.target.value)} className={`${fieldClass} mt-1`} placeholder="/campeonatos ou https://..." />
           </div>
-          <button type="button" onClick={addBanner} disabled={uploading || banners.length >= MAX_HOME_BANNERS} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+          <button type="button" onClick={addBanner} disabled={uploading || banners.length >= MAX_HOME_BANNERS} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50">
             {uploading ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
             {uploading ? "Enviando…" : "Adicionar banner"}
           </button>
@@ -201,7 +201,7 @@ export function HomeBannersEditor({ initialBanners }: { initialBanners: HomeBann
       </div>
 
       {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-100">{error}</p>}
-      <button type="button" onClick={save} disabled={pending || uploading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50">
+      <button type="button" onClick={save} disabled={pending || uploading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-dark px-4 py-3 text-sm font-semibold text-white hover:bg-brand-dark-2 disabled:opacity-50">
         {pending ? <Loader2 className="size-4 animate-spin" /> : saved ? <Check className="size-4" /> : <Save className="size-4" />}
         {pending ? "Salvando…" : saved ? "Banners salvos" : "Salvar banners da home"}
       </button>

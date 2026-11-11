@@ -89,7 +89,7 @@ export default async function AdminCampeonatosPage({
         </div>
         <Link
           href="/admin/campeonatos/novo"
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover transition-colors"
         >
           <Plus className="size-4" /> Campeonato vitrine
         </Link>

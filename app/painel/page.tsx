@@ -96,7 +96,7 @@ export default async function PainelOrganizadorPage() {
         </Link>
         <Link
           href="/painel/novo-campeonato"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
         >
           <Plus className="size-4" /> Criar campeonato
         </Link>
@@ -169,8 +169,8 @@ export default async function PainelOrganizadorPage() {
                 className="flex items-center justify-between rounded-2xl bg-white/10 px-5 py-4 text-white ring-1 ring-white/10 transition-colors hover:bg-white/15"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-blue-500/20">
-                    <Building2 className="size-5 text-blue-400" />
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-accent/20">
+                    <Building2 className="size-5 text-accent" />
                   </div>
                   <div>
                     <p className="font-semibold text-white">Minhas Arenas</p>
@@ -219,14 +219,14 @@ export default async function PainelOrganizadorPage() {
                       key={label}
                       className={`rounded-2xl p-4 ring-1 text-center ${
                         valor > 0
-                          ? "bg-blue-50 ring-blue-200"
+                          ? "bg-brand-soft ring-brand-border"
                           : "bg-surface ring-border"
                       }`}
                     >
-                      <p className={`text-2xl font-bold ${valor > 0 ? "text-blue-700" : "text-ink"}`}>
+                      <p className={`text-2xl font-bold ${valor > 0 ? "text-brand-ink" : "text-ink"}`}>
                         {valor}
                       </p>
-                      <p className={`mt-1 text-xs font-medium ${valor > 0 ? "text-blue-700" : "text-ink-muted"}`}>
+                      <p className={`mt-1 text-xs font-medium ${valor > 0 ? "text-brand-ink" : "text-ink-muted"}`}>
                         {label}
                       </p>
                     </div>
@@ -248,14 +248,14 @@ export default async function PainelOrganizadorPage() {
                         key={label}
                         className={`rounded-2xl p-4 ring-1 text-center ${
                           valor > 0
-                            ? "bg-blue-50 ring-blue-200"
+                            ? "bg-brand-soft ring-brand-border"
                             : "bg-surface ring-border"
                         }`}
                       >
-                        <p className={`text-2xl font-bold ${valor > 0 ? "text-blue-700" : "text-ink"}`}>
+                        <p className={`text-2xl font-bold ${valor > 0 ? "text-brand-ink" : "text-ink"}`}>
                           {valor}
                         </p>
-                        <p className={`mt-1 text-xs font-medium ${valor > 0 ? "text-blue-700" : "text-ink-muted"}`}>
+                        <p className={`mt-1 text-xs font-medium ${valor > 0 ? "text-brand-ink" : "text-ink-muted"}`}>
                           {label}
                         </p>
                       </div>
@@ -272,7 +272,7 @@ export default async function PainelOrganizadorPage() {
                 {/* Saldo de atletas */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-2.5">
-                    <TrendingUp className="size-4 text-blue-600" />
+                    <TrendingUp className="size-4 text-brand" />
                     <div>
                       <p className="text-sm font-semibold text-ink">Saldo de atletas</p>
                       {regsPagas.length > 0 && (
@@ -285,7 +285,7 @@ export default async function PainelOrganizadorPage() {
                 {/* Saldo de plateia */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-2.5">
-                    <Users className="size-4 text-blue-600" />
+                    <Users className="size-4 text-brand" />
                     <div>
                       <p className="text-sm font-semibold text-ink">Saldo de plateia</p>
                       <p className="text-xs font-medium text-ink-muted">
@@ -299,7 +299,7 @@ export default async function PainelOrganizadorPage() {
                 {arenaIds.length > 0 && (
                   <div className="flex items-center justify-between px-5 py-4">
                     <div className="flex items-center gap-2.5">
-                      <Banknote className="size-4 text-blue-600" />
+                      <Banknote className="size-4 text-brand" />
                       <div>
                         <p className="text-sm font-semibold text-ink">MRR (mensalidades ativas)</p>
                         <p className="text-xs font-medium text-ink-muted">
@@ -316,7 +316,7 @@ export default async function PainelOrganizadorPage() {
                 {arenaIds.length > 0 && (totalAluguelMs > 0 || totalDiariasMs > 0) && (
                   <div className="flex items-center justify-between px-5 py-4">
                     <div className="flex items-center gap-2.5">
-                      <CalendarCheck className="size-4 text-blue-600" />
+                      <CalendarCheck className="size-4 text-brand" />
                       <div>
                         <p className="text-sm font-semibold text-ink">Aluguéis + diárias (mês)</p>
                         <p className="text-xs font-medium text-ink-muted">

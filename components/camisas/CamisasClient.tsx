@@ -92,21 +92,21 @@ function EntregaModal({ data, champId, onClose }: { data: EntregaModalData; cham
             <input
               type="text" value={retiradoPor} onChange={(e) => setRetiradoPor(e.target.value)}
               placeholder="Nome de quem retirou o kit"
-              className="mt-1.5 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft"
             />
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-600">Data de retirada</label>
             <input
               type="date" value={dataRetirada} onChange={(e) => setDataRetirada(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft"
             />
           </div>
         </div>
         <div className="mt-6 space-y-2">
           <button
             onClick={handleSave} disabled={!canSave || isPending}
-            className="w-full rounded-2xl bg-gray-900 py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-30 hover:bg-gray-800"
+            className="w-full rounded-2xl bg-brand-dark py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-30 hover:bg-brand-dark-2"
           >
             {isPending ? "Salvando…" : "Salvar entrega"}
           </button>
@@ -142,8 +142,8 @@ function NotifyModal({
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div className="relative z-10 w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50">
-            <Bell className="size-5 text-blue-600" />
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-soft">
+            <Bell className="size-5 text-brand" />
           </div>
           <button onClick={onClose} className="rounded-lg p-1 hover:bg-gray-100">
             <X className="size-4 text-gray-500" />
@@ -166,7 +166,7 @@ function NotifyModal({
         <div className="mt-6 flex flex-col gap-2">
           <button
             onClick={onConfirm} disabled={isPending}
-            className="w-full rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-40 hover:bg-blue-700"
+            className="w-full rounded-2xl bg-brand py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-40 hover:bg-brand-hover"
           >
             {isPending ? "Enviando…" : "Sim, notificar todos"}
           </button>
@@ -385,7 +385,7 @@ export function CamisasClient({
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-20 overflow-hidden rounded-full bg-gray-100">
                     <div
-                      className="h-full rounded-full bg-blue-500 transition-all"
+                      className="h-full rounded-full bg-brand transition-all"
                       style={{ width: `${athletes.length ? (totalDone / athletes.length) * 100 : 0}%` }}
                     />
                   </div>
@@ -413,8 +413,8 @@ export function CamisasClient({
                         onClick={() => setFilterSize(active ? null : size)}
                         className={`rounded-xl border p-2.5 text-left transition-all ${
                           active
-                            ? "border-blue-500 bg-blue-50/70 ring-1 ring-blue-200"
-                            : "border-gray-200 bg-white hover:border-blue-300"
+                            ? "border-brand bg-brand-soft/80 ring-1 ring-brand-border"
+                            : "border-gray-200 bg-white hover:border-brand-border"
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -449,14 +449,14 @@ export function CamisasClient({
                               {done} de {total} pronta{total !== 1 ? "s" : ""}
                             </span>
                             {allDone ? (
-                              <span className="flex items-center gap-1 text-[11px] font-semibold text-blue-600">
+                              <span className="flex items-center gap-1 text-[11px] font-semibold text-success">
                                 <Check className="size-3" /> Concluído
                               </span>
                             ) : (
                               <button
                                 onClick={() => handleBulk(pendingIds, true)}
                                 disabled={isPending || pendingIds.length === 0}
-                                className="text-[11px] font-medium text-blue-600 hover:text-blue-700 disabled:opacity-40"
+                                className="text-[11px] font-medium text-brand-ink hover:text-brand disabled:opacity-40"
                               >
                                 Marcar todas →
                               </button>
@@ -465,7 +465,7 @@ export function CamisasClient({
                           <div className="h-2 overflow-hidden rounded-full bg-gray-100">
                             <div
                               className={`h-full rounded-full transition-all ${
-                                allDone ? "bg-blue-500" : "bg-blue-400"
+                                allDone ? "bg-success" : "bg-brand"
                               }`}
                               style={{ width: `${pct}%` }}
                             />
@@ -485,8 +485,8 @@ export function CamisasClient({
           {/* ── notificar atletas + PDF ── */}
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 py-4 space-y-3">
             <div className="flex items-center gap-3.5">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50">
-                <Bell className="size-5 text-blue-600" />
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-soft">
+                <Bell className="size-5 text-brand" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900">Notificar todos os atletas</p>
@@ -498,7 +498,7 @@ export function CamisasClient({
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setNotifyModal(true)}
-                className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                className="flex-1 rounded-xl bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand-hover transition-colors"
               >
                 Enviar aviso
               </button>
@@ -521,7 +521,7 @@ export function CamisasClient({
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar atleta..."
-                  className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                  className="w-full rounded-xl border border-border py-2.5 pl-9 pr-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
               </div>
               {/* toggle modo seleção */}
               {!selectMode ? (
@@ -539,11 +539,11 @@ export function CamisasClient({
 
             {/* controles de seleção (visível no modo seleção) */}
             {selectMode && (
-              <div className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-2">
-                <span className="text-xs font-medium text-blue-700">
+              <div className="flex items-center justify-between rounded-xl bg-brand-soft px-4 py-2 ring-1 ring-brand-border/60">
+                <span className="text-xs font-medium text-brand-ink">
                   {selected.size} selecionado{selected.size !== 1 ? "s" : ""}
                 </span>
-                <button onClick={toggleAllFiltered} className="text-xs font-semibold text-blue-600 hover:text-blue-700">
+                <button onClick={toggleAllFiltered} className="text-xs font-semibold text-brand-ink hover:text-brand">
                   {allFilteredSelected ? "Desmarcar todos" : "Selecionar todos"}
                 </button>
               </div>
@@ -553,7 +553,7 @@ export function CamisasClient({
               {(["all", "pending", "done"] as const).map((s) => (
                 <button key={s} onClick={() => setFilterStatus(s)}
                   className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                    filterStatus === s ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    filterStatus === s ? "bg-brand-dark text-white" : "bg-surface-2 text-ink-muted hover:bg-border/50"
                   }`}>
                   {s === "all" ? "Todos" : s === "pending" ? "Pendentes" : "Prontas"}
                 </button>
@@ -564,14 +564,14 @@ export function CamisasClient({
               <div className="flex gap-2 overflow-x-auto pb-0.5">
                 <button onClick={() => setFilterSize(null)}
                   className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                    filterSize === null ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    filterSize === null ? "bg-brand-dark text-white" : "bg-surface-2 text-ink-muted hover:bg-border/50"
                   }`}>
                   Todos
                 </button>
                 {allSizes.map((sz) => (
                   <button key={sz} onClick={() => setFilterSize(sz === filterSize ? null : sz)}
                     className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                      filterSize === sz ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      filterSize === sz ? "bg-brand text-white" : "bg-surface-2 text-ink-muted hover:bg-border/50"
                     }`}>
                     {sz}
                   </button>
@@ -595,12 +595,12 @@ export function CamisasClient({
                   <li
                     key={a.athleteId}
                     onClick={selectMode ? () => toggleSelect(a.athleteId) : undefined}
-                    className={`flex items-center gap-2.5 px-5 py-3 ${selectMode ? "cursor-pointer hover:bg-gray-50" : ""} ${isSelected ? "bg-blue-50" : ""}`}
+                    className={`flex items-center gap-2.5 px-5 py-3 ${selectMode ? "cursor-pointer hover:bg-surface-2" : ""} ${isSelected ? "bg-brand-soft" : ""}`}
                   >
                     {/* checkbox (só no modo seleção) */}
                     {selectMode && (
                       <div className={`size-4 shrink-0 rounded-[4px] border-2 transition-colors ${
-                        isSelected ? "border-blue-600 bg-blue-600" : "border-gray-300 bg-white"
+                        isSelected ? "border-brand bg-brand" : "border-gray-300 bg-white"
                       } flex items-center justify-center`}>
                         {isSelected && <Check className="size-2.5 text-white" strokeWidth={3} />}
                       </div>
@@ -608,7 +608,7 @@ export function CamisasClient({
 
                     {/* dot */}
                     {!selectMode && (
-                      <div className={`size-2 shrink-0 rounded-full ${a.produced ? "bg-blue-500" : "bg-gray-300"}`} />
+                      <div className={`size-2 shrink-0 rounded-full ${a.produced ? "bg-success" : "bg-gray-300"}`} />
                     )}
 
                     {/* nome */}
@@ -620,7 +620,7 @@ export function CamisasClient({
                       <button
                         onClick={() => setEntregaModal({ athleteId: a.athleteId, nome: a.nome, retiradoPor: a.retiradoPor, dataRetirada: a.dataRetirada })}
                         title={a.dataRetirada ? `Entregue em ${formatDateBR(a.dataRetirada)}${a.retiradoPor ? ` para ${a.retiradoPor}` : ""}` : "Clique para registrar entrega"}
-                        className={`min-w-0 flex-1 truncate text-left text-sm transition-colors hover:text-blue-600 ${(a.produced && !!a.dataRetirada) ? "text-gray-400 line-through" : "font-medium text-gray-900"}`}
+                        className={`min-w-0 flex-1 truncate text-left text-sm transition-colors hover:text-brand ${(a.produced && !!a.dataRetirada) ? "text-gray-400 line-through" : "font-medium text-gray-900"}`}
                       >
                         {a.nome}
                       </button>
@@ -633,7 +633,7 @@ export function CamisasClient({
 
                     {/* tag entrega */}
                     {a.dataRetirada ? (
-                      <span className="shrink-0 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">Entregue</span>
+                      <span className="shrink-0 rounded-md bg-success-bg px-2 py-0.5 text-[11px] font-bold text-success">Entregue</span>
                     ) : (
                       <span className="shrink-0 rounded-md bg-gray-50 px-2 py-0.5 text-[11px] font-bold text-gray-400">Pendente</span>
                     )}
@@ -643,7 +643,7 @@ export function CamisasClient({
                       <button
                         onClick={() => handleToggle(a.athleteId, a.produced)} disabled={isPending}
                         className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-40 ${
-                          a.produced ? "bg-blue-100 text-blue-700 hover:bg-blue-200" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          a.produced ? "bg-brand-soft text-brand-ink ring-1 ring-brand-border/60 hover:bg-brand-border/30" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}>
                         {a.produced
                           ? <span className="flex items-center gap-1"><Check className="size-3" /> Pronta</span>
@@ -668,13 +668,13 @@ export function CamisasClient({
 
       {/* ── barra flutuante de seleção múltipla ── */}
       {selectMode && selected.size > 0 && (
-        <div className="fixed bottom-24 left-4 right-4 z-40 flex items-center justify-between gap-3 rounded-2xl bg-gray-900 px-5 py-4 shadow-xl md:bottom-6">
+        <div className="fixed bottom-24 left-4 right-4 z-40 flex items-center justify-between gap-3 rounded-2xl bg-brand-dark px-5 py-4 shadow-xl md:bottom-6">
           <span className="text-sm font-medium text-white">
             {selected.size} atleta{selected.size !== 1 ? "s" : ""} selecionado{selected.size !== 1 ? "s" : ""}
           </span>
           <button
             onClick={handleBulkSelected} disabled={isPending}
-            className="flex items-center gap-1.5 rounded-xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-400 disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-40 transition-colors"
           >
             <Check className="size-4" /> Marcar como prontas
           </button>

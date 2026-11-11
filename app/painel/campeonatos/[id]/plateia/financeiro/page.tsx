@@ -72,7 +72,7 @@ export default async function FinanceiroPlateiaPage({
       <section>
         <SectionHeader title="Status" />
         <div className="mt-3 grid grid-cols-3 gap-3">
-          <MetricCard label="Pagos" count={Number(paid?.orders ?? 0)} value={paidTotal} className="bg-blue-50 ring-blue-200 text-blue-700" />
+          <MetricCard label="Pagos" count={Number(paid?.orders ?? 0)} value={paidTotal} className="bg-success-bg ring-success/25 text-success" />
           <MetricCard label="Pendentes" count={Number(pending?.orders ?? 0)} value={Number(pending?.total ?? 0)} className="bg-amber-50 ring-amber-200 text-amber-700" />
           <MetricCard label="Estornados" count={Number(refunded?.orders ?? 0)} value={Number(refunded?.total ?? 0)} className="bg-red-50 ring-red-200 text-red-600" />
         </div>
@@ -107,7 +107,7 @@ function TicketTypeChart({ values }: { values: Record<string, { count: number; t
           </div>
           <div className="flex items-center gap-3">
             <div className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2">
-              <div className="absolute inset-y-0 left-0 rounded-full bg-blue-500" style={{ width: `${(item.total / maxTotal) * 100}%` }} />
+              <div className="absolute inset-y-0 left-0 rounded-full bg-brand" style={{ width: `${(item.total / maxTotal) * 100}%` }} />
             </div>
             <span className="w-20 text-right text-xs text-ink-muted">
               {item.count} ingresso{item.count !== 1 ? "s" : ""}

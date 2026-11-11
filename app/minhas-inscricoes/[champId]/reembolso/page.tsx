@@ -151,11 +151,11 @@ export default async function ReembolsoPage({
           )}
 
           {/* Info legal */}
-          <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 flex gap-3">
-            <Info className="size-4 shrink-0 text-blue-500 mt-0.5" />
-            <p className="text-sm text-blue-700">
+          <div className="rounded-2xl bg-brand-soft p-4 ring-1 ring-brand-border flex gap-3">
+            <Info className="size-4 shrink-0 text-brand mt-0.5" />
+            <p className="text-sm text-brand-ink">
               Dúvidas ou problemas com o evento? Entre em contato pelo e-mail{" "}
-              <a href="mailto:suporte@rankftv.com" className="font-medium underline hover:text-blue-900">
+              <a href="mailto:suporte@rankftv.com" className="font-medium underline hover:text-ink">
                 suporte@rankftv.com
               </a>.
             </p>

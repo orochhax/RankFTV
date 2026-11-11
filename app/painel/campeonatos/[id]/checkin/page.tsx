@@ -145,7 +145,7 @@ export default async function CheckinPage({
           title="Atletas"
           icon={Users}
           items={[
-            { label: "Total de atletas", value: totalAtletas, tone: "text-blue-700" },
+            { label: "Total de atletas", value: totalAtletas, tone: "text-brand-ink" },
             { label: "Atletas pendentes", value: pendentesAtletas, tone: pendentesAtletas > 0 ? "text-warning" : "text-ink" },
             { label: "Atletas confirmados", value: confirmadosAtletas, tone: "text-success" },
           ]}
@@ -154,7 +154,7 @@ export default async function CheckinPage({
           title="Duplas"
           icon={UserRoundCheck}
           items={[
-            { label: "Duplas totais", value: duplas.length, tone: "text-blue-700" },
+            { label: "Duplas totais", value: duplas.length, tone: "text-brand-ink" },
             { label: "Duplas pendentes", value: duplasPendentes, tone: duplasPendentes > 0 ? "text-warning" : "text-ink" },
             { label: "Duplas confirmadas", value: duplasConfirmadas, tone: "text-success" },
           ]}
@@ -163,7 +163,7 @@ export default async function CheckinPage({
           title="Plateia & Camarotes"
           icon={Armchair}
           items={[
-            { label: "Ingressos pagos", value: totalPlateiaIngressos, tone: "text-blue-700" },
+            { label: "Ingressos pagos", value: totalPlateiaIngressos, tone: "text-brand-ink" },
             { label: "Pendentes", value: plateiaPendentes, tone: plateiaPendentes > 0 ? "text-warning" : "text-ink" },
             { label: "Presentes", value: plateiaPresentes, tone: "text-success" },
           ]}
@@ -309,7 +309,7 @@ function MetricGroup({
   return (
     <Surface padding="none" className="overflow-hidden">
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <span className="flex size-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+        <span className="flex size-8 items-center justify-center rounded-lg bg-brand-soft text-brand">
           <Icon className="size-4" />
         </span>
         <h2 className="text-sm font-semibold text-ink">{title}</h2>

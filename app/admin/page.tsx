@@ -119,7 +119,7 @@ export default async function AdminPage() {
           <li key={href}>
             <Link
               href={href}
-              className="flex items-center gap-4 rounded-2xl bg-white p-5 ring-1 ring-black/5 hover:ring-blue-200 hover:bg-blue-50/30 transition-all"
+              className="flex items-center gap-4 rounded-2xl bg-white p-5 ring-1 ring-black/5 hover:ring-brand-border hover:bg-brand-soft/40 transition-all"
             >
               <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-amber-100">
                 <Icon className="size-5 text-amber-600" />

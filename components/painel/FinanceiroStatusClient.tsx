@@ -203,7 +203,7 @@ export function FinanceiroStatusClient({
     <PageContainer width="wide" className="space-y-5 py-8">
       <Link
         href={`/painel/campeonatos/${champId}/financeiro`}
-        className="inline-flex items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-blue-600"
+        className="inline-flex items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-brand-ink"
       >
         <ArrowLeft className="size-4" /> Financeiro
       </Link>
@@ -265,7 +265,7 @@ export function FinanceiroStatusClient({
             </div>
             <button
               onClick={resetFiltros}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-soft px-3 py-1.5 text-xs font-medium text-brand-ink hover:bg-brand/15 transition-colors"
             >
               <RotateCcw className="size-3.5" /> Limpar filtros
             </button>
@@ -288,7 +288,7 @@ export function FinanceiroStatusClient({
                 onClick={() => { const n = Math.max(1, currentPage - 1); setPagina(n); syncUrl({ page: n }); }}
                 disabled={currentPage <= 1}
                 className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium ${
-                  currentPage <= 1 ? "pointer-events-none text-ink-muted/40" : "text-blue-600 hover:bg-blue-50"
+                  currentPage <= 1 ? "pointer-events-none text-ink-muted/40" : "text-brand-ink hover:bg-brand-soft"
                 }`}
               >
                 <ChevronLeft className="size-4" /> Anterior
@@ -303,7 +303,7 @@ export function FinanceiroStatusClient({
                 onClick={() => { const n = Math.min(totalPages, currentPage + 1); setPagina(n); syncUrl({ page: n }); }}
                 disabled={currentPage >= totalPages}
                 className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium ${
-                  currentPage >= totalPages ? "pointer-events-none text-ink-muted/40" : "text-blue-600 hover:bg-blue-50"
+                  currentPage >= totalPages ? "pointer-events-none text-ink-muted/40" : "text-brand-ink hover:bg-brand-soft"
                 }`}
               >
                 Próxima <ChevronRight className="size-4" />

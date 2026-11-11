@@ -26,7 +26,7 @@ type DuplaDisplay = {
   atleta2: AtletaDisplay | null;
 };
 
-const AVATAR_COLORS = ["bg-blue-500","bg-blue-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
+const AVATAR_COLORS = ["bg-brand","bg-brand-dark","bg-amber-600","bg-emerald-700","bg-rose-500","bg-teal-600"];
 function avatarColor(str: string) {
   let h = 0;
   for (const c of str) h = (h * 31 + c.charCodeAt(0)) | 0;
@@ -229,7 +229,7 @@ export default async function CampeonatoDetalhePage({
         </div>
         <div className="mt-4 flex flex-wrap items-start justify-between gap-2">
           <div className="max-w-3xl">
-            <h1 className="text-2xl font-semibold text-gray-900">{championship.nome}</h1>
+            <h1 className="text-2xl font-semibold text-ink">{championship.nome}</h1>
             <ExpandableTextBlock
               text={championship.descricao}
               expandLabel="Ver descrição completa"
@@ -252,7 +252,7 @@ export default async function CampeonatoDetalhePage({
             {hasDbBracket ? (
               <Link
                 href={`/campeonatos/${publicSlug}/chaveamento`}
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-hover transition-colors"
               >
                 <Trophy className="size-4" />
                 Ver chaveamento
@@ -261,7 +261,7 @@ export default async function CampeonatoDetalhePage({
               <span
                 aria-disabled="true"
                 title="O chaveamento ainda não está disponível"
-                className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-400"
+                className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-surface-2 px-5 py-2.5 text-sm font-medium text-ink-muted/60 ring-1 ring-border"
               >
                 <Trophy className="size-4" />
                 Ver chaveamento
@@ -273,16 +273,16 @@ export default async function CampeonatoDetalhePage({
                 href={championship.liveUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                className="inline-flex items-center gap-2 rounded-xl border-[1.5px] border-danger bg-white px-5 py-2.5 text-sm font-semibold text-danger hover:bg-danger-bg transition-colors"
               >
-                <Radio className="size-4" />
+                <span className="size-2 animate-pulse rounded-full bg-danger" aria-hidden="true" />
                 Ver ao vivo
               </a>
             ) : (
               <span
                 aria-disabled="true"
                 title="Sem transmissão ao vivo cadastrada"
-                className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-400"
+                className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-surface-2 px-5 py-2.5 text-sm font-medium text-ink-muted/60 ring-1 ring-border"
               >
                 <Radio className="size-4" />
                 Ver ao vivo
@@ -294,8 +294,8 @@ export default async function CampeonatoDetalhePage({
 
       {/* Cronograma */}
       <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-        <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-700">
-          <CalendarDays className="size-4 text-blue-500" />
+        <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
+          <CalendarDays className="size-4 text-brand" />
           Cronograma
         </h2>
         <div className="space-y-3">
@@ -333,28 +333,35 @@ export default async function CampeonatoDetalhePage({
       <div className="grid gap-3 sm:grid-cols-2">
         <Link
           href={`/campeonatos/${publicSlug}/comprar`}
-          className="flex items-center gap-3 rounded-2xl bg-blue-600 p-5 text-white transition-colors hover:bg-blue-700"
+          style={{ background: "linear-gradient(135deg, #FFF3EB 0%, #FFFFFF 100%)" }}
+          className="group relative flex items-center gap-3 rounded-2xl border-2 border-brand p-5 text-ink shadow-soft transition-all hover:shadow-elevated"
         >
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
+          <span className="absolute right-4 top-4 rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-ink">
+            Inscrição
+          </span>
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand text-white transition-transform group-hover:scale-105">
             <Trophy className="size-6" />
           </div>
-          <div>
-            <p className="font-semibold">Sou atleta</p>
-            <p className="text-sm text-blue-100/80">Inscrever minha dupla</p>
+          <div className="min-w-0 pr-16">
+            <p className="font-bold text-ink">Sou atleta</p>
+            <p className="text-sm text-ink-muted">Inscrever minha dupla</p>
           </div>
         </Link>
 
         {temIngressoPlateia ? (
           <Link
             href={`/campeonatos/${publicSlug}/plateia`}
-            className="flex items-center gap-3 rounded-2xl bg-gray-900 p-5 text-white transition-colors hover:bg-gray-800"
+            className="group relative flex items-center gap-3 rounded-2xl bg-brand-dark p-5 text-white shadow-soft transition-colors hover:bg-brand-dark-2"
           >
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/10">
+            <span className="absolute right-4 top-4 rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
+              Plateia
+            </span>
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-accent">
               <Ticket className="size-6" />
             </div>
-            <div>
-              <p className="font-semibold">Vou assistir o evento</p>
-              <p className="text-sm text-white/60">Comprar ingresso de plateia</p>
+            <div className="min-w-0 pr-16">
+              <p className="font-bold text-white">Vou assistir o evento</p>
+              <p className="text-sm text-app-bg/80">Comprar ingresso de plateia</p>
             </div>
           </Link>
         ) : (
@@ -372,7 +379,7 @@ export default async function CampeonatoDetalhePage({
       )}
 
       <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-        <h2 className="mb-2 text-lg font-semibold text-gray-900">Regulamento</h2>
+        <h2 className="mb-2 text-lg font-semibold text-ink">Regulamento</h2>
         <ExpandableTextBlock
           text={championship.regulamento}
           expandLabel="Ver regulamento completo"
@@ -383,7 +390,7 @@ export default async function CampeonatoDetalhePage({
 
       {!isVitrine && (
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900">
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-ink">
           <Users className="size-5" /> Duplas inscritas ({duplas.length})
         </h2>
         {duplas.length === 0 ? (

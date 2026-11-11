@@ -44,7 +44,7 @@ function RevenueTooltip({
   return (
     <div className="rounded-xl border border-border bg-surface px-3 py-2 text-xs shadow-lg">
       <p className="font-semibold text-ink">{label}</p>
-      <p className="mt-0.5 font-bold text-blue-600">
+      <p className="mt-0.5 font-bold text-brand-ink">
         {showValues ? formatBRL(val) : "R$ ••••••"}
       </p>
       {mode === "diario" && (
@@ -97,7 +97,7 @@ export function RevenueEvolutionChart({
             onClick={() => setMode("acumulado")}
             className={`rounded-lg px-3 py-1.5 transition-colors ${
               mode === "acumulado"
-                ? "bg-surface text-blue-700 shadow-xs"
+                ? "bg-surface text-brand-ink shadow-xs"
                 : "text-ink-muted hover:text-ink"
             }`}
           >
@@ -108,7 +108,7 @@ export function RevenueEvolutionChart({
             onClick={() => setMode("diario")}
             className={`rounded-lg px-3 py-1.5 transition-colors ${
               mode === "diario"
-                ? "bg-surface text-blue-700 shadow-xs"
+                ? "bg-surface text-brand-ink shadow-xs"
                 : "text-ink-muted hover:text-ink"
             }`}
           >
@@ -128,8 +128,8 @@ export function RevenueEvolutionChart({
               <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="rankftvRevGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563EB" stopOpacity={0.22} />
-                    <stop offset="95%" stopColor="#2563EB" stopOpacity={0.01} />
+                    <stop offset="5%" stopColor="#FF5D00" stopOpacity={0.22} />
+                    <stop offset="95%" stopColor="#FF5D00" stopOpacity={0.01} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} stroke="#f1f5f9" />
@@ -155,10 +155,10 @@ export function RevenueEvolutionChart({
                 <Area
                   type="monotone"
                   dataKey={mode === "acumulado" ? "acumulado" : "total"}
-                  stroke="#2563EB"
+                  stroke="#FF5D00"
                   strokeWidth={2.5}
                   fill="url(#rankftvRevGradient)"
-                  activeDot={{ r: 5, fill: "#2563EB", stroke: "#ffffff", strokeWidth: 2 }}
+                  activeDot={{ r: 5, fill: "#FF5D00", stroke: "#ffffff", strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -169,7 +169,7 @@ export function RevenueEvolutionChart({
   );
 }
 
-const EXPENSE_COLORS = ["#2563EB", "#10B981", "#F59E0B", "#6366F1", "#EC4899", "#06B6D4", "#64748B"];
+const EXPENSE_COLORS = ["#FF5D00", "#0E4937", "#72BF00", "#D97706", "#16A34A", "#3E685A", "#64748B"];
 
 export function ExpenseCategoryDonut({
   porCategoria,

@@ -25,7 +25,7 @@ export function ArenaCard({ arena }: { arena: ArenaCardData }) {
       className="group block overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 transition-shadow hover:shadow-md"
     >
       {/* Banner */}
-      <div className="relative h-44 bg-gradient-to-br from-blue-700 to-blue-900">
+      <div className="relative h-44 bg-gradient-to-br from-brand-dark to-brand-dark-2">
         {arena.banner_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -42,8 +42,8 @@ export function ArenaCard({ arena }: { arena: ArenaCardData }) {
         {/* Ícones de esporte — canto inferior direito do banner */}
         <div className="absolute bottom-3 right-3 flex items-center">
           {[
-            { emoji: "⚽", bg: "bg-blue-500" },
-            { emoji: "🏐", bg: "bg-blue-500" },
+            { emoji: "⚽", bg: "bg-brand" },
+            { emoji: "🏐", bg: "bg-brand" },
           ].map((item, i) => (
             <div
               key={i}
@@ -61,7 +61,7 @@ export function ArenaCard({ arena }: { arena: ArenaCardData }) {
         {/* Nome + alunos */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="font-bold text-gray-900 group-hover:text-blue-600 truncate">
+            <p className="font-bold text-gray-900 group-hover:text-brand-ink truncate">
               {arena.nome}
             </p>
             <p className="mt-0.5 text-xs text-gray-400">

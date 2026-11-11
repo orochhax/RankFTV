@@ -105,7 +105,7 @@ export default async function ConvitePage({
               <div className="flex flex-col gap-2 pt-1">
                 <Link
                   href={`/login?next=${encodeURIComponent(invitePath)}`}
-                  className="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 text-center"
+                  className="w-full rounded-xl bg-brand py-2.5 text-sm font-semibold text-white hover:bg-brand-hover text-center"
                 >
                   Entrar
                 </Link>

@@ -100,7 +100,7 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="Sua senha atual"
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                  className="w-full rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand"
                 />
               </div>
             )}
@@ -109,7 +109,7 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
               <button
                 onClick={confirmar}
                 disabled={pending || (precisaSenha && !senha)}
-                className="w-full rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
+                className="w-full rounded-2xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60 transition-colors"
               >
                 {pending ? "Salvando…" : "Sim, usar esta chave"}
               </button>
@@ -141,10 +141,10 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
 
         {!editando && chavePix ? (
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="size-4 shrink-0 text-blue-600" />
+            <CheckCircle2 className="size-4 shrink-0 text-success" />
             <p className="font-mono text-sm text-ink">{mascarar(chavePix)}</p>
             {sucesso && (
-              <span className="ml-auto text-xs text-blue-600">Salvo!</span>
+              <span className="ml-auto text-xs text-success">Salvo!</span>
             )}
           </div>
         ) : (
@@ -160,12 +160,12 @@ export function ChavePixClient({ chavePix }: { chavePix: string | null }) {
                 value={novaChave}
                 onChange={(e) => { setNovaChave(e.target.value); setErro(null); }}
                 placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória"
-                className="flex-1 rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:ring-1 focus:ring-blue-400"
+                className="flex-1 rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:ring-1 focus:ring-brand"
               />
               <button
                 onClick={handleSalvar}
                 disabled={pending}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-60 transition-colors"
+                className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60 transition-colors"
               >
                 Salvar
               </button>

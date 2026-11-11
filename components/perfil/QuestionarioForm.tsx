@@ -34,14 +34,14 @@ export function QuestionarioForm() {
           ].map((opcao) => (
             <label
               key={opcao.valor}
-              className="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-800 hover:bg-gray-50"
+              className="flex cursor-pointer items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm text-ink transition-colors has-[:checked]:border-brand has-[:checked]:bg-brand-soft has-[:checked]:text-brand-ink hover:bg-surface-2"
             >
               <input
                 type="radio"
                 name="genero"
                 value={opcao.valor}
                 required
-                className="accent-blue-600"
+                className="accent-brand"
               />
               {opcao.texto}
             </label>
@@ -58,7 +58,7 @@ export function QuestionarioForm() {
       <button
         type="submit"
         disabled={pending}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
       >
         {pending && <Loader2 className="size-4 animate-spin" />}
         {pending ? "Salvando..." : "Salvar e ver meu perfil"}

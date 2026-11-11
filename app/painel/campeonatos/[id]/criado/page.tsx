@@ -82,8 +82,8 @@ export default async function CampeonatoCriadoPage({
     <PageContainer width="prose" className="space-y-6 py-10">
       {/* ── Cabeçalho celebratório ── */}
       <div className="text-center">
-        <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-blue-50">
-          <CheckCircle2 className="size-9 text-blue-600" />
+        <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-brand-soft">
+          <CheckCircle2 className="size-9 text-brand" />
         </div>
         <h1 className="mt-4 text-2xl font-bold text-ink">
           {publicado ? "Campeonato no ar! 🎉" : "Campeonato criado! 🎉"}
@@ -162,11 +162,11 @@ export default async function CampeonatoCriadoPage({
 
           {temCategoriaPaga && (
             orgAccount?.status_verificacao === "em_analise" ? (
-              <div className="rounded-card-lg bg-blue-50 p-4 ring-1 ring-blue-200 flex items-start gap-3">
-                <Clock className="size-5 shrink-0 text-blue-600 mt-0.5" />
+              <div className="rounded-card-lg bg-brand-soft p-4 ring-1 ring-brand-border flex items-start gap-3">
+                <Clock className="size-5 shrink-0 text-brand mt-0.5" />
                 <div className="text-sm">
-                  <p className="font-semibold text-blue-900">Documentos em análise de segurança</p>
-                  <p className="text-blue-800 text-xs mt-0.5">
+                  <p className="font-semibold text-ink">Documentos em análise de segurança</p>
+                  <p className="text-ink-muted text-xs mt-0.5">
                     Sua conta de organizador está sendo verificada pela equipe (até 24h úteis). A publicação de inscrições pagas será liberada assim que concluída.
                   </p>
                 </div>
@@ -231,7 +231,7 @@ export default async function CampeonatoCriadoPage({
         <div className="space-y-3">
           <Link
             href={`/painel/campeonatos/${publicSlug}/publicar`}
-            className="flex w-full items-center justify-center gap-2 rounded-card-lg bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            className="flex w-full items-center justify-center gap-2 rounded-card-lg bg-brand px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
           >
             <Rocket className="size-4" /> Quero publicar
           </Link>
@@ -246,7 +246,7 @@ export default async function CampeonatoCriadoPage({
         <div className="space-y-3">
           <Link
             href={`/painel/campeonatos/${publicSlug}`}
-            className="flex w-full items-center justify-center gap-2 rounded-card-lg bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            className="flex w-full items-center justify-center gap-2 rounded-card-lg bg-brand px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
           >
             <LayoutDashboard className="size-4" /> Ir para o painel do campeonato
           </Link>

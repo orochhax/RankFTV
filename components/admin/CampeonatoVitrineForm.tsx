@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import { criarCampeonatoVitrine, atualizarCampeonatoVitrine } from "@/app/admin/campeonatos/novo/actions";
 
 const inputClass =
-  "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+  "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand";
 const labelClass = "block text-xs font-medium text-gray-600";
 
 type Status = "inscricoes_abertas" | "em_andamento" | "encerrado";
@@ -217,8 +217,8 @@ export function CampeonatoVitrineForm({ campeonato }: { campeonato?: CampeonatoV
               onClick={() => setStatus(o.valor)}
               className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 status === o.valor
-                  ? "bg-blue-600 text-white"
-                  : "border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
+                  ? "bg-brand text-white"
+                  : "border border-gray-200 text-gray-500 hover:border-brand-border hover:text-brand-ink"
               }`}
             >
               {o.label}
@@ -265,7 +265,7 @@ export function CampeonatoVitrineForm({ campeonato }: { campeonato?: CampeonatoV
             </div>
           </div>
         ) : (
-          <label className="mt-1 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors">
+          <label className="mt-1 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 hover:border-brand hover:text-brand-ink transition-colors">
             <div className="flex items-center gap-2">
               <ImagePlus className="size-4" />
               <span>Clique para selecionar o banner do evento</span>
@@ -284,7 +284,7 @@ export function CampeonatoVitrineForm({ campeonato }: { campeonato?: CampeonatoV
         type="button"
         onClick={submit}
         disabled={ocupado}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
       >
         {ocupado ? <Loader2 className="size-4 animate-spin" /> : editando ? <Save className="size-4" /> : <Plus className="size-4" />}
         {enviandoBanner ? "Enviando banner…" : pending ? (editando ? "Salvando…" : "Criando…") : editando ? "Salvar alterações" : "Criar campeonato vitrine"}

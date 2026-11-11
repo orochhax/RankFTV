@@ -40,9 +40,9 @@ export default async function AtivarArenaPage() {
         </p>
       </div>
 
-      <div className="rounded-2xl bg-blue-50 px-5 py-4 text-sm text-blue-800">
-        <p className="font-semibold">Como funciona</p>
-        <ul className="mt-2 space-y-1 text-blue-700">
+      <div className="rounded-2xl bg-brand-soft px-5 py-4 text-sm text-ink ring-1 ring-brand-border">
+        <p className="font-semibold text-brand-ink">Como funciona</p>
+        <ul className="mt-2 space-y-1 text-ink-muted">
           <li>• Você cria a arena e convida alunos por código</li>
           <li>• Alunos pagam a mensalidade pelo site</li>
           <li>• 100% do valor vai direto pra sua conta</li>

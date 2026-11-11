@@ -151,7 +151,7 @@ export default async function PerfilPage() {
             >
               <span className="text-sm font-medium text-gray-900">Gênero</span>
               <span className="flex items-center gap-1.5 text-sm">
-                <span className={profile.genero ? "text-blue-600 font-medium" : "text-gray-400"}>
+                <span className={profile.genero ? "text-brand-ink font-medium" : "text-gray-400"}>
                   {profile.genero ? (GENERO_LABEL[profile.genero] ?? profile.genero) : "Não informado"}
                 </span>
                 <ChevronRight className="size-4 shrink-0 text-gray-300" />
@@ -184,11 +184,11 @@ export default async function PerfilPage() {
             {vinculoArena?.status === "ativo" && (
               <Link
                 href="/arena/presenca"
-                className="flex items-center justify-between rounded-2xl bg-blue-600 px-4 py-4 text-white hover:bg-blue-700"
+                className="flex items-center justify-between rounded-2xl bg-brand px-4 py-4 text-white hover:bg-brand-hover"
               >
                 <div>
                   <p className="text-sm font-semibold">Marcar presença</p>
-                  <p className="mt-0.5 text-xs text-blue-200">
+                  <p className="mt-0.5 text-xs text-white/80">
                     {(vinculoArena.arenas as { nome?: string } | null)?.nome ?? "Sua arena"}
                   </p>
                 </div>
@@ -209,39 +209,39 @@ export default async function PerfilPage() {
               {organizerAccount?.habilitado ? (
                 <Link
                   href="/painel"
-                  className="block rounded-2xl bg-brand-dark p-5 text-white transition-colors hover:bg-[#17171d]"
+                  className="block rounded-2xl bg-brand-dark p-5 text-white transition-colors hover:bg-brand-dark-2"
                 >
                   <p className="text-base font-semibold">
                     {totalCampeonatos === 0
                       ? "Nenhum campeonato ainda"
                       : `${campsAtivos} ${campsAtivos === 1 ? "campeonato ativo" : "campeonatos ativos"}`}
                   </p>
-                  <p className="mt-1 text-sm text-white/50">
+                  <p className="mt-1 text-sm text-app-bg/75">
                     {totalCampeonatos === 0
                       ? "Crie seu primeiro campeonato"
                       : `${fmtBRL(arrecadado)} arrecadados no total`}
                   </p>
-                  <p className="mt-3 flex items-center gap-1 text-sm font-medium text-blue-400">
+                  <p className="mt-3 flex items-center gap-1 text-sm font-medium text-accent">
                     Ir para o Painel <ChevronRight className="size-4" />
                   </p>
                 </Link>
               ) : organizerAccount && !organizerAccount.habilitado ? (
                 <div className="rounded-2xl bg-brand-dark p-5 text-white">
                   <p className="text-base font-semibold">Conta em análise</p>
-                  <p className="mt-1 text-sm text-white/50">
+                  <p className="mt-1 text-sm text-app-bg/75">
                     Você recebe uma notificação quando ela for aprovada.
                   </p>
                 </div>
               ) : (
                 <Link
                   href="/perfil/ativar-organizador"
-                  className="block rounded-2xl bg-brand-dark p-5 text-white transition-colors hover:bg-[#17171d]"
+                  className="block rounded-2xl bg-brand-dark p-5 text-white transition-colors hover:bg-brand-dark-2"
                 >
                   <p className="text-base font-semibold">Vire organizador</p>
-                  <p className="mt-1 text-sm text-white/50">
+                  <p className="mt-1 text-sm text-app-bg/75">
                     Qualquer atleta pode criar campeonatos na plataforma.
                   </p>
-                  <p className="mt-3 flex items-center gap-1 text-sm font-medium text-blue-400">
+                  <p className="mt-3 flex items-center gap-1 text-sm font-medium text-accent">
                     Ativar conta de organizador <ChevronRight className="size-4" />
                   </p>
                 </Link>
@@ -250,27 +250,27 @@ export default async function PerfilPage() {
 
             {/* Arena */}
             <div className="space-y-2">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Arena</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Arena</h2>
               {minhaArena ? (
                 <Link
                   href="/arena"
-                  className="block rounded-2xl bg-white p-5 ring-1 ring-black/5 transition-colors hover:bg-gray-50"
+                  className="block rounded-2xl bg-white p-5 ring-1 ring-black/5 transition-colors hover:bg-surface-2"
                 >
-                  <p className="font-semibold text-gray-900">{minhaArena.nome}</p>
-                  <p className="mt-1 text-sm text-gray-500">Alunos, presenças e mensalidades</p>
-                  <p className="mt-3 flex items-center gap-1 text-sm font-medium text-blue-600">
+                  <p className="font-semibold text-ink">{minhaArena.nome}</p>
+                  <p className="mt-1 text-sm text-ink-muted">Alunos, presenças e mensalidades</p>
+                  <p className="mt-3 flex items-center gap-1 text-sm font-medium text-brand-ink">
                     Ir pro painel da arena <ChevronRight className="size-4" />
                   </p>
                 </Link>
               ) : (
-                <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/60 p-5">
-                  <p className="font-semibold text-gray-900">Você ainda não tem uma arena</p>
-                  <p className="mt-1 text-sm text-gray-500">
+                <div className="rounded-2xl border-2 border-dashed border-border bg-surface-2 p-5">
+                  <p className="font-semibold text-ink">Você ainda não tem uma arena</p>
+                  <p className="mt-1 text-sm text-ink-muted">
                     Cadastre sua academia para gerenciar alunos, aulas e mensalidades.
                   </p>
                   <Link
                     href="/perfil/ativar-arena"
-                    className="mt-3 inline-flex items-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                    className="mt-3 inline-flex items-center rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
                   >
                     Criar arena
                   </Link>

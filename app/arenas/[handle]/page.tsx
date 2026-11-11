@@ -27,7 +27,7 @@ function semanaDe(dataISO: string): { ini: string; fim: string } {
   return { ini: isoDate(seg), fim: isoDate(dom) };
 }
 
-const AVATAR_COLORS = ["bg-blue-500","bg-blue-500","bg-violet-500","bg-orange-500","bg-rose-500"];
+const AVATAR_COLORS = ["bg-brand","bg-brand-dark","bg-violet-500","bg-orange-500","bg-rose-500"];
 function avatarColor(str: string) {
   let h = 0;
   for (const c of str) h = (h * 31 + c.charCodeAt(0)) | 0;
@@ -379,23 +379,23 @@ export default async function ArenaPublicaPage({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 
           {aluguelPlan && (
-            <section className="flex flex-col gap-3 self-start rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
+            <section className="flex flex-col gap-3 self-start rounded-2xl bg-brand-soft p-4 ring-1 ring-brand-border">
               <div className="flex items-center gap-2">
-                <CalendarCheck className="size-4 text-blue-600" />
-                <h2 className="text-sm font-semibold text-blue-800">Aluguel da quadra</h2>
+                <CalendarCheck className="size-4 text-brand" />
+                <h2 className="text-sm font-semibold text-ink">Aluguel da quadra</h2>
               </div>
               {aluguelPlan.descricao && (
-                <p className="text-xs text-blue-700">{aluguelPlan.descricao}</p>
+                <p className="text-xs text-ink-muted">{aluguelPlan.descricao}</p>
               )}
-              <p className="whitespace-nowrap text-xl font-black text-blue-600">
+              <p className="whitespace-nowrap text-xl font-black text-brand-ink">
                 {`R$ ${Number(aluguelPlan.valor).toFixed(2).replace(".", ",")}`}
-                <span className="ml-1 text-xs font-normal text-blue-500">/hora</span>
+                <span className="ml-1 text-xs font-normal text-ink-muted">/hora</span>
               </p>
               <Link
                 href={user
                   ? `/arenas/${arena.handle}/alugar?planId=${aluguelPlan.id}`
                   : `/login?next=/arenas/${arena.handle}/alugar`}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover transition-colors"
               >
                 <CalendarCheck className="size-4" /> Reservar
               </Link>
@@ -404,23 +404,23 @@ export default async function ArenaPublicaPage({
 
           {/* ── Diária de treino ── */}
           {diariaPlan && (
-            <section className="flex flex-col gap-3 self-start rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
+            <section className="flex flex-col gap-3 self-start rounded-2xl bg-brand-soft p-4 ring-1 ring-brand-border">
               <div className="flex items-center gap-2">
-                <CalendarDays className="size-4 text-blue-600" />
-                <h2 className="text-sm font-semibold text-blue-800">Diária de treino</h2>
+                <CalendarDays className="size-4 text-brand" />
+                <h2 className="text-sm font-semibold text-ink">Diária de treino</h2>
               </div>
               {diariaPlan.descricao && (
-                <p className="text-xs text-blue-700">{diariaPlan.descricao}</p>
+                <p className="text-xs text-ink-muted">{diariaPlan.descricao}</p>
               )}
-              <p className="whitespace-nowrap text-xl font-black text-blue-600">
+              <p className="whitespace-nowrap text-xl font-black text-brand-ink">
                 {`R$ ${Number(diariaPlan.valor).toFixed(2).replace(".", ",")}`}
-                <span className="ml-1 text-xs font-normal text-blue-500">/sessão</span>
+                <span className="ml-1 text-xs font-normal text-ink-muted">/sessão</span>
               </p>
               <Link
                 href={user
                   ? `/arenas/${arena.handle}/diaria?planId=${diariaPlan.id}`
                   : `/login?next=/arenas/${arena.handle}/diaria`}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover transition-colors"
               >
                 <CalendarDays className="size-4" /> Pagar diária
               </Link>
@@ -447,14 +447,14 @@ export default async function ArenaPublicaPage({
           {estadoPlano.estado !== "ativo" && mensalidadePlans.length > 0 && (
             <section className="space-y-3">
               <div className="flex items-center gap-2">
-                <Tag className="size-4 text-blue-500" />
+                <Tag className="size-4 text-brand" />
                 <h2 className="text-sm font-semibold text-gray-700">Planos de mensalidade</h2>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {mensalidadePlans.map((p) => (
                   <div
                     key={p.id}
-                    className="rounded-2xl bg-gradient-to-br from-blue-50 to-white p-4 ring-1 ring-blue-100"
+                    className="rounded-2xl bg-gradient-to-br from-brand-soft to-white p-4 ring-1 ring-brand-border"
                   >
                     <p className="font-bold text-gray-900">{p.nome}</p>
                     <p className="text-xs text-gray-500">
@@ -463,13 +463,13 @@ export default async function ArenaPublicaPage({
                     {p.descricao && (
                       <p className="mt-1 text-xs text-gray-500 leading-relaxed">{p.descricao}</p>
                     )}
-                    <p className="mt-3 text-2xl font-black text-blue-600">
+                    <p className="mt-3 text-2xl font-black text-brand-ink">
                       {`R$ ${Number(p.valor).toFixed(2).replace(".", ",")}`}
                       <span className="ml-1 text-xs font-normal text-gray-400">/mês</span>
                     </p>
                     <Link
                       href={user ? `/arenas/${arena.handle}/assinar/${p.id}` : `/login?next=/arenas/${arena.handle}/assinar/${p.id}`}
-                      className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                      className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover transition-colors"
                     >
                       <CreditCard className="size-4" /> Assinar
                     </Link>
@@ -484,9 +484,9 @@ export default async function ArenaPublicaPage({
             <section className="grid grid-cols-2 gap-3">
               <Link
                 href={`/arenas/${arena.handle}/minhas-aulas`}
-                className="flex items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-colors hover:ring-blue-200"
+                className="flex items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-colors hover:ring-brand-border"
               >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
                   <ClipboardList className="size-5" />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -497,9 +497,9 @@ export default async function ArenaPublicaPage({
               </Link>
               <Link
                 href={`/arenas/${arena.handle}/financeiro`}
-                className="flex items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-colors hover:ring-blue-200"
+                className="flex items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-colors hover:ring-brand-border"
               >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
                   <Wallet className="size-5" />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -546,7 +546,7 @@ export default async function ArenaPublicaPage({
                     <li
                       key={a.id}
                       className={`flex items-center gap-3 rounded-2xl px-4 py-3 ring-1 ${
-                        isMe ? "bg-blue-50 ring-blue-100" : "bg-white ring-black/5"
+                        isMe ? "bg-brand-soft ring-brand-border" : "bg-white ring-black/5"
                       }`}
                     >
                       <span className="w-6 shrink-0 text-center text-sm font-bold text-gray-400">
@@ -559,9 +559,9 @@ export default async function ArenaPublicaPage({
                         fotoUrl={a.foto_url}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate ${isMe ? "text-blue-800" : "text-gray-900"}`}>
+                        <p className={`text-sm font-medium truncate ${isMe ? "text-ink" : "text-gray-900"}`}>
                           {a.nome}
-                          {isMe && <span className="ml-1.5 text-xs font-normal text-blue-500">(você)</span>}
+                          {isMe && <span className="ml-1.5 text-xs font-medium text-brand-ink">(você)</span>}
                         </p>
                         <Link
                           href={`/atletas/${a.username}`}

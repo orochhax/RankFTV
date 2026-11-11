@@ -64,7 +64,7 @@ export function ArenaShell({
           >
             <Menu className="size-5" />
           </button>
-          <Avatar nome={arena.nome} color="bg-blue-600" size="sm" fotoUrl={arena.avatarUrl} />
+          <Avatar nome={arena.nome} color="bg-brand" size="sm" fotoUrl={arena.avatarUrl} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold leading-tight text-ink">{arena.nome}</p>
             <p className="truncate text-[11px] leading-tight text-ink-muted">{title}</p>
@@ -164,8 +164,8 @@ function ArenaDesktopSubnav({
 
           <div className="flex items-center gap-2.5">
             {tierId === "pro" ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
-                <Sparkles className="size-3 text-blue-600" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-border bg-accent px-3 py-1 text-xs font-black text-accent-ink">
+                <Sparkles className="size-3" />
                 ⭐ Pro Ativo · Ilimitado
               </span>
             ) : (
@@ -180,7 +180,7 @@ function ArenaDesktopSubnav({
                 </Link>
                 <Link
                   href={`/arena/${arena.handle}/assinatura`}
-                  className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1 text-xs font-bold text-white shadow-xs transition hover:opacity-95 active:scale-95"
+                  className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-xs font-bold text-white shadow-xs transition hover:bg-brand-hover active:scale-95"
                 >
                   <Sparkles className="size-3" /> Upgrade Pro
                 </Link>
@@ -231,7 +231,7 @@ function ArenaDesktopSubnav({
                 aria-current={active ? "page" : undefined}
                 className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-all ${
                   active
-                    ? "bg-gray-900 text-white shadow-xs"
+                    ? "bg-brand text-white shadow-xs"
                     : "bg-gray-100/80 text-gray-700 hover:bg-gray-200/90 hover:text-black"
                 }`}
               >
@@ -279,12 +279,12 @@ function ArenaNavContent({
         onClick={onNavigate}
         title={collapsed ? "RankFTV" : undefined}
         aria-label={collapsed ? "RankFTV — voltar ao painel geral" : undefined}
-        className={`flex items-center gap-1.5 border-b border-border px-3 py-2.5 text-xs font-bold tracking-tight text-ink-muted transition-colors hover:text-blue-600 ${collapsed ? "justify-center" : ""}`}
+        className={`flex items-center gap-1.5 border-b border-border px-3 py-2.5 text-xs font-bold tracking-tight text-ink transition-colors hover:text-brand-ink ${collapsed ? "justify-center" : ""}`}
       >
         {collapsed ? (
-          <span className="text-blue-600">FTV</span>
+          <span className="text-brand">FTV</span>
         ) : (
-          <>Rank<span className="text-blue-600">FTV</span></>
+          <>Rank<span className="text-brand">FTV</span></>
         )}
       </Link>
 
@@ -292,7 +292,7 @@ function ArenaNavContent({
       <div className="border-b border-border p-3">
         {outras.length === 0 ? (
           <div className={`flex items-center gap-2.5 rounded-xl px-2 py-1.5 ${collapsed ? "justify-center" : ""}`}>
-            <Avatar nome={arena.nome} color="bg-blue-600" size="sm" fotoUrl={arena.avatarUrl} />
+            <Avatar nome={arena.nome} color="bg-brand" size="sm" fotoUrl={arena.avatarUrl} />
             {!collapsed && (
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-ink">{arena.nome}</p>
@@ -308,7 +308,7 @@ function ArenaNavContent({
             aria-label="Minhas arenas"
             className="flex items-center justify-center rounded-xl px-2 py-1.5 transition-colors hover:bg-surface-2"
           >
-            <Avatar nome={arena.nome} color="bg-blue-600" size="sm" fotoUrl={arena.avatarUrl} />
+            <Avatar nome={arena.nome} color="bg-brand" size="sm" fotoUrl={arena.avatarUrl} />
           </Link>
         ) : (
           <>
@@ -318,7 +318,7 @@ function ArenaNavContent({
               className={`flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-surface-2 ${collapsed ? "justify-center" : ""}`}
               aria-expanded={switcherOpen}
             >
-              <Avatar nome={arena.nome} color="bg-blue-600" size="sm" fotoUrl={arena.avatarUrl} />
+              <Avatar nome={arena.nome} color="bg-brand" size="sm" fotoUrl={arena.avatarUrl} />
               {!collapsed && (
                 <>
                   <div className="min-w-0 flex-1 text-left">
@@ -345,7 +345,7 @@ function ArenaNavContent({
                 <Link
                   href="/perfil/ativar-arena"
                   onClick={onNavigate}
-                  className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
+                  className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-soft"
                 >
                   <Plus className="size-4" /> Nova arena
                 </Link>
@@ -382,7 +382,7 @@ function ArenaNavContent({
                         collapsed ? "justify-center" : ""
                       } ${
                         active
-                          ? "bg-gray-900 text-white font-bold"
+                          ? "bg-brand text-white font-bold"
                           : isProLocked
                           ? "text-gray-400 hover:bg-amber-50/50 hover:text-amber-800"
                           : "text-ink-muted hover:bg-surface-2 hover:text-ink"

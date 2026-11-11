@@ -7,7 +7,7 @@ import { RoleSelector } from "@/components/admin/RoleSelector";
 
 const ROLE_COLORS: Record<string, string> = {
   user:  "bg-gray-100 text-gray-700",
-  admin: "bg-blue-100 text-blue-800",
+  admin: "bg-brand-soft text-brand-ink ring-1 ring-brand-border",
   ceo:   "bg-yellow-100 text-yellow-800",
 };
 const PAGE_SIZE = 25;

@@ -97,12 +97,12 @@ export function AthleteCheckoutFooterSummary({
       className="sticky bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20"
     >
       <details className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg [&_summary::-webkit-details-marker]:hidden">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand">
           <div>
             <p className="text-xs font-medium text-gray-500">2 atletas · {paymentMethod === "pix" ? "Pix" : "Cartão"}</p>
             <p className="font-bold text-gray-950">Total {formatBRL(total)}</p>
           </div>
-          <span className="flex items-center gap-1 text-sm font-semibold text-blue-700">
+          <span className="flex items-center gap-1 text-sm font-semibold text-brand-ink">
             Ver resumo
             <ChevronDown aria-hidden="true" className="size-4 transition-transform group-open:rotate-180" />
           </span>
@@ -111,7 +111,7 @@ export function AthleteCheckoutFooterSummary({
           <div className="flex justify-between gap-4 text-gray-600"><span>Categoria</span><span className="truncate font-medium text-gray-900">{categoryName}</span></div>
           <div className="flex justify-between gap-4 text-gray-600"><span>Inscrição</span><span>{formatBRL(basePrice)}</span></div>
           {couponCode ? (
-            <div className="flex justify-between gap-4 text-blue-700"><span>Cupom {couponCode}</span><span>- {formatBRL(discount)}</span></div>
+            <div className="flex justify-between gap-4 text-brand-ink"><span>Cupom {couponCode}</span><span>- {formatBRL(discount)}</span></div>
           ) : null}
           <div className="flex justify-between gap-4 text-gray-600"><span>Taxa de serviço</span><span>+ {formatBRL(serviceFee)}</span></div>
           <div className="flex justify-between gap-4 border-t border-gray-100 pt-2 font-bold text-gray-950"><span>Total</span><span>{formatBRL(total)}</span></div>

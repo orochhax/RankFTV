@@ -12,7 +12,7 @@ export type ActionBadge = {
 };
 
 const BADGE_CLASSES: Record<ActionBadgeTone, string> = {
-  blue: "bg-blue-50 text-blue-700 border-blue-200",
+  blue: "bg-brand-soft text-brand-ink border-brand-border",
   emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
   amber: "bg-amber-50 text-amber-800 border-amber-200",
   rose: "bg-rose-50 text-rose-700 border-rose-200",
@@ -21,9 +21,9 @@ const BADGE_CLASSES: Record<ActionBadgeTone, string> = {
 
 const GROUP_ACCENTS: Record<string, { dot: string; iconBg: string; iconText: string }> = {
   Atletas: {
-    dot: "bg-blue-600",
-    iconBg: "bg-blue-50",
-    iconText: "text-blue-600",
+    dot: "bg-brand",
+    iconBg: "bg-brand-soft",
+    iconText: "text-brand",
   },
   Financeiro: {
     dot: "bg-emerald-600",
@@ -31,9 +31,9 @@ const GROUP_ACCENTS: Record<string, { dot: string; iconBg: string; iconText: str
     iconText: "text-emerald-600",
   },
   Equipe: {
-    dot: "bg-indigo-600",
-    iconBg: "bg-indigo-50",
-    iconText: "text-indigo-600",
+    dot: "bg-accent",
+    iconBg: "bg-accent-soft",
+    iconText: "text-accent-ink",
   },
   Espectadores: {
     dot: "bg-amber-500",
@@ -128,10 +128,10 @@ export function ChampionshipActions({
                     <Link
                       key={item.key}
                       href={item.href(champId)}
-                      className={`group flex items-start gap-3 rounded-xl border p-3 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+                      className={`group flex items-start gap-3 rounded-xl border p-3 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                         isFinanceHub
                           ? "border-emerald-200/80 bg-surface hover:border-emerald-300 hover:bg-emerald-50/40 hover:shadow-sm"
-                          : "border-border bg-surface hover:border-blue-300 hover:bg-blue-50/40 hover:shadow-sm"
+                          : "border-border bg-surface hover:border-brand-border hover:bg-brand-soft/40 hover:shadow-sm"
                       }`}
                     >
                       <div
@@ -141,7 +141,7 @@ export function ChampionshipActions({
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="truncate text-sm font-semibold text-ink group-hover:text-blue-700">
+                          <span className="truncate text-sm font-semibold text-ink group-hover:text-brand-ink">
                             {item.label}
                           </span>
                           {badge ? (

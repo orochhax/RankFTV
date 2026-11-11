@@ -149,13 +149,13 @@ export function AccountSettingsForm({ userId, email, initialTelefone, initialCpf
                 onChange={(e) => setCpf(formatCpf(e.target.value.replace(/\D/g, "")))}
                 placeholder="000.000.000-00"
                 maxLength={14}
-                className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
               />
             </div>
             <button
               type="submit"
               disabled={savingCpf}
-              className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
+              className="flex items-center gap-1.5 rounded-lg bg-brand-dark px-3 py-2 text-sm font-medium text-white hover:bg-brand-dark-2 disabled:opacity-60"
             >
               {savingCpf && <Loader2 className="size-4 animate-spin" />}
               {cpfSuccess && <Check className="size-4" />}
@@ -183,13 +183,13 @@ export function AccountSettingsForm({ userId, email, initialTelefone, initialCpf
                 value={telefone}
                 onChange={(e) => setTelefone(e.target.value)}
                 placeholder="+55 (11) 99999-9999"
-                className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
               />
             </div>
             <button
               type="submit"
               disabled={savingPhone}
-              className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
+              className="flex items-center gap-1.5 rounded-lg bg-brand-dark px-3 py-2 text-sm font-medium text-white hover:bg-brand-dark-2 disabled:opacity-60"
             >
               {savingPhone && <Loader2 className="size-4 animate-spin" />}
               {phoneSuccess && <Check className="size-4" />}
@@ -209,7 +209,7 @@ export function AccountSettingsForm({ userId, email, initialTelefone, initialCpf
             <button
               type="button"
               onClick={() => setShowPassForm(true)}
-              className="mt-1.5 flex items-center gap-1.5 text-sm text-blue-600 hover:underline"
+              className="mt-1.5 flex items-center gap-1.5 text-sm text-brand-ink hover:text-brand hover:underline"
             >
               <Lock className="size-4" /> Alterar senha
             </button>
@@ -223,7 +223,7 @@ export function AccountSettingsForm({ userId, email, initialTelefone, initialCpf
                   onChange={(e) => setNovaSenha(e.target.value)}
                   placeholder="Nova senha (mín. 8 caracteres)"
                   required
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-border px-3 py-2 pr-10 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
                 />
                 <button
                   type="button"
@@ -241,14 +241,14 @@ export function AccountSettingsForm({ userId, email, initialTelefone, initialCpf
                 onChange={(e) => setConfirma(e.target.value)}
                 placeholder="Confirmar nova senha"
                 required
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
               />
 
               {passError && (
                 <p className="text-xs text-red-600">{passError}</p>
               )}
               {passSuccess && (
-                <p className="flex items-center gap-1 text-xs text-blue-600">
+                <p className="flex items-center gap-1 text-xs text-success">
                   <Check className="size-3" /> Senha alterada com sucesso!
                 </p>
               )}
@@ -257,7 +257,7 @@ export function AccountSettingsForm({ userId, email, initialTelefone, initialCpf
                 <button
                   type="submit"
                   disabled={savingPass}
-                  className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                  className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-60"
                 >
                   {savingPass && <Loader2 className="size-4 animate-spin" />}
                   Confirmar

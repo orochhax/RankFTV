@@ -20,7 +20,7 @@ export default async function WalletReadinessPage() {
         {status.missing.length > 0 && <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-gray-500">{status.missing.map((item) => <li key={item}>{item}</li>)}</ul>}
       </section>)}
     </div>
-    <p className="rounded-2xl bg-blue-50 p-4 text-sm text-blue-800">Os botões nos ingressos serão liberados somente depois da emissão real ser implementada e homologada com as duas plataformas. O PDF e o link protegido continuam disponíveis.</p>
-    <p className="text-sm font-semibold text-blue-600">Próximos passos documentados em docs/WALLET-SETUP.md.</p>
+    <p className="rounded-2xl bg-brand-soft p-4 text-sm text-ink ring-1 ring-brand-border">Os botões nos ingressos serão liberados somente depois da emissão real ser implementada e homologada com as duas plataformas. O PDF e o link protegido continuam disponíveis.</p>
+    <p className="text-sm font-semibold text-brand-ink">Próximos passos documentados em docs/WALLET-SETUP.md.</p>
   </div>;
 }

@@ -99,7 +99,7 @@ const TABS: Array<{ id: EditorTab; label: string; icon: typeof SlidersHorizontal
 ];
 
 const inputClass =
-  "mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+  "mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand";
 const labelClass = "block text-xs font-medium text-ink-muted";
 
 export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial }: Props) {
@@ -404,10 +404,10 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
               </div>
             </div>
 
-            <ul className="mb-5 space-y-1.5 rounded-2xl bg-gray-50 p-4">
+            <ul className="mb-5 space-y-1.5 rounded-2xl bg-surface-2 p-4">
               {mudancas.map((m, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-blue-500" />
+                <li key={i} className="flex items-start gap-2 text-sm text-ink">
+                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-brand" />
                   {m}
                 </li>
               ))}
@@ -416,7 +416,7 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
             {notificaAtletas && (
               <div
                 role="alert"
-                className="mb-5 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800"
+                className="mb-5 rounded-2xl border border-brand-border bg-brand-soft p-4 text-sm text-ink"
               >
                 <p className="font-semibold">Aviso automático aos atletas</p>
                 <p className="mt-1">
@@ -429,7 +429,7 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
               <button
                 onClick={confirmarSalvar}
                 disabled={pending}
-                className="w-full rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+                className="w-full rounded-2xl bg-brand py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:opacity-60"
               >
                 {pending ? "Salvando…" : "Sim, salvar alterações"}
               </button>
@@ -494,7 +494,7 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                     active
                       ? t.id === "risco"
                         ? "bg-rose-600 text-white"
-                        : "bg-blue-600 text-white shadow-xs"
+                        : "bg-brand text-white shadow-xs"
                       : t.id === "risco"
                         ? "text-rose-600 hover:bg-rose-50"
                         : "text-ink-muted hover:bg-surface-2 hover:text-ink"
@@ -523,7 +523,7 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                         onClick={() => setStatus(opt.value)}
                         className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                           status === opt.value
-                            ? "bg-gray-900 text-white"
+                            ? "bg-brand-dark text-white"
                             : "bg-surface-2 text-ink-muted hover:text-ink"
                         }`}
                       >
@@ -616,8 +616,8 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                 <ChampBannerForm
                   champId={champId}
                   initialBannerUrl={initialBannerUrl}
-                  bannerFrom="from-blue-500"
-                  bannerTo="to-cyan-400"
+                  bannerFrom="from-brand-dark"
+                  bannerTo="to-brand-dark-2"
                 />
               </div>
             )}
@@ -730,7 +730,7 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                       type="checkbox"
                       checked={permiteTrocaDupla}
                       onChange={(e) => setPermiteTrocaDupla(e.target.checked)}
-                      className="size-4 rounded border-border text-blue-600 focus:ring-blue-500"
+                      className="size-4 rounded border-border text-brand focus:ring-brand"
                     />
                     Permitir que o titular substitua o parceiro de dupla
                   </label>
@@ -792,8 +792,8 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                           }}
                           className={`rounded-full border px-3 py-1 text-sm font-medium transition-colors ${
                             ativa
-                              ? "cursor-default border-blue-300 bg-blue-100 text-blue-600"
-                              : "border-border bg-surface text-ink-muted hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+                              ? "cursor-default border-brand-border bg-brand-soft text-brand-ink"
+                              : "border-border bg-surface text-ink-muted hover:border-brand-border hover:bg-brand-soft hover:text-brand-ink"
                           }`}
                         >
                           {ativa ? "✓ " : "+ "}
@@ -900,14 +900,14 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                     <label className={labelClass}>PDF do regulamento (opcional)</label>
 
                     {pdfUrl && !pdfFile && (
-                      <div className="mt-1 flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
-                        <FileText className="size-4 shrink-0 text-blue-600" />
-                        <span className="flex-1 truncate text-sm text-blue-800">PDF salvo</span>
+                      <div className="mt-1 flex items-center gap-3 rounded-lg border border-brand-border bg-brand-soft px-3 py-2">
+                        <FileText className="size-4 shrink-0 text-brand" />
+                        <span className="flex-1 truncate text-sm text-ink">PDF salvo</span>
                         <a
                           href={pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700"
+                          className="text-brand-ink hover:text-brand"
                         >
                           <ExternalLink className="size-4" />
                         </a>
@@ -926,7 +926,7 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
 
                     {pdfFile && (
                       <div className="mt-1 flex items-center gap-3 rounded-lg border border-border px-3 py-2">
-                        <FileText className="size-4 shrink-0 text-blue-500" />
+                        <FileText className="size-4 shrink-0 text-brand" />
                         <span className="flex-1 truncate text-sm text-ink">{pdfFile.name}</span>
                         <button
                           type="button"
@@ -942,7 +942,7 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                     )}
 
                     {!pdfFile && (
-                      <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-border px-4 py-3 text-sm text-ink-muted hover:border-blue-400 hover:text-blue-600">
+                      <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-border px-4 py-3 text-sm text-ink-muted hover:border-brand hover:text-brand-ink">
                         <FileText className="size-4" />
                         {pdfUrl ? "Substituir PDF" : "Clique para selecionar o PDF"}
                         <input
@@ -1054,7 +1054,7 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                   type="button"
                   onClick={handleClickSalvar}
                   disabled={pending}
-                  className="w-full rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+                  className="w-full rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:opacity-60"
                 >
                   {pending ? "Salvando…" : "Salvar alterações"}
                 </button>

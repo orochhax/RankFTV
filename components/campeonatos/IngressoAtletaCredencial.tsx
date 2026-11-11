@@ -137,7 +137,7 @@ export function IngressoAtletaCredencial({
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col items-center rounded-2xl bg-white p-5 text-center ring-1 ring-black/5 sm:p-7">
-      <div className="flex items-center justify-center gap-1.5 text-sm font-semibold text-blue-600">
+      <div className="flex items-center justify-center gap-1.5 text-sm font-semibold text-success">
         <CheckCircle2 className="size-4" /> Inscrição confirmada
       </div>
       <p className="mt-3 text-base font-semibold text-gray-900">{athleteName}</p>
@@ -151,7 +151,7 @@ export function IngressoAtletaCredencial({
           className={`mt-3 w-full max-w-[260px] rounded-2xl ${checkedIn ? "opacity-40 grayscale" : ""}`}
         />
       )}
-      <p className={`mt-3 text-sm ${checkedIn ? "font-medium text-blue-600" : "text-gray-500"}`}>
+      <p className={`mt-3 text-sm ${checkedIn ? "font-medium text-brand-ink" : "text-gray-500"}`}>
         {checkedIn ? "Check-in já realizado" : "Apresente este QR na entrada do evento"}
       </p>
       <p className="mt-1 font-mono text-xs tracking-[0.2em] text-gray-400">{code}</p>
@@ -164,7 +164,7 @@ export function IngressoAtletaCredencial({
         </button>
       </div>
       {operationError && <p role="alert" className="mt-3 w-full rounded-xl bg-red-50 p-3 text-sm text-red-700">{operationError}</p>}
-      {operationMessage && <p className="mt-3 w-full rounded-xl bg-blue-50 p-3 text-sm text-blue-700">{operationMessage}</p>}
+      {operationMessage && <p className="mt-3 w-full rounded-xl bg-brand-soft p-3 text-sm text-brand-ink ring-1 ring-brand-border/60">{operationMessage}</p>}
       {confirmReplacement && (
         <div className="mt-3 w-full rounded-xl bg-amber-50 p-4 text-left ring-1 ring-amber-200">
           <p className="text-sm font-semibold text-amber-900">Gerar uma nova credencial?</p>

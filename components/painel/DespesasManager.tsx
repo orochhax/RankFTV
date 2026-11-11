@@ -249,7 +249,7 @@ export function DespesasManager({
               placeholder="Buscar despesa..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-border bg-surface pl-9 pr-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-xl border border-border bg-surface pl-9 pr-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
             />
             {search && (
               <button
@@ -293,7 +293,7 @@ export function DespesasManager({
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-medium text-ink focus:border-blue-500 focus:outline-none"
+            className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-medium text-ink focus:border-brand focus:outline-none"
           >
             <option value="todas">Todas as categorias</option>
             {allCategories.map((c) => (
@@ -307,7 +307,7 @@ export function DespesasManager({
         {/* Botão Nova Despesa */}
         <button
           onClick={openNewModal}
-          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-blue-500"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-brand-hover"
         >
           <Plus className="size-4" />
           Nova Despesa
@@ -351,7 +351,7 @@ export function DespesasManager({
             <div className="flex justify-center">
               <button
                 onClick={openNewModal}
-                className="inline-flex items-center gap-1.5 rounded-full bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-500 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-brand-hover transition-colors"
               >
                 <Plus className="size-4" />
                 Lançar primeira despesa
@@ -531,7 +531,7 @@ export function DespesasManager({
                   placeholder="Ex.: Troféus e Medalhas, Arbitragem, Tendas..."
                   value={formNome}
                   onChange={(e) => setFormNome(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-ink-muted focus:border-blue-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
                 />
               </div>
 
@@ -548,7 +548,7 @@ export function DespesasManager({
                       onClick={() => setFormCategoria(cat)}
                       className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
                         formCategoria === cat
-                          ? "bg-blue-600 text-white font-bold"
+                          ? "bg-brand text-white font-bold"
                           : "bg-surface-2 text-ink-muted hover:bg-border/60"
                       }`}
                     >
@@ -560,7 +560,7 @@ export function DespesasManager({
                     onClick={() => setFormCategoria("Outra")}
                     className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
                       formCategoria === "Outra"
-                        ? "bg-blue-600 text-white font-bold"
+                        ? "bg-brand text-white font-bold"
                         : "bg-surface-2 text-ink-muted hover:bg-border/60"
                     }`}
                   >
@@ -575,7 +575,7 @@ export function DespesasManager({
                     placeholder="Nome da categoria personalizada..."
                     value={formCustomCategoria}
                     onChange={(e) => setFormCustomCategoria(e.target.value)}
-                    className="mt-2 w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:border-blue-500 focus:outline-none"
+                    className="mt-2 w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
                   />
                 )}
               </div>
@@ -597,7 +597,7 @@ export function DespesasManager({
                       placeholder="0,00"
                       value={formValor}
                       onChange={(e) => setFormValor(e.target.value)}
-                      className="w-full rounded-xl border border-border bg-surface pl-9 pr-3 py-2.5 text-sm font-bold text-ink focus:border-blue-500 focus:outline-none"
+                      className="w-full rounded-xl border border-border bg-surface pl-9 pr-3 py-2.5 text-sm font-bold text-ink focus:border-brand focus:outline-none"
                     />
                   </div>
                 </div>
@@ -611,7 +611,7 @@ export function DespesasManager({
                     required
                     value={formDataVencimento}
                     onChange={(e) => setFormDataVencimento(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-blue-500 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none"
                   />
                 </div>
               </div>
@@ -657,7 +657,7 @@ export function DespesasManager({
                   placeholder="Ex.: Pix para fornecedor X, pagar após a cerimônia..."
                   value={formObservacao}
                   onChange={(e) => setFormObservacao(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:border-blue-500 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
                 />
               </div>
 
@@ -674,7 +674,7 @@ export function DespesasManager({
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-500 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-brand-hover transition-colors disabled:opacity-50"
                 >
                   {isPending && <Loader2 className="size-3.5 animate-spin" />}
                   {editingExpense ? "Salvar alterações" : "Cadastrar despesa"}

@@ -14,7 +14,7 @@ export type PlateiaItem = {
 };
 
 const STATUS: Record<string, { label: string; cls: string }> = {
-  pago: { label: "Pago", cls: "bg-blue-100 text-blue-700" },
+  pago: { label: "Pago", cls: "bg-success-bg text-success" },
   pendente: { label: "Pendente", cls: "bg-amber-100 text-amber-700" },
   estornado: { label: "Estornado", cls: "bg-red-100 text-red-600" },
   expirado: { label: "Expirado", cls: "bg-gray-100 text-gray-600" },
@@ -34,7 +34,7 @@ export function PlateiaLista({ itens }: { itens: PlateiaItem[] }) {
             <div className="min-w-0 flex-1">
               <p className="flex items-center gap-1.5 truncate font-medium text-gray-900">
                 {item.comprador_nome}
-                {item.checked_in && <CheckCircle2 className="size-3.5 shrink-0 text-blue-500" />}
+                {item.checked_in && <CheckCircle2 className="size-3.5 shrink-0 text-success" />}
               </p>
               <p className="truncate text-xs text-gray-400">
                 {item.comprador_email}

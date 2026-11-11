@@ -19,7 +19,7 @@ function CTAs({ persona }: { persona: Persona }) {
       <div className="flex flex-col gap-3">
         <Link
           href="/meus-ingressos"
-          className="flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
         >
           <Ticket className="size-4" />
           Já comprei — Ver ingresso
@@ -49,7 +49,7 @@ function CTAs({ persona }: { persona: Persona }) {
           // PersonaSwitcher só renderiza pra visitante não autenticado (o
           // pai só monta isso quando !profile) — sempre manda pra landing.
           href={criarCampeonatoHref(false)}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
         >
           <LayoutDashboard className="size-4" />
           Criar meu evento grátis
@@ -69,7 +69,7 @@ function CTAs({ persona }: { persona: Persona }) {
     <div className="flex flex-col gap-3">
       <Link
         href={cadastrarArenaHref(false)}
-        className="flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+        className="flex items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
       >
         <Building2 className="size-4" />
         Criar minha arena
@@ -96,7 +96,7 @@ export function PersonaSwitcher() {
   return (
     <div className="space-y-6 pt-8 pb-2">
       <div className="text-center">
-        <p className="text-[11px] font-bold tracking-widest text-blue-400 uppercase">RankFTV</p>
+        <p className="text-[11px] font-bold tracking-widest text-accent uppercase">RankFTV</p>
         <h1 className="mt-2 text-4xl font-bold leading-tight tracking-tight text-white">
           Futevôlei organizado,
           <br />

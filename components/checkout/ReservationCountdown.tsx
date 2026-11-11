@@ -86,7 +86,7 @@ export function ReservationCountdown({ id, expiresAt, serverNow, onExpired }: Pr
     ? "border-red-200 bg-red-50 text-red-800"
     : urgency === "warning"
       ? "border-amber-200 bg-amber-50 text-amber-800"
-      : "border-blue-100 bg-blue-50 text-blue-800";
+      : "border-brand-border bg-brand-soft text-ink";
 
   return (
     <div className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 ${tone}`}>

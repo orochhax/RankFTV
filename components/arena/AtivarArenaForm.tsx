@@ -6,9 +6,9 @@ import { Loader2 } from "lucide-react";
 import { ativarArena, type AtivarArenaState } from "@/app/perfil/ativar-arena/actions";
 
 const input =
-  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand";
 const select =
-  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
+  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand bg-white";
 
 export function AtivarArenaForm({ estados }: { estados: string[] }) {
   const [termoAceito, setTermoAceito] = useState(false);
@@ -80,11 +80,11 @@ export function AtivarArenaForm({ estados }: { estados: string[] }) {
           type="checkbox"
           checked={termoAceito}
           onChange={(e) => setTermoAceito(e.target.checked)}
-          className="mt-0.5 size-4 shrink-0 rounded border-gray-300 accent-blue-600"
+          className="mt-0.5 size-4 shrink-0 rounded border-gray-300 accent-brand"
         />
         <span className="text-sm text-gray-600">
           Li e aceito os{" "}
-          <Link href="/termos" target="_blank" className="text-blue-600 underline hover:text-blue-800">
+          <Link href="/termos" target="_blank" className="text-brand-ink underline hover:text-brand-hover">
             Termos de uso
           </Link>{" "}
           da RankFTV
@@ -94,7 +94,7 @@ export function AtivarArenaForm({ estados }: { estados: string[] }) {
       <button
         type="submit"
         disabled={pending || !termoAceito}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending && <Loader2 className="size-4 animate-spin" />}
         Criar arena

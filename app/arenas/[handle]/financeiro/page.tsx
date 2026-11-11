@@ -80,7 +80,7 @@ export default async function FinanceiroAlunoPage({
             <ArrowLeft className="size-4" /> {arena.nome}
           </Link>
           <div className="flex items-center gap-2">
-            <Wallet className="size-6 text-blue-400" />
+            <Wallet className="size-6 text-accent" />
             <h1 className="text-2xl font-bold tracking-tight text-white">Financeiro</h1>
           </div>
           <p className="text-sm text-white/40">Histórico de cobranças nesta arena.</p>

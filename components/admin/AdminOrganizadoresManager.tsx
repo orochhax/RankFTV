@@ -204,17 +204,17 @@ export function AdminOrganizadoresManager({
           onClick={() => setSelectedTab("todos")}
           className={`rounded-2xl p-4 text-left transition-all ring-1 ${
             selectedTab === "todos"
-              ? "bg-blue-50 ring-blue-400"
-              : "bg-white ring-black/5 hover:ring-blue-200"
+              ? "bg-brand-soft ring-brand"
+              : "bg-white ring-black/5 hover:ring-brand-border"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-blue-700 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-brand-ink uppercase tracking-wider">
               Todos
             </span>
-            <ShieldCheck className="size-4 text-blue-600" />
+            <ShieldCheck className="size-4 text-brand" />
           </div>
-          <p className="mt-2 text-2xl font-bold text-blue-900">{counts.todos}</p>
+          <p className="mt-2 text-2xl font-bold text-ink">{counts.todos}</p>
         </button>
       </div>
 
@@ -226,7 +226,7 @@ export function AdminOrganizadoresManager({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Buscar por nome, @username, CPF ou chave Pix..."
-          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
         />
       </div>
 
@@ -286,7 +286,7 @@ export function AdminOrganizadoresManager({
 
                   <button
                     onClick={() => handleOpenOrg(org)}
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-brand-soft px-4 py-2 text-xs font-semibold text-brand-ink hover:bg-brand-border/40 transition-colors"
                   >
                     <Eye className="size-3.5" />
                     Avaliar documentos
@@ -394,7 +394,7 @@ export function AdminOrganizadoresManager({
 
               {loadingUrls ? (
                 <div className="flex items-center justify-center p-8 text-sm text-gray-500">
-                  <Loader2 className="mr-2 size-4 animate-spin text-blue-600" />
+                  <Loader2 className="mr-2 size-4 animate-spin text-brand" />
                   Carregando imagens seguras...
                 </div>
               ) : (

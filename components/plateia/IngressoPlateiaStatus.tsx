@@ -101,7 +101,7 @@ export function IngressoPlateiaStatus({
   if (pago) {
     return (
       <div className="flex flex-col items-center gap-3 text-center">
-        <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-600">
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-success">
           <CheckCircle2 className="size-4" /> Ingresso confirmado
         </div>
         {entradaQr && (

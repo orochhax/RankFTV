@@ -104,7 +104,7 @@ export default async function Home({
           </div>
           <Link
             href="/"
-            className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             aria-label="RankFTV — início"
           >
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white shadow-soft shadow-black/40">
@@ -118,7 +118,7 @@ export default async function Home({
               />
             </span>
             <span className="text-xl font-black tracking-[-0.03em] text-white">
-              Rank<span className="text-blue-500">FTV</span>
+              Rank<span className="text-accent">FTV</span>
             </span>
           </Link>
           <Link
@@ -137,39 +137,39 @@ export default async function Home({
 
         <PageContainer width="wide">
           <div className="flex flex-col gap-5 md:grid md:grid-cols-12 md:items-center md:gap-6 lg:gap-8">
-            <div className="min-w-0 md:col-span-5 lg:col-span-5 xl:col-span-4">
+            <div className="min-w-0 md:col-span-4">
               {profile ? (
                 <div className="flex items-center gap-4">
                   <Avatar
                     nome={profile.nome}
-                    color="bg-blue-500"
+                    color="bg-brand"
                     size="lg"
                     fotoUrl={profile.foto_url}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-400">
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-accent">
                       Bem-vindo de volta
                     </p>
                     <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
                       {profile.nome.split(" ")[0]}
                     </h1>
-                    <p className="text-sm text-white/50">@{profile.username}</p>
+                    <p className="text-sm text-white/72">@{profile.username}</p>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <p className="text-xs font-bold uppercase tracking-widest text-blue-400">RankFTV</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-accent">RankFTV</p>
                   <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
                     Campeonatos de futevôlei
                   </h1>
-                  <p className="text-sm text-white/50">
+                  <p className="text-sm text-white/72">
                     Encontre e participe dos melhores campeonatos do Brasil.
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="-mx-2 md:mx-0 md:col-span-7 lg:col-span-7 xl:col-span-8">
+            <div className="-mx-2 md:mx-0 md:col-span-8">
               <PromoOrganizadoresBanner className="md:ml-auto md:max-w-[840px]" />
             </div>
           </div>
@@ -180,7 +180,13 @@ export default async function Home({
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg pb-24 pt-8 shadow-sm md:pb-16">
         <DesktopSheetContourLight />
         <svg aria-hidden="true" className="home-mobile-sheet-accent md:hidden" viewBox="0 0 430 28" preserveAspectRatio="none">
-          <path d="M0 28 A28 28 0 0 1 28 0 H402 A28 28 0 0 1 430 28" pathLength="100" />
+          <defs>
+            <linearGradient id="rankftv-home-mobile-beam" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#72bf00" />
+              <stop offset="100%" stopColor="#ff5d00" />
+            </linearGradient>
+          </defs>
+          <path d="M0 28 A28 28 0 0 1 28 0 H402 A28 28 0 0 1 430 28" pathLength="100" stroke="url(#rankftv-home-mobile-beam)" />
         </svg>
         <PageContainer width="wide">
           <CampeonatosSection
@@ -195,13 +201,13 @@ export default async function Home({
                   <SectionHeader icon={Radio} iconClassName="size-4 animate-pulse text-red-500" title="Ao vivo agora" className="mb-3" />
                   <div className="grid gap-3 md:grid-cols-2">
                     {aoVivo.map((c) => (
-                      <Link key={c.id} href={`/campeonatos/${c.slug ?? c.id}`} className="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 ring-1 ring-red-100 transition-colors hover:bg-red-50">
+                      <Link key={c.id} href={`/campeonatos/${c.slug ?? c.id}`} className="flex items-center justify-between gap-4 rounded-2xl bg-surface p-4 ring-1 ring-danger/25 transition-colors hover:bg-danger-bg/60">
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2"><span className="size-2 shrink-0 animate-pulse rounded-full bg-red-500" /><p className="truncate font-semibold text-gray-900">{c.nome}</p></div>
-                          <p className="mt-0.5 text-xs text-gray-400">{formatDateRangeBR(c.dataInicio, c.dataFim)}</p>
-                          <p className="flex items-center gap-1 text-xs text-gray-400"><MapPin className="size-3" />{c.local}, {c.cidade} - {c.estado}</p>
+                          <div className="flex items-center gap-2"><span className="size-2 shrink-0 animate-pulse rounded-full bg-danger" /><p className="truncate font-semibold text-ink">{c.nome}</p></div>
+                          <p className="mt-0.5 text-xs text-ink-muted">{formatDateRangeBR(c.dataInicio, c.dataFim)}</p>
+                          <p className="flex items-center gap-1 text-xs text-ink-muted"><MapPin className="size-3" />{c.local}, {c.cidade} - {c.estado}</p>
                         </div>
-                        <ChevronRight className="size-4 shrink-0 text-gray-300" />
+                        <ChevronRight className="size-4 shrink-0 text-ink-muted/60" />
                       </Link>
                     ))}
                   </div>

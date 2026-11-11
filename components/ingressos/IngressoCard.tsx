@@ -66,8 +66,8 @@ export function IngressoCard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             {isAtleta
-              ? <Users className="size-4 text-blue-400" />
-              : <Ticket className="size-4 text-blue-400" />}
+              ? <Users className="size-4 text-accent" />
+              : <Ticket className="size-4 text-accent" />}
             <p className="text-xs font-bold uppercase tracking-widest text-white/60">
               {isAtleta ? "Ingresso de atleta" : "Ingresso de plateia"}
             </p>
@@ -104,11 +104,11 @@ export function IngressoCard({
                 <Clock className="size-3.5" /> {refundLabel}
               </span>
             ) : estornado ? (
-              <span className={refundLabel ? "text-blue-600" : "text-red-500"}>
+              <span className={refundLabel ? "text-brand-ink" : "text-danger"}>
                 {refundLabel ?? "Cancelado"}
               </span>
             ) : pago ? (
-              <span className="flex items-center gap-1 text-blue-600">
+              <span className="flex items-center gap-1 text-success">
                 <CheckCircle2 className="size-3.5" /> Confirmado
                 {ing.checked_in && <span className="font-normal text-gray-400">· check-in feito</span>}
               </span>

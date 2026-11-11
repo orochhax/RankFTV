@@ -162,7 +162,7 @@ export function HamburgerMenu({ unreadCount, organizerHabilitado, isLoggedIn }: 
                 <Link
                   href="/login"
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-brand-ink hover:bg-brand-soft transition-colors"
                 >
                   <LogIn className="size-4 shrink-0" />
                   <span>Entrar</span>

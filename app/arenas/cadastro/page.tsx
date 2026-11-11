@@ -18,16 +18,16 @@ export default async function CadastroArenaEtapa1Page() {
   if (!user) redirect("/login?next=/arenas/cadastro");
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6">
+    <div className="min-h-screen bg-app-bg py-10 px-4 sm:px-6">
       <div className="mx-auto max-w-2xl space-y-6">
         {/* Barra de Progresso do Onboarding */}
         <div>
-          <div className="flex items-center justify-between text-xs font-bold text-gray-600 mb-2">
-            <span className="text-blue-600">Etapa 1 de 2: Estrutura da Arena</span>
+          <div className="flex items-center justify-between text-xs font-bold text-ink-muted mb-2">
+            <span className="text-brand-ink">Etapa 1 de 2: Estrutura da Arena</span>
             <span>50% concluído</span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-            <div className="h-full w-1/2 rounded-full bg-blue-600 transition-all duration-500" />
+          <div className="h-2 w-full overflow-hidden rounded-full bg-border">
+            <div className="h-full w-1/2 rounded-full bg-brand transition-all duration-500" />
           </div>
         </div>
 

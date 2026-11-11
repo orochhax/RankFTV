@@ -65,8 +65,8 @@ export default async function ArenaAssinaturaPage({
       <div className="flex flex-col gap-2 border-b border-gray-200 pb-6 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">
-              <Sparkles className="size-3 text-blue-600" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-bold text-brand-ink">
+              <Sparkles className="size-3 text-brand" />
               SaaS Arenas RankFTV
             </span>
             <span className="text-xs font-medium text-gray-500">
@@ -116,7 +116,7 @@ export default async function ArenaAssinaturaPage({
                 ? "bg-orange-500"
                 : capacidade.isAviso
                 ? "bg-amber-500"
-                : "bg-blue-600"
+                : "bg-brand"
             }`}
             style={{ width: `${Math.min(100, capacidade.percentualOcupacao)}%` }}
           />

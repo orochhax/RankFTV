@@ -99,7 +99,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
             />
           </div>
           <div>
@@ -112,7 +112,7 @@ export default function LoginPage() {
                 type={mostrarSenha ? "text" : "password"}
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:border-brand focus:outline-none"
               />
               <button
                 type="button"
@@ -130,7 +130,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading || !email || !senha || (captchaEnabled && !captchaToken)}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
           >
             {loading ? "Entrando..." : "Entrar"}
           </button>
@@ -138,14 +138,14 @@ export default function LoginPage() {
 
         <p className="mt-4 text-center text-sm text-gray-500">
           Esqueceu sua senha?{" "}
-          <Link href="/recuperar-senha" className="font-medium text-blue-600 hover:underline">
+          <Link href="/recuperar-senha" className="font-medium text-brand-ink hover:text-brand hover:underline">
             Recuperar acesso
           </Link>
         </p>
 
         <p className="mt-4 text-center text-sm text-gray-500">
           Não tem conta?{" "}
-          <Link href="/cadastro" className="font-medium text-blue-600 hover:underline">
+          <Link href="/cadastro" className="font-medium text-brand-ink hover:text-brand hover:underline">
             Criar conta
           </Link>
         </p>

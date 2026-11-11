@@ -35,7 +35,7 @@ const STEP_LABEL: Record<StepKey, string> = {
 };
 
 const inputClass =
-  "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+  "mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand";
 const labelClass = "block text-xs font-medium text-gray-600";
 
 export function NovoCampeonatoForm() {
@@ -212,7 +212,7 @@ export function NovoCampeonatoForm() {
         {sequence.map((k, i) => (
           <div key={k} className="flex items-center gap-2">
             <span className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${
-              i === idx ? "bg-blue-600 text-white" : i < idx ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"
+              i === idx ? "bg-brand text-white" : i < idx ? "bg-brand-soft text-brand-ink" : "bg-surface-2 text-ink-muted"
             }`}>
               {i + 1}
             </span>
@@ -351,12 +351,12 @@ export function NovoCampeonatoForm() {
               <label className={labelClass}>PDF do regulamento (opcional)</label>
               {pdfFile ? (
                 <div className="mt-1 flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2">
-                  <FileText className="size-4 shrink-0 text-blue-500" />
+                  <FileText className="size-4 shrink-0 text-brand" />
                   <span className="flex-1 truncate text-sm text-gray-700">{pdfFile.name}</span>
                   <button type="button" onClick={() => { setPdfFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="text-gray-400 hover:text-red-500"><X className="size-4" /></button>
                 </div>
               ) : (
-                <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600">
+                <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 hover:border-brand hover:text-brand-ink">
                   <FileText className="size-4" />
                   Clique para selecionar o PDF
                   <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={async (e) => {
@@ -386,7 +386,7 @@ export function NovoCampeonatoForm() {
                     const ativa = nomesUsados.has(preset);
                     return (
                       <button key={preset} type="button" onClick={() => { if (!ativa) addCat(preset); }} disabled={ativa}
-                        className={`rounded-full border px-3 py-1 text-sm font-medium transition-colors ${ativa ? "border-blue-300 bg-blue-100 text-blue-600 cursor-default" : "border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"}`}>
+                        className={`rounded-full border px-3 py-1 text-sm font-medium transition-colors ${ativa ? "border-brand-border bg-brand-soft text-brand-ink cursor-default" : "border-border bg-surface text-ink-muted hover:border-brand-border hover:bg-brand-soft hover:text-brand-ink"}`}>
                         {ativa ? "✓ " : "+ "}{preset}
                       </button>
                     );
@@ -442,9 +442,9 @@ export function NovoCampeonatoForm() {
             const totalPessoas = ingressos.reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
             if (totalPessoas <= 0) return null;
             return (
-              <div className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3 text-sm ring-1 ring-blue-100">
-                <span className="font-medium text-blue-700">Total de pessoas na plateia</span>
-                <span className="font-bold text-blue-800">{totalPessoas}</span>
+              <div className="flex items-center justify-between rounded-xl bg-brand-soft px-4 py-3 text-sm ring-1 ring-brand-border">
+                <span className="font-medium text-brand-ink">Total de pessoas na plateia</span>
+                <span className="font-bold text-ink">{totalPessoas}</span>
               </div>
             );
           })()}
@@ -467,12 +467,12 @@ export function NovoCampeonatoForm() {
           </button>
         )}
         {!isLast ? (
-          <button type="button" onClick={nextStep} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
+          <button type="button" onClick={nextStep} className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover">
             Próximo <ArrowRight className="size-4" />
           </button>
         ) : (
           <button type="button" onClick={submit} disabled={pending}
-            className={`rounded-lg px-5 py-2.5 text-sm font-semibold disabled:opacity-60 transition-colors ${elite ? "bg-amber-400 text-gray-900 hover:bg-amber-300" : "bg-blue-600 text-white hover:bg-blue-700"}`}>
+            className={`rounded-lg px-5 py-2.5 text-sm font-semibold disabled:opacity-60 transition-colors ${elite ? "bg-amber-400 text-gray-900 hover:bg-amber-300" : "bg-brand text-white hover:bg-brand-hover"}`}>
             {pending ? "Criando…" : elite ? "Criar Evento de Elite" : "Criar Evento"}
           </button>
         )}
@@ -489,13 +489,13 @@ function SelectCard({
 }) {
   return (
     <button type="button" onClick={onClick}
-      className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors ${ativo ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500" : "border-gray-200 bg-white hover:bg-gray-50"}`}>
-      <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${ativo ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-400"}`}>{icon}</div>
+      className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors ${ativo ? "border-brand bg-brand-soft ring-1 ring-brand" : "border-border bg-surface hover:bg-surface-2"}`}>
+      <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${ativo ? "bg-brand text-white" : "bg-surface-2 text-ink-muted"}`}>{icon}</div>
       <div className="min-w-0 flex-1">
         <p className="font-medium text-gray-900">{titulo}</p>
         <p className="text-xs text-gray-400">{desc}</p>
       </div>
-      <span className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 ${ativo ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}>
+      <span className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 ${ativo ? "border-brand bg-brand" : "border-border"}`}>
         {ativo && <CheckCircle2 className="size-4 text-white" />}
       </span>
     </button>

@@ -26,7 +26,7 @@ export default async function PerfilPublicoPage({
     .order("created_at", { ascending: false })
     .limit(20);
 
-  const avatarColors = ["bg-blue-500","bg-blue-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
+  const avatarColors = ["bg-brand", "bg-brand-dark", "bg-accent text-accent-ink", "bg-orange-500", "bg-rose-500", "bg-teal-600"];
   function avatarColor(str: string) {
     let h = 0;
     for (const c of str) h = (h * 31 + c.charCodeAt(0)) | 0;
@@ -67,13 +67,13 @@ export default async function PerfilPublicoPage({
       </div>
 
       {profile.rating > 0 && (
-        <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-          <h2 className="mb-3 text-sm font-semibold text-gray-500">Nível</h2>
+        <section className="rounded-2xl bg-white p-5 ring-1 ring-border">
+          <h2 className="mb-3 text-sm font-semibold text-ink-muted">Nível</h2>
           <div className="flex items-center gap-3">
-            <span className="rounded-full bg-blue-600 px-3 py-1 text-sm font-bold text-white">
+            <span className="rounded-full bg-brand px-3 py-1 text-sm font-bold text-white">
               {categoriaFromRating(profile.rating)}
             </span>
-            <span className="text-sm text-gray-600">{profile.rating} pontos</span>
+            <span className="text-sm text-ink-muted">{profile.rating} pontos</span>
           </div>
         </section>
       )}

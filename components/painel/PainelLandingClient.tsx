@@ -85,8 +85,8 @@ function SectionEvento({ ctaHref, ctaLabel }: { ctaHref: string; ctaLabel: strin
       <div className="mx-auto max-w-3xl space-y-14">
 
         {/* Prova social */}
-        <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 p-6">
-          <p className="mb-5 text-center text-[11px] font-bold uppercase tracking-widest text-blue-200">
+        <section className="overflow-hidden rounded-3xl border border-white/10 bg-brand-dark p-6 text-white">
+          <p className="mb-5 text-center text-[11px] font-bold uppercase tracking-widest text-accent">
             Resultados reais
           </p>
           <div className="grid grid-cols-3 gap-2">
@@ -100,7 +100,7 @@ function SectionEvento({ ctaHref, ctaLabel }: { ctaHref: string; ctaLabel: strin
                   <Icon className="size-4 text-white" strokeWidth={2} />
                 </div>
                 <p className="text-3xl font-black tracking-tight text-white">{numero}</p>
-                <p className="text-[11px] font-medium leading-tight text-blue-100">{label}</p>
+                <p className="text-[11px] font-medium leading-tight text-app-bg/85">{label}</p>
               </div>
             ))}
           </div>
@@ -128,7 +128,7 @@ function SectionEvento({ ctaHref, ctaLabel }: { ctaHref: string; ctaLabel: strin
               </div>
             ))}
           </div>
-          <p className="text-center text-base font-semibold text-blue-600">
+          <p className="text-center text-base font-semibold text-brand-ink">
             Com a RankFTV, você para de apagar incêndio<br className="hidden sm:block" /> e começa a organizar de verdade.
           </p>
         </section>
@@ -138,19 +138,19 @@ function SectionEvento({ ctaHref, ctaLabel }: { ctaHref: string; ctaLabel: strin
           {MOMENTOS_EVENTO.map(({ fase, items }) => (
             <div key={fase}>
               <div className="mb-4 flex items-center gap-3">
-                <div className="h-px flex-1 bg-blue-100" />
-                <p className="text-xs font-semibold uppercase tracking-widest text-blue-500">{fase}</p>
-                <div className="h-px flex-1 bg-blue-100" />
+                <div className="h-px flex-1 bg-brand-border" />
+                <p className="text-xs font-semibold uppercase tracking-widest text-brand-ink">{fase}</p>
+                <div className="h-px flex-1 bg-brand-border" />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {items.map(({ icon: Icon, titulo, desc }) => (
-                  <div key={titulo} className="flex items-start gap-4 rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-600">
+                  <div key={titulo} className="flex items-start gap-4 rounded-2xl bg-brand-soft p-4 ring-1 ring-brand-border">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand">
                       <Icon className="size-4 text-white" strokeWidth={1.8} />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-blue-600">{titulo}</p>
-                      <p className="mt-0.5 text-sm leading-relaxed text-gray-700">{desc}</p>
+                      <p className="text-sm font-semibold text-brand-ink">{titulo}</p>
+                      <p className="mt-0.5 text-sm leading-relaxed text-ink">{desc}</p>
                     </div>
                   </div>
                 ))}
@@ -172,8 +172,8 @@ function SectionEvento({ ctaHref, ctaLabel }: { ctaHref: string; ctaLabel: strin
 
         {/* CTA final */}
         <section className="rounded-3xl bg-brand-dark p-8 text-center">
-          <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-blue-500/15">
-            <MapPin className="size-6 text-blue-400" />
+          <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-accent/15">
+            <MapPin className="size-6 text-accent" />
           </div>
           <p className="mt-4 text-xl font-bold text-white">
             Pronto pra organizar do jeito certo?
@@ -183,7 +183,7 @@ function SectionEvento({ ctaHref, ctaLabel }: { ctaHref: string; ctaLabel: strin
           </p>
           <Link
             href={ctaHref}
-            className="mt-6 inline-block rounded-2xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            className="mt-6 inline-block rounded-2xl bg-brand px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
           >
             {ctaLabel}
           </Link>
@@ -222,7 +222,7 @@ function SectionArena({ ctaHref }: { ctaHref: string }) {
               </div>
             ))}
           </div>
-          <p className="text-center text-base font-semibold text-blue-600">
+          <p className="text-center text-base font-semibold text-brand-ink">
             Com a RankFTV, sua operação fica mais organizada<br className="hidden sm:block" /> enquanto você foca no esporte.
           </p>
         </section>
@@ -230,19 +230,19 @@ function SectionArena({ ctaHref }: { ctaHref: string }) {
         {/* Features */}
         <section className="space-y-4">
           <div className="mb-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-blue-100" />
-            <p className="text-xs font-semibold uppercase tracking-widest text-blue-500">O que você ganha</p>
-            <div className="h-px flex-1 bg-blue-100" />
+            <div className="h-px flex-1 bg-brand-border" />
+            <p className="text-xs font-semibold uppercase tracking-widest text-brand-ink">O que você ganha</p>
+            <div className="h-px flex-1 bg-brand-border" />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {FEATURES_ARENA.map(({ icon: Icon, titulo, descricao }) => (
-              <div key={titulo} className="flex items-start gap-4 rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-600">
+              <div key={titulo} className="flex items-start gap-4 rounded-2xl bg-brand-soft p-4 ring-1 ring-brand-border">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand">
                   <Icon className="size-4 text-white" strokeWidth={1.8} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-blue-600">{titulo}</p>
-                  <p className="mt-0.5 text-sm leading-relaxed text-gray-700">{descricao}</p>
+                  <p className="text-sm font-semibold text-brand-ink">{titulo}</p>
+                  <p className="mt-0.5 text-sm leading-relaxed text-ink">{descricao}</p>
                 </div>
               </div>
             ))}
@@ -250,8 +250,8 @@ function SectionArena({ ctaHref }: { ctaHref: string }) {
         </section>
 
         {/* Resumo de receitas */}
-        <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 p-7 text-white">
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-200">
+        <section className="overflow-hidden rounded-3xl border border-white/10 bg-brand-dark p-7 text-white">
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent">
             Visão completa
           </p>
           <h2 className="mt-2 text-2xl font-bold leading-snug">
@@ -269,14 +269,14 @@ function SectionArena({ ctaHref }: { ctaHref: string }) {
                 </div>
                 <div>
                   <p className="font-bold text-white">{titulo}</p>
-                  <p className="mt-0.5 text-sm text-blue-100/80">{desc}</p>
+                  <p className="mt-0.5 text-sm text-app-bg/80">{desc}</p>
                 </div>
               </div>
             ))}
           </div>
           <Link
             href={ctaHref}
-            className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-white py-3 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50"
+            className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-brand py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
           >
             Gerenciar minha arena
           </Link>
@@ -284,8 +284,8 @@ function SectionArena({ ctaHref }: { ctaHref: string }) {
 
         {/* CTA final */}
         <section className="rounded-3xl bg-brand-dark p-8 text-center">
-          <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-blue-500/15">
-            <ShieldCheck className="size-6 text-blue-400" />
+          <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-accent/15">
+            <ShieldCheck className="size-6 text-accent" />
           </div>
           <p className="mt-4 text-xl font-bold text-white">Grátis pra começar.</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-white/50">
@@ -293,7 +293,7 @@ function SectionArena({ ctaHref }: { ctaHref: string }) {
           </p>
           <Link
             href={ctaHref}
-            className="mt-6 inline-block rounded-2xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            className="mt-6 inline-block rounded-2xl bg-brand px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
           >
             Gerenciar minha arena
           </Link>
@@ -330,7 +330,7 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
       <div className="bg-brand-dark px-6 py-5">
         <div className="mx-auto max-w-3xl space-y-4">
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-blue-400">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-accent">
               Para organizadores
             </span>
             <h1 className="mt-0.5 text-xl font-bold tracking-tight text-white">
@@ -346,8 +346,8 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
                 onClick={() => setTab(id)}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
                   tab === id
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-400 hover:text-white"
+                    ? "bg-brand text-white shadow-sm"
+                    : "text-app-bg/75 hover:text-white"
                 }`}
               >
                 <Icon className="size-4" />
@@ -365,7 +365,7 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
                 href="/cadastro"
                 label="Criar Evento"
                 icon={Trophy}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
               />
             ) : (
               <StickyCTA
@@ -373,7 +373,7 @@ export function PainelLandingClient({ isLoggedIn }: { isLoggedIn: boolean }) {
                 href="/cadastro?next=/painel%3Ftab%3Darena"
                 label="Gerenciar Arena"
                 icon={Building2}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
               />
             )
           )}

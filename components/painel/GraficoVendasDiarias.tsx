@@ -27,7 +27,7 @@ function CustomTooltip({
   return (
     <div className="rounded-xl border border-gray-100 bg-white px-3 py-2 shadow-lg text-xs">
       <p className="font-semibold text-gray-700">{label}</p>
-      <p className="text-blue-600 font-bold">{formatBRL(total)}</p>
+      <p className="text-brand-ink font-bold">{formatBRL(total)}</p>
       <p className="text-gray-400">{count} inscriç{count === 1 ? "ão" : "ões"}</p>
     </div>
   );
@@ -81,7 +81,7 @@ export function GraficoVendasDiarias({ dados }: { dados: DiaVenda[] }) {
             <Bar dataKey="count" fill="transparent" legendType="none" />
             <Bar
               dataKey="total"
-              fill={temVendas ? "#3b82f6" : "#e5e7eb"}
+              fill={temVendas ? "#FF5D00" : "#e5e7eb"}
               radius={[4, 4, 0, 0]}
             />
           </BarChart>

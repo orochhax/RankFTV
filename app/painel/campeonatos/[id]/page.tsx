@@ -260,7 +260,7 @@ export default async function PainelCampeonatoPage({
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-3">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-ink-muted">
           <span className="flex items-center gap-1.5 font-medium text-ink">
-            <CalendarDays className="size-4 text-blue-600" />
+            <CalendarDays className="size-4 text-brand" />
             {formatDateRangeBR(camp.dataInicio, camp.dataFim)}
           </span>
           <span className="flex items-center gap-1.5">
@@ -280,7 +280,7 @@ export default async function PainelCampeonatoPage({
 
         <Link
           href={`/painel/campeonatos/${publicSlug}/financeiro`}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
         >
           <Sparkles className="size-3.5" />
           Central Financeira
@@ -335,13 +335,13 @@ export default async function PainelCampeonatoPage({
       {/* Aviso: chave Pix ou verificação KYC pendente */}
       {temCategoriaPaga &&
         (orgAccountRes.data?.status_verificacao === "em_analise" ? (
-          <div className="flex items-start gap-3 rounded-card-lg bg-blue-50 p-4 ring-1 ring-blue-200">
+          <div className="flex items-start gap-3 rounded-card-lg bg-brand-soft p-4 ring-1 ring-brand-border">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface">
-              <Clock className="size-5 text-blue-600" />
+              <Clock className="size-5 text-brand" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-blue-900">Documentos em análise de segurança</p>
-              <p className="mt-0.5 text-sm text-blue-800">
+              <p className="font-semibold text-ink">Documentos em análise de segurança</p>
+              <p className="mt-0.5 text-sm text-ink-muted">
                 Seus dados e documentos estão sendo conferidos pela equipe da RankFTV. Assim que aprovados, você poderá publicar e receber os pagamentos normalmente.
               </p>
             </div>
@@ -433,10 +433,10 @@ export default async function PainelCampeonatoPage({
                           <div
                             className={`h-full rounded-full transition-all ${
                               pct >= 90
-                                ? "bg-emerald-500"
+                                ? "bg-success"
                                 : pct >= 50
-                                  ? "bg-blue-600"
-                                  : "bg-blue-400"
+                                  ? "bg-brand"
+                                  : "bg-brand/60"
                             }`}
                             style={{ width: `${pct}%` }}
                           />
@@ -479,7 +479,7 @@ export default async function PainelCampeonatoPage({
                       ? "border-rose-200 bg-rose-50/70 text-rose-900"
                       : alert.tone === "amber"
                         ? "border-amber-200 bg-amber-50/70 text-amber-900"
-                        : "border-blue-200 bg-blue-50/60 text-blue-900";
+                        : "border-brand-border bg-brand-soft/60 text-ink";
                   return (
                     <Link
                       key={alert.key}

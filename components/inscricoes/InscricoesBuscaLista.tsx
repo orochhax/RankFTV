@@ -42,7 +42,7 @@ export function InscricoesBuscaLista({ lista }: { lista: Dupla[] }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar dupla pelo nome..."
-          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-xl border border-border bg-white py-2.5 pl-10 pr-4 text-sm text-ink placeholder-ink-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
         />
       </div>
 

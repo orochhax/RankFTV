@@ -76,7 +76,7 @@ export function InscricaoForm({
           defaultValue={cpfSalvo ?? ""}
           placeholder="000.000.000-00"
           required
-          className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
         />
         <p className="mt-1 text-xs text-gray-400">
           Necessário para emitir a cobrança. Salvo no seu perfil para próximas inscrições.
@@ -105,7 +105,7 @@ export function InscricaoForm({
                 required
                 className="peer sr-only"
               />
-              <span className="flex h-10 w-12 items-center justify-center rounded-xl border border-gray-200 text-sm font-bold text-gray-600 transition-colors peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:text-white hover:border-blue-300">
+              <span className="flex h-10 w-12 items-center justify-center rounded-xl border border-border text-sm font-bold text-ink-muted transition-colors peer-checked:border-brand peer-checked:bg-brand peer-checked:text-white hover:border-brand-border">
                 {sz}
               </span>
             </label>
@@ -130,14 +130,14 @@ export function InscricaoForm({
           type="checkbox"
           name="aceite_termos"
           required
-          className="mt-0.5 size-4 shrink-0 cursor-pointer accent-blue-600"
+          className="mt-0.5 size-4 shrink-0 cursor-pointer accent-brand"
         />
         <span className="text-sm text-gray-600 leading-relaxed">
           Li e concordo com os{" "}
           <Link
             href="/termos"
             target="_blank"
-            className="font-medium text-blue-600 underline hover:text-blue-700"
+            className="font-medium text-brand-ink underline hover:text-brand"
           >
             Termos de Uso
           </Link>{" "}
@@ -145,7 +145,7 @@ export function InscricaoForm({
           <Link
             href="/privacidade"
             target="_blank"
-            className="font-medium text-blue-600 underline hover:text-blue-700"
+            className="font-medium text-brand-ink underline hover:text-brand"
           >
             Política de Privacidade
           </Link>{" "}
@@ -172,7 +172,7 @@ export function InscricaoForm({
       <button
         type="submit"
         disabled={pending}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
       >
         {pending && <Loader2 className="size-4 animate-spin" />}
         {pending ? "Processando…" : "Prosseguir para o pagamento"}

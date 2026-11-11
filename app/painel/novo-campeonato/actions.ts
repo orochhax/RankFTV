@@ -56,12 +56,12 @@ export type CreateChampionshipInput = {
 // Gradientes de banner — escolhe um aleatório por enquanto (upload de imagem
 // real fica pra quando ligarmos o Storage).
 const GRADIENTS: [string, string][] = [
-  ["from-blue-500", "to-cyan-400"],
-  ["from-blue-500", "to-teal-400"],
+  ["from-emerald-800", "to-teal-600"],
+  ["from-teal-800", "to-emerald-600"],
   ["from-orange-500", "to-amber-400"],
-  ["from-violet-500", "to-purple-400"],
+  ["from-violet-600", "to-purple-500"],
   ["from-rose-500", "to-pink-400"],
-  ["from-indigo-500", "to-blue-400"],
+  ["from-amber-600", "to-orange-500"],
 ];
 
 export async function createChampionship(

@@ -86,7 +86,7 @@ export default async function AulasPage({
       {isDono && (
       <section className="rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5">
         <div className="flex items-center gap-2">
-          <Clock className="size-4 text-blue-500" />
+          <Clock className="size-4 text-brand" />
           <h2 className="text-sm font-semibold text-gray-700">Regras de presença</h2>
         </div>
         <form action={salvarCancelHoras} className="mt-3 space-y-2">
@@ -101,12 +101,12 @@ export default async function AulasPage({
               min={0}
               max={72}
               defaultValue={cancelHoras}
-              className="w-24 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-24 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand"
             />
             <span className="text-sm text-gray-500">horas antes</span>
             <button
               type="submit"
-              className="ml-auto rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              className="ml-auto rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
             >
               Salvar
             </button>

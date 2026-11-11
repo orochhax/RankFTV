@@ -67,7 +67,7 @@ test("check-in groups every paid pair and renders compact accessible attendance"
   assert.match(organizerPageSource, /pb-32/);
   assert.match(pairSource, /aria-expanded=\{expanded\}/);
   assert.match(pairSource, /\{confirmed\}\/\{members\.length\}/);
-  assert.match(pairSource, /member\.checkedIn \? "text-blue-700" : "text-ink-muted"/);
+  assert.match(pairSource, /member\.checkedIn \? "text-brand-ink" : "text-ink-muted"/);
 });
 
 test("successful scans refresh the server-rendered directory", () => {

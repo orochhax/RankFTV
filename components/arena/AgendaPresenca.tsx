@@ -122,11 +122,11 @@ export function AgendaPresenca({
     <section>
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <CalendarDays className="size-4 text-blue-500" />
+          <CalendarDays className="size-4 text-brand" />
           <h2 className="text-sm font-semibold text-gray-700">Agenda de aulas</h2>
         </div>
         {isAluno && (
-          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+          <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand-ink">
             {planoLimite != null
               ? `Esta semana: ${usadasSemana}/${planoLimite} aulas`
               : planoLimite === null && creditoDisponivel
@@ -141,16 +141,16 @@ export function AgendaPresenca({
           <div
             key={dia.date}
             className={`rounded-2xl p-3 ring-1 ${
-              dia.isToday ? "bg-blue-50 ring-blue-200" : "bg-white ring-black/5"
+              dia.isToday ? "bg-brand-soft ring-brand-border" : "bg-white ring-black/5"
             }`}
           >
             <div className="mb-2 flex items-center gap-2">
-              <p className={`text-sm font-semibold ${dia.isToday ? "text-blue-700" : "text-gray-700"}`}>
+              <p className={`text-sm font-semibold ${dia.isToday ? "text-brand-ink" : "text-gray-700"}`}>
                 {dia.label}
               </p>
               {dia.relLabel && (
                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                  dia.isToday ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"
+                  dia.isToday ? "bg-brand text-white" : "bg-gray-100 text-gray-500"
                 }`}>
                   {dia.relLabel}
                 </span>
@@ -179,8 +179,8 @@ export function AgendaPresenca({
                       key={aula.id}
                       className={`rounded-xl p-3 ring-1 ${
                         aula.minha
-                          ? "bg-blue-600 ring-blue-600"
-                          : dia.isToday ? "bg-white ring-blue-100" : "bg-gray-50 ring-black/5"
+                          ? "bg-brand-dark ring-brand-dark"
+                          : dia.isToday ? "bg-white ring-brand-border" : "bg-gray-50 ring-black/5"
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export function AgendaPresenca({
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                             {horario && (
                               <span className={`flex items-center gap-1 text-xs font-bold ${
-                                aula.minha ? "text-blue-100" : "text-blue-600"
+                                aula.minha ? "text-accent" : "text-brand-ink"
                               }`}>
                                 <Clock className="size-3.5" /> {horario}
                               </span>
@@ -198,10 +198,10 @@ export function AgendaPresenca({
                             </span>
                           </div>
                           <div className={`mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] ${
-                            aula.minha ? "text-blue-100" : "text-gray-500"
+                            aula.minha ? "text-app-bg/85" : "text-gray-500"
                           }`}>
                             <span className="font-semibold">{nivelLabel}</span>
-                            <span className={aula.minha ? "text-blue-300" : "text-gray-300"}>·</span>
+                            <span className={aula.minha ? "text-white/40" : "text-gray-300"}>·</span>
                             <span className={`font-semibold ${
                               lotada && !aula.minha ? "text-red-500" : ""
                             }`}>
@@ -211,7 +211,7 @@ export function AgendaPresenca({
                             </span>
                             {aula.publico !== "misto" && (
                               <>
-                                <span className={aula.minha ? "text-blue-300" : "text-gray-300"}>·</span>
+                                <span className={aula.minha ? "text-white/40" : "text-gray-300"}>·</span>
                                 <span className="font-semibold">{PUBLICO_LABEL[aula.publico]}</span>
                               </>
                             )}
@@ -233,7 +233,7 @@ export function AgendaPresenca({
                                 Confirmado · desmarcar
                               </button>
                             ) : (
-                              <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-blue-100">
+                              <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-accent">
                                 <CheckCircle2 className="size-3.5" /> Confirmado
                               </span>
                             )
@@ -245,7 +245,7 @@ export function AgendaPresenca({
                             <button
                               onClick={() => clicarConfirmar(aula, dia.date)}
                               disabled={(pending && agindo === chave) || lotada}
-                              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               {pending && agindo === chave && <Loader2 className="size-3.5 animate-spin" />}
                               {lotada ? "Lotada" : seriaAvulsa ? "Confirmar (avulsa)" : "Confirmar presença"}
@@ -253,7 +253,7 @@ export function AgendaPresenca({
                           )
                         )}
                         {isAluno && aula.passou && (
-                          <span className={`shrink-0 text-[11px] ${aula.minha ? "text-blue-200" : "text-gray-400"}`}>
+                          <span className={`shrink-0 text-[11px] ${aula.minha ? "text-app-bg/75" : "text-gray-400"}`}>
                             {aula.minha ? "Você foi ✓" : "Já começou"}
                           </span>
                         )}
@@ -271,7 +271,7 @@ export function AgendaPresenca({
                             <button
                               onClick={() => agir(aula, dia.date, true)}
                               disabled={pending && agindo === chave}
-                              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                              className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
                             >
                               {pending && agindo === chave && <Loader2 className="size-3.5 animate-spin" />}
                               Sim, confirmar
@@ -288,7 +288,7 @@ export function AgendaPresenca({
 
                       {/* Meu status financeiro, quando essa reserva é avulsa */}
                       {aula.minha && aula.minhaTipoCobranca === "avulsa" && aula.minhaPagamentoStatus && aula.minhaPagamentoStatus !== "nao_aplicavel" && (
-                        <p className="mt-2 text-[11px] font-semibold text-blue-100">
+                        <p className="mt-2 text-[11px] font-semibold text-app-bg">
                           {aula.minhaPagamentoStatus === "pago" && "Aula avulsa paga"}
                           {aula.minhaPagamentoStatus === "pendente" && "Aula avulsa · cobrança pendente"}
                           {aula.minhaPagamentoStatus === "processando" && "Aula avulsa · cobrando…"}
@@ -331,7 +331,7 @@ export function AgendaPresenca({
                           <button
                             onClick={() => setAberta(expandida ? null : chave)}
                             className={`flex items-center gap-1 text-[11px] font-semibold ${
-                              aula.minha ? "text-blue-100 hover:text-white" : "text-blue-600 hover:text-blue-700"
+                              aula.minha ? "text-accent hover:text-white" : "text-brand-ink hover:text-brand-hover"
                             }`}
                           >
                             <Users className="size-3" />
@@ -342,8 +342,8 @@ export function AgendaPresenca({
                             <ul className="mt-1.5 space-y-1">
                               {aula.nomes.map((n, i) => (
                                 <li key={i} className="flex items-center gap-2">
-                                  <Avatar nome={n.nome} color="bg-blue-500" size="sm" fotoUrl={n.fotoUrl} />
-                                  <span className={`text-xs ${aula.minha ? "text-blue-50" : "text-gray-700"}`}>
+                                  <Avatar nome={n.nome} color="bg-brand" size="sm" fotoUrl={n.fotoUrl} />
+                                  <span className={`text-xs ${aula.minha ? "text-app-bg" : "text-gray-700"}`}>
                                     {n.nome}
                                   </span>
                                 </li>

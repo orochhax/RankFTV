@@ -31,7 +31,7 @@ export function PairPresenceItem({
   const complete = confirmed === members.length;
 
   return (
-    <li className={complete ? "bg-blue-50/40" : "bg-surface"}>
+    <li className={complete ? "bg-brand-soft/45" : "bg-surface"}>
       <button
         type="button"
         onClick={() => setExpanded((value) => !value)}
@@ -44,19 +44,19 @@ export function PairPresenceItem({
             {members.map((member, index) => (
               <span key={`${index}:${member.name}`} className="contents">
                 {index > 0 && <span aria-hidden="true" className="text-ink-muted">+</span>}
-                <span className={member.checkedIn ? "text-blue-700" : "text-ink-muted"}>
+                <span className={member.checkedIn ? "text-brand-ink" : "text-ink-muted"}>
                   {member.name}
                 </span>
               </span>
             ))}
           </p>
           <p className="mt-0.5 flex flex-wrap items-center gap-1 text-[11px] text-ink-muted">
-            {complete ? <CheckCircle2 className="size-3 text-blue-600" /> : <Clock3 className="size-3" />}
+            {complete ? <CheckCircle2 className="size-3 text-brand" /> : <Clock3 className="size-3" />}
             <span>{complete ? "Dupla confirmada" : confirmed > 0 ? "Chegada parcial" : "Aguardando chegada"}</span>
             {categoryName && (
               <>
                 <span aria-hidden="true" className="text-gray-300">·</span>
-                <span className="font-semibold text-blue-600">{categoryName}</span>
+                <span className="font-semibold text-brand-ink">{categoryName}</span>
               </>
             )}
           </p>
@@ -64,7 +64,7 @@ export function PairPresenceItem({
         <span
           className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${
             complete
-              ? "bg-blue-100 text-blue-700"
+              ? "bg-brand-soft text-brand-ink ring-1 ring-brand-border"
               : confirmed > 0
                 ? "bg-amber-100 text-amber-700"
                 : "bg-surface-2 text-ink-muted"
@@ -82,11 +82,11 @@ export function PairPresenceItem({
             <li key={`${index}:${member.name}`} className="flex items-center gap-3 px-4 py-2.5">
               <span
                 className={`flex size-8 shrink-0 items-center justify-center rounded-full ${
-                  member.checkedIn ? "bg-blue-100" : "bg-surface-2"
+                  member.checkedIn ? "bg-brand-soft" : "bg-surface-2"
                 }`}
               >
                 {member.checkedIn ? (
-                  <CheckCircle2 className="size-4 text-blue-600" />
+                  <CheckCircle2 className="size-4 text-brand" />
                 ) : (
                   <Clock3 className="size-4 text-ink-muted" />
                 )}
@@ -104,7 +104,7 @@ export function PairPresenceItem({
               </div>
               <span
                 className={`shrink-0 text-xs font-medium ${
-                  member.checkedIn ? "text-blue-700" : "text-ink-muted"
+                  member.checkedIn ? "text-brand-ink" : "text-ink-muted"
                 }`}
               >
                 {member.checkedIn ? "Presente" : "Pendente"}

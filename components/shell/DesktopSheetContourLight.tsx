@@ -63,9 +63,16 @@ export function DesktopSheetContourLight() {
         className="desktop-sheet-contour pointer-events-none absolute inset-0 overflow-visible"
         style={{ width: dims.width, height: dims.height }}
       >
+        <defs>
+          <linearGradient id="rankftv-desktop-contour-beam" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#72bf00" />
+            <stop offset="100%" stopColor="#ff5d00" />
+          </linearGradient>
+        </defs>
         <path
           d={pathD}
           pathLength="100"
+          stroke="url(#rankftv-desktop-contour-beam)"
           className="desktop-sheet-contour-aura"
         />
       </svg>

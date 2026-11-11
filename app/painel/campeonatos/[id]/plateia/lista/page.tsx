@@ -68,9 +68,9 @@ export default async function PlateiaListaPage({
         <label className="relative min-w-0 flex-1">
           <span className="sr-only">Buscar por nome ou e-mail</span>
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
-          <input name="q" defaultValue={query} maxLength={80} placeholder="Buscar por nome ou e-mail..." className="w-full rounded-lg border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input name="q" defaultValue={query} maxLength={80} placeholder="Buscar por nome ou e-mail..." className="w-full rounded-lg border border-border py-2.5 pl-9 pr-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand" />
         </label>
-        <button type="submit" title="Buscar" className="inline-flex size-10 items-center justify-center rounded-lg bg-blue-600 text-white"><Search className="size-4" /></button>
+        <button type="submit" title="Buscar" className="inline-flex size-10 items-center justify-center rounded-lg bg-brand text-white hover:bg-brand-hover"><Search className="size-4" /></button>
         {query && <Link href={href(id, 1, "")} title="Limpar busca" className="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500"><X className="size-4" /></Link>}
       </form>
 

@@ -62,10 +62,10 @@ export function ChampionshipShell({
   return (
     <div className="min-h-screen bg-app-bg">
       {/* ── Cabeçalho contextual: breadcrumb + nome + status + ações ── */}
-      <div className="relative border-b border-border bg-gradient-to-b from-blue-50/70 to-surface">
+      <div className="relative border-b border-border bg-gradient-to-b from-surface-2 to-surface">
         <PageContainer width="wide" className="py-4 sm:py-5">
           <nav aria-label="Trilha" className="flex min-w-0 items-center gap-1 overflow-hidden text-xs text-ink-muted">
-                <Link href="/painel/campeonatos" className="inline-flex items-center gap-1 hover:text-blue-600">
+                <Link href="/painel/campeonatos" className="inline-flex items-center gap-1 hover:text-brand-ink">
                   <ArrowLeft className="size-3" /> Meus campeonatos
                 </Link>
                 <ChevronRight className="size-3 shrink-0" />
@@ -73,7 +73,7 @@ export function ChampionshipShell({
                   <span className="truncate font-medium text-ink">{champ.nome}</span>
                 ) : (
                   <>
-                    <Link href={`/painel/campeonatos/${champ.id}`} className="hidden truncate hover:text-blue-600 sm:inline">
+                    <Link href={`/painel/campeonatos/${champ.id}`} className="hidden truncate hover:text-brand-ink sm:inline">
                       {champ.nome}
                     </Link>
                     <ChevronRight className="hidden size-3 shrink-0 sm:block" />
@@ -96,7 +96,7 @@ export function ChampionshipShell({
                 href={`/campeonatos/${getChampionshipSlug(champ)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-ink-muted shadow-sm transition-all hover:border-blue-300 hover:text-blue-600 hover:shadow"
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-ink-muted shadow-sm transition-all hover:border-brand-border hover:text-brand-ink hover:shadow"
               >
                 <ExternalLink className="size-3.5" /> Página pública
               </a>
@@ -106,7 +106,7 @@ export function ChampionshipShell({
                   onClick={() => setMenuOpen((v) => !v)}
                   aria-expanded={menuOpen}
                   aria-haspopup="menu"
-                  className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-500 hover:shadow-md"
+                  className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-brand/20 transition-all hover:bg-brand-hover hover:shadow-md"
                 >
                   <Menu className="size-3.5" /> Gerenciar
                 </button>
@@ -220,7 +220,7 @@ function ChampionshipNavContent({
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     className={`flex items-start gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors ${
-                      active ? "bg-blue-600 text-white" : "text-ink-muted hover:bg-surface-2 hover:text-ink"
+                      active ? "bg-brand text-white" : "text-ink-muted hover:bg-surface-2 hover:text-ink"
                     }`}
                   >
                     <Icon className="mt-0.5 size-[17px] shrink-0" strokeWidth={2} />
@@ -229,7 +229,7 @@ function ChampionshipNavContent({
                       {item.description && (
                         <span
                           className={`block truncate text-[11px] font-normal ${
-                            active ? "text-blue-100" : "text-ink-muted/80"
+                            active ? "text-white/80" : "text-ink-muted/80"
                           }`}
                         >
                           {item.description}

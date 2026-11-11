@@ -90,7 +90,7 @@ export function RosterAula({ alunos }: { alunos: RosterAluno[] }) {
         {alunos.map((aluno) => (
           <li key={aluno.attendanceId} className="rounded-2xl bg-white px-4 py-3 ring-1 ring-black/5">
             <div className="flex items-center gap-3">
-              <Avatar nome={aluno.nome} color="bg-blue-500" size="md" fotoUrl={aluno.fotoUrl} />
+              <Avatar nome={aluno.nome} color="bg-brand" size="md" fotoUrl={aluno.fotoUrl} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-gray-900">{aluno.nome}</p>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -141,7 +141,7 @@ export function RosterAula({ alunos }: { alunos: RosterAluno[] }) {
                 type="button"
                 onClick={() => retentarCobranca(aluno.attendanceId)}
                 disabled={pending && agindo === aluno.attendanceId}
-                className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-brand-ink hover:text-brand-hover disabled:opacity-50"
               >
                 {pending && agindo === aluno.attendanceId ? <Loader2 className="size-3.5 animate-spin" /> : <RotateCw className="size-3.5" />}
                 Tentar cobrança novamente

@@ -162,7 +162,7 @@ export function ComunicacaoClient({
         <div className="rounded-2xl border border-border bg-surface p-5 space-y-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Sparkles className="size-4 text-blue-600" />
+              <Sparkles className="size-4 text-brand" />
               <h2 className="text-sm font-bold text-ink">Modelos rápidos</h2>
             </div>
             <span className="text-xs text-ink-muted">1 clique para preencher</span>
@@ -177,7 +177,7 @@ export function ComunicacaoClient({
                   setTitulo(tpl.titulo);
                   setMensagem(tpl.mensagem);
                 }}
-                className="rounded-full border border-border bg-surface-2/60 px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+                className="rounded-full border border-border bg-surface-2/60 px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-brand-border hover:bg-brand-soft hover:text-brand-ink"
               >
                 {tpl.label}
               </button>
@@ -188,7 +188,7 @@ export function ComunicacaoClient({
             <div>
               <label className="block text-xs font-semibold text-ink-muted">Título do comunicado</label>
               <input
-                className="mt-1 w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-muted/60 focus:border-blue-500 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-muted/60 focus:border-brand focus:outline-none"
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
                 placeholder="Ex: Alteração no horário de jogo"
@@ -199,7 +199,7 @@ export function ComunicacaoClient({
               <label className="block text-xs font-semibold text-ink-muted">Mensagem aos atletas</label>
               <textarea
                 rows={6}
-                className="mt-1 w-full resize-none rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-muted/60 focus:border-blue-500 focus:outline-none"
+                className="mt-1 w-full resize-none rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-muted/60 focus:border-brand focus:outline-none"
                 value={mensagem}
                 onChange={(e) => setMensagem(e.target.value)}
                 placeholder="Escreva as orientações que serão enviadas por e-mail e notificação no app..."
@@ -224,7 +224,7 @@ export function ComunicacaoClient({
             type="button"
             onClick={enviar}
             disabled={enviando || destinatariosSelecionados.length === 0}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:opacity-50"
           >
             {enviando ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
             {enviando
@@ -236,7 +236,7 @@ export function ComunicacaoClient({
         {/* Pré-visualização ao vivo */}
         <div className="rounded-2xl border border-border bg-surface p-5 space-y-2.5">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-muted">
-            <Eye className="size-3.5 text-blue-600" />
+            <Eye className="size-3.5 text-brand" />
             Pré-visualização do atleta
           </div>
           <div className="rounded-xl border border-border/80 bg-surface-2/40 p-4">
@@ -254,7 +254,7 @@ export function ComunicacaoClient({
       <div className="rounded-2xl border border-border bg-surface p-5 space-y-4 lg:col-span-5">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-bold text-ink">Destinatários</h2>
-          <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">
+          <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-bold text-brand-ink">
             {selecionados.size} de {recipients.length}
           </span>
         </div>
@@ -266,7 +266,7 @@ export function ComunicacaoClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Filtrar por nome ou e-mail..."
-            className="w-full rounded-xl border border-border bg-surface pl-9 pr-3 py-2 text-sm text-ink outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-border bg-surface pl-9 pr-3 py-2 text-sm text-ink outline-none focus:border-brand"
           />
         </div>
 
@@ -278,7 +278,7 @@ export function ComunicacaoClient({
               onClick={() => aplicarFiltro(key)}
               className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
                 filtro === key
-                  ? "bg-gray-900 text-white"
+                  ? "bg-brand-dark text-white"
                   : "bg-surface-2 text-ink-muted hover:text-ink"
               }`}
             >
@@ -294,7 +294,7 @@ export function ComunicacaoClient({
             className="flex w-full items-center gap-3 border-b border-border bg-surface-2/40 px-4 py-2.5 text-left transition-colors hover:bg-surface-2"
           >
             {todosVisiveisSelecionados ? (
-              <CheckSquare className="size-4 shrink-0 text-blue-600" />
+              <CheckSquare className="size-4 shrink-0 text-brand" />
             ) : (
               <Square className="size-4 shrink-0 text-ink-muted/50" />
             )}
@@ -317,7 +317,7 @@ export function ComunicacaoClient({
                     className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-2/50"
                   >
                     {selecionados.has(r.userId) ? (
-                      <CheckSquare className="size-4 shrink-0 text-blue-600" />
+                      <CheckSquare className="size-4 shrink-0 text-brand" />
                     ) : (
                       <Square className="size-4 shrink-0 text-ink-muted/40" />
                     )}
@@ -328,7 +328,7 @@ export function ComunicacaoClient({
                     <span
                       className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                         r.genero === "masculino"
-                          ? "bg-blue-50 text-blue-600"
+                          ? "bg-brand-dark/10 text-ink"
                           : r.genero === "feminino"
                             ? "bg-pink-50 text-pink-600"
                             : "bg-surface-2 text-ink-muted"

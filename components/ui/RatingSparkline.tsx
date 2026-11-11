@@ -22,7 +22,7 @@ export function RatingSparkline({ points }: { points: RatingPoint[] }) {
 
   return (
     <div>
-      <svg viewBox={`0 0 ${w} ${h}`} className="h-18 w-full text-blue-600">
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-18 w-full text-brand">
         <polyline
           points={polyline}
           fill="none"
@@ -32,7 +32,7 @@ export function RatingSparkline({ points }: { points: RatingPoint[] }) {
           strokeLinejoin="round"
         />
         {coords.map((c, i) => (
-          <circle key={i} cx={c.x} cy={c.y} r={3} className="fill-blue-600" />
+          <circle key={i} cx={c.x} cy={c.y} r={3} className="fill-brand" />
         ))}
       </svg>
       <div className="mt-1 flex justify-between text-xs text-gray-400">

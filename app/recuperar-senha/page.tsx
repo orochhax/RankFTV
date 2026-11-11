@@ -98,7 +98,7 @@ export default function RecuperarSenhaPage() {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
                 required
               />
             </div>
@@ -108,7 +108,7 @@ export default function RecuperarSenhaPage() {
             <button
               type="submit"
               disabled={loading || !email || (captchaEnabled && !captchaToken)}
-              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+              className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
             >
               {loading ? "Enviando..." : "Enviar link de recuperação"}
             </button>
@@ -116,7 +116,7 @@ export default function RecuperarSenhaPage() {
         )}
 
         <p className="mt-4 text-center text-sm text-gray-500">
-          <Link href="/login" className="font-medium text-blue-600 hover:underline">Voltar para o login</Link>
+          <Link href="/login" className="font-medium text-brand-ink hover:text-brand hover:underline">Voltar para o login</Link>
         </p>
       </Surface>
     </div>

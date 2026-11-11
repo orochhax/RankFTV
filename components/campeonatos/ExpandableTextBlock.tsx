@@ -43,7 +43,7 @@ export function ExpandableTextBlock({
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
         aria-expanded={expanded}
-        className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700"
+        className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-ink transition-colors hover:text-brand"
       >
         {expanded ? (
           <>

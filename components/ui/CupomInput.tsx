@@ -61,18 +61,18 @@ export function CupomInput({
       <input type="hidden" name="cupom_codigo" value={aplicado?.codigo ?? ""} />
 
       <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-        <Tag className="size-4 text-blue-500" /> Cupom de desconto
+        <Tag className="size-4 text-brand" /> Cupom de desconto
       </label>
 
       {aplicado ? (
-        <div className="mt-2 flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2 ring-1 ring-blue-100">
-          <span className="flex items-center gap-1.5 text-sm font-semibold text-blue-700">
+        <div className="mt-2 flex items-center justify-between rounded-xl bg-brand-soft px-3 py-2 ring-1 ring-brand-border">
+          <span className="flex items-center gap-1.5 text-sm font-semibold text-brand-ink">
             <Check className="size-4" /> {aplicado.codigo} aplicado — -{formatBRL(aplicado.desconto)}
           </span>
           <button
             type="button"
             onClick={remover}
-            className="rounded-md p-1 text-blue-400 hover:text-blue-600"
+            className="rounded-md p-1 text-brand-ink/75 hover:text-brand"
             aria-label="Remover cupom"
           >
             <X className="size-4" />
@@ -84,13 +84,13 @@ export function CupomInput({
             value={codigo}
             onChange={(e) => setCodigo(e.target.value.toUpperCase())}
             placeholder="CÓDIGO"
-            className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm uppercase tracking-wide text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 rounded-lg border border-border px-3 py-2 text-sm uppercase tracking-wide text-ink placeholder:text-ink-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
           <button
             type="button"
             onClick={aplicar}
             disabled={pending || !codigo.trim()}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50"
+            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-dark px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark-2 disabled:opacity-50"
           >
             {pending ? <Loader2 className="size-4 animate-spin" /> : "Aplicar"}
           </button>

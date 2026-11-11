@@ -18,7 +18,7 @@ const PUBLIC_SHORTCUTS = [
     label: "Consultar ingresso",
     description: "Veja seu QR Code de inscrição ou plateia pelo código",
     icon: Ticket,
-    iconColor: "text-blue-600",
+    iconColor: "text-brand",
   },
   {
     href: "/agenda",
@@ -73,13 +73,13 @@ export function PerfilVisitanteView() {
         <PageContainer width="wide" className="space-y-5 md:grid md:grid-cols-3 md:items-start md:gap-8 md:space-y-0">
           <div className="space-y-5 md:col-span-2">
             <section className="rounded-2xl bg-white p-6 ring-1 ring-black/5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+              <p className="text-xs font-semibold uppercase tracking-wider text-brand-ink">
                 Conta RankFTV
               </p>
-              <h2 className="mt-1 text-lg font-bold text-gray-900">
+              <h2 className="mt-1 text-lg font-bold text-ink">
                 Nenhuma conta conectada no momento
               </h2>
-              <p className="mt-1.5 text-sm leading-relaxed text-gray-500">
+              <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
                 Faça login ou crie sua conta gratuita para acompanhar suas inscrições,
                 acessar QR Codes de entrada, histórico competitivo e gerenciar eventos ou arenas.
               </p>
@@ -87,16 +87,16 @@ export function PerfilVisitanteView() {
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <Link
                   href="/login?next=/perfil"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
                 >
                   <LogIn className="size-4" />
                   Fazer login
                 </Link>
                 <Link
                   href="/cadastro"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-gray-900 ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-ink ring-1 ring-border transition-colors hover:bg-surface-2"
                 >
-                  <UserPlus className="size-4 text-blue-600" />
+                  <UserPlus className="size-4 text-brand" />
                   Criar conta grátis
                 </Link>
               </div>
@@ -132,39 +132,39 @@ export function PerfilVisitanteView() {
               </h2>
               <Link
                 href="/para-voce?aba=campeonato"
-                className="block rounded-2xl bg-brand-dark p-5 text-white transition-colors hover:bg-[#17171d]"
+                className="block rounded-2xl bg-brand-dark p-5 text-white transition-colors hover:bg-brand-dark-2"
               >
-                <div className="flex items-center gap-2 text-blue-400">
+                <div className="flex items-center gap-2 text-accent">
                   <Trophy className="size-4" />
                   <span className="text-xs font-semibold uppercase tracking-wider">Campeonatos</span>
                 </div>
                 <p className="mt-2 text-base font-semibold">Quer organizar um campeonato?</p>
-                <p className="mt-1 text-sm text-white/55">
+                <p className="mt-1 text-sm text-app-bg/75">
                   Inscrições, chaveamento ao vivo e financeiro completo sem mensalidade fixa.
                 </p>
-                <p className="mt-3 flex items-center gap-1 text-sm font-medium text-blue-400">
+                <p className="mt-3 flex items-center gap-1 text-sm font-medium text-accent">
                   Conhecer benefícios <ChevronRight className="size-4" />
                 </p>
               </Link>
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
                 Arena
               </h2>
               <Link
                 href="/para-voce?aba=arena"
-                className="block rounded-2xl bg-white p-5 ring-1 ring-black/5 transition-colors hover:bg-gray-50"
+                className="block rounded-2xl bg-white p-5 ring-1 ring-black/5 transition-colors hover:bg-surface-2"
               >
-                <div className="flex items-center gap-2 text-blue-600">
+                <div className="flex items-center gap-2 text-brand-ink">
                   <Building2 className="size-4" />
                   <span className="text-xs font-semibold uppercase tracking-wider">Para arenas</span>
                 </div>
-                <p className="mt-2 font-semibold text-gray-900">Tem uma arena de futevôlei?</p>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-2 font-semibold text-ink">Tem uma arena de futevôlei?</p>
+                <p className="mt-1 text-sm text-ink-muted">
                   Gerencie turmas, presenças pelo celular e cobranças automáticas.
                 </p>
-                <p className="mt-3 flex items-center gap-1 text-sm font-medium text-blue-600">
+                <p className="mt-3 flex items-center gap-1 text-sm font-medium text-brand-ink">
                   Ver recursos e planos <ChevronRight className="size-4" />
                 </p>
               </Link>

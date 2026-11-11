@@ -179,7 +179,7 @@ export function IngressoAtletaPagamento({
     return (
       <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-3xl bg-white text-center shadow-sm ring-1 ring-black/5">
         <div className="border-b border-gray-100 px-5 py-5 sm:px-8">
-          <div className="flex items-center justify-center gap-1.5 text-sm font-semibold text-blue-600">
+          <div className="flex items-center justify-center gap-1.5 text-sm font-semibold text-success">
             <CheckCircle2 className="size-4" /> Inscrição confirmada
           </div>
           <p className="mt-2 text-xs text-gray-500">
@@ -203,7 +203,7 @@ export function IngressoAtletaPagamento({
                     className={`rounded-2xl ${credential.checkedIn ? "opacity-40 grayscale" : ""}`}
                   />
                 )}
-                <p className={`mt-2 text-xs ${credential.checkedIn ? "font-medium text-blue-600" : "text-gray-400"}`}>
+                <p className={`mt-2 text-xs ${credential.checkedIn ? "font-medium text-brand-ink" : "text-gray-400"}`}>
                   {credential.checkedIn ? "Check-in já realizado" : "Apresente este QR na entrada"}
                 </p>
                 {credential.code && (
@@ -227,7 +227,7 @@ export function IngressoAtletaPagamento({
             </div>
             <div className="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-500">
               <p>Guarde este link privado e apresente o QR individual na entrada.</p>
-              <p className="mt-1">Contato: {organizerPhone ? <a className="font-medium text-blue-600 hover:underline" href={`tel:${organizerPhone.replace(/\D/g, "")}`}>{organizerName ?? "Organizador"} · {organizerPhone}</a> : `${organizerName ?? "Organizador"} — consulte a página do campeonato.`}</p>
+              <p className="mt-1">Contato: {organizerPhone ? <a className="font-medium text-brand-ink hover:text-brand hover:underline" href={`tel:${organizerPhone.replace(/\D/g, "")}`}>{organizerName ?? "Organizador"} · {organizerPhone}</a> : `${organizerName ?? "Organizador"} — consulte a página do campeonato.`}</p>
             </div>
           </div>
         </div>
@@ -236,9 +236,9 @@ export function IngressoAtletaPagamento({
           <p className="mt-2 font-semibold text-gray-900">{championshipName}</p>
           {championshipDateLabel && <p className="mt-2 flex items-center gap-2 text-sm text-gray-600"><CalendarDays className="size-4 shrink-0 text-gray-400" />{championshipDateLabel}</p>}
           {championshipLocationLabel && <p className="mt-2 flex items-center gap-2 text-sm text-gray-600"><MapPin className="size-4 shrink-0 text-gray-400" />{championshipLocationLabel}</p>}
-          <Link href={championshipHref} className="mt-3 inline-block text-sm font-medium text-blue-600 hover:underline">Ver página do campeonato</Link>
+          <Link href={championshipHref} className="mt-3 inline-block text-sm font-medium text-brand-ink hover:text-brand hover:underline">Ver página do campeonato</Link>
         </div>
-        <p className="px-5 py-4 text-xs text-blue-600">Salve o link desta página para acessar depois.</p>
+        <p className="px-5 py-4 text-xs text-brand-ink">Salve o link desta página para acessar depois.</p>
       </div>
     );
   }
@@ -296,14 +296,14 @@ export function IngressoAtletaPagamento({
       ) : (
         <div className="space-y-5 rounded-2xl bg-white p-5 text-left ring-1 ring-black/5">
           <div className="flex items-start gap-3">
-            <div className="rounded-xl bg-blue-50 p-2 text-blue-600"><CreditCard className="size-5" /></div>
+            <div className="rounded-xl bg-brand-soft p-2 text-brand"><CreditCard className="size-5" /></div>
             <div>
               <h2 className="font-semibold text-gray-900">Pagamento seguro no Asaas</h2>
               <p className="mt-1 text-sm text-gray-500">Os dados do cartão são informados diretamente no Asaas. A RankFTV não recebe nem armazena número ou CVV.</p>
             </div>
           </div>
           {invoiceUrl ? (
-            <a href={invoiceUrl} className="flex w-full items-center justify-center rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+            <a href={invoiceUrl} className="flex w-full items-center justify-center rounded-xl bg-brand py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">
               Ir para o pagamento seguro
             </a>
           ) : (

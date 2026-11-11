@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
-/* Cor da marca: #0000FF (blue-600). @theme sem inline sobrescreve a paleta built-in do Tailwind v4. v2 */
+/* Tokens oficiais da marca RankFTV: Forest Teal (#0E4937) + Light Beige (#FBE9D1)
+   + Lime Green (#72BF00) + Vivid Orange (#FF5D00). */
 @theme {
+  /* Escala blue-* mantida para compatibilidade exclusiva das rotas pessoais .life-os-theme em /admin. */
   --color-blue-50:  #f0f0ff;
   --color-blue-100: #d6d6ff;
   --color-blue-200: #adadff;
@@ -14,35 +16,53 @@
   --color-blue-900: #000066;
   --color-blue-950: #000033;
 
-  /* ── Design system do shell desktop (redesign global) ──────────────────
-     Tokens semânticos por cima da paleta acima — usados pelo AppShell,
-     ArenaShell e pelos componentes de página (PageContainer, Surface,
-     StatCard, etc). O azul da marca continua reservado pra ações, seleção
-     e destaques; fundo/superfície/texto usam esta escala neutra. */
-  --color-app-bg:     #f3f5fa; /* fundo geral do desktop — azul-acinzentado bem claro */
-  --color-surface:    #ffffff; /* cards, popovers, modais e campos */
-  --color-surface-2:  #f8f9fc; /* superfície secundária (hover sutil, seções internas) */
-  --color-border:     #e4e7ef; /* bordas discretas */
-  --color-ink:        #10152b; /* texto principal — azul-marinho quase preto */
-  --color-ink-muted:  #667085; /* texto secundário */
-  --color-success:    #16a34a;
-  --color-success-bg: #ecfdf3;
-  --color-warning:    #d97706;
-  --color-warning-bg: #fffaeb;
-  --color-danger:     #dc2626;
-  --color-danger-bg:  #fef3f2;
-  --color-brand-dark: #202020; /* fundos escuros sólidos da interface */
+  /* ── Superfícies & Neutros Oficiais ─────────────────────────────────── */
+  --color-app-bg:       #fbe9d1; /* Light Beige — fundo geral / sheet principal */
+  --color-surface:      #ffffff; /* cards, popovers, modais e inputs */
+  --color-surface-2:    #fff8ee; /* superfície secundária (hover sutil, seções internas) */
+  --color-border:       #e5cfaf; /* bordas discretas quentes */
+  --color-ink:          #0e4937; /* texto principal sobre fundo claro */
+  --color-ink-muted:    #3e685a; /* texto secundário sobre fundo claro */
+
+  /* ── Escuro Estrutural (Sidebar, topo da Home, cards escuros, rodapés) ─ */
+  --color-brand-dark:   #0e4937;
+  --color-brand-dark-2: #155c46;
+
+  /* ── Cor Primária de Marca e Ação (CTAs, busca, foco, pill ativa) ───── */
+  --color-brand:        #ff5d00;
+  --color-brand-hover:  #e05100;
+  --color-brand-ink:    #b84300; /* texto laranja acessível sobre fundo claro */
+  --color-brand-soft:   #fff0e6;
+  --color-brand-border: #ffb385;
+
+  /* ── Cor de Acento / Energia (Selos, "FTV" no escuro, plano Elite, luzes)
+        Regra de contraste: nunca texto branco ou #72BF00 sobre fundo claro;
+        sobre fundo --color-accent usar sempre --color-accent-ink (#092B20). */
+  --color-accent:        #72bf00;
+  --color-accent-hover:  #64a800;
+  --color-accent-soft:   #eaf8d2;
+  --color-accent-border: #97d439;
+  --color-accent-ink:    #092b20;
+
+  /* ── Semânticas preservadas separadas da marca ──────────────────────── */
+  --color-success:      #16a34a;
+  --color-success-bg:   #ecfdf3;
+  --color-warning:      #d97706;
+  --color-warning-bg:   #fffaeb;
+  --color-danger:       #dc2626;
+  --color-danger-bg:    #fef3f2;
 
   --radius-card:    1rem;    /* 16px */
   --radius-card-lg: 1.5rem;  /* 24px */
 
-  --shadow-soft:     0 1px 2px rgba(16, 21, 43, 0.04), 0 1px 3px rgba(16, 21, 43, 0.06);
-  --shadow-elevated: 0 8px 24px rgba(16, 21, 43, 0.08);
+  /* Sombras com base Forest Teal (rgba 14, 73, 55) */
+  --shadow-soft:     0 1px 2px rgba(14, 73, 55, 0.05), 0 1px 3px rgba(14, 73, 55, 0.08);
+  --shadow-elevated: 0 8px 24px rgba(14, 73, 55, 0.12);
 }
 
 :root {
-  --background: #f3f5fa;
-  --foreground: #171717;
+  --background: #fbe9d1;
+  --foreground: #0e4937;
 }
 
 @theme inline {
@@ -114,11 +134,11 @@ input[type="week"] {
 }
 
 .rankftv-desktop-sidebar {
-  background: #202020 !important;
+  background: #0e4937 !important;
   border-right-color: transparent !important;
 }
 
-/* No desktop, somente um feixe azul percorre a borda direita da sidebar.
+/* No desktop, um feixe luminoso (#72BF00 -> #FF5D00) percorre a borda direita da sidebar.
    O restante da trilha permanece completamente transparente. */
 .rankftv-desktop-sidebar::after {
   content: "";
@@ -134,15 +154,15 @@ input[type="week"] {
       180deg,
       transparent 0%,
       transparent 44%,
-      rgba(0, 0, 255, 0.16) 46%,
-      #0000ff 48%,
-      #4d4dff 50%,
-      #0000ff 52%,
-      rgba(0, 0, 255, 0.16) 54%,
+      rgba(114, 191, 0, 0.22) 46%,
+      #72bf00 48%,
+      #ff5d00 50%,
+      #72bf00 52%,
+      rgba(255, 93, 0, 0.22) 54%,
       transparent 56%,
       transparent 100%
     ) 0 100% / 100% 240% no-repeat;
-  filter: drop-shadow(0 0 4px rgba(0, 0, 255, 0.9));
+  filter: drop-shadow(0 0 4px rgba(114, 191, 0, 0.75)) drop-shadow(0 0 6px rgba(255, 93, 0, 0.5));
   animation: desktop-sidebar-accent-sweep 2.8s linear infinite;
   will-change: background-position;
 }
@@ -157,8 +177,8 @@ input[type="week"] {
 }
 
 /* Quando a página possui cabeçalho escuro no topo, o feixe reto vertical da
-   barra lateral é suprimido para não cortar a divisa preta; a luz percorre
-   o contorno da folha branca via DesktopSheetContourLight. */
+   barra lateral é suprimido para não cortar a divisa escura; a luz percorre
+   o contorno da folha clara via DesktopSheetContourLight. */
 .rankftv-desktop-sidebar--dark-header::after,
 body.has-dark-header .rankftv-desktop-sidebar::after {
   display: none !important;
@@ -171,17 +191,17 @@ body.has-dark-header .rankftv-desktop-sidebar::after {
   height: 2.75rem;
   border-radius: 9999px !important;
   background: #ffffff !important;
-  color: #0000ff !important;
+  color: #ff5d00 !important;
 }
 
 .rankftv-desktop-sidebar__button {
   width: 2.75rem;
   height: 2.75rem;
-  color: #e5e7eb;
+  color: rgba(255, 255, 255, 0.84);
 }
 
 .rankftv-desktop-sidebar__button:hover {
-  background: #18181b;
+  background: #155c46;
   color: #ffffff;
 }
 
@@ -190,24 +210,24 @@ body.has-dark-header .rankftv-desktop-sidebar::after {
 }
 
 .rankftv-desktop-sidebar__divider {
-  border-color: #27272a !important;
+  border-color: rgba(251, 233, 209, 0.18) !important;
 }
 
 .rankftv-desktop-sidebar__nav-scroll {
-  scrollbar-color: #3f3f46 transparent;
+  scrollbar-color: #155c46 transparent;
   scrollbar-width: thin;
 }
 
 /* O Surface aplica bg-surface por padrão. Esta variação precisa vencer essa
    cor sem alterar os demais cards claros do design system. */
 .home-quick-access {
-  background-color: #202020 !important;
+  background-color: #0e4937 !important;
   color: #ffffff !important;
-  --tw-ring-color: #27272a !important;
+  --tw-ring-color: rgba(251, 233, 209, 0.18) !important;
 }
 
 /* Trilha transparente entre o cabecalho e a sheet da home mobile. Somente o
-   feixe azul animado fica visivel enquanto acompanha as duas curvas. */
+   feixe animado (#72BF00 -> #FF5D00) fica visivel enquanto acompanha as duas curvas. */
 .mobile-sheet-accent {
   pointer-events: none;
   position: absolute;
@@ -220,20 +240,20 @@ body.has-dark-header .rankftv-desktop-sidebar::after {
   border-bottom: 0;
   border-radius: 1.5rem 1.5rem 0 0;
   background-image:
-    linear-gradient(var(--color-app-bg, #f3f5fa), var(--color-app-bg, #f3f5fa)),
+    linear-gradient(var(--color-app-bg, #fbe9d1), var(--color-app-bg, #fbe9d1)),
     linear-gradient(
       90deg,
       transparent 0%,
       transparent 44%,
-      rgba(37, 99, 235, 0.16) 46%,
-      #2563eb 48%,
-      #3b82f6 50%,
-      #2563eb 52%,
-      rgba(37, 99, 235, 0.16) 54%,
+      rgba(114, 191, 0, 0.22) 46%,
+      #72bf00 48%,
+      #ff5d00 50%,
+      #72bf00 52%,
+      rgba(255, 93, 0, 0.22) 54%,
       transparent 56%,
       transparent 100%
     );
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 2px 4px rgba(14, 73, 55, 0.28));
   background-repeat: no-repeat;
   background-origin: padding-box, border-box;
   background-clip: padding-box, border-box;
@@ -265,13 +285,16 @@ body.has-dark-header .rankftv-desktop-sidebar::after {
 
 .home-mobile-sheet-accent path {
   fill: none;
-  stroke: #2563eb;
   stroke-width: 3.5;
   stroke-linecap: round;
   stroke-dasharray: 10 90;
   vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35)) drop-shadow(0 1px 3px rgba(37, 99, 235, 0.45));
+  filter: drop-shadow(0 3px 5px rgba(14, 73, 55, 0.35)) drop-shadow(0 1px 3px rgba(255, 93, 0, 0.45));
   animation: home-mobile-sheet-accent-sweep 2.2s linear infinite;
+}
+
+.home-mobile-sheet-accent path:not([stroke]) {
+  stroke: #ff5d00;
 }
 
 @keyframes home-mobile-sheet-accent-sweep {
@@ -279,20 +302,23 @@ body.has-dark-header .rankftv-desktop-sidebar::after {
   to { stroke-dashoffset: -90; }
 }
 
-/* Feixe de luz azul suave com sombra de profundidade nas páginas com cabeçalho escuro no desktop. */
+/* Feixe de luz (#72BF00 -> #FF5D00) com sombra de profundidade nas páginas com cabeçalho escuro no desktop. */
 .desktop-sheet-contour {
   pointer-events: none;
 }
 
 .desktop-sheet-contour-aura {
   fill: none;
-  stroke: #2563eb;
   stroke-width: 3.5;
   stroke-linecap: round;
   stroke-dasharray: 14 86;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35)) drop-shadow(0 1px 3px rgba(37, 99, 235, 0.45));
+  filter: drop-shadow(0 3px 5px rgba(14, 73, 55, 0.35)) drop-shadow(0 1px 3px rgba(255, 93, 0, 0.45));
   animation: desktop-sheet-contour-sweep 3.4s linear infinite;
   will-change: stroke-dashoffset;
+}
+
+.desktop-sheet-contour-aura:not([stroke]) {
+  stroke: #ff5d00;
 }
 
 @keyframes desktop-sheet-contour-sweep {

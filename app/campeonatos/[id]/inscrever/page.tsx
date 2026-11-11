@@ -34,7 +34,7 @@ export default async function InscreverPage({
       <div className="flex min-h-[calc(100dvh-48px)] items-center justify-center bg-app-bg px-6 py-10">
         <Surface padding="lg" className="max-w-md text-center">
           <p className="text-gray-500">As inscrições não estão abertas para este campeonato.</p>
-          <Link href={`/campeonatos/${id}`} className="mt-4 inline-block text-sm text-blue-600 hover:underline">
+          <Link href={`/campeonatos/${id}`} className="mt-4 inline-block text-sm text-brand-ink hover:text-brand hover:underline">
             Voltar ao campeonato
           </Link>
         </Surface>
@@ -134,7 +134,7 @@ export default async function InscreverPage({
           <p>Essa categoria esgotou as vagas dos lotes configurados. Fale com o organizador se quiser participar.</p>
           <Link
             href={`/campeonatos/${id}`}
-            className="mt-3 inline-flex items-center gap-1 rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+            className="mt-3 inline-flex items-center gap-1 rounded-xl bg-brand-dark px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark-2"
           >
             <ChevronLeft className="size-4" /> Voltar ao campeonato
           </Link>

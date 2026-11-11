@@ -132,15 +132,15 @@ export default async function ArenasPage({
   return (
     <div className="min-h-screen">
       {/* Tarja Mobile Compacta de Conversão para Donos */}
-      <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 px-4 py-2.5 text-white shadow-sm md:hidden">
+      <div className="bg-brand-dark-2 border-b border-white/10 px-4 py-2.5 text-white shadow-sm md:hidden">
         <div className="flex items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-1.5 font-medium truncate">
-            <Building2 className="size-4 shrink-0 text-blue-300" />
+            <Building2 className="size-4 shrink-0 text-accent" />
             <span className="truncate">É professor ou dono de arena?</span>
           </div>
           <Link
             href="/arenas/para-donos"
-            className="shrink-0 rounded-lg bg-white/20 px-2.5 py-1 font-bold text-white backdrop-blur-xs transition active:bg-white/30"
+            className="shrink-0 rounded-lg bg-brand px-2.5 py-1 font-bold text-white transition active:bg-brand-hover"
           >
             Divulgue aqui →
           </Link>
@@ -153,7 +153,7 @@ export default async function ArenasPage({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-bold text-blue-300 ring-1 ring-blue-400/30">
+                <span className="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs font-bold text-accent-ink">
                   <ShieldCheck className="size-3" />
                   Centros de Treinamento
                 </span>
@@ -170,9 +170,9 @@ export default async function ArenasPage({
             <div className="hidden shrink-0 sm:block">
               <Link
                 href="/arenas/para-donos"
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white shadow-sm backdrop-blur-sm transition hover:bg-white hover:text-gray-900 active:scale-95"
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white shadow-sm backdrop-blur-sm transition hover:bg-white hover:text-ink active:scale-95"
               >
-                <Building2 className="size-4 text-blue-300" />
+                <Building2 className="size-4 text-accent" />
                 Sou dono de arena
                 <ArrowRight className="size-4 opacity-70" />
               </Link>

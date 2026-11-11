@@ -162,7 +162,7 @@ export function EditArenaForm({
         </p>
         <div className="flex items-center gap-4">
           <div
-            className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 cursor-pointer"
+            className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-dark to-[#092B20] cursor-pointer"
             onClick={() => avatarRef.current?.click()}
           >
             {avatarUrl
@@ -214,7 +214,7 @@ export function EditArenaForm({
 
               {/* Badge "capa" na primeira foto */}
               {i === 0 && (
-                <span className="absolute left-1 top-1 rounded-md bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                <span className="absolute left-1 top-1 rounded-md bg-brand px-1.5 py-0.5 text-[9px] font-bold text-white">
                   capa
                 </span>
               )}
@@ -255,7 +255,7 @@ export function EditArenaForm({
             type="button"
             onClick={() => photoRef.current?.click()}
             disabled={uploadingPhoto}
-            className="flex size-24 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 hover:border-blue-300 hover:text-blue-500 transition-colors disabled:opacity-50"
+            className="flex size-24 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 hover:border-brand hover:text-brand-ink transition-colors disabled:opacity-50"
           >
             {uploadingPhoto
               ? <Loader2 className="size-5 animate-spin" />
@@ -284,7 +284,7 @@ export function EditArenaForm({
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             required
-            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -294,7 +294,7 @@ export function EditArenaForm({
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
             rows={3}
-            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand resize-none"
             placeholder="Conte sobre a arena, estrutura, diferenciais..."
           />
         </div>
@@ -306,7 +306,7 @@ export function EditArenaForm({
               value={cidade}
               onChange={(e) => setCidade(e.target.value)}
               required
-              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
           <div>
@@ -315,7 +315,7 @@ export function EditArenaForm({
               value={estado}
               onChange={(e) => setEstado(e.target.value)}
               required
-              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
             >
               <option value="">UF</option>
               {ESTADOS.map((uf) => <option key={uf} value={uf}>{uf}</option>)}
@@ -333,7 +333,7 @@ export function EditArenaForm({
       <button
         type="submit"
         disabled={saving || uploadingAvatar || uploadingPhoto}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-semibold text-white hover:bg-brand-hover disabled:opacity-60 transition-colors"
       >
         {saving
           ? <><Loader2 className="size-4 animate-spin" /> Salvando...</>

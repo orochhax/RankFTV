@@ -22,7 +22,7 @@ export function CheckinTabs({
         href={`/painel/campeonatos/${championshipId}/checkin?tab=atletas`}
         className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
           activeTab === "atletas"
-            ? "bg-blue-600 text-white shadow-sm"
+            ? "bg-brand text-white shadow-sm"
             : "bg-surface-2 text-ink-muted hover:bg-surface-3 hover:text-ink"
         }`}
       >
@@ -41,7 +41,7 @@ export function CheckinTabs({
         href={`/painel/campeonatos/${championshipId}/checkin?tab=plateia`}
         className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
           activeTab === "plateia"
-            ? "bg-blue-600 text-white shadow-sm"
+            ? "bg-brand text-white shadow-sm"
             : "bg-surface-2 text-ink-muted hover:bg-surface-3 hover:text-ink"
         }`}
       >
@@ -98,7 +98,7 @@ export function AthleteFilters({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar atleta ou parceiro por nome..."
-          className="w-full rounded-xl border border-border bg-surface py-2.5 pl-9 pr-10 text-sm text-ink placeholder:text-ink-muted focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-xl border border-border bg-surface py-2.5 pl-9 pr-10 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
         />
         {search && (
           <button
@@ -122,7 +122,7 @@ export function AthleteFilters({
             href={buildUrl("todas", activeStatus, search)}
             className={`shrink-0 rounded-lg px-2.5 py-1 font-medium transition-colors ${
               activeCategory === "todas"
-                ? "bg-blue-600 text-white"
+                ? "bg-brand text-white"
                 : "bg-surface-2 text-ink-muted hover:bg-surface-3 hover:text-ink"
             }`}
           >
@@ -134,7 +134,7 @@ export function AthleteFilters({
               href={buildUrl(c.id, activeStatus, search)}
               className={`shrink-0 rounded-lg px-2.5 py-1 font-medium transition-colors ${
                 activeCategory === c.id
-                  ? "bg-blue-600 text-white"
+                  ? "bg-brand text-white"
                   : "bg-surface-2 text-ink-muted hover:bg-surface-3 hover:text-ink"
               }`}
             >
@@ -157,7 +157,7 @@ export function AthleteFilters({
             href={buildUrl(activeCategory, s.key, search)}
             className={`shrink-0 rounded-lg px-2.5 py-1 font-medium transition-colors ${
               activeStatus === s.key
-                ? "bg-blue-600 text-white"
+                ? "bg-brand text-white"
                 : "bg-surface-2 text-ink-muted hover:bg-surface-3 hover:text-ink"
             }`}
           >

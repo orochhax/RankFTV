@@ -309,14 +309,14 @@ export function QuadrasBoardClient({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar dupla ou quadra..."
-              className="w-full rounded-xl border border-border bg-surface pl-9 pr-3 py-2 text-sm text-ink outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-border bg-surface pl-9 pr-3 py-2 text-sm text-ink outline-none focus:border-brand"
             />
           </div>
 
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-blue-500"
+            className="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-brand"
           >
             <option value="todas">Todas as categorias</option>
             {categories.map((cat) => (
@@ -331,7 +331,7 @@ export function QuadrasBoardClient({
             onChange={(e) =>
               setStatusFilter(e.target.value as "ativas" | "todas" | CourtMatch["status"])
             }
-            className="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-blue-500"
+            className="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-brand"
           >
             <option value="ativas">Somente ativas</option>
             <option value="todas">Todos os estados</option>
@@ -385,7 +385,7 @@ export function QuadrasBoardClient({
               <div className="flex items-center justify-between gap-2 border-b border-border/70 pb-2.5">
                 <div className="flex items-center gap-2 min-w-0">
                   {!col.isQueue && (
-                    <span className="flex size-2.5 shrink-0 rounded-full bg-blue-600" />
+                    <span className="flex size-2.5 shrink-0 rounded-full bg-brand" />
                   )}
                   <h3 className="truncate text-sm font-bold text-ink">{col.title}</h3>
                 </div>
@@ -578,7 +578,7 @@ export function QuadrasBoardClient({
                   </label>
                   <button
                     type="submit"
-                    className="mt-auto flex items-center justify-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                    className="mt-auto flex items-center justify-center gap-1 rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
                   >
                     <Timer className="size-4" />
                     Salvar
@@ -596,7 +596,7 @@ export function QuadrasBoardClient({
           <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                <p className="text-xs font-bold uppercase tracking-wider text-brand-ink">
                   {editingMatch.categoryName} · Fase {editingMatch.roundIndex + 1}
                 </p>
                 <h3 className="mt-1 text-base font-bold text-ink">
@@ -631,7 +631,7 @@ export function QuadrasBoardClient({
                         onClick={() => setEditCourt(c)}
                         className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
                           editCourt === c
-                            ? "border-blue-600 bg-blue-50 text-blue-700"
+                            ? "border-brand bg-brand-soft text-brand-ink"
                             : "border-border bg-surface-2 text-ink-muted hover:text-ink"
                         }`}
                       >
@@ -685,7 +685,7 @@ export function QuadrasBoardClient({
                     status: editStatus,
                   })
                 }
-                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50"
               >
                 <Timer className="size-4" />
                 {isPending ? "Salvando…" : "Salvar alteração"}
