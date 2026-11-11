@@ -33,7 +33,7 @@ export function PlateiaCheckin({
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = busca.trim();
-    router.push(`/painel/campeonatos/${champId}/plateia/checkin${query ? `?q=${encodeURIComponent(query)}` : ""}`);
+    router.push(`/painel/campeonatos/${champId}/checkin?tab=plateia${query ? `&q=${encodeURIComponent(query)}` : ""}`);
   }
 
   function toggle(id: string, presente: boolean) {

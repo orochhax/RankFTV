@@ -8,6 +8,8 @@ const directorySource = readFileSync("lib/checkin-directory.ts", "utf8");
 const organizerPageSource = readFileSync("app/painel/campeonatos/[id]/checkin/page.tsx", "utf8");
 const clientSource = readFileSync("components/checkin/CheckinClient.tsx", "utf8");
 const pairSource = readFileSync("components/checkin/PairPresenceItem.tsx", "utf8");
+const navSource = readFileSync("components/painel/championship-nav-items.ts", "utf8");
+const legacyInscricoesSource = readFileSync("app/painel/campeonatos/[id]/inscricoes/page.tsx", "utf8");
 
 test("athlete and spectator check-in accepts authenticated, guest and spectator tickets", () => {
   assert.match(source, /\.from\("credentials"\)/);
@@ -71,4 +73,12 @@ test("check-in groups every paid pair and renders compact accessible attendance"
 test("successful scans refresh the server-rendered directory", () => {
   assert.match(clientSource, /await markCheckin\(token, championshipId\)/);
   assert.match(clientSource, /router\.refresh\(\)/);
+});
+
+test("dashboard navigation unifies athlete and spectator check-in without redundant shortcuts", () => {
+  assert.match(navSource, /label: "Inscrições & Check-in"/);
+  assert.match(navSource, /\/painel\/campeonatos\/\$\{id\}\/checkin/);
+  assert.doesNotMatch(navSource, /label: "Inscrições",/);
+  assert.doesNotMatch(navSource, /key: "plateia-checkin"/);
+  assert.match(legacyInscricoesSource, /redirect\(`\/painel\/campeonatos\/\$\{id\}\/checkin/);
 });

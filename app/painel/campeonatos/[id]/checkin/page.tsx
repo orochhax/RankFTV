@@ -135,8 +135,8 @@ export default async function CheckinPage({
   return (
     <PageContainer width="wide" className="space-y-6 pb-32 pt-8 lg:pb-8">
       <PageHeader
-        title="Check-in & Portaria"
-        description="Credenciamento unificado e controle de acesso de atletas e plateia."
+        title="Inscrições & Check-in"
+        description="Central unificada de inscrições, credenciamento e controle de presença de atletas e plateia."
       />
 
       {/* Métricas unificadas em 3 colunas */}
