@@ -49,8 +49,8 @@ export function DreResultadoCard({
       {/* Grid de 3 Cards de Resultado */}
       <div className="grid gap-3 sm:grid-cols-3">
         {/* 1. Receita Líquida */}
-        <div className="rounded-2xl border border-blue-500/20 bg-blue-50/50 p-4 dark:bg-blue-950/20">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">
+        <div className="rounded-2xl border border-blue-200 bg-surface p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-700">
             Receita Líquida
           </p>
           <p className="mt-1 text-2xl font-black text-ink">
@@ -64,8 +64,8 @@ export function DreResultadoCard({
         </div>
 
         {/* 2. Despesas Totais */}
-        <div className="rounded-2xl border border-amber-500/20 bg-amber-50/50 p-4 dark:bg-amber-950/20">
-          <p className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+        <div className="rounded-2xl border border-amber-200 bg-surface p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-amber-700">
             Despesas Totais
           </p>
           <p className="mt-1 text-2xl font-black text-ink">
@@ -80,21 +80,21 @@ export function DreResultadoCard({
 
         {/* 3. Lucro Líquido Real */}
         <div
-          className={`rounded-2xl border p-4 ${
+          className={`rounded-2xl border bg-surface p-4 ${
             isLucro
-              ? "border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-950/20"
+              ? "border-emerald-200"
               : isPrejuizo
-                ? "border-rose-500/30 bg-rose-50/60 dark:bg-rose-950/20"
-                : "border-border bg-surface-2"
+                ? "border-rose-200"
+                : "border-border"
           }`}
         >
           <div className="flex items-center justify-between gap-1">
             <p
               className={`text-xs font-bold uppercase tracking-wider ${
                 isLucro
-                  ? "text-emerald-700 dark:text-emerald-400"
+                  ? "text-emerald-700"
                   : isPrejuizo
-                    ? "text-rose-700 dark:text-rose-400"
+                    ? "text-rose-700"
                     : "text-ink-muted"
               }`}
             >
@@ -104,10 +104,10 @@ export function DreResultadoCard({
               <span
                 className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
                   isLucro
-                    ? "bg-emerald-200/80 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200"
+                    ? "bg-emerald-100 text-emerald-800"
                     : isPrejuizo
-                      ? "bg-rose-200/80 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200"
-                      : "bg-surface-3 text-ink"
+                      ? "bg-rose-100 text-rose-800"
+                      : "bg-surface-2 text-ink"
                 }`}
               >
                 {dre.margemLucroPercentual}%
@@ -117,9 +117,9 @@ export function DreResultadoCard({
           <p
             className={`mt-1 text-2xl font-black ${
               isLucro
-                ? "text-emerald-600 dark:text-emerald-400"
+                ? "text-emerald-600"
                 : isPrejuizo
-                  ? "text-rose-600 dark:text-rose-400"
+                  ? "text-rose-600"
                   : "text-ink"
             }`}
           >
@@ -136,18 +136,18 @@ export function DreResultadoCard({
         <div
           className={`flex items-start gap-3 rounded-xl border p-3.5 text-xs leading-relaxed ${
             coverage.coberto && coverage.despesasPendentes > 0
-              ? "border-emerald-500/20 bg-emerald-50/40 text-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-200"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-950"
               : !coverage.coberto && coverage.despesasPendentes > 0
-                ? "border-amber-500/30 bg-amber-50/50 text-amber-900 dark:bg-amber-950/20 dark:text-amber-200"
-                : "border-border bg-surface-2 text-ink-muted"
+                ? "border-amber-200 bg-amber-50 text-amber-950"
+                : "border-border bg-surface-2 text-ink"
           }`}
         >
           {coverage.coberto && coverage.despesasPendentes > 0 ? (
-            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600" />
           ) : !coverage.coberto && coverage.despesasPendentes > 0 ? (
-            <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-600" />
           ) : (
-            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-blue-600 dark:text-blue-400" />
+            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-blue-600" />
           )}
 
           <div className="flex-1">
