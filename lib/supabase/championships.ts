@@ -111,6 +111,11 @@ function mapChampionship(row: ChampRow): Championship {
       : row.banner_url?.includes("circuito-rankftv-open")
       ? "/banners/circuito-rankftv-card.png"
       : (row.banner_url ?? null),
+    squareUrl:
+      row.banner_url?.includes("circuito-rankftv-arraial") ||
+      row.banner_url?.includes("circuito-rankftv-pitinga")
+        ? "/banners/circuito-rankftv-arraial-square.png"
+        : null,
     bannerPositionX: row.banner_position_x ?? null,
     bannerPositionY: row.banner_position_y ?? null,
     liveUrl: row.live_url,
