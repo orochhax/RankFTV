@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Trophy, ChevronLeft } from "lucide-react";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { BracketCategoryView } from "@/components/chaveamento/BracketView";
+import { formatCourtLabel } from "@/lib/court-operations";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { BracketCategory, BracketMatch, BracketRound } from "@/lib/types";
 
@@ -106,7 +107,7 @@ async function getDbBracketCategories(
               typeof (set as { b?: unknown }).b === "number",
           )
         : undefined,
-      quadra: m.court_label ? `Quadra ${m.court_label}` : undefined,
+      quadra: formatCourtLabel(m.court_label),
       winner: isWinA ? "a" : isWinB ? "b" : null,
       veioDaRepescagemA: sectionOf(m) === "winners" && !!m.participant_a_id && (returnedToMainRound.get(m.participant_a_id) ?? Infinity) <= (m.section_round_index ?? m.round_index),
       veioDaRepescagemB: sectionOf(m) === "winners" && !!m.participant_b_id && (returnedToMainRound.get(m.participant_b_id) ?? Infinity) <= (m.section_round_index ?? m.round_index),

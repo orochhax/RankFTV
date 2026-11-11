@@ -1,4 +1,5 @@
 import type { RoundDisplay, MatchDisplay } from "@/app/painel/campeonatos/[id]/chaveamento/page";
+import { formatCourtLabel } from "./court-operations";
 
 export type ExportShape =
   | { kind: "rect"; x: number; y: number; w: number; h: number; fill: string; radius: number; stroke?: string }
@@ -34,7 +35,7 @@ export function createBracketExportScene(
     rect(x, y, cw, ch, "#ffffff", 12, "#e5e7eb");
     rect(x + 1, y + 1, cw - 2, 27, "#f9fafb", 10);
     text(x + 12, y + 18, `#${match.numero}`, 10, "#6b7280", true);
-    const court = match.courtLabel ? `QUADRA ${match.courtLabel}` : "QUADRA A DEFINIR";
+    const court = (formatCourtLabel(match.courtLabel) ?? "Quadra a definir").toUpperCase();
     rect(x + 50, y + 6, court.length * 5.6 + 12, 16, "#d6d6ff", 8);
     text(x + 56, y + 17, court, 9, "#0000cc", true);
     if (match.setsA !== null && match.setsB !== null) {

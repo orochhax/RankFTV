@@ -5,6 +5,17 @@ export type CourtMatch = {
   status: "scheduled" | "called" | "in_progress" | "finished";
 };
 
+/**
+ * Normalizes a saved `court_label` so numeric/bare court names gain a "Quadra " prefix
+ * without duplicating it when "Quadra ..." is already stored.
+ */
+export function formatCourtLabel(courtLabel: string | null | undefined): string | undefined {
+  const trimmed = courtLabel?.trim();
+  if (!trimmed) return undefined;
+  if (/^quadra\b/i.test(trimmed)) return trimmed;
+  return `Quadra ${trimmed}`;
+}
+
 export function courtConflicts(matches: CourtMatch[]) {
   const conflicts = new Set<string>();
   for (let index = 0; index < matches.length; index += 1) {

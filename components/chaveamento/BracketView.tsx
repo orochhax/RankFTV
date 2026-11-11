@@ -1,4 +1,5 @@
 import { Medal } from "lucide-react";
+import { formatCourtLabel } from "@/lib/court-operations";
 import type { BracketMatch, BracketRound, BracketCategory } from "@/lib/types";
 
 // ── SVG das linhas conectoras entre rodadas ───────────────────────────────────
@@ -45,26 +46,35 @@ export function MatchCard({
     { dupla: match.duplaB, isWinner: match.winner === "b", side: "b" as const, veioDaRepescagem: match.veioDaRepescagemB },
   ];
   const decided = match.winner !== null;
+  const courtLabel = formatCourtLabel(match.quadra);
 
   const content = (
     <>
-      <div className="flex h-7 items-center justify-between border-b border-gray-100 bg-gray-50 px-3">
-        <div className="flex items-center gap-1.5">
-          <span className="font-bold tabular-nums text-gray-500">#{match.numero}</span>
-          {match.quadra && (
-            <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-700">
-              {match.quadra}
+      <div className="flex h-7 flex-nowrap items-center justify-between gap-1.5 border-b border-gray-100 bg-gray-50 px-2.5">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="shrink-0 whitespace-nowrap font-bold tabular-nums text-gray-500">
+            #{match.numero}
+          </span>
+          {courtLabel && (
+            <span
+              title={courtLabel}
+              className="min-w-0 truncate whitespace-nowrap rounded-full bg-blue-100 px-1.5 py-0.5 text-[9px] leading-none font-bold uppercase tracking-tight text-blue-700"
+            >
+              {courtLabel}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
           {match.sets && match.sets.length > 0 && (
-            <span className="text-[9px] font-semibold uppercase tracking-wide text-gray-400">
-              Pontos por set
+            <span
+              title="Pontos por set"
+              className="whitespace-nowrap text-[9px] leading-none font-semibold uppercase tracking-tight text-gray-400"
+            >
+              Pts/set
             </span>
           )}
           {match.placar && (
-            <span className="rounded-full bg-white px-2 py-0.5 font-bold tabular-nums text-gray-700 ring-1 ring-black/5">
+            <span className="whitespace-nowrap rounded-full bg-white px-1.5 py-0.5 text-[11px] leading-none font-bold tabular-nums text-gray-700 ring-1 ring-black/5">
               {match.placar}
             </span>
           )}

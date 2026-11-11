@@ -100,3 +100,20 @@ test("Fase 3: Comercial, Check-in, Equipe, Comunicação e Plateia usam headers 
     assert.doesNotMatch(code, /\bdark:/);
   }
 });
+
+test("Chaveamento: header do MatchCard mantém tags em linha única e evita Quadra duplicada", () => {
+  const bracketView = source("components/chaveamento/BracketView.tsx");
+  const bracketClient = source("components/chaveamento/BracketClient.tsx");
+  const publicBracket = source("app/campeonatos/[id]/chaveamento/page.tsx");
+  const aoVivo = source("app/campeonatos/[id]/ao-vivo/page.tsx");
+
+  assert.match(bracketView, /flex-nowrap/);
+  assert.match(bracketView, /whitespace-nowrap/);
+  assert.match(bracketView, /formatCourtLabel/);
+  assert.doesNotMatch(bracketView, /Pontos por set<\/span>/);
+
+  for (const code of [bracketClient, publicBracket, aoVivo]) {
+    assert.match(code, /formatCourtLabel/);
+    assert.doesNotMatch(code, /`Quadra \$\{/);
+  }
+});
