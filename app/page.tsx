@@ -93,8 +93,8 @@ export default async function Home({
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho escuro unificado (bg-brand-dark) no mobile e desktop ── */}
-      <div className="bg-brand-dark px-6 pb-12 pt-6">
-        <div className="mb-4 flex h-11 items-center gap-2 md:hidden">
+      <div className="bg-brand-dark pb-12 pt-6">
+        <div className="mb-4 flex h-11 items-center gap-2 px-6 md:hidden">
           <div className="home-header-menu">
             <HamburgerMenu
               unreadCount={0}
@@ -136,8 +136,8 @@ export default async function Home({
         </div>
 
         <PageContainer width="wide">
-          <div className="flex flex-col gap-5 md:grid md:grid-cols-12 md:items-center md:gap-8">
-            <div className="min-w-0 md:col-span-6 lg:col-span-7">
+          <div className="flex flex-col gap-5 md:grid md:grid-cols-12 md:items-center md:gap-6 lg:gap-8">
+            <div className="min-w-0 md:col-span-5 lg:col-span-5 xl:col-span-4">
               {profile ? (
                 <div className="flex items-center gap-4">
                   <Avatar
@@ -169,8 +169,8 @@ export default async function Home({
               )}
             </div>
 
-            <div className="md:col-span-6 lg:col-span-5">
-              <PromoOrganizadoresBanner className="md:ml-auto md:max-w-[460px]" />
+            <div className="-mx-2 md:mx-0 md:col-span-7 lg:col-span-7 xl:col-span-8">
+              <PromoOrganizadoresBanner className="md:ml-auto md:max-w-[840px]" />
             </div>
           </div>
         </PageContainer>
