@@ -40,6 +40,8 @@ export type Championship = {
   bannerUrl?: string | null;
   /** Imagem específica para cards de listagem e carrossel (proporção 16:9 / 1200x675). */
   cardUrl?: string | null;
+  /** Imagem específica compacta/quadrada para o card de grid menor da Home. */
+  squareUrl?: string | null;
   /** Foco do enquadramento do banner (0–100%); null = centro. */
   bannerPositionX?: number | null;
   bannerPositionY?: number | null;

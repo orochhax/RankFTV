@@ -211,10 +211,10 @@ export default async function CampeonatoDetalhePage({
       </Link>
 
       <div>
-        <div className="relative h-36 overflow-hidden rounded-2xl md:aspect-[16/5] md:max-h-80 md:h-auto">
-          {championship.bannerUrl ? (
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl md:aspect-[16/8.5]">
+          {championship.cardUrl || championship.bannerUrl ? (
             <Image
-              src={championship.bannerUrl}
+              src={championship.cardUrl || championship.bannerUrl || ""}
               alt={championship.nome}
               fill
               unoptimized
