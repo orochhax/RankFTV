@@ -91,21 +91,21 @@ function PlanCardPro({
     <div
       className={`relative flex flex-col justify-between rounded-3xl border-2 p-6 shadow-md transition-all md:p-8 ${
         currentTier === "pro"
-          ? "border-blue-600 bg-white ring-4 ring-blue-500/10"
-          : "border-blue-600 bg-gradient-to-b from-blue-50/40 via-white to-white"
+          ? "border-brand bg-white ring-4 ring-brand/10"
+          : "border-brand bg-gradient-to-b from-brand-soft/50 via-white to-white"
       }`}
     >
-      <div className="absolute -top-3.5 right-6 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-white shadow-sm">
+      <div className="absolute -top-3.5 right-6 rounded-full bg-accent px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-accent-ink shadow-sm">
         ⭐ Recomendado para Arenas
       </div>
 
       <div>
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+          <span className="text-xs font-bold uppercase tracking-wider text-brand-ink">
             Crescimento Ilimitado
           </span>
           {currentTier === "pro" && (
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+            <span className="rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold text-brand-ink">
               Plano Atual
             </span>
           )}
@@ -118,30 +118,30 @@ function PlanCardPro({
           {ARENA_PLATFORM_TIERS.pro.descricao}
         </p>
 
-        <div className="mt-6 border-y border-blue-100 py-4">
+        <div className="mt-6 border-y border-brand-border py-4">
           <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-black tracking-tight text-blue-600">
+            <span className="text-4xl font-black tracking-tight text-brand-ink">
               R$ 139
             </span>
             <span className="text-sm font-bold text-gray-700">
               ,00 /mês
             </span>
           </div>
-          <div className="mt-2 rounded-xl bg-blue-50 p-3 text-xs font-medium text-blue-900">
-            ✨ <strong className="font-bold text-blue-950">Alunos Ilimitados:</strong> zero taxa por aluno. Economize dinheiro e automatize todo o dia a dia da arena.
+          <div className="mt-2 rounded-xl bg-brand-soft p-3 text-xs font-medium text-ink">
+            ✨ <strong className="font-bold text-ink">Alunos Ilimitados:</strong> zero taxa por aluno. Economize dinheiro e automatize todo o dia a dia da arena.
           </div>
         </div>
       </div>
 
       <div className="mt-6">
         {currentTier === "pro" ? (
-          <div className="w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-bold text-white shadow-sm">
+          <div className="w-full rounded-xl bg-brand-dark py-3 text-center text-sm font-bold text-white shadow-sm">
             Plano Pro Ativo
           </div>
         ) : arenaHandle ? (
           <Link
             href={`/arena/${arenaHandle}/assinatura/checkout`}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-center text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-center text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover active:scale-95"
           >
             <Sparkles className="size-4" />
             Assinar Plano Pro
@@ -151,7 +151,7 @@ function PlanCardPro({
           <button
             type="button"
             onClick={() => onSelectTier?.("pro")}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-center text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-center text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover active:scale-95"
           >
             <Sparkles className="size-4" />
             Assinar Plano Pro
@@ -198,7 +198,7 @@ function BenefitTableRow({
             onClick={onToggleTooltip}
             aria-label={`Informações sobre ${benefit.titulo}`}
             aria-expanded={isTooltipOpen}
-            className="flex size-5 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-200 hover:text-blue-600 active:scale-90"
+            className="flex size-5 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-200 hover:text-brand-ink active:scale-90"
           >
             <Info className="size-3.5" />
           </button>
@@ -223,7 +223,7 @@ function BenefitTableRow({
               </p>
               <div className="mt-2.5 flex items-center justify-between border-t border-gray-100 pt-2 text-[11px]">
                 <span className="text-gray-500">No Pro:</span>
-                <span className="font-bold text-blue-600">{benefit.proValor}</span>
+                <span className="font-bold text-brand-ink">{benefit.proValor}</span>
               </div>
             </div>
           )}
@@ -238,7 +238,7 @@ function BenefitTableRow({
         )}
       </div>
 
-      <div className="col-span-3 text-center text-xs font-bold text-blue-600">
+      <div className="col-span-3 text-center text-xs font-bold text-brand-ink">
         <span className="inline-flex items-center gap-1">
           <Check className="size-4 shrink-0 text-emerald-600" />
           {benefit.proValor}
@@ -292,7 +292,7 @@ export function ArenaPlansComparison({
             Comparativo de Recursos & Benefícios
           </h4>
           <p className="text-xs text-gray-500">
-            Toque no ícone <span className="inline-flex items-center text-blue-600 font-bold">(i)</span> para entender como cada recurso ajuda sua arena.
+            Toque no ícone <span className="inline-flex items-center text-brand-ink font-bold">(i)</span> para entender como cada recurso ajuda sua arena.
           </p>
         </div>
 
@@ -300,7 +300,7 @@ export function ArenaPlansComparison({
           <div className="grid min-w-[640px] grid-cols-12 bg-gray-50/40 px-6 py-3 text-xs font-bold uppercase tracking-wider text-gray-500">
             <div className="col-span-6">Benefício / Recurso</div>
             <div className="col-span-3 text-center">Plano Start</div>
-            <div className="col-span-3 text-center text-blue-600">Plano Pro</div>
+            <div className="col-span-3 text-center text-brand-ink">Plano Pro</div>
           </div>
 
           {ARENA_BENEFITS_COMPARISON.map((benefit: ArenaBenefitDetail, idx: number) => (

@@ -17,7 +17,7 @@ const TEAM_STATUS: Record<string, { label: string; className: string }> = {
   },
   confirmado: {
     label: "Dupla confirmada",
-    className: "bg-blue-100 text-blue-700",
+    className: "bg-success-bg text-success",
   },
   cancelado: {
     label: "Cancelado",
@@ -30,7 +30,7 @@ const PAYMENT_STATUS: Record<string, { label: string; className: string }> = {
     label: "Aguardando pagamento",
     className: "bg-amber-100 text-amber-700",
   },
-  pago: { label: "Pago", className: "bg-blue-100 text-blue-700" },
+  pago: { label: "Pago", className: "bg-success-bg text-success" },
   estornado: { label: "Estornado", className: "bg-red-100 text-red-600" },
 };
 

@@ -18,7 +18,7 @@ export function AceitarConviteDuplaButton({ teamId }: { teamId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+        className="rounded-xl bg-brand px-5 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
       >
         {pending ? "Aceitando…" : "Aceitar"}
       </button>

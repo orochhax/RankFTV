@@ -27,7 +27,7 @@ export function DreResultadoCard({
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
         <div>
           <h2 className="flex items-center gap-2 text-base font-bold text-ink">
-            <TrendingUp className="size-5 text-blue-600" />
+            <TrendingUp className="size-5 text-brand" />
             Resultado do Torneio (DRE)
           </h2>
           <p className="text-xs text-ink-muted">
@@ -37,7 +37,7 @@ export function DreResultadoCard({
         {showLinkToExpenses && (
           <Link
             href={`/painel/campeonatos/${champSlugOrId}/despesas`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-border/60"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-xs font-semibold text-brand-ink transition-colors hover:bg-border/60"
           >
             <ReceiptText className="size-3.5" />
             Gerenciar despesas
@@ -49,8 +49,8 @@ export function DreResultadoCard({
       {/* Grid de 3 Cards de Resultado */}
       <div className="grid gap-3 sm:grid-cols-3">
         {/* 1. Receita Líquida */}
-        <div className="rounded-2xl border border-blue-200 bg-surface p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-700">
+        <div className="rounded-2xl border border-brand-border bg-surface p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-brand-ink">
             Receita Líquida
           </p>
           <p className="mt-1 text-2xl font-black text-ink">
@@ -147,7 +147,7 @@ export function DreResultadoCard({
           ) : !coverage.coberto && coverage.despesasPendentes > 0 ? (
             <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-600" />
           ) : (
-            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-blue-600" />
+            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" />
           )}
 
           <div className="flex-1">

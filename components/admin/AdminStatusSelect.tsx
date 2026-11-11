@@ -12,8 +12,8 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_COLORS: Record<string, string> = {
   rascunho:           "bg-gray-100 text-gray-700",
-  inscricoes_abertas: "bg-blue-100 text-blue-800",
-  em_andamento:       "bg-blue-100 text-blue-800",
+  inscricoes_abertas: "bg-brand-soft text-brand-ink ring-1 ring-brand-border",
+  em_andamento:       "bg-accent text-accent-ink",
   encerrado:          "bg-zinc-200 text-zinc-700",
 };
 

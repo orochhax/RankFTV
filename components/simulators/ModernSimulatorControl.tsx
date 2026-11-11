@@ -13,7 +13,7 @@ export type ModernSimulatorControlProps = {
   step?: number;
   prefix?: string;
   suffix?: string;
-  accentColor?: "amber" | "blue";
+  accentColor?: "amber" | "brand" | "teal";
   marks?: [string, string, string];
 };
 
@@ -26,13 +26,21 @@ const THEMES = {
     val: "text-amber-600",
     accent: "accent-amber-500",
   },
-  blue: {
-    color: "#3b82f6",
-    focus: "focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20",
-    btn: "hover:bg-blue-100 text-blue-700 active:scale-95",
-    badge: "bg-blue-50 border-blue-200",
-    val: "text-blue-600",
-    accent: "accent-blue-600",
+  brand: {
+    color: "#ff5d00",
+    focus: "focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20",
+    btn: "hover:bg-brand-border/40 text-brand-ink active:scale-95",
+    badge: "bg-brand-soft border-brand-border",
+    val: "text-brand-ink",
+    accent: "accent-brand",
+  },
+  teal: {
+    color: "#0e4937",
+    focus: "focus-within:border-brand-dark focus-within:ring-2 focus-within:ring-brand-dark/20",
+    btn: "hover:bg-border/50 text-ink active:scale-95",
+    badge: "bg-surface-2 border-border",
+    val: "text-brand-dark",
+    accent: "accent-brand-dark",
   },
 } as const;
 

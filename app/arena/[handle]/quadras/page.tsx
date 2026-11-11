@@ -37,8 +37,8 @@ export default async function QuadrasArenaPage({
       <div className="flex flex-col gap-4 border-b border-gray-200 pb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">
-              <LayoutGrid className="size-3 text-blue-600" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-bold text-brand-ink">
+              <LayoutGrid className="size-3 text-brand" />
               Infraestrutura
             </span>
             <span className="text-xs font-medium text-gray-500">{arena.nome}</span>
@@ -53,7 +53,7 @@ export default async function QuadrasArenaPage({
 
         <button
           type="button"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover active:scale-95"
         >
           <Plus className="size-4" />
           Adicionar Quadra
@@ -91,13 +91,13 @@ export default async function QuadrasArenaPage({
 
             <div className="mt-5 border-t border-gray-100 pt-3 flex items-center justify-between text-xs">
               <span className="text-gray-500">Grade semanal:</span>
-              <span className="font-bold text-blue-600">Turmas ativas vinculadas</span>
+              <span className="font-bold text-brand-ink">Turmas ativas vinculadas</span>
             </div>
           </div>
         ))}
 
         {/* Card Adicionar Nova */}
-        <div className="flex min-h-[180px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-6 text-center transition hover:border-blue-400 hover:bg-blue-50/20">
+        <div className="flex min-h-[180px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-6 text-center transition hover:border-brand hover:bg-brand-soft/40">
           <div className="flex size-10 items-center justify-center rounded-xl bg-gray-200/80 text-gray-600">
             <Plus className="size-5" />
           </div>

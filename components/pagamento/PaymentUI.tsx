@@ -10,7 +10,7 @@ import { calcularTaxaComprador, calcularTotalComprador } from "@/lib/taxas";
 import { createClient } from "@/lib/supabase/client";
 import { PageContainer } from "@/components/shell/PageContainer";
 
-const AVATAR_COLORS = ["bg-blue-500","bg-blue-500","bg-violet-500","bg-orange-500","bg-rose-500","bg-teal-500"];
+const AVATAR_COLORS = ["bg-brand","bg-brand-dark","bg-accent text-accent-ink","bg-orange-500","bg-rose-500","bg-teal-600"];
 function avatarColor(str: string) {
   let h = 0;
   for (const c of str) h = (h * 31 + c.charCodeAt(0)) | 0;
@@ -41,7 +41,7 @@ function CopyPixButton({ text }: { text: string }) {
     <button
       onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
       className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-        copied ? "bg-blue-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700 active:scale-95"
+        copied ? "bg-success text-white" : "bg-brand text-white hover:bg-brand-hover active:scale-95"
       }`}
     >
       {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
@@ -216,16 +216,16 @@ export function PaymentUI({
                 </div>
               )}
 
-              <div className="rounded-2xl bg-blue-50 px-4 py-4 ring-1 ring-blue-100">
-                <ul className="space-y-2 text-sm text-blue-700">
-                  <li className="flex items-center gap-2"><Check className="size-4 shrink-0 text-blue-500" />Confirmação automática em segundos</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 shrink-0 text-blue-500" />Válido por 24 horas</li>
-                  <li className="flex items-center gap-2"><Check className="size-4 shrink-0 text-blue-500" />Disponível em qualquer banco</li>
+              <div className="rounded-2xl bg-brand-soft px-4 py-4 ring-1 ring-brand-border">
+                <ul className="space-y-2 text-sm text-ink">
+                  <li className="flex items-center gap-2"><Check className="size-4 shrink-0 text-brand" />Confirmação automática em segundos</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 shrink-0 text-brand" />Válido por 24 horas</li>
+                  <li className="flex items-center gap-2"><Check className="size-4 shrink-0 text-brand" />Disponível em qualquer banco</li>
                 </ul>
               </div>
 
               <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
-                <span className="inline-block size-1.5 animate-pulse rounded-full bg-blue-400" />
+                <span className="inline-block size-1.5 animate-pulse rounded-full bg-brand" />
                 Aguardando confirmação do pagamento…
               </div>
 
@@ -239,14 +239,14 @@ export function PaymentUI({
           {tab === "cartao" && (
             <div className="space-y-5 rounded-2xl bg-white p-5 ring-1 ring-black/5">
               <div className="flex items-start gap-3">
-                <div className="rounded-xl bg-blue-50 p-2 text-blue-600"><CreditCard className="size-5" /></div>
+                <div className="rounded-xl bg-brand-soft p-2 text-brand"><CreditCard className="size-5" /></div>
                 <div>
                   <h2 className="font-semibold text-gray-900">Pagamento seguro no Asaas</h2>
                   <p className="mt-1 text-sm text-gray-500">Você informará os dados do cartão diretamente na página segura do Asaas. A RankFTV não recebe nem armazena número ou CVV.</p>
                 </div>
               </div>
               {invoiceUrl ? (
-                <a href={invoiceUrl} className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+                <a href={invoiceUrl} className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">
                   Ir para o pagamento seguro
                 </a>
               ) : (

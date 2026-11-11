@@ -53,7 +53,7 @@ export function PlateiaCheckin({
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por nome ou código..."
-          className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-11 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-xl border border-border py-2.5 pl-9 pr-11 text-sm text-ink placeholder:text-ink-muted/70 focus:outline-none focus:ring-2 focus:ring-brand"
         />
         <button type="submit" title="Buscar" className="absolute right-1.5 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100">
           <Search className="size-4" />
@@ -81,7 +81,7 @@ export function PlateiaCheckin({
                   type="button"
                   onClick={() => toggle(i.id, false)}
                   disabled={pendingId === i.id}
-                  className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 ring-1 ring-blue-200 hover:bg-blue-100 disabled:opacity-60"
+                  className="flex items-center gap-1.5 rounded-lg bg-success-bg px-3 py-2 text-sm font-medium text-success ring-1 ring-success/25 hover:bg-success-bg/80 disabled:opacity-60"
                 >
                   {pendingId === i.id ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
                   Presente
@@ -92,7 +92,7 @@ export function PlateiaCheckin({
                   type="button"
                   onClick={() => toggle(i.id, true)}
                   disabled={pendingId === i.id}
-                  className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                  className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-60"
                 >
                   {pendingId === i.id ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
                   Marcar presença

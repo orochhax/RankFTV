@@ -39,7 +39,7 @@ export default async function AoVivoPage() {
               </p>
               <Link
                 href="/"
-                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
               >
                 Ver todos os campeonatos
               </Link>

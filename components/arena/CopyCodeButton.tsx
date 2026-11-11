@@ -16,10 +16,10 @@ export function CopyCodeButton({ code }: { code: string }) {
   return (
     <button
       onClick={copy}
-      className="rounded-lg p-2 text-blue-500 hover:bg-blue-100 transition-colors"
+      className="rounded-lg p-2 text-brand-ink hover:bg-brand-border/40 transition-colors"
       title="Copiar código"
     >
-      {copied ? <Check className="size-4 text-blue-500" /> : <Copy className="size-4" />}
+      {copied ? <Check className="size-4 text-success" /> : <Copy className="size-4" />}
     </button>
   );
 }

@@ -65,16 +65,16 @@ export function DestaquesArenasEditor({
             selecionadosData.map((a, i) => (
               <div
                 key={a.id}
-                className="flex items-center gap-3 rounded-xl bg-blue-50 px-4 py-3 ring-1 ring-blue-200"
+                className="flex items-center gap-3 rounded-xl bg-brand-soft px-4 py-3 ring-1 ring-brand-border"
               >
-                <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-blue-700 to-blue-900">
+                <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-brand-dark">
                   {a.banner_url
                     ? <img src={a.banner_url} alt={a.nome} className="size-10 object-cover" /> // eslint-disable-line @next/next/no-img-element
                     : <Building2 className="size-4 text-white/60" />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-gray-900">
-                    <span className="mr-2 text-blue-500">#{i + 1}</span>{a.nome}
+                    <span className="mr-2 text-brand-ink">#{i + 1}</span>{a.nome}
                   </p>
                   <p className="text-xs text-gray-400">{a.cidade} · {a.estado}</p>
                 </div>
@@ -96,7 +96,7 @@ export function DestaquesArenasEditor({
         type="button"
         onClick={salvar}
         disabled={pending || selecionados.length === 0}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50 transition-colors"
       >
         {pending ? <Loader2 className="size-4 animate-spin" /> : saved ? <Check className="size-4" /> : <Star className="size-4" />}
         {pending ? "Salvando…" : saved ? "Salvo!" : "Salvar destaques de arenas"}
@@ -114,7 +114,7 @@ export function DestaquesArenasEditor({
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por nome ou cidade…"
-            className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
           />
         </div>
         <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
@@ -130,13 +130,13 @@ export function DestaquesArenasEditor({
                 disabled={bloqueado}
                 className={`flex w-full items-center gap-3 rounded-xl p-3 text-left ring-1 transition-colors ${
                   sel
-                    ? "bg-blue-50 ring-blue-300"
+                    ? "bg-brand-soft ring-brand"
                     : bloqueado
                     ? "cursor-not-allowed bg-gray-50 opacity-50 ring-gray-100"
                     : "bg-white ring-black/5 hover:bg-gray-50"
                 }`}
               >
-                <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-blue-700 to-blue-900">
+                <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-brand-dark">
                   {a.banner_url
                     ? <img src={a.banner_url} alt={a.nome} className="size-10 object-cover" /> // eslint-disable-line @next/next/no-img-element
                     : <Building2 className="size-4 text-white/60" />}
@@ -149,7 +149,7 @@ export function DestaquesArenasEditor({
                   </p>
                 </div>
                 <div className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                  sel ? "bg-blue-600 text-white" : "border-2 border-gray-200"
+                  sel ? "bg-brand text-white" : "border-2 border-gray-200"
                 }`}>
                   {sel ? pos + 1 : ""}
                 </div>

@@ -195,7 +195,7 @@ function LoteGroupCard({
   }
 
   const input =
-    "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand";
 
   const lotesOrdenados = [...grupo.lotes].sort((a, b) => a.ordem - b.ordem);
 
@@ -230,7 +230,7 @@ function LoteGroupCard({
                   value={valorBaseInput}
                   onChange={(e) => setValorBaseInput(e.target.value)}
                   inputMode="numeric"
-                  className="w-20 rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-20 rounded-lg border border-border px-2 py-1 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-brand"
                 />
                 <button
                   type="button"
@@ -266,7 +266,7 @@ function LoteGroupCard({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setValorBaseInput(String(grupo.valorBase)); setEditandoValor(true); }}
-              className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600"
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-brand-ink"
             >
               Valor de tabela: {grupo.valorBase <= 0 ? "Grátis" : formatBRL(grupo.valorBase)}
               <Pencil className="size-3" />
@@ -331,7 +331,7 @@ function LoteGroupCard({
             <button
               type="button"
               onClick={() => setAdding(true)}
-              className="mt-3 flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+              className="mt-3 flex items-center gap-1.5 text-sm font-medium text-brand-ink hover:text-brand"
             >
               <Plus className="size-4" /> Adicionar lote
             </button>
@@ -373,7 +373,7 @@ function LoteGroupCard({
                   type="button"
                   onClick={adicionar}
                   disabled={pending}
-                  className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                  className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
                 >
                   {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
                   Criar lote
@@ -416,7 +416,7 @@ function SectionHeader({
         type="button"
         onClick={onToggle}
         className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
-          aberto ? "bg-gray-100 text-gray-600" : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+          aberto ? "bg-surface-2 text-ink-muted" : "bg-brand-soft text-brand-ink hover:bg-brand/15"
         }`}
       >
         {aberto ? <X className="size-3.5" /> : <Plus className="size-3.5" />}
@@ -435,7 +435,7 @@ function CategoriaForm({ champId, onDone }: { champId: string; onDone: () => voi
   const [erro, setErro] = useState<string | null>(null);
 
   const input =
-    "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand";
 
   function criar() {
     setErro(null);
@@ -473,7 +473,7 @@ function CategoriaForm({ champId, onDone }: { champId: string; onDone: () => voi
           type="button"
           onClick={criar}
           disabled={pending}
-          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
         >
           {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
           Criar categoria
@@ -498,7 +498,7 @@ function TipoPlateiaForm({ champId, onDone }: { champId: string; onDone: () => v
   const [erro, setErro] = useState<string | null>(null);
 
   const input =
-    "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand";
 
   function criar() {
     setErro(null);
@@ -530,7 +530,7 @@ function TipoPlateiaForm({ champId, onDone }: { champId: string; onDone: () => v
           type="button"
           onClick={criar}
           disabled={pending}
-          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
         >
           {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
           Criar tipo de ingresso
@@ -565,7 +565,7 @@ export function LotesManager({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs text-blue-700 ring-1 ring-blue-100">
+      <div className="flex items-start gap-2 rounded-2xl bg-brand-soft px-4 py-3 text-xs text-brand-ink ring-1 ring-brand-border">
         <Layers className="mt-0.5 size-4 shrink-0" />
         <p>
           O lote com a menor ordem que ainda estiver dentro da data e da quantidade é o que vale no

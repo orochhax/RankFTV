@@ -75,12 +75,12 @@ const SELECT =
   "id, organizador_id, nome, descricao, regulamento, data_inicio, data_fim, cidade, estado, local, status, taxa_plataforma, live_url, banner_url, banner_position_x, banner_position_y, is_elite, is_vitrine, usa_motor_categoria, prevenda_inicio, prevenda_fim, championship_categories(id, nome, genero, valor_inscricao, corte_rating_min, corte_rating_max, max_duplas)";
 
 const GRADIENTS: [string, string][] = [
-  ["from-blue-500", "to-cyan-400"],
-  ["from-blue-500", "to-blue-400"],
+  ["from-brand-dark", "to-brand-dark-2"],
+  ["from-brand", "to-amber-400"],
+  ["from-brand-dark", "to-accent"],
   ["from-orange-500", "to-amber-400"],
-  ["from-violet-500", "to-purple-400"],
-  ["from-rose-500", "to-pink-400"],
-  ["from-indigo-500", "to-blue-400"],
+  ["from-emerald-700", "to-teal-500"],
+  ["from-amber-600", "to-orange-500"],
 ];
 
 function mapChampionship(row: ChampRow): Championship {

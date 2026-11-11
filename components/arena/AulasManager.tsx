@@ -30,9 +30,9 @@ type Aula = {
 };
 
 const inputCls =
-  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand";
 const selectCls =
-  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
+  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand bg-white";
 
 
 const HORAS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
@@ -224,7 +224,7 @@ function EditarAulaForm({ aula, arenaId, staff, onClose }: { aula: Aula; arenaId
   }, {});
 
   return (
-    <form action={formAction} className="space-y-4 rounded-2xl bg-blue-50/60 p-5 ring-1 ring-blue-100">
+    <form action={formAction} className="space-y-4 rounded-2xl bg-brand-soft/70 p-5 ring-1 ring-brand-border">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-gray-700">Editar aula</p>
         <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-white hover:text-gray-700">
@@ -244,7 +244,7 @@ function EditarAulaForm({ aula, arenaId, staff, onClose }: { aula: Aula; arenaId
         <button
           type="submit"
           disabled={pending}
-          className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
         >
           {pending && <Loader2 className="size-4 animate-spin" />}
           Salvar alterações
@@ -289,7 +289,7 @@ export function AulasManager({ aulas, arenaId, staff = [] }: { aulas: Aula[]; ar
                   <div className="flex flex-wrap items-center gap-1.5">
                     <p className="text-sm font-medium text-gray-900">{a.titulo}</p>
                     {a.nivel ? (
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
+                      <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand-ink">
                         {NIVEL_LABEL[a.nivel] ?? a.nivel}
                       </span>
                     ) : (
@@ -315,7 +315,7 @@ export function AulasManager({ aulas, arenaId, staff = [] }: { aulas: Aula[]; ar
                     type="button"
                     onClick={() => setEditingId(a.id)}
                     aria-label={`Editar ${a.titulo}`}
-                    className="rounded-lg p-2 text-gray-400 hover:bg-blue-50 hover:text-blue-600"
+                    className="rounded-lg p-2 text-gray-400 hover:bg-brand-soft hover:text-brand-ink"
                   >
                     <Pencil className="size-4" />
                   </button>
@@ -349,7 +349,7 @@ export function AulasManager({ aulas, arenaId, staff = [] }: { aulas: Aula[]; ar
         <button
           type="submit"
           disabled={pending}
-          className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
         >
           {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
           Adicionar aula

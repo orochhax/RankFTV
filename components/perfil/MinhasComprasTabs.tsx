@@ -51,7 +51,7 @@ export function MinhasComprasTabs({
               {label}
               <span
                 className={`rounded-full px-2 py-0.5 text-xs ${
-                  selected ? "bg-blue-100 text-blue-700" : "bg-gray-200 text-gray-500"
+                  selected ? "bg-brand-soft text-brand-ink" : "bg-surface-2 text-ink-muted"
                 }`}
               >
                 {count}

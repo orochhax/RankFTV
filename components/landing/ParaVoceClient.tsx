@@ -50,11 +50,11 @@ export function ParaVoceClient({
       <div className="relative overflow-hidden bg-brand-dark px-6 pb-16 pt-6">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-blue-600/20 blur-3xl"
+          className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-accent/15 blur-3xl"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-full bg-blue-500/15 blur-3xl"
+          className="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-full bg-brand/15 blur-3xl"
         />
 
         <PageContainer width="wide" className="relative z-10 space-y-6">
@@ -66,14 +66,14 @@ export function ParaVoceClient({
               <ArrowLeft className="size-4" />
               Voltar à Home
             </Link>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-400/30 bg-blue-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-blue-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-border/40 bg-accent/15 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-accent">
               <Sparkles className="size-3.5" />
               RankFTV Parceiros
             </span>
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs font-medium text-zinc-400">
+            <p className="text-xs font-medium text-app-bg/75">
               Selecione o que você deseja gerenciar na plataforma:
             </p>
             <div
@@ -94,8 +94,8 @@ export function ParaVoceClient({
                     onClick={() => selectTab(id)}
                     className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
                       selected
-                        ? "bg-blue-600 text-white shadow-md shadow-blue-600/35"
-                        : "text-zinc-300 hover:bg-white/5 hover:text-white"
+                        ? "bg-brand text-white shadow-md shadow-brand/35"
+                        : "text-white/80 hover:bg-white/5 hover:text-white"
                     }`}
                   >
                     <Icon className="size-4 shrink-0" />
@@ -110,14 +110,14 @@ export function ParaVoceClient({
             <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl md:leading-[1.12]">
               {copy.heroTitle}
             </h1>
-            <p className="max-w-2xl text-sm leading-relaxed text-zinc-300 sm:text-base">
+            <p className="max-w-2xl text-sm leading-relaxed text-app-bg/80 sm:text-base">
               {copy.heroSubtitle}
             </p>
 
             <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
               <Link
                 href={ctas.primary.href}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-500 active:scale-[0.99]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand/30 transition hover:bg-brand-hover active:scale-[0.99]"
               >
                 {ctas.primary.label}
                 <ArrowRight className="size-4" />

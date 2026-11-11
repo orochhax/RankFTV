@@ -42,7 +42,7 @@ export function PublicCategoryOptions({
             <article key={category.id} className="flex flex-col rounded-2xl bg-white p-4 ring-1 ring-black/5">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><Trophy className="size-5" /></span>
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><Trophy className="size-5" /></span>
                   <div className="min-w-0">
                     <h3 className="font-semibold text-gray-900">{category.name}</h3>
                     <p className="flex items-center gap-1 text-xs text-gray-500"><Users className="size-3" />{generoLabel(category.gender)}</p>
@@ -62,7 +62,7 @@ export function PublicCategoryOptions({
 
               <div className="mt-4 rounded-xl bg-gray-50 p-3 text-sm">
                 {category.price <= 0 ? (
-                  <p className="font-bold text-blue-600">Inscrição grátis</p>
+                  <p className="font-bold text-brand-ink">Inscrição grátis</p>
                 ) : (
                   <>
                     <div className="flex justify-between gap-3 text-gray-600"><span>Inscrição da dupla</span><span>{formatBRL(composition.basePrice)}</span></div>
@@ -75,7 +75,7 @@ export function PublicCategoryOptions({
               {category.soldOut ? (
                 <><span aria-disabled="true" className="mt-3 flex items-center justify-center rounded-xl bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-400">Sem vagas</span><WaitlistForm championshipId={championshipId} categoryId={category.id} /></>
               ) : (
-                <Link onClick={() => trackPublicFunnel({ event: "category_selected", championshipId, categoryId: category.id })} href={`/campeonatos/${championshipId}/comprar?categoria=${encodeURIComponent(category.id)}`} className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700">
+                <Link onClick={() => trackPublicFunnel({ event: "category_selected", championshipId, categoryId: category.id })} href={`/campeonatos/${championshipId}/comprar?categoria=${encodeURIComponent(category.id)}`} className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover">
                   <Check className="size-4" />Escolher categoria <ArrowRight className="size-4" />
                 </Link>
               )}

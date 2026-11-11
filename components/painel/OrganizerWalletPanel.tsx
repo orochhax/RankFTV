@@ -157,21 +157,21 @@ export function OrganizerWalletPanel({
 
   return (
     <section aria-labelledby="wallet-title" className="space-y-4">
-      <div className="overflow-hidden rounded-[28px] bg-[radial-gradient(circle_at_top_right,_#312e81_0,_#111827_42%,_#030712_100%)] text-white shadow-[0_24px_60px_-32px_rgba(15,23,42,0.7)] ring-1 ring-white/10">
+      <div className="overflow-hidden rounded-[28px] bg-[radial-gradient(circle_at_top_right,_#155C46_0,_#0E4937_50%,_#07271D_100%)] text-white shadow-[0_24px_60px_-32px_rgba(14,73,55,0.7)] ring-1 ring-white/10">
         <div className="relative p-5 sm:p-7">
-          <div aria-hidden="true" className="absolute -right-14 -top-16 size-48 rounded-full bg-blue-500/20 blur-3xl" />
+          <div aria-hidden="true" className="absolute -right-14 -top-16 size-48 rounded-full bg-accent/20 blur-3xl" />
           <div className="relative flex items-start justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 text-blue-200">
+              <div className="flex items-center gap-2 text-accent">
                 <WalletCards aria-hidden="true" className="size-4" />
                 <h2 id="wallet-title" className="text-xs font-semibold uppercase tracking-[0.18em]">Sua carteira</h2>
               </div>
-              <p className="mt-3 text-sm text-slate-300">Tudo o que entrou, está liberado ou ainda será recebido.</p>
+              <p className="mt-3 text-sm text-white/75">Tudo o que entrou, está liberado ou ainda será recebido.</p>
             </div>
             <button
               type="button"
               onClick={onToggleShowValues}
-              className="inline-flex min-h-10 items-center gap-2 rounded-full bg-white/10 px-3 text-xs font-semibold text-white ring-1 ring-white/15 transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+              className="inline-flex min-h-10 items-center gap-2 rounded-full bg-white/10 px-3 text-xs font-semibold text-white ring-1 ring-white/15 transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               aria-label={showValues ? "Ocultar valores da carteira" : "Mostrar valores da carteira"}
             >
               {showValues ? <EyeOff aria-hidden="true" className="size-4" /> : <Eye aria-hidden="true" className="size-4" />}
@@ -229,7 +229,7 @@ export function OrganizerWalletPanel({
       <div className="grid gap-4 rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5 lg:grid-cols-[1fr_auto] lg:items-center">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <ShieldCheck aria-hidden="true" className="size-5 text-blue-600" />
+            <ShieldCheck aria-hidden="true" className="size-5 text-brand" />
             <h3 className="text-base font-semibold text-slate-950">Movimente seu saldo</h3>
           </div>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
@@ -241,7 +241,7 @@ export function OrganizerWalletPanel({
             type="button"
             disabled={withdrawableReceivables.length === 0}
             onClick={() => setDialogMode("withdrawal")}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transform-none"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-white shadow-sm transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transform-none"
           >
             <ArrowUpRight aria-hidden="true" className="size-4" />
             Solicitar saque
@@ -249,7 +249,7 @@ export function OrganizerWalletPanel({
           <button
             type="button"
             onClick={() => setDialogMode("anticipation")}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 transition-colors hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 transition-colors hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             <CreditCard aria-hidden="true" className="size-4" />
             Antecipar cartão
@@ -314,17 +314,17 @@ export function OrganizerWalletPanel({
           emptyText="Nenhum ingresso disponível para saque."
           val={val}
         />
-        <div className="sticky bottom-0 -mx-1 mt-5 rounded-2xl bg-slate-950 p-4 text-white shadow-xl">
+        <div className="sticky bottom-0 -mx-1 mt-5 rounded-2xl bg-brand-dark p-4 text-white shadow-xl">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs text-slate-400">Total selecionado</p>
+              <p className="text-xs text-app-bg/75">Total selecionado</p>
               <p className="mt-1 text-xl font-bold tabular-nums">{val(withdrawalTotal)}</p>
             </div>
             <button
               type="button"
               disabled={withdrawing || selectedWithdrawals.length === 0 || isOverWithdrawalLimit}
               onClick={submitWithdrawal}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50"
             >
               {withdrawing ? <Loader2 aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" /> : <ArrowUpRight aria-hidden="true" className="size-4" />}
               {withdrawing ? "Reservando…" : "Confirmar saque"}
@@ -378,10 +378,10 @@ export function OrganizerWalletPanel({
 
 function BalanceMetric({ eyebrow, value, featured = false, accent }: { eyebrow: string; value: string; featured?: boolean; accent?: "emerald" }) {
   return (
-    <div className={`min-h-28 rounded-2xl p-4 ring-1 ${featured ? "bg-blue-500/15 ring-blue-300/20" : "bg-white/[0.07] ring-white/10"}`}>
-      <p className={`text-xs font-medium ${accent === "emerald" ? "text-emerald-300" : "text-slate-300"}`}>{eyebrow}</p>
+    <div className={`min-h-28 rounded-2xl p-4 ring-1 ${featured ? "bg-accent/15 ring-accent/30" : "bg-white/[0.07] ring-white/10"}`}>
+      <p className={`text-xs font-medium ${accent === "emerald" ? "text-emerald-300" : "text-white/80"}`}>{eyebrow}</p>
       <p className={`${featured ? "text-3xl" : "text-2xl"} mt-4 font-bold tabular-nums tracking-tight text-white`}>{value}</p>
-      {featured ? <p className="mt-1 text-xs text-blue-200/70">Depois das taxas da plataforma</p> : null}
+      {featured ? <p className="mt-1 text-xs text-white/70">Depois das taxas da plataforma</p> : null}
     </div>
   );
 }
@@ -413,19 +413,19 @@ function WalletDialog({ open, onClose, title, description, children }: { open: b
       onCancel={(event) => { event.preventDefault(); onClose(); }}
       onClose={onClose}
       onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
-      className="m-auto max-h-[min(88vh,760px)] w-[calc(100%-1.5rem)] max-w-2xl overflow-y-auto overscroll-contain rounded-[28px] bg-white p-0 text-slate-950 shadow-2xl backdrop:bg-slate-950/50 backdrop:backdrop-blur-md"
+      className="m-auto max-h-[min(88vh,760px)] w-[calc(100%-1.5rem)] max-w-2xl overflow-y-auto overscroll-contain rounded-[28px] bg-white p-0 text-ink shadow-2xl backdrop:bg-brand-dark/50 backdrop:backdrop-blur-md"
     >
       <div className="p-5 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h3 id={titleId} className="text-balance text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">{title}</h3>
-            <p id={descriptionId} className="mt-2 text-pretty text-sm leading-6 text-slate-500">{description}</p>
+            <h3 id={titleId} className="text-balance text-xl font-bold tracking-tight text-ink sm:text-2xl">{title}</h3>
+            <p id={descriptionId} className="mt-2 text-pretty text-sm leading-6 text-ink-muted">{description}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="grid size-10 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="grid size-10 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             <X aria-hidden="true" className="size-5" />
           </button>
@@ -462,16 +462,16 @@ function ReceivableSelector({ items, selected, onToggle, onToggleAll, emptyText,
     <div className="overflow-hidden rounded-2xl border border-slate-200">
       <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 bg-slate-50 px-4 text-sm font-semibold text-slate-700">
         <span className="flex items-center gap-3">
-          <input type="checkbox" checked={allSelected} onChange={(event) => onToggleAll(event.target.checked)} className="size-4 accent-blue-600" />
+          <input type="checkbox" checked={allSelected} onChange={(event) => onToggleAll(event.target.checked)} className="size-4 accent-brand" />
           Selecionar todos
         </span>
         <span className="text-xs font-medium text-slate-400">{items.length} venda{items.length === 1 ? "" : "s"}</span>
       </label>
       <div className="max-h-72 divide-y divide-slate-100 overflow-y-auto overscroll-contain">
         {items.map((item) => (
-          <label key={item.id} className="flex min-h-16 cursor-pointer items-center justify-between gap-4 bg-white px-4 py-3 transition-colors hover:bg-blue-50/50">
+          <label key={item.id} className="flex min-h-16 cursor-pointer items-center justify-between gap-4 bg-white px-4 py-3 transition-colors hover:bg-brand-soft/50">
             <span className="flex min-w-0 items-center gap-3">
-              <input type="checkbox" checked={selected.includes(item.id)} onChange={(event) => onToggle(item.id, event.target.checked)} className="size-4 shrink-0 accent-blue-600" />
+              <input type="checkbox" checked={selected.includes(item.id)} onChange={(event) => onToggle(item.id, event.target.checked)} className="size-4 shrink-0 accent-brand" />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-medium text-slate-800">{item.label}</span>
                 <span className="mt-0.5 block text-xs text-slate-400">Disponível em {formatDate(item.availableAt)}</span>

@@ -12,7 +12,7 @@ export function ParaVoceBenefitsSection({ copy }: { copy: TabCopy }) {
             key={item.titulo}
             className="rounded-2xl border border-border bg-surface p-5 shadow-soft"
           >
-            <p className="text-2xl font-extrabold tracking-tight text-blue-600">
+            <p className="text-2xl font-extrabold tracking-tight text-brand-ink">
               {item.valor}
             </p>
             <p className="mt-1 text-sm font-bold text-ink">{item.titulo}</p>
@@ -25,7 +25,7 @@ export function ParaVoceBenefitsSection({ copy }: { copy: TabCopy }) {
 
       <section className="space-y-4">
         <div className="space-y-1">
-          <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-ink">
             {copy.benefitsEyebrow}
           </p>
           <h2 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
@@ -37,10 +37,10 @@ export function ParaVoceBenefitsSection({ copy }: { copy: TabCopy }) {
           {copy.benefits.map(({ icon: Icon, titulo, descricao, tag }) => (
             <article
               key={titulo}
-              className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-6 shadow-soft transition hover:border-blue-200"
+              className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-6 shadow-soft transition hover:border-brand-border"
             >
               <div>
-                <div className="flex size-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <div className="flex size-11 items-center justify-center rounded-xl bg-brand-soft text-brand">
                   <Icon className="size-5" />
                 </div>
                 <h3 className="mt-4 text-base font-bold text-ink">{titulo}</h3>
@@ -48,7 +48,7 @@ export function ParaVoceBenefitsSection({ copy }: { copy: TabCopy }) {
                   {descricao}
                 </p>
               </div>
-              <div className="mt-5 border-t border-border pt-3 text-xs font-semibold text-blue-600">
+              <div className="mt-5 border-t border-border pt-3 text-xs font-semibold text-brand-ink">
                 ✓ {tag}
               </div>
             </article>
@@ -64,7 +64,7 @@ export function CampeonatoFinanceDetails() {
   return (
     <section className="space-y-4">
       <div className="space-y-1">
-        <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
+        <p className="text-xs font-bold uppercase tracking-widest text-brand-ink">
           Transparência financeira
         </p>
         <h2 className="text-2xl font-bold tracking-tight text-ink">
@@ -75,7 +75,7 @@ export function CampeonatoFinanceDetails() {
       <div className="grid gap-5 md:grid-cols-2">
         <div className="space-y-3 rounded-2xl border border-border bg-surface p-6 shadow-soft">
           <div className="flex items-center gap-2.5 text-ink">
-            <Banknote className="size-5 text-blue-600" />
+            <Banknote className="size-5 text-brand" />
             <h3 className="text-base font-bold">Taxa paga pelo comprador</h3>
           </div>
           <p className="text-sm leading-relaxed text-ink-muted">
@@ -100,7 +100,7 @@ export function CampeonatoFinanceDetails() {
 
         <div className="space-y-3 rounded-2xl border border-border bg-surface p-6 shadow-soft">
           <div className="flex items-center gap-2.5 text-ink">
-            <ShieldCheck className="size-5 text-blue-600" />
+            <ShieldCheck className="size-5 text-brand" />
             <h3 className="text-base font-bold">Adiantamento de 70% + Reserva de 30%</h3>
           </div>
           <p className="text-sm leading-relaxed text-ink-muted">
@@ -131,7 +131,7 @@ export function ArenaPlansComparison() {
   return (
     <section className="space-y-4">
       <div className="space-y-1">
-        <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
+        <p className="text-xs font-bold uppercase tracking-widest text-brand-ink">
           Planos da plataforma
         </p>
         <h2 className="text-2xl font-bold tracking-tight text-ink">
@@ -167,20 +167,20 @@ export function ArenaPlansComparison() {
           </ul>
         </div>
 
-        <div className="rounded-2xl border-2 border-blue-600 bg-surface p-6 shadow-elevated">
+        <div className="rounded-2xl border-2 border-brand bg-surface p-6 shadow-elevated">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+            <span className="text-xs font-bold uppercase tracking-wider text-brand-ink">
               Plano Pro
             </span>
-            <span className="rounded-full bg-blue-600 px-3 py-0.5 text-[11px] font-bold text-white">
+            <span className="rounded-full bg-accent px-3 py-0.5 text-[11px] font-bold text-accent-ink">
               Mais escolhido
             </span>
           </div>
           <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-3xl font-extrabold text-blue-600">R$ 139</span>
+            <span className="text-3xl font-extrabold text-brand">R$ 139</span>
             <span className="text-xs font-bold text-ink">,00 /mês</span>
           </div>
-          <p className="mt-2 rounded-xl bg-blue-50 p-2.5 text-xs font-semibold text-blue-900">
+          <p className="mt-2 rounded-xl bg-brand-soft p-2.5 text-xs font-semibold text-brand-ink">
             Alunos ilimitados: zero taxa por aluno adicional conforme sua arena cresce.
           </p>
           <ul className="mt-4 space-y-2 text-xs text-ink">
@@ -223,17 +223,17 @@ export function ParaVoceFinalBanner({
     <section className="rounded-3xl bg-brand-dark p-6 text-white sm:p-8">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
         <div className="max-w-xl space-y-2">
-          <p className="text-xs font-bold uppercase tracking-widest text-blue-400">
+          <p className="text-xs font-bold uppercase tracking-widest text-accent">
             Pronto para começar?
           </p>
           <h2 className="text-2xl font-bold tracking-tight">{heading}</h2>
-          <p className="text-sm text-zinc-300">{subtitle}</p>
+          <p className="text-sm text-app-bg/80">{subtitle}</p>
         </div>
 
         <div className="flex flex-col gap-2.5 sm:flex-row md:shrink-0">
           <Link
             href={primaryHref}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-blue-500"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3.5 text-sm font-bold text-white transition hover:bg-brand-hover"
           >
             {primaryLabel}
             <ArrowRight className="size-4" />

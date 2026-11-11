@@ -48,7 +48,7 @@ export function MeusCampeonatosGrid({ campeonatos }: { campeonatos: OrganizerCha
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por nome, cidade ou estado..."
-          className="w-full rounded-full border border-border bg-surface py-2 pl-9 pr-4 text-sm text-ink placeholder:text-ink-muted focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-full border border-border bg-surface py-2 pl-9 pr-4 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
         />
       </div>
 
@@ -96,7 +96,7 @@ function OrganizerChampCard({ c }: { c: OrganizerChampSummary }) {
 
       <div className="p-4">
         <Link href={overviewHref}>
-          <h3 className="truncate text-sm font-bold text-ink hover:text-blue-600">{c.nome}</h3>
+          <h3 className="truncate text-sm font-bold text-ink hover:text-brand-ink">{c.nome}</h3>
         </Link>
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
           <span className="flex items-center gap-1">
@@ -113,7 +113,7 @@ function OrganizerChampCard({ c }: { c: OrganizerChampSummary }) {
         <div className="mt-3 flex items-center gap-1.5 border-t border-border pt-3">
           <Link
             href={overviewHref}
-            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover"
           >
             <Settings2 className="size-3.5" /> Gerenciar
           </Link>

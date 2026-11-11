@@ -10,7 +10,7 @@ export function drawBracket(rounds: RoundDisplay[], third?: MatchDisplay | null,
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Não foi possível criar a imagem. Tente exportar em PDF.");
   ctx.scale(scale, scale);
-  ctx.fillStyle = "#f3f5fa";
+  ctx.fillStyle = "#FFF8EE";
   ctx.fillRect(0, 0, scene.width, scene.height);
   for (const shape of scene.shapes) {
     ctx.fillStyle = shape.fill;
@@ -39,7 +39,7 @@ export async function createBracketPdf(scene: ExportScene) {
   const scale = Math.min(1, 12000 / Math.max(scene.width, scene.height));
   const w = scene.width * scale, h = scene.height * scale;
   const pdf = new jsPDF({ unit: "pt", format: [w, h], orientation: w > h ? "landscape" : "portrait", compress: true });
-  pdf.setFillColor("#f3f5fa"); pdf.rect(0, 0, w, h, "F");
+  pdf.setFillColor("#FFF8EE"); pdf.rect(0, 0, w, h, "F");
   for (const s of scene.shapes) {
     if (s.kind === "text") {
       pdf.setFont("helvetica", s.bold ? "bold" : "normal");

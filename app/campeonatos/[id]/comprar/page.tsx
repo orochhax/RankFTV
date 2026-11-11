@@ -213,7 +213,7 @@ export default async function ComprarAtletaPage({
             <ArrowLeft className="size-4" /> {champ.nome}
           </Link>
           <div className="flex items-center gap-2">
-            <Trophy className="size-6 text-blue-400" />
+            <Trophy className="size-6 text-accent" />
             <h1 className="text-2xl font-bold tracking-tight text-white">Inscrever minha dupla</h1>
           </div>
           <p className="text-sm text-white/50">

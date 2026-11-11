@@ -86,8 +86,8 @@ export default async function StaffPage() {
                       href={`/staff/${camp.id}`}
                       className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-black/5 transition-colors hover:bg-gray-50"
                     >
-                      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
-                        <ShieldCheck className="size-5 text-blue-600" />
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-soft">
+                        <ShieldCheck className="size-5 text-brand" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-semibold text-gray-900">{camp.nome}</p>
@@ -102,7 +102,7 @@ export default async function StaffPage() {
                           </span>
                         </div>
                         {perms && (
-                          <p className="mt-1 text-[11px] font-medium text-blue-600">{perms}</p>
+                          <p className="mt-1 text-[11px] font-medium text-brand-ink">{perms}</p>
                         )}
                       </div>
                       <span className="shrink-0 text-gray-300">›</span>

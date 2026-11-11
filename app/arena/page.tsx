@@ -22,7 +22,7 @@ export default async function ArenaIndexPage() {
     <div className="min-h-screen">
       <div className="bg-brand-dark px-6 pb-16 pt-8">
         <div className="w-full space-y-2">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-accent">
             Minhas arenas
           </p>
           <h1 className="text-2xl font-bold tracking-tight text-white">
@@ -41,7 +41,7 @@ export default async function ArenaIndexPage() {
               className="flex items-center gap-4 overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 transition-shadow hover:shadow-md"
             >
               {/* Thumb do banner */}
-              <div className="relative h-20 w-24 shrink-0 bg-gradient-to-br from-blue-700 to-blue-900">
+              <div className="relative h-20 w-24 shrink-0 bg-gradient-to-br from-brand-dark to-[#092B20]">
                 {a.banner_url && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -69,7 +69,7 @@ export default async function ArenaIndexPage() {
 
           <Link
             href="/perfil/ativar-arena"
-            className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-200 py-4 text-sm text-gray-400 hover:border-blue-300 hover:text-blue-600 transition-colors"
+            className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-200 py-4 text-sm text-gray-400 hover:border-brand hover:text-brand-ink transition-colors"
           >
             + Cadastrar nova arena
           </Link>

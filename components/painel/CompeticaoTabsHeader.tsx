@@ -17,7 +17,7 @@ export function CompeticaoTabsHeader({
           href={`/painel/campeonatos/${champId}/chaveamento`}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
             active === "chaveamento"
-              ? "bg-blue-600 text-white shadow-xs"
+              ? "bg-brand text-white shadow-xs"
               : "text-ink-muted hover:bg-surface-2 hover:text-ink"
           }`}
         >
@@ -28,7 +28,7 @@ export function CompeticaoTabsHeader({
           href={`/painel/campeonatos/${champId}/quadras`}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
             active === "quadras"
-              ? "bg-blue-600 text-white shadow-xs"
+              ? "bg-brand text-white shadow-xs"
               : "text-ink-muted hover:bg-surface-2 hover:text-ink"
           }`}
         >
@@ -53,7 +53,7 @@ export function CompeticaoTabsHeader({
         href={`/campeonatos/${champId}/ao-vivo`}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3.5 py-2 text-xs font-semibold text-ink transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3.5 py-2 text-xs font-semibold text-ink transition-colors hover:border-brand-border hover:bg-brand-soft hover:text-brand-ink"
       >
         Placar ao vivo (Telão)
         <ExternalLink className="size-3.5" />

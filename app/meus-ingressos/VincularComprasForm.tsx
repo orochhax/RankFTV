@@ -44,7 +44,7 @@ export function VincularComprasForm() {
                 placeholder="Somente números"
                 maxLength={14}
                 required
-                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
               />
             </div>
             <div>
@@ -54,7 +54,7 @@ export function VincularComprasForm() {
                 type="email"
                 placeholder="voce@email.com"
                 required
-                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
               />
             </div>
           </div>
@@ -78,7 +78,7 @@ export function VincularComprasForm() {
           <button
             type="submit"
             disabled={pending}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
           >
             {pending && <Loader2 className="size-4 animate-spin" />}
             Vincular à minha conta
@@ -129,7 +129,7 @@ function VincularCodigoStep() {
         type="button"
         onClick={enviarCodigo}
         disabled={enviando}
-        className="text-xs font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-60"
+        className="text-xs font-semibold text-brand-ink hover:text-brand disabled:opacity-60"
       >
         {enviando ? "Enviando…" : enviado ? "Reenviar código" : "Enviar código pro e-mail acima"}
       </button>
@@ -142,7 +142,7 @@ function VincularCodigoStep() {
           maxLength={6}
           placeholder="000000"
           required
-          className="mt-1 w-full max-w-[10rem] rounded-lg border border-border px-3 py-2 text-center text-sm tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1 w-full max-w-[10rem] rounded-lg border border-border px-3 py-2 text-center text-sm tracking-[0.4em] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
         />
       </div>
     </div>

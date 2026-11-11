@@ -32,11 +32,11 @@ export function CampeonatoResultsCard({
   const lucroAposAtivacao = Math.max(0, economiaTaxas - PRECO_ELITE);
 
   return (
-    <div className="flex flex-col justify-between rounded-3xl border border-slate-800 bg-slate-900/95 p-6 text-white shadow-xl backdrop-blur-md lg:col-span-5">
+    <div className="flex flex-col justify-between rounded-3xl border border-brand-dark-2 bg-brand-dark p-6 text-white shadow-xl backdrop-blur-md lg:col-span-5">
       <div>
         {/* Cabeçalho de Arrecadação */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <div className="flex items-center justify-between border-b border-white/15 pb-3.5">
+          <span className="text-xs font-bold uppercase tracking-wider text-app-bg/75">
             Arrecadação Bruta Prevista
           </span>
           <span className="text-lg font-black text-amber-400">
@@ -44,7 +44,7 @@ export function CampeonatoResultsCard({
           </span>
         </div>
 
-        <div className="mt-2 flex justify-between text-xs text-slate-400">
+        <div className="mt-2 flex justify-between text-xs text-app-bg/75">
           <span>{formatBRL(totalInscricoes)} atletas ({duplas} duplas)</span>
           <span>{formatBRL(totalPlateia)} plateia ({ingressosPlateia} ing.)</span>
         </div>

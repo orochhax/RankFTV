@@ -22,7 +22,7 @@ export function PaginationDots({
           aria-label={`Página ${p}`}
           aria-current={p === page ? "page" : undefined}
           className={`size-2.5 rounded-full transition-colors ${
-            p === page ? "bg-blue-600" : "bg-gray-300 hover:bg-gray-400"
+            p === page ? "bg-brand" : "bg-border hover:bg-ink-muted/40"
           }`}
         />
       ))}

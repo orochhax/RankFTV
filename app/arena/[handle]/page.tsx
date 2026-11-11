@@ -34,11 +34,11 @@ function AulaCard({
   return (
     <Link
       href={`/arena/${handle}/aula/${aula.classId}?data=${aula.date}`}
-      className={`flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5 transition-colors hover:bg-blue-50 hover:ring-blue-200 ${discreta ? "opacity-60" : ""}`}
+      className={`flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5 transition-colors hover:bg-brand-soft/60 hover:ring-brand-border ${discreta ? "opacity-60" : ""}`}
     >
       <div className="min-w-0">
         {aula.horaInicio && (
-          <span className="flex items-center gap-1 text-xs font-bold text-blue-600">
+          <span className="flex items-center gap-1 text-xs font-bold text-brand-ink">
             <Clock className="size-3.5" />
             {aula.horaInicio}
             {aula.horaFim && `–${aula.horaFim}`}
@@ -174,12 +174,12 @@ export default async function ArenaPainelPage({
           <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
             <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <CalendarDays className="size-4 text-blue-500" />
+                <CalendarDays className="size-4 text-brand" />
                 <h2 className="text-sm font-semibold text-gray-700">Aulas da semana</h2>
               </div>
               <Link
                 href={`/arena/${arena.handle}/agenda`}
-                className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700"
+                className="inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:text-brand-hover"
               >
                 Ver agenda completa <ChevronRight className="size-3.5" />
               </Link>
@@ -200,12 +200,12 @@ export default async function ArenaPainelPage({
                     <div
                       key={dia}
                       className={`rounded-xl p-3 ring-1 ${
-                        isHoje ? "bg-blue-50 ring-blue-200" : "bg-gray-50/60 ring-black/5"
+                        isHoje ? "bg-brand-soft ring-brand-border" : "bg-gray-50/60 ring-black/5"
                       } ${isPassado && !isHoje ? "opacity-60" : ""}`}
                     >
-                      <p className={`mb-2 text-xs font-semibold ${isHoje ? "text-blue-700" : "text-gray-500"}`}>
+                      <p className={`mb-2 text-xs font-semibold ${isHoje ? "text-brand-ink" : "text-gray-500"}`}>
                         {dayLabelShort(dia)}
-                        {isHoje && <span className="ml-1.5 rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">HOJE</span>}
+                        {isHoje && <span className="ml-1.5 rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-bold text-white">HOJE</span>}
                       </p>
                       {aulasDoDia.length === 0 ? (
                         <p className="text-xs text-gray-400">Nenhuma aula</p>
@@ -262,17 +262,17 @@ export default async function ArenaPainelPage({
 
         <div className="space-y-6">
           {/* ── Código de convite ── */}
-          <div className="rounded-2xl bg-blue-50 px-5 py-4 ring-1 ring-blue-100">
-            <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+          <div className="rounded-2xl bg-brand-soft px-5 py-4 ring-1 ring-brand-border">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-ink">
               Código de convite
             </p>
             <div className="mt-2 flex items-center gap-3">
-              <span className="font-mono text-2xl font-bold tracking-widest text-blue-900">
+              <span className="font-mono text-2xl font-bold tracking-widest text-ink">
                 {arena.invite_code}
               </span>
               <CopyCodeButton code={arena.invite_code} />
             </div>
-            <p className="mt-1 text-xs text-blue-600">
+            <p className="mt-1 text-xs text-ink-muted">
               Alunos acessam <strong>/arenas/{arena.handle}</strong> e usam o código para entrar.
             </p>
           </div>
@@ -281,14 +281,14 @@ export default async function ArenaPainelPage({
           <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
             <div className="mb-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Users className="size-4 text-blue-500" />
+                <Users className="size-4 text-brand" />
                 <h2 className="text-sm font-semibold text-gray-700">
                   Alunos ativos ({ativos.length})
                 </h2>
               </div>
               <Link
                 href={`/arena/${arena.handle}/alunos`}
-                className="text-xs font-medium text-blue-600 hover:underline"
+                className="text-xs font-medium text-brand-ink hover:underline"
               >
                 Ver todos
               </Link>
@@ -307,7 +307,7 @@ export default async function ArenaPainelPage({
                       className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/5"
                     >
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="size-4 shrink-0 text-blue-500" />
+                        <CheckCircle2 className="size-4 shrink-0 text-success" />
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-gray-900">{p?.nome ?? "—"}</p>
                           <p className="truncate text-xs text-gray-400">@{p?.username}</p>

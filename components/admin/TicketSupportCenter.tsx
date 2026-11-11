@@ -270,7 +270,7 @@ export function TicketSupportCenter({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <MailCheck className="size-5 text-blue-600" /> Operação de e-mails
+              <MailCheck className="size-5 text-brand" /> Operação de e-mails
             </h2>
             <p className="mt-1 text-sm text-gray-500">Métricas dos últimos 30 dias, sem expor os destinatários.</p>
           </div>
@@ -308,7 +308,7 @@ export function TicketSupportCenter({
                         setCredentialOperation({ ticketId: item.ticketId, credentialId: item.credentialId, slot: item.athleteSlot, type: "resend" });
                         setOperationReason("Nova tentativa controlada após falha ou atraso de entrega.");
                       }}
-                      className="shrink-0 rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-blue-700"
+                      className="shrink-0 rounded-lg border border-brand-border px-3 py-2 text-xs font-semibold text-brand-ink hover:bg-brand-soft"
                     >
                       Tentar novamente
                     </button>
@@ -375,7 +375,7 @@ export function TicketSupportCenter({
               const total = point.emailDelivered + point.ticketRecovered + point.linkInvalidated + point.assistedChange;
               const max = Math.max(1, ...trends.map((item) => item.emailDelivered + item.ticketRecovered + item.linkInvalidated + item.assistedChange));
               return <div key={point.day} className="group relative flex h-36 flex-1 items-end" title={`${formatDateKey(point.day)}: ${point.emailDelivered} entregas, ${point.ticketRecovered} recuperações, ${point.linkInvalidated} invalidações, ${point.assistedChange} alterações assistidas`}>
-                <div className="w-full rounded-t bg-blue-500 transition-colors group-hover:bg-blue-600" style={{ height: `${Math.max(total > 0 ? 6 : 1, (total / max) * 100)}%` }} />
+                <div className="w-full rounded-t bg-brand/80 transition-colors group-hover:bg-brand" style={{ height: `${Math.max(total > 0 ? 6 : 1, (total / max) * 100)}%` }} />
               </div>;
             })}
           </div>
@@ -394,9 +394,9 @@ export function TicketSupportCenter({
           onChange={(event) => setTerm(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Enter") search(); }}
           placeholder="ID, CPF, e-mail ou código do ingresso"
-          className="min-w-0 flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
+          className="min-w-0 flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-brand"
         />
-        <button onClick={search} disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">
+        <button onClick={search} disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60">
           {pending ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />} Buscar
         </button>
       </div>
@@ -431,7 +431,7 @@ export function TicketSupportCenter({
                     <button
                       type="button"
                       onClick={() => { setEditing({ ticket, slot }); setNewEmail(email); setReason(""); setError(null); }}
-                      className="mt-3 text-sm font-semibold text-blue-600 hover:text-blue-700"
+                      className="mt-3 text-sm font-semibold text-brand-ink hover:text-brand-hover"
                     >
                       Corrigir e-mail com suporte
                     </button>
@@ -445,7 +445,7 @@ export function TicketSupportCenter({
                             setOperationReason("");
                             setOperationConfirmation("");
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-2 text-xs font-semibold text-blue-700 ring-1 ring-blue-200"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-2 text-xs font-semibold text-brand-ink ring-1 ring-brand-border hover:bg-brand-soft"
                         >
                           <RotateCcw className="size-3.5" /> Reenviar
                         </button>
@@ -478,7 +478,7 @@ export function TicketSupportCenter({
             <button
               type="button"
               onClick={() => { loadLogs({ ticketId: ticket.id }); refreshOperations(ticket.id); }}
-              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-ink hover:text-brand-hover"
             >
               <History className="size-4" /> Ver histórico deste ingresso
             </button>
@@ -490,11 +490,11 @@ export function TicketSupportCenter({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <Inbox className="size-5 text-blue-600" /> Fila de casos
+              <Inbox className="size-5 text-brand" /> Fila de casos
             </h2>
             <p className="mt-1 text-sm text-gray-500">Atendimento com prioridade, responsável, prazo, anexos privados e histórico.</p>
           </div>
-          <button type="button" onClick={() => { setCaseDraft({}); setCaseType("outro"); setCaseSummary(""); }} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white">
+          <button type="button" onClick={() => { setCaseDraft({}); setCaseType("outro"); setCaseSummary(""); }} className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-hover">
             Abrir caso geral
           </button>
         </div>
@@ -514,11 +514,11 @@ export function TicketSupportCenter({
                   <p className="mt-1 text-xs text-gray-500">{item.caseType.replaceAll("_", " ")} · {item.assignedLabel}</p>
                   <p className="mt-1 text-xs text-gray-500">Prioridade {item.priority} · SLA {item.slaDueAt ? new Date(item.slaDueAt).toLocaleString("pt-BR") : "não definido"}</p>
                 </div>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.status === "resolvido" ? "bg-emerald-50 text-emerald-700" : item.status === "aguardando_prova" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
+                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.status === "resolvido" ? "bg-emerald-50 text-emerald-700" : item.status === "aguardando_prova" ? "bg-amber-50 text-amber-700" : "bg-brand-soft text-brand-ink"}`}>
                   {item.status.replaceAll("_", " ")}
                 </span>
               </div>
-              {item.attachments.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{item.attachments.filter((attachment) => attachment.url).map((attachment) => <a key={attachment.id} href={attachment.url} target="_blank" rel="noreferrer" className="rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700">{attachment.name}</a>)}</div>}
+              {item.attachments.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{item.attachments.filter((attachment) => attachment.url).map((attachment) => <a key={attachment.id} href={attachment.url} target="_blank" rel="noreferrer" className="rounded-lg bg-brand-soft px-2.5 py-1.5 text-xs font-semibold text-brand-ink">{attachment.name}</a>)}</div>}
               {item.notes.length > 0 && <details className="mt-3 rounded-lg bg-gray-50 p-3"><summary className="cursor-pointer text-xs font-semibold text-gray-700">Histórico de resolução ({item.notes.length})</summary><ol className="mt-2 space-y-2">{item.notes.map((note) => <li key={note.id} className="text-xs text-gray-600"><time className="font-medium">{new Date(note.createdAt).toLocaleString("pt-BR")}</time> · {note.text}</li>)}</ol></details>}
               <textarea
                 value={caseNotes[item.id] ?? ""}
@@ -541,7 +541,7 @@ export function TicketSupportCenter({
 
       <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-          <ShieldCheck className="size-5 text-blue-600" /> Histórico das credenciais
+          <ShieldCheck className="size-5 text-brand" /> Histórico das credenciais
         </h2>
         <p className="mt-1 text-sm text-gray-500">Emissões, acessos, rotações, entregas e check-ins, sem exibir tokens.</p>
         <div className="mt-4 max-h-[32rem] divide-y divide-gray-100 overflow-y-auto">
@@ -565,7 +565,7 @@ export function TicketSupportCenter({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <History className="size-5 text-blue-600" /> Histórico de alterações
+              <History className="size-5 text-brand" /> Histórico de alterações
             </h2>
             <p className="mt-1 text-sm text-gray-500">
               {logsTicketId ? "Mostrando somente o ingresso selecionado. " : "Últimas 100 ações auditadas em ingressos. "}
@@ -594,7 +594,7 @@ export function TicketSupportCenter({
               type="date"
               value={dateFrom}
               onChange={(event) => setDateFrom(event.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500"
+              className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-brand"
             />
           </label>
           <label className="min-w-40 flex-1 text-xs font-medium text-gray-600">
@@ -603,14 +603,14 @@ export function TicketSupportCenter({
               type="date"
               value={dateTo}
               onChange={(event) => setDateTo(event.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500"
+              className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-brand"
             />
           </label>
           <button
             type="button"
             onClick={filterLogsByDate}
             disabled={logsPending}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
           >
             Filtrar período
           </button>
@@ -667,7 +667,7 @@ export function TicketSupportCenter({
             <label className="mt-4 block text-xs font-medium text-gray-600">Motivo e validações realizadas</label>
             <textarea value={reason} onChange={(event) => setReason(event.target.value)} rows={4} maxLength={500} placeholder="Ex.: solicitante confirmou CPF, valor, data e comprovante do pagamento..." className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm" />
             <div className="mt-5 flex flex-col gap-2">
-              <button onClick={saveEmail} disabled={pending} className="rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-60">Confirmar correção assistida</button>
+              <button onClick={saveEmail} disabled={pending} className="rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60">Confirmar correção assistida</button>
               <button onClick={() => setEditing(null)} disabled={pending} className="rounded-xl bg-gray-100 py-3 text-sm font-medium text-gray-700">Cancelar</button>
             </div>
           </div>
@@ -700,7 +700,7 @@ export function TicketSupportCenter({
               </div>
             )}
             <div className="mt-5 flex flex-col gap-2">
-              <button onClick={runCredentialOperation} disabled={pending} className={`rounded-xl py-3 text-sm font-semibold text-white disabled:opacity-60 ${credentialOperation.type === "invalidate" ? "bg-red-600" : "bg-blue-600"}`}>
+              <button onClick={runCredentialOperation} disabled={pending} className={`rounded-xl py-3 text-sm font-semibold text-white disabled:opacity-60 ${credentialOperation.type === "invalidate" ? "bg-red-600" : "bg-brand hover:bg-brand-hover"}`}>
                 {pending ? "Processando..." : credentialOperation.type === "invalidate" ? "Invalidar e emitir nova" : "Reenviar agora"}
               </button>
               <button
@@ -736,7 +736,7 @@ export function TicketSupportCenter({
             <label className="mt-4 block text-xs font-medium text-gray-600">Resumo</label>
             <textarea value={caseSummary} onChange={(event) => setCaseSummary(event.target.value)} rows={4} maxLength={500} className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm" />
             <div className="mt-5 flex flex-col gap-2">
-              <button onClick={createCase} disabled={pending} className="rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-60">Adicionar à fila</button>
+              <button onClick={createCase} disabled={pending} className="rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60">Adicionar à fila</button>
               <button onClick={() => setCaseDraft(null)} disabled={pending} className="rounded-xl bg-gray-100 py-3 text-sm font-medium text-gray-700">Cancelar</button>
             </div>
           </div>

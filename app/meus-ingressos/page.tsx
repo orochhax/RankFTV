@@ -24,7 +24,7 @@ export default async function MeusIngressosPage() {
           >
             <ArrowLeft className="size-4" /> Início
           </Link>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-accent">
             Consultar ingresso
           </p>
           <h1 className="text-2xl font-bold tracking-tight text-white">

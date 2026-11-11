@@ -31,8 +31,8 @@ export function PlanoCards({ elite, onToggle }: { elite: boolean; onToggle: (v: 
       <div className="rounded-2xl bg-brand-dark p-5 text-white sm:p-6">
         <div className="mb-4">
           <div className="flex items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-widest text-blue-400">Evento Padrão</p>
-            <span className="ml-auto rounded-full bg-blue-400/20 px-2.5 py-0.5 text-xs font-semibold text-blue-300">
+            <p className="text-xs font-semibold uppercase tracking-widest text-accent">Evento Padrão</p>
+            <span className="ml-auto rounded-full bg-accent/20 px-2.5 py-0.5 text-xs font-semibold text-accent">
               R$0 / evento
             </span>
           </div>
@@ -43,7 +43,7 @@ export function PlanoCards({ elite, onToggle }: { elite: boolean; onToggle: (v: 
             <li key={label} className={`flex items-start gap-2.5 text-sm ${locked ? "text-white/25" : "text-white/70"}`}>
               {locked
                 ? <Lock className="size-3.5 mt-0.5 shrink-0 text-white/20" />
-                : <Check className="size-3.5 mt-0.5 shrink-0 text-blue-400" />
+                : <Check className="size-3.5 mt-0.5 shrink-0 text-accent" />
               }
               <span className={locked ? "line-through" : ""}>{label}</span>
             </li>
@@ -51,9 +51,9 @@ export function PlanoCards({ elite, onToggle }: { elite: boolean; onToggle: (v: 
         </ul>
       </div>
 
-      <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100">
-        <p className="text-sm font-medium text-blue-800">Sem custo pra criar</p>
-        <p className="mt-0.5 text-xs text-blue-600">
+      <div className="rounded-2xl bg-accent-soft p-4 ring-1 ring-accent-border">
+        <p className="text-sm font-medium text-accent-ink">Sem custo pra criar</p>
+        <p className="mt-0.5 text-xs text-ink">
           Você só configura o recebimento na hora de publicar. Salvar como rascunho é livre.
         </p>
       </div>

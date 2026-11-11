@@ -31,7 +31,7 @@ export function ArenaProFeatureGate({
     <div className="mx-auto max-w-4xl px-4 py-8 md:px-6 md:py-12">
       <div className="relative overflow-hidden rounded-3xl border border-black/10 bg-white p-6 shadow-sm md:p-10">
         {/* Fundo decorativo sutil */}
-        <div className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-blue-50/60 blur-3xl" />
+        <div className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-brand-soft/80 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 -left-20 size-80 rounded-full bg-amber-50/60 blur-3xl" />
 
         <div className="relative z-10">
@@ -120,7 +120,7 @@ export function ArenaProFeatureGate({
 
             <Link
               href={`/arena/${arenaHandle}/assinatura`}
-              className="order-1 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-center text-sm font-bold text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95 sm:order-2"
+              className="order-1 inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-center text-sm font-bold text-white shadow-md shadow-brand/20 transition hover:bg-brand-hover active:scale-95 sm:order-2"
             >
               <Sparkles className="size-4" />
               Fazer Upgrade para o Plano Pro

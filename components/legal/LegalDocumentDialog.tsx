@@ -29,7 +29,7 @@ export function LegalDocumentDialog({ document }: LegalDocumentDialogProps) {
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className="rounded-md font-semibold text-blue-700 underline decoration-blue-200 underline-offset-2 hover:text-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        className="rounded-md font-semibold text-brand-ink underline decoration-brand-border underline-offset-2 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         {content.label}
       </button>
@@ -45,7 +45,7 @@ export function LegalDocumentDialog({ document }: LegalDocumentDialogProps) {
         <div className="flex h-full min-h-0 flex-col">
           <header className="flex shrink-0 items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 py-3.5 sm:px-5">
             <div className="min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-blue-600">RankFTV</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-brand">RankFTV</p>
               <h2 id={`legal-dialog-${document}-title`} className="truncate text-base font-semibold text-gray-950 sm:text-lg">
                 {content.title}
               </h2>
@@ -54,7 +54,7 @@ export function LegalDocumentDialog({ document }: LegalDocumentDialogProps) {
               type="button"
               onClick={() => dialogRef.current?.close()}
               aria-label={`Fechar ${content.label}`}
-              className="flex size-10 shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="flex size-10 shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               <X aria-hidden="true" className="size-5" />
             </button>

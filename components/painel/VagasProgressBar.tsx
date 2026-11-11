@@ -49,7 +49,7 @@ export function VagasProgressBar({ duplasPagas, vagasTotais, totalArrecadado, to
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
+          className="h-full rounded-full bg-gradient-to-r from-brand to-[#FF8533] transition-all"
           style={{ width: barWidth }}
         />
       </div>

@@ -18,9 +18,9 @@ const PAPEL_LABEL: Record<EquipeMembro["papel"], string> = {
 };
 
 const inputCls =
-  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand";
 const selectCls =
-  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
+  "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand bg-white";
 
 export function EquipeManager({ arenaId, equipe }: { arenaId: string; equipe: EquipeMembro[] }) {
   const [state, formAction, pending] = useActionState<StaffState, FormData>(adicionarStaff, {});
@@ -29,7 +29,7 @@ export function EquipeManager({ arenaId, equipe }: { arenaId: string; equipe: Eq
   return (
     <section className="rounded-2xl bg-gray-50 p-5 ring-1 ring-black/5">
       <div className="flex items-center gap-2">
-        <Users className="size-4 text-blue-500" />
+        <Users className="size-4 text-brand" />
         <h2 className="text-sm font-semibold text-gray-700">Equipe</h2>
       </div>
       <p className="mt-1 text-xs text-gray-400">
@@ -77,7 +77,7 @@ export function EquipeManager({ arenaId, equipe }: { arenaId: string; equipe: Eq
         <button
           type="submit"
           disabled={pending}
-          className="flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
         >
           {pending ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}
           Adicionar

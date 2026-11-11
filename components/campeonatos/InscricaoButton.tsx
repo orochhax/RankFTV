@@ -39,7 +39,7 @@ export function InscricaoButton({
     return (
       <Link
         href={href}
-        className="block w-full rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700"
+        className="block w-full rounded-lg bg-brand px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-brand-hover"
       >
         Inscrever dupla — {categoriaNome}
       </Link>

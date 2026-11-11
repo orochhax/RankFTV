@@ -27,7 +27,7 @@ export default function ErrorPage({
           <button
             type="button"
             onClick={() => retry()}
-            className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-500"
+            className="rounded-2xl bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-hover"
           >
             Tentar novamente
           </button>

@@ -200,7 +200,7 @@ export function FinanceiroConteudoClient({
                   <div className="flex items-center gap-3">
                     <div className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
                       <div
-                        className="absolute inset-y-0 left-0 rounded-full bg-blue-500 transition-[width]"
+                        className="absolute inset-y-0 left-0 rounded-full bg-brand transition-[width]"
                         style={{ width: `${mostrar ? pct : 0}%` }}
                       />
                     </div>

@@ -6,9 +6,9 @@ import { Loader2, ArrowRight, Building2, Clock } from "lucide-react";
 import { cadastrarArenaEtapa1, type OnboardingState } from "./actions";
 
 const inputCls =
-  "w-full rounded-xl border border-gray-200 px-3.5 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-xs";
+  "w-full rounded-xl border border-gray-200 px-3.5 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand bg-white shadow-xs";
 const selectCls =
-  "w-full rounded-xl border border-gray-200 px-3.5 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-xs";
+  "w-full rounded-xl border border-gray-200 px-3.5 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand bg-white shadow-xs";
 
 export function OnboardingEtapa1Form({ estados }: { estados: string[] }) {
   const [state, formAction, pending] = useActionState<OnboardingState, FormData>(
@@ -21,7 +21,7 @@ export function OnboardingEtapa1Form({ estados }: { estados: string[] }) {
       {/* Bloco 1: Identidade da Arena */}
       <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm md:p-8">
         <div className="flex items-center gap-2.5 border-b border-gray-100 pb-4">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <div className="flex size-9 items-center justify-center rounded-xl bg-brand-soft text-brand">
             <Building2 className="size-5" />
           </div>
           <div>
@@ -155,7 +155,7 @@ export function OnboardingEtapa1Form({ estados }: { estados: string[] }) {
         <button
           type="submit"
           disabled={pending}
-          className="order-1 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-4 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:opacity-95 active:scale-95 disabled:opacity-60 sm:order-2 sm:w-auto"
+          className="order-1 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-brand px-8 py-4 text-sm font-black text-white shadow-lg shadow-brand/20 transition hover:bg-brand-hover active:scale-95 disabled:opacity-60 sm:order-2 sm:w-auto"
         >
           {pending && <Loader2 className="size-4 animate-spin" />}
           Continuar para Escolha do Plano

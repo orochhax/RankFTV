@@ -68,7 +68,7 @@ export function AdminCampeonatosLista({ itens }: { itens: AdminCampItem[] }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar campeonato pelo nome..."
-          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-800 placeholder-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         />
       </div>
 
@@ -84,12 +84,12 @@ export function AdminCampeonatosLista({ itens }: { itens: AdminCampItem[] }) {
               onClick={() => setFiltro(valor)}
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                 ativo
-                  ? "bg-blue-600 text-white"
+                  ? "bg-brand text-white"
                   : "bg-white text-gray-600 ring-1 ring-black/5 hover:bg-gray-50"
               }`}
             >
               {label}
-              <span className={ativo ? "text-blue-100" : "text-gray-400"}>{n}</span>
+              <span className={ativo ? "text-white/80" : "text-gray-400"}>{n}</span>
             </button>
           );
         })}
@@ -134,7 +134,7 @@ export function AdminCampeonatosLista({ itens }: { itens: AdminCampItem[] }) {
                   {c.isVitrine && (
                     <Link
                       href={`/admin/campeonatos/${c.id}/editar`}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-brand-ink hover:bg-brand-soft"
                     >
                       <Pencil className="size-3.5" /> Editar
                     </Link>
@@ -154,7 +154,7 @@ export function AdminCampeonatosLista({ itens }: { itens: AdminCampItem[] }) {
                     {c.org.username ? (
                       <Link
                         href={`/atletas/${c.org.username}`}
-                        className="font-medium text-gray-700 hover:text-blue-600 hover:underline"
+                        className="font-medium text-gray-700 hover:text-brand-ink hover:underline"
                       >
                         @{c.org.username}
                       </Link>
@@ -167,7 +167,7 @@ export function AdminCampeonatosLista({ itens }: { itens: AdminCampItem[] }) {
                   </span>
                   <a
                     href={`mailto:${c.org.email}`}
-                    className="flex items-center gap-1.5 hover:text-blue-600"
+                    className="flex items-center gap-1.5 hover:text-brand-ink"
                   >
                     <Mail className="size-3.5 text-gray-400" />
                     {c.org.email}
@@ -175,7 +175,7 @@ export function AdminCampeonatosLista({ itens }: { itens: AdminCampItem[] }) {
                   {c.org.fone ? (
                     <a
                       href={`tel:${c.org.fone.replace(/\D/g, "")}`}
-                      className="flex items-center gap-1.5 hover:text-blue-600"
+                      className="flex items-center gap-1.5 hover:text-brand-ink"
                     >
                       <Phone className="size-3.5 text-gray-400" />
                       {c.org.fone}

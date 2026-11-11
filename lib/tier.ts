@@ -84,7 +84,7 @@ export const TIER_LABEL: Record<Tier, string> = {
 };
 
 export const TIER_STYLES: Record<Tier, string> = {
-  local: "bg-gray-100 text-gray-700 ring-1 ring-gray-200",
-  open:  "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
-  elite: "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
+  local: "bg-surface-2 text-ink-muted ring-1 ring-border",
+  open:  "bg-brand-soft text-brand-ink ring-1 ring-brand-border",
+  elite: "bg-accent text-accent-ink ring-1 ring-accent-border",
 };

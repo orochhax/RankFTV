@@ -14,10 +14,10 @@ const TONE_MAP: Record<
     text: "text-emerald-600",
   },
   blue: {
-    ring: "stroke-blue-600",
-    badge: "bg-blue-50 text-blue-700 border-blue-200",
-    bar: "bg-blue-600",
-    text: "text-blue-600",
+    ring: "stroke-brand",
+    badge: "bg-brand-soft text-brand-ink border-brand-border",
+    bar: "bg-brand",
+    text: "text-brand-ink",
   },
   amber: {
     ring: "stroke-amber-500",
@@ -50,7 +50,7 @@ export function FinancialHealthCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-muted">
-            <Activity className="size-3.5 text-blue-600" />
+            <Activity className="size-3.5 text-brand" />
             Saúde Financeira Inteligente
           </div>
           <p className="mt-1 text-xs text-ink-muted">
@@ -146,7 +146,7 @@ export function FinancialHealthCard({
                 <button
                   type="button"
                   onClick={() => onNavigateTab(insight.actionTab!)}
-                  className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700"
+                  className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-brand-ink hover:text-brand"
                 >
                   Abrir aba correspondente
                   <ArrowRight className="size-3" />

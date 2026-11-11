@@ -57,7 +57,7 @@ type Props = RefundContext & (
 );
 
 const inputCls =
-  "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+  "mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand";
 const labelCls = "block text-xs font-medium text-gray-500";
 
 export function IngressoOpcoesMenu(props: Props) {
@@ -298,7 +298,7 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
             type="button"
             onClick={confirmarCodigos}
             disabled={pending || currentEmailCode.length !== 6 || (challenge.requiresNewEmailCode && newEmailCode.length !== 6)}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
           >
             {pending && <Loader2 className="size-4 animate-spin" />}
             {pending ? "Confirmando…" : "Confirmar e alterar"}
@@ -333,8 +333,8 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
       )}
 
       {atleta && partnerChangeEligibility.allowed && partnerChangeEligibility.deadlineFormatted && (
-        <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50/70 p-3 text-xs text-blue-900">
-          <p className="font-semibold">Prazo de alteração</p>
+        <div className="mb-4 rounded-xl border border-brand-border bg-brand-soft p-3 text-xs text-ink">
+          <p className="font-semibold text-brand-ink">Prazo de alteração</p>
           <p className="mt-0.5">
             A troca de dupla pode ser realizada até <strong>{partnerChangeEligibility.deadlineFormatted}</strong>.
           </p>
@@ -363,12 +363,12 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
             </div>
             {atleta && (
               <>
-                <label className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs font-medium text-blue-900">
+                <label className="flex items-center gap-2 rounded-xl bg-brand-soft px-3 py-2 text-xs font-medium text-ink">
                   <input
                     type="checkbox"
                     checked={usarMesmoEmail}
                     onChange={(event) => setUsarMesmoEmail(event.target.checked)}
-                    className="size-4 rounded border-blue-300"
+                    className="size-4 rounded border-brand-border accent-brand"
                   />
                   Enviar as duas credenciais para o e-mail do atleta 1
                 </label>
@@ -386,8 +386,8 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
                         onClick={() => setCompradorGenero(g)}
                         className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                           compradorGenero === g
-                            ? "border-blue-500 bg-blue-50 text-blue-700"
-                            : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                            ? "border-brand bg-brand-soft text-brand-ink"
+                            : "border-border text-ink-muted hover:bg-surface-2"
                         }`}
                       >
                         {g === "masculino" ? "Masculino" : "Feminino"}
@@ -434,8 +434,8 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
                       onClick={() => setParceiroGenero(g)}
                       className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                         parceiroGenero === g
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                          ? "border-brand bg-brand-soft text-brand-ink"
+                          : "border-border text-ink-muted hover:bg-surface-2"
                       }`}
                     >
                       {g === "masculino" ? "Masculino" : "Feminino"}
@@ -459,7 +459,7 @@ function TitularidadeModal(props: Props & { onClose: () => void }) {
         <button
           onClick={salvar}
           disabled={pending || !!generoConflita || (atleta && !partnerChangeEligibility.allowed)}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60 transition-colors"
         >
           {pending && <Loader2 className="size-4 animate-spin" />}
           {pending ? "Salvando…" : "Salvar alteração"}

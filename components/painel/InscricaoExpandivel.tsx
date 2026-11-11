@@ -113,11 +113,11 @@ function AtletaCard({ label, atleta }: { label: string; atleta: Atleta }) {
             href={`https://wa.me/55${atleta.telefone.replace(/\D/g, "")}`}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700 hover:bg-blue-100 transition-colors ring-1 ring-blue-200"
+            className="flex items-center gap-2 rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand-ink hover:bg-brand/15 transition-colors ring-1 ring-brand-border"
           >
             <Phone className="size-3.5 shrink-0" />
             <span className="font-medium">{atleta.telefone}</span>
-            <span className="ml-auto text-xs text-blue-500">WhatsApp</span>
+            <span className="ml-auto text-xs text-brand-ink/80">WhatsApp</span>
           </a>
         ) : (
           <p className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-400 ring-1 ring-black/5">
@@ -129,7 +129,7 @@ function AtletaCard({ label, atleta }: { label: string; atleta: Atleta }) {
         {atleta.email ? (
           <a
             href={`mailto:${atleta.email}`}
-            className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700 hover:bg-blue-100 transition-colors ring-1 ring-blue-200"
+            className="flex items-center gap-2 rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand-ink hover:bg-brand/15 transition-colors ring-1 ring-brand-border"
           >
             <Mail className="size-3.5 shrink-0" />
             <span className="font-medium truncate">{atleta.email}</span>

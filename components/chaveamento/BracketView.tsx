@@ -58,7 +58,7 @@ export function MatchCard({
           {courtLabel && (
             <span
               title={courtLabel}
-              className="min-w-0 truncate whitespace-nowrap rounded-full bg-blue-100 px-1.5 py-0.5 text-[9px] leading-none font-bold uppercase tracking-tight text-blue-700"
+              className="min-w-0 truncate whitespace-nowrap rounded-full bg-brand-soft px-1.5 py-0.5 text-[9px] leading-none font-bold uppercase tracking-tight text-brand-ink"
             >
               {courtLabel}
             </span>
@@ -88,12 +88,12 @@ export function MatchCard({
             key={idx}
             className={[
               "relative flex min-h-14 items-center gap-2 px-3 py-2",
-              idx === 1 ? "border-t border-gray-100" : "",
-              isWinner ? "bg-blue-600" : "bg-white",
+              idx === 1 ? "border-t border-border/60" : "",
+              isWinner ? "bg-brand-dark" : "bg-surface",
             ].filter(Boolean).join(" ")}
           >
             <div className="min-w-0 flex-1">
-              {isWinner && <span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-blue-100">Vencedores</span>}
+              {isWinner && <span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-accent">Vencedores</span>}
               <p className={`truncate font-semibold leading-tight ${nameColor}`}>{dupla.nomes[0]}</p>
               {dupla.nomes[1] && (
                 <p className={`truncate font-semibold leading-tight ${nameColor}`}>{dupla.nomes[1]}</p>
@@ -125,8 +125,8 @@ export function MatchCard({
   );
 
   const className = [
-    "w-64 overflow-hidden rounded-xl border border-gray-200 bg-white text-left text-xs shadow-sm",
-    onClick && !disabled ? "cursor-pointer transition hover:border-blue-400 hover:shadow-md focus-visible:outline-2 focus-visible:outline-blue-500" : "",
+    "w-64 overflow-hidden rounded-xl border border-border bg-surface text-left text-xs shadow-sm",
+    onClick && !disabled ? "cursor-pointer transition hover:border-brand hover:shadow-md focus-visible:outline-2 focus-visible:outline-brand" : "",
     disabled ? "cursor-default" : "",
   ].filter(Boolean).join(" ");
 
@@ -236,7 +236,7 @@ export function BracketCategoryView({ category }: { category: BracketCategory })
     <div className="space-y-4">
       <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center gap-2">
-          <Medal className="size-5 text-blue-600" />
+          <Medal className="size-5 text-brand" />
           <div>
             <h2 className="text-sm font-bold text-gray-900">Resultado final</h2>
             <p className="text-[11px] text-gray-400">Pódio da categoria {category.nome}</p>
@@ -265,8 +265,8 @@ export function BracketCategoryView({ category }: { category: BracketCategory })
         </div>
       </section>
 
-      <div className="overflow-hidden rounded-xl bg-gray-50 p-4 ring-1 ring-black/5">
-        {category.formato === "double_elimination" && <p className="mb-3 text-xs font-bold uppercase tracking-wider text-blue-700">Chave principal</p>}
+      <div className="overflow-hidden rounded-xl bg-surface-2 p-4 ring-1 ring-border">
+        {category.formato === "double_elimination" && <p className="mb-3 text-xs font-bold uppercase tracking-wider text-brand-ink">Chave principal</p>}
         <BracketGrid rounds={category.rounds} />
       </div>
 

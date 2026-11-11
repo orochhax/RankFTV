@@ -93,8 +93,8 @@ export default async function NotificacoesPage() {
   return (
     <div className="w-full space-y-6 px-6 py-8 pb-32">
       <div className="flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-full bg-blue-100">
-          <Bell className="size-5 text-blue-600" />
+        <div className="flex size-10 items-center justify-center rounded-full bg-brand-soft">
+          <Bell className="size-5 text-brand" />
         </div>
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Notificações</h1>
@@ -125,28 +125,28 @@ export default async function NotificacoesPage() {
                   c.can_chaveamento && "Chaveamento",
                 ].filter(Boolean).join(", ");
                 return (
-                  <div key={c.id} className="rounded-2xl bg-blue-50 p-5 ring-1 ring-blue-200">
+                  <div key={c.id} className="rounded-2xl bg-brand-soft p-5 ring-1 ring-brand-border">
                     <div className="flex items-start gap-3">
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-blue-100">
-                        <ShieldCheck className="size-4 text-blue-600" />
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-brand-border">
+                        <ShieldCheck className="size-4 text-brand" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900">{c.championships?.nome ?? "Campeonato"}</p>
+                        <p className="font-semibold text-ink">{c.championships?.nome ?? "Campeonato"}</p>
                         {c.inviter && (
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-ink-muted">
                             Convidado por{" "}
                             <span className="font-medium">{c.inviter.nome}</span>
-                            {" "}<span className="text-gray-400">@{c.inviter.username}</span>
+                            {" "}<span className="text-ink-muted/70">@{c.inviter.username}</span>
                           </p>
                         )}
                         {perms && (
-                          <p className="mt-1 text-xs font-medium text-blue-600">Acesso: {perms}</p>
+                          <p className="mt-1 text-xs font-medium text-brand-ink">Acesso: {perms}</p>
                         )}
                       </div>
                     </div>
                     <div className="mt-4 flex gap-2">
                       <form action={aceitarConviteStaff.bind(null, c.id)}>
-                        <button type="submit" className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                        <button type="submit" className="rounded-xl bg-brand px-5 py-2 text-sm font-semibold text-white hover:bg-brand-hover">
                           Aceitar
                         </button>
                       </form>
@@ -210,18 +210,18 @@ export default async function NotificacoesPage() {
                   ? `/painel/campeonatos/${n.championship_id}`
                   : null;
                 return (
-                  <div key={n.id} className={`rounded-2xl p-4 ring-1 ${n.lida ? "bg-gray-50 ring-gray-100" : "bg-blue-50 ring-blue-200"}`}>
+                  <div key={n.id} className={`rounded-2xl p-4 ring-1 ${n.lida ? "bg-surface-2 ring-border" : "bg-brand-soft ring-brand-border"}`}>
                     <div className="flex items-start gap-3">
-                      <div className={`flex size-9 shrink-0 items-center justify-center rounded-full ${n.lida ? "bg-gray-100" : "bg-blue-100"}`}>
-                        <Link2 className={`size-4 ${n.lida ? "text-gray-400" : "text-blue-600"}`} />
+                      <div className={`flex size-9 shrink-0 items-center justify-center rounded-full ${n.lida ? "bg-surface ring-1 ring-border" : "bg-white ring-1 ring-brand-border"}`}>
+                        <Link2 className={`size-4 ${n.lida ? "text-ink-muted" : "text-brand"}`} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-gray-900">{n.titulo}</p>
-                        <p className="mt-0.5 text-sm text-gray-600">{n.mensagem}</p>
+                        <p className="font-semibold text-ink">{n.titulo}</p>
+                        <p className="mt-0.5 text-sm text-ink-muted">{n.mensagem}</p>
                         {champLink && (
                           <Link
                             href={champLink}
-                            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700"
+                            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:text-brand"
                           >
                             Ver no painel do campeonato →
                           </Link>

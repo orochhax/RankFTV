@@ -303,7 +303,7 @@ export function DesktopSidebar({
       <aside
         className={`rankftv-desktop-sidebar ${
           isDarkHeader ? "rankftv-desktop-sidebar--dark-header" : ""
-        } fixed top-0 left-0 bottom-0 z-40 hidden h-screen shrink-0 flex-col border-r border-zinc-800 bg-brand-dark px-3 py-4 transition-[width] duration-200 md:flex ${
+        } fixed top-0 left-0 bottom-0 z-40 hidden h-screen shrink-0 flex-col border-r border-brand-dark-2 bg-brand-dark px-3 py-4 transition-[width] duration-200 md:flex ${
           collapsed ? "w-20 items-center" : "w-64 items-stretch"
         }`}
       >
@@ -311,7 +311,7 @@ export function DesktopSidebar({
           href="/"
           aria-label="RankFTV"
           title="RankFTV"
-          className={`flex shrink-0 items-center rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
+          className={`flex shrink-0 items-center rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
             collapsed ? "justify-center" : "gap-2.5 px-1"
           }`}
         >
@@ -327,7 +327,7 @@ export function DesktopSidebar({
           </span>
           {!collapsed && (
             <span className="text-lg font-black tracking-tight text-white">
-              Rank<span className="text-blue-500">FTV</span>
+              Rank<span className="text-accent">FTV</span>
             </span>
           )}
         </Link>
@@ -341,7 +341,7 @@ export function DesktopSidebar({
           aria-expanded={quickMenuOpen}
           aria-haspopup="menu"
           title="Criar ou adicionar"
-          className={rowClass("bg-zinc-950 text-white ring-1 ring-zinc-800 hover:bg-zinc-900 hover:!text-white hover:ring-blue-500/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500")}
+          className={rowClass("bg-brand-dark-2 text-white ring-1 ring-white/15 hover:bg-brand-dark-2/90 hover:!text-white hover:ring-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand")}
         >
           <Plus className="size-5 shrink-0" strokeWidth={2.4} />
           {!collapsed && <span className="truncate text-sm font-medium">Criar</span>}
@@ -363,7 +363,7 @@ export function DesktopSidebar({
             onClick={() => setQuickMenuOpen(false)}
             className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-surface-2"
           >
-            <span className="flex size-9 items-center justify-center rounded-xl bg-blue-600 text-white">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-brand text-white">
               <Trophy className="size-4" />
             </span>
             <span className="min-w-0">
@@ -377,7 +377,7 @@ export function DesktopSidebar({
             onClick={() => setQuickMenuOpen(false)}
             className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-surface-2"
           >
-            <span className="flex size-9 items-center justify-center rounded-xl bg-surface-2 text-blue-600 ring-1 ring-border">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-surface-2 text-brand ring-1 ring-border">
               <Plus className="size-4" />
             </span>
             <span className="min-w-0">
@@ -393,11 +393,11 @@ export function DesktopSidebar({
         aria-label="Navegacao principal"
         tabIndex={0}
         onScroll={() => setNavTooltip(null)}
-        className="rankftv-desktop-sidebar__nav-scroll relative mt-6 flex min-h-0 w-full flex-1 flex-col overflow-y-auto overscroll-contain rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+        className="rankftv-desktop-sidebar__nav-scroll relative mt-6 flex min-h-0 w-full flex-1 flex-col overflow-y-auto overscroll-contain rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand"
       >
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute z-0 rounded-2xl bg-blue-600 shadow-soft shadow-blue-600/20 transition-[left,top,width,height,opacity] duration-[260ms] ease-out motion-reduce:transition-none"
+          className="pointer-events-none absolute z-0 rounded-2xl bg-brand shadow-soft shadow-brand/25 transition-[left,top,width,height,opacity] duration-[260ms] ease-out motion-reduce:transition-none"
           style={{
             left: indicator.left,
             top: indicator.top,
@@ -414,7 +414,7 @@ export function DesktopSidebar({
             <div
               key={group.label}
               className={`flex w-full shrink-0 flex-col ${collapsed ? "items-center" : "items-stretch"} ${
-                index > 0 ? "rankftv-desktop-sidebar__divider mt-4 border-t border-zinc-800 pt-4" : ""
+                index > 0 ? "rankftv-desktop-sidebar__divider mt-4 border-t border-white/15 pt-4" : ""
               }`}
             >
               <ul className={`flex w-full flex-col gap-1 ${collapsed ? "items-center" : "items-stretch"}`}>
@@ -437,8 +437,8 @@ export function DesktopSidebar({
                         onBlur={() => setNavTooltip(null)}
                         className={`${rowClass(
                           active
-                            ? `${indicator.ready ? "" : "bg-blue-600 shadow-soft shadow-blue-600/20"} text-white`
-                            : "text-zinc-200 hover:bg-zinc-900 hover:!text-white",
+                            ? `${indicator.ready ? "" : "bg-brand shadow-soft shadow-brand/25"} text-white`
+                            : "text-white/80 hover:bg-brand-dark-2 hover:!text-white",
                         )} z-10`}
                       >
                         {item.emoji ? (
@@ -457,10 +457,10 @@ export function DesktopSidebar({
                             <span className="truncate text-sm font-medium">{item.label}</span>
                             {item.badge && (
                               <span
-                                className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+                                className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
                                   active
                                     ? "bg-white/20 text-white border border-white/30"
-                                    : "bg-amber-400/15 text-amber-300 border border-amber-400/30"
+                                    : "bg-accent text-accent-ink border border-accent-border"
                                 }`}
                               >
                                 {item.badge}
@@ -481,14 +481,14 @@ export function DesktopSidebar({
       {collapsed && navTooltip && (
         <span
           aria-hidden="true"
-          className="pointer-events-none fixed left-[5.75rem] z-[60] -translate-y-1/2 whitespace-nowrap rounded-lg bg-gray-950 px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg"
+          className="pointer-events-none fixed left-[5.75rem] z-[60] -translate-y-1/2 whitespace-nowrap rounded-lg bg-brand-dark px-2.5 py-1.5 text-xs font-semibold text-white ring-1 ring-white/15 shadow-lg"
           style={{ top: navTooltip.top }}
         >
           {navTooltip.label}
         </span>
       )}
 
-      <div className={`rankftv-desktop-sidebar__divider flex shrink-0 flex-col gap-2 border-t border-zinc-800 pt-4 ${collapsed ? "items-center" : "items-stretch"}`}>
+      <div className={`rankftv-desktop-sidebar__divider flex shrink-0 flex-col gap-2 border-t border-white/15 pt-4 ${collapsed ? "items-center" : "items-stretch"}`}>
         {perms.isLoggedIn && (
           <div className={`relative ${collapsed ? "" : "w-full"}`} ref={notificationMenuRef}>
             <button
@@ -498,7 +498,7 @@ export function DesktopSidebar({
               aria-expanded={notificationMenuOpen}
               aria-haspopup="menu"
               title={collapsed ? "Notificacoes" : undefined}
-              className={rowClass("text-zinc-200 hover:bg-zinc-900 hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500")}
+              className={rowClass("text-white/80 hover:bg-brand-dark-2 hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand")}
             >
               <span className="relative flex size-5 shrink-0 items-center justify-center">
                 <Bell className="size-5" />
@@ -528,7 +528,7 @@ export function DesktopSidebar({
                     href="/notificacoes"
                     role="menuitem"
                     onClick={() => setNotificationMenuOpen(false)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                    className="text-xs font-semibold text-brand-ink hover:text-brand"
                   >
                     Ver todas
                   </Link>
@@ -565,7 +565,7 @@ export function DesktopSidebar({
                     href="/notificacoes"
                     role="menuitem"
                     onClick={() => setNotificationMenuOpen(false)}
-                    className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-blue-600 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                    className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
                   >
                     Ver todas <ChevronRight className="size-4" />
                   </Link>
@@ -584,15 +584,15 @@ export function DesktopSidebar({
               aria-haspopup="menu"
               aria-label={`Menu da conta de ${user.nome}`}
               title={collapsed ? user.nome : undefined}
-              className={rowClass("text-zinc-200 hover:bg-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500")}
+              className={rowClass("text-white/80 hover:bg-brand-dark-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand")}
             >
               <span className="shrink-0">
-                <Avatar nome={user.nome} color="bg-blue-600" size="sm" fotoUrl={user.fotoUrl} />
+                <Avatar nome={user.nome} color="bg-brand" size="sm" fotoUrl={user.fotoUrl} />
               </span>
               {!collapsed && (
                 <span className="min-w-0 flex-1 text-left">
                   <span className="block truncate text-sm font-semibold text-white">{user.nome}</span>
-                  <span className="block truncate text-xs text-zinc-400">@{user.username}</span>
+                  <span className="block truncate text-xs text-app-bg/75">@{user.username}</span>
                 </span>
               )}
             </button>
@@ -604,7 +604,7 @@ export function DesktopSidebar({
                 className="absolute bottom-0 left-full z-50 ml-3 w-60 overflow-hidden rounded-card-lg bg-surface p-2 shadow-elevated ring-1 ring-border"
               >
                 <div className="mb-1 flex items-center gap-2.5 rounded-xl px-2.5 py-2">
-                  <Avatar nome={user.nome} color="bg-blue-600" size="sm" fotoUrl={user.fotoUrl} />
+                  <Avatar nome={user.nome} color="bg-brand" size="sm" fotoUrl={user.fotoUrl} />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-ink">{user.nome}</p>
                     <p className="truncate text-xs text-ink-muted">@{user.username}</p>
@@ -643,7 +643,7 @@ export function DesktopSidebar({
               href="/login"
               title={collapsed ? "Entrar" : undefined}
               aria-label="Entrar"
-              className={rowClass("text-zinc-200 hover:bg-zinc-900 hover:!text-white")}
+              className={rowClass("text-white/80 hover:bg-brand-dark-2 hover:!text-white")}
             >
               <LogIn className="size-5 shrink-0" />
               {!collapsed && <span className="truncate text-sm font-medium">Entrar</span>}
@@ -652,7 +652,7 @@ export function DesktopSidebar({
               href="/cadastro"
               title={collapsed ? "Cadastrar" : undefined}
               aria-label="Cadastrar"
-              className={rowClass("bg-blue-600 text-white hover:bg-blue-500 hover:!text-white")}
+              className={rowClass("bg-brand text-white hover:bg-brand-hover hover:!text-white")}
             >
               <UserPlus className="size-5 shrink-0" />
               {!collapsed && <span className="truncate text-sm font-medium">Criar conta</span>}
@@ -666,7 +666,7 @@ export function DesktopSidebar({
           aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
           aria-expanded={!collapsed}
           title={collapsed ? "Expandir menu" : "Recolher menu"}
-          className={rowClass("text-zinc-200 hover:bg-zinc-900 hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500")}
+          className={rowClass("text-white/80 hover:bg-brand-dark-2 hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand")}
         >
           {collapsed ? (
             <ChevronsRight className="size-4 shrink-0" />
@@ -699,13 +699,13 @@ function NotificationPreviewItem({
       onClick={onNavigate}
       className="flex items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-surface-2"
     >
-      <span className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full ${item.unread ? "bg-blue-100 text-blue-600" : "bg-surface-2 text-ink-muted"}`}>
+      <span className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full ${item.unread ? "bg-brand-soft text-brand-ink" : "bg-surface-2 text-ink-muted"}`}>
         <Icon className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-start gap-2">
           <span className="line-clamp-1 text-sm font-semibold text-ink">{item.title}</span>
-          {item.unread && <span className="mt-1.5 size-2 shrink-0 rounded-full bg-blue-600" />}
+          {item.unread && <span className="mt-1.5 size-2 shrink-0 rounded-full bg-brand" />}
         </span>
         <span className="mt-0.5 line-clamp-2 text-xs leading-5 text-ink-muted">{item.description}</span>
       </span>

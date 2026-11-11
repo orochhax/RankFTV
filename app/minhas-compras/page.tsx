@@ -262,8 +262,8 @@ export default async function MinhasComprasPage({
             <ArrowLeft className="size-4" /> Início
           </Link>
           <div className="flex items-center gap-2.5">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-blue-500/20">
-              <ShoppingBag className="size-5 text-blue-400" />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-brand/20">
+              <ShoppingBag className="size-5 text-accent" />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Minhas compras</h1>

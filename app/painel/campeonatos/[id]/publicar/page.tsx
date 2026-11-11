@@ -76,23 +76,23 @@ export default async function PublicarPage({
       {temProdutoPago ? (
         <>
           {/* Como funciona o repasse */}
-          <div className="rounded-card-lg bg-blue-50 p-5 ring-1 ring-blue-100">
-            <p className="font-semibold text-blue-900">Como funciona o repasse</p>
-            <ul className="mt-3 space-y-2 text-sm text-blue-800">
+          <div className="rounded-card-lg bg-surface-2 p-5 ring-1 ring-border">
+            <p className="font-semibold text-ink">Como funciona o repasse</p>
+            <ul className="mt-3 space-y-2 text-sm text-ink-muted">
               <li className="flex items-start gap-2">
-                <Zap className="mt-0.5 size-4 shrink-0 text-blue-500" />
+                <Zap className="mt-0.5 size-4 shrink-0 text-brand" />
                 Comprador paga o produto + a taxa de serviço (Pix ou cartão)
               </li>
               <li className="flex items-start gap-2">
-                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-blue-500" />
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-brand" />
                 Você recebe o valor cheio da inscrição — a taxa é paga pelo comprador
               </li>
               <li className="flex items-start gap-2">
-                <Zap className="mt-0.5 size-4 shrink-0 text-blue-500" />
+                <Zap className="mt-0.5 size-4 shrink-0 text-brand" />
                 <span><strong>Pix:</strong> você recebe no mesmo dia</span>
               </li>
               <li className="flex items-start gap-2">
-                <CreditCard className="mt-0.5 size-4 shrink-0 text-blue-500" />
+                <CreditCard className="mt-0.5 size-4 shrink-0 text-brand" />
                 <span><strong>Cartão:</strong> no prazo da operadora (até 32 dias)</span>
               </li>
             </ul>
@@ -108,9 +108,9 @@ export default async function PublicarPage({
         </>
       ) : (
         /* Campeonato gratuito */
-        <div className="rounded-card-lg bg-blue-50 p-5 ring-1 ring-blue-100">
-          <p className="font-semibold text-blue-800">Campeonato gratuito</p>
-          <p className="mt-0.5 text-sm text-blue-700">
+        <div className="rounded-card-lg bg-accent-soft p-5 ring-1 ring-accent-border">
+          <p className="font-semibold text-accent-ink">Campeonato gratuito</p>
+          <p className="mt-0.5 text-sm text-ink">
             Todas as categorias são grátis — não precisa configurar recebimento.
             É só publicar.
           </p>

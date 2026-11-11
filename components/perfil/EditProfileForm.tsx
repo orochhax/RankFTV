@@ -107,7 +107,7 @@ export function EditProfileForm({
         {/* Foto */}
         <div className="flex items-center gap-4">
           <div className="relative">
-            <Avatar nome={nome} color="bg-blue-500" size="lg" fotoUrl={fotoUrl || null} />
+            <Avatar nome={nome} color="bg-brand" size="lg" fotoUrl={fotoUrl || null} />
             {uploadingPhoto && (
               <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
                 <Loader2 className="size-5 animate-spin text-white" />
@@ -146,7 +146,7 @@ export function EditProfileForm({
             onChange={(e) => setNome(e.target.value)}
             required
             maxLength={60}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
           <p className="mt-1 text-xs text-gray-400">
             Nome que aparece no perfil. O @usuário não pode ser alterado.
@@ -162,7 +162,7 @@ export function EditProfileForm({
             type="date"
             value={dataNascimento}
             onChange={(e) => setDataNascimento(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
         </div>
 
@@ -175,7 +175,7 @@ export function EditProfileForm({
             rows={3}
             maxLength={160}
             placeholder="Conte um pouco sobre você…"
-            className="mt-1 w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full resize-none rounded-lg border border-border px-3 py-2 text-sm text-ink placeholder:text-ink-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
           <p className="mt-1 text-xs text-gray-400">{bio.length}/160 caracteres</p>
         </div>
@@ -187,7 +187,7 @@ export function EditProfileForm({
         <button
           type="submit"
           disabled={loading || uploadingPhoto}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+          className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-60"
         >
           {loading && <Loader2 className="size-4 animate-spin" />}
           {success && <Check className="size-4" />}

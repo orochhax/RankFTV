@@ -54,8 +54,8 @@ export default async function PagamentoPage({
       <div className="min-h-screen bg-brand-dark">
         <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
           <div className="w-full max-w-sm rounded-3xl bg-white p-10 text-center shadow-xl">
-            <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-blue-100">
-              <CheckCircle className="size-9 text-blue-500" />
+            <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-success-bg">
+              <CheckCircle className="size-9 text-success" />
             </div>
             <h1 className="mt-5 text-xl font-bold text-gray-900">Pagamento confirmado!</h1>
             <p className="mt-2 text-sm text-gray-500">
@@ -65,7 +65,7 @@ export default async function PagamentoPage({
             <p className="mt-1 text-xs text-gray-400">{champNome}</p>
             <Link
               href={`/campeonatos/${champId}`}
-              className="mt-8 block rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+              className="mt-8 block rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-hover"
             >
               Ver campeonato
             </Link>

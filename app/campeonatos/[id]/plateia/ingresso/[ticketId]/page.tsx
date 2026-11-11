@@ -213,7 +213,7 @@ export default async function IngressoPlateiaPage({
               )}
               <Link
                 href={`/campeonatos/${champId}`}
-                className="inline-block text-sm font-medium text-blue-600 hover:underline"
+                className="inline-block text-sm font-medium text-brand-ink hover:text-brand hover:underline"
               >
                 Ver página do campeonato
               </Link>

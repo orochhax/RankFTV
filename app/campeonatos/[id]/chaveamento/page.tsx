@@ -211,8 +211,8 @@ export default async function ChaveamentoPublicPage({
           <ChevronLeft className="size-4" />
           Voltar para o campeonato
         </Link>
-        <h1 className="mt-3 flex items-center gap-2 text-xl font-semibold text-gray-900">
-          <Trophy className="size-5 text-blue-500" />
+        <h1 className="mt-3 flex items-center gap-2 text-xl font-semibold text-ink">
+          <Trophy className="size-5 text-brand" />
           Chaveamento — {dbChamp.nome}
         </h1>
       </div>
@@ -230,10 +230,10 @@ export default async function ChaveamentoPublicPage({
               className={[
                 "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
                 isActive && hasBracket
-                  ? "bg-blue-600 text-white"
+                  ? "bg-brand text-white"
                   : hasBracket
-                    ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    : "bg-gray-100 text-gray-400",
+                    ? "bg-surface-2 text-ink-muted hover:bg-border/50"
+                    : "bg-surface-2 text-ink-muted/50",
               ].join(" ")}
             >
               {category.nome}

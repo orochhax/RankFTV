@@ -109,7 +109,7 @@ export default function PrivacidadePage() {
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-white/50 transition-colors hover:text-white/80">
             <ArrowLeft className="size-4" /> Início
           </Link>
-          <p className="text-[11px] font-bold tracking-widest text-blue-400 uppercase">RankFTV</p>
+          <p className="text-[11px] font-bold tracking-widest text-accent uppercase">RankFTV</p>
           <h1 className="text-2xl font-bold tracking-tight text-white">Política de Privacidade</h1>
           <p className="text-sm text-white/50">Última atualização: {ULTIMA_ATUALIZACAO}</p>
         </div>

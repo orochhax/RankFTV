@@ -2,7 +2,7 @@
 
 Status: **entrevista de descoberta em andamento**.
 
-Última atualização: **20/10/2026 10:04, America/Sao_Paulo**.
+Última atualização: **11/11/2026 20:20, America/Sao_Paulo**.
 
 Este documento é a fonte canônica para posicionamento público, públicos,
 mensagens, tom de voz, identidade visual e criação de conteúdo do RankFTV. Ele
@@ -51,18 +51,12 @@ produzir a versão final.
   priorizar organizadores. Uma frente ou perfil separado voltado aos atletas
   pode ser desenvolvido depois, mas não é prioridade agora.
 
-### Identidade existente
+### Identidade visual atual (v3 — aprovada por Carlos em 11/11/2026)
 
-- **Observado:** o logotipo disponível em `ank FTV.png` usa o nome RankFTV em
-  azul, com uma estrela integrada ao símbolo inicial.
-- **Observado:** o produto usa azul elétrico `#0000FF`, preto ou
-  `#202020`, fundo `#F3F5FA`, superfícies brancas e texto `#10152B`.
-- **Observado:** a interface usa cards arredondados, superfícies claras,
-  cabeçalhos escuros e detalhes luminosos azuis.
-- **Observado:** os banners atuais combinam fundo escuro, azul intenso,
-  imagens de futevôlei e telas do produto.
-- **Em aberto:** manter, evoluir ou substituir logo, paleta, tipografia e
-  linguagem fotográfica atuais.
+- **Aprovado por Carlos:** símbolo "R" oficial original preservado e recolorido para laranja vívido (`#FF5D00`) com estrela vazada (`app/icon.png` em `512x512` e `public/brand-icon.png` recortado em `448x424`).
+- **Aprovado por Carlos:** wordmark em texto usando `Rank` branco + `FTV` `#72BF00` sobre fundo escuro (`#0E4937`) e `Rank` `#0E4937` + `FTV` `#FF5D00` sobre fundo claro.
+- **Aprovado por Carlos:** nova paleta oficial **Forest Teal + Light Beige + Lime Green + Vivid Orange** em toda a plataforma comercial (preservando o tema escuro próprio `.life-os-theme` em rotas pessoais de `/admin`), com base clara `#FBE9D1`, escuro estrutural `#0E4937`, ação primária `#FF5D00`, acento `#72BF00` e estados semânticos preservados (`#16A34A`, `#D97706`, `#DC2626`).
+- **Aprovado e implementado:** banners promocionais 3D da Home substituídos pelas artes na paleta Forest Teal (`public/banners/para-organizadores-arenas-desktop.webp` em `1600x460` para barra desktop horizontal enxuta `md:max-w-[840px]` e `public/banners/para-organizadores-arenas-mobile.webp` em `1200x800`).
 
 ## 2. Fundamentos da marca
 
@@ -411,33 +405,43 @@ local e não evidência publicação em Production.
    por movimento reduzido;
 7. manter a navegação e os componentes nos mesmos lugares em desktop e mobile.
 
+### Identidade visual v3 — aprovada e implementada localmente (11/11/2026)
+
+Carlos aprovou em 11/11/2026 a substituição definitiva do tema anterior (`#0000FF` + `#202020`/`#17191F` + `#F3F5FA`) pela paleta oficial **Forest Teal + Light Beige + Lime Green + Vivid Orange**, aplicada em toda a plataforma comercial na branch local `feat/paleta-forest-teal-vivid-orange` (preservando intacto o `.life-os-theme` das ferramentas pessoais em `/admin`):
+
+1. **Base clara (`Light Beige`):** `#FBE9D1` (`--color-app-bg`) para fundo e sheet principal, `#FFFFFF` (`--color-surface`) para cards/modais/inputs (inclusive cards financeiros e DRE em fundo branco limpo), `#FFF8EE` (`--color-surface-2`) para superfícies internas sutis e `#E5CFAF` (`--color-border`) para bordas quentes. Texto principal `#0E4937` (`--color-ink`) e secundário `#3E685A` (`--color-ink-muted`).
+2. **Escuro estrutural (`Forest Teal`):** `#0E4937` (`--color-brand-dark`) na sidebar desktop, cabeçalho da Home, cards escuros e rodapés, `#155C46` (`--color-brand-dark-2`) para superfícies/hover escuros e divisores translúcidos `rgba(251, 233, 209, 0.18)`.
+3. **Primária de ação (`Vivid Orange`):** `#FF5D00` (`--color-brand`), `#E05100` (`--color-brand-hover`), `#B84300` (`--color-brand-ink` para texto acessível em fundo claro suave) e `#FFF0E6` / `#FFB385` (`--color-brand-soft` / `--color-brand-border`) em CTAs principais, busca, foco, pill flutuante e item ativo.
+4. **Energia & acento (`Lime Green`):** `#72BF00` (`--color-accent`), `#64A800` (`--color-accent-hover`), `#EAF8D2` / `#97D439` (`soft` / `border`) e `#092B20` (`--color-accent-ink`). **Regra obrigatória de contraste:** nunca usar texto branco ou texto `#72BF00` sobre fundo claro; sempre usar `#092B20` sobre fundo `#72BF00`, e restringir texto `#72BF00` ao escuro `#0E4937`. Feixes luminosos da sidebar e das sheets usam gradiente `#72BF00 -> #FF5D00`.
+5. **Semânticas preservadas:** sucesso/pago `#16A34A` / `#ECFDF3` (mantido distinto do `#72BF00`), aviso `#D97706` / `#FFFAEB` e erro/ao vivo `#DC2626` / `#FEF3F2` (botão `Ver ao vivo` em branco com borda/pulso `#DC2626` para não competir com `#FF5D00`).
+6. **Logotipo, wordmark e CTAs chave:** símbolo `R` com estrela (`app/icon.png` e `public/brand-icon.png`) recolorido para `#FF5D00` com estrela branca; wordmark `Rank` branco + `FTV` `#72BF00` no escuro e `Rank` `#0E4937` + `FTV` `#FF5D00` no claro. No detalhe do campeonato, `Sou atleta` usa `#FFF3EB -> #FFFFFF` com borda `2px solid #FF5D00`, caixa do ícone `#FF5D00` e selo `INSCRIÇÃO` `#72BF00`/`#092B20`; `Vou assistir o evento` usa `bg-brand-dark` + acento `#72BF00`.
+
 ### Elementos a decidir
 
-- arquitetura e versões do logotipo;
-- paleta primária, secundária e cores funcionais;
+- arquitetura e versões complementares do logotipo horizontal/negativo;
+- paleta oficial definida em v3 (em uso local na plataforma comercial);
 - tipografia de títulos, corpo e números;
 - grid, espaçamento, cantos e sombras;
 - estilo fotográfico e direção de cena;
-- grafismos, ícones, textura e tratamento do azul;
+- grafismos, ícones, textura e tratamento das novas artes dos banners da Home;
 - linguagem de movimento para vídeos;
 - diferenças entre comunicação para organizador e atleta;
 - regras para carrossel, anúncio, thumbnail e vídeo vertical;
 - usos proibidos e requisitos de legibilidade/acessibilidade.
 
-### Baseline técnico observado
+### Baseline técnico atual (v3 aprovada localmente em 11/11/2026)
 
 | Papel | Valor atual |
 | --- | --- |
-| Azul principal | `#0000FF` |
-| Fundo geral | `#F3F5FA` |
-| Fundo escuro | `#202020` e preto |
-| Superfície | `#FFFFFF` |
-| Texto principal | `#10152B` |
-| Texto secundário | `#667085` |
+| Ação primária / CTA (`Vivid Orange`) | `#FF5D00` (hover `#E05100`; ink claro `#B84300`) |
+| Energia / Acento (`Lime Green`) | `#72BF00` (sobre escuro `#0E4937` ou fundo `#72BF00` + `#092B20`) |
+| Base clara / Sheet (`Light Beige`) | `#FBE9D1` |
+| Fundo escuro estrutural (`Forest Teal`) | `#0E4937` (secundário `#155C46`) |
+| Superfície e cards | `#FFFFFF` e `#FFF8EE` (borda `#E5CFAF`) |
+| Texto principal e secundário | `#0E4937` / `#3E685A` |
 | Raio de card | 16 px; 24 px em superfícies maiores |
 
-Esses valores são ponto de partida observado, não aprovação final da identidade
-de marketing.
+Esses valores refletem a implementação local da v3 na plataforma comercial e orientam novas peças e atualizações de interface.
 
 ## 7. Mensagens e provas
 
@@ -531,8 +535,11 @@ renderização ou codificação de MP4/WebM.
 - Etapa concluída: regras práticas do tom de voz, humor e emojis.
 - Etapa concluída: modernização visual v2 aprovada e implementada localmente,
   sem mudança de conteúdo ou arquitetura da home.
-- Etapa atual: revisar visualmente a implementação em desktop e mobile e
-  registrar eventuais ajustes antes de qualquer promoção.
+- Etapa concluída: identidade visual v3 aprovada e implementada localmente em
+  toda a plataforma comercial (**Forest Teal `#0E4937` + Light Beige `#FBE9D1` +
+  Lime Green `#72BF00` + Vivid Orange `#FF5D00`**), preservando `.life-os-theme`.
+- Etapa atual: aguardar novas artes do banner promocional da Home em paleta
+  Forest Teal enviadas por Carlos e concluir revisão visual final antes do PR.
 - Respostas aprovadas: organizador como cliente principal; atleta e plateia
   como compradores/usuários; aquisição inicialmente B2B; monetização por
   comissão; comunicação amigável, profissional, próxima e persuasiva;

@@ -34,7 +34,7 @@ export function DestaquesArenasCarousel({ arenas }: { arenas: ArenaDestaque[] })
         <h2 className="text-base font-semibold text-gray-900">Arenas em destaque</h2>
         <Link
           href="/arenas"
-          className="flex items-center gap-0.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+          className="flex items-center gap-0.5 text-sm font-medium text-brand-ink hover:text-brand-hover"
         >
           Ver todas <ChevronRight className="size-4" />
         </Link>
@@ -48,7 +48,7 @@ export function DestaquesArenasCarousel({ arenas }: { arenas: ArenaDestaque[] })
             href={`/arenas/${arena.handle}`}
             className="group flex overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-sm transition-shadow hover:shadow-md"
           >
-            <div className="relative h-44 w-1/2 shrink-0 bg-gradient-to-br from-blue-700 to-blue-900">
+            <div className="relative h-44 w-1/2 shrink-0 bg-gradient-to-br from-brand-dark to-brand-dark-2">
               {arena.banner_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -69,7 +69,7 @@ export function DestaquesArenasCarousel({ arenas }: { arenas: ArenaDestaque[] })
               )}
             </div>
             <div className="flex flex-1 flex-col justify-center gap-2 p-6">
-              <h3 className="text-xl font-bold leading-tight text-gray-900 group-hover:text-blue-700">
+              <h3 className="text-xl font-bold leading-tight text-gray-900 group-hover:text-brand-ink">
                 {arena.nome}
               </h3>
               <p className="flex items-center gap-1 text-sm text-gray-500">
@@ -118,7 +118,7 @@ export function DestaquesArenasCarousel({ arenas }: { arenas: ArenaDestaque[] })
                 onClick={(e) => !isFront && e.preventDefault()}
                 className="block"
               >
-                <div className="relative flex h-36 items-center justify-center bg-gradient-to-br from-blue-700 to-blue-900">
+                <div className="relative flex h-36 items-center justify-center bg-gradient-to-br from-brand-dark to-brand-dark-2">
                   {arena.banner_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -160,7 +160,7 @@ export function DestaquesArenasCarousel({ arenas }: { arenas: ArenaDestaque[] })
               key={i}
               onClick={() => setCurrent(i)}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === current ? "w-5 bg-blue-600" : "w-1.5 bg-gray-200"
+                i === current ? "w-5 bg-brand" : "w-1.5 bg-gray-200"
               }`}
               aria-label={`Arena ${i + 1}`}
             />

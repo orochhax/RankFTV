@@ -163,25 +163,25 @@ function BarraDeProgresso({ etapa }: { etapa: Etapa }) {
           >
             {i > 0 && (
               <div
-                className={`absolute left-0 top-3 h-px w-1/2 ${i <= idx ? "bg-blue-600" : "bg-gray-200"}`}
+                className={`absolute left-0 top-3 h-px w-1/2 ${i <= idx ? "bg-brand" : "bg-border"}`}
               />
             )}
             {i < ETAPAS.length - 1 && (
               <div
-                className={`absolute right-0 top-3 h-px w-1/2 ${i < idx ? "bg-blue-600" : "bg-gray-200"}`}
+                className={`absolute right-0 top-3 h-px w-1/2 ${i < idx ? "bg-brand" : "bg-border"}`}
               />
             )}
             <div
               className={`relative z-10 flex size-6 items-center justify-center rounded-full text-[11px] font-semibold ${
                 feita || atual
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-500"
+                  ? "bg-brand text-white"
+                  : "bg-surface-2 text-ink-muted"
               }`}
             >
               {feita ? <Check className="size-3.5" /> : i + 1}
             </div>
             <span
-              className={`text-center text-[11px] font-medium leading-tight ${atual ? "text-blue-600" : "text-gray-400"}`}
+              className={`text-center text-[11px] font-medium leading-tight ${atual ? "text-brand-ink" : "text-ink-muted/70"}`}
             >
               {e.label}
             </span>
@@ -202,13 +202,13 @@ function SugestaoEmailDaConta({
   onUse: () => void;
 }) {
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-blue-50 px-3 py-2 text-xs ring-1 ring-blue-100">
-      <span className="text-blue-700">Usar e-mail da sua conta:</span>
+    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-brand-soft px-3 py-2 text-xs ring-1 ring-brand-border">
+      <span className="text-brand-ink">Usar e-mail da sua conta:</span>
       <button
         type="button"
         onClick={onUse}
         aria-label={`Usar ${email} no e-mail do ${atleta}`}
-        className="max-w-full break-all font-semibold text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900"
+        className="max-w-full break-all font-semibold text-brand-ink underline decoration-brand-border underline-offset-2 hover:text-brand"
       >
         {email}
       </button>
@@ -232,9 +232,9 @@ function QuestionarioNivel({
   onChange: (field: string, value: string) => void;
 }) {
   const select =
-    "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
+    "w-full rounded-lg border border-border px-3 py-2.5 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft bg-white";
   return (
-    <section className="space-y-3 rounded-2xl bg-blue-50/60 p-4 ring-1 ring-blue-100">
+    <section className="space-y-3 rounded-2xl bg-brand-soft/65 p-4 ring-1 ring-brand-border">
       <div>
         <p className="text-sm font-semibold text-gray-800">{titulo}</p>
         <p className="text-xs text-gray-500">
@@ -659,9 +659,9 @@ export function IngressoAtletaForm({
   }
 
   const input =
-    "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-xs placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-ink shadow-xs placeholder:text-ink-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft";
   const select =
-    "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-ink shadow-xs focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft";
 
   const valor = catSelecionada?.valorInscricao ?? 0;
   const valorFinal = cupom ? Math.max(0, valor - cupom.desconto) : valor;
@@ -700,7 +700,7 @@ export function IngressoAtletaForm({
             type="button"
             autoFocus
             onClick={acknowledgeReservationExpiration}
-            className="mt-6 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            className="mt-6 w-full rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             OK
           </button>
@@ -751,13 +751,13 @@ export function IngressoAtletaForm({
                   cat.esgotado
                     ? "cursor-not-allowed border-gray-200 bg-gray-50 opacity-60"
                     : sel
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 bg-white hover:bg-gray-50"
+                      ? "border-brand bg-brand-soft"
+                      : "border-border bg-white hover:bg-surface-2"
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${sel && !cat.esgotado ? "bg-blue-600" : "bg-gray-100"}`}
+                    className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${sel && !cat.esgotado ? "bg-brand" : "bg-surface-2"}`}
                   >
                     <Trophy
                       className={`size-5 ${sel && !cat.esgotado ? "text-white" : "text-gray-400"}`}
@@ -800,7 +800,7 @@ export function IngressoAtletaForm({
                             Sem limite de vagas informado
                           </p>
                         ) : (
-                          <p className="text-xs font-medium text-blue-600">
+                          <p className="text-xs font-medium text-brand-ink">
                             <span className="font-bold">
                               {cat.vagasDisponiveis}
                             </span>{" "}
@@ -819,7 +819,7 @@ export function IngressoAtletaForm({
                       Esgotado
                     </span>
                   ) : v <= 0 ? (
-                    <span className="font-semibold text-blue-600">Grátis</span>
+                    <span className="font-semibold text-brand-ink">Grátis</span>
                   ) : (
                     <div
                       className={`rounded-xl px-3 py-2 ring-1 ring-black/5 ${sel ? "bg-white/80" : "bg-gray-50"}`}
@@ -829,7 +829,7 @@ export function IngressoAtletaForm({
                         Valor da inscrição
                       </p>
                       <p className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 sm:justify-end">
-                        <span className="text-lg font-bold text-blue-600">
+                        <span className="text-lg font-bold text-brand-ink">
                           {formatBRL(price.basePrice)}
                         </span>
                         <span className="text-sm text-gray-400">+</span>
@@ -843,7 +843,7 @@ export function IngressoAtletaForm({
                     </div>
                   )}
                   {sel && !cat.esgotado && (
-                    <div className="ml-auto mt-1 flex size-4 items-center justify-center rounded-full bg-blue-600">
+                    <div className="ml-auto mt-1 flex size-4 items-center justify-center rounded-full bg-brand">
                       <Check className="size-3 text-white" />
                     </div>
                   )}
@@ -856,7 +856,7 @@ export function IngressoAtletaForm({
             type="button"
             onClick={continuarComCategoria}
             disabled={!catSelecionada || reservationPending}
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
           >
             {reservationPending && <Loader2 className="size-4 animate-spin" />}
             {reservationPending
@@ -927,8 +927,8 @@ export function IngressoAtletaForm({
               className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
               aria-labelledby="atleta-1-title"
             >
-              <div className="flex items-center gap-3 border-b border-gray-100 bg-blue-50/70 px-4 py-3.5">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
+              <div className="flex items-center gap-3 border-b border-brand-border/50 bg-brand-soft/70 px-4 py-3.5">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
                   1
                 </span>
                 <div>
@@ -945,20 +945,20 @@ export function IngressoAtletaForm({
               </div>
               <div className="space-y-4 p-4">
                 {authenticatedAthlete && (
-                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/70 p-3.5">
+                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-brand-border bg-brand-soft/75 p-3.5">
                     <input
                       type="checkbox"
                       checked={usarDadosDaConta}
                       onChange={(event) =>
                         toggleDadosDaConta(event.target.checked)
                       }
-                      className="mt-0.5 size-4 shrink-0 accent-blue-600"
+                      className="mt-0.5 size-4 shrink-0 accent-brand"
                     />
-                    <span className="text-sm text-blue-950">
+                    <span className="text-sm text-ink">
                       <span className="block font-semibold">
                         Você é um dos atletas?
                       </span>
-                      <span className="mt-0.5 block text-xs text-blue-700">
+                      <span className="mt-0.5 block text-xs text-brand-ink">
                         Sim, sou o atleta 1. Preencher meus dados usando a conta
                         logada.
                       </span>
@@ -1132,7 +1132,7 @@ export function IngressoAtletaForm({
                       onChange={(event) =>
                         toggleMesmoEmail(event.target.checked)
                       }
-                      className="mt-0.5 size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="mt-0.5 size-4 rounded border-border accent-brand text-brand focus:ring-brand"
                     />
                     <span>
                       <span className="block text-sm font-semibold text-gray-800">
@@ -1624,8 +1624,8 @@ export function IngressoAtletaForm({
                         onClick={() => setMetodoPagamento(option)}
                         className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-colors ${
                           selected
-                            ? "border-blue-600 bg-blue-50 text-blue-700"
-                            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                            ? "border-brand bg-brand-soft text-brand-ink"
+                            : "border-border bg-white text-ink-muted hover:bg-surface-2"
                         }`}
                       >
                         <Icon className="size-4" /> {label}
@@ -1644,7 +1644,7 @@ export function IngressoAtletaForm({
                   <span>{formatBRL(valor)}</span>
                 </div>
                 {cupom && (
-                  <div className="mt-1 flex items-center justify-between text-blue-600">
+                  <div className="mt-1 flex items-center justify-between text-brand-ink">
                     <span>Cupom {cupom.codigo}</span>
                     <span>- {formatBRL(cupom.desconto)}</span>
                   </div>
@@ -1670,7 +1670,7 @@ export function IngressoAtletaForm({
             <button
               type="button"
               onClick={abrirRevisao}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
             >
               Revisar dados antes de pagar
             </button>
@@ -1678,14 +1678,14 @@ export function IngressoAtletaForm({
 
           {etapa === "revisao" && (
             <section className="space-y-5" aria-labelledby="revisao-title">
-              <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+              <div className="rounded-2xl border border-brand-border bg-brand-soft p-4">
                 <p
                   id="revisao-title"
-                  className="text-sm font-semibold text-blue-900"
+                  className="text-sm font-semibold text-ink"
                 >
                   Revise antes de confirmar
                 </p>
-                <p className="mt-1 text-xs text-blue-700">
+                <p className="mt-1 text-xs text-brand-ink">
                   Cada ingresso e QR será enviado somente para o e-mail mostrado
                   abaixo.
                 </p>
@@ -1707,7 +1707,7 @@ export function IngressoAtletaForm({
                   <p className="mt-1 font-semibold text-gray-900">
                     {values.comprador_nome}
                   </p>
-                  <p className="break-all text-sm text-blue-700">
+                  <p className="break-all text-sm text-brand-ink">
                     {values.comprador_email?.trim().toLowerCase()}
                   </p>
                 </div>
@@ -1718,7 +1718,7 @@ export function IngressoAtletaForm({
                   <p className="mt-1 font-semibold text-gray-900">
                     {values.parceiro_nome}
                   </p>
-                  <p className="break-all text-sm text-blue-700">
+                  <p className="break-all text-sm text-brand-ink">
                     {values.parceiro_email?.trim().toLowerCase()}
                   </p>
                 </div>
@@ -1770,7 +1770,7 @@ export function IngressoAtletaForm({
                         <span>{formatBRL(valor)}</span>
                       </div>
                       {cupom ? (
-                        <div className="flex justify-between text-blue-700">
+                        <div className="flex justify-between text-brand-ink">
                           <span>Cupom {cupom.codigo}</span>
                           <span>- {formatBRL(cupom.desconto)}</span>
                         </div>
@@ -1803,7 +1803,7 @@ export function IngressoAtletaForm({
                   type="checkbox"
                   name="aceite_termos"
                   required
-                  className="mt-0.5 size-4 shrink-0 cursor-pointer accent-blue-600"
+                  className="mt-0.5 size-4 shrink-0 cursor-pointer accent-brand"
                 />
                 <div className="min-w-0 text-sm leading-relaxed text-gray-600">
                   <label
@@ -1837,7 +1837,7 @@ export function IngressoAtletaForm({
                 <button
                   type="submit"
                   disabled={pending}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
                 >
                   {pending && <Loader2 className="size-4 animate-spin" />}
                   {isGratis

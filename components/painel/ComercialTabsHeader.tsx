@@ -15,7 +15,7 @@ export function ComercialTabsHeader({
           href={`/painel/campeonatos/${champId}/lotes`}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
             active === "lotes"
-              ? "bg-blue-600 text-white shadow-xs"
+              ? "bg-brand text-white shadow-xs"
               : "text-ink-muted hover:bg-surface-2 hover:text-ink"
           }`}
         >
@@ -26,7 +26,7 @@ export function ComercialTabsHeader({
           href={`/painel/campeonatos/${champId}/cupons`}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
             active === "cupons"
-              ? "bg-blue-600 text-white shadow-xs"
+              ? "bg-brand text-white shadow-xs"
               : "text-ink-muted hover:bg-surface-2 hover:text-ink"
           }`}
         >
@@ -37,7 +37,7 @@ export function ComercialTabsHeader({
 
       <Link
         href={`/painel/campeonatos/${champId}/financeiro`}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3.5 py-2 text-xs font-semibold text-ink transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3.5 py-2 text-xs font-semibold text-ink transition-colors hover:border-brand-border hover:bg-brand-soft hover:text-brand-ink"
       >
         Ir para Central Financeira
         <ArrowUpRight className="size-3.5" />

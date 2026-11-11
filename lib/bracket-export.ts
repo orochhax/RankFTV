@@ -36,8 +36,8 @@ export function createBracketExportScene(
     rect(x + 1, y + 1, cw - 2, 27, "#f9fafb", 10);
     text(x + 12, y + 18, `#${match.numero}`, 10, "#6b7280", true);
     const court = (formatCourtLabel(match.courtLabel) ?? "Quadra a definir").toUpperCase();
-    rect(x + 50, y + 6, court.length * 5.6 + 12, 16, "#d6d6ff", 8);
-    text(x + 56, y + 17, court, 9, "#0000cc", true);
+    rect(x + 50, y + 6, court.length * 5.6 + 12, 16, "#FFF0E6", 8);
+    text(x + 56, y + 17, court, 9, "#B84300", true);
     if (match.setsA !== null && match.setsB !== null) {
       text(x + cw - 58, y + 18, `${match.setsA} × ${match.setsB}`, 12, "#374151", true);
       if (match.setDetails?.length) text(x + cw - 156, y + 17, "PONTOS POR SET", 9, "#9ca3af");
@@ -45,25 +45,25 @@ export function createBracketExportScene(
     [match.teamA, match.teamB].forEach((team, i) => {
       const rowY = y + 28 + i * 58;
       const winner = !!team && team.id === match.winnerId;
-      if (winner) rect(x + 1, rowY, cw - 2, 57, "#0000ff", i === 1 ? 10 : 0);
+      if (winner) rect(x + 1, rowY, cw - 2, 57, "#0E4937", i === 1 ? 10 : 0);
       const color = winner ? "#ffffff" : match.winnerId ? "#6b7280" : "#374151";
-      if (winner) text(x + 12, rowY + 12, "VENCEDORES", 9, "#d6d6ff", true);
+      if (winner) text(x + 12, rowY + 12, "VENCEDORES", 9, "#72BF00", true);
       const names = (team?.nome ?? "A definir").split(" & ");
       text(x + 12, rowY + (winner ? 28 : 23), names[0], 12, color, true);
       if (names[1]) text(x + 12, rowY + (winner ? 43 : 38), names[1], 12, color, true);
       const scores = match.setDetails ?? [];
       scores.forEach((set, index) => {
         const sx = x + cw - 12 - (scores.length - index) * 28;
-        rect(sx, rowY + 18, 24, 24, winner ? "#3333ff" : "#f3f4f6", 6);
+        rect(sx, rowY + 18, 24, 24, winner ? "#155C46" : "#f3f4f6", 6);
         text(sx + 5, rowY + 34, String(i === 0 ? set.a : set.b), 12, color, true);
       });
     });
     line(x + 1, y + 86, x + cw - 1, y + 86);
   }
 
-  text(pad, 32, options.title ?? "RankFTV · Chaveamento", 20, "#10152b", true);
+  text(pad, 32, options.title ?? "RankFTV · Chaveamento", 20, "#0E4937", true);
   rect(pad, 52, width - pad * 2, 108, "#ffffff", 16, "#e5e7eb");
-  text(pad + 16, 76, "Resultado final", 14, "#10152b", true);
+  text(pad + 16, 76, "Resultado final", 14, "#0E4937", true);
   const final = rounds.at(-1)?.matches[0];
   const winnerOf = (m?: MatchDisplay | null) => m?.winnerId ? [m.teamA, m.teamB].find((t) => t?.id === m.winnerId) : null;
   const runner = final?.winnerId ? [final.teamA, final.teamB].find((t) => t && t.id !== final.winnerId) : null;
@@ -73,14 +73,14 @@ export function createBracketExportScene(
     rect(x, 88, pw, 56, ["#fffbeb", "#f8fafc", "#fff7ed"][i], 12, ["#fcd34d", "#cbd5e1", "#fdba74"][i]);
     text(x + 12, 107, ["1º CAMPEÕES", "2º VICE-CAMPEÕES", "3º TERCEIRO LUGAR"][i], 10, "#6b7280", true);
     const name = team?.nome ?? "A definir";
-    text(x + 12, 128, name, Math.min(12, (pw - 24) / Math.max(1, name.length) * 1.6), "#10152b", true);
+    text(x + 12, 128, name, Math.min(12, (pw - 24) / Math.max(1, name.length) * 1.6), "#0E4937", true);
   });
   let y = 184;
   for (const section of sections) {
     const count = Math.max(1, ...section.rounds.map((r) => r.matches.length));
     const gridH = count * slot;
     rect(pad, y, width - pad * 2, gridH + 84, section.fill, 12, section.border);
-    text(pad * 2, y + 24, section.title.toUpperCase(), 12, section.title.includes("repescagem") ? "#b45309" : "#0000cc", true);
+    text(pad * 2, y + 24, section.title.toUpperCase(), 12, section.title.includes("repescagem") ? "#b45309" : "#0E4937", true);
     const top = y + 64;
     section.rounds.forEach((round, ri) => {
       const x = pad * 2 + ri * (cw + gap);

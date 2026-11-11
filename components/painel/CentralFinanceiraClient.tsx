@@ -158,7 +158,7 @@ export function CentralFinanceiraClient(props: CentralFinanceiraProps) {
                 health.tone === "emerald"
                   ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                   : health.tone === "blue"
-                    ? "border-blue-200 bg-blue-50 text-blue-700"
+                    ? "border-brand-border bg-brand-soft text-brand-ink"
                     : health.tone === "amber"
                       ? "border-amber-200 bg-amber-50 text-amber-800"
                       : "border-rose-200 bg-rose-50 text-rose-700"
@@ -186,7 +186,7 @@ export function CentralFinanceiraClient(props: CentralFinanceiraProps) {
           <button
             type="button"
             onClick={() => selectTab("despesas")}
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-brand px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-brand-hover"
           >
             <Plus className="size-3.5" />
             Lançar despesa
@@ -209,7 +209,7 @@ export function CentralFinanceiraClient(props: CentralFinanceiraProps) {
               onClick={() => selectTab(tab.id)}
               className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all sm:text-sm ${
                 active
-                  ? "bg-blue-600 text-white shadow-sm"
+                  ? "bg-brand text-white shadow-sm"
                   : "text-ink-muted hover:bg-surface-2 hover:text-ink"
               }`}
             >
@@ -296,7 +296,7 @@ export function CentralFinanceiraClient(props: CentralFinanceiraProps) {
                             <div className="flex items-center gap-2.5">
                               <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
                                 <div
-                                  className="h-full rounded-full bg-blue-600 transition-[width]"
+                                  className="h-full rounded-full bg-brand transition-[width]"
                                   style={{ width: `${mostrar ? pct : 0}%` }}
                                 />
                               </div>
@@ -350,7 +350,7 @@ export function CentralFinanceiraClient(props: CentralFinanceiraProps) {
 
                   <div className="flex items-center justify-between rounded-xl border border-border bg-surface-2/40 px-3.5 py-2.5">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex size-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                      <span className="flex size-8 items-center justify-center rounded-lg bg-brand-soft text-brand">
                         <Armchair className="size-4" />
                       </span>
                       <div>
@@ -364,7 +364,7 @@ export function CentralFinanceiraClient(props: CentralFinanceiraProps) {
                       <p className="text-xs font-bold text-ink">{val(totalPlateia)}</p>
                       <Link
                         href={`/painel/campeonatos/${champSlugOrId}/plateia`}
-                        className="text-[11px] font-semibold text-blue-600 hover:underline"
+                        className="text-[11px] font-semibold text-brand-ink hover:underline"
                       >
                         Ver ingressos →
                       </Link>
@@ -506,11 +506,11 @@ function KpiBox({
   onClick?: () => void;
 }) {
   const accentStyles = {
-    blue: "border-border hover:border-blue-200",
+    blue: "border-border hover:border-brand-border",
     amber: "border-border hover:border-amber-200",
     emerald: "border-emerald-200/80 hover:border-emerald-300",
     rose: "border-rose-200 hover:border-rose-300",
-    slate: "border-border hover:border-blue-200",
+    slate: "border-border hover:border-brand-border",
   }[accent];
 
   const valTone = {
@@ -518,7 +518,7 @@ function KpiBox({
     amber: "text-ink",
     emerald: "text-emerald-600",
     rose: "text-rose-600",
-    slate: "text-blue-700",
+    slate: "text-brand-ink",
   }[accent];
 
   const content = (

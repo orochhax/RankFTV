@@ -86,7 +86,7 @@ export function UserSearchInput({
       )}
 
       {/* Campo visível */}
-      <div className={`relative mt-1 flex items-center rounded-lg border bg-white px-3 py-2 ${open ? "border-blue-500 ring-2 ring-blue-100" : "border-gray-200"}`}>
+      <div className={`relative mt-1 flex items-center rounded-lg border bg-white px-3 py-2 ${open ? "border-brand ring-2 ring-brand-soft" : "border-border"}`}>
         <span className="select-none text-sm text-gray-400">@</span>
         <input
           type="text"
@@ -98,7 +98,7 @@ export function UserSearchInput({
           className="ml-0.5 flex-1 bg-transparent text-sm outline-none"
         />
         {loading && (
-          <span className="ml-2 h-3.5 w-3.5 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+          <span className="ml-2 h-3.5 w-3.5 animate-spin rounded-full border-2 border-brand border-t-transparent" />
         )}
       </div>
 
@@ -118,7 +118,7 @@ export function UserSearchInput({
               <button
                 type="button"
                 onMouseDown={(e) => { e.preventDefault(); handleSelect(u); }}
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-blue-50"
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-brand-soft"
               >
                 <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
                   <User className="size-4 text-gray-400" />
@@ -137,16 +137,16 @@ export function UserSearchInput({
 
       {/* Preview do selecionado */}
       {selected && (
-        <div className="mt-2 flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm">
-          <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-blue-200">
-            <User className="size-3 text-blue-600" />
+        <div className="mt-2 flex items-center gap-2 rounded-lg bg-brand-soft px-3 py-2 text-sm ring-1 ring-brand-border/60">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-border/50">
+            <User className="size-3 text-brand" />
           </div>
-          <span className="font-medium text-blue-800">{selected.nome}</span>
-          <span className="text-blue-500">@{selected.username}</span>
+          <span className="font-medium text-ink">{selected.nome}</span>
+          <span className="text-brand-ink">@{selected.username}</span>
           <button
             type="button"
             onClick={() => { setSelected(null); setQuery(""); }}
-            className="ml-auto text-xs text-blue-400 hover:text-blue-600"
+            className="ml-auto text-xs text-brand-ink/75 hover:text-brand"
           >
             remover
           </button>

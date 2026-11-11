@@ -83,7 +83,7 @@ export default async function MinhasAulasPage({
             <ArrowLeft className="size-4" /> {arena.nome}
           </Link>
           <div className="flex items-center gap-2">
-            <ClipboardList className="size-6 text-blue-400" />
+            <ClipboardList className="size-6 text-accent" />
             <h1 className="text-2xl font-bold tracking-tight text-white">Minhas aulas</h1>
           </div>
           <p className="text-sm text-white/40">Data, horário, professor, público e status de cada presença.</p>

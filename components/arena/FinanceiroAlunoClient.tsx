@@ -77,7 +77,7 @@ export function FinanceiroAlunoClient({
                     {STATUS_COBRANCA_LABEL[item.status]}
                   </span>
                   {retrySet.has(item.id) ? (
-                    <button type="button" onClick={() => retry(item.id)} disabled={pendingRetry && retrying === item.id} className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50">
+                    <button type="button" onClick={() => retry(item.id)} disabled={pendingRetry && retrying === item.id} className="flex items-center gap-1 text-xs font-semibold text-brand-ink hover:text-brand-hover disabled:opacity-50">
                       {pendingRetry && retrying === item.id ? <Loader2 className="size-3.5 animate-spin" /> : <RotateCw className="size-3.5" />}
                       Tentar novamente
                     </button>

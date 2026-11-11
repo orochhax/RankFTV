@@ -9,7 +9,7 @@ import { formatBRL } from "@/lib/format";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-const inputCls = "mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+const inputCls = "mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand";
 const labelCls = "block text-xs font-medium text-gray-500";
 
 // ── tipos ─────────────────────────────────────────────────────────────────────
@@ -89,7 +89,7 @@ function StepPerfil({
               onClick={() => setGenero(g.value)}
               className={`flex-1 rounded-xl border py-2.5 text-sm font-medium transition-colors ${
                 genero === g.value
-                  ? "border-blue-500 bg-blue-50 text-blue-700"
+                  ? "border-brand bg-brand-soft text-brand-ink"
                   : "border-gray-200 text-gray-600 hover:border-gray-300"
               }`}>
               {g.label}
@@ -106,7 +106,7 @@ function StepPerfil({
       )}
 
       <button type="submit"
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3.5 text-sm font-semibold text-white hover:bg-brand-hover transition-colors">
         Continuar <ArrowRight className="size-4" />
       </button>
     </form>
@@ -147,7 +147,7 @@ function StepNivel({ onNext }: { onNext: (data: NivelData) => void }) {
     <button key={value} type="button" onClick={() => setter(value)}
       className={`w-full rounded-xl border px-4 py-2.5 text-left text-sm font-medium transition-colors ${
         current === value
-          ? "border-blue-500 bg-blue-50 text-blue-700"
+          ? "border-brand-border bg-brand-soft text-brand-ink"
           : "border-gray-200 text-gray-600 hover:border-gray-300"
       }`}>
       {label}
@@ -158,7 +158,7 @@ function StepNivel({ onNext }: { onNext: (data: NivelData) => void }) {
     <button key={value} type="button" onClick={() => toggleEsporte(value)}
       className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
         esportes.includes(value)
-          ? "border-blue-500 bg-blue-50 text-blue-700"
+          ? "border-brand-border bg-brand-soft text-brand-ink"
           : "border-gray-200 text-gray-600 hover:border-gray-300"
       }`}>
       {label}
@@ -220,7 +220,7 @@ function StepNivel({ onNext }: { onNext: (data: NivelData) => void }) {
       )}
 
       <button type="submit"
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3.5 text-sm font-semibold text-white hover:bg-brand-hover transition-colors">
         Finalizar <ArrowRight className="size-4" />
       </button>
     </form>
@@ -278,8 +278,8 @@ export function SubscriptionPaymentUI(props: Props) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-brand-dark px-6 py-12">
         <div className="w-full max-w-sm rounded-3xl bg-white p-10 text-center shadow-xl">
-          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-blue-100">
-            <CheckCircle className="size-9 text-blue-500" />
+          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-success-bg">
+            <CheckCircle className="size-9 text-success" />
           </div>
           <h1 className="mt-5 text-xl font-bold text-gray-900">Tudo pronto!</h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -288,7 +288,7 @@ export function SubscriptionPaymentUI(props: Props) {
           </p>
           <button
             onClick={() => { router.push(`/arenas/${handle}`); router.refresh(); }}
-            className="mt-8 block w-full rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+            className="mt-8 block w-full rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-hover"
           >
             Ir para a arena
           </button>
@@ -301,10 +301,10 @@ export function SubscriptionPaymentUI(props: Props) {
   }
 
   const stepIcon = step === "pagamento"
-    ? <CreditCard className="size-5 text-blue-600" />
+    ? <CreditCard className="size-5 text-accent" />
     : step === "perfil"
-    ? <User className="size-5 text-blue-600" />
-    : <Dumbbell className="size-5 text-blue-600" />;
+    ? <User className="size-5 text-accent" />
+    : <Dumbbell className="size-5 text-accent" />;
 
   const stepTitle =
     step === "pagamento" ? planNome :
@@ -333,8 +333,8 @@ export function SubscriptionPaymentUI(props: Props) {
             {stepLabels.map((label, i) => (
               <div key={label} className="flex items-center gap-2">
                 <div className={`flex size-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${
-                  i < stepIndex  ? "bg-blue-500 text-white" :
-                  i === stepIndex ? "bg-white text-gray-900" :
+                  i < stepIndex  ? "bg-brand text-white" :
+                  i === stepIndex ? "bg-white text-ink" :
                   "bg-white/20 text-white/40"
                 }`}>
                   {i < stepIndex ? "✓" : i + 1}
@@ -343,7 +343,7 @@ export function SubscriptionPaymentUI(props: Props) {
                   i === stepIndex ? "text-white" : "text-white/40"
                 }`}>{label}</span>
                 {i < stepLabels.length - 1 && (
-                  <div className={`h-px w-8 ${i < stepIndex ? "bg-blue-500" : "bg-white/20"}`} />
+                  <div className={`h-px w-8 ${i < stepIndex ? "bg-brand" : "bg-white/20"}`} />
                 )}
               </div>
             ))}

@@ -49,7 +49,7 @@ export function IngressoPlateiaForm({
   const total = calcularTotalComprador(valorFinal, "pix", isElite);
 
   const input =
-    "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "w-full rounded-lg border border-border px-3 py-2.5 text-sm text-ink placeholder:text-ink-muted/70 focus:outline-none focus:ring-2 focus:ring-brand";
 
   return (
     <form
@@ -92,11 +92,11 @@ export function IngressoPlateiaForm({
             <div
               key={t.id}
               className={`flex items-center justify-between gap-3 rounded-2xl border p-4 transition-colors ${
-                q > 0 ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white"
+                q > 0 ? "border-brand bg-brand-soft" : "border-border bg-surface"
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${q > 0 ? "bg-blue-600" : "bg-gray-100"}`}>
+                <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${q > 0 ? "bg-brand" : "bg-surface-2"}`}>
                   <Ticket className={`size-5 ${q > 0 ? "text-white" : "text-gray-400"}`} />
                 </div>
                 <div className="min-w-0">
@@ -174,7 +174,7 @@ export function IngressoPlateiaForm({
             <span>{totalQty} {totalQty === 1 ? "ingresso" : "ingressos"}</span><span>{formatBRL(totalBase)}</span>
           </div>
           {cupom && (
-            <div className="mt-1 flex items-center justify-between text-blue-600">
+            <div className="mt-1 flex items-center justify-between text-brand-ink">
               <span>Cupom {cupom.codigo}</span><span>- {formatBRL(cupom.desconto)}</span>
             </div>
           )}
@@ -191,21 +191,21 @@ export function IngressoPlateiaForm({
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 ring-1 ring-red-100">{state.error}</p>
       )}
 
-      <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+      <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-surface p-4">
         <input
           type="checkbox"
           ref={consentRef}
           name="aceite_termos"
           required
-          className="mt-0.5 size-4 shrink-0 cursor-pointer accent-blue-600"
+          className="mt-0.5 size-4 shrink-0 cursor-pointer accent-brand"
         />
-        <span className="text-sm leading-relaxed text-gray-600">
+        <span className="text-sm leading-relaxed text-ink-muted">
           Li e concordo com os{" "}
-          <Link href="/termos" target="_blank" className="font-medium text-blue-600 underline hover:text-blue-700">
+          <Link href="/termos" target="_blank" className="font-medium text-brand-ink underline hover:text-brand">
             Termos de Uso
           </Link>{" "}
           e com a{" "}
-          <Link href="/privacidade" target="_blank" className="font-medium text-blue-600 underline hover:text-blue-700">
+          <Link href="/privacidade" target="_blank" className="font-medium text-brand-ink underline hover:text-brand">
             Política de Privacidade
           </Link>{" "}
           da RankFTV.
@@ -215,7 +215,7 @@ export function IngressoPlateiaForm({
       <button
         type="submit"
         disabled={pending || totalQty === 0}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
       >
         {pending && <Loader2 className="size-4 animate-spin" />}
         {totalQty === 0

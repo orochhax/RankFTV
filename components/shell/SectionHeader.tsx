@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react";
 // grid, com um link "Ver todos" opcional à direita).
 export function SectionHeader({
   icon: Icon,
-  iconClassName = "size-4 text-blue-600",
+  iconClassName = "size-4 text-brand",
   title,
   actionLabel,
   actionHref,
@@ -28,7 +28,7 @@ export function SectionHeader({
       {actionLabel && actionHref && (
         <Link
           href={actionHref}
-          className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
+          className="inline-flex items-center gap-1 text-sm font-medium text-brand-ink hover:text-brand"
         >
           {actionLabel} <ChevronRight className="size-3.5" />
         </Link>

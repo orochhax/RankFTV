@@ -151,7 +151,7 @@ export function RelatoriosCustomPanel({
           <div className="space-y-3 border-t border-border/70 pt-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-muted">
-                <Calendar className="size-3.5 text-blue-600" />
+                <Calendar className="size-3.5 text-brand-ink" />
                 1. Intervalo de datas
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -164,7 +164,7 @@ export function RelatoriosCustomPanel({
                     key={preset.label}
                     type="button"
                     onClick={() => applyQuickDays(preset.days)}
-                    className="rounded-lg border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-semibold text-ink-muted transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                    className="rounded-lg border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-semibold text-ink-muted transition-colors hover:border-brand-border hover:bg-brand-soft hover:text-brand-ink"
                   >
                     {preset.label}
                   </button>
@@ -182,7 +182,7 @@ export function RelatoriosCustomPanel({
                     setStartDate(e.target.value);
                     setPreviewRows(null);
                   }}
-                  className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
                 />
               </label>
               <label className="text-xs font-medium text-ink-muted">
@@ -194,7 +194,7 @@ export function RelatoriosCustomPanel({
                     setEndDate(e.target.value);
                     setPreviewRows(null);
                   }}
-                  className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
                 />
               </label>
             </div>
@@ -215,11 +215,11 @@ export function RelatoriosCustomPanel({
                     onClick={() => toggleSection(opt.key)}
                     className={`rounded-xl border p-3 text-left transition-all ${
                       checked
-                        ? "border-blue-500 bg-blue-50/60 ring-1 ring-blue-500/30"
+                        ? "border-brand bg-brand-soft/70 ring-1 ring-brand/30"
                         : "border-border bg-surface hover:bg-surface-2/60"
                     }`}
                   >
-                    <p className={`text-sm font-semibold ${checked ? "text-blue-800" : "text-ink"}`}>
+                    <p className={`text-sm font-semibold ${checked ? "text-brand-ink" : "text-ink"}`}>
                       {opt.label}
                     </p>
                     <p className="mt-0.5 text-[11px] text-ink-muted">{opt.hint}</p>
@@ -244,7 +244,7 @@ export function RelatoriosCustomPanel({
                     onClick={() => toggleField(fieldKey)}
                     className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
                       active
-                        ? "border-blue-600 bg-blue-600 text-white"
+                        ? "border-brand bg-brand text-white"
                         : "border-border bg-surface text-ink-muted hover:text-ink"
                     }`}
                   >
@@ -299,7 +299,7 @@ export function RelatoriosCustomPanel({
               <>
                 <div className="my-1 border-t border-border/70 pt-1.5 flex justify-between">
                   <span className="text-ink-muted">Registros encontrados</span>
-                  <span className="font-bold text-blue-700">{previewRows.length}</span>
+                  <span className="font-bold text-brand-ink">{previewRows.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-ink-muted">Saldo líquido filtrado</span>
@@ -314,7 +314,7 @@ export function RelatoriosCustomPanel({
               type="button"
               onClick={handleExportPdf}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-hover disabled:opacity-50"
             >
               <FileText className="size-4" />
               Gerar PDF Executivo (A4)
@@ -322,7 +322,7 @@ export function RelatoriosCustomPanel({
 
             <a
               href={buildUrl("csv")}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-brand-border hover:bg-brand-soft hover:text-brand-ink"
             >
               <FileSpreadsheet className="size-4 text-emerald-600" />
               Baixar CSV Personalizado (Excel)
@@ -338,7 +338,7 @@ export function RelatoriosCustomPanel({
                 <a
                   key={item.tipo}
                   href={`/api/campeonatos/${champId}/relatorios/${item.tipo}`}
-                  className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-2 hover:text-blue-700"
+                  className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-2 hover:text-brand-ink"
                 >
                   <span>{item.label}</span>
                   <Download className="size-3.5" />

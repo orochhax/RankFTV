@@ -18,18 +18,18 @@ const MONTHS = [
 
 // Cor de cada status — a "bolinha" do evento e o bloco de data na lista.
 const STATUS_STYLE: Record<ChampionshipStatus, { dot: string; block: string }> = {
-  inscricoes_abertas: { dot: "bg-blue-500", block: "bg-blue-500 text-white" },
+  inscricoes_abertas: { dot: "bg-brand", block: "bg-brand text-white" },
   em_andamento:       { dot: "bg-amber-500",   block: "bg-amber-500 text-white" },
   encerrado:          { dot: "bg-gray-400",    block: "bg-gray-200 text-gray-600" },
   rascunho:           { dot: "bg-gray-400",    block: "bg-gray-200 text-gray-600" },
 };
 
-// Cor do bloco de data por circuito (substitui o verde padrão de status).
+// Cor do bloco de data por circuito (substitui o padrão de status).
 const CIRCUITO_BLOCK: Record<string, string> = {
-  "Brasil Open":                      "bg-gradient-to-b from-blue-600 via-yellow-400 to-blue-500 text-white",
+  "Brasil Open":                      "bg-gradient-to-b from-emerald-700 via-yellow-400 to-brand-dark text-white",
   "Big WolfCup":                      "bg-gray-500 text-white",
-  "TAFC":                             "bg-gray-900 text-white",
-  "Circuito Brasileiro de Futevôlei": "bg-blue-700 text-white",
+  "TAFC":                             "bg-brand-dark text-white",
+  "Circuito Brasileiro de Futevôlei": "bg-brand-dark-2 text-white",
 };
 
 function parseDate(iso: string): Date {
@@ -131,7 +131,7 @@ export function AgendaView({
         <PageContainer width="wide">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-400">Calendário</p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-accent">Calendário</p>
               <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">Agenda</h1>
               <p className="mt-1 text-sm text-white/50">Datas, etapas e circuitos de futevôlei em todo o Brasil.</p>
             </div>
@@ -140,7 +140,7 @@ export function AgendaView({
                 type="button"
                 onClick={() => setView("lista")}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                  view === "lista" ? "bg-blue-600 text-white" : "text-white/70 hover:text-white"
+                  view === "lista" ? "bg-brand text-white" : "text-white/70 hover:text-white"
                 }`}
               >
                 <List className="size-4" /> Lista
@@ -149,7 +149,7 @@ export function AgendaView({
                 type="button"
                 onClick={() => setView("calendario")}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                  view === "calendario" ? "bg-blue-600 text-white" : "text-white/70 hover:text-white"
+                  view === "calendario" ? "bg-brand text-white" : "text-white/70 hover:text-white"
                 }`}
               >
                 <CalendarDays className="size-4" /> Calendário
@@ -169,7 +169,7 @@ export function AgendaView({
               aria-pressed={showFinished}
               className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                 showFinished
-                  ? "bg-blue-600 text-white"
+                  ? "bg-brand text-white"
                   : "bg-surface-2 text-ink-muted ring-1 ring-border hover:bg-border/40"
               }`}
             >
@@ -361,11 +361,11 @@ function CalendarView({
                 onClick={() => setSelected(iso)}
                 className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-lg text-sm transition-colors ${
                   isSelected
-                    ? "bg-blue-600 text-white"
+                    ? "bg-brand text-white"
                     : hasEvents
-                      ? "bg-blue-50 text-ink hover:bg-blue-100"
+                      ? "bg-brand-soft text-ink hover:bg-brand-border/40"
                       : "text-ink-muted"
-                } ${isToday && !isSelected ? "ring-1 ring-blue-400" : ""}`}
+                } ${isToday && !isSelected ? "ring-1 ring-brand" : ""}`}
               >
                 <span className={isToday ? "font-bold" : ""}>{day}</span>
                 {hasEvents && (

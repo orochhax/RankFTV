@@ -5,6 +5,27 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-11 20:20 (America/Sao_Paulo) — Aplicação completa da Nova Identidade Visual Oficial (Forest Teal + Light Beige + Lime Green + Vivid Orange)
+
+- **Tokens, CSS global e preservação do Life OS (`app/globals.css`):** atualizados `--color-app-bg` (`#FBE9D1`), `--color-surface` (`#FFFFFF`), `--color-surface-2` (`#FFF8EE`), `--color-border` (`#E5CFAF`), `--color-ink` (`#0E4937`), `--color-ink-muted` (`#3E685A`), `--color-brand-dark` (`#0E4937`), `--color-brand-dark-2` (`#155C46`), sombras (`rgba(14, 73, 55, ...)`), tokens semânticos de marca/acento (`--color-brand` `#FF5D00`, `--color-brand-hover` `#E05100`, `--color-brand-ink` `#B84300`, `--color-brand-soft` `#FFF0E6`, `--color-brand-border` `#FFB385`, `--color-accent` `#72BF00`, `--color-accent-ink` `#092B20`, `--color-accent-soft` `#EAF8D2`, `--color-accent-border` `#97D439`) e feixes animados (`#72BF00 -> #FF5D00`) na sidebar desktop e contorno das sheets. Seção `.life-os-theme` e rotas pessoais (`/admin/{evolucao,gasto-mensal,youtube,performance}`) preservadas integralmente.
+- **Logotipo, navegação e páginas comerciais (`app/`, `components/`, `lib/`):**
+  - Ícones `app/icon.png` e `public/brand-icon.png` recoloridos de `#0000FF` para `#FF5D00` com estrela branca; wordmarks atualizados (`Rank` branco + `FTV` `#72BF00` sobre `#0E4937`; `Rank` `#0E4937` + `FTV` `#FF5D00` sobre fundo claro); pill `Rank FTV` e aba ativa da `BottomNav` em `#FF5D00`.
+  - Migração sistemática de classes `blue-*`, `indigo-*`, `bg-gray-900` estrutural, `bg-slate-9*` e hexes legados em shell, Home, listagem e detalhe de campeonatos, chaveamento (UI em `BracketView.tsx` + exportador SVG `lib/bracket-export.ts`), `/para-voce`, autenticação/FocusedLayout, perfil visitante/autenticado, Painel do Organizador (preservando cards DRE/financeiros em fundo branco limpo), módulo Arena/Arenas, Admin comercial e e-mails transacionais (`lib/email/templates.ts`).
+  - Detalhe do campeonato (`app/campeonatos/[id]/page.tsx`): CTA `Sou atleta` atualizado para gradiente suave `#FFF3EB -> #FFFFFF` com borda `2px` `#FF5D00` e selo `INSCRIÇÃO` `#72BF00`/`#092B20`; `Vou assistir o evento` em `bg-brand-dark` (`#0E4937`) + detalhe `#72BF00`; `Ver ao vivo` preservado em branco com borda/pulso `#DC2626`.
+  - Regra estrita de contraste verificada: `#72BF00` como cor de texto restrito a superfícies escuras `#0E4937` e sempre pareado com `#092B20` quando usado como fundo (`bg-accent`).
+  - Atualização de asserções nos testes `lib/checkin-flow.test.ts` (`text-brand-ink`) e `lib/guest-profile-and-promo.test.ts` (`md:max-w-[780px]`).
+- **Artes oficiais da Home e ícone `R` integrados (20:30, `America/Sao_Paulo`):**
+  - Substituídos `public/banners/para-organizadores-arenas-desktop.webp` (`1600x460`, 72 KB) e `public/banners/para-organizadores-arenas-mobile.webp` (`1200x800`, 76 KB) com composição nas novas cores Forest Teal + Lime Green + Vivid Orange.
+  - Atualizados `PromoOrganizadoresBanner.tsx` (`width/height` `1600x460` desktop e `1200x800` mobile, `alt` sincronizado), `app/page.tsx` (`md:max-w-[840px]`, resultando em `840x243` no desktop `1440px` — horizontal amplo e altura enxuta) e `lib/guest-profile-and-promo.test.ts` (`md:max-w-[840px]`).
+  - Integrado o `R` original recolorido em `#FF5D00` com estrela vazada em `app/icon.png` (`512x512`) e recortado exatamente pelo bounding box (`448x424`) em `public/brand-icon.png` para preencher os selos circulares sem encolhimento por margem transparente.
+- **Validação local (worktree `v1-wallet-release-clean`, branch `feat/paleta-forest-teal-vivid-orange`):**
+  - Varredura `git grep` nas áreas comerciais sem ocorrências residuais de `blue-*`, `indigo-*`, `#0000ff`, `#202020`, `#17191f`, `#f3f5fa` ou `bg-gray-900`.
+  - `npm test`: `963` testes em `112` suítes (`962` pass, `0` fail, `1` skipped pré-existente).
+  - `npm run typecheck`: `0` erros.
+  - `npm run lint`: `0` erros (`1378` warnings pré-existentes).
+  - `npm run build`: concluído com sucesso (`79/79` rotas).
+  - Auditoria visual Playwright headless contra `http://localhost:3000` (`next start` pós-build com `.next/cache/images` limpo): desktop (`1440x900`, banner `840x243`) e mobile (`440x956`, banner `408x273`) confirmaram sidebar `#0E4937`, fundo `#FBE9D1`, nova arte dos banners, ícone `R` `#FF5D00` com estrela vazada, `0` elementos `rgb(0, 0, 255)`, `0` violações de contraste e `0` erros de página/JS.
+
 ## 2026-11-11 18:32 (America/Sao_Paulo) — Banner 3D responsivo na Home (artes Desktop + Mobile e destaque seletivo)
 
 - **Duas artes dedicadas full-bleed:** criadas e otimizadas em `.webp` sem moldura externa desperdiçada: `public/banners/para-organizadores-arenas-desktop.webp` (`1376x628`, `2.19:1` widescreen) e `public/banners/para-organizadores-arenas-mobile.webp` (`1264x848`, `1.49:1` compacta), destacando em azul apenas as palavras `"Campeonato"` e `"Arena"`.

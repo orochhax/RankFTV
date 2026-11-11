@@ -111,7 +111,7 @@ export function CampeonatosSection({
                 <h2 className="text-base font-semibold text-ink">Campeonatos</h2>
                 <p className="text-xs text-gray-500">{filtrados.length} {filtrados.length === 1 ? "resultado" : "resultados"}</p>
               </div>
-              {temFiltro && <a href="#campeonatos" className="text-xs font-medium text-blue-600">Ver resultados</a>}
+              {temFiltro && <a href="#campeonatos" className="text-xs font-medium text-brand-ink hover:text-brand">Ver resultados</a>}
             </div>
 
             {intervaloInvalido || filtrados.length === 0 ? (
@@ -133,7 +133,7 @@ export function CampeonatosSection({
               <h2 className="text-base font-semibold text-ink">Campeonatos</h2>
               <p className="text-xs text-gray-500">{filtrados.length} {filtrados.length === 1 ? "resultado" : "resultados"}</p>
             </div>
-            {temFiltro && <a href="#campeonatos" className="text-xs font-medium text-blue-600">Ver resultados</a>}
+            {temFiltro && <a href="#campeonatos" className="text-xs font-medium text-brand-ink hover:text-brand">Ver resultados</a>}
           </div>
 
           {intervaloInvalido || filtrados.length === 0 ? (

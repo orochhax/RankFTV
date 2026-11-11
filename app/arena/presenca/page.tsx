@@ -29,7 +29,7 @@ export default async function PresencaPage() {
         </p>
         <Link
           href="/arenas"
-          className="mt-4 inline-block rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+          className="mt-4 inline-block rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
         >
           Ver arenas
         </Link>

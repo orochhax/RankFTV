@@ -56,7 +56,7 @@ const STATUS_BADGE: Record<WaitlistEntryItem["status"], { label: string; cls: st
   },
   invited: {
     label: "Convidado",
-    cls: "border-blue-200 bg-blue-50 text-blue-700",
+    cls: "border-brand-border bg-brand-soft text-brand-ink",
   },
   converted: {
     label: "Convertido",
@@ -154,7 +154,7 @@ export function ListaEsperaClient({
             <span className="text-xs font-bold uppercase tracking-wider text-ink-muted">
               Convites ativos (24h)
             </span>
-            <Clock3 className="size-4 text-blue-600" />
+            <Clock3 className="size-4 text-brand" />
           </div>
           <p className="mt-2 text-2xl font-bold text-ink">{totalInvited}</p>
           <p className="mt-0.5 text-xs text-ink-muted">Aguardando conclusão da inscrição</p>
@@ -181,7 +181,7 @@ export function ListaEsperaClient({
             <div
               key={cat.id}
               className={`flex flex-col justify-between gap-3 rounded-2xl border p-4 transition-colors ${
-                active ? "border-blue-400 bg-blue-50/30" : "border-border bg-surface"
+                active ? "border-brand bg-brand-soft/40" : "border-border bg-surface"
               }`}
             >
               <div className="flex items-start justify-between gap-3">
@@ -192,7 +192,7 @@ export function ListaEsperaClient({
                   }
                   className="text-left"
                 >
-                  <p className="font-bold text-ink hover:text-blue-700">{cat.nome}</p>
+                  <p className="font-bold text-ink hover:text-brand-ink">{cat.nome}</p>
                   <div className="mt-1 flex flex-wrap gap-2 text-xs text-ink-muted">
                     <span>{stats.waiting} aguardando</span>
                     <span>·</span>
@@ -220,7 +220,7 @@ export function ListaEsperaClient({
                     <input type="hidden" name="category_id" value={cat.id} />
                     <button
                       type="submit"
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
                     >
                       <Send className="size-3.5" />
                       Convidar #1 próximo
@@ -243,7 +243,7 @@ export function ListaEsperaClient({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar e-mail ou categoria..."
-              className="w-full rounded-xl border border-border bg-surface pl-9 pr-3 py-2 text-sm text-ink outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-border bg-surface pl-9 pr-3 py-2 text-sm text-ink outline-none focus:border-brand"
             />
           </div>
 
@@ -251,7 +251,7 @@ export function ListaEsperaClient({
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-blue-500"
+              className="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-brand"
             >
               <option value="todas">Todas as categorias</option>
               {categories.map((cat) => (
@@ -266,7 +266,7 @@ export function ListaEsperaClient({
               onChange={(e) =>
                 setStatusFilter(e.target.value as "todos" | WaitlistEntryItem["status"])
               }
-              className="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-blue-500"
+              className="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-brand"
             >
               <option value="todos">Todos os status</option>
               <option value="waiting">Aguardando</option>
@@ -306,7 +306,7 @@ export function ListaEsperaClient({
                     <tr key={entry.id} className="hover:bg-surface-2/40">
                       <td className="px-4 py-3 font-bold text-ink">
                         {pos ? (
-                          <span className="inline-flex size-7 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">
+                          <span className="inline-flex size-7 items-center justify-center rounded-full bg-brand-soft text-xs font-bold text-brand-ink">
                             #{pos}
                           </span>
                         ) : (
@@ -327,7 +327,7 @@ export function ListaEsperaClient({
                         {countdown && (
                           <div
                             className={`mt-0.5 inline-flex items-center gap-1 font-semibold ${
-                              countdown.expired ? "text-rose-600" : "text-blue-600"
+                              countdown.expired ? "text-rose-600" : "text-brand-ink"
                             }`}
                           >
                             <Timer className="size-3" />

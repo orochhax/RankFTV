@@ -103,7 +103,7 @@ export default async function StaffCampPage({
           <div className="flex items-center gap-3 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
             <Avatar
               nome={meuPerfil?.nome ?? "Staff"}
-              color="bg-blue-600"
+              color="bg-brand"
               size="sm"
               fotoUrl={meuPerfil?.foto_url}
             />
@@ -125,7 +125,7 @@ export default async function StaffCampPage({
               const inner = (
                 <>
                   <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${
-                    enabled ? "bg-blue-600" : "bg-gray-200"
+                    enabled ? "bg-brand" : "bg-surface-2"
                   }`}>
                     <Icon className={`size-5 ${enabled ? "text-white" : "text-gray-400"}`} strokeWidth={1.8} />
                   </div>

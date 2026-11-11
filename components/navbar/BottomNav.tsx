@@ -31,12 +31,12 @@ export function BottomNav({
     : base;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-1.5 pb-[calc(1rem+env(safe-area-inset-bottom))] md:hidden bg-gradient-to-t from-white via-white/95 to-transparent pt-6">
+    <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-1.5 pb-[calc(1rem+env(safe-area-inset-bottom))] md:hidden bg-gradient-to-t from-app-bg via-app-bg/95 to-transparent pt-6">
       {/* Logo + sino acima da pill de navegação */}
       <div className="flex items-center gap-2">
         <Link
           href="/"
-          className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-blue-600/30 select-none hover:bg-blue-500 transition-colors"
+          className="rounded-full bg-brand px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand/30 select-none hover:bg-brand-hover transition-colors"
         >
           Rank <span className="font-black">FTV</span>
         </Link>
@@ -79,8 +79,8 @@ export function BottomNav({
                 aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-1.5 rounded-full px-2 py-2.5 text-sm font-medium transition-colors min-[360px]:px-2.5 min-[420px]:px-3 ${
                   active
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-500 hover:text-gray-900"
+                    ? "bg-brand text-white"
+                    : "text-ink-muted hover:text-ink"
                 }`}
               >
                 <Icon className="size-5" strokeWidth={2} />

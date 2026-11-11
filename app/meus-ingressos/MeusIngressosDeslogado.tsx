@@ -69,7 +69,7 @@ export function MeusIngressosDeslogado() {
   }
 
   const input =
-    "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "w-full rounded-lg border border-border px-3 py-2.5 text-sm text-ink placeholder:text-ink-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft";
 
   return (
     <>
@@ -107,7 +107,7 @@ export function MeusIngressosDeslogado() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
             >
               {loading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
               Enviar código pro meu e-mail
@@ -116,7 +116,7 @@ export function MeusIngressosDeslogado() {
         ) : (
           <form onSubmit={verificarCodigo} className="space-y-4">
             {aviso && (
-              <p className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700 ring-1 ring-blue-100">
+              <p className="flex items-center gap-2 rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand-ink ring-1 ring-brand-border">
                 <ShieldCheck className="size-4 shrink-0" /> {aviso}
               </p>
             )}
@@ -141,7 +141,7 @@ export function MeusIngressosDeslogado() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
             >
               {loading ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
               Confirmar código

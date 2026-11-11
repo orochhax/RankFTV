@@ -96,7 +96,7 @@ export default async function TesteHomeMobilePage({
           </div>
           <Link
             href="/"
-            className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             aria-label="RankFTV — início"
           >
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white shadow-soft shadow-black/40">
@@ -110,7 +110,7 @@ export default async function TesteHomeMobilePage({
               />
             </span>
             <span className="text-xl font-black tracking-[-0.03em] text-white">
-              Rank<span className="text-blue-600">FTV</span>
+              Rank<span className="text-accent">FTV</span>
             </span>
           </Link>
           <Link
@@ -129,11 +129,11 @@ export default async function TesteHomeMobilePage({
 
         {profile ? (
           <div className="flex items-center gap-4">
-            <Avatar nome={profile.nome} color="bg-blue-500" size="lg" fotoUrl={profile.foto_url} />
+            <Avatar nome={profile.nome} color="bg-brand" size="lg" fotoUrl={profile.foto_url} />
             <div className="flex-1">
-              <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Bem-vindo</p>
+              <p className="text-[11px] font-semibold tracking-widest text-accent uppercase">Bem-vindo</p>
               <h1 className="text-2xl font-bold tracking-tight text-white">{profile.nome.split(" ")[0]}</h1>
-              <p className="text-sm text-gray-400">@{profile.username}</p>
+              <p className="text-sm text-white/72">@{profile.username}</p>
             </div>
           </div>
         ) : (
@@ -158,7 +158,13 @@ export default async function TesteHomeMobilePage({
           viewBox="0 0 430 28"
           preserveAspectRatio="none"
         >
-          <path d="M0 28 A28 28 0 0 1 28 0 H402 A28 28 0 0 1 430 28" pathLength="100" />
+          <defs>
+            <linearGradient id="rankftv-test-mobile-beam" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#72bf00" />
+              <stop offset="100%" stopColor="#ff5d00" />
+            </linearGradient>
+          </defs>
+          <path d="M0 28 A28 28 0 0 1 28 0 H402 A28 28 0 0 1 430 28" pathLength="100" stroke="url(#rankftv-test-mobile-beam)" />
         </svg>
         <PageContainer width="wide">
           <CampeonatosSection
@@ -187,16 +193,16 @@ export default async function TesteHomeMobilePage({
             ) : null}
             sidebar={(
               <Surface padding="md" className="home-quick-access relative sticky top-6 overflow-hidden text-white shadow-soft shadow-black/20">
-                <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 via-blue-400 to-transparent" />
+                <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent via-brand to-transparent" />
                 <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-                  <span aria-hidden="true" className="size-2 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(77,77,255,0.9)]" />
+                  <span aria-hidden="true" className="size-2 rounded-full bg-accent shadow-[0_0_12px_rgba(114,191,0,0.85)]" />
                   Acesso rápido
                 </p>
                 <ul className="space-y-1">
                   {quickLinks.map(({ href, label, icon: Icon }) => (
                     <li key={href}>
-                      <Link href={href} className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-blue-950/70 hover:text-white">
-                        <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400 ring-1 ring-blue-500/20 transition-colors group-hover:bg-blue-600 group-hover:text-white"><Icon className="size-4" /></span>
+                      <Link href={href} className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm text-white/80 transition-colors hover:bg-brand-dark-2 hover:text-white">
+                        <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-white/10 text-accent ring-1 ring-white/15 transition-colors group-hover:bg-brand group-hover:text-white"><Icon className="size-4" /></span>
                         {label}
                       </Link>
                     </li>

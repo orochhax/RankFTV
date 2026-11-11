@@ -11,10 +11,10 @@ import {
 const initial: PublicarState = {};
 
 const inputClass =
-  "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand";
 
 const selectClass =
-  "mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand";
 
 const PARCELAS = [
   { value: "1",  label: "Só à vista (1x)" },
@@ -83,7 +83,7 @@ export function PublicarCampeonatoForm({
           <div>
             <Link
               href={`/perfil/ativar-organizador?champId=${championshipId}`}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand-hover transition-colors"
             >
               {bloqueadoKyc.status === "em_analise"
                 ? "Acompanhar análise"
@@ -184,7 +184,7 @@ export function PublicarCampeonatoForm({
           name="aceito_termos"
           checked={aceito}
           onChange={(e) => setAceito(e.target.checked)}
-          className="mt-0.5 size-4 shrink-0 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          className="mt-0.5 size-4 shrink-0 rounded border-gray-300 text-brand focus:ring-brand"
         />
         <span className="text-sm text-gray-600">
           Li e aceito os{" "}
@@ -192,7 +192,7 @@ export function PublicarCampeonatoForm({
             href="/termos"
             target="_blank"
             rel="noreferrer"
-            className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+            className="font-semibold text-brand-ink hover:text-brand hover:underline"
           >
             Termos de uso ↗
           </Link>{" "}
@@ -207,7 +207,7 @@ export function PublicarCampeonatoForm({
       <button
         type="submit"
         disabled={pending || !aceito || temBloqueioKyc}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? (
           <Loader2 className="size-4 animate-spin" />

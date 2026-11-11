@@ -38,11 +38,11 @@ export function ArenaRoiSimulator() {
   };
 
   return (
-    <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-b from-blue-50/50 via-white to-white p-6 shadow-sm md:p-8">
+    <div className="rounded-3xl border border-brand-border bg-gradient-to-b from-brand-soft/60 via-white to-white p-6 shadow-sm md:p-8">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">
-            <Sparkles className="size-3.5 text-blue-600" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-xs font-bold text-brand-ink">
+            <Sparkles className="size-3.5 text-brand" />
             Simulador de Retorno da Arena
           </span>
           <h3 className="mt-2 text-xl font-black text-gray-900 md:text-2xl">
@@ -68,7 +68,7 @@ export function ArenaRoiSimulator() {
             sliderMax={180}
             step={1}
             suffix="alunos"
-            accentColor="blue"
+            accentColor="brand"
             marks={["1 aluno", "90 alunos", `${Math.max(180, alunos)} alunos`]}
           />
 
@@ -82,7 +82,7 @@ export function ArenaRoiSimulator() {
             sliderMax={350}
             step={5}
             prefix="R$"
-            accentColor="blue"
+            accentColor="brand"
             marks={["R$ 0", "R$ 175", `R$ ${Math.max(350, mensalidade)}`]}
           />
 
@@ -96,7 +96,7 @@ export function ArenaRoiSimulator() {
             sliderMax={50}
             step={1}
             suffix="h/sem"
-            accentColor="blue"
+            accentColor="brand"
             marks={["0h", "25h", `${Math.max(50, horasQuadra)}h`]}
           />
 
@@ -110,7 +110,7 @@ export function ArenaRoiSimulator() {
             sliderMax={150}
             step={5}
             prefix="R$"
-            accentColor="blue"
+            accentColor="brand"
             marks={["R$ 0", "R$ 75", `R$ ${Math.max(150, valorHora)}`]}
           />
         </div>

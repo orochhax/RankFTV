@@ -253,7 +253,7 @@ export default async function ChaveamentoPage({
                   href={`/painel/campeonatos/${publicSlug}/chaveamento?cat=${c.id}`}
                   className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                     activeCatId === c.id
-                      ? "bg-blue-600 text-white"
+                      ? "bg-brand text-white"
                       : "bg-surface-2 text-ink-muted hover:bg-border/60"
                   }`}
                 >

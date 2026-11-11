@@ -93,7 +93,7 @@ export function GestaoTiposIngresso({
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Inteira, Meia, VIP..."
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
           <div className="w-28">
@@ -103,14 +103,14 @@ export function GestaoTiposIngresso({
               onChange={(e) => setValor(e.target.value)}
               inputMode="numeric"
               placeholder="0"
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
           <button
             type="button"
             onClick={adicionar}
             disabled={pending}
-            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+            className="flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-60"
           >
             {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
             Adicionar

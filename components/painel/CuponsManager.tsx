@@ -87,7 +87,7 @@ export function CuponsManager({ champId, cupons }: { champId: string; cupons: Cu
   }
 
   const input =
-    "mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand";
   const select = `${input} bg-white`;
 
   return (
@@ -104,7 +104,7 @@ export function CuponsManager({ champId, cupons }: { champId: string; cupons: Cu
                     <p className={`font-mono font-semibold ${c.ativo ? "text-gray-900" : "text-gray-400 line-through"}`}>
                       {c.codigo}
                     </p>
-                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
+                    <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand-ink">
                       -{fmtDesconto(c)}
                     </span>
                   </div>
@@ -145,14 +145,14 @@ export function CuponsManager({ champId, cupons }: { champId: string; cupons: Cu
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 lg:order-2 lg:sticky lg:top-4"
+          className="flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover lg:order-2 lg:sticky lg:top-4"
         >
           <Plus className="size-4" /> Novo cupom
         </button>
       ) : (
         <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5 lg:order-2 lg:sticky lg:top-4">
           <div className="flex items-center gap-2">
-            <Tag className="size-4 text-blue-500" />
+            <Tag className="size-4 text-brand" />
             <p className="text-sm font-semibold text-gray-700">Novo cupom</p>
           </div>
 
@@ -224,7 +224,7 @@ export function CuponsManager({ champId, cupons }: { champId: string; cupons: Cu
               type="button"
               onClick={adicionar}
               disabled={pending}
-              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              className="flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-60"
             >
               {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
               Criar cupom

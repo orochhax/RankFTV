@@ -79,7 +79,7 @@ export function ChampionshipCard({ championship: c }: { championship: Championsh
 
       {/* Info */}
       <div className="p-3">
-        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900 group-hover:text-blue-600">
+        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-ink group-hover:text-brand">
           {c.nome}
         </h3>
         <p className="mt-1.5 flex items-center gap-1 text-xs text-gray-400">
@@ -93,7 +93,7 @@ export function ChampionshipCard({ championship: c }: { championship: Championsh
           </p>
         )}
         {lowestPrice !== null && (
-          <p className="mt-2 text-xs font-semibold text-blue-600">
+          <p className="mt-2 text-xs font-semibold text-brand-ink">
             {lowestPrice <= 0 ? "Inscrição grátis" : `A partir de ${formatBRL(lowestPrice)}`}
           </p>
         )}

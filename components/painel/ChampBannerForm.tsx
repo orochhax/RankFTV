@@ -103,7 +103,7 @@ export function ChampBannerForm({
             <button
               type="button"
               onClick={() => { inputRef.current?.click(); setMenuOpen(false); }}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-medium text-white hover:bg-brand-hover transition-colors"
             >
               <ImagePlus className="size-4" />
               {preview ? "Alterar banner" : "Adicionar banner"}

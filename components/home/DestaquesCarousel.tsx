@@ -15,15 +15,15 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
   return (
     <section className="min-w-0 max-w-full space-y-4 overflow-hidden" aria-label="Campeonatos em destaque">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-gray-900">Campeonatos em destaque</h2>
+        <h2 className="text-base font-semibold text-ink">Campeonatos em destaque</h2>
         <div className="flex items-center gap-2">
           {camps.length > 1 && (
             <div className="hidden items-center gap-1 md:flex">
-              <button type="button" onClick={carousel.previous} aria-label="Campeonato anterior" className="flex size-8 items-center justify-center rounded-full bg-white text-gray-600 ring-1 ring-black/10 hover:text-blue-600"><ChevronLeft className="size-4" /></button>
-              <button type="button" onClick={carousel.next} aria-label="Próximo campeonato" className="flex size-8 items-center justify-center rounded-full bg-white text-gray-600 ring-1 ring-black/10 hover:text-blue-600"><ChevronRight className="size-4" /></button>
+              <button type="button" onClick={carousel.previous} aria-label="Campeonato anterior" className="flex size-8 items-center justify-center rounded-full bg-white text-ink-muted ring-1 ring-border hover:text-brand"><ChevronLeft className="size-4" /></button>
+              <button type="button" onClick={carousel.next} aria-label="Próximo campeonato" className="flex size-8 items-center justify-center rounded-full bg-white text-ink-muted ring-1 ring-border hover:text-brand"><ChevronRight className="size-4" /></button>
             </div>
           )}
-          <Link href="/campeonatos" className="flex items-center gap-0.5 text-sm font-medium text-blue-600 hover:text-blue-700">Ver todos <ChevronRight className="size-4" /></Link>
+          <Link href="/campeonatos" className="flex items-center gap-0.5 text-sm font-medium text-brand-ink hover:text-brand">Ver todos <ChevronRight className="size-4" /></Link>
         </div>
       </div>
 
@@ -50,11 +50,11 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
                 <div className="flex flex-1 flex-col justify-center p-6 md:p-7 lg:p-8">
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-0.5">
-                        <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                      <div className="space-y-1">
+                        <span className="inline-block rounded-full bg-accent px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-accent-ink">
                           Destaque
                         </span>
-                        <h3 className="min-w-0 text-xl font-black leading-tight text-gray-900 transition-colors group-hover:text-blue-600 md:text-2xl">
+                        <h3 className="min-w-0 text-xl font-black leading-tight text-ink transition-colors group-hover:text-brand md:text-2xl">
                           {camp.nome}
                         </h3>
                       </div>
@@ -68,9 +68,9 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
                       {camp.local ? `${camp.local} · ` : ""}{camp.cidade} - {camp.estado}
                     </p>
                   </div>
-                  <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
-                    <span className="text-xs font-medium text-gray-400">Inscrições e ingressos online</span>
-                    <span className="inline-flex items-center gap-1 text-sm font-bold text-blue-600 transition-transform group-hover:translate-x-1">
+                  <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
+                    <span className="text-xs font-medium text-ink-muted">Inscrições e ingressos online</span>
+                    <span className="inline-flex items-center gap-1 text-sm font-bold text-brand-ink transition-transform group-hover:translate-x-1">
                       Ver detalhes →
                     </span>
                   </div>
@@ -84,7 +84,7 @@ export function DestaquesCarousel({ camps }: { camps: Championship[] }) {
       {camps.length > 1 && (
         <div className="flex justify-center gap-1.5">
           {camps.map((camp, index) => (
-            <button key={camp.id} type="button" onClick={() => carousel.goTo(index)} aria-label={`Exibir campeonato ${index + 1} de ${camps.length}`} aria-current={index === carousel.current ? "true" : undefined} className={`h-1.5 rounded-full transition-all ${index === carousel.current ? "w-5 bg-blue-600" : "w-1.5 bg-gray-300"}`} />
+            <button key={camp.id} type="button" onClick={() => carousel.goTo(index)} aria-label={`Exibir campeonato ${index + 1} de ${camps.length}`} aria-current={index === carousel.current ? "true" : undefined} className={`h-1.5 rounded-full transition-all ${index === carousel.current ? "w-5 bg-brand" : "w-1.5 bg-border"}`} />
           ))}
         </div>
       )}

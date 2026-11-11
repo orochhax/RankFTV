@@ -59,7 +59,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
 
   if (editing) {
     return (
-      <form action={updateAction} className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 space-y-3">
+      <form action={updateAction} className="rounded-2xl bg-brand-soft p-4 ring-1 ring-brand-border space-y-3">
         <input type="hidden" name="handle" value={handle} />
         <input type="hidden" name="planId" value={plan.id} />
         <input type="hidden" name="tipo"   value={plan.tipo} />
@@ -67,13 +67,13 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
           name="nome"
           defaultValue={plan.nome}
           required
-          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           placeholder="Nome do plano"
         />
         <input
           name="descricao"
           defaultValue={plan.descricao ?? ""}
-          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           placeholder="Descrição (opcional)"
         />
         <div>
@@ -84,7 +84,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
             min="0"
             defaultValue={plan.valor}
             required
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             placeholder="Valor (R$)"
           />
           {plan.tipo === "mensalidade" && (
@@ -100,7 +100,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
               type="number"
               min="1"
               defaultValue={plan.aulas_por_semana ?? ""}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               placeholder="Aulas por semana (vazio = ilimitado)"
             />
             <p className="mt-1 text-[11px] text-gray-400">
@@ -117,7 +117,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
           <button
             type="submit"
             disabled={updatePending}
-            className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            className="flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
           >
             <Check className="size-4" /> Salvar
           </button>
@@ -138,7 +138,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
       <form
         action={updatePlanPaymentConfig}
         onSubmit={() => setEditingConfig(false)}
-        className="rounded-2xl bg-indigo-50 p-4 ring-1 ring-indigo-100 space-y-4"
+        className="rounded-2xl bg-surface-2 p-4 ring-1 ring-border space-y-4"
       >
         <input type="hidden" name="handle" value={handle} />
         <input type="hidden" name="planId" value={plan.id} />
@@ -146,8 +146,8 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
         <input type="hidden" name="aceita_debito"  value={String(debito)} />
         <input type="hidden" name="dia_vencimento" value={String(diaVenc)} />
 
-        <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700 flex items-center gap-1.5">
-          <CreditCard className="size-3.5" /> Formas de pagamento aceitas
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink flex items-center gap-1.5">
+          <CreditCard className="size-3.5 text-brand" /> Formas de pagamento aceitas
         </p>
 
         <div className="space-y-2">
@@ -156,7 +156,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
               type="button"
               onClick={() => setCredito((v) => !v)}
               className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${
-                credito ? "bg-indigo-600" : "bg-gray-200"
+                credito ? "bg-brand" : "bg-gray-200"
               }`}
             >
               <span className={`inline-block size-4 translate-y-0.5 rounded-full bg-white shadow-sm transition-transform ${
@@ -171,7 +171,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
               type="button"
               onClick={() => setDebito((v) => !v)}
               className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${
-                debito ? "bg-indigo-600" : "bg-gray-200"
+                debito ? "bg-brand" : "bg-gray-200"
               }`}
             >
               <span className={`inline-block size-4 translate-y-0.5 rounded-full bg-white shadow-sm transition-transform ${
@@ -184,7 +184,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
 
         {plan.tipo === "mensalidade" && (
           <div>
-            <label className="block text-xs font-medium text-indigo-700 mb-1">
+            <label className="block text-xs font-medium text-ink mb-1">
               Dia de vencimento (1–28)
             </label>
             <input
@@ -193,7 +193,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
               max={28}
               value={diaVenc}
               onChange={(e) => setDiaVenc(Number(e.target.value))}
-              className="w-24 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-24 rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
         )}
@@ -201,7 +201,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
         <div className="flex gap-2">
           <button
             type="submit"
-            className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+            className="flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
           >
             <Check className="size-4" /> Salvar
           </button>
@@ -231,12 +231,12 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
           )}
         </div>
         {plan.descricao && <p className="text-xs text-gray-400 mt-0.5">{plan.descricao}</p>}
-        <p className="mt-1 text-base font-black text-blue-600">{fmt(plan.valor)}</p>
+        <p className="mt-1 text-base font-black text-brand">{fmt(plan.valor)}</p>
 
         {/* Badge de formas de pagamento */}
         <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
           {(plan.aceita_credito ?? true) && (
-            <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-600">
+            <span className="inline-flex items-center gap-1 rounded-lg bg-brand-soft px-2 py-0.5 text-[10px] font-medium text-brand-ink">
               <CreditCard className="size-2.5" /> Crédito
             </span>
           )}
@@ -268,7 +268,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
           onClick={() => setEditingConfig(true)}
           disabled={pending || !!plan.arquivadoEm}
           title="Configurar pagamento"
-          className="rounded-lg p-2 text-indigo-400 hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-40"
+          className="rounded-lg p-2 text-ink-muted hover:bg-surface-2 hover:text-ink disabled:opacity-40"
         >
           <Settings2 className="size-4" />
         </button>
@@ -276,7 +276,7 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
           onClick={handleToggle}
           disabled={pending || !!plan.arquivadoEm}
           title={plan.ativo ? "Desativar" : "Ativar"}
-          className={`rounded-lg p-2 disabled:opacity-40 ${plan.ativo ? "text-blue-500 hover:bg-blue-50" : "text-gray-400 hover:bg-gray-100"}`}
+          className={`rounded-lg p-2 disabled:opacity-40 ${plan.ativo ? "text-brand hover:bg-brand-soft" : "text-gray-400 hover:bg-gray-100"}`}
         >
           <Power className="size-4" />
         </button>
@@ -298,19 +298,19 @@ function PlanRow({ plan, handle }: { plan: Plan; handle: string }) {
 
 function AddPlanForm({ tipo, handle, onDone }: { tipo: string; handle: string; onDone: () => void }) {
   return (
-    <form action={addPlan} onSubmit={onDone} className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-100 space-y-3">
+    <form action={addPlan} onSubmit={onDone} className="rounded-2xl bg-brand-soft p-4 ring-1 ring-brand-border space-y-3">
       <input type="hidden" name="handle" value={handle} />
       <input type="hidden" name="tipo" value={tipo} />
       <input
         name="nome"
         required
         autoFocus
-        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="w-full rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
         placeholder={tipo === "mensalidade" ? "Ex: Plano Básico (2x/semana)" : tipo === "aluguel" ? "Ex: Aluguel da quadra" : "Ex: Diária de treino"}
       />
       <input
         name="descricao"
-        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="w-full rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
         placeholder="Descrição (opcional)"
       />
       <input
@@ -319,7 +319,7 @@ function AddPlanForm({ tipo, handle, onDone }: { tipo: string; handle: string; o
         step="0.01"
         min="0"
         required
-        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="w-full rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
         placeholder={tipo === "mensalidade" ? "Valor mensal (R$)" : tipo === "aluguel" ? "Valor por hora (R$)" : "Valor por sessão (R$)"}
       />
       {tipo === "mensalidade" && (
@@ -328,7 +328,7 @@ function AddPlanForm({ tipo, handle, onDone }: { tipo: string; handle: string; o
             name="aulas_por_semana"
             type="number"
             min="1"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             placeholder="Aulas por semana (vazio = ilimitado)"
           />
           <p className="mt-1 text-[11px] text-gray-400">
@@ -339,7 +339,7 @@ function AddPlanForm({ tipo, handle, onDone }: { tipo: string; handle: string; o
       <div className="flex gap-2">
         <button
           type="submit"
-          className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          className="flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
         >
           <Check className="size-4" /> Salvar
         </button>
@@ -378,7 +378,7 @@ export function PlanosAdminClient({ plans, handle }: { plans: Plan[]; handle: st
           {!addingMensalidade && (
             <button
               onClick={() => setAddingMensalidade(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+              className="flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover"
             >
               <Plus className="size-3.5" /> Adicionar
             </button>
@@ -411,7 +411,7 @@ export function PlanosAdminClient({ plans, handle }: { plans: Plan[]; handle: st
           {aluguelAtivo.length === 0 && !addingAluguel && (
             <button
               onClick={() => setAddingAluguel(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+              className="flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover"
             >
               <Plus className="size-3.5" /> Habilitar
             </button>
@@ -444,7 +444,7 @@ export function PlanosAdminClient({ plans, handle }: { plans: Plan[]; handle: st
           {diariaAtivo.length === 0 && !addingDiaria && (
             <button
               onClick={() => setAddingDiaria(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+              className="flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover"
             >
               <Plus className="size-3.5" /> Habilitar
             </button>

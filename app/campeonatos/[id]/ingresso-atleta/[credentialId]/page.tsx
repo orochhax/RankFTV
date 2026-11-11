@@ -111,7 +111,7 @@ export default async function CredencialIndividualPage({
             {ticket.categoria_nome && <p className="text-sm text-white/50">Categoria {ticket.categoria_nome}</p>}
           </div>
           <div className="flex items-center gap-2 text-sm text-white/70">
-            <Users className="size-4 text-blue-400" />
+            <Users className="size-4 text-accent" />
             <span className="font-medium text-white">{athleteName}</span>
             <span className="text-white/30">· dupla de</span>
             <span>{partnerName}</span>

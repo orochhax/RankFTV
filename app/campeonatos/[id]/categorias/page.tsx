@@ -87,7 +87,7 @@ export default async function CategoriasPage({
             <ArrowLeft className="size-4" /> {championship.nome}
           </Link>
           <div className="flex items-center gap-2">
-            <Trophy className="size-6 text-blue-400" />
+            <Trophy className="size-6 text-accent" />
             <h1 className="text-2xl font-bold tracking-tight text-white">Categorias e inscrição</h1>
           </div>
           <p className="text-sm text-white/50">
@@ -101,9 +101,9 @@ export default async function CategoriasPage({
       <div className="relative -mt-6 min-h-64 rounded-t-3xl bg-app-bg px-6 pb-24 pt-8 shadow-sm">
         <div className="w-full">
           {precisaQuestionario && (
-            <div className="mb-3 rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-800 ring-1 ring-blue-100">
+            <div className="mb-3 rounded-2xl bg-brand-soft px-4 py-3 text-sm text-ink ring-1 ring-brand-border">
               <p className="font-semibold">Esse campeonato recomenda a categoria pra você</p>
-              <p className="mt-0.5 text-blue-700">
+              <p className="mt-0.5 text-brand-ink">
                 Ao clicar em inscrever, você responde um questionário rápido (5 perguntas) sobre
                 seu nível antes de continuar.
               </p>
@@ -140,7 +140,7 @@ export default async function CategoriasPage({
                 return (
                   <div
                     key={cat.id}
-                    className={`rounded-2xl bg-white p-4 ring-1 ${isRecomendada ? "ring-blue-400 bg-blue-50" : "ring-black/5"}`}
+                    className={`rounded-2xl bg-white p-4 ring-1 ${isRecomendada ? "ring-brand bg-brand-soft/60" : "ring-black/5"}`}
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
@@ -149,7 +149,7 @@ export default async function CategoriasPage({
                             Categoria {cat.nome} · {generoLabel(cat.genero)}
                           </p>
                           {isRecomendada && (
-                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                            <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-accent-ink">
                               Recomendada para você
                             </span>
                           )}
@@ -178,7 +178,7 @@ export default async function CategoriasPage({
                         }
                         const valor = preco.valor;
                         if (valor <= 0) {
-                          return <span className="shrink-0 font-semibold text-blue-600">Grátis</span>;
+                          return <span className="shrink-0 font-semibold text-brand-ink">Grátis</span>;
                         }
                         const { basePrice, serviceFee, pixTotal } = resolveCategoryPriceComposition(valor, isElite);
                         return (
@@ -190,7 +190,7 @@ export default async function CategoriasPage({
                               Valor da inscrição
                             </p>
                             <p className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 sm:justify-end">
-                              <span className="text-lg font-bold text-blue-600">{formatBRL(basePrice)}</span>
+                              <span className="text-lg font-bold text-brand-ink">{formatBRL(basePrice)}</span>
                               <span className="text-sm text-gray-400">+</span>
                               <span className="text-sm font-medium text-gray-700">
                                 {formatBRL(serviceFee)} de taxa de serviço

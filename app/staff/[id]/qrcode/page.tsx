@@ -90,12 +90,12 @@ export default async function StaffQrcodePage({
               </div>
               <p className="mt-1 text-2xl font-bold text-white">{total}</p>
             </div>
-            <div className="rounded-2xl bg-blue-500/20 p-4">
-              <div className="flex items-center gap-1.5 text-blue-400">
+            <div className="rounded-2xl bg-accent/15 p-4 ring-1 ring-accent/25">
+              <div className="flex items-center gap-1.5 text-accent">
                 <CheckCircle2 className="size-4" />
                 <p className="text-xs">Presentes</p>
               </div>
-              <p className="mt-1 text-2xl font-bold text-blue-300">{confirmados}</p>
+              <p className="mt-1 text-2xl font-bold text-white">{confirmados}</p>
             </div>
             <div className="rounded-2xl bg-white/10 p-4">
               <div className="flex items-center gap-1.5 text-white/50">
@@ -132,8 +132,8 @@ export default async function StaffQrcodePage({
                     }
                     className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                       filtroAtivo === key
-                        ? "bg-gray-900 text-white"
-                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                        ? "bg-brand-dark text-white"
+                        : "bg-surface-2 text-ink-muted hover:bg-border/50"
                     }`}
                   >
                     {label}

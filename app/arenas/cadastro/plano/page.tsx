@@ -118,14 +118,14 @@ export default async function CadastroArenaEtapa2Page({
           </div>
 
           {/* Card Plano Pro (Destaque Principal / Mais Popular) */}
-          <div className="relative flex flex-col justify-between rounded-3xl border-2 border-blue-600 bg-white p-6 md:p-8 shadow-xl ring-4 ring-blue-500/10">
-            <div className="absolute -top-3.5 right-6 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-white shadow-sm">
+          <div className="relative flex flex-col justify-between rounded-3xl border-2 border-brand bg-white p-6 md:p-8 shadow-xl ring-4 ring-brand/10">
+            <div className="absolute -top-3.5 right-6 rounded-full bg-accent px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-accent-ink shadow-sm">
               ⭐ Mais Escolhido pelas Arenas
             </div>
 
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-ink">
                   Crescimento Ilimitado
                 </span>
               </div>
@@ -137,16 +137,16 @@ export default async function CadastroArenaEtapa2Page({
                 A solução completa para arenas que querem automatizar cobranças e crescer sem travas.
               </p>
 
-              <div className="mt-6 border-y border-blue-100 py-4">
+              <div className="mt-6 border-y border-brand-border py-4">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black tracking-tight text-blue-600">
+                  <span className="text-4xl font-black tracking-tight text-brand-ink">
                     R$ 139
                   </span>
                   <span className="text-sm font-bold text-gray-700">
                     ,00 /mês
                   </span>
                 </div>
-                <p className="mt-2 rounded-xl bg-blue-50 p-2.5 text-xs font-bold text-blue-900">
+                <p className="mt-2 rounded-xl bg-brand-soft p-2.5 text-xs font-bold text-ink">
                   ✨ Alunos Ilimitados: zero taxa por aluno. Economize e escale sua arena.
                 </p>
               </div>
@@ -160,7 +160,7 @@ export default async function CadastroArenaEtapa2Page({
                   <Check className="size-4 text-emerald-600 shrink-0" />
                   Lembretes e Pix Copia e Cola automático no WhatsApp
                 </li>
-                <li className="flex items-center gap-2 font-semibold text-blue-900">
+                <li className="flex items-center gap-2 font-semibold text-ink">
                   <ShieldCheck className="size-4 text-amber-500 shrink-0" />
                   Selo Oficial de Verificado + Topo da Busca Regional
                 </li>
@@ -182,7 +182,7 @@ export default async function CadastroArenaEtapa2Page({
             <div className="mt-8">
               <Link
                 href={`/arena/${arena.handle}/assinatura`}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-center text-sm font-black text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3.5 text-center text-sm font-black text-white shadow-md shadow-brand/20 transition hover:bg-brand-hover active:scale-95"
               >
                 <Sparkles className="size-4" />
                 Ativar com o Plano Pro

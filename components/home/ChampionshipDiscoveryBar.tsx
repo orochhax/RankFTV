@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CalendarDays, ChevronDown, CircleDollarSign, MapPin, Search, X } from "lucide-react";
 import type { ChampionshipDiscoveryFilters } from "@/lib/championship-discovery";
 
-const inputClass = "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+const inputClass = "w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft";
 type Panel = "location" | "dates" | "price";
 
 function panelAlignment(alignRight: boolean, mobileAlignRight: boolean) {
@@ -29,8 +29,8 @@ function Segment({ icon, title, summary, active, onClick, children, alignRight =
   mobileAlignRight?: boolean;
 }) {
   return <div className="relative min-w-0 flex-1">
-    <button type="button" onClick={onClick} aria-expanded={active} className={`flex min-h-[74px] w-full items-center gap-3 rounded-2xl px-4 text-left transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 md:rounded-none md:px-5 ${active ? "bg-gray-50" : ""}`}>
-      <span className="shrink-0 text-gray-950">{icon}</span>
+    <button type="button" onClick={onClick} aria-expanded={active} className={`flex min-h-[74px] w-full items-center gap-3 rounded-2xl px-4 text-left transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand md:rounded-none md:px-5 ${active ? "bg-surface-2" : ""}`}>
+      <span className="shrink-0 text-ink">{icon}</span>
       <span className="min-w-0">
         <strong className="block truncate text-sm font-semibold text-gray-950 sm:text-base">{title}</strong>
         <span className="mt-0.5 block truncate text-xs text-gray-500 sm:text-sm">{summary}</span>
@@ -112,9 +112,9 @@ export function ChampionshipDiscoveryBar({ filters, estados, update, clear, onSe
       <span aria-hidden="true" className="hidden h-10 w-px bg-gray-200 md:block" />
       <Segment icon={<CircleDollarSign className="size-6" strokeWidth={1.8} />} title="Preço" summary={priceSummary} active={open === "price"} onClick={() => toggle("price")} alignRight>
         <label className="block text-xs font-semibold text-gray-700">Faixa de preço<select value={filters.maxPrice} onChange={(event) => update({ maxPrice: event.target.value })} className={`${inputClass} mt-1`}><option value="">Todos os preços</option><option value="0">Grátis</option><option value="100">Até R$ 100</option><option value="200">Até R$ 200</option><option value="300">Até R$ 300</option><option value="500">Até R$ 500</option></select></label>
-        <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={filters.openOnly} onChange={(event) => update({ openOnly: event.target.checked })} className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />Somente inscrições abertas</label>
+        <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-ink"><input type="checkbox" checked={filters.openOnly} onChange={(event) => update({ openOnly: event.target.checked })} className="size-4 rounded border-border text-brand focus:ring-brand" />Somente inscrições abertas</label>
       </Segment>
-      <button type="button" onClick={() => { setOpen(null); onSearch(); }} aria-label="Pesquisar campeonatos" className="col-span-2 m-1 flex h-12 items-center justify-center gap-2 rounded-full bg-blue-600 px-5 font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 md:my-0 md:ml-1 md:mr-2 md:size-12 md:shrink-0 md:px-0">
+      <button type="button" onClick={() => { setOpen(null); onSearch(); }} aria-label="Pesquisar campeonatos" className="col-span-2 m-1 flex h-12 items-center justify-center gap-2 rounded-full bg-brand px-5 font-semibold text-white transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand md:my-0 md:ml-1 md:mr-2 md:size-12 md:shrink-0 md:px-0">
         <Search className="size-6" /><span className="md:sr-only">Pesquisar</span>
       </button>
     </div>

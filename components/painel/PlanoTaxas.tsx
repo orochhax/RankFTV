@@ -133,7 +133,7 @@ export function PlanoTaxas({
           {isElite && (
             <div className="mt-3 border-t border-amber-200/60 pt-3">
               {feeQuitada ? (
-                <p className="flex items-center gap-1.5 text-xs font-medium text-blue-700">
+                <p className="flex items-center gap-1.5 text-xs font-medium text-success">
                   <Check className="size-3.5" />
                   Ativação de {brl(PRECO_ELITE)} já quitada.
                 </p>
@@ -200,11 +200,11 @@ export function PlanoTaxas({
         </div>
 
         {/* Padrão (embaixo) */}
-        <div className={`rounded-2xl bg-white p-4 ring-1 ${isElite ? "ring-black/5 opacity-70" : "ring-blue-300"}`}>
+        <div className={`rounded-2xl bg-white p-4 ring-1 ${isElite ? "ring-black/5 opacity-70" : "ring-brand"}`}>
           <div className="mb-3 flex items-center justify-between">
             <p className="font-semibold text-gray-900">Padrão</p>
             {!isElite && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand-ink">
                 <Check className="size-3" /> Atual
               </span>
             )}

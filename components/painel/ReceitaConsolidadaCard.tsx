@@ -11,9 +11,9 @@ export function ReceitaConsolidadaCard({ valorFormatado }: ReceitaConsolidadaCar
   const { oculto, toggle } = useValoresOcultos(true);
 
   return (
-    <section className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 text-white shadow-sm ring-1 ring-blue-500/20">
+    <section className="rounded-2xl bg-gradient-to-br from-brand-dark to-[#092B20] p-5 text-white shadow-sm ring-1 ring-white/10">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-bold uppercase tracking-wider text-blue-100">
+        <p className="text-xs font-bold uppercase tracking-wider text-accent">
           Receita total consolidada
         </p>
         <button

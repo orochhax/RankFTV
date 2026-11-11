@@ -45,7 +45,7 @@ export function AtivarOrganizadorForm({
       {/* Seção 1: Dados do Titular */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
-          <div className="flex size-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 font-bold text-xs">
+          <div className="flex size-7 items-center justify-center rounded-lg bg-brand-soft text-brand font-bold text-xs">
             1
           </div>
           <h2 className="text-base font-semibold text-gray-900">Dados do Organizador</h2>
@@ -61,7 +61,7 @@ export function AtivarOrganizadorForm({
             defaultValue={initialData?.nome_completo ?? ""}
             placeholder="Ex: Carlos Eduardo da Rocha"
             required
-            className="mt-1 w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 w-full rounded-xl border border-border px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
 
@@ -77,7 +77,7 @@ export function AtivarOrganizadorForm({
               defaultValue={initialData?.cpf_cnpj ?? ""}
               placeholder="Apenas números"
               required
-              className="mt-1 w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 w-full rounded-xl border border-border px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             />
           </div>
 
@@ -90,7 +90,7 @@ export function AtivarOrganizadorForm({
               type="date"
               defaultValue={initialData?.data_nascimento ?? ""}
               required
-              className="mt-1 w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 w-full rounded-xl border border-border px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             />
           </div>
         </div>
@@ -105,7 +105,7 @@ export function AtivarOrganizadorForm({
             defaultValue={initialData?.telefone ?? ""}
             placeholder="(73) 99999-8888"
             required
-            className="mt-1 w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 w-full rounded-xl border border-border px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
       </div>
@@ -113,7 +113,7 @@ export function AtivarOrganizadorForm({
       {/* Seção 2: Chave Pix para Recebimento */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
-          <div className="flex size-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 font-bold text-xs">
+          <div className="flex size-7 items-center justify-center rounded-lg bg-brand-soft text-brand font-bold text-xs">
             2
           </div>
           <div>
@@ -134,7 +134,7 @@ export function AtivarOrganizadorForm({
             defaultValue={initialData?.chave_pix ?? ""}
             placeholder="Informe sua chave Pix"
             required
-            className="mt-1 w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 w-full rounded-xl border border-border px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
       </div>
@@ -142,7 +142,7 @@ export function AtivarOrganizadorForm({
       {/* Seção 3: Identificação Oficial e Uploads */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
-          <div className="flex size-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 font-bold text-xs">
+          <div className="flex size-7 items-center justify-center rounded-lg bg-brand-soft text-brand font-bold text-xs">
             3
           </div>
           <div>
@@ -161,7 +161,7 @@ export function AtivarOrganizadorForm({
             <select
               name="documento_tipo"
               defaultValue={initialData?.documento_tipo ?? "cnh"}
-              className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             >
               <option value="cnh">CNH (Carteira Nacional de Habilitação)</option>
               <option value="rg">RG (Registro Geral / Nova Carteira Nacional)</option>
@@ -178,7 +178,7 @@ export function AtivarOrganizadorForm({
               defaultValue={initialData?.documento_numero ?? ""}
               placeholder="Número impresso no documento"
               required
-              className="mt-1 w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 w-full rounded-xl border border-border px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             />
           </div>
         </div>
@@ -186,8 +186,8 @@ export function AtivarOrganizadorForm({
         {/* 2 Uploads de Imagem: Frente e Verso */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Frente */}
-          <div className="rounded-2xl border-2 border-dashed border-gray-200 p-4 text-center hover:border-blue-400 transition-colors">
-            <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <div className="rounded-2xl border-2 border-dashed border-border p-4 text-center hover:border-brand transition-colors">
+            <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
               {frenteFileName || initialData?.documento_frente_url ? (
                 <FileCheck className="size-5 text-emerald-600" />
               ) : (
@@ -212,8 +212,8 @@ export function AtivarOrganizadorForm({
           </div>
 
           {/* Verso */}
-          <div className="rounded-2xl border-2 border-dashed border-gray-200 p-4 text-center hover:border-blue-400 transition-colors">
-            <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <div className="rounded-2xl border-2 border-dashed border-border p-4 text-center hover:border-brand transition-colors">
+            <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
               {versoFileName || initialData?.documento_verso_url ? (
                 <FileCheck className="size-5 text-emerald-600" />
               ) : (
@@ -238,8 +238,8 @@ export function AtivarOrganizadorForm({
           </div>
         </div>
 
-        <div className="rounded-2xl bg-blue-50 p-3.5 text-xs text-blue-800 flex items-start gap-2.5">
-          <ShieldCheck className="size-4 shrink-0 text-blue-600 mt-0.5" />
+        <div className="rounded-2xl bg-brand-soft p-3.5 text-xs text-ink ring-1 ring-brand-border flex items-start gap-2.5">
+          <ShieldCheck className="size-4 shrink-0 text-brand mt-0.5" />
           <span>
             Seus documentos são criptografados e armazenados em ambiente privado e seguro, estritamente de acordo com a LGPD.
           </span>
@@ -255,7 +255,7 @@ export function AtivarOrganizadorForm({
       <button
         type="submit"
         disabled={pending}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 transition-all shadow-md"
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand px-5 py-3.5 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60 transition-all shadow-md"
       >
         {pending && <Loader2 className="size-4 animate-spin" />}
         {pending ? "Enviando documentos..." : "Enviar documentos para validação"}

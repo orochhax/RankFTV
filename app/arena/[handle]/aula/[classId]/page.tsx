@@ -121,7 +121,7 @@ export default async function AulaDetalhePage({
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-xl font-bold text-gray-900">{aula.titulo}</h1>
           {nivelLabel && (
-            <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-600">
+            <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-brand-ink">
               {nivelLabel}
             </span>
           )}
@@ -146,12 +146,12 @@ export default async function AulaDetalhePage({
       {/* Contador de vagas */}
       <div className="flex items-center justify-between rounded-2xl bg-gray-50 px-5 py-4 ring-1 ring-black/5">
         <div className="flex items-center gap-2.5">
-          <Users className="size-5 text-blue-500" />
+          <Users className="size-5 text-brand" />
           <span className="text-sm font-semibold text-gray-700">Alunos confirmados</span>
         </div>
         <span
           className={`rounded-full px-3 py-1 text-sm font-bold ${
-            lotada ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700"
+            lotada ? "bg-red-50 text-red-600" : "bg-brand-soft text-brand-ink"
           }`}
         >
           {temLimite ? `${total}/${aula.max_alunos}` : total}

@@ -63,14 +63,14 @@ export function FinanceiroFiltrosBar({
             onClick={onSelectTodos}
             className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
               isTodos
-                ? "bg-blue-600 text-white shadow-xs"
-                : "bg-gray-50 text-gray-700 hover:bg-gray-100 ring-1 ring-inset ring-gray-200"
+                ? "bg-brand text-white shadow-xs"
+                : "bg-surface-2 text-ink hover:bg-border/40 ring-1 ring-inset ring-border"
             }`}
           >
             <span>Todos</span>
             <span
               className={`rounded-full px-1.5 py-0.2 text-[10px] ${
-                isTodos ? "bg-blue-700 text-white" : "bg-gray-200 text-gray-700"
+                isTodos ? "bg-brand-hover text-white" : "bg-border/60 text-ink"
               }`}
             >
               {counts.todos}
@@ -150,7 +150,7 @@ export function FinanceiroFiltrosBar({
               value={busca}
               onChange={(e) => onBuscaChange(e.target.value)}
               placeholder="Ex: Daniel, Igor, Intermediário..."
-              className="w-full rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-8 text-xs text-gray-800 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-border bg-surface py-1.5 pl-8 pr-8 text-xs text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             />
             {busca && (
               <button
@@ -174,7 +174,7 @@ export function FinanceiroFiltrosBar({
               type="date"
               value={dataInicio}
               onChange={(e) => onDataInicioChange(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             />
           </div>
 
@@ -186,7 +186,7 @@ export function FinanceiroFiltrosBar({
               type="date"
               value={dataFim}
               onChange={(e) => onDataFimChange(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             />
           </div>
         </div>
@@ -199,7 +199,7 @@ export function FinanceiroFiltrosBar({
           <select
             value={ordem}
             onChange={(e) => onOrdemChange(e.target.value as OrdemOpcao)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           >
             <option value="data_desc">Data: Mais recentes</option>
             <option value="data_asc">Data: Mais antigas</option>

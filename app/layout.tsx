@@ -109,7 +109,7 @@ export default async function RootLayout({
       className={`${inter.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body suppressHydrationWarning className="min-h-full flex flex-col bg-app-bg text-gray-900">
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-app-bg text-ink">
         <AppShell
           user={navUser ? { nome: navUser.nome, username: navUser.username, fotoUrl: navUser.fotoUrl } : null}
           perms={{ isLoggedIn: !!navUser, isOrganizer, isArenaOwner, isStaff, isAdmin }}

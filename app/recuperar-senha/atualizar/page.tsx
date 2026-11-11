@@ -89,7 +89,7 @@ export default function AtualizarSenhaPage() {
               Este link é inválido ou já expirou. Solicite um novo link de recuperação.
             </p>
             <p className="mt-4 text-center text-sm text-gray-500">
-              <Link href="/recuperar-senha" className="font-medium text-blue-600 hover:underline">
+              <Link href="/recuperar-senha" className="font-medium text-brand-ink hover:text-brand hover:underline">
                 Pedir novo link
               </Link>
             </p>
@@ -102,7 +102,7 @@ export default function AtualizarSenhaPage() {
               Senha atualizada com sucesso. Agora você já pode entrar na sua conta.
             </p>
             <p className="mt-5 text-center text-sm text-gray-500">
-              <Link href="/login" className="font-medium text-blue-600 hover:underline">Ir para o login</Link>
+              <Link href="/login" className="font-medium text-brand-ink hover:text-brand hover:underline">Ir para o login</Link>
             </p>
           </>
         )}
@@ -121,7 +121,7 @@ export default function AtualizarSenhaPage() {
                     autoComplete="new-password"
                     value={senha}
                     onChange={(e) => setSenha(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:border-brand focus:outline-none"
                     placeholder="Mínimo 8 caracteres"
                     required
                   />
@@ -143,21 +143,21 @@ export default function AtualizarSenhaPage() {
                   autoComplete="new-password"
                   value={confirmacao}
                   onChange={(e) => setConfirmacao(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
                   required
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading || senha.length < 8 || senha !== confirmacao}
-                className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {loading ? "Salvando..." : "Atualizar senha"}
               </button>
             </form>
 
             <p className="mt-5 text-center text-sm text-gray-500">
-              <Link href="/login" className="font-medium text-blue-600 hover:underline">Ir para o login</Link>
+              <Link href="/login" className="font-medium text-brand-ink hover:text-brand hover:underline">Ir para o login</Link>
             </p>
           </>
         )}

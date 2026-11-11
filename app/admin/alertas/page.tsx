@@ -72,7 +72,7 @@ export default async function OperationalAlertsPage() {
             max={500}
           />
         </div>
-        <button className="mt-4 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white">
+        <button className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">
           Salvar configuração
         </button>
       </form>
@@ -98,12 +98,12 @@ function EmailContingency({ count }: { count: number }) {
     ? "Nenhuma fila acumulada ou entrega definitiva falhou."
     : `${count} alerta(s) de e-mail exigem análise. Use o identificador abaixo para localizar a entrega e executar uma retentativa segura.`;
   return (
-    <section className="rounded-2xl bg-blue-50 p-5 ring-1 ring-blue-100">
+    <section className="rounded-2xl bg-brand-soft p-5 ring-1 ring-brand-border">
       <div className="flex items-start gap-3">
-        <MailWarning className="mt-0.5 size-5 text-blue-700" />
+        <MailWarning className="mt-0.5 size-5 text-brand-ink" />
         <div>
-          <h2 className="font-semibold text-blue-950">Contingência de e-mail</h2>
-          <p className="mt-1 text-sm text-blue-800">{message}</p>
+          <h2 className="font-semibold text-ink">Contingência de e-mail</h2>
+          <p className="mt-1 text-sm text-ink-muted">{message}</p>
         </div>
       </div>
     </section>

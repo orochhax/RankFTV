@@ -11,7 +11,7 @@ function fmt(v: number) {
 
 function NetTag({ net, suffix = "%" }: { net: number; suffix?: string }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">
+    <span className="inline-flex items-center rounded-full bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand-ink ring-1 ring-brand-border">
       líquido ≈ {net > 0 ? "+" : ""}{suffix === "R$" ? `R$ ${fmt(net)}` : `${fmt(net)}${suffix}`}
     </span>
   );
@@ -31,7 +31,7 @@ function Field({ name, label, suffix, value, onChange }: {
           min="0"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-24 rounded-xl border border-gray-200 px-3 py-1.5 pr-7 text-right text-sm font-mono focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          className="w-24 rounded-xl border border-gray-200 px-3 py-1.5 pr-7 text-right text-sm font-mono focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
         />
         <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-gray-400">{suffix}</span>
       </div>
@@ -195,12 +195,12 @@ export function TaxasForm({ config }: { config: PlatformConfig }) {
       </div>
 
       {/* Sobretaxa parcelamento (campo único, vale pra ambos os planos) */}
-      <section className="rounded-2xl bg-blue-50 p-5 ring-1 ring-blue-100">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-blue-600">
+      <section className="rounded-2xl bg-brand-soft p-5 ring-1 ring-brand-border">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-ink">
           Sobretaxa cobrada do atleta — parcelas 7–12x (ambos os planos)
         </p>
         <Field name="atleta_credito_7a12_extra" label="Extra atleta" suffix="%" value={v.atletaCredito7a12Extra} onChange={(r) => set("atletaCredito7a12Extra", r)} />
-        <p className="mt-2 text-xs text-blue-500">
+        <p className="mt-2 text-xs text-ink-muted">
           O organizador sempre paga a mesma taxa. Esse extra é adicionado ao valor pago pelo atleta ao parcelar em mais de 6x.
         </p>
       </section>
@@ -211,13 +211,13 @@ export function TaxasForm({ config }: { config: PlatformConfig }) {
         <button
           type="submit"
           disabled={pending}
-          className="flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
+          className="flex items-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60 transition-colors"
         >
           <Save className="size-4" />
           {pending ? "Salvando…" : "Salvar taxas"}
         </button>
         {saved && (
-          <span className="flex items-center gap-1.5 text-sm text-blue-600">
+          <span className="flex items-center gap-1.5 text-sm text-success">
             <CheckCircle2 className="size-4" /> Salvo com sucesso!
           </span>
         )}

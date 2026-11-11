@@ -10,7 +10,7 @@ const VALUE_TONE: Record<Tone, string> = {
 };
 
 const ICON_TONE: Record<Tone, string> = {
-  default: "bg-blue-50 text-blue-600",
+  default: "bg-brand-soft text-brand",
   success: "bg-success-bg text-success",
   warning: "bg-warning-bg text-warning",
   danger:  "bg-danger-bg text-danger",

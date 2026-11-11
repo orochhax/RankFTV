@@ -202,7 +202,7 @@ function CadastroForm() {
             autoComplete="name"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
             placeholder="Seu nome completo"
           />
         </div>
@@ -228,14 +228,14 @@ function CadastroForm() {
               onChange={(e) =>
                 setUsername(e.target.value.toLowerCase().replace(/\s/g, ""))
               }
-              className="w-full rounded-lg border border-gray-200 py-2 pl-7 pr-8 text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-200 py-2 pl-7 pr-8 text-sm focus:border-brand focus:outline-none"
               placeholder="seu.usuario"
             />
             {statusUsername === "checking" && (
               <Loader2 className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 animate-spin text-gray-400" />
             )}
             {statusUsername === "ok" && (
-              <CheckCircle2 className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-blue-500" />
+              <CheckCircle2 className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-success" />
             )}
             {(statusUsername === "taken" || statusUsername === "invalid") && (
               <XCircle className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-red-500" />
@@ -263,7 +263,7 @@ function CadastroForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
             placeholder="voce@email.com"
           />
         </div>
@@ -280,7 +280,7 @@ function CadastroForm() {
               autoComplete="new-password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:border-brand focus:outline-none"
               placeholder="Mínimo 8 caracteres"
             />
             <button
@@ -300,7 +300,7 @@ function CadastroForm() {
             {GENEROS.map((opcao) => (
               <label
                 key={opcao.valor}
-                className="flex cursor-pointer items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-800 hover:bg-gray-50"
+                className="flex cursor-pointer items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition-colors has-[:checked]:border-brand has-[:checked]:bg-brand-soft has-[:checked]:text-brand-ink hover:bg-gray-50"
               >
                 <input
                   type="radio"
@@ -329,7 +329,7 @@ function CadastroForm() {
                 autoComplete="tel"
                 value={telefone}
                 onChange={(e) => setTelefone(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
                 placeholder="(11) 99999-8888"
               />
             </div>
@@ -346,7 +346,7 @@ function CadastroForm() {
                 autoComplete="off"
                 value={cpfCnpj}
                 onChange={(e) => setCpfCnpj(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
                 placeholder="Só números"
               />
             </div>
@@ -362,7 +362,7 @@ function CadastroForm() {
                 autoComplete="bday"
                 value={nascimento}
                 onChange={(e) => setNascimento(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
               />
               <p className="mt-1 text-xs text-gray-400">
                 No CNPJ, use a data de nascimento do responsável.
@@ -376,7 +376,7 @@ function CadastroForm() {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
           {loading ? "Criando conta..." : "Criar conta"}
         </button>
@@ -384,7 +384,7 @@ function CadastroForm() {
 
       <p className="mt-4 text-center text-sm text-gray-500">
         Já tem conta?{" "}
-        <Link href="/login" className="font-medium text-blue-600 hover:underline">
+        <Link href="/login" className="font-medium text-brand-ink hover:text-brand hover:underline">
           Entrar
         </Link>
       </p>

@@ -18,7 +18,7 @@ export type AgendaOccurrence = ClassOccurrence & { confirmados: number | null };
 
 const NIVEL_COR: Record<string, string> = {
   iniciante: "bg-emerald-500",
-  intermediario: "bg-blue-500",
+  intermediario: "bg-brand",
   avancado: "bg-purple-500",
 };
 const NIVEL_COR_DEFAULT = "bg-gray-400";
@@ -137,7 +137,7 @@ export function ArenaAgendaClient({
           />
           <Link
             href={`/arena/${handle}/aulas#nova-aula`}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
           >
             <Plus className="size-4" /> Nova aula
           </Link>
@@ -177,7 +177,7 @@ export function ArenaAgendaClient({
             type="button"
             onClick={() => setFilterSheetOpen(true)}
             aria-label="Filtrar por categoria"
-            className={`flex size-11 items-center justify-center rounded-xl ${nivelFiltro !== "todos" ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:bg-gray-100"}`}
+            className={`flex size-11 items-center justify-center rounded-xl ${nivelFiltro !== "todos" ? "bg-brand-soft text-brand-ink" : "text-gray-500 hover:bg-gray-100"}`}
           >
             <Filter className="size-5" />
           </button>
@@ -268,7 +268,7 @@ export function ArenaAgendaClient({
               type="button"
               onClick={() => { setViewSheetOpen(false); go(v, anchorDate); }}
               className={`flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-left text-sm font-medium capitalize ${
-                view === v ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-50"
+                view === v ? "bg-brand-soft text-brand-ink" : "text-gray-700 hover:bg-gray-50"
               }`}
             >
               {v}
@@ -286,7 +286,7 @@ export function ArenaAgendaClient({
               type="button"
               onClick={() => { setFilterSheetOpen(false); go(view, anchorDate, o.value); }}
               className={`flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-left text-sm font-medium ${
-                nivelFiltro === o.value ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-50"
+                nivelFiltro === o.value ? "bg-brand-soft text-brand-ink" : "text-gray-700 hover:bg-gray-50"
               }`}
             >
               {o.label}
@@ -299,7 +299,7 @@ export function ArenaAgendaClient({
       <Link
         href={`/arena/${handle}/aulas#nova-aula`}
         aria-label="Nova aula"
-        className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] right-4 z-40 flex size-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-600/30 md:hidden"
+        className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] right-4 z-40 flex size-14 items-center justify-center rounded-full bg-brand text-white shadow-lg shadow-brand/30 md:hidden"
       >
         <Plus className="size-6" />
       </Link>
@@ -315,7 +315,7 @@ function NivelSelect({ value, onChange }: { value: NivelFiltro; onChange: (v: Ni
       value={value}
       onChange={(e) => onChange(e.target.value as NivelFiltro)}
       aria-label="Filtrar por categoria/nível"
-      className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand"
     >
       {NIVEL_FILTRO_OPCOES.map((o) => (
         <option key={o.value} value={o.value}>{o.label}</option>
@@ -334,7 +334,7 @@ function EmptyState({ handle }: { handle: string }) {
       </p>
       <Link
         href={`/arena/${handle}/aulas#nova-aula`}
-        className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+        className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
       >
         <Plus className="size-4" /> Cadastrar primeira aula
       </Link>
@@ -370,11 +370,11 @@ function OccurrenceCard({ occ, handle }: { occ: AgendaOccurrence; handle: string
   return (
     <Link
       href={`/arena/${handle}/aula/${occ.classId}?data=${occ.date}`}
-      className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-sm ring-1 ring-black/5 transition-colors hover:ring-blue-300"
+      className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-sm ring-1 ring-black/5 transition-colors hover:ring-brand-border"
     >
       <span className={`h-10 w-1 shrink-0 rounded-full ${corDoNivel(occ.nivel)}`} aria-hidden="true" />
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-blue-600">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-brand-ink">
           <Clock className="size-3.5" />
           {occ.horaInicio ?? "—"}{occ.horaFim && `–${occ.horaFim}`}
         </div>
@@ -425,12 +425,12 @@ function MobileDayAgenda({
                 type="button"
                 onClick={() => onSelectDay(d)}
                 className={`flex min-w-[44px] flex-1 flex-col items-center gap-1 rounded-2xl py-2.5 transition-colors ${
-                  selecionado ? "bg-blue-600 text-white" : hoje ? "bg-blue-50 text-blue-700" : "bg-white text-gray-600 ring-1 ring-black/5"
+                  selecionado ? "bg-brand text-white" : hoje ? "bg-brand-soft text-brand-ink" : "bg-white text-gray-600 ring-1 ring-black/5"
                 }`}
               >
                 <span className="text-[10px] font-bold uppercase">{DIAS_SEMANA_CURTO[dowOfISO(d)]}</span>
                 <span className="text-sm font-bold">{Number(d.slice(8, 10))}</span>
-                {temAula && <span className={`size-1 rounded-full ${selecionado ? "bg-white" : "bg-blue-500"}`} />}
+                {temAula && <span className={`size-1 rounded-full ${selecionado ? "bg-white" : "bg-brand"}`} />}
               </button>
             );
           })}
@@ -482,11 +482,11 @@ function CompactMonth({
               type="button"
               onClick={() => onSelectDate(d)}
               className={`flex aspect-square flex-col items-center justify-center gap-0.5 rounded-xl text-sm ${
-                foraDoMes ? "text-gray-300" : hoje ? "bg-blue-600 text-white font-bold" : "text-gray-700 hover:bg-gray-50"
+                foraDoMes ? "text-gray-300" : hoje ? "bg-brand text-white font-bold" : "text-gray-700 hover:bg-gray-50"
               }`}
             >
               {Number(d.slice(8, 10))}
-              {qtd > 0 && <span className={`size-1 rounded-full ${hoje ? "bg-white" : "bg-blue-500"}`} />}
+              {qtd > 0 && <span className={`size-1 rounded-full ${hoje ? "bg-white" : "bg-brand"}`} />}
             </button>
           );
         })}
@@ -520,7 +520,7 @@ function MiniMonth({
               type="button"
               onClick={() => onSelectDate(d)}
               className={`flex aspect-square items-center justify-center rounded text-[10px] ${
-                foraDoMes ? "text-gray-200" : hoje ? "bg-blue-600 font-bold text-white" : qtd > 0 ? "font-semibold text-blue-600" : "text-gray-500"
+                foraDoMes ? "text-gray-200" : hoje ? "bg-brand font-bold text-white" : qtd > 0 ? "font-semibold text-brand-ink" : "text-gray-500"
               }`}
             >
               {Number(d.slice(8, 10))}
@@ -579,11 +579,11 @@ function MonthGrid({
               type="button"
               onClick={() => onSelectDate(d)}
               className={`min-h-[104px] border-b border-r border-gray-50 p-1.5 text-left align-top last:border-r-0 ${
-                foraDoMes ? "bg-gray-50/40" : "hover:bg-blue-50/40"
+                foraDoMes ? "bg-gray-50/40" : "hover:bg-brand-soft/40"
               }`}
             >
               <span className={`mb-1 inline-flex size-6 items-center justify-center rounded-full text-xs font-semibold ${
-                hoje ? "bg-blue-600 text-white" : foraDoMes ? "text-gray-300" : "text-gray-600"
+                hoje ? "bg-brand text-white" : foraDoMes ? "text-gray-300" : "text-gray-600"
               }`}>
                 {Number(d.slice(8, 10))}
               </span>
@@ -744,9 +744,9 @@ function WeekGrid({
       <div className="flex min-w-[760px]">
         <div className="w-14 shrink-0 border-r border-gray-100 pt-10" />
         {days.map((d) => (
-          <div key={d} className={`flex-1 border-r border-gray-100 py-2 text-center last:border-r-0 ${d === todayISO ? "bg-blue-50/50" : ""}`}>
+          <div key={d} className={`flex-1 border-r border-gray-100 py-2 text-center last:border-r-0 ${d === todayISO ? "bg-brand-soft/60" : ""}`}>
             <p className="text-[11px] font-bold uppercase text-gray-400">{DIAS_SEMANA_CURTO[dowOfISO(d)]}</p>
-            <p className={`text-sm font-bold ${d === todayISO ? "text-blue-600" : "text-gray-800"}`}>{Number(d.slice(8, 10))}</p>
+            <p className={`text-sm font-bold ${d === todayISO ? "text-brand-ink" : "text-gray-800"}`}>{Number(d.slice(8, 10))}</p>
           </div>
         ))}
       </div>
@@ -771,8 +771,8 @@ function DayGrid({
   const { startHour, endHour } = computeGridHours(occurrences);
   return (
     <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5">
-      <div className={`border-b border-gray-100 py-2.5 text-center ${date === todayISO ? "bg-blue-50/50" : ""}`}>
-        <p className={`text-sm font-bold capitalize ${date === todayISO ? "text-blue-600" : "text-gray-800"}`}>{dayLabel(date)}</p>
+      <div className={`border-b border-gray-100 py-2.5 text-center ${date === todayISO ? "bg-brand-soft/60" : ""}`}>
+        <p className={`text-sm font-bold capitalize ${date === todayISO ? "text-brand-ink" : "text-gray-800"}`}>{dayLabel(date)}</p>
       </div>
       <div className="flex max-w-md mx-auto">
         <TimeAxis startHour={startHour} endHour={endHour} />

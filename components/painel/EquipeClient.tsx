@@ -38,10 +38,10 @@ function PermissionToggle({
 }) {
   return (
     <label className={`flex shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2 transition-colors ${
-      checked ? "bg-blue-50" : "bg-gray-50"
-    } ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}>
-      <Icon className={`size-4 ${checked ? "text-blue-600" : "text-gray-400"}`} />
-      <span className={`text-[10px] font-medium ${checked ? "text-blue-700" : "text-gray-500"}`}>
+      checked ? "bg-brand-soft" : "bg-surface-2"
+    } ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-surface-2/80"}`}>
+      <Icon className={`size-4 ${checked ? "text-brand" : "text-gray-400"}`} />
+      <span className={`text-[10px] font-medium ${checked ? "text-brand-ink" : "text-gray-500"}`}>
         {label}
       </span>
       <input
@@ -80,7 +80,7 @@ function MemberRow({ member, champId }: { member: StaffMember; champId: string }
     <li className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
       <div className="flex flex-wrap items-center gap-3">
         {/* avatar inicial */}
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-bold text-brand-ink">
           {member.nome.charAt(0).toUpperCase()}
         </div>
 
@@ -92,7 +92,7 @@ function MemberRow({ member, champId }: { member: StaffMember; champId: string }
 
         {/* badge status */}
         <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-          member.status === "aceito"   ? "bg-blue-100 text-blue-700" :
+          member.status === "aceito"   ? "bg-success-bg text-success" :
           member.status === "recusado" ? "bg-red-100 text-red-600" :
                                          "bg-amber-100 text-amber-700"
         }`}>
@@ -144,8 +144,8 @@ function MemberRow({ member, champId }: { member: StaffMember; champId: string }
             onClick={() => handleToggle(true, true, false)}
             className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition-colors ${
               qr && ins && !chav
-                ? "border-blue-300 bg-blue-50 text-blue-700"
-                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                ? "border-brand-border bg-brand-soft text-brand-ink"
+                : "border-border bg-surface text-ink-muted hover:bg-surface-2"
             }`}
           >
             Portaria
@@ -156,8 +156,8 @@ function MemberRow({ member, champId }: { member: StaffMember; champId: string }
             onClick={() => handleToggle(true, false, true)}
             className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition-colors ${
               qr && !ins && chav
-                ? "border-blue-300 bg-blue-50 text-blue-700"
-                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                ? "border-brand-border bg-brand-soft text-brand-ink"
+                : "border-border bg-surface text-ink-muted hover:bg-surface-2"
             }`}
           >
             Mesário
@@ -168,8 +168,8 @@ function MemberRow({ member, champId }: { member: StaffMember; champId: string }
             onClick={() => handleToggle(true, true, true)}
             className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition-colors ${
               qr && ins && chav
-                ? "border-blue-300 bg-blue-50 text-blue-700"
-                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                ? "border-brand-border bg-brand-soft text-brand-ink"
+                : "border-border bg-surface text-ink-muted hover:bg-surface-2"
             }`}
           >
             Gestor Total
@@ -269,7 +269,7 @@ function BuscaConvite({
           onChange={(e) => handleChange(e.target.value)}
           placeholder="usuário"
           autoComplete="off"
-          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-7 pr-9 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-xl border border-border bg-surface py-2.5 pl-7 pr-9 text-sm text-ink placeholder-ink-muted/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
         />
         {status === "loading" && (
           <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-gray-400" />
@@ -298,7 +298,7 @@ function BuscaConvite({
                 key={u.id}
                 className="flex flex-wrap items-center gap-3 rounded-2xl bg-gray-50 p-3 ring-1 ring-black/5"
               >
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-bold text-brand-ink">
                   {u.nome.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1 basis-32">
@@ -311,7 +311,7 @@ function BuscaConvite({
                   <button
                     onClick={() => handleInvite(u)}
                     disabled={isInviting}
-                    className="flex shrink-0 items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                    className="flex shrink-0 items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover disabled:opacity-50"
                   >
                     {isInviting ? <Loader2 className="size-4 animate-spin" /> : <UserCheck className="size-4" />}
                     Convidar

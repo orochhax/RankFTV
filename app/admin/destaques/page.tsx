@@ -90,7 +90,7 @@ export default async function AdminDestaquesPage() {
 
           <section>
             <div className="mb-5 flex items-center gap-2">
-              <Images className="size-5 text-blue-500" />
+              <Images className="size-5 text-brand" />
               <div>
                 <h2 className="text-base font-semibold text-gray-900">Banners da home</h2>
                 <p className="text-xs text-gray-500">Até 8 imagens; sem banners ativos, a seção não aparece.</p>
@@ -115,7 +115,7 @@ export default async function AdminDestaquesPage() {
           {/* Arenas */}
           <section>
             <div className="mb-5 flex items-center gap-2">
-              <Building2 className="size-5 text-blue-500" />
+              <Building2 className="size-5 text-brand" />
               <h2 className="text-base font-semibold text-gray-900">Arenas em destaque</h2>
             </div>
             {arenas.length === 0 ? (

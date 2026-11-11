@@ -76,13 +76,13 @@ export function PresencaClient({
                 key={a.id}
                 className={`flex items-center justify-between gap-3 rounded-2xl p-4 ring-1 transition-colors ${
                   a.jaFez
-                    ? "bg-blue-50 ring-blue-100"
+                    ? "bg-brand-soft ring-brand-border"
                     : "bg-white ring-black/5"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   {a.jaFez ? (
-                    <CheckCircle2 className="size-5 shrink-0 text-blue-500" />
+                    <CheckCircle2 className="size-5 shrink-0 text-success" />
                   ) : (
                     <Circle className="size-5 shrink-0 text-gray-300" />
                   )}
@@ -97,14 +97,14 @@ export function PresencaClient({
                   <button
                     onClick={() => marcar(a.id)}
                     disabled={pending}
-                    className="flex shrink-0 items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                    className="flex shrink-0 items-center gap-1.5 rounded-xl bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
                   >
                     {pending && <Loader2 className="size-3 animate-spin" />}
                     Marcar presença
                   </button>
                 )}
                 {a.jaFez && (
-                  <span className="text-xs font-semibold text-blue-600">Presente!</span>
+                  <span className="text-xs font-semibold text-success">Presente!</span>
                 )}
               </li>
             ))}
@@ -116,13 +116,13 @@ export function PresencaClient({
       {historico.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
-            <CalendarDays className="size-4 text-blue-400" />
+            <CalendarDays className="size-4 text-brand" />
             <p className="text-sm font-semibold text-gray-700">Últimas presenças</p>
           </div>
           <ul className="space-y-1.5">
             {historico.map((h, i) => (
               <li key={i} className="flex items-center gap-3 text-sm text-gray-600">
-                <CheckCircle2 className="size-4 shrink-0 text-blue-400" />
+                <CheckCircle2 className="size-4 shrink-0 text-success" />
                 <span className="flex-1">{h.titulo}</span>
                 <span className="text-xs text-gray-400">{formatData(h.data)}</span>
               </li>

@@ -117,13 +117,13 @@ export function ConquistasDestaqueSelector({
       <div className="mt-4 space-y-3">
         {slots.map((selecionada, i) => (
           <div key={i} className="flex items-center gap-3">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-600">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-bold text-brand-ink">
               {i + 1}
             </span>
             <select
               value={selecionada ?? ""}
               onChange={(e) => setSlot(i, e.target.value || null)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-border px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
             >
               <option value="">— vazio —</option>
               {conquistas.map((c) => {
@@ -151,7 +151,7 @@ export function ConquistasDestaqueSelector({
         type="button"
         onClick={handleSave}
         disabled={loading}
-        className="mt-4 flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+        className="mt-4 flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-60"
       >
         {loading && <Loader2 className="size-4 animate-spin" />}
         {success && <Check className="size-4" />}

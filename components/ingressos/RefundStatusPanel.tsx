@@ -168,7 +168,7 @@ export function RefundStatusPanel({
             Nenhum valor precisava ser reembolsado. O pedido permanece apenas no histórico da sua conta.
           </p>
         )}
-        <Link href="/minhas-compras" className="mt-auto pt-6 text-sm font-semibold text-blue-600 hover:underline">
+        <Link href="/minhas-compras" className="mt-auto pt-6 text-sm font-semibold text-brand-ink hover:text-brand hover:underline">
           Ver todas as minhas compras
         </Link>
       </aside>

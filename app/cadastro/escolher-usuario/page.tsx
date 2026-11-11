@@ -99,10 +99,10 @@ export default function EscolherUsuarioPage() {
               spellCheck={false}
               value={username}
               onChange={(event) => setUsername(event.target.value.toLowerCase().replace(/\s/g, ""))}
-              className="w-full rounded-lg border border-gray-200 py-2 pl-7 pr-8 text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-200 py-2 pl-7 pr-8 text-sm focus:border-brand focus:outline-none"
             />
             {status === "checking" && <Loader2 className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 animate-spin text-gray-400" />}
-            {status === "ok" && <CheckCircle2 className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-blue-500" />}
+            {status === "ok" && <CheckCircle2 className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-success" />}
             {(status === "taken" || status === "invalid") && <XCircle className="absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-red-500" />}
           </div>
           {status === "taken" && <p className="text-xs text-red-600">Esse @usuário já existe — escolha outro.</p>}
@@ -110,7 +110,7 @@ export default function EscolherUsuarioPage() {
           <button
             type="submit"
             disabled={status !== "ok" || loading}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
           >
             {loading ? "Salvando..." : "Continuar"}
           </button>

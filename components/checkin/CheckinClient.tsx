@@ -89,7 +89,7 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
   };
 
   const TOAST_STYLE: Record<ToastType, string> = {
-    success: "bg-blue-500 text-white",
+    success: "bg-success text-white",
     already: "bg-amber-500 text-white",
     queued: "bg-violet-600 text-white",
     error: "bg-red-500 text-white",
@@ -128,7 +128,7 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
         <button
           onClick={() => setScanning(true)}
           disabled={isPending}
-          className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-gray-900 py-4 text-sm font-semibold text-white transition-colors hover:bg-gray-800 disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-brand-dark py-4 text-sm font-semibold text-white transition-colors hover:bg-brand-dark-2 disabled:opacity-60"
         >
           {isPending ? (
             <Loader2 className="size-5 animate-spin" />
@@ -155,7 +155,7 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
               if (e.key === "Enter" && manualToken.trim()) handleToken(manualToken.trim());
             }}
             placeholder="Cole ou digite o código do QR"
-            className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="min-w-0 flex-1 rounded-xl border border-border px-3 py-2.5 text-sm text-ink placeholder-ink-muted/60 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
           <button
             disabled={!manualToken.trim() || isPending}
@@ -163,7 +163,7 @@ export function CheckinClient({ championshipId }: { championshipId: string }) {
               handleToken(manualToken.trim());
               setManualToken("");
             }}
-            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:opacity-40"
+            className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:opacity-40"
           >
             OK
           </button>
