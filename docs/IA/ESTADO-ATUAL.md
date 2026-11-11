@@ -1,5 +1,22 @@
 # Estado atual resumido
 
+## RankFTV — Redesenho Completo do Painel do Campeonato (Fases 1, 2 e 3) (11/11/2026)
+
+Reestruturação completa do painel do organizador em `/painel/campeonatos/[id]/*` (Fases 1, 2 e 3) com arquitetura cockpit, largura ampla (`PageContainer width="wide"`), tema claro puro (`bg-surface` / `text-ink` / `border-border`) sem classes `dark:` e zero alterações de schema SQL:
+
+- **Fase 1A — Central Financeira Unificada (`/financeiro`, `/despesas`, `/relatorios`):**
+  - Loader único em [`lib/financial-data-loader.tsx`](lib/financial-data-loader.tsx) + núcleo puro em [`lib/financial-cockpit.ts`](lib/financial-cockpit.ts) e [`lib/financial-pdf-export.ts`](lib/financial-pdf-export.ts).
+  - [`CentralFinanceiraClient`](components/painel/CentralFinanceiraClient.tsx) em 5 abas (`Visão Geral`, `Carteira & Saques`, `Despesas & Vencimentos`, `Relatórios Customizados`, `Taxas & Regras`) com gráficos Recharts ([`FinancialCharts`](components/painel/FinancialCharts.tsx)), termômetro de saúde financeira ([`FinancialHealthCard`](components/painel/FinancialHealthCard.tsx)) e exportação CSV/PDF sob demanda via `/api/campeonatos/[id]/relatorios/export` e [`RelatoriosCustomPanel`](components/painel/RelatoriosCustomPanel.tsx).
+- **Fase 1B — Visão Geral Cockpit & Hub Modular (`/painel/campeonatos/[id]`):**
+  - [`ChampionshipShell`](components/painel/ChampionshipShell.tsx), [`ChampionshipActions`](components/painel/ChampionshipActions.tsx) e [`championship-nav-items.ts`](components/painel/championship-nav-items.ts) com badges operacionais ao vivo e hierarquia de navegação agrupada.
+  - Overview em 2 colunas com `Pulso do torneio` (ocupação por categoria) e `Radar do organizador` (check-ins, despesas a vencer, waitlist via `championship_category_waitlist`, cobranças pendentes e saldo disponível).
+- **Fase 2 — Operação de Competição, Edição, Espera e Camisas:**
+  - [`CompeticaoTabsHeader`](components/painel/CompeticaoTabsHeader.tsx) unificando Chaveamento (corrigido link `/inscricoes` para `/checkin`) e Operação por Quadras ([`QuadrasBoardClient`](components/painel/QuadrasBoardClient.tsx) Kanban/Lista em tempo real).
+  - [`EditarCampeonatoForm`](components/painel/EditarCampeonatoForm.tsx) em 5 abas sem `alert()` nativo (banners `role="alert"`).
+  - [`ListaEsperaClient`](components/painel/ListaEsperaClient.tsx) com fila FIFO, filtros, busca e ações rápidas por categoria; [`CamisasClient`](components/camisas/CamisasClient.tsx) com grade 2 colunas e resumo por tamanho.
+- **Fase 3 — Comercial, Check-in, Equipe, Comunicação e Plateia:**
+  - [`ComercialTabsHeader`](components/painel/ComercialTabsHeader.tsx) entre Lotes e Cupons; mesa dividida em `checkin/page.tsx`; [`EquipeClient`](components/painel/EquipeClient.tsx) em 2 colunas com presets de função; [`ComunicacaoClient`](components/painel/ComunicacaoClient.tsx) em modo estúdio `wide` com templates; [`PlateiaTabsHeader`](components/plateia/PlateiaTabsHeader.tsx) nas rotas `/plateia`, `/plateia/lista` e `/plateia/financeiro`.
+
 ## Central de Evolução - Adição do Concorrente Marcos Paulo e Atualização Completa do Canal Carlos Rocha (11/11/2026)
 
 - Canal Marcos Paulo (`@marcospauloo`, 195 mil inscritos) adicionado oficialmente à base de concorrentes do canal Carlos Rocha via YouTube Data API v3.

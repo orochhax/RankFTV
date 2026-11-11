@@ -4,6 +4,7 @@ import { Trophy, Layers, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { BracketClient } from "@/components/chaveamento/BracketClient";
+import { CompeticaoTabsHeader } from "@/components/painel/CompeticaoTabsHeader";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { StatCard } from "@/components/shell/StatCard";
@@ -225,6 +226,7 @@ export default async function ChaveamentoPage({
 
   return (
     <PageContainer width="wide" className="space-y-6 py-8">
+      <CompeticaoTabsHeader champId={publicSlug} active="chaveamento" />
       <PageHeader title="Chaveamento" description="Grade e confrontos automáticos por categoria." />
 
       <div className="grid grid-cols-2 gap-4 sm:max-w-md">
@@ -237,8 +239,8 @@ export default async function ChaveamentoPage({
           icon={Trophy}
           title="Nenhuma dupla confirmada"
           description="O chaveamento é gerado automaticamente assim que as primeiras duplas confirmarem pagamento."
-          actionLabel="Ver inscrições"
-          actionHref={`/painel/campeonatos/${id}/inscricoes`}
+          actionLabel="Ver inscrições & check-in"
+          actionHref={`/painel/campeonatos/${publicSlug}/checkin`}
         />
       ) : (
         <>

@@ -371,91 +371,149 @@ export function CamisasClient({
 
   return (
     <>
-      <div className="space-y-4">
-
-        {/* ── notificar atletas ── */}
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 py-4">
-          <div className="flex items-center gap-4">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50">
-              <Bell className="size-5 text-blue-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">Notificar todos os atletas</p>
-              <p className="text-xs text-gray-400">Avisa que as camisas estão prontas para retirada.</p>
-            </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* ── Coluna esquerda: Grade por tamanho + Ações em lote ── */}
+        <div className="space-y-4 lg:col-span-5">
+          {/* ── resumo visual por tamanho ── */}
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
             <button
-              onClick={() => setNotifyModal(true)}
-              className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+              onClick={() => setSizeOpen((o) => !o)}
+              className="flex w-full items-center justify-between px-5 py-4 text-left"
             >
-              Enviar aviso
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-gray-900">Grade por tamanho</span>
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-20 overflow-hidden rounded-full bg-gray-100">
+                    <div
+                      className="h-full rounded-full bg-blue-500 transition-all"
+                      style={{ width: `${athletes.length ? (totalDone / athletes.length) * 100 : 0}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-gray-500">
+                    {totalDone}/{athletes.length}
+                  </span>
+                </div>
+              </div>
+              <ChevronDown
+                className={`size-4 text-gray-400 transition-transform ${sizeOpen ? "rotate-180" : ""}`}
+              />
             </button>
+
+            {sizeOpen && (
+              <div className="border-t border-gray-100 px-5 pb-5 pt-4 space-y-4">
+                {/* Blocos compactos por tamanho (clicáveis para filtrar a lista) */}
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {sizeStats.map(({ size, total, done }) => {
+                    const active = filterSize === size;
+                    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => setFilterSize(active ? null : size)}
+                        className={`rounded-xl border p-2.5 text-left transition-all ${
+                          active
+                            ? "border-blue-500 bg-blue-50/70 ring-1 ring-blue-200"
+                            : "border-gray-200 bg-white hover:border-blue-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-900">{size}</span>
+                          <span className="text-[10px] font-semibold text-gray-500">{pct}%</span>
+                        </div>
+                        <p className="mt-1 text-base font-extrabold tabular-nums text-gray-900">
+                          {total}
+                        </p>
+                        <p className="text-[10px] text-gray-500">{done} pronta(s)</p>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Barras detalhadas e atalho "Marcar todas" */}
+                <div className="space-y-3 border-t border-gray-100 pt-3">
+                  {sizeStats.map(({ size, total, done, ids }) => {
+                    const pct = total > 0 ? (done / total) * 100 : 0;
+                    const allDone = done === total;
+                    const pendingIds = ids.filter(
+                      (id) => !(overrides[id] ?? athletes.find((a) => a.athleteId === id)?.produced),
+                    );
+                    return (
+                      <div key={size} className="flex items-center gap-3">
+                        <span className="w-10 shrink-0 rounded-lg bg-gray-100 py-1 text-center text-xs font-bold text-gray-700">
+                          {size}
+                        </span>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">
+                              {done} de {total} pronta{total !== 1 ? "s" : ""}
+                            </span>
+                            {allDone ? (
+                              <span className="flex items-center gap-1 text-[11px] font-semibold text-blue-600">
+                                <Check className="size-3" /> Concluído
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleBulk(pendingIds, true)}
+                                disabled={isPending || pendingIds.length === 0}
+                                className="text-[11px] font-medium text-blue-600 hover:text-blue-700 disabled:opacity-40"
+                              >
+                                Marcar todas →
+                              </button>
+                            )}
+                          </div>
+                          <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                allDone ? "bg-blue-500" : "bg-blue-400"
+                              }`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                        <span className="w-12 shrink-0 text-right text-xs font-semibold tabular-nums text-gray-700">
+                          {done}/{total}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── notificar atletas + PDF ── */}
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 py-4 space-y-3">
+            <div className="flex items-center gap-3.5">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50">
+                <Bell className="size-5 text-blue-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900">Notificar todos os atletas</p>
+                <p className="text-xs text-gray-400">
+                  Avisa que as camisas estão prontas para retirada.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setNotifyModal(true)}
+                className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+              >
+                Enviar aviso
+              </button>
+              <button
+                onClick={exportPdf}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <FileText className="size-3.5" /> Exportar PDF
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* ── resumo por tamanho ── */}
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-          <button
-            onClick={() => setSizeOpen((o) => !o)}
-            className="flex w-full items-center justify-between px-5 py-4 text-left"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-gray-900">Resumo por tamanho</span>
-              <div className="hidden sm:flex items-center gap-2">
-                <div className="h-1.5 w-24 overflow-hidden rounded-full bg-gray-100">
-                  <div
-                    className="h-full rounded-full bg-blue-500 transition-all"
-                    style={{ width: `${athletes.length ? (totalDone / athletes.length) * 100 : 0}%` }}
-                  />
-                </div>
-                <span className="text-xs text-gray-400">{totalDone} / {athletes.length}</span>
-              </div>
-            </div>
-            <ChevronDown className={`size-4 text-gray-400 transition-transform ${sizeOpen ? "rotate-180" : ""}`} />
-          </button>
-
-          {sizeOpen && (
-            <div className="border-t border-gray-100 px-5 pb-5 pt-4 space-y-3">
-              {sizeStats.map(({ size, total, done, ids }) => {
-                const pct        = total > 0 ? (done / total) * 100 : 0;
-                const allDone    = done === total;
-                const pendingIds = ids.filter((id) => !(overrides[id] ?? athletes.find((a) => a.athleteId === id)?.produced));
-                return (
-                  <div key={size} className="flex items-center gap-3">
-                    <span className="w-10 shrink-0 rounded-lg bg-gray-100 py-1 text-center text-xs font-bold text-gray-700">{size}</span>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">{done} de {total} pronta{total !== 1 ? "s" : ""}</span>
-                        {allDone ? (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold text-blue-600">
-                            <Check className="size-3" /> Concluído
-                          </span>
-                        ) : (
-                          <button onClick={() => handleBulk(pendingIds, true)} disabled={isPending || pendingIds.length === 0}
-                            className="text-[11px] font-medium text-blue-600 hover:text-blue-700 disabled:opacity-40">
-                            Marcar todas →
-                          </button>
-                        )}
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-gray-100">
-                        <div className={`h-full rounded-full transition-all ${allDone ? "bg-blue-500" : "bg-blue-400"}`} style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                    <span className="w-12 shrink-0 text-right text-xs font-semibold tabular-nums text-gray-700">{done}/{total}</span>
-                  </div>
-                );
-              })}
-              <div className="flex justify-end pt-1">
-                <button onClick={exportPdf}
-                  className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 transition-colors">
-                  <FileText className="size-3.5" /> Exportar PDF
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ── lista de atletas ── */}
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        {/* ── Coluna direita: lista de atletas ── */}
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white lg:col-span-7">
 
           {/* filtros + ações */}
           <div className="space-y-3 border-b border-gray-100 px-5 pb-4 pt-4">

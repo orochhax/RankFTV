@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { formatBRL } from "@/lib/format";
 import { GestaoTiposIngresso } from "@/components/plateia/GestaoTiposIngresso";
+import { PlateiaTabsHeader } from "@/components/plateia/PlateiaTabsHeader";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { StatCard } from "@/components/shell/StatCard";
@@ -46,6 +47,11 @@ export default async function GestaoEspectadoresPage({
 
   return (
     <PageContainer width="wide" className="space-y-6 py-8">
+      <PlateiaTabsHeader
+        champId={camp.slug ?? champId}
+        active="tipos"
+        temPlateia={(tipos?.length ?? 0) > 0}
+      />
       <PageHeader title="Gestão de Espectadores" description="Ingressos de plateia, financeiro e check-in desse campeonato." />
 
       <div className="grid grid-cols-3 gap-4 sm:max-w-xl">

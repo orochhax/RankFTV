@@ -1893,3 +1893,15 @@ registrar apenas uma revalidação quando ela for necessária.
 
 
 
+
+
+## 2026-11-11 — RankFTV: Redesenho completo do painel do campeonato (Fases 1, 2 e 3)
+
+- **Branch de trabalho:** `feat/painel-campeonato-unificado` (worktree `.codex-worktrees/v1-wallet-release-clean`), destino `master`.
+- **Objetivo:** Substituir telas verticais genéricas do organizador por cockpits amplos e modulares com tema claro consistente (`bg-surface`), preservando regras de domínio financeiro, autenticação server-side e datas em `America/Sao_Paulo`, sem migrações SQL.
+- **Arquivos principais entregues:**
+  - **Fase 1A:** `lib/financial-data-loader.tsx`, `lib/financial-cockpit.ts`, `lib/financial-pdf-export.ts`, `app/api/campeonatos/[id]/relatorios/export/route.ts`, `components/painel/CentralFinanceiraClient.tsx`, `components/painel/FinancialCharts.tsx`, `components/painel/FinancialHealthCard.tsx`, `components/painel/RelatoriosCustomPanel.tsx`, `app/painel/campeonatos/[id]/{financeiro,despesas,relatorios}/page.tsx`.
+  - **Fase 1B:** `components/painel/championship-nav-items.ts`, `components/painel/ChampionshipActions.tsx`, `components/painel/ChampionshipShell.tsx`, `app/painel/campeonatos/[id]/page.tsx`.
+  - **Fase 2:** `components/painel/CompeticaoTabsHeader.tsx`, `components/painel/QuadrasBoardClient.tsx`, `app/painel/campeonatos/[id]/{quadras,chaveamento,editar,lista-espera}/page.tsx`, `components/painel/EditarCampeonatoForm.tsx`, `components/painel/ListaEsperaClient.tsx`, `components/camisas/CamisasClient.tsx`.
+  - **Fase 3:** `components/painel/ComercialTabsHeader.tsx`, `components/plateia/PlateiaTabsHeader.tsx`, `components/painel/EquipeClient.tsx`, `components/painel/ComunicacaoClient.tsx`, `app/painel/campeonatos/[id]/{lotes,cupons,checkin,comunicacao,plateia,plateia/lista,plateia/financeiro}/page.tsx`.
+  - **Testes:** `lib/championship-cockpit-ui.test.ts` + atualização dos contratos de rota em `lib/v1-release-guards.test.ts` e `lib/championship-panel-enhancements.test.ts`.

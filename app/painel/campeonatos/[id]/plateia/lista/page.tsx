@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { PlateiaLista, type PlateiaItem } from "@/components/plateia/PlateiaLista";
+import { PlateiaTabsHeader } from "@/components/plateia/PlateiaTabsHeader";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { createClient } from "@/lib/supabase/server";
@@ -60,6 +61,7 @@ export default async function PlateiaListaPage({
 
   return (
     <PageContainer width="wide" className="space-y-6 py-8">
+      <PlateiaTabsHeader champId={camp.slug ?? champId} active="lista" temPlateia={true} />
       <PageHeader title="Plateia" description={`${total} ${total === 1 ? "pedido" : "pedidos"} no total`} />
 
       <form method="get" className="flex gap-2">

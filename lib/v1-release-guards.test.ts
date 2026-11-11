@@ -330,24 +330,30 @@ test("payment UX is provider-neutral while privacy disclosure stays transparent"
   }
 
   const financePage = source("app/painel/campeonatos/[id]/financeiro/page.tsx");
+  const financeLoader = source("lib/financial-data-loader.tsx");
   assert.doesNotMatch(financePage, /Verifique o status real no Asaas/i);
-  assert.match(financePage, /processador de pagamentos/);
+  assert.doesNotMatch(financeLoader, /Verifique o status real no Asaas/i);
+  assert.match(financeLoader, /processador de pagamentos/);
   const financeActions = source("app/painel/campeonatos/[id]/financeiro/actions.ts");
   assert.doesNotMatch(financeActions, /message:\s*[`"][^\n]*Asaas/i);
   assert.match(source("app/privacidade/page.tsx"), /Asaas/);
 });
 
 test("championship finances keep the operational blocks ordered and mobile-safe", () => {
-  const content = source("components/painel/FinanceiroConteudoClient.tsx");
+  const central = source("components/painel/CentralFinanceiraClient.tsx");
   const wallet = source("components/painel/OrganizerWalletPanel.tsx");
-  const page = source("app/painel/campeonatos/[id]/financeiro/page.tsx");
-  const chart = source("components/painel/GraficoVendasDiarias.tsx");
+  const loader = source("lib/financial-data-loader.tsx");
+  const chart = source("components/painel/FinancialCharts.tsx");
+  const legacyChart = source("components/painel/GraficoVendasDiarias.tsx");
 
   assert.match(wallet, /Saldo líquido[\s\S]*Saldo pendente[\s\S]*Solicitar saque[\s\S]*Antecipar cartão/);
-  assert.match(content, /OrganizerWalletPanel[\s\S]*Status dos pagamentos[\s\S]*chavePixSection[\s\S]*Vendas por dia[\s\S]*cobrancasPendentesSection/);
-  assert.match(page, /max-h-96[\s\S]*overflow-y-auto/);
+  assert.match(central, /FinancialHealthCard[\s\S]*RevenueEvolutionChart[\s\S]*OrganizerWalletPanel[\s\S]*DespesasManager[\s\S]*RelatoriosCustomPanel[\s\S]*PlanoTaxas/);
+  assert.match(central, /chavePixSection[\s\S]*cobrancasPendentesSection/);
+  assert.match(loader, /max-h-96[\s\S]*overflow-y-auto/);
   assert.match(chart, /interval="preserveStartEnd"/);
   assert.match(chart, /minTickGap=\{18\}/);
+  assert.match(legacyChart, /interval="preserveStartEnd"/);
+  assert.match(legacyChart, /minTickGap=\{18\}/);
   assert.doesNotMatch(chart, /toFixed\(0\)\}k/);
 });
 

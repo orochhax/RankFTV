@@ -170,125 +170,129 @@ export default async function CheckinPage({
         />
       </div>
 
-      {/* Leitor QR Code Universal e Entrada Manual */}
-      <Surface padding="md">
-        <CheckinClient championshipId={id} />
-      </Surface>
+      {/* Mesa Split: Scanner QR fixo à esquerda + Credenciamento & Lista à direita */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start">
+        <div className="space-y-4 lg:sticky lg:top-6">
+          <Surface padding="md">
+            <CheckinClient championshipId={id} />
+          </Surface>
+        </div>
 
-      {/* Abas e Listagem Unificada */}
-      <section className="space-y-4">
-        <SectionHeader title="Lista de presença & Credenciamento" />
+        {/* Abas e Listagem Unificada */}
+        <section className="min-w-0 space-y-4">
+          <SectionHeader title="Lista de presença & Credenciamento" />
 
-        <CheckinTabs
-          championshipId={id}
-          activeTab={activeTab}
-          totalDuplas={duplas.length}
-          totalPlateia={totalPlateiaIngressos}
-        />
+          <CheckinTabs
+            championshipId={id}
+            activeTab={activeTab}
+            totalDuplas={duplas.length}
+            totalPlateia={totalPlateiaIngressos}
+          />
 
-        {activeTab === "atletas" ? (
-          <div className="space-y-4">
-            <AthleteFilters
-              championshipId={id}
-              categories={camp.categorias.map((c) => ({ id: c.id, nome: c.nome }))}
-              activeCategory={catAtiva}
-              activeStatus={filtroAtivo}
-              activeQuery={query.q ?? ""}
-            />
-
-            {totalAtletas === 0 ? (
-              <EmptyState
-                icon={Users}
-                title="Nenhuma credencial emitida ainda"
-                description="As credenciais de atletas são geradas após o pagamento da inscrição."
-                className="mt-3"
+          {activeTab === "atletas" ? (
+            <div className="space-y-4">
+              <AthleteFilters
+                championshipId={id}
+                categories={camp.categorias.map((c) => ({ id: c.id, nome: c.nome }))}
+                activeCategory={catAtiva}
+                activeStatus={filtroAtivo}
+                activeQuery={query.q ?? ""}
               />
-            ) : listaAtletas.length === 0 ? (
-              <EmptyState
-                icon={filtroAtivo === "confirmadas" ? UserCheck : UserX}
-                title={
-                  filtroAtivo === "confirmadas"
-                    ? "Nenhuma dupla confirmada para os filtros selecionados"
-                    : search
-                      ? "Nenhum atleta encontrado para essa busca"
-                      : "Todos os atletas já estão confirmados!"
-                }
-                className="mt-3"
-              />
-            ) : (
-              <Surface padding="none" className="overflow-hidden">
-                <ol className="divide-y divide-border">
-                  {listaAtletas.map((item) => {
-                    if (item.kind === "pair") {
-                      return (
-                        <PairPresenceItem
+
+              {totalAtletas === 0 ? (
+                <EmptyState
+                  icon={Users}
+                  title="Nenhuma credencial emitida ainda"
+                  description="As credenciais de atletas são geradas após o pagamento da inscrição."
+                  className="mt-3"
+                />
+              ) : listaAtletas.length === 0 ? (
+                <EmptyState
+                  icon={filtroAtivo === "confirmadas" ? UserCheck : UserX}
+                  title={
+                    filtroAtivo === "confirmadas"
+                      ? "Nenhuma dupla confirmada para os filtros selecionados"
+                      : search
+                        ? "Nenhum atleta encontrado para essa busca"
+                        : "Todos os atletas já estão confirmados!"
+                  }
+                  className="mt-3"
+                />
+              ) : (
+                <Surface padding="none" className="overflow-hidden">
+                  <ol className="divide-y divide-border">
+                    {listaAtletas.map((item) => {
+                      if (item.kind === "pair") {
+                        return (
+                          <PairPresenceItem
+                            key={item.id}
+                            members={item.members}
+                            categoryName={item.categoryName}
+                          />
+                        );
+                      }
+                      const member = item.members[0];
+                      if (!member) return null;
+                      return member.checkedIn && member.checkinAt ? (
+                        <PresenceItem
                           key={item.id}
-                          members={item.members}
-                          categoryName={item.categoryName}
+                          nome={member.name}
+                          username={member.username}
+                          checkinAt={member.checkinAt}
+                          scannerNome={member.scannerName}
                         />
+                      ) : (
+                        <li key={item.id} className="flex items-center gap-3 px-4 py-3">
+                          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2">
+                            <span className="text-xs font-bold text-ink-muted">?</span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium text-ink">{member.name}</p>
+                            {member.username && (
+                              <p className="text-xs text-ink-muted">@{member.username}</p>
+                            )}
+                          </div>
+                          <span className="shrink-0 rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-ink-muted">
+                            Pendente
+                          </span>
+                        </li>
                       );
-                    }
-                    const member = item.members[0];
-                    if (!member) return null;
-                    return member.checkedIn && member.checkinAt ? (
-                      <PresenceItem
-                        key={item.id}
-                        nome={member.name}
-                        username={member.username}
-                        checkinAt={member.checkinAt}
-                        scannerNome={member.scannerName}
-                      />
-                    ) : (
-                      <li key={item.id} className="flex items-center gap-3 px-4 py-3">
-                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2">
-                          <span className="text-xs font-bold text-ink-muted">?</span>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium text-ink">{member.name}</p>
-                          {member.username && (
-                            <p className="text-xs text-ink-muted">@{member.username}</p>
-                          )}
-                        </div>
-                        <span className="shrink-0 rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-ink-muted">
-                          Pendente
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </Surface>
-            )}
+                    })}
+                  </ol>
+                </Surface>
+              )}
 
-            {filteredTotal > 0 && totalPages > 1 && (
-              <nav className="mt-4 flex items-center justify-between border-t border-border pt-4" aria-label="Paginação do check-in de atletas">
-                <span className="text-sm text-ink-muted">Página {page} de {totalPages} ({filteredTotal} duplas)</span>
-                <div className="flex gap-2">
-                  {page > 1 && (
-                    <Link
-                      href={checkinHref(id, activeTab, filtroAtivo, catAtiva, search, page - 1)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm text-ink hover:bg-surface-2"
-                    >
-                      <ChevronLeft className="size-4" /> Anterior
-                    </Link>
-                  )}
-                  {page < totalPages && (
-                    <Link
-                      href={checkinHref(id, activeTab, filtroAtivo, catAtiva, search, page + 1)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm text-ink hover:bg-surface-2"
-                    >
-                      Próxima <ChevronRight className="size-4" />
-                    </Link>
-                  )}
-                </div>
-              </nav>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <PlateiaCheckin champId={id} itens={filteredSpectators} initialSearch={query.q ?? ""} />
-          </div>
-        )}
-      </section>
+              {filteredTotal > 0 && totalPages > 1 && (
+                <nav className="mt-4 flex items-center justify-between border-t border-border pt-4" aria-label="Paginação do check-in de atletas">
+                  <span className="text-sm text-ink-muted">Página {page} de {totalPages} ({filteredTotal} duplas)</span>
+                  <div className="flex gap-2">
+                    {page > 1 && (
+                      <Link
+                        href={checkinHref(id, activeTab, filtroAtivo, catAtiva, search, page - 1)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm text-ink hover:bg-surface-2"
+                      >
+                        <ChevronLeft className="size-4" /> Anterior
+                      </Link>
+                    )}
+                    {page < totalPages && (
+                      <Link
+                        href={checkinHref(id, activeTab, filtroAtivo, catAtiva, search, page + 1)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm text-ink hover:bg-surface-2"
+                      >
+                        Próxima <ChevronRight className="size-4" />
+                      </Link>
+                    )}
+                  </div>
+                </nav>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <PlateiaCheckin champId={id} itens={filteredSpectators} initialSearch={query.q ?? ""} />
+            </div>
+          )}
+        </section>
+      </div>
     </PageContainer>
   );
 }

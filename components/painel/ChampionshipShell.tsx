@@ -116,7 +116,7 @@ export function ChampionshipShell({
                   <div
                     role="menu"
                     aria-label="Seções do campeonato"
-                    className="absolute right-0 top-full z-40 mt-2 hidden w-72 max-h-[70vh] overflow-y-auto rounded-card-lg bg-surface p-2 shadow-elevated ring-1 ring-border md:block"
+                    className="absolute right-0 top-full z-40 mt-2 hidden w-80 max-h-[75vh] overflow-y-auto rounded-card-lg bg-surface p-2.5 shadow-elevated ring-1 ring-border md:block"
                   >
                     <ChampionshipNavContent
                       champId={champ.id}
@@ -219,12 +219,23 @@ function ChampionshipNavContent({
                     href={href}
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
-                    className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors ${
+                    className={`flex items-start gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors ${
                       active ? "bg-blue-600 text-white" : "text-ink-muted hover:bg-surface-2 hover:text-ink"
                     }`}
                   >
-                    <Icon className="size-[17px] shrink-0" strokeWidth={2} />
-                    <span className="truncate">{item.label}</span>
+                    <Icon className="mt-0.5 size-[17px] shrink-0" strokeWidth={2} />
+                    <div className="min-w-0 flex-1">
+                      <span className="block truncate">{item.label}</span>
+                      {item.description && (
+                        <span
+                          className={`block truncate text-[11px] font-normal ${
+                            active ? "text-blue-100" : "text-ink-muted/80"
+                          }`}
+                        >
+                          {item.description}
+                        </span>
+                      )}
+                    </div>
                   </Link>
                 </li>
               );

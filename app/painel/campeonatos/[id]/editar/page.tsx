@@ -2,8 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { EditarCampeonatoForm } from "@/components/painel/EditarCampeonatoForm";
-import { ExcluirCampeonatoButton } from "@/components/painel/ExcluirCampeonatoButton";
-import { ChampBannerForm } from "@/components/painel/ChampBannerForm";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import type { GeneroCategoria } from "@/lib/types";
@@ -15,7 +13,9 @@ export default async function EditarCampeonatoPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
   const resolved = await getDbChampionshipById(id);
@@ -24,7 +24,8 @@ export default async function EditarCampeonatoPage({
 
   const { data: champ } = await supabase
     .from("championships")
-    .select(`
+    .select(
+      `
       id, nome, descricao, regulamento, regulamento_pdf_url,
       data_inicio, data_fim,
       inscricoes_inicio, inscricoes_fim,
@@ -35,7 +36,8 @@ export default async function EditarCampeonatoPage({
       championship_categories (
         id, nome, genero, valor_inscricao, max_duplas
       )
-    `)
+    `,
+    )
     .eq("id", champId)
     .single();
 
@@ -44,63 +46,59 @@ export default async function EditarCampeonatoPage({
   const c = champ as unknown as Record<string, unknown>;
 
   const initial = {
-    nome:             champ.nome,
-    descricao:        champ.descricao ?? "",
-    regulamento:      champ.regulamento ?? "",
-    dataInicio:       champ.data_inicio,
-    dataFim:          champ.data_fim,
+    nome: champ.nome,
+    descricao: champ.descricao ?? "",
+    regulamento: champ.regulamento ?? "",
+    dataInicio: champ.data_inicio,
+    dataFim: champ.data_fim,
     inscricoesInicio: champ.inscricoes_inicio ?? "",
-    inscricoesFim:    champ.inscricoes_fim ?? "",
-    prevendaInicio:   (c.prevenda_inicio as string | null) ?? "",
-    prevendaFim:      (c.prevenda_fim    as string | null) ?? "",
-    cidade:           champ.cidade,
-    estado:           champ.estado,
-    local:            champ.local ?? "",
-    liveUrl:          (c.live_url  as string | null) ?? "",
-    status:              champ.status as "rascunho" | "inscricoes_abertas" | "em_andamento" | "encerrado",
-    regulamentoPdfUrl:   (c.regulamento_pdf_url as string | null) ?? null,
-    usaMotorCategoria:   (c.usa_motor_categoria as boolean | null) ?? true,
-    permiteTrocaDupla:   (c.permite_troca_dupla as boolean | null) ?? true,
+    inscricoesFim: champ.inscricoes_fim ?? "",
+    prevendaInicio: (c.prevenda_inicio as string | null) ?? "",
+    prevendaFim: (c.prevenda_fim as string | null) ?? "",
+    cidade: champ.cidade,
+    estado: champ.estado,
+    local: champ.local ?? "",
+    liveUrl: (c.live_url as string | null) ?? "",
+    status: champ.status as
+      | "rascunho"
+      | "inscricoes_abertas"
+      | "em_andamento"
+      | "encerrado",
+    regulamentoPdfUrl: (c.regulamento_pdf_url as string | null) ?? null,
+    usaMotorCategoria: (c.usa_motor_categoria as boolean | null) ?? true,
+    permiteTrocaDupla: (c.permite_troca_dupla as boolean | null) ?? true,
     prazoLimiteTrocaDupla: (c.troca_dupla_data_limite as string | null)
       ? new Date(c.troca_dupla_data_limite as string).toISOString().slice(0, 16)
       : "",
-    categorias: ((champ.championship_categories as unknown as Array<{
-      id: string; nome: string; genero: string;
-      valor_inscricao: number; max_duplas: number | null;
-    }>) ?? []).map((cat) => ({
-      id:             cat.id,
-      nome:           cat.nome,
-      genero:         cat.genero as GeneroCategoria,
+    categorias: (
+      (champ.championship_categories as unknown as Array<{
+        id: string;
+        nome: string;
+        genero: string;
+        valor_inscricao: number;
+        max_duplas: number | null;
+      }>) ?? []
+    ).map((cat) => ({
+      id: cat.id,
+      nome: cat.nome,
+      genero: cat.genero as GeneroCategoria,
       valorInscricao: cat.valor_inscricao,
-      maxDuplas:      cat.max_duplas ?? undefined,
+      maxDuplas: cat.max_duplas ?? undefined,
     })),
   };
 
   return (
-    <PageContainer width="form" className="space-y-8 py-8">
-      <PageHeader title="Editar campeonato" />
+    <PageContainer width="wide" className="space-y-6 py-8">
+      <PageHeader
+        title="Editar campeonato"
+        description="Ajuste informações gerais, banner oficial, calendário, categorias e regras em abas organizadas."
+      />
 
-      <div className="space-y-2">
-        <p className="text-sm font-semibold text-ink">Banner do campeonato</p>
-        <ChampBannerForm
-          champId={champId}
-          initialBannerUrl={(c.banner_url as string | null) ?? null}
-          bannerFrom="from-blue-500"
-          bannerTo="to-cyan-400"
-        />
-      </div>
-
-      <EditarCampeonatoForm champId={champId} initial={initial} />
-
-      {/* Zona de exclusão */}
-      <div className="rounded-card-lg border border-danger/20 bg-danger-bg p-5">
-        <h3 className="mb-1 text-sm font-semibold text-danger">Zona de perigo</h3>
-        <p className="mb-4 text-xs text-danger/80">
-          Excluir apaga o campeonato permanentemente — inscrições, chaveamento e resultados
-          não poderão mais ser acessados pelos atletas.
-        </p>
-        <ExcluirCampeonatoButton champId={champId} champNome={champ.nome} />
-      </div>
+      <EditarCampeonatoForm
+        champId={champId}
+        initialBannerUrl={(c.banner_url as string | null) ?? null}
+        initial={initial}
+      />
     </PageContainer>
   );
 }
