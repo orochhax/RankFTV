@@ -58,13 +58,15 @@ test("Spectator subpages safely guard against unconfigured championships and sup
 
 test("Management subpages resolve slug and safely use UUID for database operations", () => {
   const finSource = readFileSync("app/painel/campeonatos/[id]/financeiro/page.tsx", "utf8");
+  const finLoaderSource = readFileSync("lib/financial-data-loader.tsx", "utf8");
   const cuponsSource = readFileSync("app/painel/campeonatos/[id]/cupons/page.tsx", "utf8");
   const lotesSource = readFileSync("app/painel/campeonatos/[id]/lotes/page.tsx", "utf8");
   const chaveSource = readFileSync("app/painel/campeonatos/[id]/chaveamento/page.tsx", "utf8");
   const camisasSource = readFileSync("app/painel/campeonatos/[id]/camisas/page.tsx", "utf8");
 
-  assert.match(finSource, /const champId = camp\.id/);
-  assert.match(finSource, /p_championship_id: champId/);
+  assert.match(finSource, /getDbChampionshipById/);
+  assert.match(finLoaderSource, /const champId = camp\.id/);
+  assert.match(finLoaderSource, /p_championship_id: champId/);
   assert.match(cuponsSource, /getDbChampionshipById/);
   assert.match(cuponsSource, /eq\("championship_id", champId\)/);
   assert.match(lotesSource, /getDbChampionshipById/);

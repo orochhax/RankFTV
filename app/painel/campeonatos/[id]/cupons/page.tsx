@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { CuponsManager } from "@/components/painel/CuponsManager";
+import { ComercialTabsHeader } from "@/components/painel/ComercialTabsHeader";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 
@@ -29,6 +30,7 @@ export default async function CuponsPage({
 
   return (
     <PageContainer width="wide" className="space-y-6 py-8">
+      <ComercialTabsHeader champId={camp.slug ?? champId} active="cupons" />
       <PageHeader
         title="Cupons de desconto"
         description="Códigos que os compradores aplicam na inscrição de atleta ou no ingresso de plateia."

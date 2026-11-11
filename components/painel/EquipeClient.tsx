@@ -110,29 +110,71 @@ function MemberRow({ member, champId }: { member: StaffMember; champId: string }
         </button>
       </div>
 
-      {/* permissões — sempre numa linha própria, quebra livremente */}
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        <PermissionToggle
-          label="QR"
-          icon={QrCode}
-          checked={qr}
-          onChange={(v) => handleToggle(v, ins, chav)}
-          disabled={isPending}
-        />
-        <PermissionToggle
-          label="Inscrições"
-          icon={Users}
-          checked={ins}
-          onChange={(v) => handleToggle(qr, v, chav)}
-          disabled={isPending}
-        />
-        <PermissionToggle
-          label="Chaveamento"
-          icon={CheckSquare}
-          checked={chav}
-          onChange={(v) => handleToggle(qr, ins, v)}
-          disabled={isPending}
-        />
+      {/* permissões + perfis rápidos */}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-1.5">
+          <PermissionToggle
+            label="QR"
+            icon={QrCode}
+            checked={qr}
+            onChange={(v) => handleToggle(v, ins, chav)}
+            disabled={isPending}
+          />
+          <PermissionToggle
+            label="Inscrições"
+            icon={Users}
+            checked={ins}
+            onChange={(v) => handleToggle(qr, v, chav)}
+            disabled={isPending}
+          />
+          <PermissionToggle
+            label="Chaveamento"
+            icon={CheckSquare}
+            checked={chav}
+            onChange={(v) => handleToggle(qr, ins, v)}
+            disabled={isPending}
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] font-medium text-gray-400">Perfis:</span>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => handleToggle(true, true, false)}
+            className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition-colors ${
+              qr && ins && !chav
+                ? "border-blue-300 bg-blue-50 text-blue-700"
+                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Portaria
+          </button>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => handleToggle(true, false, true)}
+            className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition-colors ${
+              qr && !ins && chav
+                ? "border-blue-300 bg-blue-50 text-blue-700"
+                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Mesário
+          </button>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => handleToggle(true, true, true)}
+            className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition-colors ${
+              qr && ins && chav
+                ? "border-blue-300 bg-blue-50 text-blue-700"
+                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Gestor Total
+          </button>
+        </div>
       </div>
     </li>
   );
@@ -298,18 +340,37 @@ export function EquipeClient({
   members: StaffMember[];
 }) {
   return (
-    <div className="space-y-8">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      {/* Coluna esquerda: convidar membro + guia de papéis */}
+      <div className="space-y-4 lg:col-span-5">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5">
+          <BuscaConvite champId={champId} members={members} />
+        </div>
 
-      <BuscaConvite champId={champId} members={members} />
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2.5 text-xs text-gray-500">
+          <p className="font-semibold uppercase tracking-wider text-gray-700">
+            Perfis recomendados
+          </p>
+          <p>
+            <strong className="text-gray-800">Portaria:</strong> valida QR Code na entrada e confere status das inscrições.
+          </p>
+          <p>
+            <strong className="text-gray-800">Mesário:</strong> faz chamadas de quadra, leitura QR e lança placares no chaveamento.
+          </p>
+          <p>
+            <strong className="text-gray-800">Gestor Total:</strong> acesso completo a QR, inscrições e chaveamento.
+          </p>
+        </div>
+      </div>
 
       {/* ── lista de membros ── */}
-      <section>
+      <section className="lg:col-span-7">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
           Equipe {members.length > 0 && `(${members.length})`}
         </h2>
 
         {members.length === 0 ? (
-          <div className="rounded-2xl bg-gray-50 p-8 text-center ring-1 ring-black/5">
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
             <p className="text-sm text-gray-400">
               Nenhum membro ainda. Busque pelo @ de um atleta para convidar.
             </p>
@@ -324,7 +385,7 @@ export function EquipeClient({
 
         {members.length > 0 && (
           <p className="mt-3 text-xs text-gray-400">
-            Marque as permissões de cada membro. Alterações salvas automaticamente.
+            Use os botões de perfil rápido ou ajuste permissões individuais; alterações são salvas na hora.
           </p>
         )}
       </section>

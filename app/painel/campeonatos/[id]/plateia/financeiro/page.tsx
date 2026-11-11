@@ -1,6 +1,7 @@
 import { DollarSign, Info, Ticket } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { PageContainer } from "@/components/shell/PageContainer";
+import { PlateiaTabsHeader } from "@/components/plateia/PlateiaTabsHeader";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { SectionHeader } from "@/components/shell/SectionHeader";
 import { StatCard } from "@/components/shell/StatCard";
@@ -53,6 +54,7 @@ export default async function FinanceiroPlateiaPage({
 
   return (
     <PageContainer width="wide" className="space-y-6 py-8">
+      <PlateiaTabsHeader champId={camp.slug ?? champId} active="financeiro" temPlateia={true} />
       <PageHeader title="Financeiro da plateia" description="Quanto entrou só de ingressos de espectador." />
 
       <div className="grid grid-cols-2 gap-4">

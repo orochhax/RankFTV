@@ -41,7 +41,7 @@ export default async function ComunicacaoPage({
     .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 
   return (
-    <PageContainer width="form" className="space-y-6 py-8">
+    <PageContainer width="wide" className="space-y-6 py-8">
       <PageHeader
         title="Comunicação"
         description="Envie um comunicado por notificação e e-mail para os atletas inscritos."

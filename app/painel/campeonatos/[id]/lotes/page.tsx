@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { LotesManager, type GrupoLote } from "@/components/painel/LotesManager";
+import { ComercialTabsHeader } from "@/components/painel/ComercialTabsHeader";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 
@@ -89,6 +90,7 @@ export default async function LotesPage({
 
   return (
     <PageContainer width="wide" className="space-y-6 py-8">
+      <ComercialTabsHeader champId={camp.slug ?? champId} active="lotes" />
       <PageHeader
         title="Lotes / preço escalonado"
         description="Configure preços que sobem por data ou por quantidade vendida, pra categoria de atleta e pra ingresso de plateia."
