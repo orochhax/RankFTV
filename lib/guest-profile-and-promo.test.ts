@@ -22,18 +22,24 @@ test("/perfil renderiza visão deslogada com login e cadastro quando !user", () 
   assert.match(guestView, /href:\s*"\/agenda"/);
 });
 
-test("Home exibe banner 3D arredondado na faixa escura apontando para /para-voce", () => {
+test("Home exibe banner 3D responsivo arredondado na faixa escura apontando para /para-voce", () => {
   const homePage = source("app/page.tsx");
   const promoBanner = source("components/home/PromoOrganizadoresBanner.tsx");
 
   assert.equal(
-    existsSync(path.join(process.cwd(), "public/banners/para-organizadores-arenas.webp")),
+    existsSync(path.join(process.cwd(), "public/banners/para-organizadores-arenas-mobile.webp")),
+    true,
+  );
+  assert.equal(
+    existsSync(path.join(process.cwd(), "public/banners/para-organizadores-arenas-desktop.webp")),
     true,
   );
   assert.match(homePage, /bg-brand-dark[\s\S]*PromoOrganizadoresBanner/);
+  assert.match(homePage, /md:max-w-\[840px\]/);
   assert.match(promoBanner, /href="\/para-voce"/);
   assert.match(promoBanner, /rounded-2xl[\s\S]*md:rounded-3xl/);
-  assert.match(promoBanner, /\/banners\/para-organizadores-arenas\.webp/);
+  assert.match(promoBanner, /\/banners\/para-organizadores-arenas-mobile\.webp/);
+  assert.match(promoBanner, /\/banners\/para-organizadores-arenas-desktop\.webp/);
 });
 
 test("Landing /para-voce possui submenus Campeonato e Arena alternando benefícios e CTAs", () => {

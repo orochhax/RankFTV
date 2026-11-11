@@ -5,6 +5,12 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-11 18:32 (America/Sao_Paulo) — Banner 3D responsivo na Home (artes Desktop + Mobile e destaque seletivo)
+
+- **Duas artes dedicadas full-bleed:** criadas e otimizadas em `.webp` sem moldura externa desperdiçada: `public/banners/para-organizadores-arenas-desktop.webp` (`1376x628`, `2.19:1` widescreen) e `public/banners/para-organizadores-arenas-mobile.webp` (`1264x848`, `1.49:1` compacta), destacando em azul apenas as palavras `"Campeonato"` e `"Arena"`.
+- **Dimensionamento e remoção do padding duplicado (`app/page.tsx` e `components/home/PromoOrganizadoresBanner.tsx`):** removido o `px-6` extra do wrapper `bg-brand-dark` (que somava `48px` por lateral com o `PageContainer`), aplicado `-mx-2 md:mx-0` para margem lateral enxuta (`16px`) no mobile e ajustada a grade desktop para `md:col-span-5 lg:col-span-5 xl:col-span-4` (título) e `md:col-span-7 lg:col-span-7 xl:col-span-8` com `md:max-w-[840px]` para o banner crescer à esquerda sem deixar vão vazio.
+- **Validação local:** `npx eslint`, `tsc --noEmit`, `npm test` (`963` testes em `112` suítes: `962` pass, `0` falhas, `1` skipped pré-existente) e inspeção visual via Playwright em `http://localhost:3000` (`440x956` -> banner `408x274` e `1440x900` -> banner `840x384`, `0` erros JS).
+
 ## 2026-11-11 18:08 (America/Sao_Paulo) — Visão deslogada em /perfil, banner 3D na Home e landing /para-voce
 
 - **`/perfil` para visitantes deslogados:** removemos o `redirect("/login")` direto quando `!user` em `app/perfil/page.tsx` e criamos `components/perfil/PerfilVisitanteView.tsx` exibindo estado explícito de deslogado, avatar neutro, botões para `Fazer login` (`/login?next=/perfil`) e `Criar conta grátis` (`/cadastro`), atalhos públicos (`/meus-ingressos`, `/agenda`, `/campeonatos`) e convites para organizadores e arenas.
