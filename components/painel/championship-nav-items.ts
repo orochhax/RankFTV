@@ -1,8 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  LayoutDashboard, Pencil, ClipboardList, QrCode, Trophy, Shirt,
+  LayoutDashboard, Pencil, QrCode, Trophy, Shirt,
   Wallet, TicketPercent, Layers, Users, MessageSquare, ListPlus, Grid2X2, FileDown,
-  Armchair, ListChecks, BadgeDollarSign, ScanLine,
+  Armchair, ListChecks, BadgeDollarSign,
 } from "lucide-react";
 
 export type ChampionshipNavItem = {
@@ -33,8 +33,7 @@ export const CHAMPIONSHIP_NAV_GROUPS: ChampionshipNavGroup[] = [
   {
     label: "Atletas",
     items: [
-      { key: "inscricoes", label: "Inscrições", icon: ClipboardList, href: (id) => `/painel/campeonatos/${id}/inscricoes` },
-      { key: "checkin", label: "Check-in", icon: QrCode, href: (id) => `/painel/campeonatos/${id}/checkin` },
+      { key: "checkin", label: "Inscrições & Check-in", icon: QrCode, href: (id) => `/painel/campeonatos/${id}/checkin` },
       { key: "chaveamento", label: "Chaveamento", icon: Trophy, href: (id) => `/painel/campeonatos/${id}/chaveamento` },
       { key: "quadras", label: "Operação por quadra", icon: Grid2X2, href: (id) => `/painel/campeonatos/${id}/quadras` },
       { key: "camisas", label: "Camisas / Kit", icon: Shirt, href: (id) => `/painel/campeonatos/${id}/camisas` },
@@ -63,7 +62,6 @@ export const CHAMPIONSHIP_NAV_GROUPS: ChampionshipNavGroup[] = [
       { key: "plateia", label: "Ingressos de plateia", icon: Armchair, href: (id) => `/painel/campeonatos/${id}/plateia`, matchExact: true },
       { key: "plateia-lista", label: "Lista da plateia", icon: ListChecks, href: (id) => `/painel/campeonatos/${id}/plateia/lista` },
       { key: "plateia-financeiro", label: "Financeiro da plateia", icon: BadgeDollarSign, href: (id) => `/painel/campeonatos/${id}/plateia/financeiro` },
-      { key: "plateia-checkin", label: "Check-in da plateia", icon: ScanLine, href: (id) => `/painel/campeonatos/${id}/plateia/checkin` },
     ],
   },
 ];
