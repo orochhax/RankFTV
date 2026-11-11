@@ -155,6 +155,18 @@ export default async function InscricoesPage({
     <PageContainer width="wide" className="space-y-6 py-8">
       <PageHeader title="Inscrições" description="Duplas inscritas com pagamento confirmado nesse campeonato." />
 
+      <div className="flex flex-col gap-2 rounded-2xl bg-blue-50/80 p-4 text-sm text-blue-900 ring-1 ring-blue-200/60 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <span className="font-semibold">Portaria e Credenciamento:</span> A validação de QR Codes e controle de presença ficam centralizados na Central de Check-in.
+        </div>
+        <Link
+          href={`/painel/campeonatos/${id}/checkin`}
+          className="inline-flex shrink-0 items-center gap-1.5 font-bold text-blue-700 hover:text-blue-800"
+        >
+          Ir para Check-in →
+        </Link>
+      </div>
+
       <div className="grid grid-cols-2 gap-4 sm:max-w-md">
         <StatCard label="Total de duplas" value={totalDuplas} icon={Users} />
         <StatCard label="Total de atletas" value={totalAtletas} icon={User} />

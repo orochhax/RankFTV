@@ -9,10 +9,11 @@ const organizerPageSource = readFileSync("app/painel/campeonatos/[id]/checkin/pa
 const clientSource = readFileSync("components/checkin/CheckinClient.tsx", "utf8");
 const pairSource = readFileSync("components/checkin/PairPresenceItem.tsx", "utf8");
 
-test("athlete check-in accepts authenticated and guest credentials", () => {
+test("athlete and spectator check-in accepts authenticated, guest and spectator tickets", () => {
   assert.match(source, /\.from\("credentials"\)/);
   assert.match(source, /\.from\("athlete_ticket_credentials"\)/);
   assert.match(source, /\.from\("athlete_tickets"\)/);
+  assert.match(source, /\.from\("spectator_tickets"\)/);
   assert.match(source, /\.eq\("championship_id", championshipId\)/);
   assert.match(source, /qr_token\.eq\.\$\{token\},code\.eq\.\$\{tokenUpper\}/);
   assert.match(source, /ticket\.status_pagamento !== "pago"/);
@@ -25,8 +26,8 @@ test("athlete check-in accepts authenticated and guest credentials", () => {
 
 test("check-in claims each QR only once", () => {
   const atomicClaims = source.match(/\.eq\("checked_in", false\)/g) ?? [];
-  assert.equal(atomicClaims.length, 3);
-  assert.match(source, /if \(!claimed\) return \{ alreadyDone: true, nome \}/);
+  assert.equal(atomicClaims.length, 4);
+  assert.match(source, /if \(!claimed\) return \{ alreadyDone: true, nome/);
   assert.match(source, /current\?\.checked_in[\s\S]*alreadyDone: true/);
 });
 
