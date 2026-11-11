@@ -88,7 +88,11 @@ export default async function TesteHomeMobilePage({
       <div className="bg-black px-6 pb-12 pt-5 md:hidden">
         <div className="mb-3 flex h-11 items-center gap-2">
           <div className="home-header-menu">
-            <HamburgerMenu unreadCount={0} organizerHabilitado={organizerEnabled} />
+            <HamburgerMenu
+              unreadCount={0}
+              organizerHabilitado={organizerEnabled}
+              isLoggedIn={!!user}
+            />
           </div>
           <Link
             href="/"
