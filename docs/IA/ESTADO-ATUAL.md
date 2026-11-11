@@ -1,5 +1,11 @@
 # Estado atual resumido
 
+## RankFTV — Perfil Deslogado, Banner 3D na Home e Landing /para-voce (11/11/2026)
+
+- **Perfil visitante ([`app/perfil/page.tsx`](app/perfil/page.tsx) e [`PerfilVisitanteView`](components/perfil/PerfilVisitanteView.tsx)):** clicar no ícone de Perfil na navbar mobile sem sessão ativa abre `/perfil` com aviso claro de usuário deslogado, botões de login (`/login?next=/perfil`) e cadastro (`/cadastro`), atalhos públicos (`/meus-ingressos`, `/agenda`, `/campeonatos`) e blocos de entrada para organizadores e arenas.
+- **Banner 3D na Home ([`app/page.tsx`](app/page.tsx) e [`PromoOrganizadoresBanner`](components/home/PromoOrganizadoresBanner.tsx)):** arte `public/banners/para-organizadores-arenas.webp` exibida com cantos arredondados na faixa `bg-brand-dark` abaixo do subtítulo hero no mobile (e à direita no desktop), direcionando para `/para-voce`.
+- **Landing [`/para-voce`](app/para-voce/page.tsx):** submenus `Campeonato` e `Arena` (`?aba=campeonato` | `?aba=arena`) em [`ParaVoceClient`](components/landing/ParaVoceClient.tsx) alternando benefícios, regras financeiras reais (`Pix 8%`/`Cartão 10%`, `70%`/`30%`), planos Start (`R$ 0 + R$ 4,90/aluno`) e Pro (`R$ 139,00/mês`) e CTAs inteligentes.
+
 ## RankFTV — Redesenho Completo do Painel do Campeonato (Fases 1, 2 e 3) (11/11/2026)
 
 Reestruturação completa do painel do organizador em `/painel/campeonatos/[id]/*` (Fases 1, 2 e 3) com arquitetura cockpit, largura ampla (`PageContainer width="wide"`), tema claro puro (`bg-surface` / `text-ink` / `border-border`) sem classes `dark:` e zero alterações de schema SQL:

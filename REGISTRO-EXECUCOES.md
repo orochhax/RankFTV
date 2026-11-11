@@ -5,6 +5,13 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-11 18:08 (America/Sao_Paulo) — Visão deslogada em /perfil, banner 3D na Home e landing /para-voce
+
+- **`/perfil` para visitantes deslogados:** removemos o `redirect("/login")` direto quando `!user` em `app/perfil/page.tsx` e criamos `components/perfil/PerfilVisitanteView.tsx` exibindo estado explícito de deslogado, avatar neutro, botões para `Fazer login` (`/login?next=/perfil`) e `Criar conta grátis` (`/cadastro`), atalhos públicos (`/meus-ingressos`, `/agenda`, `/campeonatos`) e convites para organizadores e arenas.
+- **Banner 3D na Home (`app/page.tsx`):** geração e recorte da arte `public/banners/para-organizadores-arenas.webp` em `components/home/PromoOrganizadoresBanner.tsx`, inserida na faixa `bg-brand-dark` logo abaixo de "Encontre e participe dos melhores campeonatos do Brasil." no mobile (e coluna direita no desktop), com cantos arredondados e link direto para `/para-voce`.
+- **Landing `/para-voce` (`app/para-voce/page.tsx`, `components/landing/ParaVoceClient.tsx`, `ParaVoceDetails.tsx`, `para-voce-data.ts`, `lib/para-voce-viewer.ts`):** dois submenus interativos (`Campeonato` | `Arena`, sincronizados via `?aba=`) alternando benefícios, regras reais de repasse/taxas ou planos Start/Pro e CTAs diretos conforme sessão, além da inclusão de `/para-voce` em `lib/dark-header.ts` e `app/sitemap.ts`.
+- **Validação local:** testes unitários (`npm test`: 962 aprovados, 0 falhas, 1 skipped pré-existente, incluindo `lib/guest-profile-and-promo.test.ts`), `tsc --noEmit`, `next build`, `npm audit --omit=dev --audit-level=high` e inspeção visual via Playwright headless em `http://localhost:3000` (mobile 430x932 e desktop 1280x800, 0 erros de console).
+
 ## 2026-11-11 10:25 (America/Sao_Paulo) — Atualização completa do radar editorial e concorrentes do Rocha Tech
 
 - Coleta oficial via YouTube Data API v3 nos 24 canais concorrentes do Rocha Tech: 3.903 vídeos monitorados na janela de 365 dias (19 vídeos novos catalogados, 2.205 contadores de visualizações atualizados, zero falhas e zero fallbacks manuais).
