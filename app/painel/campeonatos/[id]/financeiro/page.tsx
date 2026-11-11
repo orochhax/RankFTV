@@ -5,11 +5,18 @@ import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { ChavePixClient } from "@/components/painel/ChavePixClient";
 import { PlanoTaxas } from "@/components/painel/PlanoTaxas";
 import { ReconciliarInscricaoButton } from "@/components/painel/ReconciliarInscricaoButton";
+import { DreResultadoCard } from "@/components/painel/DreResultadoCard";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Surface } from "@/components/shell/Surface";
 import { formatBRL } from "@/lib/format";
 import { calculateOrganizerWithdrawalLimits } from "@/lib/organizer-payout-rules";
+import {
+  calculateChampionshipDre,
+  calculateCashflowCoverage,
+  type ChampionshipExpense,
+  type ChampionshipExpenseStatus,
+} from "@/lib/championship-expenses";
 
 export type DiaVenda = {
   data: string;   // "2026-06-01"
@@ -39,7 +46,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const isElite     = !!champExtra?.is_elite;
   const feePendente = Number(champExtra?.premium_fee_pendente ?? 0);
 
-  const [{ data: metricData }, { data: champDates }, { data: rawPendentes }, { data: rawPendentesTickets }, { data: walletData }, { data: withdrawableData }] = await Promise.all([
+  const [{ data: metricData }, { data: champDates }, { data: rawPendentes }, { data: rawPendentesTickets }, { data: walletData }, { data: withdrawableData }, { data: expensesRows }] = await Promise.all([
     supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: champId }),
     supabase
       .from("championships")
@@ -66,6 +73,10 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
       .limit(50),
     supabase.rpc("organizer_wallet_snapshot", { p_championship_id: champId }),
     supabase.rpc("organizer_withdrawable_receivables", { p_championship_id: champId }),
+    supabase
+      .from("championship_expenses")
+      .select("*")
+      .eq("championship_id", champId),
   ]);
 
   const walletRaw = (walletData ?? {}) as Partial<WalletSnapshot>;
@@ -303,9 +314,47 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     </Surface>
   ) : null;
 
+  const expenses: ChampionshipExpense[] = (expensesRows ?? []).map((row) => ({
+    id: String(row.id),
+    championshipId: String(row.championship_id),
+    organizadorId: String(row.organizador_id),
+    categoria: String(row.categoria),
+    nome: String(row.nome),
+    valor: Number(row.valor),
+    status: row.status as ChampionshipExpenseStatus,
+    dataVencimento: String(row.data_vencimento).slice(0, 10),
+    dataPagamento: row.data_pagamento ? String(row.data_pagamento) : null,
+    observacao: row.observacao ? String(row.observacao) : null,
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+  }));
+
+  const vendasBrutas = totalPix + totalCredito + totalDebito;
+  const receitaLiquida = Number(walletRaw.totalNet ?? (vendasBrutas > 0 ? vendasBrutas * 0.92 : 0));
+  const taxasPlataforma = Math.max(0, vendasBrutas - receitaLiquida);
+
+  const dre = calculateChampionshipDre({
+    vendasBrutas,
+    taxasPlataforma,
+    receitaLiquida,
+    expenses,
+  });
+
+  const coverage = calculateCashflowCoverage({
+    saldoDisponivel: Number(walletRaw.available ?? 0),
+    despesasPendentes: dre.despesasPendentes,
+  });
+
   return (
     <PageContainer width="wide" className="space-y-6 py-8">
       <PageHeader title="Financeiro" description="Entradas, taxas e repasses desse campeonato." />
+
+      <DreResultadoCard
+        dre={dre}
+        coverage={coverage}
+        champSlugOrId={camp.slug ?? champId}
+        showLinkToExpenses={true}
+      />
 
       <FinanceiroConteudoClient
         champId={champId}
