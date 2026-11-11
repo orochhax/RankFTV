@@ -6,6 +6,7 @@ import { Search, X, Trophy, RefreshCcw, Shuffle, ChevronDown, ImageIcon, FileTex
 import { addManualBracketPair, assignTeam, saveScore, clearScore, resetBracket, generateBracket, confirmBracket, saveCourtConfiguration, changeMatchCourt } from "@/app/painel/campeonatos/[id]/chaveamento/actions";
 import { formatDateTimeBR } from "@/lib/format";
 import type { CourtConfiguration } from "@/lib/bracket-courts";
+import { formatCourtLabel } from "@/lib/court-operations";
 import { doubleEliminationCountError, type BracketFormat } from "@/lib/double-elimination";
 import { validateBracketScore } from "@/lib/bracket-score";
 import { BracketGrid, MatchCard } from "@/components/chaveamento/BracketView";
@@ -26,7 +27,7 @@ function toSharedMatch(match: MatchDisplay): BracketMatch {
     duplaB: { nomes: splitTeamName(match.teamB?.nome) },
     placar: match.setsA !== null && match.setsB !== null ? `${match.setsA} × ${match.setsB}` : undefined,
     sets: match.setDetails ?? undefined,
-    quadra: match.courtLabel ? `Quadra ${match.courtLabel}` : undefined,
+    quadra: formatCourtLabel(match.courtLabel),
     winner: match.winnerId === match.teamA?.id ? "a" : match.winnerId === match.teamB?.id ? "b" : null,
     veioDaRepescagemA: match.veioDaRepescagemA,
     veioDaRepescagemB: match.veioDaRepescagemB,
@@ -488,7 +489,7 @@ function MatchModal({
             {roundNome}
           </p>
           <p className="mt-0.5 text-sm font-semibold text-gray-900">
-            Jogo #{match.numero}{match.courtLabel ? ` · Quadra ${match.courtLabel}` : ""}
+            Jogo #{match.numero}{formatCourtLabel(match.courtLabel) ? ` · ${formatCourtLabel(match.courtLabel)}` : ""}
           </p>
         </div>
         <button onClick={onClose} className="rounded-lg p-1 hover:bg-gray-100">
@@ -843,7 +844,7 @@ export function BracketClient({
       round.matches.forEach((match) => {
         const a = match.teamA?.nome ?? "A definir";
         const b = match.teamB?.nome ?? "A definir";
-        let line = `Jogo #${match.numero} · Quadra ${match.courtLabel ?? "a definir"}: ${a} vs ${b}`;
+        let line = `Jogo #${match.numero} · ${formatCourtLabel(match.courtLabel) ?? "Quadra a definir"}: ${a} vs ${b}`;
         if (match.setDetails?.length) line += ` · Sets: ${match.setDetails.map((set) => `${set.a} × ${set.b}`).join(" / ")}`;
         if (match.setsA !== null && match.setsB !== null) {
           line += `  [${match.setsA} x ${match.setsB}]`;

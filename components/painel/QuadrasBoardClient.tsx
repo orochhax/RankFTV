@@ -16,7 +16,7 @@ import {
   Timer,
   X,
 } from "lucide-react";
-import { courtConflicts, type CourtMatch } from "@/lib/court-operations";
+import { courtConflicts, formatCourtLabel, type CourtMatch } from "@/lib/court-operations";
 import { OperationalDelay } from "@/components/painel/OperationalDelay";
 import { atualizarOperacaoPartida } from "@/app/painel/campeonatos/[id]/quadras/actions";
 
@@ -197,7 +197,7 @@ export function QuadrasBoardClient({
     for (const [court, items] of byCourt.entries()) {
       cols.push({
         key: court,
-        title: /^\d+$/.test(court) ? `Quadra ${court}` : court,
+        title: formatCourtLabel(court) ?? court,
         items,
       });
     }
