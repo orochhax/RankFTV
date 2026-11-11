@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, ShieldCheck, Wrench } from "lucide-react";
 import { isArenaOrganizerRoute, isNavItemActive, visibleBottomNavItems, type NavItem } from "./nav-items";
-import { isFocusedRoute } from "@/components/shell/app-nav-items";
+import { isBottomNavHiddenRoute } from "@/components/shell/app-nav-items";
 
 export function BottomNav({
   showStaff = false,
@@ -21,7 +21,7 @@ export function BottomNav({
 }) {
   const pathname = usePathname();
 
-  if (isArenaOrganizerRoute(pathname) || isFocusedRoute(pathname)) return null;
+  if (isArenaOrganizerRoute(pathname) || isBottomNavHiddenRoute(pathname)) return null;
 
   // "Painel" depende da permissão de organizador e "Minhas compras" da
   // sessão autenticada. Os demais atalhos continuam sempre visíveis.

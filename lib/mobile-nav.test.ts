@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { isNavItemActive, visibleBottomNavItems } from "../components/navbar/nav-items";
+import { isBottomNavHiddenRoute, isFocusedRoute } from "../components/shell/app-nav-items";
 
 test("Minhas compras aparece diretamente na navbar mobile somente para usuário autenticado", () => {
   const guestHrefs = visibleBottomNavItems({ isLoggedIn: false, isOrganizer: false })
@@ -29,4 +30,15 @@ test("atalho atual do Painel continua condicionado ao organizador", () => {
 
   assert.ok(!athleteHrefs.includes("/painel"));
   assert.ok(organizerHrefs.includes("/painel"));
+});
+
+test("rotas de autenticação no mobile mantêm BottomNav visível para voltar à Home", () => {
+  assert.equal(isFocusedRoute("/login"), true);
+  assert.equal(isFocusedRoute("/cadastro"), true);
+  assert.equal(isBottomNavHiddenRoute("/login"), false);
+  assert.equal(isBottomNavHiddenRoute("/cadastro"), false);
+  assert.equal(isBottomNavHiddenRoute("/cadastro/verificar-email"), false);
+  assert.equal(isBottomNavHiddenRoute("/termos"), false);
+  assert.equal(isBottomNavHiddenRoute("/convite/123"), true);
+  assert.equal(isBottomNavHiddenRoute("/arena/mensalidade/abc"), true);
 });
