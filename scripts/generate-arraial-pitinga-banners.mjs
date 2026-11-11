@@ -28,8 +28,6 @@ const logoY0 = 34;
 const logoW = 236;
 const logoH = 186;
 const logoRgba = Buffer.alloc(logoW * logoH * 4);
-// Also create a version with ONLY "RANKFTV OPEN" + arch (without the small subtitle, or with it) for the square card
-const logoMainH = 145; // y=34..179 is the arch + RANKFTV OPEN
 
 for (let ly = 0; ly < logoH; ly++) {
   const y = logoY0 + ly;
