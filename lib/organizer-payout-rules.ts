@@ -54,6 +54,65 @@ export function calculatePostEventReleaseDate(dataFim: string | null | undefined
   return addBusinessDays(baseDate, POST_EVENT_BUSINESS_DAYS_DELAY);
 }
 
+export type WalletSnapshotNumbers = {
+  totalNet?: number | null;
+  available?: number | null;
+  pending?: number | null;
+  reserved?: number | null;
+  withdrawn?: number | null;
+};
+
+export type WalletAccountingTotals = {
+  remainingNet: number;
+  available: number;
+  pending: number;
+  reserved: number;
+  withdrawn: number;
+  lifetimeTotalNet: number;
+  totalCommitted: number;
+};
+
+/**
+ * Converte o snapshot retornado por `organizer_wallet_snapshot` em totais contábeis consistentes.
+ * Na RPC, `totalNet` já exclui valores pagos (`withdrawn`), então o faturamento líquido total
+ * acumulado do campeonato é `totalNet + withdrawn`.
+ */
+export function resolveWalletAccountingTotals(
+  snapshot: WalletSnapshotNumbers,
+): WalletAccountingTotals {
+  const round2 = (v: number) => Math.max(0, Math.round((Number.isFinite(v) ? v : 0) * 100) / 100);
+  const remainingNet = round2(Number(snapshot.totalNet ?? 0));
+  const available = round2(Number(snapshot.available ?? 0));
+  const pending = round2(Number(snapshot.pending ?? 0));
+  const reserved = round2(Number(snapshot.reserved ?? 0));
+  const withdrawn = round2(Number(snapshot.withdrawn ?? 0));
+
+  const lifetimeTotalNet = round2(remainingNet + withdrawn);
+  const totalCommitted = round2(withdrawn + reserved);
+
+  return {
+    remainingNet,
+    available,
+    pending,
+    reserved,
+    withdrawn,
+    lifetimeTotalNet,
+    totalCommitted,
+  };
+}
+
+/**
+ * Retorna o menor valor entre o saldo já liquidado na carteira e o teto de saque da regra 70/30.
+ */
+export function computeWithdrawableCashNow(input: {
+  available: number;
+  maxWithdrawableNow: number;
+}): number {
+  const avail = Math.max(0, Number(input.available) || 0);
+  const maxNow = Math.max(0, Number(input.maxWithdrawableNow) || 0);
+  return Math.round(Math.min(avail, maxNow) * 100) / 100;
+}
+
 export type OrganizerWithdrawalLimits = {
   isPostEvent: boolean;
   releaseDate: Date;

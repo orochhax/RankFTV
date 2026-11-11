@@ -4,6 +4,8 @@ import {
   addBusinessDays,
   calculatePostEventReleaseDate,
   calculateOrganizerWithdrawalLimits,
+  computeWithdrawableCashNow,
+  resolveWalletAccountingTotals,
   validateWithdrawalRequestAmount,
   toBahiaDateString,
 } from "./organizer-payout-rules";
@@ -132,5 +134,68 @@ describe("validateWithdrawalRequestAmount", () => {
     });
 
     assert.equal(result.allowed, true);
+  });
+
+  it("preserva o faturamento líquido histórico ao calcular o segundo saque e o acerto final pós-evento", () => {
+    // RPC devolve totalNet apenas dos recebíveis não pagos (available + pending + reserved)
+    const totalsPre = resolveWalletAccountingTotals({
+      totalNet: 500, // 400 available + 100 reserved
+      available: 400,
+      pending: 0,
+      reserved: 100,
+      withdrawn: 500,
+    });
+    assert.equal(totalsPre.lifetimeTotalNet, 1000);
+    assert.equal(totalsPre.totalCommitted, 600);
+
+    const preEventDate = new Date("2026-11-18T12:00:00Z");
+    const limitsPre = calculateOrganizerWithdrawalLimits({
+      totalNet: totalsPre.lifetimeTotalNet,
+      alreadyWithdrawn: totalsPre.totalCommitted,
+      dataFim: "2026-11-20",
+      now: preEventDate,
+    });
+    assert.equal(limitsPre.advanceCap, 700);
+    assert.equal(limitsPre.maxWithdrawableNow, 100);
+    assert.equal(computeWithdrawableCashNow({ available: totalsPre.available, maxWithdrawableNow: limitsPre.maxWithdrawableNow }), 100);
+
+    const secondWithdrawalOk = validateWithdrawalRequestAmount({
+      requestedAmount: 100,
+      totalNet: totalsPre.lifetimeTotalNet,
+      alreadyWithdrawn: totalsPre.totalCommitted,
+      dataFim: "2026-11-20",
+      now: preEventDate,
+    });
+    assert.equal(secondWithdrawalOk.allowed, true);
+
+    const overCapBlocked = validateWithdrawalRequestAmount({
+      requestedAmount: 101,
+      totalNet: totalsPre.lifetimeTotalNet,
+      alreadyWithdrawn: totalsPre.totalCommitted,
+      dataFim: "2026-11-20",
+      now: preEventDate,
+    });
+    assert.equal(overCapBlocked.allowed, false);
+
+    // Pós-evento após já ter sacado 70% (700 sacado, 300 restante na carteira)
+    const totalsPost = resolveWalletAccountingTotals({
+      totalNet: 300,
+      available: 300,
+      pending: 0,
+      reserved: 0,
+      withdrawn: 700,
+    });
+    assert.equal(totalsPost.lifetimeTotalNet, 1000);
+    assert.equal(totalsPost.totalCommitted, 700);
+
+    const postEventDate = new Date("2026-11-25T12:00:00Z");
+    const finalReleaseOk = validateWithdrawalRequestAmount({
+      requestedAmount: 300,
+      totalNet: totalsPost.lifetimeTotalNet,
+      alreadyWithdrawn: totalsPost.totalCommitted,
+      dataFim: "2026-11-20",
+      now: postEventDate,
+    });
+    assert.equal(finalReleaseOk.allowed, true);
   });
 });

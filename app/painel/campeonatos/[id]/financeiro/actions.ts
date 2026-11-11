@@ -8,7 +8,11 @@ import { reportOperationalEvent } from "@/lib/observability";
 import { compararTitularidadePix, pixKeyEmCooldown } from "@/lib/pix";
 import { AsaasApiError, buscarAntecipacaoPorPagamento, consultarAntecipacao, consultarCpfCnpjTitularPix, consultarCobranca, simularAntecipacaoPagamento, solicitarAntecipacaoPagamento } from "@/lib/asaas";
 import { transferIdempotently } from "@/lib/payment-flows";
-import { validateWithdrawalRequestAmount } from "@/lib/organizer-payout-rules";
+import {
+  resolveWalletAccountingTotals,
+  validateWithdrawalRequestAmount,
+  type WalletSnapshotNumbers,
+} from "@/lib/organizer-payout-rules";
 import {
   confirmarInscricaoPaga, estornarInscricao,
   confirmarAthleteTicketPago, estornarAthleteTicket,
@@ -304,6 +308,28 @@ export async function cancelarCampeonatoElite(
   return { ok: true };
 }
 
+function mapReserveErrorMessage(errorMessage: string | undefined): string {
+  if (errorMessage?.includes("WALLET_DISPUTE_HOLD")) {
+    return "Há uma contestação em aberto vinculada aos seus recebíveis. O saque fica bloqueado até a resolução.";
+  }
+  if (errorMessage?.includes("WALLET_RECONCILIATION_HOLD")) {
+    return "Existe uma antecipação em processamento no provedor. Aguarde a confirmação antes de solicitar saque.";
+  }
+  if (errorMessage?.includes("WALLET_RECEIVABLE_SELECTION_UNAVAILABLE")) {
+    return "Um dos ingressos já foi reservado ou deixou de estar disponível. Atualize a página.";
+  }
+  return "Não foi possível reservar os ingressos selecionados.";
+}
+
+function revalidateFinanceAndExpenses(champId: string, slug: string | null | undefined) {
+  revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+  revalidatePath(`/painel/campeonatos/${champId}/despesas`);
+  if (slug && slug !== champId) {
+    revalidatePath(`/painel/campeonatos/${slug}/financeiro`);
+    revalidatePath(`/painel/campeonatos/${slug}/despesas`);
+  }
+}
+
 export async function solicitarSaqueRecebiveisOrganizador(
   champId: string,
   receivableIds: string[],
@@ -321,10 +347,9 @@ export async function solicitarSaqueRecebiveisOrganizador(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, message: "Não autenticado." };
 
-  const [{ data: champ }, { data: account }, { data: walletData }] = await Promise.all([
-    supabase.from("championships").select("organizador_id,nome,data_fim").eq("id", champId).maybeSingle(),
+  const [{ data: champ }, { data: account }] = await Promise.all([
+    supabase.from("championships").select("organizador_id,nome,data_fim,slug").eq("id", champId).maybeSingle(),
     supabase.from("organizer_accounts").select("chave_pix,chave_pix_atualizada_em").eq("user_id", user.id).maybeSingle(),
-    supabase.rpc("organizer_wallet_snapshot", { p_championship_id: champId }),
   ]);
   if (!champ || champ.organizador_id !== user.id) return { ok: false, message: "Sem permissão." };
   if (!account?.chave_pix) return { ok: false, message: "Cadastre sua chave Pix antes de solicitar o saque." };
@@ -343,22 +368,26 @@ export async function solicitarSaqueRecebiveisOrganizador(
     },
   );
   if (reserveError || !reservation || typeof reservation !== "object") {
-    const unavailable = reserveError?.message?.includes("WALLET_RECEIVABLE_SELECTION_UNAVAILABLE");
-    return {
-      ok: false,
-      message: unavailable
-        ? "Um dos ingressos já foi reservado ou deixou de estar disponível. Atualize a página."
-        : "Não foi possível reservar os ingressos selecionados.",
-    };
+    return { ok: false, message: mapReserveErrorMessage(reserveError?.message) };
   }
 
   const reservedWithdrawal = reservation as { id?: unknown; amount?: unknown; status?: unknown };
+  const reservationStatus = String(reservedWithdrawal.status ?? "reserved");
+  if (reservationStatus === "debt_compensated" || reservationStatus === "debt_remaining") {
+    revalidateFinanceAndExpenses(champId, champ.slug);
+    return {
+      ok: false,
+      message: reservationStatus === "debt_remaining"
+        ? "Os ingressos selecionados foram usados para abater débitos de estorno pendentes, e ainda resta saldo devedor."
+        : "Os ingressos selecionados quitaram seu débito de estornos pendentes. Selecione outros recebíveis livres para sacar.",
+    };
+  }
+
   const withdrawalId = String(reservedWithdrawal.id ?? "");
   const amount = Math.round(Number(reservedWithdrawal.amount) * 100) / 100;
   if (!withdrawalId || !Number.isFinite(amount) || amount < 0.01) {
     return { ok: false, message: "A reserva do saque não pôde ser confirmada." };
   }
-  const reservationStatus = String(reservedWithdrawal.status ?? "reserved");
   if (reservationStatus !== "reserved") {
     return reservationStatus === "paid"
       ? { ok: true, message: "Esse saque já foi concluído." }
@@ -366,11 +395,27 @@ export async function solicitarSaqueRecebiveisOrganizador(
   }
 
   const admin = createAdminClient();
-  const wallet = (walletData ?? {}) as { totalNet?: number; withdrawn?: number };
+  // Lê o snapshot APÓS o bloqueio/reserva no Postgres para que `reserved` inclua esta
+  // solicitação e qualquer outra concorrente, impedindo corridas acima do teto de 70%.
+  const { data: walletAfterData, error: walletAfterError } = await supabase.rpc(
+    "organizer_wallet_snapshot",
+    { p_championship_id: champId },
+  );
+  if (walletAfterError || !walletAfterData || typeof walletAfterData !== "object") {
+    await admin.rpc("update_organizer_withdrawal", {
+      p_withdrawal_id: withdrawalId,
+      p_status: "cancelled",
+      p_error_code: "snapshot_unavailable",
+    });
+    return { ok: false, message: "Não foi possível validar seu saldo agora. Nenhum saque foi enviado." };
+  }
+
+  const totals = resolveWalletAccountingTotals(walletAfterData as WalletSnapshotNumbers);
+  const priorCommitted = Math.max(0, Math.round((totals.totalCommitted - amount) * 100) / 100);
   const validation = validateWithdrawalRequestAmount({
     requestedAmount: amount,
-    totalNet: Number(wallet.totalNet ?? 0),
-    alreadyWithdrawn: Number(wallet.withdrawn ?? 0),
+    totalNet: totals.lifetimeTotalNet,
+    alreadyWithdrawn: priorCommitted,
     dataFim: champ.data_fim,
   });
 
@@ -413,7 +458,7 @@ export async function solicitarSaqueRecebiveisOrganizador(
       p_provider_transfer_id: result.provider.id,
       p_provider_status: result.provider.status,
     });
-    revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+    revalidateFinanceAndExpenses(champId, champ.slug);
     return { ok: true, message: "Saque enviado para sua chave Pix." };
   }
   if (result.ambiguous || result.inProgress) {
@@ -422,7 +467,7 @@ export async function solicitarSaqueRecebiveisOrganizador(
       p_status: "provider_pending",
       p_error_code: result.ambiguous ? "provider_response_ambiguous" : "provider_pending",
     });
-    revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+    revalidateFinanceAndExpenses(champId, champ.slug);
     return {
       ok: true,
       pending: true,
@@ -435,7 +480,7 @@ export async function solicitarSaqueRecebiveisOrganizador(
     p_status: "failed",
     p_error_code: "provider_rejected",
   });
-  revalidatePath(`/painel/campeonatos/${champId}/financeiro`);
+  revalidateFinanceAndExpenses(champId, champ.slug);
   return { ok: false, message: result.error };
 }
 

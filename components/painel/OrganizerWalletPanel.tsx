@@ -90,6 +90,10 @@ export function OrganizerWalletPanel({
     ),
     [selectedWithdrawals, withdrawableReceivables],
   );
+  const withdrawableCap = wallet.payoutLimits
+    ? Math.min(wallet.available, wallet.payoutLimits.maxWithdrawableNow)
+    : wallet.available;
+  const isOverWithdrawalLimit = withdrawalTotal > withdrawableCap + 0.009;
   const anticipationTotal = useMemo(
     () => anticipatableReceivables.reduce(
       (sum, item) => selectedAnticipations.includes(item.id) ? sum + item.amount : sum,
@@ -289,12 +293,17 @@ export function OrganizerWalletPanel({
       >
         <DialogBalance
           label={wallet.payoutLimits && !wallet.payoutLimits.isPostEvent ? "Adiantamento disponível (até 70%)" : "Saldo disponível"}
-          value={val(wallet.payoutLimits && !wallet.payoutLimits.isPostEvent ? Math.min(wallet.available, wallet.payoutLimits.maxWithdrawableNow) : wallet.available)}
+          value={val(withdrawableCap)}
           tone="emerald"
         />
         {wallet.payoutLimits && !wallet.payoutLimits.isPostEvent ? (
           <p className="mt-2 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-800">
             Reserva Técnica de 30% ({val(wallet.payoutLimits.securityReserveAmount)}) retida em garantia de cancelamentos até {wallet.payoutLimits.releaseDateFormatted}.
+          </p>
+        ) : null}
+        {isOverWithdrawalLimit ? (
+          <p className="mt-2 rounded-xl bg-rose-50 p-3 text-xs font-medium leading-5 text-rose-700 ring-1 ring-rose-200">
+            O total selecionado ({val(withdrawalTotal)}) excede seu teto liberado no momento ({val(withdrawableCap)}). Desmarque alguns itens para prosseguir.
           </p>
         ) : null}
         <ReceivableSelector
@@ -313,7 +322,7 @@ export function OrganizerWalletPanel({
             </div>
             <button
               type="button"
-              disabled={withdrawing || selectedWithdrawals.length === 0}
+              disabled={withdrawing || selectedWithdrawals.length === 0 || isOverWithdrawalLimit}
               onClick={submitWithdrawal}
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
             >

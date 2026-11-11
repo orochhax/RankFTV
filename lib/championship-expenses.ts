@@ -201,6 +201,42 @@ export function calculateCashflowCoverage(input: {
 }
 
 /**
+ * Calcula DRE e cobertura de caixa usando os mesmos critérios nas páginas de Financeiro e Despesas.
+ * `lifetimeReceitaLiquida` deve somar `wallet.totalNet + wallet.withdrawn` para não transformar saques já realizados em taxa.
+ */
+export function computeDreAndCoverageFromWallet(input: {
+  totalInscricoesBruto: number;
+  totalPlateiaBruto: number;
+  lifetimeReceitaLiquida: number | null;
+  saldoSacavelAgora: number;
+  expenses: ChampionshipExpense[];
+}): { dre: ChampionshipDre; coverage: CashflowCoverage } {
+  const vendasBrutas = roundCurrency(
+    Math.max(0, Number(input.totalInscricoesBruto) || 0) +
+      Math.max(0, Number(input.totalPlateiaBruto) || 0),
+  );
+  const receitaLiquida =
+    input.lifetimeReceitaLiquida !== null && Number.isFinite(input.lifetimeReceitaLiquida)
+      ? roundCurrency(Math.max(0, input.lifetimeReceitaLiquida))
+      : roundCurrency(vendasBrutas > 0 ? vendasBrutas * 0.92 : 0);
+  const taxasPlataforma = roundCurrency(Math.max(0, vendasBrutas - receitaLiquida));
+
+  const dre = calculateChampionshipDre({
+    vendasBrutas,
+    taxasPlataforma,
+    receitaLiquida,
+    expenses: input.expenses,
+  });
+
+  const coverage = calculateCashflowCoverage({
+    saldoDisponivel: input.saldoSacavelAgora,
+    despesasPendentes: dre.despesasPendentes,
+  });
+
+  return { dre, coverage };
+}
+
+/**
  * Retorna data "YYYY-MM-DD" no fuso oficial de Brasília (America/Sao_Paulo).
  */
 export function getSaoPauloDateString(date: Date = new Date()): string {
@@ -210,6 +246,38 @@ export function getSaoPauloDateString(date: Date = new Date()): string {
     month: "2-digit",
     day: "2-digit",
   }).format(date);
+}
+
+/**
+ * Soma N dias civis a uma data YYYY-MM-DD sem sofrer desvio de timezone UTC do servidor.
+ */
+export function addDaysSaoPauloDateString(dateStr: string, days: number): string {
+  const parts = dateStr.split("-").map(Number);
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return dateStr;
+  const dt = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2] + days));
+  const y = dt.getUTCFullYear();
+  const m = String(dt.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(dt.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * Converte strings monetárias em formato PT-BR ("1.500,50" / "250,00") ou US ("1500.50") para número.
+ */
+export function parseCurrencyBR(raw: string): number {
+  const cleaned = raw.replace(/[R$\s]/g, "").trim();
+  if (!cleaned) return Number.NaN;
+  if (cleaned.includes(",") && cleaned.includes(".")) {
+    const lastComma = cleaned.lastIndexOf(",");
+    const lastDot = cleaned.lastIndexOf(".");
+    return lastComma > lastDot
+      ? Number(cleaned.replace(/\./g, "").replace(",", "."))
+      : Number(cleaned.replace(/,/g, ""));
+  }
+  if (cleaned.includes(",")) {
+    return Number(cleaned.replace(/\./g, "").replace(",", "."));
+  }
+  return Number(cleaned);
 }
 
 /**
@@ -251,6 +319,17 @@ export type ValidatedExpenseInput = {
   observacao: string | null;
 };
 
+function isValidIsoCalendarDate(dateStr: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+  const parts = dateStr.split("-").map(Number);
+  const d = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+  return (
+    d.getUTCFullYear() === parts[0] &&
+    d.getUTCMonth() === parts[1] - 1 &&
+    d.getUTCDate() === parts[2]
+  );
+}
+
 /**
  * Validação rigorosa de payload para criação/edição de despesa.
  */
@@ -259,11 +338,11 @@ export function validateExpenseInput(raw: unknown): {
   errors: string[];
   data?: ValidatedExpenseInput;
 } {
-  const errors: string[] = [];
   if (!raw || typeof raw !== "object") {
     return { valid: false, errors: ["Dados inválidos"] };
   }
 
+  const errors: string[] = [];
   const obj = raw as Record<string, unknown>;
 
   const nome = typeof obj.nome === "string" ? obj.nome.trim() : "";
@@ -277,22 +356,18 @@ export function validateExpenseInput(raw: unknown): {
   }
 
   const rawValor = Number(obj.valor);
-  if (!Number.isFinite(rawValor) || rawValor <= 0 || rawValor > 10_000_000) {
-    errors.push("O valor deve ser maior que zero e menor que R$ 10.000.000,00.");
-  }
   const valor = roundCurrency(rawValor);
+  if (!Number.isFinite(rawValor) || valor < 0.01 || valor > 10_000_000) {
+    errors.push("O valor deve ser de no mínimo R$ 0,01 e menor que R$ 10.000.000,00.");
+  }
 
   const status = obj.status === "pago" ? "pago" : "pendente";
 
   const dataVencimento = typeof obj.dataVencimento === "string" ? obj.dataVencimento.trim() : "";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dataVencimento)) {
     errors.push("Data de vencimento inválida. Use o formato YYYY-MM-DD.");
-  } else {
-    const parts = dataVencimento.split("-").map(Number);
-    const d = new Date(parts[0], parts[1] - 1, parts[2]);
-    if (d.getFullYear() !== parts[0] || d.getMonth() !== parts[1] - 1 || d.getDate() !== parts[2]) {
-      errors.push("Data de vencimento não existe no calendário.");
-    }
+  } else if (!isValidIsoCalendarDate(dataVencimento)) {
+    errors.push("Data de vencimento não existe no calendário.");
   }
 
   const observacao = typeof obj.observacao === "string" && obj.observacao.trim().length > 0
@@ -306,13 +381,6 @@ export function validateExpenseInput(raw: unknown): {
   return {
     valid: true,
     errors: [],
-    data: {
-      nome,
-      categoria,
-      valor,
-      status,
-      dataVencimento,
-      observacao,
-    },
+    data: { nome, categoria, valor, status, dataVencimento, observacao },
   };
 }

@@ -316,7 +316,7 @@ export function lembreteDespesaHtml(opts: {
     </div>
     ${p("Acesse o painel para acompanhar o saldo disponível na carteira e dar baixa nesta despesa após realizar o pagamento.")}
     <div style="margin:24px 0;">
-      <a href="${opts.painelUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:700;font-size:14px;">
+      <a href="${escapeHtml(opts.painelUrl)}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:700;font-size:14px;">
         Abrir Painel de Despesas
       </a>
     </div>
