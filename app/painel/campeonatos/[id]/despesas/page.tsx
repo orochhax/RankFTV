@@ -6,11 +6,16 @@ import { PageHeader } from "@/components/shell/PageHeader";
 import { DreResultadoCard } from "@/components/painel/DreResultadoCard";
 import { DespesasManager } from "@/components/painel/DespesasManager";
 import {
-  calculateChampionshipDre,
-  calculateCashflowCoverage,
+  computeDreAndCoverageFromWallet,
   type ChampionshipExpense,
   type ChampionshipExpenseStatus,
 } from "@/lib/championship-expenses";
+import {
+  calculateOrganizerWithdrawalLimits,
+  computeWithdrawableCashNow,
+  resolveWalletAccountingTotals,
+  type WalletSnapshotNumbers,
+} from "@/lib/organizer-payout-rules";
 
 export default async function DespesasPage({
   params,
@@ -32,8 +37,8 @@ export default async function DespesasPage({
   const champId = camp.id;
   const publicSlug = camp.slug ?? champId;
 
-  // Busca despesas, métricas de vendas e dados da carteira em paralelo
-  const [expensesRes, financialMetricsRes, walletRes, spectatorRes] = await Promise.all([
+  // Busca despesas, métricas de vendas, datas e carteira em paralelo
+  const [expensesRes, financialMetricsRes, walletRes, spectatorRes, champDatesRes] = await Promise.all([
     supabase
       .from("championship_expenses")
       .select("*")
@@ -47,6 +52,7 @@ export default async function DespesasPage({
       .select("valor")
       .eq("championship_id", champId)
       .eq("status_pagamento", "pago"),
+    supabase.from("championships").select("data_fim").eq("id", champId).maybeSingle(),
   ]);
 
   const rawExpenses = (expensesRes.data ?? []) as Array<Record<string, unknown>>;
@@ -74,31 +80,27 @@ export default async function DespesasPage({
     (acc, t) => acc + Number(t.valor || 0),
     0,
   );
-  const vendasBrutas = totalInscricoesBruto + totalPlateiaBruto;
 
-  const wallet = (walletRes.data ?? {}) as {
-    totalNet?: number;
-    available?: number;
-    reserved?: number;
-    withdrawn?: number;
-  };
-
-  // O total líquido é a arrecadação após desconto das taxas do gateway/plataforma
-  // Se ainda não houver wallet snapshot populada, calcula com base na taxa padrão
-  const receitaLiquida = Number(wallet.totalNet ?? (vendasBrutas > 0 ? vendasBrutas * 0.92 : 0));
-  const taxasPlataforma = Math.max(0, vendasBrutas - receitaLiquida);
-  const saldoDisponivelSaque = Number(wallet.available ?? 0);
-
-  const dre = calculateChampionshipDre({
-    vendasBrutas,
-    taxasPlataforma,
-    receitaLiquida,
-    expenses,
+  const hasWalletSnapshot = !walletRes.error && walletRes.data && typeof walletRes.data === "object";
+  const walletTotals = resolveWalletAccountingTotals(
+    (walletRes.data ?? {}) as WalletSnapshotNumbers,
+  );
+  const payoutLimits = calculateOrganizerWithdrawalLimits({
+    totalNet: walletTotals.lifetimeTotalNet,
+    alreadyWithdrawn: walletTotals.totalCommitted,
+    dataFim: champDatesRes.data?.data_fim,
+  });
+  const saldoSacavelAgora = computeWithdrawableCashNow({
+    available: walletTotals.available,
+    maxWithdrawableNow: payoutLimits.maxWithdrawableNow,
   });
 
-  const coverage = calculateCashflowCoverage({
-    saldoDisponivel: saldoDisponivelSaque,
-    despesasPendentes: dre.despesasPendentes,
+  const { dre, coverage } = computeDreAndCoverageFromWallet({
+    totalInscricoesBruto,
+    totalPlateiaBruto,
+    lifetimeReceitaLiquida: hasWalletSnapshot ? walletTotals.lifetimeTotalNet : null,
+    saldoSacavelAgora,
+    expenses,
   });
 
   return (

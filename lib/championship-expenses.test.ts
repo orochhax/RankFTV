@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  addDaysSaoPauloDateString,
   calculateExpenseSummary,
   calculateChampionshipDre,
   calculateCashflowCoverage,
+  computeDreAndCoverageFromWallet,
   daysUntilDue,
   isExpenseOverdue,
   isExpenseDueSoon,
+  parseCurrencyBR,
   validateExpenseInput,
   roundCurrency,
   type ChampionshipExpense,
@@ -220,12 +223,67 @@ test("SQL migration for championship expenses configures RLS and cascading delet
   assert.match(sql, /CREATE POLICY championship_expenses_delete/);
 });
 
-test("expense reminders cron checks authorization and limits query scope", async () => {
+test("expense reminders cron checks authorization, uses Auth email + TZ-safe window, and limits query scope", async () => {
   const { readFileSync } = await import("node:fs");
   const cronSource = readFileSync("app/api/cron/expense-reminders/route.ts", "utf8");
   assert.match(cronSource, /isCronAuthorized\(request\.headers\)/);
   assert.match(cronSource, /\.eq\("status", "pendente"\)/);
+  assert.match(cronSource, /addDaysSaoPauloDateString/);
+  assert.match(cronSource, /auth\.admin\.getUserById/);
   assert.match(cronSource, /enviarLembreteDespesa/);
   assert.match(cronSource, /idempotencyKey/);
+
+  const templateSource = readFileSync("lib/email/templates.ts", "utf8");
+  assert.match(templateSource, /escapeHtml\(opts\.painelUrl\)/);
+
+  const actionsSource = readFileSync("app/painel/campeonatos/[id]/financeiro/actions.ts", "utf8");
+  assert.match(actionsSource, /resolveWalletAccountingTotals/);
+  assert.match(actionsSource, /reserve_organizer_withdrawal_receivables/);
+});
+
+test("addDaysSaoPauloDateString, parseCurrencyBR, validation edge cases and unified DRE helper", () => {
+  assert.equal(addDaysSaoPauloDateString("2026-12-30", 3), "2027-01-02");
+  assert.equal(addDaysSaoPauloDateString("2026-02-27", 3), "2026-03-02");
+  assert.equal(addDaysSaoPauloDateString("2024-02-27", 3), "2024-03-01");
+
+  assert.equal(parseCurrencyBR("1.500,50"), 1500.5);
+  assert.equal(parseCurrencyBR("R$ 250,00"), 250);
+  assert.equal(parseCurrencyBR("3500.50"), 3500.5);
+  assert.equal(parseCurrencyBR("1,500.50"), 1500.5);
+  assert.ok(Number.isNaN(parseCurrencyBR("   ")));
+
+  const subCent = validateExpenseInput({
+    nome: "Taxa",
+    categoria: "Outros",
+    valor: 0.004,
+    status: "pendente",
+    dataVencimento: "2026-11-15",
+  });
+  assert.equal(subCent.valid, false);
+
+  const invalidLeap = validateExpenseInput({
+    nome: "Taxa",
+    categoria: "Outros",
+    valor: 100,
+    status: "pendente",
+    dataVencimento: "2026-02-29",
+  });
+  assert.equal(invalidLeap.valid, false);
+
+  const { dre, coverage } = computeDreAndCoverageFromWallet({
+    totalInscricoesBruto: 11520,
+    totalPlateiaBruto: 41550,
+    lifetimeReceitaLiquida: 53070,
+    saldoSacavelAgora: 25000,
+    expenses: sampleExpenses,
+  });
+  assert.equal(dre.vendasBrutas, 53070);
+  assert.equal(dre.taxasPlataforma, 0);
+  assert.equal(dre.receitaLiquida, 53070);
+  assert.equal(dre.despesasTotais, 12700.5);
+  assert.equal(dre.lucroLiquidoReal, 40369.5);
+  assert.equal(coverage.saldoDisponivel, 25000);
+  assert.equal(coverage.despesasPendentes, 8200);
+  assert.equal(coverage.coberto, true);
 });
 

@@ -10,10 +10,14 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Surface } from "@/components/shell/Surface";
 import { formatBRL } from "@/lib/format";
-import { calculateOrganizerWithdrawalLimits } from "@/lib/organizer-payout-rules";
 import {
-  calculateChampionshipDre,
-  calculateCashflowCoverage,
+  calculateOrganizerWithdrawalLimits,
+  computeWithdrawableCashNow,
+  resolveWalletAccountingTotals,
+  type WalletSnapshotNumbers,
+} from "@/lib/organizer-payout-rules";
+import {
+  computeDreAndCoverageFromWallet,
   type ChampionshipExpense,
   type ChampionshipExpenseStatus,
 } from "@/lib/championship-expenses";
@@ -46,7 +50,16 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const isElite     = !!champExtra?.is_elite;
   const feePendente = Number(champExtra?.premium_fee_pendente ?? 0);
 
-  const [{ data: metricData }, { data: champDates }, { data: rawPendentes }, { data: rawPendentesTickets }, { data: walletData }, { data: withdrawableData }, { data: expensesRows }] = await Promise.all([
+  const [
+    { data: metricData },
+    { data: champDates },
+    { data: rawPendentes },
+    { data: rawPendentesTickets },
+    { data: walletData, error: walletError },
+    { data: withdrawableData },
+    { data: expensesRows },
+    { data: spectatorRows },
+  ] = await Promise.all([
     supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: champId }),
     supabase
       .from("championships")
@@ -77,22 +90,29 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
       .from("championship_expenses")
       .select("*")
       .eq("championship_id", champId),
+    supabase
+      .from("spectator_tickets")
+      .select("valor")
+      .eq("championship_id", champId)
+      .eq("status_pagamento", "pago"),
   ]);
 
+  const hasWalletSnapshot = !walletError && Boolean(walletData && typeof walletData === "object");
   const walletRaw = (walletData ?? {}) as Partial<WalletSnapshot>;
+  const walletTotals = resolveWalletAccountingTotals(walletRaw as WalletSnapshotNumbers);
   const champDateRow = champDates as { data_fim?: string | null } | null;
   const payoutLimits = calculateOrganizerWithdrawalLimits({
-    totalNet: Number(walletRaw.totalNet ?? 0),
-    alreadyWithdrawn: Number(walletRaw.withdrawn ?? 0) + Number(walletRaw.reserved ?? 0),
+    totalNet: walletTotals.lifetimeTotalNet,
+    alreadyWithdrawn: walletTotals.totalCommitted,
     dataFim: champDateRow?.data_fim,
   });
 
   const wallet: WalletSnapshot = {
-    totalNet: Number(walletRaw.totalNet ?? 0),
-    available: Number(walletRaw.available ?? 0),
-    pending: Number(walletRaw.pending ?? 0),
-    reserved: Number(walletRaw.reserved ?? 0),
-    withdrawn: Number(walletRaw.withdrawn ?? 0),
+    totalNet: walletTotals.remainingNet,
+    available: walletTotals.available,
+    pending: walletTotals.pending,
+    reserved: walletTotals.reserved,
+    withdrawn: walletTotals.withdrawn,
     schedule: Array.isArray(walletRaw.schedule)
       ? walletRaw.schedule.map((item) => ({ date: String(item.date), amount: Number(item.amount) }))
       : [],
@@ -329,20 +349,21 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     updatedAt: String(row.updated_at),
   }));
 
-  const vendasBrutas = totalPix + totalCredito + totalDebito;
-  const receitaLiquida = Number(walletRaw.totalNet ?? (vendasBrutas > 0 ? vendasBrutas * 0.92 : 0));
-  const taxasPlataforma = Math.max(0, vendasBrutas - receitaLiquida);
-
-  const dre = calculateChampionshipDre({
-    vendasBrutas,
-    taxasPlataforma,
-    receitaLiquida,
-    expenses,
+  const totalPlateiaBruto = (spectatorRows ?? []).reduce(
+    (acc, row) => acc + Number(row.valor || 0),
+    0,
+  );
+  const saldoSacavelAgora = computeWithdrawableCashNow({
+    available: walletTotals.available,
+    maxWithdrawableNow: payoutLimits.maxWithdrawableNow,
   });
 
-  const coverage = calculateCashflowCoverage({
-    saldoDisponivel: Number(walletRaw.available ?? 0),
-    despesasPendentes: dre.despesasPendentes,
+  const { dre, coverage } = computeDreAndCoverageFromWallet({
+    totalInscricoesBruto: totalPago,
+    totalPlateiaBruto,
+    lifetimeReceitaLiquida: hasWalletSnapshot ? walletTotals.lifetimeTotalNet : null,
+    saldoSacavelAgora,
+    expenses,
   });
 
   return (

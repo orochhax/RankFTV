@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   ReceiptText,
@@ -24,6 +25,7 @@ import {
   isExpenseOverdue,
   isExpenseDueSoon,
   getSaoPauloDateString,
+  parseCurrencyBR,
   type ChampionshipExpense,
   type ChampionshipExpenseStatus,
 } from "@/lib/championship-expenses";
@@ -45,6 +47,7 @@ export function DespesasManager({
   champSlugOrId: _champSlugOrId,
   initialExpenses,
 }: DespesasManagerProps) {
+  const router = useRouter();
   const [expenses, setExpenses] = useState<ChampionshipExpense[]>(initialExpenses);
   const [filterStatus, setFilterStatus] = useState<"todas" | "pendente" | "pago">("todas");
   const [filterCategory, setFilterCategory] = useState<string>("todas");
@@ -52,9 +55,11 @@ export function DespesasManager({
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ChampionshipExpense | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
 
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Form states
   const [formNome, setFormNome] = useState("");
@@ -93,7 +98,7 @@ export function DespesasManager({
       setFormCategoria("Outra");
       setFormCustomCategoria(exp.categoria);
     }
-    setFormValor(String(exp.valor));
+    setFormValor(exp.valor.toFixed(2).replace(".", ","));
     setFormDataVencimento(exp.dataVencimento);
     setFormStatus(exp.status);
     setFormObservacao(exp.observacao ?? "");
@@ -120,9 +125,9 @@ export function DespesasManager({
       return;
     }
 
-    const valorNum = parseFloat(formValor.replace(",", "."));
-    if (!Number.isFinite(valorNum) || valorNum <= 0) {
-      setErrorMsg("Informe um valor válido maior que zero.");
+    const valorNum = parseCurrencyBR(formValor);
+    if (!Number.isFinite(valorNum) || valorNum < 0.01) {
+      setErrorMsg("Informe um valor válido (mínimo R$ 0,01).");
       return;
     }
 
@@ -168,43 +173,52 @@ export function DespesasManager({
         }
       }
       closeModal();
+      router.refresh();
     });
   };
 
   const handleToggleStatus = (exp: ChampionshipExpense) => {
     const nextStatus: ChampionshipExpenseStatus = exp.status === "pago" ? "pendente" : "pago";
+    setActionError(null);
     startTransition(async () => {
       const res = await alternarStatusDespesaAction({
         champId,
         expenseId: exp.id,
         nextStatus,
       });
-      if (res.ok) {
-        setExpenses((prev) =>
-          prev.map((item) =>
-            item.id === exp.id
-              ? {
-                  ...item,
-                  status: nextStatus,
-                  dataPagamento: nextStatus === "pago" ? new Date().toISOString() : null,
-                }
-              : item,
-          ),
-        );
+      if (!res.ok) {
+        setActionError(res.error ?? "Não foi possível atualizar o status da despesa.");
+        return;
       }
+      setExpenses((prev) =>
+        prev.map((item) =>
+          item.id === exp.id
+            ? {
+                ...item,
+                status: nextStatus,
+                dataPagamento: nextStatus === "pago" ? new Date().toISOString() : null,
+              }
+            : item,
+        ),
+      );
+      router.refresh();
     });
   };
 
   const handleDeleteExpense = (expenseId: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta despesa?")) return;
+    setActionError(null);
+    setConfirmingDeleteId(null);
     startTransition(async () => {
       const res = await excluirDespesaAction({
         champId,
         expenseId,
       });
-      if (res.ok) {
-        setExpenses((prev) => prev.filter((item) => item.id !== expenseId));
+      if (!res.ok) {
+        setActionError(res.error ?? "Não foi possível excluir a despesa.");
+        return;
       }
+      setExpenses((prev) => prev.filter((item) => item.id !== expenseId));
+      router.refresh();
     });
   };
 
@@ -299,6 +313,23 @@ export function DespesasManager({
           Nova Despesa
         </button>
       </div>
+
+      {actionError && (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-medium text-rose-700"
+        >
+          <span>{actionError}</span>
+          <button
+            type="button"
+            onClick={() => setActionError(null)}
+            aria-label="Fechar aviso"
+            className="rounded p-1 text-rose-500 hover:bg-rose-100 hover:text-rose-800"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Lista de Despesas */}
       {filtered.length === 0 ? (
@@ -417,22 +448,47 @@ export function DespesasManager({
                   </button>
 
                   <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => openEditModal(item)}
-                      disabled={isPending}
-                      title="Editar despesa"
-                      className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
-                    >
-                      <Pencil className="size-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteExpense(item.id)}
-                      disabled={isPending}
-                      title="Excluir despesa"
-                      className="rounded-lg p-1.5 text-ink-muted hover:bg-rose-50 hover:text-rose-600 transition-colors"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
+                    {confirmingDeleteId === item.id ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteExpense(item.id)}
+                          disabled={isPending}
+                          className="rounded-lg bg-rose-600 px-2 py-1 text-[11px] font-bold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
+                        >
+                          Confirmar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingDeleteId(null)}
+                          disabled={isPending}
+                          className="rounded-lg px-2 py-1 text-[11px] font-semibold text-ink-muted hover:bg-surface-2 hover:text-ink"
+                        >
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(item)}
+                          disabled={isPending}
+                          title="Editar despesa"
+                          className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
+                        >
+                          <Pencil className="size-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingDeleteId(item.id)}
+                          disabled={isPending}
+                          title="Excluir despesa"
+                          className="rounded-lg p-1.5 text-ink-muted hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </Surface>
@@ -535,9 +591,8 @@ export function DespesasManager({
                       R$
                     </span>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0.01"
+                      type="text"
+                      inputMode="decimal"
                       required
                       placeholder="0,00"
                       value={formValor}

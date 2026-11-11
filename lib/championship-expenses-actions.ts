@@ -16,6 +16,18 @@ export type ActionResponse<T = unknown> = {
   data?: T;
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function revalidateExpensePaths(campId: string, slug: string | null | undefined) {
+  const publicSlug = slug ?? campId;
+  revalidatePath(`/painel/campeonatos/${publicSlug}/despesas`);
+  revalidatePath(`/painel/campeonatos/${publicSlug}/financeiro`);
+  if (publicSlug !== campId) {
+    revalidatePath(`/painel/campeonatos/${campId}/despesas`);
+    revalidatePath(`/painel/campeonatos/${campId}/financeiro`);
+  }
+}
+
 // Helper para mapear row do Postgres para o tipo TypeScript
 function mapExpenseRow(row: Record<string, unknown>): ChampionshipExpense {
   return {
@@ -81,11 +93,7 @@ export async function criarDespesaAction(input: {
     return { ok: false, error: error?.message ?? "Falha ao gravar despesa no banco." };
   }
 
-  const publicSlug = camp.slug ?? camp.id;
-  revalidatePath(`/painel/campeonatos/${publicSlug}/despesas`);
-  revalidatePath(`/painel/campeonatos/${publicSlug}/financeiro`);
-  revalidatePath(`/painel/campeonatos/${camp.id}/despesas`);
-  revalidatePath(`/painel/campeonatos/${camp.id}/financeiro`);
+  revalidateExpensePaths(camp.id, camp.slug);
 
   return { ok: true, expense: mapExpenseRow(expRow as Record<string, unknown>) };
 }
@@ -103,6 +111,8 @@ export async function atualizarDespesaAction(input: {
   status: ChampionshipExpenseStatus;
   observacao?: string | null;
 }): Promise<ActionResponse> {
+  if (!UUID_RE.test(input.expenseId)) return { ok: false, error: "Identificador de despesa inválido." };
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Usuário não autenticado." };
@@ -139,9 +149,7 @@ export async function atualizarDespesaAction(input: {
     return { ok: false, error: error?.message ?? "Falha ao atualizar despesa." };
   }
 
-  const publicSlug = camp.slug ?? camp.id;
-  revalidatePath(`/painel/campeonatos/${publicSlug}/despesas`);
-  revalidatePath(`/painel/campeonatos/${publicSlug}/financeiro`);
+  revalidateExpensePaths(camp.id, camp.slug);
 
   return { ok: true, expense: mapExpenseRow(expRow as Record<string, unknown>) };
 }
@@ -154,6 +162,9 @@ export async function alternarStatusDespesaAction(input: {
   expenseId: string;
   nextStatus: ChampionshipExpenseStatus;
 }): Promise<ActionResponse> {
+  if (!UUID_RE.test(input.expenseId)) return { ok: false, error: "Identificador de despesa inválido." };
+  const nextStatus: ChampionshipExpenseStatus = input.nextStatus === "pago" ? "pago" : "pendente";
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Usuário não autenticado." };
@@ -166,8 +177,8 @@ export async function alternarStatusDespesaAction(input: {
   const { error } = await supabase
     .from("championship_expenses")
     .update({
-      status: input.nextStatus,
-      data_pagamento: input.nextStatus === "pago" ? new Date().toISOString() : null,
+      status: nextStatus,
+      data_pagamento: nextStatus === "pago" ? new Date().toISOString() : null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", input.expenseId)
@@ -177,9 +188,7 @@ export async function alternarStatusDespesaAction(input: {
     return { ok: false, error: error.message };
   }
 
-  const publicSlug = camp.slug ?? camp.id;
-  revalidatePath(`/painel/campeonatos/${publicSlug}/despesas`);
-  revalidatePath(`/painel/campeonatos/${publicSlug}/financeiro`);
+  revalidateExpensePaths(camp.id, camp.slug);
 
   return { ok: true };
 }
@@ -191,6 +200,8 @@ export async function excluirDespesaAction(input: {
   champId: string;
   expenseId: string;
 }): Promise<ActionResponse> {
+  if (!UUID_RE.test(input.expenseId)) return { ok: false, error: "Identificador de despesa inválido." };
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Usuário não autenticado." };
@@ -210,9 +221,7 @@ export async function excluirDespesaAction(input: {
     return { ok: false, error: error.message };
   }
 
-  const publicSlug = camp.slug ?? camp.id;
-  revalidatePath(`/painel/campeonatos/${publicSlug}/despesas`);
-  revalidatePath(`/painel/campeonatos/${publicSlug}/financeiro`);
+  revalidateExpensePaths(camp.id, camp.slug);
 
   return { ok: true };
 }
