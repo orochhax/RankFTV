@@ -85,6 +85,22 @@ const FOCUSED_PREFIXES = [
   "/arena/mensalidade", // Pix da mensalidade do aluno — página avulsa
 ];
 
+// Somente fluxos realmente avulsos (convite e Pix direto de mensalidade)
+// ocultam a BottomNav no mobile. Login, cadastro e termos preservam a barra
+// inferior para permitir retorno imediato à Home e navegação pública.
+const BOTTOM_NAV_HIDDEN_PREFIXES = [
+  "/convite",
+  "/arena/mensalidade",
+];
+
+function matchesAnyPrefix(pathname: string, prefixes: string[]): boolean {
+  return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 export function isFocusedRoute(pathname: string): boolean {
-  return FOCUSED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  return matchesAnyPrefix(pathname, FOCUSED_PREFIXES);
+}
+
+export function isBottomNavHiddenRoute(pathname: string): boolean {
+  return matchesAnyPrefix(pathname, BOTTOM_NAV_HIDDEN_PREFIXES);
 }
