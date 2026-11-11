@@ -5,6 +5,14 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-11 10:15 (America/Sao_Paulo) — Adição do Concorrente Marcos Paulo e Atualização Completa do Canal Carlos Rocha
+
+- Canal Marcos Paulo (`@marcospauloo`, 195 mil inscritos) adicionado oficialmente à base de concorrentes do canal Carlos Rocha via YouTube Data API v3 (`scripts/collect-competitors.mjs`).
+- Base total consolidada em 17 canais, 1.646 vídeos coletados diretamente e 1.668 vídeos indexados com 100% de thumbnails JPEG válidas na janela anual (resumo salvo em `Carlos Rocha - YT/Concorrentes/ultima-coleta-2026-11-11.json`).
+- Recálculo das medianas por canal e geração do ranking de outliers em `lib/evolution/carlos-rocha-rank-snapshot.json` (17 canais, 1.668 vídeos, 15 maiores outliers liderados por Bennett Luke a 366,6x e Bruno Nardon a 218,0x).
+- Biblioteca Editorial preservada e calibrada de forma cumulativa com 20 pautas ativas (score >= 50).
+- Suíte completa de testes unitários aprovada, typecheck limpo e lint aprovado.
+
 ## 2026-11-10 11:35 (America/Sao_Paulo) — Expansão ativa da Biblioteca de Ideias com sinais da concorrência no canal Carlos Rocha
 
 - Incorporação de 4 novas pautas aprovadas por Carlos, formuladas a partir dos maiores outliers da concorrência (Bennett Luke 360,5x, Kamily Rebelatto 192x/73x/69x, Vinicius Figueiredo 88x, Daniel Lima 14,5x e João Curry):

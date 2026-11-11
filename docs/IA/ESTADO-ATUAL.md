@@ -1,5 +1,12 @@
 # Estado atual resumido
 
+## Central de Evolução - Adição do Concorrente Marcos Paulo e Atualização Completa do Canal Carlos Rocha (11/11/2026)
+
+- Canal Marcos Paulo (`@marcospauloo`, 195 mil inscritos) adicionado oficialmente à base de concorrentes do canal Carlos Rocha via YouTube Data API v3.
+- Base total consolidada em **17 canais concorrentes**, **1.646 vídeos coletados diretamente** e **1.668 vídeos indexados** com 1.646 thumbnails JPEG válidas na janela anual (resumo salvo em `Carlos Rocha - YT/Concorrentes/ultima-coleta-2026-11-11.json`).
+- Recálculo das medianas por canal e geração do ranking de outliers em `lib/evolution/carlos-rocha-rank-snapshot.json` (17 canais, 1.668 vídeos, 15 maiores outliers liderados por Bennett Luke a 366,6x, Bruno Nardon a 218,0x, Kamily Rebelatto a 181,6x e Alfredo Soares a 181,1x).
+- Biblioteca Editorial preservada e calibrada de forma cumulativa com 20 pautas ativas (score >= 50).
+
 ## V1 Comercial do RankFTV — Auditoria Geral e Estado de Release (05/11/2026)
 
 - Progresso consolidado da V1: **99% concluído** (142 de 144 marcos P0 concluídos).
