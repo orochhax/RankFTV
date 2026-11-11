@@ -5,6 +5,15 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-11 10:25 (America/Sao_Paulo) — Atualização completa do radar editorial e concorrentes do Rocha Tech
+
+- Coleta oficial via YouTube Data API v3 nos 24 canais concorrentes do Rocha Tech: 3.903 vídeos monitorados na janela de 365 dias (19 vídeos novos catalogados, 2.205 contadores de visualizações atualizados, zero falhas e zero fallbacks manuais).
+- Resumo oficial de coleta salvo em `Rocha Tech - YT/Concorrentes/ultima-coleta-2026-11-11.json`.
+- Radar ampliado com 3 novidades verificadas de fontes primárias: Anthropic lança Claude Sheets e Whiteboards em beta para ideação visual e dados nativos (92 pts), OpenAI introduz Businesses in ChatGPT com perfis comerciais verificados no chat (85 pts) e Google expande Gemini no Workspace com AI Overview no Gmail e ações no Chat (78 pts).
+- Sincronização em produção no Supabase (Run ID: `485b3ec9-129c-4d74-9490-6f259e7cbfa0`): 51 conteúdos (3 novos e 48 atualizados), 20 tendências e 27 ideias reavaliadas pela Fórmula de 5 Pilares com 108 abordagens e regra de ouro editorial (título, nota e tag alinhados à abordagem vencedora).
+- Reconstrução do snapshot seguro (`lib/evolution/intelligence-snapshot.json`): 3.903 vídeos, 24 canais e Top 15 oportunidades lideradas por Sanji Nai-Chien (#1, 1,308M views, 90 pts), Money Talk With Leon (#2, 1,040M views, 90 pts) e Iman Gadzhi (#3, 1,892M views, 88 pts).
+- Bateria de testes unitários e typecheck aprovados com 100% de sucesso.
+
 ## 2026-11-11 10:15 (America/Sao_Paulo) — Adição do Concorrente Marcos Paulo e Atualização Completa do Canal Carlos Rocha
 
 - Canal Marcos Paulo (`@marcospauloo`, 195 mil inscritos) adicionado oficialmente à base de concorrentes do canal Carlos Rocha via YouTube Data API v3 (`scripts/collect-competitors.mjs`).
