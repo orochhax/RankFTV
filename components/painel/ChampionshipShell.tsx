@@ -18,6 +18,7 @@ export type ChampionshipNavSummary = {
   id: string;
   nome: string;
   status: ChampionshipStatus;
+  temPlateia?: boolean;
 };
 
 // Navegação contextual de um campeonato, aninhada DENTRO do shell global
@@ -117,7 +118,12 @@ export function ChampionshipShell({
                     aria-label="Seções do campeonato"
                     className="absolute right-0 top-full z-40 mt-2 hidden w-72 max-h-[70vh] overflow-y-auto rounded-card-lg bg-surface p-2 shadow-elevated ring-1 ring-border md:block"
                   >
-                    <ChampionshipNavContent champId={champ.id} pathname={pathname} onNavigate={() => setMenuOpen(false)} />
+                    <ChampionshipNavContent
+                      champId={champ.id}
+                      pathname={pathname}
+                      temPlateia={champ.temPlateia}
+                      onNavigate={() => setMenuOpen(false)}
+                    />
                   </div>
                 )}
               </div>
@@ -147,7 +153,12 @@ export function ChampionshipShell({
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto px-3 py-4 pb-[max(env(safe-area-inset-bottom),16px)]">
-                <ChampionshipNavContent champId={champ.id} pathname={pathname} onNavigate={() => setMenuOpen(false)} />
+                <ChampionshipNavContent
+                  champId={champ.id}
+                  pathname={pathname}
+                  temPlateia={champ.temPlateia}
+                  onNavigate={() => setMenuOpen(false)}
+                />
               </div>
             </div>
           </div>
@@ -163,10 +174,12 @@ export function ChampionshipShell({
 function ChampionshipNavContent({
   champId,
   pathname,
+  temPlateia = true,
   onNavigate,
 }: {
   champId: string;
   pathname: string;
+  temPlateia?: boolean;
   onNavigate: () => void;
 }) {
   return (
@@ -181,6 +194,25 @@ function ChampionshipNavContent({
               const href = item.href(champId);
               const active = isChampionshipNavItemActive(pathname, href, item.matchExact);
               const Icon = item.icon;
+              const isDisabled = group.label === "Espectadores" && !temPlateia && item.key !== "plateia";
+              if (isDisabled) {
+                return (
+                  <li key={item.key}>
+                    <div
+                      title="Cadastre tipos de ingresso de plateia para liberar esta seção"
+                      className="flex items-center justify-between rounded-xl px-2.5 py-2 text-sm font-medium text-ink-muted/50 cursor-not-allowed select-none"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Icon className="size-[17px] shrink-0 text-ink-muted/40" strokeWidth={2} />
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                      <span className="shrink-0 rounded bg-surface-2 px-1.5 py-0.5 text-[9px] font-semibold text-ink-muted/60">
+                        Indisponível
+                      </span>
+                    </div>
+                  </li>
+                );
+              }
               return (
                 <li key={item.key}>
                   <Link

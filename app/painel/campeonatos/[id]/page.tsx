@@ -7,12 +7,13 @@ import {
   MapPin,
   Users,
   Trophy,
-  Ticket,
   Clock,
   AlertTriangle,
+  Armchair,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDbChampionshipById } from "@/lib/supabase/championships";
+import { isUuid } from "@/lib/championship-slug";
 import { TierTag } from "@/components/ui/TierTag";
 import { formatBRL, formatDateRangeBR } from "@/lib/format";
 import { VagasProgressBar } from "@/components/painel/VagasProgressBar";
@@ -40,6 +41,12 @@ export default async function PainelCampeonatoPage({
   const camp = await getDbChampionshipById(id);
   if (!camp) notFound();
   const champId = camp.id;
+  const publicSlug = camp.slug ?? champId;
+
+  // Redireciona UUID para slug amigável (ex.: /painel/campeonatos/circuito-rankftv-open-pro-2026)
+  if (isUuid(id) && publicSlug !== id) {
+    redirect(`/painel/campeonatos/${publicSlug}`);
+  }
 
   // Só o organizador dono pode acessar o painel desse camp.
   if (camp.organizadorId !== user.id) notFound();
@@ -53,7 +60,7 @@ export default async function PainelCampeonatoPage({
   // botão "Sou atleta" -> /campeonatos/[id]/comprar). Esta segunda é hoje
   // o fluxo realmente usado pelo botão público — sem somar aqui o painel
   // mostrava R$0/zero inscrições mesmo com Pix confirmado.
-  const [tierRes, financialMetricsRes, orgAccountRes, spectatorRes] = await Promise.all([
+  const [tierRes, financialMetricsRes, orgAccountRes, spectatorRes, spectatorTypesRes] = await Promise.all([
     supabase.from("championships").select("tier_quiz, is_elite").eq("id", champId).maybeSingle(),
     supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: champId }),
     supabase.from("organizer_accounts")
@@ -61,9 +68,12 @@ export default async function PainelCampeonatoPage({
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase.from("spectator_tickets")
-      .select("valor")
+      .select("valor, quantidade")
       .eq("championship_id", champId)
       .eq("status_pagamento", "pago"),
+    supabase.from("spectator_ticket_types")
+      .select("id, max_quantidade, vendidos, ativo")
+      .eq("championship_id", champId),
   ]);
   const tierQuiz    = (tierRes.data?.tier_quiz ?? null) as Partial<QuizAnswers> | null;
   const isElite     = !!tierRes.data?.is_elite;
@@ -78,6 +88,23 @@ export default async function PainelCampeonatoPage({
   const totalGeralConfirmado = totalArrecadado + totalPlateia;
   const temChavePix = !!orgAccountRes.data?.chave_pix;
   const temCategoriaPaga = camp.categorias.some((c) => (c.valorInscricao ?? 0) > 0);
+
+  const ticketTypes = spectatorTypesRes.data ?? [];
+  const temPlateia = ticketTypes.length > 0;
+  const ingressosVendidos = (spectatorRes.data ?? []).reduce(
+    (acc, t) => acc + (Number(t.quantidade) || 1),
+    0,
+  );
+  const capacidadePlateia = ticketTypes.reduce(
+    (acc, t) => acc + (t.max_quantidade ?? 0),
+    0,
+  );
+  const plateiaValue = capacidadePlateia > 0
+    ? `${ingressosVendidos} / ${capacidadePlateia}`
+    : `${ingressosVendidos} vendidos`;
+  const plateiaHint = capacidadePlateia > 0
+    ? `${Math.round((ingressosVendidos / capacidadePlateia) * 100)}% da capacidade`
+    : undefined;
 
   const categoryCounts = Object.fromEntries(
     (financialMetrics.categories ?? []).map((c) => [c.id ?? c.category_id ?? "", Number(c.count)]),
@@ -117,9 +144,32 @@ export default async function PainelCampeonatoPage({
 
       {/* Métricas */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Duplas inscritas" value={duplasPagas} icon={Users} />
+        <StatCard
+          label="Duplas inscritas"
+          value={vagasTotais > 0 ? `${duplasPagas} / ${vagasTotais}` : `${duplasPagas}`}
+          hint={vagasTotais > 0 ? `${Math.round((duplasPagas / vagasTotais) * 100)}% das vagas` : undefined}
+          icon={Users}
+        />
         <StatCard label="Categorias" value={camp.categorias.length} icon={Trophy} />
-        <StatCard label="Vagas totais" value={vagasTotais > 0 ? vagasTotais : "—"} icon={Ticket} />
+        {temPlateia ? (
+          <StatCard
+            label="Ingressos de plateia"
+            value={plateiaValue}
+            hint={plateiaHint}
+            icon={Armchair}
+          />
+        ) : (
+          <Surface padding="md" className="border-border/60 bg-surface-2/40 opacity-70">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-xs font-medium text-ink-muted">Ingressos de plateia</p>
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-ink-muted">
+                <Armchair className="size-4" />
+              </span>
+            </div>
+            <p className="mt-2 text-2xl font-bold text-ink-muted">Indisponível</p>
+            <p className="mt-0.5 text-xs text-ink-muted">Nenhum lote criado</p>
+          </Surface>
+        )}
         <ReceitaConfirmadaCard
           totalGeralConfirmado={totalGeralConfirmado}
           totalArrecadado={totalArrecadado}
@@ -128,7 +178,7 @@ export default async function PainelCampeonatoPage({
       </div>
 
       {/* Ações de gestão — imediatamente abaixo dos cards, fonte única dos hrefs é CHAMPIONSHIP_NAV_GROUPS */}
-      <ChampionshipActions champId={champId} />
+      <ChampionshipActions champId={publicSlug} temPlateia={temPlateia} />
 
       {(duplasPagas > 0 || vagasTotais > 0) && (
         <Surface padding="md">

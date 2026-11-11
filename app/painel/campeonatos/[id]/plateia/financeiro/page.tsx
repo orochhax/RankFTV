@@ -7,6 +7,7 @@ import { StatCard } from "@/components/shell/StatCard";
 import { Surface } from "@/components/shell/Surface";
 import { formatBRL } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
 
 type StatusMetric = { status: string; orders: number; quantity: number; total: number };
 type TypeMetric = { name: string; quantity: number; total: number };
@@ -21,16 +22,21 @@ export default async function FinanceiroPlateiaPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: champ } = await supabase
-    .from("championships")
-    .select("nome, organizador_id")
-    .eq("id", id)
-    .maybeSingle();
-  if (!champ) notFound();
-  if (champ.organizador_id !== user.id) notFound();
+  const camp = await getDbChampionshipById(id);
+  if (!camp || camp.organizadorId !== user.id) notFound();
+  const champId = camp.id;
+
+  const { data: ticketTypes } = await supabase
+    .from("spectator_ticket_types")
+    .select("id")
+    .eq("championship_id", champId)
+    .limit(1);
+  if (!ticketTypes || ticketTypes.length === 0) {
+    redirect(`/painel/campeonatos/${id}/plateia`);
+  }
 
   const { data } = await supabase.rpc("organizer_spectator_financial_metrics", {
-    p_championship_id: id,
+    p_championship_id: champId,
   });
   const metrics = (data ?? {}) as { statuses?: StatusMetric[]; ticketTypes?: TypeMetric[] };
   const status = (value: string) => metrics.statuses?.find((item) => item.status === value);

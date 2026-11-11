@@ -60,13 +60,15 @@ export default async function FinanceiroStatusPage({
   const camp = await getDbChampionshipById(id);
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
+  const champId = camp.id;
+  const publicSlug = camp.slug ?? champId;
 
   // Busca inscrições com o status filtrado
   const [{ data: rawRegs }, { data: rawTickets }] = await Promise.all([
     supabase
     .from("registrations")
     .select(`id, valor, created_at, billing_type, team_id, championship_categories(nome), teams(atleta1_id, atleta2_id)`)
-    .eq("championship_id", id)
+    .eq("championship_id", champId)
     .eq("status_pagamento", status)
     .order("created_at", { ascending: false }),
     supabase
@@ -76,7 +78,7 @@ export default async function FinanceiroStatusPage({
       comprador_nome, comprador_email, comprador_zap,
       parceiro_nome, parceiro_email, parceiro_zap
     `)
-    .eq("championship_id", id)
+    .eq("championship_id", champId)
     .eq("status_pagamento", status)
     .order("created_at", { ascending: false }),
   ]);
@@ -97,7 +99,7 @@ export default async function FinanceiroStatusPage({
   const emailMap: Record<string, string | null> = {};
   if (ids.length > 0) {
     const { data: contacts } = await supabase.rpc("organizer_profile_contacts", {
-      p_championship_id: id,
+      p_championship_id: champId,
       p_user_ids: ids,
     });
     for (const contact of (contacts ?? []) as Array<{ id: string; nome: string; username: string; telefone: string | null; email: string | null }>) {
@@ -173,7 +175,7 @@ export default async function FinanceiroStatusPage({
 
   return (
     <FinanceiroStatusClient
-      champId={id}
+      champId={publicSlug}
       champNome={camp.nome}
       statusSlug={slug}
       titulo={cfg.titulo}

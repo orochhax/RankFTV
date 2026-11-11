@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { CuponsManager } from "@/components/painel/CuponsManager";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
@@ -15,18 +16,15 @@ export default async function CuponsPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: champ } = await supabase
-    .from("championships")
-    .select("nome, organizador_id")
-    .eq("id", id)
-    .maybeSingle();
-  if (!champ) notFound();
-  if (champ.organizador_id !== user.id) notFound();
+  const camp = await getDbChampionshipById(id);
+  if (!camp) notFound();
+  if (camp.organizadorId !== user.id) notFound();
+  const champId = camp.id;
 
   const { data: cupons } = await supabase
     .from("coupons")
     .select("id, codigo, tipo_desconto, valor_desconto, aplica_em, quantidade_maxima, usos_atuais, data_fim, ativo")
-    .eq("championship_id", id)
+    .eq("championship_id", champId)
     .order("created_at", { ascending: false });
 
   return (
@@ -35,7 +33,7 @@ export default async function CuponsPage({
         title="Cupons de desconto"
         description="Códigos que os compradores aplicam na inscrição de atleta ou no ingresso de plateia."
       />
-      <CuponsManager champId={id} cupons={cupons ?? []} />
+      <CuponsManager champId={champId} cupons={cupons ?? []} />
     </PageContainer>
   );
 }

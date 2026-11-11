@@ -28,10 +28,11 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const camp = await getDbChampionshipById(id);
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
+  const champId = camp.id;
 
   const [{ data: orgAccount }, { data: champExtra }] = await Promise.all([
     supabase.from("organizer_accounts").select("chave_pix").eq("user_id", user.id).maybeSingle(),
-    supabase.from("championships").select("is_elite, premium_fee_pendente").eq("id", id).maybeSingle(),
+    supabase.from("championships").select("is_elite, premium_fee_pendente").eq("id", champId).maybeSingle(),
   ]);
 
   const chavePix    = orgAccount?.chave_pix ?? null;
@@ -39,18 +40,18 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const feePendente = Number(champExtra?.premium_fee_pendente ?? 0);
 
   const [{ data: metricData }, { data: champDates }, { data: rawPendentes }, { data: rawPendentesTickets }, { data: walletData }, { data: withdrawableData }] = await Promise.all([
-    supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: id }),
+    supabase.rpc("organizer_championship_financial_metrics", { p_championship_id: champId }),
     supabase
       .from("championships")
       .select("prevenda_inicio, inscricoes_inicio, data_inicio, data_fim")
-      .eq("id", id)
+      .eq("id", champId)
       .single(),
     // Pendentes com cobrança já criada no Asaas — candidatas a reconciliação
     // manual (webhook que talvez nunca tenha chegado). Ver 7.4/Bug 3.
     supabase
       .from("registrations")
       .select("id, valor, created_at, teams(atleta1_id)")
-      .eq("championship_id", id)
+      .eq("championship_id", champId)
       .eq("status_pagamento", "pendente")
       .not("asaas_payment_id", "is", null)
       .order("created_at", { ascending: true })
@@ -58,13 +59,13 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
     supabase
       .from("athlete_tickets")
       .select("id, valor, created_at, comprador_nome")
-      .eq("championship_id", id)
+      .eq("championship_id", champId)
       .eq("status_pagamento", "pendente")
       .not("asaas_payment_id", "is", null)
       .order("created_at", { ascending: true })
       .limit(50),
-    supabase.rpc("organizer_wallet_snapshot", { p_championship_id: id }),
-    supabase.rpc("organizer_withdrawable_receivables", { p_championship_id: id }),
+    supabase.rpc("organizer_wallet_snapshot", { p_championship_id: champId }),
+    supabase.rpc("organizer_withdrawable_receivables", { p_championship_id: champId }),
   ]);
 
   const walletRaw = (walletData ?? {}) as Partial<WalletSnapshot>;
@@ -123,7 +124,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
   const { data: receivableRows } = await supabase
     .from("organizer_receivables")
     .select("id,net_amount,available_at,source_type")
-    .eq("championship_id", id)
+    .eq("championship_id", champId)
     .eq("status", "active")
     .eq("billing_type", "CREDIT_CARD")
     .gt("available_at", new Date().toISOString())
@@ -286,7 +287,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
               </p>
               <p className="text-xs text-ink-muted">{formatBRL(Number(p.valor))}</p>
             </div>
-            <ReconciliarInscricaoButton champId={id} registrationId={p.id} />
+            <ReconciliarInscricaoButton champId={champId} registrationId={p.id} />
           </div>
         ))}
         {pendentesTicketsComCobranca.map((p) => (
@@ -295,7 +296,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
               <p className="truncate text-sm font-medium text-ink">{p.comprador_nome}</p>
               <p className="text-xs text-ink-muted">{formatBRL(Number(p.valor))}</p>
             </div>
-            <ReconciliarInscricaoButton champId={id} registrationId={p.id} tipo="athlete_ticket" />
+            <ReconciliarInscricaoButton champId={champId} registrationId={p.id} tipo="athlete_ticket" />
           </div>
         ))}
       </div>
@@ -307,7 +308,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
       <PageHeader title="Financeiro" description="Entradas, taxas e repasses desse campeonato." />
 
       <FinanceiroConteudoClient
-        champId={id}
+        champId={champId}
         statusCards={STATUS_CARDS}
         totalPix={totalPix}
         totalCredito={totalCredito}
@@ -323,7 +324,7 @@ export default async function FinanceiroPage({ params }: { params: Promise<{ id:
         withdrawableReceivables={withdrawableReceivables}
         anticipatableReceivables={anticipatableReceivables}
       />
-      <PlanoTaxas champId={id} isElite={isElite} status={camp.status} feePendente={feePendente} permitirCancelar />
+      <PlanoTaxas champId={champId} isElite={isElite} status={camp.status} feePendente={feePendente} permitirCancelar />
     </PageContainer>
   );
 }

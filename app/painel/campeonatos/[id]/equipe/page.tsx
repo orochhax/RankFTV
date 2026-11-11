@@ -30,11 +30,12 @@ export default async function EquipePage({
   const camp = await getDbChampionshipById(id);
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
+  const champId = camp.id;
 
   const { data: rawStaff } = await supabase
     .from("championship_staff")
     .select("id, user_id, status, can_qrcode, can_inscricoes, can_chaveamento")
-    .eq("championship_id", id)
+    .eq("championship_id", champId)
     .order("created_at");
 
   const staff: StaffRow[] = (rawStaff ?? []) as StaffRow[];
@@ -70,7 +71,7 @@ export default async function EquipePage({
         <StatCard label="Ativos" value={members.filter((m) => m.status === "aceito").length} icon={UserCheck} tone="success" />
       </div>
 
-      <EquipeClient champId={id} members={members} />
+      <EquipeClient champId={champId} members={members} />
     </PageContainer>
   );
 }

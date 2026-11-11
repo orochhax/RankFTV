@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, ShieldCheck, Tv, FileText, Users, Sparkles } from "lucide-react";
+import { Crown, ShieldCheck, Tv, FileText, Users, Sparkles, BadgeCheck, Star } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { PRECO_ELITE } from "@/lib/elite";
 import { TAXAS_EXIBICAO } from "@/lib/taxas";
@@ -76,11 +76,19 @@ export function CampeonatoResultsCard({
           </p>
         </div>
 
-        {/* Ferramentas Exclusivas */}
+        {/* Ferramentas e Benefícios Exclusivos */}
         <div className="mt-4 space-y-2.5 rounded-2xl bg-slate-800/50 p-4 text-xs">
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-            Ferramentas Exclusivas do Plano PRO
+            Vantagens & Ferramentas do Plano PRO
           </p>
+          <div className="flex items-start gap-2.5 text-slate-200">
+            <BadgeCheck className="mt-0.5 size-4 shrink-0 text-amber-400" />
+            <span><strong>Selo de Verificado:</strong> Torneio oficial verificado com selo de credibilidade para atletas e marcas.</span>
+          </div>
+          <div className="flex items-start gap-2.5 text-slate-200">
+            <Star className="mt-0.5 size-4 shrink-0 text-amber-400" />
+            <span><strong>Campeonato em Destaque:</strong> Posição de destaque na Home e prioridade no topo da lista de torneios.</span>
+          </div>
           <div className="flex items-start gap-2.5 text-slate-200">
             <Tv className="mt-0.5 size-4 shrink-0 text-amber-400" />
             <span><strong>Modo Telão ao Vivo:</strong> Projete o chaveamento em TVs na quadra sem propagandas.</span>

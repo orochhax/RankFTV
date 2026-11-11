@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { Zap, CreditCard, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { PublicarCampeonatoForm } from "@/components/painel/PublicarCampeonatoForm";
 import { PlanoTaxas } from "@/components/painel/PlanoTaxas";
 import { PageContainer } from "@/components/shell/PageContainer";
@@ -22,14 +23,17 @@ export default async function PublicarPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const resolved = await getDbChampionshipById(id);
+  if (!resolved || resolved.organizadorId !== user.id) notFound();
+  const champId = resolved.id;
+
   const { data: champ } = await supabase
     .from("championships")
     .select("nome, status, organizador_id, is_elite, premium_fee_pendente, max_parcelas_inscricao, max_parcelas_ingresso")
-    .eq("id", id)
+    .eq("id", champId)
     .maybeSingle();
 
   if (!champ) notFound();
-  if (champ.organizador_id !== user.id) notFound();
 
   // Já publicado → volta pro card de sucesso.
   if (champ.status === "inscricoes_abertas") {
@@ -40,7 +44,7 @@ export default async function PublicarPage({
     supabase
       .from("championship_categories")
       .select("valor_inscricao")
-      .eq("championship_id", id),
+      .eq("championship_id", champId),
     supabase
       .from("organizer_accounts")
       .select("chave_pix, status_verificacao, motivo_rejeicao")
@@ -49,7 +53,7 @@ export default async function PublicarPage({
     supabase
       .from("spectator_ticket_types")
       .select("id, valor")
-      .eq("championship_id", id),
+      .eq("championship_id", champId),
   ]);
 
   const temCategoriaPaga     = (cats ?? []).some((c) => Number(c.valor_inscricao) > 0);
@@ -115,7 +119,7 @@ export default async function PublicarPage({
 
       {/* Form de publicação (mostra campos de Pix só quando precisa) */}
       <PublicarCampeonatoForm
-        championshipId={id}
+        championshipId={champId}
         precisaPix={precisaPix}
         temCategoriaPaga={temCategoriaPaga}
         temIngresso={temIngressoPago}

@@ -20,9 +20,10 @@ export default async function ComunicacaoPage({
   const camp = await getDbChampionshipById(id);
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
+  const champId = camp.id;
 
   const { data } = await supabase.rpc("organizer_championship_recipients", {
-    p_championship_id: id,
+    p_championship_id: champId,
     p_user_ids: null,
   });
   const recipients: Recipient[] = ((data ?? []) as Array<{
@@ -49,7 +50,7 @@ export default async function ComunicacaoPage({
       {recipients.length === 0 ? (
         <EmptyState icon={Megaphone} title="Nenhum atleta inscrito com pagamento confirmado ainda" />
       ) : (
-        <ComunicacaoClient champId={id} recipients={recipients} />
+        <ComunicacaoClient champId={champId} recipients={recipients} />
       )}
     </PageContainer>
   );
