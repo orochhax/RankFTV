@@ -35,12 +35,14 @@ export default async function CamisasPage({
   const camp = await getDbChampionshipById(id);
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
+  const champId = camp.id;
+  const publicSlug = camp.slug ?? champId;
 
   /* ── inscrições pagas ── */
   const { data: rawRegs } = await supabase
     .from("registrations")
     .select("teams(atleta1_id, atleta2_id)")
-    .eq("championship_id", id)
+    .eq("championship_id", champId)
     .eq("status_pagamento", "pago")
     .limit(1000);
 
@@ -70,7 +72,7 @@ export default async function CamisasPage({
   const { data: prodRows } = await supabase
     .from("shirt_production")
     .select("athlete_id, produced, retirado_por, data_retirada")
-    .eq("championship_id", id)
+    .eq("championship_id", champId)
     .limit(2000);
 
   const prodMap = Object.fromEntries(
@@ -117,10 +119,10 @@ export default async function CamisasPage({
           title="Nenhum inscrito confirmado"
           description="A lista de camisas aparece assim que as primeiras inscrições forem confirmadas."
           actionLabel="Ver inscrições"
-          actionHref={`/painel/campeonatos/${id}/inscricoes`}
+          actionHref={`/painel/campeonatos/${publicSlug}/checkin`}
         />
       ) : (
-        <CamisasClient champId={id} campNome={camp.nome} athletes={athletes} />
+        <CamisasClient champId={champId} campNome={camp.nome} athletes={athletes} />
       )}
     </PageContainer>
   );

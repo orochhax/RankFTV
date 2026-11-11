@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { Ticket, DollarSign, UserCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { formatBRL } from "@/lib/format";
 import { GestaoTiposIngresso } from "@/components/plateia/GestaoTiposIngresso";
 import { PageContainer } from "@/components/shell/PageContainer";
@@ -19,22 +20,19 @@ export default async function GestaoEspectadoresPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: champ } = await supabase
-    .from("championships")
-    .select("nome, organizador_id")
-    .eq("id", id)
-    .maybeSingle();
-  if (!champ) notFound();
-  if (champ.organizador_id !== user.id) notFound();
+  const camp = await getDbChampionshipById(id);
+  if (!camp) notFound();
+  if (camp.organizadorId !== user.id) notFound();
+  const champId = camp.id;
 
   const [{ data: tipos }, { data: metricData }] = await Promise.all([
     supabase
       .from("spectator_ticket_types")
       .select("id, nome, valor, ativo")
-      .eq("championship_id", id)
+      .eq("championship_id", champId)
       .order("ordem", { ascending: true })
       .order("created_at", { ascending: true }),
-    supabase.rpc("organizer_spectator_financial_metrics", { p_championship_id: id }),
+    supabase.rpc("organizer_spectator_financial_metrics", { p_championship_id: champId }),
   ]);
 
   const metrics = (metricData ?? {}) as {
@@ -59,7 +57,7 @@ export default async function GestaoEspectadoresPage({
       <section>
         <SectionHeader title="Tipos de ingresso" />
         <div className="mt-3">
-          <GestaoTiposIngresso champId={id} tipos={tipos ?? []} />
+          <GestaoTiposIngresso champId={champId} tipos={tipos ?? []} />
         </div>
       </section>
     </PageContainer>

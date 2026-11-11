@@ -50,7 +50,7 @@ test("check-in directory includes paid guest pairs in counters and presence list
   assert.match(directorySource, /\.eq\("status_pagamento", "pago"\)/);
   assert.match(directorySource, /kind: "pair"/);
   assert.match(directorySource, /members/);
-  assert.match(organizerPageSource, /getCheckinDirectory\(id, user\.id\)/);
+  assert.match(organizerPageSource, /getCheckinDirectory\((?:id|camp\.id), user\.id\)/);
   assert.match(organizerPageSource, /member\.checkedIn/);
   assert.match(organizerPageSource, /PairPresenceItem/);
 });

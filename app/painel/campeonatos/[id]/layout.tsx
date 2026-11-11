@@ -24,8 +24,24 @@ export default async function CampeonatoLayout({
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
 
+  const [{ data: ticketTypes }] = await Promise.all([
+    supabase
+      .from("spectator_ticket_types")
+      .select("id")
+      .eq("championship_id", camp.id)
+      .limit(1),
+  ]);
+  const temPlateia = (ticketTypes?.length ?? 0) > 0;
+
   return (
-    <ChampionshipShell champ={{ id: camp.id, nome: camp.nome, status: camp.status }}>
+    <ChampionshipShell
+      champ={{
+        id: camp.slug ?? camp.id,
+        nome: camp.nome,
+        status: camp.status,
+        temPlateia,
+      }}
+    >
       {children}
     </ChampionshipShell>
   );

@@ -5,6 +5,7 @@ import { PlateiaLista, type PlateiaItem } from "@/components/plateia/PlateiaList
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { createClient } from "@/lib/supabase/server";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
 
 const PAGE_SIZE = 30;
 
@@ -32,17 +33,23 @@ export default async function PlateiaListaPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: champ } = await supabase
-    .from("championships")
-    .select("nome, organizador_id")
-    .eq("id", id)
-    .maybeSingle();
-  if (!champ || champ.organizador_id !== user.id) notFound();
+  const camp = await getDbChampionshipById(id);
+  if (!camp || camp.organizadorId !== user.id) notFound();
+  const champId = camp.id;
+
+  const { data: ticketTypes } = await supabase
+    .from("spectator_ticket_types")
+    .select("id")
+    .eq("championship_id", champId)
+    .limit(1);
+  if (!ticketTypes || ticketTypes.length === 0) {
+    redirect(`/painel/campeonatos/${id}/plateia`);
+  }
 
   let request = supabase
     .from("spectator_tickets")
     .select("id, comprador_nome, comprador_email, tipo_nome, valor, quantidade, status_pagamento, checked_in, code", { count: "exact" })
-    .eq("championship_id", id)
+    .eq("championship_id", champId)
     .order("created_at", { ascending: false });
   if (query) request = request.or(`comprador_nome.ilike.%${query}%,comprador_email.ilike.%${query}%`);
   const { data, count } = await request.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);

@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { LotesManager, type GrupoLote } from "@/components/painel/LotesManager";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
@@ -15,23 +16,25 @@ export default async function LotesPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: champ } = await supabase
-    .from("championships")
-    .select("nome, organizador_id, inscricoes_fim")
-    .eq("id", id)
-    .maybeSingle();
-  if (!champ) notFound();
-  if (champ.organizador_id !== user.id) notFound();
+  const camp = await getDbChampionshipById(id);
+  if (!camp) notFound();
+  if (camp.organizadorId !== user.id) notFound();
+  const champId = camp.id;
 
-  const [{ data: categorias }, { data: tipos }] = await Promise.all([
+  const [{ data: champRow }, { data: categorias }, { data: tipos }] = await Promise.all([
+    supabase
+      .from("championships")
+      .select("inscricoes_fim")
+      .eq("id", champId)
+      .maybeSingle(),
     supabase
       .from("championship_categories")
       .select("id, nome, genero, valor_inscricao")
-      .eq("championship_id", id),
+      .eq("championship_id", champId),
     supabase
       .from("spectator_ticket_types")
       .select("id, nome, valor")
-      .eq("championship_id", id)
+      .eq("championship_id", champId)
       .eq("ativo", true),
   ]);
 
@@ -90,7 +93,7 @@ export default async function LotesPage({
         title="Lotes / preço escalonado"
         description="Configure preços que sobem por data ou por quantidade vendida, pra categoria de atleta e pra ingresso de plateia."
       />
-      <LotesManager champId={id} grupos={grupos} inscricoesFim={champ.inscricoes_fim} />
+      <LotesManager champId={champId} grupos={grupos} inscricoesFim={champRow?.inscricoes_fim ?? null} />
     </PageContainer>
   );
 }

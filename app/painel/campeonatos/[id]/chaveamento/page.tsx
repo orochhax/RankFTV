@@ -73,11 +73,13 @@ export default async function ChaveamentoPage({
   const camp = await getDbChampionshipById(id);
   if (!camp) notFound();
   if (camp.organizadorId !== user.id) notFound();
+  const champId = camp.id;
+  const publicSlug = camp.slug ?? champId;
 
   const { data: courtData } = await supabase
     .from("championships")
     .select("total_courts, primary_court_number")
-    .eq("id", id)
+    .eq("id", champId)
     .single();
   const courtConfiguration = {
     totalCourts: courtData?.total_courts ?? 1,
@@ -91,7 +93,7 @@ export default async function ChaveamentoPage({
       id, category_id, display_name_snapshot,
       championship_categories(id, nome, genero)
     `)
-    .eq("championship_id", id)
+    .eq("championship_id", champId)
     .eq("active", true);
 
   const participants = (rawParticipants ?? []) as unknown as ParticipantRow[];
@@ -143,7 +145,7 @@ export default async function ChaveamentoPage({
     const { data: dbMatches } = await supabase
       .from("bracket_matches")
       .select("id, round_index, match_index, participant_a_id, participant_b_id, sets_a, sets_b, winner_participant_id, set_details, is_third_place, court_label, bracket_section, section_round_index, next_winner_match_id")
-      .eq("championship_id", id)
+      .eq("championship_id", champId)
       .eq("category_id", activeCatId)
       .order("round_index")
       .order("match_index");
@@ -246,7 +248,7 @@ export default async function ChaveamentoPage({
               {categorias.map((c) => (
                 <Link
                   key={c.id}
-                  href={`/painel/campeonatos/${id}/chaveamento?cat=${c.id}`}
+                  href={`/painel/campeonatos/${publicSlug}/chaveamento?cat=${c.id}`}
                   className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                     activeCatId === c.id
                       ? "bg-blue-600 text-white"
@@ -261,7 +263,7 @@ export default async function ChaveamentoPage({
 
           <BracketClient
             key={activeCatId ?? ""}
-            champId={id}
+            champId={champId}
             catId={activeCatId ?? ""}
             rounds={rounds}
             availableTeams={availableTeams}

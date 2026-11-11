@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { EditarCampeonatoForm } from "@/components/painel/EditarCampeonatoForm";
 import { ExcluirCampeonatoButton } from "@/components/painel/ExcluirCampeonatoButton";
 import { ChampBannerForm } from "@/components/painel/ChampBannerForm";
@@ -17,6 +18,10 @@ export default async function EditarCampeonatoPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const resolved = await getDbChampionshipById(id);
+  if (!resolved || resolved.organizadorId !== user.id) notFound();
+  const champId = resolved.id;
+
   const { data: champ } = await supabase
     .from("championships")
     .select(`
@@ -31,11 +36,10 @@ export default async function EditarCampeonatoPage({
         id, nome, genero, valor_inscricao, max_duplas
       )
     `)
-    .eq("id", id)
+    .eq("id", champId)
     .single();
 
   if (!champ) notFound();
-  if (champ.organizador_id !== user.id) notFound();
 
   const c = champ as unknown as Record<string, unknown>;
 
@@ -79,14 +83,14 @@ export default async function EditarCampeonatoPage({
       <div className="space-y-2">
         <p className="text-sm font-semibold text-ink">Banner do campeonato</p>
         <ChampBannerForm
-          champId={id}
+          champId={champId}
           initialBannerUrl={(c.banner_url as string | null) ?? null}
           bannerFrom="from-blue-500"
           bannerTo="to-cyan-400"
         />
       </div>
 
-      <EditarCampeonatoForm champId={id} initial={initial} />
+      <EditarCampeonatoForm champId={champId} initial={initial} />
 
       {/* Zona de exclusão */}
       <div className="rounded-card-lg border border-danger/20 bg-danger-bg p-5">
@@ -95,7 +99,7 @@ export default async function EditarCampeonatoPage({
           Excluir apaga o campeonato permanentemente — inscrições, chaveamento e resultados
           não poderão mais ser acessados pelos atletas.
         </p>
-        <ExcluirCampeonatoButton champId={id} champNome={champ.nome} />
+        <ExcluirCampeonatoButton champId={champId} champNome={champ.nome} />
       </div>
     </PageContainer>
   );

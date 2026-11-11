@@ -83,11 +83,11 @@ export default async function CheckinPage({
   if (camp.organizadorId !== user.id) notFound();
 
   const [allList, spectatorRes] = await Promise.all([
-    getCheckinDirectory(id, user.id),
+    getCheckinDirectory(camp.id, user.id),
     supabase
       .from("spectator_tickets")
       .select("id, comprador_nome, tipo_nome, code, quantidade, checked_in")
-      .eq("championship_id", id)
+      .eq("championship_id", camp.id)
       .eq("status_pagamento", "pago")
       .order("comprador_nome", { ascending: true })
       .limit(1000),

@@ -15,6 +15,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getDbChampionshipById } from "@/lib/supabase/championships";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatBRL, formatDateRangeBR, generoLabel } from "@/lib/format";
 import { PageContainer } from "@/components/shell/PageContainer";
@@ -45,20 +46,24 @@ export default async function CampeonatoCriadoPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const resolved = await getDbChampionshipById(id);
+  if (!resolved || resolved.organizadorId !== user.id) notFound();
+  const champId = resolved.id;
+  const publicSlug = resolved.slug ?? champId;
+
   const { data: champ } = await supabase
     .from("championships")
     .select("nome, data_inicio, data_fim, cidade, estado, status, organizador_id")
-    .eq("id", id)
+    .eq("id", champId)
     .maybeSingle();
 
   if (!champ) notFound();
-  if (champ.organizador_id !== user.id) notFound();
 
   const [{ data: rawCats }, { data: orgAccount }] = await Promise.all([
     supabase
       .from("championship_categories")
       .select("id, nome, genero, valor_inscricao, max_duplas")
-      .eq("championship_id", id)
+      .eq("championship_id", champId)
       .order("nome"),
     supabase
       .from("organizer_accounts")
@@ -202,7 +207,7 @@ export default async function CampeonatoCriadoPage({
       {/* Publicado mas sem PIX (segurança — não deveria acontecer após o fluxo de publicar) */}
       {publicado && temCategoriaPaga && !temChavePix && (
         <Link
-          href={`/painel/campeonatos/${id}/financeiro`}
+          href={`/painel/campeonatos/${publicSlug}/financeiro`}
           className="flex items-start gap-3 rounded-card-lg bg-warning-bg p-4 ring-1 ring-warning/30 transition-colors hover:brightness-95"
         >
           <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface">
@@ -225,13 +230,13 @@ export default async function CampeonatoCriadoPage({
       {!publicado ? (
         <div className="space-y-3">
           <Link
-            href={`/painel/campeonatos/${id}/publicar`}
+            href={`/painel/campeonatos/${publicSlug}/publicar`}
             className="flex w-full items-center justify-center gap-2 rounded-card-lg bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
           >
             <Rocket className="size-4" /> Quero publicar
           </Link>
           <Link
-            href={`/campeonatos/${id}?voltar=criado`}
+            href={`/campeonatos/${publicSlug}?voltar=criado`}
             className="flex w-full items-center justify-center gap-2 rounded-card-lg bg-surface-2 px-6 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-border/40"
           >
             <Eye className="size-4" /> Ver página pública (prévia)
@@ -240,13 +245,13 @@ export default async function CampeonatoCriadoPage({
       ) : (
         <div className="space-y-3">
           <Link
-            href={`/painel/campeonatos/${id}`}
+            href={`/painel/campeonatos/${publicSlug}`}
             className="flex w-full items-center justify-center gap-2 rounded-card-lg bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
           >
             <LayoutDashboard className="size-4" /> Ir para o painel do campeonato
           </Link>
           <Link
-            href={`/campeonatos/${id}`}
+            href={`/campeonatos/${publicSlug}`}
             className="flex w-full items-center justify-center gap-2 rounded-card-lg bg-surface-2 px-6 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-border/40"
           >
             <ExternalLink className="size-4" /> Ver página pública

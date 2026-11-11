@@ -7,11 +7,13 @@ import { Search, CalendarDays, MapPin, Tag, Settings2, Pencil, ExternalLink, Tro
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/shell/EmptyState";
 import { formatDateRangeBR } from "@/lib/format";
+import { getChampionshipSlug } from "@/lib/championship-slug";
 import type { ChampionshipStatus } from "@/lib/types";
 
 export type OrganizerChampSummary = {
   id: string;
   nome: string;
+  slug?: string | null;
   dataInicio: string;
   dataFim: string;
   cidade: string;
@@ -68,7 +70,8 @@ export function MeusCampeonatosGrid({ campeonatos }: { campeonatos: OrganizerCha
 }
 
 function OrganizerChampCard({ c }: { c: OrganizerChampSummary }) {
-  const overviewHref = c.status === "rascunho" ? `/painel/campeonatos/${c.id}/criado` : `/painel/campeonatos/${c.id}`;
+  const slug = getChampionshipSlug({ id: c.id, nome: c.nome, slug: c.slug });
+  const overviewHref = c.status === "rascunho" ? `/painel/campeonatos/${c.id}/criado` : `/painel/campeonatos/${slug}`;
 
   return (
     <div className="overflow-hidden rounded-card-lg bg-surface ring-1 ring-border shadow-soft transition-shadow hover:shadow-elevated">

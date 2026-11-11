@@ -48,6 +48,7 @@ export default async function MeusCampeonatosPage({
   const resumo: OrganizerChampSummary[] = lista.map((c) => ({
     id: c.id,
     nome: c.nome,
+    slug: c.slug ?? null,
     dataInicio: c.dataInicio,
     dataFim: c.dataFim,
     cidade: c.cidade,

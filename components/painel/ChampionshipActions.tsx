@@ -9,7 +9,13 @@ import { CHAMPIONSHIP_NAV_GROUPS } from "@/components/painel/championship-nav-it
 // "Editar campeonato" migra do grupo "Principal" pra junto de "Atletas", e
 // "Visão geral" nunca aparece aqui (a página que renderiza isso já É a
 // visão geral).
-export function ChampionshipActions({ champId }: { champId: string }) {
+export function ChampionshipActions({
+  champId,
+  temPlateia = true,
+}: {
+  champId: string;
+  temPlateia?: boolean;
+}) {
   const principal = CHAMPIONSHIP_NAV_GROUPS.find((g) => g.label === "Principal");
   const editarItem = principal?.items.find((i) => i.key === "editar");
 
@@ -29,6 +35,22 @@ export function ChampionshipActions({ champId }: { champId: string }) {
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
               {group.items.map((item) => {
                 const Icon = item.icon;
+                const isDisabled = group.label === "Espectadores" && !temPlateia && item.key !== "plateia";
+                if (isDisabled) {
+                  return (
+                    <div
+                      key={item.key}
+                      title="Cadastre tipos de ingresso de plateia para liberar esta seção"
+                      className="flex items-center gap-2 rounded-xl border border-border/60 bg-surface-2/40 px-3 py-3 text-sm font-medium text-ink-muted opacity-60 cursor-not-allowed select-none"
+                    >
+                      <Icon className="size-4 shrink-0 text-ink-muted" strokeWidth={2} />
+                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                      <span className="rounded bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-ink-muted border border-border/60">
+                        Indisponível
+                      </span>
+                    </div>
+                  );
+                }
                 return (
                   <Link
                     key={item.key}
