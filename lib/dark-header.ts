@@ -1,5 +1,6 @@
 const DARK_HEADER_ROUTES = [
   "/",
+  "/para-voce",
   "/campeonatos",
   "/arenas",
   "/agenda",

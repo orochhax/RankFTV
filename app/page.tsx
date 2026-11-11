@@ -11,6 +11,7 @@ import { formatDateRangeBR } from "@/lib/format";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { SectionHeader } from "@/components/shell/SectionHeader";
 import { HomeBannerCarousel } from "@/components/home/HomeBannerCarousel";
+import { PromoOrganizadoresBanner } from "@/components/home/PromoOrganizadoresBanner";
 import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import { normalizeHomeBanners } from "@/lib/home-banners";
 import { parseDiscoveryFilters } from "@/lib/championship-discovery";
@@ -92,7 +93,7 @@ export default async function Home({
   return (
     <div className="min-h-screen">
       {/* ── Cabeçalho escuro unificado (bg-brand-dark) no mobile e desktop ── */}
-      <div className="bg-brand-dark px-6 pb-14 pt-6">
+      <div className="bg-brand-dark px-6 pb-12 pt-6">
         <div className="mb-4 flex h-11 items-center gap-2 md:hidden">
           <div className="home-header-menu">
             <HamburgerMenu
@@ -135,35 +136,43 @@ export default async function Home({
         </div>
 
         <PageContainer width="wide">
-          {profile ? (
-            <div className="flex items-center gap-4">
-              <Avatar
-                nome={profile.nome}
-                color="bg-blue-500"
-                size="lg"
-                fotoUrl={profile.foto_url}
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-semibold tracking-widest text-blue-400 uppercase">
-                  Bem-vindo de volta
-                </p>
-                <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                  {profile.nome.split(" ")[0]}
-                </h1>
-                <p className="text-sm text-white/50">@{profile.username}</p>
-              </div>
+          <div className="flex flex-col gap-5 md:grid md:grid-cols-12 md:items-center md:gap-8">
+            <div className="min-w-0 md:col-span-6 lg:col-span-7">
+              {profile ? (
+                <div className="flex items-center gap-4">
+                  <Avatar
+                    nome={profile.nome}
+                    color="bg-blue-500"
+                    size="lg"
+                    fotoUrl={profile.foto_url}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-400">
+                      Bem-vindo de volta
+                    </p>
+                    <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                      {profile.nome.split(" ")[0]}
+                    </h1>
+                    <p className="text-sm text-white/50">@{profile.username}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-xs font-bold uppercase tracking-widest text-blue-400">RankFTV</p>
+                  <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                    Campeonatos de futevôlei
+                  </h1>
+                  <p className="text-sm text-white/50">
+                    Encontre e participe dos melhores campeonatos do Brasil.
+                  </p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="space-y-1">
-              <p className="text-xs font-bold uppercase tracking-widest text-blue-400">RankFTV</p>
-              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                Campeonatos de futevôlei
-              </h1>
-              <p className="text-sm text-white/50">
-                Encontre e participe dos melhores campeonatos do Brasil.
-              </p>
+
+            <div className="md:col-span-6 lg:col-span-5">
+              <PromoOrganizadoresBanner className="md:ml-auto md:max-w-[460px]" />
             </div>
-          )}
+          </div>
         </PageContainer>
       </div>
 

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ChevronRight, ShieldCheck, ShoppingBag, UserPen } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
+import { PerfilVisitanteView } from "@/components/perfil/PerfilVisitanteView";
 import { SignOutButton } from "@/components/perfil/SignOutButton";
 import { createClient } from "@/lib/supabase/server";
 import { PageContainer } from "@/components/shell/PageContainer";
@@ -20,7 +21,9 @@ export default async function PerfilPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) {
+    return <PerfilVisitanteView />;
+  }
 
   const { data: profile } = await supabase
     .from("profiles")
