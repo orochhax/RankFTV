@@ -28,6 +28,14 @@
   1. Teste de pagamento Pix real simbólico (R$ 5,00) em produção com estorno supervisionado imediato (a ser executado por Carlos posteriormente).
   2. Definição da data de abertura oficial dos pagamentos reais da V1 por Carlos.
 
+## Central de Evolução - Atualização Completa do Rocha Tech e Concorrentes (11/11/2026)
+
+- Coleta oficial via YouTube Data API v3 nos **24 canais concorrentes** concluída: **3.903 vídeos** monitorados na janela de 365 dias (19 vídeos novos catalogados, 2.205 visualizações atualizadas, zero falhas e zero fallbacks manuais).
+- Resumo oficial de coleta salvo em `Rocha Tech - YT/Concorrentes/ultima-coleta-2026-11-11.json`.
+- Radar de notícias ampliado com 3 novidades verificadas de fontes primárias: **Claude Sheets e Claude Whiteboards em beta** pela Anthropic com dados estruturados e ideação visual nativos no chat (`https://www.anthropic.com/news`), **OpenAI Businesses in ChatGPT** com perfis comerciais verificados para atendimento e transações diretas (`https://openai.com/pt-BR/news`), e **Google Gemini no Workspace** trazendo AI Overview para síntese de e-mails no Gmail e ações no Chat (`https://blog.google`).
+- Sincronização em produção no Supabase (Run ID: `485b3ec9-129c-4d74-9490-6f259e7cbfa0`): 51 conteúdos (3 novos e 48 atualizados), 20 tendências e 27 ideias reavaliadas pela Fórmula de 5 Pilares com 108 abordagens e regra de ouro editorial (título, nota e tag vinculados rigorosamente à abordagem vencedora).
+- Snapshot seguro (`lib/evolution/intelligence-snapshot.json`) atualizado com 3.903 vídeos, 24 canais e Top 15 oportunidades lideradas por Sanji Nai-Chien (#1, 1,308M views, 90 pts), Money Talk With Leon (#2, 1,040M views, 90 pts) e Iman Gadzhi (#3, 1,892M views, 88 pts).
+
 ## Central de Evolução - Expansão Ativa da Biblioteca com Novas Pautas dos Concorrentes (10/11/2026)
 
 - Incorporação de 4 novas pautas de alto impacto formuladas a partir dos maiores picos de tração dos 16 concorrentes coletados hoje (Bennett Luke a 360,5x, Kamily Rebelatto a 192x/73x/69x, Vinicius Figueiredo a 88x, Daniel Lima a 14,5x e recortes regionais de João Curry):
