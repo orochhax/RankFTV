@@ -95,7 +95,11 @@ export default async function Home({
       <div className="bg-brand-dark px-6 pb-14 pt-6">
         <div className="mb-4 flex h-11 items-center gap-2 md:hidden">
           <div className="home-header-menu">
-            <HamburgerMenu unreadCount={0} organizerHabilitado={organizerHabilitado} />
+            <HamburgerMenu
+              unreadCount={0}
+              organizerHabilitado={organizerHabilitado}
+              isLoggedIn={!!user}
+            />
           </div>
           <Link
             href="/"
