@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { Target } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ArenaProFeatureGate } from "@/components/arena/ArenaProFeatureGate";
 import { RadarEvasaoClient } from "@/components/arena/RadarEvasaoClient";
@@ -52,7 +51,7 @@ export default async function RadarEvasaoPage({
       arenaHandle={handle}
       featureTitle="Radar Anti-Desistência & Evasão de Alunos"
       featureDescription="Identifique automaticamente alunos com mais de 3 faltas consecutivas ou redução súbita de frequência. Envie uma mensagem acolhedora de retorno no WhatsApp com 1 clique antes que o atleta cancele a matrícula."
-      icon={Target}
+      iconName="target"
       benefits={[
         "Alertas inteligentes de alunos ausentes há mais de 14 dias",
         "Botão com mensagem personalizada pronta para envio no WhatsApp",

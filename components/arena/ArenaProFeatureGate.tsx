@@ -1,16 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
-import { Lock, Sparkles, CheckCircle2, ArrowRight, ShieldCheck } from "lucide-react";
+import { Lock, Sparkles, CheckCircle2, ArrowRight, ShieldCheck, Target, Trophy } from "lucide-react";
 import type { ArenaPlatformTierId } from "@/lib/arena-platform-plans";
+
+const GATE_ICONS = {
+  target: Target,
+  trophy: Trophy,
+} as const;
+
+export type ArenaProGateIconName = keyof typeof GATE_ICONS;
 
 export function ArenaProFeatureGate({
   tierId = "start",
   arenaHandle,
   featureTitle,
   featureDescription,
-  icon: Icon,
+  iconName,
   benefits = [],
   children,
 }: {
@@ -18,10 +24,11 @@ export function ArenaProFeatureGate({
   arenaHandle: string;
   featureTitle: string;
   featureDescription: string;
-  icon: LucideIcon;
+  iconName: ArenaProGateIconName;
   benefits?: string[];
   children: React.ReactNode;
 }) {
+  const Icon = GATE_ICONS[iconName];
   // Se já for assinante Pro, libera o acesso irrestrito ao recurso
   if (tierId === "pro") {
     return <>{children}</>;
