@@ -90,10 +90,14 @@ export type UpdateChampionshipInput = {
   regulamentoPdfUrl?: string | null;
   dataInicio: string;
   dataFim: string;
+  horaInicio?: string | null;
+  horaFim?: string | null;
   inscricoesInicio?: string;
   inscricoesFim?: string;
+  inscricoesHoraInicio?: string | null;
   prevendaInicio?: string;
   prevendaFim?: string;
+  prevendaHoraInicio?: string | null;
   cidade: string;
   estado: string;
   local: string;
@@ -264,6 +268,11 @@ export async function updateChampionship(
     return { ok: false, error: "Não foi possível salvar o campeonato. Nenhuma alteração foi aplicada." };
   }
 
+  const cleanTime = (v?: string | null) => {
+    const t = v?.trim() ?? "";
+    return /^([01]\d|2[0-3]):[0-5]\d$/.test(t) ? t : null;
+  };
+
   await supabase
     .from("championships")
     .update({
@@ -271,6 +280,10 @@ export async function updateChampionship(
       troca_dupla_data_limite: input.prazoLimiteTrocaDupla?.trim()
         ? new Date(input.prazoLimiteTrocaDupla).toISOString()
         : null,
+      hora_inicio: cleanTime(input.horaInicio),
+      hora_fim: cleanTime(input.horaFim),
+      inscricoes_hora_inicio: cleanTime(input.inscricoesHoraInicio),
+      prevenda_hora_inicio: cleanTime(input.prevendaHoraInicio),
     })
     .eq("id", champId);
 

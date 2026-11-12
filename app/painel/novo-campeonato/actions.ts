@@ -36,10 +36,14 @@ export type CreateChampionshipInput = {
   regulamentoPdfUrl?: string;
   dataInicio: string;
   dataFim: string;
+  horaInicio?: string;
+  horaFim?: string;
   inscricoesInicio?: string;
   inscricoesFim?: string;
+  inscricoesHoraInicio?: string;
   prevendaInicio?: string;
   prevendaFim?: string;
+  prevendaHoraInicio?: string;
   bannerUrl?: string;
   cidade: string;
   estado: string;
@@ -55,6 +59,12 @@ export type CreateChampionshipInput = {
 
 // Gradientes de banner — escolhe um aleatório por enquanto (upload de imagem
 // real fica pra quando ligarmos o Storage).
+function normalizeOptionalTime(value?: string | null): string | null {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) return null;
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(trimmed) ? trimmed : null;
+}
+
 const GRADIENTS: [string, string][] = [
   ["from-emerald-800", "to-teal-600"],
   ["from-teal-800", "to-emerald-600"],
@@ -140,10 +150,14 @@ export async function createChampionship(
       regulamento_pdf_url:  input.regulamentoPdfUrl ?? null,
       data_inicio:          input.dataInicio,
       data_fim:             input.dataFim,
+      hora_inicio:          normalizeOptionalTime(input.horaInicio),
+      hora_fim:             normalizeOptionalTime(input.horaFim),
       inscricoes_inicio:    input.inscricoesInicio || null,
       inscricoes_fim:       input.inscricoesFim || null,
+      inscricoes_hora_inicio: normalizeOptionalTime(input.inscricoesHoraInicio),
       prevenda_inicio:      input.prevendaInicio || null,
       prevenda_fim:         input.prevendaFim || null,
+      prevenda_hora_inicio: normalizeOptionalTime(input.prevendaHoraInicio),
       banner_url:           input.bannerUrl?.trim() || null,
       cidade: input.cidade.trim(),
       estado: input.estado.trim().toUpperCase().slice(0, 2),

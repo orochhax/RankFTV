@@ -52,6 +52,7 @@ function computeNextDates(daysOfWeek: number[], count = 7): ProximaData[] {
 }
 
 function toCard(row: ArenaRpcRow): ArenaCardData {
+  const isDemo = isDemoArenaIdentifier(row.id) || isDemoArenaIdentifier(row.handle);
   return {
     id: row.id,
     nome: row.nome,
@@ -60,7 +61,8 @@ function toCard(row: ArenaRpcRow): ArenaCardData {
     estado: row.estado,
     descricao: row.descricao,
     avatar_url: row.avatar_url,
-    banner_url: row.banner_url,
+    banner_url: isDemo ? (row.banner_url ?? "/arenas/rank-football-destaque.webp") : row.banner_url,
+    card_banner_url: isDemo ? "/arenas/rank-football-card.webp" : undefined,
     alunos: Number(row.alunos ?? 0),
     proximasDatas: computeNextDates(row.dias_semana ?? []),
   };

@@ -12,12 +12,14 @@ export type ArenaCardData = {
   descricao: string | null;
   avatar_url: string | null;
   banner_url: string | null;
+  card_banner_url?: string | null;
   alunos: number;
   proximasDatas: ProximaData[];
 };
 
 export function ArenaCard({ arena }: { arena: ArenaCardData }) {
   const temDatas = arena.proximasDatas.length > 0;
+  const coverUrl = arena.card_banner_url ?? arena.banner_url;
 
   return (
     <Link
@@ -26,10 +28,10 @@ export function ArenaCard({ arena }: { arena: ArenaCardData }) {
     >
       {/* Banner */}
       <div className="relative h-44 bg-gradient-to-br from-brand-dark to-brand-dark-2">
-        {arena.banner_url ? (
+        {coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={arena.banner_url}
+            src={coverUrl}
             alt={arena.nome}
             className="h-full w-full object-cover"
           />

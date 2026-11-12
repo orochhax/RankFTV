@@ -5,6 +5,21 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-12 10:47 (America/Sao_Paulo) — Horários Opcionais em Campeonatos, Artes Rank Football, Correção Plano Pro e Rotas da Arena
+
+- **O que foi feito**:
+  - Criada e aplicada em produção (`aws-1-us-east-1.pooler.supabase.com:5432`) a migration `supabase/add-championship-optional-times.sql` adicionando `prevenda_hora_inicio`, `inscricoes_hora_inicio`, `hora_inicio` e `hora_fim` (`HH:MM` opcionais) em `championships`, com atualização de `lib/supabase/database.types.ts`, `lib/championship-update-schema.ts`, fluxos de criação/edição (`/painel/novo-campeonato` e `/painel/campeonatos/[id]/editar`), `Cronograma` público (`app/campeonatos/[id]/page.tsx`) e seed/registro demo `c1000000-0000-4000-8000-000000000001`.
+  - Geradas e integradas as artes `public/arenas/rank-football-destaque.webp` (`1600×520`) e `public/arenas/rank-football-card.webp` (`1000×800`) para `Rank Football` (`ArenaCard.card_banner_url`, `app/arenas/page.tsx`, `scripts/seed-rank-football-arena-demo.mjs` e registro demo `a1000000-0000-4000-8000-000000000001`).
+  - Corrigido `components/arena/ArenaShell.tsx` passando `tierId={tierId}` para `ArenaPlanLimitBanner`, evitando exibição do alerta de 30 alunos do Plano Start quando o Plano Pro está ativo.
+  - Corrigidos links de criação em `app/arena/[handle]/torneios/page.tsx` para `/painel/novo-campeonato` e criadas rotas alias `app/arena/[handle]/radar-ante-evasao/page.tsx` e `app/arena/[handle]/torneios-internos/page.tsx`.
+- **Evidências locais**:
+  - `node --import tsx --test lib/championship-optional-times.test.ts`: 3/3 pass, 0 fail.
+  - `npm test`: 970 testes, 969 pass, 1 skipped, 0 fail.
+  - `npm run typecheck`: exit 0.
+  - `npm run lint`: exit 0 (0 errors, 1407 warnings pré-existentes; 0 errors nos arquivos alterados).
+  - `npm run audit:prod`: exit 0 (1 low, 0 high/critical).
+  - `npm run build`: exit 0 (Next.js 16.4.2 Turbopack).
+
 ## 2026-11-12 09:50 (America/Sao_Paulo) — Recalibração Editorial do Canal Carlos Rocha e Coleta Completa com Likes/Views
 
 - Coleta completa via YouTube Data API v3 (`Carlos Rocha - YT/scripts/collect-competitors.mjs`) nos 17 canais concorrentes atualizando visualizações, **curtidas públicas (likes)** e comentários: **1.653 vídeos** coletados diretamente (**7 novos lançamentos** recentes) e 1.653 thumbnails JPEG válidas.

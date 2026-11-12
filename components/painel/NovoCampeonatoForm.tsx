@@ -50,10 +50,14 @@ export function NovoCampeonatoForm() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
+  const [horaInicio, setHoraInicio] = useState("");
+  const [horaFim, setHoraFim] = useState("");
   const [inscricoesInicio, setInscricoesInicio] = useState("");
   const [inscricoesFim, setInscricoesFim] = useState("");
+  const [inscricoesHoraInicio, setInscricoesHoraInicio] = useState("");
   const [prevendaInicio, setPrevendaInicio] = useState("");
   const [prevendaFim, setPrevendaFim] = useState("");
+  const [prevendaHoraInicio, setPrevendaHoraInicio] = useState("");
   const [bannerUrl] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
@@ -173,10 +177,14 @@ export function NovoCampeonatoForm() {
         regulamentoPdfUrl,
         dataInicio,
         dataFim,
-        inscricoesInicio: inscricoesInicio || undefined,
-        inscricoesFim:    inscricoesFim    || undefined,
-        prevendaInicio:   prevendaInicio   || undefined,
-        prevendaFim:      prevendaFim      || undefined,
+        horaInicio:           horaInicio || undefined,
+        horaFim:              horaFim    || undefined,
+        inscricoesInicio:     inscricoesInicio     || undefined,
+        inscricoesFim:        inscricoesFim        || undefined,
+        inscricoesHoraInicio: inscricoesHoraInicio || undefined,
+        prevendaInicio:       prevendaInicio       || undefined,
+        prevendaFim:          prevendaFim          || undefined,
+        prevendaHoraInicio:   prevendaHoraInicio   || undefined,
         bannerUrl:        bannerUrl.trim() || undefined,
         cidade,
         estado,
@@ -307,34 +315,44 @@ export function NovoCampeonatoForm() {
                   <input id="dataInicio" type="date" className={inputClass} value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
                 </div>
                 <div className="min-w-0">
+                  <label className={labelClass} htmlFor="horaInicio">Horário de início (opcional)</label>
+                  <input id="horaInicio" type="time" className={inputClass} value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} />
+                </div>
+                <div className="min-w-0">
                   <label className={labelClass} htmlFor="dataFim">Fim *</label>
                   <input id="dataFim" type="date" className={inputClass} value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+                </div>
+                <div className="min-w-0">
+                  <label className={labelClass} htmlFor="horaFim">Horário de término no último dia (opcional)</label>
+                  <input id="horaFim" type="time" className={inputClass} value={horaFim} onChange={(e) => setHoraFim(e.target.value)} />
                 </div>
               </div>
             </div>
             <div>
               <div className="mb-2 flex items-center justify-between gap-2">
                 <p className="text-xs font-medium text-gray-500">Pré-venda</p>
-                {(prevendaInicio || prevendaFim) && (
+                {(prevendaInicio || prevendaFim || prevendaHoraInicio) && (
                   <button
                     type="button"
-                    onClick={() => { setPrevendaInicio(""); setPrevendaFim(""); }}
+                    onClick={() => { setPrevendaInicio(""); setPrevendaFim(""); setPrevendaHoraInicio(""); }}
                     className="text-xs font-medium text-red-500 hover:text-red-600"
                   >
                     Remover data
                   </button>
                 )}
               </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="min-w-0"><label className={labelClass}>Início</label><input type="date" className={inputClass} value={prevendaInicio} onChange={(e) => setPrevendaInicio(e.target.value)} /></div>
+                <div className="min-w-0"><label className={labelClass} htmlFor="prevendaHoraInicio">Horário de início (opcional)</label><input id="prevendaHoraInicio" type="time" className={inputClass} value={prevendaHoraInicio} onChange={(e) => setPrevendaHoraInicio(e.target.value)} /></div>
                 <div className="min-w-0"><label className={labelClass}>Fim</label><input type="date" className={inputClass} value={prevendaFim} onChange={(e) => setPrevendaFim(e.target.value)} /></div>
               </div>
-              <p className="mt-1.5 text-xs text-gray-400">Opcional. Se preencher, informe as duas datas.</p>
+              <p className="mt-1.5 text-xs text-gray-400">Opcional. Se preencher datas, informe início e fim; o horário é opcional.</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-2">{vender.atleta ? "Inscrições" : "Vendas"}</p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <p className="text-xs font-medium text-gray-500 mb-2">{vender.atleta ? "Inscrições & Vendas" : "Vendas"}</p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="min-w-0"><label className={labelClass} htmlFor="inscricoesInicio">Abertura *</label><input id="inscricoesInicio" type="date" className={inputClass} value={inscricoesInicio} onChange={(e) => setInscricoesInicio(e.target.value)} /></div>
+                <div className="min-w-0"><label className={labelClass} htmlFor="inscricoesHoraInicio">Horário de início das vendas (opcional)</label><input id="inscricoesHoraInicio" type="time" className={inputClass} value={inscricoesHoraInicio} onChange={(e) => setInscricoesHoraInicio(e.target.value)} /></div>
                 <div className="min-w-0"><label className={labelClass} htmlFor="inscricoesFim">Encerramento *</label><input id="inscricoesFim" type="date" className={inputClass} value={inscricoesFim} onChange={(e) => setInscricoesFim(e.target.value)} /></div>
               </div>
             </div>
