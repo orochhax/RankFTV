@@ -1,6 +1,9 @@
 import { z } from "zod";
 
 const optionalUrl = z.union([z.url(), z.literal("")]).nullish();
+const optionalTime = z
+  .union([z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/), z.literal("")])
+  .nullish();
 
 export const championshipIdSchema = z.uuid();
 
@@ -22,10 +25,14 @@ export const championshipUpdateSchema = z.object({
     regulamentoPdfUrl: optionalUrl,
     dataInicio: z.string().min(1).max(40),
     dataFim: z.string().min(1).max(40),
+    horaInicio: optionalTime,
+    horaFim: optionalTime,
     inscricoesInicio: z.string().max(40).optional(),
     inscricoesFim: z.string().max(40).optional(),
+    inscricoesHoraInicio: optionalTime,
     prevendaInicio: z.string().max(40).optional(),
     prevendaFim: z.string().max(40).optional(),
+    prevendaHoraInicio: optionalTime,
     cidade: z.string().trim().min(1).max(120),
     estado: z.string().trim().min(2).max(80),
     local: z.string().max(240),

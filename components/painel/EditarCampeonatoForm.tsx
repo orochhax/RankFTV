@@ -46,10 +46,14 @@ type Props = {
     regulamentoPdfUrl?: string | null;
     dataInicio: string;
     dataFim: string;
+    horaInicio?: string;
+    horaFim?: string;
     inscricoesInicio: string;
     inscricoesFim: string;
+    inscricoesHoraInicio?: string;
     prevendaInicio?: string;
     prevendaFim?: string;
+    prevendaHoraInicio?: string;
     cidade: string;
     estado: string;
     local: string;
@@ -119,10 +123,14 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
   const [pdfUrl, setPdfUrl] = useState<string | null>(initial.regulamentoPdfUrl ?? null);
   const [dataInicio, setDataInicio] = useState(initial.dataInicio);
   const [dataFim, setDataFim] = useState(initial.dataFim);
+  const [horaInicio, setHoraInicio] = useState(initial.horaInicio ?? "");
+  const [horaFim, setHoraFim] = useState(initial.horaFim ?? "");
   const [inscricoesInicio, setInscricoesInicio] = useState(initial.inscricoesInicio);
   const [inscricoesFim, setInscricoesFim] = useState(initial.inscricoesFim);
+  const [inscricoesHoraInicio, setInscricoesHoraInicio] = useState(initial.inscricoesHoraInicio ?? "");
   const [prevendaInicio, setPrevendaInicio] = useState(initial.prevendaInicio ?? "");
   const [prevendaFim, setPrevendaFim] = useState(initial.prevendaFim ?? "");
+  const [prevendaHoraInicio, setPrevendaHoraInicio] = useState(initial.prevendaHoraInicio ?? "");
   const [cidade, setCidade] = useState(initial.cidade);
   const [estado, setEstado] = useState(initial.estado);
   const [local, setLocal] = useState(initial.local);
@@ -342,10 +350,14 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
         regulamentoPdfUrl,
         dataInicio,
         dataFim,
+        horaInicio: horaInicio || undefined,
+        horaFim: horaFim || undefined,
         inscricoesInicio: inscricoesInicio || undefined,
         inscricoesFim: inscricoesFim || undefined,
+        inscricoesHoraInicio: inscricoesHoraInicio || undefined,
         prevendaInicio: prevendaInicio || undefined,
         prevendaFim: prevendaFim || undefined,
+        prevendaHoraInicio: prevendaHoraInicio || undefined,
         cidade,
         estado,
         local,
@@ -372,10 +384,14 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
     pdfFile,
     dataInicio,
     dataFim,
+    horaInicio,
+    horaFim,
     inscricoesInicio,
     inscricoesFim,
+    inscricoesHoraInicio,
     prevendaInicio,
     prevendaFim,
+    prevendaHoraInicio,
     cidade,
     estado,
     local,
@@ -640,6 +656,15 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                         />
                       </div>
                       <div className="min-w-0">
+                        <label className={labelClass}>Horário de início (opcional)</label>
+                        <input
+                          type="time"
+                          className={inputClass}
+                          value={horaInicio}
+                          onChange={(e) => setHoraInicio(e.target.value)}
+                        />
+                      </div>
+                      <div className="min-w-0">
                         <label className={labelClass}>Fim *</label>
                         <input
                           type="date"
@@ -648,18 +673,28 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                           onChange={(e) => setDataFim(e.target.value)}
                         />
                       </div>
+                      <div className="min-w-0">
+                        <label className={labelClass}>Horário de término no último dia (opcional)</label>
+                        <input
+                          type="time"
+                          className={inputClass}
+                          value={horaFim}
+                          onChange={(e) => setHoraFim(e.target.value)}
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div>
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <p className="text-xs font-semibold text-ink-muted">Pré-venda</p>
-                      {(prevendaInicio || prevendaFim) && (
+                      {(prevendaInicio || prevendaFim || prevendaHoraInicio) && (
                         <button
                           type="button"
                           onClick={() => {
                             setPrevendaInicio("");
                             setPrevendaFim("");
+                            setPrevendaHoraInicio("");
                           }}
                           className="text-xs font-medium text-rose-600 hover:text-rose-700"
                         >
@@ -667,7 +702,7 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                         </button>
                       )}
                     </div>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       <div className="min-w-0">
                         <label className={labelClass}>Início</label>
                         <input
@@ -675,6 +710,15 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                           className={inputClass}
                           value={prevendaInicio}
                           onChange={(e) => setPrevendaInicio(e.target.value)}
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <label className={labelClass}>Horário de início (opcional)</label>
+                        <input
+                          type="time"
+                          className={inputClass}
+                          value={prevendaHoraInicio}
+                          onChange={(e) => setPrevendaHoraInicio(e.target.value)}
                         />
                       </div>
                       <div className="min-w-0">
@@ -688,13 +732,13 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                       </div>
                     </div>
                     <p className="mt-1.5 text-xs text-ink-muted">
-                      Opcional. Se preencher, informe as duas datas.
+                      Opcional. Se preencher datas, informe início e fim; o horário é opcional.
                     </p>
                   </div>
 
                   <div>
-                    <p className="mb-2 text-xs font-semibold text-ink-muted">Inscrições</p>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <p className="mb-2 text-xs font-semibold text-ink-muted">Inscrições & Vendas</p>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       <div className="min-w-0">
                         <label className={labelClass}>Abertura *</label>
                         <input
@@ -702,6 +746,15 @@ export function EditarCampeonatoForm({ champId, initialBannerUrl = null, initial
                           className={inputClass}
                           value={inscricoesInicio}
                           onChange={(e) => setInscricoesInicio(e.target.value)}
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <label className={labelClass}>Horário de início das vendas (opcional)</label>
+                        <input
+                          type="time"
+                          className={inputClass}
+                          value={inscricoesHoraInicio}
+                          onChange={(e) => setInscricoesHoraInicio(e.target.value)}
                         />
                       </div>
                       <div className="min-w-0">

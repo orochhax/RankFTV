@@ -1605,8 +1605,11 @@ export type Database = {
           data_inicio: string
           descricao: string | null
           estado: string
+          hora_fim: string | null
+          hora_inicio: string | null
           id: string
           inscricoes_fim: string | null
+          inscricoes_hora_inicio: string | null
           inscricoes_inicio: string | null
           is_elite: boolean | null
           is_vitrine: boolean
@@ -1618,6 +1621,7 @@ export type Database = {
           organizador_id: string
           premium_fee_pendente: number | null
           prevenda_fim: string | null
+          prevenda_hora_inicio: string | null
           prevenda_inicio: string | null
           regulamento: string | null
           regulamento_pdf_url: string | null
@@ -1639,8 +1643,11 @@ export type Database = {
           data_inicio: string
           descricao?: string | null
           estado: string
+          hora_fim?: string | null
+          hora_inicio?: string | null
           id?: string
           inscricoes_fim?: string | null
+          inscricoes_hora_inicio?: string | null
           inscricoes_inicio?: string | null
           is_elite?: boolean | null
           is_vitrine?: boolean
@@ -1652,6 +1659,7 @@ export type Database = {
           organizador_id: string
           premium_fee_pendente?: number | null
           prevenda_fim?: string | null
+          prevenda_hora_inicio?: string | null
           prevenda_inicio?: string | null
           regulamento?: string | null
           regulamento_pdf_url?: string | null
@@ -1673,8 +1681,11 @@ export type Database = {
           data_inicio?: string
           descricao?: string | null
           estado?: string
+          hora_fim?: string | null
+          hora_inicio?: string | null
           id?: string
           inscricoes_fim?: string | null
+          inscricoes_hora_inicio?: string | null
           inscricoes_inicio?: string | null
           is_elite?: boolean | null
           is_vitrine?: boolean
@@ -1686,6 +1697,7 @@ export type Database = {
           organizador_id?: string
           premium_fee_pendente?: number | null
           prevenda_fim?: string | null
+          prevenda_hora_inicio?: string | null
           prevenda_inicio?: string | null
           regulamento?: string | null
           regulamento_pdf_url?: string | null

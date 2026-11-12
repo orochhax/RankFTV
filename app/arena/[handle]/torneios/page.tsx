@@ -89,7 +89,7 @@ export default async function TorneiosArenaPage({
           </div>
 
           <Link
-            href="/painel/campeonatos/novo"
+            href="/painel/novo-campeonato"
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover active:scale-95"
           >
             <Plus className="size-4" />
@@ -118,7 +118,7 @@ export default async function TorneiosArenaPage({
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CalendarDays className="size-3.5 text-brand" />
-                  <Link href="/painel/campeonatos/novo" className="font-bold text-brand hover:underline">
+                  <Link href="/painel/novo-campeonato" className="font-bold text-brand hover:underline">
                     Abrir assistente de criação →
                   </Link>
                 </div>

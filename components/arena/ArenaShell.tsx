@@ -89,6 +89,7 @@ export function ArenaShell({
 
         <ArenaPlanLimitBanner
           totalAlunosAtivos={totalAlunosAtivos}
+          tierId={tierId}
           arenaHandle={arena.handle}
         />
 

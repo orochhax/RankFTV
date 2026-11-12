@@ -237,6 +237,7 @@ async function seed() {
     estado: "BA",
     descricao:
       "CT Oficial Rank Football — 3 quadras de areia profissional com iluminação LED, turmas do iniciante ao alto rendimento, mensalidade recorrente automática e torneios internos.",
+    banner_url: "/arenas/rank-football-destaque.webp",
     invite_code: "RANKFTV1",
     cancel_horas_antes: 2,
     created_at: `${oneYearAgoISO}T10:00:00-03:00`,

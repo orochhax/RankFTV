@@ -1,5 +1,18 @@
 # Estado atual resumido
 
+## RankFTV — Horários opcionais em campeonatos, artes da Arena Rank Football, correção do banner Plano Pro e rotas de Radar Anti-Evasão / Torneios Internos (12/11/2026)
+
+- **Banco de produção (`tkyopolcxfsdbhvrgadj`)**:
+  - Migration `supabase/add-championship-optional-times.sql` aplicada em produção: colunas opcionais `prevenda_hora_inicio`, `inscricoes_hora_inicio`, `hora_inicio` e `hora_fim` (`HH:MM`) em `championships`.
+  - Campeonato demo `c1000000-0000-4000-8000-000000000001` atualizado com `prevenda_hora_inicio = 10:00`, `inscricoes_hora_inicio = 12:00`, `hora_inicio = 08:00`, `hora_fim = 19:00`.
+  - Arena demo `a1000000-0000-4000-8000-000000000001` (`Rank Football`) atualizada com `banner_url = /arenas/rank-football-destaque.webp`.
+- **Aplicação**:
+  - **Horários opcionais nos campeonatos**: validação `HH:MM` opcional em `lib/championship-update-schema.ts`, suporte na criação (`app/painel/novo-campeonato/actions.ts`, `components/painel/NovoCampeonatoForm.tsx`), edição (`app/painel/campeonatos/[id]/editar/page.tsx`, `actions.ts`, `components/painel/EditarCampeonatoForm.tsx`), tipos (`lib/supabase/database.types.ts`) e exibição no `Cronograma` público (`app/campeonatos/[id]/page.tsx`).
+  - **Artes exclusivas da Arena `Rank Football`**: `public/arenas/rank-football-destaque.webp` (`1600×520`, destaque horizontal) e `public/arenas/rank-football-card.webp` (`1000×800`, card do grid) integradas via `ArenaCard.card_banner_url` e `app/arenas/page.tsx`.
+  - **Banner falso de limite do Plano Start com Pro ativo**: corrigido `components/arena/ArenaShell.tsx` passando `tierId={tierId}` para `ArenaPlanLimitBanner`.
+  - **Radar Anti-Evasão & Torneios Internos**: corrigidos links quebrados `/painel/campeonatos/novo` → `/painel/novo-campeonato` em `app/arena/[handle]/torneios/page.tsx` e adicionadas rotas alias `app/arena/[handle]/radar-ante-evasao/page.tsx` e `app/arena/[handle]/torneios-internos/page.tsx`.
+- **Verificações locais (pós-edição)**: `npm test` (`970` testes, `969` pass, `1` skipped, `0` fail — incluindo 3 testes em `lib/championship-optional-times.test.ts`), `npm run typecheck` (exit 0), `npm run lint` (`0` errors, `1407` warnings pré-existentes), `npm run audit:prod` (exit 0), `npm run build` (exit 0).
+
 ## Central de Evolução - Recalibração Editorial do Canal Carlos Rocha e Atualização de Likes/Views (12/11/2026)
 
 - Coleta oficial via YouTube Data API v3 nos **17 canais concorrentes** atualizada para `2026-11-12` (**1.653 vídeos** coletados diretamente com **7 novos lançamentos** desde a última rodada, incluindo atualização completa de visualizações, **curtidas públicas (likes)** e comentários em `Carlos Rocha - YT/scripts/collect-competitors.mjs`).

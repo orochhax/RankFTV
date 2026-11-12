@@ -181,15 +181,16 @@ export default async function CampeonatoDetalhePage({
   /* ── Cronograma ── */
   const { data: scheduleRow } = await supabase
     .from("championships")
-    .select("prevenda_inicio, prevenda_fim, inscricoes_inicio, inscricoes_fim, data_inicio, data_fim")
+    .select("prevenda_inicio, prevenda_fim, prevenda_hora_inicio, inscricoes_inicio, inscricoes_fim, inscricoes_hora_inicio, data_inicio, data_fim, hora_inicio, hora_fim")
     .eq("id", champId)
     .single();
 
-  type ScheduleItem = { label: string; inicio: string | null; fim: string | null };
+  const sr = (scheduleRow as unknown as Record<string, string | null> | null) ?? {};
+  type ScheduleItem = { label: string; inicio: string | null; fim: string | null; horaInicio?: string | null; horaFim?: string | null };
   const schedule: ScheduleItem[] = [
-    { label: "Pré-venda",   inicio: (scheduleRow as unknown as Record<string,string|null>)?.prevenda_inicio ?? null,   fim: (scheduleRow as unknown as Record<string,string|null>)?.prevenda_fim ?? null },
-    { label: "Inscrições",  inicio: (scheduleRow as unknown as Record<string,string|null>)?.inscricoes_inicio ?? null, fim: (scheduleRow as unknown as Record<string,string|null>)?.inscricoes_fim ?? null },
-    { label: "Evento",      inicio: (scheduleRow as unknown as Record<string,string|null>)?.data_inicio ?? null,       fim: (scheduleRow as unknown as Record<string,string|null>)?.data_fim ?? null },
+    { label: "Pré-venda",   inicio: sr.prevenda_inicio ?? null,   fim: sr.prevenda_fim ?? null,   horaInicio: sr.prevenda_hora_inicio ?? null },
+    { label: "Inscrições",  inicio: sr.inscricoes_inicio ?? null, fim: sr.inscricoes_fim ?? null, horaInicio: sr.inscricoes_hora_inicio ?? null },
+    { label: "Evento",      inicio: sr.data_inicio ?? null,       fim: sr.data_fim ?? null,       horaInicio: sr.hora_inicio ?? null, horaFim: sr.hora_fim ?? null },
   ];
 
   // Ingressos de plateia disponíveis? (mostra o botão "Vou assistir")
@@ -305,8 +306,8 @@ export default async function CampeonatoDetalhePage({
               <span className="flex-1 text-right text-sm text-gray-500">
                 {item.inicio
                   ? item.fim && item.fim !== item.inicio
-                    ? `${new Date(item.inicio + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} → ${new Date(item.fim + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}`
-                    : new Date(item.inicio + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })
+                    ? `${new Date(item.inicio + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}${item.horaInicio ? ` às ${item.horaInicio}` : ""} → ${new Date(item.fim + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}${item.horaFim ? ` às ${item.horaFim}` : ""}`
+                    : `${new Date(item.inicio + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}${item.horaInicio ? ` às ${item.horaInicio}` : ""}${item.horaFim ? ` – ${item.horaFim}` : ""}`
                   : "Sem data definida"}
               </span>
             </div>
