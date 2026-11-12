@@ -35,7 +35,7 @@ export function ExpandableTextBlock({
         {!expanded && (
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-app-bg to-transparent"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white via-white/85 to-transparent"
           />
         )}
       </div>
