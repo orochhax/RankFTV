@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { CalendarDays, CheckCircle2, Plus, Sparkles, Trophy, Users } from "lucide-react";
+import { CalendarDays, CheckCircle2, Plus, Sparkles, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ArenaProFeatureGate } from "@/components/arena/ArenaProFeatureGate";
 import { getArenaTierId } from "@/lib/arena-subscription";
@@ -64,7 +64,7 @@ export default async function TorneiosArenaPage({
       arenaHandle={handle}
       featureTitle="Torneios Internos & Rei da Praia da Arena"
       featureDescription="Engaje seus alunos criando copinhas internas e desafios Rei da Praia aos finais de semana. O RankFTV sorteia as duplas, monta os grupos e chaveamentos automaticamente e atualiza o ranking interno da arena."
-      icon={Trophy}
+      iconName="trophy"
       benefits={[
         "Chaveamento automático e sorteio de duplas balanceadas por nível",
         "Modo Rei da Praia (rodízio individual em quadra com pontuação dinâmica)",
