@@ -238,6 +238,7 @@ export async function getYoutubeIdeas() {
     supabase.from("yt_ideas")
     .select("id, title, alternate_titles, summary, rationale, angle, format, outline, hook, priority, score, confidence_score, status, editorial_state, current_rank, best_rank, last_evaluated_at, updated_at, source_origin")
     .neq("status", "discarded")
+    .gte("score", 80)
     .order("current_rank", { ascending: true, nullsFirst: false })
     .order("score", { ascending: false })
     .order("updated_at", { ascending: false }),

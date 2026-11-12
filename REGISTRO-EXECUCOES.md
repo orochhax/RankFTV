@@ -5,6 +5,14 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-12 18:25 (America/Sao_Paulo) — Implementação de Nota de Corte de 80 para Ideias de Vídeo
+
+- **Regra editorial de corte:** Estabelecida nota de corte mínima de 80 pontos para ideias de vídeo em ambos os canais, visando foco editorial de alta conversão e eliminação de sobrecarga no pipeline.
+- **Rocha Tech (`yt_ideas` em produção):** 9 ideias com pontuação $\le 79$ (entre 68 e 79) atualizadas para `status = 'discarded'`, mantendo em exibição ativa as 18 pautas de alto impacto (80 a 98 pts).
+- **Filtro canônico na aplicação (`lib/youtube/queries.ts` e `app/admin/evolucao/rocha-tech/ideias/page.tsx`):** Adicionada restrição estrita `.gte("score", 80)` na consulta oficial `getYoutubeIdeas()` e atualizada a legenda do quadro para indicar *"18 ideias no fluxo (nota de corte ≥ 80)"*.
+- **Canal Carlos Rocha (`lib/evolution/carlos-rocha-library.json`):** Parâmetro `minActiveScore` elevado de 50 para 80 (as 24 ideias ativas já possuem pontuação entre 81 e 98).
+- **Validação técnica:** Suíte completa de testes unitários aprovada e typecheck limpo.
+
 ## 2026-11-12 18:05 (America/Sao_Paulo) — Atualização completa do radar editorial e concorrentes do Rocha Tech
 
 - Coleta oficial via YouTube Data API v3 nos 24 canais concorrentes do Rocha Tech: 3.919 vídeos monitorados na janela de 365 dias (33 vídeos novos catalogados, 2.422 contadores de visualizações atualizados, zero falhas e zero fallbacks manuais).
