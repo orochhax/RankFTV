@@ -8,6 +8,8 @@ import {
   arenaRentalPaymentSchema,
   invalidPaymentInput,
 } from "@/lib/payment-input-schemas";
+import { isDemoArenaIdentifier } from "@/lib/arena-demo";
+import { canAccessDemoArena } from "@/lib/arena-demo-access";
 
 export type AlugarInput = {
   planId:      string;
@@ -54,6 +56,9 @@ export async function alugarQuadra(input: AlugarInput): Promise<AlugarResult> {
     .eq("handle", input.handle)
     .maybeSingle();
   if (!arena) return { ok: false, error: "Plano de aluguel não encontrado." };
+  if ((isDemoArenaIdentifier(arena.id) || isDemoArenaIdentifier(input.handle)) && !(await canAccessDemoArena(supabase))) {
+    return { ok: false, error: "Plano de aluguel não encontrado." };
+  }
 
   if (!plan.aceita_credito) {
     return { ok: false, error: "Esta arena não aceita crédito para aluguel." };

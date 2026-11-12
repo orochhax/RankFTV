@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
 const CHAMPIONSHIP_ID = "c1000000-0000-4000-8000-000000000001";
+const CEO_USER_ID     = "f58de881-3c02-4748-847c-d4d945e527a8";
 const CAT_OPEN_PRO_ID = "c1000000-0000-4000-8000-000000000010";
 const CAT_A_ID        = "c1000000-0000-4000-8000-000000000011";
 const CAT_B_ID        = "c1000000-0000-4000-8000-000000000012";
@@ -299,15 +300,25 @@ function generateBracketMatchesForCategory(championshipId, categoryId, participa
 async function seed() {
   console.log("Iniciando seed do Circuito RankFTV Open Pro 2026...");
 
-  // 1. Obter ID do organizador (Carlos Rocha ou primeiro da lista de organizadores)
-  const { data: orgUser, error: orgError } = await supabase
+  // 1. Obter ID do organizador (CEO oficial primeiro, evitando pegar perfis de alunos demo)
+  let { data: orgUser } = await supabase
     .from("profiles")
     .select("id, nome, username")
-    .limit(1)
-    .single();
+    .eq("id", CEO_USER_ID)
+    .maybeSingle();
 
-  if (orgError || !orgUser) {
-    throw new Error("Não foi possível encontrar um perfil de organizador no banco.");
+  if (!orgUser) {
+    const { data: fallbackCeo } = await supabase
+      .from("profiles")
+      .select("id, nome, username")
+      .eq("role", "ceo")
+      .limit(1)
+      .maybeSingle();
+    orgUser = fallbackCeo;
+  }
+
+  if (!orgUser) {
+    throw new Error("Não foi possível encontrar o perfil CEO de organizador no banco.");
   }
 
   const organizadorId = orgUser.id;
@@ -491,6 +502,8 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       valor: 25.00,
       ativo: true,
       ordem: 1,
+      max_quantidade: 200,
+      vendidos: 130,
     },
     {
       id: TICKET_CAMAROTE_ID,
@@ -499,6 +512,8 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       valor: 90.00,
       ativo: true,
       ordem: 2,
+      max_quantidade: 60,
+      vendidos: 45,
     },
     {
       id: TICKET_COMBO_ID,
@@ -507,6 +522,8 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       valor: 150.00,
       ativo: true,
       ordem: 3,
+      max_quantidade: 50,
+      vendidos: 40,
     },
     {
       id: TICKET_PASSAPORTE_ID,
@@ -515,6 +532,8 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       valor: 70.00,
       ativo: true,
       ordem: 4,
+      max_quantidade: 60,
+      vendidos: 45,
     },
   ];
 
@@ -529,6 +548,11 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
   await supabase.from("bracket_participants").delete().eq("championship_id", CHAMPIONSHIP_ID);
   await supabase.from("athlete_tickets").delete().eq("championship_id", CHAMPIONSHIP_ID);
   await supabase.from("spectator_tickets").delete().eq("championship_id", CHAMPIONSHIP_ID);
+  await supabase.from("championship_expenses").delete().eq("championship_id", CHAMPIONSHIP_ID);
+  await supabase.from("coupons").delete().eq("championship_id", CHAMPIONSHIP_ID);
+  await supabase.from("championship_notices").delete().eq("championship_id", CHAMPIONSHIP_ID);
+  await supabase.from("pricing_tiers").delete().in("category_id", [CAT_OPEN_PRO_ID, CAT_A_ID, CAT_B_ID, CAT_MISTO_ID]);
+  await supabase.from("pricing_tiers").delete().in("ticket_type_id", [TICKET_ARQUIBANCADA_ID, TICKET_CAMAROTE_ID, TICKET_COMBO_ID, TICKET_PASSAPORTE_ID]);
 
   // 6. Inserir Inscrições de Atletas (Duplas) para as 4 CATEGORIAS
   const duplasOpenPro = [
@@ -643,6 +667,8 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       access_token: crypto.randomUUID(),
       comprador_camisa: tamanhosCamiseta[i % 4],
       parceiro_camisa: tamanhosCamiseta[(i + 1) % 4],
+      checked_in: i < 14,
+      checkin_at: i < 14 ? new Date(hoje.getTime() - 2 * 60 * 60 * 1000).toISOString() : null,
       created_at: new Date(hoje.getTime() - (10 - i * 0.3) * 24 * 60 * 60 * 1000).toISOString(),
     });
   }
@@ -678,8 +704,10 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
         : hoje.toISOString(),
       code: `CTA-${100 + i}`,
       access_token: crypto.randomUUID(),
-      comprador_camisa: "M",
-      parceiro_camisa: "G",
+      comprador_camisa: tamanhosCamiseta[(i + 1) % 4],
+      parceiro_camisa: tamanhosCamiseta[(i + 2) % 4],
+      checked_in: i < 13,
+      checkin_at: i < 13 ? new Date(hoje.getTime() - 3 * 60 * 60 * 1000).toISOString() : null,
       created_at: new Date(hoje.getTime() - 8 * 24 * 60 * 60 * 1000).toISOString(),
     });
   }
@@ -715,8 +743,10 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
         : hoje.toISOString(),
       code: `CTB-${100 + i}`,
       access_token: crypto.randomUUID(),
-      comprador_camisa: "G",
-      parceiro_camisa: "M",
+      comprador_camisa: tamanhosCamiseta[(i + 2) % 4],
+      parceiro_camisa: tamanhosCamiseta[i % 4],
+      checked_in: i < 14,
+      checkin_at: i < 14 ? new Date(hoje.getTime() - 4 * 60 * 60 * 1000).toISOString() : null,
       created_at: new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     });
   }
@@ -749,8 +779,10 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       repasse_data_prevista: hoje.toISOString(),
       code: `MIS-${100 + i}`,
       access_token: crypto.randomUUID(),
-      comprador_camisa: "GG",
-      parceiro_camisa: "P",
+      comprador_camisa: tamanhosCamiseta[(i + 3) % 4],
+      parceiro_camisa: tamanhosCamiseta[i % 4],
+      checked_in: i < 13,
+      checkin_at: i < 13 ? new Date(hoje.getTime() - 2 * 60 * 60 * 1000).toISOString() : null,
       created_at: new Date(hoje.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString(),
     });
   }
@@ -763,11 +795,11 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
   }
   console.log(`Inseridas ${athleteTickets.length} duplas pagas com camisetas e repasses!`);
 
-  // 7. Ingressos de Plateia e Camarote VIP (685 ingressos = R$ 41.550,00)
+  // 7. Ingressos de Plateia e Camarote VIP (260 ingressos = R$ 16.450,00 — volume realista)
   const spectatorTickets = [];
-  
-  // 380 ingressos arquibancada a R$ 25 = R$ 9.500
-  for (let i = 0; i < 380; i++) {
+
+  // 130 ingressos arquibancada a R$ 25 = R$ 3.250
+  for (let i = 0; i < 130; i++) {
     spectatorTickets.push({
       id: crypto.randomUUID(),
       championship_id: CHAMPIONSHIP_ID,
@@ -783,8 +815,8 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       code: `ARQ-${1000 + i}`,
       access_token: crypto.randomUUID(),
       qr_token: crypto.randomUUID(),
-      checked_in: i < 280,
-      checkin_at: i < 280 ? new Date().toISOString() : null,
+      checked_in: i < 105,
+      checkin_at: i < 105 ? new Date().toISOString() : null,
       repasse_status: i % 3 === 0 ? "aguardando_liquidacao" : "disponivel",
       repasse_data_prevista: i % 3 === 0
         ? new Date(hoje.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
@@ -793,8 +825,8 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
     });
   }
 
-  // 95 ingressos camarote VIP a R$ 90 = R$ 8.550
-  for (let i = 0; i < 95; i++) {
+  // 45 ingressos camarote VIP a R$ 90 = R$ 4.050
+  for (let i = 0; i < 45; i++) {
     spectatorTickets.push({
       id: crypto.randomUUID(),
       championship_id: CHAMPIONSHIP_ID,
@@ -810,16 +842,16 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       code: `VIP-${500 + i}`,
       access_token: crypto.randomUUID(),
       qr_token: crypto.randomUUID(),
-      checked_in: i < 75,
-      checkin_at: i < 75 ? new Date().toISOString() : null,
+      checked_in: i < 38,
+      checkin_at: i < 38 ? new Date().toISOString() : null,
       repasse_status: "aguardando_liquidacao",
       repasse_data_prevista: new Date(hoje.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       created_at: new Date(hoje.getTime() - (4 - (i % 4)) * 24 * 60 * 60 * 1000).toISOString(),
     });
   }
 
-  // 110 ingressos Camarote VIP + Camisa Oficial a R$ 150 = R$ 16.500
-  for (let i = 0; i < 110; i++) {
+  // 40 ingressos Camarote VIP + Camisa Oficial a R$ 150 = R$ 6.000
+  for (let i = 0; i < 40; i++) {
     spectatorTickets.push({
       id: crypto.randomUUID(),
       championship_id: CHAMPIONSHIP_ID,
@@ -835,8 +867,8 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       code: `VPC-${700 + i}`,
       access_token: crypto.randomUUID(),
       qr_token: crypto.randomUUID(),
-      checked_in: i < 90,
-      checkin_at: i < 90 ? new Date().toISOString() : null,
+      checked_in: i < 34,
+      checkin_at: i < 34 ? new Date().toISOString() : null,
       repasse_status: i % 2 === 0 ? "aguardando_liquidacao" : "disponivel",
       repasse_data_prevista: i % 2 === 0
         ? new Date(hoje.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
@@ -845,8 +877,8 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
     });
   }
 
-  // 100 ingressos Passaporte Final de Semana a R$ 70 = R$ 7.000
-  for (let i = 0; i < 100; i++) {
+  // 45 ingressos Passaporte Final de Semana a R$ 70 = R$ 3.150
+  for (let i = 0; i < 45; i++) {
     spectatorTickets.push({
       id: crypto.randomUUID(),
       championship_id: CHAMPIONSHIP_ID,
@@ -862,8 +894,8 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
       code: `PAS-${800 + i}`,
       access_token: crypto.randomUUID(),
       qr_token: crypto.randomUUID(),
-      checked_in: i < 80,
-      checkin_at: i < 80 ? new Date().toISOString() : null,
+      checked_in: i < 36,
+      checkin_at: i < 36 ? new Date().toISOString() : null,
       repasse_status: "disponivel",
       repasse_data_prevista: hoje.toISOString(),
       created_at: new Date(hoje.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -877,6 +909,235 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
     if (specErr) throw specErr;
   }
   console.log(`Inseridos ${spectatorTickets.length} ingressos de plateia e camarote VIP!`);
+
+  // 7B. Despesas operacionais padrão (DRE completo para calls comerciais)
+  const dayISO = (offsetDays) =>
+    new Date(hoje.getTime() + offsetDays * 86_400_000).toISOString().slice(0, 10);
+
+  const expensesSeed = [
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      organizador_id: organizadorId,
+      categoria: "Arbitragem",
+      nome: "Equipe de Arbitragem Oficial (6 árbitros x 4 dias)",
+      valor: 3600.00,
+      status: "pago",
+      data_vencimento: dayISO(-2),
+      data_pagamento: dayISO(-3),
+      observacao: "3 árbitros principais + 3 apontadores de quadra (diárias + deslocamento).",
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      organizador_id: organizadorId,
+      categoria: "Marketing & Mídia",
+      nome: "Transmissão ao Vivo YouTube (câmeras, switcher e narração)",
+      valor: 2850.00,
+      status: "pago",
+      data_vencimento: dayISO(-3),
+      data_pagamento: dayISO(-4),
+      observacao: "Produção Full HD 3 câmeras na Quadra Central, replay instantâneo e narrador.",
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      organizador_id: organizadorId,
+      categoria: "Quadra & Estrutura",
+      nome: "Locação de Tendas, Gerador, Sonorização e Refletores",
+      valor: 3200.00,
+      status: "pago",
+      data_vencimento: dayISO(-4),
+      data_pagamento: dayISO(-5),
+      observacao: "2 tendas 10x10m (atletas + Camarote VIP), som line array e refletores LED.",
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      organizador_id: organizadorId,
+      categoria: "Quadra & Estrutura",
+      nome: "Equipamentos de Quadra (redes oficiais, linhas, antenas e bolas)",
+      valor: 1150.00,
+      status: "pendente",
+      data_vencimento: dayISO(2),
+      data_pagamento: null,
+      observacao: "12 bolas oficiais Mikasa FT5, 4 redes de competição, fitas e placares manuais.",
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      organizador_id: organizadorId,
+      categoria: "Alimentação & Hidratação",
+      nome: "Água Mineral, Isotônicos, Gelo e Frutas (Atletas & Staff)",
+      valor: 890.00,
+      status: "pago",
+      data_vencimento: dayISO(-1),
+      data_pagamento: dayISO(-1),
+      observacao: "45 fardos de água 500ml, isotônicos, gelo em barra e mesa de frutas diária.",
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      organizador_id: organizadorId,
+      categoria: "Kits & Camisas",
+      nome: "Confecção de Uniformes Oficiais (160 regatas + staff)",
+      valor: 2640.00,
+      status: "pago",
+      data_vencimento: dayISO(-7),
+      data_pagamento: dayISO(-8),
+      observacao: "128 regatas dry-fit com numeração + 32 camisas para organização e árbitros.",
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      organizador_id: organizadorId,
+      categoria: "Premiação",
+      nome: "Troféus, Medalhas Personalizadas e Premiação Open/Categorias",
+      valor: 4100.00,
+      status: "pendente",
+      data_vencimento: dayISO(1),
+      data_pagamento: null,
+      observacao: "Bônus financeiro pódio Open Pro + troféus em metal/acrílico 1º ao 3º lugar.",
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      organizador_id: organizadorId,
+      categoria: "Marketing & Mídia",
+      nome: "Fotógrafo Esportivo, Social Media e Cobertura Reels",
+      valor: 1250.00,
+      status: "pago",
+      data_vencimento: dayISO(0),
+      data_pagamento: dayISO(-1),
+      observacao: "Banco de fotos em alta resolução para atletas e cortes verticais diários.",
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      organizador_id: organizadorId,
+      categoria: "Outros",
+      nome: "Staff Operacional, Segurança Diurna/Noturna e Limpeza",
+      valor: 1650.00,
+      status: "pendente",
+      data_vencimento: dayISO(3),
+      data_pagamento: null,
+      observacao: "Controle de acesso QR Code na portaria, segurança noturna e manutenção da areia.",
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      organizador_id: organizadorId,
+      categoria: "Outros",
+      nome: "Posto Médico / Brigadista de Plantão (4 dias de evento)",
+      valor: 920.00,
+      status: "pago",
+      data_vencimento: dayISO(0),
+      data_pagamento: dayISO(0),
+      observacao: "Equipe de primeiros socorros, crioterapia pós-jogo e apoio ambulatorial.",
+    },
+  ];
+  const { error: expErr } = await supabase.from("championship_expenses").insert(expensesSeed);
+  if (expErr) throw expErr;
+  console.log(`Inseridas ${expensesSeed.length} despesas realistas (pagas e a vencer) no DRE!`);
+
+  // 7C. Lotes escalonados (pricing_tiers) + Cupons + Comunicados
+  const pricingTiersSeed = [
+    {
+      category_id: CAT_OPEN_PRO_ID,
+      ticket_type_id: null,
+      nome: "1º Lote (Promocional)",
+      valor: 210.00,
+      ordem: 1,
+      quantidade_maxima: 8,
+      vendidos: 8,
+      data_fim: new Date(hoje.getTime() - 7 * 86_400_000).toISOString(),
+      ativo: false,
+    },
+    {
+      category_id: CAT_OPEN_PRO_ID,
+      ticket_type_id: null,
+      nome: "2º Lote (Oficial)",
+      valor: 240.00,
+      ordem: 2,
+      quantidade_maxima: 8,
+      vendidos: 8,
+      data_fim: new Date(hoje.getTime() + 1 * 86_400_000).toISOString(),
+      ativo: true,
+    },
+    {
+      category_id: null,
+      ticket_type_id: TICKET_CAMAROTE_ID,
+      nome: "1º Lote VIP",
+      valor: 75.00,
+      ordem: 1,
+      quantidade_maxima: 20,
+      vendidos: 20,
+      data_fim: new Date(hoje.getTime() - 5 * 86_400_000).toISOString(),
+      ativo: false,
+    },
+    {
+      category_id: null,
+      ticket_type_id: TICKET_CAMAROTE_ID,
+      nome: "2º Lote VIP",
+      valor: 90.00,
+      ordem: 2,
+      quantidade_maxima: 40,
+      vendidos: 25,
+      data_fim: new Date(hoje.getTime() + 2 * 86_400_000).toISOString(),
+      ativo: true,
+    },
+  ];
+  const { error: tierErr } = await supabase.from("pricing_tiers").insert(pricingTiersSeed);
+  if (tierErr) throw tierErr;
+
+  const couponsSeed = [
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      codigo: "ARRAIAL10",
+      tipo_desconto: "percentual",
+      valor_desconto: 10,
+      aplica_em: "ambos",
+      quantidade_maxima: 50,
+      usos_atuais: 27,
+      data_fim: new Date(hoje.getTime() + 5 * 86_400_000).toISOString(),
+      ativo: true,
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      codigo: "VIP20",
+      tipo_desconto: "valor_fixo",
+      valor_desconto: 20,
+      aplica_em: "plateia",
+      quantidade_maxima: 30,
+      usos_atuais: 14,
+      data_fim: new Date(hoje.getTime() + 5 * 86_400_000).toISOString(),
+      ativo: true,
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      codigo: "DUPLAFTV",
+      tipo_desconto: "valor_fixo",
+      valor_desconto: 25,
+      aplica_em: "atleta",
+      quantidade_maxima: 20,
+      usos_atuais: 11,
+      data_fim: new Date(hoje.getTime() + 5 * 86_400_000).toISOString(),
+      ativo: true,
+    },
+  ];
+  const { error: couponErr } = await supabase.from("coupons").insert(couponsSeed);
+  if (couponErr) throw couponErr;
+
+  const noticesSeed = [
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      created_by: organizadorId,
+      dedupe_key: "demo_checkin_camisas_2026",
+      kind: "schedule",
+      title: "Retirada de Kits e Check-in Oficial",
+      message: "Apresente o QR Code do painel na tenda da organização até 40 minutos antes da sua primeira chamada para retirar a regata oficial e validar a dupla.",
+    },
+    {
+      championship_id: CHAMPIONSHIP_ID,
+      created_by: organizadorId,
+      dedupe_key: "demo_transmissao_youtube_2026",
+      kind: "important",
+      title: "Transmissão ao vivo da Quadra Central no YouTube",
+      message: "Semifinais e finais de todas as categorias serão transmitidas com 3 câmeras e placar integrado. Compartilhe o link com sua torcida!",
+    },
+  ];
+  const { error: noticeErr } = await supabase.from("championship_notices").insert(noticesSeed);
+  if (noticeErr) throw noticeErr;
 
   // 8. Chaveamento Oficial Ativo para as 4 CATEGORIAS
   const categoryConfigs = [
@@ -963,12 +1224,14 @@ Todas as duplas inscritas recebem 2 regatas oficiais de jogo do Circuito RankFTV
   const totalAtletas = athleteTickets.reduce((acc, t) => acc + t.valor, 0);
   const totalPlateia = spectatorTickets.reduce((acc, t) => acc + t.valor, 0);
   const totalGeral = totalAtletas + totalPlateia;
+  const totalDespesas = expensesSeed.reduce((acc, e) => acc + e.valor, 0);
 
   console.log("==========================================");
   console.log("🏆 CIRCUITO RANKFTV OPEN PRO 2026 ATIVO!");
   console.log(`Faturamento de Atletas: R$ ${totalAtletas.toFixed(2)} (64 duplas nas 4 categorias)`);
-  console.log(`Faturamento de Plateia / Camarote: R$ ${totalPlateia.toFixed(2)} (685 ingressos)`);
-  console.log(`FATURAMENTO TOTAL DO CAMPEONATO: R$ ${totalGeral.toFixed(2)} (+R$ 50k!)`);
+  console.log(`Faturamento de Plateia / Camarote: R$ ${totalPlateia.toFixed(2)} (${spectatorTickets.length} ingressos)`);
+  console.log(`FATURAMENTO BRUTO TOTAL: R$ ${totalGeral.toFixed(2)}`);
+  console.log(`DESPESAS REGISTRADAS: R$ ${totalDespesas.toFixed(2)} (${expensesSeed.length} itens — lucro líquido ~R$ ${(totalGeral - totalDespesas).toFixed(2)})`);
   console.log("Chaveamento: 4 CATEGORIAS ATIVAS (Open Pro, A, B e Misto - todas nas Semifinais!)");
   console.log(`Link Chaveamento: /campeonatos/${CHAMPIONSHIP_ID}/chaveamento`);
   console.log(`Painel Geral: /painel/campeonatos/${CHAMPIONSHIP_ID}`);

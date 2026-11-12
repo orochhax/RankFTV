@@ -15,6 +15,9 @@ export type ArenaFinanceiroData = {
   mesAtual: string;
   faturamentoPrevisto: number;
   numAlunos: number;
+  receita12Meses: number;
+  cobrancasPendentesValor: number;
+  cobrancasPendentesCount: number;
   receitaMensal: { label: string; valor: number }[];
   presencasSemanal: { dow: number; label: string; count: number }[];
   classesPorDia: { dow: number; classes: { id: string; titulo: string; horaInicio: string | null; totalPresencas: number }[] }[];
@@ -28,9 +31,10 @@ export async function getArenaFinanceiroData(
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
   const mesAtual = today.slice(0, 7);
 
-  const d6 = new Date();
-  d6.setMonth(d6.getMonth() - 5);
-  const sixMonthsAgo = `${d6.getFullYear()}-${String(d6.getMonth() + 1).padStart(2, "0")}`;
+  const d12 = new Date();
+  d12.setDate(1);
+  d12.setMonth(d12.getMonth() - 11);
+  const twelveMonthsAgo = `${d12.getFullYear()}-${String(d12.getMonth() + 1).padStart(2, "0")}`;
 
   const d30 = new Date();
   d30.setDate(d30.getDate() - 30);
@@ -49,10 +53,10 @@ export async function getArenaFinanceiroData(
       .order("created_at", { ascending: true }),
     supabase
       .from("student_charges")
-      .select("competencia, valor")
+      .select("competencia, valor, status_pagamento")
       .eq("arena_id", arenaId)
-      .eq("status_pagamento", "pago")
-      .gte("competencia", sixMonthsAgo),
+      .in("status_pagamento", ["pago", "pendente"])
+      .gte("competencia", twelveMonthsAgo),
     supabase
       .from("arena_attendance")
       .select("user_id, data, class_id")
@@ -87,17 +91,27 @@ export async function getArenaFinanceiroData(
 
   const mesLabels: string[] = [];
   const mesKeys: string[] = [];
-  for (let i = 5; i >= 0; i--) {
+  for (let i = 11; i >= 0; i--) {
     const d = new Date();
     d.setDate(1);
     d.setMonth(d.getMonth() - i);
     mesKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-    mesLabels.push(MESES_PT[d.getMonth()]);
+    mesLabels.push(`${MESES_PT[d.getMonth()]}/${String(d.getFullYear()).slice(-2)}`);
   }
   const mesValores = new Map(mesKeys.map((k) => [k, 0]));
+  let receita12Meses = 0;
+  let cobrancasPendentesValor = 0;
+  let cobrancasPendentesCount = 0;
   for (const c of chargesRes.data ?? []) {
-    if (mesValores.has(c.competencia)) {
-      mesValores.set(c.competencia, (mesValores.get(c.competencia) ?? 0) + Number(c.valor ?? 0));
+    const val = Number(c.valor ?? 0);
+    if (c.status_pagamento === "pago") {
+      if (mesValores.has(c.competencia)) {
+        mesValores.set(c.competencia, (mesValores.get(c.competencia) ?? 0) + val);
+        receita12Meses += val;
+      }
+    } else if (c.status_pagamento === "pendente") {
+      cobrancasPendentesValor += val;
+      cobrancasPendentesCount += 1;
     }
   }
   const receitaMensal = mesKeys.map((k, i) => ({ label: mesLabels[i], valor: mesValores.get(k) ?? 0 }));
@@ -163,6 +177,9 @@ export async function getArenaFinanceiroData(
     mesAtual,
     faturamentoPrevisto,
     numAlunos: alunos.length,
+    receita12Meses,
+    cobrancasPendentesValor,
+    cobrancasPendentesCount,
     receitaMensal,
     presencasSemanal,
     classesPorDia,

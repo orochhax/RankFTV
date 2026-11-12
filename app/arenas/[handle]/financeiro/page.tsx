@@ -6,6 +6,8 @@ import { FinanceiroAlunoClient } from "@/components/arena/FinanceiroAlunoClient"
 import {
   mensalidadeParaHistorico, aulaAvulsaParaHistorico, ordenarHistoricoCobrancas,
 } from "@/lib/arena-cobranca";
+import { isDemoArenaIdentifier } from "@/lib/arena-demo";
+import { canAccessDemoArena } from "@/lib/arena-demo-access";
 
 export default async function FinanceiroAlunoPage({
   params,
@@ -23,6 +25,9 @@ export default async function FinanceiroAlunoPage({
     .eq("handle", handle)
     .maybeSingle();
   if (!arena) notFound();
+  if ((isDemoArenaIdentifier(arena.id) || isDemoArenaIdentifier(handle)) && !(await canAccessDemoArena(supabase))) {
+    notFound();
+  }
 
   // Confirma associação/autorização no servidor: só aluno ativo desta arena
   // vê o próprio histórico de cobranças.

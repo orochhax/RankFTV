@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ArenaShell } from "@/components/arena/ArenaShell";
+import { getArenaTierId } from "@/lib/arena-subscription";
 
 // Shell compartilhado por todas as páginas do painel do organizador
 // (Início, Agenda, Alunos, Financeiro, Planos para alunos, Aulas, Relatórios,
@@ -32,12 +33,13 @@ export default async function ArenaOrganizerLayout({
   const arena = (arenas ?? []).find((a) => a.handle === handle);
   if (!arena) redirect("/arena");
 
-  const [{ count: totalAlunosAtivos }] = await Promise.all([
+  const [{ count: totalAlunosAtivos }, tierId] = await Promise.all([
     supabase
       .from("arena_students")
       .select("id", { count: "exact", head: true })
       .eq("arena_id", arena.id)
       .eq("status", "ativo"),
+    getArenaTierId(supabase, arena.id),
   ]);
 
   const arenaSummaries = (arenas ?? []).map((a) => ({
@@ -53,7 +55,7 @@ export default async function ArenaOrganizerLayout({
       arenas={arenaSummaries}
       user={profile ? { nome: profile.nome, username: profile.username } : null}
       totalAlunosAtivos={totalAlunosAtivos ?? 0}
-      tierId={((arena as { plano?: "start" | "pro" }).plano as "start" | "pro") ?? "start"}
+      tierId={tierId}
     >
       {children}
     </ArenaShell>

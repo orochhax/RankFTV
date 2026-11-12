@@ -4,6 +4,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { arenaRecurringPaymentsEnabled } from "@/lib/release-flags";
 import { createClient } from "@/lib/supabase/server";
 import { avaliarCapacidadeArena } from "@/lib/arena-platform-plans";
+import { getArenaTierId } from "@/lib/arena-subscription";
+import { isDemoArenaIdentifier } from "@/lib/arena-demo";
+import { canAccessDemoArena } from "@/lib/arena-demo-access";
 
 export type AssinarResult =
   | { ok: true }
@@ -41,6 +44,9 @@ export async function assinarGratuito(planId: string): Promise<AssinarResult> {
     .single();
 
   if (!plan) return { ok: false, error: "Plano não encontrado." };
+  if (isDemoArenaIdentifier(plan.arena_id) && !(await canAccessDemoArena(supabase))) {
+    return { ok: false, error: "Plano não encontrado." };
+  }
   if (Number(plan.valor) !== 0) return { ok: false, error: "Este plano não é gratuito." };
 
   const { data: existing } = await supabase
@@ -52,14 +58,17 @@ export async function assinarGratuito(planId: string): Promise<AssinarResult> {
 
   if (existing?.status === "ativo") return { ok: true };
 
-  // Verifica o teto de 30 alunos do Plano Start antes de ativar uma nova matrícula
-  const { count: totalAlunosAtivos } = await admin
-    .from("arena_students")
-    .select("id", { count: "exact", head: true })
-    .eq("arena_id", plan.arena_id)
-    .eq("status", "ativo");
+  // Verifica o teto de alunos conforme o plano atual da arena antes de ativar matrícula
+  const [{ count: totalAlunosAtivos }, tierId] = await Promise.all([
+    admin
+      .from("arena_students")
+      .select("id", { count: "exact", head: true })
+      .eq("arena_id", plan.arena_id)
+      .eq("status", "ativo"),
+    getArenaTierId(admin, plan.arena_id),
+  ]);
 
-  const capacidade = avaliarCapacidadeArena(totalAlunosAtivos ?? 0, "start");
+  const capacidade = avaliarCapacidadeArena(totalAlunosAtivos ?? 0, tierId);
   if (capacidade.isBloqueado) {
     return {
       ok: false,

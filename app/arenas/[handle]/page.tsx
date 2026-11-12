@@ -10,6 +10,8 @@ import { MeuPlanoCard } from "@/components/arena/MeuPlanoCard";
 import { AgendaPresenca, type DiaAgenda } from "@/components/arena/AgendaPresenca";
 import { hhmm, type PublicoAula } from "@/lib/arena-dates";
 import { estadoPlanoAluno, temAcessoAoPlano } from "@/lib/arena-attendance";
+import { isDemoArenaIdentifier } from "@/lib/arena-demo";
+import { canAccessDemoArena } from "@/lib/arena-demo-access";
 
 const DIAS_PT  = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
@@ -57,6 +59,9 @@ export default async function ArenaPublicaPage({
     .maybeSingle();
 
   if (!arena) notFound();
+  if (isDemoArenaIdentifier(arena.id) || isDemoArenaIdentifier(handle)) {
+    if (!(await canAccessDemoArena(supabase))) notFound();
+  }
 
   // Alunos ativos com perfil para o ranking
   const { data: alunos } = await supabase

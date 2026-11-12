@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DiariaPaymentUI } from "./DiariaPaymentUI";
+import { isDemoArenaIdentifier } from "@/lib/arena-demo";
+import { canAccessDemoArena } from "@/lib/arena-demo-access";
 
 export default async function PagarDiariaPage({
   params,
@@ -39,6 +41,9 @@ export default async function PagarDiariaPage({
   ]);
 
   if (!arenaRes.data) notFound();
+  if ((isDemoArenaIdentifier(arenaRes.data.id) || isDemoArenaIdentifier(handle)) && !(await canAccessDemoArena(supabase))) {
+    notFound();
+  }
   if (!planRes.data) notFound();
   if (planRes.data.arena_id !== arenaRes.data.id) notFound();
 
