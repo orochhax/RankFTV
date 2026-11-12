@@ -13,6 +13,13 @@
   - **Radar Anti-Evasão & Torneios Internos**: corrigidos links quebrados `/painel/campeonatos/novo` → `/painel/novo-campeonato` em `app/arena/[handle]/torneios/page.tsx` e adicionadas rotas alias `app/arena/[handle]/radar-ante-evasao/page.tsx` e `app/arena/[handle]/torneios-internos/page.tsx`.
 - **Verificações locais (pós-edição)**: `npm test` (`970` testes, `969` pass, `1` skipped, `0` fail — incluindo 3 testes em `lib/championship-optional-times.test.ts`), `npm run typecheck` (exit 0), `npm run lint` (`0` errors, `1407` warnings pré-existentes), `npm run audit:prod` (exit 0), `npm run build` (exit 0).
 
+## Central de Evolução - Implementação de Nota de Corte de 80 para Ideias de Vídeo (12/11/2026)
+
+- Decisão editorial de Carlos: estabelecida nota de corte formal de **80 pontos** para ideias de vídeo, excluindo pautas com nota 79 ou menos para manter o banco enxuto e orientado a alto impacto.
+- **Rocha Tech (`yt_ideas`):** 9 ideias com pontuação $\le 79$ atualizadas para `status = 'discarded'` em produção, mantendo em exibição ativa as 18 ideias com pontuação entre 80 e 98.
+- **Filtro canônico na aplicação (`lib/youtube/queries.ts` e `app/admin/evolucao/rocha-tech/ideias/page.tsx`):** inserida restrição `.gte("score", 80)` na consulta oficial e atualizada a legenda do board de ideias para indicar a nota de corte.
+- **Canal Carlos Rocha (`lib/evolution/carlos-rocha-library.json`):** parâmetro `minActiveScore` ajustado para 80 (as 24 pautas ativas já possuem notas entre 81 e 98).
+
 ## Central de Evolução - Atualização Completa do Rocha Tech e Concorrentes (12/11/2026)
 
 - Coleta oficial via YouTube Data API v3 nos **24 canais concorrentes** concluída: **3.919 vídeos** monitorados na janela de 365 dias (33 vídeos novos catalogados, 2.422 visualizações atualizadas, zero falhas e zero fallbacks manuais).
