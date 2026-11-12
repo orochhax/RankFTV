@@ -1,5 +1,14 @@
 # Estado atual resumido
 
+## Central de Evolução - Recalibração Editorial do Canal Carlos Rocha e Atualização de Likes/Views (12/11/2026)
+
+- Coleta oficial via YouTube Data API v3 nos **17 canais concorrentes** atualizada para `2026-11-12` (**1.653 vídeos** coletados diretamente com **7 novos lançamentos** desde a última rodada, incluindo atualização completa de visualizações, **curtidas públicas (likes)** e comentários em `Carlos Rocha - YT/scripts/collect-competitors.mjs`).
+- Ranking de 15 vídeos fora da curva recalculado em `lib/evolution/carlos-rocha-rank-snapshot.json` (**17 canais, 1.677 vídeos indexados**), passando a incorporar e exibir `likes` públicos ao lado de visualizações e mediana em `CarlosRochaOutlierRank.tsx` (destaque para o novo lançamento de Alfredo Soares *"Descobri o Negócio Secreto do Marcos Paulo"* com 250 mil views e 9,7 mil likes em 2 dias, e liderança de Bennett Luke a 373,0x).
+- **Recalibração profunda da Biblioteca Editorial (`lib/evolution/carlos-rocha-library.json` e `CarlosRochaCenter.tsx`):**
+  - Criação dos estágios explícitos `stage: "ready_now" | "post_launch"` separando **13 ideias prontas para gravar agora (pré-lançamento)** de **11 ideias da próxima fase (pós-lançamento do RankFTV / após ritmo contínuo de estudos em Dados)**.
+  - Remoção definitiva de pautas com vlogs/cansaço de CLT, confissões íntimas de angústia/culpa e remoção do rótulo `(CLT)` nos cards.
+  - Adição das novas pautas aprovadas por Carlos: *7 dias em 'modo foco' para colocar o Rank Futevôlei no ar* (98), *Funcionalidade/automação com IA no fim de semana* (97), *Quem se movimenta sempre encontra sorte* (96), *Quando foi a última vez que você parou em silêncio para pensar no que está construindo?* (95), *Vagas no exterior vs base no Brasil primeiro* (96), *Plano para dobrar clientes no RankFTV e buscar vaga* (`post_launch`, 93) e *Bastidores de arena parceira* (`post_launch`, 88).
+
 ## RankFTV — Campeonato Demo Realista & Arena Pro "Rank Football" Exclusiva do CEO (11/11/2026)
 
 - **Campeonato demonstrativo (`Circuito RankFTV Open Pro 2026`, ID `c1000000-0000-4000-8000-000000000001`):** atualizado via [`scripts/seed-circuito-rankftv-demo.mjs`](scripts/seed-circuito-rankftv-demo.mjs) mantendo os 4 campeonatos reais intactos, reduzindo ingressos de plateia de `685` para `260` (`R$ 16.450,00`, total bruto `R$ 27.970,00` somando as `64` duplas), adicionando `10` despesas operacionais realistas no DRE (`championship_expenses`: arbitragem, transmissão YouTube, tendas/som/iluminação, equipamentos, água/isotônicos/gelo/frutas, uniformes, premiação/troféus, fotografia/social media, staff/segurança/limpeza e posto médico — `R$ 22.250,00`, sendo `7` pagas e `3` a vencer), além de `4` lotes (`pricing_tiers`), `3` cupons (`coupons`), `2` comunicados (`championship_notices`) e `60` partidas no chaveamento.

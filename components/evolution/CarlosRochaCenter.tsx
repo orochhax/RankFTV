@@ -26,53 +26,53 @@ const principles = [
 
 const opportunities = [
   {
-    title: "A angústia de estudar todos os dias sem nenhuma garantia de que vai dar certo",
-    pillar: "JORNADA PROFISSIONAL / DATA SCIENCE",
-    tension: "A solidão de estudar SQL, estatística e Python após o expediente CLT sem saber quando ou se a vaga júnior virá.",
-    visual: "Diálogo direto cara a cara no quarto em Eunápolis, mesa de estudos, sem obrigação de exibir telas complexas.",
-    conclusion: "Consistência diária é a única variável no seu controle. A dúvida faz parte do processo, mas parar é a única certeza de derrota.",
+    title: "7 dias em 'modo foco' para terminar e colocar o Rank Futevôlei no ar",
+    pillar: "BUILD & SHIP / PRODUTO REAL",
+    tension: "A reta final entre ter um sistema quase pronto no computador e a pressão real de publicar no ar sem procrastinar.",
+    visual: "Vlog ágil focado apenas nas horas construindo: ajustes finais, validações e publicação (sem mostrar rotina CLT).",
+    conclusion: "Colocar um projeto real no ar muda o patamar de aprendizado e abre a fase de colher erros e acertos reais com usuários.",
+  },
+  {
+    title: "Criei uma funcionalidade (ou automação com IA) para o RankFTV em um fim de semana",
+    pillar: "SOFTWARE & IA NA PRÁTICA",
+    tension: "O desafio técnico de tirar uma melhoria prática do zero usando agentes/IA e colocar funcionando em produção em dois dias.",
+    visual: "Tela do sistema funcionando, fluxo de IA rodando na prática e explicação direta de como resolveu o problema.",
+    conclusion: "Usar IA aplicada em um produto seu entrega mais resultado concreto do que centenas de horas assistindo aula teórica.",
+  },
+  {
+    title: "Quem se movimenta sempre encontra sorte: por que construir projetos abre mais portas do que só estudar",
+    pillar: "CRIAÇÃO & MOVIMENTO",
+    tension: "Ficar parado tentando dominar toda a teoria no quarto vs agir e publicar projetos que geram oportunidades reais no caminho.",
+    visual: "Diálogo firme olho no olho intercalado com cenas rápidas do RankFTV e do canal em andamento.",
+    conclusion: "A sorte encontra quem está em movimento; construir e mostrar o processo gera retornos que o estudo passivo nunca traz.",
+  },
+  {
+    title: "Quando foi a última vez que você parou em silêncio para pensar no que está construindo?",
+    pillar: "CLAREZA MENTAL & REFLEXÃO",
+    tension: "Viver no piloto automático consumindo ruído o dia inteiro vs a lucidez de parar em silêncio para definir os próximos passos.",
+    visual: "Ambiente calmo, tomada limpa, ritmo reflexivo e conversa serena sem expor angústias íntimas.",
+    conclusion: "Pensar em silêncio evita passar meses executando no piloto automático coisas que não levam a lugar nenhum.",
+  },
+  {
+    title: "Ainda vale a pena mirar em vagas no exterior ou construir a base no Brasil primeiro?",
+    pillar: "ESTRATÉGIA & CARREIRA EM DADOS",
+    tension: "A corrida apressada para ganhar em dólar logo vs a escolha estratégica de consolidar experiência e entregas reais no Brasil antes.",
+    visual: "Conversa franca e analítica cara a cara defendendo seu posicionamento atual de mercado.",
+    conclusion: "Construir base sólida, portfólio e clientes locais primeiro dá segurança real para mirar mais alto depois.",
   },
   {
     title: "Por que escolhi resolver um problema 'chato' no interior em vez de tentar inventar o próximo unicórnio",
-    pillar: "NEGÓCIOS / SOFTWARE REAL",
-    tension: "O apelo de querer criar a próxima startup de inteligência artificial bilionária vs o faturamento real de resolver a dor de arenas de futevôlei.",
-    visual: "Painel de produção do RankFTV com torneios reais, inscrições e prestação de contas dos números.",
-    conclusion: "Mercados 'chatos' têm menos concorrência, clientes reais e sustentam negócios sólidos com menos barulho.",
+    pillar: "NEGÓCIOS & PRODUTO",
+    tension: "A obsessão por startups bilionárias genéricas vs resolver uma dor real e específica de arenas de futevôlei.",
+    visual: "Telas do sistema RankFTV aberto mostrando o problema operacional real sendo estruturado.",
+    conclusion: "Nichos operacionais pouco glamourosos têm menos concorrência e sustentam produtos sólidos com muito menos barulho.",
   },
   {
-    title: "Trabalhar CLT e construir um negócio à noite: o cansaço real que ninguém posta",
-    pillar: "CRIAÇÃO E AUTENTICIDADE",
-    tension: "A exaustão de sustentar duas rotinas diárias paralelas vs a convicção de que esse esforço temporário constrói a independência.",
-    visual: "Quarto caseiro à noite em Eunápolis, conversa franca desmistificando rotinas perfeitas da internet.",
-    conclusion: "Não é necessário acordar às 5h nem ter uma rotina perfeita; consistência com energia baixa ainda é consistência.",
-  },
-  {
-    title: "Por que decidi que não preciso me mudar para São Paulo para fazer a vida acontecer",
-    pillar: "ESTILO DE VIDA E GEOGRAFIA",
-    tension: "A pressão coletiva de achar que o crescimento só existe na Faria Lima vs o foco e a paz de construir a base no interior da Bahia.",
-    visual: "Cenas do cotidiano no interior e deslocamento regional intercalados com reflexão autêntica com o público.",
-    conclusion: "Com internet, custo de vida equilibrado e foco, você constrói produtos globais e uma carreira sólida de onde você estiver.",
-  },
-  {
-    title: "Tenho 60 dias úteis para aprender Ciência de Dados: o que realmente dá pra aprender e o que é ilusão",
-    pillar: "JORNADA PROFISSIONAL / DATA SCIENCE",
-    tension: "É possível construir uma base profissional de dados em 60 dias ou estou me iludindo?",
-    visual: "Painel de estudos, cronograma real no calendário, matriz de matérias cortadas e código aplicado.",
-    conclusion: "60 dias não criam um especialista sênior, mas tiram da inércia, geram projetos reais e mostram o que o mercado de fato cobra.",
-  },
-  {
-    title: "Analisei dezenas de vagas de Dados para descobrir o que o mercado realmente pede (e parei de estudar o resto)",
-    pillar: "JORNADA PROFISSIONAL / PRAGMATISMO",
-    tension: "O tempo de estudo está alinhado com o que as empresas de fato contratam?",
-    visual: "Vagas abertas na tela, quadro comparativo de requisitos (SQL e limpeza vs hype) e roadmap podado.",
-    conclusion: "O mercado é muito mais básico e pragmático do que a internet vende. O básico bem feito dá muito mais segurança.",
-  },
-  {
-    title: "Se você sente que começou tarde na tecnologia, esse vídeo é pra você",
-    pillar: "AUTENTICIDADE E CARREIRA",
-    tension: "Ainda vale a pena começar do zero quando parece que todo mundo já saiu na frente?",
-    visual: "Ambiente real de trabalho, anotações de estudo, métricas e momentos de dúvida.",
-    conclusion: "Comparação paralisa; consistência em um plano imperfeito traz mais resultado do que esperar a hora ideal.",
+    title: "Não ficou mais difícil entrar em Dados: você só está olhando para o passado",
+    pillar: "TECNOLOGIA & CARREIRA",
+    tension: "O choro coletivo da internet de que 'está impossível' vs a maturidade de entender o mercado atual com pragmatismo.",
+    visual: "Diálogo direto com energia firme e objetiva, podendo pontuar rapidamente requisitos reais de vagas.",
+    conclusion: "A régua mudou, mas o mercado continua precisando de quem sabe estruturar dados e resolver problemas reais.",
   },
 ];
 
@@ -86,6 +86,8 @@ const categoryIcons = {
 export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" | "library" | "opportunities" }) {
   const library = getCarlosRochaLibrary();
   const totalIdeas = library.categories.reduce((acc, cat) => acc + cat.ideas.length, 0);
+  const readyNowCount = library.categories.reduce((acc, cat) => acc + cat.ideas.filter((i) => i.stage === "ready_now").length, 0);
+  const postLaunchCount = totalIdeas - readyNowCount;
 
   const titles = {
     overview: ["CANAL PESSOAL", "Uma vida em construção, com algo real para mostrar."],
@@ -136,7 +138,7 @@ export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" |
         <div className="evo-intel-checklist">
           <li><UsersRound size={16} />{snapshotJson.channels} concorrentes e {snapshotJson.videos} vídeos públicos analisados na janela de 365 dias.</li>
           <li><Sparkles size={16} />Ranking dos 15 vídeos fora da curva ativo via snapshot local seguro.</li>
-          <li><Library size={16} />{totalIdeas} ideias de vídeos estruturadas na Biblioteca por categorias estratégicas.</li>
+          <li><Library size={16} />{totalIdeas} ideias na Biblioteca ({readyNowCount} prontas agora, {postLaunchCount} pós-lançamento).</li>
           <li><Compass size={16} />{opportunities.length} oportunidades imediatas mapeadas e prontas para gravação.</li>
         </div>
       </section>
@@ -148,7 +150,7 @@ export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" |
           <div>
             <p className="evo-eyebrow">BASE COLETADA</p>
             <h2>{snapshotJson.channels} canais acompanhados</h2>
-            <p>Vídeos públicos dos últimos 12 meses, títulos, datas, visualizações e thumbnails foram coletados localmente via YouTube Data API. A base completa não é enviada ao site.</p>
+            <p>Vídeos públicos dos últimos 12 meses, títulos, datas, visualizações, curtidas e thumbnails foram coletados localmente via YouTube Data API. A base completa não é enviada ao site.</p>
           </div>
         </div>
         <div className="evo-intel-rank-guide">
@@ -170,9 +172,9 @@ export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" |
         <div>
           <p className="evo-eyebrow">HUB ACIONÁVEL DE VÍDEOS</p>
           <h2>Ideias estruturadas por pilares reais e ordenadas por score</h2>
-          <p>Recomendações práticas prontas para gravação, baseadas na engenharia reversa dos concorrentes fora da curva e adaptadas à sua viabilidade logística na Bahia.</p>
+          <p>Recomendações calibradas pelos 17 concorrentes e separadas entre o que pode ser gravado hoje (pré-lançamento) e a próxima fase após o RankFTV entrar no ar.</p>
         </div>
-        <span className="evo-intel-status">{totalIdeas} ideias ativas</span>
+        <span className="evo-intel-status">{readyNowCount} prontas agora • {postLaunchCount} pós-lançamento</span>
       </section>
 
       {/* Regra de Ouro e Filtros Logísticos */}
@@ -193,7 +195,7 @@ export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" |
               <span style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Filtro de Viabilidade Logística</span>
             </div>
             <p style={{ margin: 0, fontSize: "12px", color: "#475569", lineHeight: "1.55" }}>
-              <strong>Base:</strong> Eunápolis (estúdio/quarto e corridas). <strong>Fins de semana:</strong> Porto Seguro, Arraial d&apos;Ajuda e Ecoparque. <strong>Planejamento futuro:</strong> Itacaré (março/2027).
+              <strong>Base:</strong> Eunápolis (quarto/estúdio e torneios de futevôlei). <strong>Fins de semana:</strong> Porto Seguro e Arraial d&apos;Ajuda. <strong>Viagem programada:</strong> Itacaré (março/2027).
             </p>
           </div>
         </div>
@@ -255,14 +257,21 @@ export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" |
                 const priorityLabel = idea.score >= 90 ? "Prioridade Máxima" : idea.score >= 80 ? "Alta Prioridade" : "Forte Potencial";
                 const badgeBg = idea.score >= 90 ? "#ecfdf5" : idea.score >= 80 ? "#eff6ff" : "#fffbeb";
                 const badgeColor = idea.score >= 90 ? "#059669" : idea.score >= 80 ? "#2563eb" : "#d97706";
+                const isReadyNow = idea.stage === "ready_now";
+                const stageBg = isReadyNow ? "#dcfce7" : "#dbeafe";
+                const stageColor = isReadyNow ? "#166534" : "#1e40af";
+                const stageLabel = isReadyNow ? "Pronto para gravar agora" : "Próxima fase (pós-lançamento)";
 
                 return (
                   <article className="evo-panel" key={idea.id} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "14px", flexWrap: "wrap" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                         <span style={{ fontWeight: 850, fontSize: "14px", color: "var(--evo-blue)" }}>#{index + 1}</span>
                         <span style={{ fontSize: "11px", fontWeight: 700, padding: "3px 9px", borderRadius: "999px", background: "#f1f5f9", color: "#475569" }}>
                           {category.name}
+                        </span>
+                        <span style={{ fontSize: "11px", fontWeight: 800, padding: "3px 10px", borderRadius: "999px", background: stageBg, color: stageColor }}>
+                          {stageLabel}
                         </span>
                       </div>
                       <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 11px", borderRadius: "999px", background: badgeBg, color: badgeColor, fontWeight: 800, fontSize: "12px" }}>
@@ -312,7 +321,7 @@ export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" |
 
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap", paddingTop: "8px", borderTop: "1px solid var(--evo-line)", fontSize: "11px", color: "var(--evo-muted)" }}>
                       <span><strong>Sinal do Concorrente:</strong> {idea.competitorReference}</span>
-                      <span><strong>Execução (CLT):</strong> {idea.executionTip}</span>
+                      <span><strong>Dica de Gravação:</strong> {idea.executionTip}</span>
                     </div>
                   </article>
                 );

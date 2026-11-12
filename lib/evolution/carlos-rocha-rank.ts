@@ -8,6 +8,7 @@ export type CarlosRochaOutlier = {
   title: string;
   url: string;
   views: number;
+  likes?: number | null;
   publishedAt: string;
   durationSeconds: number | null;
   channelMedianViews: number;
@@ -67,7 +68,8 @@ async function readLocalRank(): Promise<CarlosRochaRank> {
         const channel = item.channel?.name ?? folder.name;
         channels.add(channel);
         observedAt = !observedAt || item.observedAt > observedAt ? item.observedAt : observedAt;
-        videos.push({ id: video.id, channel, title: video.title, url: video.url, views: Number(video.views), publishedAt: video.publishDate ?? video.publishedAt?.slice(0, 10) ?? "", durationSeconds: video.durationSeconds ?? null });
+        const likes = video.likes != null && Number.isFinite(Number(video.likes)) ? Number(video.likes) : null;
+        videos.push({ id: video.id, channel, title: video.title, url: video.url, views: Number(video.views), likes, publishedAt: video.publishDate ?? video.publishedAt?.slice(0, 10) ?? "", durationSeconds: video.durationSeconds ?? null });
       }
     }
     return { observedAt, channels: channels.size, videos: videos.length, topVideos: rank(videos) };
