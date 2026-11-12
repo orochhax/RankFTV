@@ -2,6 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SubscriptionPaymentUI } from "./SubscriptionPaymentUI";
 import { arenaRecurringPaymentsEnabled } from "@/lib/release-flags";
+import { isDemoArenaIdentifier } from "@/lib/arena-demo";
+import { canAccessDemoArena } from "@/lib/arena-demo-access";
 
 export default async function AssinarPlanoPage({
   params,
@@ -27,6 +29,9 @@ export default async function AssinarPlanoPage({
   ]);
 
   if (!arenaRes.data) notFound();
+  if ((isDemoArenaIdentifier(arenaRes.data.id) || isDemoArenaIdentifier(handle)) && !(await canAccessDemoArena(supabase))) {
+    notFound();
+  }
   if (!planRes.data) notFound();
   if (planRes.data.arena_id !== arenaRes.data.id) notFound();
 

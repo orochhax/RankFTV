@@ -2,6 +2,9 @@ import { redirect } from "next/navigation";
 import { Target } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ArenaProFeatureGate } from "@/components/arena/ArenaProFeatureGate";
+import { RadarEvasaoClient } from "@/components/arena/RadarEvasaoClient";
+import { getArenaTierId } from "@/lib/arena-subscription";
+import { getArenaRadarEvasao } from "@/lib/arena-radar-evasao";
 
 export const metadata = {
   title: "Radar Anti-Evasão — RankFTV Arena",
@@ -25,9 +28,23 @@ export default async function RadarEvasaoPage({
     .maybeSingle();
 
   if (!arena) redirect("/arena");
+  if (arena.dono_id !== user.id) {
+    const { data: staff } = await supabase
+      .from("arena_staff")
+      .select("id")
+      .eq("arena_id", arena.id)
+      .eq("user_id", user.id)
+      .eq("papel", "gerente")
+      .eq("status", "aceito")
+      .maybeSingle();
+    if (!staff) redirect("/arena");
+  }
 
-  // TODO: no futuro ler arena_subscriptions se ativo pro; default "start"
-  const tierId = "start";
+  const tierId = await getArenaTierId(supabase, arena.id);
+  const report =
+    tierId === "pro"
+      ? await getArenaRadarEvasao(supabase, arena.id, arena.nome)
+      : null;
 
   return (
     <ArenaProFeatureGate
@@ -43,12 +60,7 @@ export default async function RadarEvasaoPage({
         "Prevenção proativa de perda de receita recorrente",
       ]}
     >
-      <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-8">
-        <h1 className="text-2xl font-black text-gray-900">Radar Anti-Evasão Ativo</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Nenhum aluno em risco crítico de desistência detectado nos últimos 7 dias.
-        </p>
-      </div>
+      {report && <RadarEvasaoClient arenaNome={arena.nome} report={report} />}
     </ArenaProFeatureGate>
   );
 }

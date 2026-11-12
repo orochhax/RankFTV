@@ -5,6 +5,27 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-11 22:42 (America/Sao_Paulo) — Refinamento do Campeonato Demo, Nova Arena Pro "Rank Football" Exclusiva do CEO e Rollout
+
+- **Campeonato demonstrativo (`scripts/seed-circuito-rankftv-demo.mjs`):**
+  - Executado no banco de produção preservando integralmente os 4 campeonatos reais existentes (`BRASIL OPEN DE FUTEVÔLEI`, `Copa Bahia`, `Estação Open - Etapa Itacaré` e `TAFC Goiânia`).
+  - Reduzida a plateia de `685` para `260` ingressos (`R$ 16.450,00` de plateia + `R$ 11.520,00` de `64` duplas = `R$ 27.970,00` brutos).
+  - Inseridas `10` despesas operacionais realistas no DRE (`championship_expenses`: arbitragem, transmissão YouTube, tendas/som/iluminação, equipamentos de quadra, água/isotônicos/gelo/frutas, uniformes, premiação/troféus, fotógrafo/social media, staff/segurança/limpeza e posto médico — total `R$ 22.250,00`, `7` pagas e `3` a vencer), além de `4` lotes (`pricing_tiers`), `3` cupons (`coupons`), `2` comunicados (`championship_notices` com `kind` `schedule` e `important`) e `60` partidas no chaveamento.
+- **Nova Arena Pro demonstrativa "Rank Football" (`scripts/seed-rank-football-arena-demo.mjs`):**
+  - Removidas as 2 arenas antigas do CEO (`Teste` `15ea5f0e-ce97-4654-a919-694575b275c1` e `PRF & PF` `35713cf2-a61a-4089-910e-97288dcb30fe`).
+  - Criada exclusivamente para o CEO a arena `Rank Football` (`@rank-football`, `a1000000-0000-4000-8000-000000000001`) em Salvador/BA com assinatura `arena_subscriptions` (`plano: "pro"`, `status: "ativo"`), `5` planos, `6` turmas, `34` alunos ativos recorrentes (`@demo.rankftv.internal`), `311` mensalidades em `12` meses (`R$ 80.409,50` pagos + `6` cobranças pendentes), `2.960` presenças em `12` meses, `8` diárias avulsas e `8` locações de quadra.
+- **Funcionalidades Arena Pro, Financeiro 12m e Gating CEO:**
+  - Adicionados [`lib/arena-subscription.ts`](lib/arena-subscription.ts), [`lib/arena-radar-evasao-core.ts`](lib/arena-radar-evasao-core.ts), [`lib/arena-radar-evasao.ts`](lib/arena-radar-evasao.ts), [`components/arena/RadarEvasaoClient.tsx`](components/arena/RadarEvasaoClient.tsx), [`lib/arena-demo.ts`](lib/arena-demo.ts) e [`lib/arena-demo-access.ts`](lib/arena-demo-access.ts).
+  - Conectado `getArenaTierId` em `app/arena/[handle]/layout.tsx`, `assinatura/page.tsx`, `relatorios/page.tsx`, `radar-evasao/page.tsx`, `torneios/page.tsx` e `app/arenas/[handle]/assinar/[planId]/actions.ts`; ampliado [`lib/arena-financeiro.ts`](lib/arena-financeiro.ts) e [`components/arena/FinanceiroDashboard.tsx`](components/arena/FinanceiroDashboard.tsx) para série histórica de `12` meses; protegidas `/arenas` e todas as subrotas/actions públicas de `/arenas/[handle]/*` contra acesso não-CEO à arena demo.
+  - Verificação direta nos dados reais do Radar Anti-Evasão: `34` ativos, `12` em alerta (`7` críticos, `5` atenção), `22` saudáveis, `R$ 3.028,80` mensais em risco (`65%` de engajamento).
+- **Validação pré-merge (`feat/demo-championship-and-rank-football-arena`):**
+  - `npm test`: `967` testes em `115` suítes (`966` pass, `0` falhas, `1` skipped pré-existente, incluindo 4 novos casos em `lib/arena-pro-and-demo.test.ts`).
+  - `npm run typecheck`: `0` erros.
+  - `npm run lint`: `0` erros (`1406` warnings pré-existentes; `npx eslint` nos novos arquivos da Arena também com `0` erros).
+  - `npm run audit:prod`: exited `0`.
+  - `npm run build`: `79/79` rotas compiladas com sucesso (`exit 0`).
+  - Verificação HTTP local pós-build em modo anônimo (`next start`): `GET /arenas` sem exibir `Rank Football` (`contains_rank_football=False`) e `GET /arenas/rank-football` renderizando `Erro 404` / `Página não encontrada` (`contains_rank_football=False`), além de `/sitemap.xml` sem o campeonato ou arena demo.
+
 ## 2026-11-11 20:20 (America/Sao_Paulo) — Aplicação completa da Nova Identidade Visual Oficial (Forest Teal + Light Beige + Lime Green + Vivid Orange)
 
 - **Tokens, CSS global e preservação do Life OS (`app/globals.css`):** atualizados `--color-app-bg` (`#FBE9D1`), `--color-surface` (`#FFFFFF`), `--color-surface-2` (`#FFF8EE`), `--color-border` (`#E5CFAF`), `--color-ink` (`#0E4937`), `--color-ink-muted` (`#3E685A`), `--color-brand-dark` (`#0E4937`), `--color-brand-dark-2` (`#155C46`), sombras (`rgba(14, 73, 55, ...)`), tokens semânticos de marca/acento (`--color-brand` `#FF5D00`, `--color-brand-hover` `#E05100`, `--color-brand-ink` `#B84300`, `--color-brand-soft` `#FFF0E6`, `--color-brand-border` `#FFB385`, `--color-accent` `#72BF00`, `--color-accent-ink` `#092B20`, `--color-accent-soft` `#EAF8D2`, `--color-accent-border` `#97D439`) e feixes animados (`#72BF00 -> #FF5D00`) na sidebar desktop e contorno das sheets. Seção `.life-os-theme` e rotas pessoais (`/admin/{evolucao,gasto-mensal,youtube,performance}`) preservadas integralmente.

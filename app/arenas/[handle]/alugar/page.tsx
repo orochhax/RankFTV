@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { RentalPaymentUI } from "./RentalPaymentUI";
+import { isDemoArenaIdentifier } from "@/lib/arena-demo";
+import { canAccessDemoArena } from "@/lib/arena-demo-access";
 
 export default async function AlugarQuadraPage({
   params,
@@ -40,6 +42,9 @@ export default async function AlugarQuadraPage({
   ]);
 
   if (!arenaRes.data) notFound();
+  if ((isDemoArenaIdentifier(arenaRes.data.id) || isDemoArenaIdentifier(handle)) && !(await canAccessDemoArena(supabase))) {
+    notFound();
+  }
   if (!planRes.data) notFound();
   if (planRes.data.arena_id !== arenaRes.data.id) notFound();
 

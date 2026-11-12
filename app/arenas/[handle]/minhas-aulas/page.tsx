@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { MinhasAulasClient, type MinhaAula } from "@/components/arena/MinhasAulasClient";
 import { hhmm } from "@/lib/arena-dates";
+import { isDemoArenaIdentifier } from "@/lib/arena-demo";
+import { canAccessDemoArena } from "@/lib/arena-demo-access";
 
 type ClasseRel = { titulo: string; hora_inicio: string | null; hora_fim: string | null; publico: string | null; professor_id: string | null };
 function classeDe(raw: unknown): ClasseRel | null {
@@ -28,6 +30,9 @@ export default async function MinhasAulasPage({
     .eq("handle", handle)
     .maybeSingle();
   if (!arena) notFound();
+  if ((isDemoArenaIdentifier(arena.id) || isDemoArenaIdentifier(handle)) && !(await canAccessDemoArena(supabase))) {
+    notFound();
+  }
 
   // Confirma associação/autorização no servidor: só aluno ativo desta arena
   // acessa o próprio relatório — nunca dados de outro aluno.

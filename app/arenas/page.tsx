@@ -7,6 +7,8 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { DesktopSheetContourLight } from "@/components/shell/DesktopSheetContourLight";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { isDemoArenaIdentifier } from "@/lib/arena-demo";
+import { canAccessDemoArena } from "@/lib/arena-demo-access";
 
 export const metadata = {
   title: "Arenas & Centros de Treinamento — RankFTV",
@@ -78,22 +80,40 @@ export default async function ArenasPage({
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.min(parsedPage, 10_000) : 1;
   const supabase = await createClient();
 
-  const [{ data: pageData }, { data: config }] = await Promise.all([
+  const [{ data: pageData }, { data: config }, canSeeDemo] = await Promise.all([
     supabase.rpc("list_public_arena_cards", {
       p_query: query || null,
       p_estado: estado || null,
       p_ids: null,
-      p_limit: PAGE_SIZE,
+      p_limit: PAGE_SIZE + 1,
       p_offset: (page - 1) * PAGE_SIZE,
     }),
     supabase.from("platform_config").select("arenas_destaques_ids").eq("id", 1).maybeSingle(),
+    canAccessDemoArena(supabase),
   ]);
 
-  const rows = (pageData ?? []) as unknown as ArenaRpcRow[];
-  const arenas = rows.map(toCard);
-  const total = Number(rows[0]?.total_count ?? 0);
+  const rawRows = (pageData ?? []) as unknown as ArenaRpcRow[];
+  const visibleRows = (
+    canSeeDemo ? rawRows : rawRows.filter((row) => !isDemoArenaIdentifier(row.id) && !isDemoArenaIdentifier(row.handle))
+  ).slice(0, PAGE_SIZE);
+  const arenas = visibleRows.map(toCard);
 
-  if (rows.length === 0 && page > 1) {
+  let hiddenDemoMatches = 0;
+  if (!canSeeDemo) {
+    let demoCheck = supabase
+      .from("arenas")
+      .select("id", { count: "exact", head: true })
+      .eq("id", "a1000000-0000-4000-8000-000000000001");
+    if (query) demoCheck = demoCheck.ilike("nome", `%${query}%`);
+    if (estado) demoCheck = demoCheck.eq("estado", estado);
+    const { count: demoCount } = await demoCheck;
+    hiddenDemoMatches = demoCount ?? 0;
+  }
+
+  const rawTotal = Number(rawRows[0]?.total_count ?? 0);
+  const total = Math.max(0, rawTotal - hiddenDemoMatches);
+
+  if (visibleRows.length === 0 && page > 1) {
     const { data: firstRow } = await supabase.rpc("list_public_arena_cards", {
       p_query: query || null,
       p_estado: estado || null,
@@ -101,7 +121,8 @@ export default async function ArenasPage({
       p_limit: 1,
       p_offset: 0,
     });
-    const actualTotal = Number(((firstRow ?? [])[0] as ArenaRpcRow | undefined)?.total_count ?? 0);
+    const actualRawTotal = Number(((firstRow ?? [])[0] as ArenaRpcRow | undefined)?.total_count ?? 0);
+    const actualTotal = Math.max(0, actualRawTotal - hiddenDemoMatches);
     const lastPage = Math.max(1, Math.ceil(actualTotal / PAGE_SIZE));
     const corrected = new URLSearchParams();
     if (query) corrected.set("q", query);
@@ -110,7 +131,10 @@ export default async function ArenasPage({
     redirect(`/arenas${corrected.size > 0 ? `?${corrected}` : ""}`);
   }
 
-  const featuredIds = ((config?.arenas_destaques_ids as string[] | null) ?? []).slice(0, 3);
+  const featuredIdsRaw = ((config?.arenas_destaques_ids as string[] | null) ?? []).slice(0, 3);
+  const featuredIds = canSeeDemo
+    ? featuredIdsRaw
+    : featuredIdsRaw.filter((id) => !isDemoArenaIdentifier(id));
   let destaques: ArenaDestaque[] = [];
 
   if (!query && !estado && page === 1) {
@@ -122,7 +146,9 @@ export default async function ArenasPage({
         p_limit: 3,
         p_offset: 0,
       });
-      const cards = ((data ?? []) as unknown as ArenaRpcRow[]).map(toCard);
+      const cards = ((data ?? []) as unknown as ArenaRpcRow[])
+        .filter((row) => canSeeDemo || !isDemoArenaIdentifier(row.id))
+        .map(toCard);
       destaques = featuredIds.map((id) => cards.find((card) => card.id === id)).filter(Boolean) as ArenaDestaque[];
     } else {
       destaques = arenas.slice(0, 3);

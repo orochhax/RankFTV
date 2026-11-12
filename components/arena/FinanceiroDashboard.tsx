@@ -18,6 +18,9 @@ type AlunoRanking = {
 export function FinanceiroDashboard({
   faturamentoPrevisto,
   numAlunos,
+  receita12Meses = 0,
+  cobrancasPendentesValor = 0,
+  cobrancasPendentesCount = 0,
   receitaMensal,
   presencasSemanal,
   classesPorDia,
@@ -25,6 +28,9 @@ export function FinanceiroDashboard({
 }: {
   faturamentoPrevisto: number;
   numAlunos: number;
+  receita12Meses?: number;
+  cobrancasPendentesValor?: number;
+  cobrancasPendentesCount?: number;
   receitaMensal: ReceitaMes[];
   presencasSemanal: PresencaDia[];
   classesPorDia: ClassePorDia[];
@@ -32,8 +38,15 @@ export function FinanceiroDashboard({
 }) {
   const [selectedDow, setSelectedDow] = useState<number | null>(null);
   const [rankingAberto, setRankingAberto] = useState(true);
+  const [janelaMeses, setJanelaMeses] = useState<6 | 12>(
+    receitaMensal.length > 6 && receitaMensal.slice(0, -6).some((r) => r.valor > 0) ? 12 : 6,
+  );
 
-  const maxReceita = Math.max(...receitaMensal.map((r) => r.valor), 1);
+  const serieReceita = janelaMeses === 6 && receitaMensal.length > 6
+    ? receitaMensal.slice(-6)
+    : receitaMensal;
+
+  const maxReceita = Math.max(...serieReceita.map((r) => r.valor), 1);
   const maxPresenca = Math.max(...presencasSemanal.map((p) => p.count), 1);
 
   const detalheDia = selectedDow !== null
@@ -48,7 +61,7 @@ export function FinanceiroDashboard({
     <div className="space-y-6">
 
       {/* ── Cards de resumo ── */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-2xl bg-brand-dark p-4 text-white">
           <div className="mb-2 flex items-center gap-1.5 text-accent">
             <DollarSign className="size-4" />
@@ -59,35 +72,79 @@ export function FinanceiroDashboard({
           </p>
           <p className="mt-1 text-xs text-app-bg/75">mês corrente</p>
         </div>
-        <div className="rounded-2xl bg-gray-50 p-4 ring-1 ring-black/5">
+        <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
           <div className="mb-2 flex items-center gap-1.5 text-gray-400">
-            <Users className="size-4" />
+            <Users className="size-4 text-brand" />
             <span className="text-xs font-semibold text-gray-500">Alunos ativos</span>
           </div>
           <p className="text-2xl font-black leading-none text-gray-900">{numAlunos}</p>
           <p className="mt-1 text-xs text-gray-400">matriculados</p>
         </div>
+        <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
+          <div className="mb-2 flex items-center gap-1.5 text-[#16A34A]">
+            <TrendingUp className="size-4" />
+            <span className="text-xs font-semibold text-gray-500">Recebido (12 meses)</span>
+          </div>
+          <p className="text-2xl font-black leading-none text-gray-900">{fmt(receita12Meses)}</p>
+          <p className="mt-1 text-xs text-gray-400">recorrência confirmada</p>
+        </div>
+        <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
+          <div className="mb-2 flex items-center gap-1.5 text-[#D97706]">
+            <Clock className="size-4" />
+            <span className="text-xs font-semibold text-gray-500">Em aberto</span>
+          </div>
+          <p className="text-2xl font-black leading-none text-gray-900">{fmt(cobrancasPendentesValor)}</p>
+          <p className="mt-1 text-xs text-gray-400">
+            {cobrancasPendentesCount} {cobrancasPendentesCount === 1 ? "mensalidade pendente" : "mensalidades pendentes"}
+          </p>
+        </div>
       </div>
 
       {/* ── Gráfico mensal ── */}
       <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5">
-        <div className="mb-4 flex items-center gap-2">
-          <DollarSign className="size-4 text-brand" />
-          <h3 className="text-sm font-semibold text-gray-700">Receita — últimos 6 meses</h3>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <DollarSign className="size-4 text-brand" />
+            <h3 className="text-sm font-semibold text-gray-700">
+              Receita — últimos {serieReceita.length} meses
+            </h3>
+          </div>
+          {receitaMensal.length > 6 && (
+            <div className="inline-flex rounded-lg border border-border bg-surface-2 p-0.5 text-[11px] font-bold">
+              <button
+                type="button"
+                onClick={() => setJanelaMeses(6)}
+                className={`rounded-md px-2.5 py-1 transition ${
+                  janelaMeses === 6 ? "bg-brand text-white" : "text-ink-muted hover:text-ink"
+                }`}
+              >
+                6 meses
+              </button>
+              <button
+                type="button"
+                onClick={() => setJanelaMeses(12)}
+                className={`rounded-md px-2.5 py-1 transition ${
+                  janelaMeses === 12 ? "bg-brand text-white" : "text-ink-muted hover:text-ink"
+                }`}
+              >
+                12 meses
+              </button>
+            </div>
+          )}
         </div>
-        {receitaMensal.every((r) => r.valor === 0) ? (
+        {serieReceita.every((r) => r.valor === 0) ? (
           <p className="text-center text-xs text-gray-400">
             Nenhuma mensalidade paga registrada ainda.
           </p>
         ) : (
           <>
             {/* barras com altura em px para evitar problema de % em flex-grow */}
-            <div className="flex items-end gap-2" style={{ height: 80 }}>
-              {receitaMensal.map((r, i) => {
+            <div className="flex items-end gap-1.5 sm:gap-2" style={{ height: 90 }}>
+              {serieReceita.map((r, i) => {
                 const barH = r.valor > 0 ? Math.max(Math.round((r.valor / maxReceita) * 80), 4) : 2;
-                const isLast = i === receitaMensal.length - 1;
+                const isLast = i === serieReceita.length - 1;
                 return (
-                  <div key={i} className="flex flex-1 flex-col items-center justify-end">
+                  <div key={r.label} className="flex flex-1 flex-col items-center justify-end">
                     {r.valor > 0 && (
                       <span className="mb-1 text-[9px] font-semibold text-gray-400">
                         {r.valor >= 1000 ? `${(r.valor / 1000).toFixed(1)}k` : r.valor.toFixed(0)}
@@ -102,9 +159,9 @@ export function FinanceiroDashboard({
               })}
             </div>
             {/* labels abaixo */}
-            <div className="mt-1.5 flex gap-2">
-              {receitaMensal.map((r, i) => (
-                <span key={i} className="flex-1 text-center text-[10px] capitalize text-gray-400">
+            <div className="mt-1.5 flex gap-1.5 sm:gap-2">
+              {serieReceita.map((r) => (
+                <span key={r.label} className="flex-1 truncate text-center text-[9px] capitalize text-gray-400 sm:text-[10px]">
                   {r.label}
                 </span>
               ))}

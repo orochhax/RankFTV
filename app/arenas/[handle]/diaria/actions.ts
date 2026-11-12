@@ -8,6 +8,8 @@ import {
   arenaDailyPaymentSchema,
   invalidPaymentInput,
 } from "@/lib/payment-input-schemas";
+import { isDemoArenaIdentifier } from "@/lib/arena-demo";
+import { canAccessDemoArena } from "@/lib/arena-demo-access";
 
 export type DiariaInput = {
   planId:      string;
@@ -53,6 +55,9 @@ export async function pagarDiaria(input: DiariaInput): Promise<DiariaResult> {
     .eq("handle", input.handle)
     .maybeSingle();
   if (!arena) return { ok: false, error: "Plano de diária não encontrado." };
+  if ((isDemoArenaIdentifier(arena.id) || isDemoArenaIdentifier(input.handle)) && !(await canAccessDemoArena(supabase))) {
+    return { ok: false, error: "Plano de diária não encontrado." };
+  }
 
   if (!plan.aceita_credito) {
     return { ok: false, error: "Esta arena não aceita crédito para diária." };
