@@ -5,6 +5,15 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-12 09:50 (America/Sao_Paulo) — Recalibração Editorial do Canal Carlos Rocha e Coleta Completa com Likes/Views
+
+- Coleta completa via YouTube Data API v3 (`Carlos Rocha - YT/scripts/collect-competitors.mjs`) nos 17 canais concorrentes atualizando visualizações, **curtidas públicas (likes)** e comentários: **1.653 vídeos** coletados diretamente (**7 novos lançamentos** recentes) e 1.653 thumbnails JPEG válidas.
+- Atualização de `lib/evolution/carlos-rocha-rank.ts`, `components/evolution/CarlosRochaOutlierRank.tsx` e reconstrução de `lib/evolution/carlos-rocha-rank-snapshot.json` (**17 canais, 1.677 vídeos indexados**, incluindo campo `likes`).
+- Recalibração completa da Biblioteca Editorial (`lib/evolution/carlos-rocha-library.ts`, `lib/evolution/carlos-rocha-library.json` e `components/evolution/CarlosRochaCenter.tsx`):
+  - Adição do campo `stage: "ready_now" | "post_launch"` com badges visuais separando **13 ideias prontas agora (pré-lançamento)** de **11 ideias pós-lançamento** (que dependem do RankFTV em uso por arenas ou meses contínuos de estudo).
+  - Remoção definitiva de temas de rotina CLT, confissões íntimas de angústia/culpa, remoção do rótulo `(CLT)` e substituição das Oportunidades com foco em construção/lançamento do RankFTV, automações com IA, movimento proativo, silêncio reflexivo e carreira Brasil vs exterior.
+- Validações: typecheck (`tsc --noEmit`), suíte completa de testes unitários (`npm test`) e ESLint (`npm run lint`).
+
 ## 2026-11-11 22:42 (America/Sao_Paulo) — Refinamento do Campeonato Demo, Nova Arena Pro "Rank Football" Exclusiva do CEO e Rollout
 
 - **Campeonato demonstrativo (`scripts/seed-circuito-rankftv-demo.mjs`):**

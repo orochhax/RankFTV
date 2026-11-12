@@ -1,9 +1,12 @@
 import libraryData from "./carlos-rocha-library.json";
 
+export type CarlosRochaLibraryStage = "ready_now" | "post_launch";
+
 export type CarlosRochaLibraryIdea = {
   id: string;
   title: string;
   score: number;
+  stage: CarlosRochaLibraryStage;
   scenario: string;
   premise: string;
   tension: string;
