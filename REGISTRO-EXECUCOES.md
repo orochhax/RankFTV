@@ -5,6 +5,15 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-12 18:05 (America/Sao_Paulo) — Atualização completa do radar editorial e concorrentes do Rocha Tech
+
+- Coleta oficial via YouTube Data API v3 nos 24 canais concorrentes do Rocha Tech: 3.919 vídeos monitorados na janela de 365 dias (33 vídeos novos catalogados, 2.422 contadores de visualizações atualizados, zero falhas e zero fallbacks manuais).
+- Resumo oficial de coleta salvo em `Rocha Tech - YT/Concorrentes/ultima-coleta-2026-11-12.json`.
+- Radar ampliado com 3 novidades verificadas de fontes primárias: Google lança Gemini 4 Hydrogen com raciocínio rápido para agentes e 1M de contexto (95 pts), Anthropic atualiza Claude Code com tarefas em segundo plano via MCP (92 pts) e OpenAI documenta caso prático com Codex gerando aumento de 32,5% em conversão (84 pts).
+- Sincronização em produção no Supabase (Run ID: `b251b4df-b8a7-4260-8a5c-da6a67b51310`): 54 conteúdos (3 novos e 51 atualizados), 20 tendências e 27 ideias reavaliadas pela Fórmula de 5 Pilares com 108 abordagens e regra de ouro editorial (título, nota e tag alinhados à abordagem vencedora).
+- Reconstrução do snapshot seguro (`lib/evolution/intelligence-snapshot.json`): 3.918 vídeos, 24 canais e Top 15 oportunidades lideradas por Money Talk With Leon (#1, 1,047M views, 90 pts), Sanji Nai-Chien (#2, 1,377M views, 89 pts) e Sanji Nai-Chien (#3, 1,678M views, 88 pts).
+- Bateria de testes unitários e typecheck aprovados com 100% de sucesso.
+
 ## 2026-11-12 10:47 (America/Sao_Paulo) — Horários Opcionais em Campeonatos, Artes Rank Football, Correção Plano Pro e Rotas da Arena
 
 - **O que foi feito**:

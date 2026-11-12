@@ -13,6 +13,14 @@
   - **Radar Anti-Evasão & Torneios Internos**: corrigidos links quebrados `/painel/campeonatos/novo` → `/painel/novo-campeonato` em `app/arena/[handle]/torneios/page.tsx` e adicionadas rotas alias `app/arena/[handle]/radar-ante-evasao/page.tsx` e `app/arena/[handle]/torneios-internos/page.tsx`.
 - **Verificações locais (pós-edição)**: `npm test` (`970` testes, `969` pass, `1` skipped, `0` fail — incluindo 3 testes em `lib/championship-optional-times.test.ts`), `npm run typecheck` (exit 0), `npm run lint` (`0` errors, `1407` warnings pré-existentes), `npm run audit:prod` (exit 0), `npm run build` (exit 0).
 
+## Central de Evolução - Atualização Completa do Rocha Tech e Concorrentes (12/11/2026)
+
+- Coleta oficial via YouTube Data API v3 nos **24 canais concorrentes** concluída: **3.919 vídeos** monitorados na janela de 365 dias (33 vídeos novos catalogados, 2.422 visualizações atualizadas, zero falhas e zero fallbacks manuais).
+- Resumo oficial de coleta salvo em `Rocha Tech - YT/Concorrentes/ultima-coleta-2026-11-12.json`.
+- Radar de notícias ampliado com 3 novidades verificadas de fontes primárias: **Google lança Gemini 4 Hydrogen** com raciocínio rápido para agentes e 1 milhão de tokens de contexto (`https://blog.google`), **Anthropic atualiza Claude Code com tarefas em segundo plano via MCP** (`https://www.anthropic.com/news`), e **OpenAI documenta salto de conversão com automação de software no Codex** (`https://openai.com/pt-BR/news`).
+- Sincronização em produção no Supabase (Run ID: `b251b4df-b8a7-4260-8a5c-da6a67b51310`): 54 conteúdos (3 novos e 51 atualizados), 20 tendências e 27 ideias reavaliadas pela Fórmula de 5 Pilares com 108 abordagens e regra de ouro editorial (título, nota e tag vinculados rigorosamente à abordagem vencedora).
+- Snapshot seguro (`lib/evolution/intelligence-snapshot.json`) atualizado com 3.918 vídeos, 24 canais e Top 15 oportunidades lideradas por Money Talk With Leon (#1, 1,047M views, 90 pts), Sanji Nai-Chien (#2, 1,377M views, 89 pts) e Sanji Nai-Chien (#3, 1,678M views, 88 pts).
+
 ## Central de Evolução - Recalibração Editorial do Canal Carlos Rocha e Atualização de Likes/Views (12/11/2026)
 
 - Coleta oficial via YouTube Data API v3 nos **17 canais concorrentes** atualizada para `2026-11-12` (**1.653 vídeos** coletados diretamente com **7 novos lançamentos** desde a última rodada, incluindo atualização completa de visualizações, **curtidas públicas (likes)** e comentários em `Carlos Rocha - YT/scripts/collect-competitors.mjs`).

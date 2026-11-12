@@ -1,116 +1,8 @@
 {
-  "observedAt": "2026-11-11T13:15:23.338Z",
+  "observedAt": "2026-11-12T21:00:32.290Z",
   "channels": [],
   "videos": [],
   "topVideos": [
-    {
-      "id": "iJiBJAJRRkk",
-      "channel": "Sanji Nai-Chien",
-      "title": "O método de Shorts sem rosto com IA de US$ 30 mil/mês que ninguém comenta (fluxo completo)",
-      "originalTitle": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-      "url": "https://www.youtube.com/watch?v=iJiBJAJRRkk",
-      "thumbnail": "https://i.ytimg.com/vi/iJiBJAJRRkk/fhddefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Sanji%20Nai-Chien&video=iJiBJAJRRkk",
-      "views": 1308185,
-      "likes": 28474,
-      "comments": 928,
-      "durationSeconds": 808,
-      "isLive": false,
-      "publishedAt": "2026-07-25T13:00:03Z",
-      "publishedText": "25 de jul. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
-      "previousObservations": [
-        {
-          "observedAt": "2026-10-22T15:40:08.726Z",
-          "views": 621000,
-          "title": "The $30K/Month AI Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": null
-        },
-        {
-          "observedAt": "2026-10-29T16:19:18.772Z",
-          "views": 831358,
-          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": "2026-07-25T06:00:03-07:00"
-        },
-        {
-          "observedAt": "2026-10-30T13:02:11.826Z",
-          "views": 852526,
-          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": "2026-07-25T06:00:03-07:00"
-        },
-        {
-          "observedAt": "2026-11-01T01:57:14.093Z",
-          "views": 896203,
-          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": "2026-07-25T06:00:03-07:00"
-        },
-        {
-          "observedAt": "2026-11-03T00:58:19.429Z",
-          "views": 964916,
-          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": "2026-07-25T06:00:03-07:00"
-        },
-        {
-          "observedAt": "2026-11-03T16:14:03.667Z",
-          "views": 981750,
-          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": "2026-07-25T06:00:03-07:00"
-        },
-        {
-          "observedAt": "2026-11-04T12:39:09.169Z",
-          "views": 1014442,
-          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": "2026-07-25T13:00:03Z"
-        },
-        {
-          "observedAt": "2026-11-05T19:04:00.280Z",
-          "views": 1073841,
-          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": "2026-07-25T13:00:03Z"
-        },
-        {
-          "observedAt": "2026-11-06T19:03:14.019Z",
-          "views": 1113974,
-          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": "2026-07-25T13:00:03Z"
-        },
-        {
-          "observedAt": "2026-11-07T21:13:51.035Z",
-          "views": 1159781,
-          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": "2026-07-25T13:00:03Z"
-        },
-        {
-          "observedAt": "2026-11-09T15:19:15.280Z",
-          "views": 1222102,
-          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": "2026-07-25T13:00:03Z"
-        },
-        {
-          "observedAt": "2026-11-10T13:23:53.782Z",
-          "views": 1260394,
-          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
-          "publishedAt": "2026-07-25T13:00:03Z"
-        }
-      ],
-      "opportunityScore": 90,
-      "breakdown": {
-        "outlierExplosion": 32,
-        "audienceScale": 25,
-        "activeTraction": 18,
-        "relativeEngagement": 6,
-        "replicabilityAndValidity": 9
-      },
-      "channelMedianViews": 56689.5,
-      "relativePerformanceMultiple": 23.07631924783249,
-      "recentViewsPerDay": 34533,
-      "engagementMultiple": 1.21,
-      "formatLabel": "Tutorial aplicável",
-      "topicLabel": "Negócios e monetização",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "23,1× a mediana do canal · 34.533 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Negócios e monetização."
-    },
     {
       "id": "-pp851qDmOY",
       "channel": "Money Talk With Leon",
@@ -119,14 +11,14 @@
       "url": "https://www.youtube.com/watch?v=-pp851qDmOY",
       "thumbnail": "https://i.ytimg.com/vi/-pp851qDmOY/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Money%20Talk%20With%20Leon&video=-pp851qDmOY",
-      "views": 1040124,
-      "likes": 20722,
-      "comments": 4425,
+      "views": 1047866,
+      "likes": 20849,
+      "comments": 4432,
       "durationSeconds": 894,
       "isLive": false,
       "publishedAt": "2026-09-10T19:43:29Z",
       "publishedText": "10 de set. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
+      "observedAt": "2026-11-12T21:00:32.290Z",
       "previousObservations": [
         {
           "observedAt": "2026-10-22T15:40:08.726Z",
@@ -199,6 +91,12 @@
           "views": 1033806,
           "title": "The SIMPLEST Way To Make Money Online With Claude AI In 2027",
           "publishedAt": "2026-09-10T19:43:29Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 1040124,
+          "title": "The SIMPLEST Way To Make Money Online With Claude AI In 2027",
+          "publishedAt": "2026-09-10T19:43:29Z"
         }
       ],
       "opportunityScore": 90,
@@ -209,333 +107,129 @@
         "relativeEngagement": 9,
         "replicabilityAndValidity": 10
       },
-      "channelMedianViews": 28371,
-      "relativePerformanceMultiple": 36.661520566775934,
-      "recentViewsPerDay": 6137,
-      "engagementMultiple": 3.55,
+      "channelMedianViews": 27450.5,
+      "relativePerformanceMultiple": 38.17292945483689,
+      "recentViewsPerDay": 6119,
+      "engagementMultiple": 3.52,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Negócios e monetização",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "36,7× a mediana do canal · 6.137 views/dia de tração ativa; 3,55× mais comentários que o normal; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Negócios e monetização."
+      "rationale": "38,2× a mediana do canal · 6.119 views/dia de tração ativa; 3,52× mais comentários que o normal; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Negócios e monetização."
     },
     {
-      "id": "wtDDjBOfTZo",
-      "channel": "Iman Gadzhi",
-      "title": "Me dê 26 minutos e te darei 10.000 horas de conhecimento em Claude",
-      "originalTitle": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-      "url": "https://www.youtube.com/watch?v=wtDDjBOfTZo",
-      "thumbnail": "https://i.ytimg.com/vi/wtDDjBOfTZo/maxresdefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Iman%20Gadzhi&video=wtDDjBOfTZo",
-      "views": 1892559,
-      "likes": 47775,
-      "comments": 5440,
-      "durationSeconds": 1587,
+      "id": "iJiBJAJRRkk",
+      "channel": "Sanji Nai-Chien",
+      "title": "O método de Shorts sem rosto com IA de US$ 30 mil/mês que ninguém comenta (fluxo completo)",
+      "originalTitle": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+      "url": "https://www.youtube.com/watch?v=iJiBJAJRRkk",
+      "thumbnail": "https://i.ytimg.com/vi/iJiBJAJRRkk/fhddefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Sanji%20Nai-Chien&video=iJiBJAJRRkk",
+      "views": 1377081,
+      "likes": 30376,
+      "comments": 972,
+      "durationSeconds": 808,
       "isLive": false,
-      "publishedAt": "2026-07-22T16:14:52Z",
-      "publishedText": "22 de jul. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
+      "publishedAt": "2026-07-25T13:00:03Z",
+      "publishedText": "25 de jul. de 2026",
+      "observedAt": "2026-11-12T21:00:32.290Z",
       "previousObservations": [
         {
           "observedAt": "2026-10-22T15:40:08.726Z",
-          "views": 1700000,
-          "title": "Me dê 26 minutos e eu te darei 10.000 horas de conhecimento sobre o Claude",
+          "views": 621000,
+          "title": "The $30K/Month AI Faceless Shorts Method Nobody's Talking About (Full Workflow)",
           "publishedAt": null
         },
         {
           "observedAt": "2026-10-29T16:19:18.772Z",
-          "views": 1772433,
-          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-          "publishedAt": "2026-07-22T09:14:52-07:00"
+          "views": 831358,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T06:00:03-07:00"
         },
         {
           "observedAt": "2026-10-30T13:02:11.826Z",
-          "views": 1780738,
-          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-          "publishedAt": "2026-07-22T09:14:52-07:00"
+          "views": 852526,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T06:00:03-07:00"
         },
         {
           "observedAt": "2026-11-01T01:57:14.093Z",
-          "views": 1793974,
-          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-          "publishedAt": "2026-07-22T09:14:52-07:00"
+          "views": 896203,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T06:00:03-07:00"
         },
         {
           "observedAt": "2026-11-03T00:58:19.429Z",
-          "views": 1814924,
-          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-          "publishedAt": "2026-07-22T09:14:52-07:00"
+          "views": 964916,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T06:00:03-07:00"
         },
         {
           "observedAt": "2026-11-03T16:14:03.667Z",
-          "views": 1820244,
-          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-          "publishedAt": "2026-07-22T09:14:52-07:00"
+          "views": 981750,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T06:00:03-07:00"
         },
         {
           "observedAt": "2026-11-04T12:39:09.169Z",
-          "views": 1830083,
-          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-          "publishedAt": "2026-07-22T16:14:52Z"
+          "views": 1014442,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T13:00:03Z"
         },
         {
           "observedAt": "2026-11-05T19:04:00.280Z",
-          "views": 1842264,
-          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-          "publishedAt": "2026-07-22T16:14:52Z"
+          "views": 1073841,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T13:00:03Z"
         },
         {
           "observedAt": "2026-11-06T19:03:14.019Z",
-          "views": 1851288,
-          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-          "publishedAt": "2026-07-22T16:14:52Z"
+          "views": 1113974,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T13:00:03Z"
         },
         {
           "observedAt": "2026-11-07T21:13:51.035Z",
-          "views": 1862563,
-          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-          "publishedAt": "2026-07-22T16:14:52Z"
+          "views": 1159781,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T13:00:03Z"
         },
         {
           "observedAt": "2026-11-09T15:19:15.280Z",
-          "views": 1876701,
-          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-          "publishedAt": "2026-07-22T16:14:52Z"
+          "views": 1222102,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T13:00:03Z"
         },
         {
           "observedAt": "2026-11-10T13:23:53.782Z",
-          "views": 1884618,
-          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
-          "publishedAt": "2026-07-22T16:14:52Z"
+          "views": 1260394,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T13:00:03Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 1308185,
+          "title": "The $30K/Month Al Faceless Shorts Method Nobody's Talking About (Full Workflow)",
+          "publishedAt": "2026-07-25T13:00:03Z"
         }
       ],
-      "opportunityScore": 88,
+      "opportunityScore": 89,
       "breakdown": {
-        "outlierExplosion": 28,
-        "audienceScale": 26,
-        "activeTraction": 16,
-        "relativeEngagement": 8,
-        "replicabilityAndValidity": 10
-      },
-      "channelMedianViews": 261283,
-      "relativePerformanceMultiple": 7.243330029125508,
-      "recentViewsPerDay": 9677,
-      "engagementMultiple": 2.59,
-      "formatLabel": "Tutorial aplicável",
-      "topicLabel": "Ferramentas de IA",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "7,2× a mediana do canal · 9.677 views/dia de tração ativa; 2,59× mais comentários que o normal; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Ferramentas de IA."
-    },
-    {
-      "id": "vOBKA8n15vg",
-      "channel": "Iman Gadzhi",
-      "title": "Como ganhar US$ 10.000/mês com Higgsfield (sem experiência)",
-      "originalTitle": "How To Make $10,000/Month With Higgsfield (No Experience)",
-      "url": "https://www.youtube.com/watch?v=vOBKA8n15vg",
-      "thumbnail": "https://i.ytimg.com/vi/vOBKA8n15vg/maxresdefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Iman%20Gadzhi&video=vOBKA8n15vg",
-      "views": 1318118,
-      "likes": 22610,
-      "comments": 3793,
-      "durationSeconds": 1316,
-      "isLive": false,
-      "publishedAt": "2026-10-28T16:54:25Z",
-      "publishedText": "28 de out. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
-      "previousObservations": [
-        {
-          "observedAt": "2026-10-29T16:19:18.772Z",
-          "views": 200668,
-          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
-          "publishedAt": "2026-10-28T09:54:25-07:00"
-        },
-        {
-          "observedAt": "2026-10-30T13:02:11.826Z",
-          "views": 299681,
-          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
-          "publishedAt": "2026-10-28T09:54:25-07:00"
-        },
-        {
-          "observedAt": "2026-11-01T01:57:14.093Z",
-          "views": 528031,
-          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
-          "publishedAt": "2026-10-28T09:54:25-07:00"
-        },
-        {
-          "observedAt": "2026-11-03T00:58:19.429Z",
-          "views": 862340,
-          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
-          "publishedAt": "2026-10-28T09:54:25-07:00"
-        },
-        {
-          "observedAt": "2026-11-03T16:14:03.667Z",
-          "views": 917718,
-          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
-          "publishedAt": "2026-10-28T09:54:25-07:00"
-        },
-        {
-          "observedAt": "2026-11-04T12:39:09.169Z",
-          "views": 988586,
-          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
-          "publishedAt": "2026-10-28T16:54:25Z"
-        },
-        {
-          "observedAt": "2026-11-05T19:04:00.280Z",
-          "views": 1058617,
-          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
-          "publishedAt": "2026-10-28T16:54:25Z"
-        },
-        {
-          "observedAt": "2026-11-06T19:03:14.019Z",
-          "views": 1103546,
-          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
-          "publishedAt": "2026-10-28T16:54:25Z"
-        },
-        {
-          "observedAt": "2026-11-07T21:13:51.035Z",
-          "views": 1183283,
-          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
-          "publishedAt": "2026-10-28T16:54:25Z"
-        },
-        {
-          "observedAt": "2026-11-09T15:19:15.280Z",
-          "views": 1276860,
-          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
-          "publishedAt": "2026-10-28T16:54:25Z"
-        },
-        {
-          "observedAt": "2026-11-10T13:23:53.782Z",
-          "views": 1302578,
-          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
-          "publishedAt": "2026-10-28T16:54:25Z"
-        }
-      ],
-      "opportunityScore": 87,
-      "breakdown": {
-        "outlierExplosion": 28,
+        "outlierExplosion": 32,
         "audienceScale": 25,
-        "activeTraction": 21,
-        "relativeEngagement": 8,
-        "replicabilityAndValidity": 5
+        "activeTraction": 18,
+        "relativeEngagement": 5,
+        "replicabilityAndValidity": 9
       },
-      "channelMedianViews": 261283,
-      "relativePerformanceMultiple": 5.044790514499604,
-      "recentViewsPerDay": 86811,
-      "engagementMultiple": 2.59,
+      "channelMedianViews": 69595.5,
+      "relativePerformanceMultiple": 19.786925878828374,
+      "recentViewsPerDay": 35626,
+      "engagementMultiple": 0.97,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Negócios e monetização",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "5× a mediana do canal · 86.811 views/dia de tração ativa; 2,59× mais comentários que o normal; exige ferramenta/créditos acima da stack básica. Sinal: Negócios e monetização."
-    },
-    {
-      "id": "DZoeGR_tatA",
-      "channel": "Iman Gadzhi",
-      "title": "5 formas comprovadas de ganhar dinheiro com IA (sem experiência)",
-      "originalTitle": "5 Proven Ways To Make Money With AI (No Experience)",
-      "url": "https://www.youtube.com/watch?v=DZoeGR_tatA",
-      "thumbnail": "https://i.ytimg.com/vi/DZoeGR_tatA/fhddefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Iman%20Gadzhi&video=DZoeGR_tatA",
-      "views": 1675149,
-      "likes": 53708,
-      "comments": 4339,
-      "durationSeconds": 2191,
-      "isLive": false,
-      "publishedAt": "2026-07-09T17:15:59Z",
-      "publishedText": "9 de jul. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
-      "previousObservations": [
-        {
-          "observedAt": "2026-10-22T15:40:08.726Z",
-          "views": 1500000,
-          "title": "5 Maneiras Comprovadas de Ganhar Dinheiro com IA (Sem Experiência)",
-          "publishedAt": null
-        },
-        {
-          "observedAt": "2026-10-29T16:19:18.772Z",
-          "views": 1624251,
-          "title": "5 Proven Ways To Make Money With AI (No Experience)",
-          "publishedAt": "2026-07-09T10:15:59-07:00"
-        },
-        {
-          "observedAt": "2026-10-30T13:02:11.826Z",
-          "views": 1627452,
-          "title": "5 Proven Ways To Make Money With AI (No Experience)",
-          "publishedAt": "2026-07-09T10:15:59-07:00"
-        },
-        {
-          "observedAt": "2026-11-01T01:57:14.093Z",
-          "views": 1632715,
-          "title": "5 Proven Ways To Make Money With AI (No Experience)",
-          "publishedAt": "2026-07-09T10:15:59-07:00"
-        },
-        {
-          "observedAt": "2026-11-03T00:58:19.429Z",
-          "views": 1641433,
-          "title": "5 Proven Ways To Make Money With AI (No Experience)",
-          "publishedAt": "2026-07-09T10:15:59-07:00"
-        },
-        {
-          "observedAt": "2026-11-03T16:14:03.667Z",
-          "views": 1643766,
-          "title": "5 Proven Ways To Make Money With AI (No Experience)",
-          "publishedAt": "2026-07-09T10:15:59-07:00"
-        },
-        {
-          "observedAt": "2026-11-04T12:39:09.169Z",
-          "views": 1647871,
-          "title": "5 Proven Ways To Make Money With AI (No Experience)",
-          "publishedAt": "2026-07-09T17:15:59Z"
-        },
-        {
-          "observedAt": "2026-11-05T19:04:00.280Z",
-          "views": 1653925,
-          "title": "5 Proven Ways To Make Money With AI (No Experience)",
-          "publishedAt": "2026-07-09T17:15:59Z"
-        },
-        {
-          "observedAt": "2026-11-06T19:03:14.019Z",
-          "views": 1657683,
-          "title": "5 Proven Ways To Make Money With AI (No Experience)",
-          "publishedAt": "2026-07-09T17:15:59Z"
-        },
-        {
-          "observedAt": "2026-11-07T21:13:51.035Z",
-          "views": 1663537,
-          "title": "5 Proven Ways To Make Money With AI (No Experience)",
-          "publishedAt": "2026-07-09T17:15:59Z"
-        },
-        {
-          "observedAt": "2026-11-09T15:19:15.280Z",
-          "views": 1670732,
-          "title": "5 Proven Ways To Make Money With AI (No Experience)",
-          "publishedAt": "2026-07-09T17:15:59Z"
-        },
-        {
-          "observedAt": "2026-11-10T13:23:53.782Z",
-          "views": 1673279,
-          "title": "5 Proven Ways To Make Money With AI (No Experience)",
-          "publishedAt": "2026-07-09T17:15:59Z"
-        }
-      ],
-      "opportunityScore": 86,
-      "breakdown": {
-        "outlierExplosion": 27,
-        "audienceScale": 26,
-        "activeTraction": 15,
-        "relativeEngagement": 8,
-        "replicabilityAndValidity": 10
-      },
-      "channelMedianViews": 261283,
-      "relativePerformanceMultiple": 6.41124374720131,
-      "recentViewsPerDay": 8802,
-      "engagementMultiple": 2.33,
-      "formatLabel": "Tutorial aplicável",
-      "topicLabel": "Negócios e monetização",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "6,4× a mediana do canal · 8.802 views/dia de tração ativa; 2,33× mais comentários que o normal; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Negócios e monetização."
+      "rationale": "19,8× a mediana do canal · 35.626 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Negócios e monetização."
     },
     {
       "id": "8Rf0xna31xg",
@@ -545,14 +239,14 @@
       "url": "https://www.youtube.com/watch?v=8Rf0xna31xg",
       "thumbnail": "https://i.ytimg.com/vi/8Rf0xna31xg/uhddefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Sanji%20Nai-Chien&video=8Rf0xna31xg",
-      "views": 1672828,
-      "likes": 38185,
-      "comments": 68,
+      "views": 1678683,
+      "likes": 38263,
+      "comments": 1259,
       "durationSeconds": 1430,
       "isLive": false,
       "publishedAt": "2026-08-24T11:34:17Z",
       "publishedText": "24 de ago. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
+      "observedAt": "2026-11-12T21:00:32.290Z",
       "previousObservations": [
         {
           "observedAt": "2026-10-22T15:40:08.726Z",
@@ -625,25 +319,367 @@
           "views": 1668089,
           "title": "How a Faceless Channel Made $39K With Claude + ChatGPT",
           "publishedAt": "2026-08-24T11:34:17Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 1672828,
+          "title": "How a Faceless Channel Made $39K With Claude + ChatGPT",
+          "publishedAt": "2026-08-24T11:34:17Z"
         }
       ],
-      "opportunityScore": 84,
+      "opportunityScore": 88,
       "breakdown": {
         "outlierExplosion": 32,
         "audienceScale": 26,
         "activeTraction": 16,
-        "relativeEngagement": 2,
+        "relativeEngagement": 6,
         "replicabilityAndValidity": 8
       },
-      "channelMedianViews": 56689.5,
-      "relativePerformanceMultiple": 29.508603886081197,
-      "recentViewsPerDay": 8685,
-      "engagementMultiple": 0.07,
+      "channelMedianViews": 69595.5,
+      "relativePerformanceMultiple": 24.120568140181476,
+      "recentViewsPerDay": 8420,
+      "engagementMultiple": 1.03,
       "formatLabel": "Tese explicativa",
       "topicLabel": "Negócios e monetização",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "29,5× a mediana do canal · 8.685 views/dia de tração ativa; formato adaptável. Sinal: Negócios e monetização."
+      "rationale": "24,1× a mediana do canal · 8.420 views/dia de tração ativa; formato adaptável. Sinal: Negócios e monetização."
+    },
+    {
+      "id": "wtDDjBOfTZo",
+      "channel": "Iman Gadzhi",
+      "title": "Me dê 26 minutos e te darei 10.000 horas de conhecimento em Claude",
+      "originalTitle": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+      "url": "https://www.youtube.com/watch?v=wtDDjBOfTZo",
+      "thumbnail": "https://i.ytimg.com/vi/wtDDjBOfTZo/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Iman%20Gadzhi&video=wtDDjBOfTZo",
+      "views": 1906022,
+      "likes": 47886,
+      "comments": 5442,
+      "durationSeconds": 1587,
+      "isLive": false,
+      "publishedAt": "2026-07-22T16:14:52Z",
+      "publishedText": "22 de jul. de 2026",
+      "observedAt": "2026-11-12T21:00:32.290Z",
+      "previousObservations": [
+        {
+          "observedAt": "2026-10-22T15:40:08.726Z",
+          "views": 1700000,
+          "title": "Me dê 26 minutos e eu te darei 10.000 horas de conhecimento sobre o Claude",
+          "publishedAt": null
+        },
+        {
+          "observedAt": "2026-10-29T16:19:18.772Z",
+          "views": 1772433,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T09:14:52-07:00"
+        },
+        {
+          "observedAt": "2026-10-30T13:02:11.826Z",
+          "views": 1780738,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T09:14:52-07:00"
+        },
+        {
+          "observedAt": "2026-11-01T01:57:14.093Z",
+          "views": 1793974,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T09:14:52-07:00"
+        },
+        {
+          "observedAt": "2026-11-03T00:58:19.429Z",
+          "views": 1814924,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T09:14:52-07:00"
+        },
+        {
+          "observedAt": "2026-11-03T16:14:03.667Z",
+          "views": 1820244,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T09:14:52-07:00"
+        },
+        {
+          "observedAt": "2026-11-04T12:39:09.169Z",
+          "views": 1830083,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T16:14:52Z"
+        },
+        {
+          "observedAt": "2026-11-05T19:04:00.280Z",
+          "views": 1842264,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T16:14:52Z"
+        },
+        {
+          "observedAt": "2026-11-06T19:03:14.019Z",
+          "views": 1851288,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T16:14:52Z"
+        },
+        {
+          "observedAt": "2026-11-07T21:13:51.035Z",
+          "views": 1862563,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T16:14:52Z"
+        },
+        {
+          "observedAt": "2026-11-09T15:19:15.280Z",
+          "views": 1876701,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T16:14:52Z"
+        },
+        {
+          "observedAt": "2026-11-10T13:23:53.782Z",
+          "views": 1884618,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T16:14:52Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 1892559,
+          "title": "⁠Give Me 26 minutes, I'll Give You 10,000 hours of Claude Knowledge",
+          "publishedAt": "2026-07-22T16:14:52Z"
+        }
+      ],
+      "opportunityScore": 87,
+      "breakdown": {
+        "outlierExplosion": 27,
+        "audienceScale": 26,
+        "activeTraction": 16,
+        "relativeEngagement": 8,
+        "replicabilityAndValidity": 10
+      },
+      "channelMedianViews": 301712,
+      "relativePerformanceMultiple": 6.317355623906241,
+      "recentViewsPerDay": 9708,
+      "engagementMultiple": 2.57,
+      "formatLabel": "Tutorial aplicável",
+      "topicLabel": "Ferramentas de IA",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "6,3× a mediana do canal · 9.708 views/dia de tração ativa; 2,57× mais comentários que o normal; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Ferramentas de IA."
+    },
+    {
+      "id": "DZoeGR_tatA",
+      "channel": "Iman Gadzhi",
+      "title": "5 formas comprovadas de ganhar dinheiro com IA (sem experiência)",
+      "originalTitle": "5 Proven Ways To Make Money With AI (No Experience)",
+      "url": "https://www.youtube.com/watch?v=DZoeGR_tatA",
+      "thumbnail": "https://i.ytimg.com/vi/DZoeGR_tatA/fhddefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Iman%20Gadzhi&video=DZoeGR_tatA",
+      "views": 1677761,
+      "likes": 53728,
+      "comments": 4340,
+      "durationSeconds": 2191,
+      "isLive": false,
+      "publishedAt": "2026-07-09T17:15:59Z",
+      "publishedText": "9 de jul. de 2026",
+      "observedAt": "2026-11-12T21:00:32.290Z",
+      "previousObservations": [
+        {
+          "observedAt": "2026-10-22T15:40:08.726Z",
+          "views": 1500000,
+          "title": "5 Maneiras Comprovadas de Ganhar Dinheiro com IA (Sem Experiência)",
+          "publishedAt": null
+        },
+        {
+          "observedAt": "2026-10-29T16:19:18.772Z",
+          "views": 1624251,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T10:15:59-07:00"
+        },
+        {
+          "observedAt": "2026-10-30T13:02:11.826Z",
+          "views": 1627452,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T10:15:59-07:00"
+        },
+        {
+          "observedAt": "2026-11-01T01:57:14.093Z",
+          "views": 1632715,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T10:15:59-07:00"
+        },
+        {
+          "observedAt": "2026-11-03T00:58:19.429Z",
+          "views": 1641433,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T10:15:59-07:00"
+        },
+        {
+          "observedAt": "2026-11-03T16:14:03.667Z",
+          "views": 1643766,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T10:15:59-07:00"
+        },
+        {
+          "observedAt": "2026-11-04T12:39:09.169Z",
+          "views": 1647871,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T17:15:59Z"
+        },
+        {
+          "observedAt": "2026-11-05T19:04:00.280Z",
+          "views": 1653925,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T17:15:59Z"
+        },
+        {
+          "observedAt": "2026-11-06T19:03:14.019Z",
+          "views": 1657683,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T17:15:59Z"
+        },
+        {
+          "observedAt": "2026-11-07T21:13:51.035Z",
+          "views": 1663537,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T17:15:59Z"
+        },
+        {
+          "observedAt": "2026-11-09T15:19:15.280Z",
+          "views": 1670732,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T17:15:59Z"
+        },
+        {
+          "observedAt": "2026-11-10T13:23:53.782Z",
+          "views": 1673279,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T17:15:59Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 1675149,
+          "title": "5 Proven Ways To Make Money With AI (No Experience)",
+          "publishedAt": "2026-07-09T17:15:59Z"
+        }
+      ],
+      "opportunityScore": 85,
+      "breakdown": {
+        "outlierExplosion": 26,
+        "audienceScale": 26,
+        "activeTraction": 15,
+        "relativeEngagement": 8,
+        "replicabilityAndValidity": 10
+      },
+      "channelMedianViews": 301712,
+      "relativePerformanceMultiple": 5.5608030174471015,
+      "recentViewsPerDay": 8376,
+      "engagementMultiple": 2.33,
+      "formatLabel": "Tutorial aplicável",
+      "topicLabel": "Negócios e monetização",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "5,6× a mediana do canal · 8.376 views/dia de tração ativa; 2,33× mais comentários que o normal; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Negócios e monetização."
+    },
+    {
+      "id": "vOBKA8n15vg",
+      "channel": "Iman Gadzhi",
+      "title": "Como ganhar US$ 10.000/mês com Higgsfield (sem experiência)",
+      "originalTitle": "How To Make $10,000/Month With Higgsfield (No Experience)",
+      "url": "https://www.youtube.com/watch?v=vOBKA8n15vg",
+      "thumbnail": "https://i.ytimg.com/vi/vOBKA8n15vg/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Iman%20Gadzhi&video=vOBKA8n15vg",
+      "views": 1334300,
+      "likes": 22832,
+      "comments": 3797,
+      "durationSeconds": 1316,
+      "isLive": false,
+      "publishedAt": "2026-10-28T16:54:25Z",
+      "publishedText": "28 de out. de 2026",
+      "observedAt": "2026-11-12T21:00:32.290Z",
+      "previousObservations": [
+        {
+          "observedAt": "2026-10-29T16:19:18.772Z",
+          "views": 200668,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T09:54:25-07:00"
+        },
+        {
+          "observedAt": "2026-10-30T13:02:11.826Z",
+          "views": 299681,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T09:54:25-07:00"
+        },
+        {
+          "observedAt": "2026-11-01T01:57:14.093Z",
+          "views": 528031,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T09:54:25-07:00"
+        },
+        {
+          "observedAt": "2026-11-03T00:58:19.429Z",
+          "views": 862340,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T09:54:25-07:00"
+        },
+        {
+          "observedAt": "2026-11-03T16:14:03.667Z",
+          "views": 917718,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T09:54:25-07:00"
+        },
+        {
+          "observedAt": "2026-11-04T12:39:09.169Z",
+          "views": 988586,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T16:54:25Z"
+        },
+        {
+          "observedAt": "2026-11-05T19:04:00.280Z",
+          "views": 1058617,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T16:54:25Z"
+        },
+        {
+          "observedAt": "2026-11-06T19:03:14.019Z",
+          "views": 1103546,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T16:54:25Z"
+        },
+        {
+          "observedAt": "2026-11-07T21:13:51.035Z",
+          "views": 1183283,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T16:54:25Z"
+        },
+        {
+          "observedAt": "2026-11-09T15:19:15.280Z",
+          "views": 1276860,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T16:54:25Z"
+        },
+        {
+          "observedAt": "2026-11-10T13:23:53.782Z",
+          "views": 1302578,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T16:54:25Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 1318118,
+          "title": "How To Make $10,000/Month With Higgsfield (No Experience)",
+          "publishedAt": "2026-10-28T16:54:25Z"
+        }
+      ],
+      "opportunityScore": 84,
+      "breakdown": {
+        "outlierExplosion": 25,
+        "audienceScale": 25,
+        "activeTraction": 21,
+        "relativeEngagement": 8,
+        "replicabilityAndValidity": 5
+      },
+      "channelMedianViews": 301712,
+      "relativePerformanceMultiple": 4.422429336585883,
+      "recentViewsPerDay": 79860,
+      "engagementMultiple": 2.56,
+      "formatLabel": "Tutorial aplicável",
+      "topicLabel": "Negócios e monetização",
+      "editorialPillar": "ai_applied",
+      "editorialPillarLabel": "IA aplicada a resultados",
+      "rationale": "4,4× a mediana do canal · 79.860 views/dia de tração ativa; 2,56× mais comentários que o normal; exige ferramenta/créditos acima da stack básica. Sinal: Negócios e monetização."
     },
     {
       "id": "J5EbL1UaqG8",
@@ -653,14 +689,14 @@
       "url": "https://www.youtube.com/watch?v=J5EbL1UaqG8",
       "thumbnail": "https://i.ytimg.com/vi/J5EbL1UaqG8/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Ben%20AI&video=J5EbL1UaqG8",
-      "views": 761179,
-      "likes": 10567,
-      "comments": 283,
+      "views": 762800,
+      "likes": 10582,
+      "comments": 284,
       "durationSeconds": 820,
       "isLive": false,
       "publishedAt": "2026-10-25T09:45:01Z",
       "publishedText": "25 de out. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
+      "observedAt": "2026-11-12T21:00:32.290Z",
       "previousObservations": [
         {
           "observedAt": "2026-10-25T18:04:22.104Z",
@@ -733,25 +769,31 @@
           "views": 759964,
           "title": "Claude 2.0 is Insane (All Updates Explained)",
           "publishedAt": "2026-10-25T09:45:01Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 761179,
+          "title": "Claude 2.0 is Insane (All Updates Explained)",
+          "publishedAt": "2026-10-25T09:45:01Z"
         }
       ],
       "opportunityScore": 84,
       "breakdown": {
-        "outlierExplosion": 32,
+        "outlierExplosion": 31,
         "audienceScale": 22,
         "activeTraction": 19,
-        "relativeEngagement": 3,
+        "relativeEngagement": 4,
         "replicabilityAndValidity": 8
       },
-      "channelMedianViews": 35234,
-      "relativePerformanceMultiple": 21.603536356927968,
-      "recentViewsPerDay": 38934,
-      "engagementMultiple": 0.54,
+      "channelMedianViews": 36204.5,
+      "relativePerformanceMultiple": 21.069204104462152,
+      "recentViewsPerDay": 36181,
+      "engagementMultiple": 0.56,
       "formatLabel": "Notícia explicada",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "news",
       "editorialPillarLabel": "Notícia relevante",
-      "rationale": "21,6× a mediana do canal · 38.934 views/dia de tração ativa; formato adaptável. Sinal: Ferramentas de IA."
+      "rationale": "21,1× a mediana do canal · 36.181 views/dia de tração ativa; formato adaptável. Sinal: Ferramentas de IA."
     },
     {
       "id": "Fys4oHlXQmQ",
@@ -761,14 +803,14 @@
       "url": "https://www.youtube.com/watch?v=Fys4oHlXQmQ",
       "thumbnail": "https://i.ytimg.com/vi/Fys4oHlXQmQ/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=AI%20Master&video=Fys4oHlXQmQ",
-      "views": 1046366,
-      "likes": 9038,
-      "comments": 166,
+      "views": 1065825,
+      "likes": 9146,
+      "comments": 170,
       "durationSeconds": 6293,
       "isLive": false,
       "publishedAt": "2026-07-13T11:55:46Z",
       "publishedText": "13 de jul. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
+      "observedAt": "2026-11-12T21:00:32.290Z",
       "previousObservations": [
         {
           "observedAt": "2026-10-22T15:40:08.726Z",
@@ -841,6 +883,12 @@
           "views": 1033705,
           "title": "FULL Claude Course for Beginners in 2026! (Become a PRO!)",
           "publishedAt": "2026-07-13T11:55:46Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 1046366,
+          "title": "FULL Claude Course for Beginners in 2026! (Become a PRO!)",
+          "publishedAt": "2026-07-13T11:55:46Z"
         }
       ],
       "opportunityScore": 83,
@@ -851,15 +899,15 @@
         "relativeEngagement": 2,
         "replicabilityAndValidity": 10
       },
-      "channelMedianViews": 19536,
-      "relativePerformanceMultiple": 53.560913185913186,
-      "recentViewsPerDay": 10772,
+      "channelMedianViews": 19632,
+      "relativePerformanceMultiple": 54.29018948655257,
+      "recentViewsPerDay": 11018,
       "engagementMultiple": 0.26,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "53,6× a mediana do canal · 10.772 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Ferramentas de IA."
+      "rationale": "54,3× a mediana do canal · 11.018 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Ferramentas de IA."
     },
     {
       "id": "bcM9dP_uXJU",
@@ -869,14 +917,14 @@
       "url": "https://www.youtube.com/watch?v=bcM9dP_uXJU",
       "thumbnail": "https://i.ytimg.com/vi/bcM9dP_uXJU/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=AI%20Master&video=bcM9dP_uXJU",
-      "views": 977227,
-      "likes": 6210,
+      "views": 990926,
+      "likes": 6278,
       "comments": 183,
       "durationSeconds": 1328,
       "isLive": false,
       "publishedAt": "2026-06-30T14:26:45Z",
       "publishedText": "30 de jun. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
+      "observedAt": "2026-11-12T21:00:32.290Z",
       "previousObservations": [
         {
           "observedAt": "2026-10-22T15:40:08.726Z",
@@ -949,6 +997,12 @@
           "views": 967525,
           "title": "How to Build an AI Agent with Claude Code (Claude AI Agent Tutorial)",
           "publishedAt": "2026-06-30T14:26:45Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 977227,
+          "title": "How to Build an AI Agent with Claude Code (Claude AI Agent Tutorial)",
+          "publishedAt": "2026-06-30T14:26:45Z"
         }
       ],
       "opportunityScore": 82,
@@ -959,15 +1013,15 @@
         "relativeEngagement": 2,
         "replicabilityAndValidity": 10
       },
-      "channelMedianViews": 19536,
-      "relativePerformanceMultiple": 50.02185708435709,
-      "recentViewsPerDay": 10213,
-      "engagementMultiple": 0.31,
+      "channelMedianViews": 19632,
+      "relativePerformanceMultiple": 50.47504074979625,
+      "recentViewsPerDay": 10222,
+      "engagementMultiple": 0.3,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Agentes e automação",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "50× a mediana do canal · 10.213 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Agentes e automação."
+      "rationale": "50,5× a mediana do canal · 10.222 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Agentes e automação."
     },
     {
       "id": "Y9sYXgGxohw",
@@ -977,14 +1031,14 @@
       "url": "https://www.youtube.com/watch?v=Y9sYXgGxohw",
       "thumbnail": "https://i.ytimg.com/vi/Y9sYXgGxohw/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Rafa%20Voss%20IA%20na%20Pr%C3%A1tica&video=Y9sYXgGxohw",
-      "views": 478790,
-      "likes": 21719,
+      "views": 479719,
+      "likes": 21729,
       "comments": 375,
       "durationSeconds": 1175,
       "isLive": false,
       "publishedAt": "2026-02-16T13:04:00Z",
       "publishedText": "16 de fev. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
+      "observedAt": "2026-11-12T21:00:32.290Z",
       "previousObservations": [
         {
           "observedAt": "2026-10-22T15:40:08.726Z",
@@ -1057,6 +1111,12 @@
           "views": 478287,
           "title": "Claude Cowork: Tutorial COMPLETO Para Iniciantes (O fim do Saas)",
           "publishedAt": "2026-02-16T13:04:00Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 478790,
+          "title": "Claude Cowork: Tutorial COMPLETO Para Iniciantes (O fim do Saas)",
+          "publishedAt": "2026-02-16T13:04:00Z"
         }
       ],
       "opportunityScore": 75,
@@ -1067,15 +1127,57 @@
         "relativeEngagement": 5,
         "replicabilityAndValidity": 10
       },
-      "channelMedianViews": 18679,
-      "relativePerformanceMultiple": 25.632528507950106,
-      "recentViewsPerDay": 391,
+      "channelMedianViews": 18695,
+      "relativePerformanceMultiple": 25.660283498261567,
+      "recentViewsPerDay": 411,
       "engagementMultiple": 0.65,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Negócios e monetização",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "25,6× a mediana do canal · 391 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Negócios e monetização."
+      "rationale": "25,7× a mediana do canal · 411 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Negócios e monetização."
+    },
+    {
+      "id": "7LLCexpekZI",
+      "channel": "Brock Mesarich | AI for Non Techies",
+      "title": "Anthropic Just Dropped Claude Whiteboard, Sheets and Data",
+      "originalTitle": "Anthropic Just Dropped Claude Whiteboard, Sheets and Data",
+      "url": "https://www.youtube.com/watch?v=7LLCexpekZI",
+      "thumbnail": "https://i.ytimg.com/vi/7LLCexpekZI/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Brock%20Mesarich%20AI%20for%20Non%20Techies&video=7LLCexpekZI",
+      "views": 273763,
+      "likes": 1939,
+      "comments": 76,
+      "durationSeconds": 589,
+      "isLive": false,
+      "publishedAt": "2026-11-10T23:28:53Z",
+      "publishedText": "10 de nov. de 2026",
+      "observedAt": "2026-11-12T21:00:32.290Z",
+      "previousObservations": [
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 127159,
+          "title": "Anthropic Just Dropped Claude Whiteboard, Sheets and Data",
+          "publishedAt": "2026-11-10T23:28:53Z"
+        }
+      ],
+      "opportunityScore": 74,
+      "breakdown": {
+        "outlierExplosion": 24,
+        "audienceScale": 18,
+        "activeTraction": 22,
+        "relativeEngagement": 2,
+        "replicabilityAndValidity": 8
+      },
+      "channelMedianViews": 36393,
+      "relativePerformanceMultiple": 7.522408155414503,
+      "recentViewsPerDay": 110810,
+      "engagementMultiple": 0.23,
+      "formatLabel": "Notícia explicada",
+      "topicLabel": "Ferramentas de IA",
+      "editorialPillar": "news",
+      "editorialPillarLabel": "Notícia relevante",
+      "rationale": "7,5× a mediana do canal · 110.810 views/dia de tração ativa; formato adaptável. Sinal: Ferramentas de IA."
     },
     {
       "id": "lr7m3qGivto",
@@ -1085,14 +1187,14 @@
       "url": "https://www.youtube.com/watch?v=lr7m3qGivto",
       "thumbnail": "https://i.ytimg.com/vi/lr7m3qGivto/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Rafa%20Voss%20IA%20na%20Pr%C3%A1tica&video=lr7m3qGivto",
-      "views": 286764,
-      "likes": 7129,
-      "comments": 278,
+      "views": 290528,
+      "likes": 7197,
+      "comments": 281,
       "durationSeconds": 592,
       "isLive": false,
       "publishedAt": "2026-10-13T13:04:17Z",
       "publishedText": "13 de out. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
+      "observedAt": "2026-11-12T21:00:32.290Z",
       "previousObservations": [
         {
           "observedAt": "2026-10-22T15:40:08.726Z",
@@ -1165,25 +1267,31 @@
           "views": 283905,
           "title": "APRENDA a CLONAR qualquer SOFTWARE em MINUTOS! (IMPRESSIONANTE!)",
           "publishedAt": "2026-10-13T13:04:17Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 286764,
+          "title": "APRENDA a CLONAR qualquer SOFTWARE em MINUTOS! (IMPRESSIONANTE!)",
+          "publishedAt": "2026-10-13T13:04:17Z"
         }
       ],
-      "opportunityScore": 74,
+      "opportunityScore": 73,
       "breakdown": {
-        "outlierExplosion": 28,
+        "outlierExplosion": 27,
         "audienceScale": 18,
         "activeTraction": 14,
         "relativeEngagement": 5,
         "replicabilityAndValidity": 9
       },
-      "channelMedianViews": 18679,
-      "relativePerformanceMultiple": 15.352213715937683,
-      "recentViewsPerDay": 4913,
+      "channelMedianViews": 18695,
+      "relativePerformanceMultiple": 15.540411874832843,
+      "recentViewsPerDay": 4784,
       "engagementMultiple": 0.81,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Negócios e monetização",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "15,4× a mediana do canal · 4.913 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Negócios e monetização."
+      "rationale": "15,5× a mediana do canal · 4.784 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Negócios e monetização."
     },
     {
       "id": "3cUQxnCMD2Y",
@@ -1193,14 +1301,14 @@
       "url": "https://www.youtube.com/watch?v=3cUQxnCMD2Y",
       "thumbnail": "https://i.ytimg.com/vi/3cUQxnCMD2Y/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Victor%20Baggio%20IA%20para%20Vendas&video=3cUQxnCMD2Y",
-      "views": 169137,
-      "likes": 3174,
+      "views": 172886,
+      "likes": 3236,
       "comments": 99,
       "durationSeconds": 1767,
       "isLive": false,
       "publishedAt": "2026-09-16T15:00:33Z",
       "publishedText": "16 de set. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
+      "observedAt": "2026-11-12T21:00:32.290Z",
       "previousObservations": [
         {
           "observedAt": "2026-10-22T15:40:08.726Z",
@@ -1273,6 +1381,12 @@
           "views": 165680,
           "title": "Como eu uso o Claude pra tocar minha empresa inteira (Segundo Cérebro)",
           "publishedAt": "2026-09-16T15:00:33Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 169137,
+          "title": "Como eu uso o Claude pra tocar minha empresa inteira (Segundo Cérebro)",
+          "publishedAt": "2026-09-16T15:00:33Z"
         }
       ],
       "opportunityScore": 73,
@@ -1283,123 +1397,15 @@
         "relativeEngagement": 3,
         "replicabilityAndValidity": 10
       },
-      "channelMedianViews": 4166.5,
-      "relativePerformanceMultiple": 40.59450378015121,
-      "recentViewsPerDay": 3223,
-      "engagementMultiple": 0.49,
+      "channelMedianViews": 5092,
+      "relativePerformanceMultiple": 33.95247446975648,
+      "recentViewsPerDay": 3199,
+      "engagementMultiple": 0.48,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "40,6× a mediana do canal · 3.223 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Ferramentas de IA."
-    },
-    {
-      "id": "j4FzO2fF1kg",
-      "channel": "Sanji Nai-Chien",
-      "title": "Esqueça o After Effects: Claude e CapCut são tudo o que você precisa para editar",
-      "originalTitle": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-      "url": "https://www.youtube.com/watch?v=j4FzO2fF1kg",
-      "thumbnail": "https://i.ytimg.com/vi/j4FzO2fF1kg/uhddefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Sanji%20Nai-Chien&video=j4FzO2fF1kg",
-      "views": 689357,
-      "likes": 10602,
-      "comments": 58,
-      "durationSeconds": 1359,
-      "isLive": false,
-      "publishedAt": "2026-08-19T12:00:28Z",
-      "publishedText": "19 de ago. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
-      "previousObservations": [
-        {
-          "observedAt": "2026-10-22T15:40:08.726Z",
-          "views": 656000,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": null
-        },
-        {
-          "observedAt": "2026-10-29T16:19:18.772Z",
-          "views": 669715,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": "2026-08-19T05:00:28-07:00"
-        },
-        {
-          "observedAt": "2026-10-30T13:02:11.826Z",
-          "views": 670961,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": "2026-08-19T05:00:28-07:00"
-        },
-        {
-          "observedAt": "2026-11-01T01:57:14.093Z",
-          "views": 673308,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": "2026-08-19T05:00:28-07:00"
-        },
-        {
-          "observedAt": "2026-11-03T00:58:19.429Z",
-          "views": 676285,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": "2026-08-19T05:00:28-07:00"
-        },
-        {
-          "observedAt": "2026-11-03T16:14:03.667Z",
-          "views": 677262,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": "2026-08-19T05:00:28-07:00"
-        },
-        {
-          "observedAt": "2026-11-04T12:39:09.169Z",
-          "views": 678859,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": "2026-08-19T12:00:28Z"
-        },
-        {
-          "observedAt": "2026-11-05T19:04:00.280Z",
-          "views": 680751,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": "2026-08-19T12:00:28Z"
-        },
-        {
-          "observedAt": "2026-11-06T19:03:14.019Z",
-          "views": 682116,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": "2026-08-19T12:00:28Z"
-        },
-        {
-          "observedAt": "2026-11-07T21:13:51.035Z",
-          "views": 683690,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": "2026-08-19T12:00:28Z"
-        },
-        {
-          "observedAt": "2026-11-09T15:19:15.280Z",
-          "views": 686444,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": "2026-08-19T12:00:28Z"
-        },
-        {
-          "observedAt": "2026-11-10T13:23:53.782Z",
-          "views": 687843,
-          "title": "Forget After Effects: Claude + CapCut Is the Only Editing Stack You Need",
-          "publishedAt": "2026-08-19T12:00:28Z"
-        }
-      ],
-      "opportunityScore": 72,
-      "breakdown": {
-        "outlierExplosion": 28,
-        "audienceScale": 22,
-        "activeTraction": 12,
-        "relativeEngagement": 2,
-        "replicabilityAndValidity": 8
-      },
-      "channelMedianViews": 56689.5,
-      "relativePerformanceMultiple": 12.160223674578186,
-      "recentViewsPerDay": 1676,
-      "engagementMultiple": 0.14,
-      "formatLabel": "Tese explicativa",
-      "topicLabel": "Ferramentas de IA",
-      "editorialPillar": "ai_applied",
-      "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "12,2× a mediana do canal · 1.676 views/dia de tração ativa; formato adaptável. Sinal: Ferramentas de IA."
+      "rationale": "34× a mediana do canal · 3.199 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Ferramentas de IA."
     },
     {
       "id": "Vo5ePeM3C3U",
@@ -1409,14 +1415,14 @@
       "url": "https://www.youtube.com/watch?v=Vo5ePeM3C3U",
       "thumbnail": "https://i.ytimg.com/vi/Vo5ePeM3C3U/maxresdefault.jpg",
       "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Vagner%20Mazzeo&video=Vo5ePeM3C3U",
-      "views": 423916,
-      "likes": 1418,
+      "views": 423998,
+      "likes": 1420,
       "comments": 155,
       "durationSeconds": 2115,
       "isLive": false,
       "publishedAt": "2026-05-22T15:30:10Z",
       "publishedText": "22 de mai. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
+      "observedAt": "2026-11-12T21:00:32.290Z",
       "previousObservations": [
         {
           "observedAt": "2026-10-22T15:40:08.726Z",
@@ -1489,177 +1495,117 @@
           "views": 423869,
           "title": "Claude Code Tutorial Completo em Português: Do Zero ao Primeiro Projeto",
           "publishedAt": "2026-05-22T15:30:10Z"
+        },
+        {
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 423916,
+          "title": "Claude Code Tutorial Completo em Português: Do Zero ao Primeiro Projeto",
+          "publishedAt": "2026-05-22T15:30:10Z"
         }
       ],
-      "opportunityScore": 71,
+      "opportunityScore": 72,
       "breakdown": {
-        "outlierExplosion": 31,
+        "outlierExplosion": 32,
         "audienceScale": 20,
         "activeTraction": 8,
         "relativeEngagement": 2,
         "replicabilityAndValidity": 10
       },
-      "channelMedianViews": 17104.5,
-      "relativePerformanceMultiple": 24.78388728112485,
-      "recentViewsPerDay": 46,
+      "channelMedianViews": 15881,
+      "relativePerformanceMultiple": 26.69844468232479,
+      "recentViewsPerDay": 47,
       "engagementMultiple": 0.3,
       "formatLabel": "Tutorial aplicável",
       "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "24,8× a mediana do canal · 46 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Ferramentas de IA."
+      "rationale": "26,7× a mediana do canal · 47 views/dia de tração ativa; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Ferramentas de IA."
     },
     {
-      "id": "6RFFFFOP_-s",
-      "channel": "A Vizinhança",
-      "title": "Site com IA | Google Maps até a venda (passo a passo)",
-      "originalTitle": "Site com IA | Google Maps até a venda (passo a passo)",
-      "url": "https://www.youtube.com/watch?v=6RFFFFOP_-s",
-      "thumbnail": "https://i.ytimg.com/vi/6RFFFFOP_-s/qhddefault.jpg",
-      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=A%20Vizinhan%C3%A7a&video=6RFFFFOP_-s",
-      "views": 99210,
-      "likes": 4298,
-      "comments": 330,
-      "durationSeconds": 1964,
+      "id": "WuzMxEKJHkQ",
+      "channel": "Maestros da IA",
+      "title": "CLAUDE FABLE 5.2 Produziu Este Vídeo Para Te Ensinar Como a IA Edita Vídeos",
+      "originalTitle": "CLAUDE FABLE 5.2 Produziu Este Vídeo Para Te Ensinar Como a IA Edita Vídeos",
+      "url": "https://www.youtube.com/watch?v=WuzMxEKJHkQ",
+      "thumbnail": "https://i.ytimg.com/vi/WuzMxEKJHkQ/maxresdefault.jpg",
+      "thumbnailUrl": "/api/admin/youtube/research?asset=thumbnail&channel=Maestros%20da%20IA&video=WuzMxEKJHkQ",
+      "views": 116226,
+      "likes": 2906,
+      "comments": 201,
+      "durationSeconds": 456,
       "isLive": false,
-      "publishedAt": "2026-07-05T00:15:01Z",
-      "publishedText": "4 de jul. de 2026",
-      "observedAt": "2026-11-11T13:15:23.338Z",
+      "publishedAt": "2026-11-11T11:00:27Z",
+      "publishedText": "11 de nov. de 2026",
+      "observedAt": "2026-11-12T21:00:32.290Z",
       "previousObservations": [
         {
-          "observedAt": "2026-10-24T23:54:19.870Z",
-          "views": 89921,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-04T17:15:01-07:00"
-        },
-        {
-          "observedAt": "2026-10-29T16:19:18.772Z",
-          "views": 92724,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-04T17:15:01-07:00"
-        },
-        {
-          "observedAt": "2026-10-30T13:02:11.826Z",
-          "views": 93431,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-04T17:15:01-07:00"
-        },
-        {
-          "observedAt": "2026-11-01T01:57:14.093Z",
-          "views": 94042,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-04T17:15:01-07:00"
-        },
-        {
-          "observedAt": "2026-11-03T00:58:19.429Z",
-          "views": 95097,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-04T17:15:01-07:00"
-        },
-        {
-          "observedAt": "2026-11-03T16:14:03.667Z",
-          "views": 95275,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-04T17:15:01-07:00"
-        },
-        {
-          "observedAt": "2026-11-04T12:39:09.169Z",
-          "views": 95663,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-05T00:15:01Z"
-        },
-        {
-          "observedAt": "2026-11-05T19:04:00.280Z",
-          "views": 96292,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-05T00:15:01Z"
-        },
-        {
-          "observedAt": "2026-11-06T19:03:14.019Z",
-          "views": 96911,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-05T00:15:01Z"
-        },
-        {
-          "observedAt": "2026-11-07T21:13:51.035Z",
-          "views": 97449,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-05T00:15:01Z"
-        },
-        {
-          "observedAt": "2026-11-09T15:19:15.280Z",
-          "views": 98187,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-05T00:15:01Z"
-        },
-        {
-          "observedAt": "2026-11-10T13:23:53.782Z",
-          "views": 98664,
-          "title": "Site com IA | Google Maps até a venda (passo a passo)",
-          "publishedAt": "2026-07-05T00:15:01Z"
+          "observedAt": "2026-11-11T13:15:23.338Z",
+          "views": 1076,
+          "title": "CLAUDE FABLE 5.2 Produziu Este Vídeo Para Te Ensinar Como a IA Edita Vídeos",
+          "publishedAt": "2026-11-11T11:00:27Z"
         }
       ],
-      "opportunityScore": 71,
+      "opportunityScore": 72,
       "breakdown": {
-        "outlierExplosion": 32,
-        "audienceScale": 13,
-        "activeTraction": 7,
-        "relativeEngagement": 9,
+        "outlierExplosion": 21,
+        "audienceScale": 14,
+        "activeTraction": 21,
+        "relativeEngagement": 6,
         "replicabilityAndValidity": 10
       },
-      "channelMedianViews": 2627,
-      "relativePerformanceMultiple": 37.765511990864105,
-      "recentViewsPerDay": 529,
-      "engagementMultiple": 2.77,
+      "channelMedianViews": 19983,
+      "relativePerformanceMultiple": 5.816243807236151,
+      "recentViewsPerDay": 87036,
+      "engagementMultiple": 1.44,
       "formatLabel": "Tutorial aplicável",
-      "topicLabel": "Negócios e monetização",
+      "topicLabel": "Ferramentas de IA",
       "editorialPillar": "ai_applied",
       "editorialPillarLabel": "IA aplicada a resultados",
-      "rationale": "37,8× a mediana do canal · 529 views/dia de tração ativa; 2,77× mais comentários que o normal; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Negócios e monetização."
+      "rationale": "5,8× a mediana do canal · 87.036 views/dia de tração ativa; 1,44× mais comentários que o normal; alta replicabilidade na sua stack (≤ R$ 200). Sinal: Ferramentas de IA."
     }
   ],
   "topics": [
     {
       "label": "Modelos e lançamentos",
-      "count": 1064,
-      "averageViews": 41786.64097744361,
-      "medianViews": 14276
+      "count": 1073,
+      "averageViews": 42149.7045666356,
+      "medianViews": 14243
     },
     {
       "label": "Tutoriais práticos",
-      "count": 220,
-      "averageViews": 41772.61363636364,
-      "medianViews": 10169.5
+      "count": 222,
+      "averageViews": 41639.27927927928,
+      "medianViews": 9901
     },
     {
       "label": "Agentes e automação",
-      "count": 332,
-      "averageViews": 21598.072289156626,
-      "medianViews": 4946.5
+      "count": 333,
+      "averageViews": 22048.396396396398,
+      "medianViews": 4975
     },
     {
       "label": "Notícias e opinião",
-      "count": 184,
-      "averageViews": 54848.717391304344,
-      "medianViews": 4287
+      "count": 185,
+      "averageViews": 51104.62162162162,
+      "medianViews": 3992
     },
     {
       "label": "Carreira e produtividade",
-      "count": 63,
-      "averageViews": 23808.984126984127,
-      "medianViews": 2961
+      "count": 64,
+      "averageViews": 23719.765625,
+      "medianViews": 2929
     },
     {
       "label": "Negócios e monetização",
-      "count": 497,
-      "averageViews": 30510.132796780683,
-      "medianViews": 2627
+      "count": 498,
+      "averageViews": 30694.85341365462,
+      "medianViews": 2624.5
     }
   ],
   "stats": {
     "channels": 24,
-    "videos": 3903,
-    "withViews": 3903,
-    "averageViews": 31415.1555213938
+    "videos": 3918,
+    "withViews": 3918,
+    "averageViews": 31479.023226135785
   }
 }
