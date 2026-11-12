@@ -9,7 +9,6 @@ import type {
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 import { resolverPrecos } from "@/lib/lotes";
 import {
-  CEO_USER_ID,
   DEMO_CHAMPIONSHIP_ID,
   DEMO_CHAMPIONSHIP_SLUG,
   getChampionshipSlug,
@@ -17,20 +16,10 @@ import {
 } from "@/lib/championship-slug";
 
 export async function canAccessDemoChampionship(
-  existingClient?: Awaited<ReturnType<typeof createClient>>,
+  _existingClient?: Awaited<ReturnType<typeof createClient>>,
 ): Promise<boolean> {
-  const supabase = existingClient ?? (await createClient());
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return false;
-  if (user.id === CEO_USER_ID) return true;
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-  return profile?.role === "ceo";
+  // Aberto publicamente para qualquer visitante navegar, visualizar e se inscrever
+  return true;
 }
 
 // Campeonatos criados na plataforma (Supabase), mapeados para o tipo de domínio

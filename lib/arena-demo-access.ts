@@ -1,12 +1,11 @@
 import type { createClient } from "@/lib/supabase/server";
-import { canAccessDemoChampionship } from "@/lib/supabase/championships";
 
 /**
- * A arena demonstrativa "Rank Football" compartilha a mesma trava de
- * visibilidade exclusiva do CEO usada no campeonato demonstrativo.
+ * A arena "Rank Football" agora é pública para qualquer visitante navegar,
+ * consultar horários, alugar quadras e assinar planos de teste real.
  */
 export async function canAccessDemoArena(
-  existingClient?: Awaited<ReturnType<typeof createClient>>,
+  _existingClient?: Awaited<ReturnType<typeof createClient>>,
 ): Promise<boolean> {
-  return canAccessDemoChampionship(existingClient);
+  return true;
 }
