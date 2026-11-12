@@ -1,5 +1,13 @@
 # Estado atual resumido
 
+## RankFTV — Hotfix mobile: inputs de data/horário no iOS, degradê do regulamento e ícones RSC em ArenaProFeatureGate (12/11/2026)
+
+- **Correções mobile & interface**:
+  - `RentalPaymentUI` e `DiariaPaymentUI`: adicionados `min-w-0`, `max-w-full`, `appearance-none`, `h-11`, `overflow-hidden`, `grid-cols-1 sm:grid-cols-2` e `pb-36` para impedir estouro horizontal dos inputs nativos de data e horário no Safari iOS e evitar sobreposição com a BottomNav flutuante.
+  - `ExpandableTextBlock`: degradê inferior alterado de `from-app-bg` (bege) para `from-white via-white/85 to-transparent` sobre o card branco de regulamento.
+  - `ArenaProFeatureGate`: prop `icon` substituída por `iconName: "target" | "trophy"` serializável, eliminando o erro de runtime `3256794376` nas subpáginas `/radar-evasao` e `/torneios`.
+- **Produção**: PRs #190 (`dd5a686`) e #191 (`11f53a6`) integradas na `master`, CI aprovado e deploy na Vercel com status `success`.
+
 ## RankFTV — Horários opcionais em campeonatos, artes da Arena Rank Football, correção do banner Plano Pro e rotas de Radar Anti-Evasão / Torneios Internos (12/11/2026)
 
 - **Banco de produção (`tkyopolcxfsdbhvrgadj`)**:

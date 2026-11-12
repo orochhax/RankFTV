@@ -5,6 +5,18 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-12 12:45 (America/Sao_Paulo) — Hotfix Mobile: Inputs de Data/Horário, Degradê do Regulamento e Ícones RSC
+
+- **O que foi feito**:
+  - Corrigido overflow horizontal de `<input type="date">` e `<input type="time">` no Safari iOS em `app/arenas/[handle]/alugar/RentalPaymentUI.tsx` e `app/arenas/[handle]/diaria/DiariaPaymentUI.tsx` (`min-w-0`, `max-w-full`, `appearance-none`, `grid-cols-1 sm:grid-cols-2` e padding inferior `pb-36`).
+  - Corrigido degradê inferior em `components/campeonatos/ExpandableTextBlock.tsx` de `from-app-bg` para `from-white via-white/85 to-transparent` sobre cards com fundo branco.
+  - Corrigido erro de serialização RSC em `components/arena/ArenaProFeatureGate.tsx` usando `iconName: "target" | "trophy"`.
+- **Evidências**:
+  - `npm run typecheck`: exit 0.
+  - `npm test`: 970 testes, 969 pass, 1 skipped, 0 fail.
+  - PRs #190 e #191 aprovadas no CI (`verify`) e squash-merged em `master` (`dd5a686` e `11f53a6`).
+  - Deploy `Vercel – rank-ftv` com status `success`.
+
 ## 2026-11-12 10:47 (America/Sao_Paulo) — Horários Opcionais em Campeonatos, Artes Rank Football, Correção Plano Pro e Rotas da Arena
 
 - **O que foi feito**:
