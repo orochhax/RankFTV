@@ -9,7 +9,6 @@ import type {
 import { categoryLevelRecommendationEnabled } from "@/lib/release-flags";
 import { resolverPrecos } from "@/lib/lotes";
 import {
-  CEO_USER_ID,
   DEMO_CHAMPIONSHIP_ID,
   DEMO_CHAMPIONSHIP_SLUG,
   getChampionshipSlug,
