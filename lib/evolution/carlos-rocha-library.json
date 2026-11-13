@@ -1,23 +1,35 @@
 {
-  "updatedAt": "2026-11-12T18:20:00-03:00",
+  "updatedAt": "2026-11-13T20:30:00-03:00",
   "minActiveScore": 80,
   "categories": [
     {
       "id": "dados_carreira",
-      "name": "Tecnologia, Dados & Carreira",
-      "description": "Teses pragmáticas, estratégia de carreira no Brasil e no exterior e aprendizado prático. Sem aulas técnicas, sem confissões de ansiedade e sem prometer vagas.",
+      "name": "Engenharia de IA, Automação & Carreira Técnica",
+      "description": "Teses pragmáticas sobre o mercado de tecnologia, migração de Ciência de Dados para Engenharia de IA Aplicada, roadmap real de vagas, novidades de IA na prática e demonstrações mão na massa estilo builder. Sem aulas acadêmicas e sem pose de professor.",
       "ideas": [
         {
           "id": "tec-01",
-          "title": "Não ficou mais difícil entrar em Dados: você só está olhando para o passado",
+          "title": "Por que abandonei Ciência de Dados para focar 100% em Engenharia de IA Aplicada",
+          "score": 98,
+          "stage": "ready_now",
+          "scenario": "Quarto/estúdio em Eunápolis. Diálogo direto, maduro e firme com a câmera, olho no olho.",
+          "premise": "Tese contra-intuitiva e prática: o mercado de dados tradicional e genérico saturou para iniciantes, enquanto a demanda real das empresas explodiu para quem sabe integrar APIs, construir fluxos com FastAPI/n8n/Make, orquestrar LLMs e implementar RAG e agentes autônomos para resolver problemas de negócio.",
+          "tension": "O apego coletivo a trilhas antigas de Ciência de Dados vs a coragem estratégica de pivotar para onde as vagas e os clientes com orçamento realmente estão.",
+          "visual": "Diálogo frontal autêntico com cortes rápidos para requisitos reais de vagas abertas no Brasil e exterior comparadas lado a lado.",
+          "competitorReference": "Padrão de tese pragmática e contra-intuitiva de Vinicius Figueiredo ('Abra o negócio mais chato' - 91,4x da mediana).",
+          "executionTip": "Gravar com energia firme e postura madura, sem vitimismo e sem tom de professor acadêmico."
+        },
+        {
+          "id": "tec-07",
+          "title": "Construindo um agente de IA do zero para resolver uma dor real de empresa (Sem teoria acadêmica)",
           "score": 97,
           "stage": "ready_now",
-          "scenario": "Quarto/estúdio em Eunápolis. Diálogo direto e firme com a câmera, olho no olho.",
-          "premise": "Tese madura e contra-intuitiva: o mercado não fechou as portas para juniores, a régua é que mudou. Quem fica comparando com a bolha de 2021 trava; quem entende o presente e foca em resolver problemas com dados limpos e regras de negócio se destaca.",
-          "tension": "O choro coletivo da internet de que 'está impossível' vs a maturidade de entender o mercado como ele é hoje e se preparar direito.",
-          "visual": "Diálogo frontal autêntico. Se quiser ilustrar pontualmente, cortes rápidos para exigências reais de vagas na tela, sem obrigação de ficar caçando tela.",
-          "competitorReference": "Padrão de tese pragmática e contra-intuitiva de Vinicius Figueiredo ('Abra o negócio mais chato' - 90,5x da mediana).",
-          "executionTip": "Gravar com energia firme e postura madura, sem vitimismo e sem tom de professor."
+          "scenario": "Estúdio caseiro em Eunápolis com a tela do computador aberta mostrando código e fluxo.",
+          "premise": "Demonstração mão na massa estilo builder: construindo um protótipo funcional de agente inteligente com Python e integrações de API para automatizar um processo operacional manual de uma empresa, explicando a lógica de negócio por trás de cada decisão.",
+          "tension": "O excesso de conteúdo conceitual e professoral na internet vs o atrito prático de ver um agente funcionando de verdade resolvendo um problema.",
+          "visual": "Tela do computador com o código/fluxo rodando em tempo real intercalado com explicações diretas olhando para a câmera.",
+          "competitorReference": "Padrão de construção prática com IA de Luciana Papini ('Como criar seu primeiro agente de IA' - 45,0x da mediana e '10 000 horas de Claude' - 103,8x da mediana).",
+          "executionTip": "Focar 100% na dor do negócio e na arquitetura funcional — nunca agir como professor dando aula escolar."
         },
         {
           "id": "tec-06",
@@ -25,47 +37,59 @@
           "score": 96,
           "stage": "ready_now",
           "scenario": "Quarto/estúdio em Eunápolis. Opinião franca olho no olho com a câmera.",
-          "premise": "Comparação honesta entre a pressa coletiva de buscar vaga em dólar imediatamente vs a escolha estratégica de construir base sólida, portfólio e agência/serviços de Dados no mercado brasileiro antes de mirar no remoto internacional.",
-          "tension": "O apelo tentador de 'ganhar em dólar logo' vs a solidez de quem constrói experiência e entregas reais no Brasil antes de dar o próximo salto.",
-          "visual": "Conversa direta e firme olhando para a câmera, podendo mostrar pontualmente a lógica por trás do plano de carreira.",
-          "competitorReference": "Padrão de opinião geopolítica/carreira dev de PC The One ('SAIA DO BRASIL IMEDIATAMENTE' - 12,2x e 'pov: dev em Amsterdam' - 9,9x).",
-          "executionTip": "Manter tom analítico e pé no chão, defendendo sua escolha estratégica sem desmerecer quem escolheu o outro caminho."
+          "premise": "Comparação honesta entre a pressa coletiva de buscar vaga em dólar imediatamente vs a escolha estratégica de construir base técnica sólida em Engenharia de IA, portfólio em produção e clientes B2B no Brasil através da Silex Solutions antes de mirar no remoto internacional.",
+          "tension": "O apelo tentador de 'ganhar em dólar logo' vs a solidez de quem constrói entregas reais no mercado local antes de dar o próximo salto.",
+          "visual": "Conversa direta e firme olhando para a câmera, podendo pontuar a lógica do ecossistema de 3 fontes de renda.",
+          "competitorReference": "Padrão de visão estratégica de carreira dev de PC The One ('SAIA DO BRASIL IMEDIATAMENTE' - 12,2x da mediana).",
+          "executionTip": "Manter tom analítico e pé no chão, defendendo sua escolha estratégica sem desmerecer quem escolheu outro caminho."
         },
         {
           "id": "tec-02",
-          "title": "Reduza a teoria e aumente a prática",
-          "score": 93,
+          "title": "Reduza a teoria e aumente a prática: por que o mercado só contrata quem constrói",
+          "score": 95,
           "stage": "ready_now",
           "scenario": "Estúdio caseiro em Eunápolis. Formato diálogo reflexivo e dinâmico.",
-          "premise": "A armadilha de colecionar videoaulas e cursos passivos com a falsa sensação de que está evoluindo; o desconforto necessário de fechar a aula e construir problemas e sistemas reais sozinho.",
-          "tension": "O conforto de assistir ao professor fazendo na tela vs o atrito produtivo de programar e raciocinar no mundo real.",
-          "visual": "Diálogo direto compartilhando essa postura prática na construção de projetos.",
-          "competitorReference": "Padrão de desenvolvimento e atrito prático real de Erik Cupsa ('How To Build A Startup SOLO With AI' e 'Coding Projects' - 27,8x).",
+          "premise": "A armadilha de colecionar cursos e videoaulas passivas com a falsa sensação de progresso; o desconforto necessário de fechar o tutorial e construir projetos reais com código, APIs e integrações que funcionam fora do Jupyter Notebook.",
+          "tension": "O conforto de assistir ao professor fazendo na tela vs o atrito produtivo de programar e raciocinar para colocar sistemas reais no ar.",
+          "visual": "Diálogo direto compartilhando a mudança de mentalidade para a postura de builder.",
+          "competitorReference": "Padrão de desenvolvimento e atrito prático real de Trey Gustafson e Bennett Luke (405,1x da mediana).",
           "executionTip": "Focar na diferença prática entre estudar passivamente e colocar sistemas reais no ar."
         },
         {
           "id": "tec-03",
-          "title": "Analisei vagas de Dados para descobrir o que realmente preciso estudar",
-          "score": 89,
+          "title": "Analisei dezenas de vagas de Engenheiro de IA Aplicada: o que as empresas realmente cobram",
+          "score": 94,
           "stage": "ready_now",
-          "scenario": "Estúdio caseiro em Eunápolis com vagas reais abertas e roadmap enxuto.",
-          "premise": "Um vídeo objetivo analisando requisitos reais de vagas abertas no mercado brasileiro para cortar o excesso de teoria e focar apenas nas competências que as empresas realmente cobram.",
-          "tension": "O risco de perder meses estudando ferramentas sofisticadas que ninguém pede no dia a dia de trabalho.",
-          "visual": "Diálogo com a câmera alternando pontualmente para requisitos reais de vagas e o recorte do roadmap.",
-          "competitorReference": "Padrão de análise pragmática com dados reais de Vinicius Figueiredo (90,5x da mediana).",
-          "executionTip": "Deixar 4 ou 5 vagas reais já separadas e conduzir a análise de forma enxuta."
+          "scenario": "Estúdio caseiro em Eunápolis com vagas reais abertas na tela e o roadmap enxuto estruturado.",
+          "premise": "Análise objetiva e sem filtros dos requisitos reais de vagas abertas no mercado brasileiro e internacional para Engenheiro de IA e Automação: Python, FastAPI, webhooks, LLMs, RAG, bancos vetoriais e orquestração.",
+          "tension": "O risco de perder meses estudando ferramentas obsoletas que nenhuma empresa pede no dia a dia.",
+          "visual": "Diálogo com a câmera alternando pontualmente para requisitos reais de vagas abertas e o recorte prático do roadmap.",
+          "competitorReference": "Padrão de análise pragmática com evidências de Vinicius Figueiredo ('Recebi currículos de estagiários' - 22,8x da mediana).",
+          "executionTip": "Deixar 4 ou 5 vagas reais já separadas na tela e conduzir a análise de forma enxuta e direta."
+        },
+        {
+          "id": "tec-08",
+          "title": "Como uso IA e automação para tocar meus projetos como desenvolvedor solo",
+          "score": 91,
+          "stage": "ready_now",
+          "scenario": "Quarto/estúdio com a tela do computador aberta mostrando o ecossistema de desenvolvimento.",
+          "premise": "Como um único desenvolvedor no interior consegue construir o RankFTV, criar automações para clientes da Silex Solutions e manter um canal usando IA como alavanca operacional real de produtividade.",
+          "tension": "Achar que precisa de um time grande para entregar software profissional vs dominar ferramentas de IA para multiplicar o output pessoal.",
+          "visual": "Fluxo real de trabalho na tela: agentes auxiliando na escrita de testes, automações de tarefas repetitivas e deploy.",
+          "competitorReference": "Padrão de produtividade prática e segundo cérebro de Victor Baggio ('Como eu uso o Claude pra tocar minha empresa inteira' - 35,7x da mediana).",
+          "executionTip": "Mostrar os bastidores da ferramenta com naturalidade, sem pose de especialista."
         },
         {
           "id": "tec-04",
-          "title": "O plano de 60 dias úteis em Dados: o que realmente dá para aprender e o que é ilusão",
-          "score": 84,
+          "title": "Bastidores de entrevistas técnicas para Engenheiro de IA: o que me perguntaram na prática",
+          "score": 88,
           "stage": "post_launch",
-          "scenario": "Mesa de estudos em Eunápolis após semanas reais de execução consistente.",
-          "premise": "A verdade sobre metas de médio prazo quando você realmente já executou parte do ciclo: o que é viável dominar estudando sério e o que é promessa inflada de vendedor de curso.",
-          "tension": "A expectativa de virar especialista em poucas semanas vs a densidade real dos fundamentos de dados e estatística.",
-          "visual": "Diálogo direto comentando seu progresso concreto e o cronograma cumprido até aquele ponto.",
-          "competitorReference": "Recorte temporal de Kamily Rebelatto ('Se eu tivesse 6 meses pra mudar de vida' - 65,0x da mediana).",
-          "executionTip": "Desbloqueia somente após completar semanas consistentes de estudo em Dados para falar com base real."
+          "scenario": "Estúdio em Eunápolis após passar por processos seletivos e entrevistas técnicas reais.",
+          "premise": "A realidade das perguntas de recrutadores e líderes técnicos para vagas de Engenharia de IA: teste prático, arquitetura de sistemas, custos de tokens e tratamento de exceções em produção.",
+          "tension": "O que os candidatos acham que cai na entrevista vs o que as empresas realmente avaliam na hora da contratação.",
+          "visual": "Diálogo franco compartilhando os desafios enfrentados nos testes técnicos e aprendizados.",
+          "competitorReference": "Transparência de processos seletivos e carreira técnica de Vinicius Figueiredo e PC The One.",
+          "executionTip": "Desbloqueia quando estiver participando ativamente de entrevistas técnicas para compartilhar fatos vividos."
         }
       ]
     },
@@ -80,10 +104,10 @@
           "score": 96,
           "stage": "ready_now",
           "scenario": "Arraial d'Ajuda, travessia da balsa Porto Seguro-Arraial e praia do Mucugê (fim de semana).",
-          "premise": "O ambiente onde vivemos todos os dias vicia a mente nos mesmos padrões; mudar de cenário em uma saída curta de fim de semana ajuda a enxergar projetos e próximos passos com clareza.",
+          "premise": "O ambiente onde vivemos todos os dias vicia a mente nos mesmos padrões; mudar de cenário em uma saída curta de fim de semana ajuda a enxergar projetos, carreira e próximos passos com clareza.",
           "tension": "Continuar tentando resolver tudo no mesmo lugar vs dar um passo atrás para respirar e clarear as decisões.",
           "visual": "Visual litorâneo como atmosfera cinematográfica de fundo: balsa ao entardecer, caminhada na praia com áudio limpo e fala olho no olho.",
-          "competitorReference": "Estética cinematográfica e reflexão de Bennett Luke ('Watch This' - 373,0x da mediana) e Jonas Castro.",
+          "competitorReference": "Estética cinematográfica e reflexão de Bennett Luke ('Watch This' - 405,1x da mediana) e Jonas Castro.",
           "executionTip": "Aproveitar uma saída curta de sábado ou domingo em horários tranquilos da praia."
         },
         {
@@ -95,7 +119,7 @@
           "premise": "Reflexão profunda e serena sobre como o excesso de barulho e informação impede você de pensar com profundidade sobre direção, escolhas e projetos — sem expor dramas íntimos.",
           "tension": "Viver no piloto automático consumindo conteúdo o dia inteiro vs a lucidez de passar uma hora em silêncio pensando na própria direção.",
           "visual": "Edição calma, respiros visuais, tomadas limpas e narração serena olho no olho.",
-          "competitorReference": "Formato introspectivo de Marcos Paulo ('Quando foi a última vez que você ficou sozinho ?') e Kamily Rebelatto ('Escrever Mudou a Minha Vida' - 67,5x).",
+          "competitorReference": "Formato introspectivo de Marcos Paulo ('Quando foi a última vez que você ficou sozinho ?') e João Gerçossimo ('Ter foco é difícil, até você pensar assim' - 19,5x da mediana).",
           "executionTip": "Manter o tom reflexivo, calmo e construtivo — focado em clareza de direção, nunca em angústia pessoal."
         },
         {
@@ -107,7 +131,7 @@
           "premise": "A crença coletiva de que só dá para crescer em tecnologia e negócios estando no centro da Faria Lima; a defesa convicta da paz, custo de vida e foco de construir seus projetos no interior da Bahia.",
           "tension": "O mito de que estar fora das capitais limita você vs a margem financeira e qualidade de vida de quem constrói de onde está.",
           "visual": "Cenas da região e orla intercaladas com reflexão firme olhando para a câmera.",
-          "competitorReference": "Quebra de padrão de Kamily Rebelatto ('Ser Realista É o Motivo da Sua Mediocridade' - 65,2x) e recortes regionais da Bahia de João Curry.",
+          "competitorReference": "Quebra de padrão de Kamily Rebs e recortes regionais da Bahia de João Curry.",
           "executionTip": "Gravar a reflexão em um fim de semana ao ar livre na região."
         },
         {
@@ -135,10 +159,10 @@
           "score": 98,
           "stage": "ready_now",
           "scenario": "Quarto/estúdio em Eunápolis. Diálogo direto e natural com a câmera.",
-          "premise": "A pressão da internet para já chegar parecendo especialista ou dono de negócio milionário; a decisão de construir um canal honesto mostrando o processo real antes dos grandes números chegarem.",
+          "premise": "A pressão da internet para já chegar parecendo especialista com faturamento de sete dígitos; a decisão de construir um canal honesto mostrando o processo real antes dos grandes números chegarem.",
           "tension": "O medo de ser julgado como iniciante vs a conexão verdadeira de quem mostra a vida em construção sem inventar autoridade.",
           "visual": "100% focado no diálogo cara a cara, sem pose e sem fingir o que ainda não viveu.",
-          "competitorReference": "Força de autoimagem e autenticidade de Kamily Rebelatto ('Como Criar uma Autoimagem Tão Forte' - 170,9x da mediana).",
+          "competitorReference": "Força de autoimagem e autenticidade de Kamily Rebs e Bennett Luke.",
           "executionTip": "Fala natural e direta com a câmera, valorizando sua transparência atual."
         },
         {
@@ -147,9 +171,9 @@
           "score": 96,
           "stage": "ready_now",
           "scenario": "Quarto/estúdio ou caminhada rápida. Diálogo enérgico e positivo com a câmera.",
-          "premise": "Por que pessoas em ação constante criam oportunidades inesperadas: construir um software, lançar um canal e colocar projetos no mundo gera atrito positivo que ficar apenas assistindo aulas nunca gera.",
+          "premise": "Por que pessoas em ação constante criam oportunidades inesperadas: construir a Silex Solutions, lançar o RankFTV e colocar sistemas no mundo gera atrito positivo que ficar apenas assistindo aulas nunca gera.",
           "tension": "Ficar esperando o plano perfeito no papel vs entrar em movimento com um projeto real e deixar os próximos passos aparecerem no caminho.",
-          "visual": "Diálogo dinâmico cara a cara intercalado com recortes curtos de você trabalhando no produto ou ideias.",
+          "visual": "Diálogo dinâmico cara a cara intercalado com recortes curtos de você trabalhando nos projetos.",
           "competitorReference": "Padrão direto de Trey Gustafson ('a moving man always meets his luck' - 16,0x da mediana).",
           "executionTip": "Energia proativa, construtiva e otimista — vídeo para inspirar movimento sem papo de coach."
         },
@@ -162,7 +186,7 @@
           "premise": "O perfeccionismo como freio disfarçado; a clareza só vem depois da execução, e a melhor forma de dominar qualquer projeto difícil é começar publicando e ajustando no caminho.",
           "tension": "Esperar saber tudo antes de agir vs destravar o aprendizado colocando a mão na massa.",
           "visual": "Conversa olho no olho com o espectador, ritmo direto de 7 a 10 minutos.",
-          "competitorReference": "Chamado direto à ação de Bennett Luke (373,0x da mediana) e Trey Gustafson.",
+          "competitorReference": "Chamado direto à ação de Bennett Luke (405,1x da mediana) e Trey Gustafson.",
           "executionTip": "Vídeo ágil, objetivo e focado em execução."
         },
         {
@@ -174,7 +198,7 @@
           "premise": "Transparência factual dos números de um canal após 1 mês completo de vídeos: views, retenção, inscritos e eventual receita gerada (ou zero), sem exageros.",
           "tension": "A expectativa ao abrir um canal vs a realidade matemática das primeiras semanas.",
           "visual": "Tela do YouTube Studio com dados abertos e comentários sinceros sobre o que funcionou.",
-          "competitorReference": "Padrão de transparência numérica de Vinicius Figueiredo ('Minhas fontes de renda' - 37,9x da mediana).",
+          "competitorReference": "Padrão de transparência numérica de Vinicius Figueiredo ('Minhas fontes de renda' - 39,1x da mediana).",
           "executionTip": "Desbloqueia exclusivamente ao completar 30 dias reais de publicações."
         },
         {
@@ -186,16 +210,28 @@
           "premise": "Experimento empírico: primeiro uma mudança real de formato ou título é aplicada no canal e testada; só depois que os números comprovarem o impacto, o vídeo é gravado.",
           "tension": "A dúvida prática se uma mudança de embalagem ajuda ou prejudica a entrega do YouTube.",
           "visual": "Comparação direta de gráficos antes vs depois no YouTube Studio.",
-          "competitorReference": "Análise baseada em dados reais de Bruno Nardon (58,8x da mediana).",
+          "competitorReference": "Análise baseada em dados reais de Bruno Nardon.",
           "executionTip": "Desbloqueia quando houver histórico real no canal para comparar."
         }
       ]
     },
     {
       "id": "negocios_software",
-      "name": "Negócios, Software & Vivência Real",
-      "description": "Sprints para lançar o RankFTV, automações com IA e escala real pós-lançamento. Sem vlogs sobre trabalho CLT.",
+      "name": "Negócios, Silex Solutions & RankFTV",
+      "description": "Sprints para colocar o RankFTV no ar, criação da Silex Solutions (consultoria de IA e automação B2B), protótipos de fim de semana e resolução de problemas operacionais reais. Sem vlogs de CLT.",
       "ideas": [
+        {
+          "id": "neg-11",
+          "title": "Criando a Silex Solutions: como usar um único conhecimento em IA para 3 fontes de renda",
+          "score": 98,
+          "stage": "ready_now",
+          "scenario": "Quarto/estúdio em Eunápolis. Diálogo direto e estruturado com a câmera.",
+          "premise": "Apresentação da estratégia de founder-led branding: como o estudo em Engenharia de IA Aplicada alimenta simultaneamente a busca por vagas sólidas de IA, a prestação de serviços B2B de automação com a Silex Solutions e a criação de autoridade através do canal.",
+          "tension": "Achar que precisa escolher apenas um caminho e ficar refém de uma única renda vs montar um ecossistema inteligente onde 1 aprendizado alimenta 3 saídas financeiras.",
+          "visual": "Diálogo olho no olho alternando com o mapa visual do ecossistema e o posicionamento da Silex Solutions.",
+          "competitorReference": "Transparência de modelo de negócios e fontes de renda de Vinicius Figueiredo ('Minhas fontes de renda para ganhar R$ 49.374 por mês' - 39,1x da mediana).",
+          "executionTip": "Explicar com clareza o raciocínio estratégico e o significado de Silex (a rocha que gera faísca), com tom empreendedor sóbrio."
+        },
         {
           "id": "neg-07",
           "title": "7 dias em 'modo foco' para terminar e colocar o Rank Futevôlei no ar",
@@ -205,68 +241,80 @@
           "premise": "Sprint real de execução focado 100% em fechar as últimas pendências, corrigir bugs, rodar validações e colocar o RankFTV finalmente no ar para arenas e organizadores usarem.",
           "tension": "A reta final entre ter um sistema quase pronto no computador e a pressão real de publicar no mundo.",
           "visual": "Vlog ágil focado apenas nas horas construindo: cortes do sistema evoluindo, metas do dia cumpridas e momento de publicação.",
-          "competitorReference": "Sprints de foco intenso de Trey Gustafson ('what it really looks like to lock in' - 2,6x) e Daniel Lima ('Criei uma plataforma em 48h' - 5,5x).",
+          "competitorReference": "Sprints de foco intenso de Trey Gustafson ('what it really looks like to lock in') e Daniel Lima ('Criei uma plataforma em 48h').",
           "executionTip": "Mostrar apenas a construção e entrega do produto no tempo livre — zero cenas de expediente CLT."
         },
         {
           "id": "neg-08",
-          "title": "Criei uma funcionalidade (ou automação com IA) para o RankFTV em um fim de semana",
+          "title": "Criei uma automação com IA para empresa em um fim de semana (Protótipo Silex Solutions)",
           "score": 97,
           "stage": "ready_now",
           "scenario": "Estúdio caseiro no sábado/domingo construindo direto no código e ferramentas de IA.",
-          "premise": "Diário mão na massa mostrando um problema real do produto sendo resolvido em um fim de semana com código e agentes/automações de IA aplicados direto no sistema.",
-          "tension": "O desafio técnico de tirar uma ideia do zero e deixar funcionando em produção em apenas dois dias.",
-          "visual": "Tela do sistema funcionando, fluxo da automação/IA em ação e explicação clara da solução.",
-          "competitorReference": "Construção rápida com IA de Daniel Lima ('Criei um time de Agentes De IA' - 6,6x; 'plataforma em 48h') e Erik Cupsa ('How To Build A Startup SOLO With AI').",
-          "executionTip": "Escolher uma dor prática real do RankFTV e documentar do problema até o teste funcionando."
-        },
-        {
-          "id": "neg-01",
-          "title": "O que aprendi colocando um software no ar com clientes reais (e o que deu errado)",
-          "score": 96,
-          "stage": "post_launch",
-          "scenario": "Quarto/estúdio em Eunápolis após o RankFTV estar oficialmente no ar sendo usado por arenas.",
-          "premise": "O choque de realidade entre desenvolver no ambiente local e ter organizadores reais usando o sistema em campeonatos de verdade, lidando com imprevistos e suporte.",
-          "tension": "Resolver falhas reais de uso em produção enquanto o evento está acontecendo.",
-          "visual": "Diálogo direto intercalado com relatos concretos dos primeiros campeonatos reais no sistema.",
-          "competitorReference": "Negócios com pele em jogo de Alfredo Soares ('Construindo Uma Empresa do Zero' - 143,0x) e Daniel Lima.",
-          "executionTip": "Desbloqueia somente após lançar o RankFTV e ter os primeiros campeonatos reais rodando."
-        },
-        {
-          "id": "neg-05",
-          "title": "Por que decidi criar meu próprio sistema em vez de esperar a vaga perfeita",
-          "score": 94,
-          "stage": "ready_now",
-          "scenario": "Quarto/estúdio em Eunápolis. Diálogo direto e firme com a câmera.",
-          "premise": "Em vez de ficar apenas enviando currículos e paralisado na espera, usar o tempo livre para construir um produto real (o RankFTV) resolve problemas de verdade e ensina mais do que qualquer projeto fictício de curso.",
-          "tension": "Investir meses criando um sistema próprio antes mesmo de saber o tamanho do retorno vs a autonomia prática que construir um produto real traz.",
-          "visual": "Diálogo direto olho no olho com cortes rápidos para telas reais do RankFTV funcionando.",
-          "competitorReference": "Validação empírica de produto próprio de Daniel Lima ('Você tem que ser nerd do SEU produto') e Vinicius Figueiredo ('Abra o negócio mais chato' - 90,5x).",
-          "executionTip": "Focar na mentalidade construtora e na diferença entre projeto de curso e software real."
+          "premise": "Diário mão na massa mostrando a criação de uma solução real de automação ou agente inteligente desenhado para resolver uma dor corporativa concreta (atendimento, CRM, integração via webhooks), servindo de protótipo para prospecção da Silex Solutions.",
+          "tension": "O desafio técnico de tirar uma solução empresarial do zero e deixá-la testada e funcional em apenas dois dias.",
+          "visual": "Tela com o fluxo da automação funcionando na prática, simulação com dados reais e raciocínio de valor para o cliente.",
+          "competitorReference": "Construção de soluções corporativas com IA de Thalena Lima ('CRM de WhatsApp Grátis com Agente de IA' - 22,9x da mediana) e Luciana Papini.",
+          "executionTip": "Documentar desde a definição da dor do cliente até a automação respondendo e processando eventos com sucesso."
         },
         {
           "id": "neg-06",
-          "title": "Por que escolhi resolver um problema 'chato' no interior em vez de tentar inventar o próximo unicórnio",
-          "score": 94,
+          "title": "Por que escolhi resolver problemas operacionais 'chatos' de empresas com automação",
+          "score": 96,
           "stage": "ready_now",
-          "scenario": "Quarto/estúdio em Eunápolis com o sistema RankFTV aberto.",
-          "premise": "Por que escolher um nicho operacional real e pouco glamouroso — organizar inscrições, chaveamento e gestão de campeonatos de futevôlei — faz muito mais sentido do que tentar inventar uma startup de IA genérica.",
-          "tension": "A obsessão da internet por ideias bilionárias sem cliente vs o senso prático de resolver uma dor real específica.",
-          "visual": "Diálogo sincero alternando pontualmente para as telas e regras reais do RankFTV.",
-          "competitorReference": "Tese contra-intuitiva de Vinicius Figueiredo ('Abra o negócio mais chato que puder' - 90,5x da mediana).",
-          "executionTip": "Apresentar a tese com maturidade e mostrar por que esse mercado específico precisa do sistema."
+          "scenario": "Quarto/estúdio em Eunápolis com fluxos de automação e dados na tela.",
+          "premise": "Por que focar em processos operacionais manuais, repetitivos e lentos de empresas tradicionais — tarefas que ninguém quer fazer — é muito mais lucrativo e tem menos concorrência do que tentar inventar uma startup mirabolante sem cliente.",
+          "tension": "A obsessão da internet por ideias 'geniais' sem demanda vs a sobriedade de vender automação de processos para quem já tem caixa e precisa economizar tempo.",
+          "visual": "Diálogo direto alternando com exemplos claros de tarefas manuais de empresas que foram reduzidas a um fluxo automático.",
+          "competitorReference": "Tese contra-intuitiva de negócio de Vinicius Figueiredo ('Abra o negócio mais chato que puder' - 91,4x da mediana).",
+          "executionTip": "Apresentar a tese com maturidade comercial, conectando com a estratégia da Silex Solutions."
         },
         {
-          "id": "neg-09",
-          "title": "Já tenho meus primeiros clientes no RankFTV e X meses em Dados: meu plano para dobrar resultados",
+          "id": "neg-01",
+          "title": "O que aprendi colocando o RankFTV no ar com arenas reais (e o que deu errado)",
+          "score": 96,
+          "stage": "post_launch",
+          "scenario": "Quarto/estúdio em Eunápolis após o RankFTV estar oficialmente no ar sendo usado por arenas parceiras.",
+          "premise": "O choque de realidade entre desenvolver no ambiente local e ter organizadores reais usando o sistema em torneios de verdade, lidando com imprevistos de internet na quadra, dúvidas de atletas e suporte ao vivo.",
+          "tension": "Resolver falhas reais de uso em produção enquanto o campeonato está acontecendo.",
+          "visual": "Diálogo direto intercalado com relatos concretos dos primeiros campeonatos reais no sistema.",
+          "competitorReference": "Negócios com pele em jogo de Alfredo Soares ('Construindo Uma Empresa do Zero') e Daniel Lima.",
+          "executionTip": "Desbloqueia somente após lançar o RankFTV e ter os primeiros campeonatos reais rodando."
+        },
+        {
+          "id": "neg-12",
+          "title": "Bastidores do meu primeiro contrato na Silex Solutions: a dor do cliente, a automação e o valor cobrado",
+          "score": 95,
+          "stage": "post_launch",
+          "scenario": "Estúdio em Eunápolis após fechar e entregar o primeiro projeto pago de automação/IA.",
+          "premise": "Abertura transparente e factual do primeiro serviço fechado: qual era o gargalo manual do empresário, como a solução de IA foi estruturada, o valor da implementação e o modelo de mensalidade de suporte.",
+          "tension": "A insegurança de precificar o primeiro serviço vs a validação de entregar valor concreto que o cliente paga satisfeito.",
+          "visual": "Diálogo direto mostrando o fluxo final entregue e a estrutura comercial do contrato (sem expor dados sigilosos do cliente).",
+          "competitorReference": "Transparência factual de receitas e clientes de Vinicius Figueiredo ('Minhas fontes de renda' - 39,1x da mediana).",
+          "executionTip": "Desbloqueia exclusivamente após assinar e receber o primeiro contrato real da Silex Solutions."
+        },
+        {
+          "id": "neg-05",
+          "title": "Por que decidi criar meu próprio SaaS (RankFTV) e consultoria em vez de só mandar currículo",
+          "score": 94,
+          "stage": "ready_now",
+          "scenario": "Quarto/estúdio em Eunápolis. Diálogo direto e firme com a câmera.",
+          "premise": "Em vez de ficar refém apenas de formulários de vagas de emprego, usar o tempo livre para construir um produto real (RankFTV) e uma consultoria B2B (Silex Solutions) gera autoridade, portfólio vivo e autonomia financeira.",
+          "tension": "A dependência passiva de processos seletivos vs a postura ativa de criar valor econômico no mundo real.",
+          "visual": "Diálogo direto olho no olho com cortes rápidos para telas reais do RankFTV e da Silex Solutions.",
+          "competitorReference": "Validação empírica de produto próprio de Daniel Lima ('Você tem que ser nerd do SEU produto') e Vinicius Figueiredo.",
+          "executionTip": "Focar na mentalidade construtora e na sinergia entre SaaS, consultoria e carreira técnica."
+        },
+        {
+          "id": "neg-13",
+          "title": "Como foi minha primeira reunião de diagnóstico com um empresário (O que aprendi vendendo IA)",
           "score": 93,
           "stage": "post_launch",
-          "scenario": "Quarto/estúdio com metas claras apoiadas em números que já estão acontecendo.",
-          "premise": "Planejamento honesto e pé no chão feito somente após já estar em movimento: com os primeiros clientes do RankFTV e meses reais estudando Dados, como dobrar arenas e conquistar a primeira vaga.",
-          "tension": "Sair dos primeiros resultados iniciais para uma escala real sem perder consistência.",
-          "visual": "Metas objetivas na tela baseadas nos resultados concretos alcançados até aquele momento.",
-          "competitorReference": "Planejamento orientado a metas de Lucas BKS ('ASSISTA ISSO ANTES DE COMEÇAR 2027') e Kamily Rebelatto.",
-          "executionTip": "Desbloqueia somente quando você já tiver primeiros clientes no RankFTV e meses de estudo contínuo em Dados."
+          "scenario": "Estúdio caseiro em Eunápolis logo após realizar as primeiras reuniões presenciais ou online de diagnóstico.",
+          "premise": "Relato honesto sobre como foi sentar na frente de um dono de empresa para mapear processos manuais: o que ele realmente valoriza, onde tem medo de tecnologia e como transformar o diagnóstico gratuito em uma proposta fechada.",
+          "tension": "O receio de vender para donos de negócios tradicionais vs a clareza de ouvir os problemas operacionais reais de quem está na trincheira.",
+          "visual": "Diálogo direto com o checklist de diagnóstico e aprendizados práticos anotados.",
+          "competitorReference": "Bastidores de vendas B2B e negociação de Alfredo Soares e Bruno Nardon.",
+          "executionTip": "Desbloqueia quando tiver realizado as primeiras reuniões de diagnóstico com empresários locais."
         },
         {
           "id": "neg-02",
@@ -277,7 +325,7 @@
           "premise": "Prestação de contas transparente dos números reais do produto: taxas por campeonato, custos fixos de servidor/ferramentas e o lucro líquido real sem exageros.",
           "tension": "A fantasia de SaaS milionário instantâneo vs a construção sóbria de um software sustentável.",
           "visual": "Painel de transações e relatórios consolidados do RankFTV em operação.",
-          "competitorReference": "Transparência financeira de Vinicius Figueiredo ('Minhas fontes de renda' - 37,9x da mediana).",
+          "competitorReference": "Transparência financeira de Vinicius Figueiredo ('Minhas fontes de renda' - 39,1x da mediana).",
           "executionTip": "Desbloqueia somente após o lançamento e fechamento de campeonatos reais."
         },
         {
@@ -289,16 +337,16 @@
           "premise": "Minidocumentário externo acompanhando um organizador/parceiro do RankFTV nos bastidores para mostrar a operação real, custos e rotina de quem toca uma arena de futevôlei.",
           "tension": "O que o público vê na areia vs toda a logística e gestão financeira que sustentam um torneio.",
           "visual": "Cenas externas da arena, entrevistas rápidas com o organizador e sistema rodando no evento.",
-          "competitorReference": "Formato minidocumentário de João Curry ('Vivendo a Rotina... por Trás das Câmeras') e Bruno Nardon ('Por Dentro da MAIOR empresa' - 217,9x).",
+          "competitorReference": "Formato minidocumentário de João Curry ('Vivendo a Rotina... por Trás das Câmeras') e Bruno Nardon.",
           "executionTip": "Desbloqueia quando o RankFTV já estiver rodando em arenas parceiras com acesso facilitado aos bastidores."
         },
         {
           "id": "neg-03",
-          "title": "A verdade sobre morar e trabalhar com tecnologia no interior da Bahia",
+          "title": "A verdade sobre morar e trabalhar com IA e tecnologia no interior da Bahia",
           "score": 87,
           "stage": "ready_now",
           "scenario": "Eunápolis (cenas rápidas da região e estúdio). Diálogo franco.",
-          "premise": "Balanço sincero de quem constrói projetos e carreira em tecnologia fora das grandes capitais: vantagens de foco e custo de vida vs desafios reais de networking.",
+          "premise": "Balanço sincero de quem constrói projetos de IA, consultoria B2B e SaaS fora das grandes capitais: vantagens de foco e custo de vida vs desafios reais de prospecção e comunidade técnica.",
           "tension": "A pressão de achar obrigatório morar em metrópoles para crescer vs construir autonomia no interior.",
           "visual": "Conversa direta compartilhando prós e contras reais da sua experiência.",
           "competitorReference": "Análise madura de carreira de Vinicius Figueiredo e recortes regionais da Bahia de João Curry.",
