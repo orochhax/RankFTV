@@ -19,31 +19,52 @@ import { getCarlosRochaLibrary } from "@/lib/evolution/carlos-rocha-library";
 import snapshotJson from "@/lib/evolution/carlos-rocha-rank-snapshot.json";
 
 const principles = [
-  ["Jornada com missão", "Documentar a busca pela primeira vaga em Dados, projetos e decisões reais — sem fingir que o resultado já chegou."],
-  ["Prática acima da teoria", "Mostrar o que foi construído, onde travou, o que mudou e o que vale repetir."],
-  ["Experiências que têm história", "Viagens, eventos e mudanças entram quando existe um caminho, uma escolha ou uma descoberta para compartilhar."],
+  ["Fundador & Construção", "Construir a Silex Solutions (Engenharia de IA e Automação B2B) e o RankFTV, transformando um único estudo técnico em 3 fontes de renda — sem pose de guru."],
+  ["Prática acima da teoria", "Mostrar código, integrações de APIs, agentes e fluxos de automação na tela em estilo builder, resolvendo problemas de negócio reais sem virar professor."],
+  ["Experiências que têm história", "Vlogs autênticos na Bahia, viagens e reflexões sinceras sobre clareza mental e foco em movimento."],
 ];
 
 const opportunities = [
   {
+    title: "Por que abandonei Ciência de Dados para focar 100% em Engenharia de IA Aplicada",
+    pillar: "TECNOLOGIA & TRANSIÇÃO",
+    tension: "O apego coletivo a trilhas antigas de Ciência de Dados vs a coragem estratégica de pivotar para onde as vagas e os clientes com orçamento realmente estão.",
+    visual: "Diálogo frontal autêntico com cortes rápidos para requisitos reais de vagas abertas no Brasil e exterior comparadas lado a lado.",
+    conclusion: "O mercado de dados genérico saturou para juniores, mas quem conecta IA diretamente a processos e ferramentas de negócio encontra demanda imediata.",
+  },
+  {
+    title: "Criando a Silex Solutions: como usar um único conhecimento em IA para 3 fontes de renda",
+    pillar: "FOUNDER-LED BRANDING / B2B",
+    tension: "Achar que precisa escolher apenas um caminho e ficar refém de uma única renda vs montar um ecossistema inteligente onde 1 aprendizado alimenta 3 saídas financeiras.",
+    visual: "Diálogo olho no olho alternando com o mapa visual do ecossistema e o posicionamento da Silex Solutions.",
+    conclusion: "Um único conhecimento aprofundado em Engenharia de IA sustenta busca por vagas, consultoria B2B e autoridade em vídeo.",
+  },
+  {
+    title: "Construindo um agente de IA do zero para resolver uma dor real de empresa (Sem teoria acadêmica)",
+    pillar: "BUILDER & IA PRÁTICA",
+    tension: "O excesso de conteúdo conceitual e professoral na internet vs o atrito prático de ver um agente funcionando de verdade resolvendo um problema.",
+    visual: "Tela do computador com o código/fluxo rodando em tempo real intercalado com explicações diretas olhando para a câmera.",
+    conclusion: "Construir soluções funcionais de ponta a ponta gera mais autoridade técnica do que dezenas de cursos teóricos.",
+  },
+  {
     title: "7 dias em 'modo foco' para terminar e colocar o Rank Futevôlei no ar",
-    pillar: "BUILD & SHIP / PRODUTO REAL",
+    pillar: "BUILD & SHIP / SAAS REAL",
     tension: "A reta final entre ter um sistema quase pronto no computador e a pressão real de publicar no ar sem procrastinar.",
     visual: "Vlog ágil focado apenas nas horas construindo: ajustes finais, validações e publicação (sem mostrar rotina CLT).",
     conclusion: "Colocar um projeto real no ar muda o patamar de aprendizado e abre a fase de colher erros e acertos reais com usuários.",
   },
   {
-    title: "Criei uma funcionalidade (ou automação com IA) para o RankFTV em um fim de semana",
-    pillar: "SOFTWARE & IA NA PRÁTICA",
-    tension: "O desafio técnico de tirar uma melhoria prática do zero usando agentes/IA e colocar funcionando em produção em dois dias.",
-    visual: "Tela do sistema funcionando, fluxo de IA rodando na prática e explicação direta de como resolveu o problema.",
-    conclusion: "Usar IA aplicada em um produto seu entrega mais resultado concreto do que centenas de horas assistindo aula teórica.",
+    title: "Por que escolhi resolver problemas operacionais 'chatos' de empresas com automação",
+    pillar: "SILEX SOLUTIONS & NEGÓCIOS",
+    tension: "A obsessão da internet por ideias 'geniais' sem demanda vs a sobriedade de vender automação de processos para quem já tem caixa e precisa economizar tempo.",
+    visual: "Diálogo direto alternando com exemplos claros de tarefas manuais de empresas que foram reduzidas a um fluxo automático.",
+    conclusion: "Nichos operacionais manuais pagam com satisfação por automação confiável e têm concorrência quase zero.",
   },
   {
     title: "Quem se movimenta sempre encontra sorte: por que construir projetos abre mais portas do que só estudar",
     pillar: "CRIAÇÃO & MOVIMENTO",
     tension: "Ficar parado tentando dominar toda a teoria no quarto vs agir e publicar projetos que geram oportunidades reais no caminho.",
-    visual: "Diálogo firme olho no olho intercalado com cenas rápidas do RankFTV e do canal em andamento.",
+    visual: "Diálogo firme olho no olho intercalado com cenas rápidas do RankFTV, da Silex Solutions e do canal em andamento.",
     conclusion: "A sorte encontra quem está em movimento; construir e mostrar o processo gera retornos que o estudo passivo nunca traz.",
   },
   {
@@ -52,27 +73,6 @@ const opportunities = [
     tension: "Viver no piloto automático consumindo ruído o dia inteiro vs a lucidez de parar em silêncio para definir os próximos passos.",
     visual: "Ambiente calmo, tomada limpa, ritmo reflexivo e conversa serena sem expor angústias íntimas.",
     conclusion: "Pensar em silêncio evita passar meses executando no piloto automático coisas que não levam a lugar nenhum.",
-  },
-  {
-    title: "Ainda vale a pena mirar em vagas no exterior ou construir a base no Brasil primeiro?",
-    pillar: "ESTRATÉGIA & CARREIRA EM DADOS",
-    tension: "A corrida apressada para ganhar em dólar logo vs a escolha estratégica de consolidar experiência e entregas reais no Brasil antes.",
-    visual: "Conversa franca e analítica cara a cara defendendo seu posicionamento atual de mercado.",
-    conclusion: "Construir base sólida, portfólio e clientes locais primeiro dá segurança real para mirar mais alto depois.",
-  },
-  {
-    title: "Por que escolhi resolver um problema 'chato' no interior em vez de tentar inventar o próximo unicórnio",
-    pillar: "NEGÓCIOS & PRODUTO",
-    tension: "A obsessão por startups bilionárias genéricas vs resolver uma dor real e específica de arenas de futevôlei.",
-    visual: "Telas do sistema RankFTV aberto mostrando o problema operacional real sendo estruturado.",
-    conclusion: "Nichos operacionais pouco glamourosos têm menos concorrência e sustentam produtos sólidos com muito menos barulho.",
-  },
-  {
-    title: "Não ficou mais difícil entrar em Dados: você só está olhando para o passado",
-    pillar: "TECNOLOGIA & CARREIRA",
-    tension: "O choro coletivo da internet de que 'está impossível' vs a maturidade de entender o mercado atual com pragmatismo.",
-    visual: "Diálogo direto com energia firme e objetiva, podendo pontuar rapidamente requisitos reais de vagas.",
-    conclusion: "A régua mudou, mas o mercado continua precisando de quem sabe estruturar dados e resolver problemas reais.",
   },
 ];
 
@@ -112,8 +112,8 @@ export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" |
         <div className="evo-intel-icon"><Compass size={21} /></div>
         <div>
           <p className="evo-eyebrow">DIREÇÃO EDITORIAL</p>
-          <h2>Dados, prática e experiências vividas.</h2>
-          <p>O canal começa pela sua jornada de Ciência de Dados e primeira vaga, com espaço para projetos, bastidores e experiências que tenham uma história verdadeira.</p>
+          <h2>Engenharia de IA, Automação B2B e SaaS.</h2>
+          <p>O canal documenta a construção da Silex Solutions e do RankFTV, transformando um único estudo técnico em 3 fontes de renda, com vlogs e reflexões sinceras.</p>
         </div>
         <span className="evo-intel-status">Em produção</span>
       </section>
@@ -172,7 +172,7 @@ export function CarlosRochaCenter({ page }: { page: "overview" | "competitors" |
         <div>
           <p className="evo-eyebrow">HUB ACIONÁVEL DE VÍDEOS</p>
           <h2>Ideias estruturadas por pilares reais e ordenadas por score</h2>
-          <p>Recomendações calibradas pelos 17 concorrentes e separadas entre o que pode ser gravado hoje (pré-lançamento) e a próxima fase após o RankFTV entrar no ar.</p>
+          <p>Recomendações calibradas pelos 21 concorrentes (100% livres de Shorts) e separadas entre o que pode ser gravado hoje (pré-lançamento & construção da Silex Solutions/RankFTV) e a próxima fase após os primeiros clientes e escala.</p>
         </div>
         <span className="evo-intel-status">{readyNowCount} prontas agora • {postLaunchCount} pós-lançamento</span>
       </section>

@@ -1,5 +1,22 @@
 # Estado atual resumido
 
+## Central de Evolução - Transição para Engenharia de IA Aplicada, Silex Solutions e Purga Rigorosa de Shorts (13/11/2026)
+
+- **Reposicionamento Estratégico Canônico**:
+  - Transição de 100% de Ciência de Dados tradicional para **Engenharia de IA Aplicada e Automação Corporativa** (Python, FastAPI, APIs REST, Webhooks, n8n, Make, LLMs, RAG, Bancos Vetoriais e Agentes Autônomos).
+  - Estruturação da **Silex Solutions** (braço B2B de consultoria de IA e automação; gancho inicial: reunião gratuita de diagnóstico -> venda de implementação + mensalidade de manutenção).
+  - Ecossistema de 3 fontes de renda alimentadas por um único conhecimento técnico: (1) Vagas CLT/Remoto de Engenheiro de IA, (2) Contratos B2B na Silex Solutions, (3) Canal no YouTube com autoridade e monetização.
+  - Abordagem de tecnologia em vídeo no estilo *builder* prático na tela resolvendo dores reais de negócio, sem virar professor ou dar aulas conceituais.
+- **Purga Rigorosa e Filtro Definitivo de YouTube Shorts**:
+  - Script `collect-competitors.mjs` atualizado com detecção via `HEAD https://www.youtube.com/shorts/{id}` (status 200 = Short, status 303 = vídeo normal longo).
+  - Purgados **1.913 YouTube Shorts** acumulados em todas as pastas de `Carlos Rocha - YT/Concorrentes/` (Dados, Videos e Thumbnails).
+  - Base de canais ampliada para **21 canais oficiais** (adicionados `@lucianafpapini` com 63 vídeos e `@thalena-lima` com 82 vídeos).
+  - Total coletado rigorosamente sem Shorts: **21 canais, 1.341 vídeos longos válidos e 1.341 thumbnails JPEG íntegras**.
+- **Atualização do Ranking e Biblioteca Editorial no RankFTV**:
+  - Snapshot recalculado em `lib/evolution/carlos-rocha-rank-snapshot.json` (1.423 vídeos indexados, 23 canais, 15 maiores outliers com exibição de likes e visualizações), destacando os novos outliers de IA aplicada: Luciana Papini (#5, 441k views / 103,8x), Vinicius Figueiredo (#6, 225k views / 91,4x), Luciana Papini (#9, 191k views / 45,0x) e Victor Baggio (#11, 176k views / 35,7x).
+  - Biblioteca Editorial (`lib/evolution/carlos-rocha-library.json` e `CarlosRochaCenter.tsx`): 4 categorias alinhadas com nota de corte $\ge 80$, separando em `ready_now` (pré-lançamento & construção da Silex Solutions/RankFTV) e `post_launch` (após primeiros contratos B2B e clientes no RankFTV).
+- **Validação Local Completa**: `npm run typecheck` (exit 0), `npm test` (970 testes, 969 pass, 0 fail), `npm run lint` (0 errors).
+
 ## RankFTV — Horários opcionais em campeonatos, artes da Arena Rank Football, correção do banner Plano Pro e rotas de Radar Anti-Evasão / Torneios Internos (12/11/2026)
 
 - **Banco de produção (`tkyopolcxfsdbhvrgadj`)**:
