@@ -1,44 +1,8 @@
 {
   "observedAt": "2026-11-13T00:00:00-03:00",
-  "channels": 23,
-  "videos": 1423,
+  "channels": 21,
+  "videos": 1365,
   "topVideos": [
-    {
-      "id": "7moAP4TCt1A",
-      "channel": "Vagner Mazzeo",
-      "title": "Pare de fingir que está bem",
-      "url": "https://www.youtube.com/watch?v=7moAP4TCt1A",
-      "views": 8000000,
-      "likes": null,
-      "publishedAt": "2026-02-25T07:00:13-08:00",
-      "durationSeconds": 651,
-      "channelMedianViews": 18431,
-      "relativePerformanceMultiple": 434.05132656936684
-    },
-    {
-      "id": "e88LNwRew6c",
-      "channel": "Vagner Mazzeo",
-      "title": "Como atrair tudo que você deseja",
-      "url": "https://www.youtube.com/watch?v=e88LNwRew6c",
-      "views": 8000000,
-      "likes": null,
-      "publishedAt": "2026-03-02T20:33:57-08:00",
-      "durationSeconds": 679,
-      "channelMedianViews": 18431,
-      "relativePerformanceMultiple": 434.05132656936684
-    },
-    {
-      "id": "wi6DwOYeGkw",
-      "channel": "Vagner Mazzeo",
-      "title": "GRATIDÃO: a primeira lei da RIQUEZA",
-      "url": "https://www.youtube.com/watch?v=wi6DwOYeGkw",
-      "views": 8000000,
-      "likes": null,
-      "publishedAt": "2026-02-23T07:57:10-08:00",
-      "durationSeconds": 443,
-      "channelMedianViews": 18431,
-      "relativePerformanceMultiple": 434.05132656936684
-    },
     {
       "id": "9W88uwMGuwo",
       "channel": "Bennett Luke",
@@ -136,6 +100,18 @@
       "relativePerformanceMultiple": 35.686600445976076
     },
     {
+      "id": "Vo5ePeM3C3U",
+      "channel": "Vagner Mazzeo",
+      "title": "Claude Code Tutorial Completo em Português: Do Zero ao Primeiro Projeto",
+      "url": "https://www.youtube.com/watch?v=Vo5ePeM3C3U",
+      "views": 424041,
+      "likes": 1420,
+      "publishedAt": "2026-05-22",
+      "durationSeconds": 2115,
+      "channelMedianViews": 11885,
+      "relativePerformanceMultiple": 35.678670593184684
+    },
+    {
       "id": "HPzpNYPGWo8",
       "channel": "Luciana Papini | Automação com IA",
       "title": "É o fim da API oficial do WhatsApp?",
@@ -182,6 +158,30 @@
       "durationSeconds": 720,
       "channelMedianViews": 11470,
       "relativePerformanceMultiple": 19.588840453356582
+    },
+    {
+      "id": "mmzNsw6M_88",
+      "channel": "Bruno Nardon",
+      "title": "Por Dentro da MAIOR empresa de COTAS de JATOS do Brasil",
+      "url": "https://www.youtube.com/watch?v=mmzNsw6M_88",
+      "views": 280577,
+      "likes": 5379,
+      "publishedAt": "2026-05-01",
+      "durationSeconds": 2016,
+      "channelMedianViews": 14666,
+      "relativePerformanceMultiple": 19.13111959634529
+    },
+    {
+      "id": "SigusFL_ixE",
+      "channel": "Thalena Lima",
+      "title": "Agente IA WhatsApp | Setup Completo com Claude Code",
+      "url": "https://www.youtube.com/watch?v=SigusFL_ixE",
+      "views": 91467,
+      "likes": 3704,
+      "publishedAt": "2026-04-01",
+      "durationSeconds": 1473,
+      "channelMedianViews": 5030.5,
+      "relativePerformanceMultiple": 18.182486830334955
     }
   ]
 }

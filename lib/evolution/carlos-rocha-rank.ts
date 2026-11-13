@@ -63,13 +63,15 @@ async function readLocalRank(): Promise<CarlosRochaRank> {
       for (const file of files) {
         if (!file.name.endsWith(".json")) continue;
         const item = JSON.parse(await fs.readFile(path.join(dataRoot, file.name), "utf8"));
+        if (item.source !== "youtube-data-api-v3") continue;
         const video = item.video;
         if (!video?.id || !Number.isFinite(Number(video.views))) continue;
         const channel = item.channel?.name ?? folder.name;
         channels.add(channel);
         observedAt = !observedAt || item.observedAt > observedAt ? item.observedAt : observedAt;
         const likes = video.likes != null && Number.isFinite(Number(video.likes)) ? Number(video.likes) : null;
-        videos.push({ id: video.id, channel, title: video.title, url: video.url, views: Number(video.views), likes, publishedAt: video.publishDate ?? video.publishedAt?.slice(0, 10) ?? "", durationSeconds: video.durationSeconds ?? null });
+        const publishedAt = (video.publishDate ?? video.publishedAt ?? "").slice(0, 10);
+        videos.push({ id: video.id, channel, title: video.title, url: video.url, views: Number(video.views), likes, publishedAt, durationSeconds: video.durationSeconds ?? null });
       }
     }
     return { observedAt, channels: channels.size, videos: videos.length, topVideos: rank(videos) };
