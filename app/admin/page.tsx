@@ -11,7 +11,7 @@ const MENU = [
     personalOwnerOnly: true,
     icon: Clapperboard,
     label: "Central de Evolução",
-    desc: "Acompanhe DataScience, Rocha Tech, Insta/Shape e RankFTV em um único painel.",
+    desc: "Acompanhe Engenharia de IA, Rocha Tech, Insta/Shape e RankFTV em um único painel.",
   },
   {
     href: "/admin/curso-ingles",

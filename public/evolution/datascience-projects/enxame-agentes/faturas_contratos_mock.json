@@ -1,0 +1,30 @@
+[
+  {
+    "fatura_id": "FAT-2026-901",
+    "fornecedor": "Tech Cloud Hosting",
+    "cnpj": "12.345.678/0001-90",
+    "valor_total": 8450,
+    "vencimento": "2026-11-20",
+    "itens": [
+      {
+        "descricao": "Servidor Dedicado GPU",
+        "qtd": 1,
+        "unitario": 8450
+      }
+    ]
+  },
+  {
+    "fatura_id": "FAT-2026-902",
+    "fornecedor": "Segurança Cibernética Brasil",
+    "cnpj": "98.765.432/0001-10",
+    "valor_total": 19800,
+    "vencimento": "2026-11-25",
+    "itens": [
+      {
+        "descricao": "Auditoria SOC 2",
+        "qtd": 1,
+        "unitario": 19800
+      }
+    ]
+  }
+]

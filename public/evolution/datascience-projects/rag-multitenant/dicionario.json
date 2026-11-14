@@ -1,0 +1,6 @@
+{
+  "arquitetura": "RAG Híbrido Multi-Tenant",
+  "dimensao_embeddings": 1536,
+  "banco_vetorial": "Pinecone / pgvector",
+  "re_ranker": "Cross-Encoder BAAI/bge-reranker-large"
+}

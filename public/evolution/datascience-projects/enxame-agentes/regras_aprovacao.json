@@ -1,0 +1,6 @@
+{
+  "alcada_automatica_maxima_reais": 10000,
+  "exige_aprovador_humano": true,
+  "tempo_expiracao_aprovacao_horas": 24,
+  "bloqueio_cnpj_inadimplente": true
+}

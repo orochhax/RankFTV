@@ -1,0 +1,5 @@
+{
+  "arquitetura": "Microservices em Docker Compose",
+  "cloud": "AWS (S3, ECR, ECS / EC2)",
+  "ci_cd": "GitHub Actions com testes determinísticos obrigatórios"
+}

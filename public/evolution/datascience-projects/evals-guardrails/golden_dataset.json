@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "pergunta": "Como faço para solicitar reembolso de alimentação?",
+    "contexto": "Limite diário é de R$ 180,00 e o comprovante deve ser enviado em até 5 dias úteis.",
+    "resposta_padrao": "Você deve enviar a nota fiscal em até 5 dias úteis, respeitando o teto de R$ 180,00 diários."
+  },
+  {
+    "id": 2,
+    "pergunta": "Qual a multa por cancelamento de contrato antes do prazo?",
+    "contexto": "A rescisão antecipada sem justa causa incorre em multa de 30% sobre o saldo remanescente.",
+    "resposta_padrao": "A multa é de 30% calculada sobre o saldo restante do contrato."
+  }
+]

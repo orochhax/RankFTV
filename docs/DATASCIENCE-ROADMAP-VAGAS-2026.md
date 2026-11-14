@@ -1,56 +1,47 @@
-# Roadmap de Data Science orientado pelas vagas
+# Roadmap de Engenharia de IA Aplicada (2026–2027)
 
 ## Decisão
 
-O roadmap ativo prepara Carlos para entrar na área como um profissional júnior
-forte, capaz de lidar com exigências recorrentes de vagas de nível pleno, sem
-transformar requisitos de sênior em pré-requisitos obrigatórios.
+O roadmap ativo prepara Carlos para atuar como **Engenheiro de IA Aplicada (Applied AI Engineer / AI Automation Engineer)**, sustentando simultaneamente 3 fontes de renda:
+1. **Vagas CLT / Remoto:** Resolução de problemas reais integrando IA nos sistemas de empresas (Brasil e exterior).
+2. **Agência B2B de Automação com IA:** Prestação de serviços técnicos avançados (fluxos n8n, bots conectados a APIs/ERPs, RAG corporativo e sistemas agênticos).
+3. **YouTube e Infoprodutos (Build in Public):** Autoridade e tutoriais mostrando bastidores técnicos e contratos reais da agência.
 
-A fonte canônica continua sendo `data/evolution/udemy-curricula.json`, com os 21
-cursos e todos os itens autenticados da Udemy. A curadoria feita pelo gerador
-define apenas o que aparece na rota ativa. Conteúdo não selecionado não é
-apagado e pode ser recuperado depois.
+A fonte canônica continua sendo `data/evolution/udemy-curricula.json`, contendo os cursos autenticados da Udemy. A curadoria feita pelo gerador (`scripts/generate-datascience-roadmap-v2.mjs`) define a rota ativa, preservando a grade canônica integral para auditoria.
 
-## Evidência usada
+## Estrutura Curricular e Prioridades
 
-A amostra fornecida em `DataScience/vagas.md` mostrou maior recorrência de:
+### Prioridade 1 · Fundamentos de Engenharia, Dados e APIs
+- **Python Moderno, Async e POO:** `Curso de Python 3 do básico ao avançado` (Luiz Otávio) — dicionários, closures, tipagem estática, exceções, testes e design patterns.
+- **JavaScript, TypeScript e React:** `JavaScript e TypeScript do básico ao avançado` (Luiz Otávio) — JS assíncrono, Node.js, interfaces leves em React para protótipos de IA.
+- **Git e GitHub:** `Git e contribuições para projetos Open Source` (Bruno Orlandi) — branches, pull requests e code review.
+- **APIs e Microsserviços de IA:** `FastAPI - APIs Modernas e Assíncronas com Python` (Geek University) — Pydantic v2, endpoints assíncronos e streaming SSE (Server-Sent Events).
+- **Projeto 1A:** *AI-Ready Gateway & Webhook Router Assíncrono* (3 dias úteis).
 
-- Python, SQL e Machine Learning;
-- comunicação de resultados e entendimento de negócio;
-- GenAI, LLMs e RAG;
-- cloud, pipelines, Spark e Databricks;
-- BI, testes, APIs e MLOps como diferenciais de entrega.
+### Prioridade 2 · Automação Low-Code e Engenharia de LLMs
+- **Discovery de Negócios:** `Análise e Levantamento de Requisitos de Software` (Wesley Ávila) — elicitação, entrevistas e escopo.
+- **Orquestração e Workflows:** `n8n do Zero ao Profissional - Automações e Agentes de IA` (Ricardo Pacheco) — webhooks, APIs, WhatsApp (Evolution API), Redis e retries em produção.
+- **Projeto 2A:** *Orquestrador de Processos B2B com n8n & Fallback Humano* (4 dias úteis).
+- **Engenharia de LLMs e NLP:** `Formação Processamento de Linguagem Natural, LLMs e GenAI` (Fernando Amaral) — Transformers, auto-atenção, BERT e GPT.
+- **Bancos Relacionais:** `SQL para Análise de Dados: do Básico ao Avançado!` (Data Driven) — consultas analíticas, JOINs e PostgreSQL.
+- **Projeto 3A:** *Motor RAG Híbrido e Extração Estruturada Corporativa* (4 dias úteis).
 
-As práticas concluídas comprovaram fundamentos básicos de Python. Foram
-retiradas da rota ativa somente repetições de variáveis, tipos, entrada e
-conversão, condicionais, laços, listas, imports, funções e estatística básica.
-NumPy, Pandas, CSV, tratamento de erros, Git, SQL, Power Query, DAX e Power BI
-permanecem porque ainda não possuem evidência final suficiente.
+### Prioridade 3 · RAG, Sistemas Agênticos, LLMOps e Cloud
+- **LangChain, Embeddings e Grafos:** `LangChain e LangGraph: Crie Agentes de IA com LLMs e RAGs` (Fernando Amaral) — Pinecone, RAG e LangGraph.
+- **Model Context Protocol (MCP) e Agentes:** Módulos avançados de agentes e protocolo MCP no n8n e LangGraph.
+- **Projeto 4A:** *Enxame Multiagente Autônomo com LangGraph & Protocolo MCP* (4 dias úteis).
+- **Testes Determinísticos:** `Domine Pytest: Testes de Software com Python` (Fernando Amaral) — fixtures, mocking de chamadas de LLM e testes end-to-end.
+- **MLOps e Tracking:** `MLOps: Da Ciência de Dados à Operação` — versionamento DVC, MLflow e pipelines.
+- **Projeto 5A:** *Pipeline Automatizado de Evals, Testes e Guardrails* (4 dias úteis).
+- **Containers e Infra:** `Docker para Desenvolvedores (com Docker Swarm e Kubernetes)` (Matheus Battisti) — Dockerfile multi-stage e Docker Compose.
+- **Cloud AWS:** `Machine Learning com Amazon AWS e SageMaker` — storage S3, permissões IAM e endpoints de inferência externos.
+- **Projeto 6A (Capstone Final):** *Plataforma Enterprise de IA Conteinerizada & Deploy na AWS* (5 dias úteis).
 
-## Resultado da curadoria
+## Resumo dos Indicadores Oficiais
 
-- 88 dias úteis, de 03/11/2026 a 09/03/2027;
-- 356,8 horas planejadas;
-- 1.885 itens oficiais ativos da Udemy;
-- 760 itens fora da rota ativa, preservados na grade canônica;
-- 24 dias de projeto distribuídos em seis provas de capacidade;
-- 29 alertas de competências para o LinkedIn;
-- seis evoluções de título, sempre condicionadas à entrega de um projeto.
-
-## Projetos e evidências
-
-1. Diagnóstico de atendimento ao cliente: Python, Pandas, SQL, EDA e decisão de negócio.
-2. Painel de estoque e risco de ruptura: Power Query, modelagem, Power BI e DAX.
-3. Previsão de inadimplência e risco de crédito: estatística, classificação, métricas, explicabilidade e viés.
-4. Previsão de volume e dimensionamento de atendimento: séries temporais, backtesting e recomendação operacional.
-5. API de decisão para risco de churn: Machine Learning, FastAPI, testes, Docker e MLOps.
-6. Inteligência de avaliações de clientes: NLP, LLMs, classificação de temas, sentimento e avaliação verificável.
-
-O último dia de cada projeto inclui documentação final e publicação no
-LinkedIn. Aula assistida, sozinha, não autoriza mudança de título profissional.
-
-## Regra de manutenção
-
-Ao regenerar o roadmap, preserve os IDs oficiais dos itens Udemy. Isso permite
-associar o progresso anterior à mesma aula. Não substitua a grade canônica pela
-rota filtrada e não reintroduza anexos básicos apenas para aumentar horas.
+- **64 dias úteis**, de **16/11/2026** a **24/02/2027**;
+- **259,5 horas planejadas** (carga-alvo de 4h diárias);
+- **24 dias de projeto prático** distribuídos em seis provas de capacidade 3 em 1;
+- **19 marcos de competências** com evidências comprovadas para o LinkedIn;
+- **6 evoluções graduais de título profissional** condicionadas à entrega dos projetos;
+- Finais de semana, feriados oficiais/municipais de Eunápolis, recesso de fim de ano e semana de viagem pessoal rigorosamente excluídos.

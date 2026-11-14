@@ -38,7 +38,7 @@ export default async function EvolutionHomePage() {
       {!data.databaseReady ? <div className="evo-setup-banner"><AlertTriangle size={18} /><div><strong>Modo de demonstração local</strong><p>As telas estão prontas, mas os registros serão liberados somente depois de você aprovar a aplicação da migração no Supabase.</p></div></div> : null}
 
       <section className="evo-score-grid" aria-label="Composição do score semanal">
-        <article><span className="is-blue"><BookOpen size={18} /></span><div><p>DataScience</p><strong>{data.score.dataScience}<small>/50</small></strong><em>{formatMinutes(data.study.totalMinutes)} de 10h</em></div></article>
+        <article><span className="is-blue"><BookOpen size={18} /></span><div><p>Engenharia de IA</p><strong>{data.score.dataScience}<small>/50</small></strong><em>{formatMinutes(data.study.totalMinutes)} de 10h</em></div></article>
         <article><span className="is-red"><Clapperboard size={18} /></span><div><p>Rocha Tech</p><strong>{data.score.rochaTech}<small>/30</small></strong><em>{videoStatus}</em></div></article>
         <article><span className="is-purple"><Dumbbell size={18} /></span><div><p>Insta / Shape</p><strong>{data.score.instaShape}<small>/20</small></strong><em>{data.training.length} treinos registrados</em></div></article>
         <article className="is-view-only"><span><Trophy size={18} /></span><div><p>RankFTV</p><strong>{data.rank.progress.percent}%</strong><em>Visão, sem peso no score</em></div></article>

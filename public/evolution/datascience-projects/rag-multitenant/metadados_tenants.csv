@@ -1,0 +1,4 @@
+tenant_id,nome_empresa,setor,plano,vetor_namespace
+tenant_alpha,Alpha Engenharia S.A.,Engenharia e Obras,Enterprise,ns_alpha_corp
+tenant_beta,Beta Distribuidora Sul-Bahia,Logística e Varejo,Pro,ns_beta_log
+tenant_gamma,Gamma Soluções Médicas,Saúde,Pro,ns_gamma_med

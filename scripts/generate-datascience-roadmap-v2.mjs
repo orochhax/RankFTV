@@ -1,10 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const root = process.cwd();
+const scriptDir = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
+const root = process.env.DATASCIENCE_PROJECT_ROOT ?? path.resolve(scriptDir, "..");
 const curriculumPath = process.env.DATASCIENCE_CURRICULUM_SOURCE
   ?? path.resolve(root, "data/evolution/udemy-curricula.json");
-const startDate = new Date(2026, 10, 3, 12);
+const startDate = new Date(2026, 10, 16, 12);
 const minimumDailyMinutes = 240;
 
 if (!fs.existsSync(curriculumPath)) {
@@ -23,15 +24,29 @@ const holidays = [
   ["2027-06-24", "São João", "municipal"],
   ["2027-07-02", "Independência da Bahia", "estadual"],
 ].map(([date, name, scope]) => ({ date, name, scope }));
-const holidayMap = new Map(holidays.map((holiday) => [holiday.date, holiday]));
+
+const blockedDates = new Set([
+  ...holidays.map((holiday) => holiday.date),
+  "2026-11-23", // Viagem pessoal
+  "2026-11-24", // Viagem pessoal
+  "2026-11-25", // Viagem pessoal
+  "2026-11-26", // Viagem pessoal
+  "2026-11-27", // Viagem pessoal
+  "2026-12-31", // Recesso / Véspera de Ano Novo
+]);
+
 const weekdays = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
 const dateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 const slug = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
 const nextStudyDate = (date) => {
   const next = new Date(date);
-  while (next.getDay() === 0 || next.getDay() === 6 || holidayMap.has(dateKey(next))) next.setDate(next.getDate() + 1);
+  while (next.getDay() === 0 || next.getDay() === 6 || blockedDates.has(dateKey(next))) {
+    next.setDate(next.getDate() + 1);
+  }
   return next;
 };
+
 const formatDuration = (seconds) => {
   if (!Number.isFinite(seconds) || seconds <= 0) return "duração não informada";
   const hours = Math.floor(seconds / 3600);
@@ -80,38 +95,37 @@ const curriculumSnapshot = JSON.parse(fs.readFileSync(curriculumPath, "utf8"));
 const catalog = buildCatalog(curriculumSnapshot);
 
 const phaseInfo = {
-  p1: { priority: "Prioridade 1", title: "Fundamentos indispensáveis", description: "Python para dados, SQL, estatística, BI, qualidade e comunicação." },
-  p2: { priority: "Prioridade 2", title: "Competências próximas do nível pleno", description: "Machine Learning, experimentação, séries temporais, APIs, engenharia e produção." },
-  p3: { priority: "Prioridade 3", title: "Especialização em Inteligência Artificial", description: "Deep Learning, NLP, LLMs, RAG, agentes, MLOps e cloud." },
+  p1: {
+    priority: "Prioridade 1",
+    title: "Fundamentos de Engenharia, Dados e APIs",
+    description: "Python intermediário e avançado, concorrência assíncrona, TypeScript, Node.js, React e APIs de alta performance com FastAPI.",
+  },
+  p2: {
+    priority: "Prioridade 2",
+    title: "Automação Low-Code e Engenharia de LLMs",
+    description: "Workflows visuais no n8n, Webhooks, WhatsApp, Transformers, Prompt Engineering e Structured Outputs.",
+  },
+  p3: {
+    priority: "Prioridade 3",
+    title: "RAG, Sistemas Agênticos, LLMOps e Cloud",
+    description: "Bancos vetoriais, RAG multi-tenant, orquestração com LangGraph, protocolo MCP, testes determinísticos com Pytest, Docker e deploy AWS.",
+  },
 };
 
-// A grade autenticada permanece integral em udemy-curricula.json. Esta selecao
-// controla somente a trilha ativa: prioriza o que apareceu nas vagas reais e
-// retira introducoes, repeticoes, anexos basicos ja demonstrados e desvios de
-// especializacao. Os IDs oficiais permanecem inalterados para preservar o
-// progresso do usuario quando o roadmap for regenerado.
 const activeSections = new Map(Object.entries({
-  "Análise de Dados com Pandas: do Zero ao Dashboard": [4, 5, 6, 8, 9, 11, 12],
+  "Curso de Python 3 do básico ao avançado - com projetos reais": [4, 5, 6, 14, 15, 17],
+  "JavaScript e TypeScript do básico ao avançado - JS + TS": [8, 9, 10, 18, 19, 20, 21, 22, 27],
   "Git e contribuições para projetos Open Source": [1, 2, 3, 4, 5, 6],
-  "SQL para Análise de Dados: do Básico ao Avançado!": [4, 5, 6, 7, 8, 9],
-  "Análise e Levantamento de Requisitos de Software": [2, 3, 4, 5, 6, 7, 8, 9, 10],
-  "Formação Microsoft Power BI Profissional": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
-  "Estatística para Ciência de Dados e Machine Learning": [2, 3, 4, 5, 6, 7, 8, 9, 10],
-  "Álgebra Linear para Data Science e Machine Learning": [2, 3, 4, 5, 6, 7],
-  "Data Storytelling e Visualização de Dados": [2, 3, 4, 5, 6, 7, 8],
-  "Machine Learning e Data Science com Python de A a Z": [3, 4, 5, 7, 8, 9, 11, 12, 14, 15, 20, 21, 26, 27, 28, 29, 30],
-  "Feature Engineering for Machine Learning": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-  "Domine Pytest: Testes de Software com Python": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-  "Bayesian Machine Learning in Python: A/B Testing": [2, 3, 4, 5, 6, 7],
-  "Econometrics and Statistics for Business in R & Python": [3, 5, 6, 8, 9, 11, 12, 14, 15, 17],
-  "Séries Temporais e Analises Preditivas com Python": [2, 3, 4, 5, 6, 7, 8],
   "FastAPI - APIs Modernas e Assíncronas com Python": [2, 3, 4, 5, 6, 7],
-  "Databricks Developer Spark,SQL,Python Para Análise de Dados": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 18, 19, 20, 21, 22, 23],
-  "MLOps: Da Ciência de Dados à Operação": [2, 3, 4, 5, 6],
-  "Machine Learning com Amazon AWS e SageMaker": [2, 3, 4, 5, 6, 7, 10],
-  "Deep Learning com Python de A a Z - O Curso Completo": [3, 4, 9, 10, 13, 14, 24, 25, 27, 28],
-  "Formação Processamento de Linguagem Natural, LLMs e GenAI": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "Análise e Levantamento de Requisitos de Software": [2, 3, 4, 5, 6],
+  "n8n do Zero ao Profissional - Automações e Agentes de IA": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  "Formação Processamento de Linguagem Natural, LLMs e GenAI": [2, 5, 6, 8],
+  "SQL para Análise de Dados: do Básico ao Avançado!": [4, 5, 6, 7, 8, 9],
   "LangChain e LangGraph: Crie Agentes de IA com LLMs e RAGs": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "Domine Pytest: Testes de Software com Python": [2, 3, 4, 5, 6, 7, 9, 10, 11],
+  "MLOps: Da Ciência de Dados à Operação": [2, 3, 4, 5, 6],
+  "Docker para Desenvolvedores (com Docker Swarm e Kubernetes)": [2, 3, 4, 5, 6, 7],
+  "Machine Learning com Amazon AWS e SageMaker": [2, 3, 10],
 }));
 
 const selectedUnits = (course) => {
@@ -122,36 +136,35 @@ const selectedUnits = (course) => {
 };
 
 const plan = [
-  ["p1", "course", "Análise de Dados com Pandas: do Zero ao Dashboard"],
+  ["p1", "course", "Curso de Python 3 do básico ao avançado - com projetos reais"],
+  ["p1", "course", "JavaScript e TypeScript do básico ao avançado - JS + TS"],
   ["p1", "course", "Git e contribuições para projetos Open Source"],
-  ["p1", "course", "SQL para Análise de Dados: do Básico ao Avançado!"],
-  ["p1", "course", "Análise e Levantamento de Requisitos de Software"],
-  ["p1", "project", "diagnostico-atendimento", 3, "Projeto 1C · Diagnóstico de atendimento ao cliente"],
-  ["p1", "course", "Formação Microsoft Power BI Profissional"],
-  ["p1", "project", "painel-estoque", 4, "Projeto 2B · Painel de estoque e risco de ruptura"],
-  ["p1", "course", "Estatística para Ciência de Dados e Machine Learning"],
-  ["p1", "course", "Álgebra Linear para Data Science e Machine Learning"],
-  ["p1", "course", "Data Storytelling e Visualização de Dados"],
-  ["p1", "course", "Machine Learning e Data Science com Python de A a Z"],
-  ["p2", "course", "Feature Engineering for Machine Learning"],
-  ["p2", "project", "risco-credito", 4, "Projeto 3B · Previsão de inadimplência e risco de crédito"],
-  ["p2", "course", "Domine Pytest: Testes de Software com Python"],
-  ["p2", "course", "Bayesian Machine Learning in Python: A/B Testing"],
-  ["p2", "course", "Econometrics and Statistics for Business in R & Python"],
-  ["p2", "course", "Séries Temporais e Analises Preditivas com Python"],
-  ["p2", "project", "previsao-atendimento", 4, "Projeto 4C · Previsão de volume e dimensionamento de atendimento"],
-  ["p2", "course", "FastAPI - APIs Modernas e Assíncronas com Python"],
-  ["p2", "project", "api-churn", 4, "Projeto 5A · API de decisão para risco de churn"],
-  ["p2", "course", "Databricks Developer Spark,SQL,Python Para Análise de Dados"],
-  ["p2", "course", "MLOps: Da Ciência de Dados à Operação"],
-  ["p2", "course", "Machine Learning com Amazon AWS e SageMaker"],
-  ["p3", "course", "Deep Learning com Python de A a Z - O Curso Completo"],
-  ["p3", "course", "Formação Processamento de Linguagem Natural, LLMs e GenAI"],
+  ["p1", "course", "FastAPI - APIs Modernas e Assíncronas com Python"],
+  ["p1", "project", "gateway-webhooks", 3, "Projeto 1A · AI-Ready Gateway & Webhook Router Assíncrono"],
+  ["p2", "course", "Análise e Levantamento de Requisitos de Software"],
+  ["p2", "course", "n8n do Zero ao Profissional - Automações e Agentes de IA"],
+  ["p2", "project", "orquestrador-n8n", 4, "Projeto 2A · Orquestrador de Processos B2B com n8n & Fallback Humano"],
+  ["p2", "course", "Formação Processamento de Linguagem Natural, LLMs e GenAI"],
+  ["p2", "course", "SQL para Análise de Dados: do Básico ao Avançado!"],
+  ["p2", "project", "rag-multitenant", 4, "Projeto 3A · Motor RAG Híbrido e Extração Estruturada Corporativa"],
   ["p3", "course", "LangChain e LangGraph: Crie Agentes de IA com LLMs e RAGs"],
-  ["p3", "project", "inteligencia-avaliacoes", 5, "Projeto 6B · Inteligência de avaliações de clientes"],
+  ["p3", "project", "enxame-agentes", 4, "Projeto 4A · Enxame Multiagente Autônomo com LangGraph & Protocolo MCP"],
+  ["p3", "course", "Domine Pytest: Testes de Software com Python"],
+  ["p3", "course", "MLOps: Da Ciência de Dados à Operação"],
+  ["p3", "project", "evals-guardrails", 4, "Projeto 5A · Pipeline Automatizado de Evals, Testes e Guardrails"],
+  ["p3", "course", "Docker para Desenvolvedores (com Docker Swarm e Kubernetes)"],
+  ["p3", "course", "Machine Learning com Amazon AWS e SageMaker"],
+  ["p3", "project", "enterprise-deploy-aws", 5, "Projeto 6A · Plataforma Enterprise de IA Conteinerizada & Deploy na AWS"],
 ];
 
-const projectSteps = ["Diagnóstico e escopo", "Construção", "Validação e documentação", "Publicação no LinkedIn", "Aprimoramento e estudo de caso"];
+const projectSteps = [
+  "Diagnóstico e arquitetura",
+  "Construção técnica",
+  "Validação de bordas e testes",
+  "Publicação no LinkedIn e GitHub",
+  "Aprimoramento e estudo de caso",
+];
+
 let cursor = nextStudyDate(startDate);
 let dayNumber = 1;
 const days = [];
@@ -203,7 +216,7 @@ function addStudyDay(units) {
     phaseId,
     phaseTitle: info.title,
     kind: "study",
-    note: "Os títulos abaixo reproduzem literalmente a grade cadastrada. Use o nome para localizar a aula ou o módulo na Udemy.",
+    note: "Os títulos abaixo reproduzem literalmente a grade cadastrada na Udemy. Use o nome para localizar a aula ou o módulo.",
     sections: [...sectionMap].map(([title, tasks]) => ({ title, tasks })),
     courses: [...courseMap.values()].map(({ unit, tasks }) => ({
       id: slug(unit.courseTitle),
@@ -223,8 +236,26 @@ function addProject(entry) {
     const date = consumeDate();
     const isLastDay = index === projectDays - 1;
     const step = isLastDay ? "Documentação final e publicação no LinkedIn" : projectSteps[index] ?? `Execução ${index + 1}`;
-    const task = { id: `projeto-${projectSlug}-${String(index + 1).padStart(2, "0")}`, label: `${step} — 4h`, kind: "entrega", durationMinutes: 240 };
-    days.push({ id: `dia-${String(dayNumber).padStart(3, "0")}`, dayNumber, date: dateKey(date), weekday: weekdays[date.getDay()], plannedMinutes: 240, phaseId, phaseTitle: phaseInfo[phaseId].title, kind: "project", projectSlug, note: title, sections: [{ title: "Projeto de portfólio", tasks: [task] }], courses: [] });
+    const task = {
+      id: `projeto-${projectSlug}-${String(index + 1).padStart(2, "0")}`,
+      label: `${step} — 4h`,
+      kind: "entrega",
+      durationMinutes: 240,
+    };
+    days.push({
+      id: `dia-${String(dayNumber).padStart(3, "0")}`,
+      dayNumber,
+      date: dateKey(date),
+      weekday: weekdays[date.getDay()],
+      plannedMinutes: 240,
+      phaseId,
+      phaseTitle: phaseInfo[phaseId].title,
+      kind: "project",
+      projectSlug,
+      note: title,
+      sections: [{ title: "Projeto de portfólio", tasks: [task] }],
+      courses: [],
+    });
     dayNumber += 1;
   }
 }
@@ -240,7 +271,7 @@ for (const entry of plan) {
     continue;
   }
   const course = catalog.get(key);
-  if (!course) throw new Error(`Curso sem grade exata cadastrada: ${key}`);
+  if (!course) throw new Error(`Curso sem grade cadastrada: ${key}`);
   for (const unit of selectedUnits(course)) {
     studyBuffer.push({ ...unit, phaseId });
     const minutes = studyBuffer.reduce((sum, item) => sum + item.durationMinutes, 0);
@@ -275,70 +306,110 @@ for (const day of days) delete day._units;
 
 const phaseStats = Object.entries(phaseInfo).map(([id, info]) => {
   const phaseDays = days.filter((day) => day.phaseId === id);
-  return { id, title: info.title, priority: info.priority, description: info.description, start: phaseDays[0].date, end: phaseDays.at(-1).date, days: phaseDays.length };
+  return {
+    id,
+    title: info.title,
+    priority: info.priority,
+    description: info.description,
+    start: phaseDays[0]?.date ?? "",
+    end: phaseDays.at(-1)?.date ?? "",
+    days: phaseDays.length,
+  };
 });
+
 const projectEndDay = (projectSlug) => days.filter((day) => day.projectSlug === projectSlug).at(-1)?.dayNumber ?? days.length;
 const lastDayForCourse = (courseTitle, sectionTitle) => days.filter((day) => {
   const hasCourse = day.courses.some((course) => course.title === courseTitle);
   if (!hasCourse || !sectionTitle) return hasCourse;
   return day.sections.some((section) => section.title.startsWith(`${courseTitle} · Seção `) && slug(section.title).endsWith(slug(sectionTitle)));
 }).at(-1)?.dayNumber;
+
 const skillDefinitions = [
-  ["NumPy", "Análise de Dados com Pandas: do Zero ao Dashboard", "Numpy Hands On", "Arrays, indexação, reshape, join e operações com NumPy concluídos."],
-  ["Pandas", "Análise de Dados com Pandas: do Zero ao Dashboard", "Pandas - Transformação de Dados", "Manipulação e transformação de dados com Series e DataFrames concluídas."],
-  ["Git", "Git e contribuições para projetos Open Source", null, "Controle de versão, branches, conflitos e colaboração estudados."],
-  ["SQL", "SQL para Análise de Dados: do Básico ao Avançado!", null, "Consultas, subqueries e funções de janela concluídas."],
-  ["Levantamento de requisitos", "Análise e Levantamento de Requisitos de Software", "Elicitação de Requisitos", "Entrevistas, workshops, brainstorming e captura de necessidades estudados."],
-  ["Comunicação com stakeholders", "Análise e Levantamento de Requisitos de Software", "Comunicação e Colaboração", "Comunicação, colaboração e tratamento de requisitos com stakeholders concluídos."],
-  ["Microsoft Power Query", "Formação Microsoft Power BI Profissional", "Modelagem - Power Query - Ingestão e transformação de dados", "Ingestão e transformação de dados no Power Query concluídas."],
-  ["Modelagem de dados", "Formação Microsoft Power BI Profissional", "Modelagem Desnormalizando seus dados (Modelo de Dados)", "Modelagem dimensional, fato, dimensão e desnormalização estudadas."],
-  ["DAX", "Formação Microsoft Power BI Profissional", "Funções DAX Inteligência de Tempo", "Agregações, filtros, lógica e inteligência de tempo em DAX concluídas."],
-  ["Microsoft Power BI", "Formação Microsoft Power BI Profissional", null, "Modelagem, visualização, publicação e recursos do Power BI concluídos."],
-  ["Estatística", "Estatística para Ciência de Dados e Machine Learning", null, "Probabilidade, inferência, testes, correlação e regressão concluídos."],
-  ["Álgebra linear", "Álgebra Linear para Data Science e Machine Learning", null, "Vetores, matrizes, operações e transformações lineares concluídos."],
-  ["Storytelling com dados", "Data Storytelling e Visualização de Dados", null, "Narrativa, comunicação visual e escolha de gráficos concluídas."],
-  ["Machine Learning", "Machine Learning e Data Science com Python de A a Z", null, "Modelos de classificação, regressão, agrupamento e avaliação concluídos."],
-  ["Feature engineering", "Feature Engineering for Machine Learning", null, "Imputação, encoding, transformação, scaling e pipelines concluídos."],
-  ["Pytest", "Domine Pytest: Testes de Software com Python", null, "Testes, fixtures, parametrização, integração e CI/CD com Pytest concluídos."],
-  ["Teste A/B", "Bayesian Machine Learning in Python: A/B Testing", null, "Testes A/B tradicionais e bayesianos concluídos."],
-  ["Econometria", "Econometrics and Statistics for Business in R & Python", null, "Métodos de inferência causal e econometria aplicada concluídos."],
-  ["Séries temporais", "Séries Temporais e Analises Preditivas com Python", null, "Preprocessamento, previsão e detecção de anomalias em séries concluídos."],
-  ["FastAPI", "FastAPI - APIs Modernas e Assíncronas com Python", null, "Construção, segurança, persistência e deploy de APIs com FastAPI concluídos."],
-  ["Apache Spark", "Databricks Developer Spark,SQL,Python Para Análise de Dados", "Funções de agregações", "Manipulação e agregação distribuída de dados com PySpark concluídas."],
-  ["Databricks", "Databricks Developer Spark,SQL,Python Para Análise de Dados", null, "Processamento de dados, Delta Lake e recursos do Databricks concluídos."],
-  ["MLOps", "MLOps: Da Ciência de Dados à Operação", null, "DVC, MLflow, Airflow e operação de modelos concluídos."],
-  ["Amazon SageMaker", "Machine Learning com Amazon AWS e SageMaker", null, "Treinamento, endpoints e modelos gerenciados no SageMaker concluídos."],
-  ["Deep Learning", "Deep Learning com Python de A a Z - O Curso Completo", null, "Redes densas, convolucionais, recorrentes e autoencoders concluídos."],
-  ["Processamento de linguagem natural (PLN)", "Formação Processamento de Linguagem Natural, LLMs e GenAI", "Machine Learning e Deep Learning para NLP na Prática", "Fundamentos e modelos de NLP aplicados concluídos."],
-  ["Large Language Models (LLM)", "Formação Processamento de Linguagem Natural, LLMs e GenAI", "Transformers, Bert, GPT e mais", "Transformers, BERT, GPT e LLMs estudados."],
-  ["LangChain", "LangChain e LangGraph: Crie Agentes de IA com LLMs e RAGs", "RAG: Aplicação de Busca Semântica em Documentos Jurídicos", "Chains, embeddings, bancos vetoriais e RAG com LangChain concluídos."],
-  ["LangGraph", "LangChain e LangGraph: Crie Agentes de IA com LLMs e RAGs", null, "Conceitos e aplicações práticas de fluxos com LangGraph concluídos."],
+  ["Python Intermediário e POO", "Curso de Python 3 do básico ao avançado - com projetos reais", "Introdução à Programação Orientada a Objetos em Python - POO (Classes)", "Dicionários, closures, decoradores e modelagem orientada a objetos concluídos."],
+  ["Design Patterns em Python", "Curso de Python 3 do básico ao avançado - com projetos reais", "Design Patterns (Padrões de projeto - GOF) - POO Avançado - Mini Curso", "Padrões de projeto estruturais e comportamentais aplicados em Python concluídos."],
+  ["TypeScript", "JavaScript e TypeScript do básico ao avançado - JS + TS", "TypeScript - Generics (Generic Type)", "Tipagem estática, interfaces, generics e classes em TypeScript dominados."],
+  ["React para IA", "JavaScript e TypeScript do básico ao avançado - JS + TS", "Typescript e React (Pomodoro App)", "Criação de interfaces web e consumo de streams com React concluídos."],
+  ["Git & GitHub", "Git e contribuições para projetos Open Source", null, "Controle de versão, branches, conflitos, code review e pull requests concluídos."],
+  ["FastAPI & Async", "FastAPI - APIs Modernas e Assíncronas com Python", null, "Construção de APIs assíncronas de alta performance, Pydantic e segurança concluídos."],
+  ["Levantamento de Requisitos", "Análise e Levantamento de Requisitos de Software", null, "Elicitação, entrevistas com stakeholders e mapeamento de processos corporativos estudados."],
+  ["Orquestração n8n", "n8n do Zero ao Profissional - Automações e Agentes de IA", "Webhooks no n8n", "Construção de fluxos visuais, nós de código e webhooks no n8n dominados."],
+  ["WhatsApp Automation", "n8n do Zero ao Profissional - Automações e Agentes de IA", "API de Whatsapp", "Integração do n8n com APIs de WhatsApp para comunicação transacional concluída."],
+  ["Prompt Engineering", "n8n do Zero ao Profissional - Automações e Agentes de IA", "Engenharia de Prompt", "Estruturação de prompts de sistema, context windows e structured outputs concluídos."],
+  ["Transformers & LLMs", "Formação Processamento de Linguagem Natural, LLMs e GenAI", "Transformers, Bert, GPT e mais", "Arquitetura Transformer, mecanismos de auto-atenção, BERT e GPT concluídos."],
+  ["SQL Avançado", "SQL para Análise de Dados: do Básico ao Avançado!", null, "JOINs, subqueries, agregações e modelagem em PostgreSQL concluídos."],
+  ["LangChain & RAG", "LangChain e LangGraph: Crie Agentes de IA com LLMs e RAGs", "RAG: Aplicação de Busca Semântica em Documentos Jurídicos", "Ingestão de dados, embeddings, busca vetorial no Pinecone e RAG concluídos."],
+  ["LangGraph & Agentes", "LangChain e LangGraph: Crie Agentes de IA com LLMs e RAGs", "Aplicações Práticas de LangGraph", "Grafos de estado, nós condicionais e agentes inteligentes com LangGraph concluídos."],
+  ["Model Context Protocol (MCP)", "n8n do Zero ao Profissional - Automações e Agentes de IA", "MCP no n8n", "Criação e consumo de servidores e ferramentas padronizadas via protocolo MCP concluídos."],
+  ["Pytest & Mocking", "Domine Pytest: Testes de Software com Python", null, "Testes automatizados, fixtures e simulação de APIs com unittest.mock concluídos."],
+  ["MLOps & Versionamento", "MLOps: Da Ciência de Dados à Operação", null, "Pipelines de dados, DVC, tracking com MLflow e automação concluídos."],
+  ["Docker & Docker Compose", "Docker para Desenvolvedores (com Docker Swarm e Kubernetes)", "Gerenciando múltiplos containers com Docker Compose", "Criação de imagens multi-stage e orquestração com Docker Compose dominadas."],
+  ["Deploy Cloud na AWS", "Machine Learning com Amazon AWS e SageMaker", "Endpoint externo", "Hospedagem, storage S3 e endpoints gerenciados em nuvem na AWS concluídos."],
 ];
+
 const linkedinSkillMilestones = skillDefinitions.map(([skill, course, section, evidence]) => ({
   id: `linkedin-skill-${slug(skill)}`,
   afterDay: lastDayForCourse(course, section),
   skill,
   evidence,
 })).filter((milestone) => milestone.afterDay);
+
+const careerMilestones = [
+  {
+    id: "m1",
+    afterDay: projectEndDay("gateway-webhooks"),
+    title: "APIs e Backend para IA",
+    rationale: "Gateway assíncrono com FastAPI, Pydantic e streaming SSE concluído.",
+    linkedinTitle: "Engenheiro de Software em formação | Python, Asyncio, FastAPI e APIs de IA",
+  },
+  {
+    id: "m2",
+    afterDay: projectEndDay("orquestrador-n8n"),
+    title: "Automação Low-Code e Processos B2B",
+    rationale: "Workflow corporativo no n8n com WhatsApp e fallback humano entregue.",
+    linkedinTitle: "Engenheiro de Automação & IA em formação | n8n, Webhooks, APIs e Integrações B2B",
+  },
+  {
+    id: "m3",
+    afterDay: projectEndDay("rag-multitenant"),
+    title: "RAG Corporativo e LLMs",
+    rationale: "Base de conhecimento multi-tenant com busca híbrida demonstrada.",
+    linkedinTitle: "Engenheiro de IA Aplicada em formação | LLMs, RAG, Pinecone, SQL e Embeddings",
+  },
+  {
+    id: "m4",
+    afterDay: projectEndDay("enxame-agentes"),
+    title: "Sistemas Agênticos e Protocolo MCP",
+    rationale: "Enxame multiagente autônomo com LangGraph, MCP e Human-in-the-Loop concluído.",
+    linkedinTitle: "Engenheiro de IA Aplicada em formação | LangGraph, Agentes Autônomos, MCP e Human-in-the-Loop",
+  },
+  {
+    id: "m5",
+    afterDay: projectEndDay("evals-guardrails"),
+    title: "LLMOps, Qualidade e Segurança",
+    rationale: "Pipeline de testes com Pytest, mocks e LLM-as-a-judge demonstrado.",
+    linkedinTitle: "Engenheiro de IA Aplicada em formação | LLMOps, Evals, Pytest, Guardrails e Segurança",
+  },
+  {
+    id: "m6",
+    afterDay: projectEndDay("enterprise-deploy-aws"),
+    title: "Deploy Enterprise na Nuvem",
+    rationale: "Solução completa de IA conteinerizada em Docker e implantada na AWS entregue.",
+    linkedinTitle: "Engenheiro de IA Aplicada | Python, FastAPI, LangGraph, Docker e AWS",
+  },
+];
+
 const roadmap = {
   generatedAt: new Date().toISOString(),
   sourcePath: "Grades oficiais completas da Udemy registradas em data/evolution/udemy-curricula.json",
-  period: { start: days[0].date, end: days.at(-1).date },
+  period: { start: days[0]?.date ?? "", end: days.at(-1)?.date ?? "" },
   totalBusinessDays: days.length,
   totalPlannedMinutes: days.reduce((total, day) => total + day.plannedMinutes, 0),
   phases: phaseStats,
   holidays,
-  careerMilestones: [
-    { id: "m1", afterDay: projectEndDay("diagnostico-atendimento"), title: "Portfólio inicial de análise", rationale: "Primeiro diagnóstico reproduzível concluído.", linkedinTitle: "Estudante de Ciência de Dados | Python, Pandas e análise de dados" },
-    { id: "m2", afterDay: projectEndDay("painel-estoque"), title: "Base de BI demonstrada", rationale: "SQL, Power BI e um painel auditável já foram entregues.", linkedinTitle: "Analista de Dados em formação | SQL, Power BI, Python e Data Storytelling" },
-    { id: "m3", afterDay: projectEndDay("risco-credito"), title: "Machine Learning aplicado", rationale: "Modelo preditivo validado e comunicado com limites claros.", linkedinTitle: "Cientista de Dados em formação | Python, SQL, Estatística e Machine Learning" },
-    { id: "m4", afterDay: projectEndDay("previsao-atendimento"), title: "Previsão operacional demonstrada", rationale: "Forecast com backtesting e recomendação operacional publicados.", linkedinTitle: "Cientista de Dados em formação | ML, Séries Temporais e Forecasting" },
-    { id: "m5", afterDay: projectEndDay("api-churn"), title: "Entrega técnica em API", rationale: "Modelo transformado em serviço testável e documentado.", linkedinTitle: "Cientista de Dados em formação | ML, FastAPI, Docker e MLOps" },
-    { id: "m6", afterDay: projectEndDay("inteligencia-avaliacoes"), title: "IA aplicada demonstrada", rationale: "Solução de NLP e IA generativa avaliada, documentada e publicada.", linkedinTitle: "Cientista de Dados em formação | Python, SQL, Machine Learning e IA aplicada" },
-  ],
+  careerMilestones,
   curation: {
-    basis: "Vagas reais registradas em DataScience/vagas.md e evidências das práticas do usuário",
-    level: "Júnior forte, preparado para exigências recorrentes de pleno",
+    basis: "Vagas reais de Engenharia de IA Aplicada e plano de monetização triplo",
+    level: "Engenheiro de IA Júnior / Pleno com base prática corporativa",
     canonicalItems: curriculumSnapshot.courses.reduce((sum, course) => sum + course.sections.reduce((sectionSum, section) => sectionSum + section.items.length, 0), 0),
     activeUdemyItems: days.flatMap((day) => day.sections.flatMap((section) => section.tasks)).filter((task) => task.id.startsWith("udemy-")).length,
     excludedItemsRemainInCanonicalSource: true,
@@ -348,4 +419,11 @@ const roadmap = {
 };
 
 fs.writeFileSync(path.join(root, "data/evolution/roadmap.json"), `${JSON.stringify(roadmap, null, 2)}\n`, "utf8");
-console.log(JSON.stringify({ courses: catalog.size, days: roadmap.totalBusinessDays, hours: Math.round(roadmap.totalPlannedMinutes / 6) / 10, start: roadmap.period.start, end: roadmap.period.end, projects: days.filter((day) => day.kind === "project").length }, null, 2));
+console.log(JSON.stringify({
+  courses: catalog.size,
+  days: roadmap.totalBusinessDays,
+  hours: Math.round(roadmap.totalPlannedMinutes / 6) / 10,
+  start: roadmap.period.start,
+  end: roadmap.period.end,
+  projects: days.filter((day) => day.kind === "project").length,
+}, null, 2));

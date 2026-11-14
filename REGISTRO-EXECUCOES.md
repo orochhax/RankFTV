@@ -5,22 +5,63 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-13 21:20 (America/Sao_Paulo) — Transição Completa para Engenharia de IA Aplicada na Central de Evolução
+
+- **O que foi feito**:
+  - Reestruturado o roadmap da Central de Evolução (`/admin/evolucao/datascience`) para **Engenharia de IA Aplicada**, alinhado ao plano de 3 fontes de renda (Vagas CLT/Remoto, Agência B2B e YouTube).
+  - Integrados 4 novos cursos à grade canônica `data/evolution/udemy-curricula.json` (totalizando 25 cursos oficiais):
+    - `Curso de Python 3 do básico ao avançado` (Luiz Otávio)
+    - `JavaScript e TypeScript do básico ao avançado` (Luiz Otávio)
+    - `Docker para Desenvolvedores (com Swarm e Kubernetes)` (Matheus Battisti)
+    - `n8n do Zero ao Profissional - Automações e Agentes de IA` (Ricardo Pacheco)
+  - Curadoria gerada em `scripts/generate-datascience-roadmap-v2.mjs`:
+    - 64 dias úteis (16/11/2026 a 24/02/2027), 259,5 horas planejadas (4h/dia).
+    - 3 prioridades: Fundamentos & APIs, Automação Low-Code & LLMs, RAG & Agentes & Cloud.
+    - 24 dias de projeto dedicados para as 6 provas de capacidade 3 em 1.
+    - 19 marcos de competências para o LinkedIn com evidências de conclusão.
+    - 6 evoluções graduais de título profissional (LinkedIn Sem Exagero).
+  - Gerados datasets sintéticos e documentação em `public/evolution/datascience-projects/` para os 6 projetos: `gateway-webhooks`, `orquestrador-n8n`, `rag-multitenant`, `enxame-agentes`, `evals-guardrails`, `enterprise-deploy-aws`.
+  - Atualizadas as interfaces em `app/admin/evolucao/datascience/page.tsx` e `lib/evolution/study-projects.ts`.
+  - Snapshot `roadmap` importado e validado em Produção no Supabase via `scripts/evolution-import-sources.ts --only roadmap`.
+- **Evidências**:
+  - `npx tsc --noEmit`: 0 erros.
+  - `npm test`: 970 testes (969 pass, 1 skipped, 0 fail).
+  - `npm run lint`: 0 erros.
+  - `npx tsx scripts/evolution-import-sources.ts --only roadmap`: `Snapshots importados para a Central de Evolução: roadmap. Roadmap verificado: 64 dias úteis, 2026-11-16 a 2027-02-24`.
+
 ## 2026-11-12 18:25 (America/Sao_Paulo) — Implementação de Nota de Corte de 80 para Ideias de Vídeo
 
-- **Regra editorial de corte:** Estabelecida nota de corte mínima de 80 pontos para ideias de vídeo em ambos os canais, visando foco editorial de alta conversão e eliminação de sobrecarga no pipeline.
-- **Rocha Tech (`yt_ideas` em produção):** 9 ideias com pontuação $\le 79$ (entre 68 e 79) atualizadas para `status = 'discarded'`, mantendo em exibição ativa as 18 pautas de alto impacto (80 a 98 pts).
-- **Filtro canônico na aplicação (`lib/youtube/queries.ts` e `app/admin/evolucao/rocha-tech/ideias/page.tsx`):** Adicionada restrição estrita `.gte("score", 80)` na consulta oficial `getYoutubeIdeas()` e atualizada a legenda do quadro para indicar *"18 ideias no fluxo (nota de corte ≥ 80)"*.
-- **Canal Carlos Rocha (`lib/evolution/carlos-rocha-library.json`):** Parâmetro `minActiveScore` elevado de 50 para 80 (as 24 ideias ativas já possuem pontuação entre 81 e 98).
-- **Validação técnica:** Suíte completa de testes unitários aprovada e typecheck limpo.
+## 2026-11-12 16:02 (America/Sao_Paulo) — Recalibração do Cronograma de Data Science na Central de Evolução
 
-## 2026-11-12 18:05 (America/Sao_Paulo) — Atualização completa do radar editorial e concorrentes do Rocha Tech
+- **O que foi feito**:
+  - Atualizada a data de início do roadmap de Data Science para **16/11/2026** (segunda-feira).
+  - Adicionadas regras de bloqueio no gerador (`scripts/generate-datascience-roadmap-v2.mjs`) para:
+    - Pular fins de semana (sábados e domingos);
+    - Pular 20/11/2026 (feriado Consciência Negra);
+    - Pular 23/11 a 27/11/2026 (viagem pessoal), retomando em 30/11/2026;
+    - Pular 25/12/2026 (feriado Natal);
+    - Pular 31/12/2026 e 01/01/2027 (recesso e Confraternização Universal), retomando em 04/01/2027.
+  - O período total calculado foi recalibrado para **16/11/2026 a 30/03/2027** (88 dias úteis mantidos).
+  - Executada a importação do snapshot `roadmap` para a tabela `evo_source_snapshots` no Supabase Production (`evolution-import-sources.ts --only roadmap`).
+  - Preservado integralmente o progresso preexistente de 18 tarefas já concluídas pelo usuário.
+  - Atualizadas as documentações em `docs/DATASCIENCE-ROADMAP-VAGAS-2026.md`, `PERFIL-CARLOS.md` e `DataScience/_IA/ESTADO-ATUAL.md`.
+- **Evidências**:
+  - `node scripts/generate-datascience-roadmap-v2.mjs`: `88 dias úteis, 356.8h, start: 2026-11-16, end: 2027-03-30`.
+  - `node scripts/validate-udemy-roadmap.mjs`: 21 cursos, 2645 itens canônicos, 1885 itens ativos, 760 preservados, 88 dias.
+  - `npx tsx scripts/evolution-import-sources.ts --only roadmap`: `Snapshots importados para a Central de Evolução: roadmap. Roadmap verificado: 88 dias úteis, 2026-11-16 a 2027-03-30`.
 
-- Coleta oficial via YouTube Data API v3 nos 24 canais concorrentes do Rocha Tech: 3.919 vídeos monitorados na janela de 365 dias (33 vídeos novos catalogados, 2.422 contadores de visualizações atualizados, zero falhas e zero fallbacks manuais).
-- Resumo oficial de coleta salvo em `Rocha Tech - YT/Concorrentes/ultima-coleta-2026-11-12.json`.
-- Radar ampliado com 3 novidades verificadas de fontes primárias: Google lança Gemini 4 Hydrogen com raciocínio rápido para agentes e 1M de contexto (95 pts), Anthropic atualiza Claude Code com tarefas em segundo plano via MCP (92 pts) e OpenAI documenta caso prático com Codex gerando aumento de 32,5% em conversão (84 pts).
-- Sincronização em produção no Supabase (Run ID: `b251b4df-b8a7-4260-8a5c-da6a67b51310`): 54 conteúdos (3 novos e 51 atualizados), 20 tendências e 27 ideias reavaliadas pela Fórmula de 5 Pilares com 108 abordagens e regra de ouro editorial (título, nota e tag alinhados à abordagem vencedora).
-- Reconstrução do snapshot seguro (`lib/evolution/intelligence-snapshot.json`): 3.918 vídeos, 24 canais e Top 15 oportunidades lideradas por Money Talk With Leon (#1, 1,047M views, 90 pts), Sanji Nai-Chien (#2, 1,377M views, 89 pts) e Sanji Nai-Chien (#3, 1,678M views, 88 pts).
-- Bateria de testes unitários e typecheck aprovados com 100% de sucesso.
+## 2026-11-12 12:45 (America/Sao_Paulo) — Hotfix Mobile: Inputs de Data/Horário, Degradê do Regulamento e Ícones RSC
+
+- **O que foi feito**:
+  - Corrigido overflow horizontal de `<input type="date">` e `<input type="time">` no Safari iOS em `app/arenas/[handle]/alugar/RentalPaymentUI.tsx` e `app/arenas/[handle]/diaria/DiariaPaymentUI.tsx` (`min-w-0`, `max-w-full`, `appearance-none`, `grid-cols-1 sm:grid-cols-2` e padding inferior `pb-36`).
+  - Corrigido degradê inferior em `components/campeonatos/ExpandableTextBlock.tsx` de `from-app-bg` para `from-white via-white/85 to-transparent` sobre cards com fundo branco.
+  - Corrigido erro de serialização RSC em `components/arena/ArenaProFeatureGate.tsx` usando `iconName: "target" | "trophy"`.
+- **Evidências**:
+  - `npm run typecheck`: exit 0.
+  - `npm test`: 970 testes, 969 pass, 1 skipped, 0 fail.
+  - PRs #190 e #191 aprovadas no CI (`verify`) e squash-merged em `master` (`dd5a686` e `11f53a6`).
+  - Deploy `Vercel – rank-ftv` com status `success`.
+>>>>>>> 9955674 (feat(evolucao): migra formacao para Engenharia de IA Aplicada e novos 6 projetos)
 
 ## 2026-11-12 10:47 (America/Sao_Paulo) — Horários Opcionais em Campeonatos, Artes Rank Football, Correção Plano Pro e Rotas da Arena
 

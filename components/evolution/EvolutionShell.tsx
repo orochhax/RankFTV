@@ -7,7 +7,7 @@ import { Activity, BarChart3, BrainCircuit, BriefcaseBusiness, Clapperboard, Dat
 const base = "/admin/evolucao";
 const navigation = [
   { href: base, label: "Visão geral", icon: House },
-  { href: `${base}/datascience`, label: "DataScience", icon: BrainCircuit },
+  { href: `${base}/datascience`, label: "Engenharia de IA", icon: BrainCircuit },
   { href: `${base}/rocha-tech`, label: "Canal Rocha Tech", icon: Clapperboard },
   { href: `${base}/carlos-rocha`, label: "Canal Carlos Rocha", icon: UserRound },
   { href: `${base}/insta-shape`, label: "Insta / Shape", icon: Dumbbell },

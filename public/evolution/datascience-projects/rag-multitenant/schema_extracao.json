@@ -1,0 +1,26 @@
+{
+  "title": "ExtracaoClausulaContratual",
+  "type": "object",
+  "properties": {
+    "valor_multa_pct": {
+      "type": "number",
+      "description": "Percentual da multa rescisória"
+    },
+    "prazo_aviso_previo_dias": {
+      "type": "integer",
+      "description": "Dias de aviso prévio"
+    },
+    "foro_competente": {
+      "type": "string",
+      "description": "Comarca de resolução de disputas"
+    },
+    "citacao_literal": {
+      "type": "string",
+      "description": "Texto exato da cláusula"
+    }
+  },
+  "required": [
+    "valor_multa_pct",
+    "citacao_literal"
+  ]
+}

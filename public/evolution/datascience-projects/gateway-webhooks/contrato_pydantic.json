@@ -1,0 +1,31 @@
+{
+  "title": "WebhookEventSchema",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "ID único do evento"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "payment_intent.succeeded",
+        "lead.created",
+        "deal.stage_updated"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "event_id",
+    "event_type",
+    "timestamp",
+    "data"
+  ]
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "event": "lead.created",
+    "timestamp": "2026-11-13T10:00:00Z",
+    "payload": {
+      "lead_id": "lead_99",
+      "email": "contato@empresa.com",
+      "nome": "Carlos Rocha",
+      "empresa": "Rocha Tech",
+      "score": 85
+    }
+  },
+  {
+    "event": "deal.stage_updated",
+    "timestamp": "2026-11-13T10:15:00Z",
+    "payload": {
+      "deal_id": "deal_44",
+      "stage": "proposta_enviada",
+      "valor": 15000,
+      "responsavel": "Ana Souza"
+    }
+  }
+]

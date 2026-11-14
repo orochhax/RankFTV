@@ -1,0 +1,20 @@
+{
+  "criterios": [
+    {
+      "nome": "groundedness",
+      "peso": 0.4,
+      "descricao": "A resposta é estritamente sustentada pelo contexto fornecido, sem inventar informações?"
+    },
+    {
+      "nome": "precisao_factual",
+      "peso": 0.3,
+      "descricao": "Valores numéricos, prazos e percentuais coincidem exatamente com a fonte?"
+    },
+    {
+      "nome": "concisao_profissional",
+      "peso": 0.3,
+      "descricao": "A resposta é direta, sem rodeios ou jargões vazios?"
+    }
+  ],
+  "nota_aprovacao_minima": 4.5
+}

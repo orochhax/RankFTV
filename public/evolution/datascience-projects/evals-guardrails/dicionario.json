@@ -1,0 +1,5 @@
+{
+  "framework_testes": "Pytest",
+  "benchmarking": "LLM-as-a-judge com GPT-4o-mini / Claude Haiku",
+  "guardrails": "Detecção determinística de regex + classificador semântico de injeção"
+}
