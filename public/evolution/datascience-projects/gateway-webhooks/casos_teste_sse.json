@@ -1,0 +1,17 @@
+[
+  {
+    "caso": "streaming_normal",
+    "tokens_esperados": 45,
+    "latencia_max_ms": 150
+  },
+  {
+    "caso": "desconexao_prematura",
+    "evento_cliente": "client_abort",
+    "acao_esperada": "cancel_background_task"
+  },
+  {
+    "caso": "concorrencia_100_reqs",
+    "status_esperado": 200,
+    "erro_max_pct": 0
+  }
+]

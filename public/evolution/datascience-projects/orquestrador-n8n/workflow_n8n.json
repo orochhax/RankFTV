@@ -1,0 +1,75 @@
+{
+  "name": "Enterprise SLA Dispatcher Workflow",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Webhook Lead Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "parameters": {
+        "path": "leads",
+        "httpMethod": "POST"
+      }
+    },
+    {
+      "id": "2",
+      "name": "Validate & Format JSON",
+      "type": "n8n-nodes-base.code",
+      "parameters": {
+        "language": "javascript"
+      }
+    },
+    {
+      "id": "3",
+      "name": "PostgreSQL Query",
+      "type": "n8n-nodes-base.postgres",
+      "parameters": {
+        "operation": "executeQuery"
+      }
+    },
+    {
+      "id": "4",
+      "name": "IF Score >= 80",
+      "type": "n8n-nodes-base.if",
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.score}}",
+              "operation": "largerEqual",
+              "value2": 80
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "5",
+      "name": "WhatsApp Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "POST"
+      }
+    },
+    {
+      "id": "6",
+      "name": "Human Review Escalation",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "POST"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Lead Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate & Format JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

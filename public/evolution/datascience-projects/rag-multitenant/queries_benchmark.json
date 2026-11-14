@@ -1,0 +1,23 @@
+[
+  {
+    "query": "Qual é o valor máximo de reembolso para refeições?",
+    "tenant_id": "tenant_alpha",
+    "resposta_gabarito": "R$ 180,00 por colaborador por dia.",
+    "fonte_esperada": "doc_001",
+    "pagina_esperada": 4
+  },
+  {
+    "query": "Qual a multa de rescisão contratual imotivada?",
+    "tenant_id": "tenant_alpha",
+    "resposta_gabarito": "Multa de 30% do saldo remanescente do contrato.",
+    "fonte_esperada": "doc_002",
+    "pagina_esperada": 12
+  },
+  {
+    "query": "Qual o prazo de entrega em Eunápolis?",
+    "tenant_id": "tenant_beta",
+    "resposta_gabarito": "48 horas úteis após o faturamento.",
+    "fonte_esperada": "doc_003",
+    "pagina_esperada": 2
+  }
+]

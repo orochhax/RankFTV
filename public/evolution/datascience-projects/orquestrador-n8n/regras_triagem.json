@@ -1,0 +1,22 @@
+{
+  "regras": [
+    {
+      "condicao": "score >= 80",
+      "acao": "notificar_vendas_imediato",
+      "canal": "whatsapp",
+      "sla_minutos": 5
+    },
+    {
+      "condicao": "score entre 50 e 79",
+      "acao": "fila_revisao_humana",
+      "canal": "crm_tarefa",
+      "sla_minutos": 60
+    },
+    {
+      "condicao": "score < 50",
+      "acao": "nutricao_automatica",
+      "canal": "email",
+      "sla_minutos": 1440
+    }
+  ]
+}

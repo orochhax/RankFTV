@@ -1,0 +1,41 @@
+[
+  {
+    "id": "evt_101",
+    "type": "payment_intent.succeeded",
+    "created": 1715000000,
+    "data": {
+      "object": {
+        "id": "pi_001",
+        "amount": 250000,
+        "currency": "brl",
+        "customer": "cus_123",
+        "status": "succeeded"
+      }
+    }
+  },
+  {
+    "id": "evt_102",
+    "type": "customer.subscription.created",
+    "created": 1715003600,
+    "data": {
+      "object": {
+        "id": "sub_456",
+        "plan": "enterprise_ai",
+        "interval": "month",
+        "status": "active"
+      }
+    }
+  },
+  {
+    "id": "evt_103",
+    "type": "charge.failed",
+    "created": 1715007200,
+    "data": {
+      "object": {
+        "id": "ch_789",
+        "failure_code": "card_declined",
+        "failure_message": "Saldo insuficiente"
+      }
+    }
+  }
+]

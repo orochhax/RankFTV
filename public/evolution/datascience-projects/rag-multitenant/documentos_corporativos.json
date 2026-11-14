@@ -1,0 +1,26 @@
+[
+  {
+    "doc_id": "doc_001",
+    "tenant_id": "tenant_alpha",
+    "titulo": "Política de Reembolso e Viagens 2026",
+    "secao": "Alimentação e Hospedagem",
+    "conteudo": "O limite diário de refeição para viagens executivas é de R$ 180,00 por colaborador. Despesas com bebidas alcoólicas não são reembolsáveis sob nenhuma hipótese.",
+    "pagina": 4
+  },
+  {
+    "doc_id": "doc_002",
+    "tenant_id": "tenant_alpha",
+    "titulo": "Contrato de Prestação de Serviços - Master",
+    "secao": "Rescisão e Multas",
+    "conteudo": "A rescisão antecipada imotivada ensejará multa compensatória equivalente a 30% do saldo remanescente do valor do contrato.",
+    "pagina": 12
+  },
+  {
+    "doc_id": "doc_003",
+    "tenant_id": "tenant_beta",
+    "titulo": "Manual de Operação Logística",
+    "secao": "SLA de Entrega",
+    "conteudo": "Entregas na região metropolitana de Salvador e Eunápolis devem ser concluídas no prazo máximo de 48 horas úteis após o faturamento.",
+    "pagina": 2
+  }
+]

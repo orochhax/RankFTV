@@ -1,0 +1,5 @@
+{
+  "framework": "LangGraph v0.2+",
+  "protocolo": "Model Context Protocol (MCP)",
+  "state_persistence": "SqliteSaver / PostgresSaver"
+}

@@ -1,0 +1,6 @@
+id,nome,email,telefone,empresa,score,status
+1,Rafael Mendes,rafael@logistica.com.br,11999887766,Mendes Log,92,qualificado
+2,Camila Rocha,camila@advocacia.com,21988776655,Rocha Associados,88,qualificado
+3,Lucas Silveira,lucas@varejo.com.br,31977665544,Silveira Distribuidora,64,revisao_humana
+4,Mariana Costa,mariana@saude.med.br,73966554433,Clinica Costa,45,descartado
+5,Fernando Dias,fernando@startup.io,11955443322,Cloud Next,95,qualificado

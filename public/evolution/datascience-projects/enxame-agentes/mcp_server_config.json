@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "erpDatabase": {
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_servers.erp_sql"
+      ],
+      "env": {
+        "DB_URI": "postgresql://app:secret@localhost:5432/erp"
+      }
+    },
+    "documentOcr": {
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_servers.vision_ocr"
+      ],
+      "env": {
+        "OCR_ENGINE": "tesseract_vlm"
+      }
+    }
+  }
+}
