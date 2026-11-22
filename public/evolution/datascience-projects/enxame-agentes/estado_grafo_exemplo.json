@@ -1,32 +1,30 @@
 {
-  "messages": [
+  "thread_id": "thd_fde_audit_2027_09",
+  "recursion_limit": 8,
+  "token_budget_max": 12000,
+  "tokens_consumed": 3420,
+  "current_node": "human_approval_checkpoint",
+  "status": "PAUSED_WAITING_SUPERVISOR_SIGNATURE",
+  "trajectory": [
     {
-      "role": "user",
-      "content": "Auditar fatura FAT-2026-902 e liberar ordem de pagamento se tudo estiver em conformidade."
+      "step": 1,
+      "node": "intent_router",
+      "decision": "hybrid_nl2sql_and_contract_rag"
     },
     {
-      "role": "assistant",
-      "agent": "Supervisor",
-      "plan": [
-        "1. Chamar OCR",
-        "2. Reconciliar com contrato no ERP",
-        "3. Avaliar risco",
-        "4. Pedir aprovação humana se valor > R$ 10.000"
-      ]
-    },
-    {
-      "role": "assistant",
-      "agent": "AuditorERP",
-      "result": "Contrato ativo, porém valor R$ 19.800 excede limite automático de R$ 10.000."
-    },
-    {
-      "role": "assistant",
-      "agent": "ApprovalGate",
-      "status": "WAITING_HUMAN_APPROVAL",
-      "payload": {
-        "valor": 19800,
-        "motivo": "Valor acima da alçada"
+      "step": 2,
+      "node": "mcp_sql_agent",
+      "query_executed": "SELECT valor_faturado_brl, valor_contratado_brl FROM faturas WHERE fatura_id = 'FAT-2027-902'",
+      "result": {
+        "valor_faturado_brl": 24800,
+        "valor_contratado_brl": 19800
       }
+    },
+    {
+      "step": 3,
+      "node": "policy_guardrail_node",
+      "verdict": "HOLD_FOR_HUMAN_REVIEW",
+      "reason": "Valor R$ 24.800,00 excede alçada automática de R$ 10.000,00 e apresenta divergência de R$ 5.000,00 sobre o contrato CTR-102."
     }
   ]
 }

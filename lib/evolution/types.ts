@@ -88,7 +88,7 @@ export type RoadmapSnapshot = {
   totalPlannedMinutes?: number;
   phases?: Array<{ id: string; title: string; priority: string; description: string; start: string; end: string; days: number }>;
   holidays?: Array<{ date: string; name: string; scope: "nacional" | "estadual" | "municipal" }>;
-  careerMilestones?: Array<{ id: string; afterDay: number; title: string; rationale: string; linkedinTitle: string }>;
+  careerMilestones?: Array<{ id: string; afterDay: number; title: string; rationale: string; linkedinTitle: string; linkedinAbout?: string }>;
   linkedinSkillMilestones?: Array<{ id: string; afterDay: number; skill: string; evidence: string }>;
   curation?: {
     basis: string;

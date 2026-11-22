@@ -1,20 +1,30 @@
 {
-  "criterios": [
+  "metricas_pipeline_ci": {
+    "faithfulness_groundedness_min": 0.9,
+    "answer_relevance_min": 0.88,
+    "context_recall_at_5_min": 0.9,
+    "tool_selection_accuracy_min": 0.95,
+    "owasp_injection_block_rate_min": 1,
+    "pii_leakage_rate_max": 0
+  },
+  "modelos_comparados_benchmark": [
     {
-      "nome": "groundedness",
-      "peso": 0.4,
-      "descricao": "A resposta é estritamente sustentada pelo contexto fornecido, sem inventar informações?"
+      "modelo": "gpt-4o-mini",
+      "groundedness": 0.93,
+      "latencia_p95_ms": 890,
+      "custo_1k_execucoes_usd": 1.45
     },
     {
-      "nome": "precisao_factual",
-      "peso": 0.3,
-      "descricao": "Valores numéricos, prazos e percentuais coincidem exatamente com a fonte?"
+      "modelo": "claude-3-5-haiku",
+      "groundedness": 0.95,
+      "latencia_p95_ms": 940,
+      "custo_1k_execucoes_usd": 2.1
     },
     {
-      "nome": "concisao_profissional",
-      "peso": 0.3,
-      "descricao": "A resposta é direta, sem rodeios ou jargões vazios?"
+      "modelo": "llama-3.3-70b-groq",
+      "groundedness": 0.91,
+      "latencia_p95_ms": 380,
+      "custo_1k_execucoes_usd": 0.85
     }
-  ],
-  "nota_aprovacao_minima": 4.5
+  ]
 }

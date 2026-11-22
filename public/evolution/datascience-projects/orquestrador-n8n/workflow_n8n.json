@@ -1,75 +1,73 @@
 {
-  "name": "Enterprise SLA Dispatcher Workflow",
+  "name": "FDE Omnichannel B2B Triage & ERP Sync Workflow",
   "nodes": [
     {
       "id": "1",
-      "name": "Webhook Lead Trigger",
+      "name": "Webhook WhatsApp / CRM Trigger",
       "type": "n8n-nodes-base.webhook",
       "parameters": {
-        "path": "leads",
+        "path": "fde-omnichannel-inbound",
         "httpMethod": "POST"
       }
     },
     {
       "id": "2",
-      "name": "Validate & Format JSON",
-      "type": "n8n-nodes-base.code",
+      "name": "Redis Session & Context Loader",
+      "type": "n8n-nodes-base.redis",
       "parameters": {
-        "language": "javascript"
+        "operation": "get",
+        "key": "={{$json.telefone}}"
       }
     },
     {
       "id": "3",
-      "name": "PostgreSQL Query",
+      "name": "Django DRF Policy & SLA Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "POST",
+        "url": "http://api-django:8000/api/v1/triage/evaluate/"
+      }
+    },
+    {
+      "id": "4",
+      "name": "PostgreSQL Audit Log",
       "type": "n8n-nodes-base.postgres",
       "parameters": {
         "operation": "executeQuery"
       }
     },
     {
-      "id": "4",
-      "name": "IF Score >= 80",
+      "id": "5",
+      "name": "Deterministic Guard: Needs Human?",
       "type": "n8n-nodes-base.if",
       "parameters": {
         "conditions": {
-          "number": [
+          "boolean": [
             {
-              "value1": "={{$json.score}}",
-              "operation": "largerEqual",
-              "value2": 80
+              "value1": "={{$json.requires_human_handoff}}",
+              "value2": true
             }
           ]
         }
       }
     },
     {
-      "id": "5",
-      "name": "WhatsApp Notification",
+      "id": "6",
+      "name": "WhatsApp Automated Resolution",
       "type": "n8n-nodes-base.httpRequest",
       "parameters": {
-        "method": "POST"
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText"
       }
     },
     {
-      "id": "6",
-      "name": "Human Review Escalation",
+      "id": "7",
+      "name": "Human Operator Queue Escalation",
       "type": "n8n-nodes-base.httpRequest",
       "parameters": {
-        "method": "POST"
+        "method": "POST",
+        "url": "http://api-django:8000/api/v1/escalations/"
       }
     }
-  ],
-  "connections": {
-    "Webhook Lead Trigger": {
-      "main": [
-        [
-          {
-            "node": "Validate & Format JSON",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  }
+  ]
 }

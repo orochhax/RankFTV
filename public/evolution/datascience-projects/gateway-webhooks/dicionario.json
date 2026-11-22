@@ -1,8 +1,16 @@
 {
-  "descricao": "Contratos de dados e schemas para o AI-Ready Gateway & Webhook Router.",
-  "padroes": {
-    "protocolo": "HTTP/2 REST + SSE",
-    "autenticacao": "Bearer Token / HMAC SHA256",
-    "formato": "application/json"
+  "projeto": "1A · Enterprise AI Gateway, Filas Assíncronas & Multi-LLM Fallback Router",
+  "stack": [
+    "FastAPI",
+    "Pydantic v2",
+    "RabbitMQ (AMQP)",
+    "Redis",
+    "Next.js + TypeScript",
+    "Pytest"
+  ],
+  "padroes_fde": {
+    "idempotencia": "Redis SETNX com TTL de 24h por event_id",
+    "mensageria": "Exchange Direct + Retry Queue com TTL/Backoff + Dead-Letter Exchange (DLX)",
+    "roteamento_llm": "Circuit breaker automático com fallback entre OpenAI, Anthropic e Groq/Ollama"
   }
 }

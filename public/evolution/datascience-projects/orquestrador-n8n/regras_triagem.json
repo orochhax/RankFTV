@@ -1,22 +1,12 @@
 {
-  "regras": [
-    {
-      "condicao": "score >= 80",
-      "acao": "notificar_vendas_imediato",
-      "canal": "whatsapp",
-      "sla_minutos": 5
-    },
-    {
-      "condicao": "score entre 50 e 79",
-      "acao": "fila_revisao_humana",
-      "canal": "crm_tarefa",
-      "sla_minutos": 60
-    },
-    {
-      "condicao": "score < 50",
-      "acao": "nutricao_automatica",
-      "canal": "email",
-      "sla_minutos": 1440
-    }
-  ]
+  "politica_governanca_fde": {
+    "regra_deterministica_1": "Se valor_envolvido_brl > 25000.00 OU categoria_demanda IN ('sinistro_complexo', 'avaria_mercadoria'), forçar escalonamento humano imediato independente do score da LLM.",
+    "regra_deterministica_2": "Se confianca_classificacao >= 0.85 E valor_envolvido_brl <= 25000.00, executar resolução autônoma via API Django DRF + WhatsApp.",
+    "regra_deterministica_3": "Se confianca_classificacao < 0.85, solicitar esclarecimento ou transferir para fila de atendimento com resumo gerado."
+  },
+  "metas_roi_esperadas": {
+    "taxa_automacao_minima_pct": 70,
+    "reducao_sla_medio_pct": 82,
+    "economia_mensal_estimada_brl": 18500
+  }
 }

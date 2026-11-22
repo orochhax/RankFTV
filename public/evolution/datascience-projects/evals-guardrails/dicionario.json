@@ -1,5 +1,8 @@
 {
-  "framework_testes": "Pytest",
-  "benchmarking": "LLM-as-a-judge com GPT-4o-mini / Claude Haiku",
-  "guardrails": "Detecção determinística de regex + classificador semântico de injeção"
+  "projeto": "5A · Suite LLMOps: Evals Automatizados, Guardrails OWASP/LGPD & Observabilidade (Langfuse)",
+  "padroes_conformidade": [
+    "OWASP Top 10 for LLM Applications",
+    "LGPD / GDPR PII Redaction",
+    "OpenTelemetry & Langfuse Tracing"
+  ]
 }

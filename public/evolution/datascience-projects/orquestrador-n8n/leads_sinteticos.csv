@@ -1,6 +1,8 @@
-id,nome,email,telefone,empresa,score,status
-1,Rafael Mendes,rafael@logistica.com.br,11999887766,Mendes Log,92,qualificado
-2,Camila Rocha,camila@advocacia.com,21988776655,Rocha Associados,88,qualificado
-3,Lucas Silveira,lucas@varejo.com.br,31977665544,Silveira Distribuidora,64,revisao_humana
-4,Mariana Costa,mariana@saude.med.br,73966554433,Clinica Costa,45,descartado
-5,Fernando Dias,fernando@startup.io,11955443322,Cloud Next,95,qualificado
+protocolo,tenant_id,cliente_nome,cliente_telefone,categoria_demanda,valor_envolvido_brl,confianca_classificacao,status_bruto,tempo_resolucao_segundos
+PRT-1001,TNT-SEG-01,Rafael Mendes,5511999887766,renovacao_apolice,4200.00,0.96,AUTO_OK,18
+PRT-1002,TNT-SEG-01,Camila Rocha,5521988776655,sinistro_complexo,85000.00,0.61,ESCALADO_HUMANO,420
+PRT-1003,TNT-FIN-02,Lucas Silveira,5531977665544,segunda_via_boleto,1250.00,0.99,AUTO_OK,12
+PRT-1004,TNT-FIN-02,Lucas Silveira,5531977665544,segunda_via_boleto,1250.00,0.99,DUPLICADO_ERRO,12
+PRT-1005,TNT-LOG-03,Mariana Costa,5573966554433,rastreamento_carga,19400.00,0.94,AUTO_OK,22
+PRT-1006,TNT-LOG-03,Fernando Dias,5511955443322,avaria_mercadoria,32000.00,0.55,ESCALADO_HUMANO,610
+PRT-1007,TNT-SEG-01,Juliana Paiva,5541944332211,endosso_veiculo,NULL,0.48,INCOMPLETO_REVISAO,540

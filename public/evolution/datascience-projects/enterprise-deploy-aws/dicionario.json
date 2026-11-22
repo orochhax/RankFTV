@@ -1,5 +1,12 @@
 {
-  "arquitetura": "Microservices em Docker Compose",
-  "cloud": "AWS (S3, ECR, ECS / EC2)",
-  "ci_cd": "GitHub Actions com testes determinísticos obrigatórios"
+  "projeto": "6A · Plataforma Cloud-Native FDE: CI/CD com Gate de Evals, Docker, K8s & Deploy AWS ECS",
+  "componentes_aws": [
+    "Amazon ECR",
+    "Amazon ECS (AWS Fargate)",
+    "Application Load Balancer (ALB + ACM HTTPS)",
+    "AWS WAF (Rate Limit & Bot Control)",
+    "Amazon S3",
+    "AWS IAM Least-Privilege Roles",
+    "Amazon CloudWatch Logs & Billing Alarms"
+  ]
 }

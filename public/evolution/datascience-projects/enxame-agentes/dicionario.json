@@ -1,5 +1,4 @@
 {
-  "framework": "LangGraph v0.2+",
-  "protocolo": "Model Context Protocol (MCP)",
-  "state_persistence": "SqliteSaver / PostgresSaver"
+  "projeto": "4A · Agent Harness Corporativo: LangGraph, Servidores MCP, NL2SQL & Human-in-the-Loop",
+  "arquitetura": "StateGraph cíclico com persistência em PostgreSQL, ferramentas isoladas via Model Context Protocol (MCP) e bloqueio determinístico de ações críticas."
 }

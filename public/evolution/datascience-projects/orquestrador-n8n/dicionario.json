@@ -1,4 +1,8 @@
 {
-  "modulo": "Orquestrador n8n",
-  "descricao": "Recursos completos para implantação do pipeline corporativo de triagem e notificações."
+  "projeto": "2A · Motor FDE de Automação B2B, Triagem WhatsApp, Databricks/SQL & Escalonamento Humano",
+  "camadas_lakehouse": {
+    "bronze": "Ingestão raw dos eventos de webhooks e CSVs operacionais com preservação do histórico original",
+    "silver": "Deduplicação por protocolo, tratamento de nulos, tipagem forte e enriquecimento com cadastro de tenants",
+    "gold": "Tabelas agregadas de SLA, taxa de retenção autônoma e economia financeira (ROI) no Unity Catalog / PostgreSQL"
+  }
 }

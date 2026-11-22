@@ -1,4 +1,5 @@
-tenant_id,nome_empresa,setor,plano,vetor_namespace
-tenant_alpha,Alpha Engenharia S.A.,Engenharia e Obras,Enterprise,ns_alpha_corp
-tenant_beta,Beta Distribuidora Sul-Bahia,Logística e Varejo,Pro,ns_beta_log
-tenant_gamma,Gamma Soluções Médicas,Saúde,Pro,ns_gamma_med
+tenant_id,nome_empresa,user_role,nivel_acesso,descricao_permissao
+tenant_seguradora_alpha,Alpha Seguros S.A.,analista_sinistro,NIVEL_1,Acesso apenas a apolices e manuais operacionais de sinistro
+tenant_seguradora_alpha,Alpha Seguros S.A.,juridico,NIVEL_2,Acesso a apolices, contratos e pareceres regulatorios
+tenant_seguradora_alpha,Alpha Seguros S.A.,diretoria,NIVEL_3,Acesso total incluindo atas confidenciais de risco e solvência
+tenant_logistica_beta,Beta Cargo Sul-Bahia,operador_logistico,NIVEL_1,Acesso a tabelas de frete, rotas e manuais de SLA

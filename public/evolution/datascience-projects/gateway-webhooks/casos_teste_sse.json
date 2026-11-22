@@ -1,17 +1,29 @@
 [
   {
-    "caso": "streaming_normal",
-    "tokens_esperados": 45,
-    "latencia_max_ms": 150
+    "caso": "streaming_sse_primario_ok",
+    "provedor_esperado": "openai:gpt-4o",
+    "tokens_esperados": 60,
+    "ttfb_max_ms": 250,
+    "status_esperado": 200
   },
   {
-    "caso": "desconexao_prematura",
-    "evento_cliente": "client_abort",
-    "acao_esperada": "cancel_background_task"
+    "caso": "primario_timeout_aciona_fallback",
+    "falha_simulada": "openai_503_timeout",
+    "provedor_fallback_esperado": "anthropic:claude-3-5-sonnet",
+    "latencia_failover_max_ms": 400,
+    "status_esperado": 200
   },
   {
-    "caso": "concorrencia_100_reqs",
-    "status_esperado": 200,
-    "erro_max_pct": 0
+    "caso": "worker_retry_e_dlq",
+    "falha_simulada": "amqp_consumer_exception_3x",
+    "tentativas_esperadas": 3,
+    "fila_destino_final": "ai_gateway.dlq",
+    "status_esperado": "dead_lettered"
+  },
+  {
+    "caso": "rate_limit_excedido_por_tenant",
+    "reqs_por_minuto": 120,
+    "limite_tenant": 100,
+    "status_esperado": 429
   }
 ]

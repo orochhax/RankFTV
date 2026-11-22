@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Configurando infraestrutura para servicos de IA na AWS..."
 AWS_REGION="us-east-1"
-APP_NAME="evolution-ai-platform"
+ECR_REPO="fde-ai-platform"
+ECS_CLUSTER="fde-production-cluster"
 
-# Criar bucket S3 para dados e artefatos de IA
-aws s3 mb s3://${APP_NAME}-artifacts-${AWS_REGION} --region ${AWS_REGION} || true
+echo "1. Autenticando no Amazon ECR e enviando imagem verificada..."
+aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+docker build -t "$ECR_REPO:latest" .
+docker tag "$ECR_REPO:latest" "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:latest"
+docker push "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:latest"
 
-echo "Infraestrutura provisionada com sucesso."
+echo "2. Atualizando serviço serverless no Amazon ECS Fargate com Rolling Update..."
+aws ecs update-service --cluster "$ECS_CLUSTER" --service "fde-ai-api-service" --force-new-deployment --region "$AWS_REGION"
