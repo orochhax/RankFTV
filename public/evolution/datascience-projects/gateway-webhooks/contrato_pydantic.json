@@ -1,18 +1,50 @@
 {
-  "title": "WebhookEventSchema",
+  "title": "EnterpriseAIGatewayRequestSchema",
   "type": "object",
   "properties": {
     "event_id": {
       "type": "string",
-      "description": "ID único do evento"
+      "description": "UUID ou chave única para deduplicação idempotente no Redis"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "Identificador da organização para isolamento de rate-limit e billing"
     },
     "event_type": {
       "type": "string",
       "enum": [
         "payment_intent.succeeded",
-        "lead.created",
-        "deal.stage_updated"
+        "ticket.escalated",
+        "lead.inbound",
+        "agent.completion"
       ]
+    },
+    "routing_policy": {
+      "type": "object",
+      "properties": {
+        "primary_provider": {
+          "type": "string",
+          "enum": [
+            "openai:gpt-4o",
+            "anthropic:claude-3-5-sonnet",
+            "groq:llama-3.3-70b"
+          ]
+        },
+        "fallback_providers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "max_latency_ms": {
+          "type": "integer",
+          "default": 2500
+        },
+        "max_cost_usd_per_call": {
+          "type": "number",
+          "default": 0.05
+        }
+      }
     },
     "timestamp": {
       "type": "string",
@@ -24,6 +56,7 @@
   },
   "required": [
     "event_id",
+    "tenant_id",
     "event_type",
     "timestamp",
     "data"

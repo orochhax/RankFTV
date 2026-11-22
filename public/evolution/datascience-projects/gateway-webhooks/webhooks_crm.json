@@ -1,23 +1,39 @@
 [
   {
-    "event": "lead.created",
-    "timestamp": "2026-11-13T10:00:00Z",
+    "event_id": "crm_8801",
+    "event": "ticket.escalated",
+    "timestamp": "2026-11-30T10:00:00Z",
+    "tenant_id": "tenant_fintech_01",
+    "priority": "high",
+    "routing_preference": "quality_first",
     "payload": {
-      "lead_id": "lead_99",
-      "email": "contato@empresa.com",
-      "nome": "Carlos Rocha",
-      "empresa": "Rocha Tech",
-      "score": 85
+      "ticket_id": "tkt_99",
+      "cliente": "Banco Atlântico",
+      "resumo": "Divergência em conciliação PIX de alto volume",
+      "sla_minutes": 15
     }
   },
   {
-    "event": "deal.stage_updated",
-    "timestamp": "2026-11-13T10:15:00Z",
+    "event_id": "crm_8802",
+    "event": "lead.inbound",
+    "timestamp": "2026-11-30T10:05:00Z",
+    "tenant_id": "tenant_retail_03",
+    "priority": "low",
+    "routing_preference": "cost_first",
     "payload": {
-      "deal_id": "deal_44",
-      "stage": "proposta_enviada",
-      "valor": 15000,
-      "responsavel": "Ana Souza"
+      "lead_id": "ld_44",
+      "empresa": "Varejo Sul",
+      "mensagem": "Gostaria de agendar uma demonstração técnica da plataforma"
+    }
+  },
+  {
+    "event_id": "crm_8803",
+    "event": "payload.corrupted",
+    "timestamp": "2026-11-30T10:10:00Z",
+    "tenant_id": "tenant_retail_03",
+    "payload": {
+      "invalid_field": null,
+      "raw_corrupted_bytes": "%%%INVALID_SCHEMA_422%%%"
     }
   }
 ]

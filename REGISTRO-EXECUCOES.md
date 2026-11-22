@@ -5,6 +5,16 @@ de iniciar qualquer tarefa, consultar este arquivo, `PENDENCIAS-V1.md`, o Git e
 o serviço envolvido. Se houver evidência de conclusão, não repetir a tarefa;
 registrar apenas uma revalidação quando ela for necessária.
 
+## 2026-11-22 08:50 (America/Sao_Paulo) — Novo Roadmap FDE & Engenharia de IA Aplicada (150 Dias Úteis / 600 Horas)
+
+- **O que foi feito**:
+  - Recalibrado o roadmap da Central de Evolução (`/admin/evolucao/datascience`) para o perfil **Forward Deployed Engineer (FDE) & Engenharia de IA Aplicada (Júnior Avançado)**, baseado em 32 vagas reais do Brasil e da Europa.
+  - Expandida a grade canônica `data/evolution/udemy-curricula.json` para **33 cursos oficiais** (5.359 itens canônicos), adicionando os 8 novos cursos confirmados na assinatura (Agentic AI 2026, LangChain/LlamaIndex/Groq, LLMs & Agentes para Empresas, Django REST Framework, PostgreSQL, RabbitMQ na Prática, GitHub Actions CI/CD e AWS na Prática).
+  - Filtro cirúrgico **aula por aula** (`scripts/generate-datascience-roadmap-v2.mjs`): eliminadas todas as aulas básicas já dominadas em `Dias do Roadmap` e aulas redundantes, mantendo **2.233 itens ativos** distribuídos em **93 dias de aulas** + **57 dias de projetos práticos** = **150 dias úteis (600 horas planejadas, 4h/dia)**.
+  - Calendário ajustado para **30/11/2026 a 08/07/2027**, respeitando finais de semana, viagens pessoais (23 a 27/11/2026, 08 a 10/03/2027 e 26/03/2027), recessos de Natal (24 e 25/12) e Ano Novo (31/12 e 01/01) e a escala oficial de plantão de feriados 2027 (mantendo 21/04 Tiradentes e 02/11 Finados como dias ativos de estudo por estarem na escala de Carlos, e bloqueando os feriados de folga).
+  - Atualizados os 6 grandes projetos FDE em `lib/evolution/study-projects.ts` e seus datasets sintéticos em `public/evolution/datascience-projects/`, os 31 marcos de competências do LinkedIn e as 7 etapas de evolução de Título e Sobre (incluindo o Marco 0 para aplicação imediata).
+  - Snapshot `roadmap` sincronizado em Produção no Supabase via `scripts/evolution-import-sources.ts --only roadmap`.
+
 ## 2026-11-13 21:20 (America/Sao_Paulo) — Transição Completa para Engenharia de IA Aplicada na Central de Evolução
 
 - **O que foi feito**:

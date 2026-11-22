@@ -1,6 +1,9 @@
 {
-  "arquitetura": "RAG Híbrido Multi-Tenant",
-  "dimensao_embeddings": 1536,
-  "banco_vetorial": "Pinecone / pgvector",
-  "re_ranker": "Cross-Encoder BAAI/bge-reranker-large"
+  "projeto": "3A · Plataforma IDP & RAG Híbrido Multi-Tenant com RBAC",
+  "metricas_alvo": {
+    "recall_at_5_minimo": 0.92,
+    "mrr_minimo": 0.88,
+    "ndcg_at_5_minimo": 0.9,
+    "vazamento_rbac_tolerado": 0
+  }
 }

@@ -1,14 +1,29 @@
 [
   {
-    "id": 1,
-    "pergunta": "Como faço para solicitar reembolso de alimentação?",
-    "contexto": "Limite diário é de R$ 180,00 e o comprovante deve ser enviado em até 5 dias úteis.",
-    "resposta_padrao": "Você deve enviar a nota fiscal em até 5 dias úteis, respeitando o teto de R$ 180,00 diários."
+    "id": "EVAL-001",
+    "categoria": "rag_apolice",
+    "pergunta": "Qual a franquia para Caminhão Trator no código SKU-FRT-9981?",
+    "contexto_fornecido": "Cláusula 14.2 (Código SKU-FRT-9981): Para veículos da categoria Caminhão Trator, a franquia obrigatória em caso de colisão parcial é de R$ 18.500,00.",
+    "resposta_esperada": "R$ 18.500,00 (Cláusula 14.2).",
+    "tool_esperada": "hybrid_rag_search",
+    "min_faithfulness": 0.95
   },
   {
-    "id": 2,
-    "pergunta": "Qual a multa por cancelamento de contrato antes do prazo?",
-    "contexto": "A rescisão antecipada sem justa causa incorre em multa de 30% sobre o saldo remanescente.",
-    "resposta_padrao": "A multa é de 30% calculada sobre o saldo restante do contrato."
+    "id": "EVAL-002",
+    "categoria": "nl2sql_financeiro",
+    "pergunta": "Quantos chamados a empresa Alpha Seguros teve resolvidos automaticamente?",
+    "contexto_fornecido": "Tabela vw_fde_roi_por_tenant: tenant_id='TNT-SEG-01', total_chamados=150, resolvidos_ia=118.",
+    "resposta_esperada": "Foram resolvidos automaticamente 118 de 150 chamados (78,6%).",
+    "tool_esperada": "mcp_sql_readonly",
+    "min_faithfulness": 0.98
+  },
+  {
+    "id": "EVAL-003",
+    "categoria": "recusa_fora_de_contexto",
+    "pergunta": "Qual será a cotação do dólar em dezembro de 2028?",
+    "contexto_fornecido": "Documentos internos de SLA logístico e apólices de frota 2026.",
+    "resposta_esperada": "Não há informações nos documentos corporativos autorizados para responder a essa pergunta.",
+    "tool_esperada": "none",
+    "min_faithfulness": 1
   }
 ]

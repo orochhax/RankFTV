@@ -1,26 +1,41 @@
 {
-  "title": "ExtracaoClausulaContratual",
+  "title": "IDPStructuredDocumentOutput",
   "type": "object",
   "properties": {
-    "valor_multa_pct": {
+    "codigo_clausula_ou_sku": {
+      "type": "string",
+      "description": "Código exato identificado via busca lexical BM25"
+    },
+    "valor_financeiro_principal_brl": {
       "type": "number",
-      "description": "Percentual da multa rescisória"
+      "description": "Valor monetário extraído da tabela ou cláusula"
     },
-    "prazo_aviso_previo_dias": {
-      "type": "integer",
-      "description": "Dias de aviso prévio"
+    "percentual_multa_ou_margem": {
+      "type": "number",
+      "description": "Percentual aplicável, se existir"
     },
-    "foro_competente": {
-      "type": "string",
-      "description": "Comarca de resolução de disputas"
-    },
-    "citacao_literal": {
-      "type": "string",
-      "description": "Texto exato da cláusula"
+    "citacao_obrigatoria": {
+      "type": "object",
+      "properties": {
+        "doc_id": {
+          "type": "string"
+        },
+        "pagina": {
+          "type": "integer"
+        },
+        "trecho_literal": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "doc_id",
+        "pagina",
+        "trecho_literal"
+      ]
     }
   },
   "required": [
-    "valor_multa_pct",
-    "citacao_literal"
+    "codigo_clausula_ou_sku",
+    "citacao_obrigatoria"
   ]
 }

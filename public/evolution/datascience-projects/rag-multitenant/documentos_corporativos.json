@@ -1,26 +1,52 @@
 [
   {
-    "doc_id": "doc_001",
-    "tenant_id": "tenant_alpha",
-    "titulo": "Política de Reembolso e Viagens 2026",
-    "secao": "Alimentação e Hospedagem",
-    "conteudo": "O limite diário de refeição para viagens executivas é de R$ 180,00 por colaborador. Despesas com bebidas alcoólicas não são reembolsáveis sob nenhuma hipótese.",
-    "pagina": 4
+    "doc_id": "APOLICE-SEG-2026-01",
+    "tenant_id": "tenant_seguradora_alpha",
+    "allowed_roles": [
+      "analista_sinistro",
+      "juridico",
+      "diretoria"
+    ],
+    "titulo": "Condições Gerais - Seguro Frota Pesada 2026",
+    "secao": "Cláusula 14.2 - Franquia e Exclusões",
+    "tabela_extraida": {
+      "tipo_veiculo": "Caminhão Trator",
+      "franquia_brl": 18500,
+      "cobertura_lucros_cessantes_dias": 15
+    },
+    "conteudo": "Cláusula 14.2 (Código SKU-FRT-9981): Para veículos da categoria Caminhão Trator, a franquia obrigatória em caso de colisão parcial é de R$ 18.500,00. Estão expressamente excluídos sinistros ocorridos fora do território nacional sem endosso prévio.",
+    "pagina": 14
   },
   {
-    "doc_id": "doc_002",
-    "tenant_id": "tenant_alpha",
-    "titulo": "Contrato de Prestação de Serviços - Master",
-    "secao": "Rescisão e Multas",
-    "conteudo": "A rescisão antecipada imotivada ensejará multa compensatória equivalente a 30% do saldo remanescente do valor do contrato.",
-    "pagina": 12
+    "doc_id": "COMPLIANCE-DIR-2026-09",
+    "tenant_id": "tenant_seguradora_alpha",
+    "allowed_roles": [
+      "diretoria"
+    ],
+    "titulo": "Ata Confidencial do Comitê de Risco e Margem Solvência",
+    "secao": "Seção 3 - Limite de Exposição Retrocessão",
+    "tabela_extraida": {
+      "teto_retrocessao_brl": 50000000,
+      "margem_minima_pct": 22.5
+    },
+    "conteudo": "DOCUMENTO RESTRITO À DIRETORIA (Código DIR-CONF-007): O teto máximo de retenção líquida por evento catastrófico no trimestre é de R$ 50.000.000,00, com gatilho automático de resseguro acima desse patamar.",
+    "pagina": 3
   },
   {
-    "doc_id": "doc_003",
-    "tenant_id": "tenant_beta",
-    "titulo": "Manual de Operação Logística",
-    "secao": "SLA de Entrega",
-    "conteudo": "Entregas na região metropolitana de Salvador e Eunápolis devem ser concluídas no prazo máximo de 48 horas úteis após o faturamento.",
-    "pagina": 2
+    "doc_id": "OPER-LOG-2026-04",
+    "tenant_id": "tenant_logistica_beta",
+    "allowed_roles": [
+      "operador_logistico",
+      "diretoria"
+    ],
+    "titulo": "Manual de SLA e Penalidades de Transporte",
+    "secao": "Tabela 2 - Prazos Regionais",
+    "tabela_extraida": {
+      "rota": "SP-BA (Eunápolis/Salvador)",
+      "prazo_horas_uteis": 48,
+      "multa_atraso_diaria_pct": 4.5
+    },
+    "conteudo": "Cláusula 8.1 (Código ROTA-BA-048): As cargas expedidas para os hubs de Salvador e Eunápolis possuem SLA máximo de 48 horas úteis. O descumprimento acarreta glosa operacional de 4,5% ao dia sobre o frete líquido.",
+    "pagina": 6
   }
 ]

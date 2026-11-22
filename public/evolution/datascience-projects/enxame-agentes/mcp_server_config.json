@@ -1,24 +1,24 @@
 {
   "mcpServers": {
-    "erpDatabase": {
+    "postgresReadOnlyNL2SQL": {
       "command": "python",
       "args": [
         "-m",
-        "mcp_servers.erp_sql"
+        "mcp_servers.sql_readonly_tool"
       ],
-      "env": {
-        "DB_URI": "postgresql://app:secret@localhost:5432/erp"
-      }
+      "security_policy": "AST validation blocking DROP, DELETE, UPDATE, INSERT, ALTER, TRUNCATE; max execution timeout 3000ms"
     },
-    "documentOcr": {
+    "erpBillingTools": {
       "command": "python",
       "args": [
         "-m",
-        "mcp_servers.vision_ocr"
+        "mcp_servers.erp_actions_tool"
       ],
-      "env": {
-        "OCR_ENGINE": "tesseract_vlm"
-      }
+      "tools_exposed": [
+        "get_invoice_details",
+        "verify_contract_ceiling",
+        "schedule_payment_with_human_gate"
+      ]
     }
   }
 }

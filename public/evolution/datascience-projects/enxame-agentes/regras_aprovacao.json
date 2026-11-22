@@ -1,6 +1,14 @@
 {
-  "alcada_automatica_maxima_reais": 10000,
-  "exige_aprovador_humano": true,
-  "tempo_expiracao_aprovacao_horas": 24,
-  "bloqueio_cnpj_inadimplente": true
+  "harness_constraints": {
+    "alcada_automatica_maxima_brl": 10000,
+    "max_agent_steps": 8,
+    "max_tokens_per_execution": 12000,
+    "sql_allowed_statements": [
+      "SELECT"
+    ],
+    "human_in_the_loop_channels": [
+      "web_dashboard",
+      "whatsapp_supervisor_alert"
+    ]
+  }
 }

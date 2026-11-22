@@ -82,6 +82,7 @@ export function RoadmapBoard({ roadmap, initialCompleted, today, onToggle, local
           const done = tasks.filter((task) => completed.has(task.id)).length;
           const isCurrent = currentDay?.id === day.id;
           const linkedinSkills = roadmap.linkedinSkillMilestones?.filter((milestone) => milestone.afterDay === day.dayNumber) ?? [];
+          const careerUpdates = roadmap.careerMilestones?.filter((milestone) => milestone.afterDay === day.dayNumber) ?? [];
           return (
             <details key={day.id} open={isCurrent || day.date === today} className={`${isCurrent ? "is-current" : ""}${day.kind === "project" ? " is-project" : ""}`}>
               <summary>
@@ -90,6 +91,11 @@ export function RoadmapBoard({ roadmap, initialCompleted, today, onToggle, local
                 <span className="evo-day-done">{done}/{tasks.length}</span>
               </summary>
               <div className="evo-day-content">
+                {careerUpdates.map((milestone) => <div className="evo-linkedin-skill-alert" key={milestone.id}>
+                  <BadgePlus size={18} />
+                  <div><small>ATUALIZAR TÍTULO E SOBRE NO LINKEDIN · {milestone.title.toUpperCase()}</small><strong>{milestone.linkedinTitle}</strong><span>{milestone.linkedinAbout ?? milestone.rationale}</span></div>
+                  <a href="https://www.linkedin.com/in/carlos-rocha-b7b09524b/" target="_blank" rel="noreferrer">Atualizar perfil</a>
+                </div>)}
                 {linkedinSkills.map((milestone) => <div className="evo-linkedin-skill-alert" key={milestone.id}>
                   <BadgePlus size={18} />
                   <div><small>NOVA COMPETÊNCIA PARA O LINKEDIN</small><strong>{milestone.skill}</strong><span>{milestone.evidence}</span></div>
